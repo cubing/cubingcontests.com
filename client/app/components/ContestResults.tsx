@@ -1,10 +1,10 @@
 'use client';
-import { useState, } from 'react';
-import { EventID, IWCIFCompetition, IWCIFEvent, IEventInfo, } from '@sh/WCIF';
+import { useState } from 'react';
+import { EventID, IWCIFCompetition, IWCIFEvent, IEventInfo } from '@sh/WCIF';
 import eventsInfo from '~/helpers/WCIFEventsData';
 
-const ContestResults = ({ contest, }: { contest: IWCIFCompetition }) => {
-  const [currEvent, setCurrEvent,] = useState<EventID>('333');
+const ContestResults = ({ contest }: { contest: IWCIFCompetition }) => {
+  const [currEvent, setCurrEvent] = useState<EventID>('333');
 
   const event: IWCIFEvent = contest.events.find((ev: IWCIFEvent) => ev.id === currEvent) || {
     id: '333',
@@ -52,7 +52,7 @@ const ContestResults = ({ contest, }: { contest: IWCIFCompetition }) => {
     }
   };
 
-  const getSolves = (attempts: Array<any>): string => {
+  const getSolves = (attempts: Array<{ result: number }>): string => {
     return attempts.map((el) => formatTime(el.result)).join(' ');
   };
 

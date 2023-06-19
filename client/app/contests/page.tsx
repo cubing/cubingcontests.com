@@ -1,20 +1,31 @@
-import { IContestInfo, } from '@sh/WCIF';
-
-import ContestRow from '@/components/ContestRow';
+import Link from 'next/link';
+import { IContestInfo } from '@sh/WCIF';
+import IDate from '@sh/interfaces/Date';
 
 export const metadata = {
   title: 'Contest Results | Deni\'s Site',
   description: 'A place for posting results from Rubik\'s cube meetups.',
   openGraph: {
-    images: ['https://denimintsaev.com/projects/contest_results.jpg',],
+    images: ['https://denimintsaev.com/projects/contest_results.jpg'],
   },
 };
 
 const fetchContestsInfo = async (): Promise<IContestInfo[]> => {
-  const res = await fetch('http://localhost:5000/api/contests');
+  const res = await fetch('http://localhost:5000/api/contests', {
+    next: {
+      revalidate: 200,
+    },
+  });
   const json = await res.json();
-  await new Promise((resolve) => setTimeout(resolve, 1000));
   return json.contestsInfo;
+};
+
+const getFormattedDate = (date: IDate): string => {
+  if (!date) return '';
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  return `${months[date.month - 1]} ${date.day}, ${date.year}`;
 };
 
 const Contests = async () => {
@@ -36,7 +47,17 @@ const Contests = async () => {
           </thead>
           <tbody>
             {contestsInfo.map((contest) => (
-              <ContestRow key={contest.id} contest={contest} />
+              <tr key={contest.id}>
+                <td>{getFormattedDate(contest.date)}</td>
+                <td>
+                  <Link href={'/contests/' + contest.id} className="link-primary">
+                    {contest.name}
+                  </Link>
+                </td>
+                <td>{contest.location}</td>
+                <td>{contest.participants}</td>
+                <td>{contest.events}</td>
+              </tr>
             ))}
           </tbody>
         </table>

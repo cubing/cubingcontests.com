@@ -9,7 +9,7 @@ export const metadata = {
   keywords: 'rubik\'s cube contest contests competition speedcubing cubing puzzle',
 };
 
-export default function RootLayout({ children, }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body data-bs-theme="dark" className="min-vh-100 d-flex flex-column">
