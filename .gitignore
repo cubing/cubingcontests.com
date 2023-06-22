@@ -1,33 +1,41 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-client/node_modules
-client/.pnp
-client/.pnp.js
+**/node_modules
+.pnp
+.pnp.js
 
 # testing
-client/coverage
+**/coverage
+**/.nyc_output
 
-# next.js
+# build files
 client/.next/
 client/out/
-
-# production
 client/build
+server/dist
 
 # misc
-client/.DS_Store
-client/*.pem
+.DS_Store
+*.pem
 
-# debug
-client/npm-debug.log*
+# debug & logs
+npm-debug.log*
+*.log
 
 # local env files
-client/.env*.local
+.env*
 
 # vercel
 client/.vercel
 
 # typescript
-client/*.tsbuildinfo
+*.tsbuildinfo
 client/next-env.d.ts
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

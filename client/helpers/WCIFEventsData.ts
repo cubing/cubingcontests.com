@@ -1,4 +1,4 @@
-import { IEventInfo } from '@sh/WCIF';
+import IEventInfo from './interfaces/EventInfo';
 
 export default [
   {
