@@ -4,11 +4,12 @@ import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CompetitionDocument } from '~/src/models/competition.model';
+import ICompetition from '@sh/interfaces/ICompetition';
 import { formatCompetition } from '~/src/helpers/competitionHelpers';
 
 @Injectable()
 export class CompetitionsService {
-  constructor(@InjectModel('Competition') private readonly model: Model<CreateCompetitionDto>) {}
+  constructor(@InjectModel('Competition') private readonly model: Model<ICompetition>) {}
 
   async getCompetitions(region?: string) {
     let queryFilter = region ? { country: region } : {};
@@ -50,7 +51,7 @@ export class CompetitionsService {
 
     if (updateCompetitionDto.name) comp.name = updateCompetitionDto.name;
     if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
-    if (updateCompetitionDto.country) comp.country = updateCompetitionDto.country;
+    if (updateCompetitionDto.countryId) comp.countryId = updateCompetitionDto.countryId;
     if (updateCompetitionDto.startDate) comp.startDate = updateCompetitionDto.startDate;
     if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
     // if (updateCompetitionDto.events?.length > 0) comp.events = updateCompetitionDto.events;

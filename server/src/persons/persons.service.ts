@@ -3,10 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { PersonDocument } from '~/src/models/person.model';
+import IPerson from '@sh/interfaces/IPerson';
 
 @Injectable()
 export class PersonsService {
-  constructor(@InjectModel('Person') private readonly model: Model<CreatePersonDto>) {}
+  constructor(@InjectModel('Person') private readonly model: Model<IPerson>) {}
 
   async getPersons() {
     try {
@@ -14,7 +15,7 @@ export class PersonsService {
       return results.map((el) => ({
         personId: el.personId,
         name: el.name,
-        country: el.country,
+        countryId: el.countryId,
       }));
     } catch (err) {
       throw new InternalServerErrorException(err.message);

@@ -4,10 +4,11 @@ import { Model } from 'mongoose';
 import { EventDocument } from '~/src/models/event.model';
 import { CreateEventDto } from './dto/create-event.dto';
 import eventsSeed from '~/src/seeds/events.seed';
+import IEvent from '@sh/interfaces/IEvent';
 
 @Injectable()
 export class EventsService {
-  constructor(@InjectModel('Event') private readonly model: Model<CreateEventDto>) {}
+  constructor(@InjectModel('Event') private readonly model: Model<IEvent>) {}
 
   // Executed before the app is bootstrapped
   async onModuleInit() {
@@ -35,7 +36,7 @@ export class EventsService {
         eventId: el.eventId,
         name: el.name,
         rank: el.rank,
-        format: el.format,
+        formatId: el.formatId,
       }));
     } catch (err) {
       throw new InternalServerErrorException(err.message);

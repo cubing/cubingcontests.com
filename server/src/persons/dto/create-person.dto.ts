@@ -1,6 +1,7 @@
 import { IsNumber, IsString, Min, MinLength } from 'class-validator';
+import IPerson from '@sh/interfaces/IPerson';
 
-export class CreatePersonDto {
+export class CreatePersonDto implements IPerson {
   @IsNumber()
   @Min(1)
   personId: number;
@@ -11,5 +12,5 @@ export class CreatePersonDto {
 
   @IsString()
   @MinLength(2)
-  country: string;
+  countryId: string;
 }

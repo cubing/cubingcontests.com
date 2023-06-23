@@ -1,15 +1,15 @@
 import { Schema, Document } from 'mongoose';
-import { CreatePersonDto } from '~/src/persons/dto/create-person.dto';
+import IPerson from '@sh/interfaces/IPerson';
 
 const PersonSchema = new Schema(
   {
     personId: { type: Number, required: true, immutable: true, unique: true },
     name: { type: String, required: true },
-    country: { type: String, required: true },
+    countryId: { type: String, required: true },
   },
   { timestamps: true },
 );
 
-export interface PersonDocument extends Document, CreatePersonDto {}
+export interface PersonDocument extends Document, IPerson {}
 
 export default PersonSchema;

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { AdminGuard } from '~/src/admin/admin.guard';
+import { AdminGuard } from '~/src/guards/admin.guard';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { PersonsService } from './persons.service';
 

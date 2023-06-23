@@ -1,4 +1,5 @@
-import { IsDateString, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsDateString, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import IRound from '@sh/interfaces/IRound';
 
 export class CreateCompetitionDto {
   @IsString()
@@ -15,7 +16,7 @@ export class CreateCompetitionDto {
 
   @IsString()
   @MinLength(2)
-  country: string;
+  countryId: string;
 
   @IsDateString()
   startDate: Date;
@@ -23,8 +24,11 @@ export class CreateCompetitionDto {
   @IsDateString()
   endDate: Date;
 
-  // ADD VALIDATION
-  // events: IEvent[];
+  // ADD VALIDATION(?)
+  events: {
+    eventId: string;
+    rounds: IRound[];
+  }[];
 
   @IsString()
   mainEventId: string;

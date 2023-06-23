@@ -1,8 +1,8 @@
-import { IsArray, IsNumber, IsString, Min, MinLength } from 'class-validator';
-import { EventFormat, RoundFormat, CutoffFormat } from '@sh/enums';
+import { IsNumber, IsString, Min, MinLength } from 'class-validator';
+import IEvent from '@sh/interfaces/IEvent';
+import { EventFormat } from '@sh/enums';
 
-export class CreateEventDto {
-  // ADD VALIDATION
+export class CreateEventDto implements IEvent {
   @IsString()
   eventId: string;
 
@@ -15,14 +15,5 @@ export class CreateEventDto {
   rank: number;
 
   // ADD VALIDATION
-  @IsString()
-  format: EventFormat;
-
-  // ADD VALIDATION
-  @IsArray()
-  allowedRoundFormats: RoundFormat[];
-
-  // ADD VALIDATION
-  @IsArray()
-  allowedCutoffFormats: CutoffFormat[];
+  formatId: EventFormat;
 }
