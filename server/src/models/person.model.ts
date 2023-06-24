@@ -1,5 +1,5 @@
 import { Schema, Document } from 'mongoose';
-import IPerson from '@sh/interfaces/IPerson';
+import IPerson from '@sh/interfaces/Person';
 
 const PersonSchema = new Schema(
   {

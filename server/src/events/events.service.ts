@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { EventDocument } from '~/src/models/event.model';
 import { CreateEventDto } from './dto/create-event.dto';
 import eventsSeed from '~/src/seeds/events.seed';
-import IEvent from '@sh/interfaces/IEvent';
+import IEvent from '@sh/interfaces/Event';
 
 @Injectable()
 export class EventsService {
@@ -36,7 +36,7 @@ export class EventsService {
         eventId: el.eventId,
         name: el.name,
         rank: el.rank,
-        formatId: el.formatId,
+        format: el.format,
       }));
     } catch (err) {
       throw new InternalServerErrorException(err.message);

@@ -1,12 +1,12 @@
 import { Schema, Document } from 'mongoose';
-import IEvent from '@sh/interfaces/IEvent';
+import IEvent from '@sh/interfaces/Event';
 
 const EventSchema = new Schema(
   {
     eventId: { type: String, required: true, immutable: true, unique: true },
     name: { type: String, required: true },
     rank: { type: Number, required: true },
-    formatId: { type: String, required: true },
+    format: { type: String, required: true },
   },
   { timestamps: true },
 );

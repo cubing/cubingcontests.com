@@ -1,5 +1,5 @@
 import { IsNumber, IsString, Min, MinLength } from 'class-validator';
-import IEvent from '@sh/interfaces/IEvent';
+import IEvent from '@sh/interfaces/Event';
 import { EventFormat } from '@sh/enums';
 
 export class CreateEventDto implements IEvent {
@@ -15,5 +15,5 @@ export class CreateEventDto implements IEvent {
   rank: number;
 
   // ADD VALIDATION
-  formatId: EventFormat;
+  format: EventFormat;
 }

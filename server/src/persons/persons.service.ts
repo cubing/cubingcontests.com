@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { PersonDocument } from '~/src/models/person.model';
-import IPerson from '@sh/interfaces/IPerson';
+import IPerson from '@sh/interfaces/Person';
 
 @Injectable()
 export class PersonsService {

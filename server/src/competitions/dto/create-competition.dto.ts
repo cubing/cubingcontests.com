@@ -1,7 +1,9 @@
 import { IsDateString, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
-import IRound from '@sh/interfaces/IRound';
+import { ICompetitionBase } from '@sh/interfaces/Competition';
+// import IRound from '@sh/interfaces/Round';
 
-export class CreateCompetitionDto {
+// The events field is the only difference from the ICompetition interface
+export class CreateCompetitionDto implements ICompetitionBase {
   @IsString()
   @MinLength(10)
   competitionId: string;
@@ -23,12 +25,6 @@ export class CreateCompetitionDto {
 
   @IsDateString()
   endDate: Date;
-
-  // ADD VALIDATION(?)
-  events: {
-    eventId: string;
-    rounds: IRound[];
-  }[];
 
   @IsString()
   mainEventId: string;

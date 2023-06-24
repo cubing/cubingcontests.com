@@ -1,5 +1,5 @@
 import { Schema, Document } from 'mongoose';
-import ICompetition from '@sh/interfaces/ICompetition';
+import ICompetition from '@sh/interfaces/Competition';
 
 const EventSubschema = new Schema(
   {
@@ -17,8 +17,9 @@ const CompetitionSchema = new Schema(
     countryId: { type: String, required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: false },
-    events: [{ type: EventSubschema }],
     mainEventId: { type: String, required: true },
+    participants: Number,
+    events: [{ type: EventSubschema }],
   },
   { timestamps: true },
 );

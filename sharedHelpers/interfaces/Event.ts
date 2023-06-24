@@ -4,7 +4,7 @@ interface IEvent {
   eventId: string;
   name: string;
   rank: number;
-  formatId: EventFormat;
+  format: EventFormat;
 }
 
 export default IEvent;

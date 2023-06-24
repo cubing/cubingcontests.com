@@ -29,4 +29,10 @@ npm run dev
 
 ### Data structure
 
-The structure of the different kinds of data (e.g: competitions, rounds, events, etc.) that are stored in the database is determined by multiple files. There are always three parts to it: an interface that determines the structure of the data, a schema that determines how the data is stored in the database (this **MUST** match the structure of the interface), and a create DTO class. The latter is used to validate incoming requests from the front-end and can either implement the interface or have a different structure if needed.
+The structure of the different kinds of data (e.g. competitions, rounds, events, etc.) that is stored in the database is determined by the following objects:
+
+- Base interface - used as the interface for the create DTO, or can be used by other classes or interfaces. Example: `ICompetitionBase`.
+- Model interface - extends the base interface, if it exists, and is used to describe the structure of the data in the DB. Example: `ICompetition`.
+- Schema - used to store the data in the DB. The schema **MUST** mirror the structure of the model interface. Also has a document interface in the same file that simply extends the `Document` class and the model interface, and is used as the return type for documents of that model.
+- Create DTO class - implements the base interface or the regular model interface, if there is no base one. Used for validating POST requests that create new documents in the DB. Example: `CreateCompetitionDto`.
+- Update DTO class - extends the create DTO class and is used for validating PATCH requests. If the data is stored in the DB with a different structure from how it is passed in PATCH requests, adds additional fields. Example: `UpdateCompetitionDto`.
