@@ -19,6 +19,8 @@ npm run dev
 
 ### Server set-up
 
+The simplest way to run the back-end if you only want to do work on the front-end is to use the `test-backend.sh` script. The server listens on port 6000. If you need to work on the back-end, ????? (WIP)
+
 ```bash
 .githooks/init # if not already done for the client set-up
 npm install --global @nestjs/cli@latest

@@ -6,8 +6,7 @@ import { CompetitionsModule } from './competitions/competitions.module';
 import { PersonsModule } from './persons/persons.module';
 import { EventsModule } from './events/events.module';
 
-const dbURI =
-  process.env.MONGODB_URI || 'mongodb://cubingcontestsdev:cubingcontestsdev123@localhost:27017/cubingcontests';
+const dbURI = process.env.MONGODB_URI || 'mongodb://mongoadmindev:mongoadmindev123@localhost:27017/admin';
 
 @Module({
   imports: [MongooseModule.forRoot(dbURI), CompetitionsModule, PersonsModule, EventsModule],

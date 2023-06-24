@@ -19,7 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "~/*": ["./*"],
-      "@sh/*": ["../sharedHelpers/*"]
+      "@sh/*": ["../shared_helpers/*"]
     }
   }
 }
