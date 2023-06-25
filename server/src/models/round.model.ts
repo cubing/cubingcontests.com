@@ -3,7 +3,7 @@ import IRound from '@sh/interfaces/Round';
 
 const ResultSubschema = new Schema(
   {
-    personId: { type: Number, required: true },
+    personId: { type: String, required: true },
     ranking: { type: Number, required: true },
     attempts: [{ type: Number, required: true }],
     best: { type: Number, required: true },

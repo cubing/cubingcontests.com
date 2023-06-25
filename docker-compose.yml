@@ -13,7 +13,7 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongoadmindev
       - MONGO_INITDB_ROOT_PASSWORD=mongoadmindev123
-      - MONGO_INITDB_DATABASE=cubingcontests
+      # - MONGO_INITDB_DATABASE=cubingcontests
     restart: unless-stopped
   mongo-express:
     container_name: cc-mongo-express
@@ -29,19 +29,19 @@ services:
     depends_on:
       - mongo
     restart: unless-stopped
-  cc-api:
-    container_name: cc-api
-    image: cubingcontests-api
-    networks:
-      - cubingcontests-dev
-    ports:
-      - 127.0.0.1:6000:6000
-    environment:
-      # This is different from the URI in server/src/app.module.ts, because that one uses @localhost
-      - MONGODB_URI=mongodb://mongoadmindev:mongoadmindev123@cc-mongo:27017/admin
-    depends_on:
-      - mongo
-    restart: unless-stopped
+  # cc-api:
+  #   container_name: cc-api
+  #   image: cubingcontests-api
+  #   networks:
+  #     - cubingcontests-dev
+  #   ports:
+  #     - 127.0.0.1:4000:4000
+  #   environment:
+  #     # This is different from the URI in server/src/app.module.ts, because that one uses @localhost
+  #     - MONGODB_URI=mongodb://mongoadmindev:mongoadmindev123@cc-mongo:27017/admin
+  #   depends_on:
+  #     - mongo
+  #   restart: unless-stopped
 networks:
   cubingcontests-dev:
 volumes:

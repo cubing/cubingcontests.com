@@ -11,12 +11,14 @@ export class CompetitionsController {
   // GET /competitions?region=Region
   @Get()
   async getCompetitions(@Query('region') region: string) {
+    console.log('Getting competitions');
     return await this.competitionsService.getCompetitions(region);
   }
 
   // GET /competitions/:id
   @Get(':id')
   async getCompetition(@Param('id') competitionId: string) {
+    console.log(`Getting competition with id ${competitionId}`);
     return await this.competitionsService.getCompetition(competitionId);
   }
 
@@ -24,6 +26,7 @@ export class CompetitionsController {
   @Post()
   @UseGuards(AdminGuard)
   async createCompetition(@Body(new ValidationPipe()) createCompetitionDto: CreateCompetitionDto) {
+    console.log('Creating competition');
     return await this.competitionsService.createCompetition(createCompetitionDto);
   }
 
@@ -31,6 +34,7 @@ export class CompetitionsController {
   @Patch(':id')
   @UseGuards(AdminGuard)
   async updateCompetition(@Param('id') competitionId: string, @Body() updateCompetitionDto: UpdateCompetitionDto) {
+    console.log('Updating competition');
     return await this.competitionsService.updateCompetition(competitionId, updateCompetitionDto);
   }
 
@@ -38,6 +42,7 @@ export class CompetitionsController {
   @Delete(':id')
   @UseGuards(AdminGuard)
   async deleteCompetition(@Param('id') competitionId: string) {
+    console.log(`Deleting competition with id ${competitionId}`);
     return await this.competitionsService.deleteCompetition(competitionId);
   }
 }

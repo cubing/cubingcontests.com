@@ -1,26 +1,25 @@
 'use client';
 import { useState } from 'react';
-import { EventID, IWCIFCompetition, IWCIFEvent, IEventInfo } from '@sh/WCIF';
-import eventsInfo from '~/helpers/WCIFEventsData';
+import IEvent from '@sh/interfaces/Event';
+import IPerson from '@sh/interfaces/Person';
+import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
+import { IResult } from '@sh/interfaces/Round';
 
-const ContestResults = ({ contest }: { contest: IWCIFCompetition }) => {
-  const [currEvent, setCurrEvent] = useState<EventID>('333');
+const ContestResults = ({ data: { competition, eventsInfo, persons } }: { data: ICompetitionData }) => {
+  const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(
+    competition.events ? competition.events[0] : null,
+  );
 
-  const event: IWCIFEvent = contest.events.find((ev: IWCIFEvent) => ev.id === currEvent) || {
-    id: '333',
-    rounds: [],
-  };
-  const events: IEventInfo[] = contest.events.map((ev: IWCIFEvent) => eventsInfo.find((eo) => eo.id === ev.id));
+  const currEventInfo = eventsInfo.find((el) => el.eventId === currEvent?.eventId) || null;
 
   const getName = (personId: string): string => {
-    if (!personId.includes(';')) {
-      return contest.persons.find((el) => el.registrantId === personId)?.name || '';
-    } else {
-      return personId
-        .split(';')
-        .map((id: string) => contest.persons.find((el) => el.registrantId === id)?.name)
-        .join(' & ');
-    }
+    if (!persons || personId === '') throw new Error('Name not found');
+
+    // To account for team events that have multiple people separated by ;
+    return personId
+      .split(';')
+      .map((id: string) => persons.find((el: IPerson) => el.personId.toString() === id)?.name || 'Error')
+      .join(' & ');
   };
 
   const formatTime = (time: number, isAverage = false): string => {
@@ -28,7 +27,7 @@ const ContestResults = ({ contest }: { contest: IWCIFCompetition }) => {
       return 'DNF';
     } else if (time === -2) {
       return 'DNS';
-    } else if (event.id === '333fm') {
+    } else if (currEventInfo?.format === 'number') {
       if (isAverage) return (time / 100).toFixed(2);
       else return time.toString();
     } else {
@@ -52,47 +51,71 @@ const ContestResults = ({ contest }: { contest: IWCIFCompetition }) => {
     }
   };
 
-  const getSolves = (attempts: Array<{ result: number }>): string => {
-    return attempts.map((el) => formatTime(el.result)).join(' ');
+  const getSolves = (attempts: number[]): string => {
+    // The character in quotes is an em space
+    return attempts.map((el) => formatTime(el)).join(' ');
   };
 
   return (
     <>
-      <div className="my-5 mx-2 d-flex flex-row flex-wrap gap-2">
-        {events.map((ev) => (
-          <button
-            key={ev.id}
-            onClick={() => setCurrEvent(ev.id)}
-            className={'btn btn-light' + (ev.id === currEvent ? ' active' : '')}
-          >
-            {ev.name}
-          </button>
-        ))}
+      <div className="mt-5 mb-3 fs-5">
+        <p>
+          Location:&#8194;
+          <b>
+            {competition.city}, {competition.countryId}
+          </b>
+        </p>
+        {competition.participants && (
+          <p>
+            Number of participants:&#8194;<b>{competition.participants}</b>
+          </p>
+        )}
       </div>
-      <div className="flex-grow-1 table-responsive">
-        <table className="table table-hover table-responsive text-nowrap">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Best</th>
-              <th>Average</th>
-              <th>Solves</th>
-            </tr>
-          </thead>
-          <tbody>
-            {event.rounds[0].results.map((result) => (
-              <tr key={result.personId}>
-                <td>{result.ranking}</td>
-                <td>{getName(result.personId)}</td>
-                <td>{formatTime(result.best)}</td>
-                <td>{formatTime(result.average, true)}</td>
-                <td>{getSolves(result.attempts)}</td>
-              </tr>
+      {!competition.events ? (
+        <p className="fs-5">The results for this competition have not been posted yet</p>
+      ) : (
+        <>
+          <div className="mb-5 mx-2 d-flex flex-row flex-wrap gap-2">
+            {eventsInfo.map((event: IEvent) => (
+              <button
+                key={event.eventId}
+                onClick={() =>
+                  setCurrEvent(
+                    competition.events?.find((el: ICompetitionEvent) => el.eventId === event.eventId) || null,
+                  )
+                }
+                className={'btn btn-light' + (currEvent?.eventId === event.eventId ? ' active' : '')}
+              >
+                {event.name}
+              </button>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+          <div className="flex-grow-1 table-responsive">
+            <table className="table table-hover table-responsive text-nowrap">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Best</th>
+                  <th>Average</th>
+                  <th>Solves</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currEvent?.rounds[0].results.map((result: IResult) => (
+                  <tr key={result.personId}>
+                    <td>{result.ranking}</td>
+                    <td>{getName(result.personId)}</td>
+                    <td>{formatTime(result.best)}</td>
+                    <td>{formatTime(result.average, true)}</td>
+                    <td>{getSolves(result.attempts)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </>
   );
 };

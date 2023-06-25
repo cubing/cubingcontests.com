@@ -1,24 +1,26 @@
-import { IWCIFCompetition } from '@sh/WCIF';
-
 import ContestResults from '@/components/ContestResults';
+import { ICompetitionData } from '@sh/interfaces/Competition';
 
-const fetchContest = async (id: string): Promise<IWCIFCompetition> => {
-  const res = await fetch(`http://localhost:5000/api/contests/${id}`, {
-    next: {
-      revalidate: 600,
-    },
-  });
-  const json = await res.json();
-  return json.contest;
+const fetchCompetition = async (id: string) => {
+  try {
+    const res = await fetch(`http://localhost:4000/competitions/${id}`, {
+      next: {
+        revalidate: 600,
+      },
+    });
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const Contest = async ({ params }: { params: { id: string } }) => {
-  const contest: IWCIFCompetition = await fetchContest(params.id);
+  const data: ICompetitionData = await fetchCompetition(params.id);
 
   return (
     <>
-      <h2 className="text-center">{contest.name}</h2>
-      <ContestResults contest={contest} />
+      <h2 className="text-center">{data.competition.name}</h2>
+      {data ? <ContestResults data={data} /> : <p>Error</p>}
     </>
   );
 };

@@ -22,18 +22,19 @@ export class PersonsService {
     }
   }
 
-  async createPerson(createPersonDto: CreatePersonDto) {
-    const person: PersonDocument = await this.model.findOne({
-      personId: createPersonDto.personId,
-    });
+  async createPerson(createPersonDto: CreatePersonDto): Promise<number> {
+    const newestPerson: PersonDocument[] = await this.model.find().sort({ personId: -1 }).limit(1);
+    let personId = 1;
 
-    if (person) {
-      throw new BadRequestException(`Person with id ${createPersonDto.personId} already exists!`);
+    // If it's not the first person to be created, get the highest person id in the DB and increment it
+    if (newestPerson.length > 0) {
+      personId = newestPerson[0].personId + 1;
     }
 
     try {
-      const newPerson = new this.model(createPersonDto);
+      const newPerson = new this.model({ personId, ...createPersonDto });
       await newPerson.save();
+      return personId;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { IContestInfo } from '@sh/WCIF';
-import IDate from '@sh/interfaces/Date';
+import ICompetition from '@sh/interfaces/Competition';
 
 export const metadata = {
   title: 'Contest Results | Deni\'s Site',
@@ -10,26 +9,37 @@ export const metadata = {
   },
 };
 
-const fetchContestsInfo = async (): Promise<IContestInfo[]> => {
-  const res = await fetch('http://localhost:5000/api/contests', {
-    next: {
-      revalidate: 200,
-    },
-  });
-  const json = await res.json();
-  return json.contestsInfo;
+const fetchCompetitions = async (): Promise<ICompetition[]> => {
+  try {
+    const res = await fetch('http://127.0.0.1:4000/competitions', {
+      next: {
+        revalidate: 300,
+      },
+    });
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
 };
 
-const getFormattedDate = (date: IDate): string => {
-  if (!date) return '';
+const getFormattedDate = (start: Date, end: Date): string => {
+  if (!start || !end) throw new Error('Dates missing!');
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const startDate = new Date(start);
+  const endDate = new Date(end);
 
-  return `${months[date.month - 1]} ${date.day}, ${date.year}`;
+  if (startDate.toString() === endDate.toString()) {
+    console.log(typeof startDate);
+    return `${months[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}`;
+  } else {
+    return 'Not implemented';
+  }
 };
 
 const Contests = async () => {
-  const contestsInfo: IContestInfo[] = await fetchContestsInfo();
+  const competitions: ICompetition[] = await fetchCompetitions();
 
   return (
     <>
@@ -46,17 +56,19 @@ const Contests = async () => {
             </tr>
           </thead>
           <tbody>
-            {contestsInfo.map((contest) => (
-              <tr key={contest.id}>
-                <td>{getFormattedDate(contest.date)}</td>
+            {competitions.map((comp: ICompetition) => (
+              <tr key={comp.competitionId}>
+                <td>{getFormattedDate(comp.startDate, comp.endDate) || 'Error'}</td>
                 <td>
-                  <Link href={'/contests/' + contest.id} className="link-primary">
-                    {contest.name}
+                  <Link href={'/contests/' + comp.competitionId} className="link-primary">
+                    {comp.name}
                   </Link>
                 </td>
-                <td>{contest.location}</td>
-                <td>{contest.participants}</td>
-                <td>{contest.events}</td>
+                <td>
+                  {comp.city}, {comp.countryId}
+                </td>
+                <td>{comp.participants || '–'}</td>
+                <td>{comp.events?.length || '–'}</td>
               </tr>
             ))}
           </tbody>
