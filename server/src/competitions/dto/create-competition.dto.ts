@@ -1,23 +1,22 @@
-import { IsDateString, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { IsDateString, IsEnum, IsIn, IsNumber, IsOptional, IsString, Matches, Min, MinLength } from 'class-validator';
 import { ICompetitionBase } from '@sh/interfaces/Competition';
-// import IRound from '@sh/interfaces/Round';
+import Countries from '@sh/Countries';
 
 // The events field is the only difference from the ICompetition interface
 export class CreateCompetitionDto implements ICompetitionBase {
   @IsString()
-  @MinLength(10)
+  @Matches(/^[A-Z][a-zA-Z0-9]{9,}$/)
   competitionId: string;
 
   @IsString()
-  @MinLength(3)
+  @Matches(/^[A-Z][a-zA-Z0-9 ]{9,}$/)
   name: string;
 
   @IsString()
-  @MinLength(2)
+  @Matches(/^[A-Z][a-zA-Z -]+$/)
   city: string;
 
-  @IsString()
-  @MinLength(2)
+  @IsIn(Countries.map((el) => el.code))
   countryId: string;
 
   @IsDateString()
@@ -27,5 +26,6 @@ export class CreateCompetitionDto implements ICompetitionBase {
   endDate: Date;
 
   @IsString()
+  @MinLength(3)
   mainEventId: string;
 }

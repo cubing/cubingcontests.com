@@ -29,7 +29,7 @@ export class EventsService {
     }
   }
 
-  async getEvents() {
+  async getEvents(): Promise<IEvent[]> {
     try {
       const results: EventDocument[] = await this.model.find().exec();
       return results.map((el) => ({
@@ -44,12 +44,14 @@ export class EventsService {
   }
 
   async createEvent(createEventDto: CreateEventDto) {
-    const event: Event = await this.model.findOne({
-      eventId: createEventDto.eventId,
-    });
+    const event: EventDocument = await this.model
+      .findOne({
+        eventId: createEventDto.eventId,
+      })
+      .exec();
 
     if (event) {
-      throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists!`);
+      throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
     }
 
     try {

@@ -4,6 +4,7 @@ import IEvent from '@sh/interfaces/Event';
 import IPerson from '@sh/interfaces/Person';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
 import { IResult } from '@sh/interfaces/Round';
+import Countries from '@sh/Countries';
 
 const ContestResults = ({ data: { competition, eventsInfo, persons } }: { data: ICompetitionData }) => {
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(
@@ -62,7 +63,7 @@ const ContestResults = ({ data: { competition, eventsInfo, persons } }: { data: 
         <p>
           Location:&#8194;
           <b>
-            {competition.city}, {competition.countryId}
+            {competition.city}, {Countries.find((el) => el.code === competition.countryId)?.name}
           </b>
         </p>
         {competition.participants && (

@@ -1,9 +1,10 @@
-import { IsNumber, IsString, Min, MinLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, MinLength } from 'class-validator';
 import IEvent from '@sh/interfaces/Event';
 import { EventFormat } from '@sh/enums';
 
 export class CreateEventDto implements IEvent {
   @IsString()
+  @MinLength(3)
   eventId: string;
 
   @IsString()
@@ -14,6 +15,6 @@ export class CreateEventDto implements IEvent {
   @Min(0)
   rank: number;
 
-  // ADD VALIDATION
+  @IsEnum(EventFormat)
   format: EventFormat;
 }

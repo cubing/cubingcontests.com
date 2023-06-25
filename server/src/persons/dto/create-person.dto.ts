@@ -1,13 +1,12 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsEnum, IsIn, IsString, MinLength } from 'class-validator';
 import { IPersonBase } from '@sh/interfaces/Person';
+import Countries from '@sh/Countries';
 
 export class CreatePersonDto implements IPersonBase {
   @IsString()
   @MinLength(3)
   name: string;
 
-  // ADD VALIDATION
-  @IsString()
-  @MinLength(2)
+  @IsIn(Countries.map((el) => el.code))
   countryId: string;
 }

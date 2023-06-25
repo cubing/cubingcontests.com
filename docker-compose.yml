@@ -39,6 +39,7 @@ services:
   #   environment:
   #     # This is different from the URI in server/src/app.module.ts, because that one uses @localhost
   #     - MONGODB_URI=mongodb://mongoadmindev:mongoadmindev123@cc-mongo:27017/admin
+  # FOR PRODUCTION ADD NODE_ENV=production !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   #   depends_on:
   #     - mongo
   #   restart: unless-stopped

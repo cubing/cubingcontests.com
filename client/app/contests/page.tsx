@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ICompetition from '@sh/interfaces/Competition';
+import Countries from '@sh/Countries';
 
 export const metadata = {
   title: 'Contest Results | Deni\'s Site',
@@ -12,8 +13,9 @@ export const metadata = {
 const fetchCompetitions = async (): Promise<ICompetition[]> => {
   try {
     const res = await fetch('http://127.0.0.1:4000/competitions', {
+      // Otherwise when the admin creates a new comp, they can't see it
       next: {
-        revalidate: 300,
+        revalidate: 0,
       },
     });
     return await res.json();
@@ -65,7 +67,7 @@ const Contests = async () => {
                   </Link>
                 </td>
                 <td>
-                  {comp.city}, {comp.countryId}
+                  {comp.city}, {Countries.find((el) => el.code === comp.countryId)?.name}
                 </td>
                 <td>{comp.participants || '–'}</td>
                 <td>{comp.events?.length || '–'}</td>

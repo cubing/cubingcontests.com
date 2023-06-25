@@ -107,7 +107,7 @@ export class CompetitionsService {
       .exec();
 
     if (comp) {
-      throw new BadRequestException(`Competition with id ${createCompetitionDto.competitionId} already exists!`);
+      throw new BadRequestException(`Competition with id ${createCompetitionDto.competitionId} already exists`);
     }
 
     try {
@@ -177,7 +177,7 @@ export class CompetitionsService {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (result.deletedCount === 0) throw new NotFoundException(`Competition with id ${competitionId} not found!`);
+    if (result.deletedCount === 0) throw new NotFoundException(`Competition with id ${competitionId} not found`);
   }
 
   // HELPER METHODS
@@ -191,7 +191,7 @@ export class CompetitionsService {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (!competition) throw new NotFoundException(`Competition with id ${competitionId} not found!`);
+    if (!competition) throw new NotFoundException(`Competition with id ${competitionId} not found`);
 
     return competition;
   }
