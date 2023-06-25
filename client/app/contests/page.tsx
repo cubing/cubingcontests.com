@@ -33,7 +33,6 @@ const getFormattedDate = (start: Date, end: Date): string => {
   const endDate = new Date(end);
 
   if (startDate.toString() === endDate.toString()) {
-    console.log(typeof startDate);
     return `${months[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}`;
   } else {
     return 'Not implemented';

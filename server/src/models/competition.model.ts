@@ -4,7 +4,7 @@ import ICompetition from '@sh/interfaces/Competition';
 const EventSubschema = new Schema(
   {
     eventId: { type: String, required: true },
-    rounds: [{ type: String, required: true }],
+    rounds: [{ type: Schema.Types.ObjectId, ref: 'Round', required: true }],
   },
   { _id: false },
 );

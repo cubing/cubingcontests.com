@@ -13,16 +13,13 @@ export interface IResult {
   regionalAverageRecord?: string;
 }
 
-export interface IRoundBase {
+export interface IRound {
+  // competitionId and eventId are only used for the model can be used to find where the round belongs
+  competitionId?: string; // reference to competition in the database
+  eventId?: string;
   roundTypeId: RoundType;
   format: RoundFormat;
   results: IResult[];
-}
-
-interface IRound extends IRoundBase {
-  // competitionId and eventId can be used to find where the round belongs
-  competitionId: string; // reference to competition in the database
-  eventId: string;
 }
 
 export default IRound;

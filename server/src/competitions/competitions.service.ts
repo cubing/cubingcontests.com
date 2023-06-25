@@ -6,8 +6,8 @@ import { Model } from 'mongoose';
 import { CompetitionDocument } from '~/src/models/competition.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { EventDocument } from '~/src/models/event.model';
-import ICompetition, { ICompetitionData } from '@sh/interfaces/Competition';
-import IRound, { IResult, IRoundBase } from '@sh/interfaces/Round';
+import ICompetition, { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
+import IRound, { IResult } from '@sh/interfaces/Round';
 import IEvent from '@sh/interfaces/Event';
 import IPerson from '@sh/interfaces/Person';
 
@@ -31,45 +31,17 @@ export class CompetitionsService {
   }
 
   async getCompetition(competitionId: string) {
-    const comp: CompetitionDocument = await this.findCompetition(competitionId);
+    const competition: CompetitionDocument = await this.findCompetition(competitionId, true);
 
     const output: ICompetitionData = {
-      competition: {
-        competitionId: comp.competitionId,
-        name: comp.name,
-        city: comp.city,
-        countryId: comp.countryId,
-        startDate: comp.startDate,
-        endDate: comp.endDate,
-        mainEventId: comp.mainEventId,
-      },
+      competition,
       eventsInfo: [],
       persons: [],
     };
 
-    if (comp.events.length > 0) {
-      output.competition.events = [];
+    if (competition.events.length > 0) {
       const personIds: number[] = [];
-
-      for (let event of comp.events) {
-        const outputEvent = { eventId: event.eventId, rounds: [] as IRoundBase[] };
-
-        for (let roundId of event.rounds) {
-          const round: RoundDocument = await this.roundModel.findById(roundId).exec();
-          outputEvent.rounds.push({
-            roundTypeId: round.roundTypeId,
-            format: round.format,
-            results: round.results,
-          } as IRoundBase);
-
-          // Check participants
-          personIds.push(...this.getPersonsInRound(round.results, personIds));
-        }
-
-        output.competition.events.push(outputEvent);
-      }
-
-      output.competition.participants = comp.participants;
+      output.competition.participants = this.getCompetitionParticipants(competition.events, personIds);
 
       // Get information about all participants of the competition
       const personResults = await this.personModel.find({ personId: { $in: personIds } }).exec();
@@ -135,7 +107,6 @@ export class CompetitionsService {
       }
 
       comp.events = [];
-      const personIds: number[] = []; // used for counting the number of participants
 
       for (let event of updateCompetitionDto.events) {
         const newEvent = { eventId: event.eventId, rounds: [] as string[] };
@@ -148,15 +119,12 @@ export class CompetitionsService {
           });
           await newRound.save();
           newEvent.rounds.push(newRound._id);
-
-          // For counting the number of unique participants later
-          personIds.push(...this.getPersonsInRound(round.results, personIds));
         }
 
         comp.events.push(newEvent);
       }
 
-      comp.participants = personIds.length;
+      comp.participants = this.getCompetitionParticipants(comp.events);
     }
 
     try {
@@ -182,11 +150,12 @@ export class CompetitionsService {
 
   // HELPER METHODS
 
-  private async findCompetition(competitionId: string): Promise<CompetitionDocument> {
+  private async findCompetition(competitionId: string, populate = false): Promise<CompetitionDocument> {
     let competition: CompetitionDocument;
 
     try {
-      competition = await this.competitionModel.findOne({ competitionId }).exec();
+      competition = await this.competitionModel.findOne({ competitionId }).populate('rounds').exec();
+      console.log(competition);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -197,16 +166,18 @@ export class CompetitionsService {
   }
 
   // Only gets persons that aren't already in the personIds array
-  private getPersonsInRound(results: IResult[], personIds: number[]): number[] {
-    const personIdsInRound: number[] = [];
-
-    for (let result of results) {
-      // personId can have multiple ids separated by ; so all ids need to be checked
-      for (let personId of result.personId.split(';').map((el) => parseInt(el))) {
-        if (!personIds.includes(personId)) personIdsInRound.push(personId);
+  private getCompetitionParticipants(events: ICompetitionEvent[], personIds: number[] = []): number {
+    for (let event of events) {
+      for (let round of event.rounds) {
+        for (let result of (round as IRound).results) {
+          // personId can have multiple ids separated by ; so all ids need to be checked
+          for (let personId of result.personId.split(';').map((el) => parseInt(el))) {
+            if (!personIds.includes(personId)) personIds.push(personId);
+          }
+        }
       }
     }
 
-    return personIdsInRound;
+    return personIds.length;
   }
 }

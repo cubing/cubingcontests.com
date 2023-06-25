@@ -2,14 +2,13 @@ import { IsDateString, IsEnum, IsIn, IsNumber, IsOptional, IsString, Matches, Mi
 import { ICompetitionBase } from '@sh/interfaces/Competition';
 import Countries from '@sh/Countries';
 
-// The events field is the only difference from the ICompetition interface
 export class CreateCompetitionDto implements ICompetitionBase {
   @IsString()
   @Matches(/^[A-Z][a-zA-Z0-9]{9,}$/)
   competitionId: string;
 
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z0-9 ]{9,}$/)
+  @Matches(/^[A-Z0-9][a-zA-Z0-9 -:']{9,}$/)
   name: string;
 
   @IsString()

@@ -1,4 +1,4 @@
-import { IsEnum, IsIn, IsString, MinLength } from 'class-validator';
+import { IsIn, IsString, MinLength } from 'class-validator';
 import { IPersonBase } from '@sh/interfaces/Person';
 import Countries from '@sh/Countries';
 
