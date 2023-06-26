@@ -9,7 +9,7 @@ export class CompetitionEvent implements ICompetitionEvent {
   eventId: string;
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Round' }], required: true })
-  rounds: mongoose.Types.ObjectId[];
+  rounds: Round[];
 }
 
 const CompetitionEventSchema = SchemaFactory.createForClass(CompetitionEvent);

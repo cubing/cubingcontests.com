@@ -105,7 +105,7 @@ export class CompetitionsService {
               ...round,
             });
             await newRound.save();
-            newEvent.rounds.push(newRound._id);
+            newEvent.rounds.push(newRound);
 
             this.getParticipantsInRound(newRound, personIds);
           }
@@ -173,13 +173,14 @@ export class CompetitionsService {
 
     for (let event of events) {
       for (let round of event.rounds) {
-        this.getParticipantsInRound(round as IRound, personIds);
+        this.getParticipantsInRound(round, personIds);
       }
     }
 
     return personIds;
   }
 
+  // Adds new unique participants to the personIds array
   private getParticipantsInRound(round: IRound, personIds: number[]): void {
     for (let result of round.results) {
       // personId can have multiple ids separated by ; so all ids need to be checked

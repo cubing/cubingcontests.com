@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import './CompetitionForm.css';
-import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
+import DatePicker from 'react-datepicker';
+// import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 // import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
 import Countries from '@sh/Countries';
