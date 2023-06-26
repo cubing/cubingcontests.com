@@ -28,5 +28,5 @@ The structure of the different kinds of data (e.g. competitions, rounds, events,
 
 - Interface - describes the structure of the data in the DB. Example: `ICompetition`.
 - Schema class - implements the interface and is used to store the data in the DB. Also has a document type in the same file that is used as the return type for documents of that model.
-- Create DTO class - implements the interface and is used for validating POST requests that create new documents in the DB. May be missing some fields from the interface, if they are not needed on creation. Those fields are marked as optional in the interface. Example: `CreateCompetitionDto`.
+- Create DTO class - implements the interface and is used for validating POST requests that create new documents in the DB. May be missing some fields from the interface, if they are not needed on creation. Those fields can be marked as optional in the interface, or, alternatively, the class can simply not implement any interface. In the latter case you have to remember to update the DTO when updating the interface. Example: `CreateCompetitionDto`.
 - Update DTO class - extends the create DTO class and is used for validating PATCH requests. If needed, some fields can be added here to make them editable after the creation of the document.. Example: `UpdateCompetitionDto`.

@@ -52,10 +52,10 @@ class Result implements IResult {
   @Prop({ required: true })
   average: number;
 
-  @Prop({ required: true })
+  @Prop()
   regionalSingleRecord?: string;
 
-  @Prop({ required: true })
+  @Prop()
   regionalAverageRecord?: string;
 }
 

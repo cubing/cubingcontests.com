@@ -3,15 +3,15 @@ import { useState } from 'react';
 import IEvent from '@sh/interfaces/Event';
 import IPerson from '@sh/interfaces/Person';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
-import { IResult } from '@sh/interfaces/Round';
+import IRound, { IResult } from '@sh/interfaces/Round';
 import Countries from '@sh/Countries';
 
 const ContestResults = ({ data: { competition, eventsInfo, persons } }: { data: ICompetitionData }) => {
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(
-    competition.events ? competition.events[0] : null,
+    competition.events?.length > 0 ? competition.events[0] : null,
   );
 
-  const currEventInfo = eventsInfo.find((el) => el.eventId === currEvent?.eventId) || null;
+  const currEventInfo = currEvent ? eventsInfo.find((el) => el.eventId === currEvent.eventId) : null;
 
   const getName = (personId: string): string => {
     if (!persons || personId === '') throw new Error('Name not found');
@@ -72,7 +72,7 @@ const ContestResults = ({ data: { competition, eventsInfo, persons } }: { data: 
           </p>
         )}
       </div>
-      {!competition.events ? (
+      {competition.events.length === 0 ? (
         <p className="fs-5">The results for this competition have not been posted yet</p>
       ) : (
         <>
@@ -103,7 +103,7 @@ const ContestResults = ({ data: { competition, eventsInfo, persons } }: { data: 
                 </tr>
               </thead>
               <tbody>
-                {currEvent?.rounds[0].results.map((result: IResult) => (
+                {(currEvent?.rounds[0] as IRound).results.map((result: IResult) => (
                   <tr key={result.personId}>
                     <td>{result.ranking}</td>
                     <td>{getName(result.personId)}</td>

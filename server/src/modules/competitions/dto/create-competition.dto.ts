@@ -1,8 +1,7 @@
 import { IsDateString, IsEnum, IsIn, IsNumber, IsOptional, IsString, Matches, Min, MinLength } from 'class-validator';
-import ICompetition from '@sh/interfaces/Competition';
 import Countries from '@sh/Countries';
 
-export class CreateCompetitionDto implements ICompetition {
+export class CreateCompetitionDto {
   @IsString()
   @Matches(/^[A-Z][a-zA-Z0-9]{9,}$/)
   competitionId: string;

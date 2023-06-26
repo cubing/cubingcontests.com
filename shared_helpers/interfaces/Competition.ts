@@ -4,8 +4,9 @@ import IPerson from './Person';
 
 export interface ICompetitionEvent {
   eventId: string;
-  // string[] is for storing references to the rounds in the db
-  rounds: IRound[];
+  // unknown[] (ObjectId[]) is for storing references to the rounds in the db, while for returning
+  // the document to the frontend we populate the rounds with IRound documents from the DB
+  rounds: IRound[] | unknown[];
 }
 
 interface ICompetition {
@@ -16,9 +17,8 @@ interface ICompetition {
   startDate: Date;
   endDate: Date;
   mainEventId: string;
-  // Both of these are only set if the competition results have been posted
-  participants?: number;
-  events?: ICompetitionEvent[];
+  participants: number;
+  events: ICompetitionEvent[];
 }
 
 export interface ICompetitionData {

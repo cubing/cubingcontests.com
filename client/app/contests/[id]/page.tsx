@@ -8,9 +8,11 @@ const fetchCompetition = async (id: string) => {
         revalidate: 600,
       },
     });
+
     return await res.json();
   } catch (err) {
     console.error(err);
+    return null;
   }
 };
 
@@ -19,8 +21,8 @@ const Contest = async ({ params }: { params: { id: string } }) => {
 
   return (
     <>
-      <h2 className="text-center">{data.competition.name}</h2>
-      {data ? <ContestResults data={data} /> : <p>Error</p>}
+      <h2 className="text-center">{data?.competition.name || 'Error'}</h2>
+      {data && <ContestResults data={data} />}
     </>
   );
 };

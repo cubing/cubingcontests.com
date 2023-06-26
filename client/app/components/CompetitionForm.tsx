@@ -6,7 +6,7 @@ import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Countries from '@sh/Countries';
 import IEvent from '@sh/interfaces/Event';
-import { ICompetitionBase } from '@sh/interfaces/Competition';
+import ICompetition from '@sh/interfaces/Competition';
 
 // registerLocale('en-GB', enGB);
 // setDefaultLocale('en-GB');
@@ -36,7 +36,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
           startDate,
           endDate,
           mainEventId,
-        } as ICompetitionBase),
+        } as ICompetition),
       });
 
       if (response.status !== 201) {
