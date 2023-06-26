@@ -19,7 +19,8 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "~/*": ["./*"],
-      "@sh/*": ["../shared_helpers/*"]
+      "@sh/*": ["../shared_helpers/*"],
+      "@m/*": ["./src/modules/*"]
     }
   }
 }

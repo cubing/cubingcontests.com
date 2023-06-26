@@ -33,7 +33,10 @@ export class CompetitionsController {
   // PATCH /competitions/:id
   @Patch(':id')
   @UseGuards(AdminGuard)
-  async updateCompetition(@Param('id') competitionId: string, @Body() updateCompetitionDto: UpdateCompetitionDto) {
+  async updateCompetition(
+    @Param('id') competitionId: string,
+    @Body(new ValidationPipe()) updateCompetitionDto: UpdateCompetitionDto,
+  ) {
     console.log('Updating competition');
     return await this.competitionsService.updateCompetition(competitionId, updateCompetitionDto);
   }

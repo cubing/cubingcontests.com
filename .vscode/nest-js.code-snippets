@@ -4,7 +4,7 @@
     "prefix": "monmod",
     "body": [
       "import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';",
-      "import mongoose, { HydratedDocument } from 'mongoose';",
+      "import { HydratedDocument } from 'mongoose';",
       "import I${1:Object} from '@sh/interfaces/${1:Object}';",
       "",
       "@Schema({ timestamps: true })",
@@ -18,5 +18,10 @@
       "export const ${1:Object}Schema = SchemaFactory.createForClass(${1:Object});"
     ],
     "description": "Create Mongoose model"
+  },
+  "Service Injection": {
+    "scope": "typescript",
+    "prefix": "inject",
+    "body": "constructor(@InjectModel('${1:Object}') private readonly model: Model<${1:Object}>) {}$0"
   }
 }

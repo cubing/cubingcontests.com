@@ -25,7 +25,7 @@ export class EventsService {
         console.log('Events table already seeded');
       }
     } catch (err) {
-      throw err;
+      throw new InternalServerErrorException(err.message);
     }
   }
 
