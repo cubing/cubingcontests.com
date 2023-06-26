@@ -2,21 +2,16 @@ import { BadRequestException, Injectable, InternalServerErrorException } from '@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
-import { PersonDocument } from '~/src/models/person.model';
-import IPerson from '@sh/interfaces/Person';
+import { PersonDocument, Person } from '~/src/models/person.model';
+import { excl } from '~/src/helpers/dbHelpers';
 
 @Injectable()
 export class PersonsService {
-  constructor(@InjectModel('Person') private readonly model: Model<IPerson>) {}
+  constructor(@InjectModel('Person') private readonly model: Model<Person>) {}
 
-  async getPersons() {
+  async getPersons(): Promise<Person[]> {
     try {
-      const results: PersonDocument[] = await this.model.find().exec();
-      return results.map((el) => ({
-        personId: el.personId,
-        name: el.name,
-        countryId: el.countryId,
-      }));
+      return await this.model.find({}, excl).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

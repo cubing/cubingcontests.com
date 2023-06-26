@@ -1,0 +1,22 @@
+{
+  "Mongoose Model": {
+    "scope": "typescript",
+    "prefix": "monmod",
+    "body": [
+      "import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';",
+      "import mongoose, { HydratedDocument } from 'mongoose';",
+      "import I${1:Object} from '@sh/interfaces/${1:Object}';",
+      "",
+      "@Schema({ timestamps: true })",
+      "export class ${1:Object} implements I${1:Object} {",
+      "\t@Prop({ required: true })",
+      "\t$0",
+      "}",
+      "",
+      "export type ${1:Object}Document = HydratedDocument<${1:Object}>;",
+      "",
+      "export const ${1:Object}Schema = SchemaFactory.createForClass(${1:Object});"
+    ],
+    "description": "Create Mongoose model"
+  }
+}

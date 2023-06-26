@@ -1,7 +1,7 @@
 import { RoundFormat, RoundType } from '../enums';
 
 export interface IResult {
-  // This is a string, because for team events (e.g. Team BLD) it stores multiple ids (e.g. "3;14")
+  // This is a string, because for team events (e.g. Team BLD) it stores multiple ids (e.g. "3;14;15")
   personId: string;
   ranking: number;
   // Number of centiseconds; 0 is a skipped attempt (e.g. when cut-off was not met) -1 is DNF, -2 is DNS.
@@ -15,7 +15,7 @@ export interface IResult {
 
 export interface IRound {
   // competitionId and eventId are only used for the model can be used to find where the round belongs
-  competitionId?: string; // reference to competition in the database
+  competitionId?: string;
   eventId?: string;
   roundTypeId: RoundType;
   format: RoundFormat;

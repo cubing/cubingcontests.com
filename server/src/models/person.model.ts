@@ -1,15 +1,19 @@
-import { Schema, Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
 import IPerson from '@sh/interfaces/Person';
 
-const PersonSchema = new Schema(
-  {
-    personId: { type: Number, required: true, immutable: true, unique: true },
-    name: { type: String, required: true },
-    countryId: { type: String, required: true },
-  },
-  { timestamps: true },
-);
+@Schema({ timestamps: true })
+export class Person implements IPerson {
+  @Prop({ required: true, immutable: true, unique: true })
+  personId: number;
 
-export interface PersonDocument extends Document, IPerson {}
+  @Prop({ required: true })
+  name: string;
 
-export default PersonSchema;
+  @Prop({ required: true })
+  countryId: string;
+}
+
+export type PersonDocument = HydratedDocument<Person>;
+
+export const PersonSchema = SchemaFactory.createForClass(Person);

@@ -1,29 +1,49 @@
-import { Schema, Document } from 'mongoose';
-import ICompetition from '@sh/interfaces/Competition';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import ICompetition, { ICompetitionEvent } from '@sh/interfaces/Competition';
+import { Round } from './round.model';
 
-const EventSubschema = new Schema(
-  {
-    eventId: { type: String, required: true },
-    rounds: [{ type: Schema.Types.ObjectId, ref: 'Round', required: true }],
-  },
-  { _id: false },
-);
+@Schema({ _id: false })
+export class CompetitionEvent implements ICompetitionEvent {
+  @Prop({ required: true })
+  eventId: string;
 
-const CompetitionSchema = new Schema(
-  {
-    competitionId: { type: String, required: true, immutable: true, unique: true },
-    name: { type: String, required: true },
-    city: { type: String, required: true },
-    countryId: { type: String, required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: false },
-    mainEventId: { type: String, required: true },
-    participants: Number,
-    events: [{ type: EventSubschema }],
-  },
-  { timestamps: true },
-);
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Round' }], required: true })
+  rounds: Round[];
+}
 
-export interface CompetitionDocument extends Document, ICompetition {}
+const CompetitionEventSchema = SchemaFactory.createForClass(CompetitionEvent);
 
-export default CompetitionSchema;
+@Schema({ timestamps: true })
+export class Competition implements ICompetition {
+  @Prop({ required: true, immutable: true, unique: true })
+  competitionId: string;
+
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true })
+  city: string;
+
+  @Prop({ required: true })
+  countryId: string;
+
+  @Prop({ required: true })
+  startDate: Date;
+
+  @Prop({ required: true })
+  endDate: Date;
+
+  @Prop({ required: true })
+  mainEventId: string;
+
+  @Prop({ default: 0 })
+  participants: number;
+
+  @Prop({ type: [CompetitionEventSchema] })
+  events: CompetitionEvent[];
+}
+
+export type CompetitionDocument = HydratedDocument<Competition>;
+
+export const CompetitionSchema = SchemaFactory.createForClass(Competition);

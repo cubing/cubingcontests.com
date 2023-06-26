@@ -1,16 +1,23 @@
-import { Schema, Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
 import IEvent from '@sh/interfaces/Event';
+import { EventFormat } from '@sh/enums';
 
-const EventSchema = new Schema(
-  {
-    eventId: { type: String, required: true, immutable: true, unique: true },
-    name: { type: String, required: true },
-    rank: { type: Number, required: true },
-    format: { type: String, required: true },
-  },
-  { timestamps: true },
-);
+@Schema({ timestamps: true })
+export class Event implements IEvent {
+  @Prop({ required: true, immutable: true, unique: true })
+  eventId: string;
 
-export interface EventDocument extends Document, IEvent {}
+  @Prop({ required: true })
+  name: string;
 
-export default EventSchema;
+  @Prop({ required: true })
+  rank: number;
+
+  @Prop({ enum: EventFormat, required: true })
+  format: EventFormat;
+}
+
+export type EventDocument = HydratedDocument<Event>;
+
+export const EventSchema = SchemaFactory.createForClass(Event);

@@ -1,14 +1,14 @@
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { EventDocument } from '~/src/models/event.model';
+import { Event, EventDocument } from '~/src/models/event.model';
 import { CreateEventDto } from './dto/create-event.dto';
 import eventsSeed from '~/src/seeds/events.seed';
-import IEvent from '@sh/interfaces/Event';
+import { excl } from '~/src/helpers/dbHelpers';
 
 @Injectable()
 export class EventsService {
-  constructor(@InjectModel('Event') private readonly model: Model<IEvent>) {}
+  constructor(@InjectModel('Event') private readonly model: Model<Event>) {}
 
   // Executed before the app is bootstrapped
   async onModuleInit() {
@@ -29,32 +29,26 @@ export class EventsService {
     }
   }
 
-  async getEvents(): Promise<IEvent[]> {
+  async getEvents(): Promise<Event[]> {
     try {
-      const results: EventDocument[] = await this.model.find().exec();
-      return results.map((el) => ({
-        eventId: el.eventId,
-        name: el.name,
-        rank: el.rank,
-        format: el.format,
-      }));
+      return await this.model.find({}, excl).sort({ rank: 1 }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
   async createEvent(createEventDto: CreateEventDto) {
-    const event: EventDocument = await this.model
-      .findOne({
-        eventId: createEventDto.eventId,
-      })
-      .exec();
-
-    if (event) {
-      throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
-    }
-
     try {
+      const event: EventDocument = await this.model
+        .findOne({
+          eventId: createEventDto.eventId,
+        })
+        .exec();
+
+      if (event) {
+        throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
+      }
+
       const newEvent = new this.model(createEventDto);
       await newEvent.save();
     } catch (err) {

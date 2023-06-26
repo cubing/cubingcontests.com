@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { EventsService } from './events.service';
-import { AdminGuard } from '../guards/admin.guard';
+import { AdminGuard } from '~/src/guards/admin.guard';
 import { CreateEventDto } from './dto/create-event.dto';
 
 @Controller('events')
