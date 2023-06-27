@@ -12,8 +12,6 @@ export class EventsController {
 
   // GET /events
   @Get()
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
   async getEvents() {
     return await this.eventsService.getEvents();
   }

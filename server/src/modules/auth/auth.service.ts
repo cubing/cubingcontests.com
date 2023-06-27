@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import JwtPayload from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
@@ -32,14 +32,17 @@ export class AuthService {
 
   async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersService.getUser(username);
-    const passwordsMatch = await bcrypt.compare(password, user.password);
 
-    if (user && passwordsMatch) {
-      const { password, ...rest } = user;
-      return rest;
+    if (user) {
+      const passwordsMatch = await bcrypt.compare(password, user.password);
+
+      if (passwordsMatch) {
+        const { password, ...rest } = user;
+        return rest;
+      }
     }
 
-    return null;
+    throw new NotFoundException('The username or password is incorrect');
   }
 
   async getUserRoles(id: string): Promise<Role[]> {

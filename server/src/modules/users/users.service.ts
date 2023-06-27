@@ -14,13 +14,15 @@ export class UsersService {
     try {
       const user: UserDocument = await this.model.findOne({ username }).exec();
 
-      return {
-        id: user._id,
-        name: user.name,
-        username: user.username,
-        password: user.password,
-        roles: user.roles,
-      };
+      if (user) {
+        return {
+          id: user._id,
+          name: user.name,
+          username: user.username,
+          password: user.password,
+          roles: user.roles,
+        };
+      }
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

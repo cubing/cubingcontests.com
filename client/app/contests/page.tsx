@@ -12,7 +12,7 @@ export const metadata = {
 
 const fetchCompetitions = async (): Promise<ICompetition[]> => {
   try {
-    const res = await fetch('http://127.0.0.1:4000/competitions', {
+    const res = await fetch('http://localhost:4000/competitions', {
       // Otherwise when the admin creates a new comp, they can't see it
       next: {
         revalidate: 0,

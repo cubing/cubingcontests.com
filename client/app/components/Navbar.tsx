@@ -35,7 +35,7 @@ const NavbarItems = () => {
   return (
     <div className="container-md position-relative">
       <Link className="navbar-brand fs-3" href="/">
-        Contests
+        Cubing Contests
       </Link>
       <button className="cr-icon-button d-lg-none" onClick={() => setMobileItemsOpen((prev) => !prev)} type="button">
         <FaBars />

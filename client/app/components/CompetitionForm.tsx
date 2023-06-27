@@ -25,31 +25,39 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch('http://localhost:4000/competitions', {
-        method: 'POST',
-        headers: { 'Content-type': 'application/json' },
-        body: JSON.stringify({
-          competitionId,
-          name,
-          city,
-          countryId,
-          startDate,
-          endDate,
-          mainEventId,
-        } as ICompetition),
-      });
+    const jwtToken = localStorage.getItem('jwtToken');
 
-      if (response.status !== 201) {
-        const json = await response.json();
-        // Sometimes the return message is a string and sometimes it's an array
-        if (typeof json.message === 'string') setErrorMessages([json.message]);
-        else setErrorMessages(json.message);
-      } else {
-        window.location.href = 'http://localhost:3000/contests';
+    if (jwtToken) {
+      try {
+        const response = await fetch('http://localhost:4000/competitions', {
+          method: 'POST',
+          headers: { 'Content-type': 'application/json', Authorization: jwtToken },
+          body: JSON.stringify({
+            competitionId,
+            name,
+            city,
+            countryId,
+            startDate,
+            endDate,
+            mainEventId,
+          } as ICompetition),
+        });
+
+        if (response.status === 403) {
+          window.location.href = '/login';
+        } else if (response.status !== 201) {
+          const json = await response.json();
+          // Sometimes the return message is a string and sometimes it's an array
+          if (typeof json.message === 'string') setErrorMessages([json.message]);
+          else setErrorMessages(json.message);
+        } else {
+          window.location.href = '/contests';
+        }
+      } catch (err: any) {
+        setErrorMessages([err.message]);
       }
-    } catch (err: any) {
-      setErrorMessages([err.message]);
+    } else {
+      window.location.href = '/login';
     }
   };
 
@@ -148,6 +156,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
           ))}
         </select>
       </div>
+
       <button type="submit" className="mt-4 btn btn-primary">
         Create
       </button>

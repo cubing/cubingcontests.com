@@ -3,7 +3,7 @@ import IEvent from '@sh/interfaces/Event';
 
 const fetchEvents = async (): Promise<IEvent[]> => {
   try {
-    const res = await fetch('http://127.0.0.1:4000/events', {
+    const res = await fetch('http://localhost:4000/events', {
       next: {
         revalidate: 600,
       },
