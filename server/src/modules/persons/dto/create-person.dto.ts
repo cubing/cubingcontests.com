@@ -3,7 +3,7 @@ import Countries from '@sh/Countries';
 
 export class CreatePersonDto {
   @IsString()
-  @Matches(/^[A-Z][a-z -]{2,}$/)
+  @Matches(/^[A-Z][a-zA-Z -]{2,}$/)
   name: string;
 
   @IsIn(Countries.map((el) => el.code))

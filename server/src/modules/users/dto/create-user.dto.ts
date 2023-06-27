@@ -3,7 +3,7 @@ import IUser from '@sh/interfaces/User';
 
 export class CreateUserDto implements IUser {
   @IsString()
-  @Matches(/^[A-Z][a-z -]{2,}$/)
+  @Matches(/^[A-Z][a-zA-Z -]{2,}$/)
   name: string;
 
   @IsString()

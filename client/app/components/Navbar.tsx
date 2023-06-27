@@ -53,7 +53,7 @@ const NavbarItems = () => {
             </Link>
           </li>
         </ul>
-        <form className="d-flex mt-3 ms-0 mt-lg-0 ms-lg-4" role="search">
+        {/* <form className="d-flex mt-3 ms-0 mt-lg-0 ms-lg-4" role="search">
           <input
             onChange={(e) => setSearchTerm(e.target.value)}
             className="form-control fs-5"
@@ -61,7 +61,7 @@ const NavbarItems = () => {
             placeholder="Search"
             aria-label="Search"
           />
-        </form>
+        </form> */}
       </div>
       {searchResults.length > 0 && searchTerm !== '' && (
         <div className="position-absolute bottom-0 end-0 dropdown">

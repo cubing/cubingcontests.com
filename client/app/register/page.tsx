@@ -1,32 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import myFetch from '~/helpers/myFetch';
-import FormTextInput from '~/app/components/form/FormTextInput';
 import Link from 'next/link';
-import Form from '~/app/components/form/Form';
+import FormTextInput from '@c/form/FormTextInput';
+import Form from '@c/form/Form';
+import myFetch from '~/helpers/myFetch';
 
-const Login = () => {
+const Register = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async () => {
     const tempErrors: string[] = [];
 
+    if (!name) tempErrors.push('Please enter your name');
     if (!username) tempErrors.push('Please enter a username');
     if (!password) tempErrors.push('Please enter a password');
 
-    if (username && password) {
-      const data = await myFetch.post('/auth/login', { username, password });
+    if (name && username && password) {
+      const data = await myFetch.post('/auth/register', { name, username, password });
 
       if (data?.errors) {
         tempErrors.push(...data.errors);
-      } else if (!data?.access_token) {
-        tempErrors.push('Access token not received');
       } else {
-        localStorage.setItem('jwtToken', `Bearer ${data.access_token}`);
-        window.location.href = '/';
+        window.location.href = '/login';
       }
     }
 
@@ -35,16 +34,17 @@ const Login = () => {
 
   return (
     <>
-      <h2 className="mb-4 text-center">Login</h2>
-      <Form buttonText="Log in" errorMessages={errorMessages} handleSubmit={handleSubmit}>
+      <h2 className="mb-4 text-center">Register</h2>
+      <Form buttonText="Register" errorMessages={errorMessages} handleSubmit={handleSubmit}>
+        <FormTextInput name="Full name" value={name} setValue={setName} />
         <FormTextInput name="Username" value={username} setValue={setUsername} />
         <FormTextInput name="Password" value={password} setValue={setPassword} />
-        <Link href="/register" className="d-block mt-4 fs-5">
-          Create account
+        <Link href="/login" className="d-block mt-4 fs-5">
+          Log in
         </Link>
       </Form>
     </>
   );
 };
 
-export default Login;
+export default Register;
