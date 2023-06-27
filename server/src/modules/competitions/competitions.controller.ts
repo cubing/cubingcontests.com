@@ -3,7 +3,9 @@ import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { CompetitionsService } from './competitions.service';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
-// import { AdminGuard } from 'src/guards/admin.guard';
+import { Roles } from '~/src/helpers/roles.decorator';
+import { Role } from '@sh/enums';
+import { RolesGuard } from '~/src/guards/roles.guard';
 
 @Controller('competitions')
 export class CompetitionsController {
@@ -25,7 +27,8 @@ export class CompetitionsController {
 
   // POST /competitions
   @Post()
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
   async createCompetition(@Body(new ValidationPipe()) createCompetitionDto: CreateCompetitionDto) {
     console.log('Creating competition');
     return await this.competitionsService.createCompetition(createCompetitionDto);
@@ -33,7 +36,8 @@ export class CompetitionsController {
 
   // PATCH /competitions/:id
   @Patch(':id')
-  // @UseGuards(AdminGuard)
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
   async updateCompetition(
     @Param('id') competitionId: string,
     @Body(new ValidationPipe()) updateCompetitionDto: UpdateCompetitionDto,
@@ -44,7 +48,8 @@ export class CompetitionsController {
 
   // DELETE /competitions/:id
   @Delete(':id')
-  // @UseGuards(AdminGuard)
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
   async deleteCompetition(@Param('id') competitionId: string) {
     console.log(`Deleting competition with id ${competitionId}`);
     return await this.competitionsService.deleteCompetition(competitionId);

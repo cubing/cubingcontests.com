@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '~/src/models/user.model';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Role } from '@sh/enums';
 
 @Injectable()
 export class UsersService {
@@ -12,11 +13,13 @@ export class UsersService {
   async getUser(username: string) {
     try {
       const user: UserDocument = await this.model.findOne({ username }).exec();
+
       return {
         id: user._id,
         name: user.name,
         username: user.username,
         password: user.password,
+        roles: user.roles,
       };
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -34,6 +37,15 @@ export class UsersService {
 
       const newUser = new this.model(createUserDto);
       await newUser.save();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  async getUserRoles(id: string): Promise<Role[]> {
+    try {
+      const user: UserDocument = await this.model.findById(id).exec();
+      return user.roles;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

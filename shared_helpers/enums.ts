@@ -1,3 +1,8 @@
+export enum Role {
+  User = 'user',
+  Admin = 'admin',
+}
+
 export enum EventFormat {
   Time = 'time',
   Number = 'number', // for FMC

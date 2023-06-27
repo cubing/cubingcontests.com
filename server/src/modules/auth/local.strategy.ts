@@ -9,6 +9,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     super();
   }
 
+  // username and password are sent in the JSON
   async validate(username: string, password: string): Promise<any> {
     const user = await this.authService.validateUser(username, password);
 

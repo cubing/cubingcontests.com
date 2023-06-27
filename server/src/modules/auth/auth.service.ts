@@ -4,6 +4,7 @@ import JwtPayload from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
+import { Role } from '@sh/enums';
 
 @Injectable()
 export class AuthService {
@@ -39,5 +40,9 @@ export class AuthService {
     }
 
     return null;
+  }
+
+  async getUserRoles(id: string): Promise<Role[]> {
+    return await this.usersService.getUserRoles(id);
   }
 }
