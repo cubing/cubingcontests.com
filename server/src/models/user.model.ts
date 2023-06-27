@@ -5,6 +5,9 @@ import IUser from '@sh/interfaces/User';
 @Schema({ timestamps: true })
 export class User implements IUser {
   @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true, unique: true })
   username: string;
 
   @Prop({ required: true })

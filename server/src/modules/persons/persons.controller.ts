@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { AdminGuard } from '~/src/guards/admin.guard';
+// import { AdminGuard } from '~/src/guards/admin.guard';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { PersonsService } from './persons.service';
 
@@ -15,7 +15,7 @@ export class PersonsController {
 
   // POST /persons
   @Post()
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
   async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto) {
     return await this.personsService.createPerson(createPersonDto);
   }
