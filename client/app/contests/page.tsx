@@ -1,28 +1,19 @@
 import Link from 'next/link';
 import ICompetition from '@sh/interfaces/Competition';
 import Countries from '@sh/Countries';
+import myFetch from '~/helpers/myFetch';
 
 export const metadata = {
   title: 'Contest Results | Deni\'s Site',
   description: 'A place for posting results from Rubik\'s cube meetups.',
+  metadataBase: new URL('https://denimintsaev.com'),
   openGraph: {
-    images: ['https://denimintsaev.com/projects/contest_results.jpg'],
+    images: ['/projects/contest_results.jpg'],
   },
 };
 
 const fetchCompetitions = async (): Promise<ICompetition[]> => {
-  try {
-    const res = await fetch('http://localhost:4000/competitions', {
-      // Otherwise when the admin creates a new comp, they can't see it
-      next: {
-        revalidate: 0,
-      },
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+  return await myFetch.get('/competitions');
 };
 
 const getFormattedDate = (start: Date, end: Date): string => {

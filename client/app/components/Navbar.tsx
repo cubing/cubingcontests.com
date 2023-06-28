@@ -3,34 +3,34 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaBars } from 'react-icons/fa';
-import ISearchResult from '~/helpers/interfaces/SearchResult';
+// import ISearchResult from '~/helpers/interfaces/SearchResult';
 
 const NavbarItems = () => {
   const pathname = usePathname();
 
   const [mobileItemsOpen, setMobileItemsOpen] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<ISearchResult[]>([
-    { title: 'Meetup in Munich on June 14, 2023', url: 'http://localhost:3000/contests/Munich14062023' },
-    { title: 'Meetup in Munich on February 19, 2023', url: 'http://localhost:3000/contests/Munich19022023' },
-  ]);
+  // const [searchTerm, setSearchTerm] = useState<string>('');
+  // const [searchResults, setSearchResults] = useState<ISearchResult[]>([
+  //   { title: 'Meetup in Munich on June 14, 2023', url: 'http://localhost:3000/contests/Munich14062023' },
+  //   { title: 'Meetup in Munich on February 19, 2023', url: 'http://localhost:3000/contests/Munich19022023' },
+  // ]);
 
-  useEffect(() => {
-    const fetchSearchResults = async () => {
-      // const res = await fetch('http://localhost:5000/api/contests', {
-      //   next: { revalidate: 0 },
-      // });
-      // const json = await res.json();
-      // return json.contestsInfo;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setSearchResults((prevSearchResults) => {
-        prevSearchResults.pop();
-        return prevSearchResults;
-      });
-    };
+  // useEffect(() => {
+  //   const fetchSearchResults = async () => {
+  //     // const res = await fetch('http://localhost:5000/api/contests', {
+  //     //   next: { revalidate: 0 },
+  //     // });
+  //     // const json = await res.json();
+  //     // return json.contestsInfo;
+  //     await new Promise((resolve) => setTimeout(resolve, 500));
+  //     setSearchResults((prevSearchResults) => {
+  //       prevSearchResults.pop();
+  //       return prevSearchResults;
+  //     });
+  //   };
 
-    fetchSearchResults();
-  }, [searchTerm]);
+  //   fetchSearchResults();
+  // }, [searchTerm]);
 
   return (
     <div className="container-md position-relative">
@@ -63,7 +63,7 @@ const NavbarItems = () => {
           />
         </form> */}
       </div>
-      {searchResults.length > 0 && searchTerm !== '' && (
+      {/* {searchResults.length > 0 && searchTerm !== '' && (
         <div className="position-absolute bottom-0 end-0 dropdown">
           <ul className="position-absolute top-0 end-0 mt-3 me-2 dropdown-menu show">
             {searchResults.map((result) => (
@@ -75,7 +75,7 @@ const NavbarItems = () => {
             ))}
           </ul>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

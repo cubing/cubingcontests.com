@@ -1,13 +1,16 @@
 'use client';
-import { useState } from 'react';
+
 import './CompetitionForm.css';
+import { useState } from 'react';
+import myFetch from '~/helpers/myFetch';
 import DatePicker from 'react-datepicker';
 // import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 // import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
 import Countries from '@sh/Countries';
 import IEvent from '@sh/interfaces/Event';
-import ICompetition from '@sh/interfaces/Competition';
+import Form from './form/Form';
+import FormTextInput from './form/FormTextInput';
 
 // registerLocale('en-GB', enGB);
 // setDefaultLocale('en-GB');
@@ -22,89 +25,33 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [mainEventId, setMainEventId] = useState<string>('333');
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    const competition = {
+      competitionId,
+      name,
+      city,
+      countryId,
+      startDate,
+      endDate,
+      mainEventId,
+    };
 
-    const jwtToken = localStorage.getItem('jwtToken');
+    const response = await myFetch.post('/competitions', competition, { authorize: true });
 
-    if (jwtToken) {
-      try {
-        const response = await fetch('http://localhost:4000/competitions', {
-          method: 'POST',
-          headers: { 'Content-type': 'application/json', Authorization: jwtToken },
-          body: JSON.stringify({
-            competitionId,
-            name,
-            city,
-            countryId,
-            startDate,
-            endDate,
-            mainEventId,
-          } as ICompetition),
-        });
-
-        if (response.status === 403) {
-          window.location.href = '/login';
-        } else if (response.status !== 201) {
-          const json = await response.json();
-          // Sometimes the return message is a string and sometimes it's an array
-          if (typeof json.message === 'string') setErrorMessages([json.message]);
-          else setErrorMessages(json.message);
-        } else {
-          window.location.href = '/contests';
-        }
-      } catch (err: any) {
-        setErrorMessages([err.message]);
-      }
+    if (response?.errors) {
+      setErrorMessages(response.errors);
     } else {
-      window.location.href = '/login';
+      window.location.href = '/contests';
     }
   };
 
   return (
-    <form className="mt-4 mx-auto fs-5" style={{ width: '720px' }} onSubmit={(e: any) => handleSubmit(e)}>
-      {errorMessages?.map((message, index) => (
-        <div key={index} className="alert alert-danger" role="alert">
-          {message}
-        </div>
-      ))}
-
-      <div className="mb-3">
-        <label htmlFor="competition_id" className="form-label">
-          Competition ID
-        </label>
-        <input
-          type="text"
-          id="competition_id"
-          value={competitionId}
-          onChange={(e: any) => setCompetitionId(e.target.value)}
-          className="form-control"
-        />
-      </div>
-      <div className="mb-3">
-        <label htmlFor="name" className="form-label">
-          Competition Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e: any) => setName(e.target.value)}
-          className="form-control"
-        />
-      </div>
-      <div className="mb-3 row">
+    <Form buttonText="Create" errorMessages={errorMessages} handleSubmit={handleSubmit}>
+      <FormTextInput name="Competition ID" value={competitionId} setValue={setCompetitionId} />
+      <FormTextInput name="Competition Name" value={name} setValue={setName} />
+      <div className="row">
         <div className="col">
-          <label htmlFor="city" className="form-label">
-            City
-          </label>
-          <input
-            type="text"
-            id="city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="form-control"
-          />
+          <FormTextInput name="City" value={city} setValue={setCity} />
         </div>
         <div className="col">
           <label htmlFor="country_id" className="form-label">
@@ -156,11 +103,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
           ))}
         </select>
       </div>
-
-      <button type="submit" className="mt-4 btn btn-primary">
-        Create
-      </button>
-    </form>
+    </Form>
   );
 };
 

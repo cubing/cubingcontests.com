@@ -1,18 +1,9 @@
+import myFetch from '~/helpers/myFetch';
 import CompetitionForm from '~/app/components/CompetitionForm';
 import IEvent from '@sh/interfaces/Event';
 
 const fetchEvents = async (): Promise<IEvent[]> => {
-  try {
-    const res = await fetch('http://localhost:4000/events', {
-      next: {
-        revalidate: 600,
-      },
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+  return await myFetch.get('/events');
 };
 
 const AdminCompetition = async () => {
