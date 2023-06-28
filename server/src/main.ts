@@ -1,9 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
-// THIS IS A TEMPORARY ADDITION FOR BUGFIXING!!!
-console.log('Env:', process.env.MONGODB_URI, process.env.NODE_ENV, process.env.PORT);
-
 const PORT = process.env.PORT || 4000;
 
 async function bootstrap() {
@@ -19,6 +16,7 @@ async function bootstrap() {
   }
 
   app.enableCors(corsOptions);
+  app.setGlobalPrefix('api'); // add global /api prefix to all routes
 
   await app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
 }
