@@ -12,7 +12,6 @@ ENV API_BASE_URL='https://cubingcontests.denimintsaev.com/api'
 RUN npm install
 RUN npm run build
 
-# Same as the port above
 EXPOSE 3000
 
 CMD [ "npm", "start" ]
