@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import FormEventSelect from '~/app/components/form/FormEventSelect';
-import ICompetition, { ICompetitionEvent } from '@sh/interfaces/Competition';
+import { ICompetitionEvent } from '@sh/interfaces/Competition';
 import IEvent from '@sh/interfaces/Event';
 import { IResult } from '@sh/interfaces/Round';
 import EventResultsTable from './EventResultsTable';

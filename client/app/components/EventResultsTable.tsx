@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import IEvent from '@sh/interfaces/Event';
 import { ICompetitionEvent } from '@sh/interfaces/Competition';
 import IPerson from '@sh/interfaces/Person';

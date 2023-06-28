@@ -2,17 +2,17 @@ FROM node:18-alpine
 
 RUN apk update && apk upgrade
 
-COPY server /home/app/server
+COPY client /home/app/client
 COPY shared_helpers /home/app/shared_helpers
 
-WORKDIR /home/app/server
+WORKDIR /home/app/client
 
-ENV PORT=4000
+ENV API_BASE_URL='https://cubingcontests.denimintsaev.com/api'
 
 RUN npm install
 RUN npm run build
 
 # Same as the port above
-EXPOSE 4000
+EXPOSE 3000
 
 CMD [ "npm", "start" ]

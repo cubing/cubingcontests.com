@@ -10,7 +10,13 @@ module.exports = {
         omitLastInOneLineBlock: true,
       },
     ],
-    quotes: ['error', 'single'],
+    quotes: [
+      'error',
+      'single',
+      {
+        avoidEscape: true,
+      },
+    ],
     indent: ['error', 2],
     'comma-dangle': ['error', 'always-multiline'],
     'max-len': [

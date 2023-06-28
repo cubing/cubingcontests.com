@@ -38,7 +38,7 @@ const AdminHome = async () => {
           Number of competitions: <b>{competitions.length}</b>
         </p>
       </div>
-      <CompetitionsTable linkToPostResults competitions={competitions} />
+      {competitions?.length > 0 && <CompetitionsTable linkToPostResults competitions={competitions} />}
     </>
   );
 };
