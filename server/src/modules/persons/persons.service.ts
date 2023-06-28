@@ -18,11 +18,17 @@ export class PersonsService {
   }
 
   async createPerson(createPersonDto: CreatePersonDto): Promise<number> {
-    const newestPerson: PersonDocument[] = await this.model.find().sort({ personId: -1 }).limit(1).exec();
+    let newestPerson: PersonDocument[];
     let personId = 1;
 
+    try {
+      newestPerson = await this.model.find().sort({ personId: -1 }).limit(1).exec();
+    } catch (err: any) {
+      throw new InternalServerErrorException(err.message);
+    }
+
     // If it's not the first person to be created, get the highest person id in the DB and increment it
-    if (newestPerson.length > 0) {
+    if (newestPerson.length === 1) {
       personId = newestPerson[0].personId + 1;
     }
 

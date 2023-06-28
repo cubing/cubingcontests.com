@@ -52,4 +52,12 @@ export class UsersService {
       throw new InternalServerErrorException(err.message);
     }
   }
+
+  async getUsersTotal(): Promise<number> {
+    try {
+      return await this.model.find().count().exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
 }

@@ -7,10 +7,10 @@ import DatePicker from 'react-datepicker';
 // import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 // import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
-import Countries from '@sh/Countries';
 import IEvent from '@sh/interfaces/Event';
 import Form from './form/Form';
 import FormTextInput from './form/FormTextInput';
+import FormCountrySelect from './form/FormCountrySelect';
 
 // registerLocale('en-GB', enGB);
 // setDefaultLocale('en-GB');
@@ -20,10 +20,10 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
-  const [countryId, setCountryId] = useState<string>(Countries[0].code);
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [mainEventId, setMainEventId] = useState<string>('333');
+  const [countryId, setCountryId] = useState('');
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [mainEventId, setMainEventId] = useState('333');
 
   const handleSubmit = async () => {
     const competition = {
@@ -41,7 +41,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
     if (response?.errors) {
       setErrorMessages(response.errors);
     } else {
-      window.location.href = '/contests';
+      window.location.href = '/admin';
     }
   };
 
@@ -54,16 +54,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
           <FormTextInput name="City" value={city} setValue={setCity} />
         </div>
         <div className="col">
-          <label htmlFor="country_id" className="form-label">
-            Country
-          </label>
-          <select id="country_id" className="form-select" onChange={(e) => setCountryId(e.target.value)}>
-            {Countries.map((el) => (
-              <option key={el.code} value={el.code}>
-                {el.name}
-              </option>
-            ))}
-          </select>
+          <FormCountrySelect countryId={countryId} setCountryId={setCountryId} />
         </div>
       </div>
       <div className="mb-3 row">

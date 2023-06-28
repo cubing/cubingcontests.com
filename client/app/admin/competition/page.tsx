@@ -2,12 +2,8 @@ import myFetch from '~/helpers/myFetch';
 import CompetitionForm from '~/app/components/CompetitionForm';
 import IEvent from '@sh/interfaces/Event';
 
-const fetchEvents = async (): Promise<IEvent[]> => {
-  return await myFetch.get('/events');
-};
-
 const AdminCompetition = async () => {
-  const events: IEvent[] = await fetchEvents();
+  const events: IEvent[] = await myFetch.get('/events');
 
   return (
     <>
