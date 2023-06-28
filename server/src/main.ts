@@ -8,11 +8,11 @@ async function bootstrap() {
   let corsOptions;
 
   if (process.env.NODE_ENV === 'production') {
-    console.log('Setting CORS origin policy for https://denimintsaev.com and https://www.denimintsaev.com');
-
     corsOptions = {
-      origin: ['https://denimintsaev.com', 'https://www.denimintsaev.com'],
+      origin: ['https://denimintsaev.com', 'https://www.denimintsaev.com', 'https://cubingcontests.denimintsaev.com'],
     };
+
+    console.log('Setting CORS origin policy for ', corsOptions.origin);
   }
 
   app.enableCors(corsOptions);
