@@ -17,7 +17,7 @@ const AdminPerson = () => {
       countryId,
     };
 
-    const response = await myFetch.post('/persons', person, { authorize: true });
+    const response = await myFetch.post('/persons', person);
 
     if (response?.errors) {
       setErrorMessages(response.errors);

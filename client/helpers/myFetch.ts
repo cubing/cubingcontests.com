@@ -77,15 +77,18 @@ const doFetch = async (
 const myFetch = {
   async get(
     url: string,
-    { authorize, revalidate }: { authorize?: boolean; revalidate?: number | false } = {
+    { authorize = false, revalidate = 300 }: { authorize?: boolean; revalidate?: number | false } = {
       authorize: false,
       revalidate: 300,
     },
   ) {
     return await doFetch(url, 'GET', revalidate || 300, null, authorize);
   },
-  async post(url: string, body: unknown, { authorize }: { authorize?: boolean } = { authorize: false }) {
+  async post(url: string, body: unknown, { authorize = true }: { authorize?: boolean } = { authorize: true }) {
     return await doFetch(url, 'POST', false, body, authorize);
+  },
+  async patch(url: string, body: unknown, { authorize = true }: { authorize?: boolean } = { authorize: true }) {
+    return await doFetch(url, 'PATCH', false, body, authorize);
   },
   // This method is client-only
   async getAdmin() {

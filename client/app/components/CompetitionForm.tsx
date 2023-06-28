@@ -11,6 +11,7 @@ import IEvent from '@sh/interfaces/Event';
 import Form from './form/Form';
 import FormTextInput from './form/FormTextInput';
 import FormCountrySelect from './form/FormCountrySelect';
+import FormEventSelect from './form/FormEventSelect';
 
 // registerLocale('en-GB', enGB);
 // setDefaultLocale('en-GB');
@@ -36,7 +37,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
       mainEventId,
     };
 
-    const response = await myFetch.post('/competitions', competition, { authorize: true });
+    const response = await myFetch.post('/competitions', competition);
 
     if (response?.errors) {
       setErrorMessages(response.errors);
@@ -82,18 +83,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
           />
         </div>
       </div>
-      <div className="mb-3">
-        <label htmlFor="main_event_id" className="form-label">
-          Main Event
-        </label>
-        <select id="main_event_id" className="form-select" onChange={(e) => setMainEventId(e.target.value)}>
-          {events.map((el: IEvent) => (
-            <option key={el.eventId} value={el.eventId}>
-              {el.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <FormEventSelect events={events} label="Main Event" eventId={mainEventId} setEventId={setMainEventId} />
     </Form>
   );
 };

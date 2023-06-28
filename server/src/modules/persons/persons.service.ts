@@ -9,9 +9,13 @@ import { excl } from '~/src/helpers/dbHelpers';
 export class PersonsService {
   constructor(@InjectModel('Person') private readonly model: Model<Person>) {}
 
-  async getPersons(): Promise<Person[]> {
+  async getPersons(searchParam: string): Promise<Person[]> {
     try {
-      return await this.model.find({}, excl).exec();
+      if (!searchParam) {
+        return await this.model.find({}, excl).exec();
+      } else {
+        return await this.model.find({ name: { $regex: searchParam, $options: 'i' } }, excl).exec();
+      }
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

@@ -1,6 +1,6 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, MinLength } from 'class-validator';
 import IEvent from '@sh/interfaces/Event';
-import { EventFormat } from '@sh/enums';
+import { EventFormat, RoundFormat } from '@sh/enums';
 
 export class CreateEventDto implements IEvent {
   @IsString()
@@ -17,4 +17,7 @@ export class CreateEventDto implements IEvent {
 
   @IsEnum(EventFormat)
   format: EventFormat;
+
+  @IsEnum(RoundFormat)
+  defaultRoundFormat: RoundFormat;
 }

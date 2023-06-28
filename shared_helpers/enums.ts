@@ -7,7 +7,7 @@ export enum EventFormat {
   Time = 'time',
   Number = 'number', // for FMC
   Multi = 'multi',
-  TeamTime = 'teamtime', // e.g. for Team BLD
+  TeamTime = 'teamtime', // e.g. for Team BLD or Team Factory
 }
 
 export enum RoundFormat {

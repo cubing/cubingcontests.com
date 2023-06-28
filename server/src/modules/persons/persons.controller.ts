@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { PersonsService } from './persons.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
@@ -10,10 +10,10 @@ import { CreatePersonDto } from './dto/create-person.dto';
 export class PersonsController {
   constructor(private readonly personsService: PersonsService) {}
 
-  // GET /persons
+  // GET /persons?searchParam=[name]
   @Get()
-  async getPersons() {
-    return await this.personsService.getPersons();
+  async getPersons(@Query('searchParam') searchParam: string) {
+    return await this.personsService.getPersons(searchParam);
   }
 
   // POST /persons

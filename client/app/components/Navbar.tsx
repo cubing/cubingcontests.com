@@ -48,7 +48,7 @@ const NavbarItems = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link className={'nav-link' + (pathname === '/contests' ? ' active' : '')} href="/contests">
+            <Link className={'nav-link' + (pathname === '/competitions' ? ' active' : '')} href="/competitions">
               Contests
             </Link>
           </li>

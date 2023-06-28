@@ -1,11 +1,6 @@
 import Link from 'next/link';
-import myFetch from '~/helpers/myFetch';
 import ICompetition from '@sh/interfaces/Competition';
 import Countries from '@sh/Countries';
-
-const fetchCompetitions = async (revalidate: number | false): Promise<ICompetition[]> => {
-  return await myFetch.get('/competitions', { revalidate });
-};
 
 const getFormattedDate = (start: Date, end: Date): string => {
   if (!start || !end) throw new Error('Dates missing!');
@@ -21,8 +16,20 @@ const getFormattedDate = (start: Date, end: Date): string => {
   }
 };
 
-const CompetitionsTable = async ({ revalidate }: { revalidate: number | false }) => {
-  const competitions: ICompetition[] = await fetchCompetitions(revalidate);
+const CompetitionsTable = async ({
+  competitions,
+  linkToPostResults = false,
+}: {
+  competitions: ICompetition[];
+  linkToPostResults?: boolean;
+}) => {
+  const getLink = (competitionId: string): string => {
+    if (linkToPostResults) {
+      return `/admin/competition/${competitionId}`;
+    } else {
+      return `/competitions/${competitionId}`;
+    }
+  };
 
   return (
     <div className="flex-grow-1 table-responsive">
@@ -41,7 +48,7 @@ const CompetitionsTable = async ({ revalidate }: { revalidate: number | false })
             <tr key={comp.competitionId}>
               <td>{getFormattedDate(comp.startDate, comp.endDate) || 'Error'}</td>
               <td>
-                <Link href={'/contests/' + comp.competitionId} className="link-primary">
+                <Link href={getLink(comp.competitionId)} className="link-primary">
                   {comp.name}
                 </Link>
               </td>

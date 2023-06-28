@@ -10,7 +10,7 @@ const FormCountrySelect = ({ countryId, setCountryId }: { countryId: string; set
   }, [setCountryId]);
 
   return (
-    <div className="mb-3">
+    <div className="mb-3 fs-5">
       <label htmlFor="country_id" className="form-label">
         Country
       </label>

@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import IEvent from '@sh/interfaces/Event';
-import { EventFormat } from '@sh/enums';
+import { EventFormat, RoundFormat } from '@sh/enums';
 
 @Schema({ timestamps: true })
 export class Event implements IEvent {
@@ -16,6 +16,9 @@ export class Event implements IEvent {
 
   @Prop({ enum: EventFormat, required: true })
   format: EventFormat;
+
+  @Prop({ enum: RoundFormat, required: true })
+  defaultRoundFormat: RoundFormat;
 }
 
 export type EventDocument = HydratedDocument<Event>;
