@@ -7,10 +7,6 @@ import { AuthService } from './auth.service';
 import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  throw new Error('JWT SECRET NOT SET IN PRODUCTION');
-}
-
 @Global()
 @Module({
   imports: [

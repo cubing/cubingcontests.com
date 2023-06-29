@@ -2,6 +2,11 @@
   "compilerOptions": {
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,16 +20,11 @@
     "jsx": "preserve",
     "incremental": true,
     "noImplicitAny": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "~/*": ["./*"],
       "@/*": ["./app/*"],
-      "@sh/*": ["../shared_helpers/*"],
+      "@sh/*": ["./shared_helpers/*"],
       "@c/*": ["./app/components/*"]
     }
   },

@@ -4,25 +4,25 @@ import { CompetitionsService } from './competitions.service';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '@sh/enums';
+import { Role } from '~/src/helpers/enums';
 import { RolesGuard } from '~/src/guards/roles.guard';
 
 @Controller('competitions')
 export class CompetitionsController {
-  constructor(private readonly competitionsService: CompetitionsService) {}
+  constructor(private readonly service: CompetitionsService) {}
 
   // GET /competitions?region=Region
   @Get()
   async getCompetitions(@Query('region') region: string) {
     console.log('Getting competitions');
-    return await this.competitionsService.getCompetitions(region);
+    return await this.service.getCompetitions(region);
   }
 
   // GET /competitions/:id
   @Get(':id')
   async getCompetition(@Param('id') competitionId: string) {
     console.log(`Getting competition with id ${competitionId}`);
-    return await this.competitionsService.getCompetition(competitionId);
+    return await this.service.getCompetition(competitionId);
   }
 
   // POST /competitions
@@ -31,7 +31,7 @@ export class CompetitionsController {
   @Roles(Role.Admin)
   async createCompetition(@Body(new ValidationPipe()) createCompetitionDto: CreateCompetitionDto) {
     console.log('Creating competition');
-    return await this.competitionsService.createCompetition(createCompetitionDto);
+    return await this.service.createCompetition(createCompetitionDto);
   }
 
   // PATCH /competitions/:id
@@ -43,7 +43,7 @@ export class CompetitionsController {
     @Body(new ValidationPipe()) updateCompetitionDto: UpdateCompetitionDto,
   ) {
     console.log('Updating competition');
-    return await this.competitionsService.updateCompetition(competitionId, updateCompetitionDto);
+    return await this.service.updateCompetition(competitionId, updateCompetitionDto);
   }
 
   // DELETE /competitions/:id
@@ -52,6 +52,6 @@ export class CompetitionsController {
   @Roles(Role.Admin)
   async deleteCompetition(@Param('id') competitionId: string) {
     console.log(`Deleting competition with id ${competitionId}`);
-    return await this.competitionsService.deleteCompetition(competitionId);
+    return await this.service.deleteCompetition(competitionId);
   }
 }

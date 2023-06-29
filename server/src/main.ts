@@ -8,6 +8,9 @@ async function bootstrap() {
   let corsOptions;
 
   if (process.env.NODE_ENV === 'production') {
+    if (!process.env.JWT_SECRET) throw new Error('JWT SECRET NOT SET!');
+    else if (!process.env.MONGODB_URI) throw new Error('MONGO DB URI NOT SET!');
+
     corsOptions = {
       origin: ['https://denimintsaev.com', 'https://www.denimintsaev.com', 'https://cubingcontests.denimintsaev.com'],
     };
@@ -20,4 +23,5 @@ async function bootstrap() {
 
   await app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
 }
+
 bootstrap();

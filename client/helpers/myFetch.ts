@@ -51,7 +51,7 @@ const doFetch = async (
 
   // Handle bad requests/server errors
   if (res.status >= 400) {
-    if (res.status === 403) {
+    if ([401, 403].includes(res.status)) {
       window.location.href = '/login';
       return null;
     } else {

@@ -1,5 +1,5 @@
 import myFetch from '~/helpers/myFetch';
-import CompetitionForm from '~/app/components/CompetitionForm';
+import CompetitionForm from '~/app/components/admin/CompetitionForm';
 import IEvent from '@sh/interfaces/Event';
 
 const AdminCompetition = async () => {

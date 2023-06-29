@@ -5,34 +5,14 @@ import FormEventSelect from '~/app/components/form/FormEventSelect';
 import { ICompetitionEvent } from '@sh/interfaces/Competition';
 import IEvent from '@sh/interfaces/Event';
 import { IResult } from '@sh/interfaces/Round';
-import EventResultsTable from './EventResultsTable';
-import FormTextInput from './form/FormTextInput';
+import EventResultsTable from '../EventResultsTable';
+import FormTextInput from '../form/FormTextInput';
 import myFetch from '~/helpers/myFetch';
 import IPerson from '@sh/interfaces/Person';
+import { RoundFormat, RoundType } from '@sh/enums';
+import { EventFormat } from '@sh/enums';
 
-// This doesn't want to import for some reason. FIX THIS LATER!
-// import { RoundFormat, RoundType } from '@sh/enums';
-// import { EventFormat } from '@sh/enums';
-export enum RoundFormat {
-  Average = 'a',
-  Mean = 'm',
-  BestOf3 = '3',
-  BestOf2 = '2',
-  BestOf1 = '1',
-}
-export enum RoundType {
-  First = '1',
-  Second = '2',
-  Semi = '3',
-  Final = 'f',
-}
-export enum EventFormat {
-  Time = 'time',
-  Number = 'number', // for FMC
-  Multi = 'multi',
-  TeamTime = 'teamtime', // e.g. for Team BLD or Team Factory
-}
-
+// TO-DO: Make this cleaner!
 const roundFormats = [
   { id: RoundFormat.Average, label: 'Average of 5', attempts: 5 },
   { id: RoundFormat.Mean, label: 'Mean of 3', attempts: 3 },

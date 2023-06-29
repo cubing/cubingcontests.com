@@ -3,7 +3,7 @@ import { PersonsService } from './persons.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '@sh/enums';
+import { Role } from '~/src/helpers/enums';
 import { CreatePersonDto } from './dto/create-person.dto';
 
 @Controller('persons')
@@ -13,6 +13,7 @@ export class PersonsController {
   // GET /persons?searchParam=[name]
   @Get()
   async getPersons(@Query('searchParam') searchParam: string) {
+    console.log('Getting person' + (searchParam ? ` with search parameter: ${searchParam}` : ''));
     return await this.personsService.getPersons(searchParam);
   }
 
@@ -21,6 +22,7 @@ export class PersonsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto) {
+    console.log('Creating new person');
     return await this.personsService.createPerson(createPersonDto);
   }
 }

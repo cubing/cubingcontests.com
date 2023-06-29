@@ -1,8 +1,3 @@
-export enum Role {
-  User = 'user',
-  Admin = 'admin',
-}
-
 export enum EventFormat {
   Time = 'time',
   Number = 'number', // for FMC
@@ -26,4 +21,25 @@ export enum RoundType {
   // First = 'd',
   // Second = 'e'
   // Final = 'c',
+}
+
+export enum WcaRecordType {
+  WR = 'WR',
+  ER = 'ER',
+  NAR = 'NaR',
+  SAR = 'SaR',
+  AsR = 'AsR',
+  AfR = 'AfR',
+  OcR = 'OcR',
+  NR = 'NR',
+}
+
+export enum Color {
+  Red = 'red',
+  Blue = 'blue',
+  Green = 'green',
+  Yellow = 'yellow',
+  White = 'white',
+  Cyan = 'cyan',
+  Magenta = 'magenta',
 }

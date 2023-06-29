@@ -5,7 +5,7 @@ import { LocalAuthGuard } from '~/src/guards/local-auth.guard';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '../../../../shared_helpers/enums';
+import { Role } from '~/src/helpers/enums';
 
 @Controller('auth')
 export class AuthController {

@@ -4,7 +4,7 @@ import JwtPayload from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
-import { Role } from '@sh/enums';
+import { Role } from '~/src/helpers/enums';
 
 @Injectable()
 export class AuthService {

@@ -8,6 +8,10 @@ This is a place for posting results from unofficial Rubik's cube competitions or
 
 <img src="https://denimintsaev.com/api/cubing_contests_2.jpg" width="300"/>
 
+## Admin features (WIP section)
+
+In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the admin dashboard, and set the wanted records as active. They can also be given custom custom labels in order to differentiate them from official WCA records.
+
 ## Development
 
 This project uses Next JS for the front-end and Nest JS (confusing, I know) with Mongo DB for the back-end. To set up the development environment, install Node and NPM, clone this repository and then run the init script that sets up the git hooks:
@@ -15,6 +19,8 @@ This project uses Next JS for the front-end and Nest JS (confusing, I know) with
 ```
 .githooks/init
 ```
+
+There is an important `shared_helpers` directory that is used in both `client` and `server`. They both have a path alias to it in their respective `tsconfig.json` files. The alias is `@sh`.
 
 ### Server set-up
 

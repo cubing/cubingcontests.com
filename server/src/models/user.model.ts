@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import IUser from '@sh/interfaces/User';
-import { Role } from '@sh/enums';
+import IUser from '~/src/helpers/interfaces/User';
+import { Role } from '~/src/helpers/enums';
 
 @Schema({ timestamps: true })
 export class User implements IUser {

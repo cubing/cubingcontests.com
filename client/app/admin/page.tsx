@@ -28,6 +28,9 @@ const AdminHome = async () => {
         <Link href="/admin/person" className="d-block mb-4">
           Create new competitor
         </Link>
+        <Link href="/admin/record-types" className="d-block mb-4">
+          Configure record types
+        </Link>
         <p>
           Competitors in DB: <b>{persons || '?'}</b>
         </p>

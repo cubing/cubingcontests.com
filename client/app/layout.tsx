@@ -5,8 +5,8 @@ import Navbar from '@/components/Navbar';
 
 export const metadata = {
   title: 'Cubing Contests',
-  description: 'A place for posting results from Rubik\'s cube meetups.',
-  keywords: 'rubik\'s cube contest contests competition speedcubing cubing puzzle',
+  description: "A place for posting results from Rubik's cube meetups.",
+  keywords: "rubik's cube contest contests competition speedcubing cubing puzzle",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

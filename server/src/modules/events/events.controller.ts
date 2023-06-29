@@ -3,7 +3,7 @@ import { EventsService } from './events.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '@sh/enums';
+import { Role } from '~/src/helpers/enums';
 import { CreateEventDto } from './dto/create-event.dto';
 
 @Controller('events')
@@ -13,6 +13,7 @@ export class EventsController {
   // GET /events
   @Get()
   async getEvents() {
+    console.log('Getting all events');
     return await this.eventsService.getEvents();
   }
 
@@ -21,6 +22,7 @@ export class EventsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async createEvent(@Body(new ValidationPipe()) createEventDto: CreateEventDto) {
+    console.log(`Creating new event with id ${createEventDto.eventId}`);
     return await this.eventsService.createEvent(createEventDto);
   }
 }

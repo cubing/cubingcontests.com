@@ -8,10 +8,10 @@ import DatePicker from 'react-datepicker';
 // import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
 import IEvent from '@sh/interfaces/Event';
-import Form from './form/Form';
-import FormTextInput from './form/FormTextInput';
-import FormCountrySelect from './form/FormCountrySelect';
-import FormEventSelect from './form/FormEventSelect';
+import Form from '../form/Form';
+import FormTextInput from '../form/FormTextInput';
+import FormCountrySelect from '../form/FormCountrySelect';
+import FormEventSelect from '../form/FormEventSelect';
 
 // registerLocale('en-GB', enGB);
 // setDefaultLocale('en-GB');
@@ -37,10 +37,10 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
       mainEventId,
     };
 
-    const response = await myFetch.post('/competitions', competition);
+    const data = await myFetch.post('/competitions', competition);
 
-    if (response?.errors) {
-      setErrorMessages(response.errors);
+    if (data?.errors) {
+      setErrorMessages(data.errors);
     } else {
       window.location.href = '/admin';
     }

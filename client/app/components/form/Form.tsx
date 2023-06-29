@@ -16,7 +16,7 @@ const Form = ({
   };
 
   return (
-    <form className="mt-4 mx-auto fs-5" style={{ width: '720px' }} onSubmit={(e: any) => onSubmit(e)}>
+    <form className="my-4 mx-auto fs-5" style={{ width: '720px' }} onSubmit={(e: any) => onSubmit(e)}>
       {errorMessages?.map((message, index) => (
         <div key={index} className="alert alert-danger" role="alert">
           {message}
