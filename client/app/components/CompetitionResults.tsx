@@ -7,27 +7,32 @@ import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition'
 import IEvent from '@sh/interfaces/Event';
 
 const CompetitionResults = ({ data: { competition, eventsInfo, persons } }: { data: ICompetitionData }) => {
-  const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(
-    competition.events?.length > 0 ? competition.events[0] : null,
-  );
+  // Find the event held at the competition that has the highest rank.
+  // The first event in eventsInfo is always the highest ranked one, as it's sorted on the backend.
+  let firstEventByRank: ICompetitionEvent | null = null;
+  if (competition.events?.length > 0) {
+    firstEventByRank = competition.events.find((el) => el.eventId === eventsInfo[0].eventId) || null;
+  }
+
+  const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(firstEventByRank);
 
   return (
     <>
-      <div className="mt-5 mb-3 fs-5">
+      <div className="mt-5 mb-3 px-2 fs-5">
         <p>
           Location:&#8194;
           <b>
             {competition.city}, {Countries.find((el) => el.code === competition.countryId)?.name}
           </b>
         </p>
-        {competition.participants && (
+        {competition.participants > 0 && (
           <p>
             Number of participants:&#8194;<b>{competition.participants}</b>
           </p>
         )}
       </div>
       {competition.events.length === 0 ? (
-        <p className="fs-5">The results for this competition have not been posted yet</p>
+        <p className="mx-2 fs-5">The results for this contest have not been posted yet</p>
       ) : (
         <>
           <div className="mb-5 mx-2 d-flex flex-row flex-wrap gap-2">

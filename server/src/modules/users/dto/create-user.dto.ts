@@ -1,9 +1,9 @@
-import { IsLowercase, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import IUser from '@sh/interfaces/User';
 
 export class CreateUserDto implements IUser {
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z -]{2,}$/)
+  @MinLength(3)
   name: string;
 
   @IsString()

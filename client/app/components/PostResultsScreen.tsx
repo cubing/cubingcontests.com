@@ -68,6 +68,20 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
     document.getElementById(`name_${personNames.length}`)?.focus();
   }, [personNames.length]);
 
+  useEffect(() => {
+    logDebug();
+  }, [results]);
+
+  const logDebug = () => {
+    console.log(`Event ID: ${eventId}; Round format: ${roundFormat}`);
+    console.log('Person names:', personNames);
+    console.log('Current persons:', currentPersons);
+    console.log('All persons', persons);
+    console.log('Attempts:', attempts);
+    console.log('Results:', results);
+    console.log('Competition events', competitionEvents);
+  };
+
   const handleSubmit = async () => {
     const data = {
       events: getNewCompetitionEvents(),
@@ -94,13 +108,15 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
       // If attempt is empty or if it has invalid characters (THE EXCEPTION FOR - IS TEMPORARY!)
       if (!att || /[^0-9.:-]/.test(att)) {
         console.error('Invalid attempt:', att);
+        logDebug();
         return;
       }
     }
 
     const tempAttempts = attempts.map((el) => getResult(el));
     // If the attempt is 0, -1 or -2, that means it's a special value that is always worse than other values (e.g. DNF)
-    const best: number = Math.min(...tempAttempts.map((att) => (att > 0 ? att : Infinity)));
+    let best: number = Math.min(...tempAttempts.map((att) => (att > 0 ? att : Infinity)));
+    if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
     let average: number;
 
     if (
@@ -158,10 +174,10 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
       });
 
     setResults(tempResults);
-    setPersons((prev) => [...prev, ...currentPersons]);
+    setPersons((prev) => [...prev, ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId))]);
     setCurrentPersons([]);
     setPersonNames(['']);
-    setAttempts(['', '', '', '', '']);
+    resetAttempts(roundFormat);
     document.getElementById('name_1')?.focus();
   };
 
@@ -213,17 +229,18 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
       setResults([]);
     }
 
-    const newAttempts = [];
     const defRoundFormat: RoundFormat = events.find((ev) => ev.eventId === value)?.defaultRoundFormat as RoundFormat;
-    const numberOfSolves = roundFormats.find((rf) => rf.id === defRoundFormat)?.attempts as number;
 
-    for (let i = 0; i < numberOfSolves; i++) newAttempts.push('');
-
-    setAttempts(newAttempts);
+    resetAttempts(defRoundFormat);
     setEventId(value);
     setCurrentPersons([]);
     setPersonNames(['']);
     setRoundFormat(defRoundFormat);
+  };
+
+  const resetAttempts = (roundFormat: RoundFormat) => {
+    const numberOfSolves = roundFormats.find((rf) => rf.id === roundFormat)?.attempts as number;
+    setAttempts(Array(numberOfSolves).fill(''));
   };
 
   const selectCompetitor = async (e: any, index: number) => {
@@ -266,7 +283,7 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
 
   return (
     <div className="row my-4">
-      <div className="col-4 pe-5">
+      <div className="col-3 pe-4">
         <FormEventSelect events={events} eventId={eventId} setEventId={changeEvent} />
         <div className="mb-3 fs-5">
           <label htmlFor="round_format_id" className="form-label">
@@ -310,11 +327,11 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
             Submit
           </button>
           <button type="button" onClick={handleSubmit} className="mt-4 btn btn-primary">
-            Submit Competition Results
+            Submit Results
           </button>
         </div>
       </div>
-      <div className="col-8">
+      <div className="col-9">
         <EventResultsTable
           event={competitionEvent}
           eventsInfo={events}

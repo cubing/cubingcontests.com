@@ -9,7 +9,7 @@ services:
       - 127.0.0.1:27017:27017
     volumes:
       - cubingcontests-db-dev:/data/db:rw
-      # - ./mongo_init:/docker-entrypoint-initdb.d:ro
+      - ./mongo_init:/docker-entrypoint-initdb.d:ro
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongoadmindev
       - MONGO_INITDB_ROOT_PASSWORD=mongoadmindev123
@@ -26,19 +26,6 @@ services:
       - ME_CONFIG_MONGODB_SERVER=cc-mongo
       - ME_CONFIG_MONGODB_AUTH_USERNAME=mongoadmindev
       - ME_CONFIG_MONGODB_AUTH_PASSWORD=mongoadmindev123
-    depends_on:
-      - mongo
-    restart: unless-stopped
-  cc-api:
-    container_name: cc-api
-    image: cubingcontests-api
-    networks:
-      - cubingcontests-dev
-    ports:
-      - 127.0.0.1:4000:4000
-    environment:
-      # This is different from the URI in server/src/app.module.ts, because that one uses @localhost
-      - MONGODB_URI=mongodb://mongoadmindev:mongoadmindev123@cc-mongo:27017/admin
     depends_on:
       - mongo
     restart: unless-stopped

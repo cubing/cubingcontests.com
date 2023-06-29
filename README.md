@@ -1,10 +1,12 @@
 # Cubing Contests
 
-This is a place for posting results from unofficial Rubik's cube competitions or speedcuber meetups. It's currently a work-in-progress, but eventually this will (hopefully) be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. Of course, there is also going to be the main instance that will be available to everyone.
+This is a place for posting results from unofficial Rubik's cube competitions or speedcuber meetups. It's currently a work-in-progress, but eventually this will (hopefully) be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. Of course, there is also going to be the [**main instance**](https://cubingcontests.denimintsaev.com/) that will be available to everyone.
 
 ## Screenshots
 
 <img src="https://denimintsaev.com/api/cubing_contests_1.jpg" width="300"/>
+
+<img src="https://denimintsaev.com/api/cubing_contests_2.jpg" width="300"/>
 
 ## Development
 
