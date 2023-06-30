@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import FormEventSelect from '~/app/components/form/FormEventSelect';
-import { ICompetitionEvent } from '@sh/interfaces/Competition';
+import ICompetition, { ICompetitionEvent } from '@sh/interfaces/Competition';
 import IEvent from '@sh/interfaces/Event';
 import { IResult } from '@sh/interfaces/Round';
 import EventResultsTable from '../EventResultsTable';
@@ -21,7 +21,7 @@ const roundFormats = [
   { id: RoundFormat.BestOf1, label: 'Best of 1', attempts: 1 },
 ];
 
-const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; competitionId: string }) => {
+const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competition: ICompetition }) => {
   const [eventId, setEventId] = useState('333');
   const [roundFormat, setRoundFormat] = useState(RoundFormat.Average);
   const [personNames, setPersonNames] = useState(['']);
@@ -36,6 +36,9 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
     eventId,
     rounds: [
       {
+        competitionId: competition.competitionId,
+        eventId,
+        date: competition.startDate,
         roundTypeId: RoundType.Final,
         format: roundFormat,
         results,
@@ -44,6 +47,8 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
   };
 
   useEffect(() => {
+    console.log('Events:', events, 'Competition:', competition);
+
     // Focus the last name input
     document.getElementById(`name_${personNames.length}`)?.focus();
   }, [personNames.length]);
@@ -69,7 +74,7 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
 
     console.log(data);
 
-    const response = await myFetch.patch(`/competitions/${competitionId}`, data);
+    const response = await myFetch.patch(`/competitions/${competition.competitionId}`, data);
 
     if (response?.errors) {
       console.log(response.errors);
@@ -187,6 +192,9 @@ const PostResultsScreen = ({ events, competitionId }: { events: IEvent[]; compet
         eventId,
         rounds: [
           {
+            competitionId: competition.competitionId,
+            eventId,
+            date: competition.startDate,
             roundTypeId: RoundType.Final,
             format: roundFormat,
             results,

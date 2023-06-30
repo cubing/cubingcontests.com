@@ -37,6 +37,9 @@ export class Round implements IRound {
   @Prop({ required: true })
   eventId: string;
 
+  @Prop({ required: true })
+  date: Date;
+
   @Prop({ enum: RoundType, required: true })
   roundTypeId: RoundType;
 

@@ -14,9 +14,9 @@ export interface IResult {
 }
 
 export interface IRound {
-  // competitionId and eventId are only used for the model can be used to find where the round belongs
-  competitionId?: string;
-  eventId?: string;
+  competitionId: string;
+  eventId: string;
+  date: Date;
   roundTypeId: RoundType;
   format: RoundFormat;
   results: IResult[];

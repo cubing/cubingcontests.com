@@ -20,7 +20,7 @@ This project uses Next JS for the front-end and Nest JS (confusing, I know) with
 .githooks/init
 ```
 
-There is an important `shared_helpers` directory that is used in both `client` and `server`. They both have a path alias to it in their respective `tsconfig.json` files. The alias is `@sh`.
+There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory.
 
 ### Server set-up
 

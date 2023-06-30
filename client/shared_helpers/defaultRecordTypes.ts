@@ -1,5 +1,5 @@
-import IRecordType from '@sh/interfaces/RecordType';
-import { Color, WcaRecordType } from '@sh/enums';
+import IRecordType from './interfaces/RecordType';
+import { Color, WcaRecordType } from './enums';
 
 const defaultRecordTypes: IRecordType[] = [
   {

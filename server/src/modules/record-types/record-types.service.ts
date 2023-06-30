@@ -8,9 +8,9 @@ import { RecordType, RecordTypeDocument } from '~/src/models/record-type.model';
 export class RecordTypesService {
   constructor(@InjectModel('RecordType') private readonly model: Model<RecordType>) {}
 
-  async getRecordTypes() {
+  async getRecordTypes(query?: any): Promise<RecordTypeDocument[]> {
     try {
-      return await this.model.find();
+      return await this.model.find(query);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -28,7 +28,7 @@ export class RecordTypesService {
     for (let recordType of newRecordTypes) {
       try {
         const newRecordType: RecordTypeDocument = new this.model(recordType);
-        newRecordType.save();
+        await newRecordType.save();
       } catch (err) {
         throw new InternalServerErrorException(`Error while inserting record type: ${recordType}. ${err.message}`);
       }

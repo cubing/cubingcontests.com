@@ -6,7 +6,7 @@ import { Color } from '@sh/enums';
 
 @Schema({ timestamps: true })
 export class RecordType implements IRecordType {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, immutable: true, unique: true })
   label: string;
 
   @Prop({ enum: WcaRecordType, required: true, immutable: true, unique: true })

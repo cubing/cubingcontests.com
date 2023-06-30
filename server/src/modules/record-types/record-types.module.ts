@@ -8,5 +8,6 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [MongooseModule.forFeature([{ name: 'RecordType', schema: RecordTypeSchema }])],
   controllers: [RecordTypesController],
   providers: [RecordTypesService],
+  exports: [RecordTypesService],
 })
 export class RecordTypesModule {}

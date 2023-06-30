@@ -5,7 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import Form from '~/app/components/form/Form';
 import IRecordType from '@sh/interfaces/RecordType';
 import { Color, WcaRecordType } from '@sh/enums';
-import defaultRecordTypes from '~/helpers/defaultRecordTypes';
+import defaultRecordTypes from '@sh/defaultRecordTypes';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>((recordTypes as any).errors || []);
@@ -57,6 +57,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                 id={rt.wcaEquivalent + '_label_input'}
                 value={rt.label}
                 onChange={(e: any) => changeLabel(rt.wcaEquivalent, e.target.value)}
+                disabled={recordTypes?.length > 0}
                 className="form-control"
               />
             </div>

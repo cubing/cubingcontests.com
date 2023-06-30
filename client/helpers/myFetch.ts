@@ -61,6 +61,8 @@ const doFetch = async (
         // Sometimes the server returns the message as a single string and sometimes as an array of messages
         if (typeof json.message === 'string') errors = [json.message];
         else errors = json.message;
+
+        console.error(json);
       } else {
         errors = ['Unknown error'];
       }
@@ -77,9 +79,9 @@ const doFetch = async (
 const myFetch = {
   async get(
     url: string,
-    { authorize = false, revalidate = 300 }: { authorize?: boolean; revalidate?: number | false } = {
+    { authorize = false, revalidate = false }: { authorize?: boolean; revalidate?: number | false } = {
       authorize: false,
-      revalidate: 300,
+      revalidate: false,
     },
   ) {
     return await doFetch(url, 'GET', revalidate || 300, null, authorize);

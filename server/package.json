@@ -68,7 +68,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -77,6 +77,11 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "./coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^~/(.*)": "<rootDir>/$1",
+      "^@sh/(.*)": "<rootDir>/../client/shared_helpers/$1",
+      "^@m/(.*)": "<rootDir>/src/modules/$1"
+    }
   }
 }

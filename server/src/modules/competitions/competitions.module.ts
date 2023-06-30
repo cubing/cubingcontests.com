@@ -6,9 +6,11 @@ import { CompetitionSchema } from '~/src/models/competition.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { EventSchema } from '~/src/models/event.model';
 import { PersonSchema } from '~/src/models/person.model';
+import { RecordTypesModule } from '~/src/modules/record-types/record-types.module';
 
 @Module({
   imports: [
+    RecordTypesModule,
     MongooseModule.forFeature([
       { name: 'Competition', schema: CompetitionSchema },
       { name: 'Round', schema: RoundSchema },

@@ -6,8 +6,8 @@ import CompetitionsTable from '@c/CompetitionsTable';
 import ICompetition from '@sh/interfaces/Competition';
 
 const AdminHome = async () => {
-  const competitions: ICompetition[] = await myFetch.get('/competitions', { revalidate: false });
-  const persons: number = (await myFetch.get('/persons', { revalidate: false }))?.length;
+  const competitions: ICompetition[] = await myFetch.get('/competitions');
+  const persons: number = (await myFetch.get('/persons'))?.length;
   const users: number = (await myFetch.get('/users/total', { authorize: true }))?.total;
 
   const logOut = () => {
