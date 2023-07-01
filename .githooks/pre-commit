@@ -10,7 +10,9 @@ else
   ESLINT="node_modules/.bin/eslint"
 fi
 
-STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'client/.*\.(js|jsx|ts|tsx)$' | sed -E 's/client\///'))
+# CLIENT
+
+STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'client/.*\.(ts|tsx)$' | sed -E 's/client\///'))
 
 echo -e "Linting these files in the client directory:\n"
 
@@ -27,7 +29,36 @@ echo -e "\nNew directory: $(pwd)\n"
 $ESLINT --fix "${STAGED_FILES[@]}"
 ESLINT_EXIT="$?"
 
-# Re-add files since they may have been fixed
+# Re-add files since they may have been changed
+git add "${STAGED_FILES[@]}"
+
+if [[ "${ESLINT_EXIT}" == 0 ]]; then
+  printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
+else
+  printf "\n\033[41mCOMMIT FAILED:\033[0m Fix eslint errors and try again\n"
+  exit 1
+fi
+
+# SERVER
+
+STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
+
+echo -e "Linting these files in the server directory:\n"
+
+if [[ "$STAGED_FILES" = "" ]]; then
+  exit 0
+else
+  for file in ${STAGED_FILES[@]}; do
+    echo $file
+  done
+fi
+
+cd server
+echo -e "\nNew directory: $(pwd)\n"
+$ESLINT --fix "${STAGED_FILES[@]}"
+ESLINT_EXIT="$?"
+
+# Re-add files since they may have been changed
 git add "${STAGED_FILES[@]}"
 
 if [[ "${ESLINT_EXIT}" == 0 ]]; then
