@@ -1,8 +1,11 @@
 module.exports = {
-  extends: ['next', 'next/core-web-vitals', 'eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   parser: '@typescript-eslint/parser',
+  extends: ['next', 'next/core-web-vitals', 'eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   plugins: ['@typescript-eslint'],
   rules: {
+    '@typescript-eslint/no-explicit-any': 'off',
+    indent: ['error', 2],
+    // WHEN EDITING ANY OF THE RULES BELOW, COPY THEM OVER TO server/.eslintrc.js
     semi: [
       'error',
       'always',
@@ -17,7 +20,6 @@ module.exports = {
         avoidEscape: true,
       },
     ],
-    indent: ['error', 2],
     'comma-dangle': ['error', 'always-multiline'],
     'max-len': [
       'error',

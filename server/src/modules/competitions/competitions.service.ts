@@ -4,7 +4,7 @@ import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Competition, CompetitionEvent, CompetitionDocument } from '~/src/models/competition.model';
-import { Round, RoundDocument } from '~/src/models/round.model';
+import { RoundDocument } from '~/src/models/round.model';
 import { Event } from '~/src/models/event.model';
 import { Person } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
@@ -26,7 +26,7 @@ export class CompetitionsService {
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
-    let queryFilter = region ? { country: region } : {};
+    const queryFilter = region ? { country: region } : {};
 
     try {
       return await this.competitionModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
@@ -153,17 +153,17 @@ export class CompetitionsService {
   // This method must only be called when the event rounds have been populated
   private getCompetitionParticipants(events: ICompetitionEvent[]): number[] {
     const personIds: number[] = [];
-    for (let event of events) {
-      for (let round of event.rounds) this.getParticipantsInRound(round, personIds);
+    for (const event of events) {
+      for (const round of event.rounds) this.getParticipantsInRound(round, personIds);
     }
     return personIds;
   }
 
   // Adds new unique participants to the personIds array
   private getParticipantsInRound(round: IRound, personIds: number[]): void {
-    for (let result of round.results) {
+    for (const result of round.results) {
       // personId can have multiple ids separated by ; so all ids need to be checked
-      for (let personId of result.personId.split(';').map((el) => parseInt(el))) {
+      for (const personId of result.personId.split(';').map((el) => parseInt(el))) {
         if (!personIds.includes(personId)) {
           personIds.push(personId);
         }
@@ -182,14 +182,14 @@ export class CompetitionsService {
     const personIds: number[] = []; // used for calculating the number of participants
 
     // Save every round from every event
-    for (let event of newCompEvents) {
+    for (const event of newCompEvents) {
       const newCompEvent: CompetitionEvent = { eventId: event.eventId, rounds: [] };
       let sameDayRounds: IRound[] = [];
       // These are set to null if there are no active record types
       const singleRecords: any = await this.getRecords('regionalSingleRecord', event.eventId, activeRecordTypes);
       const avgRecords: any = await this.getRecords('regionalAverageRecord', event.eventId, activeRecordTypes);
 
-      for (let round of event.rounds) {
+      for (const round of event.rounds) {
         // ASSUMES THE ROUNDS ARE SORTED BY DATE
         if (activeRecordTypes.length > 0) {
           // Set the records from the last day, when the day changes
@@ -227,7 +227,7 @@ export class CompetitionsService {
     console.log(`Getting ${typeReadable} records for event ${eventId}`);
 
     // Go through all active record types
-    for (let rt of activeRecordTypes) {
+    for (const rt of activeRecordTypes) {
       if (!records) records = {} as any;
 
       query = { eventId, [`results.${type}`]: rt.label };
@@ -255,9 +255,9 @@ export class CompetitionsService {
   ) {
     console.log(`Setting records for event ${sameDayRounds[0].eventId}`);
 
-    for (let rt of activeRecordTypes) {
-      for (let round of sameDayRounds) {
-        for (let result of round.results) {
+    for (const rt of activeRecordTypes) {
+      for (const round of sameDayRounds) {
+        for (const result of round.results) {
           if (result.best > 0 && result.best < singleRecords[rt.wcaEquivalent]) {
             result.regionalSingleRecord = rt.label;
           }

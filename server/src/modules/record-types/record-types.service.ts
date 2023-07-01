@@ -57,7 +57,7 @@ export class RecordTypesService {
         try {
           const events: EventDocument[] = await this.eventModel.find();
 
-          for (let event of events) {
+          for (const event of events) {
             // Set single records
             let bestResult = Infinity;
             const bestSinglesByDay = await this.resultModel
@@ -83,7 +83,7 @@ export class RecordTypesService {
               return false;
             });
 
-            for (let singleRecord of singleRecords) {
+            for (const singleRecord of singleRecords) {
               console.log(`New single ${newRecordTypes[i].label} for event ${event.eventId}: ${singleRecord.best}`);
               await this.resultModel
                 .updateOne(
@@ -121,7 +121,7 @@ export class RecordTypesService {
               return false;
             });
 
-            for (let avgRecord of avgRecords) {
+            for (const avgRecord of avgRecords) {
               console.log(`New average ${newRecordTypes[i].label} for event ${event.eventId}: ${avgRecord.average}`);
 
               await this.resultModel

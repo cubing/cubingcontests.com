@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, MinLength } from 'class-validator';
+import { IsEnum, IsNumber, IsString, Min, MinLength } from 'class-validator';
 import IEvent from '@sh/interfaces/Event';
 import { EventFormat, RoundFormat } from '@sh/enums';
 
