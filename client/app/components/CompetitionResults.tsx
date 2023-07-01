@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Countries from '@sh/Countries';
 import EventResultsTable from './EventResultsTable';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
 import IEvent from '@sh/interfaces/Event';
+import { getCountry } from '~/helpers/utilityFunctions';
 
 const CompetitionResults = ({ data: { competition, eventsInfo, persons } }: { data: ICompetitionData }) => {
   // Find the event held at the competition that has the highest rank.
@@ -16,16 +16,11 @@ const CompetitionResults = ({ data: { competition, eventsInfo, persons } }: { da
 
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(firstEventByRank);
 
-  const getLocation = (): string => {
-    return `${competition.city}, ${Countries.find((el) => el.code === competition.countryId)?.name}`;
-  };
-
   return (
     <>
       <div className="mt-5 mb-3 px-2 fs-5">
         <p>
-          Location:&#8194;
-          <b>{getLocation()}</b>
+          Location:&#8194;{competition.city}, <b>{getCountry(competition)}</b>
         </p>
         {competition.participants > 0 && (
           <p>
