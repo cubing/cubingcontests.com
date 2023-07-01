@@ -213,35 +213,34 @@ export class CompetitionsService {
     competition.participants = personIds.length;
   }
 
-  // Returns null if no record types are active
   async getRecords(
     type: 'regionalSingleRecord' | 'regionalAverageRecord',
     eventId: string,
     activeRecordTypes: RecordTypeDocument[],
   ) {
-    let records = null;
-    let query;
-    let rounds: RoundDocument[];
-    const typeReadable = type === 'regionalSingleRecord' ? 'best' : 'average';
+    // Returns null if no record types are active
+    if (activeRecordTypes.length === 0) return null;
+    const records: any = {};
+    const typeWord = type === 'regionalSingleRecord' ? 'best' : 'average';
 
-    console.log(`Getting ${typeReadable} records for event ${eventId}`);
+    console.log(`Getting ${typeWord} records for event ${eventId}`);
 
     // Go through all active record types
     for (const rt of activeRecordTypes) {
-      if (!records) records = {} as any;
+      const results = await this.resultModel
+        .find({ eventId, [type]: rt.label })
+        .sort({ date: -1 })
+        .limit(1)
+        .exec();
 
-      query = { eventId, [`results.${type}`]: rt.label };
-      rounds = await this.roundModel.find(query).sort({ date: -1 }).limit(1);
-
-      if (rounds.length > 0) {
-        records[rt.wcaEquivalent] = (rounds[0].results.find((el) => el[type] === rt.label) as any)[typeReadable];
+      if (results.length > 0) {
+        records[rt.wcaEquivalent] = results[0][typeWord];
       } else {
         records[rt.wcaEquivalent] = Infinity;
       }
     }
 
     console.log('Found records:', records);
-
     return records;
   }
 

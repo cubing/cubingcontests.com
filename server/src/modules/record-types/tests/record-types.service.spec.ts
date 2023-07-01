@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { RecordTypesService } from '../record-types.service';
-import { mockRoundModel } from '@m/competitions/tests/__mocks__/round.model';
+import { mockResultModel } from '@m/competitions/tests/__mocks__/result.model';
 import { mockRecordTypeModel } from './__mocks__/record-type.model';
 import { Model } from 'mongoose';
-import { RoundDocument } from '~/src/models/round.model';
+import { ResultDocument } from '~/src/models/result.model';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
 
 describe('RecordTypesService', () => {
   let recordTypesService: RecordTypesService;
-  let roundModel: Model<RoundDocument>;
+  let resultModel: Model<ResultDocument>;
   let recordTypeModel: Model<RecordTypeDocument>;
 
   beforeEach(async () => {
@@ -17,8 +17,12 @@ describe('RecordTypesService', () => {
       providers: [
         RecordTypesService,
         {
-          provide: getModelToken('Round'),
-          useValue: mockRoundModel,
+          provide: getModelToken('Result'),
+          useValue: mockResultModel,
+        },
+        {
+          provide: getModelToken('Event'),
+          useValue: {},
         },
         {
           provide: getModelToken('RecordType'),
@@ -28,7 +32,7 @@ describe('RecordTypesService', () => {
     }).compile();
 
     recordTypesService = module.get<RecordTypesService>(RecordTypesService);
-    roundModel = module.get<Model<RoundDocument>>(getModelToken('Round'));
+    resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
     recordTypeModel = module.get<Model<RecordTypeDocument>>(getModelToken('RecordType'));
   });
 
@@ -36,7 +40,7 @@ describe('RecordTypesService', () => {
     expect(recordTypesService).toBeDefined();
   });
 
-  it.skip('should set records when they are activated', () => {
-    // const
-  });
+  // it('should set records when they are activated', () => {
+  //   const
+  // });
 });

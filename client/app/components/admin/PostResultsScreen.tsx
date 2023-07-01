@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import FormEventSelect from '~/app/components/form/FormEventSelect';
 import ICompetition, { ICompetitionEvent } from '@sh/interfaces/Competition';
 import IEvent from '@sh/interfaces/Event';
-import { IResult } from '@sh/interfaces/Round';
+import IResult from '@sh/interfaces/Result';
 import EventResultsTable from '../EventResultsTable';
 import FormTextInput from '../form/FormTextInput';
 import myFetch from '~/helpers/myFetch';
@@ -134,6 +134,9 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
 
     // TO-DO (IT SHOULD CHECK IF THAT USER'S RESULTS HAVE ALREADY BEEN ENTERED)
     tempResults.push({
+      competitionId: competition.competitionId,
+      eventId,
+      date: competition.startDate,
       personId: currentPersons.map((el) => el.personId.toString()).join(';'),
       ranking: 0, // real ranking assigned further down
       attempts: tempAttempts,

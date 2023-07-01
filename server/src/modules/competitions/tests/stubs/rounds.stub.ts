@@ -1,8 +1,11 @@
+import mongoose from 'mongoose';
 import { RoundDocument } from '~/src/models/round.model';
 import { RoundFormat, RoundType } from '@sh/enums';
-import mongoose from 'mongoose';
 
-export const rounds = (): RoundDocument[] => {
+///////////////////////////////////////////////////////////////////////////////////////////
+// THIS STUB IS OUTDATED AND MUST BE REPLACED BEFORE BEING USED IN TESTS!
+///////////////////////////////////////////////////////////////////////////////////////////
+export const roundsStub = (): RoundDocument[] => {
   return [
     {
       _id: new mongoose.Types.ObjectId('649d2dee675dfd951d5ff35b'),

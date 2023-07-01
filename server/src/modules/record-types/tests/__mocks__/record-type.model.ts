@@ -1,5 +1,8 @@
-import { rounds } from '@m/competitions/tests/stubs/rounds.stub';
+import { roundsStub } from '@m/competitions/tests/stubs/rounds.stub';
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// THIS IS ALL OLD CODE THAT NEEDS TO BE REWRITTEN!!!
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 export const mockRecordTypeModel = {
   create: jest.fn(),
   find(query: any) {
@@ -9,7 +12,7 @@ export const mockRecordTypeModel = {
       sort() {
         return {
           limit() {
-            return rounds().sort((a, b) => {
+            return roundsStub().sort((a, b) => {
               const aBest = (
                 a.results.reduce((prev: any, curr: any) =>
                   curr[typeKey] > 0 && curr[typeKey] < prev[typeKey] ? curr : prev,
