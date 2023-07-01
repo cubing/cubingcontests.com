@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import ICompetition from '@sh/interfaces/Competition';
-import Countries from '@sh/Countries';
 import { getCountry } from '~/helpers/utilityFunctions';
 
 const getFormattedDate = (start: Date, end: Date): string => {

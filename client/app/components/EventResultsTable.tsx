@@ -61,6 +61,24 @@ const EventResultsTable = ({
     return attempts.map((el) => formatTime(el)).join(' ');
   };
 
+  const getRecordBadge = (result: IResult, type: 'single' | 'average') => {
+    const recordLabel = type === 'single' ? result.regionalSingleRecord : result.regionalAverageRecord;
+    if (!recordLabel) return null;
+
+    // THIS IS HARD-CODED TEMPORARILY
+    const colorClass = 'bg-danger';
+
+    // switch(recordLabel) {
+    //   case '':
+    //     colorClass = '';
+    //     break;
+    //   default:
+    //     throw new Error(`Unknown record label: ${recordLabel}`)
+    // }
+
+    return <span className={'badge ' + colorClass}>{recordLabel}</span>;
+  };
+
   return (
     <>
       <div className="flex-grow-1 table-responsive">
@@ -80,8 +98,18 @@ const EventResultsTable = ({
               <tr key={result.personId}>
                 <td>{result.ranking}</td>
                 <td>{getName(result.personId)}</td>
-                <td>{formatTime(result.best)}</td>
-                <td>{formatTime(result.average, true)}</td>
+                <td>
+                  <div className="d-flex align-items-center gap-3">
+                    {formatTime(result.best)}
+                    {getRecordBadge(result, 'single')}
+                  </div>
+                </td>
+                <td>
+                  <div className="d-flex align-items-center gap-3">
+                    {formatTime(result.average, true)}
+                    {getRecordBadge(result, 'average')}
+                  </div>
+                </td>
                 <td>{getSolves(result.attempts)}</td>
                 {onDeleteResult && (
                   <td>
