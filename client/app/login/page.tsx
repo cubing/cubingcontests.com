@@ -38,7 +38,7 @@ const Login = () => {
       <h2 className="mb-4 text-center">Login</h2>
       <Form buttonText="Log in" errorMessages={errorMessages} handleSubmit={handleSubmit}>
         <FormTextInput name="Username" value={username} setValue={setUsername} />
-        <FormTextInput name="Password" value={password} setValue={setPassword} />
+        <FormTextInput name="Password" password value={password} setValue={setPassword} />
         <Link href="/register" className="d-block mt-4 fs-5">
           Create account
         </Link>

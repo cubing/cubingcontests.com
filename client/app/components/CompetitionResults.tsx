@@ -16,14 +16,16 @@ const CompetitionResults = ({ data: { competition, eventsInfo, persons } }: { da
 
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(firstEventByRank);
 
+  const getLocation = (): string => {
+    return `${competition.city}, ${Countries.find((el) => el.code === competition.countryId)?.name}`;
+  };
+
   return (
     <>
       <div className="mt-5 mb-3 px-2 fs-5">
         <p>
           Location:&#8194;
-          <b>
-            {competition.city}, {Countries.find((el) => el.code === competition.countryId)?.name}
-          </b>
+          <b>{getLocation()}</b>
         </p>
         {competition.participants > 0 && (
           <p>

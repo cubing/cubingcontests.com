@@ -47,11 +47,11 @@ export class CompetitionsController {
   }
 
   // DELETE /competitions/:id
-  @Delete(':id')
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
-  async deleteCompetition(@Param('id') competitionId: string) {
-    console.log(`Deleting competition with id ${competitionId}`);
-    return await this.service.deleteCompetition(competitionId);
-  }
+  // @Delete(':id')
+  // @UseGuards(AuthenticatedGuard, RolesGuard)
+  // @Roles(Role.Admin)
+  // async deleteCompetition(@Param('id') competitionId: string) {
+  //   console.log(`Deleting competition with id ${competitionId}`);
+  //   return await this.service.deleteCompetition(competitionId);
+  // }
 }

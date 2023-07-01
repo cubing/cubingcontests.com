@@ -1,5 +1,5 @@
 import IEvent from './Event';
-import { IRound } from './Round';
+import IRound from './Round';
 import IPerson from './Person';
 
 export interface ICompetitionEvent {

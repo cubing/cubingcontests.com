@@ -5,7 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import Form from '~/app/components/form/Form';
 import IRecordType from '@sh/interfaces/RecordType';
 import { Color, WcaRecordType } from '@sh/enums';
-import defaultRecordTypes from '@sh/defaultRecordTypes';
+import defaultRecordTypes from '~/helpers/defaultRecordTypes';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>((recordTypes as any).errors || []);

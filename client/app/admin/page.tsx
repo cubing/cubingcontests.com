@@ -18,28 +18,24 @@ const AdminHome = async () => {
   return (
     <>
       <h2 className="text-center">Admin Home</h2>
-      <div className="my-4 fs-5">
-        <button type="button" className="mb-4 btn btn-danger" onClick={logOut}>
-          Log out
-        </button>
-        <Link href="/admin/competition" className="d-block mb-4">
-          Create new competition
-        </Link>
-        <Link href="/admin/person" className="d-block mb-4">
-          Create new competitor
-        </Link>
-        <Link href="/admin/record-types" className="d-block mb-4">
-          Configure record types
-        </Link>
-        <p>
-          Competitors in DB: <b>{persons || '?'}</b>
-        </p>
-        <p>
-          Users in DB: <b>{users || '?'}</b>
-        </p>
-        <p>
-          Number of competitions: <b>{competitions.length}</b>
-        </p>
+      <button type="button" className="mt-4 btn btn-danger" style={{ width: 'max-content' }} onClick={logOut}>
+        Log out
+      </button>
+      <div className="d-flex flex-column gap-4 my-4 fs-5">
+        <Link href="/admin/competition">Create new competition</Link>
+        <Link href="/admin/person">Create new competitor</Link>
+        <Link href="/admin/record-types">Configure record types</Link>
+        <div>
+          <p>
+            Competitors in DB: <b>{persons || '?'}</b>
+          </p>
+          <p>
+            Users in DB: <b>{users || '?'}</b>
+          </p>
+          <p>
+            Number of competitions: <b>{competitions.length}</b>
+          </p>
+        </div>
       </div>
       {competitions?.length > 0 && <CompetitionsTable linkToPostResults competitions={competitions} />}
     </>

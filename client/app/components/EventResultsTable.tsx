@@ -1,7 +1,8 @@
 import IEvent from '@sh/interfaces/Event';
 import { ICompetitionEvent } from '@sh/interfaces/Competition';
 import IPerson from '@sh/interfaces/Person';
-import IRound, { IResult } from '@sh/interfaces/Round';
+import IRound from '@sh/interfaces/Round';
+import IResult from '@sh/interfaces/Result';
 
 const EventResultsTable = ({
   event,

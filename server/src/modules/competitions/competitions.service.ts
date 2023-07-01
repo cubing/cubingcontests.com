@@ -12,12 +12,14 @@ import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { RecordTypesService } from '~/src/modules/record-types/record-types.service';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
 import IRound from '@sh/interfaces/Round';
+import { ResultDocument } from '~/src/models/result.model';
 
 @Injectable()
 export class CompetitionsService {
   constructor(
     @InjectModel('Competition') private readonly competitionModel: Model<Competition>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
+    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Event') private readonly eventModel: Model<Event>,
     @InjectModel('Person') private readonly personModel: Model<Person>,
     private recordTypesService: RecordTypesService,
@@ -37,7 +39,19 @@ export class CompetitionsService {
     // Find the competition with the rounds populated
     let competition;
     try {
-      competition = await this.competitionModel.findOne({ competitionId }, excl).populate('events.rounds').exec();
+      competition = await this.competitionModel
+        .findOne({ competitionId }, excl)
+        .populate({
+          path: 'events.rounds',
+          model: 'Round',
+          populate: [
+            {
+              path: 'results',
+              model: 'Result',
+            },
+          ],
+        })
+        .exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -83,8 +97,7 @@ export class CompetitionsService {
     if (comp) throw new BadRequestException(`Competition with id ${createCompetitionDto.competitionId} already exists`);
 
     try {
-      const newCompetition: CompetitionDocument = new this.competitionModel(createCompetitionDto);
-      await newCompetition.save();
+      await this.competitionModel.create(createCompetitionDto);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -123,30 +136,39 @@ export class CompetitionsService {
     }
   }
 
-  async deleteCompetition(competitionId: string) {
-    let result;
-    try {
-      // Delete the results and the competition itself
-      await this.roundModel.deleteMany({ competitionId }).exec();
-      result = await this.competitionModel.deleteOne({ competitionId }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+  // async deleteCompetition(competitionId: string) {
+  //   let result;
+  //   try {
+  //     // Delete the results and the competition itself
+  //     // TO-DO: THIS NEEDS TO DELETE ALL OF THE RESULTS TOO (OR DOES IT?)
+  //     await this.roundModel.deleteMany({ competitionId }).exec();
+  //     result = await this.competitionModel.deleteOne({ competitionId }).exec();
+  //   } catch (err) {
+  //     throw new InternalServerErrorException(err.message);
+  //   }
 
-    if (result.deletedCount === 0) throw new NotFoundException(`Competition with id ${competitionId} not found`);
-  }
+  //   if (result.deletedCount === 0) throw new NotFoundException(`Competition with id ${competitionId} not found`);
+  // }
 
   // This method must only be called when the event rounds have been populated
   private getCompetitionParticipants(events: ICompetitionEvent[]): number[] {
     const personIds: number[] = [];
-
     for (let event of events) {
-      for (let round of event.rounds) {
-        this.getParticipantsInRound(round, personIds);
+      for (let round of event.rounds) this.getParticipantsInRound(round, personIds);
+    }
+    return personIds;
+  }
+
+  // Adds new unique participants to the personIds array
+  private getParticipantsInRound(round: IRound, personIds: number[]): void {
+    for (let result of round.results) {
+      // personId can have multiple ids separated by ; so all ids need to be checked
+      for (let personId of result.personId.split(';').map((el) => parseInt(el))) {
+        if (!personIds.includes(personId)) {
+          personIds.push(personId);
+        }
       }
     }
-
-    return personIds;
   }
 
   async updateCompetitionEvents(competition: CompetitionDocument, newCompEvents: ICompetitionEvent[]) {
@@ -162,14 +184,12 @@ export class CompetitionsService {
     // Save every round from every event
     for (let event of newCompEvents) {
       const newCompEvent: CompetitionEvent = { eventId: event.eventId, rounds: [] };
-      let sameDayRounds: RoundDocument[] = [];
+      let sameDayRounds: IRound[] = [];
       // These are set to null if there are no active record types
       const singleRecords: any = await this.getRecords('regionalSingleRecord', event.eventId, activeRecordTypes);
       const avgRecords: any = await this.getRecords('regionalAverageRecord', event.eventId, activeRecordTypes);
 
       for (let round of event.rounds) {
-        const newRound: RoundDocument = round as RoundDocument;
-
         // ASSUMES THE ROUNDS ARE SORTED BY DATE
         if (activeRecordTypes.length > 0) {
           // Set the records from the last day, when the day changes
@@ -177,40 +197,20 @@ export class CompetitionsService {
             this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords);
             sameDayRounds = [];
           }
-          sameDayRounds.push(newRound);
+          sameDayRounds.push(round);
         }
 
+        const newRound = await this.roundModel.create(round);
         newCompEvent.rounds.push(newRound);
         this.getParticipantsInRound(round, personIds);
       }
-
       // Set the records for the last day of rounds
       this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords);
 
-      // Save all of the round documents and add the event to competition events
-      try {
-        newCompEvent.rounds.forEach(async (el: RoundDocument) => {
-          await this.roundModel.create(el);
-        });
-      } catch (err) {
-        throw new InternalServerErrorException(err.message);
-      }
       competition.events.push(newCompEvent);
     }
 
     competition.participants = personIds.length;
-  }
-
-  // Adds new unique participants to the personIds array
-  private getParticipantsInRound(round: IRound, personIds: number[]): void {
-    for (let result of round.results) {
-      // personId can have multiple ids separated by ; so all ids need to be checked
-      for (let personId of result.personId.split(';').map((el) => parseInt(el))) {
-        if (!personIds.includes(personId)) {
-          personIds.push(personId);
-        }
-      }
-    }
   }
 
   // Returns null if no record types are active
@@ -245,8 +245,10 @@ export class CompetitionsService {
     return records;
   }
 
-  setRecords(
-    sameDayRounds: RoundDocument[],
+  // Sets the newly-set records in sameDayRounds using the information from singleRecords and avgRecords
+  // (but only those that are active in activeRecordTypes)
+  async setRecords(
+    sameDayRounds: IRound[],
     activeRecordTypes: RecordTypeDocument[],
     singleRecords: any,
     avgRecords: any,
@@ -261,6 +263,12 @@ export class CompetitionsService {
           }
           if (result.average > 0 && result.average < avgRecords[rt.wcaEquivalent]) {
             result.regionalAverageRecord = rt.label;
+          }
+
+          try {
+            await this.resultModel.create(result);
+          } catch (err) {
+            throw new InternalServerErrorException(`Error while creating result ${result}: ${err.message}`);
           }
         }
       }

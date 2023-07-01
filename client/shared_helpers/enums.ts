@@ -32,6 +32,7 @@ export enum WcaRecordType {
   AfR = 'AfR',
   OcR = 'OcR',
   NR = 'NR',
+  PR = 'PR',
 }
 
 export enum Color {

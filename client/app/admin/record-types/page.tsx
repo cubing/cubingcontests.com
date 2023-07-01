@@ -11,6 +11,9 @@ const RecordTypes = async () => {
   return (
     <>
       <h2 className="mb-4 text-center">Record Types</h2>
+      {recordTypes.length > 0 || (
+        <p className="mt-3 text-center fs-5">AFTER THE RECORD LABELS HAVE BEEN SET, THEY CAN NEVER BE RESET!</p>
+      )}
       <RecordTypesForm recordTypes={recordTypes} />
     </>
   );

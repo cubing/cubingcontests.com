@@ -2,11 +2,13 @@ const FormTextInput = ({
   name,
   id,
   value,
+  password = false,
   setValue,
   onKeyDown,
 }: {
   name?: string;
   id?: string;
+  password?: boolean;
   value: string;
   setValue: any;
   onKeyDown?: (e: any) => void;
@@ -27,7 +29,7 @@ const FormTextInput = ({
         </label>
       )}
       <input
-        type="text"
+        type={password ? 'password' : 'text'}
         id={id}
         value={value}
         onChange={(e: any) => setValue(e.target.value)}

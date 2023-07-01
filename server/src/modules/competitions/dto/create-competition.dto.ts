@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsIn, IsNumber, IsOptional, IsString, Matches, Min, MinLength } from 'class-validator';
+import { IsDateString, IsIn, IsString, Matches, MinLength } from 'class-validator';
 import Countries from '@sh/Countries';
 
 export class CreateCompetitionDto {

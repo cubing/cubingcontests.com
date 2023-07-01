@@ -38,7 +38,7 @@ const Register = () => {
       <Form buttonText="Register" errorMessages={errorMessages} handleSubmit={handleSubmit}>
         <FormTextInput name="Full name" value={name} setValue={setName} />
         <FormTextInput name="Username" value={username} setValue={setUsername} />
-        <FormTextInput name="Password" value={password} setValue={setPassword} />
+        <FormTextInput name="Password" password value={password} setValue={setPassword} />
         <Link href="/login" className="d-block mt-4 fs-5">
           Log in
         </Link>

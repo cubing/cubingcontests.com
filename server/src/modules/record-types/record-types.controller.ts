@@ -20,7 +20,7 @@ export class RecordTypesController {
 
   @Post() // POST /record-types
   async createOrEditRecordTypes(@Body() recordTypes: IRecordType[]) {
-    console.log('Creating record types');
+    console.log('Setting record types');
     return await this.service.createOrEditRecordTypes(recordTypes);
   }
 }

@@ -46,17 +46,6 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
     ],
   };
 
-  useEffect(() => {
-    console.log('Events:', events, 'Competition:', competition);
-
-    // Focus the last name input
-    document.getElementById(`name_${personNames.length}`)?.focus();
-  }, [personNames.length]);
-
-  useEffect(() => {
-    logDebug();
-  }, [results]);
-
   const logDebug = () => {
     console.log(`Event ID: ${eventId}; Round format: ${roundFormat}`);
     console.log('Person names:', personNames);
@@ -66,6 +55,19 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
     console.log('Results:', results);
     console.log('Competition events', competitionEvents);
   };
+
+  useEffect(() => {
+    console.log('Events:', events, 'Competition:', competition);
+  }, [competition, events]);
+
+  useEffect(() => {
+    logDebug();
+  }, [results, logDebug]);
+
+  useEffect(() => {
+    // Focus the last name input
+    document.getElementById(`name_${personNames.length}`)?.focus();
+  }, [personNames.length]);
 
   const handleSubmit = async () => {
     const data = {

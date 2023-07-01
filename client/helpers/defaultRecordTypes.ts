@@ -1,5 +1,5 @@
-import IRecordType from './interfaces/RecordType';
-import { Color, WcaRecordType } from './enums';
+import IRecordType from '../shared_helpers/interfaces/RecordType';
+import { Color, WcaRecordType } from '../shared_helpers/enums';
 
 const defaultRecordTypes: IRecordType[] = [
   {
@@ -49,6 +49,12 @@ const defaultRecordTypes: IRecordType[] = [
     wcaEquivalent: WcaRecordType.NR,
     active: false,
     color: Color.Green,
+  },
+  {
+    label: 'PR',
+    wcaEquivalent: WcaRecordType.PR,
+    active: false,
+    color: Color.Blue,
   },
 ];
 
