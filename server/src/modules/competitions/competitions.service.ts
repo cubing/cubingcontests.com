@@ -4,7 +4,7 @@ import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Competition, CompetitionEvent, CompetitionDocument } from '~/src/models/competition.model';
-import { RoundDocument } from '~/src/models/round.model';
+import { Round, RoundDocument } from '~/src/models/round.model';
 import { Event } from '~/src/models/event.model';
 import { Person } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
@@ -12,7 +12,7 @@ import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { RecordTypesService } from '~/src/modules/record-types/record-types.service';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
 import IRound from '@sh/interfaces/Round';
-import { ResultDocument } from '~/src/models/result.model';
+import { Result, ResultDocument } from '~/src/models/result.model';
 
 @Injectable()
 export class CompetitionsService {
@@ -126,8 +126,14 @@ export class CompetitionsService {
         throw new BadRequestException('The competition already has its results posted');
       }
 
-      this.updateCompetitionEvents(comp, updateCompetitionDto.events);
+      try {
+        await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
+      } catch (err: any) {
+        throw new InternalServerErrorException(`Error while updating competition events: ${err.message}`);
+      }
     }
+
+    console.log(JSON.stringify(comp, null, 2));
 
     try {
       await comp.save();
@@ -188,25 +194,24 @@ export class CompetitionsService {
       // These are set to null if there are no active record types
       const singleRecords: any = await this.getRecords('regionalSingleRecord', event.eventId, activeRecordTypes);
       const avgRecords: any = await this.getRecords('regionalAverageRecord', event.eventId, activeRecordTypes);
+      const sortedRounds = event.rounds.sort((a: any, b: any) => a.date - b.date);
 
-      for (const round of event.rounds) {
-        // ASSUMES THE ROUNDS ARE SORTED BY DATE
+      for (const round of sortedRounds) {
         if (activeRecordTypes.length > 0) {
           // Set the records from the last day, when the day changes
           if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
-            this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords);
+            newCompEvent.rounds.push(
+              ...(await this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords)),
+            );
             sameDayRounds = [];
           }
           sameDayRounds.push(round);
         }
 
-        const newRound = await this.roundModel.create(round);
-        newCompEvent.rounds.push(newRound);
         this.getParticipantsInRound(round, personIds);
       }
       // Set the records for the last day of rounds
-      this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords);
-
+      newCompEvent.rounds.push(...(await this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords)));
       competition.events.push(newCompEvent);
     }
 
@@ -223,8 +228,6 @@ export class CompetitionsService {
     const records: any = {};
     const typeWord = type === 'regionalSingleRecord' ? 'best' : 'average';
 
-    console.log(`Getting ${typeWord} records for event ${eventId}`);
-
     // Go through all active record types
     for (const rt of activeRecordTypes) {
       const results = await this.resultModel
@@ -240,7 +243,7 @@ export class CompetitionsService {
       }
     }
 
-    console.log('Found records:', records);
+    console.log(`Found ${eventId} ${typeWord} records: ${JSON.stringify(records, null, 2)}`);
     return records;
   }
 
@@ -251,26 +254,46 @@ export class CompetitionsService {
     activeRecordTypes: RecordTypeDocument[],
     singleRecords: any,
     avgRecords: any,
-  ) {
-    console.log(`Setting records for event ${sameDayRounds[0].eventId}`);
+  ): Promise<Round[]> {
+    const rounds: Round[] = [];
 
     for (const rt of activeRecordTypes) {
       for (const round of sameDayRounds) {
-        for (const result of round.results) {
-          if (result.best > 0 && result.best < singleRecords[rt.wcaEquivalent]) {
-            result.regionalSingleRecord = rt.label;
-          }
-          if (result.average > 0 && result.average < avgRecords[rt.wcaEquivalent]) {
-            result.regionalAverageRecord = rt.label;
-          }
+        const newRound = { ...round, results: [] } as Round;
+        const singleSortedResults = [...round.results].sort((a: any, b: any) => a.best - b.best);
+        const avgSortedResults = [...round.results].sort((a: any, b: any) => a.average - b.average);
 
-          try {
-            await this.resultModel.create(result);
-          } catch (err) {
-            throw new InternalServerErrorException(`Error while creating result ${result}: ${err.message}`);
+        for (const result of singleSortedResults) {
+          // First skip all of the DNFs
+          if (result.best > 0) {
+            if (result.best < singleRecords[rt.wcaEquivalent]) {
+              console.log(`New ${round.eventId} single ${rt.label} set: ${result.best}`);
+              result.regionalSingleRecord = rt.label;
+            }
+            break;
           }
         }
+        for (const result of avgSortedResults) {
+          // First skip all of the DNFs
+          if (result.average > 0) {
+            if (result.average < avgRecords[rt.wcaEquivalent]) {
+              console.log(`New ${round.eventId} average ${rt.label} set: ${result.average}`);
+              result.regionalAverageRecord = rt.label;
+            }
+            break;
+          }
+        }
+
+        try {
+          newRound.results.push(...(await this.resultModel.create(round.results)));
+        } catch (err) {
+          throw new InternalServerErrorException(`Error while creating result ${round.results}: ${err.message}`);
+        }
+
+        rounds.push(await this.roundModel.create(newRound));
       }
     }
+
+    return rounds;
   }
 }

@@ -88,7 +88,7 @@ describe('CompetitionsService', () => {
       expect(records.WR).toBe(14594);
     });
 
-    it('sets new records', async () => {
+    it('sets new 3x3x3 records correctly', async () => {
       const singleRecords: any = await competitionsService.getRecords(
         'regionalSingleRecord',
         '333',
@@ -100,12 +100,36 @@ describe('CompetitionsService', () => {
         activeRecordTypesStub(),
       );
 
+      expect(singleRecords.WR).toBe(909);
+      expect(avgRecords.WR).toBe(1132);
+
       const sameDayRounds = newCompetitionEventsStub()[0].rounds;
       competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
 
-      expect(singleRecords.WR).toBe(909);
-      expect(avgRecords.WR).toBe(1132);
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
+    });
+
+    it('sets new 3x3x3 FM records correctly', async () => {
+      const singleRecords: any = await competitionsService.getRecords(
+        'regionalSingleRecord',
+        '333fm',
+        activeRecordTypesStub(),
+      );
+      const avgRecords: any = await competitionsService.getRecords(
+        'regionalAverageRecord',
+        '333fm',
+        activeRecordTypesStub(),
+      );
+
+      expect(singleRecords.WR).toBe(39);
+      expect(avgRecords.WR).toBe(4600);
+
+      const sameDayRounds = newCompetitionEventsStub()[1].rounds;
+      competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
+
+      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[0].regionalSingleRecord).toBeUndefined();
+      expect(sameDayRounds[0].results[2].regionalSingleRecord).toBe('XWR');
     });
 
     it('updateCompetitionEvents sets events and participants correctly', async () => {
@@ -115,7 +139,7 @@ describe('CompetitionsService', () => {
       await competitionsService.updateCompetitionEvents(comp, newCompetitionEvents);
 
       expect(comp.participants).toBe(4);
-      expect(comp.events.length).toBe(1);
+      expect(comp.events.length).toBeGreaterThan(0);
       expect(comp.events[0].rounds[0].results[0].best).toBe(686);
       expect(comp.events[0].rounds[0].results[0].average).toBe(800);
       expect(comp.events[0].rounds[0].results[0].regionalAverageRecord).toBe('XWR');

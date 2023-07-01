@@ -4,8 +4,12 @@ import { resultsStub } from '../stubs/results.stub';
 
 export const mockResultModel = (): any => ({
   tempOutput: undefined,
-  create(result: IResult): ResultDocument {
-    return result as ResultDocument;
+  create(results: IResult | IResult[]): ResultDocument | ResultDocument[] {
+    if (Array.isArray(results)) {
+      return results as ResultDocument[];
+    } else {
+      return results as ResultDocument;
+    }
   },
   find(query: any) {
     this.tempOutput = resultsStub();

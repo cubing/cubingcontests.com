@@ -4,14 +4,14 @@ const FormTextInput = ({
   value,
   password = false,
   setValue,
-  onKeyDown,
+  onKeyPress,
 }: {
   name?: string;
   id?: string;
   password?: boolean;
   value: string;
   setValue: any;
-  onKeyDown?: (e: any) => void;
+  onKeyPress?: (e: any) => void;
 }) => {
   if (!id) {
     if (name) {
@@ -33,7 +33,7 @@ const FormTextInput = ({
         id={id}
         value={value}
         onChange={(e: any) => setValue(e.target.value)}
-        onKeyDown={onKeyDown}
+        onKeyPress={onKeyPress}
         className="form-control"
       />
     </div>

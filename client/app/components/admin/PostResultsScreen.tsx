@@ -62,7 +62,7 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
 
   useEffect(() => {
     logDebug();
-  }, [results, logDebug]);
+  }, [results]);
 
   useEffect(() => {
     // Focus the last name input
@@ -243,7 +243,7 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
       if (!results.errors && results.length > 0) {
         const newPersonNames = [...personNames.slice(0, -1), results[0].name];
 
-        if (results.length === 1) {
+        if (results.length === 1 && !currentPersons.find((el) => el.personId === results[0].personId)) {
           if (events.find((el) => el.eventId === eventId)?.format === EventFormat.TeamTime) {
             newPersonNames.push('');
             setCurrentPersons((prev) => [...prev, results[0]]);
@@ -272,6 +272,17 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
 
   const deleteResult = (personId: string) => {
     setResults(results.filter((el) => el.personId !== personId));
+  };
+
+  const enterAttempt = (e: any, index: number) => {
+    if (e.key === 'Enter') {
+      // Focus next time input or the submit button if it's the last input
+      if (index + 1 < attempts.length) {
+        document.getElementById(`solve_${index + 2}`)?.focus();
+      } else {
+        document.getElementById('submit_attempt_button')?.focus();
+      }
+    }
   };
 
   return (
@@ -303,7 +314,7 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
               id={`name_${i + 1}`}
               value={el}
               setValue={(val: string) => changePersonName(i, val)}
-              onKeyDown={(e: any) => selectCompetitor(e, i)}
+              onKeyPress={(e: any) => selectCompetitor(e, i)}
             />
           ))}
         </div>
@@ -313,10 +324,16 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
             id={`solve_${i + 1}`}
             value={attempts[i]}
             setValue={(val: string) => changeAttempt(i, val)}
+            onKeyPress={(e: any) => enterAttempt(e, i)}
           />
         ))}
         <div className="d-flex justify-content-between">
-          <button type="button" onClick={handleSubmitAttempts} className="mt-4 btn btn-success">
+          <button
+            type="button"
+            id="submit_attempt_button"
+            onClick={handleSubmitAttempts}
+            className="mt-4 btn btn-success"
+          >
             Submit
           </button>
           <button type="button" onClick={handleSubmit} className="mt-4 btn btn-primary">
