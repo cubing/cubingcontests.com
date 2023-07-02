@@ -3,7 +3,7 @@ FROM node:18-alpine
 RUN apk update && apk upgrade
 
 COPY server /home/app/server
-COPY shared_helpers /home/app/shared_helpers
+COPY client/shared_helpers /home/app/client/shared_helpers
 
 WORKDIR /home/app/server
 
