@@ -22,11 +22,11 @@ module.exports = {
     ],
     'comma-dangle': ['error', 'always-multiline'],
     'max-len': [
-      'error',
+      'warning',
       {
         code: 120,
         tabWidth: 2,
-        ignoreComments: false,
+        ignoreComments: true,
         ignoreTrailingComments: false,
       },
     ],
