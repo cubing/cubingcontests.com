@@ -22,6 +22,7 @@ const roundFormats = [
 ];
 
 const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competition: ICompetition }) => {
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [eventId, setEventId] = useState('333');
   const [roundFormat, setRoundFormat] = useState(RoundFormat.Average);
   const [personNames, setPersonNames] = useState(['']);
@@ -70,105 +71,120 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
   }, [personNames.length]);
 
   const handleSubmit = async () => {
+    if (competitionEvents.length === 0 && results.length === 0) {
+      setErrorMessages(["You haven't entered any results"]);
+      return;
+    }
+
     const data = {
       events: getNewCompetitionEvents(),
     };
 
-    console.log(data);
-
     const response = await myFetch.patch(`/competitions/${competition.competitionId}`, data);
 
     if (response?.errors) {
-      console.log(response.errors);
+      setErrorMessages(response.errors);
     } else {
       window.location.href = '/admin';
     }
   };
 
   const handleSubmitAttempts = () => {
-    if (currentPersons.length === 0) {
-      console.error('Invalid person(s)');
-      return;
+    const tempErrorMessages = [];
+
+    if (
+      currentPersons.length === 0 ||
+      currentPersons.find((el) => currentPersons.filter((el2) => el2.personId === el.personId).length > 1)
+    ) {
+      tempErrorMessages.push('Invalid person(s)');
     }
 
     for (const att of attempts) {
       // If attempt is empty or if it has invalid characters (THE EXCEPTION FOR - IS TEMPORARY!)
-      if (!att || /[^0-9.:-]/.test(att)) {
-        console.error('Invalid attempt:', att);
-        logDebug();
-        return;
+      if (!att || /[^0-9.:-]/.test(att) || isNaN(Number(att)) || Number(att) === 0) {
+        tempErrorMessages.push(`Invalid attempt: ${att}`);
       }
     }
 
-    const tempAttempts = attempts.map((el) => getResult(el));
-    // If the attempt is 0, -1 or -2, that means it's a special value that is always worse than other values (e.g. DNF)
-    let best: number = Math.min(...tempAttempts.map((att) => (att > 0 ? att : Infinity)));
-    if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
-    let average: number;
-
-    if (
-      tempAttempts.filter((el) => el <= 0).length > 1 ||
-      (tempAttempts.filter((el) => el <= 0).length > 0 && tempAttempts.length === 3) ||
-      tempAttempts.length < 3 ||
-      eventId === '333mbf'
-    ) {
-      average = -1; // DNF
+    // Show errors, if any
+    if (tempErrorMessages.length > 0) {
+      logDebug();
+      setErrorMessages(tempErrorMessages);
     } else {
-      let sum = tempAttempts.reduce((prev: number, curr: number) => {
-        // Ignore DNF, DNS, etc.
-        if (curr <= 0) return prev;
-        return curr + prev;
-      }) as number;
+      const tempAttempts = attempts.map((el) => getResult(el));
+      // If the attempt is 0, -1 or -2, then it's a special value that is always worse than other values (e.g. DNF)
+      let best: number = Math.min(...tempAttempts.map((att) => (att > 0 ? att : Infinity)));
+      if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
+      let average: number;
 
-      // Subtract best and worst results
-      if (tempAttempts.length === 5) {
-        sum -= best;
-        // Only subtract worst if there is no DNF, DNS, etc.
-        if (tempAttempts.find((el) => el <= 0) === undefined) sum -= Math.max(...tempAttempts);
+      if (
+        tempAttempts.filter((el) => el <= 0).length > 1 ||
+        (tempAttempts.filter((el) => el <= 0).length > 0 && tempAttempts.length === 3) ||
+        tempAttempts.length < 3 ||
+        eventId === '333mbf'
+      ) {
+        average = -1; // DNF
+      } else {
+        let sum = tempAttempts.reduce((prev: number, curr: number) => {
+          // Ignore DNF, DNS, etc.
+          if (curr <= 0) return prev;
+          return curr + prev;
+        }) as number;
+
+        // Subtract best and worst results
+        if (tempAttempts.length === 5) {
+          sum -= best;
+          // Only subtract worst if there is no DNF, DNS, etc.
+          if (tempAttempts.find((el) => el <= 0) === undefined) sum -= Math.max(...tempAttempts);
+        }
+
+        average = Math.round((sum / 3) * (eventId === '333fm' ? 100 : 1));
       }
 
-      average = Math.round((sum / 3) * (eventId === '333fm' ? 100 : 1));
-    }
+      let tempResults = results;
 
-    let tempResults = results;
-
-    // TO-DO (IT SHOULD CHECK IF THAT USER'S RESULTS HAVE ALREADY BEEN ENTERED)
-    tempResults.push({
-      competitionId: competition.competitionId,
-      eventId,
-      date: competition.startDate,
-      personId: currentPersons.map((el) => el.personId.toString()).join(';'),
-      ranking: 0, // real ranking assigned further down
-      attempts: tempAttempts,
-      best,
-      average,
-    });
-
-    tempResults = tempResults
-      .sort((a, b) => {
-        if (['a', 'm'].includes(roundFormat)) {
-          if (a.average <= 0 && b.average > 0) return 1;
-          else if (a.average > 0 && b.average <= 0) return -1;
-          return a.average - b.average;
-        } else {
-          if (a.best <= 0 && b.best > 0) return 1;
-          else if (a.best > 0 && b.best <= 0) return -1;
-          return a.best - b.best;
-        }
-      })
-      .map((result, index) => {
-        return {
-          ...result,
-          ranking: index + 1,
-        };
+      // TO-DO (IT SHOULD CHECK IF THAT USER'S RESULTS HAVE ALREADY BEEN ENTERED)
+      tempResults.push({
+        competitionId: competition.competitionId,
+        eventId,
+        date: competition.startDate,
+        personId: currentPersons.map((el) => el.personId.toString()).join(';'),
+        ranking: 0, // real ranking assigned further down
+        attempts: tempAttempts,
+        best,
+        average,
       });
 
-    setResults(tempResults);
-    setPersons((prev) => [...prev, ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId))]);
-    setCurrentPersons([]);
-    setPersonNames(['']);
-    resetAttempts(roundFormat);
-    document.getElementById('name_1')?.focus();
+      tempResults = tempResults
+        .sort((a, b) => {
+          if (['a', 'm'].includes(roundFormat)) {
+            if (a.average <= 0 && b.average > 0) return 1;
+            else if (a.average > 0 && b.average <= 0) return -1;
+            return a.average - b.average;
+          } else {
+            if (a.best <= 0 && b.best > 0) return 1;
+            else if (a.best > 0 && b.best <= 0) return -1;
+            return a.best - b.best;
+          }
+        })
+        .map((result, index) => {
+          return {
+            ...result,
+            ranking: index + 1,
+          };
+        });
+
+      setResults(tempResults);
+      setPersons((prev) => [
+        ...prev,
+        ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId)),
+      ]);
+      setCurrentPersons([]);
+      setPersonNames(['']);
+      setErrorMessages([]);
+      resetAttempts(roundFormat);
+      document.getElementById('name_1')?.focus();
+    }
   };
 
   const getResult = (time: string): number => {
@@ -238,24 +254,38 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
 
   const selectCompetitor = async (e: any, index: number) => {
     if (e.key === 'Enter') {
-      const results = await myFetch.get(`/persons?searchParam=${personNames[index]}`);
+      const data = await myFetch.get(`/persons?searchParam=${personNames[index]}`);
 
-      if (!results.errors && results.length > 0) {
-        const newPersonNames = [...personNames.slice(0, -1), results[0].name];
+      if (data.errors) {
+        setErrorMessages(data.errors);
+      } else if (data.length === 0) {
+        setErrorMessages(['Person not found']);
+      } else {
+        const newPersonNames = [...personNames.slice(0, -1), data[0].name];
 
-        if (results.length === 1 && !currentPersons.find((el) => el.personId === results[0].personId)) {
-          if (events.find((el) => el.eventId === eventId)?.format === EventFormat.TeamTime) {
-            newPersonNames.push('');
-            setCurrentPersons((prev) => [...prev, results[0]]);
+        if (data.length === 1) {
+          // If the competitor has already been selected or their results have already been entered, show error
+          if (
+            currentPersons.find((el) => el.personId === data[0].personId) ||
+            results.find((res: IResult) => res.personId.split(';').includes(data[0].personId.toString()))
+          ) {
+            setPersonNames(['']);
+            setCurrentPersons([]);
+            setErrorMessages(["This competitor's results have already been entered"]);
           } else {
-            document.getElementById('solve_1')?.focus();
-            setCurrentPersons(results);
+            if (events.find((el) => el.eventId === eventId)?.format === EventFormat.TeamTime) {
+              newPersonNames.push('');
+              setCurrentPersons((prev) => [...prev, data[0]]);
+            } else {
+              document.getElementById('solve_1')?.focus();
+              setCurrentPersons(data);
+            }
+
+            setErrorMessages([]);
           }
         }
 
         setPersonNames(newPersonNames);
-      } else {
-        changePersonName(index, 'Person not found');
       }
     }
   };
@@ -286,70 +316,77 @@ const PostResultsScreen = ({ events, competition }: { events: IEvent[]; competit
   };
 
   return (
-    <div className="row my-4">
-      <div className="col-3 pe-4">
-        <FormEventSelect events={events} eventId={eventId} setEventId={changeEvent} />
-        <div className="mb-3 fs-5">
-          <label htmlFor="round_format_id" className="form-label">
-            Round Format
-          </label>
-          <select
-            id="round_format_id"
-            className="form-select"
-            value={roundFormat}
-            onChange={(e) => setRoundFormat(e.target.value as RoundFormat)}
-          >
-            {roundFormats.map((el) => (
-              <option key={el.id} value={el.id}>
-                {el.label}
-              </option>
-            ))}
-          </select>
+    <>
+      {errorMessages?.map((message, index) => (
+        <div key={index} className="mt-3 alert alert-danger fs-5" role="alert">
+          {message}
         </div>
-        <div className="mb-5">
-          {personNames.map((el: string, i: number) => (
+      ))}
+      <div className="row my-4">
+        <div className="col-3 pe-4">
+          <FormEventSelect events={events} eventId={eventId} setEventId={changeEvent} />
+          <div className="mb-3 fs-5">
+            <label htmlFor="round_format_id" className="form-label">
+              Round Format
+            </label>
+            <select
+              id="round_format_id"
+              className="form-select"
+              value={roundFormat}
+              onChange={(e) => setRoundFormat(e.target.value as RoundFormat)}
+            >
+              {roundFormats.map((el) => (
+                <option key={el.id} value={el.id}>
+                  {el.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-5">
+            {personNames.map((el: string, i: number) => (
+              <FormTextInput
+                key={i}
+                name={`Competitor ${i + 1}`}
+                id={`name_${i + 1}`}
+                value={el}
+                setValue={(val: string) => changePersonName(i, val)}
+                onKeyPress={(e: any) => selectCompetitor(e, i)}
+              />
+            ))}
+          </div>
+          {Array.from(Array(roundFormats.find((el) => el.id === roundFormat)?.attempts), (_, i) => (
             <FormTextInput
               key={i}
-              name={`Competitor ${i + 1}`}
-              id={`name_${i + 1}`}
-              value={el}
-              setValue={(val: string) => changePersonName(i, val)}
-              onKeyPress={(e: any) => selectCompetitor(e, i)}
+              id={`solve_${i + 1}`}
+              value={attempts[i]}
+              setValue={(val: string) => changeAttempt(i, val)}
+              onKeyPress={(e: any) => enterAttempt(e, i)}
             />
           ))}
+          <div className="d-flex justify-content-between">
+            <button
+              type="button"
+              id="submit_attempt_button"
+              onClick={handleSubmitAttempts}
+              className="mt-4 btn btn-success"
+            >
+              Submit
+            </button>
+            <button type="button" onClick={handleSubmit} className="mt-4 btn btn-primary">
+              Submit Results
+            </button>
+          </div>
         </div>
-        {Array.from(Array(roundFormats.find((el) => el.id === roundFormat)?.attempts), (_, i) => (
-          <FormTextInput
-            key={i}
-            id={`solve_${i + 1}`}
-            value={attempts[i]}
-            setValue={(val: string) => changeAttempt(i, val)}
-            onKeyPress={(e: any) => enterAttempt(e, i)}
+        <div className="col-9">
+          <EventResultsTable
+            event={competitionEvent}
+            eventsInfo={events}
+            persons={persons}
+            onDeleteResult={deleteResult}
           />
-        ))}
-        <div className="d-flex justify-content-between">
-          <button
-            type="button"
-            id="submit_attempt_button"
-            onClick={handleSubmitAttempts}
-            className="mt-4 btn btn-success"
-          >
-            Submit
-          </button>
-          <button type="button" onClick={handleSubmit} className="mt-4 btn btn-primary">
-            Submit Results
-          </button>
         </div>
       </div>
-      <div className="col-9">
-        <EventResultsTable
-          event={competitionEvent}
-          eventsInfo={events}
-          persons={persons}
-          onDeleteResult={deleteResult}
-        />
-      </div>
-    </div>
+    </>
   );
 };
 
