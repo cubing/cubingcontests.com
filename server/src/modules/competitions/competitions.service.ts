@@ -12,7 +12,13 @@ import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { RecordTypesService } from '~/src/modules/record-types/record-types.service';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
 import IRound from '@sh/interfaces/Round';
-import { Result, ResultDocument } from '~/src/models/result.model';
+import { ResultDocument } from '~/src/models/result.model';
+import IResult from '@sh/interfaces/Result';
+
+interface CompetitionUpdateResult {
+  events: ICompetitionEvent[];
+  participants: number;
+}
 
 @Injectable()
 export class CompetitionsService {
@@ -122,18 +128,43 @@ export class CompetitionsService {
 
     // Post competition results
     if (updateCompetitionDto.events.length > 0) {
+      let tempRounds: IRound[];
+      let tempResults: IResult[];
+
       if (comp.events.length > 0) {
-        throw new BadRequestException('The competition already has its results posted');
+        console.log('Rewriting existing competition results');
+
+        // Reset the records for now
+        for (const event of updateCompetitionDto.events) {
+          for (const round of event.rounds) {
+            for (const result of round.results) {
+              delete result.regionalSingleRecord;
+              delete result.regionalAverageRecord;
+            }
+          }
+        }
+
+        // Store the rounds and results temporarily in case
+        tempRounds = (await this.roundModel.find({ competitionId })) as IRound[];
+        tempResults = (await this.resultModel.find({ competitionId })) as IResult[];
+        await this.roundModel.deleteMany({ competitionId });
+        await this.resultModel.deleteMany({ competitionId });
       }
 
       try {
-        await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
+        // throw new Error('test error');
+        const updatedCompetition: CompetitionUpdateResult = await this.updateCompetitionEvents(
+          updateCompetitionDto.events,
+        );
+        comp.events = updatedCompetition.events;
+        comp.participants = updatedCompetition.participants;
       } catch (err: any) {
+        // Add back the rounds and results if there was an error while creating the competition
+        if (tempRounds) await this.roundModel.create(tempRounds);
+        if (tempResults) await this.resultModel.create(tempResults);
         throw new InternalServerErrorException(`Error while updating competition events: ${err.message}`);
       }
     }
-
-    console.log(JSON.stringify(comp, null, 2));
 
     try {
       await comp.save();
@@ -177,8 +208,10 @@ export class CompetitionsService {
     }
   }
 
-  async updateCompetitionEvents(competition: CompetitionDocument, newCompEvents: ICompetitionEvent[]) {
+  async updateCompetitionEvents(newCompEvents: ICompetitionEvent[]): Promise<CompetitionUpdateResult> {
+    const output = { events: [] } as CompetitionUpdateResult;
     let activeRecordTypes: RecordTypeDocument[];
+
     try {
       activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     } catch (err) {
@@ -212,10 +245,11 @@ export class CompetitionsService {
       }
       // Set the records for the last day of rounds
       newCompEvent.rounds.push(...(await this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords)));
-      competition.events.push(newCompEvent);
+      output.events.push(newCompEvent);
     }
 
-    competition.participants = personIds.length;
+    output.participants = personIds.length;
+    return output;
   }
 
   async getRecords(

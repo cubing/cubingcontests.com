@@ -36,7 +36,7 @@ if [[ "$STAGED_FILES" != "" ]]; then
 fi
 
 # SERVER
-STAGED_FILES2=($(git diff --cached --name-only --diff-filter=ACM . | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
+STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM . | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
 
 if [[ "$STAGED_FILES" != "" ]]; then
   cd server
@@ -54,8 +54,6 @@ if [[ "$STAGED_FILES" != "" ]]; then
       echo $file
     done
 
-    cd server
-    echo -e "\nNew directory: $(pwd)\n"
     $ESLINT --fix "${STAGED_FILES[@]}"
 
     # Re-add files since they may have been changed
