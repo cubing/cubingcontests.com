@@ -1,68 +1,76 @@
 #!/bin/bash
 cd "$(git rev-parse --show-toplevel)"
-ESLINT="client/node_modules/.bin/eslint"
 echo -e "New directory: $(pwd)\n"
-
-if [[ ! -x "$ESLINT" ]]; then
-  printf "\t\033[41mPlease install ESlint\033[0m (npm install eslint)\n"
-  exit 1
-else
-  ESLINT="node_modules/.bin/eslint"
-fi
 
 # CLIENT
 
 STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'client/.*\.(ts|tsx)$' | sed -E 's/client\///'))
 
-echo -e "Linting these files in the client directory:\n"
-
 if [[ "$STAGED_FILES" != "" ]]; then
-  for file in ${STAGED_FILES[@]}; do
-    echo $file
-  done
-
   cd client
   echo -e "\nNew directory: $(pwd)\n"
-  $ESLINT --fix "${STAGED_FILES[@]}"
-  ESLINT_EXIT="$?"
+  ESLINT="node_modules/.bin/eslint"
 
-  # Re-add files since they may have been changed
-  git add "${STAGED_FILES[@]}"
-
-  if [[ "${ESLINT_EXIT}" == 0 ]]; then
-    printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
-  else
-    printf "\n\033[41mCOMMIT FAILED:\033[0m Fix eslint errors in /client and try again\n"
+  if [[ ! -x "$ESLINT" ]]; then
+    printf "\033[41mPlease install ESlint in /client\033[0m\n"
     exit 1
+  else
+    ESLINT="node_modules/.bin/eslint"
+    echo -e "Linting these files in the client directory:\n"
+
+    for file in ${STAGED_FILES[@]}; do
+      echo $file
+    done
+
+    $ESLINT --fix "${STAGED_FILES[@]}"
+
+    # Re-add files since they may have been changed
+    git add "${STAGED_FILES[@]}"
+
+    if [[ $? != 0 ]]; then
+      exit 1
+    else
+      cd ..
+    fi
   fi
 fi
 
 # SERVER
-cd ..
-
-STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
-
-echo -e "Linting these files in the server directory:\n"
+STAGED_FILES2=($(git diff --cached --name-only --diff-filter=ACM . | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
 
 if [[ "$STAGED_FILES" != "" ]]; then
-  for file in ${STAGED_FILES[@]}; do
-    echo $file
-  done
-
   cd server
   echo -e "\nNew directory: $(pwd)\n"
-  $ESLINT --fix "${STAGED_FILES[@]}"
-  ESLINT_EXIT="$?"
+  ESLINT="node_modules/.bin/eslint"
 
-  # Re-add files since they may have been changed
-  git add "${STAGED_FILES[@]}"
-
-  if [[ "${ESLINT_EXIT}" == 0 ]]; then
-    printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
-  else
-    printf "\n\033[41mCOMMIT FAILED:\033[0m Fix eslint errors in /server and try again\n"
+  if [[ ! -x "$ESLINT" ]]; then
+    printf "\033[41mPlease install ESlint in /server\033[0m\n"
     exit 1
+  else
+    ESLINT="node_modules/.bin/eslint"
+    echo -e "Linting these files in the server directory:\n"
+
+    for file in ${STAGED_FILES[@]}; do
+      echo $file
+    done
+
+    cd server
+    echo -e "\nNew directory: $(pwd)\n"
+    $ESLINT --fix "${STAGED_FILES[@]}"
+
+    # Re-add files since they may have been changed
+    git add "${STAGED_FILES[@]}"
+
+    if [[ $? != 0 ]]; then
+      exit 1
+    fi
   fi
+fi
+
+if [[ $? == 0 ]]; then
+  printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
+else
+  printf "\n\033[41mCOMMIT FAILED\033[0m\n"
 fi
 
 exit $?
