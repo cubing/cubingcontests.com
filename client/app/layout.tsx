@@ -5,8 +5,16 @@ import Navbar from '@/components/Navbar';
 
 export const metadata = {
   title: 'Cubing Contests',
-  description: "A place for posting results from Rubik's cube meetups.",
-  keywords: "rubik's cube contest contests competition speedcubing cubing puzzle",
+  description: "A place for hosting unofficial Rubik's cube competitions or meet-ups.",
+  keywords:
+    "rubik's rubiks cube contest contests competition competitions meetup meetups meet-up meet-ups speedcubing cubing puzzle",
+  icons: {
+    icon: '/favicon.png',
+  },
+  metadataBase: new URL('https://denimintsaev.com'),
+  openGraph: {
+    images: ['/projects/contest_results.jpg'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

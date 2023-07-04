@@ -22,7 +22,7 @@ module.exports = {
     ],
     'comma-dangle': ['error', 'always-multiline'],
     'max-len': [
-      'warning',
+      'warn',
       {
         code: 120,
         tabWidth: 2,
