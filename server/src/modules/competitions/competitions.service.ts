@@ -14,6 +14,7 @@ import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition'
 import IRound from '@sh/interfaces/Round';
 import { ResultDocument } from '~/src/models/result.model';
 import IResult from '@sh/interfaces/Result';
+import { compareSingles, compareAvgs } from '@sh/sharedFunctions';
 
 interface CompetitionUpdateResult {
   events: ICompetitionEvent[];
@@ -294,28 +295,32 @@ export class CompetitionsService {
     for (const rt of activeRecordTypes) {
       for (const round of sameDayRounds) {
         const newRound = { ...round, results: [] } as Round;
-        const singleSortedResults = [...round.results].sort((a: any, b: any) => a.best - b.best);
-        const avgSortedResults = [...round.results].sort((a: any, b: any) => a.average - b.average);
+        const singleSortedResults = [...round.results].sort(compareSingles);
+        const avgSortedResults = [...round.results].sort(compareAvgs);
 
-        for (const result of singleSortedResults) {
-          // First skip all of the DNFs
-          if (result.best > 0) {
-            if (result.best < singleRecords[rt.wcaEquivalent]) {
-              console.log(`New ${round.eventId} single ${rt.label} set: ${result.best}`);
-              result.regionalSingleRecord = rt.label;
-            }
-            break;
-          }
+        for (let i = 0; i < singleSortedResults.length; i++) {
+          // Mark single as a record if it's better than or equal to the last record and if it's equal to
+          // the top sorted result (because ties are records too). Otherwise stop the loop.
+          // Also stop the loop if the best result is a DNF.
+          if (
+            singleSortedResults[i].best > 0 &&
+            singleSortedResults[i].best <= singleRecords[rt.wcaEquivalent] &&
+            singleSortedResults[i].best === singleSortedResults[0].best
+          ) {
+            console.log(`New ${round.eventId} single ${rt.label} set: ${singleSortedResults[i].best}`);
+            singleSortedResults[i].regionalSingleRecord = rt.label;
+          } else break;
         }
-        for (const result of avgSortedResults) {
-          // First skip all of the DNFs
-          if (result.average > 0) {
-            if (result.average < avgRecords[rt.wcaEquivalent]) {
-              console.log(`New ${round.eventId} average ${rt.label} set: ${result.average}`);
-              result.regionalAverageRecord = rt.label;
-            }
-            break;
-          }
+        for (let i = 0; i < avgSortedResults.length; i++) {
+          // Same logic as for single
+          if (
+            avgSortedResults[i].average > 0 &&
+            avgSortedResults[i].average <= avgRecords[rt.wcaEquivalent] &&
+            avgSortedResults[i].average === avgSortedResults[0].average
+          ) {
+            console.log(`New ${round.eventId} average ${rt.label} set: ${avgSortedResults[i].average}`);
+            avgSortedResults[i].regionalAverageRecord = rt.label;
+          } else break;
         }
 
         try {

@@ -12,6 +12,7 @@ import IPerson from '@sh/interfaces/Person';
 import { RoundFormat, RoundType } from '@sh/enums';
 import { EventFormat } from '@sh/enums';
 import IRound from '@sh/interfaces/Round';
+import { compareAvgs, compareSingles } from '@sh/sharedFunctions';
 
 // TO-DO: Make this cleaner!
 const roundFormats = [
@@ -169,17 +170,7 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
       });
 
       tempResults = mapResultsRankings(
-        tempResults.sort((a, b) => {
-          if (['a', 'm'].includes(roundFormat)) {
-            if (a.average <= 0 && b.average > 0) return 1;
-            else if (a.average > 0 && b.average <= 0) return -1;
-            return a.average - b.average;
-          } else {
-            if (a.best <= 0 && b.best > 0) return 1;
-            else if (a.best > 0 && b.best <= 0) return -1;
-            return a.best - b.best;
-          }
-        }),
+        tempResults.sort(['a', 'm'].includes(roundFormat) ? compareAvgs : compareSingles),
       );
 
       setResults(tempResults);

@@ -63,7 +63,7 @@ describe('CompetitionsService', () => {
   });
 
   describe('Endpoint methods', () => {
-    it('should update a competition', () => {
+    it('should update a competition without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
       competitionsService.updateCompetition('Munich30062023', updateCompetitionDto);
     });
@@ -109,7 +109,7 @@ describe('CompetitionsService', () => {
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
     });
 
-    it('sets new 3x3x3 FM records correctly', async () => {
+    it('sets new 3x3x3 FM records with multiple record-breaking results on the same day correctly', async () => {
       const singleRecords: any = await competitionsService.getRecords(
         'regionalSingleRecord',
         '333fm',
@@ -127,22 +127,45 @@ describe('CompetitionsService', () => {
       const sameDayRounds = newCompetitionEventsStub()[1].rounds;
       competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
 
-      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBeUndefined();
+      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
       expect(sameDayRounds[0].results[2].regionalSingleRecord).toBe('XWR');
     });
 
+    it('sets new 3x3x3 FM records with ties correctly', async () => {
+      const singleRecords: any = await competitionsService.getRecords(
+        'regionalSingleRecord',
+        '333fm',
+        activeRecordTypesStub(),
+      );
+      const avgRecords: any = await competitionsService.getRecords(
+        'regionalAverageRecord',
+        '333fm',
+        activeRecordTypesStub(),
+      );
+
+      expect(singleRecords.WR).toBe(39);
+      expect(avgRecords.WR).toBe(4600);
+
+      const sameDayRounds = newCompetitionEventsStub()[2].rounds;
+      competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
+
+      expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[1].regionalSingleRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[1].regionalAverageRecord).toBeUndefined();
+    });
+
     it('updateCompetitionEvents sets events and participants correctly', async () => {
-      const comp = competitionsStub()[3]; // gets the competition that hasn't had its results posted yet
       const newCompetitionEvents = newCompetitionEventsStub();
 
-      await competitionsService.updateCompetitionEvents(comp, newCompetitionEvents);
+      const output = await competitionsService.updateCompetitionEvents(newCompetitionEvents);
 
-      expect(comp.participants).toBe(4);
-      expect(comp.events.length).toBeGreaterThan(0);
-      expect(comp.events[0].rounds[0].results[0].best).toBe(686);
-      expect(comp.events[0].rounds[0].results[0].average).toBe(800);
-      expect(comp.events[0].rounds[0].results[0].regionalAverageRecord).toBe('XWR');
+      expect(output.participants).toBe(6);
+      expect(output.events.length).toBeGreaterThan(0);
+      expect(output.events[0].rounds[0].results[0].best).toBe(686);
+      expect(output.events[0].rounds[0].results[0].average).toBe(800);
+      expect(output.events[0].rounds[0].results[0].regionalAverageRecord).toBe('XWR');
     });
   });
 });

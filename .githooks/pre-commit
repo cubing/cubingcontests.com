@@ -1,6 +1,20 @@
 #!/bin/bash
+
 cd "$(git rev-parse --show-toplevel)"
 echo -e "New directory: $(pwd)\n"
+
+# AUTOMATED TESTS
+
+echo -e "Running all /server test suites..."
+
+cd server
+npm run test
+
+if [[ $? != 0 ]]; then
+  exit 1
+else
+  cd ..
+fi
 
 # CLIENT
 

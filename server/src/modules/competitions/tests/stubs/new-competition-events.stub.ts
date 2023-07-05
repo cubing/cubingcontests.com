@@ -3,6 +3,7 @@ import { ICompetitionEvent } from '@sh/interfaces/Competition';
 
 export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
   return [
+    // Real results
     {
       eventId: '333',
       rounds: [
@@ -20,7 +21,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
               personId: '9',
               ranking: 1,
               attempts: [876, 989, 812, 711, 686],
-              // Both single and average should be the new XWRs
+              // Both single and average should be XWRs
               best: 686,
               average: 800,
             },
@@ -58,6 +59,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
         },
       ],
     },
+    // Real results
     {
       eventId: '333fm',
       rounds: [
@@ -76,8 +78,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
               ranking: 1,
               attempts: [37, 34, 36],
               best: 34,
-              // The mean should be the new XWR
-              average: 3567,
+              average: 3567, // the mean should be the new XWR
             },
             {
               competitionId: 'Munich30062023',
@@ -96,8 +97,43 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
               personId: '1',
               ranking: 3,
               attempts: [-1, -1, 32],
-              // The single should be the new XWR
-              best: 32,
+              best: 32, // the single should be the new XWR
+              average: -1,
+            },
+          ],
+        },
+      ],
+    },
+    // Fake results
+    {
+      eventId: '333fm',
+      rounds: [
+        {
+          competitionId: 'TestComp2023',
+          eventId: '333fm',
+          date: new Date('2023-07-01T09:33:18Z'),
+          roundTypeId: RoundType.Final,
+          format: RoundFormat.Mean,
+          results: [
+            {
+              competitionId: 'TestComp2023',
+              eventId: '333fm',
+              date: new Date('2023-07-01T09:33:18Z'),
+              personId: '999',
+              ranking: 1,
+              attempts: [29, 30, 34],
+              // The single and mean should both be XWRs
+              best: 29,
+              average: 3100,
+            },
+            {
+              competitionId: 'TestComp2023',
+              eventId: '333fm',
+              date: new Date('2023-07-01T09:33:18Z'),
+              personId: '998',
+              ranking: 2,
+              attempts: [-1, 29, -2],
+              best: 29, // the single should be the new XWR
               average: -1,
             },
           ],
