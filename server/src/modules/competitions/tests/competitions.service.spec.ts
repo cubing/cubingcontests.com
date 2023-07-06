@@ -1,26 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CompetitionsService } from '../competitions.service';
-import { getModelToken } from '@nestjs/mongoose';
-import { RecordTypesService } from '@m/record-types/record-types.service';
-import { RecordTypesServiceMock } from '@m/record-types/tests/__mocks__/record-types.service';
-import { activeRecordTypesStub } from '@m/record-types/tests/stubs/record-types.stub';
-import { mockRoundModel } from './__mocks__/round.model';
-import { mockResultModel } from './__mocks__/result.model';
-import { newCompetitionEventsStub, newFakeCompetitionEventsStub } from './stubs/new-competition-events.stub';
 import { Model } from 'mongoose';
+import { getModelToken } from '@nestjs/mongoose';
+import { CompetitionsService } from '../competitions.service';
+import { RecordTypesService } from '@m/record-types/record-types.service';
+import { CompetitionDocument } from '~/src/models/competition.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { ResultDocument } from '~/src/models/result.model';
-import { mockCompetitionModel } from './__mocks__/competition.model';
-import { CompetitionDocument } from '~/src/models/competition.model';
-// import { competitionsStub } from './stubs/competitions.stub';
-import { UpdateCompetitionDto } from '../dto/update-competition.dto';
+import { EventDocument } from '~/src/models/event.model';
+import { PersonDocument } from '~/src/models/person.model';
 import IResult from '@sh/interfaces/Result';
+import { UpdateCompetitionDto } from '../dto/update-competition.dto';
+
+// Mocks and stubs
+import { RecordTypesServiceMock } from '@m/record-types/tests/__mocks__/record-types.service';
+import { mockCompetitionModel } from './__mocks__/competition.model';
+import { mockRoundModel } from './__mocks__/round.model';
+import { mockResultModel } from './__mocks__/result.model';
+import { mockEventModel } from '@m/events/tests/__mocks__/event.model';
+import { mockPersonModel } from '@m/persons/tests/__mocks__/person.model';
+import { activeRecordTypesStub } from '@m/record-types/tests/stubs/record-types.stub';
+import { newCompetitionEventsStub, newFakeCompetitionEventsStub } from './stubs/new-competition-events.stub';
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
-  let competitionModel: Model<CompetitionDocument>;
-  let roundModel: Model<RoundDocument>;
-  let resultModel: Model<ResultDocument>;
+  // let competitionModel: Model<CompetitionDocument>;
+  // let roundModel: Model<RoundDocument>;
+  // let resultModel: Model<ResultDocument>;
+  // let eventModel: Model<EventDocument>;
+  // let personModel: Model<PersonDocument>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -44,23 +51,46 @@ describe('CompetitionsService', () => {
         },
         {
           provide: getModelToken('Event'),
-          useValue: {},
+          useFactory: mockEventModel,
         },
         {
           provide: getModelToken('Person'),
-          useValue: {},
+          useFactory: mockPersonModel,
         },
       ],
     }).compile();
 
     competitionsService = module.get<CompetitionsService>(CompetitionsService);
-    competitionModel = module.get<Model<CompetitionDocument>>(getModelToken('Competition'));
-    roundModel = module.get<Model<RoundDocument>>(getModelToken('Round'));
-    resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
+    // competitionModel = module.get<Model<CompetitionDocument>>(getModelToken('Competition'));
+    // roundModel = module.get<Model<RoundDocument>>(getModelToken('Round'));
+    // resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
+    // eventModel = module.get<Model<EventDocument>>(getModelToken('Event'));
+    // personModel = module.get<Model<PersonDocument>>(getModelToken('Person'));
   });
 
   it('should be defined', () => {
     expect(competitionsService).toBeDefined();
+  });
+
+  describe('Endpoints', () => {
+    it('should get full competition', async () => {
+      const { competition, events, persons } = await competitionsService.getCompetition('Munich19022023');
+
+      expect(competition.name).toBe('Meetup in Munich on February 19, 2023');
+      expect(events.length).toBe(4);
+      expect(persons).toBeDefined();
+    });
+
+    it('should get full moderator competition', async () => {
+      const { competition, events, singleRecords, avgRecords } = await competitionsService.getModCompetition(
+        'Munich19022023',
+      );
+
+      expect(competition).toBeDefined();
+      expect(events.length).toBe(19);
+      expect(singleRecords['333'].WR).toBe(909);
+      expect(avgRecords['333'].WR).toBe(1132);
+    });
   });
 
   describe('Endpoint methods', () => {

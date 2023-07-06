@@ -11,10 +11,13 @@ export const mockCompetitionModel = (): any => ({
     }
     return this;
   },
+  populate() {
+    return this;
+  },
   // Resets the temporary output
   exec() {
     const temp = this.tempOutput;
-    this.tempOutput = null;
+    this.tempOutput = undefined;
     // The resulting mock document objectmust have a save function
     return { ...temp, save() {} };
   },

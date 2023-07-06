@@ -21,8 +21,15 @@ interface ICompetition {
 
 export interface ICompetitionData {
   competition: ICompetition;
-  eventsInfo: IEvent[];
+  events: IEvent[]; // info about events held at THIS competition
   persons: IPerson[];
+}
+
+export interface ICompetitionModData {
+  competition: ICompetition;
+  events: IEvent[]; // info about ALL events
+  singleRecords: any;
+  avgRecords: any;
 }
 
 export default ICompetition;

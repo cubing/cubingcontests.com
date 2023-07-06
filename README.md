@@ -10,7 +10,11 @@ This is a place for posting results from unofficial Rubik's cube competitions or
 
 ## Admin features (WIP section)
 
-In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the admin dashboard, and set the wanted records as active. They can also be given custom custom labels in order to differentiate them from official WCA records.
+In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the admin dashboard, and set the wanted records as active. They can also be given custom custom labels in order to differentiate them from official WCA records. **ATTENTION:** for now only WRs are supported.
+
+## Deployment
+
+If you would like to deploy your own Cubing Contests instance, follow these instructions. To-do: add instructions...
 
 ## Development
 
@@ -19,6 +23,8 @@ This project uses Next JS for the front-end and Nest JS (confusing, I know) with
 ```
 .githooks/init
 ```
+
+The pre-commit hook runs all tests and ESLint. If there are tests that don't pass or linting errors, the commit will **not** be successful.
 
 There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory.
 

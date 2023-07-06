@@ -25,6 +25,15 @@ export class CompetitionsController {
     return await this.service.getCompetition(competitionId);
   }
 
+  // GET /competitions/mod/:id
+  @Get('mod/:id')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async getModCompetition(@Param('id') competitionId: string) {
+    console.log(`Getting competition with id ${competitionId} with moderator info`);
+    return await this.service.getModCompetition(competitionId);
+  }
+
   // POST /competitions
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)

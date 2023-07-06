@@ -10,7 +10,7 @@ import { Person } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
-import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
+import { ICompetitionEvent, ICompetitionData, ICompetitionModData } from '@sh/interfaces/Competition';
 import IRound from '@sh/interfaces/Round';
 import { ResultDocument } from '~/src/models/result.model';
 import IResult from '@sh/interfaces/Result';
@@ -42,30 +42,12 @@ export class CompetitionsService {
   }
 
   async getCompetition(competitionId: string): Promise<ICompetitionData> {
-    // Find the competition with the rounds populated
-    let competition;
-    try {
-      competition = await this.competitionModel
-        .findOne({ competitionId }, excl)
-        .populate({
-          path: 'events.rounds',
-          model: 'Round',
-          populate: [
-            {
-              path: 'results',
-              model: 'Result',
-            },
-          ],
-        })
-        .exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    const competition = await this.getFullCompetition(competitionId);
 
     if (competition) {
       const output: ICompetitionData = {
         competition,
-        eventsInfo: [],
+        events: [],
         persons: [],
       };
 
@@ -76,13 +58,46 @@ export class CompetitionsService {
           output.persons = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
 
           const eventIds = output.competition.events.map((el) => el.eventId);
-          output.eventsInfo = await this.eventModel
+          output.events = await this.eventModel
             .find({ eventId: { $in: eventIds } }, excl)
             .sort({ rank: 1 })
             .exec();
         } catch (err) {
           throw new InternalServerErrorException(err.message);
         }
+      }
+
+      return output;
+    }
+
+    throw new NotFoundException(`Competition with id ${competitionId} not found`);
+  }
+
+  async getModCompetition(competitionId: string): Promise<ICompetitionModData> {
+    const competition = await this.getFullCompetition(competitionId);
+    const events = await this.eventModel.find().sort({ rank: 1 }).exec();
+
+    if (competition) {
+      const output: ICompetitionModData = {
+        competition,
+        events,
+        singleRecords: {} as any,
+        avgRecords: {} as any,
+      };
+      const activeRecordTypes = await this.getActiveRecordTypes();
+
+      // Get all current records
+      for (const event of events) {
+        output.singleRecords[event.eventId] = await this.getRecords(
+          'regionalSingleRecord',
+          event.eventId,
+          activeRecordTypes,
+        );
+        output.avgRecords[event.eventId] = await this.getRecords(
+          'regionalAverageRecord',
+          event.eventId,
+          activeRecordTypes,
+        );
       }
 
       return output;
@@ -187,6 +202,29 @@ export class CompetitionsService {
   //   if (result.deletedCount === 0) throw new NotFoundException(`Competition with id ${competitionId} not found`);
   // }
 
+  // HELPERS
+
+  // Finds the competition with the given competition id with the rounds and results populated
+  private async getFullCompetition(competitionId: string): Promise<CompetitionDocument> {
+    try {
+      return await this.competitionModel
+        .findOne({ competitionId }, excl)
+        .populate({
+          path: 'events.rounds',
+          model: 'Round',
+          populate: [
+            {
+              path: 'results',
+              model: 'Result',
+            },
+          ],
+        })
+        .exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   // This method must only be called when the event rounds have been populated
   private getCompetitionParticipants(events: ICompetitionEvent[]): number[] {
     const personIds: number[] = [];
@@ -208,16 +246,17 @@ export class CompetitionsService {
     }
   }
 
-  async updateCompetitionEvents(newCompEvents: ICompetitionEvent[]): Promise<CompetitionUpdateResult> {
-    const output = { events: [] } as CompetitionUpdateResult;
-    let activeRecordTypes: RecordTypeDocument[];
-
+  private async getActiveRecordTypes(): Promise<RecordTypeDocument[]> {
     try {
-      activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+      return await this.recordTypesService.getRecordTypes({ active: true });
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
+  }
 
+  async updateCompetitionEvents(newCompEvents: ICompetitionEvent[]): Promise<CompetitionUpdateResult> {
+    const output = { events: [] } as CompetitionUpdateResult;
+    const activeRecordTypes = await this.getActiveRecordTypes();
     const personIds: number[] = []; // used for calculating the number of participants
 
     // Save every round from every event

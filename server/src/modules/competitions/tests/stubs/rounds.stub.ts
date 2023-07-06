@@ -2,19 +2,20 @@ import mongoose from 'mongoose';
 import { RoundDocument } from '~/src/models/round.model';
 import { RoundFormat, RoundType } from '@sh/enums';
 
-///////////////////////////////////////////////////////////////////////////////////////////
-// THIS STUB IS OUTDATED AND MUST BE REPLACED BEFORE BEING USED IN TESTS!
-///////////////////////////////////////////////////////////////////////////////////////////
 export const roundsStub = (): RoundDocument[] => {
   return [
     {
       _id: new mongoose.Types.ObjectId('649d2dee675dfd951d5ff35b'),
       competitionId: 'Munich19022023',
       eventId: '333tbf',
+      date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich19022023',
+          eventId: '333tbf',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '3;1',
           ranking: 1,
           attempts: [2148, 2866, 3614, -1, 2990],
@@ -22,29 +23,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 3157,
         },
         {
-          personId: '2;4',
-          ranking: 2,
-          attempts: [14186, 10247, 10787, 17962, 5059],
-          best: 5059,
-          average: 11740,
-        },
-      ],
-    },
-    {
-      _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff360'),
-      competitionId: 'Munich19022023',
-      eventId: '333tbf',
-      roundTypeId: RoundType.Final,
-      format: RoundFormat.Average,
-      results: [
-        {
-          personId: '3;1',
-          ranking: 1,
-          attempts: [2148, 2866, 3614, -1, 2990],
-          best: 2148,
-          average: 3157,
-        },
-        {
+          competitionId: 'Munich19022023',
+          eventId: '333tbf',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '2;4',
           ranking: 2,
           attempts: [14186, 10247, 10787, 17962, 5059],
@@ -57,10 +38,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff362'),
       competitionId: 'Munich19022023',
       eventId: '333oh',
+      date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich19022023',
+          eventId: '333oh',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '3',
           ranking: 1,
           attempts: [2060, 2047, 2449, 2110, 2120],
@@ -68,6 +53,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 2097,
         },
         {
+          competitionId: 'Munich19022023',
+          eventId: '333oh',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '4',
           ranking: 2,
           attempts: [2512, 2322, 2999, 2361, 2107],
@@ -80,10 +68,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff364'),
       competitionId: 'Munich19022023',
       eventId: '333',
+      date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich19022023',
+          eventId: '333',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '1',
           ranking: 1,
           attempts: [990, 1385, 1189, 1294, 1028],
@@ -91,6 +83,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1170,
         },
         {
+          competitionId: 'Munich19022023',
+          eventId: '333',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '4',
           ranking: 2,
           attempts: [1003, 1399, 1379, 1404, 1142],
@@ -98,6 +93,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1307,
         },
         {
+          competitionId: 'Munich19022023',
+          eventId: '333',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '3',
           ranking: 3,
           attempts: [1278, 1404, 1341, 1307, 1471],
@@ -105,6 +103,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1351,
         },
         {
+          competitionId: 'Munich19022023',
+          eventId: '333',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '2',
           ranking: 4,
           attempts: [1722, 1733, 1418, 1164, 1884],
@@ -117,10 +118,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff366'),
       competitionId: 'Munich19022023',
       eventId: '333bf',
+      date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
         {
+          competitionId: 'Munich19022023',
+          eventId: '333bf',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '3',
           ranking: 1,
           attempts: [2217, -1, 2412],
@@ -129,6 +134,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalSingleRecord: 'XWR',
         },
         {
+          competitionId: 'Munich19022023',
+          eventId: '333bf',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '1',
           ranking: 2,
           attempts: [7327, -1, -1],
@@ -136,6 +144,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: -1,
         },
         {
+          competitionId: 'Munich19022023',
+          eventId: '333bf',
+          date: new Date('2023-02-19T06:49:04Z'),
           personId: '4',
           ranking: 3,
           attempts: [-1, -1, -1],
@@ -148,10 +159,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3bf'),
       competitionId: 'Munich14062023',
       eventId: '444',
+      date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich14062023',
+          eventId: '444',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '5',
           ranking: 1,
           attempts: [4003, 3872, 3762, 3910, 3555],
@@ -160,6 +175,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '444',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '6',
           ranking: 2,
           attempts: [4740, 4223, 5098, 4878, 4938],
@@ -167,6 +185,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 4852,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '444',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '3',
           ranking: 3,
           attempts: [5446, 5335, 5336, 5558, 4485],
@@ -174,6 +195,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 5372,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '444',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '4',
           ranking: 4,
           attempts: [8382, 6475, 6278, 7966, 6548],
@@ -181,6 +205,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 6996,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '444',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '7',
           ranking: 5,
           attempts: [7531, 11159, 7330, -1, 7460],
@@ -193,10 +220,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c1'),
       competitionId: 'Munich14062023',
       eventId: '555',
+      date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich14062023',
+          eventId: '555',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '5',
           ranking: 1,
           attempts: [7990, 8111, 7389, 7759, 6985],
@@ -205,6 +236,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalSingleRecord: 'XWR',
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '555',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '4',
           ranking: 2,
           attempts: [14325, 13912, 11970, 13471, 14007],
@@ -212,6 +246,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 13797,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '555',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '6',
           ranking: 3,
           attempts: [9296, -2, -2, -2, -2],
@@ -224,10 +261,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c3'),
       competitionId: 'Munich14062023',
       eventId: '333bf',
+      date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
         {
+          competitionId: 'Munich14062023',
+          eventId: '333bf',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '3',
           ranking: 1,
           attempts: [2789, 2719, -1],
@@ -235,6 +276,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: -1,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333bf',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '4',
           ranking: 2,
           attempts: [-1, 3755, -1],
@@ -242,6 +286,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: -1,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333bf',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '5',
           ranking: 3,
           attempts: [7086, 7922, 6237],
@@ -249,6 +296,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 7082,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333bf',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '6',
           ranking: 4,
           attempts: [-1, 7980, -1],
@@ -261,10 +311,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c5'),
       competitionId: 'Munich14062023',
       eventId: '333fm',
+      date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
         {
+          competitionId: 'Munich14062023',
+          eventId: '333fm',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '6',
           ranking: 1,
           attempts: [39, 51, 51],
@@ -273,6 +327,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalSingleRecord: 'XWR',
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333fm',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '3',
           ranking: 2,
           attempts: [49, 43, 52],
@@ -280,6 +337,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 4800,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333fm',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '4',
           ranking: 3,
           attempts: [58, 53, 59],
@@ -292,10 +352,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c7'),
       competitionId: 'Munich14062023',
       eventId: '333oh',
+      date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich14062023',
+          eventId: '333oh',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '6',
           ranking: 1,
           attempts: [2382, 1869, 1976, 2143, 1691],
@@ -303,6 +367,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1996,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333oh',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '3',
           ranking: 2,
           attempts: [1939, 2589, 2055, 2170, 2503],
@@ -310,6 +377,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 2243,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333oh',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '4',
           ranking: 3,
           attempts: [2904, 2289, 1932, 2276, 2302],
@@ -317,6 +387,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 2289,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333oh',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '7',
           ranking: 4,
           attempts: [3058, 3046, 2636, 3795, 2280],
@@ -329,10 +402,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c9'),
       competitionId: 'Munich14062023',
       eventId: '222',
+      date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich14062023',
+          eventId: '222',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '5',
           ranking: 1,
           attempts: [320, 485, 340, 525, 593],
@@ -340,6 +417,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 450,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '222',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '3',
           ranking: 2,
           attempts: [310, 748, 393, 536, 613],
@@ -347,6 +427,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 514,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '222',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '4',
           ranking: 3,
           attempts: [264, 625, 650, 510, 439],
@@ -354,6 +437,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 525,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '222',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '6',
           ranking: 4,
           attempts: [673, 473, 886, 743, 688],
@@ -361,6 +447,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 701,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '222',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '7',
           ranking: 5,
           attempts: [-1, 1075, 1247, -1, 593],
@@ -373,10 +462,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3cb'),
       competitionId: 'Munich14062023',
       eventId: '333',
+      date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich14062023',
+          eventId: '333',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '5',
           ranking: 1,
           attempts: [1087, 1111, 1198, 1200, 1077],
@@ -385,6 +478,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '7',
           ranking: 2,
           attempts: [1273, 1198, 1226, 1206, 1449],
@@ -392,6 +488,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1235,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '3',
           ranking: 3,
           attempts: [1179, 1124, 1313, 1257, 1275],
@@ -399,6 +498,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1237,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '6',
           ranking: 4,
           attempts: [1360, 1240, 1039, 1598, 1318],
@@ -406,6 +508,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1306,
         },
         {
+          competitionId: 'Munich14062023',
+          eventId: '333',
+          date: new Date('2023-06-14T06:52:26Z'),
           personId: '4',
           ranking: 5,
           attempts: [1920, 1240, 1220, 1072, 2238],
@@ -418,10 +523,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918068'),
       competitionId: 'Munich27062023',
       eventId: '666',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '666',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '5',
           ranking: 1,
           attempts: [15299, 14398, 14084],
@@ -431,6 +540,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '666',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 2,
           attempts: [20168, 21170, 19841],
@@ -438,6 +550,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 20393,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '666',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 3,
           attempts: [25127, 22765, 20540],
@@ -445,6 +560,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 22811,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '666',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 4,
           attempts: [23023, -1, 22636],
@@ -457,10 +575,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806a'),
       competitionId: 'Munich27062023',
       eventId: '333tbf',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '333tbf',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3;1',
           ranking: 1,
           attempts: [4391, 2044, 2193, 2927, 2474],
@@ -470,6 +592,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333tbf',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4;7',
           ranking: 2,
           attempts: [8963, 6990, 6329, 5589, 6906],
@@ -482,10 +607,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806c'),
       competitionId: 'Munich27062023',
       eventId: '333',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '333',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '5',
           ranking: 1,
           attempts: [1159, 1143, 1161, 909, 1332],
@@ -494,6 +623,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalSingleRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '7',
           ranking: 2,
           attempts: [1158, 1139, -1, 974, 1350],
@@ -501,6 +633,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1216,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 3,
           attempts: [1395, 1366, 1133, 1213, 1193],
@@ -508,6 +643,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1257,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 4,
           attempts: [1097, 1858, 1195, 1519, 972],
@@ -515,6 +653,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1270,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 5,
           attempts: [1109, 1421, 1275, 1229, 1367],
@@ -522,6 +663,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 1290,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '8',
           ranking: 6,
           attempts: [2140, 2172, 1699, 2000, 1881],
@@ -534,10 +678,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806e'),
       competitionId: 'Munich27062023',
       eventId: '333oh',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '333oh',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 1,
           attempts: [1313, 1950, 1778, 2212, 2136],
@@ -547,6 +695,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333oh',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 2,
           attempts: [1962, 2406, 2313, 2399, 1779],
@@ -554,6 +705,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 2225,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333oh',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '7',
           ranking: 3,
           attempts: [2502, 2738, 2702, 2077, 3037],
@@ -561,6 +715,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 2647,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333oh',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '5',
           ranking: 4,
           attempts: [2767, 3237, 2674, 2344, 2557],
@@ -568,6 +725,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 2666,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333oh',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 5,
           attempts: [2832, 3159, 2769, 3473, 3076],
@@ -575,6 +735,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 3022,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333oh',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '8',
           ranking: 6,
           attempts: [3473, 4457, 3880, 3951, 4186],
@@ -587,10 +750,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918070'),
       competitionId: 'Munich27062023',
       eventId: '222',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '222',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 1,
           attempts: [458, 331, 153, 342, 338],
@@ -600,6 +767,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '222',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 2,
           attempts: [567, 332, 205, 517, 239],
@@ -607,6 +777,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 363,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '222',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 3,
           attempts: [653, 323, 378, 394, 315],
@@ -614,6 +787,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 365,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '222',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '5',
           ranking: 4,
           attempts: [313, 387, 405, -1, 382],
@@ -621,6 +797,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 391,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '222',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '7',
           ranking: 5,
           attempts: [901, 663, 545, -1, 774],
@@ -633,10 +812,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918072'),
       competitionId: 'Munich27062023',
       eventId: '444',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '444',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '5',
           ranking: 1,
           attempts: [3922, 4608, 3960, 4231, 3502],
@@ -645,6 +828,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalSingleRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '444',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 2,
           attempts: [5498, 4623, 5206, 5648, 6121],
@@ -652,6 +838,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 5451,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '444',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 3,
           attempts: [5453, 6386, 7375, 6468, 5605],
@@ -659,6 +848,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 6153,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '444',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 4,
           attempts: [6799, 6199, 8245, 7172, 6065],
@@ -671,10 +863,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918074'),
       competitionId: 'Munich27062023',
       eventId: '333bf',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '333bf',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 1,
           attempts: [2758, 2302, 3324],
@@ -683,6 +879,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333bf',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 2,
           attempts: [4002, -1, -1],
@@ -690,6 +889,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: -1,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333bf',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 3,
           attempts: [-1, -1, -1],
@@ -702,10 +904,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918076'),
       competitionId: 'Munich27062023',
       eventId: '333tf',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '333tf',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1;7',
           ranking: 1,
           attempts: [1949, 1299, 1371, 1403, 1552],
@@ -715,6 +921,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333tf',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4;3',
           ranking: 2,
           attempts: [2465, 2396, 1762, 2030, 1923],
@@ -727,10 +936,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918078'),
       competitionId: 'Munich27062023',
       eventId: '555',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '555',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '5',
           ranking: 1,
           attempts: [8736, 7751, 6988, 7532, 7234],
@@ -739,6 +952,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '555',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 2,
           attempts: [9073, 9234, 9555, 11603, 8580],
@@ -746,6 +962,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 9287,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '555',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 3,
           attempts: [10164, 11364, 10305, 9120, 10040],
@@ -753,6 +972,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 10170,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '555',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 4,
           attempts: [11212, 10098, 11188, 11237, 11699],
@@ -765,10 +987,14 @@ export const roundsStub = (): RoundDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991807a'),
       competitionId: 'Munich27062023',
       eventId: '333fm',
+      date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
         {
+          competitionId: 'Munich27062023',
+          eventId: '333fm',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '3',
           ranking: 1,
           attempts: [41, 40, 57],
@@ -777,6 +1003,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalAverageRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333fm',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '1',
           ranking: 2,
           attempts: [50, 39, 51],
@@ -785,6 +1014,9 @@ export const roundsStub = (): RoundDocument[] => {
           regionalSingleRecord: 'XWR',
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333fm',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '4',
           ranking: 3,
           attempts: [52, 57, 49],
@@ -792,6 +1024,9 @@ export const roundsStub = (): RoundDocument[] => {
           average: 5267,
         },
         {
+          competitionId: 'Munich27062023',
+          eventId: '333fm',
+          date: new Date('2023-06-27T06:53:10Z'),
           personId: '5',
           ranking: 4,
           attempts: [60, 54, 60],

@@ -14,26 +14,24 @@ export const mockResultModel = (): any => ({
   find(query: any) {
     this.tempOutput = resultsStub();
 
-    if (query.eventId) {
-      this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.eventId === query.eventId);
-    }
-    if (query.regionalSingleRecord) {
+    if (query?.eventId) this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.eventId === query.eventId);
+    if (query?.regionalSingleRecord) {
       this.tempOutput = this.tempOutput.filter(
         (el: ResultDocument) => el.regionalSingleRecord === query.regionalSingleRecord,
       );
     }
-    if (query.regionalAverageRecord) {
+    if (query?.regionalAverageRecord) {
       this.tempOutput = this.tempOutput.filter(
         (el: ResultDocument) => el.regionalAverageRecord === query.regionalAverageRecord,
       );
     }
     return this;
   },
-  sort(sortParams: any) {
-    // The date parameter is either 1 (ascending order) or -1 (descending order)
-    if (sortParams.date) {
+  // A search parameter value of 1 is for ascending order, -1 is for descending order
+  sort(params: any) {
+    if (params?.date) {
       this.tempOutput.sort(
-        (a: ResultDocument, b: ResultDocument) => sortParams.date * (a.date.getTime() - b.date.getTime()),
+        (a: ResultDocument, b: ResultDocument) => params.date * (a.date.getTime() - b.date.getTime()),
       );
     }
     return this;
@@ -45,7 +43,7 @@ export const mockResultModel = (): any => ({
   // Resets the temporary output
   exec() {
     const temp = this.tempOutput;
-    this.tempOutput = null;
+    this.tempOutput = undefined;
     return temp;
   },
 });
