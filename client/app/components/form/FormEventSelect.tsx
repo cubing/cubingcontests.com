@@ -1,6 +1,6 @@
 'use client';
 
-import IEvent from '@sh/interfaces/Event';
+import { IEvent } from '@sh/interfaces';
 
 const FormEventSelect = ({
   events,
@@ -11,7 +11,7 @@ const FormEventSelect = ({
   events: IEvent[];
   label?: string;
   eventId: string;
-  setEventId: any;
+  setEventId: (val: string) => void;
 }) => {
   return (
     <div className="mb-3 fs-5">

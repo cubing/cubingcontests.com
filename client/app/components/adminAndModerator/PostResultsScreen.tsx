@@ -1,83 +1,67 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import FormEventSelect from '~/app/components/form/FormEventSelect';
-import { ICompetitionEvent, ICompetitionData } from '@sh/interfaces/Competition';
-import IEvent from '@sh/interfaces/Event';
-import IResult from '@sh/interfaces/Result';
-import EventResultsTable from '@c/EventResultsTable';
+import { useState, useEffect, useMemo } from 'react';
+import FormEventSelect from '@c/form/FormEventSelect';
+import { ICompetitionEvent, ICompetitionModData, IResult, IPerson, IRound } from '@sh/interfaces';
+import RoundResultsTable from '@c/RoundResultsTable';
 import FormTextInput from '../form/FormTextInput';
 import myFetch from '~/helpers/myFetch';
-import IPerson from '@sh/interfaces/Person';
-import { RoundFormat, RoundType } from '@sh/enums';
-import { EventFormat } from '@sh/enums';
-import IRound from '@sh/interfaces/Round';
+import { RoundFormat, RoundType, EventFormat } from '@sh/enums';
 import { compareAvgs, compareSingles } from '@sh/sharedFunctions';
+import { roundFormats } from '~/helpers/roundFormats';
 
-// TO-DO: Make this cleaner!
-const roundFormats = [
-  { id: RoundFormat.Average, label: 'Average of 5', attempts: 5 },
-  { id: RoundFormat.Mean, label: 'Mean of 3', attempts: 3 },
-  { id: RoundFormat.BestOf3, label: 'Best of 3', attempts: 3 },
-  { id: RoundFormat.BestOf2, label: 'Best of 2', attempts: 2 },
-  { id: RoundFormat.BestOf1, label: 'Best of 1', attempts: 1 },
-];
+const PostResultsScreen = ({ compData }: { compData: ICompetitionModData }) => {
+  const getDefaultRound = (eventId = '333', format = RoundFormat.Average): IRound => {
+    return {
+      competitionId: compData.competition.competitionId,
+      eventId,
+      date: compData.competition.startDate, // TO-DO: REMOVE HARD CODING TO START DATE!!!
+      format: format,
+      roundTypeId: RoundType.Final,
+      results: [],
+    };
+  };
 
-const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: ICompetitionData }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [eventId, setEventId] = useState('333');
-  const [roundFormat, setRoundFormat] = useState(RoundFormat.Average);
+  const [round, setRound] = useState<IRound>(getDefaultRound());
+  const [roundNumber, setRoundNumber] = useState(1);
   const [personNames, setPersonNames] = useState(['']);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([]);
   const [attempts, setAttempts] = useState(['', '', '', '', '']);
-  const [results, setResults] = useState<IResult[]>([]);
   const [persons, setPersons] = useState<IPerson[]>([]);
   const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
 
-  // For the event results table
-  const competitionEvent: ICompetitionEvent = {
-    eventId,
-    rounds: [
-      {
-        competitionId: compData.competition.competitionId,
-        eventId,
-        date: compData.competition.startDate,
-        roundTypeId: RoundType.Final,
-        format: roundFormat,
-        results,
-      },
-    ],
-  };
+  const currCompEvent = useMemo(
+    () => competitionEvents.find((el) => el.eventId === round.eventId),
+    [round.eventId, round.results.length, competitionEvents],
+  );
+
+  // THIS IS TEMPORARY
+  useEffect(() => console.log('currCompEvent:', currCompEvent), [currCompEvent]);
 
   const logDebug = () => {
-    console.log(`Event ID: ${eventId}; Round format: ${roundFormat}`);
+    console.log('Round:', round);
     console.log('Person names:', personNames);
     console.log('Current persons:', currentPersons);
     console.log('All persons', persons);
     console.log('Attempts:', attempts);
-    console.log('Results:', results);
     console.log('Competition events', competitionEvents);
   };
 
-  useEffect(() => {
-    logDebug();
-  }, [results]);
+  useEffect(logDebug, [competitionEvents]);
 
   // Initialize
   useEffect(() => {
-    console.log('Events:', events, 'Competition data:', compData);
+    console.log('Competition data:', compData);
 
     setCompetitionEvents(compData.competition.events);
     setPersons(compData.persons);
 
     // Initialize 3x3x3 results, if they exist
     const round333: IRound = compData.competition.events.find((el) => el.eventId === '333')?.rounds[0];
-    if (round333) {
-      setResults(round333.results);
-      setRoundFormat(round333.format);
-    }
-  }, [compData, events]);
+    if (round333) setRound(round333);
+  }, [compData]);
 
   useEffect(() => {
     // Focus the last name input
@@ -85,15 +69,12 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
   }, [personNames.length]);
 
   const handleSubmit = async () => {
-    if (competitionEvents.length === 0 && results.length === 0) {
+    if (competitionEvents.length === 0 && round.results.length === 0) {
       setErrorMessages(["You haven't entered any results"]);
       return;
     }
 
-    const data = {
-      events: getNewCompetitionEvents(),
-    };
-
+    const data = { events: competitionEvents };
     const response = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, data);
 
     if (response?.errors) {
@@ -113,10 +94,10 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
       tempErrorMessages.push('Invalid person(s)');
     }
 
-    for (const att of attempts) {
+    for (let i = 0; i < attempts.length; i++) {
       // If attempt is empty or if it has invalid characters (THE EXCEPTION FOR - IS TEMPORARY!)
-      if (!att || /[^0-9.:-]/.test(att) || isNaN(Number(att)) || Number(att) === 0) {
-        tempErrorMessages.push(`Invalid attempt: ${att}`);
+      if (!attempts[i] || /[^0-9.:-]/.test(attempts[i]) || isNaN(Number(attempts[i]))) {
+        tempErrorMessages.push(`Attempt ${i + 1} is invalid`);
       }
     }
 
@@ -135,7 +116,7 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
         tempAttempts.filter((el) => el <= 0).length > 1 ||
         (tempAttempts.filter((el) => el <= 0).length > 0 && tempAttempts.length === 3) ||
         tempAttempts.length < 3 ||
-        eventId === '333mbf'
+        round.eventId === '333mbf'
       ) {
         average = -1; // DNF
       } else {
@@ -152,28 +133,30 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
           if (tempAttempts.find((el) => el <= 0) === undefined) sum -= Math.max(...tempAttempts);
         }
 
-        average = Math.round((sum / 3) * (eventId === '333fm' ? 100 : 1));
+        average = Math.round((sum / 3) * (round.eventId === '333fm' ? 100 : 1));
       }
 
-      let tempResults = results;
+      const newRound = round;
 
-      // TO-DO (IT SHOULD CHECK IF THAT USER'S RESULTS HAVE ALREADY BEEN ENTERED)
-      tempResults.push({
+      newRound.results.push({
         competitionId: compData.competition.competitionId,
-        eventId,
+        eventId: newRound.eventId,
         date: compData.competition.startDate,
         personId: currentPersons.map((el) => el.personId.toString()).join(';'),
-        ranking: 0, // real ranking assigned further down
+        ranking: 0, // real ranking assigned below
         attempts: tempAttempts,
         best,
         average,
       });
 
-      tempResults = mapResultsRankings(
-        tempResults.sort(['a', 'm'].includes(roundFormat) ? compareAvgs : compareSingles),
+      // Sort the results and set rankings correctly
+      newRound.results = mapResultsRankings(
+        newRound.results.sort(['a', 'm'].includes(newRound.format) ? compareAvgs : compareSingles),
       );
 
-      setResults(tempResults);
+      updateCompetitionEvents(newRound);
+
+      setRound(newRound);
       setPersons((prev) => [
         ...prev,
         ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId)),
@@ -181,14 +164,15 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
       setCurrentPersons([]);
       setPersonNames(['']);
       setErrorMessages([]);
-      resetAttempts(roundFormat);
+
+      resetAttempts(round.format);
       document.getElementById('name_1')?.focus();
     }
   };
 
   const getResult = (time: string): number => {
     // If FMC or negative value, return as is, just converted to integer
-    if (eventId === '333fm' || time.includes('-')) return parseInt(time);
+    if (round.eventId === '333fm' || time.includes('-')) return parseInt(time);
 
     time = time.replace(':', '').replace('.', '');
 
@@ -202,56 +186,56 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
     return centiseconds;
   };
 
-  const getNewCompetitionEvents = (): ICompetitionEvent[] => {
-    // First remove previous save of this event, if any
-    // TO-DO: remove hard coding to rounds[0]
-    const newCompetitionEvents = competitionEvents.filter(
-      (el) => el.eventId !== eventId && el.rounds[0].results.length > 0,
-    );
+  const updateCompetitionEvents = (newRound: IRound) => {
+    const newCompetitionEvents = competitionEvents;
+    const compEvent = currCompEvent;
 
-    // Save event results, if any
-    if (results.length > 0) {
-      newCompetitionEvents.push({
-        eventId,
-        rounds: [
-          {
-            competitionId: compData.competition.competitionId,
-            eventId,
-            date: compData.competition.startDate,
-            roundTypeId: RoundType.Final,
-            format: roundFormat,
-            results,
-          },
-        ],
-      });
+    // Add event if this is the first round for it
+    if (!compEvent) newCompetitionEvents.push({ eventId: round.eventId, rounds: [newRound] });
+    // If this round hasn't been added yet, add it
+    else {
+      if (roundNumber > (compEvent.rounds.length || 0)) {
+        compEvent.rounds.push(newRound);
+
+        // Update previous round type if needed
+        if (roundNumber === 2) compEvent.rounds[0].roundTypeId = RoundType.First;
+        else if (roundNumber === 3) compEvent.rounds[1].roundTypeId = RoundType.Second;
+        else if (roundNumber === 4) compEvent.rounds[2].roundTypeId = RoundType.Semi;
+      }
+      // If this round has already been added, update it
+      else compEvent.rounds[roundNumber - 1] = newRound;
     }
 
-    return newCompetitionEvents;
+    setCompetitionEvents(newCompetitionEvents);
   };
 
-  const changeEvent = (value: string) => {
-    setCompetitionEvents(getNewCompetitionEvents());
+  const changeRoundAndEvent = (newRoundNumber: number, newEvent = round.eventId) => {
+    const compEvent = competitionEvents.find((el) => el.eventId === newEvent);
 
-    // Check if the selected event has already been saved, and if so, load those results
-    const savedCompEvent = competitionEvents.find((el) => el.eventId === value);
-    if (savedCompEvent) {
-      setResults(savedCompEvent.rounds[0].results);
-    } else {
-      setResults([]);
-    }
+    if (newRoundNumber - 1 > (compEvent?.rounds.length || 0)) {
+      setErrorMessages(['Results for all previous rounds must be entered first']);
+      return;
+    } else setErrorMessages([]);
 
-    const defRoundFormat: RoundFormat = events.find((ev) => ev.eventId === value)?.defaultRoundFormat as RoundFormat;
+    if (newRoundNumber !== roundNumber) setRoundNumber(newRoundNumber);
 
-    resetAttempts(defRoundFormat);
-    setEventId(value);
+    // Check if the selected round has already been saved, and if so, load its results
+    const savedRound = compEvent?.rounds[newRoundNumber - 1];
+    const defaultRoundFormat = compData.events.find((ev) => ev.eventId === newEvent).defaultRoundFormat;
+
+    if (savedRound) setRound(savedRound);
+    // If it hasn't been saved, we are creating a new round. Set default values (a new round
+    // will always be finals, unless it gets changed later)
+    else setRound(getDefaultRound(newEvent, defaultRoundFormat));
+
+    resetAttempts(defaultRoundFormat);
     setCurrentPersons([]);
     setPersonNames(['']);
-    setRoundFormat(defRoundFormat);
   };
 
-  const resetAttempts = (roundFormat: RoundFormat) => {
-    const numberOfSolves = roundFormats.find((rf) => rf.id === roundFormat)?.attempts as number;
-    setAttempts(Array(numberOfSolves).fill(''));
+  const changeRoundFormat = (newFormat: RoundFormat) => {
+    setRound({ ...round, format: newFormat });
+    resetAttempts(newFormat);
   };
 
   const selectCompetitor = async (e: any, index: number) => {
@@ -269,24 +253,22 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
           // If the competitor has already been selected or their results have already been entered, show error
           if (
             currentPersons.find((el) => el.personId === data[0].personId) ||
-            results.find((res: IResult) => res.personId.split(';').includes(data[0].personId.toString()))
+            round.results.find((res: IResult) => res.personId.split(';').includes(data[0].personId.toString()))
           ) {
             setPersonNames(['']);
             setCurrentPersons([]);
             setErrorMessages(["This competitor's results have already been entered"]);
           } else {
-            if (events.find((el) => el.eventId === eventId)?.format === EventFormat.TeamTime) {
+            if (compData.events.find((el) => el.eventId === round.eventId)?.format === EventFormat.TeamTime) {
               newPersonNames.push('');
               setCurrentPersons((prev) => [...prev, data[0]]);
             } else {
               document.getElementById('solve_1')?.focus();
               setCurrentPersons(data);
             }
-
             setErrorMessages([]);
           }
         }
-
         setPersonNames(newPersonNames);
       }
     }
@@ -302,9 +284,19 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
     setAttempts(attempts.map((el, i) => (i !== index ? el : value)));
   };
 
+  const resetAttempts = (roundFormat: RoundFormat) => {
+    const numberOfSolves = roundFormats[roundFormat].attempts as number;
+    setAttempts(Array(numberOfSolves).fill(''));
+  };
+
   const deleteResult = (personId: string) => {
-    const newResults = mapResultsRankings(results.filter((el) => el.personId !== personId));
-    setResults(newResults);
+    const newRound: IRound = {
+      ...round,
+      results: mapResultsRankings(round.results.filter((el) => el.personId !== personId)),
+    };
+
+    updateCompetitionEvents(newRound);
+    setRound(newRound);
   };
 
   const mapResultsRankings = (results: IResult[]): IResult[] => {
@@ -313,7 +305,7 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
     let prevResult: number | null = null;
 
     return results.map((res) => {
-      if ([RoundFormat.Average, RoundFormat.Mean].includes(roundFormat)) currResult = res.average;
+      if ([RoundFormat.Average, RoundFormat.Mean].includes(round.format)) currResult = res.average;
       else currResult = res.best;
 
       if (currResult <= 0) currResult = Infinity;
@@ -339,14 +331,34 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
     <>
       {errorMessages.length > 0
         ? errorMessages.map((message, index) => (
-          <div key={index} className="mt-3 alert alert-danger fs-5" role="alert">
-            {message}
-          </div>
-        ))
-        : successMessage && <div className="mt-3 alert alert-success fs-5">{successMessage}</div>}
+            <div key={index} className="mb-3 alert alert-danger fs-5" role="alert">
+              {message}
+            </div>
+          ))
+        : successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>}
       <div className="row my-4">
         <div className="col-3 pe-4">
-          <FormEventSelect events={events} eventId={eventId} setEventId={changeEvent} />
+          <FormEventSelect
+            events={compData.events}
+            eventId={round.eventId}
+            setEventId={(val) => changeRoundAndEvent(1, val)}
+          />
+          <div className="mb-3 fs-5">
+            <label htmlFor="round_number" className="form-label">
+              Round
+            </label>
+            <select
+              id="round_number"
+              className="form-select"
+              value={roundNumber}
+              onChange={(e) => changeRoundAndEvent(parseInt(e.target.value))}
+            >
+              <option value="1">1</option>
+              {currCompEvent?.rounds.length >= 1 && <option value="2">2</option>}
+              {currCompEvent?.rounds.length >= 2 && <option value="3">3</option>}
+              {currCompEvent?.rounds.length >= 3 && <option value="4">4</option>}
+            </select>
+          </div>
           <div className="mb-3 fs-5">
             <label htmlFor="round_format_id" className="form-label">
               Round Format
@@ -354,18 +366,18 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
             <select
               id="round_format_id"
               className="form-select"
-              value={roundFormat}
-              onChange={(e) => setRoundFormat(e.target.value as RoundFormat)}
-              disabled={results.length > 0}
+              value={round.format}
+              onChange={(e) => changeRoundFormat(e.target.value as RoundFormat)}
+              disabled={round.results.length > 0}
             >
-              {roundFormats.map((el) => (
-                <option key={el.id} value={el.id}>
-                  {el.label}
+              {Object.values(roundFormats).map((rf: any) => (
+                <option key={rf.id} value={rf.id}>
+                  {rf.label}
                 </option>
               ))}
             </select>
           </div>
-          <div className="mb-5">
+          <div className="mb-4">
             {personNames.map((el: string, i: number) => (
               <FormTextInput
                 key={i}
@@ -377,11 +389,12 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
               />
             ))}
           </div>
-          {Array.from(Array(roundFormats.find((el) => el.id === roundFormat)?.attempts), (_, i) => (
+          {Array.from(Array(roundFormats[round.format].attempts), (_, i) => (
             <FormTextInput
               key={i}
               id={`solve_${i + 1}`}
               value={attempts[i]}
+              placeholder={`Attempt ${i + 1}`}
               setValue={(val: string) => changeAttempt(i, val)}
               onKeyPress={(e: any) => enterAttempt(e, i)}
             />
@@ -401,12 +414,14 @@ const PostResultsScreen = ({ events, compData }: { events: IEvent[]; compData: I
           </div>
         </div>
         <div className="col-9">
-          <EventResultsTable
-            event={competitionEvent}
-            eventsInfo={events}
-            persons={persons}
-            onDeleteResult={deleteResult}
-          />
+          <h2 className="mb-4 text-center">
+            {compData.competition.events.length > 0 ? 'Edit' : 'Post'} results for&nbsp;
+            {compData.competition.name || 'ERROR'}
+          </h2>
+          {/* THIS IS A TEMPORARY SOLUTION!!! */}
+          <div className="overflow-y-auto" style={{ maxHeight: '650px' }}>
+            <RoundResultsTable round={round} events={compData.events} persons={persons} onDeleteResult={deleteResult} />
+          </div>
         </div>
       </div>
     </>

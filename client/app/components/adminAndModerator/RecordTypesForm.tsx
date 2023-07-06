@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Form from '~/app/components/form/Form';
-import IRecordType from '@sh/interfaces/RecordType';
+import Form from '@c/form/Form';
+import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 import defaultRecordTypes from '~/helpers/defaultRecordTypes';
 

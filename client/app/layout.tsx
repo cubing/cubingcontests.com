@@ -1,7 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import '@/globals.css';
 
-import Navbar from '@/components/Navbar';
+import Navbar from '@c/Navbar';
 
 export const metadata = {
   title: 'Cubing Contests',
@@ -20,7 +20,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body data-bs-theme="dark" className="min-vh-100 d-flex flex-column">
+      <body data-bs-theme="dark" className="min-vh-100 d-flex flex-column" style={{ overflowX: 'hidden' }}>
         <nav className="navbar navbar-expand-lg bg-body-tertiary">
           <Navbar />
         </nav>

@@ -1,13 +1,13 @@
-import IEvent from './Event';
-import IRound from './Round';
-import IPerson from './Person';
+import { IEvent } from './Event';
+import { IRound } from './Round';
+import { IPerson } from './Person';
 
 export interface ICompetitionEvent {
   eventId: string;
   rounds: IRound[];
 }
 
-interface ICompetition {
+export interface ICompetition {
   competitionId: string;
   name: string;
   city: string;
@@ -22,14 +22,13 @@ interface ICompetition {
 export interface ICompetitionData {
   competition: ICompetition;
   events: IEvent[]; // info about events held at THIS competition
-  persons: IPerson[];
+  persons: IPerson[]; // info about competitors from THIS competition
 }
 
 export interface ICompetitionModData {
   competition: ICompetition;
   events: IEvent[]; // info about ALL events
+  persons: IPerson[]; // info about competitors from THIS competition
   singleRecords: any;
   avgRecords: any;
 }
-
-export default ICompetition;

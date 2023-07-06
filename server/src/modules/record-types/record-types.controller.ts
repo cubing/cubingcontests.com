@@ -4,7 +4,7 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 import { Role } from '~/src/helpers/enums';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { RecordTypesService } from './record-types.service';
-import IRecordType from '@sh/interfaces/RecordType';
+import { IRecordType } from '@sh/interfaces';
 
 @Controller('record-types')
 @UseGuards(AuthenticatedGuard, RolesGuard)

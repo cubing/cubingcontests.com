@@ -1,8 +1,8 @@
 'use client';
 
 import myFetch from '~/helpers/myFetch';
-import IRecordType from '@sh/interfaces/RecordType';
-import RecordTypesForm from '~/app/components/admin/RecordTypesForm';
+import { IRecordType } from '@sh/interfaces';
+import RecordTypesForm from '@c/adminAndModerator/RecordTypesForm';
 
 const RecordTypes = async () => {
   const recordTypes: IRecordType[] = await myFetch.get('/record-types', { authorize: true });

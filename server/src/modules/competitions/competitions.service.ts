@@ -3,17 +3,15 @@ import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Competition, CompetitionEvent, CompetitionDocument } from '~/src/models/competition.model';
-import { Round, RoundDocument } from '~/src/models/round.model';
-import { Event } from '~/src/models/event.model';
-import { Person } from '~/src/models/person.model';
+import { CompetitionEvent, CompetitionDocument } from '~/src/models/competition.model';
 import { excl } from '~/src/helpers/dbHelpers';
+import { Round, RoundDocument } from '~/src/models/round.model';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
-import { RecordTypesService } from '@m/record-types/record-types.service';
-import { ICompetitionEvent, ICompetitionData, ICompetitionModData } from '@sh/interfaces/Competition';
-import IRound from '@sh/interfaces/Round';
 import { ResultDocument } from '~/src/models/result.model';
-import IResult from '@sh/interfaces/Result';
+import { EventDocument } from '~/src/models/event.model';
+import { PersonDocument } from '~/src/models/person.model';
+import { RecordTypesService } from '@m/record-types/record-types.service';
+import { ICompetitionEvent, ICompetitionData, ICompetitionModData, IRound, IResult } from '@sh/interfaces';
 
 interface CompetitionUpdateResult {
   events: ICompetitionEvent[];
@@ -23,11 +21,11 @@ interface CompetitionUpdateResult {
 @Injectable()
 export class CompetitionsService {
   constructor(
-    @InjectModel('Competition') private readonly competitionModel: Model<Competition>,
+    @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Event') private readonly eventModel: Model<Event>,
-    @InjectModel('Person') private readonly personModel: Model<Person>,
+    @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
+    @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
     private recordTypesService: RecordTypesService,
   ) {}
 
@@ -76,11 +74,14 @@ export class CompetitionsService {
   async getModCompetition(competitionId: string): Promise<ICompetitionModData> {
     const competition = await this.getFullCompetition(competitionId);
     const events = await this.eventModel.find().sort({ rank: 1 }).exec();
+    const personIds: number[] = this.getCompetitionParticipants(competition.events);
+    const persons = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
 
     if (competition) {
       const output: ICompetitionModData = {
         competition,
         events,
+        persons,
         singleRecords: {} as any,
         avgRecords: {} as any,
       };
@@ -316,7 +317,6 @@ export class CompetitionsService {
       }
     }
 
-    console.log(`Found ${eventId} ${typeWord} records: ${JSON.stringify(records, null, 2)}`);
     return records;
   }
 

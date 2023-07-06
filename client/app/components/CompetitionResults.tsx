@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import EventResultsTable from './EventResultsTable';
-import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
-import IEvent from '@sh/interfaces/Event';
+import EventResultsTable from './EventResults';
+import { ICompetitionData, ICompetitionEvent, IEvent } from '@sh/interfaces';
 import { getCountry } from '~/helpers/utilityFunctions';
 
-const CompetitionResults = ({ data: { competition, eventsInfo, persons } }: { data: ICompetitionData }) => {
+const CompetitionResults = ({ data: { competition, events, persons } }: { data: ICompetitionData }) => {
   // Find the event held at the competition that has the highest rank.
   // The first event in eventsInfo is always the highest ranked one, as it's sorted on the backend.
   let firstEventByRank: ICompetitionEvent | null = null;
   if (competition.events?.length > 0) {
-    firstEventByRank = competition.events.find((el) => el.eventId === eventsInfo[0].eventId) || null;
+    firstEventByRank = competition.events.find((el) => el.eventId === events[0].eventId) || null;
+    if (!firstEventByRank) console.error(`Event ${events[0].eventId} not found in this competition's events`);
   }
 
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(firstEventByRank);
@@ -32,8 +32,8 @@ const CompetitionResults = ({ data: { competition, eventsInfo, persons } }: { da
         <p className="mx-2 fs-5">The results for this contest have not been posted yet</p>
       ) : (
         <>
-          <div className="mb-5 mx-2 d-flex flex-row flex-wrap gap-2">
-            {eventsInfo.map((event: IEvent) => (
+          <div className="mx-2 d-flex flex-row flex-wrap gap-2">
+            {events.map((event: IEvent) => (
               <button
                 key={event.eventId}
                 onClick={() =>
@@ -47,7 +47,7 @@ const CompetitionResults = ({ data: { competition, eventsInfo, persons } }: { da
               </button>
             ))}
           </div>
-          <EventResultsTable event={currEvent} eventsInfo={eventsInfo} persons={persons} />
+          <EventResultsTable event={currEvent} events={events} persons={persons} />
         </>
       )}
     </>

@@ -1,21 +1,17 @@
-import IEvent from '@sh/interfaces/Event';
-import { ICompetitionEvent } from '@sh/interfaces/Competition';
-import IPerson from '@sh/interfaces/Person';
-import IRound from '@sh/interfaces/Round';
-import IResult from '@sh/interfaces/Result';
+import { IResult, IRound, IPerson, IEvent } from '@sh/interfaces';
 
-const EventResultsTable = ({
-  event,
-  eventsInfo,
+const RoundResultsTable = ({
+  round,
+  events,
   persons,
   onDeleteResult,
 }: {
-  event: ICompetitionEvent | null;
-  eventsInfo: IEvent[];
+  round: IRound;
+  events: IEvent[];
   persons: IPerson[];
   onDeleteResult?: (personId: string) => void;
 }) => {
-  const currEventInfo = event ? eventsInfo.find((el) => el.eventId === event.eventId) : null;
+  const currEventInfo = round?.eventId ? events.find((el) => el.eventId === round.eventId) : null;
 
   const getName = (personId: string): string => {
     if (!persons || personId === '') throw new Error('Name not found');
@@ -80,55 +76,53 @@ const EventResultsTable = ({
   };
 
   return (
-    <>
-      <div className="flex-grow-1 table-responsive">
-        <table className="table table-hover table-responsive text-nowrap">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Best</th>
-              <th>Average</th>
-              <th>Solves</th>
-              {onDeleteResult && <th>Actions</th>}
+    <div className="flex-grow-1 table-responsive">
+      <table className="table table-hover table-responsive text-nowrap">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Best</th>
+            <th>Average</th>
+            <th>Solves</th>
+            {onDeleteResult && <th>Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {round.results.map((result: IResult) => (
+            <tr key={result.personId}>
+              <td>{result.ranking}</td>
+              <td>{getName(result.personId)}</td>
+              <td>
+                <div className="d-flex align-items-center gap-3">
+                  {formatTime(result.best)}
+                  {getRecordBadge(result, 'single')}
+                </div>
+              </td>
+              <td>
+                <div className="d-flex align-items-center gap-3">
+                  {formatTime(result.average, true)}
+                  {getRecordBadge(result, 'average')}
+                </div>
+              </td>
+              <td>{getSolves(result.attempts)}</td>
+              {onDeleteResult && (
+                <td>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteResult(result.personId)}
+                    className="btn btn-danger btn-sm"
+                  >
+                    Remove
+                  </button>
+                </td>
+              )}
             </tr>
-          </thead>
-          <tbody>
-            {(event?.rounds[0] as IRound)?.results.map((result: IResult) => (
-              <tr key={result.personId}>
-                <td>{result.ranking}</td>
-                <td>{getName(result.personId)}</td>
-                <td>
-                  <div className="d-flex align-items-center gap-3">
-                    {formatTime(result.best)}
-                    {getRecordBadge(result, 'single')}
-                  </div>
-                </td>
-                <td>
-                  <div className="d-flex align-items-center gap-3">
-                    {formatTime(result.average, true)}
-                    {getRecordBadge(result, 'average')}
-                  </div>
-                </td>
-                <td>{getSolves(result.attempts)}</td>
-                {onDeleteResult && (
-                  <td>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteResult(result.personId)}
-                      className="btn btn-danger btn-sm"
-                    >
-                      Remove
-                    </button>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
-export default EventResultsTable;
+export default RoundResultsTable;

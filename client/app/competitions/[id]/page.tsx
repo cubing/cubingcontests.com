@@ -1,6 +1,6 @@
 import myFetch from '~/helpers/myFetch';
-import CompetitionResults from '@/components/CompetitionResults';
-import { ICompetitionData } from '@sh/interfaces/Competition';
+import CompetitionResults from '@c/CompetitionResults';
+import { ICompetitionData } from '@sh/interfaces';
 
 const Competition = async ({ params }: { params: { id: string } }) => {
   const data: ICompetitionData = await myFetch.get(`/competitions/${params.id}`, { revalidate: 600 });

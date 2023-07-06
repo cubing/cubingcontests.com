@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import CompetitionsTable from '@c/CompetitionsTable';
-import ICompetition from '@sh/interfaces/Competition';
+import { ICompetition } from '@sh/interfaces';
 
 const AdminHome = async () => {
   const competitions: ICompetition[] = await myFetch.get('/competitions');

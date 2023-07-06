@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Form from '~/app/components/form/Form';
-import FormCountrySelect from '~/app/components/form/FormCountrySelect';
-import FormTextInput from '~/app/components/form/FormTextInput';
+import Form from '@c/form/Form';
+import FormCountrySelect from '@c/form/FormCountrySelect';
+import FormTextInput from '@c/form/FormTextInput';
 
 const AdminPerson = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import ICompetition, { ICompetitionEvent } from '@sh/interfaces/Competition';
+import { ICompetition, ICompetitionEvent } from '@sh/interfaces';
 import { Round } from './round.model';
 
 @Schema({ _id: false })
@@ -15,7 +15,7 @@ export class CompetitionEvent implements ICompetitionEvent {
 const CompetitionEventSchema = SchemaFactory.createForClass(CompetitionEvent);
 
 @Schema({ timestamps: true })
-export class Competition implements ICompetition {
+class Competition implements ICompetition {
   @Prop({ required: true, immutable: true, unique: true })
   competitionId: string;
 

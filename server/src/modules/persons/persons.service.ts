@@ -2,14 +2,14 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
-import { PersonDocument, Person } from '~/src/models/person.model';
+import { PersonDocument } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
 
 @Injectable()
 export class PersonsService {
-  constructor(@InjectModel('Person') private readonly model: Model<Person>) {}
+  constructor(@InjectModel('Person') private readonly model: Model<PersonDocument>) {}
 
-  async getPersons(searchParam: string): Promise<Person[]> {
+  async getPersons(searchParam: string): Promise<PersonDocument[]> {
     try {
       if (!searchParam) {
         return await this.model.find({}, excl).exec();

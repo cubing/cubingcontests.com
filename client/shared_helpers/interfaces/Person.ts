@@ -3,5 +3,3 @@ export interface IPerson {
   name: string;
   countryId: string; // 2 letter country code
 }
-
-export default IPerson;

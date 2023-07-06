@@ -3,12 +3,12 @@ import { Model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 import { CompetitionsService } from '../competitions.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
-import { CompetitionDocument } from '~/src/models/competition.model';
-import { RoundDocument } from '~/src/models/round.model';
-import { ResultDocument } from '~/src/models/result.model';
-import { EventDocument } from '~/src/models/event.model';
-import { PersonDocument } from '~/src/models/person.model';
-import IResult from '@sh/interfaces/Result';
+// import { CompetitionDocument } from '~/src/models/competition.model';
+// import { RoundDocument } from '~/src/models/round.model';
+// import { ResultDocument } from '~/src/models/result.model';
+// import { EventDocument } from '~/src/models/event.model';
+// import { PersonDocument } from '~/src/models/person.model';
+import { IResult } from '@sh/interfaces';
 import { UpdateCompetitionDto } from '../dto/update-competition.dto';
 
 // Mocks and stubs
@@ -78,15 +78,16 @@ describe('CompetitionsService', () => {
 
       expect(competition.name).toBe('Meetup in Munich on February 19, 2023');
       expect(events.length).toBe(4);
-      expect(persons).toBeDefined();
+      expect(persons.length).toBe(4);
     });
 
     it('should get full moderator competition', async () => {
-      const { competition, events, singleRecords, avgRecords } = await competitionsService.getModCompetition(
-        'Munich19022023',
+      const { competition, events, persons, singleRecords, avgRecords } = await competitionsService.getModCompetition(
+        'Munich14062023',
       );
 
       expect(competition).toBeDefined();
+      expect(persons.length).toBe(5);
       expect(events.length).toBe(19);
       expect(singleRecords['333'].WR).toBe(909);
       expect(avgRecords['333'].WR).toBe(1132);

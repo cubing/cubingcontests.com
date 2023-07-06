@@ -26,7 +26,7 @@ This project uses Next JS for the front-end and Nest JS (confusing, I know) with
 
 The pre-commit hook runs all tests and ESLint. If there are tests that don't pass or linting errors, the commit will **not** be successful.
 
-There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory.
+There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
 
 ### Server set-up
 

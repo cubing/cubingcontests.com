@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Loading from '~/app/components/Loading';
+import Loading from '@c/Loading';
 
 const fetchAdminUser = async (setAdminUser: any) => {
   const admin = await myFetch.getAdmin();

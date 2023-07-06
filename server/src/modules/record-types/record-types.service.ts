@@ -1,18 +1,18 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import IRecordType from '@sh/interfaces/RecordType';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { EventDocument } from '~/src/models/event.model';
 import { WcaRecordType } from '@sh/enums';
+import { IRecordType } from '@sh/interfaces';
 
 @Injectable()
 export class RecordTypesService {
   constructor(
     @InjectModel('RecordType') private readonly recordTypeModel: Model<RecordTypeDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Event') private readonly eventModel: Model<Event>,
+    @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
   ) {}
 
   async getRecordTypes(query?: any): Promise<RecordTypeDocument[]> {

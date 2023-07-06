@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
-import FormTextInput from '~/app/components/form/FormTextInput';
+import FormTextInput from '@c/form/FormTextInput';
 import Link from 'next/link';
-import Form from '~/app/components/form/Form';
+import Form from '@c/form/Form';
 
 const Login = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);

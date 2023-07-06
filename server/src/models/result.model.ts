@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import IResult from '@sh/interfaces/Result';
+import { IResult } from '@sh/interfaces';
 
 @Schema({ timestamps: true })
 export class Result implements IResult {

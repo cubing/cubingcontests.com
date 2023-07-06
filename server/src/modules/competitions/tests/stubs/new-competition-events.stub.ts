@@ -1,5 +1,5 @@
 import { RoundFormat, RoundType } from '@sh/enums';
-import { ICompetitionEvent } from '@sh/interfaces/Competition';
+import { ICompetitionEvent } from '@sh/interfaces';
 
 export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
   return [

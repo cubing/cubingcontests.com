@@ -1,7 +1,7 @@
-import IResult from './Result';
+import { IResult } from './Result';
 import { RoundFormat, RoundType } from '../enums';
 
-interface IRound {
+export interface IRound {
   competitionId: string;
   eventId: string;
   date: Date;
@@ -9,5 +9,3 @@ interface IRound {
   format: RoundFormat;
   results: IResult[];
 }
-
-export default IRound;

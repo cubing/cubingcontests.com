@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import IEvent from '@sh/interfaces/Event';
+import { IEvent } from '@sh/interfaces';
 import { EventFormat, RoundFormat } from '@sh/enums';
 
 @Schema({ timestamps: true })
-export class Event implements IEvent {
+class Event implements IEvent {
   @Prop({ required: true, immutable: true, unique: true })
   eventId: string;
 

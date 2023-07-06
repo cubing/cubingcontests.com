@@ -7,7 +7,7 @@ import DatePicker from 'react-datepicker';
 // import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 // import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
-import IEvent from '@sh/interfaces/Event';
+import { IEvent } from '@sh/interfaces';
 import Form from '../form/Form';
 import FormTextInput from '../form/FormTextInput';
 import FormCountrySelect from '../form/FormCountrySelect';

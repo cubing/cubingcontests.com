@@ -86,7 +86,7 @@ const myFetch = {
       revalidate: false,
     },
   ) {
-    return await doFetch(url, 'GET', revalidate || 300, null, authorize);
+    return await doFetch(url, 'GET', revalidate, null, authorize);
   },
   async post(url: string, body: unknown, { authorize = true }: { authorize?: boolean } = { authorize: true }) {
     return await doFetch(url, 'POST', false, body, authorize);

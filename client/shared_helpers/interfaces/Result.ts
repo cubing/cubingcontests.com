@@ -1,4 +1,4 @@
-interface IResult {
+export interface IResult {
   competitionId: string;
   eventId: string;
   date: Date;
@@ -13,5 +13,3 @@ interface IResult {
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
 }
-
-export default IResult;

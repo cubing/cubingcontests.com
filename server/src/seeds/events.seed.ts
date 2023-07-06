@@ -1,5 +1,5 @@
 import { EventFormat, RoundFormat } from '@sh/enums';
-import IEvent from '@sh/interfaces/Event';
+import { IEvent } from '@sh/interfaces';
 
 // Official WCA events
 export default [

@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import IRound from '@sh/interfaces/Round';
 import { Result } from './result.model';
+import { IRound } from '@sh/interfaces';
 import { RoundFormat, RoundType } from '@sh/enums';
 
 @Schema({ timestamps: true })

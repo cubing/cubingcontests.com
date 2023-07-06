@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import IPerson from '@sh/interfaces/Person';
+import { IPerson } from '@sh/interfaces';
 
 @Schema({ timestamps: true })
-export class Person implements IPerson {
+class Person implements IPerson {
   @Prop({ required: true, immutable: true, unique: true })
   personId: number;
 

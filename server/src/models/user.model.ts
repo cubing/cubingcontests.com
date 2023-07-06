@@ -4,7 +4,7 @@ import IUser from '~/src/helpers/interfaces/User';
 import { Role } from '~/src/helpers/enums';
 
 @Schema({ timestamps: true })
-export class User implements IUser {
+class User implements IUser {
   @Prop({ required: true })
   name: string;
 
