@@ -9,12 +9,11 @@ import { Event } from '~/src/models/event.model';
 import { Person } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
-import { RecordTypesService } from '~/src/modules/record-types/record-types.service';
+import { RecordTypesService } from '@m/record-types/record-types.service';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces/Competition';
 import IRound from '@sh/interfaces/Round';
 import { ResultDocument } from '~/src/models/result.model';
 import IResult from '@sh/interfaces/Result';
-import { compareSingles, compareAvgs } from '@sh/sharedFunctions';
 
 interface CompetitionUpdateResult {
   events: ICompetitionEvent[];
@@ -283,7 +282,7 @@ export class CompetitionsService {
   }
 
   // Sets the newly-set records in sameDayRounds using the information from singleRecords and avgRecords
-  // (but only those that are active in activeRecordTypes)
+  // (but only the active record types)
   async setRecords(
     sameDayRounds: IRound[],
     activeRecordTypes: RecordTypeDocument[],
@@ -293,35 +292,52 @@ export class CompetitionsService {
     const rounds: Round[] = [];
 
     for (const rt of activeRecordTypes) {
+      let bestSingle = Infinity;
+      let bestAvg = Infinity;
+      // We need the arrays, because there can be multiple tied records
+      let newSingleRecordResults: IResult[] = [];
+      let newAvgRecordResults: IResult[] = [];
+
+      // First get the best results
+      for (const round of sameDayRounds) {
+        for (const result of round.results) {
+          if (result.best > 0 && result.best <= singleRecords[rt.wcaEquivalent] && result.best <= bestSingle) {
+            if (result.best === bestSingle) {
+              newSingleRecordResults.push(result);
+            } else {
+              newSingleRecordResults = [result];
+              bestSingle = result.best;
+            }
+          }
+        }
+      }
+      for (const round of sameDayRounds) {
+        for (const result of round.results) {
+          if (result.average > 0 && result.average <= avgRecords[rt.wcaEquivalent] && result.average <= bestAvg) {
+            if (result.average === bestAvg) {
+              newAvgRecordResults.push(result);
+            } else {
+              newAvgRecordResults = [result];
+              bestAvg = result.average;
+            }
+          }
+        }
+      }
+
+      // Mark the new records
+      newSingleRecordResults.forEach((el) => {
+        console.log(`New ${el.eventId} single ${rt.label} set: ${el.best}`);
+        el.regionalSingleRecord = rt.label;
+        singleRecords[rt.wcaEquivalent] = el.best;
+      });
+      newAvgRecordResults.forEach((el) => {
+        console.log(`New ${el.eventId} average ${rt.label} set: ${el.average}`);
+        el.regionalAverageRecord = rt.label;
+        avgRecords[rt.wcaEquivalent] = el.average;
+      });
+
       for (const round of sameDayRounds) {
         const newRound = { ...round, results: [] } as Round;
-        const singleSortedResults = [...round.results].sort(compareSingles);
-        const avgSortedResults = [...round.results].sort(compareAvgs);
-
-        for (let i = 0; i < singleSortedResults.length; i++) {
-          // Mark single as a record if it's better than or equal to the last record and if it's equal to
-          // the top sorted result (because ties are records too). Otherwise stop the loop.
-          // Also stop the loop if the best result is a DNF.
-          if (
-            singleSortedResults[i].best > 0 &&
-            singleSortedResults[i].best <= singleRecords[rt.wcaEquivalent] &&
-            singleSortedResults[i].best === singleSortedResults[0].best
-          ) {
-            console.log(`New ${round.eventId} single ${rt.label} set: ${singleSortedResults[i].best}`);
-            singleSortedResults[i].regionalSingleRecord = rt.label;
-          } else break;
-        }
-        for (let i = 0; i < avgSortedResults.length; i++) {
-          // Same logic as for single
-          if (
-            avgSortedResults[i].average > 0 &&
-            avgSortedResults[i].average <= avgRecords[rt.wcaEquivalent] &&
-            avgSortedResults[i].average === avgSortedResults[0].average
-          ) {
-            console.log(`New ${round.eventId} average ${rt.label} set: ${avgSortedResults[i].average}`);
-            avgSortedResults[i].regionalAverageRecord = rt.label;
-          } else break;
-        }
 
         try {
           newRound.results.push(...(await this.resultModel.create(round.results)));

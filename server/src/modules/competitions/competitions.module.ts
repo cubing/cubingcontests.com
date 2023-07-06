@@ -7,7 +7,7 @@ import { RoundSchema } from '~/src/models/round.model';
 import { ResultSchema } from '~/src/models/result.model';
 import { EventSchema } from '~/src/models/event.model';
 import { PersonSchema } from '~/src/models/person.model';
-import { RecordTypesModule } from '~/src/modules/record-types/record-types.module';
+import { RecordTypesModule } from '@m/record-types/record-types.module';
 
 @Module({
   imports: [
