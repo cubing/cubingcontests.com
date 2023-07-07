@@ -329,13 +329,19 @@ const PostResultsScreen = ({
   };
 
   const deleteResult = (personId: string) => {
-    const newRound: IRound = {
-      ...round,
-      results: mapRankings(round.results.filter((el) => el.personId !== personId)),
-    };
+    if (round.results.length > 1 || round.roundTypeId === RoundType.Final) {
+      const newRound: IRound = {
+        ...round,
+        results: mapRankings(round.results.filter((el) => el.personId !== personId)),
+      };
 
-    updateCompetitionEvents(newRound);
-    setRound(newRound);
+      updateCompetitionEvents(newRound);
+      setRound(newRound);
+    }
+    // If it's not the final round and we are deleting the last result, disallow the deletion
+    else {
+      setErrorMessages(["You may not delete the last result of a round that isn't the final round"]);
+    }
   };
 
   // Takes results that are already sorted
