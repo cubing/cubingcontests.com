@@ -29,6 +29,6 @@ export interface ICompetitionModData {
   competition: ICompetition;
   events: IEvent[]; // info about ALL events
   persons: IPerson[]; // info about competitors from THIS competition
-  singleRecords: any;
-  avgRecords: any;
+  // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
+  records: any;
 }

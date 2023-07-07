@@ -82,15 +82,13 @@ describe('CompetitionsService', () => {
     });
 
     it('should get full moderator competition', async () => {
-      const { competition, events, persons, singleRecords, avgRecords } = await competitionsService.getModCompetition(
-        'Munich14062023',
-      );
+      const { competition, events, persons, records } = await competitionsService.getModCompetition('Munich14062023');
 
       expect(competition).toBeDefined();
       expect(persons.length).toBe(5);
       expect(events.length).toBe(19);
-      expect(singleRecords['333'].WR).toBe(909);
-      expect(avgRecords['333'].WR).toBe(1132);
+      expect(records['333'].WR.best).toBe(990);
+      expect(records['333'].WR.average).toBe(1170);
     });
   });
 
@@ -102,62 +100,34 @@ describe('CompetitionsService', () => {
   });
 
   describe('Helper methods', () => {
-    it('gets current single records', async () => {
-      const records: any = await competitionsService.getRecords(
-        'regionalSingleRecord',
-        '333fm',
-        activeRecordTypesStub(),
-      );
-      expect(records.WR).toBe(39);
-    });
+    it('gets current 3x3x3 BLD records', async () => {
+      const records: any = await competitionsService.getEventRecords('333bf', activeRecordTypesStub());
 
-    it('gets current average records', async () => {
-      const records: any = await competitionsService.getRecords(
-        'regionalAverageRecord',
-        '666',
-        activeRecordTypesStub(),
-      );
-      expect(records.WR).toBe(14594);
+      expect(records.WR.best).toBe(2217);
+      expect(records.WR.average).toBe(2795);
     });
 
     it('sets new 3x3x3 records correctly', async () => {
-      const singleRecords: any = await competitionsService.getRecords(
-        'regionalSingleRecord',
-        '333',
-        activeRecordTypesStub(),
-      );
-      const avgRecords: any = await competitionsService.getRecords(
-        'regionalAverageRecord',
-        '333',
-        activeRecordTypesStub(),
-      );
+      const records: any = await competitionsService.getEventRecords('333', activeRecordTypesStub());
 
-      expect(singleRecords.WR).toBe(909);
-      expect(avgRecords.WR).toBe(1132);
+      expect(records.WR.best).toBe(909);
+      expect(records.WR.average).toBe(1132);
 
       const sameDayRounds = newCompetitionEventsStub()[0].rounds;
-      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
+      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), records);
 
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('XWR');
     });
 
     it('sets new 3x3x3 FM records with multiple record-breaking results on the same day correctly', async () => {
-      const singleRecords: any = await competitionsService.getRecords(
-        'regionalSingleRecord',
-        '333fm',
-        activeRecordTypesStub(),
-      );
-      const avgRecords: any = await competitionsService.getRecords(
-        'regionalAverageRecord',
-        '333fm',
-        activeRecordTypesStub(),
-      );
+      const records: any = await competitionsService.getEventRecords('333fm', activeRecordTypesStub());
 
-      expect(singleRecords.WR).toBe(39);
-      expect(avgRecords.WR).toBe(4600);
+      expect(records.WR.best).toBe(39);
+      expect(records.WR.average).toBe(4600);
 
       const sameDayRounds = newCompetitionEventsStub()[1].rounds;
-      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
+      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), records);
 
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBeUndefined();
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
@@ -165,19 +135,10 @@ describe('CompetitionsService', () => {
     });
 
     it('sets new 3x3x3 FM records with ties correctly', async () => {
-      const singleRecords: any = await competitionsService.getRecords(
-        'regionalSingleRecord',
-        '333fm',
-        activeRecordTypesStub(),
-      );
-      const avgRecords: any = await competitionsService.getRecords(
-        'regionalAverageRecord',
-        '333fm',
-        activeRecordTypesStub(),
-      );
+      const records: any = await competitionsService.getEventRecords('333fm', activeRecordTypesStub());
 
       const sameDayRounds = [newFakeCompetitionEventsStub()[0].rounds[0]];
-      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
+      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), records);
 
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('XWR');
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
@@ -186,22 +147,13 @@ describe('CompetitionsService', () => {
     });
 
     it('sets multiple 2x2x2 records set in different rounds on the same day correctly', async () => {
-      const singleRecords: any = await competitionsService.getRecords(
-        'regionalSingleRecord',
-        '222',
-        activeRecordTypesStub(),
-      );
-      const avgRecords: any = await competitionsService.getRecords(
-        'regionalAverageRecord',
-        '222',
-        activeRecordTypesStub(),
-      );
+      const records: any = await competitionsService.getEventRecords('222', activeRecordTypesStub());
 
-      expect(singleRecords.WR).toBe(153);
-      expect(avgRecords.WR).toBe(337);
+      expect(records.WR.best).toBe(153);
+      expect(records.WR.average).toBe(337);
 
       const sameDayRounds = newFakeCompetitionEventsStub()[1].rounds;
-      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), singleRecords, avgRecords);
+      await competitionsService.setRecords(sameDayRounds, activeRecordTypesStub(), records);
 
       // The single here is also better than XWR, but it should not be set,
       // because the next round has an even better single

@@ -25,6 +25,12 @@ export const mockResultModel = (): any => ({
         (el: ResultDocument) => el.regionalAverageRecord === query.regionalAverageRecord,
       );
     }
+    if (query?.date) {
+      if (query.date.$lt) {
+        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.date < query.date.$lt);
+      }
+    }
+
     return this;
   },
   // A search parameter value of 1 is for ascending order, -1 is for descending order

@@ -7,7 +7,7 @@ import RoundResultsTable from '@c/RoundResultsTable';
 import FormTextInput from '../form/FormTextInput';
 import myFetch from '~/helpers/myFetch';
 import { RoundFormat, RoundType, EventFormat, WcaRecordType } from '@sh/enums';
-import { compareAvgs, compareSingles } from '@sh/sharedFunctions';
+import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 
 const PostResultsScreen = ({
@@ -43,9 +43,6 @@ const PostResultsScreen = ({
     [round.eventId, round.results.length, competitionEvents],
   );
 
-  // THIS IS TEMPORARY
-  useEffect(() => console.log('currCompEvent:', currCompEvent), [currCompEvent]);
-
   const logDebug = () => {
     console.log('Round:', round);
     console.log('Person names:', personNames);
@@ -68,7 +65,7 @@ const PostResultsScreen = ({
     // Initialize 3x3x3 results, if they exist
     const round333: IRound = compData.competition.events.find((el) => el.eventId === '333')?.rounds[0];
     if (round333) setRound(round333);
-  }, [compData]);
+  }, [compData, activeRecordTypes]);
 
   useEffect(() => {
     // Focus the last name input
@@ -157,7 +154,7 @@ const PostResultsScreen = ({
       });
 
       // Sort the results and set rankings correctly
-      newRound.results = mapRankingsAndSetRecords(
+      newRound.results = mapRankings(
         newRound.results.sort(roundFormats[newRound.format].isAverage ? compareAvgs : compareSingles),
       );
 
@@ -193,24 +190,56 @@ const PostResultsScreen = ({
     return centiseconds;
   };
 
+  const updateEventRecords = (rounds: IRound[]): IRound[] => {
+    // Check for new records
+    for (const rt of activeRecordTypes) {
+      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
+        rounds = setNewRecords(rounds, compData.records[rounds[0].eventId][rt.wcaEquivalent], rt.label);
+      }
+    }
+
+    return rounds;
+  };
+
   const updateCompetitionEvents = (newRound: IRound) => {
-    const newCompetitionEvents = competitionEvents;
+    let newCompetitionEvents = competitionEvents;
     const compEvent = currCompEvent;
 
     // Add event if this is the first round for it
-    if (!compEvent) newCompetitionEvents.push({ eventId: round.eventId, rounds: [newRound] });
-    // If this round hasn't been added yet, add it
-    else {
-      if (roundNumber > (compEvent.rounds.length || 0)) {
-        compEvent.rounds.push(newRound);
+    if (!compEvent) {
+      newCompetitionEvents.push({
+        eventId: round.eventId,
+        rounds: updateEventRecords([newRound]), // update records
+      });
+      // If this round hasn't been added yet, add it
+    } else {
+      // If newRound.results is empty, that means we are deleting a round
+      if (newRound.results.length === 0) {
+        compEvent.rounds = compEvent.rounds.filter((el) => el.roundTypeId !== newRound.roundTypeId);
 
-        // Update previous round type if needed
-        if (roundNumber === 2) compEvent.rounds[0].roundTypeId = RoundType.First;
-        else if (roundNumber === 3) compEvent.rounds[1].roundTypeId = RoundType.Second;
-        else if (roundNumber === 4) compEvent.rounds[2].roundTypeId = RoundType.Semi;
+        // If that was the only round for this event, delete the event. Otherwise, update records.
+        if (compEvent.rounds.length === 0) {
+          newCompetitionEvents = newCompetitionEvents.filter((el) => el.eventId !== compEvent.eventId);
+        } else {
+          // Update records
+          compEvent.rounds = updateEventRecords(compEvent.rounds);
+        }
+      } else {
+        if (roundNumber > compEvent.rounds.length) {
+          compEvent.rounds.push(newRound);
+
+          // Update previous round type if needed
+          if (roundNumber === 2) compEvent.rounds[0].roundTypeId = RoundType.First;
+          else if (roundNumber === 3) compEvent.rounds[1].roundTypeId = RoundType.Second;
+          else if (roundNumber === 4) compEvent.rounds[2].roundTypeId = RoundType.Semi;
+        }
+        // If this round has already been added, update it
+        else compEvent.rounds[roundNumber - 1] = newRound;
+
+        // Update records
+        compEvent.rounds = updateEventRecords(compEvent.rounds);
       }
-      // If this round has already been added, update it
-      else compEvent.rounds[roundNumber - 1] = newRound;
     }
 
     setCompetitionEvents(newCompetitionEvents);
@@ -299,7 +328,7 @@ const PostResultsScreen = ({
   const deleteResult = (personId: string) => {
     const newRound: IRound = {
       ...round,
-      results: mapRankingsAndSetRecords(round.results.filter((el) => el.personId !== personId)),
+      results: mapRankings(round.results.filter((el) => el.personId !== personId)),
     };
 
     updateCompetitionEvents(newRound);
@@ -307,21 +336,11 @@ const PostResultsScreen = ({
   };
 
   // Takes results that are already sorted
-  const mapRankingsAndSetRecords = (results: IResult[]): IResult[] => {
+  const mapRankings = (results: IResult[]): IResult[] => {
     if (results.length === 0) return results;
 
     const newResults: IResult[] = [];
     let prevResult = results[0];
-    let bestSingleResult = results[0];
-    let bestAvgResult = results[0];
-    // Indices of new records (plural, because ties are possible)
-    const singleRecordIndices: any = {};
-    const avgRecordIndices: any = {};
-    // Initialize them for the active record types
-    for (const rt of activeRecordTypes) {
-      singleRecordIndices[rt.wcaEquivalent] = [] as number[];
-      avgRecordIndices[rt.wcaEquivalent] = [] as number[];
-    }
 
     for (let i = 0; i < results.length; i++) {
       // If the previous result was not tied with this one, increase ranking
@@ -331,51 +350,8 @@ const PostResultsScreen = ({
         if (compareAvgs(prevResult, results[i]) < 0) results[i].ranking = i + 1;
       }
 
-      // Check for new records
-      for (const rt of activeRecordTypes) {
-        // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (rt.wcaEquivalent === WcaRecordType.WR) {
-          // Reset any records that may have been set previously
-          delete results[i].regionalSingleRecord;
-          delete results[i].regionalAverageRecord;
-
-          // Dummy record results for comparisons
-          const singleRecordResult = { best: compData.singleRecords[round.eventId][rt.wcaEquivalent] } as IResult;
-          const avgRecordResult = { average: compData.avgRecords[round.eventId][rt.wcaEquivalent] } as IResult;
-
-          const comparisonToBestSingle = compareSingles(results[i], bestSingleResult);
-          if (comparisonToBestSingle <= 0 && compareSingles(results[i], singleRecordResult) <= 0) {
-            if (comparisonToBestSingle < 0) {
-              singleRecordIndices[rt.wcaEquivalent] = [i];
-              bestSingleResult = results[i];
-            } else {
-              singleRecordIndices[rt.wcaEquivalent].push(i);
-            }
-          }
-
-          const comparisonToBestAvg = compareAvgs(results[i], bestAvgResult);
-          if (comparisonToBestAvg <= 0 && compareAvgs(results[i], avgRecordResult, true) <= 0) {
-            if (comparisonToBestAvg < 0) {
-              avgRecordIndices[rt.wcaEquivalent] = [i];
-              bestAvgResult = results[i];
-            } else {
-              avgRecordIndices[rt.wcaEquivalent].push(i);
-            }
-          }
-        }
-      }
-
       newResults.push(results[i]);
       prevResult = results[i];
-    }
-
-    // Set the records
-    for (const rt of activeRecordTypes) {
-      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (rt.wcaEquivalent === WcaRecordType.WR) {
-        avgRecordIndices[rt.wcaEquivalent].forEach((i: number) => (newResults[i].regionalAverageRecord = rt.label));
-        singleRecordIndices[rt.wcaEquivalent].forEach((i: number) => (newResults[i].regionalSingleRecord = rt.label));
-      }
     }
 
     return newResults;

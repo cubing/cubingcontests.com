@@ -12,6 +12,8 @@ import { EventDocument } from '~/src/models/event.model';
 import { PersonDocument } from '~/src/models/person.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { ICompetitionEvent, ICompetitionData, ICompetitionModData, IRound, IResult } from '@sh/interfaces';
+import { setNewRecords } from '@sh/sharedFunctions';
+import { WcaRecordType } from '@sh/enums';
 
 interface CompetitionUpdateResult {
   events: ICompetitionEvent[];
@@ -82,22 +84,17 @@ export class CompetitionsService {
         competition,
         events,
         persons,
-        singleRecords: {} as any,
-        avgRecords: {} as any,
+        // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
+        records: {} as any,
       };
       const activeRecordTypes = await this.getActiveRecordTypes();
 
       // Get all current records
       for (const event of events) {
-        output.singleRecords[event.eventId] = await this.getRecords(
-          'regionalSingleRecord',
+        output.records[event.eventId] = await this.getEventRecords(
           event.eventId,
           activeRecordTypes,
-        );
-        output.avgRecords[event.eventId] = await this.getRecords(
-          'regionalAverageRecord',
-          event.eventId,
-          activeRecordTypes,
+          new Date(competition.startDate),
         );
       }
 
@@ -149,16 +146,6 @@ export class CompetitionsService {
 
       if (comp.events.length > 0) {
         console.log('Rewriting existing competition results');
-
-        // Reset the records for now
-        for (const event of updateCompetitionDto.events) {
-          for (const round of event.rounds) {
-            for (const result of round.results) {
-              delete result.regionalSingleRecord;
-              delete result.regionalAverageRecord;
-            }
-          }
-        }
 
         // Store the rounds and results temporarily in case
         tempRounds = (await this.roundModel.find({ competitionId })) as IRound[];
@@ -255,6 +242,7 @@ export class CompetitionsService {
     }
   }
 
+  // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)
   async updateCompetitionEvents(newCompEvents: ICompetitionEvent[]): Promise<CompetitionUpdateResult> {
     const output = { events: [] } as CompetitionUpdateResult;
     const activeRecordTypes = await this.getActiveRecordTypes();
@@ -265,17 +253,14 @@ export class CompetitionsService {
       const newCompEvent: CompetitionEvent = { eventId: event.eventId, rounds: [] };
       let sameDayRounds: IRound[] = [];
       // These are set to null if there are no active record types
-      const singleRecords: any = await this.getRecords('regionalSingleRecord', event.eventId, activeRecordTypes);
-      const avgRecords: any = await this.getRecords('regionalAverageRecord', event.eventId, activeRecordTypes);
+      const records: any = await this.getEventRecords(event.eventId, activeRecordTypes);
       const sortedRounds = event.rounds.sort((a: any, b: any) => a.date - b.date);
 
       for (const round of sortedRounds) {
         if (activeRecordTypes.length > 0) {
           // Set the records from the last day, when the day changes
           if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
-            newCompEvent.rounds.push(
-              ...(await this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords)),
-            );
+            newCompEvent.rounds.push(...(await this.setRecords(sameDayRounds, activeRecordTypes, records)));
             sameDayRounds = [];
           }
           sameDayRounds.push(round);
@@ -284,7 +269,7 @@ export class CompetitionsService {
         this.getParticipantsInRound(round, personIds);
       }
       // Set the records for the last day of rounds
-      newCompEvent.rounds.push(...(await this.setRecords(sameDayRounds, activeRecordTypes, singleRecords, avgRecords)));
+      newCompEvent.rounds.push(...(await this.setRecords(sameDayRounds, activeRecordTypes, records)));
       output.events.push(newCompEvent);
     }
 
@@ -292,99 +277,70 @@ export class CompetitionsService {
     return output;
   }
 
-  async getRecords(
-    type: 'regionalSingleRecord' | 'regionalAverageRecord',
+  async getEventRecords(
     eventId: string,
     activeRecordTypes: RecordTypeDocument[],
+    // beforeDate = new Date(8640000000000000), // max date as default
+    // Crazy high date as default (to allow adding 3 hours below (TEMPORARY))
+    beforeDate = new Date(8600000000000000),
   ) {
     // Returns null if no record types are active
     if (activeRecordTypes.length === 0) return null;
+
+    // Get the given date at midnight to compare the dates only
+    beforeDate = new Date(beforeDate.getUTCFullYear(), beforeDate.getUTCMonth(), beforeDate.getUTCDate(), 3);
     const records: any = {};
-    const typeWord = type === 'regionalSingleRecord' ? 'best' : 'average';
 
     // Go through all active record types
     for (const rt of activeRecordTypes) {
-      const results = await this.resultModel
-        .find({ eventId, [type]: rt.label })
+      const newRecords = { best: -1, average: -1 };
+
+      // Get single record
+      const [singleResult] = await this.resultModel
+        .find({ eventId, regionalSingleRecord: rt.label, date: { $lt: beforeDate } })
         .sort({ date: -1 })
         .limit(1)
         .exec();
 
-      if (results.length > 0) {
-        records[rt.wcaEquivalent] = results[0][typeWord];
-      } else {
-        records[rt.wcaEquivalent] = Infinity;
-      }
+      if (singleResult) newRecords.best = singleResult.best;
+
+      // Get average record
+      const [avgResult] = await this.resultModel
+        .find({ eventId, regionalAverageRecord: rt.label, date: { $lt: beforeDate } })
+        .sort({ date: -1 })
+        .limit(1)
+        .exec();
+
+      if (avgResult) newRecords.average = avgResult.average;
+
+      records[rt.wcaEquivalent] = newRecords;
     }
 
     return records;
   }
 
-  // Sets the newly-set records in sameDayRounds using the information from singleRecords and avgRecords
-  // (but only the active record types)
-  async setRecords(
-    sameDayRounds: IRound[],
-    activeRecordTypes: RecordTypeDocument[],
-    singleRecords: any,
-    avgRecords: any,
-  ): Promise<Round[]> {
+  // Sets the newly-set records in sameDayRounds using the information from records
+  // (but only the active record types) and returns the rounds
+  async setRecords(sameDayRounds: IRound[], activeRecordTypes: RecordTypeDocument[], records: any): Promise<Round[]> {
     const rounds: Round[] = [];
 
     for (const rt of activeRecordTypes) {
-      let bestSingle = Infinity;
-      let bestAvg = Infinity;
-      // We need the arrays, because there can be multiple tied records
-      let newSingleRecordResults: IResult[] = [];
-      let newAvgRecordResults: IResult[] = [];
+      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
+        sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.label, true);
 
-      // First get the best results
-      for (const round of sameDayRounds) {
-        for (const result of round.results) {
-          if (result.best > 0 && result.best <= singleRecords[rt.wcaEquivalent] && result.best <= bestSingle) {
-            if (result.best === bestSingle) {
-              newSingleRecordResults.push(result);
-            } else {
-              newSingleRecordResults = [result];
-              bestSingle = result.best;
-            }
+        // Create new results and rounds
+        for (const round of sameDayRounds) {
+          const newRound = { ...round, results: [] } as Round;
+
+          try {
+            newRound.results.push(...(await this.resultModel.create(round.results)));
+          } catch (err) {
+            throw new InternalServerErrorException(`Error while creating result ${round.results}: ${err.message}`);
           }
+
+          rounds.push(await this.roundModel.create(newRound));
         }
-      }
-      for (const round of sameDayRounds) {
-        for (const result of round.results) {
-          if (result.average > 0 && result.average <= avgRecords[rt.wcaEquivalent] && result.average <= bestAvg) {
-            if (result.average === bestAvg) {
-              newAvgRecordResults.push(result);
-            } else {
-              newAvgRecordResults = [result];
-              bestAvg = result.average;
-            }
-          }
-        }
-      }
-
-      // Mark the new records
-      newSingleRecordResults.forEach((el) => {
-        console.log(`New ${el.eventId} single ${rt.label} set: ${el.best}`);
-        el.regionalSingleRecord = rt.label;
-        singleRecords[rt.wcaEquivalent] = el.best;
-      });
-      newAvgRecordResults.forEach((el) => {
-        console.log(`New ${el.eventId} average ${rt.label} set: ${el.average}`);
-        el.regionalAverageRecord = rt.label;
-        avgRecords[rt.wcaEquivalent] = el.average;
-      });
-
-      for (const round of sameDayRounds) {
-        const newRound = { ...round, results: [] } as Round;
-
-        try {
-          newRound.results.push(...(await this.resultModel.create(round.results)));
-        } catch (err) {
-          throw new InternalServerErrorException(`Error while creating result ${round.results}: ${err.message}`);
-        }
-
-        rounds.push(await this.roundModel.create(newRound));
       }
     }
 
