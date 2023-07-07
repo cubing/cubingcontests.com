@@ -13,7 +13,11 @@ export const compareSingles = (a: IResult, b: IResult): number => {
 // However, that third argument cannot be used with the Array.sort() method.
 export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): number => {
   if (a.average <= 0) {
-    if (b.average <= 0) return compareSingles(a, b);
+    if (b.average <= 0) {
+      if (noTieBreaker) return 0;
+      return compareSingles(a, b);
+    }
+
     return 1;
   } else if (a.average > 0 && b.average <= 0) return -1;
   return a.average - b.average;
@@ -38,7 +42,6 @@ export const setNewRecords = (
 
       const comparisonToBestSingle = compareSingles(result, bestSingleResults[0]);
       if (comparisonToBestSingle <= 0 && compareSingles(result, record as IResult) <= 0) {
-        console.log('test3');
         // If it's BETTER, reset the new records; if it's a TIE, add to the list
         if (comparisonToBestSingle < 0) {
           bestSingleResults = [result];

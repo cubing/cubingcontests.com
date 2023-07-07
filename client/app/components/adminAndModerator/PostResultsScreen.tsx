@@ -78,6 +78,9 @@ const PostResultsScreen = ({
       return;
     }
 
+    setErrorMessages([]);
+    setSuccessMessage('');
+
     const data = { events: competitionEvents };
     const response = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, data);
 

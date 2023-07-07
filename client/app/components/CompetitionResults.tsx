@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import EventResultsTable from './EventResults';
 import { ICompetitionData, ICompetitionEvent, IEvent } from '@sh/interfaces';
-import { getCountry } from '~/helpers/utilityFunctions';
+import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 
 const CompetitionResults = ({ data: { competition, events, persons } }: { data: ICompetitionData }) => {
   // Find the event held at the competition that has the highest rank.
@@ -19,6 +19,7 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
   return (
     <>
       <div className="mt-5 mb-3 px-2 fs-5">
+        <p>Date:&#8194;{getFormattedDate(competition.startDate, competition.endDate)}</p>
         <p>
           Location:&#8194;{competition.city}, <b>{getCountry(competition)}</b>
         </p>
