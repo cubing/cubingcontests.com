@@ -150,7 +150,7 @@ const PostResultsScreen = ({
         eventId: newRound.eventId,
         date: compData.competition.startDate,
         personId: currentPersons.map((el) => el.personId.toString()).join(';'),
-        ranking: 0, // real ranking assigned below
+        ranking: 0, // real rankings assigned below
         attempts: tempAttempts,
         best,
         average,
@@ -350,16 +350,17 @@ const PostResultsScreen = ({
 
     const newResults: IResult[] = [];
     let prevResult = results[0];
+    let ranking = 1;
 
     for (let i = 0; i < results.length; i++) {
       // If the previous result was not tied with this one, increase ranking
       if (!roundFormats[round.format].isAverage) {
-        if (compareSingles(prevResult, results[i]) < 0) results[i].ranking = i + 1;
+        if (compareSingles(prevResult, results[i]) < 0) ranking = i + 1;
       } else {
-        if (compareAvgs(prevResult, results[i]) < 0) results[i].ranking = i + 1;
+        if (compareAvgs(prevResult, results[i]) < 0) ranking = i + 1;
       }
 
-      newResults.push(results[i]);
+      newResults.push({ ...results[i], ranking });
       prevResult = results[i];
     }
 
