@@ -8,7 +8,7 @@ echo -e "New directory: $(pwd)\n"
 echo -e "Running all /server test suites..."
 
 cd server
-npm run test:cov
+npm run test
 
 if [[ $? != 0 ]]; then
   exit 1

@@ -3,7 +3,7 @@ import CompetitionResults from '@c/CompetitionResults';
 import { ICompetitionData } from '@sh/interfaces';
 
 const Competition = async ({ params }: { params: { id: string } }) => {
-  const data: ICompetitionData = await myFetch.get(`/competitions/${params.id}`, { revalidate: 600 });
+  const data: ICompetitionData = await myFetch.get(`/competitions/${params.id}`, { revalidate: 30 });
 
   return (
     <>
