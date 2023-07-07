@@ -1,5 +1,5 @@
 import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
-import IUser from '~/src/helpers/interfaces/User';
+import { IUser } from '~/src/helpers/interfaces/User';
 
 export class CreateUserDto implements IUser {
   @IsString()

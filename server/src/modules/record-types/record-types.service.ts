@@ -6,6 +6,7 @@ import { ResultDocument } from '~/src/models/result.model';
 import { EventDocument } from '~/src/models/event.model';
 import { WcaRecordType } from '@sh/enums';
 import { IRecordType } from '@sh/interfaces';
+import { excl } from '~/src/helpers/dbHelpers';
 
 @Injectable()
 export class RecordTypesService {
@@ -16,8 +17,10 @@ export class RecordTypesService {
   ) {}
 
   async getRecordTypes(query?: any): Promise<RecordTypeDocument[]> {
+    const queryFilter = query?.active ? { active: query.active } : {};
+
     try {
-      return await this.recordTypeModel.find(query);
+      return await this.recordTypeModel.find(queryFilter, excl).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -27,7 +30,7 @@ export class RecordTypesService {
     // If there were already record types in the DB, delete them and create new ones
     let recordTypes;
     try {
-      recordTypes = await this.recordTypeModel.find();
+      recordTypes = await this.recordTypeModel.find().exec();
       if (recordTypes.length > 0) await this.recordTypeModel.deleteMany({});
       await this.recordTypeModel.create(newRecordTypes);
     } catch (err) {

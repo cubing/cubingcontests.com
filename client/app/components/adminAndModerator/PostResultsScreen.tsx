@@ -2,15 +2,21 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import FormEventSelect from '@c/form/FormEventSelect';
-import { ICompetitionEvent, ICompetitionModData, IResult, IPerson, IRound } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionModData, IResult, IPerson, IRound, IRecordType } from '@sh/interfaces';
 import RoundResultsTable from '@c/RoundResultsTable';
 import FormTextInput from '../form/FormTextInput';
 import myFetch from '~/helpers/myFetch';
-import { RoundFormat, RoundType, EventFormat } from '@sh/enums';
+import { RoundFormat, RoundType, EventFormat, WcaRecordType } from '@sh/enums';
 import { compareAvgs, compareSingles } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 
-const PostResultsScreen = ({ compData }: { compData: ICompetitionModData }) => {
+const PostResultsScreen = ({
+  compData,
+  activeRecordTypes,
+}: {
+  compData: ICompetitionModData;
+  activeRecordTypes: IRecordType[];
+}) => {
   const getDefaultRound = (eventId = '333', format = RoundFormat.Average): IRound => {
     return {
       competitionId: compData.competition.competitionId,
@@ -54,6 +60,7 @@ const PostResultsScreen = ({ compData }: { compData: ICompetitionModData }) => {
   // Initialize
   useEffect(() => {
     console.log('Competition data:', compData);
+    console.log('Active record types:', activeRecordTypes);
 
     setCompetitionEvents(compData.competition.events);
     setPersons(compData.persons);
@@ -150,8 +157,8 @@ const PostResultsScreen = ({ compData }: { compData: ICompetitionModData }) => {
       });
 
       // Sort the results and set rankings correctly
-      newRound.results = mapResultsRankings(
-        newRound.results.sort(['a', 'm'].includes(newRound.format) ? compareAvgs : compareSingles),
+      newRound.results = mapRankingsAndSetRecords(
+        newRound.results.sort(roundFormats[newRound.format].isAverage ? compareAvgs : compareSingles),
       );
 
       updateCompetitionEvents(newRound);
@@ -292,28 +299,86 @@ const PostResultsScreen = ({ compData }: { compData: ICompetitionModData }) => {
   const deleteResult = (personId: string) => {
     const newRound: IRound = {
       ...round,
-      results: mapResultsRankings(round.results.filter((el) => el.personId !== personId)),
+      results: mapRankingsAndSetRecords(round.results.filter((el) => el.personId !== personId)),
     };
 
     updateCompetitionEvents(newRound);
     setRound(newRound);
   };
 
-  const mapResultsRankings = (results: IResult[]): IResult[] => {
-    let ranking = 1;
-    let currResult: number;
-    let prevResult: number | null = null;
+  // Takes results that are already sorted
+  const mapRankingsAndSetRecords = (results: IResult[]): IResult[] => {
+    if (results.length === 0) return results;
 
-    return results.map((res) => {
-      if ([RoundFormat.Average, RoundFormat.Mean].includes(round.format)) currResult = res.average;
-      else currResult = res.best;
+    const newResults: IResult[] = [];
+    let prevResult = results[0];
+    let bestSingleResult = results[0];
+    let bestAvgResult = results[0];
+    // Indices of new records (plural, because ties are possible)
+    const singleRecordIndices: any = {};
+    const avgRecordIndices: any = {};
+    // Initialize them for the active record types
+    for (const rt of activeRecordTypes) {
+      singleRecordIndices[rt.wcaEquivalent] = [] as number[];
+      avgRecordIndices[rt.wcaEquivalent] = [] as number[];
+    }
 
-      if (currResult <= 0) currResult = Infinity;
-      if (prevResult !== null && currResult > prevResult) ranking++;
+    for (let i = 0; i < results.length; i++) {
+      // If the previous result was not tied with this one, increase ranking
+      if (!roundFormats[round.format].isAverage) {
+        if (compareSingles(prevResult, results[i]) < 0) results[i].ranking = i + 1;
+      } else {
+        if (compareAvgs(prevResult, results[i]) < 0) results[i].ranking = i + 1;
+      }
 
-      prevResult = currResult;
-      return { ...res, ranking };
-    });
+      // Check for new records
+      for (const rt of activeRecordTypes) {
+        // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if (rt.wcaEquivalent === WcaRecordType.WR) {
+          // Reset any records that may have been set previously
+          delete results[i].regionalSingleRecord;
+          delete results[i].regionalAverageRecord;
+
+          // Dummy record results for comparisons
+          const singleRecordResult = { best: compData.singleRecords[round.eventId][rt.wcaEquivalent] } as IResult;
+          const avgRecordResult = { average: compData.avgRecords[round.eventId][rt.wcaEquivalent] } as IResult;
+
+          const comparisonToBestSingle = compareSingles(results[i], bestSingleResult);
+          if (comparisonToBestSingle <= 0 && compareSingles(results[i], singleRecordResult) <= 0) {
+            if (comparisonToBestSingle < 0) {
+              singleRecordIndices[rt.wcaEquivalent] = [i];
+              bestSingleResult = results[i];
+            } else {
+              singleRecordIndices[rt.wcaEquivalent].push(i);
+            }
+          }
+
+          const comparisonToBestAvg = compareAvgs(results[i], bestAvgResult);
+          if (comparisonToBestAvg <= 0 && compareAvgs(results[i], avgRecordResult, true) <= 0) {
+            if (comparisonToBestAvg < 0) {
+              avgRecordIndices[rt.wcaEquivalent] = [i];
+              bestAvgResult = results[i];
+            } else {
+              avgRecordIndices[rt.wcaEquivalent].push(i);
+            }
+          }
+        }
+      }
+
+      newResults.push(results[i]);
+      prevResult = results[i];
+    }
+
+    // Set the records
+    for (const rt of activeRecordTypes) {
+      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if (rt.wcaEquivalent === WcaRecordType.WR) {
+        avgRecordIndices[rt.wcaEquivalent].forEach((i: number) => (newResults[i].regionalAverageRecord = rt.label));
+        singleRecordIndices[rt.wcaEquivalent].forEach((i: number) => (newResults[i].regionalSingleRecord = rt.label));
+      }
+    }
+
+    return newResults;
   };
 
   const enterAttempt = (e: any, index: number) => {
@@ -331,10 +396,10 @@ const PostResultsScreen = ({ compData }: { compData: ICompetitionModData }) => {
     <>
       {errorMessages.length > 0
         ? errorMessages.map((message, index) => (
-            <div key={index} className="mb-3 alert alert-danger fs-5" role="alert">
-              {message}
-            </div>
-          ))
+          <div key={index} className="mb-3 alert alert-danger fs-5" role="alert">
+            {message}
+          </div>
+        ))
         : successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>}
       <div className="row my-4">
         <div className="col-3 pe-4">

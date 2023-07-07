@@ -1,4 +1,4 @@
-import IRecordType from '../shared_helpers/interfaces/RecordType';
+import { IRecordType } from '../shared_helpers/interfaces';
 import { Color, WcaRecordType } from '../shared_helpers/enums';
 
 const defaultRecordTypes: IRecordType[] = [

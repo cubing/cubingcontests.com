@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Role } from '~/src/helpers/enums';
@@ -12,10 +12,10 @@ import { IRecordType } from '@sh/interfaces';
 export class RecordTypesController {
   constructor(private readonly service: RecordTypesService) {}
 
-  @Get() // GET /record-types
-  async getRecordTypes() {
+  @Get() // GET /record-types?active=true/false
+  async getRecordTypes(@Query('active') active: boolean) {
     console.log('Getting record types');
-    return await this.service.getRecordTypes();
+    return await this.service.getRecordTypes({ active });
   }
 
   @Post() // POST /record-types

@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import JwtPayload from '~/src/helpers/interfaces/JwtPayload';
+import { JwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
