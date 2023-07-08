@@ -148,10 +148,10 @@ export class CompetitionsService {
         console.log('Rewriting existing competition results');
 
         // Store the rounds and results temporarily in case
-        tempRounds = (await this.roundModel.find({ competitionId })) as IRound[];
-        tempResults = (await this.resultModel.find({ competitionId })) as IResult[];
-        await this.roundModel.deleteMany({ competitionId });
-        await this.resultModel.deleteMany({ competitionId });
+        tempRounds = (await this.roundModel.find({ competitionId }).exec()) as IRound[];
+        tempResults = (await this.resultModel.find({ competitionId }).exec()) as IResult[];
+        await this.roundModel.deleteMany({ competitionId }).exec();
+        await this.resultModel.deleteMany({ competitionId }).exec();
       }
 
       try {

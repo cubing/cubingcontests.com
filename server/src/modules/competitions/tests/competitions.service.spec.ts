@@ -93,9 +93,14 @@ describe('CompetitionsService', () => {
   });
 
   describe('Endpoint methods', () => {
-    it('should update a competition without error', () => {
+    it('should post competition results without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
       competitionsService.updateCompetition('Munich30062023', updateCompetitionDto);
+    });
+
+    it('should update competition results without error', () => {
+      const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
+      competitionsService.updateCompetition('Munich27062023', updateCompetitionDto);
     });
   });
 
@@ -178,6 +183,7 @@ describe('CompetitionsService', () => {
       expect(avgRecord333fmResults.length).toBe(1);
       // 6.86 single and 8.00 average XWRs
       expect(output.events[0].rounds[0].results[0].regionalSingleRecord).toBe('XWR');
+      expect(output.events[0].rounds[0].results[0].best).toBe(686);
       expect(output.events[0].rounds[0].results[0].regionalAverageRecord).toBe('XWR');
       // 32 single and 35.67 mean XWRs
       expect(output.events[1].rounds[0].results[2].regionalSingleRecord).toBe('XWR');

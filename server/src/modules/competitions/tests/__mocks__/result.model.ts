@@ -46,9 +46,12 @@ export const mockResultModel = (): any => ({
     this.tempOutput = this.tempOutput.slice(0, count);
     return this;
   },
+  deleteMany() {
+    return this;
+  },
   // Resets the temporary output
   exec() {
-    const temp = this.tempOutput;
+    const temp = this.tempOutput || [];
     this.tempOutput = undefined;
     return temp;
   },
