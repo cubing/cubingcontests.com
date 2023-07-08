@@ -1,5 +1,5 @@
 import Countries from '@sh/Countries';
-import { ICompetition, IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/interfaces';
 
 export const getCountry = (countryId: string): string => {
   return Countries.find((el) => el.code === countryId)?.name || 'Unknown country';
