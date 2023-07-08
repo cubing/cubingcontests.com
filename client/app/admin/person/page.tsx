@@ -22,7 +22,9 @@ const AdminPerson = () => {
     if (response?.errors) {
       setErrorMessages(response.errors);
     } else {
-      window.location.href = '/admin';
+      setErrorMessages([]);
+      setName('');
+      document.getElementById('full_name').focus();
     }
   };
 
@@ -30,7 +32,7 @@ const AdminPerson = () => {
     <>
       <h2 className="mb-4 text-center">Create New Competitor</h2>
       <Form buttonText="Create" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-        <FormTextInput name="Full Name" value={name} setValue={setName} />
+        <FormTextInput id="full_name" name="Full Name" value={name} setValue={setName} />
         <FormCountrySelect countryId={countryId} setCountryId={setCountryId} />
       </Form>
     </>
