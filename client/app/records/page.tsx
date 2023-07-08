@@ -1,3 +1,5 @@
+'use client';
+
 import myFetch from '~/helpers/myFetch';
 import { IEventRecords, IPerson } from '@sh/interfaces';
 import { formatTime, getCountry, getSolves } from '~/helpers/utilityFunctions';
