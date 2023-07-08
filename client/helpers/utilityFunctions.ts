@@ -1,8 +1,8 @@
 import Countries from '@sh/Countries';
-import { ICompetition } from '~/shared_helpers/interfaces';
+import { ICompetition, IEvent } from '@sh/interfaces';
 
-export const getCountry = (competition: ICompetition): string => {
-  return Countries.find((el) => el.code === competition.countryId)?.name || 'Unknown country';
+export const getCountry = (countryId: string): string => {
+  return Countries.find((el) => el.code === countryId)?.name || 'Unknown country';
 };
 
 export const getFormattedDate = (start: Date, end: Date): string => {
@@ -17,4 +17,38 @@ export const getFormattedDate = (start: Date, end: Date): string => {
   } else {
     return 'Not implemented';
   }
+};
+
+export const formatTime = (event: IEvent, time: number, isAverage = false): string => {
+  if (time === -1) {
+    return 'DNF';
+  } else if (time === -2) {
+    return 'DNS';
+  } else if (event.format === 'number') {
+    if (isAverage) return (time / 100).toFixed(2);
+    else return time.toString();
+  } else {
+    let output = '';
+    const hours = Math.floor(time / 360000);
+    const minutes = Math.floor(time / 6000) % 60;
+    const seconds = (time - hours * 360000 - minutes * 6000) / 100;
+
+    if (hours > 0) output = hours + ':';
+    if (hours > 0 || minutes > 0) {
+      if (minutes === 0) output += '00:';
+      else if (minutes < 10 && hours > 0) output += '0' + minutes + ':';
+      else output += minutes + ':';
+    }
+    if (seconds < 10 && (hours > 0 || minutes > 0)) output += '0';
+    output += seconds;
+    if (!output.includes('.')) output += '.00';
+    else if (output.split('.')[1].length === 1) output += '0';
+
+    return output;
+  }
+};
+
+export const getSolves = (event: IEvent, attempts: number[]): string => {
+  // The character in quotes is an em space
+  return attempts.map((el) => formatTime(event, el)).join(' ');
 };

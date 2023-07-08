@@ -8,9 +8,10 @@ import { excl } from '~/src/helpers/dbHelpers';
 import { Round, RoundDocument } from '~/src/models/round.model';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { ResultDocument } from '~/src/models/result.model';
-import { EventDocument } from '~/src/models/event.model';
-import { PersonDocument } from '~/src/models/person.model';
+import { ResultsService } from '@m/results/results.service';
+import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
+import { PersonsService } from '@m/persons/persons.service';
 import { ICompetitionEvent, ICompetitionData, ICompetitionModData, IRound, IResult } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
 import { WcaRecordType } from '@sh/enums';
@@ -23,12 +24,13 @@ interface CompetitionUpdateResult {
 @Injectable()
 export class CompetitionsService {
   constructor(
+    private eventsService: EventsService,
+    private resultsService: ResultsService,
+    private recordTypesService: RecordTypesService,
+    private personsService: PersonsService,
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
-    @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
-    private recordTypesService: RecordTypesService,
+    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>, // @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
@@ -55,13 +57,10 @@ export class CompetitionsService {
       if (competition.events.length > 0) {
         try {
           const personIds: number[] = this.getCompetitionParticipants(competition.events);
-          output.persons = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
+          output.persons = await this.personsService.getPersonsById(personIds);
 
           const eventIds = output.competition.events.map((el) => el.eventId);
-          output.events = await this.eventModel
-            .find({ eventId: { $in: eventIds } }, excl)
-            .sort({ rank: 1 })
-            .exec();
+          output.events = await this.eventsService.getEvents(eventIds);
         } catch (err) {
           throw new InternalServerErrorException(err.message);
         }
@@ -75,9 +74,9 @@ export class CompetitionsService {
 
   async getModCompetition(competitionId: string): Promise<ICompetitionModData> {
     const competition = await this.getFullCompetition(competitionId);
-    const events = await this.eventModel.find().sort({ rank: 1 }).exec();
+    const events = await this.eventsService.getEvents();
     const personIds: number[] = this.getCompetitionParticipants(competition.events);
-    const persons = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
+    const persons = await this.personsService.getPersonsById(personIds);
 
     if (competition) {
       const output: ICompetitionModData = {
@@ -87,7 +86,7 @@ export class CompetitionsService {
         // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
         records: {} as any,
       };
-      const activeRecordTypes = await this.getActiveRecordTypes();
+      const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
       // Get all current records
       for (const event of events) {
@@ -176,20 +175,6 @@ export class CompetitionsService {
     }
   }
 
-  // async deleteCompetition(competitionId: string) {
-  //   let result;
-  //   try {
-  //     // Delete the results and the competition itself
-  //     // TO-DO: THIS NEEDS TO DELETE ALL OF THE RESULTS TOO (OR DOES IT?)
-  //     await this.roundModel.deleteMany({ competitionId }).exec();
-  //     result = await this.competitionModel.deleteOne({ competitionId }).exec();
-  //   } catch (err) {
-  //     throw new InternalServerErrorException(err.message);
-  //   }
-
-  //   if (result.deletedCount === 0) throw new NotFoundException(`Competition with id ${competitionId} not found`);
-  // }
-
   // HELPERS
 
   // Finds the competition with the given competition id with the rounds and results populated
@@ -234,18 +219,10 @@ export class CompetitionsService {
     }
   }
 
-  private async getActiveRecordTypes(): Promise<RecordTypeDocument[]> {
-    try {
-      return await this.recordTypesService.getRecordTypes({ active: true });
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
-  }
-
   // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)
   async updateCompetitionEvents(newCompEvents: ICompetitionEvent[]): Promise<CompetitionUpdateResult> {
     const output = { events: [] } as CompetitionUpdateResult;
-    const activeRecordTypes = await this.getActiveRecordTypes();
+    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     const personIds: number[] = []; // used for calculating the number of participants
 
     // Save every round from every event
@@ -295,23 +272,11 @@ export class CompetitionsService {
     for (const rt of activeRecordTypes) {
       const newRecords = { best: -1, average: -1 };
 
-      // Get single record
-      const [singleResult] = await this.resultModel
-        .find({ eventId, regionalSingleRecord: rt.label, date: { $lt: beforeDate } })
-        .sort({ date: -1 })
-        .limit(1)
-        .exec();
+      const singleResults = await this.resultsService.getEventSingleRecordResults(eventId, rt.label, beforeDate);
+      if (singleResults.length > 0) newRecords.best = singleResults[0].best;
 
-      if (singleResult) newRecords.best = singleResult.best;
-
-      // Get average record
-      const [avgResult] = await this.resultModel
-        .find({ eventId, regionalAverageRecord: rt.label, date: { $lt: beforeDate } })
-        .sort({ date: -1 })
-        .limit(1)
-        .exec();
-
-      if (avgResult) newRecords.average = avgResult.average;
+      const avgResults = await this.resultsService.getEventAverageRecordResults(eventId, rt.label, beforeDate);
+      if (avgResults.length > 0) newRecords.average = avgResults[0].average;
 
       records[rt.wcaEquivalent] = newRecords;
     }

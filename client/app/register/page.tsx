@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
@@ -11,6 +11,10 @@ const Register = () => {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    document.getElementById('username').focus();
+  }, []);
 
   const handleSubmit = async () => {
     const tempErrors: string[] = [];

@@ -29,9 +29,11 @@ export class EventsService {
     }
   }
 
-  async getEvents(): Promise<EventDocument[]> {
+  async getEvents(eventIds?: string[]): Promise<EventDocument[]> {
+    const queryFilter = eventIds ? {eventId: {$in: eventIds}} : {};
+
     try {
-      return await this.model.find({}, excl).sort({ rank: 1 }).exec();
+      return await this.model.find(queryFilter, excl).sort({ rank: 1 }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

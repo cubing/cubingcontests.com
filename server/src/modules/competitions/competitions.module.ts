@@ -5,18 +5,22 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CompetitionSchema } from '~/src/models/competition.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { ResultSchema } from '~/src/models/result.model';
-import { EventSchema } from '~/src/models/event.model';
 import { PersonSchema } from '~/src/models/person.model';
 import { RecordTypesModule } from '@m/record-types/record-types.module';
+import { EventsModule } from '@m/events/events.module';
+import { ResultsModule } from '@m/results/results.module';
+import { PersonsModule } from '@m/persons/persons.module';
 
 @Module({
   imports: [
+    EventsModule,
+    ResultsModule,
     RecordTypesModule,
+    PersonsModule,
     MongooseModule.forFeature([
       { name: 'Competition', schema: CompetitionSchema },
       { name: 'Round', schema: RoundSchema },
       { name: 'Result', schema: ResultSchema },
-      { name: 'Event', schema: EventSchema },
       { name: 'Person', schema: PersonSchema },
     ]),
   ],

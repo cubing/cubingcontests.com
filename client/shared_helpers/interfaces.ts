@@ -2,5 +2,5 @@ export type { ICompetition, ICompetitionEvent, ICompetitionData, ICompetitionMod
 export type { IEvent } from './interfaces/Event';
 export type { IPerson } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
-export type { IResult } from './interfaces/Result';
+export type { IResult, IEventRecords } from './interfaces/Result';
 export type { IRound } from './interfaces/Round';

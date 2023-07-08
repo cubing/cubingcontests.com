@@ -21,7 +21,7 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
       <div className="mt-5 mb-3 px-2 fs-5">
         <p>Date:&#8194;{getFormattedDate(competition.startDate, competition.endDate)}</p>
         <p>
-          Location:&#8194;{competition.city}, <b>{getCountry(competition)}</b>
+          Location:&#8194;{competition.city}, <b>{getCountry(competition.countryId)}</b>
         </p>
         {competition.participants > 0 && (
           <p>

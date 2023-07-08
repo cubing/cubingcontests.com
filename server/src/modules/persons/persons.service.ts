@@ -21,6 +21,25 @@ export class PersonsService {
     }
   }
 
+  async getPersonsById(personIds?: number[] | string): Promise<PersonDocument[]> {
+    let queryFilter = {};
+
+    if (personIds) {
+      if (typeof personIds[0] === 'number') {
+        queryFilter = { personId: { $in: personIds } };
+      } else {
+        // @ts-ignore
+        queryFilter = { personId: { $in: personIds.split(';').map((el: string) => parseInt(el)) } };
+      }
+    }
+
+    try {
+      return await this.model.find(queryFilter, excl).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   async createPerson(createPersonDto: CreatePersonDto): Promise<number> {
     let newestPerson: PersonDocument[];
     let personId = 1;

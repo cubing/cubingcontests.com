@@ -8,8 +8,11 @@ export default function Home() {
         This is a place for hosting unofficial Rubik&apos;s cube competitions or meet-ups. All official WCA events are
         supported, and new ones can be created too, including team events. Records are also tracked for all events.
       </p>
-      <Link href="/competitions" className="fs-5">
+      <Link href="/competitions" className="d-block mb-3 fs-5">
         See all contests
+      </Link>
+      <Link href="/records" className="fs-5">
+        See current records
       </Link>
     </div>
   );

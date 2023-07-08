@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { CompetitionsService } from './competitions.service';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';

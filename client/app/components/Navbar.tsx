@@ -52,6 +52,11 @@ const NavbarItems = () => {
               Contests
             </Link>
           </li>
+          <li className="nav-item">
+            <Link className={'nav-link' + (pathname === '/records' ? ' active' : '')} href="/records">
+              Records
+            </Link>
+          </li>
         </ul>
         {/* <form className="d-flex mt-3 ms-0 mt-lg-0 ms-lg-4" role="search">
           <input

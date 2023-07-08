@@ -8,5 +8,6 @@ import { PersonSchema } from '~/src/models/person.model';
   imports: [MongooseModule.forFeature([{ name: 'Person', schema: PersonSchema }])],
   controllers: [PersonsController],
   providers: [PersonsService],
+  exports: [PersonsService],
 })
 export class PersonsModule {}

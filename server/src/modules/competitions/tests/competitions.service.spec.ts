@@ -1,23 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Model } from 'mongoose';
+// import { Model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 import { CompetitionsService } from '../competitions.service';
+import { EventsService } from '@m/events/events.service';
+import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
+import { PersonsService } from '@m/persons/persons.service';
 // import { CompetitionDocument } from '~/src/models/competition.model';
 // import { RoundDocument } from '~/src/models/round.model';
 // import { ResultDocument } from '~/src/models/result.model';
-// import { EventDocument } from '~/src/models/event.model';
-// import { PersonDocument } from '~/src/models/person.model';
 import { IResult } from '@sh/interfaces';
 import { UpdateCompetitionDto } from '../dto/update-competition.dto';
 
 // Mocks and stubs
-import { RecordTypesServiceMock } from '@m/record-types/tests/__mocks__/record-types.service';
-import { mockCompetitionModel } from './__mocks__/competition.model';
-import { mockRoundModel } from './__mocks__/round.model';
-import { mockResultModel } from './__mocks__/result.model';
-import { mockEventModel } from '@m/events/tests/__mocks__/event.model';
-import { mockPersonModel } from '@m/persons/tests/__mocks__/person.model';
+import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
+import { ResultsServiceMock } from '@m/results/tests/mocks/results.service';
+import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
+import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
+import { mockCompetitionModel } from './mocks/competition.model';
+import { mockRoundModel } from './mocks/round.model';
+import { mockResultModel } from '@m/results/tests/mocks/result.model';
 import { activeRecordTypesStub } from '@m/record-types/tests/stubs/record-types.stub';
 import { newCompetitionEventsStub, newFakeCompetitionEventsStub } from './stubs/new-competition-events.stub';
 
@@ -26,16 +28,26 @@ describe('CompetitionsService', () => {
   // let competitionModel: Model<CompetitionDocument>;
   // let roundModel: Model<RoundDocument>;
   // let resultModel: Model<ResultDocument>;
-  // let eventModel: Model<EventDocument>;
-  // let personModel: Model<PersonDocument>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CompetitionsService,
         {
+          provide: EventsService,
+          useValue: EventsServiceMock,
+        },
+        {
+          provide: ResultsService,
+          useValue: ResultsServiceMock,
+        },
+        {
           provide: RecordTypesService,
           useValue: RecordTypesServiceMock,
+        },
+        {
+          provide: PersonsService,
+          useValue: PersonsServiceMock,
         },
         {
           provide: getModelToken('Competition'),
@@ -49,14 +61,6 @@ describe('CompetitionsService', () => {
           provide: getModelToken('Result'),
           useFactory: mockResultModel,
         },
-        {
-          provide: getModelToken('Event'),
-          useFactory: mockEventModel,
-        },
-        {
-          provide: getModelToken('Person'),
-          useFactory: mockPersonModel,
-        },
       ],
     }).compile();
 
@@ -64,8 +68,6 @@ describe('CompetitionsService', () => {
     // competitionModel = module.get<Model<CompetitionDocument>>(getModelToken('Competition'));
     // roundModel = module.get<Model<RoundDocument>>(getModelToken('Round'));
     // resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
-    // eventModel = module.get<Model<EventDocument>>(getModelToken('Event'));
-    // personModel = module.get<Model<PersonDocument>>(getModelToken('Person'));
   });
 
   it('should be defined', () => {

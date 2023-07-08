@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from '@c/form/FormTextInput';
 import Link from 'next/link';
@@ -10,6 +10,10 @@ const Login = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    document.getElementById('username').focus();
+  }, []);
 
   const handleSubmit = async () => {
     const tempErrors: string[] = [];

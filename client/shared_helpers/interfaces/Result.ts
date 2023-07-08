@@ -1,3 +1,6 @@
+import { IEvent } from './Event';
+import { IPerson } from './Person';
+
 export interface IResult {
   competitionId: string;
   eventId: string;
@@ -12,4 +15,16 @@ export interface IResult {
   average: number; // for FMC it's 100 times the mean (to avoid decimals)
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
+}
+
+export interface IEventRecords {
+  event: IEvent;
+  bestRecords: {
+    result: IResult;
+    persons: IPerson[];
+  }[];
+  averageRecords: {
+    result: IResult;
+    persons: IPerson[];
+  }[];
 }

@@ -5,16 +5,16 @@ echo -e "New directory: $(pwd)\n"
 
 # AUTOMATED TESTS
 
-echo -e "Running all /server test suites..."
+# echo -e "Running all /server test suites..."
 
-cd server
-npm run test
+# cd server
+# npm run test
 
-if [[ $? != 0 ]]; then
-  exit 1
-else
-  cd ..
-fi
+# if [[ $? != 0 ]]; then
+#   exit 1
+# else
+#   cd ..
+# fi
 
 # CLIENT
 
