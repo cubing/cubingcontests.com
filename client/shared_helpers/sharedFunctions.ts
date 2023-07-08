@@ -23,7 +23,7 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
   return a.average - b.average;
 };
 
-// Sets new records in-place in the rounds array
+// Sets new records in-place in the rounds array and returns that array
 export const setNewRecords = (
   rounds: IRound[],
   record: { best: number; average: number },
@@ -31,8 +31,8 @@ export const setNewRecords = (
   updateRecords = false, // whether or not to update the record object with new records
 ): IRound[] => {
   // Initialize arrays with dummy results
-  let bestSingleResults = [{ best: -1, average: -1 }] as IResult[];
-  let bestAvgResults = [{ best: -1, average: -1 }] as IResult[];
+  let bestSingleResults = [{ best: -1 }] as IResult[];
+  let bestAvgResults = [{ average: -1 }] as IResult[];
 
   for (const round of rounds) {
     for (const result of round.results) {
@@ -62,16 +62,21 @@ export const setNewRecords = (
     }
   }
 
-  bestSingleResults.forEach((res) => {
-    console.log(`New ${res.eventId} single ${recordLabel} set: ${res.best}`);
-    res.regionalSingleRecord = recordLabel;
-    if (updateRecords) record.best = res.best;
-  });
-  bestAvgResults.forEach((res) => {
-    console.log(`New ${res.eventId} average ${recordLabel} set: ${res.average}`);
-    res.regionalAverageRecord = recordLabel;
-    if (updateRecords) record.average = res.average;
-  });
+  if (bestSingleResults[0].best > 0) {
+    bestSingleResults.forEach((res) => {
+      console.log(`New ${res.eventId} single ${recordLabel} set: ${res.best}`);
+      res.regionalSingleRecord = recordLabel;
+      if (updateRecords) record.best = res.best;
+    });
+  }
+
+  if (bestAvgResults[0].average > 0) {
+    bestAvgResults.forEach((res) => {
+      console.log(`New ${res.eventId} average ${recordLabel} set: ${res.average}`);
+      res.regionalAverageRecord = recordLabel;
+      if (updateRecords) record.average = res.average;
+    });
+  }
 
   return rounds;
 };
