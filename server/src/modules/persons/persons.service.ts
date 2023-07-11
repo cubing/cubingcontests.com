@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
@@ -40,6 +40,16 @@ export class PersonsService {
   }
 
   async createPerson(createPersonDto: CreatePersonDto): Promise<number> {
+    // First check that a person with the same name does not already exist
+    let personWithSameName: PersonDocument;
+    try {
+      personWithSameName = await this.model.findOne({ name: createPersonDto.name }).exec();
+    } catch (err: any) {
+      throw new InternalServerErrorException(`Error while searching for person with the same name: ${err.message}`);
+    }
+
+    if (personWithSameName) throw new BadRequestException(`Person with name ${createPersonDto.name} already exists`);
+
     let newestPerson: PersonDocument[];
     let personId = 1;
 
@@ -55,11 +65,12 @@ export class PersonsService {
     }
 
     try {
-      const newPerson = new this.model({ personId, ...createPersonDto });
-      await newPerson.save();
+      this.model.create({ personId, ...createPersonDto });
       return personId;
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new InternalServerErrorException(
+        `Error while creating new person with name ${createPersonDto.name}: ${err.message}`,
+      );
     }
   }
 }

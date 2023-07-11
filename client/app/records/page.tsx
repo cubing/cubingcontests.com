@@ -31,13 +31,23 @@ const Records = async () => {
             <div className="flex-grow-1 table-responsive">
               <table className="table table-hover table-responsive text-nowrap">
                 <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Name</th>
-                    <th>Result</th>
-                    <th>{eventRecord.event.format === EventFormat.TeamTime ? 'Citizens of' : 'Citizen of'}</th>
-                    <th>Solves</th>
-                  </tr>
+                  {eventRecord.event.format !== EventFormat.TeamTime ? (
+                    <tr>
+                      <th>Type</th>
+                      <th>Name</th>
+                      <th>Result</th>
+                      <th>Citizen of</th>
+                      <th>Solves</th>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <th>Type</th>
+                      <th>Names</th>
+                      <th>Result</th>
+                      <th>Citizens of</th>
+                      <th>Solves</th>
+                    </tr>
+                  )}
                 </thead>
                 <tbody>
                   {eventRecord.bestRecords.map((bestRecord) => (
