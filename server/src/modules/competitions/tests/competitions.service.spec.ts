@@ -35,11 +35,11 @@ describe('CompetitionsService', () => {
         CompetitionsService,
         {
           provide: EventsService,
-          useValue: EventsServiceMock,
+          useFactory: EventsServiceMock,
         },
         {
           provide: ResultsService,
-          useValue: ResultsServiceMock,
+          useFactory: ResultsServiceMock,
         },
         {
           provide: RecordTypesService,
@@ -47,7 +47,7 @@ describe('CompetitionsService', () => {
         },
         {
           provide: PersonsService,
-          useValue: PersonsServiceMock,
+          useFactory: PersonsServiceMock,
         },
         {
           provide: getModelToken('Competition'),

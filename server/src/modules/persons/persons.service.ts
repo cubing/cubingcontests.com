@@ -25,10 +25,9 @@ export class PersonsService {
     let queryFilter = {};
 
     if (personIds) {
-      if (typeof personIds[0] === 'number') {
+      if (typeof personIds !== 'string') {
         queryFilter = { personId: { $in: personIds } };
       } else {
-        // @ts-ignore
         queryFilter = { personId: { $in: personIds.split(';').map((el: string) => parseInt(el)) } };
       }
     }

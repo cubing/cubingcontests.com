@@ -291,7 +291,7 @@ export class CompetitionsService {
 
     for (const rt of activeRecordTypes) {
       // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
+      if (rt.active && rt.wcaEquivalent === WcaRecordType.WR) {
         sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.label, true);
 
         // Create new results and rounds

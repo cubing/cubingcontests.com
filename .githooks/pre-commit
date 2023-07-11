@@ -1,20 +1,25 @@
 #!/bin/bash
 
+verify_exit() {
+  EXIT_CODE=$?
+  if [[ "$EXIT_CODE" == 0 ]]; then
+    cd ..
+  else
+    printf "\n\033[41mCOMMIT FAILED\033[0m\n"
+    exit $EXIT_CODE
+  fi
+}
+
 cd "$(git rev-parse --show-toplevel)"
 echo -e "New directory: $(pwd)\n"
 
 # AUTOMATED TESTS
 
-# echo -e "Running all /server test suites..."
+echo -e "Running all /server test suites..."
 
-# cd server
-# npm run test
-
-# if [[ $? != 0 ]]; then
-#   exit 1
-# else
-#   cd ..
-# fi
+cd server
+npx jest
+verify_exit
 
 # CLIENT
 
@@ -27,7 +32,8 @@ if [[ "$STAGED_FILES" != "" ]]; then
 
   if [[ ! -x "$ESLINT" ]]; then
     printf "\033[41mPlease install ESlint in /client\033[0m\n"
-    exit 1
+    (exit 1) # set exit code
+    verify_exit
   else
     ESLINT="node_modules/.bin/eslint"
     echo -e "Linting these files in the client directory:\n"
@@ -37,19 +43,15 @@ if [[ "$STAGED_FILES" != "" ]]; then
     done
 
     $ESLINT --fix "${STAGED_FILES[@]}"
+    verify_exit
 
     # Re-add files since they may have been changed
     git add "${STAGED_FILES[@]}"
-
-    if [[ $? != 0 ]]; then
-      exit 1
-    else
-      cd ..
-    fi
   fi
 fi
 
 # SERVER
+
 STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM . | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
 
 if [[ "$STAGED_FILES" != "" ]]; then
@@ -59,7 +61,8 @@ if [[ "$STAGED_FILES" != "" ]]; then
 
   if [[ ! -x "$ESLINT" ]]; then
     printf "\033[41mPlease install ESlint in /server\033[0m\n"
-    exit 1
+    (exit 1) # set exit code
+    verify_exit
   else
     ESLINT="node_modules/.bin/eslint"
     echo -e "Linting these files in the server directory:\n"
@@ -69,20 +72,11 @@ if [[ "$STAGED_FILES" != "" ]]; then
     done
 
     $ESLINT --fix "${STAGED_FILES[@]}"
+    verify_exit
 
     # Re-add files since they may have been changed
     git add "${STAGED_FILES[@]}"
-
-    if [[ $? != 0 ]]; then
-      exit 1
-    fi
   fi
 fi
 
-if [[ $? == 0 ]]; then
-  printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
-else
-  printf "\n\033[41mCOMMIT FAILED\033[0m\n"
-fi
-
-exit $?
+printf "\n\033[42mCOMMIT SUCCEEDED\033[0m\n"
