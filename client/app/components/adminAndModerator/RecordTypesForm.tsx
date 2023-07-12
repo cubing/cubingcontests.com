@@ -15,11 +15,11 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   );
 
   const handleSubmit = async () => {
-    console.log(tRecordTypes);
-    const data = await myFetch.post('/record-types', tRecordTypes);
+    console.log('New record types:', tRecordTypes);
+    const { errors } = await myFetch.post('/record-types', tRecordTypes);
 
-    if (data?.errors) {
-      setErrorMessages(data.errors);
+    if (errors) {
+      setErrorMessages(errors);
     } else {
       window.location.href = '/admin';
     }

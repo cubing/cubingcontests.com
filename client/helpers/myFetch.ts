@@ -2,7 +2,9 @@ import { API_BASE_URL } from './configuration';
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
-// This must only be called with authorize = true on the client side
+// This must only be called with authorize = true on the client side.
+// Returns { payload } if request was successful and a payload was received,
+// { errors } if there were errors, or {}.
 const doFetch = async (
   url: string,
   method: HttpMethod,
@@ -26,11 +28,12 @@ const doFetch = async (
       options.headers.Authorization = jwtToken;
     } else {
       window.location.href = '/login';
-      return null;
+      return {};
     }
   }
 
-  let res, json;
+  // Fetch
+  let res;
 
   try {
     res = await fetch(API_BASE_URL + url, options);
@@ -40,6 +43,8 @@ const doFetch = async (
   }
 
   // Get JSON if it was returned
+  let json;
+
   if (res.headers.get('content-type')?.includes('application/json')) {
     try {
       json = await res.json();
@@ -51,11 +56,11 @@ const doFetch = async (
 
   // Handle bad requests/server errors
   if (res.status >= 400) {
-    // If unauthorized, go to login page and delete jwt token from localstorage
+    // If unauthorized, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
       localStorage.removeItem('jwtToken');
       window.location.href = '/login';
-      return null;
+      return {};
     } else {
       let errors: string[];
 
@@ -72,10 +77,11 @@ const doFetch = async (
       return { errors };
     }
   } else if (json) {
-    return json;
+    return { payload: json };
   }
 
-  return null;
+  // If no JSON payload or error was returned, just get the response text
+  return { payload: await res.text() };
 };
 
 const myFetch = {

@@ -82,10 +82,10 @@ const PostResultsScreen = ({
     setSuccessMessage('');
 
     const data = { events: competitionEvents };
-    const response = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, data);
+    const { errors } = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, data);
 
-    if (response?.errors) {
-      setErrorMessages(response.errors);
+    if (errors) {
+      setErrorMessages(errors);
     } else {
       setSuccessMessage('Results successfully submitted');
     }
@@ -279,20 +279,20 @@ const PostResultsScreen = ({
 
   const selectCompetitor = async (e: any, index: number) => {
     if (e.key === 'Enter') {
-      const data = await myFetch.get(`/persons?searchParam=${personNames[index]}`);
+      const { payload, errors } = await myFetch.get(`/persons?searchParam=${personNames[index]}`);
 
-      if (data.errors) {
-        setErrorMessages(data.errors);
-      } else if (data.length === 0) {
+      if (errors) {
+        setErrorMessages(errors);
+      } else if (payload.length === 0) {
         setErrorMessages(['Person not found']);
       } else {
-        const newPersonNames = [...personNames.slice(0, -1), data[0].name];
+        const newPersonNames = [...personNames.slice(0, -1), payload[0].name];
 
-        if (data.length === 1) {
+        if (payload.length === 1) {
           // If the competitor has already been selected or their results have already been entered, show error
           if (
-            currentPersons.find((el) => el.personId === data[0].personId) ||
-            round.results.find((res: IResult) => res.personId.split(';').includes(data[0].personId.toString()))
+            currentPersons.find((el) => el.personId === payload[0].personId) ||
+            round.results.find((res: IResult) => res.personId.split(';').includes(payload[0].personId.toString()))
           ) {
             setPersonNames(['']);
             setCurrentPersons([]);
@@ -300,10 +300,10 @@ const PostResultsScreen = ({
           } else {
             if (compData.events.find((el) => el.eventId === round.eventId)?.format === EventFormat.TeamTime) {
               newPersonNames.push('');
-              setCurrentPersons((prev) => [...prev, data[0]]);
+              setCurrentPersons((prev) => [...prev, payload[0]]);
             } else {
               document.getElementById('solve_1')?.focus();
-              setCurrentPersons(data);
+              setCurrentPersons(payload);
             }
             setErrorMessages([]);
           }
@@ -382,10 +382,10 @@ const PostResultsScreen = ({
     <>
       {errorMessages.length > 0
         ? errorMessages.map((message, index) => (
-          <div key={index} className="mb-3 alert alert-danger fs-5" role="alert">
-            {message}
-          </div>
-        ))
+            <div key={index} className="mb-3 alert alert-danger fs-5" role="alert">
+              {message}
+            </div>
+          ))
         : successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>}
       <div className="row my-4">
         <div className="col-3 pe-4">

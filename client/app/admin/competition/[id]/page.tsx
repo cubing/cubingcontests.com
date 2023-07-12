@@ -2,13 +2,16 @@
 
 import myFetch from '~/helpers/myFetch';
 import PostResultsScreen from '@c/adminAndModerator/PostResultsScreen';
-import { ICompetitionModData, IRecordType } from '@sh/interfaces';
 
 const PostCompetitionResults = async ({ params }: { params: { id: string } }) => {
-  const competitionData: ICompetitionModData = await myFetch.get(`/competitions/mod/${params.id}`, { authorize: true });
-  const activeRecordTypes: IRecordType[] = await myFetch.get('/record-types?active=true', { authorize: true });
+  const { payload: competitionData } = await myFetch.get(`/competitions/mod/${params.id}`, { authorize: true });
+  const { payload: activeRecordTypes } = await myFetch.get('/record-types?active=true', { authorize: true });
 
-  return <PostResultsScreen compData={competitionData} activeRecordTypes={activeRecordTypes} />;
+  if (competitionData && activeRecordTypes) {
+    return <PostResultsScreen compData={competitionData} activeRecordTypes={activeRecordTypes} />;
+  } else {
+    return <p className="text-center fs-5">Error while fetching data</p>;
+  }
 };
 
 export default PostCompetitionResults;

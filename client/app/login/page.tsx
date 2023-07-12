@@ -22,14 +22,14 @@ const Login = () => {
     if (!password) tempErrors.push('Please enter a password');
 
     if (username && password) {
-      const data = await myFetch.post('/auth/login', { username, password }, { authorize: false });
+      const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
 
-      if (data?.errors) {
-        tempErrors.push(...data.errors);
-      } else if (!data?.access_token) {
+      if (errors) {
+        tempErrors.push(...errors);
+      } else if (!payload.accessToken) {
         tempErrors.push('Access token not received');
       } else {
-        localStorage.setItem('jwtToken', `Bearer ${data.access_token}`);
+        localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
         window.location.href = '/';
       }
     }

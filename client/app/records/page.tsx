@@ -5,7 +5,7 @@ import { EventFormat } from '@sh/enums';
 
 const Records = async () => {
   // Revalidate every 12 hours
-  const eventRecords = await myFetch.get('/results/records/WR', { revalidate: 43200 });
+  const { payload: eventRecords } = await myFetch.get('/results/records/WR', { revalidate: 43200 });
 
   const getCompetitorCountries = (persons: IPerson[]): string => {
     const countries: string[] = [];
@@ -22,7 +22,7 @@ const Records = async () => {
   return (
     <>
       <h2 className="mb-4 text-center">Records</h2>
-      {!eventRecords?.errors &&
+      {eventRecords &&
         eventRecords.map((eventRecord: IEventRecords) => (
           <div key={eventRecord.event.eventId} className="mb-3">
             <h3 className="mx-2">{eventRecord.event.name}</h3>
@@ -40,7 +40,8 @@ const Records = async () => {
                 </thead>
                 <tbody>
                   {eventRecord.bestRecords.map((bestRecord) => (
-                    <tr key={bestRecord.result.personId}>
+                    // CHANGE THIS KEY
+                    <tr key={`${bestRecord.result.personId}_${bestRecord.result.date.toString()}`}>
                       <td>Single</td>
                       <td>{bestRecord.persons.map((el) => el.name).join(' & ')}</td>
                       <td>{formatTime(eventRecord.event, bestRecord.result.best)}</td>
@@ -50,7 +51,8 @@ const Records = async () => {
                     </tr>
                   ))}
                   {eventRecord.averageRecords.map((avgRecord) => (
-                    <tr key={avgRecord.result.personId}>
+                    // CHANGE THIS KEY
+                    <tr key={`${avgRecord.result.personId}_${avgRecord.result.date.toString()}`}>
                       <td>Average</td>
                       <td>{avgRecord.persons.map((el) => el.name).join(' & ')}</td>
                       <td>{formatTime(eventRecord.event, avgRecord.result.average, true)}</td>

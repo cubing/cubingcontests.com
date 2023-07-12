@@ -14,9 +14,7 @@ export class UsersController {
 
   @Get('total')
   async getUsersTotal() {
-    console.log('Getting users total');
-    return {
-      total: await this.usersService.getUsersTotal(),
-    };
+    console.log('Getting the total number of users in the DB');
+    return await this.usersService.getUsersTotal();
   }
 }

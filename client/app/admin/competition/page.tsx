@@ -1,14 +1,13 @@
 import myFetch from '~/helpers/myFetch';
 import CompetitionForm from '@c/adminAndModerator/CompetitionForm';
-import { IEvent } from '@sh/interfaces';
 
 const AdminCompetition = async () => {
-  const events: IEvent[] = await myFetch.get('/events');
+  const { payload: events } = await myFetch.get('/events');
 
   return (
     <>
       <h2 className="mb-4 text-center">Create New Competition</h2>
-      <CompetitionForm events={events} />
+      {events ? <CompetitionForm events={events} /> : <p className="text-center fs-5">Error while fetching events</p>}
     </>
   );
 };

@@ -17,6 +17,13 @@ export class PersonsController {
     return await this.personsService.getPersons(searchParam);
   }
 
+  // GET /persons/total
+  @Get('total')
+  async getPersonsTotal() {
+    console.log('Getting the total number of persons in the DB');
+    return await this.personsService.getPersonsTotal();
+  }
+
   // POST /persons
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)

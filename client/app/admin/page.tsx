@@ -3,12 +3,11 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import CompetitionsTable from '@c/CompetitionsTable';
-import { ICompetition } from '@sh/interfaces';
 
 const AdminHome = async () => {
-  const competitions: ICompetition[] = await myFetch.get('/competitions');
-  const persons: number = (await myFetch.get('/persons'))?.length;
-  const users: number = (await myFetch.get('/users/total', { authorize: true }))?.total;
+  const { payload: competitions } = await myFetch.get('/competitions');
+  const { payload: personsTotal } = await myFetch.get('/persons/total');
+  const { payload: usersTotal } = await myFetch.get('/users/total', { authorize: true });
 
   const logOut = () => {
     localStorage.removeItem('jwtToken');
@@ -27,10 +26,10 @@ const AdminHome = async () => {
         <Link href="/admin/record-types">Configure record types</Link>
         <div>
           <p>
-            Competitors in DB: <b>{persons || '?'}</b>
+            Competitors in DB: <b>{personsTotal || '?'}</b>
           </p>
           <p>
-            Users in DB: <b>{users || '?'}</b>
+            Users in DB: <b>{usersTotal || '?'}</b>
           </p>
           <p>
             Number of competitions: <b>{competitions.length}</b>

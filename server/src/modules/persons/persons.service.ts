@@ -39,6 +39,14 @@ export class PersonsService {
     }
   }
 
+  async getPersonsTotal(): Promise<number> {
+    try {
+      return await this.model.find().count().exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   async createPerson(createPersonDto: CreatePersonDto): Promise<number> {
     // First check that a person with the same name does not already exist
     let personWithSameName: PersonDocument;

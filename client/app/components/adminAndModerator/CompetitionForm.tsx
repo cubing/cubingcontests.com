@@ -37,10 +37,10 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
       mainEventId,
     };
 
-    const data = await myFetch.post('/competitions', competition);
+    const { errors } = await myFetch.post('/competitions', competition);
 
-    if (data?.errors) {
-      setErrorMessages(data.errors);
+    if (errors) {
+      setErrorMessages(errors);
     } else {
       window.location.href = '/admin';
     }

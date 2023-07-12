@@ -1,12 +1,10 @@
 'use client';
 
 import myFetch from '~/helpers/myFetch';
-import { IRecordType } from '@sh/interfaces';
 import RecordTypesForm from '@c/adminAndModerator/RecordTypesForm';
 
 const RecordTypes = async () => {
-  const recordTypes: IRecordType[] = await myFetch.get('/record-types', { authorize: true });
-  console.log('Response after fetching record types:', recordTypes);
+  const { payload: recordTypes } = await myFetch.get('/record-types', { authorize: true });
 
   return (
     <>
@@ -14,7 +12,7 @@ const RecordTypes = async () => {
       {recordTypes.length > 0 || (
         <p className="mt-3 text-center fs-5">AFTER THE RECORD LABELS HAVE BEEN SET, THEY CAN NEVER BE RESET!</p>
       )}
-      <RecordTypesForm recordTypes={recordTypes} />
+      {recordTypes && <RecordTypesForm recordTypes={recordTypes} />}
     </>
   );
 };

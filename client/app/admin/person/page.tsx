@@ -17,10 +17,10 @@ const AdminPerson = () => {
       countryId,
     };
 
-    const response = await myFetch.post('/persons', person);
+    const { errors } = await myFetch.post('/persons', person);
 
-    if (response?.errors) {
-      setErrorMessages(response.errors);
+    if (errors) {
+      setErrorMessages(errors);
     } else {
       setErrorMessages([]);
       setName('');

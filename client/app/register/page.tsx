@@ -24,10 +24,10 @@ const Register = () => {
     if (!password) tempErrors.push('Please enter a password');
 
     if (name && username && password) {
-      const data = await myFetch.post('/auth/register', { name, username, password }, { authorize: false });
+      const { errors } = await myFetch.post('/auth/register', { name, username, password }, { authorize: false });
 
-      if (data?.errors) {
-        tempErrors.push(...data.errors);
+      if (errors) {
+        tempErrors.push(...errors);
       } else {
         window.location.href = '/login';
       }
