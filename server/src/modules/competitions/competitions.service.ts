@@ -154,7 +154,6 @@ export class CompetitionsService {
       }
 
       try {
-        // throw new Error('test error');
         const updatedCompetition: CompetitionUpdateResult = await this.updateCompetitionEvents(
           updateCompetitionDto.events,
         );
@@ -175,7 +174,9 @@ export class CompetitionsService {
     }
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////
   // HELPERS
+  /////////////////////////////////////////////////////////////////////////////////////
 
   // Finds the competition with the given competition id with the rounds and results populated
   private async getFullCompetition(competitionId: string): Promise<CompetitionDocument> {
@@ -231,9 +232,9 @@ export class CompetitionsService {
       let sameDayRounds: IRound[] = [];
       // These are set to null if there are no active record types
       const records: any = await this.getEventRecords(event.eventId, activeRecordTypes);
-      const sortedRounds = event.rounds.sort((a: any, b: any) => a.date - b.date);
+      event.rounds.sort((a: IRound, b: IRound) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      for (const round of sortedRounds) {
+      for (const round of event.rounds) {
         if (activeRecordTypes.length > 0) {
           // Set the records from the last day, when the day changes
           if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {

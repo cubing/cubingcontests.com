@@ -75,7 +75,16 @@ export class ResultsService {
     const queryFilter: any = { eventId, regionalSingleRecord: recordLabel };
     if (beforeDate) queryFilter.date = { $lt: beforeDate };
 
-    const results = await this.model.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
+    // Get most recent result with a single record
+    const [bestSingleResult] = await this.model.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
+
+    // If there haven't been any single records set for this event, return empty array
+    if (!bestSingleResult) return [];
+
+    queryFilter.best = bestSingleResult.best;
+
+    // Get all of the most recent single record results that tie the same single
+    const results = await this.model.find(queryFilter, excl).sort({ date: -1 }).exec();
 
     return results;
   }
@@ -88,7 +97,16 @@ export class ResultsService {
     const queryFilter: any = { eventId, regionalAverageRecord: recordLabel };
     if (beforeDate) queryFilter.date = { $lt: beforeDate };
 
-    const results = await this.model.find(queryFilter).sort({ date: -1 }).limit(1).exec();
+    // Get most recent result with an average record
+    const [bestAvgResult] = await this.model.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
+
+    // If there haven't been any average records set for this event, return empty array
+    if (!bestAvgResult) return [];
+
+    queryFilter.average = bestAvgResult.average;
+
+    // Get all of the most recent average record results that tie the same average
+    const results = await this.model.find(queryFilter).sort({ date: -1 }).exec();
 
     return results;
   }

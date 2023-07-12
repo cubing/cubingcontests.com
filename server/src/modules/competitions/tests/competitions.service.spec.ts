@@ -1,16 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-// import { Model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 import { CompetitionsService } from '../competitions.service';
 import { EventsService } from '@m/events/events.service';
 import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-// import { CompetitionDocument } from '~/src/models/competition.model';
-// import { RoundDocument } from '~/src/models/round.model';
-// import { ResultDocument } from '~/src/models/result.model';
-import { IResult } from '@sh/interfaces';
+import { IResult, IRound } from '@sh/interfaces';
 import { UpdateCompetitionDto } from '../dto/update-competition.dto';
+import { setNewRecords } from '@sh/sharedFunctions';
+import { RoundFormat, RoundType } from '@sh/enums';
 
 // Mocks and stubs
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
@@ -221,6 +219,186 @@ describe('CompetitionsService', () => {
       // Third day had no records, even though the results are better than the pre-comp records
       expect(output.events[0].rounds[2].results[0].regionalSingleRecord).toBeUndefined();
       expect(output.events[0].rounds[2].results[0].regionalAverageRecord).toBeUndefined();
+    });
+  });
+
+  describe('setNewRecords works correctly', () => {
+    it('sets new 3x3x3 BLD records from multiple same-day rounds correctly', () => {
+      const sameDayRounds: IRound[] = [
+        {
+          competitionId: 'BLDTestComp2023',
+          eventId: '333bf',
+          date: new Date('2023-07-01T06:53:10Z'),
+          roundTypeId: RoundType.First,
+          format: RoundFormat.BestOf3,
+          results: [
+            {
+              competitionId: 'BLDTestComp2023',
+              eventId: '333bf',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '9',
+              ranking: 1,
+              attempts: [2202, 2960, 3037],
+              best: 2202, // better than previous XWR, but not the best result of the day
+              average: 2733, // better than previous XWR, but not the best result of the day
+              regionalAverageRecord: 'XWR',
+            },
+            {
+              competitionId: 'BLDTestComp2023',
+              eventId: '333bf',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '8',
+              ranking: 2,
+              attempts: [2371, 2409, 2769],
+              best: 2371,
+              average: 2516, // better than previous XWR, but not the best result of the day
+            },
+            {
+              competitionId: 'BLDTestComp2023',
+              eventId: '333bf',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '7',
+              ranking: 3,
+              attempts: [-1, 4006, -1],
+              best: 4006,
+              average: -1,
+            },
+          ],
+        },
+        {
+          competitionId: 'BLDTestComp2023',
+          eventId: '333bf',
+          date: new Date('2023-07-01T06:53:10Z'),
+          roundTypeId: RoundType.Final,
+          format: RoundFormat.BestOf3,
+          results: [
+            {
+              competitionId: 'BLDTestComp2023',
+              eventId: '333bf',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '8',
+              ranking: 1,
+              attempts: [2098, 2372, 2534],
+              best: 2098, // new single XWR
+              average: 2335, // new mean XWR
+              regionalAverageRecord: 'XWR',
+            },
+            {
+              competitionId: 'BLDTestComp2023',
+              eventId: '333bf',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '9',
+              ranking: 2,
+              attempts: [3609, -1, 2940],
+              best: 2940,
+              average: -1,
+            },
+          ],
+        },
+      ];
+
+      const records = { best: 2217, average: 2795 };
+      const rounds = setNewRecords(sameDayRounds, records, 'XWR', true); // DO update records
+
+      // Expect records object to be updated
+      expect(records.best).toBe(2098);
+      expect(records.average).toBe(2335);
+
+      // Expect new records to be set, but only for the best results of the day
+      expect(rounds[0].results.find((el) => el.regionalSingleRecord || el.regionalAverageRecord)).toBeUndefined();
+      expect(rounds[1].results[0].regionalSingleRecord).toBe('XWR');
+      expect(rounds[1].results[0].regionalAverageRecord).toBe('XWR');
+      expect(rounds[1].results[1].regionalSingleRecord).toBeUndefined();
+      expect(rounds[1].results[1].regionalAverageRecord).toBeUndefined();
+    });
+
+    it('sets new 3x3x3 FM records from multiple same-day rounds with ties correctly', () => {
+      const sameDayRounds: IRound[] = [
+        {
+          competitionId: 'FMTestComp2023',
+          eventId: '333fm',
+          date: new Date('2023-07-01T06:53:10Z'),
+          roundTypeId: RoundType.First,
+          format: RoundFormat.Mean,
+          results: [
+            {
+              competitionId: 'FMTestComp2023',
+              eventId: '333fm',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '9',
+              ranking: 1,
+              attempts: [44, 39, 46],
+              best: 39, // XWR tied with the record and with another single in the finals
+              average: 4300, // new XWR, but tied with another mean in the finals
+              regionalAverageRecord: 'XWR',
+            },
+            {
+              competitionId: 'FMTestComp2023',
+              eventId: '333fm',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '8',
+              ranking: 2,
+              attempts: [46, 47, 48],
+              best: 47,
+              average: 4700,
+            },
+            {
+              competitionId: 'FMTestComp2023',
+              eventId: '333fm',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '7',
+              ranking: 3,
+              attempts: [44, -1, -2],
+              best: 44,
+              average: -1,
+            },
+          ],
+        },
+        {
+          competitionId: 'FMTestComp2023',
+          eventId: '333fm',
+          date: new Date('2023-07-01T06:53:10Z'),
+          roundTypeId: RoundType.Final,
+          format: RoundFormat.Mean,
+          results: [
+            {
+              competitionId: 'FMTestComp2023',
+              eventId: '333fm',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '8',
+              ranking: 1,
+              attempts: [41, 43, 45],
+              best: 41,
+              average: 4300, // new XWR, but tied with another mean in the first round
+              regionalAverageRecord: 'XWR',
+            },
+            {
+              competitionId: 'FMTestComp2023',
+              eventId: '333fm',
+              date: new Date('2023-07-01T06:53:10Z'),
+              personId: '9',
+              ranking: 2,
+              attempts: [39, -1, -2],
+              best: 39, // XWR tied with the record and with another single in the first round
+              average: -1,
+            },
+          ],
+        },
+      ];
+
+      const records = { best: 39, average: 4600 };
+      const rounds = setNewRecords(sameDayRounds, records, 'XWR', true); // DO update records
+
+      // Expect records object to be updated
+      expect(records.best).toBe(39);
+      expect(records.average).toBe(4300);
+
+      expect(rounds[0].results[0].regionalAverageRecord).toBe('XWR');
+      expect(rounds[0].results[0].regionalSingleRecord).toBe('XWR');
+      expect(rounds[1].results[0].regionalSingleRecord).toBeUndefined();
+      expect(rounds[1].results[0].regionalAverageRecord).toBe('XWR');
+      expect(rounds[1].results[1].regionalSingleRecord).toBe('XWR');
+      expect(rounds[1].results[1].regionalAverageRecord).toBeUndefined();
     });
   });
 });

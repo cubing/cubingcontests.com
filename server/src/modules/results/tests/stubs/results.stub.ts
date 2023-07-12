@@ -3,6 +3,19 @@ import { ResultDocument } from '~/src/models/result.model';
 
 export const resultsStub = (): ResultDocument[] => {
   return [
+    // Fake result
+    {
+      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c44'),
+      competitionId: 'FMTestComp2023',
+      eventId: '333fm',
+      date: new Date('2023-07-01T06:49:04Z'),
+      personId: '100',
+      ranking: 1,
+      attempts: [39, 48, 57],
+      best: 39,
+      average: 48,
+    },
+    // Real results
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c44'),
       competitionId: 'Munich19022023',

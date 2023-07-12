@@ -25,8 +25,8 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
 
 // Sets new records in-place in the rounds array and returns that array
 export const setNewRecords = (
-  rounds: IRound[],
-  record: { best: number; average: number },
+  sameDayRounds: IRound[],
+  records: { best: number; average: number },
   recordLabel: string,
   updateRecords = false, // whether or not to update the record object with new records
 ): IRound[] => {
@@ -34,14 +34,16 @@ export const setNewRecords = (
   let bestSingleResults = [{ best: -1 }] as IResult[];
   let bestAvgResults = [{ average: -1 }] as IResult[];
 
-  for (const round of rounds) {
+  for (const round of sameDayRounds) {
     for (const result of round.results) {
       // Reset the records for now
       delete result.regionalSingleRecord;
       delete result.regionalAverageRecord;
 
       const comparisonToBestSingle = compareSingles(result, bestSingleResults[0]);
-      if (comparisonToBestSingle <= 0 && compareSingles(result, record as IResult) <= 0) {
+      const comparisonToRecordSingle = compareSingles(result, records as IResult);
+
+      if (comparisonToBestSingle <= 0 && comparisonToRecordSingle <= 0) {
         // If it's BETTER, reset the new records; if it's a TIE, add to the list
         if (comparisonToBestSingle < 0) {
           bestSingleResults = [result];
@@ -51,7 +53,9 @@ export const setNewRecords = (
       }
 
       const comparisonToBestAvg = compareAvgs(result, bestAvgResults[0], true);
-      if (comparisonToBestAvg <= 0 && compareAvgs(result, record as IResult, true) <= 0) {
+      const comparisonToRecordAvg = compareAvgs(result, records as IResult, true);
+
+      if (comparisonToBestAvg <= 0 && comparisonToRecordAvg <= 0) {
         // If it's BETTER, reset the new records; if it's a TIE, add to the list
         if (comparisonToBestAvg < 0) {
           bestAvgResults = [result];
@@ -62,21 +66,25 @@ export const setNewRecords = (
     }
   }
 
+  // If no records were set, this would still be -1
   if (bestSingleResults[0].best > 0) {
+    if (updateRecords) records.best = bestSingleResults[0].best;
+
     bestSingleResults.forEach((res) => {
       console.log(`New ${res.eventId} single ${recordLabel} set: ${res.best}`);
       res.regionalSingleRecord = recordLabel;
-      if (updateRecords) record.best = res.best;
     });
   }
 
+  // If no records were set, this would still be -1
   if (bestAvgResults[0].average > 0) {
+    if (updateRecords) records.average = bestSingleResults[0].average;
+
     bestAvgResults.forEach((res) => {
       console.log(`New ${res.eventId} average ${recordLabel} set: ${res.average}`);
       res.regionalAverageRecord = recordLabel;
-      if (updateRecords) record.average = res.average;
     });
   }
 
-  return rounds;
+  return sameDayRounds;
 };

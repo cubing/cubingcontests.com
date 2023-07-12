@@ -12,7 +12,11 @@ export const ResultsServiceMock = (): any => ({
     );
 
     if (beforeDate) results = results.filter((el) => el.date < beforeDate);
-    results = results.sort((a: ResultDocument, b: ResultDocument) => b.date.getTime() - a.date.getTime()).slice(0, 1);
+
+    // Sort by date
+    results.sort((a: ResultDocument, b: ResultDocument) => b.date.getTime() - a.date.getTime());
+    // Only keep the records that tie the most recent one
+    results = results.filter((el) => el.best === results[0].best);
 
     return results;
   },
@@ -26,7 +30,11 @@ export const ResultsServiceMock = (): any => ({
     );
 
     if (beforeDate) results = results.filter((el) => el.date < beforeDate);
-    results = results.sort((a: ResultDocument, b: ResultDocument) => b.date.getTime() - a.date.getTime()).slice(0, 1);
+
+    // Sort by date
+    results.sort((a: ResultDocument, b: ResultDocument) => b.date.getTime() - a.date.getTime()).slice(0, 1);
+    // Only keep the records that tie the most recent one
+    results = results.filter((el) => el.average === results[0].average);
 
     return results;
   },

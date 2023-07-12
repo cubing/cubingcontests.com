@@ -30,6 +30,12 @@ export const mockResultModel = (): any => ({
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.date < query.date.$lt);
       }
     }
+    if (query?.best) {
+      this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best === query.best);
+    }
+    if (query?.average) {
+      this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average === query.average);
+    }
 
     return this;
   },
