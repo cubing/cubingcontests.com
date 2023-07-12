@@ -5,11 +5,14 @@ const RoundResultsTable = ({
   round,
   events,
   persons,
+  // If one of these is defined, the other must be defined too
+  onEditResult,
   onDeleteResult,
 }: {
   round: IRound;
   events: IEvent[];
   persons: IPerson[];
+  onEditResult?: (result: IResult) => void;
   onDeleteResult?: (personId: string) => void;
 }) => {
   const currEventInfo = round?.eventId ? events.find((el) => el.eventId === round.eventId) : null;
@@ -73,14 +76,17 @@ const RoundResultsTable = ({
                 </div>
               </td>
               <td>{getSolves(currEventInfo, result.attempts)}</td>
-              {onDeleteResult && (
+              {onEditResult && (
                 <td>
+                  <button type="button" onClick={() => onEditResult(result)} className="me-2 btn btn-primary btn-sm">
+                    Edit
+                  </button>
                   <button
                     type="button"
                     onClick={() => onDeleteResult(result.personId)}
                     className="btn btn-danger btn-sm"
                   >
-                    Remove
+                    Delete
                   </button>
                 </td>
               )}

@@ -328,7 +328,18 @@ const PostResultsScreen = ({
     setAttempts(Array(numberOfSolves).fill(''));
   };
 
-  const deleteResult = (personId: string) => {
+  const editResult = (result: IResult) => {
+    // Delete result and then set the inputs if the deletion was successful
+    deleteResult(result.personId, () => {
+      const tempCurrPersons = persons.filter((el) => result.personId.split(';').includes(el.personId.toString()));
+
+      setPersonNames(tempCurrPersons.map((el) => el.name));
+      setCurrentPersons(tempCurrPersons);
+      setAttempts(result.attempts.map((el) => el.toString()));
+    });
+  };
+
+  const deleteResult = (personId: string, editCallback?: () => void) => {
     if (round.results.length > 1 || round.roundTypeId === RoundType.Final) {
       const newRound: IRound = {
         ...round,
@@ -337,6 +348,8 @@ const PostResultsScreen = ({
 
       updateCompetitionEvents(newRound);
       setRound(newRound);
+
+      editCallback();
     }
     // If it's not the final round and we are deleting the last result, disallow the deletion
     else {
@@ -472,7 +485,13 @@ const PostResultsScreen = ({
           </h2>
           {/* THIS IS A TEMPORARY SOLUTION!!! */}
           <div className="overflow-y-auto" style={{ maxHeight: '650px' }}>
-            <RoundResultsTable round={round} events={compData.events} persons={persons} onDeleteResult={deleteResult} />
+            <RoundResultsTable
+              round={round}
+              events={compData.events}
+              persons={persons}
+              onEditResult={editResult}
+              onDeleteResult={deleteResult}
+            />
           </div>
         </div>
       </div>
