@@ -136,6 +136,7 @@ export class CompetitionsService {
     if (updateCompetitionDto.countryId) comp.countryId = updateCompetitionDto.countryId;
     if (updateCompetitionDto.startDate) comp.startDate = updateCompetitionDto.startDate;
     if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
+    if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
     if (updateCompetitionDto.mainEventId) comp.mainEventId = updateCompetitionDto.mainEventId;
 
     // Post competition results

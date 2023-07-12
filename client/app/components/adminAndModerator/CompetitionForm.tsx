@@ -24,6 +24,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
   const [countryId, setCountryId] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [description, setDescription] = useState('');
   const [mainEventId, setMainEventId] = useState('333');
 
   const handleSubmit = async () => {
@@ -34,6 +35,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
       countryId,
       startDate,
       endDate,
+      description,
       mainEventId,
     };
 
@@ -82,6 +84,17 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
             className="form-control"
           />
         </div>
+      </div>
+      <div className="mb-3">
+        <label htmlFor="description" className="form-label">
+          Description (optional)
+        </label>
+        <textarea
+          id="description"
+          rows={5}
+          onChange={(e: any) => setDescription(e.target.value)}
+          className="form-control"
+        />
       </div>
       <FormEventSelect events={events} label="Main Event" eventId={mainEventId} setEventId={setMainEventId} />
     </Form>

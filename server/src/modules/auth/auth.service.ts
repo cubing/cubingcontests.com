@@ -23,7 +23,7 @@ export class AuthService {
 
   // The user comes from the passport local guard and is passed in from the controller
   async login(user: any) {
-    const payload: JwtPayload = { sub: user.id, username: user.username };
+    const payload: JwtPayload = { sub: user._id, username: user.username };
 
     return {
       accessToken: this.jwtService.sign(payload),
@@ -38,6 +38,7 @@ export class AuthService {
 
       if (passwordsMatch) {
         return {
+          _id: user._id,
           name: user.name,
           username: user.username,
         };

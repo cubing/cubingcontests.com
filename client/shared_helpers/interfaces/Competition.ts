@@ -7,6 +7,7 @@ export interface ICompetitionEvent {
   rounds: IRound[];
 }
 
+// UPDATE THE CREATE COMPETITION DTO AND THE COMPETITION MODEL, WHEN UPDATING THIS INTERFACE
 export interface ICompetition {
   competitionId: string;
   name: string;
@@ -14,6 +15,7 @@ export interface ICompetition {
   countryId: string; // 2 letter country code
   startDate: Date;
   endDate: Date;
+  description?: string;
   mainEventId: string;
   participants: number;
   events: ICompetitionEvent[];

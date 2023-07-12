@@ -1,4 +1,4 @@
-import { IsDateString, IsIn, IsString, Matches, MinLength } from 'class-validator';
+import { IsDateString, IsIn, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import Countries from '@sh/Countries';
 
 export class CreateCompetitionDto {
@@ -22,6 +22,10 @@ export class CreateCompetitionDto {
 
   @IsDateString()
   endDate: Date;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
 
   @IsString()
   @MinLength(3)

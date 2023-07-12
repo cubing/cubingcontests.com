@@ -12,23 +12,22 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  register(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  async register(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
+    return await this.authService.register(createUserDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @UseGuards(LocalAuthGuard)
-  login(@Request() req: any) {
-    return this.authService.login(req.user);
+  async login(@Request() req: any) {
+    return await this.authService.login(req.user);
   }
 
   @Get('validateadmin')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  validateAdmin(@Request() req: any) {
+  async validateAdmin(@Request() req: any) {
     return {
-      id: req.user.id,
       username: req.user.username,
     };
   }

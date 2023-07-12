@@ -6,6 +6,7 @@ import { ICompetitionData, ICompetitionEvent, IEvent } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 
 const CompetitionResults = ({ data: { competition, events, persons } }: { data: ICompetitionData }) => {
+  console.log(competition);
   // Find the event held at the competition that has the highest rank.
   // The first event in eventsInfo is always the highest ranked one, as it's sorted on the backend.
   let firstEventByRank: ICompetitionEvent | null = null;
@@ -18,7 +19,7 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
 
   return (
     <>
-      <div className="mt-5 mb-3 px-2 fs-5">
+      <div className="my-4 px-2 fs-5">
         <p>Date:&#8194;{getFormattedDate(competition.startDate, competition.endDate)}</p>
         <p>
           Location:&#8194;{competition.city}, <b>{getCountry(competition.countryId)}</b>
@@ -28,6 +29,7 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
             Number of participants:&#8194;<b>{competition.participants}</b>
           </p>
         )}
+        {competition.description && <p className="mt-4">Description: {competition.description}</p>}
       </div>
       {competition.events.length === 0 ? (
         <p className="mx-2 fs-5">The results for this contest have not been posted yet</p>

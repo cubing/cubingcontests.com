@@ -34,6 +34,9 @@ class Competition implements ICompetition {
   @Prop({ required: true })
   endDate: Date;
 
+  @Prop()
+  description?: string;
+
   @Prop({ required: true })
   mainEventId: string;
 
