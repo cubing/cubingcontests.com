@@ -2,6 +2,7 @@ import { IEvent } from './Event';
 import { IPerson } from './Person';
 
 export interface IResult {
+  _id?: unknown; // not needed during creation
   competitionId: string;
   eventId: string;
   date: Date;

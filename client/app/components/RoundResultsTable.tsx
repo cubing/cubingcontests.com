@@ -61,13 +61,13 @@ const RoundResultsTable = ({
               <td>{result.ranking}</td>
               <td>{getName(result.personId)}</td>
               <td>
-                <div className="d-flex align-items-center gap-2">
+                <div className="d-flex align-items-center gap-3">
                   {formatTime(currEventInfo, result.best)}
                   {getRecordBadge(result, 'single')}
                 </div>
               </td>
               <td>
-                <div className="d-flex align-items-center gap-2">
+                <div className="d-flex align-items-center gap-3">
                   {formatTime(currEventInfo, result.average, true)}
                   {getRecordBadge(result, 'average')}
                 </div>

@@ -40,8 +40,7 @@ const Records = async () => {
                 </thead>
                 <tbody>
                   {eventRecord.bestRecords.map((bestRecord) => (
-                    // CHANGE THIS KEY
-                    <tr key={`${bestRecord.result.personId}_${bestRecord.result.date.toString()}`}>
+                    <tr key={bestRecord.result._id.toString()}>
                       <td>Single</td>
                       <td>{bestRecord.persons.map((el) => el.name).join(' & ')}</td>
                       <td>{formatTime(eventRecord.event, bestRecord.result.best)}</td>
@@ -51,8 +50,7 @@ const Records = async () => {
                     </tr>
                   ))}
                   {eventRecord.averageRecords.map((avgRecord) => (
-                    // CHANGE THIS KEY
-                    <tr key={`${avgRecord.result.personId}_${avgRecord.result.date.toString()}`}>
+                    <tr key={avgRecord.result._id.toString()}>
                       <td>Average</td>
                       <td>{avgRecord.persons.map((el) => el.name).join(' & ')}</td>
                       <td>{formatTime(eventRecord.event, avgRecord.result.average, true)}</td>

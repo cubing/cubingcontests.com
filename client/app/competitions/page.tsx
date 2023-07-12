@@ -1,6 +1,5 @@
 import myFetch from '~/helpers/myFetch';
 import CompetitionsTable from '@c/CompetitionsTable';
-import { ICompetition } from '@sh/interfaces';
 
 const Competitions = async () => {
   const { payload: competitions } = await myFetch.get('/competitions', { revalidate: 100 });

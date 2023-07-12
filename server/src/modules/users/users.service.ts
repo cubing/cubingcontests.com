@@ -16,7 +16,7 @@ export class UsersService {
 
       if (user) {
         return {
-          id: user._id,
+          _id: user._id,
           name: user.name,
           username: user.username,
           password: user.password,
@@ -37,8 +37,7 @@ export class UsersService {
         throw new BadRequestException(`User with username ${createUserDto.username} already exists`);
       }
 
-      const newUser = new this.model(createUserDto);
-      await newUser.save();
+      await this.model.create(createUserDto);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

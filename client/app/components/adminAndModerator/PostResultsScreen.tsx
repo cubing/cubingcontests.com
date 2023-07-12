@@ -380,13 +380,14 @@ const PostResultsScreen = ({
 
   return (
     <>
-      {errorMessages.length > 0
-        ? errorMessages.map((message, index) => (
-            <div key={index} className="mb-3 alert alert-danger fs-5" role="alert">
-              {message}
-            </div>
-          ))
-        : successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>}
+      {errorMessages.map((message, index) => (
+        <div key={index} className="mb-3 alert alert-danger fs-5" role="alert">
+          {message}
+        </div>
+      ))}
+      {errorMessages.length === 0 && successMessage && (
+        <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
+      )}
       <div className="row my-4">
         <div className="col-3 pe-4">
           <FormEventSelect

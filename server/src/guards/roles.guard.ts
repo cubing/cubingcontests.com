@@ -21,7 +21,7 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    user.roles = await this.authService.getUserRoles(user.id);
+    user.roles = await this.authService.getUserRoles(user._id);
 
     if (!user.roles) return false;
 

@@ -120,10 +120,10 @@ const myFetch = {
       if (json?.username) {
         return json;
       } else {
-        window.location.href = '/login';
+        window.location.href = '/login?redirect=admin';
       }
     } else {
-      window.location.href = '/login';
+      window.location.href = '/login?redirect=admin';
     }
 
     return null;

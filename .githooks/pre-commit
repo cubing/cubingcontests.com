@@ -21,7 +21,13 @@ cd server
 npx jest
 verify_exit
 
-# CLIENT
+# CLIENT BUILD
+
+cd client
+npx next build
+verify_exit
+
+# CLIENT LINT
 
 STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'client/.*\.(ts|tsx)$' | sed -E 's/client\///'))
 
@@ -46,11 +52,12 @@ if [[ "$STAGED_FILES" != "" ]]; then
     verify_exit
 
     # Re-add files since they may have been changed
+    echo 'Readding /client files'
     git add "${STAGED_FILES[@]}"
   fi
 fi
 
-# SERVER
+# SERVER LINT
 
 STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM . | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
 
@@ -75,6 +82,7 @@ if [[ "$STAGED_FILES" != "" ]]; then
     verify_exit
 
     # Re-add files since they may have been changed
+    echo 'Readding /server files'
     git add "${STAGED_FILES[@]}"
   fi
 fi

@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from '@c/form/FormTextInput';
-import Link from 'next/link';
 import Form from '@c/form/Form';
 
 const Login = () => {
+  const searchParams = useSearchParams();
+
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +33,10 @@ const Login = () => {
         tempErrors.push('Access token not received');
       } else {
         localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
-        window.location.href = '/';
+
+        const redirect = searchParams.get('redirect');
+        if (redirect) window.location.href = `/${redirect}`;
+        else window.location.href = '/';
       }
     }
 
