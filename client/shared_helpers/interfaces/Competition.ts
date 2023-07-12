@@ -1,3 +1,4 @@
+import { CompetitionType } from '../enums';
 import { IEvent } from './Event';
 import { IRound } from './Round';
 import { IPerson } from './Person';
@@ -11,6 +12,7 @@ export interface ICompetitionEvent {
 export interface ICompetition {
   competitionId: string;
   name: string;
+  type: CompetitionType;
   city: string;
   countryId: string; // 2 letter country code
   startDate: Date;

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
+import { CompetitionType } from '@sh/enums';
 
 const CompetitionsTable = async ({
   competitions,
@@ -54,6 +55,7 @@ const CompetitionsTable = async ({
               <th scope="col">Date</th>
               <th scope="col">Name</th>
               <th scope="col">Place</th>
+              <th scope="col">Type</th>
               <th scope="col">Participants</th>
               <th scope="col">Events</th>
               {/* THIS IS DESKTOP-ONLY FOR NOW */}
@@ -72,6 +74,7 @@ const CompetitionsTable = async ({
                 <td>
                   {comp.city}, <b>{getCountry(comp.countryId)}</b>
                 </td>
+                <td>{comp.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</td>
                 <td>{comp.participants || '–'}</td>
                 <td>{comp.events.length || '–'}</td>
                 {onEditCompetition && (

@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { ICompetition, ICompetitionEvent } from '@sh/interfaces';
 import { Round } from './round.model';
+import { CompetitionType } from '../../../client/shared_helpers/enums';
 
 @Schema({ _id: false })
 export class CompetitionEvent implements ICompetitionEvent {
@@ -21,6 +22,9 @@ class Competition implements ICompetition {
 
   @Prop({ required: true })
   name: string;
+
+  @Prop({ enum: CompetitionType, required: true })
+  type: CompetitionType;
 
   @Prop({ required: true })
   city: string;

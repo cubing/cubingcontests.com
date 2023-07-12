@@ -132,6 +132,7 @@ export class CompetitionsService {
     if (!comp) throw new BadRequestException(`Competition with id ${competitionId} not found`);
 
     if (updateCompetitionDto.name) comp.name = updateCompetitionDto.name;
+    if (updateCompetitionDto.type) comp.type = updateCompetitionDto.type;
     if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
     if (updateCompetitionDto.countryId) comp.countryId = updateCompetitionDto.countryId;
     if (updateCompetitionDto.startDate) comp.startDate = updateCompetitionDto.startDate;

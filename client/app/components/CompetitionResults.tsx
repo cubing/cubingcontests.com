@@ -4,6 +4,7 @@ import { useState } from 'react';
 import EventResultsTable from './EventResults';
 import { ICompetitionData, ICompetitionEvent, IEvent } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
+import { CompetitionType } from '@sh/enums';
 
 const CompetitionResults = ({ data: { competition, events, persons } }: { data: ICompetitionData }) => {
   // Find the event held at the competition that has the highest rank.
@@ -19,6 +20,9 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
   return (
     <>
       <div className="my-4 px-2 fs-5">
+        <p>
+          Type:&#8194;<b>{competition.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</b>
+        </p>
         <p>Date:&#8194;{getFormattedDate(competition.startDate, competition.endDate)}</p>
         <p>
           Location:&#8194;{competition.city}, <b>{getCountry(competition.countryId)}</b>

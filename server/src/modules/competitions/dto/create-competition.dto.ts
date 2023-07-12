@@ -1,5 +1,6 @@
-import { IsDateString, IsIn, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsDateString, IsEnum, IsIn, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import Countries from '@sh/Countries';
+import { CompetitionType } from '@sh/enums';
 
 export class CreateCompetitionDto {
   @IsString()
@@ -9,6 +10,9 @@ export class CreateCompetitionDto {
   @IsString()
   @Matches(/^[A-Z0-9][a-zA-Z0-9 -:']{9,}$/)
   name: string;
+
+  @IsEnum(CompetitionType)
+  type: CompetitionType;
 
   @IsString()
   @Matches(/^[A-Z][a-zA-Z -]+$/)

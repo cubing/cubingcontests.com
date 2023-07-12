@@ -5,9 +5,8 @@ import Navbar from '@c/Navbar';
 
 export const metadata = {
   title: 'Cubing Contests',
-  description: "A place for hosting unofficial Rubik's cube competitions or meet-ups.",
-  keywords:
-    "rubik's rubiks cube contest contests competition competitions meetup meetups meet-up meet-ups speedcubing cubing puzzle",
+  description: "A place for hosting unofficial Rubik's cube competitions or meetups.",
+  keywords: "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing cubing puzzle",
   icons: {
     icon: '/favicon.png',
   },

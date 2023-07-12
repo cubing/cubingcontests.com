@@ -12,6 +12,7 @@ import Form from '../form/Form';
 import FormTextInput from '../form/FormTextInput';
 import FormCountrySelect from '../form/FormCountrySelect';
 import FormEventSelect from '../form/FormEventSelect';
+import { CompetitionType } from '~/shared_helpers/enums';
 
 // registerLocale('en-GB', enGB);
 // setDefaultLocale('en-GB');
@@ -20,6 +21,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
+  const [type, setType] = useState(CompetitionType.Meetup);
   const [city, setCity] = useState('');
   const [countryId, setCountryId] = useState('');
   const [startDate, setStartDate] = useState(new Date());
@@ -31,6 +33,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     if (competition) {
       setCompetitionId(competition.competitionId);
       setName(competition.name);
+      setType(competition.type);
       setCity(competition.city);
       setCountryId(competition.countryId);
       // Convert the dates from string to Date
@@ -45,6 +48,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     const newCompetition = {
       competitionId,
       name,
+      type,
       city,
       countryId,
       startDate,
@@ -74,6 +78,33 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     <Form buttonText={competition ? 'Edit' : 'Create'} errorMessages={errorMessages} handleSubmit={handleSubmit}>
       <FormTextInput name="Competition ID" value={competitionId} setValue={setCompetitionId} disabled={!!competition} />
       <FormTextInput name="Competition Name" value={name} setValue={setName} />
+      <h5>Type</h5>
+      <div className="my-3 d-flex gap-5">
+        <div className="form-check">
+          <input
+            id="type_meetup"
+            type="radio"
+            checked={type === CompetitionType.Meetup}
+            onChange={() => setType(CompetitionType.Meetup)}
+            className="form-check-input"
+          />
+          <label className="form-check-label" htmlFor="type_meetup">
+            Meetup
+          </label>
+        </div>
+        <div className="form-check">
+          <input
+            id="type_competition"
+            type="radio"
+            checked={type === CompetitionType.Competition}
+            onChange={() => setType(CompetitionType.Competition)}
+            className="form-check-input"
+          />
+          <label className="form-check-label" htmlFor="type_competition">
+            Competition
+          </label>
+        </div>
+      </div>
       <div className="row">
         <div className="col">
           <FormTextInput name="City" value={city} setValue={setCity} />
@@ -113,7 +144,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
         </label>
         <textarea
           id="description"
-          rows={5}
+          rows={10}
           value={description}
           onChange={(e: any) => setDescription(e.target.value)}
           className="form-control"

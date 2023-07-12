@@ -23,6 +23,11 @@ export enum RoundType {
   // Final = 'c',
 }
 
+export enum CompetitionType {
+  Meetup = 1,
+  Competition = 2,
+}
+
 export enum WcaRecordType {
   WR = 'WR',
   ER = 'ER',
