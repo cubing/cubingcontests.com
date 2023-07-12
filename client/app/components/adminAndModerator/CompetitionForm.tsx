@@ -1,13 +1,13 @@
 'use client';
 
 import './CompetitionForm.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import DatePicker from 'react-datepicker';
 // import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 // import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
-import { IEvent } from '@sh/interfaces';
+import { ICompetition, IEvent } from '@sh/interfaces';
 import Form from '../form/Form';
 import FormTextInput from '../form/FormTextInput';
 import FormCountrySelect from '../form/FormCountrySelect';
@@ -16,7 +16,7 @@ import FormEventSelect from '../form/FormEventSelect';
 // registerLocale('en-GB', enGB);
 // setDefaultLocale('en-GB');
 
-const CompetitionForm = ({ events }: { events: IEvent[] }) => {
+const CompetitionForm = ({ events, competition }: { events: IEvent[]; competition?: ICompetition }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -27,8 +27,22 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
   const [description, setDescription] = useState('');
   const [mainEventId, setMainEventId] = useState('333');
 
+  useEffect(() => {
+    if (competition) {
+      setCompetitionId(competition.competitionId);
+      setName(competition.name);
+      setCity(competition.city);
+      setCountryId(competition.countryId);
+      // Convert the dates from string to Date
+      setStartDate(new Date(competition.startDate));
+      setEndDate(new Date(competition.endDate));
+      setDescription(competition.description);
+      setMainEventId(competition.mainEventId);
+    }
+  }, [competition]);
+
   const handleSubmit = async () => {
-    const competition = {
+    const newCompetition = {
       competitionId,
       name,
       city,
@@ -37,9 +51,17 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
       endDate,
       description,
       mainEventId,
-    };
+    } as ICompetition;
 
-    const { errors } = await myFetch.post('/competitions', competition);
+    // If editing competition, set the events and participants too
+    if (competition) {
+      newCompetition.participants = competition.participants;
+      newCompetition.events = competition.events;
+    }
+
+    const { errors } = competition
+      ? await myFetch.patch(`/competitions/${competition.competitionId}`, newCompetition) // edit competition
+      : await myFetch.post('/competitions', newCompetition); // create competition
 
     if (errors) {
       setErrorMessages(errors);
@@ -49,8 +71,8 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
   };
 
   return (
-    <Form buttonText="Create" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-      <FormTextInput name="Competition ID" value={competitionId} setValue={setCompetitionId} />
+    <Form buttonText={competition ? 'Edit' : 'Create'} errorMessages={errorMessages} handleSubmit={handleSubmit}>
+      <FormTextInput name="Competition ID" value={competitionId} setValue={setCompetitionId} disabled={!!competition} />
       <FormTextInput name="Competition Name" value={name} setValue={setName} />
       <div className="row">
         <div className="col">
@@ -92,6 +114,7 @@ const CompetitionForm = ({ events }: { events: IEvent[] }) => {
         <textarea
           id="description"
           rows={5}
+          value={description}
           onChange={(e: any) => setDescription(e.target.value)}
           className="form-control"
         />

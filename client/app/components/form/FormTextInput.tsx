@@ -3,6 +3,7 @@ const FormTextInput = ({
   id,
   value,
   placeholder = '',
+  disabled = false,
   password = false,
   setValue,
   onKeyPress,
@@ -10,6 +11,7 @@ const FormTextInput = ({
   name?: string;
   id?: string;
   placeholder?: string;
+  disabled?: boolean;
   password?: boolean;
   value: string;
   setValue: any;
@@ -35,6 +37,7 @@ const FormTextInput = ({
         id={id}
         value={value}
         placeholder={placeholder}
+        disabled={disabled}
         onChange={(e: any) => setValue(e.target.value)}
         onKeyPress={onKeyPress}
         className="form-control"

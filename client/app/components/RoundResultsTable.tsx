@@ -47,12 +47,12 @@ const RoundResultsTable = ({
       <table className="table table-hover table-responsive text-nowrap">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Best</th>
-            <th>Average</th>
-            <th>Solves</th>
-            {onDeleteResult && <th>Actions</th>}
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Best</th>
+            <th scope="col">Average</th>
+            <th scope="col">Solves</th>
+            {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
         </thead>
         <tbody>

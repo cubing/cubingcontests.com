@@ -14,6 +14,14 @@ const AdminHome = async () => {
     window.location.href = '/';
   };
 
+  const onEditCompetition = (competitionId: string) => {
+    window.location.href = `/admin/competition/${competitionId}/edit`;
+  };
+
+  const onPostCompResults = (competitionId: string) => {
+    window.location.href = `/admin/competition/${competitionId}/post-results`;
+  };
+
   return (
     <>
       <h2 className="text-center">Admin Home</h2>
@@ -36,7 +44,13 @@ const AdminHome = async () => {
           </p>
         </div>
       </div>
-      {competitions?.length > 0 && <CompetitionsTable linkToPostResults competitions={competitions} />}
+      {competitions?.length > 0 && (
+        <CompetitionsTable
+          competitions={competitions}
+          onEditCompetition={onEditCompetition}
+          onPostCompResults={onPostCompResults}
+        />
+      )}
     </>
   );
 };

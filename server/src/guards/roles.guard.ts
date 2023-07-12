@@ -15,7 +15,6 @@ export class RolesGuard implements CanActivate {
 
     // Receive the user from the request (coming from the Authenticated (JWT) guard)
     const { user } = context.switchToHttp().getRequest();
-    console.log(user);
 
     if (!user) {
       console.error('No user passed into the roles guard!');

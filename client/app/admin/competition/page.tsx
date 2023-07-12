@@ -1,7 +1,7 @@
 import myFetch from '~/helpers/myFetch';
 import CompetitionForm from '@c/adminAndModerator/CompetitionForm';
 
-const AdminCompetition = async () => {
+const CreateCompetition = async () => {
   const { payload: events } = await myFetch.get('/events');
 
   return (
@@ -12,4 +12,4 @@ const AdminCompetition = async () => {
   );
 };
 
-export default AdminCompetition;
+export default CreateCompetition;

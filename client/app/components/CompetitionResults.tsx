@@ -29,7 +29,11 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
             Number of participants:&#8194;<b>{competition.participants}</b>
           </p>
         )}
-        {competition.description && <p className="mt-4">Description: {competition.description}</p>}
+        {competition.description && (
+          <p className="mt-4" style={{ whiteSpace: 'pre-wrap' }}>
+            Description: {competition.description}
+          </p>
+        )}
       </div>
       {competition.events.length === 0 ? (
         <p className="mx-2 fs-5">The results for this contest have not been posted yet</p>
