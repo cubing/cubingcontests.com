@@ -83,8 +83,8 @@ export class ResultsService {
 
     queryFilter.best = bestSingleResult.best;
 
-    // Get all of the most recent single record results that tie the same single
-    const results = await this.model.find(queryFilter, excl).sort({ date: -1 }).exec();
+    // Get all of the single record results that tie the same single, with the oldest at the top
+    const results = await this.model.find(queryFilter, excl).sort({ date: 1 }).exec();
 
     return results;
   }
@@ -105,8 +105,8 @@ export class ResultsService {
 
     queryFilter.average = bestAvgResult.average;
 
-    // Get all of the most recent average record results that tie the same average
-    const results = await this.model.find(queryFilter).sort({ date: -1 }).exec();
+    // Get all of the average record results that tie the same average, with the oldest at the top
+    const results = await this.model.find(queryFilter).sort({ date: 1 }).exec();
 
     return results;
   }

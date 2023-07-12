@@ -1,8 +1,6 @@
-'use client';
-
 import myFetch from '~/helpers/myFetch';
 import { IEventRecords, IPerson } from '@sh/interfaces';
-import { formatTime, getCountry, getSolves } from '~/helpers/utilityFunctions';
+import { formatTime, getCountry, getSolves, getFormattedDate } from '~/helpers/utilityFunctions';
 import { EventFormat } from '@sh/enums';
 
 const Records = async () => {
@@ -31,23 +29,14 @@ const Records = async () => {
             <div className="flex-grow-1 table-responsive">
               <table className="table table-hover table-responsive text-nowrap">
                 <thead>
-                  {eventRecord.event.format !== EventFormat.TeamTime ? (
-                    <tr>
-                      <th>Type</th>
-                      <th>Name</th>
-                      <th>Result</th>
-                      <th>Citizen of</th>
-                      <th>Solves</th>
-                    </tr>
-                  ) : (
-                    <tr>
-                      <th>Type</th>
-                      <th>Names</th>
-                      <th>Result</th>
-                      <th>Citizens of</th>
-                      <th>Solves</th>
-                    </tr>
-                  )}
+                  <tr>
+                    <th>Type</th>
+                    <th>{eventRecord.event.format !== EventFormat.TeamTime ? 'Name' : 'Names'}</th>
+                    <th>Result</th>
+                    <th>{eventRecord.event.format !== EventFormat.TeamTime ? 'Citizen of' : 'Citizens of'}</th>
+                    <th>Date</th>
+                    <th>Solves</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {eventRecord.bestRecords.map((bestRecord) => (
@@ -56,6 +45,7 @@ const Records = async () => {
                       <td>{bestRecord.persons.map((el) => el.name).join(' & ')}</td>
                       <td>{formatTime(eventRecord.event, bestRecord.result.best)}</td>
                       <td>{getCompetitorCountries(bestRecord.persons)}</td>
+                      <td>{getFormattedDate(bestRecord.result.date)}</td>
                       <td></td>
                     </tr>
                   ))}
@@ -65,6 +55,7 @@ const Records = async () => {
                       <td>{avgRecord.persons.map((el) => el.name).join(' & ')}</td>
                       <td>{formatTime(eventRecord.event, avgRecord.result.average, true)}</td>
                       <td>{getCompetitorCountries(avgRecord.persons)}</td>
+                      <td>{getFormattedDate(avgRecord.result.date)}</td>
                       <td>{getSolves(eventRecord.event, avgRecord.result.attempts)}</td>
                     </tr>
                   ))}

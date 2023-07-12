@@ -5,14 +5,15 @@ export const getCountry = (countryId: string): string => {
   return Countries.find((el) => el.code === countryId)?.name || 'Unknown country';
 };
 
-export const getFormattedDate = (start: Date, end: Date): string => {
-  if (!start || !end) throw new Error('Dates missing!');
+export const getFormattedDate = (start: Date, end?: Date): string => {
+  if (!start) throw new Error('Start date missing!');
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  // We need the conversion, because the dates are passed in as strings
   const startDate = new Date(start);
-  const endDate = new Date(end);
+  const endDate = end ? new Date(end) : null;
 
-  if (startDate.toString() === endDate.toString()) {
+  if (!end || startDate.toString() === endDate.toString()) {
     return `${months[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}`;
   } else {
     return 'Not implemented';
