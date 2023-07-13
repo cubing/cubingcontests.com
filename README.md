@@ -8,6 +8,8 @@ This is a place for posting results from unofficial Rubik's cube competitions or
 
 <img src="https://denimintsaev.com/api/cubing_contests_2.jpg" width="300"/>
 
+<img src="https://denimintsaev.com/api/cubing_contests_3.jpg" width="300"/>
+
 ## Admin features (WIP section)
 
 In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the admin dashboard, and set the wanted records as active. They can also be given custom custom labels in order to differentiate them from official WCA records. **ATTENTION:** for now only WRs are supported.

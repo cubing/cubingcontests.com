@@ -2,38 +2,29 @@
 
 verify_exit() {
   EXIT_CODE=$?
-  if [[ "$EXIT_CODE" == 0 ]]; then
-    cd ..
-  else
+
+  if [[ "$EXIT_CODE" != 0 ]]; then
     printf "\n\033[41mCOMMIT FAILED\033[0m\n"
     exit $EXIT_CODE
   fi
 }
 
+# Go to the project root directory
 cd "$(git rev-parse --show-toplevel)"
 echo -e "New directory: $(pwd)\n"
 
-# AUTOMATED TESTS
-
-echo -e "Running all /server test suites..."
-
-cd server
-npx jest
-verify_exit
-
-# CLIENT BUILD
-
-cd client
-npx next build
-verify_exit
-
-# CLIENT LINT
+# CLIENT
 
 STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'client/.*\.(ts|tsx)$' | sed -E 's/client\///'))
 
 if [[ "$STAGED_FILES" != "" ]]; then
+  # CLIENT BUILD
   cd client
   echo -e "\nNew directory: $(pwd)\n"
+  npx next build
+  verify_exit
+
+  # ESLINT
   ESLINT="node_modules/.bin/eslint"
 
   if [[ ! -x "$ESLINT" ]]; then
@@ -50,6 +41,7 @@ if [[ "$STAGED_FILES" != "" ]]; then
 
     $ESLINT --fix "${STAGED_FILES[@]}"
     verify_exit
+    cd ..
 
     # Re-add files since they may have been changed
     echo 'Readding /client files'
@@ -57,13 +49,20 @@ if [[ "$STAGED_FILES" != "" ]]; then
   fi
 fi
 
-# SERVER LINT
+# SERVER
 
 STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM . | grep -E 'server/.*\.(ts|tsx)$' | sed -E 's/server\///'))
 
 if [[ "$STAGED_FILES" != "" ]]; then
+  # AUTOMATED TESTS
+  echo -e "Running all /server test suites..."
+
   cd server
   echo -e "\nNew directory: $(pwd)\n"
+  npx jest
+  verify_exit
+
+  # ESLINT
   ESLINT="node_modules/.bin/eslint"
 
   if [[ ! -x "$ESLINT" ]]; then
@@ -80,6 +79,7 @@ if [[ "$STAGED_FILES" != "" ]]; then
 
     $ESLINT --fix "${STAGED_FILES[@]}"
     verify_exit
+    cd ..
 
     # Re-add files since they may have been changed
     echo 'Readding /server files'
