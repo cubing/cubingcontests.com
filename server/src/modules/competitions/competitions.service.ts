@@ -12,7 +12,7 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { ICompetitionEvent, ICompetitionData, ICompetitionModData, IRound, IResult } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionData, ICompetitionModData, IRound, IResult, IRecordType } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
 import { WcaRecordType } from '@sh/enums';
 
@@ -157,8 +157,10 @@ export class CompetitionsService {
       }
 
       try {
+        const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
         const updatedCompetition: CompetitionUpdateResult = await this.updateCompetitionEvents(
           updateCompetitionDto.events,
+          activeRecordTypes,
         );
         comp.events = updatedCompetition.events;
         comp.participants = updatedCompetition.participants;
@@ -224,9 +226,11 @@ export class CompetitionsService {
   }
 
   // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)
-  async updateCompetitionEvents(newCompEvents: ICompetitionEvent[]): Promise<CompetitionUpdateResult> {
+  async updateCompetitionEvents(
+    newCompEvents: ICompetitionEvent[],
+    activeRecordTypes: IRecordType[],
+  ): Promise<CompetitionUpdateResult> {
     const output = { events: [] } as CompetitionUpdateResult;
-    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     const personIds: number[] = []; // used for calculating the number of participants
 
     // Save every round from every event
@@ -236,31 +240,32 @@ export class CompetitionsService {
       // These are set to null if there are no active record types
       const records: any = await this.getEventRecords(event.eventId, activeRecordTypes);
       event.rounds.sort((a: IRound, b: IRound) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      console.log('Events rounds: ', event.rounds);
 
       for (const round of event.rounds) {
-        if (activeRecordTypes.length > 0) {
-          // Set the records from the last day, when the day changes
-          if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
-            newCompEvent.rounds.push(...(await this.setRecords(sameDayRounds, activeRecordTypes, records)));
-            sameDayRounds = [];
-          }
-          sameDayRounds.push(round);
+        // Set the records from the last day, when the day changes
+        if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
+          newCompEvent.rounds.push(...(await this.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypes, records)));
+          sameDayRounds = [];
         }
+        sameDayRounds.push(round);
 
         this.getParticipantsInRound(round, personIds);
       }
+      console.log('Final same day rounds:', sameDayRounds);
       // Set the records for the last day of rounds
-      newCompEvent.rounds.push(...(await this.setRecords(sameDayRounds, activeRecordTypes, records)));
+      newCompEvent.rounds.push(...(await this.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypes, records)));
       output.events.push(newCompEvent);
     }
 
     output.participants = personIds.length;
+    console.log(JSON.stringify(output.events, null, 2));
     return output;
   }
 
   async getEventRecords(
     eventId: string,
-    activeRecordTypes: RecordTypeDocument[],
+    activeRecordTypes: IRecordType[],
     // beforeDate = new Date(8640000000000000), // max date as default
     // Crazy high date as default (to allow adding 3 hours below (TEMPORARY))
     beforeDate = new Date(8600000000000000),
@@ -290,26 +295,31 @@ export class CompetitionsService {
 
   // Sets the newly-set records in sameDayRounds using the information from records
   // (but only the active record types) and returns the rounds
-  async setRecords(sameDayRounds: IRound[], activeRecordTypes: RecordTypeDocument[], records: any): Promise<Round[]> {
+  async setRecordsAndSaveRounds(
+    sameDayRounds: IRound[],
+    activeRecordTypes: IRecordType[],
+    records: any,
+  ): Promise<Round[]> {
     const rounds: Round[] = [];
+    console.log(sameDayRounds);
 
-    for (const rt of activeRecordTypes) {
-      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (rt.active && rt.wcaEquivalent === WcaRecordType.WR) {
-        sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.label, true);
+    for (const round of sameDayRounds) {
+      const newRound = { ...round, results: [] } as Round;
 
-        // Create new results and rounds
-        for (const round of sameDayRounds) {
-          const newRound = { ...round, results: [] } as Round;
-
-          try {
-            newRound.results.push(...(await this.resultModel.create(round.results)));
-          } catch (err) {
-            throw new InternalServerErrorException(`Error while creating result ${round.results}: ${err.message}`);
-          }
-
-          rounds.push(await this.roundModel.create(newRound));
+      // Set records
+      for (const rt of activeRecordTypes) {
+        // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if (rt.active && rt.wcaEquivalent === WcaRecordType.WR) {
+          sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.label, true);
         }
+      }
+
+      // Save results and rounds in the DB
+      try {
+        newRound.results.push(...(await this.resultModel.create(round.results)));
+        rounds.push(await this.roundModel.create(newRound));
+      } catch (err) {
+        throw new InternalServerErrorException(`Error while creating ${round.roundTypeId} round: ${err.message}`);
       }
     }
 

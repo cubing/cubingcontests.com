@@ -26,7 +26,7 @@ describe('ResultsService', () => {
         },
         {
           provide: RecordTypesService,
-          useValue: RecordTypesServiceMock,
+          useFactory: RecordTypesServiceMock,
         },
         {
           provide: PersonsService,
