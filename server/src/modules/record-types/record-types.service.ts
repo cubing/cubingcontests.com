@@ -87,8 +87,10 @@ export class RecordTypesService {
 
             for (const singleRecord of singleRecords) {
               console.log(`New single ${newRecordTypes[i].label} for event ${event.eventId}: ${singleRecord.best}`);
+
+              // Update all tied records on the day
               await this.resultModel
-                .updateOne(
+                .updateMany(
                   {
                     eventId: event.eventId,
                     date: singleRecord._id, // _id is actually the date from the group stage
@@ -126,8 +128,9 @@ export class RecordTypesService {
             for (const avgRecord of avgRecords) {
               console.log(`New average ${newRecordTypes[i].label} for event ${event.eventId}: ${avgRecord.average}`);
 
+              // Update all tied records on the day
               await this.resultModel
-                .updateOne(
+                .updateMany(
                   {
                     eventId: event.eventId,
                     date: avgRecord._id, // _id is actually the date from the group stage

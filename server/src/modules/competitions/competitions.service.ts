@@ -240,7 +240,6 @@ export class CompetitionsService {
       // These are set to null if there are no active record types
       const records: any = await this.getEventRecords(event.eventId, activeRecordTypes);
       event.rounds.sort((a: IRound, b: IRound) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      console.log('Events rounds: ', event.rounds);
 
       for (const round of event.rounds) {
         // Set the records from the last day, when the day changes
@@ -252,14 +251,13 @@ export class CompetitionsService {
 
         this.getParticipantsInRound(round, personIds);
       }
-      console.log('Final same day rounds:', sameDayRounds);
+
       // Set the records for the last day of rounds
       newCompEvent.rounds.push(...(await this.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypes, records)));
       output.events.push(newCompEvent);
     }
 
     output.participants = personIds.length;
-    console.log(JSON.stringify(output.events, null, 2));
     return output;
   }
 
@@ -301,7 +299,6 @@ export class CompetitionsService {
     records: any,
   ): Promise<Round[]> {
     const rounds: Round[] = [];
-    console.log(sameDayRounds);
 
     for (const round of sameDayRounds) {
       const newRound = { ...round, results: [] } as Round;

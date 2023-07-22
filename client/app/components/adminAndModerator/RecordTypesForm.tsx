@@ -57,7 +57,8 @@ const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordTyp
                 id={rt.wcaEquivalent + '_label_input'}
                 value={rt.label}
                 onChange={(e: any) => changeLabel(rt.wcaEquivalent, e.target.value)}
-                disabled={recordTypes?.length > 0}
+                // Disable changing the label when the record type is active in the DB
+                disabled={recordTypes.find((el) => el.wcaEquivalent === rt.wcaEquivalent)?.active}
                 className="form-control"
               />
             </div>
