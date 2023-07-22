@@ -6,6 +6,8 @@ import { mockRecordTypeModel } from './mocks/record-type.model';
 import { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
+import { recordTypesStub } from '@sh/sharedFunctions';
+import { mockEventModel } from '../../events/tests/mocks/event.model';
 
 describe('RecordTypesService', () => {
   let recordTypesService: RecordTypesService;
@@ -18,15 +20,15 @@ describe('RecordTypesService', () => {
         RecordTypesService,
         {
           provide: getModelToken('Result'),
-          useValue: mockResultModel,
+          useFactory: mockResultModel,
         },
         {
           provide: getModelToken('Event'),
-          useValue: {},
+          useFactory: mockEventModel,
         },
         {
           provide: getModelToken('RecordType'),
-          useValue: mockRecordTypeModel,
+          useFactory: mockRecordTypeModel,
         },
       ],
     }).compile();
@@ -40,7 +42,7 @@ describe('RecordTypesService', () => {
     expect(recordTypesService).toBeDefined();
   });
 
-  // it('should set records when they are activated', () => {
-  //   const
-  // });
+  it('should set records when they are activated without error', async () => {
+    await recordTypesService.createOrEditRecordTypes(recordTypesStub(true));
+  });
 });

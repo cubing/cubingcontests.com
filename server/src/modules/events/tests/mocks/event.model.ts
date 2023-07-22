@@ -3,7 +3,7 @@ import { eventsStub } from '../stubs/events.stub';
 
 export const mockEventModel = (): any => ({
   tempOutput: undefined,
-  find(query: any) {
+  find(query: any): EventDocument[] {
     this.tempOutput = eventsStub();
 
     if (query?.eventId) {

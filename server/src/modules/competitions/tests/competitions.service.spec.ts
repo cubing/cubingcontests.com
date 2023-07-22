@@ -18,7 +18,7 @@ import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
 import { mockCompetitionModel } from './mocks/competition.model';
 import { mockRoundModel } from './mocks/round.model';
 import { mockResultModel } from '@m/results/tests/mocks/result.model';
-import { activeRecordTypesStub } from '@m/record-types/tests/stubs/record-types.stub';
+import { activeRecordTypesStub } from '@m/record-types/tests/stubs/active-record-types.stub';
 import { newCompetitionEventsStub, newFakeCompetitionEventsStub } from './stubs/new-competition-events.stub';
 
 describe('CompetitionsService', () => {

@@ -30,6 +30,8 @@ The pre-commit hook runs all tests and ESLint. If there are tests that don't pas
 
 There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
 
+Environment variables are specified in the `.env` file in the root directory (same directory as this README file). This file is not tracked by Git, so you need to create your own. Just copy `.env.example` and rename it to `.env`. In production you must change all of the secrets to randomly-generated secure passwords; just go with 100 alphanumeric characters.
+
 ### Server set-up
 
 The simplest way to run the back-end is to use the `test-backend.sh` script. The server listens on port 4000.

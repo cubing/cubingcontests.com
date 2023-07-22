@@ -6,6 +6,7 @@ export const activeRecordTypesStub = (): RecordTypeDocument[] => {
     {
       label: 'XWR',
       wcaEquivalent: WcaRecordType.WR,
+      order: 10,
       active: true,
       color: Color.Red,
     },

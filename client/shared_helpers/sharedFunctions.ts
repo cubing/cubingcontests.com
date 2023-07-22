@@ -1,4 +1,5 @@
-import { IRound, IResult } from './interfaces';
+import { Color, WcaRecordType } from './enums';
+import { IRound, IResult, IRecordType } from './interfaces';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
@@ -87,4 +88,74 @@ export const setNewRecords = (
   }
 
   return sameDayRounds;
+};
+
+export const recordTypesStub = (forTests = false): IRecordType[] => {
+  const prefix = forTests ? 'X' : '';
+
+  return [
+    {
+      label: prefix + 'WR',
+      wcaEquivalent: WcaRecordType.WR,
+      order: 10,
+      active: forTests,
+      color: Color.Red,
+    },
+    {
+      label: prefix + 'ER',
+      wcaEquivalent: WcaRecordType.ER,
+      order: 20,
+      active: false,
+      color: Color.Yellow,
+    },
+    {
+      label: prefix + 'NAR',
+      wcaEquivalent: WcaRecordType.NAR,
+      order: 30,
+      active: false,
+      color: Color.Yellow,
+    },
+    {
+      label: prefix + 'SAR',
+      wcaEquivalent: WcaRecordType.SAR,
+      order: 40,
+      active: false,
+      color: Color.Yellow,
+    },
+    {
+      label: prefix + 'AsR',
+      wcaEquivalent: WcaRecordType.AsR,
+      order: 50,
+      active: false,
+      color: Color.Yellow,
+    },
+    {
+      label: prefix + 'AfR',
+      wcaEquivalent: WcaRecordType.AfR,
+      order: 60,
+      active: false,
+      color: Color.Yellow,
+    },
+    {
+      label: prefix + 'OcR',
+      wcaEquivalent: WcaRecordType.OcR,
+      order: 70,
+      active: false,
+      color: Color.Yellow,
+    },
+    {
+      label: prefix + 'NR',
+      wcaEquivalent: WcaRecordType.NR,
+      order: 80,
+      active: false,
+      color: Color.Green,
+    },
+    {
+      label: prefix + 'PR',
+      wcaEquivalent: WcaRecordType.PR,
+      order: 90,
+      active: false,
+      color: Color.Blue,
+    },
+  ];
 };

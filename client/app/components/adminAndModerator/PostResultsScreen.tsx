@@ -349,7 +349,7 @@ const PostResultsScreen = ({
       updateCompetitionEvents(newRound);
       setRound(newRound);
 
-      editCallback();
+      if (editCallback) editCallback();
     }
     // If it's not the final round and we are deleting the last result, disallow the deletion
     else {

@@ -20,18 +20,18 @@ export class RecordTypesService {
     const queryFilter = query?.active ? { active: query.active } : {};
 
     try {
-      return await this.recordTypeModel.find(queryFilter, excl).exec();
+      return await this.recordTypeModel.find(queryFilter, excl).sort({ order: 1 }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
-  async createOrEditRecordTypes(newRecordTypes: IRecordType[]) {
+  async createOrEditRecordTypes(newRecordTypes: IRecordType[]): Promise<void> {
     // If there were already record types in the DB, delete them and create new ones
-    let recordTypes;
+    let recordTypes; // this needs to just hold the PREVIOUS record types; used for setting records below
     try {
       recordTypes = await this.recordTypeModel.find().exec();
-      if (recordTypes.length > 0) await this.recordTypeModel.deleteMany({});
+      if (recordTypes.length > 0) await this.recordTypeModel.deleteMany({}).exec();
       await this.recordTypeModel.create(newRecordTypes);
     } catch (err) {
       throw new InternalServerErrorException(`Error while creating record types: ${err.message}`);
@@ -46,23 +46,21 @@ export class RecordTypesService {
       if (!newRecordTypes[i].active && recordTypes[i]?.active) {
         console.log(`Unsetting ${newRecordTypes[i].label} records`);
 
-        await this.resultModel.updateMany(
-          { regionalSingleRecord: newRecordTypes[i].label },
-          { $unset: { regionalSingleRecord: '' } },
-        );
-        await this.resultModel.updateMany(
-          { regionalAverageRecord: newRecordTypes[i].label },
-          { $unset: { regionalAverageRecord: '' } },
-        );
+        await this.resultModel
+          .updateMany({ regionalSingleRecord: newRecordTypes[i].label }, { $unset: { regionalSingleRecord: '' } })
+          .exec();
+
+        await this.resultModel
+          .updateMany({ regionalAverageRecord: newRecordTypes[i].label }, { $unset: { regionalAverageRecord: '' } })
+          .exec();
       } else if (newRecordTypes[i].active && !recordTypes[i]?.active) {
         console.log(`Setting ${newRecordTypes[i].label} records`);
 
         try {
-          const events: EventDocument[] = await this.eventModel.find();
+          const events: EventDocument[] = await this.eventModel.find().exec();
 
           for (const event of events) {
             // Set single records
-            let bestResult = Infinity;
             const bestSinglesByDay = await this.resultModel
               .aggregate([
                 { $match: { eventId: event.eventId, best: { $gt: 0 } } },
@@ -78,6 +76,7 @@ export class RecordTypesService {
               .exec();
 
             // THIS SEEMS SUBOPTIMAL, MAYBE DO THIS DIRECTLY IN THE QUERY SOMEHOW
+            let bestResult = Infinity;
             const singleRecords = bestSinglesByDay.filter((res) => {
               if (res.best <= bestResult) {
                 bestResult = res.best;
@@ -140,7 +139,9 @@ export class RecordTypesService {
             }
           }
         } catch (err) {
-          throw new InternalServerErrorException(`Error while setting initial ${newRecordTypes[i].label} records`);
+          throw new InternalServerErrorException(
+            `Error while setting initial ${newRecordTypes[i].label} records: ${err.message}`,
+          );
         }
       }
     }

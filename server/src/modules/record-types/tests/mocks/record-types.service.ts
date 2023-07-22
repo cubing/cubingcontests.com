@@ -1,5 +1,5 @@
-import { activeRecordTypesStub } from '@m/record-types/tests/stubs/record-types.stub';
+import { recordTypesStub } from '@sh/sharedFunctions';
 
 export const RecordTypesServiceMock = {
-  getRecordTypes: jest.fn().mockResolvedValue(activeRecordTypesStub()),
+  getRecordTypes: jest.fn().mockResolvedValue(recordTypesStub(true)),
 };

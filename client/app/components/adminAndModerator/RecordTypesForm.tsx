@@ -5,13 +5,13 @@ import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
-import defaultRecordTypes from '~/helpers/defaultRecordTypes';
+import { recordTypesStub } from '~/shared_helpers/sharedFunctions';
 
-const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
-  const [errorMessages, setErrorMessages] = useState<string[]>((recordTypes as any).errors || []);
+const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordType[]; errors: string[] }) => {
+  const [errorMessages, setErrorMessages] = useState<string[]>(errors);
   // Temporary record types
   const [tRecordTypes, setTRecordTypes] = useState<IRecordType[]>(
-    recordTypes?.length > 0 ? recordTypes : defaultRecordTypes,
+    recordTypes?.length > 0 ? recordTypes : recordTypesStub(),
   );
 
   const handleSubmit = async () => {

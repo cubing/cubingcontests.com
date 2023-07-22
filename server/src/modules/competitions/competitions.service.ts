@@ -30,14 +30,15 @@ export class CompetitionsService {
     private personsService: PersonsService,
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>, // @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
+    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
     const queryFilter = region ? { country: region } : {};
 
     try {
-      return await this.competitionModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+      const competitions = await this.competitionModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+      return competitions;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -148,7 +149,7 @@ export class CompetitionsService {
       if (comp.events.length > 0) {
         console.log('Rewriting existing competition results');
 
-        // Store the rounds and results temporarily in case
+        // Store the rounds and results temporarily in case there is an error
         tempRounds = (await this.roundModel.find({ competitionId }).exec()) as IRound[];
         tempResults = (await this.resultModel.find({ competitionId }).exec()) as IResult[];
         await this.roundModel.deleteMany({ competitionId }).exec();

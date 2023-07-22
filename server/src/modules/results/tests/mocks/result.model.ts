@@ -11,6 +11,19 @@ export const mockResultModel = (): any => ({
       return results as ResultDocument;
     }
   },
+  updateOne() {
+    return this;
+  },
+  updateMany() {
+    return this;
+  },
+  deleteMany() {
+    return this;
+  },
+  aggregate() {
+    this.tempOutput = [];
+    return this;
+  },
   find(query: any) {
     this.tempOutput = resultsStub();
 
@@ -50,9 +63,6 @@ export const mockResultModel = (): any => ({
   },
   limit(count: number) {
     this.tempOutput = this.tempOutput.slice(0, count);
-    return this;
-  },
-  deleteMany() {
     return this;
   },
   // Resets the temporary output

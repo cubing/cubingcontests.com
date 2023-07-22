@@ -1,33 +1,19 @@
-import { roundsStub } from '@m/competitions/tests/stubs/rounds.stub';
+import { RecordTypeDocument } from '~/src/models/record-type.model';
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-// THIS IS ALL OLD CODE THAT NEEDS TO BE REWRITTEN!!!
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-export const mockRecordTypeModel = {
+export const mockRecordTypeModel = (): any => ({
+  tempOutput: undefined,
   create: jest.fn(),
-  find(query: any) {
-    const typeKey = query.split('.')[1];
-
-    return {
-      sort() {
-        return {
-          limit() {
-            return roundsStub().sort((a, b) => {
-              const aBest = (
-                a.results.reduce((prev: any, curr: any) =>
-                  curr[typeKey] > 0 && curr[typeKey] < prev[typeKey] ? curr : prev,
-                ) as any
-              )[typeKey];
-              const bBest = (
-                b.results.reduce((prev: any, curr: any) =>
-                  curr[typeKey] > 0 && curr[typeKey] < prev[typeKey] ? curr : prev,
-                ) as any
-              )[typeKey];
-              return aBest - bBest;
-            });
-          },
-        };
-      },
-    };
+  deleteMany() {
+    return this;
   },
-};
+  find(): RecordTypeDocument[] {
+    this.tempOutput = [];
+    return this;
+  },
+  // Resets the temporary output
+  exec() {
+    const temp = this.tempOutput;
+    this.tempOutput = undefined;
+    return temp;
+  },
+});

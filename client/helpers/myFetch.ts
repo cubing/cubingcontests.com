@@ -1,6 +1,10 @@
 import { API_BASE_URL } from './configuration';
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+interface IFetchObj {
+  payload?: any;
+  errors?: string[];
+}
 
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,
@@ -11,7 +15,7 @@ const doFetch = async (
   revalidate: number | false,
   body: unknown = null,
   authorize = false,
-) => {
+): Promise<IFetchObj> => {
   const options: any = { method, headers: {} };
 
   if (method === 'GET') {
@@ -91,13 +95,21 @@ const myFetch = {
       authorize: false,
       revalidate: false,
     },
-  ) {
+  ): Promise<IFetchObj> {
     return await doFetch(url, 'GET', revalidate, null, authorize);
   },
-  async post(url: string, body: unknown, { authorize = true }: { authorize?: boolean } = { authorize: true }) {
+  async post(
+    url: string,
+    body: unknown,
+    { authorize = true }: { authorize?: boolean } = { authorize: true },
+  ): Promise<IFetchObj> {
     return await doFetch(url, 'POST', false, body, authorize);
   },
-  async patch(url: string, body: unknown, { authorize = true }: { authorize?: boolean } = { authorize: true }) {
+  async patch(
+    url: string,
+    body: unknown,
+    { authorize = true }: { authorize?: boolean } = { authorize: true },
+  ): Promise<IFetchObj> {
     return await doFetch(url, 'PATCH', false, body, authorize);
   },
   // This method is client-only

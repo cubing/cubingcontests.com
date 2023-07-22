@@ -9,11 +9,12 @@ services:
       - 127.0.0.1:27017:27017
     volumes:
       - cubingcontests-db-dev:/data/db:rw
-      - ./mongo_init:/docker-entrypoint-initdb.d:ro
+      - mongo-init:/docker-entrypoint-initdb.d:ro
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=mongoadmindev
-      - MONGO_INITDB_ROOT_PASSWORD=mongoadmindev123
-      # - MONGO_INITDB_DATABASE=cubingcontests
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_ADMIN_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_ADMIN_PASSWORD
+      - MONGO_CC_USERNAME=$MONGO_CC_USERNAME
+      - MONGO_CC_PASSWORD=$MONGO_CC_PASSWORD
     restart: unless-stopped
   mongo-express:
     container_name: cc-mongo-express
@@ -24,8 +25,8 @@ services:
       - 127.0.0.1:8080:8081
     environment:
       - ME_CONFIG_MONGODB_SERVER=cc-mongo
-      - ME_CONFIG_MONGODB_AUTH_USERNAME=mongoadmindev
-      - ME_CONFIG_MONGODB_AUTH_PASSWORD=mongoadmindev123
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=$MONGO_ADMIN_USERNAME
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=$MONGO_ADMIN_PASSWORD
     depends_on:
       - mongo
     restart: unless-stopped
@@ -35,3 +36,9 @@ volumes:
   cubingcontests-db-dev:
     # Tells docker to create the storage for the volume on the local file system
     driver: local
+  mongo-init:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./mongo_init

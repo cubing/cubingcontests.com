@@ -8,7 +8,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RecordTypesModule } from './modules/record-types/record-types.module';
 import { ResultsModule } from './modules/results/results.module';
 
-const dbURI = process.env.MONGODB_URI || 'mongodb://mongoadmindev:mongoadmindev123@localhost:27017/admin';
+const dbURI =
+  process.env.MONGODB_URI ||
+  `mongodb://${process.env.MONGO_CC_USERNAME}:${process.env.MONGO_CC_PASSWORD}@127.0.0.1:27017/cubingcontests`;
 
 @Module({
   imports: [
