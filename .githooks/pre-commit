@@ -11,7 +11,6 @@ verify_exit() {
 
 # Go to the project root directory
 cd "$(git rev-parse --show-toplevel)"
-echo -e "New directory: $(pwd)\n"
 
 # CLIENT
 
@@ -20,7 +19,6 @@ STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'clien
 if [[ "$STAGED_FILES" != "" ]]; then
   # CLIENT BUILD
   cd client
-  echo -e "\nNew directory: $(pwd)\n"
   npx next build
   verify_exit
 
@@ -58,7 +56,6 @@ if [[ "$STAGED_FILES" != "" ]]; then
   echo -e "Running all /server test suites..."
 
   cd server
-  echo -e "\nNew directory: $(pwd)\n"
   npx jest
   verify_exit
 

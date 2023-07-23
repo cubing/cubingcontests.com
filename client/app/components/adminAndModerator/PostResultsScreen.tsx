@@ -33,7 +33,7 @@ const PostResultsScreen = ({
   const [round, setRound] = useState<IRound>(getDefaultRound());
   const [roundNumber, setRoundNumber] = useState(1);
   const [personNames, setPersonNames] = useState(['']);
-  const [currentPersons, setCurrentPersons] = useState<IPerson[]>([]);
+  const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
   const [attempts, setAttempts] = useState(['', '', '', '', '']);
   const [persons, setPersons] = useState<IPerson[]>([]);
   const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
@@ -72,6 +72,13 @@ const PostResultsScreen = ({
     document.getElementById(`name_${personNames.length}`)?.focus();
   }, [personNames.length]);
 
+  // Scroll to the top of the page when a new error message is shown
+  useEffect(() => {
+    if (errorMessages.find((el) => el !== '')) {
+      window.scrollTo(0, 0);
+    }
+  }, [errorMessages]);
+
   const handleSubmit = async () => {
     if (competitionEvents.length === 0 && round.results.length === 0) {
       setErrorMessages(["You haven't entered any results"]);
@@ -92,12 +99,10 @@ const PostResultsScreen = ({
   };
 
   const handleSubmitAttempts = () => {
-    const tempErrorMessages = [];
+    // Check for errors first
+    const tempErrorMessages: string[] = [];
 
-    if (
-      currentPersons.length === 0 ||
-      currentPersons.find((el) => currentPersons.filter((el2) => el2.personId === el.personId).length > 1)
-    ) {
+    if (currentPersons.includes(null)) {
       tempErrorMessages.push('Invalid person(s)');
     }
 
@@ -168,10 +173,8 @@ const PostResultsScreen = ({
         ...prev,
         ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId)),
       ]);
-      setCurrentPersons([]);
-      setPersonNames(['']);
       setErrorMessages([]);
-
+      resetPersons();
       resetAttempts(round.format);
       document.getElementById('name_1')?.focus();
     }
@@ -254,7 +257,9 @@ const PostResultsScreen = ({
     if (newRoundNumber - 1 > (compEvent?.rounds.length || 0)) {
       setErrorMessages(['Results for all previous rounds must be entered first']);
       return;
-    } else setErrorMessages([]);
+    } else {
+      setErrorMessages([]);
+    }
 
     if (newRoundNumber !== roundNumber) setRoundNumber(newRoundNumber);
 
@@ -268,8 +273,7 @@ const PostResultsScreen = ({
     else setRound(getDefaultRound(newEvent, defaultRoundFormat));
 
     resetAttempts(defaultRoundFormat);
-    setCurrentPersons([]);
-    setPersonNames(['']);
+    resetPersons(newEvent);
   };
 
   const changeRoundFormat = (newFormat: RoundFormat) => {
@@ -277,50 +281,73 @@ const PostResultsScreen = ({
     resetAttempts(newFormat);
   };
 
-  const selectCompetitor = async (e: any, index: number) => {
+  const selectCompetitor = async (index: number, e: any) => {
     if (e.key === 'Enter') {
-      const { payload, errors } = await myFetch.get(`/persons?searchParam=${personNames[index]}`);
+      const nameValue = e.target.value.trim();
+
+      // If an empty string was entered, show error
+      if (!nameValue) {
+        setErrorMessages(['Name cannot be empty']);
+        return;
+      }
+
+      const { payload, errors } = await myFetch.get(`/persons?searchParam=${nameValue}`);
 
       if (errors) {
         setErrorMessages(errors);
       } else if (payload.length === 0) {
-        setErrorMessages(['Person not found']);
+        setErrorMessages(['Competitor not found']);
+      } else if (payload.length > 1) {
+        setErrorMessages(['Multiple competitors found, please enter more characters']);
       } else {
-        const newPersonNames = [...personNames.slice(0, -1), payload[0].name];
-
-        if (payload.length === 1) {
-          // If the competitor has already been selected or their results have already been entered, show error
-          if (
-            currentPersons.find((el) => el.personId === payload[0].personId) ||
-            round.results.find((res: IResult) => res.personId.split(';').includes(payload[0].personId.toString()))
-          ) {
-            setPersonNames(['']);
-            setCurrentPersons([]);
-            setErrorMessages(["This competitor's results have already been entered"]);
-          } else {
-            if (compData.events.find((el) => el.eventId === round.eventId)?.format === EventFormat.TeamTime) {
-              newPersonNames.push('');
-              setCurrentPersons((prev) => [...prev, payload[0]]);
-            } else {
-              document.getElementById('solve_1')?.focus();
-              setCurrentPersons(payload);
-            }
-            setErrorMessages([]);
-          }
-        }
+        // Set the found competitor's name
+        const newPersonNames = personNames.map((el, i) => (i !== index ? el : payload[0].name));
         setPersonNames(newPersonNames);
+
+        if (currentPersons.find((el) => el?.personId === payload[0].personId)) {
+          setErrorMessages(['That competitor has already been selected']);
+        } else if (
+          round.results.find((res: IResult) => res.personId.split(';').includes(payload[0].personId.toString()))
+        ) {
+          setErrorMessages(["That competitor's results have already been entered"]);
+        }
+        // If no errors, set the competitor object
+        else {
+          const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : payload[0]));
+
+          // Focus on the attempt 1 input, if all names have been entered, or the next competitor input,
+          // if all names haven't been entered and the last competitor input is not currently focused
+          if (!newCurrentPersons.includes(null)) {
+            document.getElementById('solve_1')?.focus();
+          } else if (index + 1 < currentPersons.length) {
+            document.getElementById(`name_${index + 2}`)?.focus();
+          }
+
+          setCurrentPersons(newCurrentPersons);
+          setErrorMessages([]);
+        }
       }
     }
   };
 
   const changePersonName = (index: number, value: string) => {
     const newPersonNames = personNames.map((el, i) => (i !== index ? el : value));
-
     setPersonNames(newPersonNames);
+
+    // Reset the person object for that person
+    const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : null));
+    setCurrentPersons(newCurrentPersons);
   };
 
   const changeAttempt = (index: number, value: string) => {
     setAttempts(attempts.map((el, i) => (i !== index ? el : value)));
+  };
+
+  const resetPersons = (eventId = round.eventId) => {
+    const isTeamEvent = compData.events.find((el) => el.eventId === eventId).format === EventFormat.TeamTime;
+
+    setCurrentPersons(isTeamEvent ? [null, null] : [null]);
+    setPersonNames(isTeamEvent ? ['', ''] : ['']);
   };
 
   const resetAttempts = (roundFormat: RoundFormat) => {
@@ -443,14 +470,14 @@ const PostResultsScreen = ({
             </select>
           </div>
           <div className="mb-4">
-            {personNames.map((el: string, i: number) => (
+            {personNames.map((personName: string, i: number) => (
               <FormTextInput
                 key={i}
                 name={`Competitor ${i + 1}`}
                 id={`name_${i + 1}`}
-                value={el}
+                value={personName}
                 setValue={(val: string) => changePersonName(i, val)}
-                onKeyPress={(e: any) => selectCompetitor(e, i)}
+                onKeyPress={(e: any) => selectCompetitor(i, e)}
               />
             ))}
           </div>
