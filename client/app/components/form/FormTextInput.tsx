@@ -4,7 +4,7 @@ const FormTextInput = ({
   value,
   placeholder = '',
   disabled = false,
-  password = false,
+  isPassword = false,
   setValue,
   onKeyPress,
 }: {
@@ -12,17 +12,13 @@ const FormTextInput = ({
   id?: string;
   placeholder?: string;
   disabled?: boolean;
-  password?: boolean;
+  isPassword?: boolean;
   value: string;
   setValue: any;
   onKeyPress?: (e: any) => void;
 }) => {
-  if (!id) {
-    if (name) {
-      id = name?.toLowerCase().replace(' ', '_');
-    } else {
-      throw new Error('Neither name nor id are set in FormTextInput!');
-    }
+  if (!id && !name) {
+    throw new Error('Neither name nor id are set in FormTextInput!');
   }
 
   return (
@@ -33,8 +29,8 @@ const FormTextInput = ({
         </label>
       )}
       <input
-        type={password ? 'password' : 'text'}
-        id={id}
+        type={isPassword ? 'password' : 'text'}
+        id={id || name}
         value={value}
         placeholder={placeholder}
         disabled={disabled}

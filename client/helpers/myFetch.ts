@@ -1,10 +1,10 @@
-import { API_BASE_URL } from './configuration';
-
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 interface IFetchObj {
   payload?: any;
   errors?: string[];
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
 
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,
@@ -112,7 +112,7 @@ const myFetch = {
   ): Promise<IFetchObj> {
     return await doFetch(url, 'PATCH', false, body, authorize);
   },
-  // This method is client-only
+  // This method is client-only, because local storage is used
   async getAdmin() {
     const jwtToken = localStorage.getItem('jwtToken');
 
@@ -122,14 +122,14 @@ const myFetch = {
       try {
         const res = await fetch(`${API_BASE_URL}/auth/validateadmin`, {
           headers: { Authorization: jwtToken },
-          next: { revalidate: false },
         });
+
         json = await res.json();
       } catch (err: any) {
         console.error(err?.message || 'Unknown error while validating admin user');
       }
 
-      if (json?.username) {
+      if (json?.personId) {
         return json;
       } else {
         window.location.href = '/login?redirect=admin';

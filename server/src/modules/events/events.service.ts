@@ -30,7 +30,7 @@ export class EventsService {
   }
 
   async getEvents(eventIds?: string[]): Promise<EventDocument[]> {
-    const queryFilter = eventIds ? {eventId: {$in: eventIds}} : {};
+    const queryFilter = eventIds ? { eventId: { $in: eventIds } } : {};
 
     try {
       return await this.model.find(queryFilter, excl).sort({ rank: 1 }).exec();
@@ -51,8 +51,7 @@ export class EventsService {
         throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
       }
 
-      const newEvent = new this.model(createEventDto);
-      await newEvent.save();
+      await this.model.create(createEventDto);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

@@ -7,15 +7,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   let corsOptions;
 
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.JWT_SECRET) throw new Error('JWT SECRET NOT SET!');
-    else if (!process.env.MONGODB_URI) throw new Error('MONGO DB URI NOT SET!');
+  if (!process.env.JWT_SECRET) throw new Error('JWT SECRET NOT SET!');
+  if (!process.env.MONGODB_URI) throw new Error('MONGO DB URI NOT SET!');
 
+  if (process.env.NODE_ENV === 'production') {
     corsOptions = {
       origin: ['https://denimintsaev.com', 'https://www.denimintsaev.com', 'https://cubingcontests.denimintsaev.com'],
     };
 
-    console.log('Setting CORS origin policy for ', corsOptions.origin);
+    console.log('Setting CORS origin policy for', corsOptions.origin);
   }
 
   app.enableCors(corsOptions);

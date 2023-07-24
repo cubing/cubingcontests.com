@@ -27,8 +27,8 @@ export class AuthController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async validateAdmin(@Request() req: any) {
-    return {
-      username: req.user.username,
-    };
+    // For some reason returning { personId: req.user.personId } leaves an undefined person ID :/
+    const personId = req.user.personId;
+    return { personId };
   }
 }

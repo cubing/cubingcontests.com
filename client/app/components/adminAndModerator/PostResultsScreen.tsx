@@ -9,6 +9,7 @@ import myFetch from '~/helpers/myFetch';
 import { RoundFormat, RoundType, EventFormat, WcaRecordType } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
+import { selectPerson } from '~/helpers/utilityFunctions';
 
 const PostResultsScreen = ({
   compData,
@@ -281,53 +282,33 @@ const PostResultsScreen = ({
     resetAttempts(newFormat);
   };
 
-  const selectCompetitor = async (index: number, e: any) => {
-    if (e.key === 'Enter') {
-      const nameValue = e.target.value.trim();
+  const onSelectCompetitor = async (index: number, e: any) => {
+    selectPerson(e, setErrorMessages, (person: IPerson) => {
+      // Set the found competitor's name
+      const newPersonNames = personNames.map((el, i) => (i !== index ? el : person.name));
+      setPersonNames(newPersonNames);
 
-      // If an empty string was entered, show error
-      if (!nameValue) {
-        setErrorMessages(['Name cannot be empty']);
-        return;
+      if (currentPersons.find((el) => el?.personId === person.personId)) {
+        setErrorMessages(['That competitor has already been selected']);
+      } else if (round.results.find((res: IResult) => res.personId.split(';').includes(person.personId.toString()))) {
+        setErrorMessages(["That competitor's results have already been entered"]);
       }
+      // If no errors, set the competitor object
+      else {
+        const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : person));
 
-      const { payload, errors } = await myFetch.get(`/persons?searchParam=${nameValue}`);
-
-      if (errors) {
-        setErrorMessages(errors);
-      } else if (payload.length === 0) {
-        setErrorMessages(['Competitor not found']);
-      } else if (payload.length > 1) {
-        setErrorMessages(['Multiple competitors found, please enter more characters']);
-      } else {
-        // Set the found competitor's name
-        const newPersonNames = personNames.map((el, i) => (i !== index ? el : payload[0].name));
-        setPersonNames(newPersonNames);
-
-        if (currentPersons.find((el) => el?.personId === payload[0].personId)) {
-          setErrorMessages(['That competitor has already been selected']);
-        } else if (
-          round.results.find((res: IResult) => res.personId.split(';').includes(payload[0].personId.toString()))
-        ) {
-          setErrorMessages(["That competitor's results have already been entered"]);
+        // Focus on the attempt 1 input, if all names have been entered, or the next competitor input,
+        // if all names haven't been entered and the last competitor input is not currently focused
+        if (!newCurrentPersons.includes(null)) {
+          document.getElementById('solve_1')?.focus();
+        } else if (index + 1 < currentPersons.length) {
+          document.getElementById(`name_${index + 2}`)?.focus();
         }
-        // If no errors, set the competitor object
-        else {
-          const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : payload[0]));
 
-          // Focus on the attempt 1 input, if all names have been entered, or the next competitor input,
-          // if all names haven't been entered and the last competitor input is not currently focused
-          if (!newCurrentPersons.includes(null)) {
-            document.getElementById('solve_1')?.focus();
-          } else if (index + 1 < currentPersons.length) {
-            document.getElementById(`name_${index + 2}`)?.focus();
-          }
-
-          setCurrentPersons(newCurrentPersons);
-          setErrorMessages([]);
-        }
+        setCurrentPersons(newCurrentPersons);
+        setErrorMessages([]);
       }
-    }
+    });
   };
 
   const changePersonName = (index: number, value: string) => {
@@ -477,7 +458,7 @@ const PostResultsScreen = ({
                 id={`name_${i + 1}`}
                 value={personName}
                 setValue={(val: string) => changePersonName(i, val)}
-                onKeyPress={(e: any) => selectCompetitor(i, e)}
+                onKeyPress={(e: any) => onSelectCompetitor(i, e)}
               />
             ))}
           </div>

@@ -6,10 +6,13 @@ import { Role } from '~/src/helpers/enums';
 @Schema({ timestamps: true })
 class User implements IUser {
   @Prop({ required: true })
-  name: string;
+  personId: number;
 
   @Prop({ required: true, unique: true })
   username: string;
+
+  @Prop({ required: true })
+  email: string;
 
   @Prop({ required: true })
   password: string;

@@ -1,5 +1,6 @@
 import Countries from '@sh/Countries';
-import { IEvent } from '@sh/interfaces';
+import { IEvent, IPerson } from '@sh/interfaces';
+import myFetch from './myFetch';
 
 export const getCountry = (countryId: string): string => {
   return Countries.find((el) => el.code === countryId)?.name || 'Unknown country';
@@ -52,4 +53,36 @@ export const formatTime = (event: IEvent, time: number, isAverage = false): stri
 export const getSolves = (event: IEvent, attempts: number[]): string => {
   // The character in quotes is an em space
   return attempts.map((el) => formatTime(event, el)).join(' ');
+};
+
+export const selectPerson = async (
+  e: any,
+  setErrorMessages: (errorMessages: string[]) => void,
+  callback: (person: IPerson) => void,
+) => {
+  if (e.key === 'Enter') {
+    // Prevent form from submitting
+    e.preventDefault();
+
+    const nameValue = e.target.value.trim();
+
+    // If an empty string was entered, show error
+    if (!nameValue) {
+      setErrorMessages(['Name cannot be empty']);
+      return;
+    }
+
+    const { payload, errors } = await myFetch.get(`/persons?searchParam=${nameValue}`);
+
+    if (errors) {
+      setErrorMessages(errors);
+    } else if (payload.length === 0) {
+      setErrorMessages(['Competitor not found']);
+    } else if (payload.length > 1) {
+      setErrorMessages(['Multiple competitors found, please enter more characters']);
+    } else {
+      // Call the callback function if there are no errors
+      callback(payload[0]);
+    }
+  }
 };

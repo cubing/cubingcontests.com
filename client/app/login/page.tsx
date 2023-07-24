@@ -24,7 +24,7 @@ const Login = () => {
     if (!username) tempErrors.push('Please enter a username');
     if (!password) tempErrors.push('Please enter a password');
 
-    if (username && password) {
+    if (tempErrors.length === 0) {
       const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
 
       if (errors) {
@@ -34,6 +34,7 @@ const Login = () => {
       } else {
         localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
 
+        // Redirect to page in the ?redirect parameter or home if it's not set
         const redirect = searchParams.get('redirect');
         if (redirect) window.location.href = `/${redirect}`;
         else window.location.href = '/';
@@ -47,8 +48,8 @@ const Login = () => {
     <>
       <h2 className="mb-4 text-center">Login</h2>
       <Form buttonText="Log in" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-        <FormTextInput name="Username" value={username} setValue={setUsername} />
-        <FormTextInput name="Password" password value={password} setValue={setPassword} />
+        <FormTextInput id="username" name="Username" value={username} setValue={setUsername} />
+        <FormTextInput name="Password" isPassword value={password} setValue={setPassword} />
         <Link href="/register" className="d-block mt-4 fs-5">
           Create account
         </Link>

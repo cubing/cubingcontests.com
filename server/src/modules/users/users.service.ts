@@ -17,8 +17,9 @@ export class UsersService {
       if (user) {
         return {
           _id: user._id,
-          name: user.name,
+          personId: user.personId,
           username: user.username,
+          email: user.email,
           password: user.password,
           roles: user.roles,
         };
@@ -28,13 +29,22 @@ export class UsersService {
     }
   }
 
-  // WARNING: this expects that the password is ALREADY encrypted!
+  // WARNING: this expects that the password is ALREADY encrypted! That is done in the auth module.
   async createUser(createUserDto: CreateUserDto) {
     try {
-      const user: UserDocument = await this.model.findOne({ username: createUserDto.username }).exec();
+      const sameIdUser: UserDocument = await this.model.findOne({ personId: createUserDto.personId }).exec();
+      if (sameIdUser) {
+        throw new BadRequestException('User with that name already exists');
+      }
 
-      if (user) {
+      const sameUsernameUser: UserDocument = await this.model.findOne({ username: createUserDto.username }).exec();
+      if (sameUsernameUser) {
         throw new BadRequestException(`User with username ${createUserDto.username} already exists`);
+      }
+
+      const sameEmailUser: UserDocument = await this.model.findOne({ email: createUserDto.email }).exec();
+      if (sameEmailUser) {
+        throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
       }
 
       await this.model.create(createUserDto);

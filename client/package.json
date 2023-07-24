@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "fulldev": "concurrently -c green,blue \"npm run dev\" \"cd ../server && npm run fulldev\"",
+    "fulldev": "concurrently -c blue,white \"npm run dev\" \"cd ../server && npm run fulldev\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

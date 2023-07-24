@@ -13,7 +13,7 @@ export class RolesGuard implements CanActivate {
     // Makes endpoints that DON'T have a @Roles() decorator accessible
     if (!requiredRoles) return true;
 
-    // Receive the user from the request (coming from the Authenticated (JWT) guard)
+    // Receive the user from the request (coming from the Authenticated (JWT strategy) guard)
     const { user } = context.switchToHttp().getRequest();
 
     if (!user) {

@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsString, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsString, Min, MinLength } from 'class-validator';
 import { IEvent } from '@sh/interfaces';
 import { EventFormat, RoundFormat } from '@sh/enums';
 
@@ -20,4 +20,7 @@ export class CreateEventDto implements IEvent {
 
   @IsEnum(RoundFormat)
   defaultRoundFormat: RoundFormat;
+
+  @IsBoolean()
+  meetupOnly: boolean;
 }

@@ -1,7 +1,7 @@
 import { EventFormat, RoundFormat } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
 
-// Official WCA events
+// Official WCA events + 3x3x3 Team-Blind + 3x3x3 Team Factory. THIS IS TEMPORARY UNTIL EVENT CREATION IS ADDED.
 export default [
   {
     eventId: '333',
@@ -9,6 +9,7 @@ export default [
     rank: 10,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: '222',
@@ -16,6 +17,7 @@ export default [
     rank: 20,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: '444',
@@ -23,6 +25,7 @@ export default [
     rank: 30,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: '555',
@@ -30,6 +33,7 @@ export default [
     rank: 40,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: '666',
@@ -37,6 +41,7 @@ export default [
     rank: 50,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
+    meetupOnly: false,
   },
   {
     eventId: '777',
@@ -44,6 +49,7 @@ export default [
     rank: 60,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
+    meetupOnly: false,
   },
   {
     eventId: '333bf',
@@ -51,6 +57,7 @@ export default [
     rank: 70,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
+    meetupOnly: false,
   },
   {
     eventId: '333fm',
@@ -58,6 +65,7 @@ export default [
     rank: 80,
     format: EventFormat.Number,
     defaultRoundFormat: RoundFormat.Mean,
+    meetupOnly: false,
   },
   {
     eventId: '333oh',
@@ -65,6 +73,7 @@ export default [
     rank: 90,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: 'clock',
@@ -72,6 +81,7 @@ export default [
     rank: 110,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: 'minx',
@@ -79,6 +89,7 @@ export default [
     rank: 120,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: 'pyram',
@@ -86,6 +97,7 @@ export default [
     rank: 130,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: 'skewb',
@@ -93,6 +105,7 @@ export default [
     rank: 140,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: 'sq1',
@@ -100,6 +113,7 @@ export default [
     rank: 150,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: '444bf',
@@ -107,6 +121,7 @@ export default [
     rank: 160,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
+    meetupOnly: false,
   },
   {
     eventId: '555bf',
@@ -114,6 +129,7 @@ export default [
     rank: 170,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
+    meetupOnly: false,
   },
   {
     eventId: '333mbf',
@@ -121,6 +137,7 @@ export default [
     rank: 180,
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
+    meetupOnly: false,
   },
   {
     eventId: '333tbf',
@@ -128,6 +145,7 @@ export default [
     rank: 190,
     format: EventFormat.TeamTime,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: false,
   },
   {
     eventId: '333tf',
@@ -135,5 +153,6 @@ export default [
     rank: 200,
     format: EventFormat.TeamTime,
     defaultRoundFormat: RoundFormat.Average,
+    meetupOnly: true,
   },
 ] as IEvent[];

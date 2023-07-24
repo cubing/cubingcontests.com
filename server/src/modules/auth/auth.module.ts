@@ -14,7 +14,9 @@ import { JwtStrategy } from './jwt.strategy';
     PassportModule,
     JwtModule.register({
       // global: true,
-      secret: process.env.JWT_SECRET || 'DEVELOPMENT_SECRET', // same as in jwt.strategy.ts
+      // The fallback is the same as in .env.dev. It's necessary, because that file isn't
+      // loaded until the Nest JS dependencies are initialized.
+      secret: process.env.JWT_SECRET || 'jwt_secret',
       signOptions: { expiresIn: '43200s' }, // 12 hours
     }),
   ],
