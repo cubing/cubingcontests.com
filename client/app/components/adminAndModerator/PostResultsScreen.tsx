@@ -288,16 +288,16 @@ const PostResultsScreen = ({
       const newPersonNames = personNames.map((el, i) => (i !== index ? el : person.name));
       setPersonNames(newPersonNames);
 
-      if (currentPersons.find((el) => el?.personId === person.personId)) {
+      if (currentPersons.some((el) => el?.personId === person.personId)) {
         setErrorMessages(['That competitor has already been selected']);
-      } else if (round.results.find((res: IResult) => res.personId.split(';').includes(person.personId.toString()))) {
+      } else if (round.results.some((res: IResult) => res.personId.split(';').includes(person.personId.toString()))) {
         setErrorMessages(["That competitor's results have already been entered"]);
       }
       // If no errors, set the competitor object
       else {
         const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : person));
 
-        // Focus on the attempt 1 input, if all names have been entered, or the next competitor input,
+        // Focus on the next input, if all names have been entered, or the next competitor input,
         // if all names haven't been entered and the last competitor input is not currently focused
         if (!newCurrentPersons.includes(null)) {
           document.getElementById('solve_1')?.focus();

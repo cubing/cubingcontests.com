@@ -1,13 +1,10 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { IsEnum } from 'class-validator';
+// import { PartialType } from '@nestjs/mapped-types';
 import { CreateCompetitionDto } from './create-competition.dto';
-import { IsOptional } from 'class-validator';
-import { IRound } from '@sh/interfaces';
+import { CompetitionState, CompetitionType } from '@sh/enums';
 
-export class UpdateCompetitionDto extends PartialType(CreateCompetitionDto) {
-  // ADD VALIDATION(?)
-  @IsOptional()
-  events?: {
-    eventId: string;
-    rounds: IRound[];
-  }[];
+// export class UpdateCompetitionDto extends PartialType(CreateCompetitionDto) {
+export class UpdateCompetitionDto extends CreateCompetitionDto {
+  @IsEnum(CompetitionType)
+  state: CompetitionState;
 }

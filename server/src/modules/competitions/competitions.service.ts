@@ -12,9 +12,18 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { ICompetitionEvent, ICompetitionData, ICompetitionModData, IRound, IResult, IRecordType } from '@sh/interfaces';
+import {
+  ICompetitionEvent,
+  ICompetitionData,
+  ICompetitionModData,
+  IRound,
+  IResult,
+  IRecordType,
+  ICompetition,
+} from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
-import { WcaRecordType } from '@sh/enums';
+import { CompetitionState, WcaRecordType } from '@sh/enums';
+import { Role } from '~/src/helpers/enums';
 
 interface CompetitionUpdateResult {
   events: ICompetitionEvent[];
@@ -55,7 +64,7 @@ export class CompetitionsService {
       };
 
       // Get information about all participants and events of the competition if the results have been posted
-      if (competition.events.length > 0) {
+      if (competition.state === CompetitionState.Finished) {
         try {
           const personIds: number[] = this.getCompetitionParticipants(competition.events);
           output.persons = await this.personsService.getPersonsById(personIds);
@@ -80,7 +89,7 @@ export class CompetitionsService {
     const persons = await this.personsService.getPersonsById(personIds);
 
     if (competition) {
-      const output: ICompetitionModData = {
+      const compModData: ICompetitionModData = {
         competition,
         events,
         persons,
@@ -91,21 +100,21 @@ export class CompetitionsService {
 
       // Get all current records
       for (const event of events) {
-        output.records[event.eventId] = await this.getEventRecords(
+        compModData.records[event.eventId] = await this.getEventRecords(
           event.eventId,
           activeRecordTypes,
           new Date(competition.startDate),
         );
       }
 
-      return output;
+      return compModData;
     }
 
     throw new NotFoundException(`Competition with id ${competitionId} not found`);
   }
 
   // Create new competition, if one with that id doesn't already exist (no results yet)
-  async createCompetition(createCompetitionDto: CreateCompetitionDto) {
+  async createCompetition(createCompetitionDto: CreateCompetitionDto, creatorPersonId: number) {
     let comp;
     try {
       comp = await this.competitionModel.findOne({ competitionId: createCompetitionDto.competitionId }).exec();
@@ -116,14 +125,18 @@ export class CompetitionsService {
     if (comp) throw new BadRequestException(`Competition with id ${createCompetitionDto.competitionId} already exists`);
 
     try {
-      await this.competitionModel.create(createCompetitionDto);
+      await this.competitionModel.create({
+        ...createCompetitionDto,
+        createdBy: creatorPersonId,
+        state: CompetitionState.Created,
+      } as ICompetition);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
   // Update the competition. This is also used for posting results.
-  async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto) {
+  async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, roles: Role[]) {
     let comp: CompetitionDocument;
     try {
       comp = await this.competitionModel.findOne({ competitionId }).exec();
@@ -132,42 +145,65 @@ export class CompetitionsService {
     }
     if (!comp) throw new BadRequestException(`Competition with id ${competitionId} not found`);
 
-    if (updateCompetitionDto.name) comp.name = updateCompetitionDto.name;
-    if (updateCompetitionDto.type) comp.type = updateCompetitionDto.type;
-    if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
-    if (updateCompetitionDto.countryId) comp.countryId = updateCompetitionDto.countryId;
-    if (updateCompetitionDto.startDate) comp.startDate = updateCompetitionDto.startDate;
-    if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
-    if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
-    if (updateCompetitionDto.mainEventId) comp.mainEventId = updateCompetitionDto.mainEventId;
+    // Only the admin is allowed to edit these fields
+    if (roles.includes(Role.Admin)) {
+      comp.competitionId = updateCompetitionDto.competitionId;
+      comp.state = updateCompetitionDto.state;
+      comp.countryId = updateCompetitionDto.countryId;
+    }
+    // Allow mods only to finish a competition
+    else if (updateCompetitionDto.state === CompetitionState.Finished) {
+      comp.state = updateCompetitionDto.state;
+    }
 
-    // Post competition results
-    if (updateCompetitionDto.events.length > 0) {
+    // All of this is possible for mods to edit
+    comp.name = updateCompetitionDto.name;
+    comp.city = updateCompetitionDto.city;
+    comp.venue = updateCompetitionDto.venue;
+    if (updateCompetitionDto.coordinates) comp.coordinates = updateCompetitionDto.coordinates;
+    else delete comp.coordinates;
+    comp.startDate = updateCompetitionDto.startDate;
+    if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
+    if (updateCompetitionDto.organizers) comp.organizers = updateCompetitionDto.organizers;
+    else delete comp.organizers;
+    if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
+    if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
+    else delete comp.description;
+    comp.competitorLimit = updateCompetitionDto.competitorLimit;
+    comp.mainEventId = updateCompetitionDto.mainEventId;
+
+    // Post competition results and set the number of participants
+    if (comp.state === CompetitionState.Published) {
+      // Store the rounds and results temporarily in case there is an error
       let tempRounds: IRound[];
       let tempResults: IResult[];
 
-      if (comp.events.length > 0) {
-        console.log('Rewriting existing competition results');
-
-        // Store the rounds and results temporarily in case there is an error
+      try {
         tempRounds = (await this.roundModel.find({ competitionId }).exec()) as IRound[];
         tempResults = (await this.resultModel.find({ competitionId }).exec()) as IResult[];
         await this.roundModel.deleteMany({ competitionId }).exec();
         await this.resultModel.deleteMany({ competitionId }).exec();
-      }
 
-      try {
         const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
         const updatedCompetition: CompetitionUpdateResult = await this.updateCompetitionEvents(
           updateCompetitionDto.events,
           activeRecordTypes,
         );
+
         comp.events = updatedCompetition.events;
         comp.participants = updatedCompetition.participants;
-      } catch (err: any) {
-        // Add back the rounds and results if there was an error while creating the competition
-        if (tempRounds) await this.roundModel.create(tempRounds);
-        if (tempResults) await this.resultModel.create(tempResults);
+      } catch (err) {
+        // Reset the rounds and results if there was an error while posting the results
+        if (tempRounds?.length > 0) {
+          await this.roundModel.deleteMany({ competitionId }).exec();
+          await this.roundModel.create(tempRounds);
+        }
+
+        if (tempResults?.length > 0) {
+          await this.resultModel.deleteMany({ competitionId }).exec();
+          await this.resultModel.create(tempResults);
+        }
+
         throw new InternalServerErrorException(`Error while updating competition events: ${err.message}`);
       }
     }

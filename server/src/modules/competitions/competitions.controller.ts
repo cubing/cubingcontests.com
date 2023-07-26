@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Request, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { CompetitionsService } from './competitions.service';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
@@ -38,9 +38,12 @@ export class CompetitionsController {
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async createCompetition(@Body(new ValidationPipe()) createCompetitionDto: CreateCompetitionDto) {
+  async createCompetition(
+    @Request() req: any, // this is passed in by the guards
+    @Body(new ValidationPipe()) createCompetitionDto: CreateCompetitionDto,
+  ) {
     console.log('Creating competition');
-    return await this.service.createCompetition(createCompetitionDto);
+    return await this.service.createCompetition(createCompetitionDto, req.user.personId);
   }
 
   // PATCH /competitions/:id
@@ -49,10 +52,11 @@ export class CompetitionsController {
   @Roles(Role.Admin)
   async updateCompetition(
     @Param('id') competitionId: string,
+    @Request() req: any, // this is passed in by the guards
     @Body(new ValidationPipe()) updateCompetitionDto: UpdateCompetitionDto,
   ) {
     console.log('Updating competition');
-    return await this.service.updateCompetition(competitionId, updateCompetitionDto);
+    return await this.service.updateCompetition(competitionId, updateCompetitionDto, req.user.roles);
   }
 
   // DELETE /competitions/:id

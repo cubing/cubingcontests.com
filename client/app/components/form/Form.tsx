@@ -25,7 +25,7 @@ const Form = ({
 
       {children}
 
-      <button type="submit" className="mt-4 btn btn-primary">
+      <button type="submit" className="d-block mt-4 btn btn-primary">
         {buttonText}
       </button>
     </form>

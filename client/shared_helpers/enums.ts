@@ -23,9 +23,20 @@ export enum RoundType {
   // Final = 'c',
 }
 
+export enum RoundProceed {
+  Percentage = 1,
+  Number = 2,
+}
+
 export enum CompetitionType {
   Meetup = 1,
   Competition = 2,
+}
+
+export enum CompetitionState {
+  Created = 1,
+  Published = 2,
+  Finished = 3,
 }
 
 export enum WcaRecordType {

@@ -1,4 +1,4 @@
-import { CompetitionType } from '../enums';
+import { CompetitionType, CompetitionState } from '../enums';
 import { IEvent } from './Event';
 import { IRound } from './Round';
 import { IPerson } from './Person';
@@ -8,19 +8,29 @@ export interface ICompetitionEvent {
   rounds: IRound[];
 }
 
-// UPDATE THE CREATE COMPETITION DTO AND THE COMPETITION MODEL, WHEN UPDATING THIS INTERFACE
+// WHEN UPDATING THIS INTERFACE, update the create competition DTO (and update DTO if needed),
+// the competition model, and also consider the createCompetition method in the competition service
+// and the CompetitionForm component on the frontend
 export interface ICompetition {
   competitionId: string;
+  createdBy: number; // peson ID of the moderator/admin, who created the competition
+  state: CompetitionState; // created = 1, published = 2, finished = 3
+
   name: string;
   type: CompetitionType;
   city: string;
   countryId: string; // 2 letter country code
-  startDate: Date;
-  endDate: Date;
+  venue?: string; // required for competitions, optional for meetups
+  coordinates?: [number, number]; // required for competitions, optional for meetups
+  startDate: Date; // includes the time if it's a meetup
+  endDate?: Date; // competition-only, because meetups are always held on a single day
+  organizers?: number[]; // person IDs of the organizers (optional for meetups, required for competitions)
+  contact?: string; // competition-only
   description?: string;
+  competitorLimit: number;
   mainEventId: string;
-  participants: number;
   events: ICompetitionEvent[];
+  participants: number;
 }
 
 export interface ICompetitionData {
