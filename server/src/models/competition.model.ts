@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { ICompetition, ICompetitionEvent } from '@sh/interfaces';
 import { Round } from './round.model';
+import { Person, PersonSchema } from './person.model';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 
 @Schema({ _id: false })
@@ -50,8 +51,8 @@ class Competition implements ICompetition {
   @Prop()
   endDate?: Date;
 
-  @Prop({ required: true })
-  organizers?: number[];
+  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Person' }] })
+  organizers?: Person[];
 
   @Prop()
   contact?: string;

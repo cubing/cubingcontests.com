@@ -5,7 +5,7 @@ import { IPerson } from './Person';
 
 export interface ICompetitionEvent {
   eventId: string;
-  rounds: IRound[];
+  rounds: IRound[]; // stored as references
 }
 
 // WHEN UPDATING THIS INTERFACE, update the create competition DTO (and update DTO if needed),
@@ -24,7 +24,7 @@ export interface ICompetition {
   coordinates?: [number, number]; // required for competitions, optional for meetups
   startDate: Date; // includes the time if it's a meetup
   endDate?: Date; // competition-only, because meetups are always held on a single day
-  organizers?: number[]; // person IDs of the organizers (optional for meetups, required for competitions)
+  organizers?: IPerson[]; // stored as references
   contact?: string; // competition-only
   description?: string;
   competitorLimit: number;

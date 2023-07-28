@@ -21,14 +21,16 @@ export class PersonsService {
     }
   }
 
-  async getPersonsById(personIds?: number[] | string): Promise<PersonDocument[]> {
+  async getPersonsById(personIds?: number[] | number | string): Promise<PersonDocument[]> {
     let queryFilter = {};
 
     if (personIds) {
-      if (typeof personIds !== 'string') {
-        queryFilter = { personId: { $in: personIds } };
-      } else {
+      if (typeof personIds === 'number') {
+        queryFilter = { personId: personIds };
+      } else if (typeof personIds === 'string') {
         queryFilter = { personId: { $in: personIds.split(';').map((el: string) => parseInt(el)) } };
+      } else {
+        queryFilter = { personId: { $in: personIds } };
       }
     }
 

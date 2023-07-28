@@ -15,11 +15,11 @@ const AdminHome = async () => {
   };
 
   const onEditCompetition = (competitionId: string) => {
-    window.location.href = `/admin/competition/${competitionId}/edit`;
+    window.location.href = `/admin/competition?edit_id=${competitionId}`;
   };
 
   const onPostCompResults = (competitionId: string) => {
-    window.location.href = `/admin/competition/${competitionId}/post-results`;
+    window.location.href = `/admin/competition/${competitionId}`;
   };
 
   return (

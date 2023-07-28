@@ -75,9 +75,7 @@ const PostResultsScreen = ({
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
-    if (errorMessages.find((el) => el !== '')) {
-      window.scrollTo(0, 0);
-    }
+    if (errorMessages.find((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages]);
 
   const handleSubmit = async () => {

@@ -35,15 +35,15 @@ export enum CompetitionType {
 
 export enum CompetitionState {
   Created = 1,
-  Published = 2,
+  Ongoing = 2,
   Finished = 3,
 }
 
 export enum WcaRecordType {
   WR = 'WR',
   ER = 'ER',
-  NAR = 'NaR',
-  SAR = 'SaR',
+  NAR = 'NAR',
+  SAR = 'SAR',
   AsR = 'AsR',
   AfR = 'AfR',
   OcR = 'OcR',

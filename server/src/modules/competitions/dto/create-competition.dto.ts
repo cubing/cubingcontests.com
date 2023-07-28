@@ -14,7 +14,7 @@ import {
 } from 'class-validator';
 import Countries from '@sh/Countries';
 import { CompetitionType } from '@sh/enums';
-import { IRound } from '@sh/interfaces';
+import { IPerson, IRound } from '@sh/interfaces';
 
 export class CreateCompetitionDto {
   @IsString()
@@ -54,8 +54,8 @@ export class CreateCompetitionDto {
   endDate?: Date;
 
   @IsOptional()
-  @IsNumber({}, { each: true })
-  organizers?: number[];
+  @IsArray()
+  organizers?: IPerson[];
 
   @IsOptional()
   @IsString()

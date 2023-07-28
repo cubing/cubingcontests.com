@@ -33,7 +33,7 @@ export class Round implements IRound {
   @Prop({ enum: RoundFormat, required: true })
   format: RoundFormat;
 
-  @Prop({ type: [ProceedSchema] })
+  @Prop({ type: ProceedSchema })
   proceed?: Proceed;
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Result' }], required: true })

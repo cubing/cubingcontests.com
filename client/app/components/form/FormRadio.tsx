@@ -5,11 +5,13 @@ const FormRadio = ({
   options,
   selected,
   setSelected,
+  disabled = false,
 }: {
   title: string;
   options: MultiChoiceOption[];
   selected: unknown;
   setSelected: (value: any) => void;
+  disabled?: boolean;
 }) => {
   return (
     <>
@@ -26,6 +28,7 @@ const FormRadio = ({
                 type="radio"
                 checked={selected === option.value}
                 onChange={() => setSelected(option.value)}
+                disabled={disabled || option.disabled}
                 className="form-check-input"
               />
               <label className="form-check-label" htmlFor={id}>

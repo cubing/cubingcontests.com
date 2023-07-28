@@ -51,11 +51,5 @@ export const personsStub = (): PersonDocument[] => {
       name: 'Kerry Limmer',
       countryId: 'DE',
     },
-    // {
-    //   _id: new mongoose.Types.ObjectId('649f2ab4a91cfa4672e1880e'),
-    //   personId: 9,
-    //   name: 'Oliver Fritz',
-    //   countryId: 'DE',
-    // },
   ] as PersonDocument[];
 };

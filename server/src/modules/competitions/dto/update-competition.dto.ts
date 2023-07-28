@@ -5,6 +5,6 @@ import { CompetitionState, CompetitionType } from '@sh/enums';
 
 // export class UpdateCompetitionDto extends PartialType(CreateCompetitionDto) {
 export class UpdateCompetitionDto extends CreateCompetitionDto {
-  @IsEnum(CompetitionType)
+  @IsEnum(CompetitionState)
   state: CompetitionState;
 }

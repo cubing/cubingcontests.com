@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import { IPerson } from '@sh/interfaces';
 
 @Schema({ timestamps: true })
-class Person implements IPerson {
+export class Person implements IPerson {
   @Prop({ required: true, immutable: true, unique: true })
   personId: number;
 

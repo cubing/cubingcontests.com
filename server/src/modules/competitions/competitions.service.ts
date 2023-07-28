@@ -6,7 +6,6 @@ import { Model } from 'mongoose';
 import { CompetitionEvent, CompetitionDocument } from '~/src/models/competition.model';
 import { excl } from '~/src/helpers/dbHelpers';
 import { Round, RoundDocument } from '~/src/models/round.model';
-import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
@@ -20,6 +19,7 @@ import {
   IResult,
   IRecordType,
   ICompetition,
+  IPerson,
 } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
 import { CompetitionState, WcaRecordType } from '@sh/enums';
@@ -46,7 +46,13 @@ export class CompetitionsService {
     const queryFilter = region ? { country: region } : {};
 
     try {
-      const competitions = await this.competitionModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+      const competitions = await this.competitionModel
+        .find(queryFilter, {
+          ...excl,
+          createdBy: 0,
+        })
+        .sort({ startDate: -1 })
+        .exec();
       return competitions;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -86,13 +92,12 @@ export class CompetitionsService {
     const competition = await this.getFullCompetition(competitionId);
     const events = await this.eventsService.getEvents();
     const personIds: number[] = this.getCompetitionParticipants(competition.events);
-    const persons = await this.personsService.getPersonsById(personIds);
 
     if (competition) {
       const compModData: ICompetitionModData = {
         competition,
         events,
-        persons,
+        persons: await this.personsService.getPersonsById(personIds),
         // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
         records: {} as any,
       };
@@ -125,11 +130,34 @@ export class CompetitionsService {
     if (comp) throw new BadRequestException(`Competition with id ${createCompetitionDto.competitionId} already exists`);
 
     try {
-      await this.competitionModel.create({
+      // First save all of the rounds in the DB (without any results until they get posted)
+      const competitionEvents: CompetitionEvent[] = [];
+
+      for (const event of createCompetitionDto.events) {
+        const eventRounds: RoundDocument[] = [];
+
+        for (const round of event.rounds) {
+          eventRounds.push(await this.roundModel.create(round));
+        }
+
+        competitionEvents.push({ ...event, rounds: eventRounds });
+      }
+
+      // Create new competition
+      const newCompetition = {
         ...createCompetitionDto,
+        events: competitionEvents,
         createdBy: creatorPersonId,
         state: CompetitionState.Created,
-      } as ICompetition);
+      } as ICompetition;
+
+      if (createCompetitionDto.organizers) {
+        newCompetition.organizers = await this.personsService.getPersonsById(
+          createCompetitionDto.organizers.map((org) => org.personId),
+        );
+      }
+
+      await this.competitionModel.create(newCompetition);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -164,8 +192,13 @@ export class CompetitionsService {
     else delete comp.coordinates;
     comp.startDate = updateCompetitionDto.startDate;
     if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
-    if (updateCompetitionDto.organizers) comp.organizers = updateCompetitionDto.organizers;
-    else delete comp.organizers;
+    if (updateCompetitionDto.organizers) {
+      comp.organizers = await this.personsService.getPersonsById(
+        updateCompetitionDto.organizers.map((org) => org.personId),
+      );
+    } else {
+      delete comp.organizers;
+    }
     if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
     if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
     else delete comp.description;
@@ -173,7 +206,7 @@ export class CompetitionsService {
     comp.mainEventId = updateCompetitionDto.mainEventId;
 
     // Post competition results and set the number of participants
-    if (comp.state === CompetitionState.Published) {
+    if (comp.state === CompetitionState.Ongoing) {
       // Store the rounds and results temporarily in case there is an error
       let tempRounds: IRound[];
       let tempResults: IResult[];
@@ -223,7 +256,13 @@ export class CompetitionsService {
   private async getFullCompetition(competitionId: string): Promise<CompetitionDocument> {
     try {
       return await this.competitionModel
-        .findOne({ competitionId }, excl)
+        .findOne(
+          { competitionId },
+          {
+            ...excl,
+            createdBy: 0,
+          },
+        )
         .populate({
           path: 'events.rounds',
           model: 'Round',
@@ -234,6 +273,7 @@ export class CompetitionsService {
             },
           ],
         })
+        .populate({ path: 'organizers', model: 'Person' })
         .exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -280,7 +320,7 @@ export class CompetitionsService {
       for (const round of event.rounds) {
         // Set the records from the last day, when the day changes
         if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
-          newCompEvent.rounds.push(...(await this.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypes, records)));
+          newCompEvent.rounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
           sameDayRounds = [];
         }
         sameDayRounds.push(round);
@@ -289,7 +329,7 @@ export class CompetitionsService {
       }
 
       // Set the records for the last day of rounds
-      newCompEvent.rounds.push(...(await this.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypes, records)));
+      newCompEvent.rounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
       output.events.push(newCompEvent);
     }
 
@@ -329,7 +369,7 @@ export class CompetitionsService {
 
   // Sets the newly-set records in sameDayRounds using the information from records
   // (but only the active record types) and returns the rounds
-  async setRecordsAndSaveRounds(
+  async setRecordsAndSaveResults(
     sameDayRounds: IRound[],
     activeRecordTypes: IRecordType[],
     records: any,

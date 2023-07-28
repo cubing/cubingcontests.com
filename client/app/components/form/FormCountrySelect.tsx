@@ -3,10 +3,18 @@
 import { useEffect } from 'react';
 import Countries from '@sh/Countries';
 
-const FormCountrySelect = ({ countryId, setCountryId }: { countryId: string; setCountryId: any }) => {
+const FormCountrySelect = ({
+  countryId,
+  setCountryId,
+  disabled = false,
+}: {
+  countryId: string;
+  setCountryId: any;
+  disabled?: boolean;
+}) => {
   useEffect(() => {
-    // Set the first country from the list by default
-    setCountryId(Countries[0].code);
+    // Set the first country from the list by default, unless already set
+    if (!countryId) setCountryId(Countries[0].code);
   }, [setCountryId]);
 
   return (
@@ -14,7 +22,13 @@ const FormCountrySelect = ({ countryId, setCountryId }: { countryId: string; set
       <label htmlFor="country_id" className="form-label">
         Country
       </label>
-      <select id="country_id" className="form-select" value={countryId} onChange={(e) => setCountryId(e.target.value)}>
+      <select
+        id="country_id"
+        className="form-select"
+        value={countryId}
+        onChange={(e) => setCountryId(e.target.value)}
+        disabled={disabled}
+      >
         {Countries.map((el) => (
           <option key={el.code} value={el.code}>
             {el.name}
