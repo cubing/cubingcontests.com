@@ -4,7 +4,7 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
-    indent: ['error', 2],
+    indent: ['error', 2, { offsetTernaryExpressions: true }],
     // WHEN EDITING ANY OF THE RULES BELOW, COPY THEM OVER TO server/.eslintrc.js
     semi: [
       'error',

@@ -8,7 +8,7 @@ export const mockRoundModel = (): any => ({
   find(): any {
     return this;
   },
-  deleteMany() {
+  updateOne() {
     return this;
   },
   exec(): RoundDocument[] {

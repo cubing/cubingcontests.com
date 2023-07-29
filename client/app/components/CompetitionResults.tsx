@@ -38,8 +38,8 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
       </ul>
 
       {activeTab === 1 && (
-        <div className="d-md-flex px-2 fs-5">
-          <div className="pe-5">
+        <div className="row px-2 fs-5">
+          <div className="col-md-5">
             <p>
               Type:&#8194;<b>{competition.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</b>
             </p>
@@ -60,14 +60,17 @@ const CompetitionResults = ({ data: { competition, events, persons } }: { data: 
               </p>
             )}
           </div>
-          {competition.description && (
-            <div className="pt-3 pt-md-0 ps-md-5">
-              <p className="mb-4">Description:</p>
+          <hr className="d-md-none mt-3 mb-4" />
+          <div className="col-md-7">
+            {competition.state === CompetitionState.Ongoing && (
+              <p className="mb-4">This competition is currently ongoing</p>
+            )}
+            {competition.description && (
               <p className="lh-base" style={{ whiteSpace: 'pre-wrap' }}>
-                {competition.description}
+                <b>Description:</b>&#8195;{competition.description}
               </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 

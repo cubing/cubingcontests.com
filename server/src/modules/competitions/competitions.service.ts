@@ -24,7 +24,7 @@ import { setNewRecords } from '@sh/sharedFunctions';
 import { CompetitionState, WcaRecordType } from '@sh/enums';
 import { Role } from '~/src/helpers/enums';
 
-interface CompetitionUpdateResult {
+interface ICompetitionUpdateResult {
   events: ICompetitionEvent[];
   participants: number;
 }
@@ -42,7 +42,7 @@ export class CompetitionsService {
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
-    const queryFilter = region ? { country: region } : {};
+    const queryFilter = region ? { countryId: region } : {};
 
     try {
       const competitions = await this.competitionModel
@@ -69,16 +69,16 @@ export class CompetitionsService {
       };
 
       // Get information about all participants and events of the competition if the results have been posted
-      if (competition.state === CompetitionState.Finished) {
-        try {
+      try {
+        if (competition.state !== CompetitionState.Created) {
           const personIds: number[] = this.getCompetitionParticipants(competition.events);
           output.persons = await this.personsService.getPersonsById(personIds);
-
-          const eventIds = output.competition.events.map((el) => el.eventId);
-          output.events = await this.eventsService.getEvents(eventIds);
-        } catch (err) {
-          throw new InternalServerErrorException(err.message);
         }
+
+        const eventIds = output.competition.events.map((el) => el.eventId);
+        output.events = await this.eventsService.getEvents(eventIds);
+      } catch (err) {
+        throw new InternalServerErrorException(err.message);
       }
 
       return output;
@@ -213,7 +213,9 @@ export class CompetitionsService {
 
         const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-        comp.participants = await this.updateCompetitionEvents(updateCompetitionDto.events, activeRecordTypes);
+        comp.participants = (
+          await this.updateCompetitionEvents(updateCompetitionDto.events, activeRecordTypes)
+        ).participants;
         comp.state = CompetitionState.Ongoing;
       } catch (err) {
         // Reset the results if there was an error while posting the results
@@ -287,11 +289,17 @@ export class CompetitionsService {
   }
 
   // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)
-  async updateCompetitionEvents(newCompEvents: ICompetitionEvent[], activeRecordTypes: IRecordType[]): Promise<number> {
+  async updateCompetitionEvents(
+    newCompEvents: ICompetitionEvent[],
+    activeRecordTypes: IRecordType[],
+  ): Promise<ICompetitionUpdateResult> {
+    // output.events is for automated tests
+    const output: ICompetitionUpdateResult = { participants: 0, events: [] };
     const personIds: number[] = []; // used for calculating the number of participants
 
     // Save all results from every event and set new records, if there are any
     for (const event of newCompEvents) {
+      const eventRounds: IRound[] = [];
       let sameDayRounds: IRound[] = [];
       // These are set to null if there are no active record types
       const records: any = await this.getEventRecords(event.eventId, activeRecordTypes);
@@ -300,7 +308,7 @@ export class CompetitionsService {
       for (const round of event.rounds) {
         // Set the records from the last day, when the day changes
         if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
-          await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records);
+          eventRounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
           sameDayRounds = [];
         }
         sameDayRounds.push(round);
@@ -309,10 +317,12 @@ export class CompetitionsService {
       }
 
       // Set the records for the last day of rounds
-      await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records);
+      eventRounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
+      output.events.push({ ...event, rounds: eventRounds });
     }
 
-    return personIds.length;
+    output.participants = personIds.length;
+    return output;
   }
 
   async getEventRecords(
@@ -347,29 +357,35 @@ export class CompetitionsService {
 
   // Sets the newly-set records in sameDayRounds using the information from records
   // (but only the active record types) and returns the rounds
-  async setRecordsAndSaveResults(sameDayRounds: IRound[], activeRecordTypes: IRecordType[], records: any) {
-    for (const round of sameDayRounds) {
-      const newResults: ResultDocument[] = [];
-
-      // Set records
-      for (const rt of activeRecordTypes) {
-        // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (rt.active && rt.wcaEquivalent === WcaRecordType.WR) {
-          sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.label, true);
-        }
-      }
-
-      // Save results in the DB
-      try {
-        newResults.push(...(await this.resultModel.create(round.results)));
-
-        await this.roundModel.updateOne(
-          { competitionId: round.competitionId, eventId: round.eventId, roundTypeId: round.roundTypeId },
-          { $set: { results: newResults } },
-        );
-      } catch (err) {
-        throw new InternalServerErrorException(`Error while creating ${round.roundTypeId} round: ${err.message}`);
+  async setRecordsAndSaveResults(
+    sameDayRounds: IRound[],
+    activeRecordTypes: IRecordType[],
+    records: any,
+  ): Promise<IRound[]> {
+    // Set records
+    for (const rt of activeRecordTypes) {
+      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if (rt.active && rt.wcaEquivalent === WcaRecordType.WR) {
+        sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.label, true);
       }
     }
+
+    // Save results in the DB
+    try {
+      for (const round of sameDayRounds) {
+        const newResults = await this.resultModel.create(round.results);
+
+        await this.roundModel
+          .updateOne(
+            { competitionId: round.competitionId, eventId: round.eventId, roundTypeId: round.roundTypeId },
+            { $set: { results: newResults } },
+          )
+          .exec();
+      }
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while creating rounds: ${err.message}`);
+    }
+
+    return sameDayRounds;
   }
 }

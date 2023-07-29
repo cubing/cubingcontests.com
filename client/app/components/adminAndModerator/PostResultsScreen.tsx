@@ -69,8 +69,10 @@ const PostResultsScreen = ({
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
-    if (errorMessages.find((el) => el !== '')) window.scrollTo(0, 0);
-  }, [errorMessages]);
+    if (successMessage || errorMessages.some((el) => el !== '')) {
+      window.scrollTo(0, 0);
+    }
+  }, [errorMessages, successMessage]);
 
   const handleSubmit = async () => {
     if (compData.competition.state !== CompetitionState.Finished) {
@@ -203,7 +205,7 @@ const PostResultsScreen = ({
       return rounds;
     };
 
-    let newCompetitionEvents = competitionEvents.map((ce) =>
+    const newCompetitionEvents = competitionEvents.map((ce) =>
       ce.eventId !== newRound.eventId
         ? ce
         : {

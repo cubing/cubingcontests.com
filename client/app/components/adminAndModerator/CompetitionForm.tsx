@@ -67,31 +67,18 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
   const [mainEventId, setMainEventId] = useState('333');
   const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
 
-  // const [competitionId, setCompetitionId] = useState('NewComp2023');
-  // const [name, setName] = useState('New Competition 2023');
-  // const [type, setType] = useState(CompetitionType.Meetup);
-  // const [city, setCity] = useState('Munich');
-  // const [countryId, setCountryId] = useState('DE');
-  // const [venue, setVenue] = useState('');
-  // const [latitude, setLatitude] = useState('23.477');
-  // const [longitude, setLongitude] = useState('-14.346');
-  // const [startDate, setStartDate] = useState(new Date());
-  // const [endDate, setEndDate] = useState(null); // competition-only
-  // const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
-  // const [organizers, setOrganizers] = useState<IPerson[]>([null]);
-  // const [contact, setContact] = useState('');
-  // const [description, setDescription] = useState('Description\n\nNew line');
-  // const [competitorLimit, setCompetitorLimit] = useState('10');
-  // const [mainEventId, setMainEventId] = useState('333');
-  // const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
-
   const remainingEvents = useMemo(
     () => events.filter((event) => !competitionEvents.some((ce) => ce.eventId === event.eventId)),
     [events, competitionEvents],
   );
-
   const isFinished = useMemo(() => compData.competition.state === CompetitionState.Finished, [compData]);
   const isCreated = useMemo(() => compData.competition.state === CompetitionState.Created, [compData]);
+  const isCanFinishCompetition = useMemo(
+    () =>
+      compData?.competition.state === CompetitionState.Ongoing &&
+      !compData.competition.events.some((ev) => ev.rounds.some((r) => r.results.length === 0)),
+    [compData],
+  );
 
   useEffect(() => {
     if (compData) {
@@ -378,7 +365,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
 
       {activeTab === 1 && (
         <>
-          {compData?.competition.state === CompetitionState.Ongoing && (
+          {isCanFinishCompetition && (
             <button type="button" className="mt-2 mb-4 btn btn-warning btn-lg" onClick={finishCompetition}>
               Finish Competition
             </button>

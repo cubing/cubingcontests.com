@@ -1,17 +1,21 @@
 import mongoose from 'mongoose';
 import { CompetitionDocument } from '~/src/models/competition.model';
-import { RoundFormat, RoundType } from '@sh/enums';
+import { CompetitionState, CompetitionType, RoundFormat, RoundType } from '@sh/enums';
+import { ICompetitionEvent, IRound } from '@sh/interfaces';
 
 export const competitionsStub = (): CompetitionDocument[] => {
   return [
     {
       _id: new mongoose.Types.ObjectId('649d2a23675dfd951d5ff308'),
       competitionId: 'Munich19022023',
+      createdBy: 1,
+      state: CompetitionState.Finished,
       name: 'Meetup in Munich on February 19, 2023',
+      type: CompetitionType.Meetup,
       city: 'Munich',
       countryId: 'DE',
       startDate: new Date('2023-02-19T06:49:04Z'),
-      endDate: new Date('2023-02-19T06:49:04Z'),
+      competitorLimit: 10,
       mainEventId: '333',
       participants: 4,
       events: [
@@ -188,16 +192,18 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
       ],
-      __v: 1,
     },
     {
       _id: new mongoose.Types.ObjectId('649d2a4f675dfd951d5ff319'),
       competitionId: 'Munich14062023',
+      createdBy: 1,
+      state: CompetitionState.Finished,
       name: 'Meetup in Munich on June 14, 2023',
+      type: CompetitionType.Meetup,
       city: 'Munich',
       countryId: 'DE',
       startDate: new Date('2023-06-14T06:52:26Z'),
-      endDate: new Date('2023-06-14T06:52:26Z'),
+      competitorLimit: 10,
       mainEventId: '333',
       participants: 5,
       events: [
@@ -601,16 +607,18 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
       ],
-      __v: 1,
     },
     {
       _id: new mongoose.Types.ObjectId('649d2a85675dfd951d5ff32a'),
       competitionId: 'Munich27062023',
+      createdBy: 1,
+      state: CompetitionState.Finished,
       name: 'Meetup in Munich on June 27, 2023',
+      type: CompetitionType.Meetup,
       city: 'Munich',
       countryId: 'DE',
       startDate: new Date('2023-06-27T06:53:10Z'),
-      endDate: new Date('2023-06-27T06:53:10Z'),
+      competitorLimit: 10,
       mainEventId: '333',
       participants: 6,
       events: [
@@ -1181,20 +1189,36 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
       ],
-      __v: 1,
     },
     {
       _id: new mongoose.Types.ObjectId('649d4ff8a91cfa4672e186fe'),
       competitionId: 'Munich30062023',
+      createdBy: 1,
+      state: CompetitionState.Created,
       name: 'Meetup in Munich on June 30, 2023',
+      type: CompetitionType.Meetup,
       city: 'Munich',
       countryId: 'DE',
       startDate: new Date('2023-06-30T09:33:18Z'),
-      endDate: new Date('2023-06-30T09:33:18Z'),
+      competitorLimit: 10,
       mainEventId: '333',
       participants: 0,
-      events: [],
-      __v: 0,
-    } as CompetitionDocument, // for some reason Typescript doesn't like this competition without type casting
+      events: [
+        {
+          eventId: '333',
+          rounds: [
+            {
+              _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff364'),
+              competitionId: 'Munich30062023',
+              eventId: '333',
+              date: new Date('2023-06-30T09:33:18Z'),
+              roundTypeId: RoundType.Final,
+              format: RoundFormat.Average,
+              results: [],
+            } as IRound, // for some reason Typescript doesn't like this without type casting
+          ],
+        },
+      ],
+    },
   ] as CompetitionDocument[];
 };

@@ -15,7 +15,7 @@ const FormCountrySelect = ({
   useEffect(() => {
     // Set the first country from the list by default, unless already set
     if (!countryId) setCountryId(Countries[0].code);
-  }, [setCountryId]);
+  }, [countryId, setCountryId]);
 
   return (
     <div className="mb-3 fs-5">

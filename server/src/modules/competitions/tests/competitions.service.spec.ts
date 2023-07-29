@@ -20,6 +20,7 @@ import { mockRoundModel } from './mocks/round.model';
 import { mockResultModel } from '@m/results/tests/mocks/result.model';
 import { activeRecordTypesStub } from '@m/record-types/tests/stubs/active-record-types.stub';
 import { newCompetitionEventsStub, newFakeCompetitionEventsStub } from './stubs/new-competition-events.stub';
+import { Role } from '~/src/helpers/enums';
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
@@ -95,12 +96,12 @@ describe('CompetitionsService', () => {
   describe('Endpoint methods', () => {
     it('should post competition results without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.updateCompetition('Munich30062023', updateCompetitionDto);
+      competitionsService.updateCompetition('Munich30062023', updateCompetitionDto, [Role.Admin]);
     });
 
     it('should update competition results without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.updateCompetition('Munich27062023', updateCompetitionDto);
+      competitionsService.updateCompetition('Munich27062023', updateCompetitionDto, [Role.Admin]);
     });
   });
 
@@ -119,7 +120,7 @@ describe('CompetitionsService', () => {
       expect(records.WR.average).toBe(1132);
 
       const sameDayRounds = newCompetitionEventsStub()[0].rounds;
-      await competitionsService.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypesStub(), records);
+      await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('XWR');
@@ -132,7 +133,7 @@ describe('CompetitionsService', () => {
       expect(records.WR.average).toBe(4600);
 
       const sameDayRounds = newCompetitionEventsStub()[1].rounds;
-      await competitionsService.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypesStub(), records);
+      await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBeUndefined();
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
@@ -143,7 +144,7 @@ describe('CompetitionsService', () => {
       const records: any = await competitionsService.getEventRecords('333fm', activeRecordTypesStub());
 
       const sameDayRounds = [newFakeCompetitionEventsStub()[0].rounds[0]];
-      await competitionsService.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypesStub(), records);
+      await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('XWR');
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
@@ -158,7 +159,7 @@ describe('CompetitionsService', () => {
       expect(records.WR.average).toBe(337);
 
       const sameDayRounds = newFakeCompetitionEventsStub()[1].rounds;
-      await competitionsService.setRecordsAndSaveRounds(sameDayRounds, activeRecordTypesStub(), records);
+      await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
       // The single here is also better than XWR, but it should not be set,
       // because the next round has an even better single
