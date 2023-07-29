@@ -85,7 +85,7 @@ const CompetitionsTable = async ({
                 <td>{comp.events.length}</td>
                 {/* THIS IS DESKTOP-ONLY */}
                 {onEditCompetition && (
-                  <td>
+                  <td className="py-1">
                     <button
                       type="button"
                       onClick={() => onEditCompetition(comp.competitionId)}

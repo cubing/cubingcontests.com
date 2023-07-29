@@ -1,4 +1,5 @@
 import { IResult, IRound, IPerson, IEvent } from '@sh/interfaces';
+import { RoundProceed, RoundType } from '@sh/enums';
 import { formatTime, getSolves } from '~/helpers/utilityFunctions';
 
 const RoundResultsTable = ({
@@ -45,6 +46,22 @@ const RoundResultsTable = ({
     return <span className={'badge ' + colorClass}>{recordLabel}</span>;
   };
 
+  // Gets green highlight styling if the result made podium or is good enough to proceed to the next round
+  const getRankingHighlight = (result: IResult) => {
+    if (
+      result.ranking <= 3 ||
+      (round.roundTypeId !== RoundType.Final &&
+        result.ranking <=
+          (round.proceed.type === RoundProceed.Number
+            ? round.proceed.value
+            : Math.round((round.results.length * round.proceed.value) / 100)))
+    ) {
+      return { color: 'black', background: '#10c010' };
+    }
+
+    return {};
+  };
+
   return (
     <div className="flex-grow-1 table-responsive">
       <table className="table table-hover table-responsive text-nowrap">
@@ -61,7 +78,9 @@ const RoundResultsTable = ({
         <tbody>
           {round.results.map((result: IResult) => (
             <tr key={result.personId}>
-              <td>{result.ranking}</td>
+              <td className="ps-2" style={getRankingHighlight(result)}>
+                {result.ranking}
+              </td>
               <td>{getName(result.personId)}</td>
               <td>
                 <div className="d-flex align-items-center gap-3">
@@ -70,14 +89,14 @@ const RoundResultsTable = ({
                 </div>
               </td>
               <td>
-                <div className="d-flex align-items-center gap-3">
+                <div className="h-100 d-flex align-items-center gap-3">
                   {formatTime(currEventInfo, result.average, true)}
                   {getRecordBadge(result, 'average')}
                 </div>
               </td>
               <td>{getSolves(currEventInfo, result.attempts)}</td>
               {onEditResult && (
-                <td>
+                <td className="py-1">
                   <button type="button" onClick={() => onEditResult(result)} className="me-2 btn btn-primary btn-sm">
                     Edit
                   </button>

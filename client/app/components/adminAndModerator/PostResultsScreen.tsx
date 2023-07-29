@@ -170,6 +170,7 @@ const PostResultsScreen = ({
         ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId)),
       ]);
       setErrorMessages([]);
+      setSuccessMessage('');
       resetPersons();
       resetAttempts(round.format);
       document.getElementById('name_1')?.focus();
