@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
-import { CompetitionType } from '@sh/enums';
+import { CompetitionState, CompetitionType } from '@sh/enums';
 
 const CompetitionsTable = async ({
   competitions,
@@ -86,13 +86,15 @@ const CompetitionsTable = async ({
                     >
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onPostCompResults(comp.competitionId)}
-                      className="btn btn-success btn-sm"
-                    >
-                      Post Results
-                    </button>
+                    {comp.state !== CompetitionState.Finished && (
+                      <button
+                        type="button"
+                        onClick={() => onPostCompResults(comp.competitionId)}
+                        className="btn btn-success btn-sm"
+                      >
+                        Post Results
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>

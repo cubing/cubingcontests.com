@@ -6,10 +6,11 @@ import { ICompetitionEvent, ICompetitionModData, IResult, IPerson, IRound, IReco
 import RoundResultsTable from '@c/RoundResultsTable';
 import FormTextInput from '../form/FormTextInput';
 import myFetch from '~/helpers/myFetch';
-import { RoundFormat, RoundType, EventFormat, WcaRecordType } from '@sh/enums';
+import { RoundFormat, RoundType, EventFormat, WcaRecordType, CompetitionState } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 import { selectPerson } from '~/helpers/utilityFunctions';
+import { roundTypes } from '~/helpers/roundTypes';
 
 const PostResultsScreen = ({
   compData,
@@ -18,21 +19,9 @@ const PostResultsScreen = ({
   compData: ICompetitionModData;
   activeRecordTypes: IRecordType[];
 }) => {
-  const getDefaultRound = (eventId = '333', format = RoundFormat.Average): IRound => {
-    return {
-      competitionId: compData.competition.competitionId,
-      eventId,
-      date: compData.competition.startDate, // TO-DO: REMOVE HARD CODING TO START DATE!!!
-      format: format,
-      roundTypeId: RoundType.Final,
-      results: [],
-    };
-  };
-
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [round, setRound] = useState<IRound>(getDefaultRound());
-  const [roundNumber, setRoundNumber] = useState(1);
+  const [round, setRound] = useState<IRound>(compData.competition.events[0].rounds[0]);
   const [personNames, setPersonNames] = useState(['']);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
   const [attempts, setAttempts] = useState(['', '', '', '', '']);
@@ -42,6 +31,10 @@ const PostResultsScreen = ({
   const currCompEvent = useMemo(
     () => competitionEvents.find((el) => el.eventId === round.eventId),
     [round.eventId, round.results.length, competitionEvents],
+  );
+  const eventsHeldAtComp = useMemo(
+    () => compData.events.filter((ev) => compData.competition.events.some((ce) => ce.eventId === ev.eventId)),
+    [compData],
   );
 
   const logDebug = () => {
@@ -62,10 +55,11 @@ const PostResultsScreen = ({
 
     setCompetitionEvents(compData.competition.events);
     setPersons(compData.persons);
+    setRound(compData.competition.events[0].rounds[0]);
 
-    // Initialize 3x3x3 results, if they exist
-    const round333: IRound = compData.competition.events.find((el) => el.eventId === '333')?.rounds[0];
-    if (round333) setRound(round333);
+    if (compData.competition.state === CompetitionState.Finished) {
+      setErrorMessages(['This competition is over. Editing results is disabled.']);
+    }
   }, [compData, activeRecordTypes]);
 
   useEffect(() => {
@@ -79,21 +73,19 @@ const PostResultsScreen = ({
   }, [errorMessages]);
 
   const handleSubmit = async () => {
-    if (competitionEvents.length === 0 && round.results.length === 0) {
-      setErrorMessages(["You haven't entered any results"]);
-      return;
-    }
+    if (compData.competition.state !== CompetitionState.Finished) {
+      setErrorMessages([]);
+      setSuccessMessage('');
 
-    setErrorMessages([]);
-    setSuccessMessage('');
+      const newCompetition = { ...compData.competition, events: competitionEvents, state: CompetitionState.Ongoing };
+      console.log(newCompetition);
+      const { errors } = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, newCompetition);
 
-    const data = { events: competitionEvents };
-    const { errors } = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, data);
-
-    if (errors) {
-      setErrorMessages(errors);
-    } else {
-      setSuccessMessage('Results successfully submitted');
+      if (errors) {
+        setErrorMessages(errors);
+      } else {
+        setSuccessMessage('Results successfully submitted');
+      }
     }
   };
 
@@ -147,27 +139,30 @@ const PostResultsScreen = ({
         average = Math.round((sum / 3) * (round.eventId === '333fm' ? 100 : 1));
       }
 
-      const newRound = round;
-
-      newRound.results.push({
-        competitionId: compData.competition.competitionId,
-        eventId: newRound.eventId,
-        date: compData.competition.startDate,
-        personId: currentPersons.map((el) => el.personId.toString()).join(';'),
-        ranking: 0, // real rankings assigned below
-        attempts: tempAttempts,
-        best,
-        average,
-      });
+      const newRound = {
+        ...round,
+        results: [
+          ...round.results,
+          {
+            competitionId: compData.competition.competitionId,
+            eventId: round.eventId,
+            date: compData.competition.startDate,
+            personId: currentPersons.map((el) => el.personId.toString()).join(';'),
+            ranking: 0, // real rankings assigned below
+            attempts: tempAttempts,
+            best,
+            average,
+          },
+        ],
+      };
 
       // Sort the results and set rankings correctly
       newRound.results = mapRankings(
         newRound.results.sort(roundFormats[newRound.format].isAverage ? compareAvgs : compareSingles),
       );
 
-      updateCompetitionEvents(newRound);
+      updateRoundAndCompetitionEvents(newRound);
 
-      setRound(newRound);
       setPersons((prev) => [
         ...prev,
         ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId)),
@@ -195,89 +190,42 @@ const PostResultsScreen = ({
     return centiseconds;
   };
 
-  const updateEventRecords = (rounds: IRound[]): IRound[] => {
-    // Check for new records
-    for (const rt of activeRecordTypes) {
-      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
-        rounds = setNewRecords(rounds, compData.records[rounds[0].eventId][rt.wcaEquivalent], rt.label);
-      }
-    }
-
-    return rounds;
-  };
-
-  const updateCompetitionEvents = (newRound: IRound) => {
-    let newCompetitionEvents = competitionEvents;
-    const compEvent = currCompEvent;
-
-    // Add event if this is the first round for it
-    if (!compEvent) {
-      newCompetitionEvents.push({
-        eventId: round.eventId,
-        rounds: updateEventRecords([newRound]), // update records
-      });
-      // If this round hasn't been added yet, add it
-    } else {
-      // If newRound.results is empty, that means we are deleting a round
-      if (newRound.results.length === 0) {
-        compEvent.rounds = compEvent.rounds.filter((el) => el.roundTypeId !== newRound.roundTypeId);
-
-        // If that was the only round for this event, delete the event. Otherwise, update records.
-        if (compEvent.rounds.length === 0) {
-          newCompetitionEvents = newCompetitionEvents.filter((el) => el.eventId !== compEvent.eventId);
-        } else {
-          // Update records
-          compEvent.rounds = updateEventRecords(compEvent.rounds);
+  const updateRoundAndCompetitionEvents = (newRound: IRound) => {
+    const updateEventRecords = (rounds: IRound[]): IRound[] => {
+      // Check for new records
+      for (const rt of activeRecordTypes) {
+        // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
+          rounds = setNewRecords(rounds, compData.records[rounds[0].eventId][rt.wcaEquivalent], rt.label);
         }
-      } else {
-        if (roundNumber > compEvent.rounds.length) {
-          compEvent.rounds.push(newRound);
-
-          // Update previous round type if needed
-          if (roundNumber === 2) compEvent.rounds[0].roundTypeId = RoundType.First;
-          else if (roundNumber === 3) compEvent.rounds[1].roundTypeId = RoundType.Second;
-          else if (roundNumber === 4) compEvent.rounds[2].roundTypeId = RoundType.Semi;
-        }
-        // If this round has already been added, update it
-        else compEvent.rounds[roundNumber - 1] = newRound;
-
-        // Update records
-        compEvent.rounds = updateEventRecords(compEvent.rounds);
       }
-    }
+
+      return rounds;
+    };
+
+    let newCompetitionEvents = competitionEvents.map((ce) =>
+      ce.eventId !== newRound.eventId
+        ? ce
+        : {
+            ...ce,
+            rounds: updateEventRecords(ce.rounds.map((r) => (r.roundTypeId !== newRound.roundTypeId ? r : newRound))),
+          },
+    );
 
     setCompetitionEvents(newCompetitionEvents);
+    setRound(newRound);
   };
 
-  const changeRoundAndEvent = (newRoundNumber: number, newEvent = round.eventId) => {
-    const compEvent = competitionEvents.find((el) => el.eventId === newEvent);
+  const changeRoundAndEvent = (newRoundType: RoundType, newEvent = round.eventId) => {
+    const compEvent = competitionEvents.find((ce) => ce.eventId === newEvent);
+    let newRound: IRound;
 
-    if (newRoundNumber - 1 > (compEvent?.rounds.length || 0)) {
-      setErrorMessages(['Results for all previous rounds must be entered first']);
-      return;
-    } else {
-      setErrorMessages([]);
-    }
+    if (newRoundType === null) newRound = compEvent.rounds[0];
+    else newRound = compEvent.rounds.find((r) => r.roundTypeId === newRoundType);
 
-    if (newRoundNumber !== roundNumber) setRoundNumber(newRoundNumber);
-
-    // Check if the selected round has already been saved, and if so, load its results
-    const savedRound = compEvent?.rounds[newRoundNumber - 1];
-    const defaultRoundFormat = compData.events.find((ev) => ev.eventId === newEvent).defaultRoundFormat;
-
-    if (savedRound) setRound(savedRound);
-    // If it hasn't been saved, we are creating a new round. Set default values (a new round
-    // will always be finals, unless it gets changed later)
-    else setRound(getDefaultRound(newEvent, defaultRoundFormat));
-
-    resetAttempts(defaultRoundFormat);
+    setRound(newRound);
+    resetAttempts(newRound.format);
     resetPersons(newEvent);
-  };
-
-  const changeRoundFormat = (newFormat: RoundFormat) => {
-    setRound({ ...round, format: newFormat });
-    resetAttempts(newFormat);
   };
 
   const onSelectCompetitor = async (index: number, e: any) => {
@@ -352,8 +300,7 @@ const PostResultsScreen = ({
         results: mapRankings(round.results.filter((el) => el.personId !== personId)),
       };
 
-      updateCompetitionEvents(newRound);
-      setRound(newRound);
+      updateRoundAndCompetitionEvents(newRound);
 
       if (editCallback) editCallback();
     }
@@ -410,40 +357,23 @@ const PostResultsScreen = ({
       <div className="row my-4">
         <div className="col-3 pe-4">
           <FormEventSelect
-            events={compData.events}
+            events={eventsHeldAtComp}
             eventId={round.eventId}
-            setEventId={(val) => changeRoundAndEvent(1, val)}
+            setEventId={(val) => changeRoundAndEvent(null, val)}
           />
           <div className="mb-3 fs-5">
-            <label htmlFor="round_number" className="form-label">
+            <label htmlFor="round" className="form-label">
               Round
             </label>
             <select
-              id="round_number"
+              id="round"
               className="form-select"
-              value={roundNumber}
-              onChange={(e) => changeRoundAndEvent(parseInt(e.target.value))}
+              value={round.roundTypeId}
+              onChange={(e) => changeRoundAndEvent(e.target.value as RoundType)}
             >
-              <option value="1">1</option>
-              {currCompEvent?.rounds.length >= 1 && <option value="2">2</option>}
-              {currCompEvent?.rounds.length >= 2 && <option value="3">3</option>}
-              {currCompEvent?.rounds.length >= 3 && <option value="4">4</option>}
-            </select>
-          </div>
-          <div className="mb-3 fs-5">
-            <label htmlFor="round_format_id" className="form-label">
-              Round Format
-            </label>
-            <select
-              id="round_format_id"
-              className="form-select"
-              value={round.format}
-              onChange={(e) => changeRoundFormat(e.target.value as RoundFormat)}
-              disabled={round.results.length > 0}
-            >
-              {Object.values(roundFormats).map((rf: any) => (
-                <option key={rf.id} value={rf.id}>
-                  {rf.label}
+              {currCompEvent?.rounds.map((round: IRound) => (
+                <option key={round.roundTypeId} value={round.roundTypeId}>
+                  {roundTypes[round.roundTypeId].label}
                 </option>
               ))}
             </select>
@@ -487,7 +417,7 @@ const PostResultsScreen = ({
         <div className="col-9">
           <h2 className="mb-4 text-center">
             {compData.competition.events.length > 0 ? 'Edit' : 'Post'} results for&nbsp;
-            {compData.competition.name || 'ERROR'}
+            {compData.competition.name}
           </h2>
           {/* THIS IS A TEMPORARY SOLUTION!!! */}
           <div className="overflow-y-auto" style={{ maxHeight: '650px' }}>

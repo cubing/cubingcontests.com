@@ -12,7 +12,7 @@ import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ICompetitionEvent, ICompetitionModData, IEvent, IPerson } from '@sh/interfaces';
-import { CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import { CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { selectPerson } from '~/helpers/utilityFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
@@ -47,6 +47,7 @@ const roundProceedOptions: MultiChoiceOption[] = [
 const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: ICompetitionModData }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
+  const [newEventId, setNewEventId] = useState('333');
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -86,8 +87,11 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
 
   const remainingEvents = useMemo(
     () => events.filter((event) => !competitionEvents.some((ce) => ce.eventId === event.eventId)),
-    [events],
+    [events, competitionEvents],
   );
+
+  const isFinished = useMemo(() => compData.competition.state === CompetitionState.Finished, [compData]);
+  const isCreated = useMemo(() => compData.competition.state === CompetitionState.Created, [compData]);
 
   useEffect(() => {
     if (compData) {
@@ -135,8 +139,9 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     const selectedOrganizers = organizers.filter((el) => el !== null);
     const trimmedLat = latitude.trim();
     const trimmedLong = longitude.trim();
+
     const newComp = {
-      ...compData.competition,
+      ...compData?.competition,
       competitionId,
       name: name.trim(),
       type,
@@ -189,6 +194,20 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
         setErrorMessages([]);
         window.location.href = '/admin';
       }
+    }
+  };
+
+  const finishCompetition = async () => {
+    const { errors } = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, {
+      ...compData.competition,
+      state: CompetitionState.Finished,
+    });
+
+    if (errors) {
+      setErrorMessages(errors);
+    } else {
+      setErrorMessages([]);
+      window.location.href = '/admin';
     }
   };
 
@@ -310,19 +329,24 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     setCompetitionEvents([
       ...competitionEvents,
       {
-        eventId: events.find((event) => !competitionEvents.some((ce) => ce.eventId === event.eventId))?.eventId,
+        eventId: newEventId,
         rounds: [
           {
             competitionId: 'temp',
-            eventId: '333',
+            eventId: newEventId,
             date: startDate,
             roundTypeId: RoundType.Final,
-            format: RoundFormat.Average,
+            format: events.find((el) => el.eventId === newEventId).defaultRoundFormat,
             results: [],
           },
         ],
       },
     ]);
+
+    if (remainingEvents.length > 1) {
+      const newId = remainingEvents.find((event) => event.eventId !== newEventId)?.eventId;
+      setNewEventId(newId);
+    }
   };
 
   const removeCompetitionEvent = (eventId: string) => {
@@ -354,6 +378,11 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
 
       {activeTab === 1 && (
         <>
+          {compData?.competition.state === CompetitionState.Ongoing && (
+            <button type="button" className="mt-2 mb-4 btn btn-warning btn-lg" onClick={finishCompetition}>
+              Finish Competition
+            </button>
+          )}
           <FormTextInput
             name="Competition ID"
             id="competition_id"
@@ -362,7 +391,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             disabled={!!compData}
             required
           />
-          <FormTextInput name="Competition Name" value={name} setValue={setName} required />
+          <FormTextInput name="Competition Name" value={name} setValue={setName} required disabled={isFinished} />
           <FormRadio
             title="Type"
             options={competitionTypeOptions}
@@ -372,7 +401,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
           />
           <div className="row">
             <div className="col">
-              <FormTextInput name="City" value={city} setValue={setCity} required />
+              <FormTextInput name="City" value={city} setValue={setCity} required disabled={isFinished} />
             </div>
             <div className="col">
               <FormCountrySelect countryId={countryId} setCountryId={setCountryId} disabled={!!compData} />
@@ -385,6 +414,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                 value={venue}
                 setValue={setVenue}
                 required={type === CompetitionType.Competition}
+                disabled={isFinished}
               />
             </div>
             <div className="col-3">
@@ -393,6 +423,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                 value={latitude}
                 setValue={setLatitude}
                 required={type === CompetitionType.Competition}
+                disabled={isFinished}
               />
             </div>
             <div className="col-3">
@@ -401,6 +432,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                 value={longitude}
                 setValue={setLongitude}
                 required={type === CompetitionType.Competition}
+                disabled={isFinished}
               />
             </div>
           </div>
@@ -468,7 +500,13 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
               className="form-control"
             />
           </div>
-          <FormTextInput name="Competitor limit" value={competitorLimit} setValue={setCompetitorLimit} required />
+          <FormTextInput
+            name="Competitor limit"
+            value={competitorLimit}
+            setValue={setCompetitorLimit}
+            required
+            disabled={!isCreated}
+          />
         </>
       )}
       {activeTab === 2 && (
@@ -477,9 +515,13 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             <div key={compEvent.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
               <FormEventSelect
                 label=""
-                events={remainingEvents}
+                events={events.filter(
+                  (ev) =>
+                    ev.eventId === compEvent.eventId || !competitionEvents.some((ce) => ce.eventId === ev.eventId),
+                )}
                 eventId={compEvent.eventId}
                 setEventId={(val: string) => changeEvent(eventIndex, val)}
+                disabled={!isCreated}
               />
               {compEvent.rounds.map((round, roundIndex) => (
                 <div key={round.roundTypeId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
@@ -497,6 +539,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                           className="form-select"
                           value={round.format}
                           onChange={(e) => changeRoundFormat(eventIndex, roundIndex, e.target.value as RoundFormat)}
+                          disabled={!isCreated}
                         >
                           {Object.values(roundFormats).map((rf: any) => (
                             <option key={rf.id} value={rf.id}>
@@ -514,38 +557,66 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                         options={roundProceedOptions}
                         selected={round.proceed.type}
                         setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
+                        disabled={!isCreated}
                       />
                       <FormTextInput
                         id="round_proceed_value"
                         value={round.proceed.value.toString()}
                         setValue={(val: string) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
                         required
+                        disabled={!isCreated}
                       />
                     </>
                   )}
                 </div>
               ))}
-              <button type="button" className="btn btn-success" onClick={() => addRound(eventIndex)}>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={() => addRound(eventIndex)}
+                disabled={isFinished}
+              >
                 Add Round
               </button>
               <button
                 type="button"
                 className="ms-3 btn btn-danger"
                 onClick={() => removeCompetitionEvent(compEvent.eventId)}
+                disabled={!isCreated}
               >
                 Remove Event
               </button>
             </div>
           ))}
-          <button
-            type="button"
-            className="mt-2 mb-4 btn btn-success"
-            onClick={addCompetitionEvent}
-            disabled={competitionEvents.length === events.length}
-          >
-            Add Event
-          </button>
-          <FormEventSelect label="Main Event" events={events} eventId={mainEventId} setEventId={setMainEventId} />
+          <div className="my-4 row align-items-center">
+            <div className="col-2">
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={addCompetitionEvent}
+                disabled={competitionEvents.length === events.length || isFinished}
+              >
+                Add Event
+              </button>
+            </div>
+            <div className="col-10">
+              <FormEventSelect
+                label=""
+                noMargin
+                events={remainingEvents}
+                eventId={newEventId}
+                setEventId={setNewEventId}
+                disabled={isFinished}
+              />
+            </div>
+          </div>
+          <FormEventSelect
+            label="Main Event"
+            events={events}
+            eventId={mainEventId}
+            setEventId={setMainEventId}
+            disabled={!isCreated}
+          />
         </>
       )}
     </Form>
