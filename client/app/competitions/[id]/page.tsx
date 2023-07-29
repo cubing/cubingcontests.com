@@ -7,7 +7,7 @@ const Competition = async ({ params }: { params: { id: string } }) => {
   if (competitionData) {
     return (
       <>
-        <h2 className="text-center lh-base">{competitionData.competition?.name || 'Error'}</h2>
+        <h2 className="text-center lh-base">{competitionData.competition.name}</h2>
         {competitionData.competition && <CompetitionResults data={competitionData} />}
       </>
     );

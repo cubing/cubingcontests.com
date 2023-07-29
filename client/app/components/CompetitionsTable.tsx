@@ -18,6 +18,7 @@ const CompetitionsTable = async ({
   return (
     <>
       {/* MOBILE VIEW */}
+
       <div className="d-block d-lg-none border-top border-bottom">
         <ul className="list-group list-group-flush">
           {competitions.map((comp: ICompetition, index: number) => (
@@ -37,17 +38,22 @@ const CompetitionsTable = async ({
                 <div>
                   {comp.city}, <b>{getCountry(comp.countryId)}</b>
                 </div>
-                {comp.events.length > 0 && (
-                  <div className="ms-3 text-end">
-                    Participants:&nbsp;<b>{comp.participants}</b>, Events:&nbsp;<b>{comp.events.length}</b>
-                  </div>
-                )}
+                <div className="ms-3 text-end">
+                  {comp.participants > 0 && (
+                    <span>
+                      Participants:&nbsp;<b>{comp.participants}</b>,{' '}
+                    </span>
+                  )}
+                  Events:&nbsp;<b>{comp.events.length}</b>
+                </div>
               </div>
             </li>
           ))}
         </ul>
       </div>
+
       {/* DESKTOP VIEW */}
+
       <div className="d-none d-lg-block flex-grow-1 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
@@ -58,14 +64,14 @@ const CompetitionsTable = async ({
               <th scope="col">Type</th>
               <th scope="col">Participants</th>
               <th scope="col">Events</th>
-              {/* THIS IS DESKTOP-ONLY FOR NOW */}
+              {/* THIS IS DESKTOP-ONLY */}
               {onEditCompetition && <th scope="col">Actions</th>}
             </tr>
           </thead>
           <tbody>
             {competitions.map((comp: ICompetition) => (
               <tr key={comp.competitionId}>
-                <td>{getFormattedDate(comp.startDate, comp.endDate) || 'Error'}</td>
+                <td>{getFormattedDate(comp.startDate, comp.endDate)}</td>
                 <td>
                   <Link href={`/competitions/${comp.competitionId}`} className="link-primary">
                     {comp.name}
@@ -75,8 +81,9 @@ const CompetitionsTable = async ({
                   {comp.city}, <b>{getCountry(comp.countryId)}</b>
                 </td>
                 <td>{comp.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</td>
-                <td>{comp.participants || '–'}</td>
-                <td>{comp.events.length || '–'}</td>
+                <td>{comp.participants || ''}</td>
+                <td>{comp.events.length}</td>
+                {/* THIS IS DESKTOP-ONLY */}
                 {onEditCompetition && (
                   <td>
                     <button
