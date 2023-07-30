@@ -148,7 +148,7 @@ const PostResultsScreen = ({
           {
             competitionId: compData.competition.competitionId,
             eventId: round.eventId,
-            date: compData.competition.startDate,
+            date: round.date,
             personId: currentPersons.map((el) => el.personId.toString()).join(';'),
             ranking: 0, // real rankings assigned below
             attempts: tempAttempts,

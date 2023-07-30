@@ -71,8 +71,11 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     () => events.filter((event) => !competitionEvents.some((ce) => ce.eventId === event.eventId)),
     [events, competitionEvents],
   );
-  const isFinished = useMemo(() => compData.competition.state === CompetitionState.Finished, [compData]);
-  const isCreated = useMemo(() => compData.competition.state === CompetitionState.Created, [compData]);
+  const isFinished = useMemo(() => compData?.competition.state === CompetitionState.Finished, [compData]);
+  const isNotCreated = useMemo(
+    () => compData?.competition.state && compData.competition.state !== CompetitionState.Created,
+    [compData],
+  );
   const isCanFinishCompetition = useMemo(
     () =>
       compData?.competition.state === CompetitionState.Ongoing &&
@@ -126,6 +129,13 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     const selectedOrganizers = organizers.filter((el) => el !== null);
     const trimmedLat = latitude.trim();
     const trimmedLong = longitude.trim();
+    const correctStartDate =
+      type !== CompetitionType.Meetup
+        ? new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()))
+        : startDate;
+    const correctEndDate = endDate
+      ? new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate()))
+      : undefined;
 
     const newComp = {
       ...compData?.competition,
@@ -136,8 +146,8 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       countryId,
       venue: venue.trim() || undefined,
       coordinates: trimmedLat && trimmedLong ? [Number(trimmedLat), Number(trimmedLong)] : undefined,
-      startDate,
-      endDate: endDate || undefined,
+      startDate: correctStartDate,
+      endDate: correctEndDate,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
@@ -378,7 +388,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             disabled={!!compData}
             required
           />
-          <FormTextInput name="Competition Name" value={name} setValue={setName} required disabled={isFinished} />
+          <FormTextInput name="Competition name" value={name} setValue={setName} required disabled={isFinished} />
           <FormRadio
             title="Type"
             options={competitionTypeOptions}
@@ -396,29 +406,17 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
           </div>
           <div className="row">
             <div className="col-6">
-              <FormTextInput
-                name="Venue"
-                value={venue}
-                setValue={setVenue}
-                required={type === CompetitionType.Competition}
-                disabled={isFinished}
-              />
+              <FormTextInput name="Venue" value={venue} setValue={setVenue} required disabled={isFinished} />
             </div>
             <div className="col-3">
-              <FormTextInput
-                name="Latitude"
-                value={latitude}
-                setValue={setLatitude}
-                required={type === CompetitionType.Competition}
-                disabled={isFinished}
-              />
+              <FormTextInput name="Latitude" value={latitude} setValue={setLatitude} required disabled={isFinished} />
             </div>
             <div className="col-3">
               <FormTextInput
                 name="Longitude"
                 value={longitude}
                 setValue={setLongitude}
-                required={type === CompetitionType.Competition}
+                required
                 disabled={isFinished}
               />
             </div>
@@ -426,7 +424,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
           <div className="mb-3 row">
             <div className="col">
               <label htmlFor="start_date" className="form-label">
-                Start Date
+                {type === CompetitionType.Competition ? 'Start date' : 'Start date and time (UTC)'}
               </label>
               <DatePicker
                 id="start_date"
@@ -437,12 +435,13 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                 dateFormat={type === CompetitionType.Meetup ? 'Pp' : 'P'}
                 onChange={(date: Date) => setStartDate(date)}
                 className="form-control"
+                disabled={isNotCreated}
               />
             </div>
             {type === CompetitionType.Competition && (
               <div className="col">
                 <label htmlFor="end_date" className="form-label">
-                  End Date
+                  End date
                 </label>
                 <DatePicker
                   id="end_date"
@@ -451,6 +450,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                   dateFormat="P"
                   onChange={(date: Date) => setEndDate(date)}
                   className="form-control"
+                  disabled={isNotCreated}
                 />
               </div>
             )}
@@ -492,7 +492,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             value={competitorLimit}
             setValue={setCompetitorLimit}
             required
-            disabled={!isCreated}
+            disabled={isNotCreated}
           />
         </>
       )}
@@ -508,7 +508,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                 )}
                 eventId={compEvent.eventId}
                 setEventId={(val: string) => changeEvent(eventIndex, val)}
-                disabled={!isCreated}
+                disabled={isNotCreated}
               />
               {compEvent.rounds.map((round, roundIndex) => (
                 <div key={round.roundTypeId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
@@ -519,14 +519,14 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                     <div className="col-8">
                       <div className="fs-5">
                         <label htmlFor="round_format" className="form-label">
-                          Round Format
+                          Round format
                         </label>
                         <select
                           id="round_format"
                           className="form-select"
                           value={round.format}
                           onChange={(e) => changeRoundFormat(eventIndex, roundIndex, e.target.value as RoundFormat)}
-                          disabled={!isCreated}
+                          disabled={isNotCreated}
                         >
                           {Object.values(roundFormats).map((rf: any) => (
                             <option key={rf.id} value={rf.id}>
@@ -544,14 +544,14 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                         options={roundProceedOptions}
                         selected={round.proceed.type}
                         setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                        disabled={!isCreated}
+                        disabled={isNotCreated}
                       />
                       <FormTextInput
                         id="round_proceed_value"
                         value={round.proceed.value.toString()}
                         setValue={(val: string) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
                         required
-                        disabled={!isCreated}
+                        disabled={isNotCreated}
                       />
                     </>
                   )}
@@ -569,7 +569,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                 type="button"
                 className="ms-3 btn btn-danger"
                 onClick={() => removeCompetitionEvent(compEvent.eventId)}
-                disabled={!isCreated}
+                disabled={isNotCreated}
               >
                 Remove Event
               </button>
@@ -602,7 +602,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             events={events}
             eventId={mainEventId}
             setEventId={setMainEventId}
-            disabled={!isCreated}
+            disabled={isNotCreated}
           />
         </>
       )}

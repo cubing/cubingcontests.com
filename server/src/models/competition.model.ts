@@ -39,10 +39,10 @@ class Competition implements ICompetition {
   @Prop({ required: true })
   countryId: string;
 
-  @Prop()
-  venue?: string;
+  @Prop({ required: true })
+  venue: string;
 
-  @Prop()
+  @Prop({ required: true })
   coordinates: [number, number];
 
   @Prop({ required: true })

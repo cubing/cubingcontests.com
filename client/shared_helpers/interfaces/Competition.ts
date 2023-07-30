@@ -20,10 +20,11 @@ export interface ICompetition {
   type: CompetitionType;
   city: string;
   countryId: string; // 2 letter country code
-  venue?: string; // required for competitions, optional for meetups
-  coordinates?: [number, number]; // required for competitions, optional for meetups
-  startDate: Date; // includes the time if it's a meetup
-  endDate?: Date; // competition-only, because meetups are always held on a single day
+  venue: string;
+  coordinates: [number, number];
+  // These are stored as date strings in the DB, but are date objects everywhere else
+  startDate: Date | string; // includes the time if it's a meetup
+  endDate?: Date | string; // competition-only, because meetups are always held on a single day
   organizers?: IPerson[]; // stored as references
   contact?: string; // competition-only
   description?: string;
@@ -37,6 +38,7 @@ export interface ICompetitionData {
   competition: ICompetition;
   events: IEvent[]; // info about events held at THIS competition
   persons: IPerson[]; // info about competitors from THIS competition
+  timezoneOffset: number; // timezone offset from UTC in minutes
 }
 
 export interface ICompetitionModData {

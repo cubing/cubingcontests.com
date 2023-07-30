@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { find } from 'geo-tz';
+import { getTimezone } from 'countries-and-timezones';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -66,6 +68,7 @@ export class CompetitionsService {
         competition,
         events: [],
         persons: [],
+        timezoneOffset: getTimezone(find(competition.coordinates[0], competition.coordinates[1])[0]).dstOffset,
       };
 
       // Get information about all participants and events of the competition if the results have been posted
@@ -328,15 +331,16 @@ export class CompetitionsService {
   async getEventRecords(
     eventId: string,
     activeRecordTypes: IRecordType[],
-    // beforeDate = new Date(8640000000000000), // max date as default
-    // Crazy high date as default (to allow adding 3 hours below (TEMPORARY))
-    beforeDate = new Date(8600000000000000),
+    beforeDate: Date = null, // max date as default
   ) {
     // Returns null if no record types are active
     if (activeRecordTypes.length === 0) return null;
 
-    // Get the given date at midnight to compare the dates only
-    beforeDate = new Date(beforeDate.getUTCFullYear(), beforeDate.getUTCMonth(), beforeDate.getUTCDate(), 3);
+    // If a date wasn't passed, use max date, otherwise use the passed date at midnight to compare just the dates
+    if (!beforeDate) beforeDate = new Date(8640000000000000);
+    else
+      beforeDate = new Date(Date.UTC(beforeDate.getUTCFullYear(), beforeDate.getUTCMonth(), beforeDate.getUTCDate()));
+
     const records: any = {};
 
     // Go through all active record types

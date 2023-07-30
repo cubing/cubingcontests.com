@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
@@ -31,7 +29,7 @@ const CompetitionsTable = async ({
                   {comp.name}
                 </Link>
                 <p className="ms-2 text-nowrap">
-                  <b>{getFormattedDate(comp.startDate, comp.endDate) || 'Error'}</b>
+                  <b>{getFormattedDate(comp.startDate, comp.endDate)}</b>
                 </p>
               </div>
               <div className="d-flex justify-content-between">
