@@ -18,6 +18,15 @@ export class CompetitionsController {
     return await this.service.getCompetitions(region);
   }
 
+  // GET /competitions/mod
+  @Get('mod')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async getModCompetitions(@Request() req: any) {
+    console.log('Getting competitions');
+    return await this.service.getModCompetitions(req.user.personId, req.user.roles);
+  }
+
   // GET /competitions/:id
   @Get(':id')
   async getCompetition(@Param('id') competitionId: string) {

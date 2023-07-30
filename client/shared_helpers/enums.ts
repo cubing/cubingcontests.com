@@ -18,9 +18,6 @@ export enum RoundType {
   Second = '2',
   Semi = '3',
   Final = 'f',
-  // First = 'd',
-  // Second = 'e'
-  // Final = 'c',
 }
 
 export enum RoundProceed {
@@ -33,10 +30,13 @@ export enum CompetitionType {
   Competition = 2,
 }
 
+// The order is important here
 export enum CompetitionState {
-  Created = 1,
-  Ongoing = 2,
-  Finished = 3,
+  Created = 10,
+  Approved = 20,
+  Ongoing = 30,
+  Finished = 40,
+  Published = 50,
 }
 
 export enum WcaRecordType {

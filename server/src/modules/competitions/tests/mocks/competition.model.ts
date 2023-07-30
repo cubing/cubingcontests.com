@@ -9,6 +9,9 @@ export const mockCompetitionModel = (): any => ({
     if (query?.countryId) {
       this.tempOutput = this.tempOutput.filter((el: CompetitionDocument) => el.countryId === query.countryId);
     }
+    if (query?.state) {
+      this.tempOutput = this.tempOutput.filter((el: CompetitionDocument) => el.state > query.state.$gt);
+    }
 
     // Exclude createdBy, if requested
     if (selectObj?.createdBy === 0) {
@@ -30,7 +33,7 @@ export const mockCompetitionModel = (): any => ({
     return this;
   },
   findOne(query: any) {
-    if (query.competitionId) {
+    if (query?.competitionId) {
       this.tempOutput = competitionsStub().find((el: CompetitionDocument) => el.competitionId === query.competitionId);
     }
 

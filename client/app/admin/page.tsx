@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import CompetitionsTable from '@c/CompetitionsTable';
+import { ICompetition } from '@sh/interfaces';
+import { CompetitionState } from '@sh/enums';
 
 const AdminHome = async () => {
-  const { payload: competitions } = await myFetch.get('/competitions');
+  const { payload: competitions } = await myFetch.get('/competitions/mod', { authorize: true });
   const { payload: personsTotal } = await myFetch.get('/persons/total');
   const { payload: usersTotal } = await myFetch.get('/users/total', { authorize: true });
 
@@ -14,12 +16,19 @@ const AdminHome = async () => {
     window.location.href = '/';
   };
 
-  const onEditCompetition = (competitionId: string) => {
+  const editCompetition = (competitionId: string) => {
     window.location.href = `/admin/competition?edit_id=${competitionId}`;
   };
 
-  const onPostCompResults = (competitionId: string) => {
+  const postCompResults = (competitionId: string) => {
     window.location.href = `/admin/competition/${competitionId}`;
+  };
+
+  const changeCompState = async (competitionId: string, newState: CompetitionState) => {
+    await myFetch.patch(`/competitions/${competitionId}`, {
+      state: newState,
+    });
+    window.location.reload();
   };
 
   return (
@@ -47,8 +56,9 @@ const AdminHome = async () => {
       {competitions?.length > 0 && (
         <CompetitionsTable
           competitions={competitions}
-          onEditCompetition={onEditCompetition}
-          onPostCompResults={onPostCompResults}
+          onEditCompetition={editCompetition}
+          onPostCompResults={postCompResults}
+          onChangeCompState={changeCompState}
         />
       )}
     </>

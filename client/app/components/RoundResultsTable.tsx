@@ -49,7 +49,7 @@ const RoundResultsTable = ({
   // Gets green highlight styling if the result made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {
     if (
-      result.ranking <= 3 ||
+      (round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
       (round.roundTypeId !== RoundType.Final &&
         result.ranking <=
           (round.proceed.type === RoundProceed.Number

@@ -41,7 +41,7 @@ const CompetitionResults = ({ data: { competition, events, persons, timezoneOffs
             className={'nav-link' + (activeTab === 2 ? ' active' : '')}
             onClick={() => setActiveTab(2)}
           >
-            {competition.state === CompetitionState.Created ? 'Events' : 'Results'}
+            {competition.state < CompetitionState.Ongoing ? 'Events' : 'Results'}
           </button>
         </li>
       </ul>

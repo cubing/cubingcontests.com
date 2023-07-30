@@ -8,10 +8,12 @@ const CompetitionsTable = async ({
   // If one of these is defined, the other must be defined too
   onEditCompetition,
   onPostCompResults,
+  onChangeCompState,
 }: {
   competitions: ICompetition[];
   onEditCompetition?: (competitionId: string) => void;
   onPostCompResults?: (competitionId: string) => void;
+  onChangeCompState?: (competitionId: string, newState: CompetitionState) => void;
 }) => {
   return (
     <>
@@ -63,7 +65,12 @@ const CompetitionsTable = async ({
               <th scope="col">Participants</th>
               <th scope="col">Events</th>
               {/* THIS IS DESKTOP-ONLY */}
-              {onEditCompetition && <th scope="col">Actions</th>}
+              {onEditCompetition && (
+                <>
+                  <th scope="col">State</th>
+                  <th scope="col">Actions</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -83,24 +90,54 @@ const CompetitionsTable = async ({
                 <td>{comp.events.length}</td>
                 {/* THIS IS DESKTOP-ONLY */}
                 {onEditCompetition && (
-                  <td className="py-1">
-                    <button
-                      type="button"
-                      onClick={() => onEditCompetition(comp.competitionId)}
-                      className="me-2 btn btn-primary btn-sm"
-                    >
-                      Edit
-                    </button>
-                    {comp.state !== CompetitionState.Finished && (
+                  <>
+                    <td>{comp.state}</td>
+                    <td className="d-flex gap-2 py-1">
                       <button
                         type="button"
-                        onClick={() => onPostCompResults(comp.competitionId)}
-                        className="btn btn-success btn-sm"
+                        onClick={() => onEditCompetition(comp.competitionId)}
+                        className="btn btn-primary btn-sm"
                       >
-                        Post Results
+                        Edit
                       </button>
-                    )}
-                  </td>
+                      {comp.state === CompetitionState.Created && (
+                        <button
+                          type="button"
+                          onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Approved)}
+                          className="btn btn-warning btn-sm"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      {[CompetitionState.Approved, CompetitionState.Ongoing].includes(comp.state) && (
+                        <button
+                          type="button"
+                          onClick={() => onPostCompResults(comp.competitionId)}
+                          className="btn btn-success btn-sm"
+                        >
+                          Post Results
+                        </button>
+                      )}
+                      {comp.state === CompetitionState.Ongoing && (
+                        <button
+                          type="button"
+                          onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Finished)}
+                          className="btn btn-warning btn-sm"
+                        >
+                          Finish
+                        </button>
+                      )}
+                      {comp.state === CompetitionState.Finished && (
+                        <button
+                          type="button"
+                          onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Published)}
+                          className="btn btn-warning btn-sm"
+                        >
+                          Publish
+                        </button>
+                      )}
+                    </td>
+                  </>
                 )}
               </tr>
             ))}

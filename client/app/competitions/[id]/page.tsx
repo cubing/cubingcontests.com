@@ -12,7 +12,7 @@ const Competition = async ({ params }: { params: { id: string } }) => {
       </>
     );
   } else {
-    return <p className="text-center fs-5">Error while fetching competition data</p>;
+    return <h3 className="mt-4 text-center">Competition not found</h3>;
   }
 };
 

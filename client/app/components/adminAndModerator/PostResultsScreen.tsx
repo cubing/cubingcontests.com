@@ -57,7 +57,9 @@ const PostResultsScreen = ({
     setPersons(compData.persons);
     setRound(compData.competition.events[0].rounds[0]);
 
-    if (compData.competition.state === CompetitionState.Finished) {
+    if (compData.competition.state === CompetitionState.Created) {
+      setErrorMessages(["This competition hasn't been approved yet. Editing results is disabled."]);
+    } else if (compData.competition.state >= CompetitionState.Finished) {
       setErrorMessages(['This competition is over. Editing results is disabled.']);
     }
   }, [compData, activeRecordTypes]);
@@ -75,12 +77,11 @@ const PostResultsScreen = ({
   }, [errorMessages, successMessage]);
 
   const handleSubmit = async () => {
-    if (compData.competition.state !== CompetitionState.Finished) {
+    if ([CompetitionState.Approved, CompetitionState.Ongoing].includes(compData.competition.state)) {
       setErrorMessages([]);
       setSuccessMessage('');
 
       const newCompetition = { ...compData.competition, events: competitionEvents, state: CompetitionState.Ongoing };
-      console.log(newCompetition);
       const { errors } = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, newCompetition);
 
       if (errors) {

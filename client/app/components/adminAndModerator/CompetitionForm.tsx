@@ -194,20 +194,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     }
   };
 
-  const finishCompetition = async () => {
-    const { errors } = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, {
-      ...compData.competition,
-      state: CompetitionState.Finished,
-    });
-
-    if (errors) {
-      setErrorMessages(errors);
-    } else {
-      setErrorMessages([]);
-      window.location.href = '/admin';
-    }
-  };
-
   const changeType = (newType: CompetitionType) => {
     setType(newType);
 
@@ -375,11 +361,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
 
       {activeTab === 1 && (
         <>
-          {isCanFinishCompetition && (
-            <button type="button" className="mt-2 mb-4 btn btn-warning btn-lg" onClick={finishCompetition}>
-              Finish Competition
-            </button>
-          )}
           <FormTextInput
             name="Competition ID"
             id="competition_id"

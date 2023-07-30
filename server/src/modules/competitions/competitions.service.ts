@@ -44,7 +44,8 @@ export class CompetitionsService {
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
-    const queryFilter = region ? { countryId: region } : {};
+    const queryFilter: any = region ? { countryId: region } : {};
+    queryFilter.state = { $gt: CompetitionState.Created };
 
     try {
       const competitions = await this.competitionModel
@@ -54,7 +55,29 @@ export class CompetitionsService {
         })
         .sort({ startDate: -1 })
         .exec();
+
       return competitions;
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  async getModCompetitions(userId: number, roles: Role[]): Promise<ICompetition[]> {
+    try {
+      if (roles.includes(Role.Admin)) {
+        return await this.competitionModel.find({}, excl).sort({ startDate: -1 }).exec();
+      } else {
+        return await this.competitionModel
+          .find(
+            { createdBy: userId },
+            {
+              ...excl,
+              createdBy: 0,
+            },
+          )
+          .sort({ startDate: -1 })
+          .exec();
+      }
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -63,7 +86,7 @@ export class CompetitionsService {
   async getCompetition(competitionId: string): Promise<ICompetitionData> {
     const competition = await this.getFullCompetition(competitionId);
 
-    if (competition) {
+    if (competition?.state > CompetitionState.Created) {
       const output: ICompetitionData = {
         competition,
         events: [],
@@ -73,7 +96,7 @@ export class CompetitionsService {
 
       // Get information about all participants and events of the competition if the results have been posted
       try {
-        if (competition.state !== CompetitionState.Created) {
+        if (competition.state >= CompetitionState.Ongoing) {
           const personIds: number[] = this.getCompetitionParticipants(competition.events);
           output.persons = await this.personsService.getPersonsById(personIds);
         }
@@ -175,38 +198,44 @@ export class CompetitionsService {
     }
     if (!comp) throw new BadRequestException(`Competition with id ${competitionId} not found`);
 
+    const isAdmin = roles.includes(Role.Admin);
+
     // Only an admin is allowed to edit these fields
-    if (roles.includes(Role.Admin)) {
-      comp.competitionId = updateCompetitionDto.competitionId;
-      comp.countryId = updateCompetitionDto.countryId;
+    if (isAdmin) {
+      if (updateCompetitionDto.competitionId) comp.competitionId = updateCompetitionDto.competitionId;
+      if (updateCompetitionDto.countryId) comp.countryId = updateCompetitionDto.countryId;
+      if (updateCompetitionDto.state) comp.state = updateCompetitionDto.state;
+    }
+    // Allow only finishing a competition for mods
+    else if (updateCompetitionDto.state === CompetitionState.Finished && comp.state === CompetitionState.Ongoing) {
+      comp.state = updateCompetitionDto.state;
     }
 
-    // Allow only finishing a competition
-    if (updateCompetitionDto.state === CompetitionState.Finished) comp.state = updateCompetitionDto.state;
+    if (isAdmin || comp.state < CompetitionState.Finished) {
+      if (updateCompetitionDto.organizers)
+        comp.organizers = await this.personsService.getPersonsById(
+          updateCompetitionDto.organizers.map((org) => org.personId),
+        );
+      if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
+      if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
+    }
 
-    if (updateCompetitionDto.organizers)
-      comp.organizers = await this.personsService.getPersonsById(
-        updateCompetitionDto.organizers.map((org) => org.personId),
-      );
-    else delete comp.organizers;
-    if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
-    if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
-    else delete comp.description;
-
-    if (comp.state === CompetitionState.Created) {
-      comp.name = updateCompetitionDto.name;
-      comp.city = updateCompetitionDto.city;
-      comp.venue = updateCompetitionDto.venue;
+    if (isAdmin || comp.state < CompetitionState.Ongoing) {
+      if (updateCompetitionDto.name) comp.name = updateCompetitionDto.name;
+      if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
+      if (updateCompetitionDto.venue) comp.venue = updateCompetitionDto.venue;
       if (updateCompetitionDto.coordinates) comp.coordinates = updateCompetitionDto.coordinates;
-      else delete comp.coordinates;
-      comp.startDate = updateCompetitionDto.startDate;
+      if (updateCompetitionDto.startDate) comp.startDate = updateCompetitionDto.startDate;
       if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
-      comp.competitorLimit = updateCompetitionDto.competitorLimit;
-      comp.mainEventId = updateCompetitionDto.mainEventId;
+      if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
+      if (updateCompetitionDto.mainEventId) comp.mainEventId = updateCompetitionDto.mainEventId;
     }
 
     // Post competition results and set the number of participants
-    if (updateCompetitionDto.state === CompetitionState.Ongoing && comp.state !== CompetitionState.Finished) {
+    if (
+      updateCompetitionDto.state === CompetitionState.Ongoing &&
+      [CompetitionState.Approved, CompetitionState.Ongoing].includes(comp.state)
+    ) {
       // Store the results temporarily in case there is an error
       let tempResults: IResult[];
 
