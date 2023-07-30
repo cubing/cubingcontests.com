@@ -58,7 +58,11 @@ const CompetitionResults = ({ data: { competition, events, persons, timezoneOffs
               City:&#8194;{competition.city}, <b>{getCountry(competition.countryId)}</b>
             </p>
             {competition.venue && <p>Venue:&#8194;{competition.venue}</p>}
-            {competition.coordinates && <p>Coordinates:&#8194;{competition.coordinates.join(', ')}</p>}
+            {competition.latitude && (
+              <p>
+                Coordinates:&#8194;{competition.latitude}, {competition.longitude}
+              </p>
+            )}
             {competition.contact && <p>Contact:&#8194;{competition.contact}</p>}
             {competition.organizers && <p>Organizers:&#8194;{competition.organizers.map((el) => el.name).join(' ')}</p>}
             <p>

@@ -91,7 +91,7 @@ export class CompetitionsService {
         competition,
         events: [],
         persons: [],
-        timezoneOffset: getTimezone(find(competition.coordinates[0], competition.coordinates[1])[0]).dstOffset,
+        timezoneOffset: getTimezone(find(competition.latitude, competition.longitude)[0]).dstOffset,
       };
 
       // Get information about all participants and events of the competition if the results have been posted
@@ -224,7 +224,10 @@ export class CompetitionsService {
       if (updateCompetitionDto.name) comp.name = updateCompetitionDto.name;
       if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
       if (updateCompetitionDto.venue) comp.venue = updateCompetitionDto.venue;
-      if (updateCompetitionDto.coordinates) comp.coordinates = updateCompetitionDto.coordinates;
+      if (updateCompetitionDto.latitude && updateCompetitionDto.longitude) {
+        comp.latitude = updateCompetitionDto.latitude;
+        comp.longitude = updateCompetitionDto.longitude;
+      }
       if (updateCompetitionDto.startDate) comp.startDate = updateCompetitionDto.startDate;
       if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
       if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;

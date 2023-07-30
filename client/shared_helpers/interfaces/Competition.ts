@@ -14,19 +14,20 @@ export interface ICompetitionEvent {
 export interface ICompetition {
   competitionId: string;
   createdBy: number; // peson ID of the moderator/admin, who created the competition
-  state: CompetitionState; // created = 1, published = 2, finished = 3
+  state: CompetitionState;
 
   name: string;
   type: CompetitionType;
   city: string;
   countryId: string; // 2 letter country code
   venue: string;
-  coordinates: [number, number];
-  // These are stored as date strings in the DB, but are date objects everywhere else
+  latitude: number;
+  longitude: number;
+  // These are stored as ISO date strings in the DB, but are date objects everywhere else
   startDate: Date | string; // includes the time if it's a meetup
   endDate?: Date | string; // competition-only, because meetups are always held on a single day
-  organizers?: IPerson[]; // stored as references
-  contact?: string; // competition-only
+  organizers?: IPerson[]; // stored as references, returned to the frontend as objects
+  contact?: string; // required for competitions
   description?: string;
   competitorLimit: number;
   mainEventId: string;

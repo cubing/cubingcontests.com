@@ -1,5 +1,5 @@
 import { IResult, IRound, IPerson, IEvent } from '@sh/interfaces';
-import { RoundProceed, RoundType } from '@sh/enums';
+import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { formatTime, getSolves } from '~/helpers/utilityFunctions';
 
 const RoundResultsTable = ({
@@ -46,15 +46,16 @@ const RoundResultsTable = ({
     return <span className={'badge ' + colorClass}>{recordLabel}</span>;
   };
 
-  // Gets green highlight styling if the result made podium or is good enough to proceed to the next round
+  // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {
     if (
-      (round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
-      (round.roundTypeId !== RoundType.Final &&
-        result.ranking <=
-          (round.proceed.type === RoundProceed.Number
-            ? round.proceed.value
-            : Math.round((round.results.length * round.proceed.value) / 100)))
+      (result.average > 0 || (![RoundFormat.Average, RoundFormat.Mean].includes(round.format) && result.best > 0)) &&
+      ((round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
+        (round.roundTypeId !== RoundType.Final &&
+          result.ranking <=
+            (round.proceed.type === RoundProceed.Number
+              ? round.proceed.value
+              : Math.round((round.results.length * round.proceed.value) / 100))))
     ) {
       return { color: 'black', background: '#10c010' };
     }

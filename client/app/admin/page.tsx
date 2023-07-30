@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import CompetitionsTable from '@c/CompetitionsTable';
-import { ICompetition } from '@sh/interfaces';
 import { CompetitionState } from '@sh/enums';
 
 const AdminHome = async () => {

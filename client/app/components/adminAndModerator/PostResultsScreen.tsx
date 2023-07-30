@@ -232,7 +232,9 @@ const PostResultsScreen = ({
     resetPersons(newEvent);
   };
 
-  const onSelectCompetitor = async (index: number, e: any) => {
+  const selectCompetitor = async (index: number, e: any) => {
+    setSuccessMessage('');
+
     selectPerson(e, setErrorMessages, (person: IPerson) => {
       // Set the found competitor's name
       const newPersonNames = personNames.map((el, i) => (i !== index ? el : person.name));
@@ -390,7 +392,7 @@ const PostResultsScreen = ({
                 id={`name_${i + 1}`}
                 value={personName}
                 setValue={(val: string) => changePersonName(i, val)}
-                onKeyPress={(e: any) => onSelectCompetitor(i, e)}
+                onKeyPress={(e: any) => selectCompetitor(i, e)}
               />
             ))}
           </div>

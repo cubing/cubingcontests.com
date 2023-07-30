@@ -43,7 +43,10 @@ class Competition implements ICompetition {
   venue: string;
 
   @Prop({ required: true })
-  coordinates: [number, number];
+  latitude: number;
+
+  @Prop({ required: true })
+  longitude: number;
 
   @Prop({ required: true })
   startDate: Date;

@@ -71,15 +71,9 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     () => events.filter((event) => !competitionEvents.some((ce) => ce.eventId === event.eventId)),
     [events, competitionEvents],
   );
-  const isFinished = useMemo(() => compData?.competition.state === CompetitionState.Finished, [compData]);
+  const isFinished = useMemo(() => compData?.competition.state >= CompetitionState.Finished, [compData]);
   const isNotCreated = useMemo(
     () => compData?.competition.state && compData.competition.state !== CompetitionState.Created,
-    [compData],
-  );
-  const isCanFinishCompetition = useMemo(
-    () =>
-      compData?.competition.state === CompetitionState.Ongoing &&
-      !compData.competition.events.some((ev) => ev.rounds.some((r) => r.results.length === 0)),
     [compData],
   );
 
@@ -90,11 +84,9 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       setType(compData.competition.type);
       setCity(compData.competition.city);
       setCountryId(compData.competition.countryId);
-      if (compData.competition.venue) setVenue(compData.competition.venue);
-      if (compData.competition.coordinates) {
-        setLatitude(compData.competition.coordinates[0].toString());
-        setLongitude(compData.competition.coordinates[1].toString());
-      }
+      setVenue(compData.competition.venue);
+      setLatitude(compData.competition.latitude.toString());
+      setLongitude(compData.competition.longitude.toString());
       // Convert the dates from string to Date
       setStartDate(new Date(compData.competition.startDate));
       if (compData.competition.endDate) setEndDate(new Date(compData.competition.endDate));
@@ -127,8 +119,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
 
   const handleSubmit = async () => {
     const selectedOrganizers = organizers.filter((el) => el !== null);
-    const trimmedLat = latitude.trim();
-    const trimmedLong = longitude.trim();
     const correctStartDate =
       type !== CompetitionType.Meetup
         ? new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()))
@@ -144,8 +134,9 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       type,
       city: city.trim(),
       countryId,
-      venue: venue.trim() || undefined,
-      coordinates: trimmedLat && trimmedLong ? [Number(trimmedLat), Number(trimmedLong)] : undefined,
+      venue: venue.trim(),
+      latitude: Number(latitude),
+      longitude: Number(longitude),
       startDate: correctStartDate,
       endDate: correctEndDate,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
@@ -163,17 +154,16 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     // Check for errors
     const tempErrors: string[] = [];
 
-    if (!newComp.competitorLimit || isNaN(Number(newComp.competitorLimit)))
+    if (!newComp.venue) tempErrors.push('Please enter the venue');
+    if (!newComp.latitude || isNaN(newComp.latitude) || !newComp.longitude || isNaN(newComp.longitude))
+      tempErrors.push('Please enter valid venue coordinates');
+    if (!newComp.competitorLimit || isNaN(newComp.competitorLimit))
       tempErrors.push('You must enter a valid competitor limit');
-    if (!!trimmedLat !== !!trimmedLong) tempErrors.push('You must enter both the latitude and the longitude');
-
     if (newComp.events.length === 0) tempErrors.push('You must enter at least one event');
     else if (!competitionEvents.some((el) => el.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
 
     if (type === CompetitionType.Competition) {
-      if (!newComp.venue) tempErrors.push('Please enter the venue');
-      if (!newComp.coordinates) tempErrors.push('Please enter the coordinates of the venue');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
       if (!newComp.organizers?.length) tempErrors.push('Please enter at least one organizer');
     }
@@ -243,10 +233,10 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     });
   };
 
-  const changeEvent = (index: number, value: string) => {
-    const newCompetitionEvents = competitionEvents.map((el, i) => (i !== index ? el : { ...el, eventId: value }));
-    setCompetitionEvents(newCompetitionEvents);
-  };
+  // const changeEvent = (index: number, value: string) => {
+  //   const newCompetitionEvents = competitionEvents.map((el, i) => (i !== index ? el : { ...el, eventId: value }));
+  //   setCompetitionEvents(newCompetitionEvents);
+  // };
 
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
     const newCompetitionEvents = competitionEvents.map((event, i) =>
@@ -369,7 +359,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             disabled={!!compData}
             required
           />
-          <FormTextInput name="Competition name" value={name} setValue={setName} required disabled={isFinished} />
+          <FormTextInput name="Competition name" value={name} setValue={setName} required disabled={isNotCreated} />
           <FormRadio
             title="Type"
             options={competitionTypeOptions}
@@ -379,7 +369,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
           />
           <div className="row">
             <div className="col">
-              <FormTextInput name="City" value={city} setValue={setCity} required disabled={isFinished} />
+              <FormTextInput name="City" value={city} setValue={setCity} required disabled={isNotCreated} />
             </div>
             <div className="col">
               <FormCountrySelect countryId={countryId} setCountryId={setCountryId} disabled={!!compData} />
@@ -481,16 +471,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
         <>
           {competitionEvents.map((compEvent, eventIndex) => (
             <div key={compEvent.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
-              <FormEventSelect
-                label=""
-                events={events.filter(
-                  (ev) =>
-                    ev.eventId === compEvent.eventId || !competitionEvents.some((ce) => ce.eventId === ev.eventId),
-                )}
-                eventId={compEvent.eventId}
-                setEventId={(val: string) => changeEvent(eventIndex, val)}
-                disabled={isNotCreated}
-              />
+              <h4 className="mb-3">{events.find((el) => el.eventId === compEvent.eventId).name}</h4>
               {compEvent.rounds.map((round, roundIndex) => (
                 <div key={round.roundTypeId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
                   <div className="mb-3 row">
@@ -550,7 +531,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                 type="button"
                 className="ms-3 btn btn-danger"
                 onClick={() => removeCompetitionEvent(compEvent.eventId)}
-                disabled={isNotCreated}
+                disabled={compEvent.rounds.some((r) => r.results.length > 0) || isFinished}
               >
                 Remove Event
               </button>

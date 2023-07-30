@@ -1,5 +1,4 @@
 import {
-  ArrayMaxSize,
   ArrayMinSize,
   IsArray,
   IsDateString,
@@ -10,6 +9,7 @@ import {
   IsString,
   Matches,
   Min,
+  Max,
   MinLength,
 } from 'class-validator';
 import Countries from '@sh/Countries';
@@ -29,22 +29,25 @@ export class CreateCompetitionDto {
   type: CompetitionType;
 
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z -]+$/)
+  @Matches(/^[A-Z][a-zA-Z -']+$/)
   city: string;
 
   @IsIn(Countries.map((el) => el.code))
   countryId: string;
 
-  @IsOptional()
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z -]+$/)
-  venue?: string;
+  @Matches(/^[A-Z][a-zA-Z -:']+$/)
+  venue: string;
 
-  @IsOptional()
-  @ArrayMinSize(2)
-  @ArrayMaxSize(2)
-  @IsNumber({}, { each: true })
-  coordinates?: [number, number];
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude: number;
+
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude: number;
 
   @IsDateString()
   startDate: Date;
