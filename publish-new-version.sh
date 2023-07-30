@@ -4,18 +4,18 @@ git tag | tail
 echo "Please give the new version tag:"
 read NEW_VERSION
 
-if [ -z $1 ] || [ $1 != '--no-git' ]; then
-  echo "Pushing to Github"
+if [ -z "$1" ] || [ "$1" != '--no-git' ]; then
+  echo "Pushing to Github..."
   git push origin main &&
   git tag --force --annotate $NEW_VERSION -m "Version $NEW_VERSION" &&
   git push --force origin --tags
 fi
 
-if [ -z $1 ] || [ $1 != '--no-docker' ]; then
+if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   echo -e "\nPushing to Dockerhub"
   docker login -u denimint
   # Remove all images that contain "cubingcontests"
-  docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
+  docker images -q | grep cubingcontests | xargs -tI % docker rmi % --force
   # API container
   docker build -t denimint/cubingcontests-api:$NEW_VERSION --file server.Dockerfile . &&
   docker tag denimint/cubingcontests-api:$NEW_VERSION denimint/cubingcontests-api:latest &&
