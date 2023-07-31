@@ -25,7 +25,7 @@ services:
     ports:
       - 127.0.0.1:5000:5000
     environment:
-      - MONGODB_URI=mongodb://$MONGO_CC_USERNAME:$MONGO_CC_PASSWORD@dm-mongo:27017/cubingcontests
+      - MONGODB_URI=mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@dm-mongo:27017/cubingcontests
       - NODE_ENV=$NODE_ENV
       - JWT_SECRET=$JWT_SECRET
     depends_on:
