@@ -24,7 +24,7 @@ services:
     ports:
       - 127.0.0.1:8080:8081
     environment:
-      - ME_CONFIG_MONGODB_SERVER=cc-mongo
+      - ME_CONFIG_MONGODB_SERVER=cc-mongo-dev
       - ME_CONFIG_MONGODB_AUTH_USERNAME=$MONGO_ADMIN_USERNAME
       - ME_CONFIG_MONGODB_AUTH_PASSWORD=$MONGO_ADMIN_PASSWORD
     depends_on:

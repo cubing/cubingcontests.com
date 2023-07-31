@@ -26,9 +26,6 @@ create_db_backup() {
 }
 
 restart_containers() {
-  # Stop Docker containers
-  sudo docker compose -f docker-compose-prod.yml down &&
-
   # Remove all images that contain "denimint"
   echo -e "\nRemoving old images...\n"
   sudo docker images -q | grep cubingcontests | xargs -tI % sudo docker rmi % --force
@@ -59,6 +56,9 @@ if [ "$1" == "--revert" ]; then
 
   create_db_backup
 
+  # Stop Docker containers
+  sudo docker compose -f docker-compose-prod.yml down &&
+
   # Revert to previous version tag
   git reset --hard $VERSION &&
 
@@ -70,6 +70,9 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
 
   sudo apt update &&
   sudo apt dist-upgrade
+
+  # Stop Docker containers
+  sudo docker compose -f docker-compose-prod.yml down &&
 
   # Pull from Github
   echo -e "Pulling from Github...\n"

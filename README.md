@@ -1,14 +1,14 @@
 # Cubing Contests
 
-This is a place for posting results from unofficial Rubik's cube competitions or speedcuber meetups. All official WCA events are supported, and additional unofficial events can be added. It's currently a **work-in-progress**, but eventually this will (hopefully) be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. Of course, there is also going to be the [**main instance**](https://cubingcontests.com/) that will be available to everyone.
+This is a place for posting results from unofficial Rubik's cube competitions, unofficial events held at WCA competitions, or speedcuber meetups. All official WCA events are supported, and additional unofficial events can be added, including team events. It's currently a **work-in-progress**, but eventually this will be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. Of course, there is also going to be the main instance that will be available to everyone: [**cubingcontests.com**](https://cubingcontests.com/).
 
 ## Screenshots
 
-<img src="https://denimintsaev.com/api/cubing_contests_1.jpg" width="300"/>
+<img src="https://cubingcontests.com/public/cubing_contests_1.jpg" width="300"/>
 
-<img src="https://denimintsaev.com/api/cubing_contests_2.jpg" width="300"/>
+<img src="https://cubingcontests.com/public/cubing_contests_2.jpg" width="300"/>
 
-<img src="https://denimintsaev.com/api/cubing_contests_3.jpg" width="300"/>
+<img src="https://cubingcontests.com/public/cubing_contests_3.jpg" width="300"/>
 
 ## Admin features
 

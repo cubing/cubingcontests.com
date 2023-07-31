@@ -1,5 +1,7 @@
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CompetitionsModule } from './modules/competitions/competitions.module';
 import { PersonsModule } from './modules/persons/persons.module';
@@ -14,6 +16,13 @@ import { ResultsModule } from './modules/results/results.module';
     ConfigModule.forRoot({
       envFilePath: '.env.dev',
       ignoreEnvFile: process.env.NODE_ENV === 'production',
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/public',
+      // serveStaticOptions: {
+      //   cacheControl: false,
+      // },
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
     CompetitionsModule,
