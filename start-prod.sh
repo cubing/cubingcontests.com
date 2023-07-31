@@ -18,7 +18,7 @@ create_db_backup() {
     # Delete the oldest backup (get all files in ~/dump, sort them alphabetically, skip the first line
     # that simply shows the path to ~/dump, and take the path to the first (oldest) backup)
     rm -f $(find ~/dump | sort | tail -n +2 | head -n 1) &&
-    echo -e "\nCurrent backups:\n" 
+    echo -e "\nCurrent backups:\n"
     ls ~/dump
     echo -e "\nOldest backup deleted (press ENTER to continue...)"
     read
