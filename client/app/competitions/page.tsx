@@ -2,7 +2,7 @@ import myFetch from '~/helpers/myFetch';
 import CompetitionsTable from '@c/CompetitionsTable';
 
 const Competitions = async () => {
-  const { payload: competitions } = await myFetch.get('/competitions', { revalidate: 100 });
+  const { payload: competitions } = await myFetch.get('/competitions', { revalidate: 60 });
 
   return (
     <>

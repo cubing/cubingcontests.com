@@ -19,10 +19,7 @@ import { ResultsModule } from './modules/results/results.module';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-      serveRoot: '/public',
-      // serveStaticOptions: {
-      //   cacheControl: false,
-      // },
+      serveRoot: '/api',
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
     CompetitionsModule,

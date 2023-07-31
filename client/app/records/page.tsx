@@ -5,7 +5,7 @@ import { EventFormat } from '@sh/enums';
 
 const Records = async () => {
   // Revalidate every 12 hours
-  const { payload: eventRecords } = await myFetch.get('/results/records/WR', { revalidate: 43200 });
+  const { payload: eventRecords } = await myFetch.get('/results/records/WR', { revalidate: 600 });
 
   const getCompetitorCountries = (persons: IPerson[]): string => {
     const countries: string[] = [];
