@@ -50,17 +50,17 @@ There is an important `shared_helpers` directory in the `client` directory that 
 
 ### Environment
 
-DB environment variables are specified in the `.env.dev` file in the root directory and are sourced by Docker Compose (the `fulldev` script in `server/package.json` specifies this file). Note that for production this file must be copied and renamed to `.env`, and secure secrets must be used. Set them all to randomly-generated secure passwords; just go with 100 alphanumeric characters as a rule of thumb.
+DB environment variables are specified in the `.env.dev` file in the root directory and are sourced by Docker Compose (the `fulldev` script in `server/package.json` specifies this file). Note that for production the `.env` file must be used instead, and secure secrets must be used. Set them all to randomly-generated secure passwords; just go with 100 alphanumeric characters as a rule of thumb.
 
-Backend environment variables are specified in the `server/.env.dev` file. This file is automatically read by Nest JS, but only in development. In production the environment variables need to be set in the same `.env` file as the one referenced above.
+Backend environment variables are specified in the `server/.env.dev` file. This file is automatically read by Nest JS, but only in development; in production that file is ignored.
 
-Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS. Instructions for how to set this up in production will be added later.
+Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS.
 
 ### Data structure
 
 The structure of the different kinds of data (e.g. competitions, rounds, events, etc.) that is stored in the database is determined by the following:
 
-- **Interface** - describes the structure of the data in the DB. Example: `ICompetition`.
-- **Schema class** - implements the interface and is used to store the data in the DB. Also has a document type in the same file that is used as the return type for documents of that model.
-- **Create DTO class** - implements the interface and is used for validating POST requests that create new documents in the DB. May be missing some fields from the interface, if they are not needed on creation. Those fields can be marked as optional in the interface, or, alternatively, the class can simply not implement any interface. In the latter case you have to remember to update the DTO when updating the interface. Example: `CreateCompetitionDto`.
-- **Update DTO class** - extends the create DTO class and is used for validating PATCH requests. If needed, some fields can be added here to make them editable after the creation of the document. Example: `UpdateCompetitionDto`.
+- **Interface** - describes the structure of the data in the DB. Example: `ICompetition`, found in `shared_helpers`.
+- **Schema class** - implements the interface and is used to store the data in the DB. Also has a document type in the same file that is used as the return type for documents of that model. These are all found in the `server/src/models` directory.
+- **Create DTO class** - optionally implements the same interface and is used for validating POST requests that create new documents in the DB. May be missing some fields from the interface, if they are not needed on creation. If the class doesn't implement the interface, you have to remember to update the DTO accordingly when updating the interface. Example: `CreateCompetitionDto`.
+- **Update DTO class** - extends the create DTO class with a partial extend, and is used for validating PATCH requests. If needed, some fields can be added here to make them editable after the creation of the document. Example: `UpdateCompetitionDto`.
