@@ -10,7 +10,7 @@ export const metadata = {
   icons: {
     icon: '/favicon.png',
   },
-  metadataBase: new URL('https://denimintsaev.com'),
+  metadataBase: new URL('https://cubingcontests.com'),
   openGraph: {
     images: ['/projects/contest_results.jpg'],
   },

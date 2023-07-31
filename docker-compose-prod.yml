@@ -18,7 +18,7 @@ services:
       - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
     restart: always
   cc-api:
-    container_name: cubingcontests-api
+    container_name: cc-api
     image: denimint/cubingcontests-api
     networks:
       - cubingcontests
@@ -32,7 +32,7 @@ services:
       - mongo
     restart: always
   cc-client:
-    container_name: cubingcontests-client
+    container_name: cc-client
     image: denimint/cubingcontests-client
     networks:
       - cubingcontests
