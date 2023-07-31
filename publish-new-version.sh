@@ -16,16 +16,16 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker login -u denimint
   # Remove all images that contain "cubingcontests"
   docker images -q | grep cubingcontests | xargs -tI % docker rmi % --force
-  # API container
-  docker build -t denimint/cubingcontests-api:$NEW_VERSION --file server.Dockerfile . &&
-  docker tag denimint/cubingcontests-api:$NEW_VERSION denimint/cubingcontests-api:latest &&
-  docker push denimint/cubingcontests-api:$NEW_VERSION &&
-  docker push denimint/cubingcontests-api:latest &&
   # Client container
   docker build -t denimint/cubingcontests-client:$NEW_VERSION --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$NEW_VERSION denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$NEW_VERSION &&
-  docker push denimint/cubingcontests-client:latest
+  docker push denimint/cubingcontests-client:latest &&
+  # API container
+  docker build -t denimint/cubingcontests-api:$NEW_VERSION --file server.Dockerfile . &&
+  docker tag denimint/cubingcontests-api:$NEW_VERSION denimint/cubingcontests-api:latest &&
+  docker push denimint/cubingcontests-api:$NEW_VERSION &&
+  docker push denimint/cubingcontests-api:latest
 fi
 
 echo -e "\nDone!"

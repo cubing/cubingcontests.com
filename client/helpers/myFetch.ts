@@ -42,7 +42,7 @@ const doFetch = async (
   try {
     res = await fetch(API_BASE_URL + url, options);
   } catch (err: any) {
-    console.error(err.message);
+    console.error(err);
     return { errors: [err?.message || `Unknown error while fetching from ${url}`] };
   }
 
@@ -53,7 +53,7 @@ const doFetch = async (
     try {
       json = await res.json();
     } catch (err: any) {
-      console.error(err.message);
+      console.error(err);
       return { errors: [err?.message || 'Unknown error while parsing JSON'] };
     }
   }
@@ -68,7 +68,7 @@ const doFetch = async (
     } else {
       let errors: string[];
 
-      if (json.message) {
+      if (json?.message) {
         // Sometimes the server returns the message as a single string and sometimes as an array of messages
         if (typeof json.message === 'string') errors = [json.message];
         else errors = json.message;
