@@ -28,7 +28,7 @@ create_db_backup() {
 restart_containers() {
   # Remove all images that contain "denimint"
   echo -e "\nRemoving old images...\n"
-  sudo docker images -q | grep cubingcontests | xargs -tI % sudo docker rmi % --force
+  sudo docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % sudo docker rmi % --force
 
   sudo docker compose -f docker-compose-prod.yml up -d
 }
@@ -89,7 +89,7 @@ else #### DEVELOPMENT ####
 
   # Remove all images that contain "denimint"
   echo -e "\nRemoving old images\n"
-  docker images -q | grep cubingcontests | xargs -tI % docker rmi % --force
+  docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
 
   if [ "$2" != "--cleanup" ]; then
     docker compose -f docker-compose-prod.yml up
