@@ -12,7 +12,7 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV === 'production') {
     corsOptions = {
-      origin: ['https://cubingcontests.com', 'https://www.cubingcontests.com'],
+      origin: ['https://cubingcontests.com'],
     };
 
     console.log('Setting CORS origin policy for', corsOptions.origin);

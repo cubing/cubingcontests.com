@@ -6,10 +6,6 @@
 
 DB_CONTAINER=cc-mongo
 
-delete_images() {
-  docker images -q | grep cubingcontests | xargs -tI % docker rmi % --force
-}
-
 create_db_backup() {
   # Create DB backup if the database container is running
   if [ -n "$(sudo docker ps | grep $DB_CONTAINER)" ]; then
@@ -35,7 +31,7 @@ restart_containers() {
 
   # Remove all images that contain "denimint"
   echo -e "\nRemoving old images...\n"
-  delete_images
+  sudo docker images -q | grep cubingcontests | xargs -tI % sudo docker rmi % --force
 
   sudo docker compose -f docker-compose-prod.yml up -d
 }
@@ -90,7 +86,7 @@ else #### DEVELOPMENT ####
 
   # Remove all images that contain "denimint"
   echo -e "\nRemoving old images\n"
-  delete_images
+  docker images -q | grep cubingcontests | xargs -tI % docker rmi % --force
 
   if [ "$2" != "--cleanup" ]; then
     docker compose -f docker-compose-prod.yml up

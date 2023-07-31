@@ -1,7 +1,7 @@
 version: '3'
 services:
   mongo:
-    container_name: cc-mongo
+    container_name: cc-mongo-dev
     image: mongo
     networks:
       - cubingcontests-dev
