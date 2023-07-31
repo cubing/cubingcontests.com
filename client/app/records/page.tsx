@@ -22,7 +22,10 @@ const Records = async () => {
   return (
     <>
       <h2 className="mb-4 text-center">Records</h2>
-      {eventRecords &&
+
+      {!eventRecords ? (
+        <p className="mx-2 fs-5">No contests have been held yet</p>
+      ) : (
         eventRecords.map((eventRecord: IEventRecords) => (
           <div key={eventRecord.event.eventId} className="mb-3">
             <h3 className="mx-2">{eventRecord.event.name}</h3>
@@ -63,7 +66,8 @@ const Records = async () => {
               </table>
             </div>
           </div>
-        ))}
+        ))
+      )}
     </>
   );
 };

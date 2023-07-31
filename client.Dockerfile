@@ -6,7 +6,7 @@ COPY client /home/app/client
 
 WORKDIR /home/app/client
 
-ENV API_BASE_URL='https://cubingcontests.denimintsaev.com/api'
+ENV API_BASE_URL='https://cubingcontests.com/api'
 
 RUN npm install
 RUN npm run build

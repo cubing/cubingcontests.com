@@ -7,12 +7,12 @@ COPY client/shared_helpers /home/app/client/shared_helpers
 
 WORKDIR /home/app/server
 
-ENV PORT=4000
+ENV PORT=5000
 
 RUN npm install
 RUN npm run build
 
 # Same as the port above
-EXPOSE 4000
+EXPOSE 5000
 
 CMD [ "npm", "start" ]

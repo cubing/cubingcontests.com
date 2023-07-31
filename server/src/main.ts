@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,7 +12,7 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV === 'production') {
     corsOptions = {
-      origin: ['https://denimintsaev.com', 'https://www.denimintsaev.com', 'https://cubingcontests.denimintsaev.com'],
+      origin: ['https://cubingcontests.com', 'https://www.cubingcontests.com'],
     };
 
     console.log('Setting CORS origin policy for', corsOptions.origin);

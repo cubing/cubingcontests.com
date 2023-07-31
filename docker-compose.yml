@@ -13,8 +13,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=$MONGO_ADMIN_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD=$MONGO_ADMIN_PASSWORD
-      - MONGO_CC_USERNAME=$MONGO_CC_USERNAME
-      - MONGO_CC_PASSWORD=$MONGO_CC_PASSWORD
+      - MONGO_DEV_USERNAME=$MONGO_DEV_USERNAME
+      - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
     restart: unless-stopped
   mongo-express:
     container_name: cc-mongo-express

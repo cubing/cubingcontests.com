@@ -1,6 +1,6 @@
 # Cubing Contests
 
-This is a place for posting results from unofficial Rubik's cube competitions or speedcuber meetups. All official WCA events are supported, and additional unofficial events can be added. It's currently a **work-in-progress**, but eventually this will (hopefully) be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. Of course, there is also going to be the [**main instance**](https://cubingcontests.denimintsaev.com/) that will be available to everyone. It will eventually be moved to a dedicated domain name.
+This is a place for posting results from unofficial Rubik's cube competitions or speedcuber meetups. All official WCA events are supported, and additional unofficial events can be added. It's currently a **work-in-progress**, but eventually this will (hopefully) be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. Of course, there is also going to be the [**main instance**](https://cubingcontests.com/) that will be available to everyone.
 
 ## Screenshots
 
@@ -44,7 +44,7 @@ npm run fulldev
 
 To start **both** the frontend and the backend, run **the same command** in the `client` directory. That version of the command starts the frontend, the backend and the DB.
 
-Go to `localhost:3000` to see the website. Go to `localhost:8080` to see Mongo Express (makes it much easier to work with the database).
+Go to `localhost:3000` to see the website. Go to `localhost:8080` to see Mongo Express (makes it much easier to work with the database). `localhost:5000` is used by the backend.
 
 There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
 

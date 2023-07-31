@@ -7,10 +7,10 @@ const Competitions = async () => {
   return (
     <>
       <h2 className="mb-4 text-center">All contests</h2>
-      {competitions?.length === 0 ? (
-        <p className="mx-2 fs-5">No contests have been held yet</p>
-      ) : (
+      {competitions?.length > 0 ? (
         <CompetitionsTable competitions={competitions} />
+      ) : (
+        <p className="mx-2 fs-5">No contests have been held yet</p>
       )}
     </>
   );
