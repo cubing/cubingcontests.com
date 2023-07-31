@@ -18,7 +18,7 @@ import { ResultsModule } from './modules/results/results.module';
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
+      rootPath: join(__dirname, '..', '..', 'public'),
       serveRoot: '/api',
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),

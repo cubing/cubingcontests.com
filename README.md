@@ -4,11 +4,11 @@ This is a place for posting results from unofficial Rubik's cube competitions, u
 
 ## Screenshots
 
-<img src="https://cubingcontests.com/public/cubing_contests_1.jpg" width="300"/>
+<img src="https://cubingcontests.com/api/cubing_contests_1.jpg" width="300"/>
 
-<img src="https://cubingcontests.com/public/cubing_contests_2.jpg" width="300"/>
+<img src="https://cubingcontests.com/api/cubing_contests_2.jpg" width="300"/>
 
-<img src="https://cubingcontests.com/public/cubing_contests_3.jpg" width="300"/>
+<img src="https://cubingcontests.com/api/cubing_contests_3.jpg" width="300"/>
 
 ## Admin features
 
