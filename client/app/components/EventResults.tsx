@@ -12,7 +12,11 @@ const EventResults = ({
   persons: IPerson[];
   onDeleteResult?: (personId: string) => void;
 }) => {
-  const rounds = compEvent?.rounds.some((el) => el.results.length > 0) ? [...compEvent.rounds].reverse() : [];
+  let rounds = compEvent.rounds.length > 0 ? [...compEvent.rounds] : [];
+
+  if (compEvent?.rounds.some((el) => el.results.length > 0)) {
+    rounds = [...compEvent.rounds].reverse();
+  }
 
   return (
     <div className="my-5">

@@ -199,11 +199,11 @@ export class CompetitionsService {
     if (updateCompetitionDto.events.some((ev) => ev.rounds.length > C.maxRounds))
       throw new BadRequestException(`You cannot have an event with more than ${C.maxRounds} rounds`);
     if (updateCompetitionDto.events.some((el) => el.rounds.length === 0))
-      throw new BadRequestException(`You cannot have an event with no rounds`);
+      throw new BadRequestException('You cannot have an event with no rounds');
 
     // Competition-only validation
     if (comp.type === CompetitionType.Competition) {
-      if (!updateCompetitionDto.endDate) throw new BadRequestException(`Please enter an end date`);
+      if (!updateCompetitionDto.endDate) throw new BadRequestException('Please enter an end date');
     }
 
     const isAdmin = roles.includes(Role.Admin);
