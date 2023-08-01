@@ -9,7 +9,7 @@ import myFetch from '~/helpers/myFetch';
 import { RoundFormat, RoundType, EventFormat, WcaRecordType, CompetitionState } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
-import { selectPerson } from '~/helpers/utilityFunctions';
+import { getRoundCanHaveAverage, selectPerson } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 
 const PostResultsScreen = ({
@@ -55,7 +55,10 @@ const PostResultsScreen = ({
 
     setCompetitionEvents(compData.competition.events);
     setPersons(compData.persons);
-    setRound(compData.competition.events[0].rounds[0]);
+
+    const initialRound = compData.competition.events[0].rounds[0];
+    setRound(initialRound);
+    resetAttempts(initialRound.format);
 
     if (compData.competition.state === CompetitionState.Created) {
       setErrorMessages(["This competition hasn't been approved yet. Editing results is disabled."]);
@@ -119,12 +122,14 @@ const PostResultsScreen = ({
       let average: number;
 
       if (
+        // No averages for rounds that don't support them
+        !getRoundCanHaveAverage(round, compData.events) ||
+        // DNF average if there are multiple DNF/DNS results
         tempAttempts.filter((el) => el <= 0).length > 1 ||
-        (tempAttempts.filter((el) => el <= 0).length > 0 && tempAttempts.length === 3) ||
-        tempAttempts.length < 3 ||
-        round.eventId === '333mbf'
+        // DNF average if there is a DNF/DNS in a Mo3
+        (tempAttempts.filter((el) => el <= 0).length > 0 && tempAttempts.length === 3)
       ) {
-        average = -1; // DNF
+        average = -1;
       } else {
         let sum = tempAttempts.reduce((prev: number, curr: number) => {
           // Ignore DNF, DNS, etc.
@@ -284,7 +289,7 @@ const PostResultsScreen = ({
   };
 
   const resetAttempts = (roundFormat: RoundFormat) => {
-    const numberOfSolves = roundFormats[roundFormat].attempts as number;
+    const numberOfSolves = roundFormats[roundFormat].attempts;
     setAttempts(Array(numberOfSolves).fill(''));
   };
 
@@ -300,20 +305,14 @@ const PostResultsScreen = ({
   };
 
   const deleteResult = (personId: string, editCallback?: () => void) => {
-    if (round.results.length > 1 || round.roundTypeId === RoundType.Final) {
-      const newRound: IRound = {
-        ...round,
-        results: mapRankings(round.results.filter((el) => el.personId !== personId)),
-      };
+    const newRound: IRound = {
+      ...round,
+      results: mapRankings(round.results.filter((el) => el.personId !== personId)),
+    };
 
-      updateRoundAndCompetitionEvents(newRound);
+    updateRoundAndCompetitionEvents(newRound);
 
-      if (editCallback) editCallback();
-    }
-    // If it's not the final round and we are deleting the last result, disallow the deletion
-    else {
-      setErrorMessages(["You may not delete the last result of a round that isn't the final round"]);
-    }
+    if (editCallback) editCallback();
   };
 
   // Takes results that are already sorted
@@ -396,11 +395,11 @@ const PostResultsScreen = ({
               />
             ))}
           </div>
-          {Array.from(Array(roundFormats[round.format].attempts), (_, i) => (
+          {attempts.map((attempt, i) => (
             <FormTextInput
               key={i}
               id={`solve_${i + 1}`}
-              value={attempts[i]}
+              value={attempt}
               placeholder={`Attempt ${i + 1}`}
               setValue={(val: string) => changeAttempt(i, val)}
               onKeyPress={(e: any) => enterAttempt(e, i)}

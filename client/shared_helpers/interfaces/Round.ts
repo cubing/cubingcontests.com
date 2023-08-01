@@ -3,7 +3,7 @@ import { RoundFormat, RoundType, RoundProceed } from '../enums';
 
 export interface IProceed {
   type: RoundProceed;
-  value: number;
+  value: number; // number of people proceeding or % of people proceeding
 }
 
 export interface IRound {

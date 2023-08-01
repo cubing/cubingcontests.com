@@ -1,6 +1,7 @@
 import Countries from '@sh/Countries';
-import { IEvent, IPerson } from '@sh/interfaces';
+import { IEvent, IPerson, IRound } from '@sh/interfaces';
 import myFetch from './myFetch';
+import { roundFormats } from './roundFormats';
 
 export const getCountry = (countryId: string): string => {
   return Countries.find((el) => el.code === countryId)?.name || 'Unknown country';
@@ -19,6 +20,21 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
   } else {
     return 'Not implemented';
   }
+};
+
+export const getRoundCanHaveAverage = (round: IRound, events: IEvent[]): boolean => {
+  // Multi-Blind rounds cannot have an average
+  if (round.eventId === '333mbf') return false;
+
+  // Bo1 and Bo2 rounds cannot have an average
+  const numberOfSolves = roundFormats[round.format].attempts;
+  if (numberOfSolves < 3) return false;
+
+  // If the round has a different number of attempts from the default event format, the round cannot have an average
+  const event = events.find((el) => el.eventId === round.eventId);
+  if (numberOfSolves !== roundFormats[event.defaultRoundFormat].attempts) return false;
+
+  return true;
 };
 
 export const formatTime = (event: IEvent, time: number, isAverage = false): string => {

@@ -1,6 +1,6 @@
 import { IResult, IRound, IPerson, IEvent } from '@sh/interfaces';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { formatTime, getSolves } from '~/helpers/utilityFunctions';
+import { formatTime, getSolves, getRoundCanHaveAverage } from '~/helpers/utilityFunctions';
 
 const RoundResultsTable = ({
   round,
@@ -17,6 +17,7 @@ const RoundResultsTable = ({
   onDeleteResult?: (personId: string) => void;
 }) => {
   const currEventInfo = round?.eventId ? events.find((el) => el.eventId === round.eventId) : null;
+  const roundCanHaveAverage = getRoundCanHaveAverage(round, events);
 
   const getName = (personId: string): string => {
     if (!persons || personId === '') throw new Error('Name not found');
@@ -49,13 +50,18 @@ const RoundResultsTable = ({
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {
     if (
+      // Average is not DNF or single is not DNF when the round format is Best of N
       (result.average > 0 || (![RoundFormat.Average, RoundFormat.Mean].includes(round.format) && result.best > 0)) &&
-      ((round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
+      // This is necessary to account for rounding down to 0
+      (result.ranking === 1 ||
+        // Final round and the ranking is in the top 3
+        (round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
+        // Non-final round and the ranking satisfies the proceed parameters
         (round.roundTypeId !== RoundType.Final &&
           result.ranking <=
             (round.proceed.type === RoundProceed.Number
               ? round.proceed.value
-              : Math.round((round.results.length * round.proceed.value) / 100))))
+              : Math.floor((round.results.length * round.proceed.value) / 100))))
     ) {
       return { color: 'black', background: '#10c010' };
     }
@@ -71,7 +77,7 @@ const RoundResultsTable = ({
             <th scope="col">#</th>
             <th scope="col">Name</th>
             <th scope="col">Best</th>
-            <th scope="col">Average</th>
+            {roundCanHaveAverage && <th scope="col">Average</th>}
             <th scope="col">Solves</th>
             {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
@@ -89,12 +95,14 @@ const RoundResultsTable = ({
                   {getRecordBadge(result, 'single')}
                 </div>
               </td>
-              <td>
-                <div className="h-100 d-flex align-items-center gap-3">
-                  {formatTime(currEventInfo, result.average, true)}
-                  {getRecordBadge(result, 'average')}
-                </div>
-              </td>
+              {roundCanHaveAverage && (
+                <td>
+                  <div className="h-100 d-flex align-items-center gap-3">
+                    {formatTime(currEventInfo, result.average, true)}
+                    {getRecordBadge(result, 'average')}
+                  </div>
+                </td>
+              )}
               <td>{getSolves(currEventInfo, result.attempts)}</td>
               {onEditResult && (
                 <td className="py-1">
