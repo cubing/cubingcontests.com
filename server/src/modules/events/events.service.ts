@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EventDocument } from '~/src/models/event.model';
@@ -37,6 +37,20 @@ export class EventsService {
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
+  }
+
+  async getEventById(eventId: string): Promise<EventDocument> {
+    let event: EventDocument;
+
+    try {
+      event = await this.model.findOne({ eventId }, excl).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+
+    if (!event) throw new NotFoundException(`Event with id ${eventId} not found`);
+
+    return event;
   }
 
   async createEvent(createEventDto: CreateEventDto) {

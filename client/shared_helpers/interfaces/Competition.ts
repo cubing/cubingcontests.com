@@ -4,13 +4,18 @@ import { IRound } from './Round';
 import { IPerson } from './Person';
 
 export interface ICompetitionEvent {
-  eventId: string;
+  event: IEvent; // stored as a reference
   rounds: IRound[]; // stored as references
 }
 
-// IMPORTANT: when updating this interface, also update (1) the create competition DTO (and update DTO,
-// if needed), (2) the competition model, and also consider (3) the createCompetition method
-// in the competition service and (4) the CompetitionForm component on the frontend
+// IMPORTANT: when updating this interface, also update:
+//    (1) the create competition DTO (and update DTO,  if needed)
+//    (2) the competition model
+// And also consider the following:
+//    (3) CompetitionForm component
+//    (4) CompetitionResults component
+//    (5) updateCompetition method in the competition service
+//    (6) createCompetition method in the competition service
 export interface ICompetition {
   competitionId: string;
   createdBy: number; // peson ID of the moderator/admin, who created the competition
@@ -38,14 +43,12 @@ export interface ICompetition {
 
 export interface ICompetitionData {
   competition: ICompetition;
-  events: IEvent[]; // info about events held at THIS competition
   persons: IPerson[]; // info about competitors from THIS competition
   timezoneOffset: number; // timezone offset from UTC in minutes
 }
 
 export interface ICompetitionModData {
   competition: ICompetition;
-  events: IEvent[]; // info about ALL events
   persons: IPerson[]; // info about competitors from THIS competition
   // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
   records: any;

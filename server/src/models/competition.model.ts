@@ -1,17 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { ICompetition, ICompetitionEvent } from '@sh/interfaces';
-import { Round } from './round.model';
-import { Person, PersonSchema } from './person.model';
+import { RoundDocument } from './round.model';
+import { PersonDocument } from './person.model';
 import { CompetitionState, CompetitionType } from '@sh/enums';
+import { EventDocument } from './event.model';
 
 @Schema({ _id: false })
 export class CompetitionEvent implements ICompetitionEvent {
-  @Prop({ required: true })
-  eventId: string;
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'Event', required: true })
+  event: EventDocument;
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Round' }], required: true })
-  rounds: Round[];
+  rounds: RoundDocument[];
 }
 
 const CompetitionEventSchema = SchemaFactory.createForClass(CompetitionEvent);
@@ -58,7 +59,7 @@ class Competition implements ICompetition {
   endDate?: Date;
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Person' }] })
-  organizers?: Person[];
+  organizers?: PersonDocument[];
 
   @Prop()
   contact?: string;

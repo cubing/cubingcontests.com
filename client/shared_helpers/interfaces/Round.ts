@@ -11,6 +11,7 @@ export interface IRound {
   competitionId: string;
   eventId: string;
   date: Date;
+  compNotPublished?: boolean; // unset by default, set if true
   roundTypeId: RoundType; // first/second/semi/finals
   format: RoundFormat;
   // This is only set if it's not the final round

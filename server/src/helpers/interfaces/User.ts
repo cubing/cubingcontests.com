@@ -1,7 +1,7 @@
 import { Role } from '../enums';
 
 export interface IUser {
-  personId: number;
+  personId?: number; // assigned manually by an admin
   username: string;
   email: string;
   password: string;

@@ -13,6 +13,9 @@ export class Result implements IResult {
   @Prop({ required: true })
   date: Date;
 
+  @Prop()
+  compNotPublished?: boolean;
+
   @Prop({ required: true })
   personId: string;
 

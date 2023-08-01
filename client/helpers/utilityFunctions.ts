@@ -2,6 +2,7 @@ import Countries from '@sh/Countries';
 import { IEvent, IPerson, IRound } from '@sh/interfaces';
 import myFetch from './myFetch';
 import { roundFormats } from './roundFormats';
+import { RoundFormat } from '~/shared_helpers/enums';
 
 export const getCountry = (countryId: string): string => {
   return Countries.find((el) => el.code === countryId)?.name || 'Unknown country';
@@ -22,7 +23,7 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
   }
 };
 
-export const getRoundCanHaveAverage = (round: IRound, events: IEvent[]): boolean => {
+export const getRoundCanHaveAverage = (round: IRound, event: IEvent): boolean => {
   // Multi-Blind rounds cannot have an average
   if (round.eventId === '333mbf') return false;
 
@@ -31,10 +32,13 @@ export const getRoundCanHaveAverage = (round: IRound, events: IEvent[]): boolean
   if (numberOfSolves < 3) return false;
 
   // If the round has a different number of attempts from the default event format, the round cannot have an average
-  const event = events.find((el) => el.eventId === round.eventId);
   if (numberOfSolves !== roundFormats[event.defaultRoundFormat].attempts) return false;
 
   return true;
+};
+
+export const getRoundRanksWithAverage = (round: IRound, event: IEvent): boolean => {
+  return getRoundCanHaveAverage(round, event) && [RoundFormat.Average, RoundFormat.Mean].includes(round.format);
 };
 
 export const formatTime = (event: IEvent, time: number, isAverage = false): string => {

@@ -23,13 +23,28 @@ import {
   ICompetition,
 } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
-import { CompetitionState, WcaRecordType } from '@sh/enums';
+import C from '@sh/constants';
+import { CompetitionState, CompetitionType, WcaRecordType } from '@sh/enums';
 import { Role } from '~/src/helpers/enums';
 
 interface ICompetitionUpdateResult {
   events: ICompetitionEvent[];
   participants: number;
 }
+
+const eventPopulateOptions = {
+  event: { path: 'events.event', model: 'Event' },
+  rounds: {
+    path: 'events.rounds',
+    model: 'Round',
+    populate: [
+      {
+        path: 'results',
+        model: 'Result',
+      },
+    ],
+  },
+};
 
 @Injectable()
 export class CompetitionsService {
@@ -89,7 +104,6 @@ export class CompetitionsService {
     if (competition?.state > CompetitionState.Created) {
       const output: ICompetitionData = {
         competition,
-        events: [],
         persons: [],
         timezoneOffset: getTimezone(find(competition.latitude, competition.longitude)[0]).dstOffset,
       };
@@ -100,9 +114,6 @@ export class CompetitionsService {
           const personIds: number[] = this.getCompetitionParticipants(competition.events);
           output.persons = await this.personsService.getPersonsById(personIds);
         }
-
-        const eventIds = output.competition.events.map((el) => el.eventId);
-        output.events = await this.eventsService.getEvents(eventIds);
       } catch (err) {
         throw new InternalServerErrorException(err.message);
       }
@@ -115,23 +126,21 @@ export class CompetitionsService {
 
   async getModCompetition(competitionId: string): Promise<ICompetitionModData> {
     const competition = await this.getFullCompetition(competitionId);
-    const events = await this.eventsService.getEvents();
     const personIds: number[] = this.getCompetitionParticipants(competition.events);
 
     if (competition) {
       const compModData: ICompetitionModData = {
         competition,
-        events,
         persons: await this.personsService.getPersonsById(personIds),
         // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
         records: {} as any,
       };
       const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-      // Get all current records
-      for (const event of events) {
-        compModData.records[event.eventId] = await this.getEventRecords(
-          event.eventId,
+      // Get current records for this competition's events
+      for (const compEvent of competition.events) {
+        compModData.records[compEvent.event.eventId] = await this.getEventRecords(
+          compEvent.event.eventId,
           activeRecordTypes,
           new Date(competition.startDate),
         );
@@ -158,14 +167,8 @@ export class CompetitionsService {
       // First save all of the rounds in the DB (without any results until they get posted)
       const competitionEvents: CompetitionEvent[] = [];
 
-      for (const event of createCompetitionDto.events) {
-        const eventRounds: RoundDocument[] = [];
-
-        for (const round of event.rounds) {
-          eventRounds.push(await this.roundModel.create(round));
-        }
-
-        competitionEvents.push({ ...event, rounds: eventRounds });
+      for (const compEvent of createCompetitionDto.events) {
+        competitionEvents.push(await this.getNewCompetitionEvent(compEvent));
       }
 
       // Create new competition
@@ -174,7 +177,8 @@ export class CompetitionsService {
         events: competitionEvents,
         createdBy: creatorPersonId,
         state: CompetitionState.Created,
-      } as ICompetition;
+        participants: 0,
+      };
 
       if (createCompetitionDto.organizers) {
         newCompetition.organizers = await this.personsService.getPersonsById(
@@ -188,91 +192,154 @@ export class CompetitionsService {
     }
   }
 
-  // Update the competition. This is also used for posting results.
   async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, roles: Role[]) {
-    let comp: CompetitionDocument;
-    try {
-      comp = await this.competitionModel.findOne({ competitionId }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
+    const comp = await this.findCompetition(competitionId, true);
+
+    // Validation
+    if (updateCompetitionDto.events.some((ev) => ev.rounds.length > C.maxRounds))
+      throw new BadRequestException(`You cannot have an event with more than ${C.maxRounds} rounds`);
+    if (updateCompetitionDto.events.some((el) => el.rounds.length === 0))
+      throw new BadRequestException(`You cannot have an event with no rounds`);
+
+    // Competition-only validation
+    if (comp.type === CompetitionType.Competition) {
+      if (!updateCompetitionDto.endDate) throw new BadRequestException(`Please enter an end date`);
     }
-    if (!comp) throw new BadRequestException(`Competition with id ${competitionId} not found`);
 
     const isAdmin = roles.includes(Role.Admin);
 
     // Only an admin is allowed to edit these fields
     if (isAdmin) {
-      if (updateCompetitionDto.competitionId) comp.competitionId = updateCompetitionDto.competitionId;
-      if (updateCompetitionDto.countryId) comp.countryId = updateCompetitionDto.countryId;
-      if (updateCompetitionDto.state) comp.state = updateCompetitionDto.state;
-    }
-    // Allow only finishing a competition for mods
-    else if (updateCompetitionDto.state === CompetitionState.Finished && comp.state === CompetitionState.Ongoing) {
-      comp.state = updateCompetitionDto.state;
+      comp.competitionId = updateCompetitionDto.competitionId;
+      comp.countryId = updateCompetitionDto.countryId;
     }
 
     if (isAdmin || comp.state < CompetitionState.Finished) {
-      if (updateCompetitionDto.organizers)
-        comp.organizers = await this.personsService.getPersonsById(
-          updateCompetitionDto.organizers.map((org) => org.personId),
-        );
       if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
       if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
+
+      comp.events = await this.updateCompetitionEvents(comp.events, updateCompetitionDto.events);
     }
 
     if (isAdmin || comp.state < CompetitionState.Ongoing) {
-      if (updateCompetitionDto.name) comp.name = updateCompetitionDto.name;
-      if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
-      if (updateCompetitionDto.venue) comp.venue = updateCompetitionDto.venue;
+      comp.name = updateCompetitionDto.name;
+      comp.city = updateCompetitionDto.city;
+      comp.venue = updateCompetitionDto.venue;
+      if (updateCompetitionDto.address) comp.address = updateCompetitionDto.address;
       if (updateCompetitionDto.latitude && updateCompetitionDto.longitude) {
         comp.latitude = updateCompetitionDto.latitude;
         comp.longitude = updateCompetitionDto.longitude;
       }
-      if (updateCompetitionDto.startDate) comp.startDate = updateCompetitionDto.startDate;
+      comp.startDate = updateCompetitionDto.startDate;
       if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
+      if (updateCompetitionDto.organizers) {
+        comp.organizers = await this.personsService.getPersonsById(
+          updateCompetitionDto.organizers.map((org) => org.personId),
+        );
+      }
       if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
-      if (updateCompetitionDto.mainEventId) comp.mainEventId = updateCompetitionDto.mainEventId;
+      comp.mainEventId = updateCompetitionDto.mainEventId;
     }
 
-    // Post competition results and set the number of participants
+    await this.saveCompetition(comp);
+  }
+
+  async updateState(competitionId: string, newState: CompetitionState, roles: Role[]) {
+    const comp = await this.findCompetition(competitionId);
+
     if (
-      updateCompetitionDto.state === CompetitionState.Ongoing &&
-      [CompetitionState.Approved, CompetitionState.Ongoing].includes(comp.state)
+      roles.includes(Role.Admin) ||
+      // Allow mods only to finish an ongoing competition
+      (newState === CompetitionState.Finished && comp.state === CompetitionState.Ongoing)
     ) {
-      // Store the results temporarily in case there is an error
-      let tempResults: IResult[];
+      comp.state = newState;
 
-      try {
-        tempResults = (await this.resultModel.find({ competitionId }).exec()) as IResult[];
-        await this.resultModel.deleteMany({ competitionId }).exec();
+      if (newState === CompetitionState.Published) {
+        console.log(`Publishing competition ${comp.competitionId}`);
 
-        const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-
-        comp.participants = (
-          await this.updateCompetitionEvents(updateCompetitionDto.events, activeRecordTypes)
-        ).participants;
-        comp.state = CompetitionState.Ongoing;
-      } catch (err) {
-        // Reset the results if there was an error while posting the results
-        if (tempResults?.length > 0) {
-          await this.resultModel.deleteMany({ competitionId }).exec();
-          await this.resultModel.create(tempResults);
+        try {
+          await this.roundModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
+          await this.resultModel.updateMany(
+            { competitionId: comp.competitionId },
+            { $unset: { compNotPublished: '' } },
+          );
+        } catch (err) {
+          throw new InternalServerErrorException(`Error while publishing competition: ${err.message}`);
         }
-
-        throw new InternalServerErrorException(`Error while updating competition events: ${err.message}`);
       }
     }
 
-    try {
-      await comp.save();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
+    await this.saveCompetition(comp);
+  }
+
+  async postResults(competitionId: string, updateCompetitionDto: UpdateCompetitionDto) {
+    const comp = await this.findCompetition(competitionId);
+
+    if (comp.state < CompetitionState.Approved) {
+      throw new BadRequestException("You may not post the results for a competition that hasn't been approved");
+    } else if (comp.state >= CompetitionState.Finished) {
+      throw new BadRequestException('You may not post the results for a finished competition');
     }
+
+    // Store the results temporarily in case there is an error
+    let tempResults: IResult[];
+
+    try {
+      tempResults = (await this.resultModel.find({ competitionId }).exec()) as IResult[];
+      await this.resultModel.deleteMany({ competitionId }).exec();
+
+      const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+
+      comp.participants = (
+        await this.updateCompetitionResults(updateCompetitionDto.events, activeRecordTypes)
+      ).participants;
+      comp.state = CompetitionState.Ongoing;
+    } catch (err) {
+      // Reset the results if there was an error while posting the results
+      if (tempResults?.length > 0) {
+        await this.resultModel.deleteMany({ competitionId }).exec();
+        await this.resultModel.create(tempResults);
+      }
+
+      throw new InternalServerErrorException(`Error while updating competition events: ${err.message}`);
+    }
+
+    await this.saveCompetition(comp);
   }
 
   /////////////////////////////////////////////////////////////////////////////////////
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
+
+  private async findCompetition(competitionId: string, populateEvents = false): Promise<CompetitionDocument> {
+    let competition: CompetitionDocument;
+
+    try {
+      if (!populateEvents) {
+        competition = await this.competitionModel.findOne({ competitionId }).exec();
+      } else {
+        competition = await this.competitionModel
+          .findOne({ competitionId })
+          .populate(eventPopulateOptions.event)
+          .populate(eventPopulateOptions.rounds)
+          .exec();
+      }
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+
+    if (!competition) throw new NotFoundException(`Competition with id ${competitionId} not found`);
+
+    return competition;
+  }
+
+  private async saveCompetition(competition: CompetitionDocument) {
+    try {
+      await competition.save();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
 
   // Finds the competition with the given competition id with the rounds and results populated
   private async getFullCompetition(competitionId: string): Promise<CompetitionDocument> {
@@ -285,21 +352,24 @@ export class CompetitionsService {
             createdBy: 0,
           },
         )
-        .populate({
-          path: 'events.rounds',
-          model: 'Round',
-          populate: [
-            {
-              path: 'results',
-              model: 'Result',
-            },
-          ],
-        })
+        .populate(eventPopulateOptions.event)
+        .populate(eventPopulateOptions.rounds)
         .populate({ path: 'organizers', model: 'Person' })
         .exec();
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new NotFoundException(err.message);
     }
+  }
+
+  private async getNewCompetitionEvent(compEvent: ICompetitionEvent): Promise<CompetitionEvent> {
+    const eventRounds: RoundDocument[] = [];
+
+    for (const round of compEvent.rounds) eventRounds.push(await this.roundModel.create(round));
+
+    return {
+      event: await this.eventsService.getEventById(compEvent.event.eventId),
+      rounds: eventRounds,
+    };
   }
 
   // This method must only be called when the event rounds have been populated
@@ -323,8 +393,74 @@ export class CompetitionsService {
     }
   }
 
+  private async updateCompetitionEvents(
+    compEvents: CompetitionEvent[],
+    newEvents: ICompetitionEvent[],
+  ): Promise<CompetitionEvent[]> {
+    // Remove deleted rounds and events
+    for (const compEvent of compEvents) {
+      const sameEventInNew = newEvents.find((el) => el.event.eventId === compEvent.event.eventId);
+
+      if (sameEventInNew) {
+        for (const round of compEvent.rounds) {
+          if (!sameEventInNew.rounds.some((el) => el._id === round._id.toString())) {
+            // Delete round if it has no results
+            if (round.results.length === 0) {
+              await this.roundModel.deleteOne({ _id: round._id });
+              compEvent.rounds = compEvent.rounds.filter((el) => el !== round);
+            }
+          }
+        }
+      }
+      // Delete event and all of its rounds if it has no results
+      else if (!compEvent.rounds.some((el) => el.results.length > 0)) {
+        await this.roundModel.deleteMany({ _id: { $in: compEvent.rounds.map((el) => el._id) } });
+        compEvents = compEvents.filter((el) => el.event.eventId !== compEvent.event.eventId);
+      }
+    }
+
+    // Update rounds and add new events
+    for (const newEvent of newEvents) {
+      const sameEventInComp = compEvents.find((el) => el.event.eventId === newEvent.event.eventId);
+
+      if (sameEventInComp) {
+        for (const round of newEvent.rounds) {
+          const sameRoundInComp = sameEventInComp.rounds.find((el) => el._id.toString() === round._id);
+
+          if (sameRoundInComp) {
+            // Update round
+            const updateObj: any = { $set: { roundTypeId: round.roundTypeId } };
+
+            if (sameRoundInComp.results.length === 0) updateObj.$set.format = round.format;
+
+            // Update proceed object if the updated round has it and the round has no results
+            // or set it, if the round previously had no proceed object (meaning it was the final round)
+            if (round.proceed) {
+              if (sameRoundInComp.results.length === 0 || !sameRoundInComp.proceed)
+                updateObj.$set.proceed = round.proceed;
+            } else if (sameRoundInComp.proceed) {
+              // Unset proceed object if it got deleted (the round became the final round due to a deletion)
+              updateObj.$unset = { proceed: '' };
+            }
+
+            await this.roundModel.updateOne({ _id: round._id }, updateObj).exec();
+          } else {
+            // Add new round
+            sameEventInComp.rounds.push(await this.roundModel.create(round));
+          }
+        }
+      } else {
+        compEvents.push(await this.getNewCompetitionEvent(newEvent));
+      }
+    }
+
+    compEvents.sort((a, b) => a.event.rank - b.event.rank);
+
+    return compEvents;
+  }
+
   // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)
-  async updateCompetitionEvents(
+  async updateCompetitionResults(
     newCompEvents: ICompetitionEvent[],
     activeRecordTypes: IRecordType[],
   ): Promise<ICompetitionUpdateResult> {
@@ -333,14 +469,14 @@ export class CompetitionsService {
     const personIds: number[] = []; // used for calculating the number of participants
 
     // Save all results from every event and set new records, if there are any
-    for (const event of newCompEvents) {
+    for (const compEvent of newCompEvents) {
       const eventRounds: IRound[] = [];
       let sameDayRounds: IRound[] = [];
       // These are set to null if there are no active record types
-      const records: any = await this.getEventRecords(event.eventId, activeRecordTypes);
-      event.rounds.sort((a: IRound, b: IRound) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const records: any = await this.getEventRecords(compEvent.event.eventId, activeRecordTypes);
+      compEvent.rounds.sort((a: IRound, b: IRound) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      for (const round of event.rounds) {
+      for (const round of compEvent.rounds) {
         // Set the records from the last day, when the day changes
         if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
           eventRounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
@@ -353,7 +489,7 @@ export class CompetitionsService {
 
       // Set the records for the last day of rounds
       eventRounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
-      output.events.push({ ...event, rounds: eventRounds });
+      output.events.push({ ...compEvent, rounds: eventRounds });
     }
 
     output.participants = personIds.length;
@@ -411,15 +547,10 @@ export class CompetitionsService {
       for (const round of sameDayRounds) {
         const newResults = await this.resultModel.create(round.results);
 
-        await this.roundModel
-          .updateOne(
-            { competitionId: round.competitionId, eventId: round.eventId, roundTypeId: round.roundTypeId },
-            { $set: { results: newResults } },
-          )
-          .exec();
+        await this.roundModel.updateOne({ _id: round._id }, { $set: { results: newResults } }).exec();
       }
     } catch (err) {
-      throw new InternalServerErrorException(`Error while creating rounds: ${err.message}`);
+      throw new Error(`Error while creating rounds: ${err.message}`);
     }
 
     return sameDayRounds;

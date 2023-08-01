@@ -1,10 +1,11 @@
 import { RoundFormat, RoundType } from '@sh/enums';
 import { ICompetitionEvent } from '@sh/interfaces';
+import eventsSeed from '~/src/seeds/events.seed';
 
 export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
   return [
     {
-      eventId: '333',
+      event: eventsSeed.find((el) => el.eventId === '333'),
       rounds: [
         {
           competitionId: 'Munich30062023',
@@ -59,7 +60,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
       ],
     },
     {
-      eventId: '333fm',
+      event: eventsSeed.find((el) => el.eventId === '333fm'),
       rounds: [
         {
           competitionId: 'Munich30062023',
@@ -108,7 +109,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
 export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
   return [
     {
-      eventId: '333fm',
+      event: eventsSeed.find((el) => el.eventId === '333fm'),
       rounds: [
         {
           competitionId: 'TestComp2023',
@@ -232,7 +233,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
       ],
     },
     {
-      eventId: '222',
+      event: eventsSeed.find((el) => el.eventId === '222'),
       rounds: [
         {
           competitionId: 'TestComp2023',

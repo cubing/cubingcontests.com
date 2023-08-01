@@ -38,6 +38,9 @@ export const mockResultModel = (): any => ({
         (el: ResultDocument) => el.regionalAverageRecord === query.regionalAverageRecord,
       );
     }
+    if (query?.compNotPublished?.$exists === false) {
+      this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.compNotPublished === undefined);
+    }
     if (query?.date) {
       if (query.date.$lt) {
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.date < query.date.$lt);

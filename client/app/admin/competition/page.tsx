@@ -8,8 +8,8 @@ const CreateCompetition = async () => {
   const searchParams = useSearchParams();
 
   const editId = searchParams.get('edit_id');
-  let competitionData;
   const { payload: events } = await myFetch.get('/events');
+  let competitionData;
 
   if (editId) {
     competitionData = (await myFetch.get(`/competitions/mod/${editId}`, { authorize: true }))?.payload;

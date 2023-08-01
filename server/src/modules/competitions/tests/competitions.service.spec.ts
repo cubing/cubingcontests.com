@@ -75,19 +75,19 @@ describe('CompetitionsService', () => {
 
   describe('Endpoints', () => {
     it('should get full competition', async () => {
-      const { competition, events, persons } = await competitionsService.getCompetition('Munich19022023');
+      const { competition, persons } = await competitionsService.getCompetition('Munich19022023');
 
       expect(competition.name).toBe('Meetup in Munich on February 19, 2023');
-      expect(events.length).toBe(4);
+      expect(competition.events.length).toBe(4);
       expect(persons.length).toBe(4);
     });
 
     it('should get full moderator competition', async () => {
-      const { competition, events, persons, records } = await competitionsService.getModCompetition('Munich14062023');
+      const { competition, persons, records } = await competitionsService.getModCompetition('Munich14062023');
 
       expect(competition).toBeDefined();
       expect(persons.length).toBe(5);
-      expect(events.length).toBe(19);
+      expect(competition.events.length).toBe(7);
       expect(records['333'].WR.best).toBe(990);
       expect(records['333'].WR.average).toBe(1170);
     });
@@ -96,12 +96,12 @@ describe('CompetitionsService', () => {
   describe('Endpoint methods', () => {
     it('should post competition results without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.updateCompetition('Munich30062023', updateCompetitionDto, [Role.Admin]);
+      competitionsService.postResults('Munich30062023', updateCompetitionDto);
     });
 
     it('should update competition results without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.updateCompetition('Munich27062023', updateCompetitionDto, [Role.Admin]);
+      competitionsService.postResults('Munich27062023', updateCompetitionDto);
     });
   });
 
@@ -169,8 +169,8 @@ describe('CompetitionsService', () => {
       expect(sameDayRounds[1].results[0].regionalAverageRecord).toBe('XWR');
     });
 
-    it('updateCompetitionEvents sets events and participants correctly', async () => {
-      const output = await competitionsService.updateCompetitionEvents(
+    it('updateCompetitionResults sets events and participants correctly', async () => {
+      const output = await competitionsService.updateCompetitionResults(
         newCompetitionEventsStub(),
         recordTypesStub(true),
       );
@@ -194,8 +194,8 @@ describe('CompetitionsService', () => {
       expect(output.events[1].rounds[0].results[0].regionalAverageRecord).toBe('XWR');
     });
 
-    it('updateCompetitionEvents sets events with multiple rounds on multiple days correctly', async () => {
-      const output = await competitionsService.updateCompetitionEvents(
+    it('updateCompetitionResults sets events with multiple rounds on multiple days correctly', async () => {
+      const output = await competitionsService.updateCompetitionResults(
         newFakeCompetitionEventsStub(),
         recordTypesStub(true),
       );
@@ -228,8 +228,8 @@ describe('CompetitionsService', () => {
       expect(output.events[0].rounds[2].results[0].regionalAverageRecord).toBeUndefined();
     });
 
-    it('updateCompetitionEvents sets events correctly when there are no active record types', async () => {
-      const output = await competitionsService.updateCompetitionEvents(newFakeCompetitionEventsStub(), []);
+    it('updateCompetitionResults sets events correctly when there are no active record types', async () => {
+      const output = await competitionsService.updateCompetitionResults(newFakeCompetitionEventsStub(), []);
 
       expect(output.participants).toBe(6);
       expect(output.events.length).toBe(2);

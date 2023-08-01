@@ -1,23 +1,23 @@
 import { IResult, IRound, IPerson, IEvent } from '@sh/interfaces';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { formatTime, getSolves, getRoundCanHaveAverage } from '~/helpers/utilityFunctions';
+import { formatTime, getSolves, getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
 
 const RoundResultsTable = ({
   round,
-  events,
+  event,
   persons,
   // If one of these is defined, the other must be defined too
   onEditResult,
   onDeleteResult,
 }: {
   round: IRound;
-  events: IEvent[];
+  event: IEvent;
   persons: IPerson[];
   onEditResult?: (result: IResult) => void;
   onDeleteResult?: (personId: string) => void;
 }) => {
-  const currEventInfo = round?.eventId ? events.find((el) => el.eventId === round.eventId) : null;
-  const roundCanHaveAverage = getRoundCanHaveAverage(round, events);
+  const roundCanHaveAverage = getRoundCanHaveAverage(round, event);
+  const roundRanksWithAverage = getRoundRanksWithAverage(round, event);
 
   const getName = (personId: string): string => {
     if (!persons || personId === '') throw new Error('Name not found');
@@ -50,9 +50,8 @@ const RoundResultsTable = ({
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {
     if (
-      // Average is not DNF or single is not DNF when the round format is Best of N
-      (result.average > 0 || (![RoundFormat.Average, RoundFormat.Mean].includes(round.format) && result.best > 0)) &&
-      // This is necessary to account for rounding down to 0
+      ((roundRanksWithAverage && result.average > 0) || (!roundRanksWithAverage && result.best > 0)) &&
+      // This is necessary to account for rounding down to 0 (see Math.floor() below)
       (result.ranking === 1 ||
         // Final round and the ranking is in the top 3
         (round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
@@ -91,19 +90,19 @@ const RoundResultsTable = ({
               <td>{getName(result.personId)}</td>
               <td>
                 <div className="d-flex align-items-center gap-3">
-                  {formatTime(currEventInfo, result.best)}
+                  {formatTime(event, result.best)}
                   {getRecordBadge(result, 'single')}
                 </div>
               </td>
               {roundCanHaveAverage && (
                 <td>
                   <div className="h-100 d-flex align-items-center gap-3">
-                    {formatTime(currEventInfo, result.average, true)}
+                    {formatTime(event, result.average, true)}
                     {getRecordBadge(result, 'average')}
                   </div>
                 </td>
               )}
-              <td>{getSolves(currEventInfo, result.attempts)}</td>
+              <td>{getSolves(event, result.attempts)}</td>
               {onEditResult && (
                 <td className="py-1">
                   <button type="button" onClick={() => onEditResult(result)} className="me-2 btn btn-primary btn-sm">

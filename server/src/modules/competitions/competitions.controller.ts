@@ -55,7 +55,7 @@ export class CompetitionsController {
     return await this.service.createCompetition(createCompetitionDto, req.user.personId);
   }
 
-  // PATCH /competitions/:id
+  // PATCH /competitions/:id?action=change_state/post_results
   @Patch(':id')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
@@ -63,9 +63,18 @@ export class CompetitionsController {
     @Param('id') competitionId: string,
     @Request() req: any, // this is passed in by the guards
     @Body(new ValidationPipe()) updateCompetitionDto: UpdateCompetitionDto,
+    @Query('action') action?: 'change_state' | 'post_results',
   ) {
-    console.log('Updating competition');
-    return await this.service.updateCompetition(competitionId, updateCompetitionDto, req.user.roles);
+    if (!action) {
+      console.log(`Updating competition ${competitionId}`);
+      return await this.service.updateCompetition(competitionId, updateCompetitionDto, req.user.roles);
+    } else if (action === 'post_results') {
+      console.log(`Posting results for ${competitionId}`);
+      return await this.service.postResults(competitionId, updateCompetitionDto);
+    } else if (action === 'change_state') {
+      console.log(`Setting state ${updateCompetitionDto.state} for competition ${competitionId}`);
+      return await this.service.updateState(competitionId, updateCompetitionDto.state, req.user.roles);
+    }
   }
 
   // DELETE /competitions/:id

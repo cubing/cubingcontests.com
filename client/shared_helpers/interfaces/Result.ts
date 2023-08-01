@@ -6,6 +6,7 @@ export interface IResult {
   competitionId: string;
   eventId: string;
   date: Date;
+  compNotPublished?: boolean; // unset by default, set if true
   // This is a string, because for team events (e.g. Team BLD) it stores multiple ids (e.g. "3;14;15")
   personId: string;
   ranking: number;

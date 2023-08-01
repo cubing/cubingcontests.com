@@ -9,11 +9,11 @@ import myFetch from '~/helpers/myFetch';
 import { RoundFormat, RoundType, EventFormat, WcaRecordType, CompetitionState } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
-import { getRoundCanHaveAverage, selectPerson } from '~/helpers/utilityFunctions';
+import { getRoundCanHaveAverage, getRoundRanksWithAverage, selectPerson } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 
 const PostResultsScreen = ({
-  compData,
+  compData: { competition, persons: prevPersons, records },
   activeRecordTypes,
 }: {
   compData: ICompetitionModData;
@@ -21,20 +21,16 @@ const PostResultsScreen = ({
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [round, setRound] = useState<IRound>(compData.competition.events[0].rounds[0]);
+  const [round, setRound] = useState<IRound>(competition.events[0].rounds[0]);
   const [personNames, setPersonNames] = useState(['']);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
-  const [attempts, setAttempts] = useState(['', '', '', '', '']);
-  const [persons, setPersons] = useState<IPerson[]>([]);
-  const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
+  const [attempts, setAttempts] = useState<string[]>([]);
+  const [persons, setPersons] = useState<IPerson[]>(prevPersons);
+  const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>(competition.events);
 
   const currCompEvent = useMemo(
-    () => competitionEvents.find((el) => el.eventId === round.eventId),
+    () => competitionEvents.find((el) => el.event.eventId === round.eventId),
     [round.eventId, round.results.length, competitionEvents],
-  );
-  const eventsHeldAtComp = useMemo(
-    () => compData.events.filter((ev) => compData.competition.events.some((ce) => ce.eventId === ev.eventId)),
-    [compData],
   );
 
   const logDebug = () => {
@@ -50,22 +46,18 @@ const PostResultsScreen = ({
 
   // Initialize
   useEffect(() => {
-    console.log('Competition data:', compData);
+    console.log('Competition:', competition);
+    console.log('Records:', records);
     console.log('Active record types:', activeRecordTypes);
 
-    setCompetitionEvents(compData.competition.events);
-    setPersons(compData.persons);
+    resetAttempts(competition.events[0].rounds[0].format);
 
-    const initialRound = compData.competition.events[0].rounds[0];
-    setRound(initialRound);
-    resetAttempts(initialRound.format);
-
-    if (compData.competition.state === CompetitionState.Created) {
-      setErrorMessages(["This competition hasn't been approved yet. Editing results is disabled."]);
-    } else if (compData.competition.state >= CompetitionState.Finished) {
-      setErrorMessages(['This competition is over. Editing results is disabled.']);
+    if (competition.state < CompetitionState.Approved) {
+      setErrorMessages(["This competition hasn't been approved yet. Submitting results is disabled."]);
+    } else if (competition.state >= CompetitionState.Finished) {
+      setErrorMessages(['This competition is over. Submitting results is disabled.']);
     }
-  }, [compData, activeRecordTypes]);
+  }, [competition, records, activeRecordTypes]);
 
   useEffect(() => {
     // Focus the last name input
@@ -80,18 +72,21 @@ const PostResultsScreen = ({
   }, [errorMessages, successMessage]);
 
   const handleSubmit = async () => {
-    if ([CompetitionState.Approved, CompetitionState.Ongoing].includes(compData.competition.state)) {
+    if ([CompetitionState.Approved, CompetitionState.Ongoing].includes(competition.state)) {
       setErrorMessages([]);
       setSuccessMessage('');
 
-      const newCompetition = { ...compData.competition, events: competitionEvents, state: CompetitionState.Ongoing };
-      const { errors } = await myFetch.patch(`/competitions/${compData.competition.competitionId}`, newCompetition);
+      const { errors } = await myFetch.patch(`/competitions/${competition.competitionId}?action=post_results`, {
+        events: competitionEvents,
+      });
 
       if (errors) {
         setErrorMessages(errors);
       } else {
         setSuccessMessage('Results successfully submitted');
       }
+    } else {
+      setErrorMessages(['Submitting results is disabled']);
     }
   };
 
@@ -123,7 +118,7 @@ const PostResultsScreen = ({
 
       if (
         // No averages for rounds that don't support them
-        !getRoundCanHaveAverage(round, compData.events) ||
+        !getRoundCanHaveAverage(round, currCompEvent.event) ||
         // DNF average if there are multiple DNF/DNS results
         tempAttempts.filter((el) => el <= 0).length > 1 ||
         // DNF average if there is a DNF/DNS in a Mo3
@@ -152,9 +147,10 @@ const PostResultsScreen = ({
         results: [
           ...round.results,
           {
-            competitionId: compData.competition.competitionId,
+            competitionId: competition.competitionId,
             eventId: round.eventId,
             date: round.date,
+            compNotPublished: true,
             personId: currentPersons.map((el) => el.personId.toString()).join(';'),
             ranking: 0, // real rankings assigned below
             attempts: tempAttempts,
@@ -171,10 +167,8 @@ const PostResultsScreen = ({
 
       updateRoundAndCompetitionEvents(newRound);
 
-      setPersons((prev) => [
-        ...prev,
-        ...currentPersons.filter((cp) => !persons.find((p) => p.personId === cp.personId)),
-      ]);
+      // Add new persons to list of persons
+      setPersons([...persons, ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId))]);
       setErrorMessages([]);
       setSuccessMessage('');
       resetPersons();
@@ -205,7 +199,7 @@ const PostResultsScreen = ({
       for (const rt of activeRecordTypes) {
         // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
-          rounds = setNewRecords(rounds, compData.records[rounds[0].eventId][rt.wcaEquivalent], rt.label);
+          rounds = setNewRecords(rounds, records[rounds[0].eventId][rt.wcaEquivalent], rt.label);
         }
       }
 
@@ -213,7 +207,7 @@ const PostResultsScreen = ({
     };
 
     const newCompetitionEvents = competitionEvents.map((ce) =>
-      ce.eventId !== newRound.eventId
+      ce.event.eventId !== newRound.eventId
         ? ce
         : {
             ...ce,
@@ -226,7 +220,7 @@ const PostResultsScreen = ({
   };
 
   const changeRoundAndEvent = (newRoundType: RoundType, newEvent = round.eventId) => {
-    const compEvent = competitionEvents.find((ce) => ce.eventId === newEvent);
+    const compEvent = competitionEvents.find((ce) => ce.event.eventId === newEvent);
     let newRound: IRound;
 
     if (newRoundType === null) newRound = compEvent.rounds[0];
@@ -282,10 +276,16 @@ const PostResultsScreen = ({
   };
 
   const resetPersons = (eventId = round.eventId) => {
-    const isTeamEvent = compData.events.find((el) => el.eventId === eventId).format === EventFormat.TeamTime;
+    const isTeamEvent =
+      competition.events.find((el) => el.event.eventId === eventId).event.format === EventFormat.TeamTime;
 
-    setCurrentPersons(isTeamEvent ? [null, null] : [null]);
-    setPersonNames(isTeamEvent ? ['', ''] : ['']);
+    if (isTeamEvent) {
+      setCurrentPersons([null, null]);
+      setPersonNames(['', '']);
+    } else {
+      setCurrentPersons([null]);
+      setPersonNames(['']);
+    }
   };
 
   const resetAttempts = (roundFormat: RoundFormat) => {
@@ -296,10 +296,10 @@ const PostResultsScreen = ({
   const editResult = (result: IResult) => {
     // Delete result and then set the inputs if the deletion was successful
     deleteResult(result.personId, () => {
-      const tempCurrPersons = persons.filter((el) => result.personId.split(';').includes(el.personId.toString()));
+      const newCurrentPersons = persons.filter((el) => result.personId.split(';').includes(el.personId.toString()));
 
-      setPersonNames(tempCurrPersons.map((el) => el.name));
-      setCurrentPersons(tempCurrPersons);
+      setPersonNames(newCurrentPersons.map((el) => el.name));
+      setCurrentPersons(newCurrentPersons);
       setAttempts(result.attempts.map((el) => el.toString()));
     });
   };
@@ -325,7 +325,7 @@ const PostResultsScreen = ({
 
     for (let i = 0; i < results.length; i++) {
       // If the previous result was not tied with this one, increase ranking
-      if (!roundFormats[round.format].isAverage) {
+      if (!getRoundRanksWithAverage(round, currCompEvent.event)) {
         if (compareSingles(prevResult, results[i]) < 0) ranking = i + 1;
       } else {
         if (compareAvgs(prevResult, results[i]) < 0) ranking = i + 1;
@@ -362,7 +362,7 @@ const PostResultsScreen = ({
       <div className="row my-4">
         <div className="col-3 pe-4">
           <FormEventSelect
-            events={eventsHeldAtComp}
+            events={competition.events.map((el) => el.event)}
             eventId={round.eventId}
             setEventId={(val) => changeRoundAndEvent(null, val)}
           />
@@ -376,7 +376,7 @@ const PostResultsScreen = ({
               value={round.roundTypeId}
               onChange={(e) => changeRoundAndEvent(e.target.value as RoundType)}
             >
-              {currCompEvent?.rounds.map((round: IRound) => (
+              {currCompEvent.rounds.map((round: IRound) => (
                 <option key={round.roundTypeId} value={round.roundTypeId}>
                   {roundTypes[round.roundTypeId].label}
                 </option>
@@ -421,14 +421,14 @@ const PostResultsScreen = ({
         </div>
         <div className="col-9">
           <h2 className="mb-4 text-center">
-            {compData.competition.events.length > 0 ? 'Edit' : 'Post'} results for&nbsp;
-            {compData.competition.name}
+            {competition.events.length > 0 ? 'Edit' : 'Post'} results for&nbsp;
+            {competition.name}
           </h2>
-          {/* THIS IS A TEMPORARY SOLUTION!!! */}
+          {/* THIS STYLING IS A TEMPORARY SOLUTION!!! */}
           <div className="overflow-y-auto" style={{ maxHeight: '650px' }}>
             <RoundResultsTable
               round={round}
-              events={compData.events}
+              event={currCompEvent.event}
               persons={persons}
               onEditResult={editResult}
               onDeleteResult={deleteResult}

@@ -27,7 +27,10 @@ export class PersonsService {
     if (personIds) {
       if (typeof personIds === 'number') {
         queryFilter = { personId: personIds };
-      } else if (typeof personIds === 'string') {
+      }
+      // Results store the person ID as a string
+      else if (typeof personIds === 'string') {
+        // Team events store multiple  person IDs, separated by semicolons
         queryFilter = { personId: { $in: personIds.split(';').map((el: string) => parseInt(el)) } };
       } else {
         queryFilter = { personId: { $in: personIds } };

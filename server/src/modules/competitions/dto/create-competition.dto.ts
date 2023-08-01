@@ -14,7 +14,7 @@ import {
 } from 'class-validator';
 import Countries from '@sh/Countries';
 import { CompetitionType } from '@sh/enums';
-import { IPerson, IRound } from '@sh/interfaces';
+import { IEvent, IPerson, IRound } from '@sh/interfaces';
 
 export class CreateCompetitionDto {
   @IsString()
@@ -82,7 +82,7 @@ export class CreateCompetitionDto {
   @IsArray()
   @ArrayMinSize(1)
   events: {
-    eventId: string;
+    event: IEvent;
     rounds: IRound[];
   }[];
 }

@@ -24,9 +24,10 @@ const AdminHome = async () => {
   };
 
   const changeCompState = async (competitionId: string, newState: CompetitionState) => {
-    await myFetch.patch(`/competitions/${competitionId}`, {
+    await myFetch.patch(`/competitions/${competitionId}?action=change_state`, {
       state: newState,
     });
+
     window.location.reload();
   };
 

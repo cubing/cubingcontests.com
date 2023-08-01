@@ -6,13 +6,9 @@ import { ICompetitionData, ICompetitionEvent, IEvent } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 
-const CompetitionResults = ({ data: { competition, events, persons, timezoneOffset } }: { data: ICompetitionData }) => {
+const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: { data: ICompetitionData }) => {
   const [activeTab, setActiveTab] = useState(1);
-  // Find the event held at the competition that has the highest rank.
-  // The first event in events[] is always the highest ranked one, as it's sorted on the backend.
-  const [currEvent, setCurrEvent] = useState<ICompetitionEvent | null>(
-    competition.events.find((el) => el.eventId === events[0].eventId),
-  );
+  const [currEvent, setCurrEvent] = useState<ICompetitionEvent>(competition.events[0]);
 
   const startDate = useMemo(() => new Date(competition.startDate), [competition]);
   const endDate = useMemo(() => (competition.endDate ? new Date(competition.endDate) : null), [competition]);
@@ -59,6 +55,7 @@ const CompetitionResults = ({ data: { competition, events, persons, timezoneOffs
               City:&#8194;{competition.city}, <b>{getCountry(competition.countryId)}</b>
             </p>
             {competition.venue && <p>Venue:&#8194;{competition.venue}</p>}
+            {competition.address && <p>Address:&#8194;{competition.address}</p>}
             {competition.latitude && (
               <p>
                 Coordinates:&#8194;{competition.latitude}, {competition.longitude}
@@ -66,9 +63,11 @@ const CompetitionResults = ({ data: { competition, events, persons, timezoneOffs
             )}
             {competition.contact && <p>Contact:&#8194;{competition.contact}</p>}
             {competition.organizers && <p>Organizers:&#8194;{competition.organizers.map((el) => el.name).join(' ')}</p>}
-            <p>
-              Competitor limit:&#8194;<b>{competition.competitorLimit}</b>
-            </p>
+            {competition.competitorLimit && (
+              <p>
+                Competitor limit:&#8194;<b>{competition.competitorLimit}</b>
+              </p>
+            )}
             {competition.participants > 0 && (
               <p>
                 Number of participants:&#8194;<b>{competition.participants}</b>
@@ -92,21 +91,17 @@ const CompetitionResults = ({ data: { competition, events, persons, timezoneOffs
       {activeTab === 2 && (
         <>
           <div className="mx-2 d-flex flex-row flex-wrap gap-2">
-            {events.map((event: IEvent) => (
+            {competition.events.map((compEvent: ICompetitionEvent) => (
               <button
-                key={event.eventId}
-                onClick={() =>
-                  setCurrEvent(
-                    competition.events?.find((el: ICompetitionEvent) => el.eventId === event.eventId) || null,
-                  )
-                }
-                className={'btn btn-light' + (currEvent?.eventId === event.eventId ? ' active' : '')}
+                key={compEvent.event.eventId}
+                onClick={() => setCurrEvent(compEvent)}
+                className={'btn btn-light' + (currEvent === compEvent ? ' active' : '')}
               >
-                {event.name}
+                {compEvent.event.name}
               </button>
             ))}
           </div>
-          <EventResultsTable event={currEvent} events={events} persons={persons} />
+          <EventResultsTable compEvent={currEvent} persons={persons} />
         </>
       )}
     </>

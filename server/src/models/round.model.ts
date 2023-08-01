@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { Result } from './result.model';
+import { ResultDocument } from './result.model';
 import { IRound } from '@sh/interfaces';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { IProceed } from '@sh/interfaces/Round';
@@ -27,6 +27,9 @@ export class Round implements IRound {
   @Prop({ required: true })
   date: Date;
 
+  @Prop()
+  compNotPublished?: boolean;
+
   @Prop({ enum: RoundType, required: true })
   roundTypeId: RoundType;
 
@@ -37,7 +40,7 @@ export class Round implements IRound {
   proceed?: Proceed;
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Result' }], required: true })
-  results: Result[];
+  results: ResultDocument[];
 }
 
 export type RoundDocument = HydratedDocument<Round>;

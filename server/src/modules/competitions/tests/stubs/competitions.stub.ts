@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { CompetitionDocument } from '~/src/models/competition.model';
 import { CompetitionState, CompetitionType, RoundFormat, RoundType } from '@sh/enums';
 import { ICompetitionEvent, IRound } from '@sh/interfaces';
+import eventsSeed from '~/src/seeds/events.seed';
 
 export const competitionsStub = (): CompetitionDocument[] => {
   return [
@@ -23,7 +24,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
       participants: 4,
       events: [
         {
-          eventId: '333tbf',
+          event: eventsSeed.find((el) => el.eventId === '333tbf'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d2dee675dfd951d5ff35b'),
@@ -59,7 +60,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333oh',
+          event: eventsSeed.find((el) => el.eventId === '333oh'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff362'),
@@ -94,7 +95,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333',
+          event: eventsSeed.find((el) => el.eventId === '333'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff364'),
@@ -149,7 +150,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333bf',
+          event: eventsSeed.find((el) => el.eventId === '333bf'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff366'),
@@ -214,7 +215,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
       participants: 5,
       events: [
         {
-          eventId: '444',
+          event: eventsSeed.find((el) => el.eventId === '444'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3bf'),
@@ -280,7 +281,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '555',
+          event: eventsSeed.find((el) => el.eventId === '555'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c1'),
@@ -326,7 +327,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333bf',
+          event: eventsSeed.find((el) => el.eventId === '333bf'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c3'),
@@ -381,7 +382,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333fm',
+          event: eventsSeed.find((el) => el.eventId === '333fm'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c5'),
@@ -427,7 +428,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333oh',
+          event: eventsSeed.find((el) => el.eventId === '333oh'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c7'),
@@ -482,7 +483,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '222',
+          event: eventsSeed.find((el) => el.eventId === '222'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c9'),
@@ -547,7 +548,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333',
+          event: eventsSeed.find((el) => el.eventId === '333'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3cb'),
@@ -618,7 +619,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
       _id: new mongoose.Types.ObjectId('649d2a85675dfd951d5ff32a'),
       competitionId: 'Munich27062023',
       createdBy: 1,
-      state: CompetitionState.Published,
+      state: CompetitionState.Ongoing,
       name: 'Meetup in Munich on June 27, 2023',
       type: CompetitionType.Meetup,
       city: 'Munich',
@@ -632,7 +633,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
       participants: 6,
       events: [
         {
-          eventId: '666',
+          event: eventsSeed.find((el) => el.eventId === '666'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918068'),
@@ -689,7 +690,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333tbf',
+          event: eventsSeed.find((el) => el.eventId === '333tbf'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806a'),
@@ -726,7 +727,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333',
+          event: eventsSeed.find((el) => el.eventId === '333'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806c'),
@@ -802,7 +803,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333oh',
+          event: eventsSeed.find((el) => el.eventId === '333oh'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806e'),
@@ -879,7 +880,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '222',
+          event: eventsSeed.find((el) => el.eventId === '222'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918070'),
@@ -946,7 +947,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '444',
+          event: eventsSeed.find((el) => el.eventId === '444'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918072'),
@@ -1002,7 +1003,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333bf',
+          event: eventsSeed.find((el) => el.eventId === '333bf'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918074'),
@@ -1048,7 +1049,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333tf',
+          event: eventsSeed.find((el) => el.eventId === '333tf'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918076'),
@@ -1085,7 +1086,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '555',
+          event: eventsSeed.find((el) => el.eventId === '555'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918078'),
@@ -1141,7 +1142,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
           ],
         },
         {
-          eventId: '333fm',
+          event: eventsSeed.find((el) => el.eventId === '333fm'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991807a'),
@@ -1203,7 +1204,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
       _id: new mongoose.Types.ObjectId('649d4ff8a91cfa4672e186fe'),
       competitionId: 'Munich30062023',
       createdBy: 1,
-      state: CompetitionState.Created,
+      state: CompetitionState.Approved,
       name: 'Meetup in Munich on June 30, 2023',
       type: CompetitionType.Meetup,
       city: 'Munich',
@@ -1217,7 +1218,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
       participants: 0,
       events: [
         {
-          eventId: '333',
+          event: eventsSeed.find((el) => el.eventId === '333'),
           rounds: [
             {
               _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff364'),

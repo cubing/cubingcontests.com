@@ -72,7 +72,7 @@ export class ResultsService {
     recordLabel: string,
     beforeDate: Date = null,
   ): Promise<ResultDocument[]> {
-    const queryFilter: any = { eventId, regionalSingleRecord: recordLabel };
+    const queryFilter: any = { eventId, regionalSingleRecord: recordLabel, compNotPublished: { $exists: false } };
     if (beforeDate) queryFilter.date = { $lt: beforeDate };
 
     // Get most recent result with a single record
@@ -94,7 +94,7 @@ export class ResultsService {
     recordLabel: string,
     beforeDate: Date = null,
   ): Promise<ResultDocument[]> {
-    const queryFilter: any = { eventId, regionalAverageRecord: recordLabel };
+    const queryFilter: any = { eventId, regionalAverageRecord: recordLabel, compNotPublished: { $exists: false } };
     if (beforeDate) queryFilter.date = { $lt: beforeDate };
 
     // Get most recent result with an average record
