@@ -55,6 +55,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
   const [city, setCity] = useState('');
   const [countryId, setCountryId] = useState('');
   const [venue, setVenue] = useState('');
+  const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [startDate, setStartDate] = useState(new Date());
@@ -85,6 +86,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       setCity(compData.competition.city);
       setCountryId(compData.competition.countryId);
       setVenue(compData.competition.venue);
+      if (compData.competition.address) setAddress(compData.competition.address);
       setLatitude(compData.competition.latitude.toString());
       setLongitude(compData.competition.longitude.toString());
       // Convert the dates from string to Date
@@ -96,7 +98,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       }
       if (compData.competition.contact) setContact(compData.competition.contact);
       if (compData.competition.description) setDescription(compData.competition.description);
-      setCompetitorLimit(compData.competition.competitorLimit.toString());
+      if (compData.competition.competitorLimit) setCompetitorLimit(compData.competition.competitorLimit.toString());
       setMainEventId(compData.competition.mainEventId);
       setCompetitionEvents(compData.competition.events);
     }
@@ -139,14 +141,15 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       city: city.trim(),
       countryId,
       venue: venue.trim(),
-      latitude: Number(latitude),
-      longitude: Number(longitude),
+      address: address.trim() || undefined,
+      latitude: latitude && !isNaN(Number(latitude)) ? Number(latitude) : undefined,
+      longitude: longitude && !isNaN(Number(longitude)) ? Number(longitude) : undefined,
       startDate: correctStartDate,
       endDate: correctEndDate,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
-      competitorLimit: parseInt(competitorLimit),
+      competitorLimit: competitorLimit && !isNaN(parseInt(competitorLimit)) ? parseInt(competitorLimit) : undefined,
       mainEventId,
       // Set the competition ID for every round
       events: competitionEvents.map((event) => ({
@@ -158,18 +161,21 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     // Check for errors
     const tempErrors: string[] = [];
 
-    if (!newComp.venue) tempErrors.push('Please enter the venue');
-    if (!newComp.latitude || isNaN(newComp.latitude) || !newComp.longitude || isNaN(newComp.longitude))
-      tempErrors.push('Please enter valid venue coordinates');
-    if (!newComp.competitorLimit || isNaN(newComp.competitorLimit))
-      tempErrors.push('You must enter a valid competitor limit');
+    if (!newComp.competitionId) tempErrors.push('Please enter a competition ID');
+    if (!newComp.name) tempErrors.push('Please enter a name');
+    if (!newComp.city) tempErrors.push('Please enter a city');
+    if (!newComp.venue) tempErrors.push('Please enter a venue');
+    if (!newComp.latitude || !newComp.longitude) tempErrors.push('Please enter valid venue coordinates');
     if (newComp.events.length === 0) tempErrors.push('You must enter at least one event');
     else if (!competitionEvents.some((el) => el.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
 
     if (type === CompetitionType.Competition) {
+      if (!newComp.address) tempErrors.push('Please enter the address');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
-      if (!newComp.organizers?.length) tempErrors.push('Please enter at least one organizer');
+      if (!newComp.organizers) tempErrors.push('Please enter at least one organizer');
+      if (!newComp.contact) tempErrors.push('Please enter a contact email address');
+      if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
     }
 
     if (tempErrors.length > 0) {
@@ -381,7 +387,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             name="Competition name"
             value={name}
             setValue={changeName}
-            required
             disabled={isNotCreated}
           />
           <FormTextInput
@@ -389,7 +394,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             value={competitionId}
             setValue={setCompetitionId}
             disabled={!!compData}
-            required
           />
           <FormRadio
             title="Type"
@@ -400,27 +404,22 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
           />
           <div className="row">
             <div className="col">
-              <FormTextInput name="City" value={city} setValue={setCity} required disabled={isNotCreated} />
+              <FormTextInput name="City" value={city} setValue={setCity} disabled={isNotCreated} />
             </div>
             <div className="col">
               <FormCountrySelect countryId={countryId} setCountryId={setCountryId} disabled={!!compData} />
             </div>
           </div>
+          <FormTextInput name="Address" value={address} setValue={setAddress} disabled={isFinished} />
           <div className="row">
             <div className="col-6">
-              <FormTextInput name="Venue" value={venue} setValue={setVenue} required disabled={isFinished} />
+              <FormTextInput name="Venue" value={venue} setValue={setVenue} disabled={isFinished} />
             </div>
             <div className="col-3">
-              <FormTextInput name="Latitude" value={latitude} setValue={setLatitude} required disabled={isFinished} />
+              <FormTextInput name="Latitude" value={latitude} setValue={setLatitude} disabled={isFinished} />
             </div>
             <div className="col-3">
-              <FormTextInput
-                name="Longitude"
-                value={longitude}
-                setValue={setLongitude}
-                required
-                disabled={isFinished}
-              />
+              <FormTextInput name="Longitude" value={longitude} setValue={setLongitude} disabled={isFinished} />
             </div>
           </div>
           <div className="mb-3 row">
@@ -470,13 +469,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
               />
             ))}
           </div>
-          <FormTextInput
-            name="Contact"
-            placeholder="john@example.com"
-            value={contact}
-            setValue={setContact}
-            required={type === CompetitionType.Competition}
-          />
+          <FormTextInput name="Contact" placeholder="john@example.com" value={contact} setValue={setContact} />
           <div className="mb-3">
             <label htmlFor="description" className="form-label">
               Description (optional)
@@ -493,7 +486,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             name="Competitor limit"
             value={competitorLimit}
             setValue={setCompetitorLimit}
-            required
             disabled={isNotCreated}
           />
         </>
@@ -575,7 +567,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                         id="round_proceed_value"
                         value={round.proceed.value.toString()}
                         setValue={(val: string) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
-                        required
                         disabled={isNotCreated}
                       />
                     </>

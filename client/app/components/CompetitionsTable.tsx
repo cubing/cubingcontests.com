@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
+import { competitionStates } from '~/helpers/competitionStates';
 
 const CompetitionsTable = async ({
   competitions,
@@ -91,7 +92,7 @@ const CompetitionsTable = async ({
                 {/* THIS IS DESKTOP-ONLY */}
                 {onEditCompetition && (
                   <>
-                    <td>{comp.state}</td>
+                    <td>{competitionStates[comp.state].label}</td>
                     <td className="d-flex gap-2 py-1">
                       <button
                         type="button"

@@ -47,7 +47,8 @@ const CompetitionResults = ({ data: { competition, events, persons, timezoneOffs
       </ul>
 
       {activeTab === 1 && (
-        <div className="row px-2 fs-5">
+        // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/
+        <div className="row w-100 px-2 fs-5">
           <div className="col-md-5">
             <p>
               Type:&#8194;<b>{competition.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</b>

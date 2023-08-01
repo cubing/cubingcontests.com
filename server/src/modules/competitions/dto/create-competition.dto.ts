@@ -29,15 +29,17 @@ export class CreateCompetitionDto {
   type: CompetitionType;
 
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z -']+$/)
   city: string;
 
   @IsIn(Countries.map((el) => el.code))
   countryId: string;
 
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z -:']+$/)
   venue: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
 
   @IsNumber()
   @Min(-90)
@@ -68,9 +70,10 @@ export class CreateCompetitionDto {
   @IsString()
   description?: string;
 
+  @IsOptional()
   @IsNumber()
   @Min(5)
-  competitorLimit: number;
+  competitorLimit?: number;
 
   @IsString()
   @MinLength(3)

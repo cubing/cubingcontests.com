@@ -42,6 +42,9 @@ class Competition implements ICompetition {
   @Prop({ required: true })
   venue: string;
 
+  @Prop()
+  address?: string;
+
   @Prop({ required: true })
   latitude: number;
 
@@ -63,8 +66,8 @@ class Competition implements ICompetition {
   @Prop()
   description?: string;
 
-  @Prop({ required: true })
-  competitorLimit: number;
+  @Prop()
+  competitorLimit?: number;
 
   @Prop({ required: true })
   mainEventId: string;

@@ -8,9 +8,9 @@ export interface ICompetitionEvent {
   rounds: IRound[]; // stored as references
 }
 
-// WHEN UPDATING THIS INTERFACE, update the create competition DTO (and update DTO if needed),
-// the competition model, and also consider the createCompetition method in the competition service
-// and the CompetitionForm component on the frontend
+// IMPORTANT: when updating this interface, also update (1) the create competition DTO (and update DTO,
+// if needed), (2) the competition model, and also consider (3) the createCompetition method
+// in the competition service and (4) the CompetitionForm component on the frontend
 export interface ICompetition {
   competitionId: string;
   createdBy: number; // peson ID of the moderator/admin, who created the competition
@@ -21,6 +21,7 @@ export interface ICompetition {
   city: string;
   countryId: string; // 2 letter country code
   venue: string;
+  address?: string; // required for competitions
   latitude: number;
   longitude: number;
   // These are stored as ISO date strings in the DB, but are date objects everywhere else
@@ -29,7 +30,7 @@ export interface ICompetition {
   organizers?: IPerson[]; // stored as references, returned to the frontend as objects
   contact?: string; // required for competitions
   description?: string;
-  competitorLimit: number;
+  competitorLimit?: number; // required for competitions
   mainEventId: string;
   events: ICompetitionEvent[];
   participants: number;
