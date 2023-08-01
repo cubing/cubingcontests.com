@@ -38,14 +38,14 @@ if [ "$1" == "--revert" ]; then
   #### REVERT TO PREVIOUS VERSION ####
 
   # Check that a version argument was passed
-  if [ -z $2 ]; then
+  if [ -z "$2" ]; then
     echo "Please provide a version as the first argument"
     exit
   else
     # If it was, make sure a tag like this exists
     VERSION=$(git tag | grep -x "^$2$")
     
-    if [ -z $VERSION ]; then
+    if [ -z "$VERSION" ]; then
       echo "Version tag $2 does not exist"
       exit
     fi

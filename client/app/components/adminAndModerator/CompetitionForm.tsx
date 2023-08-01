@@ -103,7 +103,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
   }, [compData]);
 
   useEffect(() => {
-    document.getElementById('competition_id').focus();
+    document.getElementById('competition_name').focus();
   }, []);
 
   // Scroll to the top of the page when a new error message is shown
@@ -182,6 +182,15 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
         window.location.href = '/admin';
       }
     }
+  };
+
+  const changeName = (value: string) => {
+    // Update Competition ID accordingly, unless it deviates from the name
+    if (competitionId === name.replace(/ /g, '')) {
+      setCompetitionId(value.replace(/ /g, ''));
+    }
+
+    setName(value);
   };
 
   const changeType = (newType: CompetitionType) => {
@@ -352,14 +361,20 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       {activeTab === 1 && (
         <>
           <FormTextInput
+            id="competition_name"
+            name="Competition name"
+            value={name}
+            setValue={changeName}
+            required
+            disabled={isNotCreated}
+          />
+          <FormTextInput
             name="Competition ID"
-            id="competition_id"
             value={competitionId}
             setValue={setCompetitionId}
             disabled={!!compData}
             required
           />
-          <FormTextInput name="Competition name" value={name} setValue={setName} required disabled={isNotCreated} />
           <FormRadio
             title="Type"
             options={competitionTypeOptions}
