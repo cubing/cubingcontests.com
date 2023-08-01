@@ -11,7 +11,7 @@ import FormRadio from '../form/FormRadio';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import enGB from 'date-fns/locale/en-GB';
 import 'react-datepicker/dist/react-datepicker.css';
-import { ICompetitionEvent, ICompetitionModData, IEvent, IPerson } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionModData, IEvent, IPerson, IRound } from '@sh/interfaces';
 import { CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { selectPerson } from '~/helpers/utilityFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
@@ -116,6 +116,10 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       document.getElementById(`organizer_${organizerNames.length}`)?.focus();
     }
   }, [organizerNames.length]);
+
+  useEffect(() => {
+    console.log(competitionEvents);
+  }, [competitionEvents]);
 
   const handleSubmit = async () => {
     const selectedOrganizers = organizers.filter((el) => el !== null);
@@ -242,11 +246,6 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     });
   };
 
-  // const changeEvent = (index: number, value: string) => {
-  //   const newCompetitionEvents = competitionEvents.map((el, i) => (i !== index ? el : { ...el, eventId: value }));
-  //   setCompetitionEvents(newCompetitionEvents);
-  // };
-
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
     const newCompetitionEvents = competitionEvents.map((event, i) =>
       i !== eventIndex
@@ -266,64 +265,81 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
         : {
             ...event,
             rounds: event.rounds.map((round, i) =>
-              i !== roundIndex ? round : { ...round, proceed: { type, value: Number(value) } },
+              i !== roundIndex
+                ? round
+                : { ...round, proceed: { type, value: value ? Number(value) : round.proceed.value } },
             ),
           },
     );
     setCompetitionEvents(newCompetitionEvents);
   };
 
-  const addRound = (eventIndex: number) => {
-    const newCompetitionEvents = competitionEvents.map((event, i) =>
-      i !== eventIndex
-        ? event
-        : {
-            ...event,
-            rounds: [
-              ...event.rounds.map((round, i) =>
-                round.roundTypeId !== RoundType.Final
-                  ? round
-                  : {
-                      ...round,
-                      proceed: {
-                        type: RoundProceed.Percentage,
-                        value: 50,
-                      },
-                      roundTypeId: (Object.values(roundTypes)[i] as any).id,
-                    },
-              ),
-              {
-                competitionId: 'temp',
-                eventId: event.eventId,
-                date: startDate,
-                roundTypeId: RoundType.Final,
-                format: events.find((el) => el.eventId === event.eventId).defaultRoundFormat,
-                results: [],
-              },
-            ],
-          },
-    );
+  const getNewRound = (eventId: string): IRound => {
+    return {
+      competitionId: 'temp', // this gets replaced for all rounds on submit
+      eventId: eventId,
+      date: startDate,
+      roundTypeId: RoundType.Final,
+      format: events.find((el) => el.eventId === eventId).defaultRoundFormat,
+      results: [],
+    };
+  };
 
-    setCompetitionEvents(newCompetitionEvents);
+  const addRound = (eventId: string) => {
+    const updatedCompEvent = competitionEvents.find((el) => el.eventId === eventId);
+
+    // Update the currently semi-final round
+    if (updatedCompEvent.rounds.length > 2) {
+      const semiRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 2];
+      semiRound.roundTypeId = Object.values(RoundType)[updatedCompEvent.rounds.length - 2];
+    }
+
+    // Update the currently last round
+    const lastRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 1];
+    lastRound.proceed = {
+      type: RoundProceed.Percentage,
+      value: 50,
+    };
+    lastRound.roundTypeId = updatedCompEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
+
+    // Add new round
+    updatedCompEvent.rounds.push(getNewRound(eventId));
+    console.log(updatedCompEvent);
+
+    setCompetitionEvents(competitionEvents.map((el) => (el.eventId === eventId ? updatedCompEvent : el)));
+  };
+
+  const removeEventRound = (eventId: string) => {
+    const updatedCompEvent = competitionEvents.find((el) => el.eventId === eventId);
+    updatedCompEvent.rounds = updatedCompEvent.rounds.slice(0, -1);
+
+    // Update new final round
+    const newLastRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 1];
+    delete newLastRound.proceed;
+    newLastRound.roundTypeId = RoundType.Final;
+
+    // Update new semi final round
+    if (updatedCompEvent.rounds.length > 2) {
+      const newSemiRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 2];
+      newSemiRound.roundTypeId = RoundType.Semi;
+    }
+
+    setCompetitionEvents(competitionEvents.map((el) => (el.eventId === eventId ? updatedCompEvent : el)));
   };
 
   const addCompetitionEvent = () => {
-    setCompetitionEvents([
-      ...competitionEvents,
-      {
-        eventId: newEventId,
-        rounds: [
-          {
-            competitionId: 'temp',
-            eventId: newEventId,
-            date: startDate,
-            roundTypeId: RoundType.Final,
-            format: events.find((el) => el.eventId === newEventId).defaultRoundFormat,
-            results: [],
-          },
-        ],
-      },
-    ]);
+    setCompetitionEvents(
+      [
+        ...competitionEvents,
+        {
+          eventId: newEventId,
+          rounds: [getNewRound(newEventId)],
+        },
+      ].sort(
+        (a, b) =>
+          events.find((el) => el.eventId === a.eventId).rank - events.find((el) => el.eventId === b.eventId).rank,
+      ),
+    );
 
     if (remainingEvents.length > 1) {
       const newId = remainingEvents.find((event) => event.eventId !== newEventId)?.eventId;
@@ -484,9 +500,41 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       )}
       {activeTab === 2 && (
         <>
+          <div className="my-4 row align-items-center">
+            <div className="col-2">
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={addCompetitionEvent}
+                disabled={competitionEvents.length === events.length || isFinished}
+              >
+                Add Event
+              </button>
+            </div>
+            <div className="col-10">
+              <FormEventSelect
+                label=""
+                noMargin
+                events={remainingEvents}
+                eventId={newEventId}
+                setEventId={setNewEventId}
+                disabled={isFinished}
+              />
+            </div>
+          </div>
           {competitionEvents.map((compEvent, eventIndex) => (
             <div key={compEvent.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
-              <h4 className="mb-3">{events.find((el) => el.eventId === compEvent.eventId).name}</h4>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h4>{events.find((el) => el.eventId === compEvent.eventId).name}</h4>
+                <button
+                  type="button"
+                  className="ms-3 btn btn-danger btn-sm"
+                  onClick={() => removeCompetitionEvent(compEvent.eventId)}
+                  disabled={compEvent.rounds.some((r) => r.results.length > 0) || isFinished}
+                >
+                  Remove Event
+                </button>
+              </div>
               {compEvent.rounds.map((round, roundIndex) => (
                 <div key={round.roundTypeId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
                   <div className="mb-3 row">
@@ -534,46 +582,32 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
                   )}
                 </div>
               ))}
-              <button
-                type="button"
-                className="btn btn-success"
-                onClick={() => addRound(eventIndex)}
-                disabled={isFinished}
-              >
-                Add Round
-              </button>
-              <button
-                type="button"
-                className="ms-3 btn btn-danger"
-                onClick={() => removeCompetitionEvent(compEvent.eventId)}
-                disabled={compEvent.rounds.some((r) => r.results.length > 0) || isFinished}
-              >
-                Remove Event
-              </button>
+              <div className="d-flex gap-3">
+                {compEvent.rounds.length < 10 && (
+                  <button
+                    type="button"
+                    className="btn btn-success btn-sm"
+                    onClick={() => addRound(compEvent.eventId)}
+                    disabled={isFinished}
+                  >
+                    Add Round
+                  </button>
+                )}
+                {compEvent.rounds.length > 1 && (
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => removeEventRound(compEvent.eventId)}
+                    disabled={
+                      compEvent.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0 || isFinished
+                    }
+                  >
+                    Remove Round
+                  </button>
+                )}
+              </div>
             </div>
           ))}
-          <div className="my-4 row align-items-center">
-            <div className="col-2">
-              <button
-                type="button"
-                className="btn btn-success"
-                onClick={addCompetitionEvent}
-                disabled={competitionEvents.length === events.length || isFinished}
-              >
-                Add Event
-              </button>
-            </div>
-            <div className="col-10">
-              <FormEventSelect
-                label=""
-                noMargin
-                events={remainingEvents}
-                eventId={newEventId}
-                setEventId={setNewEventId}
-                disabled={isFinished}
-              />
-            </div>
-          </div>
           <FormEventSelect
             label="Main Event"
             events={events}
