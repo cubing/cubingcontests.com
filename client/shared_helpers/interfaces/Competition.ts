@@ -24,11 +24,11 @@ export interface ICompetition {
   name: string;
   type: CompetitionType;
   city: string;
-  countryId: string; // 2 letter country code
+  countryIso2: string; // 2 letter country code
   venue: string;
   address?: string; // required for competitions
-  latitude: number;
-  longitude: number;
+  latitudeMicrodegrees: number;
+  longitudeMicrodegrees: number;
   // These are stored as ISO date strings in the DB, but are date objects everywhere else
   startDate: Date | string; // includes the time if it's a meetup
   endDate?: Date | string; // competition-only, because meetups are always held on a single day

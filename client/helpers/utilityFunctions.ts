@@ -1,11 +1,11 @@
 import Countries from '@sh/Countries';
-import { IEvent, IPerson, IRound } from '@sh/interfaces';
+import { ICompetition, IEvent, IPerson, IRound } from '@sh/interfaces';
 import myFetch from './myFetch';
 import { roundFormats } from './roundFormats';
 import { RoundFormat } from '~/shared_helpers/enums';
 
-export const getCountry = (countryId: string): string => {
-  return Countries.find((el) => el.code === countryId)?.name || 'Unknown country';
+export const getCountry = (countryIso2: string): string => {
+  return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
 };
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string): string => {
@@ -21,6 +21,11 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
   } else {
     return 'Not implemented';
   }
+};
+
+// Shows 5 decimals instead of 6
+export const getFormattedCoords = (comp: ICompetition): string => {
+  return `${(comp.latitudeMicrodegrees / 1000000).toFixed(5)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(5)}`;
 };
 
 export const getRoundCanHaveAverage = (round: IRound, event: IEvent): boolean => {

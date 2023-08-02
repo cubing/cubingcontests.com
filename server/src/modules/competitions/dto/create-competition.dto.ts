@@ -18,11 +18,11 @@ import { IEvent, IPerson, IRound } from '@sh/interfaces';
 
 export class CreateCompetitionDto {
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z0-9]{9,}$/)
+  @Matches(/^[A-Z][a-zA-Z0-9]{9,45}$/)
   competitionId: string;
 
   @IsString()
-  @Matches(/^[A-Z0-9][a-zA-Z0-9 -:']{9,}$/)
+  @Matches(/^[A-Z0-9][a-zA-Z0-9 -:']{9,45}$/)
   name: string;
 
   @IsEnum(CompetitionType)
@@ -32,7 +32,7 @@ export class CreateCompetitionDto {
   city: string;
 
   @IsIn(Countries.map((el) => el.code))
-  countryId: string;
+  countryIso2: string;
 
   @IsString()
   venue: string;
@@ -44,12 +44,12 @@ export class CreateCompetitionDto {
   @IsNumber()
   @Min(-90)
   @Max(90)
-  latitude: number;
+  latitudeMicrodegrees: number;
 
   @IsNumber()
   @Min(-180)
   @Max(180)
-  longitude: number;
+  longitudeMicrodegrees: number;
 
   @IsDateString()
   startDate: Date;

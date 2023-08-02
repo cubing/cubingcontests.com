@@ -37,7 +37,7 @@ const CompetitionsTable = async ({
               </div>
               <div className="d-flex justify-content-between">
                 <div>
-                  {comp.city}, <b>{getCountry(comp.countryId)}</b>
+                  {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
                 </div>
                 <div className="ms-3 text-end">
                   {comp.participants > 0 && (
@@ -84,7 +84,7 @@ const CompetitionsTable = async ({
                   </Link>
                 </td>
                 <td>
-                  {comp.city}, <b>{getCountry(comp.countryId)}</b>
+                  {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
                 </td>
                 <td>{comp.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</td>
                 <td>{comp.participants || ''}</td>

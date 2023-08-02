@@ -44,6 +44,16 @@ const roundProceedOptions: MultiChoiceOption[] = [
   },
 ];
 
+const getDateOnly = (date: Date): Date => {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+};
+
+const coordToMicrodegrees = (value: string): number | null => {
+  if (isNaN(Number(value))) return null;
+
+  return parseInt(Number(value).toFixed(6).replace('.', ''));
+};
+
 const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: ICompetitionModData }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
@@ -53,11 +63,11 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
   const [name, setName] = useState('');
   const [type, setType] = useState(CompetitionType.Meetup);
   const [city, setCity] = useState('');
-  const [countryId, setCountryId] = useState('');
+  const [countryIso2, setCountryId] = useState('');
   const [venue, setVenue] = useState('');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  const [latitudeMicrodegrees, setLatitudeMicrodegrees] = useState('');
+  const [longitudeMicrodegrees, setLongitudeMicrodegrees] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(null); // competition-only
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
@@ -84,11 +94,11 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       setName(compData.competition.name);
       setType(compData.competition.type);
       setCity(compData.competition.city);
-      setCountryId(compData.competition.countryId);
+      setCountryId(compData.competition.countryIso2);
       setVenue(compData.competition.venue);
       if (compData.competition.address) setAddress(compData.competition.address);
-      setLatitude(compData.competition.latitude.toString());
-      setLongitude(compData.competition.longitude.toString());
+      setLatitudeMicrodegrees((compData.competition.latitudeMicrodegrees / 1000000).toFixed(6));
+      setLongitudeMicrodegrees((compData.competition.longitudeMicrodegrees / 1000000).toFixed(6));
       // Convert the dates from string to Date
       setStartDate(new Date(compData.competition.startDate));
       if (compData.competition.endDate) setEndDate(new Date(compData.competition.endDate));
@@ -125,14 +135,8 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
 
   const handleSubmit = async () => {
     const selectedOrganizers = organizers.filter((el) => el !== null);
-
-    const correctStartDate =
-      type !== CompetitionType.Meetup
-        ? new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()))
-        : startDate;
-    const correctEndDate = endDate
-      ? new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate()))
-      : undefined;
+    const correctStartDate = type !== CompetitionType.Meetup ? getDateOnly(startDate) : startDate;
+    const correctEndDate = endDate ? getDateOnly(endDate) : undefined;
 
     const newComp = {
       ...compData?.competition,
@@ -140,11 +144,11 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       name: name.trim(),
       type,
       city: city.trim(),
-      countryId,
+      countryIso2,
       venue: venue.trim(),
       address: address.trim() || undefined,
-      latitude: latitude && !isNaN(Number(latitude)) ? Number(latitude) : undefined,
-      longitude: longitude && !isNaN(Number(longitude)) ? Number(longitude) : undefined,
+      latitudeMicrodegrees: coordToMicrodegrees(latitudeMicrodegrees) || undefined,
+      longitudeMicrodegrees: coordToMicrodegrees(longitudeMicrodegrees) || undefined,
       startDate: correctStartDate,
       endDate: correctEndDate,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
@@ -168,7 +172,8 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     if (!newComp.name) tempErrors.push('Please enter a name');
     if (!newComp.city) tempErrors.push('Please enter a city');
     if (!newComp.venue) tempErrors.push('Please enter a venue');
-    if (!newComp.latitude || !newComp.longitude) tempErrors.push('Please enter valid venue coordinates');
+    if (!newComp.latitudeMicrodegrees || !newComp.longitudeMicrodegrees)
+      tempErrors.push('Please enter valid venue coordinates');
     if (newComp.events.length === 0) tempErrors.push('You must enter at least one event');
     else if (!competitionEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
@@ -408,7 +413,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
               <FormTextInput name="City" value={city} setValue={setCity} disabled={isNotCreated} />
             </div>
             <div className="col">
-              <FormCountrySelect countryId={countryId} setCountryId={setCountryId} disabled={!!compData} />
+              <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!compData} />
             </div>
           </div>
           <FormTextInput name="Address" value={address} setValue={setAddress} disabled={isFinished} />
@@ -417,10 +422,20 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
               <FormTextInput name="Venue" value={venue} setValue={setVenue} disabled={isFinished} />
             </div>
             <div className="col-3">
-              <FormTextInput name="Latitude" value={latitude} setValue={setLatitude} disabled={isFinished} />
+              <FormTextInput
+                name="Latitude"
+                value={latitudeMicrodegrees}
+                setValue={setLatitudeMicrodegrees}
+                disabled={isFinished}
+              />
             </div>
             <div className="col-3">
-              <FormTextInput name="Longitude" value={longitude} setValue={setLongitude} disabled={isFinished} />
+              <FormTextInput
+                name="Longitude"
+                value={longitudeMicrodegrees}
+                setValue={setLongitudeMicrodegrees}
+                disabled={isFinished}
+              />
             </div>
           </div>
           <div className="mb-3 row">

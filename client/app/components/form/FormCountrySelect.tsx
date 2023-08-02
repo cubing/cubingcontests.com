@@ -4,18 +4,18 @@ import { useEffect } from 'react';
 import Countries from '@sh/Countries';
 
 const FormCountrySelect = ({
-  countryId,
+  countryIso2,
   setCountryId,
   disabled = false,
 }: {
-  countryId: string;
+  countryIso2: string;
   setCountryId: any;
   disabled?: boolean;
 }) => {
   useEffect(() => {
     // Set the first country from the list by default, unless already set
-    if (!countryId) setCountryId(Countries[0].code);
-  }, [countryId, setCountryId]);
+    if (!countryIso2) setCountryId(Countries[0].code);
+  }, [countryIso2, setCountryId]);
 
   return (
     <div className="mb-3 fs-5">
@@ -25,7 +25,7 @@ const FormCountrySelect = ({
       <select
         id="country_id"
         className="form-select"
-        value={countryId}
+        value={countryIso2}
         onChange={(e) => setCountryId(e.target.value)}
         disabled={disabled}
       >

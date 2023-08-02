@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import EventResultsTable from './EventResults';
-import { ICompetitionData, ICompetitionEvent, IEvent } from '@sh/interfaces';
-import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
+import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
+import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 
 const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: { data: ICompetitionData }) => {
@@ -52,15 +52,11 @@ const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: 
             <p>Date:&#8194;{formattedDate}</p>
             {competition.type === CompetitionType.Meetup && <p>Starts at:&#8194;{formattedTime}</p>}
             <p>
-              City:&#8194;{competition.city}, <b>{getCountry(competition.countryId)}</b>
+              City:&#8194;{competition.city}, <b>{getCountry(competition.countryIso2)}</b>
             </p>
             {competition.venue && <p>Venue:&#8194;{competition.venue}</p>}
             {competition.address && <p>Address:&#8194;{competition.address}</p>}
-            {competition.latitude && (
-              <p>
-                Coordinates:&#8194;{competition.latitude}, {competition.longitude}
-              </p>
-            )}
+            {competition.latitudeMicrodegrees && <p>Coordinates:&#8194;{getFormattedCoords(competition)}</p>}
             {competition.contact && <p>Contact:&#8194;{competition.contact}</p>}
             {competition.organizers && <p>Organizers:&#8194;{competition.organizers.map((el) => el.name).join(' ')}</p>}
             {competition.competitorLimit && (

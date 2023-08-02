@@ -6,8 +6,8 @@ export const mockCompetitionModel = (): any => ({
   find(query: any, selectObj: any) {
     this.tempOutput = competitionsStub();
 
-    if (query?.countryId) {
-      this.tempOutput = this.tempOutput.filter((el: CompetitionDocument) => el.countryId === query.countryId);
+    if (query?.countryIso2) {
+      this.tempOutput = this.tempOutput.filter((el: CompetitionDocument) => el.countryIso2 === query.countryIso2);
     }
     if (query?.state) {
       this.tempOutput = this.tempOutput.filter((el: CompetitionDocument) => el.state > query.state.$gt);

@@ -11,8 +11,8 @@ const Records = async () => {
     const countries: string[] = [];
 
     for (const person of persons) {
-      if (!countries.includes(person.countryId)) {
-        countries.push(person.countryId);
+      if (!countries.includes(person.countryIso2)) {
+        countries.push(person.countryIso2);
       }
     }
 

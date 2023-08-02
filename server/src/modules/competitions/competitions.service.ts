@@ -59,7 +59,7 @@ export class CompetitionsService {
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
-    const queryFilter: any = region ? { countryId: region } : {};
+    const queryFilter: any = region ? { countryIso2: region } : {};
     queryFilter.state = { $gt: CompetitionState.Created };
 
     try {
@@ -105,7 +105,9 @@ export class CompetitionsService {
       const output: ICompetitionData = {
         competition,
         persons: [],
-        timezoneOffset: getTimezone(find(competition.latitude, competition.longitude)[0]).dstOffset,
+        timezoneOffset: getTimezone(
+          find(competition.latitudeMicrodegrees / 1000000, competition.longitudeMicrodegrees / 1000000)[0],
+        ).dstOffset,
       };
 
       // Get information about all participants and events of the competition if the results have been posted
@@ -211,7 +213,7 @@ export class CompetitionsService {
     // Only an admin is allowed to edit these fields
     if (isAdmin) {
       comp.competitionId = updateCompetitionDto.competitionId;
-      comp.countryId = updateCompetitionDto.countryId;
+      comp.countryIso2 = updateCompetitionDto.countryIso2;
     }
 
     if (isAdmin || comp.state < CompetitionState.Finished) {
@@ -226,9 +228,9 @@ export class CompetitionsService {
       comp.city = updateCompetitionDto.city;
       comp.venue = updateCompetitionDto.venue;
       if (updateCompetitionDto.address) comp.address = updateCompetitionDto.address;
-      if (updateCompetitionDto.latitude && updateCompetitionDto.longitude) {
-        comp.latitude = updateCompetitionDto.latitude;
-        comp.longitude = updateCompetitionDto.longitude;
+      if (updateCompetitionDto.latitudeMicrodegrees && updateCompetitionDto.longitudeMicrodegrees) {
+        comp.latitudeMicrodegrees = updateCompetitionDto.latitudeMicrodegrees;
+        comp.longitudeMicrodegrees = updateCompetitionDto.longitudeMicrodegrees;
       }
       comp.startDate = updateCompetitionDto.startDate;
       if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;

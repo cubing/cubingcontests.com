@@ -7,5 +7,5 @@ export class CreatePersonDto {
   name: string;
 
   @IsIn(Countries.map((el) => el.code))
-  countryId: string;
+  countryIso2: string;
 }

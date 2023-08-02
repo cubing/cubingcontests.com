@@ -9,12 +9,12 @@ import FormTextInput from '@c/form/FormTextInput';
 const AdminPerson = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [name, setName] = useState('');
-  const [countryId, setCountryId] = useState('');
+  const [countryIso2, setCountryId] = useState('');
 
   const handleSubmit = async () => {
     const person = {
       name,
-      countryId,
+      countryIso2,
     };
 
     const { errors } = await myFetch.post('/persons', person);
@@ -33,7 +33,7 @@ const AdminPerson = () => {
       <h2 className="mb-4 text-center">Create New Competitor</h2>
       <Form buttonText="Create" errorMessages={errorMessages} handleSubmit={handleSubmit}>
         <FormTextInput id="full_name" name="Full Name" value={name} setValue={setName} />
-        <FormCountrySelect countryId={countryId} setCountryId={setCountryId} />
+        <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} />
       </Form>
     </>
   );

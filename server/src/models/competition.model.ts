@@ -38,7 +38,7 @@ class Competition implements ICompetition {
   city: string;
 
   @Prop({ required: true })
-  countryId: string;
+  countryIso2: string;
 
   @Prop({ required: true })
   venue: string;
@@ -47,10 +47,10 @@ class Competition implements ICompetition {
   address?: string;
 
   @Prop({ required: true })
-  latitude: number;
+  latitudeMicrodegrees: number;
 
   @Prop({ required: true })
-  longitude: number;
+  longitudeMicrodegrees: number;
 
   @Prop({ required: true })
   startDate: Date;
