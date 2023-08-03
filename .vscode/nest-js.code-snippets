@@ -19,6 +19,19 @@
     ],
     "description": "Create Mongoose model"
   },
+  "Mongoose Subschema": {
+    "scope": "typescript",
+    "prefix": "monsubschema",
+    "body": [
+      "@Schema({ _id: false })",
+      "class ${1:Object} implements I${1:Object} {",
+      "\t@Prop()",
+      "\t$0",
+      "}",
+      "",
+      "const ${1:Object}Schema = SchemaFactory.createForClass(${1:Object});"
+    ]
+  },
   "Service Injection": {
     "scope": "typescript",
     "prefix": "inject",

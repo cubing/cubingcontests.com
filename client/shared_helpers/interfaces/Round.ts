@@ -7,9 +7,8 @@ export interface IProceed {
 }
 
 export interface IRound {
-  _id?: unknown; // not needed during creation; used by the frontend
+  roundId: string; // the round identifier of the form {eventId}-r{round number} (also a valid activity code)
   competitionId: string;
-  eventId: string;
   date: Date;
   compNotPublished?: boolean; // unset by default, set if true
   roundTypeId: RoundType; // first/second/semi/finals

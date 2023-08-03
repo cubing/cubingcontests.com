@@ -2,21 +2,30 @@
 
 import './CompetitionForm.css';
 import { useEffect, useMemo, useState } from 'react';
+import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import enGB from 'date-fns/locale/en-GB';
 import myFetch from '~/helpers/myFetch';
 import Form from '../form/Form';
 import FormTextInput from '../form/FormTextInput';
 import FormCountrySelect from '../form/FormCountrySelect';
 import FormEventSelect from '../form/FormEventSelect';
 import FormRadio from '../form/FormRadio';
-import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
-import enGB from 'date-fns/locale/en-GB';
-import 'react-datepicker/dist/react-datepicker.css';
-import { ICompetitionEvent, ICompetitionModData, IEvent, IPerson, IRound } from '@sh/interfaces';
+import {
+  ICompetition,
+  ICompetitionEvent,
+  ICompetitionModData,
+  IEvent,
+  IPerson,
+  IRound,
+  ISchedule,
+} from '@sh/interfaces';
 import { CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { selectPerson } from '~/helpers/utilityFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import { roundTypes } from '~/helpers/roundTypes';
+import Tabs from '../Tabs';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -29,7 +38,6 @@ const competitionTypeOptions: MultiChoiceOption[] = [
   {
     label: 'Competition',
     value: CompetitionType.Competition,
-    disabled: true,
   },
 ];
 
@@ -54,7 +62,7 @@ const coordToMicrodegrees = (value: string): number | null => {
   return parseInt(Number(value).toFixed(6).replace('.', ''));
 };
 
-const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: ICompetitionModData }) => {
+const CompetitionForm = ({ events, competition }: { events: IEvent[]; competition?: ICompetition }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
   const [newEventId, setNewEventId] = useState('333');
@@ -82,37 +90,40 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     () => events.filter((event) => !competitionEvents.some((ce) => ce.event.eventId === event.eventId)),
     [events, competitionEvents],
   );
-  const isFinished = useMemo(() => compData?.competition.state >= CompetitionState.Finished, [compData]);
+  const isFinished = useMemo(() => competition?.state >= CompetitionState.Finished, [competition]);
   const isNotCreated = useMemo(
-    () => compData?.competition.state && compData.competition.state !== CompetitionState.Created,
-    [compData],
+    () => competition?.state && competition.state !== CompetitionState.Created,
+    [competition],
   );
 
   useEffect(() => {
-    if (compData) {
-      setCompetitionId(compData.competition.competitionId);
-      setName(compData.competition.name);
-      setType(compData.competition.type);
-      setCity(compData.competition.city);
-      setCountryId(compData.competition.countryIso2);
-      setVenue(compData.competition.venue);
-      if (compData.competition.address) setAddress(compData.competition.address);
-      setLatitudeMicrodegrees((compData.competition.latitudeMicrodegrees / 1000000).toFixed(6));
-      setLongitudeMicrodegrees((compData.competition.longitudeMicrodegrees / 1000000).toFixed(6));
+    if (competition) {
+      setCompetitionId(competition.competitionId);
+      setName(competition.name);
+      setType(competition.type);
+      setCity(competition.city);
+      setCountryId(competition.countryIso2);
+      setVenue(competition.venue);
+      if (competition.address) setAddress(competition.address);
+      setLatitudeMicrodegrees((competition.latitudeMicrodegrees / 1000000).toFixed(6));
+      setLongitudeMicrodegrees((competition.longitudeMicrodegrees / 1000000).toFixed(6));
       // Convert the dates from string to Date
-      setStartDate(new Date(compData.competition.startDate));
-      if (compData.competition.endDate) setEndDate(new Date(compData.competition.endDate));
-      if (compData.competition.organizers) {
-        setOrganizerNames([...compData.competition.organizers.map((el) => el.name), '']);
-        setOrganizers(compData.competition.organizers);
+      setStartDate(new Date(competition.startDate));
+      if (competition.organizers) {
+        setOrganizerNames([...competition.organizers.map((el) => el.name), '']);
+        setOrganizers(competition.organizers);
       }
-      if (compData.competition.contact) setContact(compData.competition.contact);
-      if (compData.competition.description) setDescription(compData.competition.description);
-      if (compData.competition.competitorLimit) setCompetitorLimit(compData.competition.competitorLimit.toString());
-      setMainEventId(compData.competition.mainEventId);
-      setCompetitionEvents(compData.competition.events);
+      if (competition.contact) setContact(competition.contact);
+      if (competition.description) setDescription(competition.description);
+      if (competition.competitorLimit) setCompetitorLimit(competition.competitorLimit.toString());
+      setMainEventId(competition.mainEventId);
+      setCompetitionEvents(competition.events);
+      // Competition-only stuff
+      if (competition.compDetails) {
+        setEndDate(new Date(competition.compDetails.endDate));
+      }
     }
-  }, [compData]);
+  }, [competition]);
 
   useEffect(() => {
     document.getElementById('competition_name').focus();
@@ -135,11 +146,9 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
 
   const handleSubmit = async () => {
     const selectedOrganizers = organizers.filter((el) => el !== null);
-    const correctStartDate = type !== CompetitionType.Meetup ? getDateOnly(startDate) : startDate;
-    const correctEndDate = endDate ? getDateOnly(endDate) : undefined;
 
-    const newComp = {
-      ...compData?.competition,
+    const newComp: ICompetition = {
+      ...competition,
       competitionId,
       name: name.trim(),
       type,
@@ -147,10 +156,9 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       countryIso2,
       venue: venue.trim(),
       address: address.trim() || undefined,
-      latitudeMicrodegrees: coordToMicrodegrees(latitudeMicrodegrees) || undefined,
-      longitudeMicrodegrees: coordToMicrodegrees(longitudeMicrodegrees) || undefined,
-      startDate: correctStartDate,
-      endDate: correctEndDate,
+      latitudeMicrodegrees: coordToMicrodegrees(latitudeMicrodegrees),
+      longitudeMicrodegrees: coordToMicrodegrees(longitudeMicrodegrees),
+      startDate: type !== CompetitionType.Meetup ? getDateOnly(startDate) : startDate,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
@@ -159,8 +167,18 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       // Set the competition ID for every round
       events: competitionEvents.map((compEvent) => ({
         ...compEvent,
-        rounds: compEvent.rounds.map((round) => ({ ...round, competitionId })),
+        rounds: compEvent.rounds.map((round) => ({
+          ...round,
+          competitionId: competition?.competitionId || competitionId,
+        })),
       })),
+      compDetails:
+        type === CompetitionType.Competition
+          ? {
+              endDate: endDate ? getDateOnly(endDate) : undefined,
+              schedule: {} as ISchedule,
+            }
+          : undefined,
     };
 
     // Check for errors
@@ -179,18 +197,19 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
       tempErrors.push('The selected main event is not on the list of events');
 
     if (type === CompetitionType.Competition) {
-      if (!newComp.address) tempErrors.push('Please enter the address');
-      if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
+      if (!newComp.address) tempErrors.push('Please enter an address');
       if (!newComp.organizers) tempErrors.push('Please enter at least one organizer');
       if (!newComp.contact) tempErrors.push('Please enter a contact email address');
       if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
+      if (!newComp.compDetails?.endDate || newComp.startDate > newComp.compDetails.endDate)
+        tempErrors.push('The start date must be before the end date');
     }
 
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
     } else {
-      const { errors } = compData
-        ? await myFetch.patch(`/competitions/${compData.competition.competitionId}`, newComp) // edit competition
+      const { errors } = competition
+        ? await myFetch.patch(`/competitions/${competition.competitionId}`, newComp) // edit competition
         : await myFetch.post('/competitions', newComp); // create competition
 
       if (errors) {
@@ -288,10 +307,10 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     setCompetitionEvents(newCompetitionEvents);
   };
 
-  const getNewRound = (eventId: string): IRound => {
+  const getNewRound = (eventId: string, roundNumber: number): IRound => {
     return {
+      roundId: `${eventId}-r${roundNumber}`,
       competitionId: 'temp', // this gets replaced for all rounds on submit
-      eventId: eventId,
       date: startDate,
       compNotPublished: true,
       roundTypeId: RoundType.Final,
@@ -318,8 +337,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
     lastRound.roundTypeId = updatedCompEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
 
     // Add new round
-    updatedCompEvent.rounds.push(getNewRound(eventId));
-    console.log(updatedCompEvent);
+    updatedCompEvent.rounds.push(getNewRound(eventId, updatedCompEvent.rounds.length + 1));
 
     setCompetitionEvents(competitionEvents.map((el) => (el.event.eventId === eventId ? updatedCompEvent : el)));
   };
@@ -348,7 +366,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
         ...competitionEvents,
         {
           event: events.find((el) => el.eventId === newEventId),
-          rounds: [getNewRound(newEventId)],
+          rounds: [getNewRound(newEventId, 1)],
         },
       ].sort((a: ICompetitionEvent, b: ICompetitionEvent) => a.event.rank - b.event.rank),
     );
@@ -364,27 +382,8 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
   };
 
   return (
-    <Form buttonText={compData ? 'Edit' : 'Create'} errorMessages={errorMessages} handleSubmit={handleSubmit}>
-      <ul className="mb-3 nav nav-tabs">
-        <li className="me-2 nav-item">
-          <button
-            type="button"
-            className={'nav-link' + (activeTab === 1 ? ' active' : '')}
-            onClick={() => setActiveTab(1)}
-          >
-            Details
-          </button>
-        </li>
-        <li className="nav-item">
-          <button
-            type="button"
-            className={'nav-link' + (activeTab === 2 ? ' active' : '')}
-            onClick={() => setActiveTab(2)}
-          >
-            Events
-          </button>
-        </li>
-      </ul>
+    <Form buttonText={competition ? 'Edit' : 'Create'} errorMessages={errorMessages} handleSubmit={handleSubmit}>
+      <Tabs titles={['Details', 'Events', 'Schedule']} activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {activeTab === 1 && (
         <>
@@ -399,21 +398,21 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
             name="Competition ID"
             value={competitionId}
             setValue={setCompetitionId}
-            disabled={!!compData}
+            disabled={!!competition}
           />
           <FormRadio
             title="Type"
             options={competitionTypeOptions}
             selected={type}
             setSelected={(val: any) => changeType(val)}
-            disabled={!!compData}
+            disabled={!!competition}
           />
           <div className="row">
             <div className="col">
               <FormTextInput name="City" value={city} setValue={setCity} disabled={isNotCreated} />
             </div>
             <div className="col">
-              <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!compData} />
+              <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!competition} />
             </div>
           </div>
           <FormTextInput name="Address" value={address} setValue={setAddress} disabled={isFinished} />
@@ -506,6 +505,7 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
           />
         </>
       )}
+
       {activeTab === 2 && (
         <>
           <div className="my-4 row align-items-center">
@@ -624,6 +624,8 @@ const CompetitionForm = ({ events, compData }: { events: IEvent[]; compData?: IC
           />
         </>
       )}
+
+      {activeTab === 3 && <></>}
     </Form>
   );
 };

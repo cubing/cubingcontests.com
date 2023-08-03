@@ -9,7 +9,7 @@ export class Person implements IPerson {
   personId: number;
 
   @Prop({ type: mongoose.Types.ObjectId, ref: 'User' })
-  userId?: UserDocument;
+  user?: UserDocument;
 
   @Prop({ required: true })
   name: string;

@@ -19,7 +19,7 @@ const CreateCompetition = async () => {
     return (
       <>
         <h2 className="mb-4 text-center">{editId ? 'Edit Competition' : 'Create Competition'}</h2>
-        <CompetitionForm events={events} compData={competitionData} />
+        <CompetitionForm events={events} competition={competitionData.competition} />
       </>
     );
   } else {

@@ -58,11 +58,11 @@ export enum WcaRecordType {
 }
 
 export enum Color {
-  Red = 'red',
-  Blue = 'blue',
-  Green = 'green',
-  Yellow = 'yellow',
-  White = 'white',
-  Cyan = 'cyan',
-  Magenta = 'magenta',
+  Red = 'f00',
+  Blue = '00f',
+  Green = '0f0',
+  Yellow = 'ff0',
+  White = 'fff',
+  Cyan = '0ff',
+  Magenta = 'f0f',
 }

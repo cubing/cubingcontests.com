@@ -5,11 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CompetitionSchema } from '~/src/models/competition.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { ResultSchema } from '~/src/models/result.model';
-import { PersonSchema } from '~/src/models/person.model';
 import { RecordTypesModule } from '@m/record-types/record-types.module';
 import { EventsModule } from '@m/events/events.module';
 import { ResultsModule } from '@m/results/results.module';
 import { PersonsModule } from '@m/persons/persons.module';
+import { ScheduleSchema } from '~/src/models/schedule.model';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { PersonsModule } from '@m/persons/persons.module';
       { name: 'Competition', schema: CompetitionSchema },
       { name: 'Round', schema: RoundSchema },
       { name: 'Result', schema: ResultSchema },
-      { name: 'Person', schema: PersonSchema },
+      { name: 'Schedule', schema: ScheduleSchema },
     ]),
   ],
   controllers: [CompetitionsController],

@@ -1,13 +1,18 @@
 import { RecordTypeDocument } from '~/src/models/record-type.model';
+import { recordTypesStub } from '../stubs/record-types.stub';
 
 export const mockRecordTypeModel = (): any => ({
   tempOutput: undefined,
   create: jest.fn(),
+  updateOne() {
+    return this;
+  },
   deleteMany() {
     return this;
   },
   find(): RecordTypeDocument[] {
-    this.tempOutput = [];
+    this.tempOutput = recordTypesStub();
+
     return this;
   },
   // Resets the temporary output

@@ -23,9 +23,9 @@ import {
   ICompetition,
 } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
-import C from '@sh/constants';
-import { CompetitionState, CompetitionType, WcaRecordType } from '@sh/enums';
+import { CompetitionState, WcaRecordType } from '@sh/enums';
 import { Role } from '~/src/helpers/enums';
+import { ScheduleDocument } from '~/src/models/schedule.model';
 
 interface ICompetitionUpdateResult {
   events: ICompetitionEvent[];
@@ -56,6 +56,7 @@ export class CompetitionsService {
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
+    @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
@@ -188,6 +189,12 @@ export class CompetitionsService {
         );
       }
 
+      if (createCompetitionDto.compDetails) {
+        newCompetition.compDetails.schedule = await this.scheduleModel.create(
+          createCompetitionDto.compDetails.schedule,
+        );
+      }
+
       await this.competitionModel.create(newCompetition);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -196,18 +203,6 @@ export class CompetitionsService {
 
   async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, roles: Role[]) {
     const comp = await this.findCompetition(competitionId, true);
-
-    // Validation
-    if (updateCompetitionDto.events.some((ev) => ev.rounds.length > C.maxRounds))
-      throw new BadRequestException(`You cannot have an event with more than ${C.maxRounds} rounds`);
-    if (updateCompetitionDto.events.some((el) => el.rounds.length === 0))
-      throw new BadRequestException('You cannot have an event with no rounds');
-
-    // Competition-only validation
-    if (comp.type === CompetitionType.Competition) {
-      if (!updateCompetitionDto.endDate) throw new BadRequestException('Please enter an end date');
-    }
-
     const isAdmin = roles.includes(Role.Admin);
 
     // Only an admin is allowed to edit these fields
@@ -233,7 +228,6 @@ export class CompetitionsService {
         comp.longitudeMicrodegrees = updateCompetitionDto.longitudeMicrodegrees;
       }
       comp.startDate = updateCompetitionDto.startDate;
-      if (updateCompetitionDto.endDate) comp.endDate = updateCompetitionDto.endDate;
       if (updateCompetitionDto.organizers) {
         comp.organizers = await this.personsService.getPersonsById(
           updateCompetitionDto.organizers.map((org) => org.personId),
@@ -241,6 +235,9 @@ export class CompetitionsService {
       }
       if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
       comp.mainEventId = updateCompetitionDto.mainEventId;
+      if (updateCompetitionDto.compDetails) {
+        comp.compDetails.endDate = updateCompetitionDto.compDetails.endDate;
+      }
     }
 
     await this.saveCompetition(comp);
@@ -346,7 +343,7 @@ export class CompetitionsService {
   // Finds the competition with the given competition id with the rounds and results populated
   private async getFullCompetition(competitionId: string): Promise<CompetitionDocument> {
     try {
-      return await this.competitionModel
+      const competition: CompetitionDocument = await this.competitionModel
         .findOne(
           { competitionId },
           {
@@ -358,6 +355,12 @@ export class CompetitionsService {
         .populate(eventPopulateOptions.rounds)
         .populate({ path: 'organizers', model: 'Person' })
         .exec();
+
+      if (competition.compDetails) {
+        competition.populate({ path: 'compDetails.schedule', model: 'Schedule' });
+      }
+
+      return competition;
     } catch (err) {
       throw new NotFoundException(err.message);
     }
@@ -405,7 +408,7 @@ export class CompetitionsService {
 
       if (sameEventInNew) {
         for (const round of compEvent.rounds) {
-          if (!sameEventInNew.rounds.some((el) => el._id === round._id.toString())) {
+          if (!sameEventInNew.rounds.some((el) => (el as RoundDocument)._id.equals(round._id))) {
             // Delete round if it has no results
             if (round.results.length === 0) {
               await this.roundModel.deleteOne({ _id: round._id });
@@ -427,7 +430,7 @@ export class CompetitionsService {
 
       if (sameEventInComp) {
         for (const round of newEvent.rounds) {
-          const sameRoundInComp = sameEventInComp.rounds.find((el) => el._id.toString() === round._id);
+          const sameRoundInComp = sameEventInComp.rounds.find((el) => el._id.equals((round as RoundDocument)._id));
 
           if (sameRoundInComp) {
             // Update round
@@ -445,7 +448,7 @@ export class CompetitionsService {
               updateObj.$unset = { proceed: '' };
             }
 
-            await this.roundModel.updateOne({ _id: round._id }, updateObj).exec();
+            await this.roundModel.updateOne({ _id: (round as RoundDocument)._id }, updateObj).exec();
           } else {
             // Add new round
             sameEventInComp.rounds.push(await this.roundModel.create(round));
@@ -549,7 +552,9 @@ export class CompetitionsService {
       for (const round of sameDayRounds) {
         const newResults = await this.resultModel.create(round.results);
 
-        await this.roundModel.updateOne({ _id: round._id }, { $set: { results: newResults } }).exec();
+        await this.roundModel
+          .updateOne({ _id: (round as RoundDocument)._id }, { $set: { results: newResults } })
+          .exec();
       }
     } catch (err) {
       throw new Error(`Error while creating rounds: ${err.message}`);

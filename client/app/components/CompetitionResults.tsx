@@ -5,42 +5,27 @@ import EventResultsTable from './EventResults';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
 import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
+import Tabs from './Tabs';
 
 const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: { data: ICompetitionData }) => {
   const [activeTab, setActiveTab] = useState(1);
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent>(competition.events[0]);
 
   const startDate = useMemo(() => new Date(competition.startDate), [competition]);
-  const endDate = useMemo(() => (competition.endDate ? new Date(competition.endDate) : null), [competition]);
+  const endDate = useMemo(
+    () => (competition.compDetails ? new Date(competition.compDetails.endDate) : null),
+    [competition],
+  );
   const formattedDate = useMemo(() => getFormattedDate(startDate, endDate), [startDate, endDate]);
   const formattedTime = useMemo(() => {
     const offsetDate = new Date(startDate.getTime() + timezoneOffset * 60000);
     const mins = (offsetDate.getUTCMinutes() < 10 ? '0' : '') + offsetDate.getUTCMinutes();
     return `${offsetDate.getUTCHours()}:${mins}`;
-  }, [startDate]);
+  }, [startDate, timezoneOffset]);
 
   return (
     <>
-      <ul className="mb-3 nav nav-tabs">
-        <li className="me-2 nav-item">
-          <button
-            type="button"
-            className={'nav-link' + (activeTab === 1 ? ' active' : '')}
-            onClick={() => setActiveTab(1)}
-          >
-            General Info
-          </button>
-        </li>
-        <li className="nav-item">
-          <button
-            type="button"
-            className={'nav-link' + (activeTab === 2 ? ' active' : '')}
-            onClick={() => setActiveTab(2)}
-          >
-            {competition.state < CompetitionState.Ongoing ? 'Events' : 'Results'}
-          </button>
-        </li>
-      </ul>
+      <Tabs titles={['General Info', 'Results']} activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {activeTab === 1 && (
         // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/

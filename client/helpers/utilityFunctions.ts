@@ -30,7 +30,7 @@ export const getFormattedCoords = (comp: ICompetition): string => {
 
 export const getRoundCanHaveAverage = (round: IRound, event: IEvent): boolean => {
   // Multi-Blind rounds cannot have an average
-  if (round.eventId === '333mbf') return false;
+  if (event.eventId === '333mbf') return false;
 
   // Bo1 and Bo2 rounds cannot have an average
   const numberOfSolves = roundFormats[round.format].attempts;

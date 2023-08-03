@@ -1,5 +1,5 @@
 import { IResult, IRound, IPerson, IEvent } from '@sh/interfaces';
-import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import { RoundProceed, RoundType } from '@sh/enums';
 import { formatTime, getSolves, getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
 
 const RoundResultsTable = ({

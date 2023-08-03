@@ -1,13 +1,11 @@
-import mongoose from 'mongoose';
 import { RoundDocument } from '~/src/models/round.model';
 import { RoundFormat, RoundType } from '@sh/enums';
 
 export const roundsStub = (): RoundDocument[] => {
   return [
     {
-      _id: new mongoose.Types.ObjectId('649d2dee675dfd951d5ff35b'),
+      roundId: '333tbf-r1',
       competitionId: 'Munich19022023',
-      eventId: '333tbf',
       date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -35,9 +33,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff362'),
+      roundId: '333oh-r1',
       competitionId: 'Munich19022023',
-      eventId: '333oh',
       date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -65,9 +62,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff364'),
+      roundId: '333-r1',
       competitionId: 'Munich19022023',
-      eventId: '333',
       date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -115,9 +111,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d2e63675dfd951d5ff366'),
+      roundId: '333bf-r1',
       competitionId: 'Munich19022023',
-      eventId: '333bf',
       date: new Date('2023-02-19T06:49:04Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
@@ -156,9 +151,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3bf'),
+      roundId: '444-r1',
       competitionId: 'Munich14062023',
-      eventId: '444',
       date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -217,9 +211,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c1'),
+      roundId: '555-r1',
       competitionId: 'Munich14062023',
-      eventId: '555',
       date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -258,9 +251,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c3'),
+      roundId: '333bf-r1',
       competitionId: 'Munich14062023',
-      eventId: '333bf',
       date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
@@ -308,9 +300,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c5'),
+      roundId: '333fm-r1',
       competitionId: 'Munich14062023',
-      eventId: '333fm',
       date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
@@ -349,9 +340,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c7'),
+      roundId: '333oh-r1',
       competitionId: 'Munich14062023',
-      eventId: '333oh',
       date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -399,9 +389,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3c9'),
+      roundId: '222-r1',
       competitionId: 'Munich14062023',
-      eventId: '222',
       date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -459,9 +448,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d3423675dfd951d5ff3cb'),
+      roundId: '333-r1',
       competitionId: 'Munich14062023',
-      eventId: '333',
       date: new Date('2023-06-14T06:52:26Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -520,9 +508,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918068'),
+      roundId: '666-r1',
       competitionId: 'Munich27062023',
-      eventId: '666',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
@@ -572,9 +559,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806a'),
+      roundId: '333tbf-r1',
       competitionId: 'Munich27062023',
-      eventId: '333tbf',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -604,9 +590,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806c'),
+      roundId: '333-r1',
       competitionId: 'Munich27062023',
-      eventId: '333',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -675,9 +660,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991806e'),
+      roundId: '333oh-r1',
       competitionId: 'Munich27062023',
-      eventId: '333oh',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -747,9 +731,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918070'),
+      roundId: '222-r1',
       competitionId: 'Munich27062023',
-      eventId: '222',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -809,9 +792,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918072'),
+      roundId: '444-r1',
       competitionId: 'Munich27062023',
-      eventId: '444',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -860,9 +842,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918074'),
+      roundId: '333bf-r1',
       competitionId: 'Munich27062023',
-      eventId: '333bf',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
@@ -901,9 +882,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918076'),
+      roundId: '333tf-r1',
       competitionId: 'Munich27062023',
-      eventId: '333tf',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -933,9 +913,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d9918078'),
+      roundId: '555-r1',
       competitionId: 'Munich27062023',
-      eventId: '555',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
@@ -984,9 +963,8 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
     {
-      _id: new mongoose.Types.ObjectId('649d4cea2770bb25d991807a'),
+      roundId: '333fm-r1',
       competitionId: 'Munich27062023',
-      eventId: '333fm',
       date: new Date('2023-06-27T06:53:10Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,

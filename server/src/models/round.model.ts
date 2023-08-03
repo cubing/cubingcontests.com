@@ -18,11 +18,11 @@ const ProceedSchema = SchemaFactory.createForClass(Proceed);
 
 @Schema({ timestamps: true })
 export class Round implements IRound {
-  @Prop({ required: true })
-  competitionId: string;
+  @Prop({ required: true, immutable: true })
+  roundId: string;
 
-  @Prop({ required: true })
-  eventId: string;
+  @Prop({ required: true, immutable: true })
+  competitionId: string;
 
   @Prop({ required: true })
   date: Date;

@@ -1,6 +1,6 @@
 import { RoundFormat, RoundType } from '@sh/enums';
 import { ICompetitionEvent } from '@sh/interfaces';
-import eventsSeed from '~/src/seeds/events.seed';
+import { eventsSeed } from '~/src/seeds/events.seed';
 
 export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
   return [
@@ -8,8 +8,8 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
       event: eventsSeed.find((el) => el.eventId === '333'),
       rounds: [
         {
+          roundId: '333-r1',
           competitionId: 'Munich30062023',
-          eventId: '333',
           date: new Date('2023-06-30T09:33:18Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Average,
@@ -63,8 +63,8 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
       event: eventsSeed.find((el) => el.eventId === '333fm'),
       rounds: [
         {
+          roundId: '333fm-r1',
           competitionId: 'Munich30062023',
-          eventId: '333fm',
           date: new Date('2023-06-30T09:33:18Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Mean,
@@ -112,8 +112,8 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
       event: eventsSeed.find((el) => el.eventId === '333fm'),
       rounds: [
         {
+          roundId: '333fm-r1',
           competitionId: 'TestComp2023',
-          eventId: '333fm',
           date: new Date('2023-07-01T09:33:18Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.Mean,
@@ -162,8 +162,8 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
           ],
         },
         {
+          roundId: '333fm-r2',
           competitionId: 'TestComp2023',
-          eventId: '333fm',
           date: new Date('2023-07-02T09:33:18Z'), // DIFFERENT DAY
           roundTypeId: RoundType.Second,
           format: RoundFormat.Mean,
@@ -202,8 +202,8 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
           ],
         },
         {
+          roundId: '333-r3',
           competitionId: 'TestComp2023',
-          eventId: '333fm',
           date: new Date('2023-07-03T09:33:18Z'), // DIFFERENT DAY
           roundTypeId: RoundType.Final,
           format: RoundFormat.Mean,
@@ -236,8 +236,8 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
       event: eventsSeed.find((el) => el.eventId === '222'),
       rounds: [
         {
+          roundId: '222-r1',
           competitionId: 'TestComp2023',
-          eventId: '222',
           date: new Date('2023-07-01T09:33:18Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.Average,
@@ -276,8 +276,8 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
           ],
         },
         {
+          roundId: '222-r2',
           competitionId: 'TestComp2023',
-          eventId: '222',
           date: new Date('2023-07-01T09:33:18Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Average,

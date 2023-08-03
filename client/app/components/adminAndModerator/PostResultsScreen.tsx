@@ -28,9 +28,10 @@ const PostResultsScreen = ({
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
   const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>(competition.events);
 
+  const currEventId = useMemo(() => round.roundId.split('-')[0], [round.roundId]);
   const currCompEvent = useMemo(
-    () => competitionEvents.find((el) => el.event.eventId === round.eventId),
-    [round.eventId, round.results.length, competitionEvents],
+    () => competitionEvents.find((el) => el.event.eventId === currEventId),
+    [currEventId, round.results.length, competitionEvents],
   );
 
   const logDebug = () => {
@@ -139,7 +140,7 @@ const PostResultsScreen = ({
           if (tempAttempts.find((el) => el <= 0) === undefined) sum -= Math.max(...tempAttempts);
         }
 
-        average = Math.round((sum / 3) * (round.eventId === '333fm' ? 100 : 1));
+        average = Math.round((sum / 3) * (currEventId === '333fm' ? 100 : 1));
       }
 
       const newRound = {
@@ -148,7 +149,7 @@ const PostResultsScreen = ({
           ...round.results,
           {
             competitionId: competition.competitionId,
-            eventId: round.eventId,
+            eventId: currEventId,
             date: round.date,
             compNotPublished: true,
             personId: currentPersons.map((el) => el.personId.toString()).join(';'),
@@ -179,7 +180,7 @@ const PostResultsScreen = ({
 
   const getResult = (time: string): number => {
     // If FMC or negative value, return as is, just converted to integer
-    if (round.eventId === '333fm' || time.includes('-')) return parseInt(time);
+    if (currEventId === '333fm' || time.includes('-')) return parseInt(time);
 
     time = time.replace(':', '').replace('.', '');
 
@@ -199,7 +200,7 @@ const PostResultsScreen = ({
       for (const rt of activeRecordTypes) {
         // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
-          rounds = setNewRecords(rounds, records[rounds[0].eventId][rt.wcaEquivalent], rt.label);
+          rounds = setNewRecords(rounds, records[rounds[0].roundId.split('-')[0]][rt.wcaEquivalent], rt.label);
         }
       }
 
@@ -207,7 +208,7 @@ const PostResultsScreen = ({
     };
 
     const newCompetitionEvents = competitionEvents.map((ce) =>
-      ce.event.eventId !== newRound.eventId
+      ce.event.eventId !== newRound.roundId.split('-')[0]
         ? ce
         : {
             ...ce,
@@ -219,7 +220,7 @@ const PostResultsScreen = ({
     setRound(newRound);
   };
 
-  const changeRoundAndEvent = (newRoundType: RoundType, newEvent = round.eventId) => {
+  const changeRoundAndEvent = (newRoundType: RoundType, newEvent = currEventId) => {
     const compEvent = competitionEvents.find((ce) => ce.event.eventId === newEvent);
     let newRound: IRound;
 
@@ -275,7 +276,7 @@ const PostResultsScreen = ({
     setAttempts(attempts.map((el, i) => (i !== index ? el : value)));
   };
 
-  const resetPersons = (eventId = round.eventId) => {
+  const resetPersons = (eventId = currEventId) => {
     const isTeamEvent =
       competition.events.find((el) => el.event.eventId === eventId).event.format === EventFormat.TeamTime;
 
@@ -363,7 +364,7 @@ const PostResultsScreen = ({
         <div className="col-3 pe-4">
           <FormEventSelect
             events={competition.events.map((el) => el.event)}
-            eventId={round.eventId}
+            eventId={currEventId}
             setEventId={(val) => changeRoundAndEvent(null, val)}
           />
           <div className="mb-3 fs-5">
