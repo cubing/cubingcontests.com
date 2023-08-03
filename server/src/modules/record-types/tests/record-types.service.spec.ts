@@ -6,7 +6,7 @@ import { mockRecordTypeModel } from './mocks/record-type.model';
 import { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
-import { recordTypesStub } from '@sh/sharedFunctions';
+import { recordTypesStub } from './stubs/record-types.stub';
 import { mockEventModel } from '../../events/tests/mocks/event.model';
 
 describe('RecordTypesService', () => {
@@ -43,6 +43,6 @@ describe('RecordTypesService', () => {
   });
 
   it('should set records when they are activated without error', async () => {
-    await recordTypesService.createOrEditRecordTypes(recordTypesStub(true));
+    await recordTypesService.updateRecordTypes(recordTypesStub());
   });
 });

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EventDocument } from '~/src/models/event.model';
 import { CreateEventDto } from './dto/create-event.dto';
-import eventsSeed from '~/src/seeds/events.seed';
+import { eventsSeed } from '~/src/seeds/events.seed';
 import { excl } from '~/src/helpers/dbHelpers';
 
 @Injectable()
@@ -13,9 +13,9 @@ export class EventsService {
   // Executed before the app is bootstrapped
   async onModuleInit() {
     try {
-      const results: EventDocument[] = await this.model.find().exec();
+      const events: EventDocument[] = await this.model.find().exec();
 
-      if (results.length === 0) {
+      if (events.length === 0) {
         console.log('Seeding the events table...');
 
         await this.model.insertMany(eventsSeed);

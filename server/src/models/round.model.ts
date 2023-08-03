@@ -3,7 +3,7 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import { ResultDocument } from './result.model';
 import { IRound } from '@sh/interfaces';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { IProceed } from '@sh/interfaces/Round';
+import { IProceed } from '@sh/interfaces';
 
 @Schema({ _id: false })
 export class Proceed implements IProceed {

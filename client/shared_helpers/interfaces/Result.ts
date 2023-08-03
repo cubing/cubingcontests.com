@@ -2,7 +2,7 @@ import { IEvent } from './Event';
 import { IPerson } from './Person';
 
 export interface IResult {
-  _id?: unknown; // not needed during creation
+  _id?: unknown; // not needed during creation; used by the frontend
   competitionId: string;
   eventId: string;
   date: Date;

@@ -23,5 +23,17 @@
     "scope": "typescript",
     "prefix": "inject",
     "body": "constructor(@InjectModel('${1:Object}') private readonly model: Model<${1:Object}>) {}$0"
+  },
+  "Create DTO": {
+    "scope": "typescript",
+    "prefix": "createdto",
+    "body": [
+      "import { IsString } from 'class-validator';",
+      "import { I${1:Object} } from '@sh/interfaces';",
+      "",
+      "export class Create${1:Object}Dto implements I${1:Object} {",
+      "\t$0",
+      "}"
+    ]
   }
 }

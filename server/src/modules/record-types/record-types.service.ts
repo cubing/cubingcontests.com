@@ -1,12 +1,13 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { excl } from '~/src/helpers/dbHelpers';
 import { Model } from 'mongoose';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { EventDocument } from '~/src/models/event.model';
 import { WcaRecordType } from '@sh/enums';
-import { IRecordType } from '@sh/interfaces';
-import { excl } from '~/src/helpers/dbHelpers';
+import { UpdateRecordTypeDto } from './dto/update-record-type.dto';
+import { recordTypesSeed } from '~/src/seeds/record-types.seed';
 
 @Injectable()
 export class RecordTypesService {
@@ -15,6 +16,25 @@ export class RecordTypesService {
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
   ) {}
+
+  // Executed before the app is bootstrapped
+  async onModuleInit() {
+    try {
+      const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find().exec();
+
+      if (recordTypes.length === 0) {
+        console.log('Seeding the record types table...');
+
+        await this.recordTypeModel.insertMany(recordTypesSeed);
+
+        console.log('Record types table successfully seeded');
+      } else {
+        console.log('Record types table already seeded');
+      }
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
 
   async getRecordTypes(query?: any): Promise<RecordTypeDocument[]> {
     const queryFilter = query?.active ? { active: query.active } : {};
@@ -26,35 +46,43 @@ export class RecordTypesService {
     }
   }
 
-  async createOrEditRecordTypes(newRecordTypes: IRecordType[]): Promise<void> {
-    // If there were already record types in the DB, delete them and create new ones
+  async updateRecordTypes(updateRecordTypesDtoS: UpdateRecordTypeDto[]): Promise<void> {
     let recordTypes; // this needs to just hold the PREVIOUS record types; used for setting records below
+
     try {
       recordTypes = await this.recordTypeModel.find().exec();
-      if (recordTypes.length > 0) await this.recordTypeModel.deleteMany({}).exec();
-      await this.recordTypeModel.create(newRecordTypes);
+
+      for (const newRecordType of updateRecordTypesDtoS) {
+        await this.recordTypeModel.updateOne({ wcaEquivalent: newRecordType.wcaEquivalent }, newRecordType).exec();
+      }
     } catch (err) {
       throw new InternalServerErrorException(`Error while creating record types: ${err.message}`);
     }
 
     // Set the records
-    for (let i = 0; i < newRecordTypes.length; i++) {
+    for (let i = 0; i < updateRecordTypesDtoS.length; i++) {
       // FOR NOW THIS ONLY WORKS FOR WR!!!
-      if (newRecordTypes[i].wcaEquivalent !== WcaRecordType.WR) break;
+      if (updateRecordTypesDtoS[i].wcaEquivalent !== WcaRecordType.WR) break;
 
       // Remove records if set to inactive but was active before, or set the records for the opposite case
-      if (!newRecordTypes[i].active && recordTypes[i]?.active) {
-        console.log(`Unsetting ${newRecordTypes[i].label} records`);
+      if (!updateRecordTypesDtoS[i].active && recordTypes[i]?.active) {
+        console.log(`Unsetting ${updateRecordTypesDtoS[i].label} records`);
 
         await this.resultModel
-          .updateMany({ regionalSingleRecord: newRecordTypes[i].label }, { $unset: { regionalSingleRecord: '' } })
+          .updateMany(
+            { regionalSingleRecord: updateRecordTypesDtoS[i].label },
+            { $unset: { regionalSingleRecord: '' } },
+          )
           .exec();
 
         await this.resultModel
-          .updateMany({ regionalAverageRecord: newRecordTypes[i].label }, { $unset: { regionalAverageRecord: '' } })
+          .updateMany(
+            { regionalAverageRecord: updateRecordTypesDtoS[i].label },
+            { $unset: { regionalAverageRecord: '' } },
+          )
           .exec();
-      } else if (newRecordTypes[i].active && !recordTypes[i]?.active) {
-        console.log(`Setting ${newRecordTypes[i].label} records`);
+      } else if (updateRecordTypesDtoS[i].active && !recordTypes[i]?.active) {
+        console.log(`Setting ${updateRecordTypesDtoS[i].label} records`);
 
         try {
           const events: EventDocument[] = await this.eventModel.find().exec();
@@ -86,7 +114,9 @@ export class RecordTypesService {
             });
 
             for (const singleRecord of singleRecords) {
-              console.log(`New single ${newRecordTypes[i].label} for event ${event.eventId}: ${singleRecord.best}`);
+              console.log(
+                `New single ${updateRecordTypesDtoS[i].label} for event ${event.eventId}: ${singleRecord.best}`,
+              );
 
               // Update all tied records on the day
               await this.resultModel
@@ -96,7 +126,7 @@ export class RecordTypesService {
                     date: singleRecord._id, // _id is actually the date from the group stage
                     best: singleRecord.best,
                   },
-                  { $set: { regionalSingleRecord: newRecordTypes[i].label } },
+                  { $set: { regionalSingleRecord: updateRecordTypesDtoS[i].label } },
                 )
                 .exec();
             }
@@ -126,7 +156,9 @@ export class RecordTypesService {
             });
 
             for (const avgRecord of avgRecords) {
-              console.log(`New average ${newRecordTypes[i].label} for event ${event.eventId}: ${avgRecord.average}`);
+              console.log(
+                `New average ${updateRecordTypesDtoS[i].label} for event ${event.eventId}: ${avgRecord.average}`,
+              );
 
               // Update all tied records on the day
               await this.resultModel
@@ -136,14 +168,14 @@ export class RecordTypesService {
                     date: avgRecord._id, // _id is actually the date from the group stage
                     average: avgRecord.average,
                   },
-                  { $set: { regionalAverageRecord: newRecordTypes[i].label } },
+                  { $set: { regionalAverageRecord: updateRecordTypesDtoS[i].label } },
                 )
                 .exec();
             }
           }
         } catch (err) {
           throw new InternalServerErrorException(
-            `Error while setting initial ${newRecordTypes[i].label} records: ${err.message}`,
+            `Error while setting initial ${updateRecordTypesDtoS[i].label} records: ${err.message}`,
           );
         }
       }

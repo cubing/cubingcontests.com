@@ -1,6 +1,6 @@
 # Cubing Contests
 
-This is a place for posting results from unofficial Rubik's cube competitions, unofficial events held at WCA competitions, or speedcuber meetups. All official WCA events are supported, and additional unofficial events can be added, including team events. It's currently a **work-in-progress**, but eventually this will be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. Of course, there is also going to be the main instance that will be available to everyone: [**cubingcontests.com**](https://cubingcontests.com/).
+This is a place for posting results from unofficial Rubik's cube competitions, unofficial events held at WCA competitions, or speedcuber meetups. All official WCA events are supported, and additional unofficial events can be added, including team events. It's currently a **work-in-progress**, but eventually this will be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. But you can (and are encouraged to) use the main instance that will be available to everyone: [**cubingcontests.com**](https://cubingcontests.com/). Feel free to email me if you would like to organize a competition or meetup: `cube327@tuta.io`.
 
 ## Screenshots
 
@@ -61,6 +61,6 @@ Frontend environment variables are specified in the `client/.env.local` file. Th
 The structure of the different kinds of data (e.g. competitions, rounds, events, etc.) that is stored in the database is determined by the following:
 
 - **Interface** - describes the structure of the data in the DB. Example: `ICompetition`, found in `shared_helpers`.
-- **Schema class** - implements the interface and is used to store the data in the DB. Also has a document type in the same file that is used as the return type for documents of that model. These are all found in the `server/src/models` directory.
+- **Schema class** - implements the interface and is used to store the data in the DB. Also has a document type in the same file that is used as the return type for documents of that model. These are all found in the `server/src/models` directory. **IMPORTANT**: if you use VS Code, use the `monmod` snippet to create a new schema and the related classes. Use this in your new `.model.ts` files inside of `server/src/models`.
 - **Create DTO class** - optionally implements the same interface and is used for validating POST requests that create new documents in the DB. May be missing some fields from the interface, if they are not needed on creation. If the class doesn't implement the interface, you have to remember to update the DTO accordingly when updating the interface. Example: `CreateCompetitionDto`.
 - **Update DTO class** - extends the create DTO class with a partial extend, and is used for validating PATCH requests. If needed, some fields can be added here to make them editable after the creation of the document. Example: `UpdateCompetitionDto`.

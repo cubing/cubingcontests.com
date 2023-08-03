@@ -2,7 +2,7 @@ import { EventFormat, RoundFormat } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
 
 // Official WCA events + 3x3x3 Team-Blind + 3x3x3 Team Factory. THIS IS TEMPORARY UNTIL EVENT CREATION IS ADDED.
-export default [
+export const eventsSeed: IEvent[] = [
   {
     eventId: '333',
     name: '3x3x3 Cube',

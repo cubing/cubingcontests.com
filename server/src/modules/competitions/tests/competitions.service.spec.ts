@@ -7,7 +7,7 @@ import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { IResult, IRound } from '@sh/interfaces';
 import { UpdateCompetitionDto } from '../dto/update-competition.dto';
-import { recordTypesStub, setNewRecords } from '@sh/sharedFunctions';
+import { setNewRecords } from '@sh/sharedFunctions';
 import { RoundFormat, RoundType } from '@sh/enums';
 
 // Mocks and stubs
@@ -18,9 +18,9 @@ import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
 import { mockCompetitionModel } from './mocks/competition.model';
 import { mockRoundModel } from './mocks/round.model';
 import { mockResultModel } from '@m/results/tests/mocks/result.model';
+import { recordTypesStub } from '@m/record-types/tests/stubs/record-types.stub';
 import { activeRecordTypesStub } from '@m/record-types/tests/stubs/active-record-types.stub';
 import { newCompetitionEventsStub, newFakeCompetitionEventsStub } from './stubs/new-competition-events.stub';
-import { Role } from '~/src/helpers/enums';
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
@@ -59,6 +59,10 @@ describe('CompetitionsService', () => {
         {
           provide: getModelToken('Result'),
           useFactory: mockResultModel,
+        },
+        {
+          provide: getModelToken('Schedule'),
+          useValue: {},
         },
       ],
     }).compile();
@@ -170,10 +174,7 @@ describe('CompetitionsService', () => {
     });
 
     it('updateCompetitionResults sets events and participants correctly', async () => {
-      const output = await competitionsService.updateCompetitionResults(
-        newCompetitionEventsStub(),
-        recordTypesStub(true),
-      );
+      const output = await competitionsService.updateCompetitionResults(newCompetitionEventsStub(), recordTypesStub());
       const singleRecord333Results = output.events[0].rounds[0].results.filter((el) => el.regionalSingleRecord);
       const avgRecord333Results = output.events[0].rounds[0].results.filter((el) => el.regionalAverageRecord);
       const singleRecord333fmResults = output.events[1].rounds[0].results.filter((el) => el.regionalSingleRecord);
@@ -197,7 +198,7 @@ describe('CompetitionsService', () => {
     it('updateCompetitionResults sets events with multiple rounds on multiple days correctly', async () => {
       const output = await competitionsService.updateCompetitionResults(
         newFakeCompetitionEventsStub(),
-        recordTypesStub(true),
+        recordTypesStub(),
       );
 
       expect(output.participants).toBe(6);
