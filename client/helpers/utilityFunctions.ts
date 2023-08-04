@@ -75,16 +75,16 @@ export const getBestAverageAndAttempts = (
     average = -1;
   } else {
     let sum = parsedAttempts.reduce((prev: number, curr: number) => {
-      // Ignore DNF, DNS, etc.
-      if (curr <= 0) return prev;
+      if (prev <= 0) prev = 0; // in case the very first value was DNF/DNS
+      if (curr <= 0) return prev; // ignore DNF, DNS, etc.
       return curr + prev;
     }) as number;
 
-    // Subtract best and worst results
+    // Subtract best and worst results, if it's an Ao5 round
     if (parsedAttempts.length === 5) {
       sum -= best;
       // Only subtract worst if there is no DNF, DNS, etc.
-      if (parsedAttempts.find((el) => el <= 0) === undefined) sum -= Math.max(...parsedAttempts);
+      if (!parsedAttempts.some((el) => el <= 0)) sum -= Math.max(...parsedAttempts);
     }
 
     average = Math.round((sum / 3) * (event.eventId === '333fm' ? 100 : 1));

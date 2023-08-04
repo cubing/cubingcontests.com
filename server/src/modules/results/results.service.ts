@@ -18,6 +18,35 @@ export class ResultsService {
     @InjectModel('Result') private readonly model: Model<ResultDocument>,
   ) {}
 
+  async onModuleInit() {
+    const results = await this.model.find({ average: { $gt: 0 } });
+
+    for (const res of results) {
+      let best: number;
+
+      best = Math.min(...res.attempts.map((att) => (att > 0 ? att : Infinity)));
+      if (best === Infinity) best = -1;
+
+      let sum = res.attempts.reduce((prev: number, curr: number) => {
+        if (prev <= 0) prev = 0;
+        if (curr <= 0) return prev;
+        return curr + prev;
+      }) as number;
+
+      if (res.attempts.length === 5) {
+        sum -= best;
+        if (!res.attempts.some((el) => el <= 0)) sum -= Math.max(...res.attempts);
+      }
+
+      const average = Math.round((sum / 3) * (res.eventId === '333fm' ? 100 : 1));
+
+      if (average !== res.average) {
+        console.log(res);
+        console.log('Expected average:', average);
+      }
+    }
+  }
+
   async getRecords(wcaEquivalent: string): Promise<IEventRecords[]> {
     // Make sure the requested record type is valid
     if (
