@@ -18,7 +18,7 @@ DUMP_DIR=$1
 # Gets the newest dump
 FILENAME=$(ls "$DUMP_DIR" | sort | tail -n 1)
 echo -e "\nRestoring from $DUMP_DIR/$FILENAME. Continue? (y/N)"
-read $ANSWER
+read ANSWER
 
 if [ "$ANSWER" == "y" ]; then
   if [ -n "$2" ]; then
@@ -46,5 +46,5 @@ if [ "$ANSWER" == "y" ]; then
 
   echo -e "\nDone!"
 else
-  echo -e "\nAborting"
+  echo "Aborting"
 fi
