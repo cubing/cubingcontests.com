@@ -4,26 +4,8 @@
 # Script for (re)starting production environment #
 ##################################################
 
-DB_CONTAINER=cc-mongo
-
-create_db_backup() {
-  # Create DB backup if the database container is running
-  if [ -n "$(sudo docker ps | grep $DB_CONTAINER)" ]; then
-    echo -e "Backing up \"cubingcontests\" database from the $DB_CONTAINER container...\n"
-    source .env
-    sudo docker exec $DB_CONTAINER sh -c "mongodump -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD --db cubingcontests && tar -cvz /dump/cubingcontests" > ~/dump/backup_`date "+%Y_%m_%d_%H_%M_%S"`.tar.gz &&
-    # Remove dump created by mongodump inside of the container in the previous command
-    sudo docker exec $DB_CONTAINER sh -c "rm -rf /dump" &&
-    echo -e "\nDatabase backed up to ~/dump"
-    # Delete the oldest backup (get all files in ~/dump, sort them alphabetically, skip the first line
-    # that simply shows the path to ~/dump, and take the path to the first (oldest) backup)
-    rm -f $(find ~/dump | sort | tail -n +2 | head -n 1) &&
-    echo -e "\nCurrent backups:\n"
-    ls ~/dump
-    echo -e "\nOldest backup deleted (press ENTER to continue...)"
-    read
-  fi
-}
+# $1 - (optional) --revert - revert to previous version | --dev/-d - run in development
+# $2 - (optional, required if $1 = --revert) version | --cleanup - only used when $1 = --dev/-d
 
 restart_containers() {
   # Remove all images that contain "denimint"
@@ -54,7 +36,7 @@ if [ "$1" == "--revert" ]; then
   echo "Reverting to version $VERSION (press ENTER to continue...)"
   read
 
-  create_db_backup
+  ./dump-db.sh ~/dump
 
   # Stop Docker containers
   sudo docker compose -f docker-compose-prod.yml down &&
@@ -78,7 +60,7 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   echo -e "Pulling from Github...\n"
   git pull
 
-  create_db_backup
+  ./dump-db.sh ~/dump
   restart_containers
 
 else #### DEVELOPMENT ####
