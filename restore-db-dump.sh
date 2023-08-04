@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# $1 - directory, from which the dump should be restored
+# $2 - (optional) name of the docker container with the database
+
 if [ ! -f ".env" ]; then
   echo "Error: .env file not found in the current directory"
   exit 1
@@ -29,7 +32,7 @@ sudo docker exec $DB_CONTAINER sh -c "tar -xvzf /$FILENAME"
 sudo docker exec $DB_CONTAINER sh -c "rm -f /$FILENAME"
 
 # Restore collections
-collections=( "competitions" "people" "rounds" "results" "recordtypes" "events" )
+collections=( "competitions" "people" "rounds" "results" "recordtypes" "events" "schedules" )
 
 for col in "${collections[@]}"; do
   sudo docker exec $DB_CONTAINER mongorestore -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD --db cubingcontests -c $col /dump/cubingcontests/$col.bson

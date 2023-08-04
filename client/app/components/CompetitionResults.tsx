@@ -71,7 +71,9 @@ const CompetitionResults = ({ data: { competition, persons } }: { data: ICompeti
             </p>
             {competition.venue && <p>Venue:&#8194;{competition.venue}</p>}
             {competition.address && <p>Address:&#8194;{competition.address}</p>}
-            {competition.latitudeMicrodegrees && <p>Coordinates:&#8194;{getFormattedCoords(competition)}</p>}
+            {competition.latitudeMicrodegrees && competition.longitudeMicrodegrees && (
+              <p>Coordinates:&#8194;{getFormattedCoords(competition)}</p>
+            )}
             {competition.contact && <p>Contact:&#8194;{competition.contact}</p>}
             {competition.organizers && <p>Organizers:&#8194;{getFormattedOrganizers()}</p>}
             {competition.competitorLimit && (
