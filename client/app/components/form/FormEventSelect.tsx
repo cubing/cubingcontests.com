@@ -20,12 +20,12 @@ const FormEventSelect = ({
   return (
     <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
       {label && (
-        <label htmlFor="event_id" className="form-label">
+        <label htmlFor="event_select" className="form-label">
           {label}
         </label>
       )}
       <select
-        id="event_id"
+        id="event_select"
         className="form-select"
         value={eventId}
         onChange={(e) => setEventId(e.target.value)}

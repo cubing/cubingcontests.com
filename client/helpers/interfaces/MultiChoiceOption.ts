@@ -1,5 +1,5 @@
 export interface MultiChoiceOption {
   label: string;
-  value: unknown;
+  value: string | number;
   disabled?: boolean;
 }

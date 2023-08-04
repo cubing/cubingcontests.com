@@ -1,17 +1,19 @@
 const FormTextInput = ({
-  name,
+  title,
   id,
   value,
   placeholder = '',
+  monospace = false,
   disabled = false,
   isPassword = false,
   required = false,
   setValue,
   onKeyPress,
 }: {
-  name?: string;
+  title?: string;
   id?: string;
   placeholder?: string;
+  monospace?: boolean;
   disabled?: boolean;
   isPassword?: boolean;
   required?: boolean;
@@ -19,27 +21,27 @@ const FormTextInput = ({
   setValue: any;
   onKeyPress?: (e: any) => void;
 }) => {
-  if (!id && !name) {
-    throw new Error('Neither name nor id are set in FormTextInput!');
+  if (!id && !title) {
+    throw new Error('Neither title nor id are set in FormTextInput!');
   }
 
   return (
     <div className="mb-3 fs-5">
-      {name && (
+      {title && (
         <label htmlFor={id} className="form-label">
-          {name}
+          {title}
         </label>
       )}
       <input
         type={isPassword ? 'password' : 'text'}
-        id={id || name}
+        id={id || title}
         value={value}
         placeholder={placeholder}
         disabled={disabled}
         required={required}
         onChange={(e: any) => setValue(e.target.value)}
         onKeyPress={onKeyPress}
-        className="form-control"
+        className={'form-control' + (monospace ? ' font-monospace' : '')}
       />
     </div>
   );

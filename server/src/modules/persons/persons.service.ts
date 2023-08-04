@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { PersonDocument } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
+import { IPerson } from '../../../../client/shared_helpers/interfaces';
 
 @Injectable()
 export class PersonsService {
@@ -52,19 +53,23 @@ export class PersonsService {
     }
   }
 
-  async createPerson(createPersonDto: CreatePersonDto): Promise<number> {
-    // First check that a person with the same name does not already exist
-    let personWithSameName: PersonDocument;
+  async createPerson(createPersonDto: CreatePersonDto) {
+    // First check that a person with the same name, country and WCA ID does not already exist
+    let duplicatePerson: PersonDocument;
+
     try {
-      personWithSameName = await this.model.findOne({ name: createPersonDto.name }).exec();
+      duplicatePerson = await this.model
+        .findOne({ name: createPersonDto.name, countryIso2: createPersonDto.countryIso2, wcaId: createPersonDto.wcaId })
+        .exec();
     } catch (err: any) {
       throw new InternalServerErrorException(`Error while searching for person with the same name: ${err.message}`);
     }
 
-    if (personWithSameName) throw new BadRequestException(`Person with name ${createPersonDto.name} already exists`);
+    if (duplicatePerson)
+      throw new BadRequestException(`A person with the same name, country and WCA ID already exists`);
 
     let newestPerson: PersonDocument[];
-    let personId = 1;
+    const newPerson = createPersonDto as IPerson;
 
     try {
       newestPerson = await this.model.find().sort({ personId: -1 }).limit(1).exec();
@@ -74,12 +79,13 @@ export class PersonsService {
 
     // If it's not the first person to be created, get the highest person id in the DB and increment it
     if (newestPerson.length === 1) {
-      personId = newestPerson[0].personId + 1;
+      newPerson.personId = newestPerson[0].personId + 1;
     }
 
+    if (createPersonDto.wcaId) newPerson.wcaId = createPersonDto.wcaId.trim().toUpperCase();
+
     try {
-      this.model.create({ personId, ...createPersonDto });
-      return personId;
+      await this.model.create(newPerson);
     } catch (err) {
       throw new InternalServerErrorException(
         `Error while creating new person with name ${createPersonDto.name}: ${err.message}`,

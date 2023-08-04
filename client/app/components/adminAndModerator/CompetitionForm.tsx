@@ -5,27 +5,23 @@ import { useEffect, useMemo, useState } from 'react';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import enGB from 'date-fns/locale/en-GB';
+import { startOfToday, addHours, differenceInDays } from 'date-fns';
+import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
 import Form from '../form/Form';
 import FormTextInput from '../form/FormTextInput';
 import FormCountrySelect from '../form/FormCountrySelect';
 import FormEventSelect from '../form/FormEventSelect';
 import FormRadio from '../form/FormRadio';
-import {
-  ICompetition,
-  ICompetitionEvent,
-  ICompetitionModData,
-  IEvent,
-  IPerson,
-  IRound,
-  ISchedule,
-} from '@sh/interfaces';
-import { CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import FormSelect from '../form/FormSelect';
+import Tabs from '../Tabs';
+import Schedule from '../Schedule';
+import { ICompetition, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
+import { Color, CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { selectPerson } from '~/helpers/utilityFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import { roundTypes } from '~/helpers/roundTypes';
-import Tabs from '../Tabs';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -41,6 +37,11 @@ const competitionTypeOptions: MultiChoiceOption[] = [
   },
 ];
 
+const roundFormatOptions: MultiChoiceOption[] = Object.values(roundFormats).map((rf: any) => ({
+  label: rf.label,
+  value: rf.id,
+}));
+
 const roundProceedOptions: MultiChoiceOption[] = [
   {
     label: 'Number',
@@ -49,6 +50,37 @@ const roundProceedOptions: MultiChoiceOption[] = [
   {
     label: 'Percentage',
     value: RoundProceed.Percentage,
+  },
+];
+
+const colorOptions: MultiChoiceOption[] = [
+  {
+    label: 'No color',
+    value: Color.White,
+  },
+  {
+    label: 'Blue',
+    value: Color.Blue,
+  },
+  {
+    label: 'Red',
+    value: Color.Red,
+  },
+  {
+    label: 'Green',
+    value: Color.Green,
+  },
+  {
+    label: 'Yellow',
+    value: Color.Yellow,
+  },
+  {
+    label: 'Cyan',
+    value: Color.Cyan,
+  },
+  {
+    label: 'Magenta',
+    value: Color.Magenta,
   },
 ];
 
@@ -65,7 +97,6 @@ const coordToMicrodegrees = (value: string): number | null => {
 const CompetitionForm = ({ events, competition }: { events: IEvent[]; competition?: ICompetition }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
-  const [newEventId, setNewEventId] = useState('333');
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -74,18 +105,36 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
   const [countryIso2, setCountryId] = useState('');
   const [venue, setVenue] = useState('');
   const [address, setAddress] = useState('');
-  const [latitudeMicrodegrees, setLatitudeMicrodegrees] = useState('');
-  const [longitudeMicrodegrees, setLongitudeMicrodegrees] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(null); // competition-only
+  const [endDate, setEndDate] = useState(new Date()); // competition-only
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
   const [contact, setContact] = useState('');
   const [description, setDescription] = useState('');
   const [competitorLimit, setCompetitorLimit] = useState('');
-  const [mainEventId, setMainEventId] = useState('333');
-  const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
 
+  // Event stuff
+  const [newEventId, setNewEventId] = useState('333');
+  const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
+  const [mainEventId, setMainEventId] = useState('333');
+
+  // Schedule stuff
+  const [venueTimezone, setVenueTimezone] = useState('');
+  const [rooms, setRooms] = useState<IRoom[]>([]);
+  const [roomName, setRoomName] = useState('');
+  const [roomColor, setRoomColor] = useState<Color>(Color.White);
+  const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
+  const [activityCode, setActivityCode] = useState('');
+  // These are in UTC, but get displayed in the local timezone of the venue
+  const [activityStartTime, setActivityStartTime] = useState<Date>();
+  const [activityEndTime, setActivityEndTime] = useState<Date>();
+
+  const tabs = useMemo(
+    () => (type === CompetitionType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
+    [type],
+  );
   const remainingEvents = useMemo(
     () => events.filter((event) => !competitionEvents.some((ce) => ce.event.eventId === event.eventId)),
     [events, competitionEvents],
@@ -95,6 +144,23 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     () => competition?.state && competition.state !== CompetitionState.Created,
     [competition],
   );
+  const roomOptions = useMemo(
+    () =>
+      rooms.map((room) => ({
+        label: room.name,
+        value: room.id,
+      })),
+    [rooms.length],
+  );
+  const isValidRoom = useMemo(() => roomName.trim() !== '', [roomName]);
+  const isValidActivity = useMemo(
+    () => activityCode && roomOptions.some((el) => el.value === selectedRoom),
+    [activityCode, roomOptions, selectedRoom],
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Use effect
+  //////////////////////////////////////////////////////////////////////////////
 
   useEffect(() => {
     if (competition) {
@@ -105,22 +171,27 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
       setCountryId(competition.countryIso2);
       setVenue(competition.venue);
       if (competition.address) setAddress(competition.address);
-      setLatitudeMicrodegrees((competition.latitudeMicrodegrees / 1000000).toFixed(6));
-      setLongitudeMicrodegrees((competition.longitudeMicrodegrees / 1000000).toFixed(6));
+      setLatitude((competition.latitudeMicrodegrees / 1000000).toFixed(6));
+      setLongitude((competition.longitudeMicrodegrees / 1000000).toFixed(6));
       // Convert the dates from string to Date
       setStartDate(new Date(competition.startDate));
       if (competition.organizers) {
         setOrganizerNames([...competition.organizers.map((el) => el.name), '']);
-        setOrganizers(competition.organizers);
+        setOrganizers([...competition.organizers, null]);
       }
       if (competition.contact) setContact(competition.contact);
       if (competition.description) setDescription(competition.description);
       if (competition.competitorLimit) setCompetitorLimit(competition.competitorLimit.toString());
       setMainEventId(competition.mainEventId);
       setCompetitionEvents(competition.events);
+
       // Competition-only stuff
-      if (competition.compDetails) {
-        setEndDate(new Date(competition.compDetails.endDate));
+      if (competition.type === CompetitionType.Competition) {
+        setEndDate(new Date(competition.endDate));
+
+        const venue = competition.compDetails.schedule.venues[0];
+        setRooms(venue.rooms);
+        setVenueTimezone(venue.timezone);
       }
     }
   }, [competition]);
@@ -135,17 +206,21 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
   }, [errorMessages]);
 
   useEffect(() => {
-    if (organizerNames.length !== 1) {
+    if (organizerNames.length !== 1 && organizerNames.length === organizers.filter((el) => el !== null).length) {
       document.getElementById(`organizer_${organizerNames.length}`)?.focus();
     }
   }, [organizerNames.length]);
 
-  useEffect(() => {
-    console.log(competitionEvents);
-  }, [competitionEvents]);
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
     const selectedOrganizers = organizers.filter((el) => el !== null);
+    const latitudeMicrodegrees = coordToMicrodegrees(latitude);
+    const longitudeMicrodegrees = coordToMicrodegrees(longitude);
+    const startDateOnly = getDateOnly(startDate);
+    const endDateOnly = getDateOnly(endDate);
 
     const newComp: ICompetition = {
       ...competition,
@@ -156,9 +231,10 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
       countryIso2,
       venue: venue.trim(),
       address: address.trim() || undefined,
-      latitudeMicrodegrees: coordToMicrodegrees(latitudeMicrodegrees),
-      longitudeMicrodegrees: coordToMicrodegrees(longitudeMicrodegrees),
-      startDate: type !== CompetitionType.Meetup ? getDateOnly(startDate) : startDate,
+      latitudeMicrodegrees,
+      longitudeMicrodegrees,
+      startDate: type !== CompetitionType.Meetup ? startDateOnly : startDate,
+      endDate: endDate ? endDateOnly : undefined,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
@@ -170,13 +246,36 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
         rounds: compEvent.rounds.map((round) => ({
           ...round,
           competitionId: competition?.competitionId || competitionId,
+          date: getDateOnly(
+            utcToZonedTime(
+              rooms
+                .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
+                .activities.find((a) => a.activityCode === round.roundId).startTime,
+              venueTimezone,
+            ),
+          ),
         })),
       })),
       compDetails:
         type === CompetitionType.Competition
           ? {
-              endDate: endDate ? getDateOnly(endDate) : undefined,
-              schedule: {} as ISchedule,
+              schedule: {
+                competitionId,
+                startDate: startDateOnly,
+                numberOfDays: differenceInDays(endDateOnly, startDateOnly) + 1,
+                venues: [
+                  {
+                    id: 1,
+                    name: venue,
+                    latitudeMicrodegrees,
+                    longitudeMicrodegrees,
+                    countryIso2,
+                    timezone: venueTimezone,
+                    // Only send the rooms that have at least one activity
+                    rooms: rooms.filter((el) => el.activities.length > 0),
+                  },
+                ],
+              },
             }
           : undefined,
     };
@@ -201,8 +300,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
       if (!newComp.organizers) tempErrors.push('Please enter at least one organizer');
       if (!newComp.contact) tempErrors.push('Please enter a contact email address');
       if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
-      if (!newComp.compDetails?.endDate || newComp.startDate > newComp.compDetails.endDate)
-        tempErrors.push('The start date must be before the end date');
+      if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
     }
 
     if (tempErrors.length > 0) {
@@ -221,10 +319,31 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     }
   };
 
+  const changeActiveTab = async (newTab: number) => {
+    if (newTab === 3) {
+      const { errors, payload } = await myFetch.get(
+        `/competitions/timezone?latitude=${latitude}&longitude=${longitude}`,
+        { authorize: true },
+      );
+
+      if (errors) {
+        setErrorMessages(errors);
+      } else {
+        setVenueTimezone(payload.timezone);
+        const today = startOfToday();
+        setActivityStartTime(zonedTimeToUtc(addHours(today, 12), payload.timezone));
+        setActivityEndTime(zonedTimeToUtc(addHours(today, 13), payload.timezone));
+        setActiveTab(newTab);
+      }
+    } else {
+      setActiveTab(newTab);
+    }
+  };
+
   const changeName = (value: string) => {
     // Update Competition ID accordingly, unless it deviates from the name
-    if (competitionId === name.replace(/ /g, '')) {
-      setCompetitionId(value.replace(/ /g, ''));
+    if (competitionId === name.replaceAll(' ', '')) {
+      setCompetitionId(value.replaceAll(' ', ''));
     }
 
     setName(value);
@@ -232,12 +351,6 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
 
   const changeType = (newType: CompetitionType) => {
     setType(newType);
-
-    if (newType === CompetitionType.Meetup) {
-      setEndDate(null);
-    } else {
-      setEndDate(new Date());
-    }
   };
 
   const changeOrganizerName = (index: number, value: string) => {
@@ -381,252 +494,382 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     setCompetitionEvents(competitionEvents.filter((el) => el.event.eventId !== eventId));
   };
 
-  return (
-    <Form buttonText={competition ? 'Edit' : 'Create'} errorMessages={errorMessages} handleSubmit={handleSubmit}>
-      <Tabs titles={['Details', 'Events', 'Schedule']} activeTab={activeTab} setActiveTab={setActiveTab} />
+  const addRoom = () => {
+    setRoomName('');
+    setRooms([
+      ...rooms,
+      {
+        id: rooms.length + 1,
+        name: roomName.trim(),
+        color: roomColor,
+        activities: [],
+      },
+    ]);
+  };
 
-      {activeTab === 1 && (
-        <>
-          <FormTextInput
-            id="competition_name"
-            name="Competition name"
-            value={name}
-            setValue={changeName}
-            disabled={isNotCreated}
-          />
-          <FormTextInput
-            name="Competition ID"
-            value={competitionId}
-            setValue={setCompetitionId}
-            disabled={!!competition}
-          />
-          <FormRadio
-            title="Type"
-            options={competitionTypeOptions}
-            selected={type}
-            setSelected={(val: any) => changeType(val)}
-            disabled={!!competition}
-          />
-          <div className="row">
-            <div className="col">
-              <FormTextInput name="City" value={city} setValue={setCity} disabled={isNotCreated} />
-            </div>
-            <div className="col">
-              <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!competition} />
-            </div>
-          </div>
-          <FormTextInput name="Address" value={address} setValue={setAddress} disabled={isFinished} />
-          <div className="row">
-            <div className="col-6">
-              <FormTextInput name="Venue" value={venue} setValue={setVenue} disabled={isFinished} />
-            </div>
-            <div className="col-3">
-              <FormTextInput
-                name="Latitude"
-                value={latitudeMicrodegrees}
-                setValue={setLatitudeMicrodegrees}
-                disabled={isFinished}
-              />
-            </div>
-            <div className="col-3">
-              <FormTextInput
-                name="Longitude"
-                value={longitudeMicrodegrees}
-                setValue={setLongitudeMicrodegrees}
-                disabled={isFinished}
-              />
-            </div>
-          </div>
-          <div className="mb-3 row">
-            <div className="col">
-              <label htmlFor="start_date" className="form-label">
-                {type === CompetitionType.Competition ? 'Start date' : 'Start date and time (UTC)'}
-              </label>
-              <DatePicker
-                id="start_date"
-                selected={startDate}
-                showTimeSelect={type === CompetitionType.Meetup}
-                locale="en-GB"
-                timeFormat="p"
-                dateFormat={type === CompetitionType.Meetup ? 'Pp' : 'P'}
-                onChange={(date: Date) => setStartDate(date)}
-                className="form-control"
-                disabled={isNotCreated}
-              />
-            </div>
-            {type === CompetitionType.Competition && (
+  const changeActivityStartTime = (newTime: Date) => {
+    setActivityStartTime(zonedTimeToUtc(newTime, venueTimezone));
+  };
+
+  const changeActivityEndTime = (newTime: Date) => {
+    const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
+    const newActivityEndTime = zonedTimeToUtc(
+      new Date(
+        zonedStartTime.getUTCFullYear(),
+        zonedStartTime.getUTCMonth(),
+        zonedStartTime.getUTCDate(),
+        newTime.getUTCHours(),
+        newTime.getUTCMinutes(),
+      ),
+      venueTimezone,
+    );
+
+    setActivityEndTime(newActivityEndTime);
+  };
+
+  const addActivity = () => {
+    const newRooms = rooms.map((room) =>
+      room.id !== selectedRoom
+        ? room
+        : {
+            ...room,
+            activities: [
+              ...room.activities,
+              {
+                id: room.activities.length + 1,
+                activityCode,
+                startTime: activityStartTime,
+                endTime: activityEndTime,
+              },
+            ],
+          },
+    );
+
+    setRooms(newRooms);
+    setActivityCode('');
+  };
+
+  return (
+    <>
+      <Form
+        buttonText={competition ? 'Edit Competition' : 'Create Competition'}
+        errorMessages={errorMessages}
+        handleSubmit={handleSubmit}
+        hideButton={activeTab !== 1}
+      >
+        <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
+
+        {activeTab === 1 && (
+          <>
+            <FormTextInput
+              id="competition_name"
+              title="Competition name"
+              value={name}
+              setValue={changeName}
+              disabled={isNotCreated}
+            />
+            <FormTextInput
+              title="Competition ID"
+              value={competitionId}
+              setValue={setCompetitionId}
+              disabled={!!competition}
+            />
+            <FormRadio
+              title="Type"
+              options={competitionTypeOptions}
+              selected={type}
+              setSelected={(val: any) => changeType(val)}
+              disabled={!!competition}
+            />
+            <div className="row">
               <div className="col">
-                <label htmlFor="end_date" className="form-label">
-                  End date
+                <FormTextInput title="City" value={city} setValue={setCity} disabled={isNotCreated} />
+              </div>
+              <div className="col">
+                <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!competition} />
+              </div>
+            </div>
+            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={isFinished} />
+            <div className="row">
+              <div className="col-6">
+                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={isFinished} />
+              </div>
+              <div className="col-3">
+                <FormTextInput title="Latitude" value={latitude} setValue={setLatitude} disabled={isFinished} />
+              </div>
+              <div className="col-3">
+                <FormTextInput title="Longitude" value={longitude} setValue={setLongitude} disabled={isFinished} />
+              </div>
+            </div>
+            <div className="mb-3 row">
+              <div className="col">
+                <label htmlFor="start_date" className="form-label">
+                  {type === CompetitionType.Competition ? 'Start date' : 'Start date and time (UTC)'}
                 </label>
                 <DatePicker
-                  id="end_date"
-                  selected={endDate}
+                  id="start_date"
+                  selected={startDate}
+                  showTimeSelect={type === CompetitionType.Meetup}
+                  timeFormat="p"
+                  dateFormat={type === CompetitionType.Meetup ? 'Pp' : 'P'}
                   locale="en-GB"
-                  dateFormat="P"
-                  onChange={(date: Date) => setEndDate(date)}
+                  onChange={(date: Date) => setStartDate(date)}
                   className="form-control"
                   disabled={isNotCreated}
                 />
               </div>
-            )}
-          </div>
-          <h5>Organizers</h5>
-          <div className="my-3 pt-3 px-4 border rounded bg-body-tertiary">
-            {organizerNames.map((organizerName, i) => (
-              <FormTextInput
-                key={i}
-                name={`Organizer ${i + 1}`}
-                id={`organizer_${i + 1}`}
-                value={organizerName}
-                setValue={(val: string) => changeOrganizerName(i, val)}
-                onKeyPress={(e: any) => onSelectOrganizer(i, e)}
+              {type === CompetitionType.Competition && (
+                <div className="col">
+                  <label htmlFor="end_date" className="form-label">
+                    End date
+                  </label>
+                  <DatePicker
+                    id="end_date"
+                    selected={endDate}
+                    dateFormat="P"
+                    locale="en-GB"
+                    onChange={(date: Date) => setEndDate(date)}
+                    className="form-control"
+                    disabled={isNotCreated}
+                  />
+                </div>
+              )}
+            </div>
+            <h5>Organizers</h5>
+            <div className="my-3 pt-3 px-4 border rounded bg-body-tertiary">
+              {organizerNames.map((organizerName, i) => (
+                <FormTextInput
+                  key={i}
+                  title={`Organizer ${i + 1}`}
+                  id={`organizer_${i + 1}`}
+                  value={organizerName}
+                  setValue={(val: string) => changeOrganizerName(i, val)}
+                  onKeyPress={(e: any) => onSelectOrganizer(i, e)}
+                />
+              ))}
+            </div>
+            <FormTextInput title="Contact" placeholder="john@example.com" value={contact} setValue={setContact} />
+            <div className="mb-3">
+              <label htmlFor="description" className="form-label">
+                Description (optional)
+              </label>
+              <textarea
+                id="description"
+                rows={10}
+                value={description}
+                onChange={(e: any) => setDescription(e.target.value)}
+                className="form-control"
               />
-            ))}
-          </div>
-          <FormTextInput name="Contact" placeholder="john@example.com" value={contact} setValue={setContact} />
-          <div className="mb-3">
-            <label htmlFor="description" className="form-label">
-              Description (optional)
-            </label>
-            <textarea
-              id="description"
-              rows={10}
-              value={description}
-              onChange={(e: any) => setDescription(e.target.value)}
-              className="form-control"
+            </div>
+            <FormTextInput
+              title="Competitor limit"
+              value={competitorLimit}
+              setValue={setCompetitorLimit}
+              disabled={isNotCreated}
             />
-          </div>
-          <FormTextInput
-            name="Competitor limit"
-            value={competitorLimit}
-            setValue={setCompetitorLimit}
-            disabled={isNotCreated}
-          />
-        </>
-      )}
+          </>
+        )}
 
-      {activeTab === 2 && (
-        <>
-          <div className="my-4 row align-items-center">
-            <div className="col-2">
-              <button
-                type="button"
-                className="btn btn-success"
-                onClick={addCompetitionEvent}
-                disabled={competitionEvents.length === events.length || isFinished}
-              >
-                Add Event
-              </button>
-            </div>
-            <div className="col-10">
-              <FormEventSelect
-                label=""
-                noMargin
-                events={remainingEvents}
-                eventId={newEventId}
-                setEventId={setNewEventId}
-                disabled={isFinished}
-              />
-            </div>
-          </div>
-          {competitionEvents.map((compEvent, eventIndex) => (
-            <div key={compEvent.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h4>{compEvent.event.name}</h4>
+        {activeTab === 2 && (
+          <>
+            <div className="my-4 row align-items-center">
+              <div className="col-2">
                 <button
                   type="button"
-                  className="ms-3 btn btn-danger btn-sm"
-                  onClick={() => removeCompetitionEvent(compEvent.event.eventId)}
-                  disabled={isFinished || compEvent.rounds.some((r) => r.results.length > 0)}
+                  className="btn btn-success"
+                  onClick={addCompetitionEvent}
+                  disabled={competitionEvents.length === events.length || isFinished}
                 >
-                  Remove Event
+                  Add Event
                 </button>
               </div>
-              {compEvent.rounds.map((round, roundIndex) => (
-                <div key={round.roundTypeId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
-                  <div className="mb-3 row">
-                    <div className="col-4">
-                      <h5 className="mt-2">{roundTypes[round.roundTypeId].label}</h5>
-                    </div>
-                    <div className="col-8">
-                      <div className="fs-5">
-                        <label htmlFor="round_format" className="form-label">
-                          Round format
-                        </label>
-                        <select
-                          id="round_format"
-                          className="form-select"
-                          value={round.format}
-                          onChange={(e) => changeRoundFormat(eventIndex, roundIndex, e.target.value as RoundFormat)}
-                          disabled={isFinished || round.results.length > 0}
-                        >
-                          {Object.values(roundFormats).map((rf: any) => (
-                            <option key={rf.id} value={rf.id}>
-                              {rf.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  {round.roundTypeId !== RoundType.Final && (
-                    <>
-                      <FormRadio
-                        title="Proceed to next round"
-                        options={roundProceedOptions}
-                        selected={round.proceed.type}
-                        setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                        disabled={isFinished || round.results.length > 0}
-                      />
-                      <FormTextInput
-                        id="round_proceed_value"
-                        value={round.proceed.value.toString()}
-                        setValue={(val: string) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
-                        disabled={isFinished || round.results.length > 0}
-                      />
-                    </>
-                  )}
-                </div>
-              ))}
-              <div className="d-flex gap-3">
-                {compEvent.rounds.length < 10 && (
-                  <button
-                    type="button"
-                    className="btn btn-success btn-sm"
-                    onClick={() => addRound(compEvent.event.eventId)}
-                    disabled={isFinished}
-                  >
-                    Add Round
-                  </button>
-                )}
-                {compEvent.rounds.length > 1 && (
-                  <button
-                    type="button"
-                    className="btn btn-danger btn-sm"
-                    onClick={() => removeEventRound(compEvent.event.eventId)}
-                    disabled={
-                      isFinished || compEvent.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
-                    }
-                  >
-                    Remove Round
-                  </button>
-                )}
+              <div className="col-10">
+                <FormEventSelect
+                  label=""
+                  noMargin
+                  events={remainingEvents}
+                  eventId={newEventId}
+                  setEventId={setNewEventId}
+                  disabled={isFinished}
+                />
               </div>
             </div>
-          ))}
-          <FormEventSelect
-            label="Main Event"
-            events={events}
-            eventId={mainEventId}
-            setEventId={setMainEventId}
-            disabled={isNotCreated}
-          />
-        </>
-      )}
+            {competitionEvents.map((compEvent, eventIndex) => (
+              <div key={compEvent.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h4>{compEvent.event.name}</h4>
+                  <button
+                    type="button"
+                    className="ms-3 btn btn-danger btn-sm"
+                    onClick={() => removeCompetitionEvent(compEvent.event.eventId)}
+                    disabled={isFinished || compEvent.rounds.some((r) => r.results.length > 0)}
+                  >
+                    Remove Event
+                  </button>
+                </div>
+                {compEvent.rounds.map((round, roundIndex) => (
+                  <div key={round.roundTypeId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
+                    <div className="mb-3 row">
+                      <div className="col-4">
+                        <h5 className="mt-2">{roundTypes[round.roundTypeId].label}</h5>
+                      </div>
+                      <div className="col-8">
+                        <FormSelect
+                          title="Round format"
+                          options={roundFormatOptions}
+                          selected={round.format}
+                          disabled={isFinished || round.results.length > 0}
+                          setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
+                        />
+                      </div>
+                    </div>
+                    {round.roundTypeId !== RoundType.Final && (
+                      <>
+                        <FormRadio
+                          title="Proceed to next round"
+                          options={roundProceedOptions}
+                          selected={round.proceed.type}
+                          setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
+                          disabled={isFinished || round.results.length > 0}
+                        />
+                        <FormTextInput
+                          id="round_proceed_value"
+                          value={round.proceed.value.toString()}
+                          setValue={(val: string) =>
+                            changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)
+                          }
+                          disabled={isFinished || round.results.length > 0}
+                        />
+                      </>
+                    )}
+                  </div>
+                ))}
+                <div className="d-flex gap-3">
+                  {compEvent.rounds.length < 10 && (
+                    <button
+                      type="button"
+                      className="btn btn-success btn-sm"
+                      onClick={() => addRound(compEvent.event.eventId)}
+                      disabled={isFinished}
+                    >
+                      Add Round
+                    </button>
+                  )}
+                  {compEvent.rounds.length > 1 && (
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => removeEventRound(compEvent.event.eventId)}
+                      disabled={
+                        isFinished || compEvent.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
+                      }
+                    >
+                      Remove Round
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            <FormEventSelect
+              label="Main Event"
+              events={events}
+              eventId={mainEventId}
+              setEventId={setMainEventId}
+              disabled={isNotCreated}
+            />
+          </>
+        )}
 
-      {activeTab === 3 && <></>}
-    </Form>
+        {activeTab === 3 && (
+          <>
+            <h3 className="mb-3">Rooms</h3>
+            <div className="row">
+              <div className="col-8">
+                <FormTextInput title="Room name" value={roomName} setValue={setRoomName} />
+              </div>
+              <div className="col-3">
+                <FormSelect title="Color" options={colorOptions} selected={roomColor} setSelected={setRoomColor} />
+              </div>
+              <div className="col-1 d-flex align-items-end">
+                <span
+                  style={{
+                    marginBottom: '19px',
+                    width: '100%',
+                    height: '2rem',
+                    borderRadius: '5px',
+                    backgroundColor: `#${roomColor}`,
+                  }}
+                ></span>
+              </div>
+            </div>
+            <button type="button" className="mt-3 mb-2 btn btn-success" disabled={!isValidRoom} onClick={addRoom}>
+              Create
+            </button>
+
+            <hr />
+
+            <h3 className="mb-3">Schedule</h3>
+            <div className="mb-3 row">
+              <div className="col">
+                <FormSelect
+                  title="Room"
+                  options={roomOptions}
+                  selected={selectedRoom}
+                  disabled={rooms.length === 0}
+                  setSelected={setSelectedRoom}
+                />
+              </div>
+              <div className="col">
+                <FormTextInput title="Activity code (TEMPORARY)" value={activityCode} setValue={setActivityCode} />
+              </div>
+            </div>
+            <div className="mb-3 row">
+              <div className="col">
+                <label htmlFor="activity_start_time" className="form-label">
+                  Start time ({venueTimezone})
+                </label>
+                <DatePicker
+                  id="activity_start_time"
+                  selected={utcToZonedTime(activityStartTime, venueTimezone)}
+                  showTimeSelect
+                  timeIntervals={15}
+                  timeFormat="p"
+                  dateFormat="Pp"
+                  locale="en-GB"
+                  onChange={(date: Date) => changeActivityStartTime(date)}
+                  className="form-control"
+                />
+              </div>
+              <div className="col">
+                <label htmlFor="activity_end_time" className="form-label">
+                  End time ({venueTimezone})
+                </label>
+                <DatePicker
+                  id="activity_end_time"
+                  selected={utcToZonedTime(activityEndTime, venueTimezone)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  dateFormat="HH:mm"
+                  onChange={(date: Date) => changeActivityEndTime(date)}
+                  className="form-control"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              className="mt-3 mb-2 btn btn-success"
+              disabled={!isValidActivity}
+              onClick={addActivity}
+            >
+              Add to schedule
+            </button>
+          </>
+        )}
+      </Form>
+
+      {activeTab === 3 && <Schedule rooms={rooms} compEvents={competitionEvents} timezone={venueTimezone} />}
+    </>
   );
 };
 

@@ -5,13 +5,13 @@ import { Color, WcaRecordType } from '@sh/enums';
 
 @Schema({ timestamps: true })
 class RecordType implements IRecordType {
-  @Prop({ required: true, immutable: true, unique: true })
+  @Prop({ required: true, unique: true })
   label: string;
 
   @Prop({ enum: WcaRecordType, required: true, immutable: true, unique: true })
   wcaEquivalent: WcaRecordType;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, immutable: true, unique: true })
   order: number;
 
   @Prop({ required: true })

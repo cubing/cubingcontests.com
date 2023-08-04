@@ -42,7 +42,7 @@ const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordTyp
       errorMessages={errorMessages}
       handleSubmit={handleSubmit}
     >
-      <div className="">
+      <>
         {tRecordTypes.map((rt) => (
           <div key={rt.wcaEquivalent} className="row mb-3">
             <label htmlFor={rt.wcaEquivalent + '_label_input'} className="col-2 form-label">
@@ -91,7 +91,7 @@ const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordTyp
             </div>
           </div>
         ))}
-      </div>
+      </>
     </Form>
   );
 };

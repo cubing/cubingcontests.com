@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Request, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
+import { find } from 'geo-tz';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { CompetitionsService } from './competitions.service';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
@@ -25,6 +26,15 @@ export class CompetitionsController {
   async getModCompetitions(@Request() req: any) {
     console.log('Getting competitions');
     return await this.service.getModCompetitions(req.user.personId, req.user.roles);
+  }
+
+  // GET /competitions/timezone
+  @Get('timezone')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async getTimezone(@Query('latitude') latitude: number, @Query('longitude') longitude: number) {
+    console.log('Getting timezone');
+    return { timezone: find(latitude, longitude)[0] };
   }
 
   // GET /competitions/:id

@@ -1,31 +1,61 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { utcToZonedTime, format } from 'date-fns-tz';
 import EventResultsTable from './EventResults';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
 import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import Tabs from './Tabs';
+import Schedule from './Schedule';
 
-const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: { data: ICompetitionData }) => {
+const CompetitionResults = ({ data: { competition, persons } }: { data: ICompetitionData }) => {
   const [activeTab, setActiveTab] = useState(1);
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent>(competition.events[0]);
 
-  const startDate = useMemo(() => new Date(competition.startDate), [competition]);
-  const endDate = useMemo(
-    () => (competition.compDetails ? new Date(competition.compDetails.endDate) : null),
+  const tabs = useMemo(
+    () =>
+      competition.type === CompetitionType.Competition
+        ? ['General Info', 'Results', 'Schedule']
+        : ['General Info', 'Results'],
     [competition],
   );
-  const formattedDate = useMemo(() => getFormattedDate(startDate, endDate), [startDate, endDate]);
-  const formattedTime = useMemo(() => {
-    const offsetDate = new Date(startDate.getTime() + timezoneOffset * 60000);
-    const mins = (offsetDate.getUTCMinutes() < 10 ? '0' : '') + offsetDate.getUTCMinutes();
-    return `${offsetDate.getUTCHours()}:${mins}`;
-  }, [startDate, timezoneOffset]);
+  const formattedDate = useMemo(
+    () => getFormattedDate(competition.startDate, competition.endDate ? competition.endDate : null),
+    [competition],
+  );
+  const formattedTime = useMemo(
+    () =>
+      competition.type === CompetitionType.Meetup
+        ? format(utcToZonedTime(competition.startDate, competition.timezone), 'HH:mm')
+        : null,
+    [competition],
+  );
+
+  const getFormattedOrganizers = (): string => {
+    return competition.organizers.map((el) => el.name).join(', ');
+  };
+
+  const getFormattedDescription = () => {
+    // This parses links using markdown link syntax
+    const markdownLinkRegex = /(\[[^\]]*\]\(https?:\/\/[^)]*\))/g;
+    const tempString = competition.description.replace(markdownLinkRegex, ':::::$1:::::');
+    const output = tempString.split(':::::').map((part, index) =>
+      markdownLinkRegex.test(part) ? (
+        <a key={index} href={/\((https?:\/\/[^)]*)\)/.exec(part)[1]}>
+          {/\[([^\]]*)\]/.exec(part)[1]}
+        </a>
+      ) : (
+        part
+      ),
+    );
+
+    return output;
+  };
 
   return (
     <>
-      <Tabs titles={['General Info', 'Results']} activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Tabs titles={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {activeTab === 1 && (
         // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/
@@ -35,7 +65,7 @@ const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: 
               Type:&#8194;<b>{competition.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</b>
             </p>
             <p>Date:&#8194;{formattedDate}</p>
-            {competition.type === CompetitionType.Meetup && <p>Starts at:&#8194;{formattedTime}</p>}
+            {formattedTime && <p>Starts at:&#8194;{formattedTime}</p>}
             <p>
               City:&#8194;{competition.city}, <b>{getCountry(competition.countryIso2)}</b>
             </p>
@@ -43,7 +73,7 @@ const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: 
             {competition.address && <p>Address:&#8194;{competition.address}</p>}
             {competition.latitudeMicrodegrees && <p>Coordinates:&#8194;{getFormattedCoords(competition)}</p>}
             {competition.contact && <p>Contact:&#8194;{competition.contact}</p>}
-            {competition.organizers && <p>Organizers:&#8194;{competition.organizers.map((el) => el.name).join(' ')}</p>}
+            {competition.organizers && <p>Organizers:&#8194;{getFormattedOrganizers()}</p>}
             {competition.competitorLimit && (
               <p>
                 Competitor limit:&#8194;<b>{competition.competitorLimit}</b>
@@ -62,7 +92,7 @@ const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: 
             )}
             {competition.description && (
               <p className="lh-base" style={{ whiteSpace: 'pre-wrap' }}>
-                <b>Description:</b>&#8195;{competition.description}
+                <b>Description:</b>&#8195;{getFormattedDescription()}
               </p>
             )}
           </div>
@@ -84,6 +114,13 @@ const CompetitionResults = ({ data: { competition, persons, timezoneOffset } }: 
           </div>
           <EventResultsTable compEvent={currEvent} persons={persons} />
         </>
+      )}
+      {activeTab === 3 && (
+        <Schedule
+          rooms={competition.compDetails.schedule.venues[0].rooms}
+          compEvents={competition.events}
+          timezone={competition.compDetails.schedule.venues[0].timezone}
+        />
       )}
     </>
   );

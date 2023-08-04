@@ -47,7 +47,7 @@ export class CreateCompetitionDto implements ICompetition {
   @IsString()
   @MinLength(10)
   @MaxLength(45)
-  @Matches(/^[A-Z][a-zA-Z0-9]$/)
+  @Matches(/^[A-Z][a-zA-Z0-9]*$/)
   competitionId: string;
 
   @IsString()
@@ -66,6 +66,8 @@ export class CreateCompetitionDto implements ICompetition {
   countryIso2: string;
 
   @IsString()
+  @MinLength(3)
+  @Matches(titleRegex)
   venue: string;
 
   @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.address)
@@ -84,6 +86,10 @@ export class CreateCompetitionDto implements ICompetition {
 
   @IsDateString()
   startDate: Date;
+
+  @ValidateIf((obj) => obj.type === CompetitionType.Competition)
+  @IsDateString()
+  endDate?: Date;
 
   @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.organizers)
   @ArrayMinSize(1)
@@ -124,9 +130,6 @@ export class CreateCompetitionDto implements ICompetition {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 class CompetitionDetailsDto implements ICompetitionDetails {
-  @IsDateString()
-  endDate: Date;
-
   @ValidateNested()
   @Type(() => ScheduleDto)
   schedule: ISchedule;

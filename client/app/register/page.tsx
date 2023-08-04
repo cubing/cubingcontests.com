@@ -40,9 +40,9 @@ const Register = () => {
     <>
       <h2 className="mb-4 text-center">Register</h2>
       <Form buttonText="Register" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-        <FormTextInput id="username" name="Username" value={username} setValue={setUsername} />
-        <FormTextInput name="Email" value={email} setValue={setEmail} />
-        <FormTextInput name="Password" isPassword value={password} setValue={setPassword} />
+        <FormTextInput id="username" title="Username" value={username} setValue={setUsername} />
+        <FormTextInput title="Email" value={email} setValue={setEmail} />
+        <FormTextInput title="Password" isPassword value={password} setValue={setPassword} />
         <Link href="/login" className="d-block mt-4 fs-5">
           Log in
         </Link>

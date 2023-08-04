@@ -11,6 +11,9 @@ export class Person implements IPerson {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'User' })
   user?: UserDocument;
 
+  @Prop({ immutable: true, unique: true })
+  wcaId?: string;
+
   @Prop({ required: true })
   name: string;
 

@@ -3,6 +3,7 @@ import { ICompetition, IEvent, IPerson, IRound } from '@sh/interfaces';
 import myFetch from './myFetch';
 import { roundFormats } from './roundFormats';
 import { RoundFormat } from '~/shared_helpers/enums';
+import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 
 export const getCountry = (countryIso2: string): string => {
   return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
@@ -11,15 +12,21 @@ export const getCountry = (countryIso2: string): string => {
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string): string => {
   if (!startDate) throw new Error('Start date missing!');
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
   if (typeof startDate === 'string') startDate = new Date(startDate);
   if (typeof endDate === 'string') endDate = new Date(endDate);
 
-  if (!endDate || startDate.getTime() === endDate.getTime()) {
-    return `${months[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}`;
+  const fullFormat = 'dd MMM yyyy';
+
+  if (!endDate || isSameDay(startDate, endDate)) {
+    return format(startDate, fullFormat);
   } else {
-    return 'Not implemented';
+    let startFormat: string;
+
+    if (!isSameYear(startDate, endDate)) startFormat = fullFormat;
+    else if (!isSameMonth(startDate, endDate)) startFormat = 'dd MMM';
+    else startFormat = 'dd';
+
+    return `${format(startDate, startFormat)} - ${format(endDate, fullFormat)}`;
   }
 };
 

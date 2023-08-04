@@ -28,6 +28,8 @@ export interface ICompetition {
   longitudeMicrodegrees: number;
   // These are stored as ISO date strings in the DB, but are date objects everywhere else
   startDate: Date; // includes the time if it's a meetup
+  endDate?: Date; // competition-only
+  timezone?: string; // meetup-only (it's set in the schedule for competitions)
   organizers?: IPerson[]; // stored as references
   contact?: string; // required for competitions
   description?: string;
@@ -44,7 +46,6 @@ export interface ICompetitionEvent {
 }
 
 export interface ICompetitionDetails {
-  endDate: Date;
   schedule: ISchedule; // stored as a reference
 }
 
@@ -55,7 +56,6 @@ export interface ICompetitionDetails {
 export interface ICompetitionData {
   competition: ICompetition;
   persons: IPerson[]; // info about competitors from THIS competition
-  timezoneOffset: number; // timezone offset from UTC in minutes
 }
 
 export interface ICompetitionModData {

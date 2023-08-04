@@ -1,11 +1,13 @@
 const Form = ({
   children,
   buttonText,
+  hideButton = false,
   errorMessages,
   handleSubmit,
 }: {
   children: React.ReactNode;
-  buttonText: string;
+  buttonText?: string;
+  hideButton?: boolean;
   errorMessages: string[];
   handleSubmit: () => void;
 }) => {
@@ -25,9 +27,11 @@ const Form = ({
 
       {children}
 
-      <button type="submit" className="d-block mt-4 btn btn-primary">
-        {buttonText}
-      </button>
+      {!hideButton && buttonText && (
+        <button type="submit" className="d-block mt-4 btn btn-primary">
+          {buttonText}
+        </button>
+      )}
     </form>
   );
 };

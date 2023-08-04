@@ -69,7 +69,7 @@ const RoundResultsTable = ({
   };
 
   return (
-    <div className="flex-grow-1 table-responsive">
+    <div className="flex-grow-1 mb-5 table-responsive">
       <table className="table table-hover table-responsive text-nowrap">
         <thead>
           <tr>

@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
-import { getTimezone } from 'countries-and-timezones';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -23,7 +22,7 @@ import {
   ICompetition,
 } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
-import { CompetitionState, WcaRecordType } from '@sh/enums';
+import { CompetitionState, CompetitionType, WcaRecordType } from '@sh/enums';
 import { Role } from '~/src/helpers/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
 
@@ -60,8 +59,11 @@ export class CompetitionsService {
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
-    const queryFilter: any = region ? { countryIso2: region } : {};
-    queryFilter.state = { $gt: CompetitionState.Created };
+    const queryFilter: any = {
+      state: { $gt: CompetitionState.Created },
+    };
+
+    if (region) queryFilter.countryIso2 = region;
 
     try {
       const competitions = await this.competitionModel
@@ -102,13 +104,12 @@ export class CompetitionsService {
   async getCompetition(competitionId: string): Promise<ICompetitionData> {
     const competition = await this.getFullCompetition(competitionId);
 
-    if (competition?.state > CompetitionState.Created) {
+    // TEMPORARILY DISABLED
+    // if (competition?.state > CompetitionState.Created) {
+    if (competition) {
       const output: ICompetitionData = {
         competition,
         persons: [],
-        timezoneOffset: getTimezone(
-          find(competition.latitudeMicrodegrees / 1000000, competition.longitudeMicrodegrees / 1000000)[0],
-        ).dstOffset,
       };
 
       // Get information about all participants and events of the competition if the results have been posted
@@ -156,43 +157,46 @@ export class CompetitionsService {
   }
 
   // Create new competition, if one with that id doesn't already exist (no results yet)
-  async createCompetition(createCompetitionDto: CreateCompetitionDto, creatorPersonId: number) {
+  async createCompetition(createCompDto: CreateCompetitionDto, creatorPersonId: number) {
     let comp;
     try {
-      comp = await this.competitionModel.findOne({ competitionId: createCompetitionDto.competitionId }).exec();
+      comp = await this.competitionModel.findOne({ competitionId: createCompDto.competitionId }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (comp) throw new BadRequestException(`Competition with id ${createCompetitionDto.competitionId} already exists`);
+    if (comp) throw new BadRequestException(`Competition with id ${createCompDto.competitionId} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
       const competitionEvents: CompetitionEvent[] = [];
 
-      for (const compEvent of createCompetitionDto.events) {
+      for (const compEvent of createCompDto.events) {
         competitionEvents.push(await this.getNewCompetitionEvent(compEvent));
       }
 
       // Create new competition
-      const newCompetition = {
-        ...createCompetitionDto,
+      const newCompetition: ICompetition = {
+        ...createCompDto,
         events: competitionEvents,
         createdBy: creatorPersonId,
         state: CompetitionState.Created,
         participants: 0,
       };
 
-      if (createCompetitionDto.organizers) {
+      if (createCompDto.organizers) {
         newCompetition.organizers = await this.personsService.getPersonsById(
-          createCompetitionDto.organizers.map((org) => org.personId),
+          createCompDto.organizers.map((org) => org.personId),
         );
       }
 
-      if (createCompetitionDto.compDetails) {
-        newCompetition.compDetails.schedule = await this.scheduleModel.create(
-          createCompetitionDto.compDetails.schedule,
-        );
+      if (createCompDto.type === CompetitionType.Meetup) {
+        newCompetition.timezone = find(
+          createCompDto.latitudeMicrodegrees / 1000000,
+          createCompDto.longitudeMicrodegrees / 1000000,
+        )[0];
+      } else {
+        newCompetition.compDetails.schedule = await this.scheduleModel.create(createCompDto.compDetails.schedule);
       }
 
       await this.competitionModel.create(newCompetition);
@@ -236,7 +240,7 @@ export class CompetitionsService {
       if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
       comp.mainEventId = updateCompetitionDto.mainEventId;
       if (updateCompetitionDto.compDetails) {
-        comp.compDetails.endDate = updateCompetitionDto.compDetails.endDate;
+        // comp.compDetails.schedule = updateCompetitionDto.compDetails.schedule;
       }
     }
 
@@ -357,7 +361,7 @@ export class CompetitionsService {
         .exec();
 
       if (competition.compDetails) {
-        competition.populate({ path: 'compDetails.schedule', model: 'Schedule' });
+        await competition.populate({ path: 'compDetails.schedule', model: 'Schedule' });
       }
 
       return competition;
@@ -408,7 +412,7 @@ export class CompetitionsService {
 
       if (sameEventInNew) {
         for (const round of compEvent.rounds) {
-          if (!sameEventInNew.rounds.some((el) => (el as RoundDocument)._id.equals(round._id))) {
+          if (!sameEventInNew.rounds.some((el) => (el as RoundDocument)._id.toString() === round._id.toString())) {
             // Delete round if it has no results
             if (round.results.length === 0) {
               await this.roundModel.deleteOne({ _id: round._id });
@@ -430,7 +434,9 @@ export class CompetitionsService {
 
       if (sameEventInComp) {
         for (const round of newEvent.rounds) {
-          const sameRoundInComp = sameEventInComp.rounds.find((el) => el._id.equals((round as RoundDocument)._id));
+          const sameRoundInComp = sameEventInComp.rounds.find(
+            (el) => el._id.toString() === (round as RoundDocument)._id.toString(),
+          );
 
           if (sameRoundInComp) {
             // Update round

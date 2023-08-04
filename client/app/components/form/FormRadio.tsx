@@ -10,7 +10,7 @@ const FormRadio = ({
   title: string;
   options: MultiChoiceOption[];
   selected: unknown;
-  setSelected: (value: any) => void;
+  setSelected: (value: unknown) => void;
   disabled?: boolean;
 }) => {
   return (
@@ -19,10 +19,10 @@ const FormRadio = ({
 
       <div className="my-3 d-flex gap-5">
         {options.map((option) => {
-          const id = Math.random().toString();
+          const id = `radio_${title}_${option.value.toString()}`;
 
           return (
-            <div key={option.value.toString()} className="form-check">
+            <div key={title + option.label + option.value.toString()} className="form-check">
               <input
                 id={id}
                 type="radio"

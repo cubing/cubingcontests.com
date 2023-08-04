@@ -20,9 +20,6 @@ const CompetitionEventSchema = SchemaFactory.createForClass(CompetitionEvent);
 
 @Schema({ _id: false })
 export class CompetitionDetails implements ICompetitionDetails {
-  @Prop({ required: true })
-  endDate: Date;
-
   @Prop({ type: mongoose.Types.ObjectId, ref: 'Schedule', required: true })
   schedule: ScheduleDocument;
 }
@@ -31,10 +28,10 @@ const CompetitionDetailsSchema = SchemaFactory.createForClass(CompetitionDetails
 
 @Schema({ timestamps: true })
 class Competition implements ICompetition {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, immutable: true, unique: true })
   competitionId: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, immutable: true })
   createdBy: number;
 
   @Prop({ enum: CompetitionState, required: true })
@@ -66,6 +63,12 @@ class Competition implements ICompetition {
 
   @Prop({ required: true })
   startDate: Date;
+
+  @Prop()
+  endDate?: Date;
+
+  @Prop()
+  timezone?: string;
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Person' }] })
   organizers?: PersonDocument[];

@@ -32,7 +32,7 @@ const CompetitionsTable = async ({
                   {comp.name}
                 </Link>
                 <p className="ms-2 text-nowrap">
-                  <b>{getFormattedDate(comp.startDate, comp.compDetails?.endDate)}</b>
+                  <b>{getFormattedDate(comp.startDate, comp.endDate)}</b>
                 </p>
               </div>
               <div className="d-flex justify-content-between">
@@ -55,7 +55,7 @@ const CompetitionsTable = async ({
 
       {/* DESKTOP VIEW */}
 
-      <div className="d-none d-lg-block flex-grow-1 table-responsive">
+      <div className="d-none d-lg-block flex-grow-1 mb-5 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>
@@ -77,7 +77,7 @@ const CompetitionsTable = async ({
           <tbody>
             {competitions.map((comp: ICompetition) => (
               <tr key={comp.competitionId}>
-                <td>{getFormattedDate(comp.startDate, comp.compDetails?.endDate)}</td>
+                <td>{getFormattedDate(comp.startDate, comp.endDate)}</td>
                 <td>
                   <Link href={`/competitions/${comp.competitionId}`} className="link-primary">
                     {comp.name}

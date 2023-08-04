@@ -388,7 +388,7 @@ const PostResultsScreen = ({
             {personNames.map((personName: string, i: number) => (
               <FormTextInput
                 key={i}
-                name={`Competitor ${i + 1}`}
+                title={`Competitor ${i + 1}`}
                 id={`name_${i + 1}`}
                 value={personName}
                 setValue={(val: string) => changePersonName(i, val)}
