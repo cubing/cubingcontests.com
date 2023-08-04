@@ -13,7 +13,6 @@ export class PersonsController {
   // GET /persons?searchParam=[name]
   @Get()
   async getPersons(@Query('searchParam') searchParam: string) {
-    console.log('Getting person' + (searchParam ? ` with search parameter: ${searchParam}` : ''));
     return await this.personsService.getPersons(searchParam);
   }
 
