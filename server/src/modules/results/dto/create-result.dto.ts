@@ -1,7 +1,6 @@
 import {
   ArrayMinSize,
-  Equals,
-  IsArray,
+  IsBoolean,
   IsDateString,
   IsNotEmpty,
   IsNumber,
@@ -24,7 +23,8 @@ export class CreateResultDto implements IResult {
   @IsDateString()
   date: Date;
 
-  @Equals(true)
+  @IsOptional()
+  @IsBoolean()
   compNotPublished: boolean;
 
   @IsString()

@@ -45,7 +45,7 @@ const Records = async () => {
                     <tr key={bestRecord.result.personId}>
                       <td>Single</td>
                       <td>{bestRecord.persons.map((el) => el.name).join(' & ')}</td>
-                      <td>{formatTime(eventRecord.event, bestRecord.result.best)}</td>
+                      <td>{formatTime(bestRecord.result.best, eventRecord.event)}</td>
                       <td>{getCompetitorCountries(bestRecord.persons)}</td>
                       <td>{getFormattedDate(bestRecord.result.date)}</td>
                       <td></td>
@@ -55,7 +55,7 @@ const Records = async () => {
                     <tr key={avgRecord.result.personId}>
                       <td>Average</td>
                       <td>{avgRecord.persons.map((el) => el.name).join(' & ')}</td>
-                      <td>{formatTime(eventRecord.event, avgRecord.result.average, true)}</td>
+                      <td>{formatTime(avgRecord.result.average, eventRecord.event, true)}</td>
                       <td>{getCompetitorCountries(avgRecord.persons)}</td>
                       <td>{getFormattedDate(avgRecord.result.date)}</td>
                       <td>{getSolves(eventRecord.event, avgRecord.result.attempts)}</td>

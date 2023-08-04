@@ -13,10 +13,10 @@ import {
   ValidateNested,
   IsEmail,
   ValidateIf,
-  Equals,
   MaxLength,
   IsNotEmpty,
   ArrayMaxSize,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import Countries from '@sh/Countries';
@@ -255,7 +255,8 @@ class RoundDto implements IRound {
   @IsDateString()
   date: Date;
 
-  @Equals(true)
+  @IsOptional()
+  @IsBoolean()
   compNotPublished: boolean;
 
   @IsEnum(RoundType)

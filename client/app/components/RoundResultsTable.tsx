@@ -90,14 +90,14 @@ const RoundResultsTable = ({
               <td>{getName(result.personId)}</td>
               <td>
                 <div className="d-flex align-items-center gap-3">
-                  {formatTime(event, result.best)}
+                  {formatTime(result.best, event)}
                   {getRecordBadge(result, 'single')}
                 </div>
               </td>
               {roundCanHaveAverage && (
                 <td>
                   <div className="h-100 d-flex align-items-center gap-3">
-                    {formatTime(event, result.average, true)}
+                    {formatTime(result.average, event, true)}
                     {getRecordBadge(result, 'average')}
                   </div>
                 </td>

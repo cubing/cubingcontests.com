@@ -9,7 +9,13 @@ import myFetch from '~/helpers/myFetch';
 import { RoundFormat, RoundType, EventFormat, WcaRecordType, CompetitionState } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
-import { getRoundCanHaveAverage, getRoundRanksWithAverage, selectPerson } from '~/helpers/utilityFunctions';
+import {
+  getBestAverageAndAttempts,
+  getRoundRanksWithAverage,
+  selectPerson,
+  formatTime,
+  getRoundCanHaveAverage,
+} from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 
 const PostResultsScreen = ({
@@ -27,6 +33,8 @@ const PostResultsScreen = ({
   const [attempts, setAttempts] = useState<string[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
   const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>(competition.events);
+  const [tempBest, setTempBest] = useState('');
+  const [tempAverage, setTempAverage] = useState('');
 
   const currEventId = useMemo(() => round.roundId.split('-')[0], [round.roundId]);
   const currCompEvent = useMemo(
@@ -111,37 +119,7 @@ const PostResultsScreen = ({
       logDebug();
       setErrorMessages(tempErrorMessages);
     } else {
-      const tempAttempts = attempts.map((el) => getResult(el));
-      // If the attempt is 0, -1 or -2, then it's a special value that is always worse than other values (e.g. DNF)
-      let best: number = Math.min(...tempAttempts.map((att) => (att > 0 ? att : Infinity)));
-      if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
-      let average: number;
-
-      if (
-        // No averages for rounds that don't support them
-        !getRoundCanHaveAverage(round, currCompEvent.event) ||
-        // DNF average if there are multiple DNF/DNS results
-        tempAttempts.filter((el) => el <= 0).length > 1 ||
-        // DNF average if there is a DNF/DNS in a Mo3
-        (tempAttempts.filter((el) => el <= 0).length > 0 && tempAttempts.length === 3)
-      ) {
-        average = -1;
-      } else {
-        let sum = tempAttempts.reduce((prev: number, curr: number) => {
-          // Ignore DNF, DNS, etc.
-          if (curr <= 0) return prev;
-          return curr + prev;
-        }) as number;
-
-        // Subtract best and worst results
-        if (tempAttempts.length === 5) {
-          sum -= best;
-          // Only subtract worst if there is no DNF, DNS, etc.
-          if (tempAttempts.find((el) => el <= 0) === undefined) sum -= Math.max(...tempAttempts);
-        }
-
-        average = Math.round((sum / 3) * (currEventId === '333fm' ? 100 : 1));
-      }
+      const [best, average, parsedAttempts] = getBestAverageAndAttempts(attempts, round, currCompEvent.event);
 
       const newRound = {
         ...round,
@@ -154,7 +132,7 @@ const PostResultsScreen = ({
             compNotPublished: true,
             personId: currentPersons.map((el) => el.personId.toString()).join(';'),
             ranking: 0, // real rankings assigned below
-            attempts: tempAttempts,
+            attempts: parsedAttempts,
             best,
             average,
           },
@@ -176,22 +154,6 @@ const PostResultsScreen = ({
       resetAttempts(round.format);
       document.getElementById('name_1')?.focus();
     }
-  };
-
-  const getResult = (time: string): number => {
-    // If FMC or negative value, return as is, just converted to integer
-    if (currEventId === '333fm' || time.includes('-')) return parseInt(time);
-
-    time = time.replace(':', '').replace('.', '');
-
-    let minutes = 0;
-    if (time.length > 4) {
-      minutes = parseInt(time.slice(0, -4));
-      time = time.slice(-4);
-    }
-
-    const centiseconds = parseInt(time) + minutes * 6000;
-    return centiseconds;
   };
 
   const updateRoundAndCompetitionEvents = (newRound: IRound) => {
@@ -242,6 +204,7 @@ const PostResultsScreen = ({
 
       if (currentPersons.some((el) => el?.personId === person.personId)) {
         setErrorMessages(['That competitor has already been selected']);
+        document.getElementById('solve_1')?.focus();
       } else if (round.results.some((res: IResult) => res.personId.split(';').includes(person.personId.toString()))) {
         setErrorMessages(["That competitor's results have already been entered"]);
       }
@@ -292,6 +255,8 @@ const PostResultsScreen = ({
   const resetAttempts = (roundFormat: RoundFormat) => {
     const numberOfSolves = roundFormats[roundFormat].attempts;
     setAttempts(Array(numberOfSolves).fill(''));
+    setTempBest('');
+    setTempAverage('');
   };
 
   const editResult = (result: IResult) => {
@@ -347,6 +312,12 @@ const PostResultsScreen = ({
       } else {
         document.getElementById('submit_attempt_button')?.focus();
       }
+
+      const [best, average] = getBestAverageAndAttempts(attempts, round, currCompEvent.event);
+
+      setTempBest(formatTime(best, currCompEvent.event));
+      if (getRoundCanHaveAverage(round, currCompEvent.event))
+        setTempAverage(formatTime(average, currCompEvent.event, true));
     }
   };
 
@@ -406,16 +377,15 @@ const PostResultsScreen = ({
               onKeyPress={(e: any) => enterAttempt(e, i)}
             />
           ))}
-          <div className="d-flex justify-content-between">
-            <button
-              type="button"
-              id="submit_attempt_button"
-              onClick={handleSubmitAttempts}
-              className="mt-4 btn btn-success"
-            >
+          <p>
+            Best: {tempBest}
+            {tempAverage ? ` | Average: ${tempAverage}` : ''}
+          </p>
+          <div className="mt-3 d-flex justify-content-between">
+            <button type="button" id="submit_attempt_button" onClick={handleSubmitAttempts} className="btn btn-success">
               Submit
             </button>
-            <button type="button" onClick={handleSubmit} className="mt-4 btn btn-primary">
+            <button type="button" onClick={handleSubmit} className="btn btn-primary">
               Submit Results
             </button>
           </div>

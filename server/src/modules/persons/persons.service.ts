@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { PersonDocument } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
-import { IPerson } from '../../../../client/shared_helpers/interfaces';
+import { IPerson } from '@sh/interfaces';
 
 @Injectable()
 export class PersonsService {
@@ -66,7 +66,7 @@ export class PersonsService {
     }
 
     if (duplicatePerson)
-      throw new BadRequestException(`A person with the same name, country and WCA ID already exists`);
+      throw new BadRequestException('A person with the same name, country and WCA ID already exists');
 
     let newestPerson: PersonDocument[];
     const newPerson = createPersonDto as IPerson;

@@ -253,7 +253,7 @@ export class CompetitionsService {
     if (
       roles.includes(Role.Admin) ||
       // Allow mods only to finish an ongoing competition
-      (newState === CompetitionState.Finished && comp.state === CompetitionState.Ongoing)
+      (comp.state === CompetitionState.Ongoing && newState === CompetitionState.Finished)
     ) {
       comp.state = newState;
 

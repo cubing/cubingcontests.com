@@ -206,7 +206,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
   }, [errorMessages]);
 
   useEffect(() => {
-    if (organizerNames.length !== 1 && organizerNames.length === organizers.filter((el) => el !== null).length) {
+    if (organizerNames.length !== 1 && organizerNames.length > organizers.filter((el) => el !== null).length) {
       document.getElementById(`organizer_${organizerNames.length}`)?.focus();
     }
   }, [organizerNames.length]);
@@ -246,14 +246,17 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
         rounds: compEvent.rounds.map((round) => ({
           ...round,
           competitionId: competition?.competitionId || competitionId,
-          date: getDateOnly(
-            utcToZonedTime(
-              rooms
-                .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
-                .activities.find((a) => a.activityCode === round.roundId).startTime,
-              venueTimezone,
-            ),
-          ),
+          date:
+            type === CompetitionType.Meetup
+              ? startDateOnly
+              : getDateOnly(
+                utcToZonedTime(
+                  rooms
+                    .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
+                    .activities.find((a) => a.activityCode === round.roundId).startTime,
+                  venueTimezone,
+                ),
+              ),
         })),
       })),
       compDetails:
