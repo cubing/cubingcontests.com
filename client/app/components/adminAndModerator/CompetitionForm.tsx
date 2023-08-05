@@ -250,13 +250,13 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
             type === CompetitionType.Meetup
               ? startDateOnly
               : getDateOnly(
-                utcToZonedTime(
-                  rooms
-                    .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
-                    .activities.find((a) => a.activityCode === round.roundId).startTime,
-                  venueTimezone,
+                  utcToZonedTime(
+                    rooms
+                      .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
+                      .activities.find((a) => a.activityCode === round.roundId).startTime,
+                    venueTimezone,
+                  ),
                 ),
-              ),
         })),
       })),
       compDetails:

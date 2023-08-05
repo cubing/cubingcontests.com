@@ -59,35 +59,35 @@ const CompetitionResults = ({ data: { competition, persons } }: { data: ICompeti
 
       {activeTab === 1 && (
         // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/
-        <div className="row w-100 px-2 fs-5">
+        <div className="row w-100 mb-4 px-2 fs-5">
           <div className="col-md-5">
-            <p>
+            <p className="mb-2">
               Type:&#8194;<b>{competition.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</b>
             </p>
-            <p>Date:&#8194;{formattedDate}</p>
+            <p className="mb-2">Date:&#8194;{formattedDate}</p>
             {formattedTime && <p>Starts at:&#8194;{formattedTime}</p>}
-            <p>
+            <p className="mb-2">
               City:&#8194;{competition.city}, <b>{getCountry(competition.countryIso2)}</b>
             </p>
-            {competition.venue && <p>Venue:&#8194;{competition.venue}</p>}
-            {competition.address && <p>Address:&#8194;{competition.address}</p>}
+            {competition.venue && <p className="mb-2">Venue:&#8194;{competition.venue}</p>}
+            {competition.address && <p className="mb-2">Address:&#8194;{competition.address}</p>}
             {competition.latitudeMicrodegrees && competition.longitudeMicrodegrees && (
-              <p>Coordinates:&#8194;{getFormattedCoords(competition)}</p>
+              <p className="mb-2">Coordinates:&#8194;{getFormattedCoords(competition)}</p>
             )}
-            {competition.contact && <p>Contact:&#8194;{competition.contact}</p>}
-            {competition.organizers && <p>Organizers:&#8194;{getFormattedOrganizers()}</p>}
-            {competition.competitorLimit && (
-              <p>
+            {competition.contact && <p className="mb-2">Contact:&#8194;{competition.contact}</p>}
+            {competition.organizers && <p className="mb-2">Organizers:&#8194;{getFormattedOrganizers()}</p>}
+            {competition.state < CompetitionState.Published && competition.competitorLimit && (
+              <p className="mb-2">
                 Competitor limit:&#8194;<b>{competition.competitorLimit}</b>
               </p>
             )}
             {competition.participants > 0 && (
-              <p>
+              <p className="mb-2">
                 Number of participants:&#8194;<b>{competition.participants}</b>
               </p>
             )}
           </div>
-          <hr className="d-md-none mt-3 mb-4" />
+          <hr className="d-md-none mt-2 mb-3" />
           <div className="col-md-7">
             {competition.state === CompetitionState.Ongoing && (
               <p className="mb-4">This competition is currently ongoing</p>
