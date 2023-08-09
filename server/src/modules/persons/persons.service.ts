@@ -58,15 +58,21 @@ export class PersonsService {
     let duplicatePerson: PersonDocument;
 
     try {
-      duplicatePerson = await this.model
-        .findOne({ name: createPersonDto.name, countryIso2: createPersonDto.countryIso2, wcaId: createPersonDto.wcaId })
-        .exec();
+      if (createPersonDto.wcaId) {
+        duplicatePerson = await this.model.findOne({ wcaId: createPersonDto.wcaId }).exec();
+      } else {
+        duplicatePerson = await this.model
+          .findOne({ name: createPersonDto.name, countryIso2: createPersonDto.countryIso2 })
+          .exec();
+      }
     } catch (err: any) {
       throw new InternalServerErrorException(`Error while searching for person with the same name: ${err.message}`);
     }
 
-    if (duplicatePerson)
-      throw new BadRequestException('A person with the same name, country and WCA ID already exists');
+    if (duplicatePerson) {
+      if (duplicatePerson.wcaId) throw new BadRequestException('A person with the same WCA ID already exists');
+      throw new BadRequestException('A person with the same name and country already exists');
+    }
 
     let newestPerson: PersonDocument[];
     const newPerson = createPersonDto as IPerson;

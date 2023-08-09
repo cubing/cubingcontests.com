@@ -251,6 +251,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
               ? startDateOnly
               : getDateOnly(
                   utcToZonedTime(
+                    // TEMPORARY UGLY SOLUTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     rooms
                       .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
                       .activities.find((a) => a.activityCode === round.roundId).startTime,
