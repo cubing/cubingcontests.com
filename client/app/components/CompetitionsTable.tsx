@@ -116,7 +116,7 @@ const CompetitionsTable = async ({
                           onClick={() => onPostCompResults(comp.competitionId)}
                           className="btn btn-success btn-sm"
                         >
-                          Post Results
+                          Enter Results
                         </button>
                       )}
                       {comp.state === CompetitionState.Ongoing && (

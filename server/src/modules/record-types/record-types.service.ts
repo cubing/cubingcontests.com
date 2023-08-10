@@ -91,7 +91,7 @@ export class RecordTypesService {
             // Set single records
             const bestSinglesByDay = await this.resultModel
               .aggregate([
-                { $match: { eventId: event.eventId, best: { $gt: 0 } } },
+                { $match: { eventId: event.eventId, compNotPublished: { $exists: false }, best: { $gt: 0 } } },
                 { $sort: { date: 1 } },
                 {
                   $group: {
@@ -134,7 +134,7 @@ export class RecordTypesService {
             // Set average records
             const bestAvgsByDay = await this.resultModel
               .aggregate([
-                { $match: { eventId: event.eventId, average: { $gt: 0 } } },
+                { $match: { eventId: event.eventId, compNotPublished: { $exists: false }, average: { $gt: 0 } } },
                 { $sort: { date: 1 } },
                 {
                   $group: {
