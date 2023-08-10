@@ -137,7 +137,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
   );
   const remainingEvents = useMemo(
     () => events.filter((event) => !competitionEvents.some((ce) => ce.event.eventId === event.eventId)),
-    [events, competitionEvents],
+    [events, competition, competitionEvents],
   );
   const isFinished = useMemo(() => competition?.state >= CompetitionState.Finished, [competition]);
   const isNotCreated = useMemo(
@@ -182,8 +182,11 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
       if (competition.contact) setContact(competition.contact);
       if (competition.description) setDescription(competition.description);
       if (competition.competitorLimit) setCompetitorLimit(competition.competitorLimit.toString());
-      setMainEventId(competition.mainEventId);
       setCompetitionEvents(competition.events);
+      setNewEventId(
+        events.find((ev) => !competition.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
+      );
+      setMainEventId(competition.mainEventId);
 
       // Competition-only stuff
       if (competition.type === CompetitionType.Competition) {
@@ -234,7 +237,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
       latitudeMicrodegrees,
       longitudeMicrodegrees,
       startDate: type !== CompetitionType.Meetup ? startDateOnly : startDate,
-      endDate: endDate ? endDateOnly : undefined,
+      endDate: type !== CompetitionType.Meetup ? endDateOnly : undefined,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
