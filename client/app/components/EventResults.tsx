@@ -23,7 +23,7 @@ const EventResults = ({
       {rounds.map((round: IRound) => (
         <div key={round.roundId} className="mb-4">
           {round.results.length === 0 ? (
-            <h5>
+            <h5 className="px-2">
               {roundTypes[round.roundTypeId].label}&nbsp;format:&#8194;<b>{roundFormats[round.format].label}</b>
             </h5>
           ) : (
