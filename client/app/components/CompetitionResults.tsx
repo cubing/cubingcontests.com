@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { utcToZonedTime, format } from 'date-fns-tz';
 import EventResultsTable from './EventResults';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
@@ -8,6 +8,28 @@ import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/util
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import Tabs from './Tabs';
 import Schedule from './Schedule';
+
+const getTabNumber = (hash: string): number => {
+  switch (hash) {
+    case 'Results':
+      return 2;
+    case 'Schedule':
+      return 3;
+    default:
+      return 1;
+  }
+};
+
+const getHashFromTab = (tab: number): string => {
+  switch (tab) {
+    case 2:
+      return 'Results';
+    case 3:
+      return 'Schedule';
+    default:
+      return '';
+  }
+};
 
 const CompetitionResults = ({ data: { competition, persons } }: { data: ICompetitionData }) => {
   const [activeTab, setActiveTab] = useState(1);
@@ -32,6 +54,26 @@ const CompetitionResults = ({ data: { competition, persons } }: { data: ICompeti
     [competition],
   );
 
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+
+    if (hash) {
+      setActiveTab(getTabNumber(hash));
+    }
+
+    const onHashChanged = (event: any) => {
+      setActiveTab(getTabNumber(event.newURL.split('#')[1]));
+    };
+
+    window.addEventListener('hashchange', onHashChanged);
+
+    return () => window.removeEventListener('hashchange', onHashChanged);
+  }, []);
+
+  const changeActiveTab = (newTab: number) => {
+    window.location.hash = getHashFromTab(newTab);
+  };
+
   const getFormattedOrganizers = (): string => {
     return competition.organizers.map((el) => el.name).join(', ');
   };
@@ -55,7 +97,7 @@ const CompetitionResults = ({ data: { competition, persons } }: { data: ICompeti
 
   return (
     <>
-      <Tabs titles={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
       {activeTab === 1 && (
         // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/
