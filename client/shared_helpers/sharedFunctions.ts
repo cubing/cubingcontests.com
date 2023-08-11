@@ -16,11 +16,17 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
   if (a.average <= 0) {
     if (b.average <= 0) {
       if (noTieBreaker) return 0;
+
       return compareSingles(a, b);
     }
 
     return 1;
-  } else if (a.average > 0 && b.average <= 0) return -1;
+  } else if (a.average > 0 && b.average <= 0) {
+    return -1;
+  }
+
+  if (a.average === b.average && !noTieBreaker) return compareSingles(a, b);
+
   return a.average - b.average;
 };
 
