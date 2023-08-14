@@ -23,7 +23,7 @@ export default function Home() {
       </div>
       <p>
         If you would like to create an unofficial competition or meetup, or host unofficial events for a WCA
-        competition, send an inquiry to inquiries@cubingcontests.com
+        competition, send an inquiry to cube327@tuta.io
       </p>
     </div>
   );
