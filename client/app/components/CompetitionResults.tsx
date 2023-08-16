@@ -11,9 +11,9 @@ import Schedule from './Schedule';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
-    case 'Results':
+    case '#Results':
       return 2;
-    case 'Schedule':
+    case '#Schedule':
       return 3;
     default:
       return 1;
@@ -55,22 +55,14 @@ const CompetitionResults = ({ data: { competition, persons } }: { data: ICompeti
   );
 
   useEffect(() => {
-    const hash = window.location.hash.slice(1);
-
-    if (hash) {
-      setActiveTab(getTabNumber(hash));
+    // If hash is not empty, set initial tab number
+    if (window.location.hash.replace('#', '')) {
+      setActiveTab(getTabNumber(window.location.hash));
     }
-
-    const onHashChanged = (event: any) => {
-      setActiveTab(getTabNumber(event.newURL.split('#')[1]));
-    };
-
-    window.addEventListener('hashchange', onHashChanged);
-
-    return () => window.removeEventListener('hashchange', onHashChanged);
   }, []);
 
   const changeActiveTab = (newTab: number) => {
+    setActiveTab(newTab);
     window.location.hash = getHashFromTab(newTab);
   };
 

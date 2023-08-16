@@ -93,7 +93,7 @@ const CompetitionsTable = async ({
                 {onEditCompetition && (
                   <>
                     <td>{competitionStates[comp.state].label}</td>
-                    <td className="d-flex gap-2 py-1">
+                    <td className="d-flex gap-2">
                       <button
                         type="button"
                         onClick={() => onEditCompetition(comp.competitionId)}

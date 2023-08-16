@@ -28,7 +28,10 @@ const EventResults = ({
             </h5>
           ) : (
             <>
-              <h3 className="mx-2 mb-4 fs-3">{`${compEvent.event.name} ${roundTypes[round.roundTypeId].label}`}</h3>
+              <h3 className="mx-2 mb-4 fs-3">
+                {compEvent.event.name}
+                {rounds.length > 1 ? ' ' + roundTypes[round.roundTypeId].label : ''}
+              </h3>
               <RoundResultsTable
                 round={round}
                 event={compEvent.event}
