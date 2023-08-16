@@ -259,6 +259,14 @@ const PostResultsScreen = ({
     setTempAverage('');
   };
 
+  const updateTempBestAndAverage = (newAttempts = attempts) => {
+    const [best, average] = getBestAverageAndAttempts(newAttempts, round, currCompEvent.event);
+
+    setTempBest(formatTime(best, currCompEvent.event));
+    if (getRoundCanHaveAverage(round, currCompEvent.event))
+      setTempAverage(formatTime(average, currCompEvent.event, { isAverage: true }));
+  };
+
   const editResult = (result: IResult) => {
     // Delete result and then set the inputs if the deletion was successful
     deleteResult(result.personId, () => {
@@ -266,7 +274,10 @@ const PostResultsScreen = ({
 
       setPersonNames(newCurrentPersons.map((el) => el.name));
       setCurrentPersons(newCurrentPersons);
-      setAttempts(result.attempts.map((el) => el.toString()));
+
+      const newAttempts = result.attempts.map((el) => formatTime(el, currCompEvent.event, { removeFormatting: true }));
+      setAttempts(newAttempts);
+      updateTempBestAndAverage(newAttempts);
     });
   };
 
@@ -313,11 +324,7 @@ const PostResultsScreen = ({
         document.getElementById('submit_attempt_button')?.focus();
       }
 
-      const [best, average] = getBestAverageAndAttempts(attempts, round, currCompEvent.event);
-
-      setTempBest(formatTime(best, currCompEvent.event));
-      if (getRoundCanHaveAverage(round, currCompEvent.event))
-        setTempAverage(formatTime(average, currCompEvent.event, true));
+      updateTempBestAndAverage();
     }
   };
 

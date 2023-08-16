@@ -97,7 +97,7 @@ const RoundResultsTable = ({
               {roundCanHaveAverage && (
                 <td>
                   <div className="h-100 d-flex align-items-center gap-3">
-                    {formatTime(result.average, event, true)}
+                    {formatTime(result.average, event, { isAverage: true })}
                     {getRecordBadge(result, 'average')}
                   </div>
                 </td>

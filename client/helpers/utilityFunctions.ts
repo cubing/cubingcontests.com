@@ -111,7 +111,14 @@ export const getRoundRanksWithAverage = (round: IRound, event: IEvent): boolean 
   return getRoundCanHaveAverage(round, event) && [RoundFormat.Average, RoundFormat.Mean].includes(round.format);
 };
 
-export const formatTime = (time: number, event: IEvent, isAverage = false): string => {
+export const formatTime = (
+  time: number,
+  event: IEvent,
+  { isAverage = false, removeFormatting = false }: { isAverage?: boolean; removeFormatting?: boolean } = {
+    isAverage: false,
+    removeFormatting: false,
+  },
+): string => {
   if (time === -1) {
     return 'DNF';
   } else if (time === -2) {
@@ -136,6 +143,7 @@ export const formatTime = (time: number, event: IEvent, isAverage = false): stri
     if (!output.includes('.')) output += '.00';
     else if (output.split('.')[1].length === 1) output += '0';
 
+    if (removeFormatting) return output.replace(/[.:]/g, '');
     return output;
   }
 };
