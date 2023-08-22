@@ -39,11 +39,11 @@ if [[ "$STAGED_FILES" != "" ]]; then
 
     $ESLINT --fix "${STAGED_FILES[@]}"
     verify_exit
-    cd ..
 
     # Re-add files since they may have been changed
     echo 'Readding /client files'
     git add "${STAGED_FILES[@]}"
+    cd ..
   fi
 fi
 
@@ -76,11 +76,11 @@ if [[ "$STAGED_FILES" != "" ]]; then
 
     $ESLINT --fix "${STAGED_FILES[@]}"
     verify_exit
-    cd ..
 
     # Re-add files since they may have been changed
     echo 'Readding /server files'
     git add "${STAGED_FILES[@]}"
+    cd ..
   fi
 fi
 

@@ -15,7 +15,7 @@ const AdminPerson = () => {
   const [countryIso2, setCountryIso2] = useState('');
 
   useEffect(() => {
-    document.getElementById('full_name')?.focus();
+    document.getElementById('wca_id')?.focus();
   }, []);
 
   const handleSubmit = async () => {
@@ -61,6 +61,8 @@ const AdminPerson = () => {
   };
 
   const changeWcaId = (value: string) => {
+    value = value.trim();
+
     if (value.length > 10) {
       setErrorMessages(['A WCA ID must have exactly ten characters']);
     } else {
@@ -88,6 +90,8 @@ const AdminPerson = () => {
         }
 
         if (payload?.person?.country_iso2) setCountryIso2(payload.person.country_iso2);
+
+        document.getElementById('form_submit_button')?.focus();
       }
     }
   };
@@ -104,10 +108,17 @@ const AdminPerson = () => {
         <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
       )}
       <Form buttonText="Create" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-        <FormTextInput id="full_name" title="Full Name" value={name} setValue={changeName} />
-        <FormTextInput title="Localized Name" value={localizedName} setValue={changeLocalizedName} />
         <p>Press ENTER after entering the WCA ID</p>
-        <FormTextInput title="WCA ID" monospace value={wcaId} setValue={changeWcaId} onKeyDown={submitWcaId} />
+        <FormTextInput
+          id="wca_id"
+          title="WCA ID"
+          monospace
+          value={wcaId}
+          setValue={changeWcaId}
+          onKeyDown={submitWcaId}
+        />
+        <FormTextInput title="Full Name" value={name} setValue={changeName} />
+        <FormTextInput title="Localized Name" value={localizedName} setValue={changeLocalizedName} />
         <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryIso2} />
       </Form>
     </>

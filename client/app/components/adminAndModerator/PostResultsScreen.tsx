@@ -27,7 +27,7 @@ const PostResultsScreen = ({
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([]);
+  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
   const [personSelection, setPersonSelection] = useState(0);
 
   const [round, setRound] = useState<IRound>(competition.events[0].rounds[0]);
@@ -72,19 +72,20 @@ const PostResultsScreen = ({
   }, [competition, records, activeRecordTypes]);
 
   useEffect(() => {
-    // Focus the last name input
-    document.getElementById(`name_${personNames.length}`)?.focus();
-  }, [personNames.length]);
+    // Focus the first empty competitor input
+    if (currentPersons.some((el) => el !== null)) {
+      document.getElementById(`Competitor_${currentPersons.findIndex((el) => el === null) + 1}`)?.focus();
+    }
+  }, [currentPersons.filter((el) => el !== null).length]);
 
+  // Focus the first competitor input whenever the round is changed
   useEffect(() => {
-    console.log(currentPersons);
-  }, [currentPersons]);
+    document.getElementById('Competitor_1').focus();
+  }, [round.roundId]);
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
-    if (successMessage || errorMessages.some((el) => el !== '')) {
-      window.scrollTo(0, 0);
-    }
+    if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
   const handleSubmit = async () => {
@@ -159,7 +160,7 @@ const PostResultsScreen = ({
       setSuccessMessage('');
       resetPersons();
       resetAttempts(round.format);
-      document.getElementById('name_1')?.focus();
+      document.getElementById('Competitor_1').focus();
     }
   };
 
@@ -227,7 +228,7 @@ const PostResultsScreen = ({
 
       setCurrentPersons(newCurrentPersons);
       setErrorMessages([]);
-      setMatchedPersons([]);
+      setMatchedPersons([null]);
       setPersonSelection(0);
     }
 
@@ -250,7 +251,7 @@ const PostResultsScreen = ({
       setPersonNames(['']);
     }
 
-    setMatchedPersons([]);
+    setMatchedPersons([null]);
     setPersonSelection(0);
   };
 

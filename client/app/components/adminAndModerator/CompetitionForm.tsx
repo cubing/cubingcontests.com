@@ -97,7 +97,7 @@ const coordToMicrodegrees = (value: string): number | null => {
 const CompetitionForm = ({ events, competition }: { events: IEvent[]; competition?: ICompetition }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
-  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([]);
+  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
   const [personSelection, setPersonSelection] = useState(0);
 
   const [competitionId, setCompetitionId] = useState('');
@@ -255,14 +255,14 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
             type === CompetitionType.Meetup
               ? startDateOnly
               : getDateOnly(
-                  utcToZonedTime(
-                    // TEMPORARY UGLY SOLUTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    rooms
-                      .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
-                      .activities.find((a) => a.activityCode === round.roundId).startTime,
-                    venueTimezone,
-                  ),
+                utcToZonedTime(
+                  // TEMPORARY UGLY SOLUTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                  rooms
+                    .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
+                    .activities.find((a) => a.activityCode === round.roundId).startTime,
+                  venueTimezone,
                 ),
+              ),
         })),
       })),
       compDetails:
@@ -377,7 +377,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
 
       setOrganizers(newOrganizers);
       setErrorMessages([]);
-      setMatchedPersons([]);
+      setMatchedPersons([null]);
       setPersonSelection(0);
     }
 

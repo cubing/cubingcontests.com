@@ -28,7 +28,7 @@ const Form = ({
       {children}
 
       {!hideButton && buttonText && (
-        <button type="submit" className="d-block mt-4 btn btn-primary">
+        <button type="submit" id="form_submit_button" className="d-block mt-4 btn btn-primary">
           {buttonText}
         </button>
       )}

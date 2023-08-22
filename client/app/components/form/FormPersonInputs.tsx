@@ -5,6 +5,8 @@ import myFetch from '~/helpers/myFetch';
 import FormTextInput from './FormTextInput';
 import { IPerson } from '~/shared_helpers/interfaces';
 
+const MAX_MATCHES = 8;
+
 const FormPersonInputs = ({
   label,
   personNames,
@@ -25,6 +27,7 @@ const FormPersonInputs = ({
   setPersonNames: (value: string[]) => void;
   persons: IPerson[];
   setPersons: (value: IPerson[]) => void;
+  // The null element represents the option "add new person"
   matchedPersons: IPerson[];
   setMatchedPersons: (value: IPerson[]) => void;
   personSelection: number;
@@ -37,15 +40,17 @@ const FormPersonInputs = ({
   const [focusedInput, setFocusedInput] = useState<number>(null);
 
   const queryMatchedPersons = async (value: string) => {
-    if (value) {
+    if (value.trim()) {
       const { payload, errors } = await myFetch.get(`/persons?searchParam=${value}`);
 
-      setMatchedPersons([]);
+      setMatchedPersons([null]);
 
       if (errors) {
         setErrorMessages(errors);
       } else if (payload.length > 0) {
-        const newMatchedPersons = payload.slice(0, 10);
+        const newMatchedPersons = payload.slice(0, MAX_MATCHES);
+
+        if (newMatchedPersons.length < MAX_MATCHES) newMatchedPersons.push(null);
 
         setMatchedPersons(newMatchedPersons);
 
@@ -53,15 +58,14 @@ const FormPersonInputs = ({
         if (newMatchedPersons.length < personSelection) setPersonSelection(0);
       }
     } else {
-      setMatchedPersons([]);
+      if (matchedPersons.length > 1) setMatchedPersons([null]);
     }
   };
 
-  const changeFocusedInput = (index: number, inputValue?: string) => {
+  const changeFocusedInput = (index: number | null, inputValue?: string) => {
     setFocusedInput(index);
 
-    if (!inputValue) setMatchedPersons([]);
-    else queryMatchedPersons(inputValue);
+    if (inputValue) queryMatchedPersons(inputValue);
   };
 
   const changePersonName = (index: number, value: string) => {
@@ -90,11 +94,17 @@ const FormPersonInputs = ({
     if (e.key === 'Enter') {
       e.preventDefault();
 
-      if (matchedPersons.length === 0) {
-        setErrorMessages(['Person not found']);
-      } else {
-        selectPerson(matchedPersons[personSelection], index);
+      if (matchedPersons[personSelection] === null) {
+        window.location.href = '/admin/person';
         setFocusedInput(null);
+      } else {
+        // 1, because there is always the "add new competitor" option at the end
+        if (matchedPersons.length === 1) {
+          setErrorMessages(['Person not found']);
+        } else {
+          selectPerson(matchedPersons[personSelection], index);
+          setFocusedInput(null);
+        }
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -106,6 +116,10 @@ const FormPersonInputs = ({
       e.preventDefault();
 
       setPersonSelection(Math.max(personSelection - 1, 0));
+    }
+    // Disallow entering numbers and certain characters
+    else if (/[0-9()_/\\[\]]/.test(e.key)) {
+      e.preventDefault();
     }
   };
 
@@ -122,18 +136,28 @@ const FormPersonInputs = ({
             onFocus={() => changeFocusedInput(i, personName)}
             onBlur={() => changeFocusedInput(null)}
           />
-          {i === focusedInput && (
+          {i === focusedInput && personName.trim() && (
             <ul className="position-absolute list-group">
-              {matchedPersons.map((person: IPerson, index) => (
-                <li
-                  key={person.personId}
-                  className={'list-group-item' + (index === personSelection ? ' active' : '')}
-                  aria-current={index === personSelection}
-                >
-                  {person.name}
-                  {person.localizedName ? ` (${person.localizedName})` : ''}
-                </li>
-              ))}
+              {matchedPersons.map((person: IPerson, index) =>
+                person !== null ? (
+                  <li
+                    key={person.personId}
+                    className={'list-group-item' + (index === personSelection ? ' active' : '')}
+                    aria-current={index === personSelection}
+                  >
+                    {person.name}
+                    {person.localizedName ? ` (${person.localizedName})` : ''}
+                  </li>
+                ) : (
+                  <li
+                    key={-1}
+                    className={'list-group-item' + (index === personSelection ? ' active' : '')}
+                    aria-current={index === personSelection}
+                  >
+                    (add new competitor)
+                  </li>
+                ),
+              )}
             </ul>
           )}
         </div>
