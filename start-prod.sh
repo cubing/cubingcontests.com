@@ -4,7 +4,7 @@
 # Script for (re)starting production environment #
 ##################################################
 
-# $1 - (optional) --revert - revert to previous version | --dev/-d - run in development
+# $1 - (optional) --revert - revert to previous version | --dev/-d - run in development | --restart - skip apt update and DB dump
 # $2 - (optional, required if $1 = --revert) version | --cleanup - only used when $1 = --dev/-d
 
 restart_containers() {
@@ -50,8 +50,12 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
 
   #### PRODUCTION ####
 
-  sudo apt update &&
-  sudo apt dist-upgrade
+  if [ "$1" != "--restart" ]; then  
+    sudo apt update &&
+    sudo apt dist-upgrade
+
+    ./dump-db.sh ~/dump
+  fi
 
   # Stop Docker containers
   sudo docker compose -f docker-compose-prod.yml down &&
@@ -60,7 +64,6 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   echo -e "Pulling from Github...\n"
   git pull
 
-  ./dump-db.sh ~/dump
   restart_containers
 
 else #### DEVELOPMENT ####
