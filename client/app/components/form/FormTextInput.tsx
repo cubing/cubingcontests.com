@@ -8,7 +8,7 @@ const FormTextInput = ({
   isPassword = false,
   required = false,
   setValue,
-  onKeyPress,
+  onKeyDown,
 }: {
   title?: string;
   id?: string;
@@ -19,7 +19,7 @@ const FormTextInput = ({
   required?: boolean;
   value: string;
   setValue: any;
-  onKeyPress?: (e: any) => void;
+  onKeyDown?: (e: any) => void;
 }) => {
   if (!id && !title) {
     throw new Error('Neither title nor id are set in FormTextInput!');
@@ -40,7 +40,7 @@ const FormTextInput = ({
         disabled={disabled}
         required={required}
         onChange={(e: any) => setValue(e.target.value)}
-        onKeyPress={onKeyPress}
+        onKeyDown={onKeyDown}
         className={'form-control' + (monospace ? ' font-monospace' : '')}
       />
     </div>

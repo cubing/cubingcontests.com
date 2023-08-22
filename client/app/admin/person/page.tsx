@@ -107,7 +107,7 @@ const AdminPerson = () => {
         <FormTextInput id="full_name" title="Full Name" value={name} setValue={changeName} />
         <FormTextInput title="Localized Name" value={localizedName} setValue={changeLocalizedName} />
         <p>Press ENTER after entering the WCA ID</p>
-        <FormTextInput title="WCA ID" monospace value={wcaId} setValue={changeWcaId} onKeyPress={submitWcaId} />
+        <FormTextInput title="WCA ID" monospace value={wcaId} setValue={changeWcaId} onKeyDown={submitWcaId} />
         <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryIso2} />
       </Form>
     </>

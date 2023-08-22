@@ -651,7 +651,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
                   id={`organizer_${i + 1}`}
                   value={organizerName}
                   setValue={(val: string) => changeOrganizerName(i, val)}
-                  onKeyPress={(e: any) => onSelectOrganizer(i, e)}
+                  onKeyDown={(e: any) => onSelectOrganizer(i, e)}
                 />
               ))}
             </div>
