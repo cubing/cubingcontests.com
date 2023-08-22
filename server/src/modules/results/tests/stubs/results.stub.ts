@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
+import { WcaRecordType } from '@sh/enums';
 
 export const resultsStub = (): ResultDocument[] => {
   return [
@@ -37,8 +38,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [2148, 2866, 3614, -1, 2990],
       best: 2148,
       average: 3157,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c46'),
@@ -61,8 +62,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [2060, 2047, 2449, 2110, 2120],
       best: 2047,
       average: 2097,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c48'),
@@ -85,8 +86,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [990, 1385, 1189, 1294, 1028],
       best: 990,
       average: 1170,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4a'),
@@ -131,7 +132,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [2217, -1, 2412],
       best: 2217,
       average: -1,
-      regionalSingleRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4e'),
@@ -165,8 +166,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [4003, 3872, 3762, 3910, 3555],
       best: 3555,
       average: 3848,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c51'),
@@ -211,8 +212,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [7990, 8111, 7389, 7759, 6985],
       best: 6985,
       average: 7713,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c56'),
@@ -268,7 +269,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [7086, 7922, 6237],
       best: 6237,
       average: 7082,
-      regionalAverageRecord: 'XWR',
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5b'),
@@ -291,8 +292,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [39, 51, 51],
       best: 39,
       average: 4700,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5d'),
@@ -326,8 +327,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [2382, 1869, 1976, 2143, 1691],
       best: 1691,
       average: 1996,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c60'),
@@ -372,7 +373,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [320, 485, 340, 525, 593],
       best: 320,
       average: 450,
-      regionalAverageRecord: 'XWR',
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c64'),
@@ -395,7 +396,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [264, 625, 650, 510, 439],
       best: 264,
       average: 525,
-      regionalSingleRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c66'),
@@ -429,7 +430,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [1087, 1111, 1198, 1200, 1077],
       best: 1077,
       average: 1132,
-      regionalAverageRecord: 'XWR',
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c69'),
@@ -485,8 +486,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [15299, 14398, 14084],
       best: 14084,
       average: 14594,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c6e'),
@@ -531,8 +532,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [4391, 2044, 2193, 2927, 2474],
       best: 2044,
       average: 2531,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c72'),
@@ -555,7 +556,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [1159, 1143, 1161, 909, 1332],
       best: 909,
       average: 1154,
-      regionalSingleRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c74'),
@@ -622,8 +623,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [1313, 1950, 1778, 2212, 2136],
       best: 1313,
       average: 1955,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7a'),
@@ -690,8 +691,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [458, 331, 153, 342, 338],
       best: 153,
       average: 337,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c80'),
@@ -747,7 +748,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [3922, 4608, 3960, 4231, 3502],
       best: 3502,
       average: 4038,
-      regionalSingleRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c85'),
@@ -792,7 +793,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [2758, 2302, 3324],
       best: 2302,
       average: 2795,
-      regionalAverageRecord: 'XWR',
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c89'),
@@ -826,8 +827,8 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [1949, 1299, 1371, 1403, 1552],
       best: 1299,
       average: 1442,
-      regionalSingleRecord: 'XWR',
-      regionalAverageRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8c'),
@@ -850,7 +851,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [8736, 7751, 6988, 7532, 7234],
       best: 6988,
       average: 7506,
-      regionalAverageRecord: 'XWR',
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8e'),
@@ -895,7 +896,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [41, 40, 57],
       best: 40,
       average: 4600,
-      regionalAverageRecord: 'XWR',
+      regionalAverageRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c92'),
@@ -907,7 +908,7 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [50, 39, 51],
       best: 39,
       average: 4667,
-      regionalSingleRecord: 'XWR',
+      regionalSingleRecord: WcaRecordType.WR,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c93'),

@@ -19,11 +19,9 @@ import { roundTypes } from '~/helpers/roundTypes';
 import FormPersonInputs from '../form/FormPersonInputs';
 
 const PostResultsScreen = ({
-  compData: { competition, persons: prevPersons, records },
-  activeRecordTypes,
+  compData: { competition, persons: prevPersons, records, activeRecordTypes },
 }: {
   compData: ICompetitionModData;
-  activeRecordTypes: IRecordType[];
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
@@ -170,7 +168,7 @@ const PostResultsScreen = ({
       for (const rt of activeRecordTypes) {
         // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
-          rounds = setNewRecords(rounds, records[rounds[0].roundId.split('-')[0]][rt.wcaEquivalent], rt.label);
+          rounds = setNewRecords(rounds, records[rounds[0].roundId.split('-')[0]][rt.wcaEquivalent], rt.wcaEquivalent);
         }
       }
 
@@ -416,6 +414,7 @@ const PostResultsScreen = ({
               round={round}
               event={currCompEvent.event}
               persons={persons}
+              recordTypes={activeRecordTypes}
               onEditResult={editResult}
               onDeleteResult={deleteResult}
             />

@@ -5,6 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
+import { colorOptions } from '~/helpers/multipleChoiceOptions';
 
 const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordType[]; errors: string[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>(errors);
@@ -54,8 +55,6 @@ const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordTyp
                 id={rt.wcaEquivalent + '_label_input'}
                 value={rt.label}
                 onChange={(e: any) => changeLabel(rt.wcaEquivalent, e.target.value)}
-                // Disable changing the label when the record type is active in the DB
-                disabled={recordTypes.find((el) => el.wcaEquivalent === rt.wcaEquivalent)?.active}
                 className="form-control"
               />
             </div>
@@ -82,11 +81,13 @@ const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordTyp
                 value={rt.color}
                 onChange={(e) => changeColor(rt.wcaEquivalent, e.target.value as Color)}
               >
-                {Object.keys(Color).map((el: string) => (
-                  <option key={el} value={(Color as any)[el]}>
-                    {el}
-                  </option>
-                ))}
+                {colorOptions
+                  .filter((el) => el.value !== Color.Magenta)
+                  .map((colorOption) => (
+                    <option key={colorOption.value} value={colorOption.value}>
+                      {colorOption.label}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>

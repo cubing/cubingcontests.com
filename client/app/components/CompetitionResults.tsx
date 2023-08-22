@@ -31,7 +31,7 @@ const getHashFromTab = (tab: number): string => {
   }
 };
 
-const CompetitionResults = ({ data: { competition, persons } }: { data: ICompetitionData }) => {
+const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } }: { data: ICompetitionData }) => {
   const [activeTab, setActiveTab] = useState(1);
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent>(competition.events[0]);
 
@@ -148,7 +148,7 @@ const CompetitionResults = ({ data: { competition, persons } }: { data: ICompeti
               </button>
             ))}
           </div>
-          <EventResultsTable compEvent={currEvent} persons={persons} />
+          <EventResultsTable compEvent={currEvent} persons={persons} recordTypes={activeRecordTypes} />
         </>
       )}
       {activeTab === 3 && (

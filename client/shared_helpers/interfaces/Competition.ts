@@ -3,6 +3,7 @@ import { IEvent } from './Event';
 import { IRound } from './Round';
 import { IPerson } from './Person';
 import { ISchedule } from './Schedule';
+import { IRecordType } from './RecordType';
 
 // IMPORTANT: when updating this interface, also update:
 //    (1) the create competition DTO (and update DTO,  if needed)
@@ -56,6 +57,7 @@ export interface ICompetitionDetails {
 export interface ICompetitionData {
   competition: ICompetition;
   persons: IPerson[]; // info about competitors from THIS competition
+  activeRecordTypes: IRecordType[];
 }
 
 export interface ICompetitionModData {
@@ -63,4 +65,5 @@ export interface ICompetitionModData {
   persons: IPerson[]; // info about competitors from THIS competition
   // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
   records: any;
+  activeRecordTypes: IRecordType[];
 }

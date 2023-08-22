@@ -1,4 +1,4 @@
-import { Equals, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Matches, Min, MinLength } from 'class-validator';
+import { Equals, IsEnum, IsNumber, IsOptional, IsString, Matches, Min, MinLength } from 'class-validator';
 import { IEvent } from '@sh/interfaces';
 import { EventFormat, RoundFormat } from '@sh/enums';
 import { titleRegex } from '~/src/helpers/regex';

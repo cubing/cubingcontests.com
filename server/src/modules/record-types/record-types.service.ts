@@ -66,23 +66,23 @@ export class RecordTypesService {
 
       // Remove records if set to inactive but was active before, or set the records for the opposite case
       if (!updateRecordTypesDtoS[i].active && recordTypes[i]?.active) {
-        console.log(`Unsetting ${updateRecordTypesDtoS[i].label} records`);
+        console.log(`Unsetting ${updateRecordTypesDtoS[i].wcaEquivalent} records`);
 
         await this.resultModel
           .updateMany(
-            { regionalSingleRecord: updateRecordTypesDtoS[i].label },
+            { regionalSingleRecord: updateRecordTypesDtoS[i].wcaEquivalent },
             { $unset: { regionalSingleRecord: '' } },
           )
           .exec();
 
         await this.resultModel
           .updateMany(
-            { regionalAverageRecord: updateRecordTypesDtoS[i].label },
+            { regionalAverageRecord: updateRecordTypesDtoS[i].wcaEquivalent },
             { $unset: { regionalAverageRecord: '' } },
           )
           .exec();
       } else if (updateRecordTypesDtoS[i].active && !recordTypes[i]?.active) {
-        console.log(`Setting ${updateRecordTypesDtoS[i].label} records`);
+        console.log(`Setting ${updateRecordTypesDtoS[i].wcaEquivalent} records`);
 
         try {
           const events: EventDocument[] = await this.eventModel.find().exec();
@@ -115,7 +115,7 @@ export class RecordTypesService {
 
             for (const singleRecord of singleRecords) {
               console.log(
-                `New single ${updateRecordTypesDtoS[i].label} for event ${event.eventId}: ${singleRecord.best}`,
+                `New single ${updateRecordTypesDtoS[i].wcaEquivalent} for event ${event.eventId}: ${singleRecord.best}`,
               );
 
               // Update all tied records on the day
@@ -126,7 +126,7 @@ export class RecordTypesService {
                     date: singleRecord._id, // _id is actually the date from the group stage
                     best: singleRecord.best,
                   },
-                  { $set: { regionalSingleRecord: updateRecordTypesDtoS[i].label } },
+                  { $set: { regionalSingleRecord: updateRecordTypesDtoS[i].wcaEquivalent } },
                 )
                 .exec();
             }
@@ -157,7 +157,7 @@ export class RecordTypesService {
 
             for (const avgRecord of avgRecords) {
               console.log(
-                `New average ${updateRecordTypesDtoS[i].label} for event ${event.eventId}: ${avgRecord.average}`,
+                `New average ${updateRecordTypesDtoS[i].wcaEquivalent} for event ${event.eventId}: ${avgRecord.average}`,
               );
 
               // Update all tied records on the day
@@ -168,14 +168,14 @@ export class RecordTypesService {
                     date: avgRecord._id, // _id is actually the date from the group stage
                     average: avgRecord.average,
                   },
-                  { $set: { regionalAverageRecord: updateRecordTypesDtoS[i].label } },
+                  { $set: { regionalAverageRecord: updateRecordTypesDtoS[i].wcaEquivalent } },
                 )
                 .exec();
             }
           }
         } catch (err) {
           throw new InternalServerErrorException(
-            `Error while setting initial ${updateRecordTypesDtoS[i].label} records: ${err.message}`,
+            `Error while setting initial ${updateRecordTypesDtoS[i].wcaEquivalent} records: ${err.message}`,
           );
         }
       }

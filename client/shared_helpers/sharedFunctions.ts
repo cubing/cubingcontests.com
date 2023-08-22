@@ -1,3 +1,4 @@
+import { WcaRecordType } from './enums';
 import { IRound, IResult } from './interfaces';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
@@ -33,7 +34,7 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
 export const setNewRecords = (
   sameDayRounds: IRound[],
   records: { best: number; average: number },
-  recordLabel: string,
+  wcaEquivalent: WcaRecordType,
   updateRecords = false, // whether or not to update the record object with new records
 ): IRound[] => {
   // Initialize arrays with dummy results
@@ -77,8 +78,8 @@ export const setNewRecords = (
     if (updateRecords) records.best = bestSingleResults[0].best;
 
     bestSingleResults.forEach((res) => {
-      console.log(`New ${res.eventId} single ${recordLabel} set: ${res.best}`);
-      res.regionalSingleRecord = recordLabel;
+      console.log(`New ${res.eventId} single ${wcaEquivalent} set: ${res.best}`);
+      res.regionalSingleRecord = wcaEquivalent;
     });
   }
 
@@ -87,10 +88,14 @@ export const setNewRecords = (
     if (updateRecords) records.average = bestSingleResults[0].average;
 
     bestAvgResults.forEach((res) => {
-      console.log(`New ${res.eventId} average ${recordLabel} set: ${res.average}`);
-      res.regionalAverageRecord = recordLabel;
+      console.log(`New ${res.eventId} average ${wcaEquivalent} set: ${res.average}`);
+      res.regionalAverageRecord = wcaEquivalent;
     });
   }
 
   return sameDayRounds;
+};
+
+export const getDateOnly = (date: Date): Date => {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };

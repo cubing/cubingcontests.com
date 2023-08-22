@@ -21,7 +21,7 @@ import {
   IRecordType,
   ICompetition,
 } from '@sh/interfaces';
-import { setNewRecords } from '@sh/sharedFunctions';
+import { getDateOnly, setNewRecords } from '@sh/sharedFunctions';
 import { CompetitionState, CompetitionType, WcaRecordType } from '@sh/enums';
 import { Role } from '~/src/helpers/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
@@ -121,12 +121,13 @@ export class CompetitionsService {
   async getCompetition(competitionId: string): Promise<ICompetitionData> {
     const competition = await this.getFullCompetition(competitionId);
 
-    // TEMPORARILY DISABLED
+    // TEMPORARILY DISABLED until mod-only protection is added
     // if (competition?.state > CompetitionState.Created) {
     if (competition) {
       const output: ICompetitionData = {
         competition,
         persons: [],
+        activeRecordTypes: await this.recordTypesService.getRecordTypes({ active: true }),
       };
 
       // Get information about all participants and events of the competition if the results have been posted
@@ -148,6 +149,7 @@ export class CompetitionsService {
   async getModCompetition(competitionId: string): Promise<ICompetitionModData> {
     const competition = await this.getFullCompetition(competitionId);
     const personIds: number[] = this.getCompetitionParticipants(competition.events);
+    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
     if (competition) {
       const compModData: ICompetitionModData = {
@@ -155,8 +157,8 @@ export class CompetitionsService {
         persons: await this.personsService.getPersonsById(personIds),
         // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
         records: {} as any,
+        activeRecordTypes,
       };
-      const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
       // Get current records for this competition's events
       for (const compEvent of competition.events) {
@@ -531,8 +533,7 @@ export class CompetitionsService {
 
     // If a date wasn't passed, use max date, otherwise use the passed date at midnight to compare just the dates
     if (!beforeDate) beforeDate = new Date(8640000000000000);
-    else
-      beforeDate = new Date(Date.UTC(beforeDate.getUTCFullYear(), beforeDate.getUTCMonth(), beforeDate.getUTCDate()));
+    else beforeDate = getDateOnly(beforeDate);
 
     const records: any = {};
 
@@ -540,10 +541,14 @@ export class CompetitionsService {
     for (const rt of activeRecordTypes) {
       const newRecords = { best: -1, average: -1 };
 
-      const singleResults = await this.resultsService.getEventSingleRecordResults(eventId, rt.label, beforeDate);
+      const singleResults = await this.resultsService.getEventSingleRecordResults(
+        eventId,
+        rt.wcaEquivalent,
+        beforeDate,
+      );
       if (singleResults.length > 0) newRecords.best = singleResults[0].best;
 
-      const avgResults = await this.resultsService.getEventAverageRecordResults(eventId, rt.label, beforeDate);
+      const avgResults = await this.resultsService.getEventAverageRecordResults(eventId, rt.wcaEquivalent, beforeDate);
       if (avgResults.length > 0) newRecords.average = avgResults[0].average;
 
       records[rt.wcaEquivalent] = newRecords;
@@ -563,7 +568,7 @@ export class CompetitionsService {
     for (const rt of activeRecordTypes) {
       // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       if (rt.active && rt.wcaEquivalent === WcaRecordType.WR) {
-        sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.label, true);
+        sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.wcaEquivalent, true);
       }
     }
 

@@ -14,79 +14,22 @@ import FormCountrySelect from '../form/FormCountrySelect';
 import FormEventSelect from '../form/FormEventSelect';
 import FormRadio from '../form/FormRadio';
 import FormSelect from '../form/FormSelect';
+import FormPersonInputs from '../form/FormPersonInputs';
 import Tabs from '../Tabs';
 import Schedule from '../Schedule';
 import { ICompetition, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
 import { Color, CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { roundFormats } from '~/helpers/roundFormats';
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import { getDateOnly } from '@sh/sharedFunctions';
+import {
+  colorOptions,
+  competitionTypeOptions,
+  roundFormatOptions,
+  roundProceedOptions,
+} from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import FormPersonInputs from '../form/FormPersonInputs';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
-
-const competitionTypeOptions: MultiChoiceOption[] = [
-  {
-    label: 'Meetup',
-    value: CompetitionType.Meetup,
-  },
-  {
-    label: 'Competition',
-    value: CompetitionType.Competition,
-  },
-];
-
-const roundFormatOptions: MultiChoiceOption[] = Object.values(roundFormats).map((rf: any) => ({
-  label: rf.label,
-  value: rf.id,
-}));
-
-const roundProceedOptions: MultiChoiceOption[] = [
-  {
-    label: 'Number',
-    value: RoundProceed.Number,
-  },
-  {
-    label: 'Percentage',
-    value: RoundProceed.Percentage,
-  },
-];
-
-const colorOptions: MultiChoiceOption[] = [
-  {
-    label: 'No color',
-    value: Color.White,
-  },
-  {
-    label: 'Blue',
-    value: Color.Blue,
-  },
-  {
-    label: 'Red',
-    value: Color.Red,
-  },
-  {
-    label: 'Green',
-    value: Color.Green,
-  },
-  {
-    label: 'Yellow',
-    value: Color.Yellow,
-  },
-  {
-    label: 'Cyan',
-    value: Color.Cyan,
-  },
-  {
-    label: 'Magenta',
-    value: Color.Magenta,
-  },
-];
-
-const getDateOnly = (date: Date): Date => {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-};
 
 const coordToMicrodegrees = (value: string): number | null => {
   if (isNaN(Number(value))) return null;

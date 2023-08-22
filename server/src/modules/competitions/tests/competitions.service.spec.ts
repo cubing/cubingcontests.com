@@ -8,7 +8,7 @@ import { PersonsService } from '@m/persons/persons.service';
 import { IResult, IRound } from '@sh/interfaces';
 import { UpdateCompetitionDto } from '../dto/update-competition.dto';
 import { setNewRecords } from '@sh/sharedFunctions';
-import { RoundFormat, RoundType } from '@sh/enums';
+import { RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 
 // Mocks and stubs
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
@@ -127,8 +127,8 @@ describe('CompetitionsService', () => {
       const sameDayRounds = newCompetitionEventsStub()[0].rounds;
       await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
-      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
-      expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('WR');
+      expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('WR');
     });
 
     it('sets new 3x3x3 FM records with multiple record-breaking results on the same day correctly', async () => {
@@ -141,8 +141,8 @@ describe('CompetitionsService', () => {
       await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBeUndefined();
-      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
-      expect(sameDayRounds[0].results[2].regionalSingleRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('WR');
+      expect(sameDayRounds[0].results[2].regionalSingleRecord).toBe('WR');
     });
 
     it('sets new 3x3x3 FM records with ties correctly', async () => {
@@ -151,9 +151,9 @@ describe('CompetitionsService', () => {
       const sameDayRounds = [newFakeCompetitionEventsStub()[0].rounds[0]];
       await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
-      expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('XWR');
-      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('XWR');
-      expect(sameDayRounds[0].results[1].regionalSingleRecord).toBe('XWR');
+      expect(sameDayRounds[0].results[0].regionalSingleRecord).toBe('WR');
+      expect(sameDayRounds[0].results[0].regionalAverageRecord).toBe('WR');
+      expect(sameDayRounds[0].results[1].regionalSingleRecord).toBe('WR');
       expect(sameDayRounds[0].results[1].regionalAverageRecord).toBeUndefined();
     });
 
@@ -166,12 +166,12 @@ describe('CompetitionsService', () => {
       const sameDayRounds = newFakeCompetitionEventsStub()[1].rounds;
       await competitionsService.setRecordsAndSaveResults(sameDayRounds, activeRecordTypesStub(), records);
 
-      // The single here is also better than XWR, but it should not be set,
+      // The single here is also better than WR, but it should not be set,
       // because the next round has an even better single
       expect(sameDayRounds[0].results[0].regionalSingleRecord).toBeUndefined();
       expect(sameDayRounds[0].results[0].regionalAverageRecord).toBeUndefined();
-      expect(sameDayRounds[1].results[0].regionalSingleRecord).toBe('XWR');
-      expect(sameDayRounds[1].results[0].regionalAverageRecord).toBe('XWR');
+      expect(sameDayRounds[1].results[0].regionalSingleRecord).toBe('WR');
+      expect(sameDayRounds[1].results[0].regionalAverageRecord).toBe('WR');
     });
 
     it('updateCompetitionResults sets events and participants correctly', async () => {
@@ -187,13 +187,13 @@ describe('CompetitionsService', () => {
       expect(avgRecord333Results.length).toBe(1);
       expect(singleRecord333fmResults.length).toBe(1);
       expect(avgRecord333fmResults.length).toBe(1);
-      // 6.86 single and 8.00 average XWRs
-      expect(output.events[0].rounds[0].results[0].regionalSingleRecord).toBe('XWR');
+      // 6.86 single and 8.00 average WRs
+      expect(output.events[0].rounds[0].results[0].regionalSingleRecord).toBe('WR');
       expect(output.events[0].rounds[0].results[0].best).toBe(686);
-      expect(output.events[0].rounds[0].results[0].regionalAverageRecord).toBe('XWR');
-      // 32 single and 35.67 mean XWRs
-      expect(output.events[1].rounds[0].results[2].regionalSingleRecord).toBe('XWR');
-      expect(output.events[1].rounds[0].results[0].regionalAverageRecord).toBe('XWR');
+      expect(output.events[0].rounds[0].results[0].regionalAverageRecord).toBe('WR');
+      // 32 single and 35.67 mean WRs
+      expect(output.events[1].rounds[0].results[2].regionalSingleRecord).toBe('WR');
+      expect(output.events[1].rounds[0].results[0].regionalAverageRecord).toBe('WR');
     });
 
     it('updateCompetitionResults sets events with multiple rounds on multiple days correctly', async () => {
@@ -218,13 +218,13 @@ describe('CompetitionsService', () => {
 
       expect(singleRecord333fmResults.length).toBe(3);
       expect(avgRecord333fmResults.length).toBe(2);
-      // 29 single x2 and 31.00 mean XWRs
-      expect(output.events[0].rounds[0].results[0].regionalSingleRecord).toBe('XWR');
-      expect(output.events[0].rounds[0].results[1].regionalSingleRecord).toBe('XWR');
-      expect(output.events[0].rounds[0].results[0].regionalAverageRecord).toBe('XWR');
-      // 28 single and 29.33 mean XWRs
-      expect(output.events[0].rounds[1].results[0].regionalSingleRecord).toBe('XWR');
-      expect(output.events[0].rounds[1].results[0].regionalAverageRecord).toBe('XWR');
+      // 29 single x2 and 31.00 mean WRs
+      expect(output.events[0].rounds[0].results[0].regionalSingleRecord).toBe('WR');
+      expect(output.events[0].rounds[0].results[1].regionalSingleRecord).toBe('WR');
+      expect(output.events[0].rounds[0].results[0].regionalAverageRecord).toBe('WR');
+      // 28 single and 29.33 mean WRs
+      expect(output.events[0].rounds[1].results[0].regionalSingleRecord).toBe('WR');
+      expect(output.events[0].rounds[1].results[0].regionalAverageRecord).toBe('WR');
       // Third day had no records, even though the results are better than the pre-comp records
       expect(output.events[0].rounds[2].results[0].regionalSingleRecord).toBeUndefined();
       expect(output.events[0].rounds[2].results[0].regionalAverageRecord).toBeUndefined();
@@ -259,7 +259,7 @@ describe('CompetitionsService', () => {
       const sameDayRounds: IRound[] = sameDayBLDRoundsStub();
 
       const records = { best: 2217, average: 2795 };
-      const rounds = setNewRecords(sameDayRounds, records, 'XWR', true); // DO update records
+      const rounds = setNewRecords(sameDayRounds, records, WcaRecordType.WR, true); // DO update records
 
       // Expect records object to be updated
       expect(records.best).toBe(2098);
@@ -267,8 +267,8 @@ describe('CompetitionsService', () => {
 
       // Expect new records to be set, but only for the best results of the day
       expect(rounds[0].results.find((el) => el.regionalSingleRecord || el.regionalAverageRecord)).toBeUndefined();
-      expect(rounds[1].results[0].regionalSingleRecord).toBe('XWR');
-      expect(rounds[1].results[0].regionalAverageRecord).toBe('XWR');
+      expect(rounds[1].results[0].regionalSingleRecord).toBe('WR');
+      expect(rounds[1].results[0].regionalAverageRecord).toBe('WR');
       expect(rounds[1].results[1].regionalSingleRecord).toBeUndefined();
       expect(rounds[1].results[1].regionalAverageRecord).toBeUndefined();
     });
@@ -277,17 +277,17 @@ describe('CompetitionsService', () => {
       const sameDayRounds: IRound[] = sameDayFMRoundsStub();
 
       const records = { best: 39, average: 4600 };
-      const rounds = setNewRecords(sameDayRounds, records, 'XWR', true); // DO update records
+      const rounds = setNewRecords(sameDayRounds, records, WcaRecordType.WR, true); // DO update records
 
       // Expect records object to be updated
       expect(records.best).toBe(39);
       expect(records.average).toBe(4300);
 
-      expect(rounds[0].results[0].regionalAverageRecord).toBe('XWR');
-      expect(rounds[0].results[0].regionalSingleRecord).toBe('XWR');
+      expect(rounds[0].results[0].regionalAverageRecord).toBe('WR');
+      expect(rounds[0].results[0].regionalSingleRecord).toBe('WR');
       expect(rounds[1].results[0].regionalSingleRecord).toBeUndefined();
-      expect(rounds[1].results[0].regionalAverageRecord).toBe('XWR');
-      expect(rounds[1].results[1].regionalSingleRecord).toBe('XWR');
+      expect(rounds[1].results[0].regionalAverageRecord).toBe('WR');
+      expect(rounds[1].results[1].regionalSingleRecord).toBe('WR');
       expect(rounds[1].results[1].regionalAverageRecord).toBeUndefined();
     });
   });

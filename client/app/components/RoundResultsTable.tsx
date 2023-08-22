@@ -1,11 +1,12 @@
-import { IResult, IRound, IPerson, IEvent } from '@sh/interfaces';
-import { RoundProceed, RoundType } from '@sh/enums';
+import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
+import { Color, RoundProceed, RoundType } from '@sh/enums';
 import { formatTime, getSolves, getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
 
 const RoundResultsTable = ({
   round,
   event,
   persons,
+  recordTypes,
   // If one of these is defined, the other must be defined too
   onEditResult,
   onDeleteResult,
@@ -13,6 +14,7 @@ const RoundResultsTable = ({
   round: IRound;
   event: IEvent;
   persons: IPerson[];
+  recordTypes: IRecordType[];
   onEditResult?: (result: IResult) => void;
   onDeleteResult?: (personIds: number[]) => void;
 }) => {
@@ -28,23 +30,42 @@ const RoundResultsTable = ({
   };
 
   const getRecordBadge = (result: IResult, type: 'single' | 'average') => {
-    const recordLabel = type === 'single' ? result.regionalSingleRecord : result.regionalAverageRecord;
-    if (!recordLabel) return null;
+    const recordType = recordTypes.find(
+      (rt) => (type === 'single' ? result.regionalSingleRecord : result.regionalAverageRecord) === rt.wcaEquivalent,
+    );
 
-    // THIS IS HARD-CODED TEMPORARILY
-    const colorClass = 'bg-danger';
+    if (!recordType) return null;
 
-    // switch(recordLabel) {
-    //   case '':
-    //     colorClass = '';
-    //     break;
-    //   default:
-    //     throw new Error(`Unknown record label: ${recordLabel}`)
-    // }
+    let colorClass: string;
+
+    switch (recordType.color) {
+      case Color.Red:
+        colorClass = 'bg-danger';
+        break;
+      case Color.Blue:
+        colorClass = 'bg-primary';
+        break;
+      case Color.Green:
+        colorClass = 'bg-success';
+        break;
+      case Color.Yellow:
+        colorClass = 'bg-warning';
+        break;
+      case Color.White:
+        colorClass = 'bg-light';
+        break;
+      case Color.Cyan:
+        colorClass = 'bg-info';
+        break;
+      // The magenta option is skipped, because it is not available in RecordTypesForm
+      default:
+        colorClass = 'bg-dark';
+        console.error(`Unknown record color: ${recordType.color}`);
+    }
 
     return (
       <span className={'badge ' + colorClass} style={{ fontSize: '0.7rem' }}>
-        {recordLabel}
+        {recordType.label}
       </span>
     );
   };

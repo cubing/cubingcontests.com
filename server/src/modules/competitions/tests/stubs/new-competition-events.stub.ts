@@ -21,7 +21,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
               personIds: [9],
               ranking: 1,
               attempts: [876, 989, 812, 711, 686],
-              // Both single and average should be XWRs
+              // Both single and average should be WRs
               best: 686,
               average: 800,
             },
@@ -77,7 +77,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
               ranking: 1,
               attempts: [37, 34, 36],
               best: 34,
-              average: 3567, // the mean should be the new XWR
+              average: 3567, // the mean should be the new WR
             },
             {
               competitionId: 'Munich30062023',
@@ -96,7 +96,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
               personIds: [1],
               ranking: 3,
               attempts: [-1, -1, 32],
-              best: 32, // the single should be the new XWR
+              best: 32, // the single should be the new WR
               average: -1,
             },
           ],
@@ -125,7 +125,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
               personIds: [999],
               ranking: 1,
               attempts: [29, 30, 34],
-              // The single and mean should both be XWRs
+              // The single and mean should both be WRs
               best: 29,
               average: 3100,
             },
@@ -136,7 +136,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
               personIds: [998],
               ranking: 2,
               attempts: [-1, 29, -2],
-              best: 29, // the single should be the new XWR (tied)
+              best: 29, // the single should be the new WR (tied)
               average: -1,
             },
             {
@@ -175,7 +175,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
               personIds: [998],
               ranking: 1,
               attempts: [29, 28, 31],
-              // The single and mean should both be XWRs
+              // The single and mean should both be WRs
               best: 28,
               average: 2933,
             },
@@ -249,7 +249,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
               personIds: [100],
               ranking: 1,
               attempts: [372, 389, 149, 299, 361],
-              // The single is better than XWR, but the next round on the same day has an even better result
+              // The single is better than WR, but the next round on the same day has an even better result
               best: 149,
               average: 344,
             },
@@ -289,7 +289,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
               personIds: [100],
               ranking: 1,
               attempts: [299, 314, 562, 135, 212],
-              // The single and average should be the new XWRs
+              // The single and average should be the new WRs
               best: 135,
               average: 275,
             },

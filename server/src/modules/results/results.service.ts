@@ -18,6 +18,24 @@ export class ResultsService {
     @InjectModel('Result') private readonly model: Model<ResultDocument>,
   ) {}
 
+  async onModuleInit() {
+    const singleRecordResults = await this.model.find({ regionalSingleRecord: 'XWR' });
+
+    for (const res of singleRecordResults) {
+      console.log(`Updating regional single record for ${res.eventId} from XWR to WR`);
+      res.regionalSingleRecord = 'WR';
+      await res.save();
+    }
+
+    const avgRecordResults = await this.model.find({ regionalAverageRecord: 'XWR' });
+
+    for (const res of avgRecordResults) {
+      console.log(`Updating regional average record for ${res.eventId} from XWR to WR`);
+      res.regionalAverageRecord = 'WR';
+      await res.save();
+    }
+  }
+
   async getRecords(wcaEquivalent: string): Promise<IEventRecords[]> {
     // Make sure the requested record type is valid
     if (
@@ -36,7 +54,7 @@ export class ResultsService {
       for (const event of events.filter((ev) => !ev.removed)) {
         const newRecordByEvent: IEventRecords = { event, bestRecords: [], averageRecords: [] };
 
-        const bestResults = await this.getEventSingleRecordResults(event.eventId, rt.label);
+        const bestResults = await this.getEventSingleRecordResults(event.eventId, rt.wcaEquivalent);
 
         for (const result of bestResults) {
           newRecordByEvent.bestRecords.push({
@@ -46,7 +64,7 @@ export class ResultsService {
         }
 
         if (event.format !== EventFormat.Multi) {
-          const averageResults = await this.getEventAverageRecordResults(event.eventId, rt.label);
+          const averageResults = await this.getEventAverageRecordResults(event.eventId, rt.wcaEquivalent);
 
           for (const result of averageResults) {
             newRecordByEvent.averageRecords.push({
@@ -69,10 +87,10 @@ export class ResultsService {
 
   async getEventSingleRecordResults(
     eventId: string,
-    recordLabel: string,
+    wcaEquivalent: WcaRecordType,
     beforeDate: Date = null,
   ): Promise<ResultDocument[]> {
-    const queryFilter: any = { eventId, regionalSingleRecord: recordLabel, compNotPublished: { $exists: false } };
+    const queryFilter: any = { eventId, regionalSingleRecord: wcaEquivalent, compNotPublished: { $exists: false } };
     if (beforeDate) queryFilter.date = { $lt: beforeDate };
 
     // Get most recent result with a single record
@@ -91,10 +109,10 @@ export class ResultsService {
 
   async getEventAverageRecordResults(
     eventId: string,
-    recordLabel: string,
+    wcaEquivalent: WcaRecordType,
     beforeDate: Date = null,
   ): Promise<ResultDocument[]> {
-    const queryFilter: any = { eventId, regionalAverageRecord: recordLabel, compNotPublished: { $exists: false } };
+    const queryFilter: any = { eventId, regionalAverageRecord: wcaEquivalent, compNotPublished: { $exists: false } };
     if (beforeDate) queryFilter.date = { $lt: beforeDate };
 
     // Get most recent result with an average record

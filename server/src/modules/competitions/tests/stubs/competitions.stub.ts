@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { CompetitionDocument } from '~/src/models/competition.model';
-import { CompetitionState, CompetitionType, RoundFormat, RoundType } from '@sh/enums';
+import { CompetitionState, CompetitionType, RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 import { IRound } from '@sh/interfaces';
 import { eventsSeed } from '~/src/seeds/events.seed';
 
@@ -165,7 +165,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [2217, -1, 2412],
                   best: 2217,
                   average: -1,
-                  regionalSingleRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich19022023',
@@ -229,7 +229,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [4003, 3872, 3762, 3910, 3555],
                   best: 3555,
                   average: 3848,
-                  regionalAverageRecord: 'XWR',
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich14062023',
@@ -294,7 +294,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [7990, 8111, 7389, 7759, 6985],
                   best: 6985,
                   average: 7713,
-                  regionalSingleRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich14062023',
@@ -393,7 +393,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [39, 51, 51],
                   best: 39,
                   average: 4700,
-                  regionalSingleRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich14062023',
@@ -556,7 +556,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [1087, 1111, 1198, 1200, 1077],
                   best: 1077,
                   average: 1132,
-                  regionalAverageRecord: 'XWR',
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich14062023',
@@ -640,8 +640,8 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [15299, 14398, 14084],
                   best: 14084,
                   average: 14594,
-                  regionalSingleRecord: 'XWR',
-                  regionalAverageRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -696,8 +696,8 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [4391, 2044, 2193, 2927, 2474],
                   best: 2044,
                   average: 2531,
-                  regionalSingleRecord: 'XWR',
-                  regionalAverageRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -732,7 +732,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [1159, 1143, 1161, 909, 1332],
                   best: 909,
                   average: 1154,
-                  regionalSingleRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -807,8 +807,8 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [1313, 1950, 1778, 2212, 2136],
                   best: 1313,
                   average: 1955,
-                  regionalSingleRecord: 'XWR',
-                  regionalAverageRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -883,8 +883,8 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [458, 331, 153, 342, 338],
                   best: 153,
                   average: 337,
-                  regionalSingleRecord: 'XWR',
-                  regionalAverageRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -949,7 +949,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [3922, 4608, 3960, 4231, 3502],
                   best: 3502,
                   average: 4038,
-                  regionalSingleRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -1004,7 +1004,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [2758, 2302, 3324],
                   best: 2302,
                   average: 2795,
-                  regionalAverageRecord: 'XWR',
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -1049,8 +1049,8 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [1949, 1299, 1371, 1403, 1552],
                   best: 1299,
                   average: 1442,
-                  regionalSingleRecord: 'XWR',
-                  regionalAverageRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -1085,7 +1085,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [8736, 7751, 6988, 7532, 7234],
                   best: 6988,
                   average: 7506,
-                  regionalAverageRecord: 'XWR',
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -1140,7 +1140,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [41, 40, 57],
                   best: 40,
                   average: 4600,
-                  regionalAverageRecord: 'XWR',
+                  regionalAverageRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',
@@ -1151,7 +1151,7 @@ export const competitionsStub = (): CompetitionDocument[] => {
                   attempts: [50, 39, 51],
                   best: 39,
                   average: 4667,
-                  regionalSingleRecord: 'XWR',
+                  regionalSingleRecord: WcaRecordType.WR,
                 },
                 {
                   competitionId: 'Munich27062023',

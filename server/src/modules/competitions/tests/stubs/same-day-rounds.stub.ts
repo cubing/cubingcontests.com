@@ -1,5 +1,5 @@
 import { RoundDocument } from '~/src/models/round.model';
-import { RoundFormat, RoundType } from '@sh/enums';
+import { RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 
 export const sameDayBLDRoundsStub = (): RoundDocument[] => {
   return [
@@ -17,9 +17,9 @@ export const sameDayBLDRoundsStub = (): RoundDocument[] => {
           personIds: [9],
           ranking: 1,
           attempts: [2202, 2960, 3037],
-          best: 2202, // better than previous XWR, but not the best result of the day
-          average: 2733, // better than previous XWR, but not the best result of the day
-          regionalAverageRecord: 'XWR',
+          best: 2202, // better than previous WR, but not the best result of the day
+          average: 2733, // better than previous WR, but not the best result of the day
+          regionalAverageRecord: WcaRecordType.WR,
         },
         {
           competitionId: 'BLDTestComp2023',
@@ -29,7 +29,7 @@ export const sameDayBLDRoundsStub = (): RoundDocument[] => {
           ranking: 2,
           attempts: [2371, 2409, 2769],
           best: 2371,
-          average: 2516, // better than previous XWR, but not the best result of the day
+          average: 2516, // better than previous WR, but not the best result of the day
         },
         {
           competitionId: 'BLDTestComp2023',
@@ -57,9 +57,9 @@ export const sameDayBLDRoundsStub = (): RoundDocument[] => {
           personIds: [8],
           ranking: 1,
           attempts: [2098, 2372, 2534],
-          best: 2098, // new single XWR
-          average: 2335, // new mean XWR
-          regionalAverageRecord: 'XWR',
+          best: 2098, // new single WR
+          average: 2335, // new mean WR
+          regionalAverageRecord: WcaRecordType.WR,
         },
         {
           competitionId: 'BLDTestComp2023',
@@ -92,9 +92,9 @@ export const sameDayFMRoundsStub = (): RoundDocument[] => {
           personIds: [9],
           ranking: 1,
           attempts: [44, 39, 46],
-          best: 39, // XWR tied with the record and with another single in the finals
-          average: 4300, // new XWR, but tied with another mean in the finals
-          regionalAverageRecord: 'XWR',
+          best: 39, // WR tied with the record and with another single in the finals
+          average: 4300, // new WR, but tied with another mean in the finals
+          regionalAverageRecord: WcaRecordType.WR,
         },
         {
           competitionId: 'FMTestComp2023',
@@ -133,8 +133,8 @@ export const sameDayFMRoundsStub = (): RoundDocument[] => {
           ranking: 1,
           attempts: [41, 43, 45],
           best: 41,
-          average: 4300, // new XWR, but tied with another mean in the first round
-          regionalAverageRecord: 'XWR',
+          average: 4300, // new WR, but tied with another mean in the first round
+          regionalAverageRecord: WcaRecordType.WR,
         },
         {
           competitionId: 'FMTestComp2023',
@@ -143,7 +143,7 @@ export const sameDayFMRoundsStub = (): RoundDocument[] => {
           personIds: [9],
           ranking: 2,
           attempts: [39, -1, -2],
-          best: 39, // XWR tied with the record and with another single in the first round
+          best: 39, // WR tied with the record and with another single in the first round
           average: -1,
         },
       ],
