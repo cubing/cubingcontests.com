@@ -138,7 +138,7 @@ const PostResultsScreen = ({
             eventId: currEventId,
             date: round.date,
             compNotPublished: true,
-            personId: currentPersons.map((el) => el.personId.toString()).join(';'),
+            personIds: currentPersons.map((el) => el.personId),
             ranking: 0, // real rankings assigned below
             attempts: parsedAttempts,
             best,
@@ -209,9 +209,7 @@ const PostResultsScreen = ({
 
     if (currentPersons.some((el) => el?.personId === newSelectedPerson.personId)) {
       setErrorMessages(['That competitor has already been selected']);
-    } else if (
-      round.results.some((res: IResult) => res.personId.split(';').includes(newSelectedPerson.personId.toString()))
-    ) {
+    } else if (round.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))) {
       setErrorMessages(["That competitor's results have already been entered"]);
     }
     // If no errors, set the competitor object
@@ -272,11 +270,11 @@ const PostResultsScreen = ({
 
   const editResult = (result: IResult) => {
     // Delete result and then set the inputs if the deletion was successful
-    deleteResult(result.personId, () => {
-      const newCurrentPersons = persons.filter((el) => result.personId.split(';').includes(el.personId.toString()));
+    deleteResult(result.personIds, () => {
+      const newCurrentPersons = persons.filter((p) => result.personIds.includes(p.personId));
 
-      setPersonNames(newCurrentPersons.map((el) => el.name));
       setCurrentPersons(newCurrentPersons);
+      setPersonNames(newCurrentPersons.map((el) => el.name));
 
       const newAttempts = result.attempts.map((el) => formatTime(el, currCompEvent.event, { removeFormatting: true }));
       setAttempts(newAttempts);
@@ -284,10 +282,11 @@ const PostResultsScreen = ({
     });
   };
 
-  const deleteResult = (personId: string, editCallback?: () => void) => {
+  const deleteResult = (personIds: number[], editCallback?: () => void) => {
     const newRound: IRound = {
       ...round,
-      results: mapRankings(round.results.filter((el) => el.personId !== personId)),
+      // Checking by a single person ID from a team event result is enough
+      results: mapRankings(round.results.filter((res) => !res.personIds.includes(personIds[0]))),
     };
 
     updateRoundAndCompetitionEvents(newRound);

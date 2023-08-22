@@ -6,8 +6,8 @@ export interface IResult {
   eventId: string;
   date: Date;
   compNotPublished?: boolean; // unset by default, set if true
-  // This is a string, because for team events (e.g. Team BLD) it stores multiple ids (e.g. "3;14;15")
-  personId: string;
+  // This is an array, because for team events (e.g. Team-Blind) it stores multiple IDs
+  personIds: number[];
   ranking: number;
   // Number of centiseconds; 0 is a skipped attempt (e.g. when cut-off was not met) -1 is DNF, -2 is DNS.
   // For FMC it's the number of moves. For MBLD it works completely differently (will be added later).

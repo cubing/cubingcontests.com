@@ -14,18 +14,16 @@ const RoundResultsTable = ({
   event: IEvent;
   persons: IPerson[];
   onEditResult?: (result: IResult) => void;
-  onDeleteResult?: (personId: string) => void;
+  onDeleteResult?: (personIds: number[]) => void;
 }) => {
   const roundCanHaveAverage = getRoundCanHaveAverage(round, event);
   const roundRanksWithAverage = getRoundRanksWithAverage(round, event);
 
-  const getName = (personId: string): string => {
-    if (!persons || personId === '') throw new Error('Name not found');
+  const getName = (personIds: number[]): string => {
+    if (!persons) throw new Error('Name not found');
 
-    // To account for team events that have multiple people separated by ;
-    return personId
-      .split(';')
-      .map((id: string) => persons.find((el: IPerson) => el.personId.toString() === id)?.name || 'Error')
+    return personIds
+      .map((id) => persons.find((p: IPerson) => p.personId === id)?.name || '(name not found)')
       .join(' & ');
   };
 
@@ -44,7 +42,11 @@ const RoundResultsTable = ({
     //     throw new Error(`Unknown record label: ${recordLabel}`)
     // }
 
-    return <span className={'badge ' + colorClass}>{recordLabel}</span>;
+    return (
+      <span className={'badge ' + colorClass} style={{ fontSize: '0.7rem' }}>
+        {recordLabel}
+      </span>
+    );
   };
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
@@ -83,20 +85,20 @@ const RoundResultsTable = ({
         </thead>
         <tbody>
           {round.results.map((result: IResult) => (
-            <tr key={result.personId}>
+            <tr key={result.personIds.join()}>
               <td className="ps-2" style={getRankingHighlight(result)}>
                 {result.ranking}
               </td>
-              <td>{getName(result.personId)}</td>
+              <td>{getName(result.personIds)}</td>
               <td>
-                <div className="d-flex align-items-center gap-3">
+                <div className="d-flex align-items-center gap-2">
                   {formatTime(result.best, event)}
                   {getRecordBadge(result, 'single')}
                 </div>
               </td>
               {roundCanHaveAverage && (
                 <td>
-                  <div className="h-100 d-flex align-items-center gap-3">
+                  <div className="h-100 d-flex align-items-center gap-2">
                     {formatTime(result.average, event, { isAverage: true })}
                     {getRecordBadge(result, 'average')}
                   </div>
@@ -110,7 +112,7 @@ const RoundResultsTable = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onDeleteResult(result.personId)}
+                    onClick={() => onDeleteResult(result.personIds)}
                     className="btn btn-danger btn-sm"
                   >
                     Delete

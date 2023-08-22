@@ -10,7 +10,7 @@ const EventResults = ({
 }: {
   compEvent: ICompetitionEvent | null;
   persons: IPerson[];
-  onDeleteResult?: (personId: string) => void;
+  onDeleteResult?: (personIds: number[]) => void;
 }) => {
   let rounds = compEvent.rounds.length > 0 ? [...compEvent.rounds] : [];
 

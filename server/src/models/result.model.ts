@@ -16,8 +16,11 @@ export class Result implements IResult {
   @Prop()
   compNotPublished?: boolean;
 
-  @Prop({ required: true })
+  @Prop()
   personId: string;
+
+  @Prop({ required: true })
+  personIds: number[];
 
   @Prop({ required: true })
   ranking: number;

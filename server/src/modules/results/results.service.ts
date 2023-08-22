@@ -41,7 +41,7 @@ export class ResultsService {
         for (const result of bestResults) {
           newRecordByEvent.bestRecords.push({
             result,
-            persons: await this.personsService.getPersonsById(result.personId),
+            persons: await this.personsService.getPersonsById(result.personIds),
           });
         }
 
@@ -51,7 +51,7 @@ export class ResultsService {
           for (const result of averageResults) {
             newRecordByEvent.averageRecords.push({
               result,
-              persons: await this.personsService.getPersonsById(result.personId),
+              persons: await this.personsService.getPersonsById(result.personIds),
             });
           }
         } else {

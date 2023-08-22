@@ -58,6 +58,23 @@ export class CompetitionsService {
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
+  async onModuleInit() {
+    const results = await this.resultModel.find();
+
+    for (const r of results) {
+      if (r.personId) {
+        const personIds = r.personId.split(';').map((el: string) => parseInt(el));
+
+        console.log('Changing ID from', r.personId, 'to', personIds);
+
+        r.personId = undefined;
+        r.personIds = personIds;
+        console.log(r);
+        await r.save();
+      }
+    }
+  }
+
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
     const queryFilter: any = {
       state: { $gt: CompetitionState.Created },
@@ -393,11 +410,8 @@ export class CompetitionsService {
   // Adds new unique participants to the personIds array
   private getParticipantsInRound(round: IRound, personIds: number[]): void {
     for (const result of round.results) {
-      // personId can have multiple ids separated by ; so all ids need to be checked
-      for (const personId of result.personId.split(';').map((el) => parseInt(el))) {
-        if (!personIds.includes(personId)) {
-          personIds.push(personId);
-        }
+      for (const personId of result.personIds) {
+        if (!personIds.includes(personId)) personIds.push(personId);
       }
     }
   }

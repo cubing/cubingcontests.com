@@ -6,7 +6,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Matches,
   Min,
 } from 'class-validator';
 import { IResult } from '@sh/interfaces';
@@ -27,9 +26,8 @@ export class CreateResultDto implements IResult {
   @IsBoolean()
   compNotPublished: boolean;
 
-  @IsString()
-  @Matches(/^[1-9][0-9;]*$/)
-  personId: string;
+  @IsNumber({}, { each: true })
+  personIds: number[];
 
   @IsNumber()
   @Min(1)
