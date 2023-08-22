@@ -8,6 +8,8 @@ const FormTextInput = ({
   isPassword = false,
   required = false,
   setValue,
+  onFocus,
+  onBlur,
   onKeyDown,
 }: {
   title?: string;
@@ -19,6 +21,8 @@ const FormTextInput = ({
   required?: boolean;
   value: string;
   setValue: any;
+  onFocus?: () => void;
+  onBlur?: () => void;
   onKeyDown?: (e: any) => void;
 }) => {
   if (!id && !title) {
@@ -41,6 +45,8 @@ const FormTextInput = ({
         required={required}
         onChange={(e: any) => setValue(e.target.value)}
         onKeyDown={onKeyDown}
+        onFocus={onFocus}
+        onBlur={onBlur}
         className={'form-control' + (monospace ? ' font-monospace' : '')}
       />
     </div>

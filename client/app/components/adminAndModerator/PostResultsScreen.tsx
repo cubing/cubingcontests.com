@@ -12,11 +12,11 @@ import { roundFormats } from '~/helpers/roundFormats';
 import {
   getBestAverageAndAttempts,
   getRoundRanksWithAverage,
-  selectPerson,
   formatTime,
   getRoundCanHaveAverage,
 } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
+import FormPersonInputs from '../form/FormPersonInputs';
 
 const PostResultsScreen = ({
   compData: { competition, persons: prevPersons, records },
@@ -75,6 +75,10 @@ const PostResultsScreen = ({
     // Focus the last name input
     document.getElementById(`name_${personNames.length}`)?.focus();
   }, [personNames.length]);
+
+  useEffect(() => {
+    console.log(currentPersons);
+  }, [currentPersons]);
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
@@ -197,91 +201,37 @@ const PostResultsScreen = ({
     resetPersons(newEvent);
   };
 
-  const onPersonKeyDown = async (index: number, e: any) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-
-      if (matchedPersons.length === 0) {
-        setErrorMessages(['Competitor not found']);
-      } else {
-        const newSelectedPerson = matchedPersons[personSelection];
-
-        // Set the found competitor's name
-        const newPersonNames = personNames.map((el, i) => (i !== index ? el : newSelectedPerson.name));
-        setPersonNames(newPersonNames);
-
-        if (currentPersons.some((el) => el?.personId === newSelectedPerson.personId)) {
-          setErrorMessages(['That competitor has already been selected']);
-        } else if (
-          round.results.some((res: IResult) => res.personId.split(';').includes(newSelectedPerson.personId.toString()))
-        ) {
-          setErrorMessages(["That competitor's results have already been entered"]);
-        }
-        // If no errors, set the competitor object
-        else {
-          const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : newSelectedPerson));
-
-          // Focus on the next input, if all names have been entered, or the next competitor input,
-          // if all names haven't been entered and the last competitor input is not currently focused
-          if (!newCurrentPersons.includes(null)) {
-            document.getElementById('solve_1')?.focus();
-          } else if (index + 1 < currentPersons.length) {
-            document.getElementById(`name_${index + 2}`)?.focus();
-          }
-
-          setCurrentPersons(newCurrentPersons);
-          setErrorMessages([]);
-          setMatchedPersons([]);
-          setPersonSelection(0);
-        }
-
-        setSuccessMessage('');
-      }
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-
-      if (personSelection < matchedPersons.length - 1) {
-        setPersonSelection(personSelection + 1);
-      }
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-
-      setPersonSelection(Math.max(personSelection - 1, 0));
-    }
-  };
-
-  const changePersonName = async (index: number, value: string) => {
-    const newPersonNames = personNames.map((el, i) => (i !== index ? el : value));
+  const selectPerson = (newSelectedPerson: IPerson, index: number) => {
+    // Set the found person's name
+    const newPersonNames = personNames.map((el, i) => (i !== index ? el : newSelectedPerson.name));
     setPersonNames(newPersonNames);
 
-    // Reset the person object for that person
-    const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : null));
-    setCurrentPersons(newCurrentPersons);
-
-    setErrorMessages([]);
-    setSuccessMessage('');
-
-    if (value) {
-      // Search competitors that match the entered string
-      const { payload, errors } = await myFetch.get(`/persons?searchParam=${value}`);
-
-      setMatchedPersons([]);
-
-      if (errors) {
-        setErrorMessages(errors);
-      } else if (payload.length > 0) {
-        const newMatchedPersons = payload.slice(0, 10);
-
-        setMatchedPersons(newMatchedPersons);
-
-        // Update current person selection
-        if (newMatchedPersons.length < personSelection) {
-          setPersonSelection(0);
-        }
-      }
-    } else {
-      setMatchedPersons([]);
+    if (currentPersons.some((el) => el?.personId === newSelectedPerson.personId)) {
+      setErrorMessages(['That competitor has already been selected']);
+    } else if (
+      round.results.some((res: IResult) => res.personId.split(';').includes(newSelectedPerson.personId.toString()))
+    ) {
+      setErrorMessages(["That competitor's results have already been entered"]);
     }
+    // If no errors, set the competitor object
+    else {
+      const newCurrentPersons = currentPersons.map((el, i) => (i !== index ? el : newSelectedPerson));
+
+      // Focus on the next input, if all names have been entered, or the next competitor input,
+      // if all names haven't been entered and the last competitor input is not currently focused
+      if (!newCurrentPersons.includes(null)) {
+        document.getElementById('solve_1')?.focus();
+      } else if (index + 1 < currentPersons.length) {
+        document.getElementById(`Competitor_${index + 2}`)?.focus();
+      }
+
+      setCurrentPersons(newCurrentPersons);
+      setErrorMessages([]);
+      setMatchedPersons([]);
+      setPersonSelection(0);
+    }
+
+    setSuccessMessage('');
   };
 
   const changeAttempt = (index: number, value: string) => {
@@ -369,6 +319,8 @@ const PostResultsScreen = ({
 
   const enterAttempt = (e: any, index: number) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
+
       // Focus next time input or the submit button if it's the last input
       if (index + 1 < attempts.length) {
         document.getElementById(`solve_${index + 2}`)?.focus();
@@ -415,29 +367,20 @@ const PostResultsScreen = ({
             </select>
           </div>
           <div className="mb-4">
-            {personNames.map((personName: string, i: number) => (
-              <div key={i}>
-                <FormTextInput
-                  title={`Competitor ${i + 1}`}
-                  id={`name_${i + 1}`}
-                  value={personName}
-                  setValue={(val: string) => changePersonName(i, val)}
-                  onKeyDown={(e: any) => onPersonKeyDown(i, e)}
-                />
-                <ul className="position-absolute list-group">
-                  {matchedPersons.map((person: IPerson, index) => (
-                    <li
-                      key={person.personId}
-                      className={'list-group-item' + (index === personSelection ? ' active' : '')}
-                      aria-current={index === personSelection}
-                    >
-                      {person.name}
-                      {person.localizedName ? ` (${person.localizedName})` : ''}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <FormPersonInputs
+              label="Competitor"
+              personNames={personNames}
+              setPersonNames={setPersonNames}
+              persons={currentPersons}
+              setPersons={setCurrentPersons}
+              matchedPersons={matchedPersons}
+              setMatchedPersons={setMatchedPersons}
+              personSelection={personSelection}
+              setPersonSelection={setPersonSelection}
+              selectPerson={selectPerson}
+              setErrorMessages={setErrorMessages}
+              setSuccessMessage={setSuccessMessage}
+            />
           </div>
           {attempts.map((attempt, i) => (
             <FormTextInput

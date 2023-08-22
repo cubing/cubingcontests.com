@@ -18,10 +18,10 @@ import Tabs from '../Tabs';
 import Schedule from '../Schedule';
 import { ICompetition, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
 import { Color, CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { selectPerson } from '~/helpers/utilityFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import { roundTypes } from '~/helpers/roundTypes';
+import FormPersonInputs from '../form/FormPersonInputs';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -97,6 +97,8 @@ const coordToMicrodegrees = (value: string): number | null => {
 const CompetitionForm = ({ events, competition }: { events: IEvent[]; competition?: ICompetition }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
+  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([]);
+  const [personSelection, setPersonSelection] = useState(0);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -209,10 +211,10 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
   }, [errorMessages]);
 
   useEffect(() => {
-    if (organizerNames.length !== 1 && organizerNames.length > organizers.filter((el) => el !== null).length) {
-      document.getElementById(`organizer_${organizerNames.length}`)?.focus();
+    if (organizers.length !== 1 && organizers.filter((el) => el === null).length === 1) {
+      document.getElementById(`Organizer_${organizerNames.length}`)?.focus();
     }
-  }, [organizerNames.length]);
+  }, [organizers]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -356,47 +358,30 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     setName(value);
   };
 
-  const changeType = (newType: CompetitionType) => {
-    setType(newType);
-  };
+  const selectOrganizer = (newSelectedPerson: IPerson, index: number) => {
+    // Set the found organizer's name
+    const newOrganizerNames = organizerNames.map((el, i) => (i !== index ? el : newSelectedPerson.name));
 
-  const changeOrganizerName = (index: number, value: string) => {
-    const newOrganizerNames = organizerNames.map((el, i) => (i !== index ? el : value));
-    // Reset the person object for that organizer
-    const newOrganizers = organizers.map((el, i) => (i !== index ? el : null));
+    if (organizers.some((el) => el?.personId === newSelectedPerson.personId)) {
+      setErrorMessages(['That competitor has already been selected']);
+    }
+    // If no errors, set the competitor object
+    else {
+      const newOrganizers = organizers.map((el, i) => (i !== index ? el : newSelectedPerson));
 
-    // Add new empty input if there isn't an empty one left
-    if (!newOrganizers.some((el) => el === null)) {
-      newOrganizerNames.push('');
-      newOrganizers.push(null);
+      // Add new empty input if there isn't an empty one left
+      if (!newOrganizers.some((el) => el === null)) {
+        newOrganizerNames.push('');
+        newOrganizers.push(null);
+      }
+
+      setOrganizers(newOrganizers);
+      setErrorMessages([]);
+      setMatchedPersons([]);
+      setPersonSelection(0);
     }
 
     setOrganizerNames(newOrganizerNames);
-    setOrganizers(newOrganizers);
-  };
-
-  const onSelectOrganizer = (index: number, e: any) => {
-    selectPerson(e, setErrorMessages, (person: IPerson) => {
-      // Set the found organizer's name
-      const newOrganizerNames = organizerNames.map((el, i) => (i !== index ? el : person.name));
-
-      if (organizers.some((el) => el?.personId === person.personId)) {
-        setErrorMessages(['That organizer has already been selected']);
-      } else {
-        const newOrganizers = organizers.map((el, i) => (i !== index ? el : person));
-
-        // Add new empty input if there isn't an empty one left
-        if (!newOrganizerNames.some((el) => el.trim() === '')) {
-          newOrganizerNames.push('');
-          newOrganizers.push(null);
-        }
-
-        setOrganizers(newOrganizers);
-        setErrorMessages([]);
-      }
-
-      setOrganizerNames(newOrganizerNames);
-    });
   };
 
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
@@ -585,7 +570,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
               title="Type"
               options={competitionTypeOptions}
               selected={type}
-              setSelected={(val: any) => changeType(val)}
+              setSelected={(val: any) => setType(val)}
               disabled={!!competition}
             />
             <div className="row">
@@ -644,16 +629,20 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
             </div>
             <h5>Organizers</h5>
             <div className="my-3 pt-3 px-4 border rounded bg-body-tertiary">
-              {organizerNames.map((organizerName, i) => (
-                <FormTextInput
-                  key={i}
-                  title={`Organizer ${i + 1}`}
-                  id={`organizer_${i + 1}`}
-                  value={organizerName}
-                  setValue={(val: string) => changeOrganizerName(i, val)}
-                  onKeyDown={(e: any) => onSelectOrganizer(i, e)}
-                />
-              ))}
+              <FormPersonInputs
+                label="Organizer"
+                personNames={organizerNames}
+                setPersonNames={setOrganizerNames}
+                persons={organizers}
+                setPersons={setOrganizers}
+                matchedPersons={matchedPersons}
+                setMatchedPersons={setMatchedPersons}
+                personSelection={personSelection}
+                setPersonSelection={setPersonSelection}
+                selectPerson={selectOrganizer}
+                setErrorMessages={setErrorMessages}
+                infiniteInputs
+              />
             </div>
             <FormTextInput title="Contact" placeholder="john@example.com" value={contact} setValue={setContact} />
             <div className="mb-3">
