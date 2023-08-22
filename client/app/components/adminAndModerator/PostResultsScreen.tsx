@@ -196,6 +196,7 @@ const PostResultsScreen = ({
 
   const selectCompetitor = async (index: number, e: any) => {
     setSuccessMessage('');
+    setErrorMessages([]);
 
     selectPerson(e, setErrorMessages, (person: IPerson) => {
       // Set the found competitor's name
@@ -221,7 +222,6 @@ const PostResultsScreen = ({
         }
 
         setCurrentPersons(newCurrentPersons);
-        setErrorMessages([]);
       }
     });
   };
