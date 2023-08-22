@@ -137,9 +137,20 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     () => (type === CompetitionType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
     [type],
   );
+  const filteredEvents = useMemo(() => {
+    const newFiltEv = events.filter((ev) => !ev.removed && (type === CompetitionType.Meetup || !ev.meetupOnly));
+
+    // Reset new event ID and main event ID if new filtered events don't include them
+    if (newFiltEv.length > 0) {
+      if (!newFiltEv.some((ev) => ev.eventId === newEventId)) setNewEventId(newFiltEv[0]?.eventId);
+      if (!newFiltEv.some((ev) => ev.eventId === mainEventId)) setMainEventId(newFiltEv[0]?.eventId);
+    }
+
+    return newFiltEv;
+  }, [events, type]);
   const remainingEvents = useMemo(
-    () => events.filter((event) => !competitionEvents.some((ce) => ce.event.eventId === event.eventId)),
-    [events, competition, competitionEvents],
+    () => filteredEvents.filter((ev) => !competitionEvents.some((ce) => ce.event.eventId === ev.eventId)),
+    [filteredEvents, competitionEvents],
   );
   const isFinished = useMemo(() => competition?.state >= CompetitionState.Finished, [competition]);
   const isNotCreated = useMemo(
@@ -245,7 +256,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
       description: description.trim() || undefined,
       competitorLimit: competitorLimit && !isNaN(parseInt(competitorLimit)) ? parseInt(competitorLimit) : undefined,
       mainEventId,
-      // Set the competition ID for every round
+      // Set the competition ID and date for every round
       events: competitionEvents.map((compEvent) => ({
         ...compEvent,
         rounds: compEvent.rounds.map((round) => ({
@@ -256,10 +267,13 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
               ? startDateOnly
               : getDateOnly(
                 utcToZonedTime(
-                  // TEMPORARY UGLY SOLUTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                  rooms
-                    .find((room) => room.activities.some((a) => a.activityCode === round.roundId))
-                    .activities.find((a) => a.activityCode === round.roundId).startTime,
+                  // Finds the start time of the round based on the schedule
+                  (() => {
+                    for (const room of rooms) {
+                      const activity = room.activities.find((a) => a.activityCode === round.roundId);
+                      if (activity) return activity.startTime;
+                    }
+                  })(),
                   venueTimezone,
                 ),
               ),
@@ -303,6 +317,10 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     if (newComp.events.length === 0) tempErrors.push('You must enter at least one event');
     else if (!competitionEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
+
+    const meetupOnlyCompEvent = competitionEvents.find((el) => el.event.meetupOnly);
+    if (type !== CompetitionType.Meetup && meetupOnlyCompEvent)
+      tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 
     if (type === CompetitionType.Competition) {
       if (!newComp.address) tempErrors.push('Please enter an address');
@@ -674,7 +692,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
                   type="button"
                   className="btn btn-success"
                   onClick={addCompetitionEvent}
-                  disabled={competitionEvents.length === events.length || isFinished}
+                  disabled={competitionEvents.length === filteredEvents.length || isFinished}
                 >
                   Add Event
                 </button>
@@ -768,7 +786,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
             ))}
             <FormEventSelect
               label="Main Event"
-              events={events}
+              events={filteredEvents}
               eventId={mainEventId}
               setEventId={setMainEventId}
               disabled={isNotCreated}

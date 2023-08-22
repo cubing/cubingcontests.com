@@ -33,7 +33,7 @@ export class ResultsService {
     const events = await this.eventsService.getEvents();
 
     for (const rt of activeRecordTypes) {
-      for (const event of events) {
+      for (const event of events.filter((ev) => !ev.removed)) {
         const newRecordByEvent: IEventRecords = { event, bestRecords: [], averageRecords: [] };
 
         const bestResults = await this.getEventSingleRecordResults(event.eventId, rt.label);

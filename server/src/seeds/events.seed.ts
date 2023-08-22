@@ -9,7 +9,6 @@ export const eventsSeed: IEvent[] = [
     rank: 10,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: '222',
@@ -17,7 +16,6 @@ export const eventsSeed: IEvent[] = [
     rank: 20,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: '444',
@@ -25,7 +23,6 @@ export const eventsSeed: IEvent[] = [
     rank: 30,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: '555',
@@ -33,7 +30,6 @@ export const eventsSeed: IEvent[] = [
     rank: 40,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: '666',
@@ -41,7 +37,6 @@ export const eventsSeed: IEvent[] = [
     rank: 50,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
-    meetupOnly: false,
   },
   {
     eventId: '777',
@@ -49,7 +44,6 @@ export const eventsSeed: IEvent[] = [
     rank: 60,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
-    meetupOnly: false,
   },
   {
     eventId: '333bf',
@@ -57,7 +51,6 @@ export const eventsSeed: IEvent[] = [
     rank: 70,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    meetupOnly: false,
   },
   {
     eventId: '333fm',
@@ -65,7 +58,6 @@ export const eventsSeed: IEvent[] = [
     rank: 80,
     format: EventFormat.Number,
     defaultRoundFormat: RoundFormat.Mean,
-    meetupOnly: false,
   },
   {
     eventId: '333oh',
@@ -73,7 +65,6 @@ export const eventsSeed: IEvent[] = [
     rank: 90,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'clock',
@@ -81,7 +72,6 @@ export const eventsSeed: IEvent[] = [
     rank: 110,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'minx',
@@ -89,7 +79,6 @@ export const eventsSeed: IEvent[] = [
     rank: 120,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'pyram',
@@ -97,7 +86,6 @@ export const eventsSeed: IEvent[] = [
     rank: 130,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'skewb',
@@ -105,7 +93,6 @@ export const eventsSeed: IEvent[] = [
     rank: 140,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'sq1',
@@ -113,7 +100,6 @@ export const eventsSeed: IEvent[] = [
     rank: 150,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'fto',
@@ -121,7 +107,6 @@ export const eventsSeed: IEvent[] = [
     rank: 155,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: '444bf',
@@ -129,7 +114,6 @@ export const eventsSeed: IEvent[] = [
     rank: 160,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    meetupOnly: false,
   },
   {
     eventId: '555bf',
@@ -137,7 +121,6 @@ export const eventsSeed: IEvent[] = [
     rank: 170,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    meetupOnly: false,
   },
   {
     eventId: '333mbf',
@@ -145,7 +128,6 @@ export const eventsSeed: IEvent[] = [
     rank: 180,
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
-    meetupOnly: false,
   },
   {
     eventId: '333tbf',
@@ -153,7 +135,6 @@ export const eventsSeed: IEvent[] = [
     rank: 190,
     format: EventFormat.TeamTime,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: '333tf',
@@ -169,7 +150,6 @@ export const eventsSeed: IEvent[] = [
     rank: 996,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'magic',
@@ -177,7 +157,6 @@ export const eventsSeed: IEvent[] = [
     rank: 997,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
   {
     eventId: 'mmagic',
@@ -185,6 +164,5 @@ export const eventsSeed: IEvent[] = [
     rank: 998,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: false,
   },
 ] as IEvent[];

@@ -23,6 +23,14 @@ export class EventsService {
         console.log('Events table successfully seeded');
       } else {
         console.log('Events table already seeded');
+
+        // TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        for (const event of events) {
+          if (event.meetupOnly === false) {
+            event.meetupOnly = undefined;
+            await event.save();
+          }
+        }
       }
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -30,7 +38,7 @@ export class EventsService {
   }
 
   async getEvents(eventIds?: string[]): Promise<EventDocument[]> {
-    const queryFilter = eventIds ? { eventId: { $in: eventIds } } : {};
+    const queryFilter: any = eventIds ? { eventId: { $in: eventIds } } : {};
 
     try {
       return await this.model.find(queryFilter, excl).sort({ rank: 1 }).exec();

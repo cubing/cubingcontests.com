@@ -20,8 +20,11 @@ class Event implements IEvent {
   @Prop({ enum: RoundFormat, required: true })
   defaultRoundFormat: RoundFormat;
 
-  @Prop({ required: true })
-  meetupOnly: boolean;
+  @Prop()
+  meetupOnly?: boolean;
+
+  @Prop()
+  removed?: boolean;
 }
 
 export type EventDocument = HydratedDocument<Event>;

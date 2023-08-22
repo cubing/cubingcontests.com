@@ -6,5 +6,6 @@ export interface IEvent {
   rank: number;
   format: EventFormat;
   defaultRoundFormat: RoundFormat;
-  meetupOnly: boolean;
+  meetupOnly?: boolean;
+  removed?: boolean;
 }
