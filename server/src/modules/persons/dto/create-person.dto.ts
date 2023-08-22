@@ -8,6 +8,11 @@ export class CreatePersonDto {
 
   @IsOptional()
   @IsString()
+  @MinLength(2)
+  localizedName?: string;
+
+  @IsOptional()
+  @IsString()
   wcaId?: string;
 
   @IsIn(Countries.map((el) => el.code))

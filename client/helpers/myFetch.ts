@@ -39,8 +39,13 @@ const doFetch = async (
   // Fetch
   let res;
 
+  // Add API base URL if the passed URL is not a full link
+  if (!/https?:\/\//.test(url)) {
+    url = API_BASE_URL + url;
+  }
+
   try {
-    res = await fetch(API_BASE_URL + url, options);
+    res = await fetch(url, options);
   } catch (err: any) {
     console.error(err);
     return { errors: [err?.message || `Unknown error while fetching from ${url}`] };

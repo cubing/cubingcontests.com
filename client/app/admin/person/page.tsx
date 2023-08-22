@@ -10,8 +10,9 @@ const AdminPerson = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [name, setName] = useState('');
+  const [localizedName, setLocalizedName] = useState('');
   const [wcaId, setWcaId] = useState('');
-  const [countryIso2, setCountryId] = useState('');
+  const [countryIso2, setCountryIso2] = useState('');
 
   useEffect(() => {
     document.getElementById('full_name')?.focus();
@@ -54,6 +55,11 @@ const AdminPerson = () => {
     resetMessages();
   };
 
+  const changeLocalizedName = (value: string) => {
+    setLocalizedName(value);
+    resetMessages();
+  };
+
   const changeWcaId = (value: string) => {
     if (value.length > 10) {
       setErrorMessages(['A WCA ID must have exactly ten characters']);
@@ -61,6 +67,28 @@ const AdminPerson = () => {
       // Only allow alphanumeric characters and replace lowercase letters with uppercase
       setWcaId(value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase());
       resetMessages();
+    }
+  };
+
+  const submitWcaId = async (e: any) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      const { payload, errors } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/persons/${wcaId}`);
+
+      if (errors) {
+        setErrorMessages([`Competitor with WCA ID ${wcaId} not found`]);
+      } else {
+        if (payload?.person?.name) {
+          // Extract localized name
+          const stringParts = payload.person.name.split(' (');
+          setName(stringParts[0]);
+
+          if (stringParts.length > 1) setLocalizedName(stringParts[1].slice(0, -1)); // get rid of )
+        }
+
+        if (payload?.person?.country_iso2) setCountryIso2(payload.person.country_iso2);
+      }
     }
   };
 
@@ -77,8 +105,10 @@ const AdminPerson = () => {
       )}
       <Form buttonText="Create" errorMessages={errorMessages} handleSubmit={handleSubmit}>
         <FormTextInput id="full_name" title="Full Name" value={name} setValue={changeName} />
-        <FormTextInput title="WCA ID" monospace value={wcaId} setValue={changeWcaId} />
-        <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} />
+        <FormTextInput title="Localized Name" value={localizedName} setValue={changeLocalizedName} />
+        <p>Press ENTER after entering the WCA ID</p>
+        <FormTextInput title="WCA ID" monospace value={wcaId} setValue={changeWcaId} onKeyPress={submitWcaId} />
+        <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryIso2} />
       </Form>
     </>
   );

@@ -17,6 +17,9 @@ export class Person implements IPerson {
   @Prop({ required: true })
   name: string;
 
+  @Prop()
+  localizedName?: string;
+
   @Prop({ required: true })
   countryIso2: string;
 }
