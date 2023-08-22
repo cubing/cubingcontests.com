@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { UserDocument } from '~/src/models/user.model';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Role } from '~/src/helpers/enums';
+import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 @Injectable()
 export class UsersService {
@@ -29,14 +30,26 @@ export class UsersService {
     }
   }
 
+  async getPartialUserById(id: string): Promise<IPartialUser> {
+    try {
+      const user: UserDocument = await this.model.findOne({ _id: id }).exec();
+
+      if (user) {
+        return {
+          _id: user._id.toString(),
+          personId: user.personId,
+          username: user.username,
+          roles: user.roles,
+        };
+      }
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   // WARNING: this expects that the password is ALREADY encrypted! That is done in the auth module.
   async createUser(createUserDto: CreateUserDto) {
     try {
-      const sameIdUser: UserDocument = await this.model.findOne({ personId: createUserDto.personId }).exec();
-      if (sameIdUser) {
-        throw new BadRequestException('User with that name already exists');
-      }
-
       const sameUsernameUser: UserDocument = await this.model.findOne({ username: createUserDto.username }).exec();
       if (sameUsernameUser) {
         throw new BadRequestException(`User with username ${createUserDto.username} already exists`);

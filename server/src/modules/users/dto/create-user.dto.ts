@@ -1,21 +1,28 @@
-import { IsEmail, IsNumber, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsStrongPassword, Matches, MaxLength, MinLength } from 'class-validator';
 import { IUser } from '~/src/helpers/interfaces/User';
 
-export class CreateUserDto implements IUser {
-  @IsNumber()
-  personId: number;
+const passwordValidationMessage = `The password must satisfy the following requirements:
 
+Only alphanumeric characters and - # ! @ % ^ & * _ + = : ; < > ? , /
+Minimum length of 10
+At least one lowercase letter
+At least one uppercase letter
+At least one number
+At least one special character`;
+
+export class CreateUserDto implements IUser {
   @IsString()
-  @Matches(/^[a-z0-9_-]{5,}$/)
-  @MinLength(4)
+  @MinLength(3)
+  @Matches(/^[a-z0-9_-]*$/)
   username: string;
 
   @IsString()
-  @IsEmail()
+  @IsEmail({}, { message: 'Please enter a valid email address' })
   email: string;
 
   @IsString()
-  @MinLength(10)
-  @MaxLength(64)
+  @MaxLength(64, { message: 'The password cannot be longer than 64 characters' })
+  @Matches(/^[a-zA-Z0-9-#!@%^&*_+=:;<>?,/]*$/, { message: () => '' })
+  @IsStrongPassword({ minLength: 10 }, { message: passwordValidationMessage })
   password: string;
 }

@@ -629,18 +629,16 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
 
         {activeTab === 2 && (
           <>
-            <div className="my-4 row align-items-center">
-              <div className="col-2">
-                <button
-                  type="button"
-                  className="btn btn-success"
-                  onClick={addCompetitionEvent}
-                  disabled={competitionEvents.length === filteredEvents.length || isFinished}
-                >
-                  Add Event
-                </button>
-              </div>
-              <div className="col-10">
+            <div className="my-4 d-flex align-items-center gap-3">
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={addCompetitionEvent}
+                disabled={competitionEvents.length === filteredEvents.length || isFinished}
+              >
+                Add Event
+              </button>
+              <div className="flex-grow-1">
                 <FormEventSelect
                   label=""
                   noMargin

@@ -14,7 +14,8 @@ const doFetch = async (
   method: HttpMethod,
   revalidate: number | false,
   body: unknown = null,
-  authorize = false,
+  authorize: boolean,
+  redirect?: string,
 ): Promise<IFetchObj> => {
   const options: any = { method, headers: {} };
 
@@ -31,7 +32,9 @@ const doFetch = async (
     if (jwtToken) {
       options.headers.Authorization = jwtToken;
     } else {
-      window.location.href = '/login';
+      if (!redirect) window.location.href = '/login';
+      else window.location.href = `/login?redirect=${redirect}`;
+
       return {};
     }
   }
@@ -78,6 +81,8 @@ const doFetch = async (
         if (typeof json.message === 'string') errors = [json.message];
         else errors = json.message;
 
+        errors = errors.filter((err) => err !== '');
+
         console.error(json);
       } else {
         errors = ['Unknown error'];
@@ -96,12 +101,21 @@ const doFetch = async (
 const myFetch = {
   async get(
     url: string,
-    { authorize = false, revalidate = false }: { authorize?: boolean; revalidate?: number | false } = {
+    {
+      authorize = false,
+      redirect = '',
+      revalidate = false,
+    }: {
+      authorize?: boolean;
+      redirect?: string; // this can only be set if authorize is set too
+      revalidate?: number | false;
+    } = {
       authorize: false,
+      redirect: '',
       revalidate: false,
     },
   ): Promise<IFetchObj> {
-    return await doFetch(url, 'GET', revalidate, null, authorize);
+    return await doFetch(url, 'GET', revalidate, null, authorize, redirect);
   },
   async post(
     url: string,
@@ -116,34 +130,6 @@ const myFetch = {
     { authorize = true }: { authorize?: boolean } = { authorize: true },
   ): Promise<IFetchObj> {
     return await doFetch(url, 'PATCH', false, body, authorize);
-  },
-  // This method is client-only, because local storage is used
-  async getAdmin() {
-    const jwtToken = localStorage.getItem('jwtToken');
-
-    if (jwtToken) {
-      let json;
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/validateadmin`, {
-          headers: { Authorization: jwtToken },
-        });
-
-        json = await res.json();
-      } catch (err: any) {
-        console.error(err?.message || 'Unknown error while validating admin user');
-      }
-
-      if (json?.personId) {
-        return json;
-      } else {
-        window.location.href = '/login?redirect=admin';
-      }
-    } else {
-      window.location.href = '/login?redirect=admin';
-    }
-
-    return null;
   },
 };
 
