@@ -8,6 +8,14 @@ if [ ! -f ".env" ]; then
   exit 1
 fi
 
+if [ -z "$1" ]; then
+  echo "Please provide the path where you want the dump to be saved as the first argument"
+  exit 2
+else
+  # Remove final / from the path (if it's present at all)
+  $1=$(echo "$1" | sed -E 's/\/$//')
+fi
+
 if [ -n "$2" ]; then
   DB_CONTAINER=$2
 else
