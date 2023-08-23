@@ -27,7 +27,7 @@ if [ -n "$(sudo docker ps | grep $DB_CONTAINER)" ]; then
   echo -e "Backing up \"cubingcontests\" database from the $DB_CONTAINER container...\n"
   source .env
   sudo docker exec $DB_CONTAINER \
-    sh -c "mongodump -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD --db cubingcontests && tar -cvz /dump/cubingcontests" >
+    sh -c "mongodump -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD --db cubingcontests && tar -cvz /dump/cubingcontests" > \
     "$BACKUP_PATH/backup_$(date "+%Y_%m_%d_%H_%M_%S").tar.gz" &&
   # Remove dump created by mongodump inside of the container in the previous command
   sudo docker exec $DB_CONTAINER sh -c "rm -rf /dump" &&
