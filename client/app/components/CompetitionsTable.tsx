@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
-import { CompetitionState, CompetitionType } from '@sh/enums';
+import { CompetitionState, CompetitionType, Role } from '@sh/enums';
 import { competitionStates } from '~/helpers/competitionStates';
 
 const CompetitionsTable = async ({
@@ -10,11 +10,13 @@ const CompetitionsTable = async ({
   onEditCompetition,
   onPostCompResults,
   onChangeCompState,
+  role,
 }: {
   competitions: ICompetition[];
   onEditCompetition?: (competitionId: string) => void;
   onPostCompResults?: (competitionId: string) => void;
   onChangeCompState?: (competitionId: string, newState: CompetitionState) => void;
+  role?: Role; // used on the admin dashboard
 }) => {
   return (
     <>
@@ -53,7 +55,7 @@ const CompetitionsTable = async ({
         </ul>
       </div>
 
-      {/* DESKTOP VIEW */}
+      {/* DESKTOP VIEW (includes admin/moderator-only features) */}
 
       <div className="d-none d-lg-block flex-grow-1 mb-5 table-responsive">
         <table className="table table-hover text-nowrap">
@@ -101,7 +103,7 @@ const CompetitionsTable = async ({
                       >
                         Edit
                       </button>
-                      {comp.state === CompetitionState.Created && (
+                      {comp.state === CompetitionState.Created && role === Role.Admin && (
                         <button
                           type="button"
                           onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Approved)}
@@ -128,7 +130,7 @@ const CompetitionsTable = async ({
                           Finish
                         </button>
                       )}
-                      {comp.state === CompetitionState.Finished && (
+                      {comp.state === CompetitionState.Finished && role === Role.Admin && (
                         <button
                           type="button"
                           onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Published)}

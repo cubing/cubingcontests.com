@@ -95,7 +95,7 @@ const FormPersonInputs = ({
       e.preventDefault();
 
       if (matchedPersons[personSelection] === null) {
-        window.location.href = '/admin/person';
+        window.location.href = '/mod/person';
         setFocusedInput(null);
       } else {
         // 1, because there is always the "add new competitor" option at the end

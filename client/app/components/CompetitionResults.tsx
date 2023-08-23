@@ -8,6 +8,7 @@ import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/util
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import Tabs from './Tabs';
 import Schedule from './Schedule';
+import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
@@ -54,6 +55,8 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
     [competition],
   );
 
+  const competitionType = competitionTypeOptions.find((el) => el.value === competition.type)?.label || 'ERROR';
+
   useEffect(() => {
     // If hash is not empty, set initial tab number
     if (window.location.hash.replace('#', '')) {
@@ -96,7 +99,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
         <div className="row w-100 mb-4 px-2 fs-5">
           <div className="col-md-5">
             <p className="mb-2">
-              Type:&#8194;<b>{competition.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</b>
+              Type:&#8194;<b>{competitionType}</b>
             </p>
             <p className="mb-2">Date:&#8194;{formattedDate}</p>
             {formattedTime && <p>Starts at:&#8194;{formattedTime}</p>}
@@ -124,7 +127,10 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
           <hr className="d-md-none mt-2 mb-3" />
           <div className="col-md-7">
             {competition.state === CompetitionState.Ongoing && (
-              <p className="mb-4">This competition is currently ongoing</p>
+              <p className="mb-4">This {competitionType.toLowerCase()} is currently ongoing</p>
+            )}
+            {competition.state === CompetitionState.Finished && (
+              <p className="mb-4">The results for this {competitionType.toLowerCase()} are currently being checked</p>
             )}
             {competition.description && (
               <p className="lh-base" style={{ whiteSpace: 'pre-wrap' }}>

@@ -1,26 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import myFetch from '~/helpers/myFetch';
-import Loading from '@c/Loading';
+import { Role } from '~/shared_helpers/enums';
+import AuthorizedLayout from '@c/adminAndModerator/AuthorizedLayout';
 
-const fetchAdminUser = async (setAuthorized: (value: boolean) => void) => {
-  const { payload } = await myFetch.get('/auth/validateadmin', { authorize: true, redirect: 'admin' });
-
-  if (payload) {
-    localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
-    setAuthorized(true);
-  }
+const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+  return <AuthorizedLayout role={Role.Admin}>{children}</AuthorizedLayout>;
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [authorized, setAuthorized] = useState(false);
-
-  useEffect(() => {
-    fetchAdminUser(setAuthorized);
-  }, [setAuthorized]);
-
-  if (!authorized) return <Loading />;
-
-  return children;
-}
+export default AdminLayout;

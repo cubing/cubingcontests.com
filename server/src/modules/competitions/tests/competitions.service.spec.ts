@@ -8,7 +8,7 @@ import { PersonsService } from '@m/persons/persons.service';
 import { IResult, IRound } from '@sh/interfaces';
 import { UpdateCompetitionDto } from '../dto/update-competition.dto';
 import { setNewRecords } from '@sh/sharedFunctions';
-import { RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
+import { Role, RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 
 // Mocks and stubs
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
@@ -22,6 +22,12 @@ import { recordTypesStub } from '@m/record-types/tests/stubs/record-types.stub';
 import { activeRecordTypesStub } from '@m/record-types/tests/stubs/active-record-types.stub';
 import { newCompetitionEventsStub, newFakeCompetitionEventsStub } from './stubs/new-competition-events.stub';
 import { sameDayBLDRoundsStub, sameDayFMRoundsStub } from './stubs/same-day-rounds.stub';
+
+const mockUser = {
+  username: 'user',
+  personId: 1,
+  roles: [Role.Admin],
+};
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
@@ -88,7 +94,7 @@ describe('CompetitionsService', () => {
     });
 
     it('should get full moderator competition', async () => {
-      const { competition, persons, records } = await competitionsService.getModCompetition('Munich14062023');
+      const { competition, persons, records } = await competitionsService.getModCompetition('Munich14062023', mockUser);
 
       expect(competition).toBeDefined();
       expect(persons.length).toBe(5);
@@ -101,12 +107,12 @@ describe('CompetitionsService', () => {
   describe('Endpoint methods', () => {
     it('should post competition results without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.postResults('Munich30062023', updateCompetitionDto);
+      competitionsService.postResults('Munich30062023', updateCompetitionDto, mockUser);
     });
 
     it('should update competition results without error', () => {
       const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.postResults('Munich27062023', updateCompetitionDto);
+      competitionsService.postResults('Munich27062023', updateCompetitionDto, mockUser);
     });
   });
 

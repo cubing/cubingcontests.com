@@ -5,7 +5,7 @@ import { LocalAuthGuard } from '~/src/guards/local-auth.guard';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '~/src/helpers/enums';
+import { Role } from '@sh/enums';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +27,13 @@ export class AuthController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async validateAdmin(@Request() req: any) {
+    return await this.authService.revalidate(req.user);
+  }
+
+  @Get('validatemod')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Moderator)
+  async validateMod(@Request() req: any) {
     return await this.authService.revalidate(req.user);
   }
 }

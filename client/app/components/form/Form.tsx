@@ -1,3 +1,5 @@
+import ErrorMessages from '../ErrorMessages';
+
 const Form = ({
   children,
   buttonText,
@@ -19,11 +21,7 @@ const Form = ({
 
   return (
     <form className="container my-4 mx-auto px-2 fs-5" style={{ maxWidth: '720px' }} onSubmit={(e: any) => onSubmit(e)}>
-      {errorMessages?.map((message, index) => (
-        <div key={index} className="alert alert-danger" style={{ whiteSpace: 'pre-wrap' }} role="alert">
-          {message}
-        </div>
-      ))}
+      <ErrorMessages errorMessages={errorMessages} />
 
       {children}
 

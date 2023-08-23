@@ -3,7 +3,7 @@ import { PersonsService } from './persons.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '~/src/helpers/enums';
+import { Role } from '@sh/enums';
 import { CreatePersonDto } from './dto/create-person.dto';
 
 @Controller('persons')
@@ -26,7 +26,7 @@ export class PersonsController {
   // POST /persons
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.Moderator)
   async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto) {
     console.log(`Creating new person with name ${createPersonDto.name}`);
     return await this.personsService.createPerson(createPersonDto);

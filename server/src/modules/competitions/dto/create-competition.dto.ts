@@ -38,7 +38,7 @@ import {
 import { CreateEventDto } from '@m/events/dto/create-event.dto';
 import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
-import { titleRegex } from '~/src/helpers/regex';
+import { titleRegex, getTitleRegexOpts } from '~/src/helpers/regex';
 import C from '@sh/constants';
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-]{2,}$/;
@@ -53,7 +53,7 @@ export class CreateCompetitionDto implements ICompetition {
   @IsString()
   @MinLength(10)
   @MaxLength(45)
-  @Matches(titleRegex)
+  @Matches(titleRegex, getTitleRegexOpts('contest name'))
   name: string;
 
   @IsEnum(CompetitionType)
@@ -67,7 +67,7 @@ export class CreateCompetitionDto implements ICompetition {
 
   @IsString()
   @MinLength(3)
-  @Matches(titleRegex)
+  @Matches(titleRegex, getTitleRegexOpts('venue'))
   venue: string;
 
   @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.address)
@@ -160,7 +160,7 @@ class VenueDto implements IVenue {
 
   @IsString()
   @MinLength(3)
-  @Matches(titleRegex)
+  @Matches(titleRegex, getTitleRegexOpts('venue names in the schedule'))
   name: string;
 
   @Min(-90000000)
@@ -190,7 +190,7 @@ class RoomDto implements IRoom {
 
   @IsString()
   @MinLength(3)
-  @Matches(titleRegex)
+  @Matches(titleRegex, getTitleRegexOpts('room names in the schedule'))
   name: string;
 
   @IsEnum(Color)
@@ -212,7 +212,7 @@ class ActivityDto implements IActivity {
 
   @ValidateIf((obj) => obj.activityCode === 'other-misc')
   @IsString()
-  @Matches(titleRegex)
+  @Matches(titleRegex, getTitleRegexOpts('custom activity names'))
   name?: string;
 
   @IsDateString()

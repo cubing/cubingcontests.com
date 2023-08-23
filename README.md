@@ -20,7 +20,7 @@ This is a place for posting results from unofficial Rubik's cube competitions, u
 
 ## Admin features
 
-In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the admin dashboard (`/admin`), and set the wanted records as active. They can also be given custom labels in order to differentiate them from official WCA records. In order to change a label, the admin must first deactivate the record type, which removes all records from the database, and then change the label and reactivate it, which will set all of the records again. Keep in mind that activating/deactivating a record type is a resource-intensive operation.
+In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the moderator dashboard (`/mod`), and set the wanted records as active. They can also be given custom labels in order to differentiate them from official WCA records. In order to change a label, the admin must first deactivate the record type, which removes all records from the database, and then change the label and reactivate it, which will set all of the records again. Keep in mind that activating/deactivating a record type is a resource-intensive operation.
 
 In order to post the results for a competition, all new participants must first be entered into the database, which can be done on the `Create new competitor` page.
 

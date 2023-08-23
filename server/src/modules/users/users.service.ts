@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDocument } from '~/src/models/user.model';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Role } from '~/src/helpers/enums';
+import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 @Injectable()

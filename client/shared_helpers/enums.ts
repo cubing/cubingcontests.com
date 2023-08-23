@@ -66,3 +66,9 @@ export enum Color {
   Cyan = '0ff',
   Magenta = 'f0f',
 }
+
+export enum Role {
+  User = 'user',
+  Admin = 'admin',
+  Moderator = 'mod',
+}

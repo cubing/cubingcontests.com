@@ -3,7 +3,7 @@ import { EventsService } from './events.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '~/src/helpers/enums';
+import { Role } from '@sh/enums';
 import { CreateEventDto } from './dto/create-event.dto';
 
 @Controller('events')

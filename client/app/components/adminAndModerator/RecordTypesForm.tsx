@@ -19,7 +19,7 @@ const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordTyp
     if (errors) {
       setErrorMessages(errors);
     } else {
-      window.location.href = '/admin';
+      window.location.href = '/mod';
     }
   };
 

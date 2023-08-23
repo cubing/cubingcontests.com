@@ -1,8 +1,8 @@
+import jwtDecode from 'jwt-decode';
 import Countries from '@sh/Countries';
-import { ICompetition, IEvent, IPerson, IRound } from '@sh/interfaces';
-import myFetch from './myFetch';
+import { ICompetition, IEvent, IRound } from '@sh/interfaces';
 import { roundFormats } from './roundFormats';
-import { RoundFormat } from '~/shared_helpers/enums';
+import { Role, RoundFormat } from '~/shared_helpers/enums';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 
 export const getCountry = (countryIso2: string): string => {
@@ -151,4 +151,16 @@ export const formatTime = (
 export const getSolves = (event: IEvent, attempts: number[]): string => {
   // The character in quotes is an em space
   return attempts.map((el) => formatTime(el, event)).join(' ');
+};
+
+// Returns the authorized user's role with the highest privilege
+export const getRole = (): Role => {
+  let role: Role;
+  // Decode the JWT (only take the part after "Bearer ")
+  const authorizedUser: any = jwtDecode(localStorage.getItem('jwtToken').split(' ')[1]);
+
+  if (authorizedUser.roles.includes(Role.Admin)) role = Role.Admin;
+  else if (authorizedUser.roles.includes(Role.Moderator)) role = Role.Moderator;
+
+  return role;
 };

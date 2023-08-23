@@ -4,7 +4,7 @@ import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
-import { Role } from '~/src/helpers/enums';
+import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 @Injectable()

@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { find } from 'geo-tz';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
@@ -23,8 +29,9 @@ import {
 } from '@sh/interfaces';
 import { getDateOnly, setNewRecords } from '@sh/sharedFunctions';
 import { CompetitionState, CompetitionType, WcaRecordType } from '@sh/enums';
-import { Role } from '~/src/helpers/enums';
+import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
+import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 interface ICompetitionUpdateResult {
   events: ICompetitionEvent[];
@@ -97,14 +104,14 @@ export class CompetitionsService {
     }
   }
 
-  async getModCompetitions(userId: number, roles: Role[]): Promise<ICompetition[]> {
+  async getModCompetitions(user: IPartialUser): Promise<ICompetition[]> {
     try {
-      if (roles.includes(Role.Admin)) {
+      if (user.roles.includes(Role.Admin)) {
         return await this.competitionModel.find({}, excl).sort({ startDate: -1 }).exec();
       } else {
         return await this.competitionModel
           .find(
-            { createdBy: userId },
+            { createdBy: user.personId },
             {
               ...excl,
               createdBy: 0,
@@ -123,56 +130,50 @@ export class CompetitionsService {
 
     // TEMPORARILY DISABLED until mod-only protection is added
     // if (competition?.state > CompetitionState.Created) {
-    if (competition) {
-      const output: ICompetitionData = {
-        competition,
-        persons: [],
-        activeRecordTypes: await this.recordTypesService.getRecordTypes({ active: true }),
-      };
 
-      // Get information about all participants and events of the competition if the results have been posted
-      try {
-        if (competition.state >= CompetitionState.Ongoing) {
-          const personIds: number[] = this.getCompetitionParticipants(competition.events);
-          output.persons = await this.personsService.getPersonsById(personIds);
-        }
-      } catch (err) {
-        throw new InternalServerErrorException(err.message);
+    const output: ICompetitionData = {
+      competition,
+      persons: [],
+      activeRecordTypes: await this.recordTypesService.getRecordTypes({ active: true }),
+    };
+
+    // Get information about all participants and events of the competition if the results have been posted
+    try {
+      if (competition.state >= CompetitionState.Ongoing) {
+        const personIds: number[] = this.getCompetitionParticipants(competition.events);
+        output.persons = await this.personsService.getPersonsById(personIds);
       }
-
-      return output;
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
     }
 
-    throw new NotFoundException(`Competition with id ${competitionId} not found`);
+    return output;
   }
 
-  async getModCompetition(competitionId: string): Promise<ICompetitionModData> {
-    const competition = await this.getFullCompetition(competitionId);
+  async getModCompetition(competitionId: string, user: IPartialUser): Promise<ICompetitionModData> {
+    const competition = await this.getFullCompetition(competitionId, user);
+
     const personIds: number[] = this.getCompetitionParticipants(competition.events);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-    if (competition) {
-      const compModData: ICompetitionModData = {
-        competition,
-        persons: await this.personsService.getPersonsById(personIds),
-        // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
-        records: {} as any,
+    const compModData: ICompetitionModData = {
+      competition,
+      persons: await this.personsService.getPersonsById(personIds),
+      // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
+      records: {} as any,
+      activeRecordTypes,
+    };
+
+    // Get current records for this competition's events
+    for (const compEvent of competition.events) {
+      compModData.records[compEvent.event.eventId] = await this.getEventRecords(
+        compEvent.event.eventId,
         activeRecordTypes,
-      };
-
-      // Get current records for this competition's events
-      for (const compEvent of competition.events) {
-        compModData.records[compEvent.event.eventId] = await this.getEventRecords(
-          compEvent.event.eventId,
-          activeRecordTypes,
-          new Date(competition.startDate),
-        );
-      }
-
-      return compModData;
+        new Date(competition.startDate),
+      );
     }
 
-    throw new NotFoundException(`Competition with id ${competitionId} not found`);
+    return compModData;
   }
 
   // Create new competition, if one with that id doesn't already exist (no results yet)
@@ -224,9 +225,10 @@ export class CompetitionsService {
     }
   }
 
-  async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, roles: Role[]) {
+  async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, user: IPartialUser) {
     const comp = await this.findCompetition(competitionId, true);
-    const isAdmin = roles.includes(Role.Admin);
+    this.checkAccessRights(comp, user);
+    const isAdmin = user.roles.includes(Role.Admin);
 
     // Only an admin is allowed to edit these fields
     if (isAdmin) {
@@ -266,36 +268,36 @@ export class CompetitionsService {
     await this.saveCompetition(comp);
   }
 
-  async updateState(competitionId: string, newState: CompetitionState, roles: Role[]) {
+  async updateState(competitionId: string, newState: CompetitionState, user: IPartialUser) {
     const comp = await this.findCompetition(competitionId);
+    this.checkAccessRights(comp, user);
+    const isAdmin = user.roles.includes(Role.Admin);
 
     if (
-      roles.includes(Role.Admin) ||
+      isAdmin ||
       // Allow mods only to finish an ongoing competition
       (comp.state === CompetitionState.Ongoing && newState === CompetitionState.Finished)
     ) {
       comp.state = newState;
+    }
 
-      if (newState === CompetitionState.Published) {
-        console.log(`Publishing competition ${comp.competitionId}`);
+    if (isAdmin && newState === CompetitionState.Published) {
+      console.log(`Publishing competition ${comp.competitionId}`);
 
-        try {
-          await this.roundModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
-          await this.resultModel.updateMany(
-            { competitionId: comp.competitionId },
-            { $unset: { compNotPublished: '' } },
-          );
-        } catch (err) {
-          throw new InternalServerErrorException(`Error while publishing competition: ${err.message}`);
-        }
+      try {
+        await this.roundModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
+        await this.resultModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
+      } catch (err) {
+        throw new InternalServerErrorException(`Error while publishing competition: ${err.message}`);
       }
     }
 
     await this.saveCompetition(comp);
   }
 
-  async postResults(competitionId: string, updateCompetitionDto: UpdateCompetitionDto) {
+  async postResults(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, user: IPartialUser) {
     const comp = await this.findCompetition(competitionId);
+    this.checkAccessRights(comp, user);
 
     if (comp.state < CompetitionState.Approved) {
       throw new BadRequestException("You may not post the results for a competition that hasn't been approved");
@@ -363,30 +365,44 @@ export class CompetitionsService {
     }
   }
 
+  private checkAccessRights(competition: CompetitionDocument, user: IPartialUser) {
+    if (
+      !user.roles.includes(Role.Admin) &&
+      (!user.roles.includes(Role.Moderator) || competition.createdBy !== user.personId)
+    ) {
+      console.log(`User ${user.username} denied access rights to contest ${competition.competitionId}`);
+      throw new UnauthorizedException('You do not have access rights for this contest');
+    }
+  }
+
   // Finds the competition with the given competition id with the rounds and results populated
-  private async getFullCompetition(competitionId: string): Promise<CompetitionDocument> {
+  private async getFullCompetition(competitionId: string, user?: IPartialUser): Promise<CompetitionDocument> {
+    let competition: CompetitionDocument;
+
     try {
-      const competition: CompetitionDocument = await this.competitionModel
-        .findOne(
-          { competitionId },
-          {
-            ...excl,
-            createdBy: 0,
-          },
-        )
+      competition = await this.competitionModel
+        .findOne({ competitionId }, excl)
         .populate(eventPopulateOptions.event)
         .populate(eventPopulateOptions.rounds)
         .populate({ path: 'organizers', model: 'Person' })
         .exec();
-
-      if (competition.compDetails) {
-        await competition.populate({ path: 'compDetails.schedule', model: 'Schedule' });
-      }
-
-      return competition;
     } catch (err) {
-      throw new NotFoundException(err.message);
+      throw new InternalServerErrorException(err.message);
     }
+
+    if (!competition) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+
+    if (user) this.checkAccessRights(competition, user);
+
+    if (competition.compDetails) {
+      try {
+        await competition.populate({ path: 'compDetails.schedule', model: 'Schedule' });
+      } catch (err) {
+        throw new InternalServerErrorException(err.message);
+      }
+    }
+
+    return competition;
   }
 
   private async getNewCompetitionEvent(compEvent: ICompetitionEvent): Promise<CompetitionEvent> {

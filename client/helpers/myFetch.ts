@@ -43,9 +43,7 @@ const doFetch = async (
   let res;
 
   // Add API base URL if the passed URL is not a full link
-  if (!/https?:\/\//.test(url)) {
-    url = API_BASE_URL + url;
-  }
+  if (!/https?:\/\//.test(url)) url = API_BASE_URL + url;
 
   try {
     res = await fetch(url, options);

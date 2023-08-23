@@ -18,7 +18,7 @@ import FormPersonInputs from '../form/FormPersonInputs';
 import Tabs from '../Tabs';
 import Schedule from '../Schedule';
 import { ICompetition, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
-import { Color, CompetitionState, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import { Color, CompetitionState, CompetitionType, Role, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
 import {
   colorOptions,
@@ -37,7 +37,15 @@ const coordToMicrodegrees = (value: string): number | null => {
   return parseInt(Number(value).toFixed(6).replace('.', ''));
 };
 
-const CompetitionForm = ({ events, competition }: { events: IEvent[]; competition?: ICompetition }) => {
+const CompetitionForm = ({
+  events,
+  competition,
+}: // role,
+{
+  events: IEvent[];
+  competition?: ICompetition;
+  role: Role;
+}) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
   const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
@@ -90,7 +98,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
     }
 
     return newFiltEv;
-  }, [events, type]);
+  }, [events, type, mainEventId]);
   const remainingEvents = useMemo(
     () => filteredEvents.filter((ev) => !competitionEvents.some((ce) => ce.event.eventId === ev.eventId)),
     [filteredEvents, competitionEvents],
@@ -153,7 +161,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
         setVenueTimezone(venue.timezone);
       }
     }
-  }, [competition]);
+  }, [competition, events]);
 
   useEffect(() => {
     document.getElementById('competition_name').focus();
@@ -284,7 +292,7 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
         setErrorMessages(errors);
       } else {
         setErrorMessages([]);
-        window.location.href = '/admin';
+        window.location.href = '/mod';
       }
     }
   };
@@ -505,10 +513,10 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
   return (
     <>
       <Form
-        buttonText={competition ? 'Edit Competition' : 'Create Competition'}
+        buttonText={competition ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
         handleSubmit={handleSubmit}
-        hideButton={activeTab !== 1}
+        hideButton={activeTab === 3}
       >
         <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
@@ -516,13 +524,13 @@ const CompetitionForm = ({ events, competition }: { events: IEvent[]; competitio
           <>
             <FormTextInput
               id="competition_name"
-              title="Competition name"
+              title="Contest name"
               value={name}
               setValue={changeName}
               disabled={isNotCreated}
             />
             <FormTextInput
-              title="Competition ID"
+              title="Contest ID"
               value={competitionId}
               setValue={setCompetitionId}
               disabled={!!competition}
