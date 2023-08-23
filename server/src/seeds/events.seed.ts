@@ -1,14 +1,18 @@
-import { EventFormat, RoundFormat } from '@sh/enums';
+import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
 
 // Official WCA events + 3x3x3 Team-Blind + 3x3x3 Team Factory. THIS IS TEMPORARY UNTIL EVENT CREATION IS ADDED.
 export const eventsSeed: IEvent[] = [
+  ///////////////////////////////////////////////////////////////////
+  // WCA
+  ///////////////////////////////////////////////////////////////////
   {
     eventId: '333',
     name: '3x3x3 Cube',
     rank: 10,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '222',
@@ -16,6 +20,7 @@ export const eventsSeed: IEvent[] = [
     rank: 20,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '444',
@@ -23,6 +28,7 @@ export const eventsSeed: IEvent[] = [
     rank: 30,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '555',
@@ -30,6 +36,7 @@ export const eventsSeed: IEvent[] = [
     rank: 40,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '666',
@@ -37,6 +44,7 @@ export const eventsSeed: IEvent[] = [
     rank: 50,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '777',
@@ -44,6 +52,7 @@ export const eventsSeed: IEvent[] = [
     rank: 60,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '333bf',
@@ -51,6 +60,7 @@ export const eventsSeed: IEvent[] = [
     rank: 70,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '333fm',
@@ -58,6 +68,7 @@ export const eventsSeed: IEvent[] = [
     rank: 80,
     format: EventFormat.Number,
     defaultRoundFormat: RoundFormat.Mean,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '333oh',
@@ -65,6 +76,7 @@ export const eventsSeed: IEvent[] = [
     rank: 90,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: 'clock',
@@ -72,6 +84,7 @@ export const eventsSeed: IEvent[] = [
     rank: 110,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: 'minx',
@@ -79,6 +92,7 @@ export const eventsSeed: IEvent[] = [
     rank: 120,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: 'pyram',
@@ -86,6 +100,7 @@ export const eventsSeed: IEvent[] = [
     rank: 130,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: 'skewb',
@@ -93,6 +108,7 @@ export const eventsSeed: IEvent[] = [
     rank: 140,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: 'sq1',
@@ -100,13 +116,7 @@ export const eventsSeed: IEvent[] = [
     rank: 150,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-  },
-  {
-    eventId: 'fto',
-    name: 'Face-turning Octahedron',
-    rank: 155,
-    format: EventFormat.Time,
-    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '444bf',
@@ -114,6 +124,7 @@ export const eventsSeed: IEvent[] = [
     rank: 160,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '555bf',
@@ -121,6 +132,7 @@ export const eventsSeed: IEvent[] = [
     rank: 170,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
+    groups: [EventGroup.WCA],
   },
   {
     eventId: '333mbf',
@@ -128,41 +140,126 @@ export const eventsSeed: IEvent[] = [
     rank: 180,
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed],
   },
+  ///////////////////////////////////////////////////////////////////
+  // UNOFFICIAL
+  ///////////////////////////////////////////////////////////////////
   {
     eventId: '333tbf',
     name: '3x3x3 Team-Blind',
-    rank: 190,
-    format: EventFormat.TeamTime,
-    defaultRoundFormat: RoundFormat.Average,
-  },
-  {
-    eventId: '333tf',
-    name: '3x3x3 Team Factory',
-    rank: 200,
-    format: EventFormat.TeamTime,
-    defaultRoundFormat: RoundFormat.Average,
-    meetupOnly: true,
-  },
-  {
-    eventId: '333ft',
-    name: '3x3x3 With Feet',
-    rank: 996,
+    rank: 1000,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial, EventGroup.Team],
+    participants: 2,
+  },
+  {
+    eventId: 'fto',
+    name: 'Face-turning Octahedron',
+    rank: 1010,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial],
   },
   {
     eventId: 'magic',
     name: 'Magic',
-    rank: 997,
+    rank: 1020,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial],
   },
   {
     eventId: 'mmagic',
     name: 'Master Magic',
-    rank: 998,
+    rank: 1030,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial],
   },
-] as IEvent[];
+  {
+    eventId: '333tf',
+    name: '3x3x3 Team Factory',
+    rank: 1040,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial, EventGroup.Team],
+    participants: 2,
+  },
+  {
+    eventId: '333ft',
+    name: '3x3x3 With Feet',
+    rank: 1050,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial],
+  },
+  ///////////////////////////////////////////////////////////////////
+  // REMOTE-ONLY
+  ///////////////////////////////////////////////////////////////////
+  {
+    eventId: '333mbo',
+    name: '3x3x3 Multi-Blind Old Style',
+    rank: 2000,
+    format: EventFormat.Multi,
+    defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.SubmissionOnly],
+  },
+  {
+    eventId: '333ohbfr',
+    name: '3x3x3 + OH + BLD Team Relay',
+    rank: 2010,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.SubmissionOnly, EventGroup.Team],
+    participants: 3,
+  },
+  {
+    eventId: '333bf2mr',
+    name: '3x3x3 Blindfolded 2-Man Relay',
+    rank: 2020,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.SubmissionOnly, EventGroup.Team],
+    participants: 2,
+  },
+  {
+    eventId: '333bf3mr',
+    name: '3x3x3 Blindfolded 3-Man Relay',
+    rank: 2030,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.SubmissionOnly, EventGroup.Team],
+    participants: 3,
+  },
+  {
+    eventId: '333bf2mr',
+    name: '3x3x3 Blindfolded 4-Man Relay',
+    rank: 2040,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.SubmissionOnly, EventGroup.Team],
+    participants: 4,
+  },
+  {
+    eventId: '333bf2mr',
+    name: '3x3x3 Blindfolded 8-Man Relay',
+    rank: 2050,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.SubmissionOnly, EventGroup.Team],
+    participants: 8,
+  },
+  ///////////////////////////////////////////////////////////////////
+  // REMOVED
+  ///////////////////////////////////////////////////////////////////
+  {
+    eventId: '333tbfo',
+    name: '3x3x3 Team-Blind Old Style',
+    rank: 3000,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Removed, EventGroup.Team],
+  },
+];

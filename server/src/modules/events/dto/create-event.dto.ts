@@ -1,6 +1,6 @@
-import { Equals, IsEnum, IsNumber, IsOptional, IsString, Matches, Min, MinLength } from 'class-validator';
+import { ArrayMinSize, IsEnum, IsNumber, IsString, Matches, Min, MinLength } from 'class-validator';
 import { IEvent } from '@sh/interfaces';
-import { EventFormat, RoundFormat } from '@sh/enums';
+import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { getTitleRegexOpts, titleRegex } from '~/src/helpers/regex';
 
 export class CreateEventDto implements IEvent {
@@ -24,11 +24,7 @@ export class CreateEventDto implements IEvent {
   @IsEnum(RoundFormat)
   defaultRoundFormat: RoundFormat;
 
-  @IsOptional()
-  @Equals(true)
-  meetupOnly?: boolean;
-
-  @IsOptional()
-  @Equals(true)
-  removed?: boolean;
+  @ArrayMinSize(1)
+  @IsEnum(EventGroup, { each: true })
+  groups: EventGroup[];
 }

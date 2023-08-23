@@ -2,7 +2,18 @@ export enum EventFormat {
   Time = 'time',
   Number = 'number', // for FMC
   Multi = 'multi',
-  TeamTime = 'teamtime', // e.g. for Team BLD or Team Factory
+}
+
+export enum EventGroup {
+  // The first four are used for grouping events on the rankings pages. An event MUST include ONE of these main groups.
+  WCA = 1, // event ranks are the same as on the WCA
+  Unofficial = 2, // event ranks start from 1000
+  SubmissionOnly = 3, // ...from 2000
+  Removed = 4, // ...from 3000
+
+  MeetupOnly = 5,
+  SubmissionsAllowed = 6,
+  Team = 7,
 }
 
 export enum RoundFormat {

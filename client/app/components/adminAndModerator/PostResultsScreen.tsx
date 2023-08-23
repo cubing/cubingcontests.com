@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import FormEventSelect from '@c/form/FormEventSelect';
-import { ICompetitionEvent, ICompetitionModData, IResult, IPerson, IRound, IRecordType } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionModData, IResult, IPerson, IRound } from '@sh/interfaces';
 import RoundResultsTable from '@c/RoundResultsTable';
 import FormTextInput from '../form/FormTextInput';
 import myFetch from '~/helpers/myFetch';
-import { RoundFormat, RoundType, EventFormat, WcaRecordType, CompetitionState } from '@sh/enums';
+import { RoundFormat, RoundType, WcaRecordType, CompetitionState, EventGroup } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 import {
@@ -236,12 +236,11 @@ const PostResultsScreen = ({
   };
 
   const resetPersons = (eventId = currEventId) => {
-    const isTeamEvent =
-      competition.events.find((el) => el.event.eventId === eventId).event.format === EventFormat.TeamTime;
+    const event = competition.events.find((el) => el.event.eventId === eventId).event;
 
-    if (isTeamEvent) {
-      setCurrentPersons([null, null]);
-      setPersonNames(['', '']);
+    if (event.groups.includes(EventGroup.Team)) {
+      setCurrentPersons(Array(event.participants).fill(null));
+      setPersonNames(Array(event.participants).fill(''));
     } else {
       setCurrentPersons([null]);
       setPersonNames(['']);
@@ -277,6 +276,8 @@ const PostResultsScreen = ({
       const newAttempts = result.attempts.map((el) => formatTime(el, currCompEvent.event, { removeFormatting: true }));
       setAttempts(newAttempts);
       updateTempBestAndAverage(newAttempts);
+
+      document.getElementById('solve_1').focus();
     });
   };
 

@@ -5,7 +5,7 @@ import { ResultDocument } from '~/src/models/result.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { EventFormat, WcaRecordType } from '@sh/enums';
+import { EventFormat, EventGroup, WcaRecordType } from '@sh/enums';
 import { IEventRecords } from '@sh/interfaces';
 import { excl } from '~/src/helpers/dbHelpers';
 
@@ -18,6 +18,8 @@ export class ResultsService {
     @InjectModel('Result') private readonly model: Model<ResultDocument>,
   ) {}
 
+  // TEMPORARY
+  // REMOVE UNNEEDED IMPORTS TOO
   async onModuleInit() {
     const singleRecordResults = await this.model.find({ regionalSingleRecord: 'XWR' });
 
@@ -33,6 +35,14 @@ export class ResultsService {
       console.log(`Updating regional average record for ${res.eventId} from XWR to WR`);
       res.regionalAverageRecord = 'WR';
       await res.save();
+    }
+
+    const teamBlindResults = await this.model.find({ eventId: '333tbf' });
+
+    for (const res of teamBlindResults) {
+      console.log('Updating team blind result to old style');
+      if (res.competitionId !== 'PostWorldsMentalBreakdown2023') res.eventId = '333tbfo';
+      res.save();
     }
   }
 
@@ -51,7 +61,7 @@ export class ResultsService {
     const events = await this.eventsService.getEvents();
 
     for (const rt of activeRecordTypes) {
-      for (const event of events.filter((ev) => !ev.removed)) {
+      for (const event of events) {
         const newRecordByEvent: IEventRecords = { event, bestRecords: [], averageRecords: [] };
 
         const bestResults = await this.getEventSingleRecordResults(event.eventId, rt.wcaEquivalent);

@@ -18,7 +18,16 @@ import FormPersonInputs from '../form/FormPersonInputs';
 import Tabs from '../Tabs';
 import Schedule from '../Schedule';
 import { ICompetition, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
-import { Color, CompetitionState, CompetitionType, Role, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import {
+  Color,
+  CompetitionState,
+  CompetitionType,
+  EventGroup,
+  Role,
+  RoundFormat,
+  RoundProceed,
+  RoundType,
+} from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
 import {
   colorOptions,
@@ -89,7 +98,11 @@ const CompetitionForm = ({
     [type],
   );
   const filteredEvents = useMemo(() => {
-    const newFiltEv = events.filter((ev) => !ev.removed && (type === CompetitionType.Meetup || !ev.meetupOnly));
+    const newFiltEv = events.filter(
+      (ev) =>
+        !ev.groups.includes(EventGroup.Removed) &&
+        (type === CompetitionType.Meetup || !ev.groups.includes(EventGroup.MeetupOnly)),
+    );
 
     // Reset new event ID and main event ID if new filtered events don't include them
     if (newFiltEv.length > 0) {
@@ -269,7 +282,7 @@ const CompetitionForm = ({
     else if (!competitionEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
 
-    const meetupOnlyCompEvent = competitionEvents.find((el) => el.event.meetupOnly);
+    const meetupOnlyCompEvent = competitionEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
     if (type !== CompetitionType.Meetup && meetupOnlyCompEvent)
       tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 

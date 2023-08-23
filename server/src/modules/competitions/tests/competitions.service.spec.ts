@@ -8,7 +8,7 @@ import { PersonsService } from '@m/persons/persons.service';
 import { IResult, IRound } from '@sh/interfaces';
 import { UpdateCompetitionDto } from '../dto/update-competition.dto';
 import { setNewRecords } from '@sh/sharedFunctions';
-import { Role, RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
+import { Role, WcaRecordType } from '@sh/enums';
 
 // Mocks and stubs
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';

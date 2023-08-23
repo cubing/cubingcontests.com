@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { IEvent } from '@sh/interfaces';
-import { EventFormat, RoundFormat } from '@sh/enums';
+import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 
 @Schema({ timestamps: true })
 class Event implements IEvent {
@@ -20,11 +20,15 @@ class Event implements IEvent {
   @Prop({ enum: RoundFormat, required: true })
   defaultRoundFormat: RoundFormat;
 
-  @Prop()
-  meetupOnly?: boolean;
+  @Prop({ type: [{ type: Number, enum: EventGroup }], required: true })
+  groups: EventGroup[];
 
+  @Prop({ immutable: true })
+  participants?: number;
+
+  // TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   @Prop()
-  removed?: boolean;
+  meetupOnly: boolean;
 }
 
 export type EventDocument = HydratedDocument<Event>;

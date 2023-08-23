@@ -1,4 +1,4 @@
-import { EventFormat, RoundFormat } from '../enums';
+import { EventFormat, RoundFormat, EventGroup } from '../enums';
 
 export interface IEvent {
   eventId: string;
@@ -6,6 +6,6 @@ export interface IEvent {
   rank: number;
   format: EventFormat;
   defaultRoundFormat: RoundFormat;
-  meetupOnly?: boolean;
-  removed?: boolean;
+  groups: EventGroup[];
+  participants?: number; // only required if the format is team time
 }
