@@ -24,7 +24,7 @@ export class Round implements IRound {
   @Prop({ required: true, immutable: true })
   competitionId: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, immutable: true })
   date: Date;
 
   @Prop()

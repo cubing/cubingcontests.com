@@ -51,14 +51,14 @@ describe('ResultsService', () => {
       // Check 3x3x3 records
       expect(records333.bestRecords.length).toBe(1);
       expect(records333.bestRecords[0].result.best).toBe(909);
-      expect(records333.averageRecords.length).toBe(1);
-      expect(records333.averageRecords[0].result.average).toBe(1132);
+      expect(records333.avgRecords.length).toBe(1);
+      expect(records333.avgRecords[0].result.average).toBe(1132);
       // Check 3x3x3 FM records (they should have a tie)
       expect(records333fm.bestRecords.length).toBe(2);
       expect(records333fm.bestRecords[0].result.best).toBe(39);
       expect(records333fm.bestRecords[1].result.best).toBe(39);
-      expect(records333fm.averageRecords.length).toBe(1);
-      expect(records333fm.averageRecords[0].result.average).toBe(4600);
+      expect(records333fm.avgRecords.length).toBe(1);
+      expect(records333fm.avgRecords[0].result.average).toBe(4600);
     });
   });
 });

@@ -4,26 +4,23 @@ import { IResult } from '@sh/interfaces';
 
 @Schema({ timestamps: true })
 export class Result implements IResult {
-  @Prop({ required: true })
-  competitionId: string;
+  @Prop()
+  competitionId?: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, immutable: true })
   eventId: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, immutable: true })
   date: Date;
 
   @Prop()
   compNotPublished?: boolean;
 
-  @Prop()
-  personId: string;
-
   @Prop({ required: true })
   personIds: number[];
 
-  @Prop({ required: true })
-  ranking: number;
+  @Prop()
+  ranking?: number;
 
   @Prop({ type: [Number], required: true })
   attempts: number[];
@@ -39,6 +36,9 @@ export class Result implements IResult {
 
   @Prop()
   regionalAverageRecord?: string;
+
+  @Prop({ unique: true })
+  videoLink?: string;
 }
 
 export type ResultDocument = HydratedDocument<Result>;

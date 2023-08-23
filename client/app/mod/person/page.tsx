@@ -6,7 +6,7 @@ import Form from '@c/form/Form';
 import FormCountrySelect from '@c/form/FormCountrySelect';
 import FormTextInput from '@c/form/FormTextInput';
 
-const AdminPerson = () => {
+const CreatePerson = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [name, setName] = useState('');
@@ -103,11 +103,13 @@ const AdminPerson = () => {
 
   return (
     <>
-      <h2 className="mb-4 text-center">Create New Competitor</h2>
-      {errorMessages.length === 0 && successMessage && (
-        <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
-      )}
-      <Form buttonText="Create" errorMessages={errorMessages} handleSubmit={handleSubmit}>
+      <h2 className="mb-4 text-center">Add New Competitor</h2>
+      <Form
+        buttonText="Create"
+        errorMessages={errorMessages}
+        successMessage={successMessage}
+        handleSubmit={handleSubmit}
+      >
         <p>Press ENTER after entering the WCA ID</p>
         <FormTextInput
           id="wca_id"
@@ -125,4 +127,4 @@ const AdminPerson = () => {
   );
 };
 
-export default AdminPerson;
+export default CreatePerson;

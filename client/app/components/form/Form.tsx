@@ -5,12 +5,14 @@ const Form = ({
   buttonText,
   hideButton = false,
   errorMessages,
+  successMessage,
   handleSubmit,
 }: {
   children: React.ReactNode;
   buttonText?: string;
   hideButton?: boolean;
   errorMessages: string[];
+  successMessage?: string;
   handleSubmit: () => void;
 }) => {
   const onSubmit = (e: any) => {
@@ -21,7 +23,11 @@ const Form = ({
 
   return (
     <form className="container my-4 mx-auto px-2 fs-5" style={{ maxWidth: '720px' }} onSubmit={(e: any) => onSubmit(e)}>
-      <ErrorMessages errorMessages={errorMessages} />
+      {errorMessages.length > 0 ? (
+        <ErrorMessages errorMessages={errorMessages} />
+      ) : (
+        successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
+      )}
 
       {children}
 

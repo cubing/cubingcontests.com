@@ -7,8 +7,8 @@ import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
 
-const RecordTypesForm = ({ recordTypes, errors = [] }: { recordTypes: IRecordType[]; errors: string[] }) => {
-  const [errorMessages, setErrorMessages] = useState<string[]>(errors);
+const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
   // Temporary record types
   const [tRecordTypes, setTRecordTypes] = useState<IRecordType[]>(recordTypes);
 

@@ -6,14 +6,16 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   Min,
 } from 'class-validator';
 import { IResult } from '@sh/interfaces';
 
 export class CreateResultDto implements IResult {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  competitionId: string;
+  competitionId?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -29,9 +31,10 @@ export class CreateResultDto implements IResult {
   @IsNumber({}, { each: true })
   personIds: number[];
 
+  @IsOptional()
   @IsNumber()
   @Min(1)
-  ranking: number;
+  ranking?: number;
 
   @ArrayMinSize(1)
   @IsNumber({}, { each: true })
@@ -50,4 +53,8 @@ export class CreateResultDto implements IResult {
   @IsOptional()
   @IsString()
   regionalAverageRecord?: string;
+
+  @IsOptional()
+  @IsUrl()
+  videoLink?: string;
 }

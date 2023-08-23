@@ -25,10 +25,6 @@ class Event implements IEvent {
 
   @Prop({ immutable: true })
   participants?: number;
-
-  // TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  @Prop()
-  meetupOnly: boolean;
 }
 
 export type EventDocument = HydratedDocument<Event>;

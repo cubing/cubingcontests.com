@@ -21,9 +21,9 @@ const AuthorizedLayout = ({ role, children }: { role: Role; children: React.Reac
     fetchUser(role, setAuthorized);
   }, [role, setAuthorized]);
 
-  if (!authorized) return <Loading />;
+  if (authorized) return children;
 
-  return children;
+  return <Loading />;
 };
 
 export default AuthorizedLayout;

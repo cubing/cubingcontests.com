@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
@@ -10,11 +10,16 @@ import { CreateEventDto } from './dto/create-event.dto';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  // GET /events
+  // GET /events?submission_based=true
   @Get()
-  async getEvents() {
-    console.log('Getting all events');
-    return await this.eventsService.getEvents();
+  async getEvents(@Query('submission_based') submissionBased?: boolean) {
+    if (!submissionBased) {
+      console.log('Getting all events');
+      return await this.eventsService.getEvents();
+    } else {
+      console.log('Getting all events that allow submissions');
+      return await this.eventsService.getSubmissionBasedEvents();
+    }
   }
 
   // POST /events

@@ -18,8 +18,8 @@ const RoundResultsTable = ({
   onEditResult?: (result: IResult) => void;
   onDeleteResult?: (personIds: number[]) => void;
 }) => {
-  const roundCanHaveAverage = getRoundCanHaveAverage(round, event);
-  const roundRanksWithAverage = getRoundRanksWithAverage(round, event);
+  const roundCanHaveAverage = getRoundCanHaveAverage(round.format, event);
+  const roundRanksWithAverage = getRoundRanksWithAverage(round.format, event);
 
   const getName = (personIds: number[]): string => {
     if (!persons) throw new Error('Name not found');

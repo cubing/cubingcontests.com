@@ -3,40 +3,36 @@
 import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from './FormTextInput';
-import { IPerson } from '~/shared_helpers/interfaces';
+import { IPerson, IResult } from '@sh/interfaces';
 
 const MAX_MATCHES = 8;
 
 const FormPersonInputs = ({
-  label,
+  title,
   personNames,
   setPersonNames,
   persons,
   setPersons,
-  matchedPersons,
-  setMatchedPersons,
-  personSelection,
-  setPersonSelection,
-  selectPerson,
+  infiniteInputs = false,
+  nextFocusTargetId,
+  checkCustomErrors,
   setErrorMessages,
   setSuccessMessage,
-  infiniteInputs = false,
 }: {
-  label: string;
+  title: string;
   personNames: string[];
-  setPersonNames: (value: string[]) => void;
+  setPersonNames: (val: string[]) => void;
   persons: IPerson[];
-  setPersons: (value: IPerson[]) => void;
-  // The null element represents the option "add new person"
-  matchedPersons: IPerson[];
-  setMatchedPersons: (value: IPerson[]) => void;
-  personSelection: number;
-  setPersonSelection: (value: number) => void;
-  selectPerson: (newSelectedPerson: IPerson, index: number) => void;
-  setErrorMessages: (value: string[]) => void;
-  setSuccessMessage?: (value: string) => void;
+  setPersons: (val: IPerson[]) => void;
   infiniteInputs?: boolean;
+  nextFocusTargetId?: string;
+  checkCustomErrors?: (newSelectedPerson: IPerson) => boolean;
+  setErrorMessages: (val: string[]) => void;
+  setSuccessMessage?: (val: string) => void;
 }) => {
+  // The null element represents the option "add new person"
+  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
+  const [personSelection, setPersonSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number>(null);
 
   const queryMatchedPersons = async (value: string) => {
@@ -68,26 +64,57 @@ const FormPersonInputs = ({
     if (inputValue) queryMatchedPersons(inputValue);
   };
 
+  // Returns true if an input was added
+  const addEmptyInput = (newPersonNames: string[], newPersons: IPerson[]): boolean => {
+    // Add new empty input if there isn't an empty one left
+    if (infiniteInputs && !newPersons.some((el) => el === null)) {
+      newPersonNames.push('');
+      newPersons.push(null);
+      return true;
+    }
+
+    return false;
+  };
+
   const changePersonName = (index: number, value: string) => {
     if (value) setFocusedInput(index);
     else setFocusedInput(null);
 
     // Update person name and reset the person object for that organizer
-    const newPersonNames = personNames.map((el, i) => (i !== index ? el : value));
-    const newPersons = persons.map((el, i) => (i !== index ? el : null));
+    const newPersonNames = personNames.map((el, i) => (i === index ? value : el));
+    // This is done so that setPersons is only called if one of the persons actually had to be reset to null
+    let personsUpdated = false;
+    const newPersons: IPerson[] = persons.map((el, i) => {
+      if (i === index) {
+        if (persons[i] !== null) personsUpdated = true;
+        return null;
+      }
+      return el;
+    });
 
-    // Add new empty input if there isn't an empty one left
-    if (infiniteInputs && !newPersons.some((el) => el === null)) {
-      newPersonNames.push('');
-      newPersons.push(null);
-    }
+    personsUpdated = addEmptyInput(newPersonNames, newPersons);
 
     setPersonNames(newPersonNames);
-    setPersons(newPersons);
+    if (personsUpdated) setPersons(newPersons);
     setErrorMessages([]);
     if (setSuccessMessage) setSuccessMessage('');
 
     queryMatchedPersons(value);
+  };
+
+  const focusNext = (newPersons: IPerson[], index: number) => {
+    setFocusedInput(null);
+    setMatchedPersons([null]);
+    setPersonSelection(0);
+    setErrorMessages([]);
+
+    // Focus on the first attempt input, if all names have been entered, or the next competitor input,
+    // if all names haven't been entered and the last competitor input is not currently focused
+    if (!newPersons.includes(null)) {
+      if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
+    } else if (index + 1 < persons.length) {
+      document.getElementById(`${title}_${index + 2}`)?.focus();
+    }
   };
 
   const onPersonKeyDown = async (index: number, e: any) => {
@@ -97,13 +124,28 @@ const FormPersonInputs = ({
       if (matchedPersons[personSelection] === null) {
         window.location.href = '/mod/person';
         setFocusedInput(null);
+      }
+      // 1, because there is always the "add new competitor" option at the end
+      else if (matchedPersons.length === 1) {
+        setErrorMessages(['Person not found']);
       } else {
-        // 1, because there is always the "add new competitor" option at the end
-        if (matchedPersons.length === 1) {
-          setErrorMessages(['Person not found']);
-        } else {
-          selectPerson(matchedPersons[personSelection], index);
-          setFocusedInput(null);
+        const newSelectedPerson = matchedPersons[personSelection];
+        const newPersonNames = personNames.map((el, i) => (i !== index ? el : newSelectedPerson.name));
+        const samePersonIndex = persons.findIndex((el) => el?.personId === newSelectedPerson.personId);
+
+        if (samePersonIndex >= 0) {
+          if (samePersonIndex !== index) {
+            setErrorMessages(['That competitor has already been selected']);
+          } else {
+            focusNext(persons, index);
+            setPersonNames(newPersonNames);
+          }
+        } else if (!checkCustomErrors || !checkCustomErrors(newSelectedPerson)) {
+          const newPersons = persons.map((el, i) => (i !== index ? el : newSelectedPerson));
+          setPersons(newPersons);
+          setPersonNames(newPersonNames);
+          addEmptyInput(newPersonNames, newPersons);
+          focusNext(newPersons, index);
         }
       }
     } else if (e.key === 'ArrowDown') {
@@ -128,8 +170,8 @@ const FormPersonInputs = ({
       {personNames.map((personName: string, i: number) => (
         <div key={i}>
           <FormTextInput
-            title={`${label} ${i + 1}`}
-            id={`${label}_${i + 1}`}
+            title={personNames.length > 1 ? `${title} ${i + 1}` : 'Competitor'}
+            id={`${title}_${i + 1}`}
             value={personName}
             setValue={(val: string) => changePersonName(i, val)}
             onKeyDown={(e: any) => onPersonKeyDown(i, e)}
@@ -137,7 +179,7 @@ const FormPersonInputs = ({
             onBlur={() => changeFocusedInput(null)}
           />
           {i === focusedInput && personName.trim() && (
-            <ul className="position-absolute list-group">
+            <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
               {matchedPersons.map((person: IPerson, index) =>
                 person !== null ? (
                   <li

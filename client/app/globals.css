@@ -12,3 +12,9 @@
     color: lightgray;
   }
 }
+
+/* This class is used by react datepicker */
+.react-datepicker-wrapper {
+  display: block;
+  width: 100%;
+}

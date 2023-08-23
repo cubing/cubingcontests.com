@@ -1,6 +1,5 @@
 'use client';
 
-import './CompetitionForm.css';
 import { useEffect, useMemo, useState } from 'react';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -57,8 +56,6 @@ const CompetitionForm = ({
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(1);
-  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
-  const [personSelection, setPersonSelection] = useState(0);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -340,32 +337,6 @@ const CompetitionForm = ({
     setName(value);
   };
 
-  const selectOrganizer = (newSelectedPerson: IPerson, index: number) => {
-    // Set the found organizer's name
-    const newOrganizerNames = organizerNames.map((el, i) => (i !== index ? el : newSelectedPerson.name));
-
-    if (organizers.some((el) => el?.personId === newSelectedPerson.personId)) {
-      setErrorMessages(['That competitor has already been selected']);
-    }
-    // If no errors, set the competitor object
-    else {
-      const newOrganizers = organizers.map((el, i) => (i !== index ? el : newSelectedPerson));
-
-      // Add new empty input if there isn't an empty one left
-      if (!newOrganizers.some((el) => el === null)) {
-        newOrganizerNames.push('');
-        newOrganizers.push(null);
-      }
-
-      setOrganizers(newOrganizers);
-      setErrorMessages([]);
-      setMatchedPersons([null]);
-      setPersonSelection(0);
-    }
-
-    setOrganizerNames(newOrganizerNames);
-  };
-
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
     const newCompetitionEvents = competitionEvents.map((event, i) =>
       i !== eventIndex
@@ -612,21 +583,23 @@ const CompetitionForm = ({
             <h5>Organizers</h5>
             <div className="my-3 pt-3 px-4 border rounded bg-body-tertiary">
               <FormPersonInputs
-                label="Organizer"
+                title="Organizer"
                 personNames={organizerNames}
                 setPersonNames={setOrganizerNames}
                 persons={organizers}
                 setPersons={setOrganizers}
-                matchedPersons={matchedPersons}
-                setMatchedPersons={setMatchedPersons}
-                personSelection={personSelection}
-                setPersonSelection={setPersonSelection}
-                selectPerson={selectOrganizer}
                 setErrorMessages={setErrorMessages}
                 infiniteInputs
+                nextFocusTargetId="contact"
               />
             </div>
-            <FormTextInput title="Contact" placeholder="john@example.com" value={contact} setValue={setContact} />
+            <FormTextInput
+              id="contact"
+              title="Contact"
+              placeholder="john@example.com"
+              value={contact}
+              setValue={setContact}
+            />
             <div className="mb-3">
               <label htmlFor="description" className="form-label">
                 Description (optional)
@@ -661,7 +634,7 @@ const CompetitionForm = ({
               </button>
               <div className="flex-grow-1">
                 <FormEventSelect
-                  label=""
+                  title=""
                   noMargin
                   events={remainingEvents}
                   eventId={newEventId}
@@ -747,7 +720,7 @@ const CompetitionForm = ({
               </div>
             ))}
             <FormEventSelect
-              label="Main Event"
+              title="Main Event"
               events={filteredEvents}
               eventId={mainEventId}
               setEventId={setMainEventId}

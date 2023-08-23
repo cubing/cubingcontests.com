@@ -25,7 +25,7 @@ const fetchData = async (
   }
 };
 
-const AdminHome = () => {
+const ModeratorDashboard = () => {
   const [role, setRole] = useState<Role>();
   const [competitions, setCompetitions] = useState<ICompetition[]>();
   const [personsTotal, setPersonsTotal] = useState<number>(null);
@@ -61,30 +61,49 @@ const AdminHome = () => {
 
   return (
     <>
-      <h2 className="text-center">Admin Home</h2>
+      <h2 className="text-center">Moderator Dashboard</h2>
       <button type="button" className="mt-4 btn btn-danger" style={{ width: 'max-content' }} onClick={logOut}>
         Log out
       </button>
-      <div className="d-flex flex-column gap-4 my-4 fs-5">
-        <Link href="/mod/competition">Create new contest</Link>
-        <Link href="/mod/person">Create new competitor</Link>
-        {role === Role.Admin && <Link href="/admin/record-types">Configure record types</Link>}
-        <div>
-          {personsTotal !== null && (
-            <p>
-              Competitors in DB: <b>{personsTotal}</b>
-            </p>
-          )}
-          {usersTotal !== null && (
-            <p>
-              Users in DB: <b>{usersTotal}</b>
-            </p>
-          )}
-          <p>
-            Number of contests: <b>{competitions ? competitions.length : '?'}</b>
-          </p>
-        </div>
+      <div className="my-4 d-flex gap-3 fs-5">
+        <Link href="/mod/competition">
+          <button type="button" className="btn btn-success">
+            Create new contest
+          </button>
+        </Link>
+        <Link href="/mod/person">
+          <button type="button" className="btn btn-success">
+            Add competitors
+          </button>
+        </Link>
+        {role === Role.Admin && (
+          <>
+            <Link href="/admin/result">
+              <button type="button" className="btn btn-success">
+                Submit result
+              </button>
+            </Link>
+            <Link href="/admin/record-types">
+              <button type="button" className="btn btn-secondary">
+                Configure record types
+              </button>
+            </Link>
+          </>
+        )}
       </div>
+      {personsTotal !== null && (
+        <p>
+          Competitors in DB: <b>{personsTotal}</b>
+        </p>
+      )}
+      {usersTotal !== null && (
+        <p>
+          Users in DB: <b>{usersTotal}</b>
+        </p>
+      )}
+      <p>
+        Number of contests: <b>{competitions ? competitions.length : '?'}</b>
+      </p>
       {competitions?.length > 0 ? (
         <CompetitionsTable
           competitions={competitions}
@@ -100,4 +119,4 @@ const AdminHome = () => {
   );
 };
 
-export default AdminHome;
+export default ModeratorDashboard;

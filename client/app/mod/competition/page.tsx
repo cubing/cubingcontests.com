@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import CompetitionForm from '@c/adminAndModerator/CompetitionForm';
 import { ICompetition, IEvent } from '@sh/interfaces';
-import Loading from '~/app/loading';
+import Loading from '@c/Loading';
 import { Role } from '~/shared_helpers/enums';
 import { getRole } from '~/helpers/utilityFunctions';
 
@@ -57,11 +57,9 @@ const CreateEditCompetition = () => {
         <CompetitionForm events={events} competition={competition} role={role} />
       </>
     );
-  } else if (errorMessages.length > 0) {
-    return <p className="mt-5 text-center fs-4">{errorMessages[0]}</p>;
   }
 
-  return <Loading />;
+  return <Loading errorMessages={errorMessages} />;
 };
 
 export default CreateEditCompetition;

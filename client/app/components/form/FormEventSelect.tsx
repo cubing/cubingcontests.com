@@ -3,14 +3,14 @@
 import { IEvent } from '@sh/interfaces';
 
 const FormEventSelect = ({
-  label = 'Event',
+  title = 'Event',
   noMargin = false,
   events,
   eventId,
   setEventId,
   disabled = false,
 }: {
-  label?: string;
+  title?: string;
   noMargin?: boolean;
   events: IEvent[];
   eventId: string;
@@ -19,9 +19,9 @@ const FormEventSelect = ({
 }) => {
   return (
     <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
-      {label && (
+      {title && (
         <label htmlFor="event_select" className="form-label">
-          {label}
+          {title}
         </label>
       )}
       <select

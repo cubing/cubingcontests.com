@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
 import PostResultsScreen from '@c/adminAndModerator/PostResultsScreen';
-import { ICompetitionModData } from '~/shared_helpers/interfaces';
-import Loading from '~/app/components/Loading';
+import { ICompetitionModData } from '@sh/interfaces';
+import Loading from '@c/Loading';
 
 const PostCompetitionResults = ({ params }: { params: { id: string } }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -19,11 +19,9 @@ const PostCompetitionResults = ({ params }: { params: { id: string } }) => {
 
   if (competitionData) {
     return <PostResultsScreen compData={competitionData} />;
-  } else if (errorMessages.length > 0) {
-    return <p className="mt-5 text-center fs-4">{errorMessages[0]}</p>;
   }
 
-  return <Loading />;
+  return <Loading errorMessages={errorMessages} />;
 };
 
 export default PostCompetitionResults;

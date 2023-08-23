@@ -65,23 +65,6 @@ export class CompetitionsService {
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
-  async onModuleInit() {
-    const results = await this.resultModel.find();
-
-    for (const r of results) {
-      if (r.personId) {
-        const personIds = r.personId.split(';').map((el: string) => parseInt(el));
-
-        console.log('Changing ID from', r.personId, 'to', personIds);
-
-        r.personId = undefined;
-        r.personIds = personIds;
-        console.log(r);
-        await r.save();
-      }
-    }
-  }
-
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
     const queryFilter: any = {
       state: { $gt: CompetitionState.Created },
@@ -166,7 +149,7 @@ export class CompetitionsService {
 
     // Get current records for this competition's events
     for (const compEvent of competition.events) {
-      compModData.records[compEvent.event.eventId] = await this.getEventRecords(
+      compModData.records[compEvent.event.eventId] = await this.resultsService.getEventRecords(
         compEvent.event.eventId,
         activeRecordTypes,
         new Date(competition.startDate),
@@ -515,8 +498,7 @@ export class CompetitionsService {
     for (const compEvent of newCompEvents) {
       const eventRounds: IRound[] = [];
       let sameDayRounds: IRound[] = [];
-      // These are set to null if there are no active record types
-      const records: any = await this.getEventRecords(compEvent.event.eventId, activeRecordTypes);
+      const records = await this.resultsService.getEventRecords(compEvent.event.eventId, activeRecordTypes);
       compEvent.rounds.sort((a: IRound, b: IRound) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       for (const round of compEvent.rounds) {
@@ -539,51 +521,19 @@ export class CompetitionsService {
     return output;
   }
 
-  async getEventRecords(
-    eventId: string,
-    activeRecordTypes: IRecordType[],
-    beforeDate: Date = null, // max date as default
-  ) {
-    // Returns null if no record types are active
-    if (activeRecordTypes.length === 0) return null;
-
-    // If a date wasn't passed, use max date, otherwise use the passed date at midnight to compare just the dates
-    if (!beforeDate) beforeDate = new Date(8640000000000000);
-    else beforeDate = getDateOnly(beforeDate);
-
-    const records: any = {};
-
-    // Go through all active record types
-    for (const rt of activeRecordTypes) {
-      const newRecords = { best: -1, average: -1 };
-
-      const singleResults = await this.resultsService.getEventSingleRecordResults(
-        eventId,
-        rt.wcaEquivalent,
-        beforeDate,
-      );
-      if (singleResults.length > 0) newRecords.best = singleResults[0].best;
-
-      const avgResults = await this.resultsService.getEventAverageRecordResults(eventId, rt.wcaEquivalent, beforeDate);
-      if (avgResults.length > 0) newRecords.average = avgResults[0].average;
-
-      records[rt.wcaEquivalent] = newRecords;
-    }
-
-    return records;
-  }
-
   // Sets the newly-set records in sameDayRounds using the information from records
   // (but only the active record types) and returns the rounds
   async setRecordsAndSaveResults(
     sameDayRounds: IRound[],
     activeRecordTypes: IRecordType[],
-    records: any,
+    records: any | null,
   ): Promise<IRound[]> {
+    if (records === null) return sameDayRounds;
+
     // Set records
     for (const rt of activeRecordTypes) {
       // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (rt.active && rt.wcaEquivalent === WcaRecordType.WR) {
+      if (rt.wcaEquivalent === WcaRecordType.WR) {
         sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.wcaEquivalent, true);
       }
     }

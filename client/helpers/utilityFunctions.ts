@@ -1,9 +1,10 @@
 import jwtDecode from 'jwt-decode';
 import Countries from '@sh/Countries';
-import { ICompetition, IEvent, IRound } from '@sh/interfaces';
+import { ICompetition, IEvent, IPerson, IRound } from '@sh/interfaces';
 import { roundFormats } from './roundFormats';
 import { Role, RoundFormat } from '~/shared_helpers/enums';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
+import IResultInfo from './interfaces/ResultInfo';
 
 export const getCountry = (countryIso2: string): string => {
   return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
@@ -52,11 +53,7 @@ const getResult = (time: string, event: IEvent): number => {
 };
 
 // Returns the best result, the average and the parsed attempts
-export const getBestAverageAndAttempts = (
-  attempts: string[],
-  round: IRound,
-  event: IEvent,
-): [number, number, number[]] => {
+export const getBestAverageAndAttempts = (attempts: string[], roundFormat: RoundFormat, event: IEvent): IResultInfo => {
   const parsedAttempts = attempts.map((el) => (el.trim() ? getResult(el, event) : -2));
   let best: number, average: number;
 
@@ -66,7 +63,7 @@ export const getBestAverageAndAttempts = (
 
   if (
     // No averages for rounds that don't support them
-    !getRoundCanHaveAverage(round, event) ||
+    !getRoundCanHaveAverage(roundFormat, event) ||
     // DNF average if there are multiple DNF/DNS results
     parsedAttempts.filter((el) => el <= 0).length > 1 ||
     // DNF average if there is a DNF/DNS in a Mo3
@@ -90,15 +87,15 @@ export const getBestAverageAndAttempts = (
     average = Math.round((sum / 3) * (event.eventId === '333fm' ? 100 : 1));
   }
 
-  return [best, average, parsedAttempts];
+  return { parsedAttempts, best, average };
 };
 
-export const getRoundCanHaveAverage = (round: IRound, event: IEvent): boolean => {
+export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
   // Multi-Blind rounds cannot have an average
   if (event.eventId === '333mbf') return false;
 
   // Bo1 and Bo2 rounds cannot have an average
-  const numberOfSolves = roundFormats[round.format].attempts;
+  const numberOfSolves = roundFormats[roundFormat].attempts;
   if (numberOfSolves < 3) return false;
 
   // If the round has a different number of attempts from the default event format, the round cannot have an average
@@ -107,8 +104,8 @@ export const getRoundCanHaveAverage = (round: IRound, event: IEvent): boolean =>
   return true;
 };
 
-export const getRoundRanksWithAverage = (round: IRound, event: IEvent): boolean => {
-  return getRoundCanHaveAverage(round, event) && [RoundFormat.Average, RoundFormat.Mean].includes(round.format);
+export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
+  return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
 };
 
 export const formatTime = (
@@ -163,4 +160,32 @@ export const getRole = (): Role => {
   else if (authorizedUser.roles.includes(Role.Moderator)) role = Role.Moderator;
 
   return role;
+};
+
+export const submitResult = (
+  attempts: string[],
+  roundFormat: RoundFormat,
+  event: IEvent,
+  persons: IPerson[],
+  setErrorMessages: (val: string[]) => void,
+  callback: (resultInfo: IResultInfo) => void,
+) => {
+  // Check for errors first
+  const errorMessages: string[] = [];
+
+  if (persons.includes(null)) {
+    errorMessages.push('Invalid person(s)');
+  }
+
+  for (let i = 0; i < attempts.length; i++) {
+    if (!attempts[i] || isNaN(Number(attempts[i]))) {
+      errorMessages.push(`Attempt ${i + 1} is invalid`);
+    }
+  }
+
+  if (errorMessages.length > 0) {
+    setErrorMessages(errorMessages);
+  } else {
+    callback(getBestAverageAndAttempts(attempts, roundFormat, event));
+  }
 };
