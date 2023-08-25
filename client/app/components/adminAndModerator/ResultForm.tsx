@@ -6,7 +6,7 @@ import FormTextInput from '../form/FormTextInput';
 import FormSelect from '../form/FormSelect';
 import FormPersonInputs from '../form/FormPersonInputs';
 import { ICompetitionEvent, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
-import { EventGroup, RoundFormat, RoundType } from '@sh/enums';
+import { RoundFormat, RoundType } from '@sh/enums';
 import { formatTime, getBestAverageAndAttempts, getRoundCanHaveAverage } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { roundFormats } from '~/helpers/roundFormats';
@@ -72,12 +72,14 @@ const ResultForm = ({
     if (attempts.length > 0) updateTempBestAndAverage(attempts);
   }, [persons]);
 
+  const nonNullPersons = persons.filter((el) => el !== null);
+
   useEffect(() => {
     // Focus the first empty competitor input
     if (persons.some((el) => el !== null)) {
       document.getElementById(`Competitor_${persons.findIndex((el) => el === null) + 1}`)?.focus();
     }
-  }, [persons.filter((el) => el !== null).length]);
+  }, [nonNullPersons.length]);
 
   const changeEvent = (newEventId: string) => {
     if (round) {

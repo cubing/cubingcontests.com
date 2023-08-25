@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from './FormTextInput';
-import { IPerson, IResult } from '@sh/interfaces';
+import { IPerson } from '@sh/interfaces';
 
 const MAX_MATCHES = 8;
 

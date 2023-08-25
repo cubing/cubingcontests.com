@@ -1,6 +1,6 @@
 import { compareAvgs, setNewRecords } from '@sh/sharedFunctions';
 import { IRecordPair, IResult } from '@sh/interfaces';
-import { WcaRecordType } from '../../client/shared_helpers/enums';
+import { WcaRecordType } from '@sh/enums';
 import {
   newCompetitionEventsStub,
   newFakeCompetitionEventsStub,

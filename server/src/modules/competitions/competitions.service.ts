@@ -18,7 +18,7 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { ICompetitionEvent, ICompetitionData, IResult, ICompetition, IRecordType } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionData, IResult, ICompetition } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import { Role } from '@sh/enums';

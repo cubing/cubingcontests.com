@@ -1,7 +1,6 @@
 import { compareAsc } from 'date-fns';
 import { WcaRecordType } from './enums';
-import { IRound, IResult } from './interfaces';
-import { IRecordPair } from './interfaces/Result';
+import { IRound, IResult, IRecordPair } from './interfaces';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.

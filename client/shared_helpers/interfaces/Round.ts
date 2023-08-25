@@ -1,4 +1,4 @@
-import { IResult } from './Result';
+import { IResult } from '../interfaces';
 import { RoundFormat, RoundType, RoundProceed } from '../enums';
 
 export interface IProceed {

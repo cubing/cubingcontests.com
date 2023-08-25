@@ -11,8 +11,8 @@ import { mockEventModel } from '../../events/tests/mocks/event.model';
 
 describe('RecordTypesService', () => {
   let recordTypesService: RecordTypesService;
-  let resultModel: Model<ResultDocument>;
-  let recordTypeModel: Model<RecordTypeDocument>;
+  // let resultModel: Model<ResultDocument>;
+  // let recordTypeModel: Model<RecordTypeDocument>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -34,8 +34,8 @@ describe('RecordTypesService', () => {
     }).compile();
 
     recordTypesService = module.get<RecordTypesService>(RecordTypesService);
-    resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
-    recordTypeModel = module.get<Model<RecordTypeDocument>>(getModelToken('RecordType'));
+    // resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
+    // recordTypeModel = module.get<Model<RecordTypeDocument>>(getModelToken('RecordType'));
   });
 
   it('should be defined', () => {

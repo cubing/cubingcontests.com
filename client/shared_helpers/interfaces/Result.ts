@@ -1,6 +1,5 @@
 import { WcaRecordType } from '../enums';
-import { IEvent } from './Event';
-import { IPerson } from './Person';
+import { IEvent, IPerson } from '../interfaces';
 
 export interface IResult {
   competitionId?: string; // not needed for submitted results

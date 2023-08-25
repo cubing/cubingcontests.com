@@ -1,5 +1,4 @@
-import { Color } from '@sh/enums';
-import { WcaRecordType } from '../enums';
+import { Color, WcaRecordType } from '../enums';
 
 export interface IRecordType {
   label: string;

@@ -1,10 +1,5 @@
-import { CompetitionType, CompetitionState, WcaRecordType } from '../enums';
-import { IEvent } from './Event';
-import { IRound } from './Round';
-import { IPerson } from './Person';
-import { ISchedule } from './Schedule';
-import { IRecordType } from './RecordType';
-import { IRecordPair } from './Result';
+import { CompetitionType, CompetitionState } from '../enums';
+import { IEvent, IRound, IPerson, ISchedule, IRecordType, IRecordPair } from '../interfaces';
 
 // IMPORTANT: when updating this interface, also update:
 //    (1) the create competition DTO (and update DTO,  if needed)
