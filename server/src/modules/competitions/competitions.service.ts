@@ -18,25 +18,12 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import {
-  ICompetitionEvent,
-  ICompetitionData,
-  ICompetitionModData,
-  IRound,
-  IResult,
-  IRecordType,
-  ICompetition,
-} from '@sh/interfaces';
-import { getDateOnly, setNewRecords } from '@sh/sharedFunctions';
-import { CompetitionState, CompetitionType, WcaRecordType } from '@sh/enums';
+import { ICompetitionEvent, ICompetitionData, IResult, ICompetition, IRecordType } from '@sh/interfaces';
+import { setNewRecords } from '@sh/sharedFunctions';
+import { CompetitionState, CompetitionType } from '@sh/enums';
 import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-
-interface ICompetitionUpdateResult {
-  events: ICompetitionEvent[];
-  participants: number;
-}
 
 const eventPopulateOptions = {
   event: { path: 'events.event', model: 'Event' },
@@ -108,55 +95,39 @@ export class CompetitionsService {
     }
   }
 
-  async getCompetition(competitionId: string): Promise<ICompetitionData> {
-    const competition = await this.getFullCompetition(competitionId);
+  async getCompetition(competitionId: string, user?: IPartialUser): Promise<ICompetitionData> {
+    const competition = await this.getFullCompetition(competitionId, user);
+    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-    // TEMPORARILY DISABLED until mod-only protection is added
-    // if (competition?.state > CompetitionState.Created) {
-
-    const output: ICompetitionData = {
-      competition,
-      persons: [],
-      activeRecordTypes: await this.recordTypesService.getRecordTypes({ active: true }),
-    };
-
-    // Get information about all participants and events of the competition if the results have been posted
     try {
-      if (competition.state >= CompetitionState.Ongoing) {
-        const personIds: number[] = this.getCompetitionParticipants(competition.events);
-        output.persons = await this.personsService.getPersonsById(personIds);
+      // TEMPORARILY DISABLED until mod-only protection is added
+      // if (competition?.state > CompetitionState.Created) {
+      const output: ICompetitionData = {
+        competition,
+        persons: await this.personsService.getPersonsById(this.getParticipants(competition.events)),
+        activeRecordTypes,
+      };
+
+      if (user) {
+        output.recordsByEvent = [];
+
+        // Get current records for this competition's events
+        for (const compEvent of competition.events) {
+          output.recordsByEvent.push({
+            eventId: compEvent.event.eventId,
+            recordPairs: await this.resultsService.getEventRecordPairs(
+              compEvent.event.eventId,
+              new Date(competition.startDate),
+              activeRecordTypes,
+            ),
+          });
+        }
       }
+
+      return output;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
-
-    return output;
-  }
-
-  async getModCompetition(competitionId: string, user: IPartialUser): Promise<ICompetitionModData> {
-    const competition = await this.getFullCompetition(competitionId, user);
-
-    const personIds: number[] = this.getCompetitionParticipants(competition.events);
-    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-
-    const compModData: ICompetitionModData = {
-      competition,
-      persons: await this.personsService.getPersonsById(personIds),
-      // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
-      records: {} as any,
-      activeRecordTypes,
-    };
-
-    // Get current records for this competition's events
-    for (const compEvent of competition.events) {
-      compModData.records[compEvent.event.eventId] = await this.resultsService.getEventRecords(
-        compEvent.event.eventId,
-        activeRecordTypes,
-        new Date(competition.startDate),
-      );
-    }
-
-    return compModData;
   }
 
   // Create new competition, if one with that id doesn't already exist (no results yet)
@@ -295,11 +266,8 @@ export class CompetitionsService {
       tempResults = (await this.resultModel.find({ competitionId }).exec()) as IResult[];
       await this.resultModel.deleteMany({ competitionId }).exec();
 
-      const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-
-      comp.participants = (
-        await this.updateCompetitionResults(updateCompetitionDto.events, activeRecordTypes)
-      ).participants;
+      comp.events = await this.updateCompetitionResults(updateCompetitionDto.events);
+      comp.participants = this.getParticipants(comp.events).length;
       comp.state = CompetitionState.Ongoing;
     } catch (err) {
       // Reset the results if there was an error while posting the results
@@ -399,22 +367,20 @@ export class CompetitionsService {
     };
   }
 
-  // This method must only be called when the event rounds have been populated
-  private getCompetitionParticipants(events: ICompetitionEvent[]): number[] {
+  getParticipants(compEvents: ICompetitionEvent[]): number[] {
     const personIds: number[] = [];
-    for (const event of events) {
-      for (const round of event.rounds) this.getParticipantsInRound(round, personIds);
-    }
-    return personIds;
-  }
 
-  // Adds new unique participants to the personIds array
-  private getParticipantsInRound(round: IRound, personIds: number[]): void {
-    for (const result of round.results) {
-      for (const personId of result.personIds) {
-        if (!personIds.includes(personId)) personIds.push(personId);
+    for (const event of compEvents) {
+      for (const round of event.rounds) {
+        for (const result of round.results) {
+          for (const personId of result.personIds) {
+            if (!personIds.includes(personId)) personIds.push(personId);
+          }
+        }
       }
     }
+
+    return personIds;
   }
 
   private async updateCompetitionEvents(
@@ -486,71 +452,25 @@ export class CompetitionsService {
   }
 
   // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)
-  async updateCompetitionResults(
-    newCompEvents: ICompetitionEvent[],
-    activeRecordTypes: IRecordType[],
-  ): Promise<ICompetitionUpdateResult> {
-    // output.events is for automated tests
-    const output: ICompetitionUpdateResult = { participants: 0, events: [] };
-    const personIds: number[] = []; // used for calculating the number of participants
-
+  async updateCompetitionResults(newCompEvents: ICompetitionEvent[]): Promise<CompetitionEvent[]> {
     // Save all results from every event and set new records, if there are any
     for (const compEvent of newCompEvents) {
-      const eventRounds: IRound[] = [];
-      let sameDayRounds: IRound[] = [];
-      const records = await this.resultsService.getEventRecords(compEvent.event.eventId, activeRecordTypes);
-      compEvent.rounds.sort((a: IRound, b: IRound) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const recordPairs = await this.resultsService.getEventRecordPairs(compEvent.event.eventId);
+      compEvent.rounds = setNewRecords(compEvent.rounds, recordPairs);
 
-      for (const round of compEvent.rounds) {
-        // Set the records from the last day, when the day changes
-        if (sameDayRounds.length > 0 && round.date !== sameDayRounds[0].date) {
-          eventRounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
-          sameDayRounds = [];
+      try {
+        for (const round of compEvent.rounds) {
+          const newResults = await this.resultModel.create(round.results);
+
+          await this.roundModel
+            .updateOne({ _id: (round as RoundDocument)._id }, { $set: { results: newResults } })
+            .exec();
         }
-        sameDayRounds.push(round);
-
-        this.getParticipantsInRound(round, personIds);
-      }
-
-      // Set the records for the last day of rounds
-      eventRounds.push(...(await this.setRecordsAndSaveResults(sameDayRounds, activeRecordTypes, records)));
-      output.events.push({ ...compEvent, rounds: eventRounds });
-    }
-
-    output.participants = personIds.length;
-    return output;
-  }
-
-  // Sets the newly-set records in sameDayRounds using the information from records
-  // (but only the active record types) and returns the rounds
-  async setRecordsAndSaveResults(
-    sameDayRounds: IRound[],
-    activeRecordTypes: IRecordType[],
-    records: any | null,
-  ): Promise<IRound[]> {
-    if (records === null) return sameDayRounds;
-
-    // Set records
-    for (const rt of activeRecordTypes) {
-      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (rt.wcaEquivalent === WcaRecordType.WR) {
-        sameDayRounds = setNewRecords(sameDayRounds, records[rt.wcaEquivalent], rt.wcaEquivalent, true);
+      } catch (err) {
+        throw new Error(`Error while creating rounds: ${err.message}`);
       }
     }
 
-    // Save results in the DB
-    try {
-      for (const round of sameDayRounds) {
-        const newResults = await this.resultModel.create(round.results);
-
-        await this.roundModel
-          .updateOne({ _id: (round as RoundDocument)._id }, { $set: { results: newResults } })
-          .exec();
-      }
-    } catch (err) {
-      throw new Error(`Error while creating rounds: ${err.message}`);
-    }
-
-    return sameDayRounds;
+    return newCompEvents as CompetitionEvent[];
   }
 }

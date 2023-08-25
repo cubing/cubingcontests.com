@@ -1,7 +1,7 @@
 import { RoundDocument } from '~/src/models/round.model';
 import { IRound } from '@sh/interfaces';
 
-export const mockRoundModel = (): any => ({
+export const RoundModelMock = (): any => ({
   create(round: IRound): RoundDocument {
     return round as RoundDocument;
   },

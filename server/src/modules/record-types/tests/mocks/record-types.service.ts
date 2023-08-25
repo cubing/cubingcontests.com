@@ -1,6 +1,6 @@
 import { recordTypesStub } from '../stubs/record-types.stub';
 
-export const RecordTypesServiceMock = (): any => ({
+export const RecordTypesServiceMock = () => ({
   async getRecordTypes(query: any) {
     let tempRecordTypes = recordTypesStub();
 

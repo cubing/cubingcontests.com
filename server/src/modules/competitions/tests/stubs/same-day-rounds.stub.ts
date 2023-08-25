@@ -17,8 +17,8 @@ export const sameDayBLDRoundsStub = (): RoundDocument[] => {
           personIds: [9],
           ranking: 1,
           attempts: [2202, 2960, 3037],
-          best: 2202, // better than previous WR, but not the best result of the day
-          average: 2733, // better than previous WR, but not the best result of the day
+          best: 2202, // better than previous WR, but not the best single of the day
+          average: 2733, // better than previous WR, but not the best average of the day
           regionalAverageRecord: WcaRecordType.WR,
         },
         {
@@ -29,7 +29,7 @@ export const sameDayBLDRoundsStub = (): RoundDocument[] => {
           ranking: 2,
           attempts: [2371, 2409, 2769],
           best: 2371,
-          average: 2516, // better than previous WR, but not the best result of the day
+          average: 2516, // better than previous WR, but not the best single of the day
         },
         {
           competitionId: 'BLDTestComp2023',

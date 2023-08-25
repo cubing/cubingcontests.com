@@ -5,8 +5,8 @@ import { ResultDocument } from '~/src/models/result.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { EventFormat, WcaRecordType } from '@sh/enums';
-import { IEventRecords, IRecordType } from '@sh/interfaces';
+import { WcaRecordType } from '@sh/enums';
+import { IEventRecords, IRecordType, IRecordPair, IResult } from '@sh/interfaces';
 import { compareAvgs, compareSingles, getDateOnly } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
@@ -20,6 +20,8 @@ export class ResultsService {
     @InjectModel('Result') private readonly model: Model<ResultDocument>,
   ) {}
 
+  // Gets the current records for the requested record type for all events.
+  // Includes person objects for each record, and includes all ties.
   async getRecords(wcaEquivalent: string): Promise<IEventRecords[]> {
     // Make sure the requested record type is valid
     if (
@@ -30,34 +32,33 @@ export class ResultsService {
       throw new BadRequestException(`Record type ${wcaEquivalent} does not exist`);
     }
 
-    const recordsByEvent: IEventRecords[] = [];
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+
+    if (!activeRecordTypes.some((el) => el.wcaEquivalent === wcaEquivalent)) {
+      throw new BadRequestException(`The record type ${wcaEquivalent} is inactive`);
+    }
+
+    const recordsByEvent: IEventRecords[] = [];
     const events = await this.eventsService.getEvents();
 
     for (const rt of activeRecordTypes) {
       for (const event of events) {
         const newRecordByEvent: IEventRecords = { event, bestRecords: [], avgRecords: [] };
 
-        const bestResults = await this.getEventSingleRecordResults(event.eventId, rt.wcaEquivalent);
+        const [singleResults, averageResults] = await this.getEventRecordResults(event.eventId, rt.wcaEquivalent);
 
-        for (const result of bestResults) {
+        for (const result of singleResults) {
           newRecordByEvent.bestRecords.push({
             result,
             persons: await this.personsService.getPersonsById(result.personIds),
           });
         }
 
-        if (event.format !== EventFormat.Multi) {
-          const averageResults = await this.getEventAverageRecordResults(event.eventId, rt.wcaEquivalent);
-
-          for (const result of averageResults) {
-            newRecordByEvent.avgRecords.push({
-              result,
-              persons: await this.personsService.getPersonsById(result.personIds),
-            });
-          }
-        } else {
-          newRecordByEvent.avgRecords = [];
+        for (const result of averageResults) {
+          newRecordByEvent.avgRecords.push({
+            result,
+            persons: await this.personsService.getPersonsById(result.personIds),
+          });
         }
 
         if (newRecordByEvent.bestRecords.length > 0 || newRecordByEvent.avgRecords.length > 0) {
@@ -69,66 +70,40 @@ export class ResultsService {
     return recordsByEvent;
   }
 
-  async getEventSingleRecordResults(
-    eventId: string,
-    wcaEquivalent: WcaRecordType,
-    beforeDate: Date = null,
-  ): Promise<ResultDocument[]> {
-    const queryFilter: any = { eventId, regionalSingleRecord: wcaEquivalent, compNotPublished: { $exists: false } };
-    if (beforeDate) queryFilter.date = { $lt: beforeDate };
-
-    // Get most recent result with a single record
-    const [bestSingleResult] = await this.model.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
-
-    // If there haven't been any single records set for this event, return empty array
-    if (!bestSingleResult) return [];
-
-    queryFilter.best = bestSingleResult.best;
-
-    // Get all of the single record results that tie the same single, with the oldest at the top
-    const results = await this.model.find(queryFilter, excl).sort({ date: 1 }).exec();
-
-    return results;
-  }
-
-  async getEventAverageRecordResults(
-    eventId: string,
-    wcaEquivalent: WcaRecordType,
-    beforeDate: Date = null,
-  ): Promise<ResultDocument[]> {
-    const queryFilter: any = { eventId, regionalAverageRecord: wcaEquivalent, compNotPublished: { $exists: false } };
-    if (beforeDate) queryFilter.date = { $lt: beforeDate };
-
-    // Get most recent result with an average record
-    const [bestAvgResult] = await this.model.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
-
-    // If there haven't been any average records set for this event, return empty array
-    if (!bestAvgResult) return [];
-
-    queryFilter.average = bestAvgResult.average;
-
-    // Get all of the average record results that tie the same average, with the oldest at the top
-    const results = await this.model.find(queryFilter).sort({ date: 1 }).exec();
-
-    return results;
-  }
-
   async createResult(createResultDto: CreateResultDto) {
     try {
-      // The date is passed in as an ISO date string
-      createResultDto.date = new Date(createResultDto.date);
+      // The date is passed in as an ISO date string and may include time too, so the time must be removed
+      createResultDto.date = getDateOnly(new Date(createResultDto.date));
 
-      const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-      const records = await this.getEventRecords(createResultDto.eventId, activeRecordTypes, createResultDto.date);
+      const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
 
-      for (const rt of activeRecordTypes) {
+      for (const recordPair of recordPairs) {
         // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (rt.wcaEquivalent === WcaRecordType.WR) {
-          if (createResultDto.best > 0 && compareSingles(createResultDto, records[rt.wcaEquivalent]) <= 0) {
-            createResultDto.regionalSingleRecord = rt.wcaEquivalent;
+        if (recordPair.wcaEquivalent === WcaRecordType.WR) {
+          const comparisonToRecordSingle = compareSingles(createResultDto, { best: recordPair.best } as IResult);
+
+          if (createResultDto.best > 0 && comparisonToRecordSingle <= 0) {
+            createResultDto.regionalSingleRecord = recordPair.wcaEquivalent;
+
+            // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
+
+            // Remove records that came AFTER the new result (or on the same day), if they were worse
+            await this.model.updateMany(
+              { date: { $gte: createResultDto.date }, best: { $gt: createResultDto.best } },
+              { $unset: { regionalSingleRecord: '' } },
+            );
           }
-          if (createResultDto.average > 0 && compareAvgs(createResultDto, records[rt.wcaEquivalent], true) <= 0) {
-            createResultDto.regionalAverageRecord = rt.wcaEquivalent;
+
+          const comparisonToRecordAvg = compareAvgs(createResultDto, { average: recordPair.average } as IResult, true);
+
+          if (createResultDto.average > 0 && comparisonToRecordAvg <= 0) {
+            createResultDto.regionalAverageRecord = recordPair.wcaEquivalent;
+
+            // Remove records that came AFTER the new result (or on the same day), if they were worse
+            await this.model.updateMany(
+              { date: { $gte: createResultDto.date }, average: { $gt: createResultDto.average } },
+              { $unset: { regionalAverageRecord: '' } },
+            );
           }
         }
       }
@@ -143,33 +118,86 @@ export class ResultsService {
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
-  // Returns null if no record types are active
-  async getEventRecords(
+  async getEventRecordPairs(
     eventId: string,
-    activeRecordTypes: IRecordType[],
-    beforeDate: Date = null, // max date as default
-  ) {
-    if (activeRecordTypes.length === 0) return null;
+    beforeDate?: Date,
+    activeRecordTypes?: IRecordType[],
+  ): Promise<IRecordPair[]> {
+    if (!activeRecordTypes) activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-    // If a date wasn't passed, use max date, otherwise use the passed date at midnight to compare just the dates
+    // If beforeDate is undefined, use max date, otherwise get the date only (ignore time)
     if (!beforeDate) beforeDate = new Date(8640000000000000);
     else beforeDate = getDateOnly(beforeDate);
 
-    const records: any = {};
+    const recordPairs: IRecordPair[] = [];
 
     // Go through all active record types
     for (const rt of activeRecordTypes) {
-      const newRecords = { best: -1, average: -1 };
+      const recordPair: IRecordPair = { wcaEquivalent: rt.wcaEquivalent, best: -1, average: -1 };
 
-      const singleResults = await this.getEventSingleRecordResults(eventId, rt.wcaEquivalent, beforeDate);
-      if (singleResults.length > 0) newRecords.best = singleResults[0].best;
+      const [singleRecord] = await this.model
+        .find({ eventId, best: { $gt: 0 }, date: { $lt: beforeDate } })
+        .sort({ best: 1 })
+        .limit(1)
+        .exec();
 
-      const avgResults = await this.getEventAverageRecordResults(eventId, rt.wcaEquivalent, beforeDate);
-      if (avgResults.length > 0) newRecords.average = avgResults[0].average;
+      if (singleRecord) recordPair.best = singleRecord.best;
 
-      records[rt.wcaEquivalent] = newRecords;
+      const [avgRecord] = await this.model
+        .find({ eventId, average: { $gt: 0 }, date: { $lt: beforeDate } })
+        .sort({ average: 1 })
+        .limit(1)
+        .exec();
+
+      if (avgRecord) recordPair.average = avgRecord.average;
+
+      recordPairs.push(recordPair);
     }
 
-    return records;
+    return recordPairs;
+  }
+
+  // Returns array of single record results (all ties) and array of average record results (all ties)
+  async getEventRecordResults(
+    eventId: string,
+    wcaEquivalent: WcaRecordType,
+    beforeDate: Date = null,
+  ): Promise<[ResultDocument[], ResultDocument[]]> {
+    const output: [ResultDocument[], ResultDocument[]] = [[], []];
+    const queryFilter: any = {
+      eventId,
+      regionalSingleRecord: wcaEquivalent,
+      compNotPublished: { $exists: false },
+    };
+
+    if (beforeDate) queryFilter.date = { $lt: beforeDate };
+
+    try {
+      // Get most recent result with a single record
+      const [singleRecordResult] = await this.model.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
+
+      // If found, get all tied record results, with the oldest at the top
+      if (singleRecordResult) {
+        queryFilter.best = singleRecordResult.best;
+        output[0] = await this.model.find(queryFilter, excl).sort({ date: 1 }).exec();
+      }
+
+      delete queryFilter.regionalSingleRecord;
+      delete queryFilter.best;
+      queryFilter.regionalAverageRecord = wcaEquivalent;
+
+      // Get most recent result with an average record
+      const [avgRecordResult] = await this.model.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
+
+      // If found, get all tied record results, with the oldest at the top
+      if (avgRecordResult) {
+        queryFilter.average = avgRecordResult.average;
+        output[1] = await this.model.find(queryFilter, excl).sort({ date: 1 }).exec();
+      }
+
+      return output;
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
   }
 }

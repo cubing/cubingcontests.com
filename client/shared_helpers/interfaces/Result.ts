@@ -1,3 +1,4 @@
+import { WcaRecordType } from '../enums';
 import { IEvent } from './Event';
 import { IPerson } from './Person';
 
@@ -19,6 +20,7 @@ export interface IResult {
   videoLink?: string; // only used for submission-based events
 }
 
+// Used for storing all records (including ties) for a specific record type and event
 export interface IEventRecords {
   event: IEvent;
   bestRecords: {
@@ -29,4 +31,11 @@ export interface IEventRecords {
     result: IResult;
     persons: IPerson[];
   }[];
+}
+
+// Used for storing just the single/average record pairs for all record types for a specific event
+export interface IRecordPair {
+  wcaEquivalent: WcaRecordType;
+  best: number;
+  average: number;
 }

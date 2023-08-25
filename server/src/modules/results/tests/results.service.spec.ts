@@ -5,13 +5,13 @@ import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { WcaRecordType } from '@sh/enums';
+import { IEventRecords } from '@sh/interfaces';
 
 // Mocks and stubs
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
 import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
-import { mockResultModel } from '@m/results/tests/mocks/result.model';
-import { IEventRecords } from '@sh/interfaces';
+import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 
 describe('ResultsService', () => {
   let resultsService: ResultsService;
@@ -34,7 +34,7 @@ describe('ResultsService', () => {
         },
         {
           provide: getModelToken('Result'),
-          useFactory: mockResultModel,
+          useFactory: ResultModelMock,
         },
       ],
     }).compile();

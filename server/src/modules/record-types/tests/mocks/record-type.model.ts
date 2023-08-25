@@ -1,7 +1,7 @@
 import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { recordTypesStub } from '../stubs/record-types.stub';
 
-export const mockRecordTypeModel = (): any => ({
+export const RecordTypeModelMock = (): any => ({
   tempOutput: undefined,
   create: jest.fn(),
   updateOne() {

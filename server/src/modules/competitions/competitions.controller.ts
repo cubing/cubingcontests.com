@@ -50,7 +50,7 @@ export class CompetitionsController {
   @Roles(Role.Admin, Role.Moderator)
   async getModCompetition(@Param('id') competitionId: string, @Request() req: any) {
     console.log(`Getting contest with id ${competitionId} with moderator info`);
-    return await this.service.getModCompetition(competitionId, req.user);
+    return await this.service.getCompetition(competitionId, req.user);
   }
 
   // POST /competitions

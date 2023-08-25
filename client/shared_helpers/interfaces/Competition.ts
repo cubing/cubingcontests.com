@@ -1,9 +1,10 @@
-import { CompetitionType, CompetitionState } from '../enums';
+import { CompetitionType, CompetitionState, WcaRecordType } from '../enums';
 import { IEvent } from './Event';
 import { IRound } from './Round';
 import { IPerson } from './Person';
 import { ISchedule } from './Schedule';
 import { IRecordType } from './RecordType';
+import { IRecordPair } from './Result';
 
 // IMPORTANT: when updating this interface, also update:
 //    (1) the create competition DTO (and update DTO,  if needed)
@@ -50,20 +51,14 @@ export interface ICompetitionDetails {
   schedule: ISchedule; // stored as a reference
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
 // COMPETITION DATA (just used for sending full competition information to the frontend)
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
 export interface ICompetitionData {
   competition: ICompetition;
   persons: IPerson[]; // info about competitors from THIS competition
   activeRecordTypes: IRecordType[];
-}
-
-export interface ICompetitionModData {
-  competition: ICompetition;
-  persons: IPerson[]; // info about competitors from THIS competition
-  // This is DIFFERENT from the output of getEventRecords(), because this holds records for ALL events
-  records: any;
-  activeRecordTypes: IRecordType[];
+  // Only set if competition data is requested by a moderator
+  recordsByEvent?: {
+    eventId: string;
+    recordPairs: IRecordPair[];
+  }[];
 }

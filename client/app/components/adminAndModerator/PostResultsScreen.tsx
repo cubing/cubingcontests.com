@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ICompetitionEvent, ICompetitionModData, IResult, IPerson, IRound } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound } from '@sh/interfaces';
 import RoundResultsTable from '@c/RoundResultsTable';
 import myFetch from '~/helpers/myFetch';
-import { WcaRecordType, CompetitionState } from '@sh/enums';
+import { CompetitionState } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
 import { getRoundRanksWithAverage, formatTime, submitResult } from '~/helpers/utilityFunctions';
@@ -13,9 +13,9 @@ import IResultInfo from '~/helpers/interfaces/ResultInfo';
 import ErrorMessages from '../ErrorMessages';
 
 const PostResultsScreen = ({
-  compData: { competition, persons: prevPersons, records, activeRecordTypes },
+  compData: { competition, persons: prevPersons, activeRecordTypes, recordsByEvent },
 }: {
-  compData: ICompetitionModData;
+  compData: ICompetitionData;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
@@ -33,14 +33,14 @@ const PostResultsScreen = ({
 
   useEffect(() => {
     console.log('Competition:', competition);
-    console.log('Records:', records);
+    console.log('Records:', recordsByEvent);
 
     if (competition.state < CompetitionState.Approved) {
       setErrorMessages(["This competition hasn't been approved yet. Submitting results is disabled."]);
     } else if (competition.state >= CompetitionState.Finished) {
       setErrorMessages(['This competition is over. Submitting results is disabled.']);
     }
-  }, [competition, records]);
+  }, [competition, recordsByEvent]);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
@@ -114,24 +114,18 @@ const PostResultsScreen = ({
   };
 
   const updateRoundAndCompetitionEvents = (newRound: IRound) => {
-    const updateEventRecords = (rounds: IRound[]): IRound[] => {
-      // Check for new records
-      for (const rt of activeRecordTypes) {
-        // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (rt && rt.wcaEquivalent === WcaRecordType.WR) {
-          rounds = setNewRecords(rounds, records[rounds[0].roundId.split('-')[0]][rt.wcaEquivalent], rt.wcaEquivalent);
-        }
-      }
-
-      return rounds;
-    };
+    const newEventId = newRound.roundId.split('-')[0];
+    const recordPairs = recordsByEvent.find((el) => el.eventId === newEventId).recordPairs;
 
     const newCompetitionEvents = competitionEvents.map((ce) =>
-      ce.event.eventId !== newRound.roundId.split('-')[0]
+      ce.event.eventId !== newEventId
         ? ce
         : {
             ...ce,
-            rounds: updateEventRecords(ce.rounds.map((r) => (r.roundTypeId !== newRound.roundTypeId ? r : newRound))),
+            rounds: setNewRecords(
+              ce.rounds.map((r) => (r.roundTypeId !== newRound.roundTypeId ? r : newRound)),
+              recordPairs,
+            ),
           },
     );
 

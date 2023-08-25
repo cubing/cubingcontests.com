@@ -11,8 +11,7 @@ import { IEvent, IPerson, IResult } from '~/shared_helpers/interfaces';
 import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import { submitResult } from '~/helpers/utilityFunctions';
-import { EventGroup, RoundFormat } from '~/shared_helpers/enums';
-import { getDateOnly } from '~/shared_helpers/sharedFunctions';
+import { RoundFormat } from '~/shared_helpers/enums';
 import { roundFormats } from '~/helpers/roundFormats';
 
 registerLocale('en-GB', enGB);
@@ -56,7 +55,7 @@ const SubmitResult = () => {
       async ({ parsedAttempts, best, average }) => {
         const newResult: IResult = {
           eventId: event.eventId,
-          date: getDateOnly(date),
+          date,
           personIds: competitors.map((el) => el.personId),
           attempts: parsedAttempts,
           best,

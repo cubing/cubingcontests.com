@@ -2,7 +2,7 @@ import { ResultDocument } from '~/src/models/result.model';
 import { IResult } from '@sh/interfaces';
 import { resultsStub } from '../stubs/results.stub';
 
-export const mockResultModel = (): any => ({
+export const ResultModelMock = (): any => ({
   tempOutput: undefined,
   create(results: IResult | IResult[]): ResultDocument | ResultDocument[] {
     if (Array.isArray(results)) {
