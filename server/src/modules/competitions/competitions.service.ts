@@ -109,19 +109,11 @@ export class CompetitionsService {
       };
 
       if (user) {
-        output.recordsByEvent = [];
-
-        // Get current records for this competition's events
-        for (const compEvent of competition.events) {
-          output.recordsByEvent.push({
-            eventId: compEvent.event.eventId,
-            recordPairs: await this.resultsService.getEventRecordPairs(
-              compEvent.event.eventId,
-              new Date(competition.startDate),
-              activeRecordTypes,
-            ),
-          });
-        }
+        output.recordPairsByEvent = await this.resultsService.getRecordPairs(
+          competition.events.map((el) => el.event.eventId),
+          competition.startDate,
+          activeRecordTypes,
+        );
       }
 
       return output;

@@ -6,8 +6,8 @@ import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { WcaRecordType } from '@sh/enums';
-import { IEventRecords, IRecordType, IRecordPair, IResult } from '@sh/interfaces';
-import { compareAvgs, compareSingles, getDateOnly } from '@sh/sharedFunctions';
+import { IEventRecords, IRecordType, IRecordPair, IEventRecordPairs, IResultsSubmissionInfo } from '@sh/interfaces';
+import { getDateOnly, setNewRecordsForResult } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 
@@ -70,6 +70,21 @@ export class ResultsService {
     return recordsByEvent;
   }
 
+  async getSubmissionInfo(beforeDate: Date): Promise<IResultsSubmissionInfo> {
+    const submissionBasedEvents = await this.eventsService.getSubmissionBasedEvents();
+    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+
+    return {
+      events: submissionBasedEvents,
+      recordPairsByEvent: await this.getRecordPairs(
+        submissionBasedEvents.map((el) => el.eventId),
+        beforeDate,
+        activeRecordTypes,
+      ),
+      activeRecordTypes,
+    };
+  }
+
   async createResult(createResultDto: CreateResultDto) {
     try {
       // The date is passed in as an ISO date string and may include time too, so the time must be removed
@@ -77,38 +92,21 @@ export class ResultsService {
 
       const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
 
-      for (const recordPair of recordPairs) {
-        // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (recordPair.wcaEquivalent === WcaRecordType.WR) {
-          const comparisonToRecordSingle = compareSingles(createResultDto, { best: recordPair.best } as IResult);
+      await this.model.create(setNewRecordsForResult(createResultDto, recordPairs));
 
-          if (createResultDto.best > 0 && comparisonToRecordSingle <= 0) {
-            createResultDto.regionalSingleRecord = recordPair.wcaEquivalent;
+      // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
 
-            // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
+      // Remove records that came AFTER the new result (or on the same day), if they were worse
+      await this.model.updateMany(
+        { date: { $gte: createResultDto.date }, best: { $gt: createResultDto.best } },
+        { $unset: { regionalSingleRecord: '' } },
+      );
 
-            // Remove records that came AFTER the new result (or on the same day), if they were worse
-            await this.model.updateMany(
-              { date: { $gte: createResultDto.date }, best: { $gt: createResultDto.best } },
-              { $unset: { regionalSingleRecord: '' } },
-            );
-          }
-
-          const comparisonToRecordAvg = compareAvgs(createResultDto, { average: recordPair.average } as IResult, true);
-
-          if (createResultDto.average > 0 && comparisonToRecordAvg <= 0) {
-            createResultDto.regionalAverageRecord = recordPair.wcaEquivalent;
-
-            // Remove records that came AFTER the new result (or on the same day), if they were worse
-            await this.model.updateMany(
-              { date: { $gte: createResultDto.date }, average: { $gt: createResultDto.average } },
-              { $unset: { regionalAverageRecord: '' } },
-            );
-          }
-        }
-      }
-
-      await this.model.create(createResultDto);
+      // Remove records that came AFTER the new result (or on the same day), if they were worse
+      await this.model.updateMany(
+        { date: { $gte: createResultDto.date }, average: { $gt: createResultDto.average } },
+        { $unset: { regionalAverageRecord: '' } },
+      );
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -133,25 +131,29 @@ export class ResultsService {
 
     // Go through all active record types
     for (const rt of activeRecordTypes) {
-      const recordPair: IRecordPair = { wcaEquivalent: rt.wcaEquivalent, best: -1, average: -1 };
+      try {
+        const recordPair: IRecordPair = { wcaEquivalent: rt.wcaEquivalent, best: -1, average: -1 };
 
-      const [singleRecord] = await this.model
-        .find({ eventId, best: { $gt: 0 }, date: { $lt: beforeDate } })
-        .sort({ best: 1 })
-        .limit(1)
-        .exec();
+        const [singleRecord] = await this.model
+          .find({ eventId, best: { $gt: 0 }, date: { $lt: beforeDate } })
+          .sort({ best: 1 })
+          .limit(1)
+          .exec();
 
-      if (singleRecord) recordPair.best = singleRecord.best;
+        if (singleRecord) recordPair.best = singleRecord.best;
 
-      const [avgRecord] = await this.model
-        .find({ eventId, average: { $gt: 0 }, date: { $lt: beforeDate } })
-        .sort({ average: 1 })
-        .limit(1)
-        .exec();
+        const [avgRecord] = await this.model
+          .find({ eventId, average: { $gt: 0 }, date: { $lt: beforeDate } })
+          .sort({ average: 1 })
+          .limit(1)
+          .exec();
 
-      if (avgRecord) recordPair.average = avgRecord.average;
+        if (avgRecord) recordPair.average = avgRecord.average;
 
-      recordPairs.push(recordPair);
+        recordPairs.push(recordPair);
+      } catch (err) {
+        throw new InternalServerErrorException(`Error while getting ${rt.wcaEquivalent} record pair`);
+      }
     }
 
     return recordPairs;
@@ -199,5 +201,26 @@ export class ResultsService {
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
+  }
+
+  // Gets record pairs for multiple events
+  async getRecordPairs(
+    eventIds: string[],
+    beforeDate: Date,
+    activeRecordTypes: IRecordType[],
+  ): Promise<IEventRecordPairs[]> {
+    if (!eventIds) eventIds = (await this.eventsService.getEvents()).map((el) => el.eventId);
+
+    const recordPairsByEvent: IEventRecordPairs[] = [];
+
+    // Get current records for this competition's events
+    for (const eventId of eventIds) {
+      recordPairsByEvent.push({
+        eventId,
+        recordPairs: await this.getEventRecordPairs(eventId, beforeDate, activeRecordTypes),
+      });
+    }
+
+    return recordPairsByEvent;
   }
 }

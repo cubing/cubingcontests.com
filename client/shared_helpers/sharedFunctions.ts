@@ -129,6 +129,28 @@ export const setNewRecords = (rounds: IRound[], recordPairs: IRecordPair[]): IRo
   return rounds;
 };
 
+// IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
+export const setNewRecordsForResult = (result: IResult, recordPairs: IRecordPair[]): IResult => {
+  for (const recordPair of recordPairs) {
+    // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if (recordPair.wcaEquivalent === WcaRecordType.WR) {
+      const comparisonToRecordSingle = compareSingles(result, { best: recordPair.best } as IResult);
+
+      if (result.best > 0 && comparisonToRecordSingle <= 0) {
+        result.regionalSingleRecord = recordPair.wcaEquivalent;
+      }
+
+      const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
+
+      if (result.average > 0 && comparisonToRecordAvg <= 0) {
+        result.regionalAverageRecord = recordPair.wcaEquivalent;
+      }
+    }
+  }
+
+  return result;
+};
+
 export const getDateOnly = (date: Date): Date => {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };

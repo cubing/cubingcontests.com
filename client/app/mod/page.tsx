@@ -78,9 +78,9 @@ const ModeratorDashboard = () => {
         </Link>
         {role === Role.Admin && (
           <>
-            <Link href="/admin/result">
+            <Link href="/admin/submit-results">
               <button type="button" className="btn btn-success">
-                Submit result
+                Submit results
               </button>
             </Link>
             <Link href="/admin/record-types">

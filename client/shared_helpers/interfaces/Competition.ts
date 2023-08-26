@@ -1,5 +1,5 @@
 import { CompetitionType, CompetitionState } from '../enums';
-import { IEvent, IRound, IPerson, ISchedule, IRecordType, IRecordPair } from '../interfaces';
+import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } from '../interfaces';
 
 // IMPORTANT: when updating this interface, also update:
 //    (1) the create competition DTO (and update DTO,  if needed)
@@ -51,9 +51,5 @@ export interface ICompetitionData {
   competition: ICompetition;
   persons: IPerson[]; // info about competitors from THIS competition
   activeRecordTypes: IRecordType[];
-  // Only set if competition data is requested by a moderator
-  recordsByEvent?: {
-    eventId: string;
-    recordPairs: IRecordPair[];
-  }[];
+  recordPairsByEvent?: IEventRecordPairs[]; // only set if competition data is requested by a moderator
 }

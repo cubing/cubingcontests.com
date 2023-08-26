@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import enGB from 'date-fns/locale/en-GB';
 import Loading from '@c/Loading';
 import Form from '@c/form/Form';
 import myFetch from '~/helpers/myFetch';
-import { IEvent, IPerson, IResult } from '~/shared_helpers/interfaces';
+import { IEvent, IPerson, IResult, IResultsSubmissionInfo } from '~/shared_helpers/interfaces';
 import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import { submitResult } from '~/helpers/utilityFunctions';
@@ -17,8 +17,8 @@ import { roundFormats } from '~/helpers/roundFormats';
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
 
-const SubmitResult = () => {
-  const [submissionBasedEvents, setSubmissionBasedEvents] = useState<IEvent[]>();
+const SubmitResults = () => {
+  const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -29,14 +29,16 @@ const SubmitResult = () => {
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');
 
+  const recordPairs = useMemo(
+    () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
+    [resultsSubmissionInfo, event],
+  );
+
   useEffect(() => {
-    myFetch.get('/events?submission_based=true').then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else {
-        setSubmissionBasedEvents(payload as IEvent[]);
-        setEvent(payload[0]);
-        setRoundFormat(payload[0].defaultRoundFormat);
-      }
+    fetchSubmissionInfo(date, (payload: IResultsSubmissionInfo) => {
+      setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+      setEvent(payload.events[0]);
+      setRoundFormat(payload.events[0].defaultRoundFormat);
     });
   }, []);
 
@@ -45,6 +47,19 @@ const SubmitResult = () => {
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
+  const fetchSubmissionInfo = async (recordsBefore: Date, callback: (payload: IResultsSubmissionInfo) => void) => {
+    const { payload, errors } = await myFetch.get(`/results/submission-info?records_before=${recordsBefore}`, {
+      authorize: true,
+    });
+
+    if (errors) setErrorMessages(errors);
+    else {
+      console.log(payload);
+      setErrorMessages([]);
+      callback(payload);
+    }
+  };
+
   const handleSubmit = async () => {
     submitResult(
       attempts,
@@ -52,6 +67,7 @@ const SubmitResult = () => {
       event,
       competitors,
       setErrorMessages,
+      setSuccessMessage,
       async ({ parsedAttempts, best, average }) => {
         const newResult: IResult = {
           eventId: event.eventId,
@@ -68,7 +84,6 @@ const SubmitResult = () => {
         if (errors) {
           setErrorMessages(errors);
         } else {
-          setErrorMessages([]);
           setSuccessMessage('Successfully submitted');
           setVideoLink('');
           setCompetitors(Array(event.participants || 1).fill(null));
@@ -80,7 +95,21 @@ const SubmitResult = () => {
     );
   };
 
-  if (submissionBasedEvents) {
+  const changeDate = (newDate: Date) => {
+    fetchSubmissionInfo(newDate, (payload: IResultsSubmissionInfo) => {
+      setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+      setDate(newDate);
+    });
+  };
+
+  const onVideoLinkKeyDown = (e: any) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('form_submit_button').focus();
+    }
+  };
+
+  if (resultsSubmissionInfo) {
     return (
       <>
         <h2 className="text-center">Submit Result</h2>
@@ -93,16 +122,26 @@ const SubmitResult = () => {
           <ResultForm
             event={event}
             setEvent={setEvent}
-            events={submissionBasedEvents}
+            events={resultsSubmissionInfo.events}
             persons={competitors}
             setPersons={setCompetitors}
             attempts={attempts}
             setAttempts={setAttempts}
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
+            recordPairs={recordPairs}
+            recordTypes={resultsSubmissionInfo.activeRecordTypes}
             nextFocusTargetId="video_link"
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
+          />
+          <FormTextInput
+            id="video_link"
+            title="Link to video"
+            placeholder="https://youtube.com/watch?v=xyz"
+            value={videoLink}
+            setValue={setVideoLink}
+            onKeyDown={onVideoLinkKeyDown}
           />
           <div className="mb-3">
             <label htmlFor="start_date" className="d-block form-label">
@@ -112,17 +151,10 @@ const SubmitResult = () => {
               selected={date}
               dateFormat="P"
               locale="en-GB"
-              onChange={(date: Date) => setDate(date)}
+              onChange={(date: Date) => changeDate(date)}
               className="form-control"
             />
           </div>
-          <FormTextInput
-            id="video_link"
-            title="Link to video"
-            placeholder="https://youtube.com/watch?v=xyz"
-            value={videoLink}
-            setValue={setVideoLink}
-          />
         </Form>
       </>
     );
@@ -131,4 +163,4 @@ const SubmitResult = () => {
   return <Loading errorMessages={errorMessages} />;
 };
 
-export default SubmitResult;
+export default SubmitResults;

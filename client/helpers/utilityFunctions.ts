@@ -1,10 +1,10 @@
 import jwtDecode from 'jwt-decode';
-import Countries from '@sh/Countries';
-import { ICompetition, IEvent, IPerson, IRound } from '@sh/interfaces';
-import { roundFormats } from './roundFormats';
-import { Role, RoundFormat } from '~/shared_helpers/enums';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
-import IResultInfo from './interfaces/ResultInfo';
+import Countries from '@sh/Countries';
+import { ICompetition, IEvent, IPerson } from '@sh/interfaces';
+import { Role, RoundFormat } from '@sh/enums';
+import { roundFormats } from './roundFormats';
+import { IResultInfo } from './interfaces/ResultInfo';
 
 export const getCountry = (countryIso2: string): string => {
   return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
@@ -16,7 +16,7 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
   if (typeof startDate === 'string') startDate = new Date(startDate);
   if (typeof endDate === 'string') endDate = new Date(endDate);
 
-  const fullFormat = 'dd MMM yyyy';
+  const fullFormat = 'd MMM yyyy';
 
   if (!endDate || isSameDay(startDate, endDate)) {
     return format(startDate, fullFormat);
@@ -24,8 +24,8 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
     let startFormat: string;
 
     if (!isSameYear(startDate, endDate)) startFormat = fullFormat;
-    else if (!isSameMonth(startDate, endDate)) startFormat = 'dd MMM';
-    else startFormat = 'dd';
+    else if (!isSameMonth(startDate, endDate)) startFormat = 'd MMM';
+    else startFormat = 'd';
 
     return `${format(startDate, startFormat)} - ${format(endDate, fullFormat)}`;
   }
@@ -37,10 +37,11 @@ export const getFormattedCoords = (comp: ICompetition): string => {
 };
 
 const getResult = (time: string, event: IEvent): number => {
-  // If FMC or negative value, return as is, just converted to integer
-  if (event.eventId === '333fm' || time.includes('-')) return parseInt(time);
+  if (time === 'DNF') return -1;
+  else if (time === 'DNS') return -2;
 
-  time = time.replace(':', '').replace('.', '');
+  // If the event is Fewest Moves, return as is converted to integer
+  if (event.eventId === '333fm') return parseInt(time);
 
   let minutes = 0;
   if (time.length > 4) {
@@ -91,15 +92,13 @@ export const getBestAverageAndAttempts = (attempts: string[], roundFormat: Round
 };
 
 export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
-  // Multi-Blind rounds cannot have an average
-  if (event.eventId === '333mbf') return false;
-
   // Bo1 and Bo2 rounds cannot have an average
-  const numberOfSolves = roundFormats[roundFormat].attempts;
-  if (numberOfSolves < 3) return false;
+  const numberOfAttempts = roundFormats[roundFormat].attempts;
+  if (numberOfAttempts < 3) return false;
 
-  // If the round has a different number of attempts from the default event format, the round cannot have an average
-  if (numberOfSolves !== roundFormats[event.defaultRoundFormat].attempts) return false;
+  // If the default round format for the event is Ao5, but the number of attempts in the round
+  // is less than five, the round cannot have an average
+  if (numberOfAttempts < 5 && event.defaultRoundFormat === RoundFormat.Average) return false;
 
   return true;
 };
@@ -168,6 +167,7 @@ export const submitResult = (
   event: IEvent,
   persons: IPerson[],
   setErrorMessages: (val: string[]) => void,
+  setSuccessMessage: (val: string) => void,
   callback: (resultInfo: IResultInfo) => void,
 ) => {
   // Check for errors first
@@ -178,14 +178,14 @@ export const submitResult = (
   }
 
   for (let i = 0; i < attempts.length; i++) {
-    if (!attempts[i] || isNaN(Number(attempts[i]))) {
-      errorMessages.push(`Attempt ${i + 1} is invalid`);
-    }
+    if (attempts[i] === '') errorMessages.push(`Please enter attempt ${i + 1}`);
   }
 
   if (errorMessages.length > 0) {
     setErrorMessages(errorMessages);
   } else {
+    setErrorMessages([]);
+    setSuccessMessage('');
     callback(getBestAverageAndAttempts(attempts, roundFormat, event));
   }
 };

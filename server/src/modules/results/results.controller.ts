@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { format } from 'date-fns';
 import { ResultsService } from './results.service';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
@@ -15,10 +16,20 @@ export class ResultsController {
     return await this.service.getRecords(wcaEquivalent);
   }
 
+  @Get('submission-info') // GET /results/submission-info?records_before=DATE
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async getSubmissionInfo(@Query('records_before') recordsBefore: string | Date) {
+    recordsBefore = new Date(recordsBefore);
+    console.log(`Getting results submission info with records before ${format(recordsBefore, 'd MMM yyyy')}`);
+    return await this.service.getSubmissionInfo(recordsBefore);
+  }
+
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async createResult(@Body(new ValidationPipe()) createResultDto: CreateResultDto) {
+    console.log(`Creating new result for event ${createResultDto.eventId}`);
     return await this.service.createResult(createResultDto);
   }
 }

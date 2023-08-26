@@ -13,7 +13,7 @@ const ConfigureRecordTypes = async () => {
   useEffect(() => {
     myFetch.get('/record-types', { authorize: true }).then(({ payload, errors }) => {
       if (errors) setErrorMessages(errors);
-      else setRecordTypes(payload);
+      else setRecordTypes(payload as IRecordType[]);
     });
   }, []);
 

@@ -3,9 +3,6 @@ import { getModelToken } from '@nestjs/mongoose';
 import { RecordTypesService } from '../record-types.service';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 import { RecordTypeModelMock } from './mocks/record-type.model';
-import { Model } from 'mongoose';
-import { ResultDocument } from '~/src/models/result.model';
-import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { recordTypesStub } from './stubs/record-types.stub';
 import { mockEventModel } from '../../events/tests/mocks/event.model';
 

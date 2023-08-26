@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import FormEventSelect from '../form/FormEventSelect';
 import FormTextInput from '../form/FormTextInput';
 import FormSelect from '../form/FormSelect';
 import FormPersonInputs from '../form/FormPersonInputs';
-import { ICompetitionEvent, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
+import { ICompetitionEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import { RoundFormat, RoundType } from '@sh/enums';
-import { formatTime, getBestAverageAndAttempts, getRoundCanHaveAverage } from '~/helpers/utilityFunctions';
+import { getBestAverageAndAttempts, getRoundCanHaveAverage } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { roundFormats } from '~/helpers/roundFormats';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
+import Time from '../Time';
+import { setNewRecordsForResult } from '~/shared_helpers/sharedFunctions';
 
 /**
  * This component has two uses: for entering results on PostResultsScreen, in which case it requires
@@ -20,6 +22,12 @@ import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
  * The other use case is on the submit results page, in which case those props must be left undefined,
  * but setEvent, events, roundFormat and setRoundFormat must be set.
  */
+
+const getDefaultTempResult = (): IResult =>
+  ({
+    best: -1,
+    average: -1,
+  } as IResult);
 
 const ResultForm = ({
   event,
@@ -35,6 +43,8 @@ const ResultForm = ({
   rounds, // all rounds for the current competition event
   roundFormat,
   setRoundFormat,
+  recordPairs,
+  recordTypes,
   nextFocusTargetId,
   setErrorMessages,
   setSuccessMessage,
@@ -53,24 +63,33 @@ const ResultForm = ({
   rounds?: IRound[];
   roundFormat?: RoundFormat;
   setRoundFormat?: (val: RoundFormat) => void;
+  recordPairs: IRecordPair[];
+  recordTypes: IRecordType[];
   nextFocusTargetId?: string;
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage: (val: string) => void;
 }) => {
-  const [tempBest, setTempBest] = useState('');
-  const [tempAverage, setTempAverage] = useState('');
+  // This is only needed for displaying the temporary best single and average, as well as any record badges
+  const [tempResult, setTempResult] = useState<IResult>(getDefaultTempResult());
   const [personNames, setPersonNames] = useState(['']);
 
+  if (!roundFormat) roundFormat = round.format;
+
+  const roundCanHaveAverage = useMemo(() => getRoundCanHaveAverage(roundFormat, event), [roundFormat, event]);
+  const dependencies = round ? [round.roundTypeId, event] : [roundFormat, event];
+
   useEffect(() => {
-    reset(round ? round.format : event.defaultRoundFormat);
+    reset(roundFormat);
     document.getElementById('Competitor_1')?.focus();
-  }, [round, event]);
+  }, dependencies);
 
   useEffect(() => {
     setPersonNames(persons.map((el) => (el !== null ? el.name : '')));
-
-    if (attempts.length > 0) updateTempBestAndAverage(attempts);
   }, [persons]);
+
+  useEffect(() => {
+    if (attempts.length > 0) updateTempBestAndAverage(attempts);
+  }, [attempts, recordPairs]);
 
   const nonNullPersons = persons.filter((el) => el !== null);
 
@@ -110,44 +129,56 @@ const ResultForm = ({
   };
 
   const changeAttempt = (index: number, value: string) => {
-    if (!/[^0-9-]$/.test(value)) {
+    if (value.length > 7) return;
+
+    if (['DNF', 'DNS'].includes(value) || !/[^0-9]/.test(value)) {
       const newAttempts = attempts.map((el, i) => (i !== index ? el : value));
       setAttempts(newAttempts);
       updateTempBestAndAverage(newAttempts);
     }
   };
 
-  const enterAttempt = (e: any, index: number) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-
-      // Focus next time input or the submit button if it's the last input
-      if (index + 1 < attempts.length) {
-        document.getElementById(`attempt_${index + 2}`)?.focus();
-      } else {
-        if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
-      }
-
-      updateTempBestAndAverage();
+  const focusNext = (index: number) => {
+    // Focus next time input or the submit button if it's the last input
+    if (index + 1 < attempts.length) {
+      document.getElementById(`attempt_${index + 2}`)?.focus();
+    } else {
+      if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
     }
   };
 
-  const reset = (roundFormat: RoundFormat) => {
-    if (setRoundFormat) setRoundFormat(roundFormat);
+  const onAttemptKeyDown = (e: any, index: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      focusNext(index);
+      updateTempBestAndAverage();
+    } else if (e.key === 'Backspace') {
+      if (['DNF', 'DNS'].includes(attempts[index])) {
+        changeAttempt(index, '');
+      }
+    } else if (['f', 'F', 'd', 'D', '/'].includes(e.key)) {
+      changeAttempt(index, 'DNF');
+      focusNext(index);
+    } else if (['s', 'S', '*'].includes(e.key)) {
+      changeAttempt(index, 'DNS');
+      focusNext(index);
+    }
+  };
+
+  const reset = (newRoundFormat: RoundFormat) => {
+    if (setRoundFormat) setRoundFormat(newRoundFormat);
     setSuccessMessage('');
     setErrorMessages([]);
     setPersons(Array(event.participants || 1).fill(null));
-    setAttempts(Array(roundFormats[roundFormat].attempts).fill(''));
-    setTempBest('');
-    setTempAverage('');
+    setAttempts(Array(roundFormats[newRoundFormat].attempts).fill(''));
+    setTempResult(getDefaultTempResult());
   };
 
   const updateTempBestAndAverage = (newAttempts = attempts) => {
-    const format = round ? round.format : roundFormat;
-    const { best, average } = getBestAverageAndAttempts(newAttempts, format, event);
-
-    setTempBest(formatTime(best, event));
-    if (getRoundCanHaveAverage(format, event)) setTempAverage(formatTime(average, event, { isAverage: true }));
+    const { best, average } = getBestAverageAndAttempts(newAttempts, roundFormat, event);
+    const newTempResult = setNewRecordsForResult({ best, average } as IResult, recordPairs);
+    setTempResult(newTempResult);
   };
 
   return (
@@ -194,13 +225,19 @@ const ResultForm = ({
           value={attempt}
           placeholder={`Attempt ${i + 1}`}
           setValue={(val: string) => changeAttempt(i, val)}
-          onKeyDown={(e: any) => enterAttempt(e, i)}
+          onKeyDown={(e: any) => onAttemptKeyDown(e, i)}
         />
       ))}
-      <p>
-        Best: {tempBest}
-        {tempAverage ? ` | Average: ${tempAverage}` : ''}
-      </p>
+      <div className="mb-3">
+        Best:&nbsp;
+        <Time result={tempResult} event={event} recordTypes={recordTypes} />
+        {roundCanHaveAverage && (
+          <>
+            &#8194;|&#8194;Average:&nbsp;
+            <Time result={tempResult} event={event} recordTypes={recordTypes} average />
+          </>
+        )}
+      </div>
     </>
   );
 };

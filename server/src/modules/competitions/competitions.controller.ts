@@ -12,7 +12,7 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 export class CompetitionsController {
   constructor(private readonly service: CompetitionsService) {}
 
-  // GET /competitions?region=Region
+  // GET /competitions?region=REGION
   @Get()
   async getCompetitions(@Query('region') region: string) {
     console.log('Getting contests');

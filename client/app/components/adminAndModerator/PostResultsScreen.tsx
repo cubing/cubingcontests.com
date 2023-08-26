@@ -9,11 +9,11 @@ import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions'
 import { roundFormats } from '~/helpers/roundFormats';
 import { getRoundRanksWithAverage, formatTime, submitResult } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
-import IResultInfo from '~/helpers/interfaces/ResultInfo';
+import { IResultInfo } from '~/helpers/interfaces/ResultInfo';
 import ErrorMessages from '../ErrorMessages';
 
 const PostResultsScreen = ({
-  compData: { competition, persons: prevPersons, activeRecordTypes, recordsByEvent },
+  compData: { competition, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
 }: {
   compData: ICompetitionData;
 }) => {
@@ -30,17 +30,18 @@ const PostResultsScreen = ({
     () => competition.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
     [competition, round.roundId],
   );
+  const recordPairs = useMemo(
+    () => recordPairsByEvent.find((el) => el.eventId === currEvent.eventId).recordPairs,
+    [recordPairsByEvent, currEvent],
+  );
 
   useEffect(() => {
-    console.log('Competition:', competition);
-    console.log('Records:', recordsByEvent);
-
     if (competition.state < CompetitionState.Approved) {
       setErrorMessages(["This competition hasn't been approved yet. Submitting results is disabled."]);
     } else if (competition.state >= CompetitionState.Finished) {
       setErrorMessages(['This competition is over. Submitting results is disabled.']);
     }
-  }, [competition, recordsByEvent]);
+  }, [competition]);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
@@ -78,6 +79,7 @@ const PostResultsScreen = ({
       currEvent,
       currentPersons,
       setErrorMessages,
+      setSuccessMessage,
       ({ parsedAttempts, best, average }: IResultInfo) => {
         const newRound = {
           ...round,
@@ -103,22 +105,18 @@ const PostResultsScreen = ({
         );
 
         updateRoundAndCompetitionEvents(newRound);
-
+        setCurrentPersons(Array(currEvent.participants || 1).fill(null));
+        setAttempts(Array(roundFormats[round.format].attempts).fill(''));
         // Add new persons to list of persons
         setPersons([...persons, ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId))]);
-        setErrorMessages([]);
-        setSuccessMessage('');
         document.getElementById('Competitor_1').focus();
       },
     );
   };
 
   const updateRoundAndCompetitionEvents = (newRound: IRound) => {
-    const newEventId = newRound.roundId.split('-')[0];
-    const recordPairs = recordsByEvent.find((el) => el.eventId === newEventId).recordPairs;
-
     const newCompetitionEvents = competitionEvents.map((ce) =>
-      ce.event.eventId !== newEventId
+      ce.event.eventId !== currEvent.eventId
         ? ce
         : {
             ...ce,
@@ -136,8 +134,11 @@ const PostResultsScreen = ({
   const editResult = (result: IResult) => {
     // Delete result and then set the inputs if the deletion was successful
     deleteResult(result.personIds, () => {
-      setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
-      setAttempts(result.attempts.map((el) => formatTime(el, currEvent, { removeFormatting: true })));
+      const newCurrentPersons = persons.filter((p) => result.personIds.includes(p.personId));
+      setCurrentPersons(newCurrentPersons);
+
+      const newAttempts = result.attempts.map((el) => formatTime(el, currEvent, { removeFormatting: true }));
+      setAttempts(newAttempts);
 
       document.getElementById('attempt_1').focus();
     });
@@ -197,6 +198,8 @@ const PostResultsScreen = ({
             round={round}
             setRound={setRound}
             rounds={competitionEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
+            recordPairs={recordPairs}
+            recordTypes={activeRecordTypes}
             nextFocusTargetId="submit_attempt_button"
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}

@@ -1,6 +1,7 @@
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
-import { Color, RoundProceed, RoundType } from '@sh/enums';
+import { RoundProceed, RoundType } from '@sh/enums';
 import { formatTime, getSolves, getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
+import Time from './Time';
 
 const RoundResultsTable = ({
   round,
@@ -27,47 +28,6 @@ const RoundResultsTable = ({
     return personIds
       .map((id) => persons.find((p: IPerson) => p.personId === id)?.name || '(name not found)')
       .join(' & ');
-  };
-
-  const getRecordBadge = (result: IResult, type: 'single' | 'average') => {
-    const recordType = recordTypes.find(
-      (rt) => (type === 'single' ? result.regionalSingleRecord : result.regionalAverageRecord) === rt.wcaEquivalent,
-    );
-
-    if (!recordType) return null;
-
-    let colorClass: string;
-
-    switch (recordType.color) {
-      case Color.Red:
-        colorClass = 'bg-danger';
-        break;
-      case Color.Blue:
-        colorClass = 'bg-primary';
-        break;
-      case Color.Green:
-        colorClass = 'bg-success';
-        break;
-      case Color.Yellow:
-        colorClass = 'bg-warning';
-        break;
-      case Color.White:
-        colorClass = 'bg-light';
-        break;
-      case Color.Cyan:
-        colorClass = 'bg-info';
-        break;
-      // The magenta option is skipped, because it is not available in RecordTypesForm
-      default:
-        colorClass = 'bg-dark';
-        console.error(`Unknown record color: ${recordType.color}`);
-    }
-
-    return (
-      <span className={'badge ' + colorClass} style={{ fontSize: '0.7rem' }}>
-        {recordType.label}
-      </span>
-    );
   };
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
@@ -112,17 +72,11 @@ const RoundResultsTable = ({
               </td>
               <td>{getName(result.personIds)}</td>
               <td>
-                <div className="d-flex align-items-center gap-2">
-                  {formatTime(result.best, event)}
-                  {getRecordBadge(result, 'single')}
-                </div>
+                <Time result={result} event={event} recordTypes={recordTypes} />
               </td>
               {roundCanHaveAverage && (
                 <td>
-                  <div className="h-100 d-flex align-items-center gap-2">
-                    {formatTime(result.average, event, { isAverage: true })}
-                    {getRecordBadge(result, 'average')}
-                  </div>
+                  <Time result={result} event={event} recordTypes={recordTypes} average />
                 </td>
               )}
               <td>{getSolves(event, result.attempts)}</td>

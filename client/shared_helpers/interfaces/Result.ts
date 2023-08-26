@@ -1,5 +1,5 @@
 import { WcaRecordType } from '../enums';
-import { IEvent, IPerson } from '../interfaces';
+import { IEvent, IPerson, IRecordType } from '../interfaces';
 
 export interface IResult {
   competitionId?: string; // not needed for submitted results
@@ -37,4 +37,15 @@ export interface IRecordPair {
   wcaEquivalent: WcaRecordType;
   best: number;
   average: number;
+}
+
+export interface IEventRecordPairs {
+  eventId: string;
+  recordPairs: IRecordPair[];
+}
+
+export interface IResultsSubmissionInfo {
+  events: IEvent[]; // these must only be submission-based events
+  recordPairsByEvent: IEventRecordPairs[];
+  activeRecordTypes: IRecordType[];
 }

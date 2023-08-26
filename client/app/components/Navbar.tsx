@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaBars } from 'react-icons/fa';
-// import ISearchResult from '~/helpers/interfaces';
+// import { ISearchResult } from '~/helpers/interfaces';
 
 const NavbarItems = () => {
   const pathname = usePathname();
