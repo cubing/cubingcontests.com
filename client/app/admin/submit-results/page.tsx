@@ -95,6 +95,7 @@ const SubmitResults = () => {
           document.getElementById('Competitor_1').focus();
         }
       },
+      true, // require at least one non-DNF/DNS result
     );
   };
 

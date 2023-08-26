@@ -169,6 +169,7 @@ export const submitResult = (
   setErrorMessages: (val: string[]) => void,
   setSuccessMessage: (val: string) => void,
   callback: (resultInfo: IResultInfo) => void,
+  requireRealResult = false,
 ) => {
   // Check for errors first
   const errorMessages: string[] = [];
@@ -177,9 +178,14 @@ export const submitResult = (
     errorMessages.push('Invalid person(s)');
   }
 
+  let realResultExists = false;
+
   for (let i = 0; i < attempts.length; i++) {
     if (attempts[i] === '') errorMessages.push(`Please enter attempt ${i + 1}`);
+    else if (!['DNF', 'DNS'].includes(attempts[i])) realResultExists = true;
   }
+
+  if (requireRealResult && !realResultExists) errorMessages.push('You cannot submit only DNF/DNS results');
 
   if (errorMessages.length > 0) {
     setErrorMessages(errorMessages);
