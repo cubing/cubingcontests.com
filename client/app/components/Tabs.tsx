@@ -4,7 +4,7 @@ const Tabs = ({
   setActiveTab,
 }: {
   titles: string[];
-  activeTab: number;
+  activeTab: number; // the first tab is 0
   setActiveTab: (value: number) => void;
 }) => {
   return (
@@ -13,8 +13,8 @@ const Tabs = ({
         <li key={index} className="me-2 nav-item">
           <button
             type="button"
-            className={'nav-link' + (activeTab === index + 1 ? ' active' : '')}
-            onClick={() => setActiveTab(index + 1)}
+            className={'nav-link' + (activeTab === index ? ' active' : '')}
+            onClick={() => setActiveTab(index)}
           >
             {title}
           </button>

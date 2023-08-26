@@ -3,29 +3,29 @@
 import { useState, useMemo, useEffect } from 'react';
 import { utcToZonedTime, format } from 'date-fns-tz';
 import EventResultsTable from './EventResults';
-import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
-import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
-import { CompetitionState, CompetitionType } from '@sh/enums';
 import Tabs from './Tabs';
 import Schedule from './Schedule';
+import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
+import { CompetitionState, CompetitionType } from '@sh/enums';
+import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
     case '#Results':
-      return 2;
-    case '#Schedule':
-      return 3;
-    default:
       return 1;
+    case '#Schedule':
+      return 2;
+    default:
+      return 0;
   }
 };
 
 const getHashFromTab = (tab: number): string => {
   switch (tab) {
-    case 2:
+    case 1:
       return 'Results';
-    case 3:
+    case 2:
       return 'Schedule';
     default:
       return '';
@@ -33,7 +33,7 @@ const getHashFromTab = (tab: number): string => {
 };
 
 const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } }: { data: ICompetitionData }) => {
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(0);
   const [currEvent, setCurrEvent] = useState<ICompetitionEvent>(competition.events[0]);
 
   const tabs = useMemo(
@@ -94,7 +94,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
     <>
       <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
-      {activeTab === 1 && (
+      {activeTab === 0 && (
         // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/
         <div className="row w-100 mb-4 px-2 fs-5">
           <div className="col-md-5">
@@ -141,7 +141,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
         </div>
       )}
 
-      {activeTab === 2 && (
+      {activeTab === 1 && (
         <>
           <div className="mx-2 d-flex flex-row flex-wrap gap-2">
             {competition.events.map((compEvent: ICompetitionEvent) => (
@@ -157,7 +157,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
           <EventResultsTable compEvent={currEvent} persons={persons} recordTypes={activeRecordTypes} />
         </>
       )}
-      {activeTab === 3 && (
+      {activeTab === 2 && (
         <Schedule
           rooms={competition.compDetails.schedule.venues[0].rooms}
           compEvents={competition.events}

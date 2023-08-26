@@ -55,7 +55,7 @@ const CompetitionForm = ({
   role: Role;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(0);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -501,11 +501,11 @@ const CompetitionForm = ({
         buttonText={competition ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
         handleSubmit={handleSubmit}
-        hideButton={activeTab === 3}
+        hideButton={activeTab === 2}
       >
         <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
-        {activeTab === 1 && (
+        {activeTab === 0 && (
           <>
             <FormTextInput
               id="competition_name"
@@ -622,7 +622,7 @@ const CompetitionForm = ({
           </>
         )}
 
-        {activeTab === 2 && (
+        {activeTab === 1 && (
           <>
             <div className="my-4 d-flex align-items-center gap-3">
               <button
@@ -730,7 +730,7 @@ const CompetitionForm = ({
           </>
         )}
 
-        {activeTab === 3 && (
+        {activeTab === 2 && (
           <>
             <h3 className="mb-3">Rooms</h3>
             <div className="row">
@@ -818,7 +818,7 @@ const CompetitionForm = ({
         )}
       </Form>
 
-      {activeTab === 3 && <Schedule rooms={rooms} compEvents={competitionEvents} timezone={venueTimezone} />}
+      {activeTab === 2 && <Schedule rooms={rooms} compEvents={competitionEvents} timezone={venueTimezone} />}
     </>
   );
 };

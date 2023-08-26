@@ -98,13 +98,17 @@ export class ResultsService {
 
       // Remove records that came AFTER the new result (or on the same day), if they were worse
       await this.model.updateMany(
-        { date: { $gte: createResultDto.date }, best: { $gt: createResultDto.best } },
+        { eventId: createResultDto.eventId, date: { $gte: createResultDto.date }, best: { $gt: createResultDto.best } },
         { $unset: { regionalSingleRecord: '' } },
       );
 
       // Remove records that came AFTER the new result (or on the same day), if they were worse
       await this.model.updateMany(
-        { date: { $gte: createResultDto.date }, average: { $gt: createResultDto.average } },
+        {
+          eventId: createResultDto.eventId,
+          date: { $gte: createResultDto.date },
+          average: { $gt: createResultDto.average },
+        },
         { $unset: { regionalAverageRecord: '' } },
       );
     } catch (err) {

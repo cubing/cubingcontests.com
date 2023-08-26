@@ -45,7 +45,7 @@ const CreatePerson = () => {
         setSuccessMessage(`${name} successfully added`);
         setName('');
         setWcaId('');
-        document.getElementById('full_name').focus();
+        document.getElementById('wca_id').focus();
       }
     }
   };

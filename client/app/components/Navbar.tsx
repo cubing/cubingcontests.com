@@ -53,7 +53,7 @@ const NavbarItems = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link className={'nav-link' + (pathname === '/records' ? ' active' : '')} href="/records">
+            <Link className={'nav-link' + (/^\/records\//.test(pathname) ? ' active' : '')} href="/records/wca">
               Records
             </Link>
           </li>
