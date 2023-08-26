@@ -42,6 +42,9 @@ const Records = async ({ params }: { params: { category: string } }) => {
             const isGroupEvent = event.groups.includes(EventGroup.Team);
             const hasVideoLink =
               bestRecords.some((el) => el.result.videoLink) || avgRecords.some((el) => el.result.videoLink);
+            const showSolves =
+              bestRecords.some((el) => el.result.attempts.length > 1) ||
+              avgRecords.some((el) => el.result.attempts.length > 1);
 
             return (
               <div key={event.eventId} className="mb-3">
@@ -55,7 +58,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                         <th>Result</th>
                         <th>{isGroupEvent ? 'Citizens of' : 'Citizen of'}</th>
                         <th>Date</th>
-                        <th>Solves</th>
+                        {showSolves && <th>Solves</th>}
                         {hasVideoLink && <th>Link</th>}
                       </tr>
                     </thead>
@@ -67,7 +70,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                           <td>{formatTime(bestRecord.result.best, event)}</td>
                           <td>{getCompetitorCountries(bestRecord.persons)}</td>
                           <td>{getFormattedDate(bestRecord.result.date)}</td>
-                          <td>{getSolves(event, bestRecord.result.attempts)}</td>
+                          {showSolves && <td>{getSolves(event, bestRecord.result.attempts)}</td>}
                           {hasVideoLink && (
                             <td>
                               <a href={bestRecord.result.videoLink} target="_blank">
@@ -84,7 +87,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                           <td>{formatTime(avgRecord.result.average, event, { isAverage: true })}</td>
                           <td>{getCompetitorCountries(avgRecord.persons)}</td>
                           <td>{getFormattedDate(avgRecord.result.date)}</td>
-                          <td>{getSolves(event, avgRecord.result.attempts)}</td>
+                          {showSolves && <td>{getSolves(event, avgRecord.result.attempts)}</td>}
                           {hasVideoLink && (
                             <td>
                               <a href={avgRecord.result.videoLink} target="_blank">

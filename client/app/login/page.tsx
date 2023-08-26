@@ -8,11 +8,12 @@ import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
 
 const Login = () => {
-  const searchParams = useSearchParams();
-
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     document.getElementById('username').focus();
@@ -49,7 +50,7 @@ const Login = () => {
       <h2 className="mb-4 text-center">Login</h2>
       <Form buttonText="Log in" errorMessages={errorMessages} handleSubmit={handleSubmit}>
         <FormTextInput id="username" title="Username" value={username} setValue={setUsername} />
-        <FormTextInput title="Password" isPassword value={password} setValue={setPassword} />
+        <FormTextInput title="Password" value={password} setValue={setPassword} isPassword />
         <Link href="/register" className="d-block mt-4 fs-5">
           Create account
         </Link>

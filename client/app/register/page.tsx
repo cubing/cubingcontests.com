@@ -8,7 +8,6 @@ import myFetch from '~/helpers/myFetch';
 
 const Register = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [showPassword, setShowPassword] = useState(false);
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -44,14 +43,7 @@ const Register = () => {
       <Form buttonText="Register" errorMessages={errorMessages} handleSubmit={handleSubmit}>
         <FormTextInput id="username" title="Username" value={username} setValue={setUsername} />
         <FormTextInput title="Email" value={email} setValue={setEmail} />
-        <div className="d-flex justify-content-between align-items-end gap-3">
-          <div className="flex-grow-1">
-            <FormTextInput title="Password" isPassword={!showPassword} value={password} setValue={setPassword} />
-          </div>
-          <button type="button" className="mb-3 btn btn-primary" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? 'Hide' : 'Show'}
-          </button>
-        </div>
+        <FormTextInput title="Password" value={password} setValue={setPassword} isPassword />
         <Link href="/login" className="d-block mt-4 fs-5">
           Log in
         </Link>

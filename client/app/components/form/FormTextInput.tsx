@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 const FormTextInput = ({
   title,
   id,
@@ -25,6 +28,8 @@ const FormTextInput = ({
   onBlur?: () => void;
   onKeyDown?: (e: any) => void;
 }) => {
+  const [hidePassword, setHidePassword] = useState(isPassword);
+
   if (!id && !title) {
     throw new Error('Neither title nor id are set in FormTextInput!');
   }
@@ -36,19 +41,30 @@ const FormTextInput = ({
           {title}
         </label>
       )}
-      <input
-        type={isPassword ? 'password' : 'text'}
-        id={id || title}
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        required={required}
-        onChange={(e: any) => setValue(e.target.value)}
-        onKeyDown={onKeyDown}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        className={'form-control' + (monospace ? ' font-monospace' : '')}
-      />
+      <div className="d-flex justify-content-between align-items-center gap-3">
+        <input
+          type={hidePassword ? 'password' : 'text'}
+          id={id || title}
+          value={value}
+          placeholder={placeholder}
+          disabled={disabled}
+          required={required}
+          onChange={(e: any) => setValue(e.target.value)}
+          onKeyDown={onKeyDown}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          className={'flex-grow-1 form-control' + (monospace ? ' font-monospace' : '')}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            className="px-2 pt-0 pb-1 btn btn-primary fs-5"
+            onClick={() => setHidePassword(!hidePassword)}
+          >
+            {hidePassword ? <FaEye /> : <FaEyeSlash />}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

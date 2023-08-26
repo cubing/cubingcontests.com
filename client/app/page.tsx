@@ -15,7 +15,7 @@ export default function Home() {
             See all contests
           </button>
         </Link>
-        <Link href="/records/wca" className="fs-5">
+        <Link href="/records" className="fs-5">
           <button type="button" className="btn btn-primary">
             See current records
           </button>

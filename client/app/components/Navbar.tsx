@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { FaBars } from 'react-icons/fa';
 // import { ISearchResult } from '~/helpers/interfaces';
 
@@ -53,7 +53,7 @@ const NavbarItems = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link className={'nav-link' + (/^\/records\//.test(pathname) ? ' active' : '')} href="/records/wca">
+            <Link className={'nav-link' + (/^\/records\//.test(pathname) ? ' active' : '')} href="/records">
               Records
             </Link>
           </li>

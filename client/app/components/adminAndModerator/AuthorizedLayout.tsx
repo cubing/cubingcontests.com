@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Loading from '@c/Loading';
-import { Role } from '~/shared_helpers/enums';
+import { Role } from '@sh/enums';
 
 const fetchUser = async (role: Role, setAuthorized: (value: boolean) => void) => {
-  const { payload } = await myFetch.get(`/auth/validate${role}`, { authorize: true, redirect: role });
+  const { payload } = await myFetch.get(`/auth/validate${role}`, { authorize: true, redirect: 'mod' });
 
   if (payload) {
     localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);

@@ -4,8 +4,12 @@
 # Script for (re)starting production environment #
 ##################################################
 
-# $1 - (optional) --revert - revert to previous version | --dev/-d - run in development | --restart - skip apt update and DB dump
-# $2 - (optional, required if $1 = --revert) version | --cleanup - only used when $1 = --dev/-d
+# $1 - (optional) --revert - revert to previous version
+# $1 - (optional) --dev/-d - run in development
+# $1 - (optional) --restart - skip apt update and DB dump
+
+# $2 - (optional, required if $1 = --revert) version
+# $2 - (optional) --cleanup - only used when $1 = --dev/-d
 
 restart_containers() {
   # Remove all images that contain "denimint"
