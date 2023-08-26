@@ -42,8 +42,10 @@ export const ResultModelMock = (): any => ({
       this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.compNotPublished === undefined);
     }
     if (query?.date) {
-      if (query.date.$lt) {
-        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.date < query.date.$lt);
+      if (query.date.$lte) {
+        this.tempOutput = this.tempOutput.filter(
+          (el: ResultDocument) => el.date.getTime() <= query.date.$lte.getTime(),
+        );
       }
     }
     if (query?.best) {

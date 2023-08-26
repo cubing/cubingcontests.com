@@ -447,7 +447,10 @@ export class CompetitionsService {
   async updateCompetitionResults(newCompEvents: ICompetitionEvent[]): Promise<CompetitionEvent[]> {
     // Save all results from every event and set new records, if there are any
     for (const compEvent of newCompEvents) {
-      const recordPairs = await this.resultsService.getEventRecordPairs(compEvent.event.eventId);
+      const recordPairs = await this.resultsService.getEventRecordPairs(
+        compEvent.event.eventId,
+        compEvent.rounds[0].date,
+      );
       compEvent.rounds = setNewRecords(compEvent.rounds, recordPairs);
 
       try {

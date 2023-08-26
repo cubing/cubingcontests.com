@@ -226,9 +226,10 @@ const CompetitionForm = ({
           date:
             type === CompetitionType.Meetup
               ? startDateOnly
-              : getDateOnly(
+              : // Finds the start time of the round based on the schedule, but then gets only the date
+              getDateOnly(
+                // This is necessary, because the date could be different due to time zones
                 utcToZonedTime(
-                  // Finds the start time of the round based on the schedule
                   (() => {
                     for (const room of rooms) {
                       const activity = room.activities.find((a) => a.activityCode === round.roundId);

@@ -9,7 +9,7 @@ export interface IProceed {
 export interface IRound {
   roundId: string; // the round identifier of the form {eventId}-r{round number} (also a valid activity code)
   competitionId: string;
-  date: Date;
+  date: Date; // ALWAYS stored without the time, even if it's a round for a competition with a schedule
   compNotPublished?: boolean; // unset by default, set if true
   roundTypeId: RoundType; // first/second/semi/finals
   format: RoundFormat;

@@ -70,7 +70,7 @@ export class ResultsService {
     return recordsByEvent;
   }
 
-  async getSubmissionInfo(beforeDate: Date): Promise<IResultsSubmissionInfo> {
+  async getSubmissionInfo(recordsUpTo: Date): Promise<IResultsSubmissionInfo> {
     const submissionBasedEvents = await this.eventsService.getSubmissionBasedEvents();
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
@@ -78,7 +78,7 @@ export class ResultsService {
       events: submissionBasedEvents,
       recordPairsByEvent: await this.getRecordPairs(
         submissionBasedEvents.map((el) => el.eventId),
-        beforeDate,
+        recordsUpTo,
         activeRecordTypes,
       ),
       activeRecordTypes,
@@ -116,16 +116,37 @@ export class ResultsService {
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
+  // Gets record pairs for multiple events
+  async getRecordPairs(
+    eventIds: string[],
+    recordsUpTo: Date,
+    activeRecordTypes: IRecordType[],
+  ): Promise<IEventRecordPairs[]> {
+    if (!eventIds) eventIds = (await this.eventsService.getEvents()).map((el) => el.eventId);
+
+    const recordPairsByEvent: IEventRecordPairs[] = [];
+
+    // Get current records for this competition's events
+    for (const eventId of eventIds) {
+      recordPairsByEvent.push({
+        eventId,
+        recordPairs: await this.getEventRecordPairs(eventId, recordsUpTo, activeRecordTypes),
+      });
+    }
+
+    return recordPairsByEvent;
+  }
+
   async getEventRecordPairs(
     eventId: string,
-    beforeDate?: Date,
+    recordsUpTo?: Date,
     activeRecordTypes?: IRecordType[],
   ): Promise<IRecordPair[]> {
     if (!activeRecordTypes) activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-    // If beforeDate is undefined, use max date, otherwise get the date only (ignore time)
-    if (!beforeDate) beforeDate = new Date(8640000000000000);
-    else beforeDate = getDateOnly(beforeDate);
+    // If recordsUpTo is undefined, use max date, otherwise get the date only (ignore time)
+    if (!recordsUpTo) recordsUpTo = new Date(8640000000000000);
+    else recordsUpTo = getDateOnly(recordsUpTo);
 
     const recordPairs: IRecordPair[] = [];
 
@@ -135,7 +156,7 @@ export class ResultsService {
         const recordPair: IRecordPair = { wcaEquivalent: rt.wcaEquivalent, best: -1, average: -1 };
 
         const [singleRecord] = await this.model
-          .find({ eventId, best: { $gt: 0 }, date: { $lt: beforeDate } })
+          .find({ eventId, best: { $gt: 0 }, date: { $lte: recordsUpTo } })
           .sort({ best: 1 })
           .limit(1)
           .exec();
@@ -143,7 +164,7 @@ export class ResultsService {
         if (singleRecord) recordPair.best = singleRecord.best;
 
         const [avgRecord] = await this.model
-          .find({ eventId, average: { $gt: 0 }, date: { $lt: beforeDate } })
+          .find({ eventId, average: { $gt: 0 }, date: { $lte: recordsUpTo } })
           .sort({ average: 1 })
           .limit(1)
           .exec();
@@ -163,7 +184,6 @@ export class ResultsService {
   async getEventRecordResults(
     eventId: string,
     wcaEquivalent: WcaRecordType,
-    beforeDate: Date = null,
   ): Promise<[ResultDocument[], ResultDocument[]]> {
     const output: [ResultDocument[], ResultDocument[]] = [[], []];
     const queryFilter: any = {
@@ -171,8 +191,6 @@ export class ResultsService {
       regionalSingleRecord: wcaEquivalent,
       compNotPublished: { $exists: false },
     };
-
-    if (beforeDate) queryFilter.date = { $lt: beforeDate };
 
     try {
       // Get most recent result with a single record
@@ -201,26 +219,5 @@ export class ResultsService {
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
-  }
-
-  // Gets record pairs for multiple events
-  async getRecordPairs(
-    eventIds: string[],
-    beforeDate: Date,
-    activeRecordTypes: IRecordType[],
-  ): Promise<IEventRecordPairs[]> {
-    if (!eventIds) eventIds = (await this.eventsService.getEvents()).map((el) => el.eventId);
-
-    const recordPairsByEvent: IEventRecordPairs[] = [];
-
-    // Get current records for this competition's events
-    for (const eventId of eventIds) {
-      recordPairsByEvent.push({
-        eventId,
-        recordPairs: await this.getEventRecordPairs(eventId, beforeDate, activeRecordTypes),
-      });
-    }
-
-    return recordPairsByEvent;
   }
 }

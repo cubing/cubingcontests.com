@@ -36,12 +36,14 @@ const PostResultsScreen = ({
   );
 
   useEffect(() => {
+    console.log('Records:', recordPairsByEvent);
+
     if (competition.state < CompetitionState.Approved) {
       setErrorMessages(["This competition hasn't been approved yet. Submitting results is disabled."]);
     } else if (competition.state >= CompetitionState.Finished) {
       setErrorMessages(['This competition is over. Submitting results is disabled.']);
     }
-  }, [competition]);
+  }, [competition, recordPairsByEvent]);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {

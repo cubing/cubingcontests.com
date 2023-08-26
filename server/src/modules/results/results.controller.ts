@@ -16,13 +16,13 @@ export class ResultsController {
     return await this.service.getRecords(wcaEquivalent);
   }
 
-  @Get('submission-info') // GET /results/submission-info?records_before=DATE
+  @Get('submission-info') // GET /results/submission-info?records_up_to=DATE
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async getSubmissionInfo(@Query('records_before') recordsBefore: string | Date) {
-    recordsBefore = new Date(recordsBefore);
-    console.log(`Getting results submission info with records before ${format(recordsBefore, 'd MMM yyyy')}`);
-    return await this.service.getSubmissionInfo(recordsBefore);
+  async getSubmissionInfo(@Query('records_up_to') recordsUpTo: string | Date) {
+    recordsUpTo = new Date(recordsUpTo);
+    console.log(`Getting results submission info with records up to ${format(recordsUpTo, 'd MMM yyyy')}`);
+    return await this.service.getSubmissionInfo(recordsUpTo);
   }
 
   @Post()

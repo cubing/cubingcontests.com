@@ -36,25 +36,28 @@ const SubmitResults = () => {
 
   useEffect(() => {
     fetchSubmissionInfo(date, (payload: IResultsSubmissionInfo) => {
+      // Initialize event and round format, if this is the first fetch
+      if (!resultsSubmissionInfo) {
+        setEvent(payload.events[0]);
+        setRoundFormat(payload.events[0].defaultRoundFormat);
+      }
+
       setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
-      setEvent(payload.events[0]);
-      setRoundFormat(payload.events[0].defaultRoundFormat);
     });
-  }, []);
+  }, [date]);
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
-  const fetchSubmissionInfo = async (recordsBefore: Date, callback: (payload: IResultsSubmissionInfo) => void) => {
-    const { payload, errors } = await myFetch.get(`/results/submission-info?records_before=${recordsBefore}`, {
+  const fetchSubmissionInfo = async (recordsUpTo: Date, callback: (payload: IResultsSubmissionInfo) => void) => {
+    const { payload, errors } = await myFetch.get(`/results/submission-info?records_up_to=${recordsUpTo}`, {
       authorize: true,
     });
 
     if (errors) setErrorMessages(errors);
     else {
-      console.log(payload);
       setErrorMessages([]);
       callback(payload);
     }
@@ -93,13 +96,6 @@ const SubmitResults = () => {
         }
       },
     );
-  };
-
-  const changeDate = (newDate: Date) => {
-    fetchSubmissionInfo(newDate, (payload: IResultsSubmissionInfo) => {
-      setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
-      setDate(newDate);
-    });
   };
 
   const onVideoLinkKeyDown = (e: any) => {
@@ -151,7 +147,7 @@ const SubmitResults = () => {
               selected={date}
               dateFormat="P"
               locale="en-GB"
-              onChange={(date: Date) => changeDate(date)}
+              onChange={(date: Date) => setDate(date)}
               className="form-control"
             />
           </div>
