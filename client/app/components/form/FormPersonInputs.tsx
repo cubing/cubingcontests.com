@@ -162,9 +162,9 @@ const FormPersonInputs = ({
   };
 
   return (
-    <>
+    <div className={'row' + (personNames.length > 1 ? ' row-cols-2' : '')}>
       {personNames.map((personName: string, i: number) => (
-        <div key={i}>
+        <div key={i} className="col">
           <FormTextInput
             title={personNames.length > 1 ? `${title} ${i + 1}` : title}
             id={`${title}_${i + 1}`}
@@ -200,7 +200,7 @@ const FormPersonInputs = ({
           )}
         </div>
       ))}
-    </>
+    </div>
   );
 };
 
