@@ -150,18 +150,16 @@ export class CompetitionsService {
         participants: 0,
       };
 
-      if (createCompDto.organizers) {
-        newCompetition.organizers = await this.personsService.getPersonsById(
-          createCompDto.organizers.map((org) => org.personId),
-        );
-      }
+      newCompetition.organizers = await this.personsService.getPersonsById(
+        createCompDto.organizers.map((org) => org.personId),
+      );
 
       if (createCompDto.type === CompetitionType.Meetup) {
         newCompetition.timezone = find(
           createCompDto.latitudeMicrodegrees / 1000000,
           createCompDto.longitudeMicrodegrees / 1000000,
         )[0];
-      } else {
+      } else if (createCompDto.type === CompetitionType.Competition) {
         newCompetition.compDetails.schedule = await this.scheduleModel.create(createCompDto.compDetails.schedule);
       }
 
@@ -191,19 +189,17 @@ export class CompetitionsService {
 
     if (isAdmin || comp.state < CompetitionState.Ongoing) {
       comp.name = updateCompetitionDto.name;
-      comp.city = updateCompetitionDto.city;
-      comp.venue = updateCompetitionDto.venue;
+      if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
+      if (updateCompetitionDto.venue) comp.venue = updateCompetitionDto.venue;
       if (updateCompetitionDto.address) comp.address = updateCompetitionDto.address;
       if (updateCompetitionDto.latitudeMicrodegrees && updateCompetitionDto.longitudeMicrodegrees) {
         comp.latitudeMicrodegrees = updateCompetitionDto.latitudeMicrodegrees;
         comp.longitudeMicrodegrees = updateCompetitionDto.longitudeMicrodegrees;
       }
       comp.startDate = updateCompetitionDto.startDate;
-      if (updateCompetitionDto.organizers) {
-        comp.organizers = await this.personsService.getPersonsById(
-          updateCompetitionDto.organizers.map((org) => org.personId),
-        );
-      }
+      comp.organizers = await this.personsService.getPersonsById(
+        updateCompetitionDto.organizers.map((org) => org.personId),
+      );
       if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
       comp.mainEventId = updateCompetitionDto.mainEventId;
       if (updateCompetitionDto.compDetails) {

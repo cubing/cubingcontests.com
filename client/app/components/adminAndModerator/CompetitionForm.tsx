@@ -28,6 +28,7 @@ import {
   RoundType,
 } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
+import Countries from '@sh/Countries';
 import {
   colorOptions,
   competitionTypeOptions,
@@ -41,8 +42,7 @@ registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
 
 const coordToMicrodegrees = (value: string): number | null => {
-  if (isNaN(Number(value))) return null;
-
+  if (!value) return null;
   return parseInt(Number(value).toFixed(6).replace('.', ''));
 };
 
@@ -93,7 +93,7 @@ const CompetitionForm = ({
 
   const isAdmin = role === Role.Admin;
   // Only enable competition type for admins
-  competitionTypeOptions[1].disabled = !isAdmin;
+  competitionTypeOptions[2].disabled = !isAdmin;
 
   const tabs = useMemo(
     () => (type === CompetitionType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
@@ -149,16 +149,16 @@ const CompetitionForm = ({
       setCompetitionId(competition.competitionId);
       setName(competition.name);
       setType(competition.type);
-      setCity(competition.city);
+      if (competition.city) setCity(competition.city);
       setCountryId(competition.countryIso2);
-      setVenue(competition.venue);
+      if (competition.venue) setVenue(competition.venue);
       if (competition.address) setAddress(competition.address);
-      setLatitude((competition.latitudeMicrodegrees / 1000000).toFixed(6));
-      setLongitude((competition.longitudeMicrodegrees / 1000000).toFixed(6));
-      if (competition.organizers) {
-        setOrganizerNames([...competition.organizers.map((el) => el.name), '']);
-        setOrganizers([...competition.organizers, null]);
+      if (competition.latitudeMicrodegrees && competition.longitudeMicrodegrees) {
+        setLatitude((competition.latitudeMicrodegrees / 1000000).toFixed(6));
+        setLongitude((competition.longitudeMicrodegrees / 1000000).toFixed(6));
       }
+      setOrganizerNames([...competition.organizers.map((el) => el.name), '']);
+      setOrganizers([...competition.organizers, null]);
       if (competition.contact) setContact(competition.contact);
       if (competition.description) setDescription(competition.description);
       if (competition.competitorLimit) setCompetitorLimit(competition.competitorLimit.toString());
@@ -168,21 +168,29 @@ const CompetitionForm = ({
       );
       setMainEventId(competition.mainEventId);
 
-      // Meetup-only stuff
-      if (competition.type === CompetitionType.Meetup) {
-        // Because the time is stored as UTC in the DB, but we display it in local time on the frontend
-        setStartDate(utcToZonedTime(competition.startDate, competition.timezone));
-        setVenueTimezone(competition.timezone);
-      }
-      // Competition-only stuff
-      else if (competition.type === CompetitionType.Competition) {
-        // Convert the dates from string to Date
-        setStartDate(new Date(competition.startDate));
-        setEndDate(new Date(competition.endDate));
+      switch (competition.type) {
+        case CompetitionType.Meetup: {
+          // Because the time is stored as UTC in the DB, but we display it in local time on the frontend
+          setStartDate(utcToZonedTime(competition.startDate, competition.timezone));
+          setVenueTimezone(competition.timezone);
+          break;
+        }
+        case CompetitionType.Competition: {
+          // Convert the dates from string to Date
+          setStartDate(new Date(competition.startDate));
+          setEndDate(new Date(competition.endDate));
 
-        const venue = competition.compDetails.schedule.venues[0];
-        setRooms(venue.rooms);
-        setVenueTimezone(venue.timezone);
+          const venue = competition.compDetails.schedule.venues[0];
+          setRooms(venue.rooms);
+          setVenueTimezone(venue.timezone);
+          break;
+        }
+        case CompetitionType.Online: {
+          setStartDate(utcToZonedTime(competition.startDate, 'UTC'));
+          break;
+        }
+        default:
+          throw new Error(`Unknown contest type: ${competition.type}`);
       }
     }
   }, [competition, events]);
@@ -208,12 +216,21 @@ const CompetitionForm = ({
 
   const handleSubmit = async () => {
     const selectedOrganizers = organizers.filter((el) => el !== null);
-    const latitudeMicrodegrees = coordToMicrodegrees(latitude);
-    const longitudeMicrodegrees = coordToMicrodegrees(longitude);
-    // In the case of a meetup, adjust the start time to UTC
-    const processedStartDate =
-      type === CompetitionType.Meetup ? zonedTimeToUtc(startDate, venueTimezone) : getDateOnly(startDate);
+    const latitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(latitude) : undefined;
+    const longitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(longitude) : undefined;
+    let processedStartDate: Date;
     const endDateOnly = getDateOnly(endDate);
+
+    if (type === CompetitionType.Meetup) {
+      // Convert start date so that it is displayed in the venue's local time zone
+      processedStartDate = zonedTimeToUtc(startDate, venueTimezone);
+    } else if (type === CompetitionType.Online) {
+      // Convert start date to UTC using the user's time zone
+      processedStartDate = zonedTimeToUtc(startDate, 'UTC');
+    } else if (type === CompetitionType.Competition) {
+      processedStartDate = getDateOnly(startDate);
+    }
+
     // Set the competition ID and date for every round
     const compEvents = competitionEvents.map((compEvent) => ({
       ...compEvent,
@@ -221,21 +238,21 @@ const CompetitionForm = ({
         ...round,
         competitionId: competition?.competitionId || competitionId,
         date:
-          type === CompetitionType.Meetup
+          type !== CompetitionType.Competition
             ? processedStartDate
             : // Finds the start time of the round based on the schedule, but then gets only the date
-              getDateOnly(
-                // This is necessary, because the date could be different due to time zones
-                utcToZonedTime(
-                  (() => {
-                    for (const room of rooms) {
-                      const activity = room.activities.find((a) => a.activityCode === round.roundId);
-                      if (activity) return activity.startTime;
-                    }
-                  })(),
-                  venueTimezone,
-                ),
+            getDateOnly(
+              // This is necessary, because the date could be different due to time zones
+              utcToZonedTime(
+                (() => {
+                  for (const room of rooms) {
+                    const activity = room.activities.find((a) => a.activityCode === round.roundId);
+                    if (activity) return activity.startTime;
+                  }
+                })(),
+                venueTimezone,
               ),
+            ),
       })),
     }));
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
@@ -267,15 +284,16 @@ const CompetitionForm = ({
       competitionId,
       name: name.trim(),
       type,
-      city: city.trim(),
-      countryIso2,
-      venue: venue.trim(),
+      city: city.trim() || undefined,
+      // If it's an online competition, set country ISO to online
+      countryIso2: type !== CompetitionType.Online ? countryIso2 : Countries[0].code,
+      venue: venue.trim() || undefined,
       address: address.trim() || undefined,
       latitudeMicrodegrees,
       longitudeMicrodegrees,
       startDate: processedStartDate,
-      endDate: type !== CompetitionType.Meetup ? endDateOnly : undefined,
-      organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
+      endDate: type === CompetitionType.Competition ? endDateOnly : undefined,
+      organizers: selectedOrganizers,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
       competitorLimit: competitorLimit && !isNaN(parseInt(competitorLimit)) ? parseInt(competitorLimit) : undefined,
@@ -287,14 +305,13 @@ const CompetitionForm = ({
     // Check for errors
     const tempErrors: string[] = [];
 
-    if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
-      tempErrors.push('Please enter all organizers');
     if (!newComp.competitionId) tempErrors.push('Please enter a competition ID');
     if (!newComp.name) tempErrors.push('Please enter a name');
-    if (!newComp.city) tempErrors.push('Please enter a city');
-    if (!newComp.venue) tempErrors.push('Please enter a venue');
-    if (!newComp.latitudeMicrodegrees || !newComp.longitudeMicrodegrees)
-      tempErrors.push('Please enter valid venue coordinates');
+
+    if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
+      tempErrors.push('Please enter all organizers');
+    else if (newComp.organizers.length === 0) tempErrors.push('Please enter at least one organizer');
+
     if (newComp.events.length === 0) tempErrors.push('You must enter at least one event');
     else if (!competitionEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
@@ -305,10 +322,16 @@ const CompetitionForm = ({
 
     if (type === CompetitionType.Competition) {
       if (!newComp.address) tempErrors.push('Please enter an address');
-      if (!newComp.organizers) tempErrors.push('Please enter at least one organizer');
-      if (!newComp.contact) tempErrors.push('Please enter a contact email address');
+      if (!newComp.contact) tempErrors.push('Please enter a contact email');
       if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
+    }
+
+    if (type !== CompetitionType.Online) {
+      if (!newComp.city) tempErrors.push('Please enter a city');
+      if (!newComp.venue) tempErrors.push('Please enter a venue');
+      if (newComp.latitudeMicrodegrees === null || newComp.longitudeMicrodegrees === null)
+        tempErrors.push('Please enter valid venue coordinates');
     }
 
     if (tempErrors.length > 0) {
@@ -570,51 +593,58 @@ const CompetitionForm = ({
               setSelected={(val: any) => setType(val)}
               disabled={!!competition}
             />
-            <div className="row">
-              <div className="col">
-                <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfCompApproved} />
-              </div>
-              <div className="col">
-                <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!competition} />
-              </div>
-            </div>
-            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompFinished} />
-            <div className="row">
-              <div className="col-6">
-                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompFinished} />
-              </div>
-              <div className="col-3">
-                <FormTextInput
-                  title="Latitude"
-                  value={latitude}
-                  setValue={(val: string) => changeCoordinates(val, longitude)}
-                  disabled={disableIfCompFinished}
-                />
-              </div>
-              <div className="col-3">
-                <FormTextInput
-                  title="Longitude"
-                  value={longitude}
-                  setValue={(val: string) => changeCoordinates(latitude, val)}
-                  disabled={disableIfCompFinished}
-                />
-              </div>
-            </div>
+            {type !== CompetitionType.Online && (
+              <>
+                <div className="row">
+                  <div className="col">
+                    <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfCompApproved} />
+                  </div>
+                  <div className="col">
+                    <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!competition} />
+                  </div>
+                </div>
+                <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompFinished} />
+                <div className="row">
+                  <div className="col-6">
+                    <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompFinished} />
+                  </div>
+                  <div className="col-3">
+                    <FormTextInput
+                      title="Latitude"
+                      value={latitude}
+                      setValue={(val: string) => changeCoordinates(val, longitude)}
+                      disabled={disableIfCompFinished}
+                    />
+                  </div>
+                  <div className="col-3">
+                    <FormTextInput
+                      title="Longitude"
+                      value={longitude}
+                      setValue={(val: string) => changeCoordinates(latitude, val)}
+                      disabled={disableIfCompFinished}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
             <div className="mb-3 row">
               <div className="col">
                 <label htmlFor="start_date" className="form-label">
-                  {type === CompetitionType.Competition ? 'Start date' : 'Start date and time'}
+                  {type === CompetitionType.Competition
+                    ? 'Start date'
+                    : 'Start date and time' + (type === CompetitionType.Online ? ' (UTC)' : '')}
                 </label>
                 <DatePicker
                   id="start_date"
                   selected={startDate}
-                  showTimeSelect={type === CompetitionType.Meetup}
+                  showTimeSelect={type !== CompetitionType.Competition}
                   timeFormat="p"
-                  dateFormat={type === CompetitionType.Meetup ? 'Pp' : 'P'}
+                  // P is date select only, Pp is date and time select
+                  dateFormat={type === CompetitionType.Competition ? 'P' : 'Pp'}
                   locale="en-GB"
                   onChange={(date: Date) => setStartDate(date)}
                   className="form-control"
-                  disabled={type >= CompetitionState.Approved}
+                  disabled={competition?.state >= CompetitionState.Approved}
                 />
               </div>
               {type === CompetitionType.Competition && (
@@ -629,7 +659,7 @@ const CompetitionForm = ({
                     locale="en-GB"
                     onChange={(date: Date) => setEndDate(date)}
                     className="form-control"
-                    disabled={type >= CompetitionState.Approved}
+                    disabled={competition?.state >= CompetitionState.Approved}
                   />
                 </div>
               )}

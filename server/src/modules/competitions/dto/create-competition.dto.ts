@@ -59,30 +59,34 @@ export class CreateCompetitionDto implements ICompetition {
   @IsEnum(CompetitionType)
   type: CompetitionType;
 
+  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
   @IsString()
-  city: string;
+  city?: string;
 
   @IsIn(Countries.map((el) => el.code))
   countryIso2: string;
 
+  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
   @IsString()
   @MinLength(3)
   @Matches(titleRegex, getTitleRegexOpts('venue'))
-  venue: string;
+  venue?: string;
 
   @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.address)
   @IsString()
   address?: string;
 
+  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
   @IsNumber()
   @Min(-90000000)
   @Max(90000000)
-  latitudeMicrodegrees: number;
+  latitudeMicrodegrees?: number;
 
+  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
   @IsNumber()
   @Min(-180000000)
   @Max(180000000)
-  longitudeMicrodegrees: number;
+  longitudeMicrodegrees?: number;
 
   @IsDateString()
   startDate: Date;
@@ -91,11 +95,10 @@ export class CreateCompetitionDto implements ICompetition {
   @IsDateString()
   endDate?: Date;
 
-  @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.organizers)
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreatePersonDto)
-  organizers?: IPerson[];
+  organizers: IPerson[];
 
   @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.contact)
   @IsEmail()

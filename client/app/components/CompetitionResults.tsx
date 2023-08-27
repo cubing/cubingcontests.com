@@ -47,13 +47,11 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
     () => getFormattedDate(competition.startDate, competition.endDate ? competition.endDate : null),
     [competition],
   );
-  const formattedTime = useMemo(
-    () =>
-      competition.type === CompetitionType.Meetup
-        ? format(utcToZonedTime(competition.startDate, competition.timezone), 'HH:mm')
-        : null,
-    [competition],
-  );
+  // Not used for competitions
+  const formattedTime = useMemo(() => {
+    if (competition.type === CompetitionType.Competition) return null;
+    return format(utcToZonedTime(competition.startDate, competition.timezone || 'UTC'), 'H:mm');
+  }, [competition]);
 
   const competitionType = competitionTypeOptions.find((el) => el.value === competition.type)?.label || 'ERROR';
 
@@ -102,17 +100,24 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
               Type:&#8194;<b>{competitionType}</b>
             </p>
             <p className="mb-2">Date:&#8194;{formattedDate}</p>
-            {formattedTime && <p>Starts at:&#8194;{formattedTime}</p>}
-            <p className="mb-2">
-              City:&#8194;{competition.city}, <b>{getCountry(competition.countryIso2)}</b>
-            </p>
+            {formattedTime && (
+              <p>
+                Starts at:&#8194;{formattedTime}
+                {competition.type === CompetitionType.Online ? ' (UTC)' : ''}
+              </p>
+            )}
+            {competition.type !== CompetitionType.Online && (
+              <p className="mb-2">
+                City:&#8194;{competition.city}, <b>{getCountry(competition.countryIso2)}</b>
+              </p>
+            )}
             {competition.venue && <p className="mb-2">Venue:&#8194;{competition.venue}</p>}
             {competition.address && <p className="mb-2">Address:&#8194;{competition.address}</p>}
             {competition.latitudeMicrodegrees && competition.longitudeMicrodegrees && (
               <p className="mb-2">Coordinates:&#8194;{getFormattedCoords(competition)}</p>
             )}
             {competition.contact && <p className="mb-2">Contact:&#8194;{competition.contact}</p>}
-            {competition.organizers && <p className="mb-2">Organizers:&#8194;{getFormattedOrganizers()}</p>}
+            <p className="mb-2">Organizers:&#8194;{getFormattedOrganizers()}</p>
             {competition.state < CompetitionState.Published && competition.competitorLimit && (
               <p className="mb-2">
                 Competitor limit:&#8194;<b>{competition.competitorLimit}</b>

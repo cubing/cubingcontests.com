@@ -3,6 +3,7 @@ import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType, Role } from '@sh/enums';
 import { competitionStates } from '~/helpers/competitionStates';
+import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const CompetitionsTable = async ({
   competitions,
@@ -86,9 +87,13 @@ const CompetitionsTable = async ({
                   </Link>
                 </td>
                 <td>
-                  {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
+                  {comp.type !== CompetitionType.Online && (
+                    <>
+                      {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
+                    </>
+                  )}
                 </td>
-                <td>{comp.type === CompetitionType.Meetup ? 'Meetup' : 'Competition'}</td>
+                <td>{competitionTypeOptions.find((el) => el.value === comp.type).label}</td>
                 <td>{comp.participants || ''}</td>
                 <td>{comp.events.length}</td>
                 {/* THIS IS DESKTOP-ONLY */}

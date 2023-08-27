@@ -43,23 +43,23 @@ class Competition implements ICompetition {
   @Prop({ enum: CompetitionType, required: true, immutable: true })
   type: CompetitionType;
 
-  @Prop({ required: true })
-  city: string;
+  @Prop()
+  city?: string;
 
   @Prop({ required: true })
   countryIso2: string;
 
-  @Prop({ required: true })
-  venue: string;
+  @Prop()
+  venue?: string;
 
   @Prop()
   address?: string;
 
-  @Prop({ required: true })
-  latitudeMicrodegrees: number;
+  @Prop()
+  latitudeMicrodegrees?: number;
 
-  @Prop({ required: true })
-  longitudeMicrodegrees: number;
+  @Prop()
+  longitudeMicrodegrees?: number;
 
   @Prop({ required: true })
   startDate: Date;
@@ -70,8 +70,8 @@ class Competition implements ICompetition {
   @Prop()
   timezone?: string;
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Person' }] })
-  organizers?: PersonDocument[];
+  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Person' }], required: true })
+  organizers: PersonDocument[];
 
   @Prop()
   contact?: string;
