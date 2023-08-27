@@ -16,7 +16,7 @@ import FormSelect from '../form/FormSelect';
 import FormPersonInputs from '../form/FormPersonInputs';
 import Tabs from '../Tabs';
 import Schedule from '../Schedule';
-import { ICompetition, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
+import { ICompetition, ICompetitionDetails, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
 import {
   Color,
   CompetitionState,
@@ -48,8 +48,8 @@ const coordToMicrodegrees = (value: string): number | null => {
 const CompetitionForm = ({
   events,
   competition,
-}: // role,
-{
+  role,
+}: {
   events: IEvent[];
   competition?: ICompetition;
   role: Role;
@@ -64,8 +64,8 @@ const CompetitionForm = ({
   const [countryIso2, setCountryId] = useState('');
   const [venue, setVenue] = useState('');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  const [latitude, setLatitude] = useState('0'); // vertical coordinate (Y); ranges from -90 to 90
+  const [longitude, setLongitude] = useState('0'); // horizontal coordinate (X); ranges from -180 to 180
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date()); // competition-only
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
@@ -80,7 +80,7 @@ const CompetitionForm = ({
   const [mainEventId, setMainEventId] = useState('333');
 
   // Schedule stuff
-  const [venueTimezone, setVenueTimezone] = useState('');
+  const [venueTimezone, setVenueTimezone] = useState(''); // e.g. Europe/Berlin
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [roomName, setRoomName] = useState('');
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
@@ -89,6 +89,10 @@ const CompetitionForm = ({
   // These are in UTC, but get displayed in the local timezone of the venue
   const [activityStartTime, setActivityStartTime] = useState<Date>();
   const [activityEndTime, setActivityEndTime] = useState<Date>();
+
+  const isAdmin = role === Role.Admin;
+  // Only enable competition type for admins
+  competitionTypeOptions[1].disabled = !isAdmin;
 
   const tabs = useMemo(
     () => (type === CompetitionType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
@@ -113,10 +117,13 @@ const CompetitionForm = ({
     () => filteredEvents.filter((ev) => !competitionEvents.some((ce) => ce.event.eventId === ev.eventId)),
     [filteredEvents, competitionEvents],
   );
-  const isFinished = useMemo(() => competition?.state >= CompetitionState.Finished, [competition]);
-  const isNotCreated = useMemo(
-    () => competition?.state && competition.state !== CompetitionState.Created,
-    [competition],
+  const disableIfCompFinished = useMemo(
+    () => !isAdmin && competition?.state >= CompetitionState.Finished,
+    [competition, isAdmin],
+  );
+  const disableIfCompApproved = useMemo(
+    () => !isAdmin && competition?.state >= CompetitionState.Approved,
+    [competition, isAdmin],
   );
   const roomOptions = useMemo(
     () =>
@@ -147,8 +154,6 @@ const CompetitionForm = ({
       if (competition.address) setAddress(competition.address);
       setLatitude((competition.latitudeMicrodegrees / 1000000).toFixed(6));
       setLongitude((competition.longitudeMicrodegrees / 1000000).toFixed(6));
-      // Convert the dates from string to Date
-      setStartDate(new Date(competition.startDate));
       if (competition.organizers) {
         setOrganizerNames([...competition.organizers.map((el) => el.name), '']);
         setOrganizers([...competition.organizers, null]);
@@ -162,8 +167,16 @@ const CompetitionForm = ({
       );
       setMainEventId(competition.mainEventId);
 
+      // Meetup-only stuff
+      if (competition.type === CompetitionType.Meetup) {
+        // Because the time is stored as UTC in the DB, but we display it in local time on the frontend
+        setStartDate(utcToZonedTime(competition.startDate, competition.timezone));
+        setVenueTimezone(competition.timezone);
+      }
       // Competition-only stuff
-      if (competition.type === CompetitionType.Competition) {
+      else if (competition.type === CompetitionType.Competition) {
+        // Convert the dates from string to Date
+        setStartDate(new Date(competition.startDate));
         setEndDate(new Date(competition.endDate));
 
         const venue = competition.compDetails.schedule.venues[0];
@@ -196,8 +209,57 @@ const CompetitionForm = ({
     const selectedOrganizers = organizers.filter((el) => el !== null);
     const latitudeMicrodegrees = coordToMicrodegrees(latitude);
     const longitudeMicrodegrees = coordToMicrodegrees(longitude);
-    const startDateOnly = getDateOnly(startDate);
+    // In the case of a meetup, adjust the start time to UTC
+    const processedStartDate =
+      type === CompetitionType.Meetup ? zonedTimeToUtc(startDate, venueTimezone) : getDateOnly(startDate);
     const endDateOnly = getDateOnly(endDate);
+    // Set the competition ID and date for every round
+    const compEvents = competitionEvents.map((compEvent) => ({
+      ...compEvent,
+      rounds: compEvent.rounds.map((round) => ({
+        ...round,
+        competitionId: competition?.competitionId || competitionId,
+        date:
+          type === CompetitionType.Meetup
+            ? processedStartDate
+            : // Finds the start time of the round based on the schedule, but then gets only the date
+            getDateOnly(
+              // This is necessary, because the date could be different due to time zones
+              utcToZonedTime(
+                (() => {
+                  for (const room of rooms) {
+                    const activity = room.activities.find((a) => a.activityCode === round.roundId);
+                    if (activity) return activity.startTime;
+                  }
+                })(),
+                venueTimezone,
+              ),
+            ),
+      })),
+    }));
+    let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
+
+    if (type === CompetitionType.Competition) {
+      compDetails = {
+        schedule: {
+          competitionId,
+          startDate: processedStartDate,
+          numberOfDays: differenceInDays(endDateOnly, processedStartDate) + 1,
+          venues: [
+            {
+              id: 1,
+              name: venue,
+              latitudeMicrodegrees,
+              longitudeMicrodegrees,
+              countryIso2,
+              timezone: venueTimezone,
+              // Only send the rooms that have at least one activity
+              rooms: rooms.filter((el) => el.activities.length > 0),
+            },
+          ],
+        },
+      };
+    }
 
     const newComp: ICompetition = {
       ...competition,
@@ -210,59 +272,15 @@ const CompetitionForm = ({
       address: address.trim() || undefined,
       latitudeMicrodegrees,
       longitudeMicrodegrees,
-      startDate: type !== CompetitionType.Meetup ? startDateOnly : startDate,
+      startDate: processedStartDate,
       endDate: type !== CompetitionType.Meetup ? endDateOnly : undefined,
       organizers: selectedOrganizers.length > 0 ? selectedOrganizers : undefined,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
       competitorLimit: competitorLimit && !isNaN(parseInt(competitorLimit)) ? parseInt(competitorLimit) : undefined,
       mainEventId,
-      // Set the competition ID and date for every round
-      events: competitionEvents.map((compEvent) => ({
-        ...compEvent,
-        rounds: compEvent.rounds.map((round) => ({
-          ...round,
-          competitionId: competition?.competitionId || competitionId,
-          date:
-            type === CompetitionType.Meetup
-              ? startDateOnly
-              : // Finds the start time of the round based on the schedule, but then gets only the date
-              getDateOnly(
-                // This is necessary, because the date could be different due to time zones
-                utcToZonedTime(
-                  (() => {
-                    for (const room of rooms) {
-                      const activity = room.activities.find((a) => a.activityCode === round.roundId);
-                      if (activity) return activity.startTime;
-                    }
-                  })(),
-                  venueTimezone,
-                ),
-              ),
-        })),
-      })),
-      compDetails:
-        type === CompetitionType.Competition
-          ? {
-              schedule: {
-                competitionId,
-                startDate: startDateOnly,
-                numberOfDays: differenceInDays(endDateOnly, startDateOnly) + 1,
-                venues: [
-                  {
-                    id: 1,
-                    name: venue,
-                    latitudeMicrodegrees,
-                    longitudeMicrodegrees,
-                    countryIso2,
-                    timezone: venueTimezone,
-                    // Only send the rooms that have at least one activity
-                    rooms: rooms.filter((el) => el.activities.length > 0),
-                  },
-                ],
-              },
-            }
-          : undefined,
+      events: compEvents,
+      compDetails,
     };
 
     // Check for errors
@@ -308,21 +326,16 @@ const CompetitionForm = ({
     }
   };
 
-  const changeActiveTab = async (newTab: number) => {
-    if (newTab === 3) {
-      const { errors, payload } = await myFetch.get(
-        `/competitions/timezone?latitude=${latitude}&longitude=${longitude}`,
-        { authorize: true },
-      );
-
-      if (errors) {
-        setErrorMessages(errors);
-      } else {
-        setVenueTimezone(payload.timezone);
-        const today = startOfToday();
-        setActivityStartTime(zonedTimeToUtc(addHours(today, 12), payload.timezone));
-        setActivityEndTime(zonedTimeToUtc(addHours(today, 13), payload.timezone));
+  const changeActiveTab = (newTab: number) => {
+    if (newTab === 2) {
+      if (latitude && longitude) {
         setActiveTab(newTab);
+        // By default set the start time to 12:00 on the first day of the comp and the end time to 13:00
+        const firstDay = getDateOnly(startDate);
+        setActivityStartTime(zonedTimeToUtc(addHours(firstDay, 12), venueTimezone));
+        setActivityEndTime(zonedTimeToUtc(addHours(firstDay, 13), venueTimezone));
+      } else {
+        setErrorMessages(['Please enter the coordinates first']);
       }
     } else {
       setActiveTab(newTab);
@@ -330,12 +343,31 @@ const CompetitionForm = ({
   };
 
   const changeName = (value: string) => {
-    // Update Competition ID accordingly, unless it deviates from the name
-    if (competitionId === name.replaceAll(' ', '')) {
-      setCompetitionId(value.replaceAll(' ', ''));
+    // Update Competition ID accordingly, unless it deviates from the name, but ONLY when creating a new competition
+    if (!competition && competitionId === name.replaceAll(/[^a-zA-Z0-9]/g, '')) {
+      setCompetitionId(value.replaceAll(/[^a-zA-Z0-9]/g, ''));
     }
 
     setName(value);
+  };
+
+  const changeCoordinates = async (newLat: string, newLong: string) => {
+    const getIsValidCoord = (val: string) => !/[^0-9.]/.test(val) && !isNaN(Number(val));
+
+    if (getIsValidCoord(newLat) && getIsValidCoord(newLong)) {
+      setLatitude(newLat);
+      setLongitude(newLong);
+
+      const { errors, payload } = await myFetch.get(`/competitions/timezone?latitude=${newLat}&longitude=${newLong}`, {
+        authorize: true,
+      });
+
+      if (errors) {
+        setErrorMessages(errors);
+      } else {
+        setVenueTimezone(payload.timezone);
+      }
+    }
   };
 
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
@@ -457,6 +489,7 @@ const CompetitionForm = ({
     setActivityStartTime(zonedTimeToUtc(newTime, venueTimezone));
   };
 
+  // Get the same date as the start time and use the new end time (the end time input is for time only)
   const changeActivityEndTime = (newTime: Date) => {
     const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
     const newActivityEndTime = zonedTimeToUtc(
@@ -512,7 +545,7 @@ const CompetitionForm = ({
               title="Contest name"
               value={name}
               setValue={changeName}
-              disabled={isNotCreated}
+              disabled={disableIfCompApproved}
             />
             <FormTextInput
               title="Contest ID"
@@ -529,28 +562,38 @@ const CompetitionForm = ({
             />
             <div className="row">
               <div className="col">
-                <FormTextInput title="City" value={city} setValue={setCity} disabled={isNotCreated} />
+                <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfCompApproved} />
               </div>
               <div className="col">
                 <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!competition} />
               </div>
             </div>
-            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={isFinished} />
+            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompFinished} />
             <div className="row">
               <div className="col-6">
-                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={isFinished} />
+                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompFinished} />
               </div>
               <div className="col-3">
-                <FormTextInput title="Latitude" value={latitude} setValue={setLatitude} disabled={isFinished} />
+                <FormTextInput
+                  title="Latitude"
+                  value={latitude}
+                  setValue={(val: string) => changeCoordinates(val, longitude)}
+                  disabled={disableIfCompFinished}
+                />
               </div>
               <div className="col-3">
-                <FormTextInput title="Longitude" value={longitude} setValue={setLongitude} disabled={isFinished} />
+                <FormTextInput
+                  title="Longitude"
+                  value={longitude}
+                  setValue={(val: string) => changeCoordinates(latitude, val)}
+                  disabled={disableIfCompFinished}
+                />
               </div>
             </div>
             <div className="mb-3 row">
               <div className="col">
                 <label htmlFor="start_date" className="form-label">
-                  {type === CompetitionType.Competition ? 'Start date' : 'Start date and time (UTC)'}
+                  {type === CompetitionType.Competition ? 'Start date' : 'Start date and time'}
                 </label>
                 <DatePicker
                   id="start_date"
@@ -561,7 +604,7 @@ const CompetitionForm = ({
                   locale="en-GB"
                   onChange={(date: Date) => setStartDate(date)}
                   className="form-control"
-                  disabled={isNotCreated}
+                  disabled={type >= CompetitionState.Approved}
                 />
               </div>
               {type === CompetitionType.Competition && (
@@ -576,7 +619,7 @@ const CompetitionForm = ({
                     locale="en-GB"
                     onChange={(date: Date) => setEndDate(date)}
                     className="form-control"
-                    disabled={isNotCreated}
+                    disabled={type >= CompetitionState.Approved}
                   />
                 </div>
               )}
@@ -617,7 +660,7 @@ const CompetitionForm = ({
               title="Competitor limit"
               value={competitorLimit}
               setValue={setCompetitorLimit}
-              disabled={isNotCreated}
+              disabled={disableIfCompApproved}
             />
           </>
         )}
@@ -629,7 +672,7 @@ const CompetitionForm = ({
                 type="button"
                 className="btn btn-success"
                 onClick={addCompetitionEvent}
-                disabled={competitionEvents.length === filteredEvents.length || isFinished}
+                disabled={competitionEvents.length === filteredEvents.length || disableIfCompFinished}
               >
                 Add Event
               </button>
@@ -640,7 +683,7 @@ const CompetitionForm = ({
                   events={remainingEvents}
                   eventId={newEventId}
                   setEventId={setNewEventId}
-                  disabled={isFinished}
+                  disabled={disableIfCompFinished}
                 />
               </div>
             </div>
@@ -652,7 +695,7 @@ const CompetitionForm = ({
                     type="button"
                     className="ms-3 btn btn-danger btn-sm"
                     onClick={() => removeCompetitionEvent(compEvent.event.eventId)}
-                    disabled={isFinished || compEvent.rounds.some((r) => r.results.length > 0)}
+                    disabled={disableIfCompFinished || compEvent.rounds.some((r) => r.results.length > 0)}
                   >
                     Remove Event
                   </button>
@@ -668,7 +711,7 @@ const CompetitionForm = ({
                           title="Round format"
                           options={roundFormatOptions}
                           selected={round.format}
-                          disabled={isFinished || round.results.length > 0}
+                          disabled={disableIfCompFinished || round.results.length > 0}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
                         />
                       </div>
@@ -680,7 +723,7 @@ const CompetitionForm = ({
                           options={roundProceedOptions}
                           selected={round.proceed.type}
                           setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                          disabled={isFinished || round.results.length > 0}
+                          disabled={disableIfCompFinished || round.results.length > 0}
                         />
                         <FormTextInput
                           id="round_proceed_value"
@@ -688,7 +731,7 @@ const CompetitionForm = ({
                           setValue={(val: string) =>
                             changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)
                           }
-                          disabled={isFinished || round.results.length > 0}
+                          disabled={disableIfCompFinished || round.results.length > 0}
                         />
                       </>
                     )}
@@ -700,7 +743,7 @@ const CompetitionForm = ({
                       type="button"
                       className="btn btn-success btn-sm"
                       onClick={() => addRound(compEvent.event.eventId)}
-                      disabled={isFinished}
+                      disabled={disableIfCompFinished}
                     >
                       Add Round
                     </button>
@@ -711,7 +754,8 @@ const CompetitionForm = ({
                       className="btn btn-danger btn-sm"
                       onClick={() => removeEventRound(compEvent.event.eventId)}
                       disabled={
-                        isFinished || compEvent.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
+                        disableIfCompFinished ||
+                        compEvent.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
                       }
                     >
                       Remove Round
@@ -725,7 +769,7 @@ const CompetitionForm = ({
               events={filteredEvents}
               eventId={mainEventId}
               setEventId={setMainEventId}
-              disabled={isNotCreated}
+              disabled={disableIfCompApproved}
             />
           </>
         )}
@@ -755,9 +799,7 @@ const CompetitionForm = ({
             <button type="button" className="mt-3 mb-2 btn btn-success" disabled={!isValidRoom} onClick={addRoom}>
               Create
             </button>
-
             <hr />
-
             <h3 className="mb-3">Schedule</h3>
             <div className="mb-3 row">
               <div className="col">
