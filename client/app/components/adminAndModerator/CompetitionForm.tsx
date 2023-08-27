@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import enGB from 'date-fns/locale/en-GB';
-import { startOfToday, addHours, differenceInDays } from 'date-fns';
+import { addHours, differenceInDays } from 'date-fns';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
 import Form from '../form/Form';
@@ -35,6 +35,7 @@ import {
   roundProceedOptions,
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
+import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -223,18 +224,18 @@ const CompetitionForm = ({
           type === CompetitionType.Meetup
             ? processedStartDate
             : // Finds the start time of the round based on the schedule, but then gets only the date
-            getDateOnly(
-              // This is necessary, because the date could be different due to time zones
-              utcToZonedTime(
-                (() => {
-                  for (const room of rooms) {
-                    const activity = room.activities.find((a) => a.activityCode === round.roundId);
-                    if (activity) return activity.startTime;
-                  }
-                })(),
-                venueTimezone,
+              getDateOnly(
+                // This is necessary, because the date could be different due to time zones
+                utcToZonedTime(
+                  (() => {
+                    for (const room of rooms) {
+                      const activity = room.activities.find((a) => a.activityCode === round.roundId);
+                      if (activity) return activity.startTime;
+                    }
+                  })(),
+                  venueTimezone,
+                ),
               ),
-            ),
       })),
     }));
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
@@ -323,6 +324,15 @@ const CompetitionForm = ({
         setErrorMessages([]);
         window.location.href = '/mod';
       }
+    }
+  };
+
+  // Disallows Mo3 format for events that have Ao5 as the default format, and vice versa for all other events
+  const getFilteredRoundFormats = (event: IEvent): MultiChoiceOption[] => {
+    if (event.defaultRoundFormat === RoundFormat.Average) {
+      return roundFormatOptions.filter((el) => el.value !== RoundFormat.Mean);
+    } else {
+      return roundFormatOptions.filter((el) => el.value !== RoundFormat.Average);
     }
   };
 
@@ -709,7 +719,7 @@ const CompetitionForm = ({
                       <div className="col-8">
                         <FormSelect
                           title="Round format"
-                          options={roundFormatOptions}
+                          options={getFilteredRoundFormats(compEvent.event)}
                           selected={round.format}
                           disabled={disableIfCompFinished || round.results.length > 0}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
