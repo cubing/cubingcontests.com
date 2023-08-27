@@ -259,7 +259,7 @@ export class CompetitionsService {
       await this.resultModel.deleteMany({ competitionId }).exec();
 
       comp.events = await this.updateCompetitionResults(updateCompetitionDto.events);
-      comp.participants = this.getParticipants(comp.events).length;
+      comp.participants = this.getParticipants(updateCompetitionDto.events).length;
       comp.state = CompetitionState.Ongoing;
     } catch (err) {
       // Reset the results if there was an error while posting the results
@@ -268,7 +268,7 @@ export class CompetitionsService {
         await this.resultModel.create(tempResults);
       }
 
-      throw new InternalServerErrorException(`Error while updating competition events: ${err.message}`);
+      throw new InternalServerErrorException(`Error while posting competition results: ${err.message}`);
     }
 
     await this.saveCompetition(comp);
@@ -375,6 +375,7 @@ export class CompetitionsService {
     return personIds;
   }
 
+  // TO-DO: CLEAN THIS UP! THIS IS SO INELEGANT!
   private async updateCompetitionEvents(
     compEvents: CompetitionEvent[],
     newEvents: ICompetitionEvent[],
