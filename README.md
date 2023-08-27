@@ -1,6 +1,6 @@
 # Cubing Contests
 
-This is a place for posting results from unofficial Rubik's cube competitions, unofficial events held at WCA competitions, or speedcuber meetups. All official WCA events are supported, as well as unofficial events, and additional ones can be added, including team events. Records are also tracked for all events. It's currently a **work-in-progress**, but eventually this will be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. But you can (and are encouraged to) use the main instance that will be available to everyone: [**cubingcontests.com**](https://cubingcontests.com/). Feel free to email me if you would like to organize a competition or meetup: `cube327@tuta.io`.
+This is a place for posting results from unofficial Rubik's cube competitions, unofficial events held at WCA competitions, speedcuber meetups, and other unofficial results. All official WCA events are supported, as well as unofficial events, and additional ones can be added, including team events. Records are also tracked for all events. It's currently a **work-in-progress**, but eventually this will be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. But you can (and are encouraged to) use the main instance that will be available to everyone: [**cubingcontests.com**](https://cubingcontests.com/). Feel free to email me if you would like to organize a competition or meetup: `cube327@tuta.io`.
 
 ## Screenshots
 

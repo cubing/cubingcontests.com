@@ -178,6 +178,8 @@ export const submitResult = (
 
   if (persons.includes(null)) {
     errorMessages.push('Invalid person(s)');
+  } else if (persons.some((p1, i1) => persons.some((p2, i2) => i1 !== i2 && p1.personId === p2.personId))) {
+    errorMessages.push('You cannot enter the same person twice');
   }
 
   let realResultExists = false;

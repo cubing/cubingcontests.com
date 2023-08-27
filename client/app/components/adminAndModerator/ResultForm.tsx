@@ -48,6 +48,7 @@ const ResultForm = ({
   nextFocusTargetId,
   setErrorMessages,
   setSuccessMessage,
+  resetTrigger,
 }: {
   event: IEvent;
   setEvent?: (val: IEvent) => void;
@@ -68,6 +69,7 @@ const ResultForm = ({
   nextFocusTargetId?: string;
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage: (val: string) => void;
+  resetTrigger: boolean;
 }) => {
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>(getDefaultTempResult());
@@ -76,15 +78,17 @@ const ResultForm = ({
   if (!roundFormat) roundFormat = round.format;
 
   const roundCanHaveAverage = useMemo(() => getRoundCanHaveAverage(roundFormat, event), [roundFormat, event]);
-  const dependencies = round ? [round.roundTypeId, event] : [roundFormat, event];
 
   useEffect(() => {
     reset(roundFormat);
-    document.getElementById('Competitor_1')?.focus();
-  }, dependencies);
+  }, [resetTrigger, round, roundFormat, event]);
 
   useEffect(() => {
-    setPersonNames(persons.map((el) => (el !== null ? el.name : '')));
+    // Set perons names if there are no null persons (needed for the edit result feature on PostResultsScreen)
+    if (!persons.some((el) => el === null)) {
+      setPersonNames(persons.map((el) => el.name));
+      document.getElementById('attempt_1').focus();
+    }
   }, [persons]);
 
   useEffect(() => {
@@ -173,8 +177,11 @@ const ResultForm = ({
     setSuccessMessage('');
     setErrorMessages([]);
     setPersons(Array(event.participants || 1).fill(null));
+    setPersonNames(Array(event.participants || 1).fill(''));
     setAttempts(Array(roundFormats[newRoundFormat].attempts).fill(''));
     setTempResult(getDefaultTempResult());
+
+    document.getElementById('Competitor_1')?.focus();
   };
 
   const updateTempBestAndAverage = (newAttempts = attempts) => {

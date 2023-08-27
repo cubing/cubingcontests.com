@@ -21,6 +21,7 @@ const SubmitResults = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState<RoundFormat>();
@@ -36,15 +37,11 @@ const SubmitResults = () => {
 
   useEffect(() => {
     fetchSubmissionInfo(date, (payload: IResultsSubmissionInfo) => {
-      // Initialize event and round format, if this is the first fetch
-      if (!resultsSubmissionInfo) {
-        setEvent(payload.events[0]);
-        setRoundFormat(payload.events[0].defaultRoundFormat);
-      }
-
       setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+      setEvent(payload.events[0]);
+      setRoundFormat(payload.events[0].defaultRoundFormat);
     });
-  }, [date]);
+  }, []);
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
@@ -89,10 +86,7 @@ const SubmitResults = () => {
         } else {
           setSuccessMessage('Successfully submitted');
           setVideoLink('');
-          setCompetitors(Array(event.participants || 1).fill(null));
-          setAttempts(Array(roundFormats[roundFormat].attempts).fill(''));
-
-          document.getElementById('Competitor_1').focus();
+          setResultFormResetTrigger(!resultFormResetTrigger);
         }
       },
       true, // require at least one non-DNF/DNS result
@@ -103,6 +97,19 @@ const SubmitResults = () => {
     if (e.key === 'Enter') {
       e.preventDefault();
       document.getElementById('form_submit_button').focus();
+    }
+  };
+
+  const changeDate = (newDate: Date) => {
+    setDate(newDate);
+    setErrorMessages([]);
+    setSuccessMessage('');
+
+    // Update the record pairs with the new date
+    if (newDate) {
+      fetchSubmissionInfo(date, (payload: IResultsSubmissionInfo) => {
+        setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+      });
     }
   };
 
@@ -131,6 +138,7 @@ const SubmitResults = () => {
             nextFocusTargetId="video_link"
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
+            resetTrigger={resultFormResetTrigger}
           />
           <FormTextInput
             id="video_link"
@@ -148,7 +156,7 @@ const SubmitResults = () => {
               selected={date}
               dateFormat="P"
               locale="en-GB"
-              onChange={(date: Date) => setDate(date)}
+              onChange={(date: Date) => changeDate(date)}
               className="form-control"
             />
           </div>

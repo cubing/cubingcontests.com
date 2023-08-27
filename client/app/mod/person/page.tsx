@@ -44,6 +44,7 @@ const CreatePerson = () => {
         setErrorMessages([]);
         setSuccessMessage(`${name} successfully added`);
         setName('');
+        setLocalizedName('');
         setWcaId('');
         document.getElementById('wca_id').focus();
       }

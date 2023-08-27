@@ -449,7 +449,7 @@ export class CompetitionsService {
     for (const compEvent of newCompEvents) {
       const recordPairs = await this.resultsService.getEventRecordPairs(
         compEvent.event.eventId,
-        compEvent.rounds[0].date,
+        new Date(compEvent.rounds[0].date), // the date is passed in as an ISO date string and must be converted
       );
       compEvent.rounds = setNewRecords(compEvent.rounds, recordPairs);
 

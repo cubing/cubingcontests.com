@@ -6,8 +6,14 @@ export default function Home() {
       <h1 className="mb-3 mb-lg-4 text-center">Cubing Contests</h1>
       <p>
         This is a place for posting results from unofficial Rubik&apos;s cube competitions, unofficial events held at
-        WCA competitions, or speedcuber meetups. All official WCA events are supported, as well as unofficial events,
-        and additional ones can be added, including team events. Records are also tracked for all events.
+        WCA competitions, speedcuber meetups, and other unofficial events. All official WCA events are supported, as
+        well as unofficial events, and additional ones can be added, including team events. Records are also tracked for
+        all events.
+      </p>
+      <p>
+        The events are split up into multiple groups: WCA, Unofficial, and Remote. Remote events are not meant to be
+        done in a competition-like setting, but instead need to be submitted individually, similar to how speedrun
+        rankings work.
       </p>
       <div className="my-4 d-flex flex-wrap justify-content-center gap-2 gap-lg-5">
         <Link href="/competitions" className="d-block mb-2 fs-5">
@@ -22,8 +28,8 @@ export default function Home() {
         </Link>
       </div>
       <p>
-        If you would like to create an unofficial competition or meetup, or host unofficial events for a WCA
-        competition, send an inquiry to cube327@tuta.io
+        If you would like to create an unofficial competition or meetup, host unofficial events for a WCA competition,
+        or submit individual results for a remote event, please send an inquiry to cube327@tuta.io
       </p>
     </div>
   );

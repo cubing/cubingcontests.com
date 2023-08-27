@@ -19,6 +19,7 @@ const PostResultsScreen = ({
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
 
   const [round, setRound] = useState<IRound>(competition.events[0].rounds[0]);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
@@ -106,12 +107,11 @@ const PostResultsScreen = ({
           newRound.results.sort(roundFormats[newRound.format].isAverage ? compareAvgs : compareSingles),
         );
 
-        updateRoundAndCompetitionEvents(newRound);
-        setCurrentPersons(Array(currEvent.participants || 1).fill(null));
-        setAttempts(Array(roundFormats[round.format].attempts).fill(''));
         // Add new persons to list of persons
         setPersons([...persons, ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId))]);
-        document.getElementById('Competitor_1').focus();
+
+        updateRoundAndCompetitionEvents(newRound);
+        setResultFormResetTrigger(!resultFormResetTrigger);
       },
     );
   };
@@ -205,6 +205,7 @@ const PostResultsScreen = ({
             nextFocusTargetId="submit_attempt_button"
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
+            resetTrigger={resultFormResetTrigger}
           />
           <div className="mt-3 d-flex justify-content-between">
             <button type="button" id="submit_attempt_button" onClick={handleSubmitResult} className="btn btn-success">

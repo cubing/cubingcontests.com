@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from './FormTextInput';
 import { IPerson } from '@sh/interfaces';
@@ -58,10 +58,11 @@ const FormPersonInputs = ({
     }
   };
 
-  const changeFocusedInput = (index: number | null, inputValue?: string) => {
+  // This is called both on focus and on focus leave
+  const changeFocusedInput = (index: number | null, inputValue = '') => {
     setFocusedInput(index);
-
-    if (inputValue) queryMatchedPersons(inputValue);
+    setPersonSelection(0);
+    queryMatchedPersons(inputValue);
   };
 
   // Returns true if an input was added
@@ -92,7 +93,7 @@ const FormPersonInputs = ({
       return el;
     });
 
-    personsUpdated = addEmptyInput(newPersonNames, newPersons);
+    personsUpdated = addEmptyInput(newPersonNames, newPersons) || personsUpdated;
 
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
@@ -119,33 +120,28 @@ const FormPersonInputs = ({
 
   const onPersonKeyDown = async (index: number, e: any) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
+      // Make sure the focused input is not empty
+      if (personNames[index]) {
+        e.preventDefault();
 
-      if (matchedPersons[personSelection] === null) {
-        window.location.href = '/mod/person';
-        setFocusedInput(null);
-      }
-      // 1, because there is always the "add new competitor" option at the end
-      else if (matchedPersons.length === 1) {
-        setErrorMessages(['Person not found']);
-      } else {
-        const newSelectedPerson = matchedPersons[personSelection];
-        const newPersonNames = personNames.map((el, i) => (i !== index ? el : newSelectedPerson.name));
-        const samePersonIndex = persons.findIndex((el) => el?.personId === newSelectedPerson.personId);
+        if (matchedPersons[personSelection] === null) {
+          window.location.href = '/mod/person';
+          setFocusedInput(null);
+        }
+        // 1, because there is always the "add new competitor" option at the end
+        else if (matchedPersons.length === 1) {
+          setErrorMessages(['Person not found']);
+        } else {
+          const newSelectedPerson = matchedPersons[personSelection];
+          const newPersonNames = personNames.map((el, i) => (i !== index ? el : newSelectedPerson.name));
 
-        if (samePersonIndex >= 0) {
-          if (samePersonIndex !== index) {
-            setErrorMessages(['That competitor has already been selected']);
-          } else {
-            focusNext(persons, index);
+          if (!checkCustomErrors || !checkCustomErrors(newSelectedPerson)) {
+            const newPersons = persons.map((el, i) => (i !== index ? el : newSelectedPerson));
+            setPersons(newPersons);
             setPersonNames(newPersonNames);
+            addEmptyInput(newPersonNames, newPersons);
+            focusNext(newPersons, index);
           }
-        } else if (!checkCustomErrors || !checkCustomErrors(newSelectedPerson)) {
-          const newPersons = persons.map((el, i) => (i !== index ? el : newSelectedPerson));
-          setPersons(newPersons);
-          setPersonNames(newPersonNames);
-          addEmptyInput(newPersonNames, newPersons);
-          focusNext(newPersons, index);
         }
       }
     } else if (e.key === 'ArrowDown') {
@@ -170,7 +166,7 @@ const FormPersonInputs = ({
       {personNames.map((personName: string, i: number) => (
         <div key={i}>
           <FormTextInput
-            title={personNames.length > 1 ? `${title} ${i + 1}` : 'Competitor'}
+            title={personNames.length > 1 ? `${title} ${i + 1}` : title}
             id={`${title}_${i + 1}`}
             value={personName}
             setValue={(val: string) => changePersonName(i, val)}
@@ -178,7 +174,7 @@ const FormPersonInputs = ({
             onFocus={() => changeFocusedInput(i, personName)}
             onBlur={() => changeFocusedInput(null)}
           />
-          {i === focusedInput && personName.trim() && (
+          {i === focusedInput && personName && (
             <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
               {matchedPersons.map((person: IPerson, index) =>
                 person !== null ? (

@@ -97,7 +97,7 @@ const CompetitionForm = ({
   const filteredEvents = useMemo(() => {
     const newFiltEv = events.filter(
       (ev) =>
-        !ev.groups.includes(EventGroup.Removed) &&
+        ev.groups.some((g) => [EventGroup.WCA, EventGroup.Unofficial].includes(g)) &&
         (type === CompetitionType.Meetup || !ev.groups.includes(EventGroup.MeetupOnly)),
     );
 
