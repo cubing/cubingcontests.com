@@ -163,7 +163,9 @@ export const getRole = (): Role => {
   return role;
 };
 
-export const submitResult = (
+// Checks if there are any errors, and if not, calls the callback function,
+// passing it the best single, the average, and the parsed attempts
+export const checkErrorsBeforeSubmit = (
   attempts: string[],
   roundFormat: RoundFormat,
   event: IEvent,
@@ -173,7 +175,6 @@ export const submitResult = (
   callback: (resultInfo: IResultInfo) => void,
   requireRealResult = false,
 ) => {
-  // Check for errors first
   const errorMessages: string[] = [];
 
   if (persons.includes(null)) {
@@ -182,7 +183,7 @@ export const submitResult = (
     errorMessages.push('You cannot enter the same person twice');
   }
 
-  let realResultExists = false;
+  let realResultExists = false; // real meaning not DNF or DNS
 
   for (let i = 0; i < attempts.length; i++) {
     if (attempts[i] === '') errorMessages.push(`Please enter attempt ${i + 1}`);

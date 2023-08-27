@@ -79,9 +79,7 @@ const ResultForm = ({
 
   const roundCanHaveAverage = useMemo(() => getRoundCanHaveAverage(roundFormat, event), [roundFormat, event]);
 
-  useEffect(() => {
-    reset(roundFormat);
-  }, [resetTrigger, round, roundFormat, event]);
+  useEffect(() => reset(roundFormat), [resetTrigger, roundFormat, event]);
 
   useEffect(() => {
     // Set perons names if there are no null persons (needed for the edit result feature on PostResultsScreen)

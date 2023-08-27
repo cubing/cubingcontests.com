@@ -7,7 +7,7 @@ import myFetch from '~/helpers/myFetch';
 import { CompetitionState } from '@sh/enums';
 import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
 import { roundFormats } from '~/helpers/roundFormats';
-import { getRoundRanksWithAverage, formatTime, submitResult } from '~/helpers/utilityFunctions';
+import { getRoundRanksWithAverage, formatTime, checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
 import { IResultInfo } from '~/helpers/interfaces/ResultInfo';
 import ErrorMessages from '../ErrorMessages';
@@ -56,27 +56,20 @@ const PostResultsScreen = ({
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
-  const handleSubmit = async () => {
+  const postResults = async (newCompetitionEvents: ICompetitionEvent[]) => {
     if ([CompetitionState.Approved, CompetitionState.Ongoing].includes(competition.state)) {
-      setErrorMessages([]);
-      setSuccessMessage('');
-
       const { errors } = await myFetch.patch(`/competitions/${competition.competitionId}?action=post_results`, {
-        events: competitionEvents,
+        events: newCompetitionEvents,
       });
 
-      if (errors) {
-        setErrorMessages(errors);
-      } else {
-        setSuccessMessage('Results successfully submitted');
-      }
+      if (errors) setErrorMessages(errors);
     } else {
       setErrorMessages(['Submitting results is disabled']);
     }
   };
 
-  const handleSubmitResult = () => {
-    submitResult(
+  const submitResult = () => {
+    checkErrorsBeforeSubmit(
       attempts,
       round.format,
       currEvent,
@@ -110,13 +103,13 @@ const PostResultsScreen = ({
         // Add new persons to list of persons
         setPersons([...persons, ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId))]);
 
-        updateRoundAndCompetitionEvents(newRound);
+        updateRoundAndCompEventsAndSubmit(newRound);
         setResultFormResetTrigger(!resultFormResetTrigger);
       },
     );
   };
 
-  const updateRoundAndCompetitionEvents = (newRound: IRound) => {
+  const updateRoundAndCompEventsAndSubmit = (newRound: IRound) => {
     const newCompetitionEvents = competitionEvents.map((ce) =>
       ce.event.eventId !== currEvent.eventId
         ? ce
@@ -131,6 +124,9 @@ const PostResultsScreen = ({
 
     setCompetitionEvents(newCompetitionEvents);
     setRound(newRound);
+
+    // Send the updated results to the backend
+    postResults(newCompetitionEvents);
   };
 
   const editResult = (result: IResult) => {
@@ -153,9 +149,13 @@ const PostResultsScreen = ({
       results: mapRankings(round.results.filter((res) => !res.personIds.includes(personIds[0]))),
     };
 
-    updateRoundAndCompetitionEvents(newRound);
+    updateRoundAndCompEventsAndSubmit(newRound);
 
-    if (editCallback) editCallback();
+    if (editCallback) {
+      editCallback();
+    } else {
+      setResultFormResetTrigger(!resultFormResetTrigger);
+    }
   };
 
   // Assumes results are already sorted
@@ -207,14 +207,9 @@ const PostResultsScreen = ({
             setSuccessMessage={setSuccessMessage}
             resetTrigger={resultFormResetTrigger}
           />
-          <div className="mt-3 d-flex justify-content-between">
-            <button type="button" id="submit_attempt_button" onClick={handleSubmitResult} className="btn btn-success">
-              Submit
-            </button>
-            <button type="button" onClick={handleSubmit} className="btn btn-primary">
-              Submit Results
-            </button>
-          </div>
+          <button type="button" id="submit_attempt_button" onClick={submitResult} className="btn btn-success">
+            Submit
+          </button>
         </div>
         <div className="col-9">
           <h2 className="mb-4 text-center">

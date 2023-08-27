@@ -10,7 +10,7 @@ import myFetch from '~/helpers/myFetch';
 import { IEvent, IPerson, IResult, IResultsSubmissionInfo } from '~/shared_helpers/interfaces';
 import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
-import { submitResult } from '~/helpers/utilityFunctions';
+import { checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
 import { RoundFormat } from '~/shared_helpers/enums';
 import { roundFormats } from '~/helpers/roundFormats';
 
@@ -61,7 +61,7 @@ const SubmitResults = () => {
   };
 
   const handleSubmit = async () => {
-    submitResult(
+    checkErrorsBeforeSubmit(
       attempts,
       roundFormat,
       event,
