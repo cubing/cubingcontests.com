@@ -20,7 +20,7 @@ export interface ICompetition {
   city?: string; // not needed for online comps
   countryIso2: string; // for online comps there is a special value
   venue?: string; // not needed for online comps
-  address?: string; // required for competitions
+  address?: string; // not needed for online comps
   latitudeMicrodegrees?: number; // vertical coordinate (Y); ranges from -90 to 90; not needed for online comps
   longitudeMicrodegrees?: number; // horizontal coordinate (X); ranges from -180 to 180; not needed for online comps
   // These are stored as ISO date strings in the DB, but are date objects everywhere else

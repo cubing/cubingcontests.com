@@ -297,11 +297,11 @@ const CompetitionForm = ({
       competitionId,
       name: name.trim(),
       type,
-      city: city.trim() || undefined,
+      city: type !== CompetitionType.Online ? city.trim() : undefined,
       // If it's an online competition, set country ISO to online
       countryIso2: type !== CompetitionType.Online ? countryIso2 : Countries[0].code,
-      venue: venue.trim() || undefined,
-      address: address.trim() || undefined,
+      venue: type !== CompetitionType.Online ? venue.trim() : undefined,
+      address: type !== CompetitionType.Online ? address.trim() : undefined,
       latitudeMicrodegrees,
       longitudeMicrodegrees,
       startDate: processedStartDate,
@@ -346,7 +346,6 @@ const CompetitionForm = ({
       tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 
     if (type === CompetitionType.Competition) {
-      if (!newComp.address) tempErrors.push('Please enter an address');
       if (!newComp.contact) tempErrors.push('Please enter a contact email');
       if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
@@ -355,6 +354,7 @@ const CompetitionForm = ({
     if (type !== CompetitionType.Online) {
       if (!newComp.city) tempErrors.push('Please enter a city');
       if (!newComp.venue) tempErrors.push('Please enter a venue');
+      if (!newComp.address) tempErrors.push('Please enter an address');
       if (newComp.latitudeMicrodegrees === null || newComp.longitudeMicrodegrees === null)
         tempErrors.push('Please enter valid venue coordinates');
     }
@@ -744,7 +744,7 @@ const CompetitionForm = ({
             </div>
             <FormTextInput
               id="contact"
-              title="Contact"
+              title={'Contact' + (type !== CompetitionType.Competition ? ' (optional)' : '')}
               placeholder="john@example.com"
               value={contact}
               setValue={setContact}
@@ -764,7 +764,7 @@ const CompetitionForm = ({
               />
             </div>
             <FormTextInput
-              title="Competitor limit"
+              title={'Competitor limit' + (type !== CompetitionType.Competition ? ' (optional)' : '')}
               value={competitorLimit}
               setValue={setCompetitorLimit}
               disabled={disableIfCompApproved}
