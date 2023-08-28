@@ -174,20 +174,17 @@ export class CompetitionsService {
     this.checkAccessRights(comp, user);
     const isAdmin = user.roles.includes(Role.Admin);
 
-    // Only an admin is allowed to edit these fields
-    if (isAdmin) {
-      comp.competitionId = updateCompetitionDto.competitionId;
-      comp.countryIso2 = updateCompetitionDto.countryIso2;
-    }
-
     if (isAdmin || comp.state < CompetitionState.Finished) {
+      comp.organizers = await this.personsService.getPersonsById(
+        updateCompetitionDto.organizers.map((org) => org.personId),
+      );
       if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
       if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
 
-      comp.events = await this.updateCompetitionEvents(comp.events, updateCompetitionDto.events);
+      comp.events = await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
     }
 
-    if (isAdmin || comp.state < CompetitionState.Ongoing) {
+    if (isAdmin || comp.state < CompetitionState.Approved) {
       comp.name = updateCompetitionDto.name;
       if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
       if (updateCompetitionDto.venue) comp.venue = updateCompetitionDto.venue;
@@ -196,15 +193,19 @@ export class CompetitionsService {
         comp.latitudeMicrodegrees = updateCompetitionDto.latitudeMicrodegrees;
         comp.longitudeMicrodegrees = updateCompetitionDto.longitudeMicrodegrees;
       }
-      comp.startDate = updateCompetitionDto.startDate;
-      comp.organizers = await this.personsService.getPersonsById(
-        updateCompetitionDto.organizers.map((org) => org.personId),
-      );
       if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
       comp.mainEventId = updateCompetitionDto.mainEventId;
+
+      // TO-DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       if (updateCompetitionDto.compDetails) {
         // comp.compDetails.schedule = updateCompetitionDto.compDetails.schedule;
       }
+    }
+
+    // Even an admin is not allowed to edit these after a comp has been approved
+    if (comp.state < CompetitionState.Approved) {
+      comp.startDate = updateCompetitionDto.startDate;
+      if (comp.endDate) comp.endDate = updateCompetitionDto.endDate;
     }
 
     await this.saveCompetition(comp);
@@ -371,13 +372,13 @@ export class CompetitionsService {
     return personIds;
   }
 
-  // TO-DO: CLEAN THIS UP! THIS IS SO INELEGANT!
+  // TO-DO: CLEAN THIS UP! THIS IS SO INELEGANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   private async updateCompetitionEvents(
-    compEvents: CompetitionEvent[],
+    comp: CompetitionDocument,
     newEvents: ICompetitionEvent[],
   ): Promise<CompetitionEvent[]> {
     // Remove deleted rounds and events
-    for (const compEvent of compEvents) {
+    for (const compEvent of comp.events) {
       const sameEventInNew = newEvents.find((el) => el.event.eventId === compEvent.event.eventId);
 
       if (sameEventInNew) {
@@ -394,13 +395,13 @@ export class CompetitionsService {
       // Delete event and all of its rounds if it has no results
       else if (!compEvent.rounds.some((el) => el.results.length > 0)) {
         await this.roundModel.deleteMany({ _id: { $in: compEvent.rounds.map((el) => el._id) } });
-        compEvents = compEvents.filter((el) => el.event.eventId !== compEvent.event.eventId);
+        comp.events = comp.events.filter((el) => el.event.eventId !== compEvent.event.eventId);
       }
     }
 
     // Update rounds and add new events
     for (const newEvent of newEvents) {
-      const sameEventInComp = compEvents.find((el) => el.event.eventId === newEvent.event.eventId);
+      const sameEventInComp = comp.events.find((el) => el.event.eventId === newEvent.event.eventId);
 
       if (sameEventInComp) {
         for (const round of newEvent.rounds) {
@@ -412,7 +413,10 @@ export class CompetitionsService {
             // Update round
             const updateObj: any = { $set: { roundTypeId: round.roundTypeId } };
 
-            if (sameRoundInComp.results.length === 0) updateObj.$set.format = round.format;
+            if (sameRoundInComp.results.length === 0) {
+              updateObj.$set.format = round.format;
+              if (comp.state < CompetitionState.Approved) updateObj.$set.date = round.date;
+            }
 
             // Update proceed object if the updated round has it and the round has no results
             // or set it, if the round previously had no proceed object (meaning it was the final round)
@@ -431,13 +435,13 @@ export class CompetitionsService {
           }
         }
       } else {
-        compEvents.push(await this.getNewCompetitionEvent(newEvent));
+        comp.events.push(await this.getNewCompetitionEvent(newEvent));
       }
     }
 
-    compEvents.sort((a, b) => a.event.rank - b.event.rank);
+    comp.events.sort((a, b) => a.event.rank - b.event.rank);
 
-    return compEvents;
+    return comp.events;
   }
 
   // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)

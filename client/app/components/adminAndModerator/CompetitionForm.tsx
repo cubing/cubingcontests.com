@@ -49,10 +49,12 @@ const coordToMicrodegrees = (value: string): number | null => {
 const CompetitionForm = ({
   events,
   competition,
+  mode,
   role,
 }: {
   events: IEvent[];
   competition?: ICompetition;
+  mode: 'new' | 'edit' | 'copy';
   role: Role;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -68,7 +70,7 @@ const CompetitionForm = ({
   const [latitude, setLatitude] = useState('0'); // vertical coordinate (Y); ranges from -90 to 90
   const [longitude, setLongitude] = useState('0'); // horizontal coordinate (X); ranges from -180 to 180
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date()); // competition-only
+  const [endDate, setEndDate] = useState(new Date());
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
   const [contact, setContact] = useState('');
@@ -92,8 +94,7 @@ const CompetitionForm = ({
   const [activityEndTime, setActivityEndTime] = useState<Date>();
 
   const isAdmin = role === Role.Admin;
-  // Only enable competition type for admins
-  competitionTypeOptions[2].disabled = !isAdmin;
+  competitionTypeOptions[2].disabled = !isAdmin; // only enable competition type for admins
 
   const tabs = useMemo(
     () => (type === CompetitionType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
@@ -119,12 +120,17 @@ const CompetitionForm = ({
     [filteredEvents, competitionEvents],
   );
   const disableIfCompFinished = useMemo(
-    () => !isAdmin && competition?.state >= CompetitionState.Finished,
-    [competition, isAdmin],
+    () => !isAdmin && mode === 'edit' && competition.state >= CompetitionState.Finished,
+    [competition, mode, isAdmin],
   );
   const disableIfCompApproved = useMemo(
-    () => !isAdmin && competition?.state >= CompetitionState.Approved,
-    [competition, isAdmin],
+    () => !isAdmin && mode === 'edit' && competition.state >= CompetitionState.Approved,
+    [competition, mode, isAdmin],
+  );
+  // This has been nominated for the best variable name award
+  const disableIfCompApprovedEvenForAdmin = useMemo(
+    () => mode === 'edit' && competition.state >= CompetitionState.Approved,
+    [competition, mode],
   );
   const roomOptions = useMemo(
     () =>
@@ -145,7 +151,7 @@ const CompetitionForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   useEffect(() => {
-    if (competition) {
+    if (mode !== 'new') {
       setCompetitionId(competition.competitionId);
       setName(competition.name);
       setType(competition.type);
@@ -162,7 +168,6 @@ const CompetitionForm = ({
       if (competition.contact) setContact(competition.contact);
       if (competition.description) setDescription(competition.description);
       if (competition.competitorLimit) setCompetitorLimit(competition.competitorLimit.toString());
-      setCompetitionEvents(competition.events);
       setNewEventId(
         events.find((ev) => !competition.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
       );
@@ -191,6 +196,24 @@ const CompetitionForm = ({
         }
         default:
           throw new Error(`Unknown contest type: ${competition.type}`);
+      }
+
+      if (mode === 'copy') {
+        // Remove the round IDs and all results
+        setCompetitionEvents(
+          competition.events.map((ce) => ({
+            ...ce,
+            rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
+          })),
+        );
+        console.log(
+          competition.events.map((ce) => ({
+            ...ce,
+            rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
+          })),
+        );
+      } else if (mode === 'edit') {
+        setCompetitionEvents(competition.events);
       }
     }
   }, [competition, events]);
@@ -236,7 +259,7 @@ const CompetitionForm = ({
       ...compEvent,
       rounds: compEvent.rounds.map((round) => ({
         ...round,
-        competitionId: competition?.competitionId || competitionId,
+        competitionId,
         date:
           type !== CompetitionType.Competition
             ? processedStartDate
@@ -255,6 +278,7 @@ const CompetitionForm = ({
             ),
       })),
     }));
+
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
 
     if (type === CompetitionType.Competition) {
@@ -280,7 +304,6 @@ const CompetitionForm = ({
     }
 
     const newComp: ICompetition = {
-      ...competition,
       competitionId,
       name: name.trim(),
       type,
@@ -302,8 +325,20 @@ const CompetitionForm = ({
       compDetails,
     };
 
+    if (mode === 'edit') {
+      newComp.createdBy = competition.createdBy;
+      newComp.state = competition.state;
+      newComp.participants = competition.participants;
+      if (type === CompetitionType.Meetup) newComp.timezone = competition.timezone;
+    }
+
     // Check for errors
     const tempErrors: string[] = [];
+
+    if (mode === 'copy') {
+      if (newComp.competitionId === competition.competitionId) tempErrors.push('The competition ID cannot be the same');
+      if (newComp.name === competition.name) tempErrors.push('The competition name cannot be the same');
+    }
 
     if (!newComp.competitionId) tempErrors.push('Please enter a competition ID');
     if (!newComp.name) tempErrors.push('Please enter a name');
@@ -337,9 +372,10 @@ const CompetitionForm = ({
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
     } else {
-      const { errors } = competition
-        ? await myFetch.patch(`/competitions/${competition.competitionId}`, newComp) // edit competition
-        : await myFetch.post('/competitions', newComp); // create competition
+      const { errors } =
+        mode === 'edit'
+          ? await myFetch.patch(`/competitions/${competition.competitionId}`, newComp) // edit competition
+          : await myFetch.post('/competitions', newComp); // create competition
 
       if (errors) {
         setErrorMessages(errors);
@@ -376,8 +412,8 @@ const CompetitionForm = ({
   };
 
   const changeName = (value: string) => {
-    // Update Competition ID accordingly, unless it deviates from the name, but ONLY when creating a new competition
-    if (!competition && competitionId === name.replaceAll(/[^a-zA-Z0-9]/g, '')) {
+    // If not editing a competition, update Competition ID accordingly, unless it deviates from the name
+    if (mode !== 'edit' && competitionId === name.replaceAll(/[^a-zA-Z0-9]/g, '')) {
       setCompetitionId(value.replaceAll(/[^a-zA-Z0-9]/g, ''));
     }
 
@@ -564,10 +600,11 @@ const CompetitionForm = ({
   return (
     <>
       <Form
-        buttonText={competition ? 'Edit Contest' : 'Create Contest'}
+        buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
         handleSubmit={handleSubmit}
         hideButton={activeTab === 2}
+        disableButton={disableIfCompFinished}
       >
         <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
@@ -584,14 +621,14 @@ const CompetitionForm = ({
               title="Contest ID"
               value={competitionId}
               setValue={setCompetitionId}
-              disabled={!!competition}
+              disabled={mode === 'edit'}
             />
             <FormRadio
               title="Type"
               options={competitionTypeOptions}
               selected={type}
               setSelected={(val: any) => setType(val)}
-              disabled={!!competition}
+              disabled={mode !== 'new'}
             />
             {type !== CompetitionType.Online && (
               <>
@@ -600,20 +637,24 @@ const CompetitionForm = ({
                     <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfCompApproved} />
                   </div>
                   <div className="col">
-                    <FormCountrySelect countryIso2={countryIso2} setCountryId={setCountryId} disabled={!!competition} />
+                    <FormCountrySelect
+                      countryIso2={countryIso2}
+                      setCountryId={setCountryId}
+                      disabled={mode === 'edit'}
+                    />
                   </div>
                 </div>
-                <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompFinished} />
+                <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompApproved} />
                 <div className="row">
                   <div className="col-6">
-                    <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompFinished} />
+                    <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompApproved} />
                   </div>
                   <div className="col-3">
                     <FormTextInput
                       title="Latitude"
                       value={latitude}
                       setValue={(val: string) => changeCoordinates(val, longitude)}
-                      disabled={disableIfCompFinished}
+                      disabled={disableIfCompApproved}
                     />
                   </div>
                   <div className="col-3">
@@ -621,7 +662,7 @@ const CompetitionForm = ({
                       title="Longitude"
                       value={longitude}
                       setValue={(val: string) => changeCoordinates(latitude, val)}
-                      disabled={disableIfCompFinished}
+                      disabled={disableIfCompApproved}
                     />
                   </div>
                 </div>
@@ -644,7 +685,7 @@ const CompetitionForm = ({
                   locale="en-GB"
                   onChange={(date: Date) => setStartDate(date)}
                   className="form-control"
-                  disabled={competition?.state >= CompetitionState.Approved}
+                  disabled={disableIfCompApprovedEvenForAdmin}
                 />
               </div>
               {type === CompetitionType.Competition && (
@@ -659,7 +700,7 @@ const CompetitionForm = ({
                     locale="en-GB"
                     onChange={(date: Date) => setEndDate(date)}
                     className="form-control"
-                    disabled={competition?.state >= CompetitionState.Approved}
+                    disabled={disableIfCompApprovedEvenForAdmin}
                   />
                 </div>
               )}
@@ -675,6 +716,7 @@ const CompetitionForm = ({
                 setErrorMessages={setErrorMessages}
                 infiniteInputs
                 nextFocusTargetId="contact"
+                disabled={disableIfCompFinished}
               />
             </div>
             <FormTextInput
@@ -683,6 +725,7 @@ const CompetitionForm = ({
               placeholder="john@example.com"
               value={contact}
               setValue={setContact}
+              disabled={disableIfCompFinished}
             />
             <div className="mb-3">
               <label htmlFor="description" className="form-label">
@@ -694,6 +737,7 @@ const CompetitionForm = ({
                 value={description}
                 onChange={(e: any) => setDescription(e.target.value)}
                 className="form-control"
+                disabled={disableIfCompFinished}
               />
             </div>
             <FormTextInput

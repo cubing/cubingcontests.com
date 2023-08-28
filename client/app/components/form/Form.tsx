@@ -4,6 +4,7 @@ const Form = ({
   children,
   buttonText,
   hideButton = false,
+  disableButton = false,
   errorMessages,
   successMessage,
   handleSubmit,
@@ -11,6 +12,7 @@ const Form = ({
   children: React.ReactNode;
   buttonText?: string;
   hideButton?: boolean;
+  disableButton?: boolean;
   errorMessages: string[];
   successMessage?: string;
   handleSubmit: () => void;
@@ -32,7 +34,7 @@ const Form = ({
       {children}
 
       {!hideButton && buttonText && (
-        <button type="submit" id="form_submit_button" className="d-block mt-4 btn btn-primary">
+        <button type="submit" id="form_submit_button" className="d-block mt-4 btn btn-primary" disabled={disableButton}>
           {buttonText}
         </button>
       )}

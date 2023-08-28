@@ -47,6 +47,10 @@ const ModeratorDashboard = () => {
     window.location.href = `/mod/competition?edit_id=${competitionId}`;
   };
 
+  const copyCompetition = (competitionId: string) => {
+    window.location.href = `/mod/competition?copy_id=${competitionId}`;
+  };
+
   const postCompResults = (competitionId: string) => {
     window.location.href = `/mod/competition/${competitionId}`;
   };
@@ -108,6 +112,7 @@ const ModeratorDashboard = () => {
         <CompetitionsTable
           competitions={competitions}
           onEditCompetition={editCompetition}
+          onCopyCompetition={copyCompetition}
           onPostCompResults={postCompResults}
           onChangeCompState={changeCompState}
           role={role}

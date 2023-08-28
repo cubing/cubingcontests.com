@@ -207,7 +207,7 @@ const PostResultsScreen = ({
             setSuccessMessage={setSuccessMessage}
             resetTrigger={resultFormResetTrigger}
           />
-          <button type="button" id="submit_attempt_button" onClick={submitResult} className="btn btn-success">
+          <button type="button" id="submit_attempt_button" onClick={submitResult} className="btn btn-primary">
             Submit
           </button>
         </div>

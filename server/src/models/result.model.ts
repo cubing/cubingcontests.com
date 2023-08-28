@@ -10,7 +10,7 @@ export class Result implements IResult {
   @Prop({ required: true, immutable: true })
   eventId: string;
 
-  @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   date: Date;
 
   @Prop()

@@ -8,7 +8,7 @@ const FormTextInput = ({
   placeholder = '',
   monospace = false,
   disabled = false,
-  isPassword = false,
+  password = false,
   required = false,
   setValue,
   onFocus,
@@ -20,7 +20,7 @@ const FormTextInput = ({
   placeholder?: string;
   monospace?: boolean;
   disabled?: boolean;
-  isPassword?: boolean;
+  password?: boolean;
   required?: boolean;
   value: string;
   setValue: any;
@@ -28,7 +28,7 @@ const FormTextInput = ({
   onBlur?: () => void;
   onKeyDown?: (e: any) => void;
 }) => {
-  const [hidePassword, setHidePassword] = useState(isPassword);
+  const [hidePassword, setHidePassword] = useState(password);
 
   if (!id && !title) {
     throw new Error('Neither title nor id are set in FormTextInput!');
@@ -55,7 +55,7 @@ const FormTextInput = ({
           onBlur={onBlur}
           className={'flex-grow-1 form-control' + (monospace ? ' font-monospace' : '')}
         />
-        {isPassword && (
+        {password && (
           <button
             type="button"
             className="px-2 pt-0 pb-1 btn btn-primary fs-5"

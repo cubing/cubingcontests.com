@@ -9,12 +9,14 @@ const CompetitionsTable = async ({
   competitions,
   // If one of these is defined, the other must be defined too
   onEditCompetition,
+  onCopyCompetition,
   onPostCompResults,
   onChangeCompState,
   role,
 }: {
   competitions: ICompetition[];
   onEditCompetition?: (competitionId: string) => void;
+  onCopyCompetition?: (competitionId: string) => void;
   onPostCompResults?: (competitionId: string) => void;
   onChangeCompState?: (competitionId: string, newState: CompetitionState) => void;
   role?: Role; // used on the admin dashboard
@@ -38,14 +40,21 @@ const CompetitionsTable = async ({
                   <b>{getFormattedDate(comp.startDate, comp.endDate)}</b>
                 </p>
               </div>
-              <div className="d-flex justify-content-between">
+              <div className="d-flex justify-content-between gap-3">
                 <div>
-                  {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
+                  {comp.type !== CompetitionType.Online ? (
+                    <>
+                      {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
+                    </>
+                  ) : (
+                    <>Online</>
+                  )}
                 </div>
-                <div className="ms-3 text-end">
+                <div className="text-end">
                   {comp.participants > 0 && (
                     <span>
-                      Participants:&nbsp;<b>{comp.participants}</b>,{' '}
+                      Participants:&nbsp;<b>{comp.participants}</b>
+                      {', '}
                     </span>
                   )}
                   Events:&nbsp;<b>{comp.events.length}</b>
@@ -69,12 +78,7 @@ const CompetitionsTable = async ({
               <th scope="col">Participants</th>
               <th scope="col">Events</th>
               {/* THIS IS DESKTOP-ONLY */}
-              {onEditCompetition && (
-                <>
-                  <th scope="col">State</th>
-                  <th scope="col">Actions</th>
-                </>
-              )}
+              {onEditCompetition && <th scope="col">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -99,7 +103,6 @@ const CompetitionsTable = async ({
                 {/* THIS IS DESKTOP-ONLY */}
                 {onEditCompetition && (
                   <>
-                    <td>{competitionStates[comp.state].label}</td>
                     <td className="d-flex gap-2">
                       <button
                         type="button"
@@ -107,6 +110,13 @@ const CompetitionsTable = async ({
                         className="btn btn-primary btn-sm"
                       >
                         Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onCopyCompetition(comp.competitionId)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        Copy
                       </button>
                       {comp.state === CompetitionState.Created && role === Role.Admin && (
                         <button

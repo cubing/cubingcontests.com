@@ -31,7 +31,7 @@ class Competition implements ICompetition {
   @Prop({ required: true, immutable: true, unique: true })
   competitionId: string;
 
-  @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   createdBy: number;
 
   @Prop({ enum: CompetitionState, required: true })

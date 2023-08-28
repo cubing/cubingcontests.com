@@ -15,6 +15,7 @@ const FormPersonInputs = ({
   setPersons,
   infiniteInputs = false,
   nextFocusTargetId,
+  disabled = false,
   checkCustomErrors,
   setErrorMessages,
   setSuccessMessage,
@@ -26,6 +27,7 @@ const FormPersonInputs = ({
   setPersons: (val: IPerson[]) => void;
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
+  disabled?: boolean;
   checkCustomErrors?: (newSelectedPerson: IPerson) => boolean;
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage?: (val: string) => void;
@@ -120,10 +122,10 @@ const FormPersonInputs = ({
 
   const onPersonKeyDown = async (index: number, e: any) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
+
       // Make sure the focused input is not empty
       if (personNames[index]) {
-        e.preventDefault();
-
         if (matchedPersons[personSelection] === null) {
           window.location.href = '/mod/person';
           setFocusedInput(null);
@@ -173,6 +175,7 @@ const FormPersonInputs = ({
             onKeyDown={(e: any) => onPersonKeyDown(i, e)}
             onFocus={() => changeFocusedInput(i, personName)}
             onBlur={() => changeFocusedInput(null)}
+            disabled={disabled}
           />
           {i === focusedInput && personName && (
             <ul className="position-absolute list-group" style={{ zIndex: 10 }}>

@@ -10,7 +10,7 @@ import { Role } from '~/shared_helpers/enums';
 import { getRole } from '~/helpers/utilityFunctions';
 
 const fetchData = async (
-  editId: string,
+  competitionId: string,
   setEvents: (value: IEvent[]) => void,
   setCompetition: (value: ICompetition) => void,
   setErrorMessages: (value: string[]) => void,
@@ -24,13 +24,13 @@ const fetchData = async (
 
   setEvents(events);
 
-  if (editId) {
-    const { payload, errors } = await myFetch.get(`/competitions/mod/${editId}`, { authorize: true });
+  if (competitionId) {
+    const { payload, errors } = await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true });
 
     if (errors) {
       setErrorMessages(errors);
-      return;
     } else if (payload) {
+      console.log(payload.competition);
       setCompetition(payload.competition);
     }
   }
@@ -43,18 +43,27 @@ const CreateEditCompetition = () => {
   const [competition, setCompetition] = useState<ICompetition>();
 
   const searchParams = useSearchParams();
-  const editId = searchParams.get('edit_id');
+
+  let mode: 'new' | 'edit' | 'copy' = 'new';
+  let competitionId = searchParams.get('edit_id');
+
+  if (competitionId) {
+    mode = 'edit';
+  } else {
+    competitionId = searchParams.get('copy_id');
+    if (competitionId) mode = 'copy';
+  }
 
   useEffect(() => {
     setRole(getRole());
-    fetchData(editId, setEvents, setCompetition, setErrorMessages);
-  }, [editId]);
+    fetchData(competitionId, setEvents, setCompetition, setErrorMessages);
+  }, [competitionId]);
 
-  if (events) {
+  if (events && (mode === 'new' || competition)) {
     return (
       <>
-        <h2 className="mb-4 text-center">{editId ? 'Edit Competition' : 'Create Competition'}</h2>
-        <CompetitionForm events={events} competition={competition} role={role} />
+        <h2 className="mb-4 text-center">{mode === 'edit' ? 'Edit Competition' : 'Create Competition'}</h2>
+        <CompetitionForm events={events} competition={competition} mode={mode} role={role} />
       </>
     );
   }
