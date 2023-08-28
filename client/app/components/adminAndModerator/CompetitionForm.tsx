@@ -37,6 +37,8 @@ import {
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import { limitRequests } from '~/helpers/utilityFunctions';
+import Loading from '../Loading';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -59,6 +61,7 @@ const CompetitionForm = ({
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(0);
+  const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -69,7 +72,7 @@ const CompetitionForm = ({
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState('0'); // vertical coordinate (Y); ranges from -90 to 90
   const [longitude, setLongitude] = useState('0'); // horizontal coordinate (X); ranges from -180 to 180
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(addHours(getDateOnly(new Date()), 12)); // use 12:00 as default start time
   const [endDate, setEndDate] = useState(new Date());
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
@@ -83,7 +86,7 @@ const CompetitionForm = ({
   const [mainEventId, setMainEventId] = useState('333');
 
   // Schedule stuff
-  const [venueTimezone, setVenueTimezone] = useState(''); // e.g. Europe/Berlin
+  const [venueTimezone, setVenueTimezone] = useState('GMT'); // e.g. Europe/Berlin
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [roomName, setRoomName] = useState('');
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
@@ -175,8 +178,7 @@ const CompetitionForm = ({
 
       switch (competition.type) {
         case CompetitionType.Meetup: {
-          // Because the time is stored as UTC in the DB, but we display it in local time on the frontend
-          setStartDate(utcToZonedTime(competition.startDate, competition.timezone));
+          setStartDate(new Date(competition.startDate));
           setVenueTimezone(competition.timezone);
           break;
         }
@@ -191,7 +193,7 @@ const CompetitionForm = ({
           break;
         }
         case CompetitionType.Online: {
-          setStartDate(utcToZonedTime(competition.startDate, 'UTC'));
+          setStartDate(new Date(competition.startDate));
           break;
         }
         default:
@@ -201,12 +203,6 @@ const CompetitionForm = ({
       if (mode === 'copy') {
         // Remove the round IDs and all results
         setCompetitionEvents(
-          competition.events.map((ce) => ({
-            ...ce,
-            rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
-          })),
-        );
-        console.log(
           competition.events.map((ce) => ({
             ...ce,
             rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
@@ -241,16 +237,10 @@ const CompetitionForm = ({
     const selectedOrganizers = organizers.filter((el) => el !== null);
     const latitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(latitude) : undefined;
     const longitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(longitude) : undefined;
-    let processedStartDate: Date;
+    let processedStartDate = startDate;
     const endDateOnly = getDateOnly(endDate);
 
-    if (type === CompetitionType.Meetup) {
-      // Convert start date so that it is displayed in the venue's local time zone
-      processedStartDate = zonedTimeToUtc(startDate, venueTimezone);
-    } else if (type === CompetitionType.Online) {
-      // Convert start date to UTC using the user's time zone
-      processedStartDate = zonedTimeToUtc(startDate, 'UTC');
-    } else if (type === CompetitionType.Competition) {
+    if (type === CompetitionType.Competition) {
       processedStartDate = getDateOnly(startDate);
     }
 
@@ -420,22 +410,44 @@ const CompetitionForm = ({
     setName(value);
   };
 
+  const changeType = (newType: CompetitionType) => {
+    setType(newType);
+  };
+
   const changeCoordinates = async (newLat: string, newLong: string) => {
-    const getIsValidCoord = (val: string) => !/[^0-9.]/.test(val) && !isNaN(Number(val));
+    const getIsValidCoord = (val: string) => !/[^0-9.-]/.test(val) && !isNaN(Number(val));
 
     if (getIsValidCoord(newLat) && getIsValidCoord(newLong)) {
-      setLatitude(newLat);
-      setLongitude(newLong);
+      const processedLatitude = Math.min(Math.max(Number(newLat), -90), 90);
+      const processedLongitude = Math.min(Math.max(Number(newLong), -180), 180);
 
-      const { errors, payload } = await myFetch.get(`/competitions/timezone?latitude=${newLat}&longitude=${newLong}`, {
-        authorize: true,
+      setLatitude(processedLatitude.toString());
+      setLongitude(processedLongitude.toString());
+
+      limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
+        const { errors, payload } = await myFetch.get(
+          `/competitions/timezone?latitude=${processedLatitude}&longitude=${processedLongitude}`,
+          { authorize: true },
+        );
+
+        if (errors) {
+          setErrorMessages(errors);
+        } else {
+          setVenueTimezone(payload.timezone);
+
+          if (type === CompetitionType.Meetup) {
+            setStartDate(zonedTimeToUtc(zonedTimeToUtc(startDate, venueTimezone), payload.timezone));
+          }
+        }
       });
+    }
+  };
 
-      if (errors) {
-        setErrorMessages(errors);
-      } else {
-        setVenueTimezone(payload.timezone);
-      }
+  const changeStartDate = (newDate: Date) => {
+    if (type !== CompetitionType.Meetup) {
+      setStartDate(newDate);
+    } else {
+      setStartDate(zonedTimeToUtc(newDate, venueTimezone));
     }
   };
 
@@ -604,7 +616,7 @@ const CompetitionForm = ({
         errorMessages={errorMessages}
         handleSubmit={handleSubmit}
         hideButton={activeTab === 2}
-        disableButton={disableIfCompFinished}
+        disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
       >
         <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
@@ -627,7 +639,7 @@ const CompetitionForm = ({
               title="Type"
               options={competitionTypeOptions}
               selected={type}
-              setSelected={(val: any) => setType(val)}
+              setSelected={(val: any) => changeType(val)}
               disabled={mode !== 'new'}
             />
             {type !== CompetitionType.Online && (
@@ -654,7 +666,7 @@ const CompetitionForm = ({
                       title="Latitude"
                       value={latitude}
                       setValue={(val: string) => changeCoordinates(val, longitude)}
-                      disabled={disableIfCompApproved}
+                      disabled={disableIfCompApprovedEvenForAdmin}
                     />
                   </div>
                   <div className="col-3">
@@ -662,7 +674,7 @@ const CompetitionForm = ({
                       title="Longitude"
                       value={longitude}
                       setValue={(val: string) => changeCoordinates(latitude, val)}
-                      disabled={disableIfCompApproved}
+                      disabled={disableIfCompApprovedEvenForAdmin}
                     />
                   </div>
                 </div>
@@ -671,19 +683,30 @@ const CompetitionForm = ({
             <div className="mb-3 row">
               <div className="col">
                 <label htmlFor="start_date" className="form-label">
-                  {type === CompetitionType.Competition
-                    ? 'Start date'
-                    : 'Start date and time' + (type === CompetitionType.Online ? ' (UTC)' : '')}
+                  {type === CompetitionType.Competition ? (
+                    'Start date'
+                  ) : (
+                    <>
+                      Start date and time
+                      {type === CompetitionType.Online ? (
+                        ' (UTC)'
+                      ) : fetchTimezoneTimer === null ? (
+                        ` (${venueTimezone})`
+                      ) : (
+                        <Loading small dontCenter />
+                      )}
+                    </>
+                  )}
                 </label>
                 <DatePicker
                   id="start_date"
-                  selected={startDate}
+                  selected={utcToZonedTime(startDate, venueTimezone)}
                   showTimeSelect={type !== CompetitionType.Competition}
                   timeFormat="p"
                   // P is date select only, Pp is date and time select
                   dateFormat={type === CompetitionType.Competition ? 'P' : 'Pp'}
                   locale="en-GB"
-                  onChange={(date: Date) => setStartDate(date)}
+                  onChange={(date: Date) => changeStartDate(date)}
                   className="form-control"
                   disabled={disableIfCompApprovedEvenForAdmin}
                 />

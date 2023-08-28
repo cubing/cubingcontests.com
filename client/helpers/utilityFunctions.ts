@@ -5,6 +5,7 @@ import { ICompetition, IEvent, IPerson } from '@sh/interfaces';
 import { Role, RoundFormat } from '@sh/enums';
 import { roundFormats } from './roundFormats';
 import { IResultInfo } from './interfaces/ResultInfo';
+import C from '~/shared_helpers/constants';
 
 export const getCountry = (countryIso2: string): string => {
   return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
@@ -199,4 +200,20 @@ export const checkErrorsBeforeSubmit = (
     setSuccessMessage('');
     callback(getBestAverageAndAttempts(attempts, roundFormat, event));
   }
+};
+
+export const limitRequests = (
+  fetchTimer: NodeJS.Timeout,
+  setFetchTimer: (val: NodeJS.Timeout) => void,
+  callback: () => void,
+) => {
+  if (fetchTimer) clearTimeout(fetchTimer);
+
+  setFetchTimer(
+    setTimeout(async () => {
+      setFetchTimer(null);
+
+      callback();
+    }, C.fetchThrottleTimeout),
+  );
 };

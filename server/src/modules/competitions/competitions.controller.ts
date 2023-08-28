@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Patch, Param, Request, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Request,
+  Body,
+  Query,
+  ValidationPipe,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { find } from 'geo-tz';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { CompetitionsService } from './competitions.service';
@@ -34,6 +46,10 @@ export class CompetitionsController {
   @Roles(Role.Admin, Role.Moderator)
   async getTimezone(@Query('latitude') latitude: number, @Query('longitude') longitude: number) {
     console.log('Getting timezone');
+
+    if (latitude > 90 || latitude < -90) throw new BadRequestException(`Invalid latitude: ${latitude}`);
+    if (longitude > 180 || longitude < -180) throw new BadRequestException(`Invalid longitude: ${longitude}`);
+    console.log(latitude, longitude);
     return { timezone: find(latitude, longitude)[0] };
   }
 

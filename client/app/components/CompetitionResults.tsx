@@ -117,7 +117,9 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
               <p className="mb-2">Coordinates:&#8194;{getFormattedCoords(competition)}</p>
             )}
             {competition.contact && <p className="mb-2">Contact:&#8194;{competition.contact}</p>}
-            <p className="mb-2">Organizers:&#8194;{getFormattedOrganizers()}</p>
+            <p className="mb-2">
+              {competition.organizers.length > 1 ? 'Organizers' : 'Organizer'}:&#8194;{getFormattedOrganizers()}
+            </p>
             {competition.state < CompetitionState.Published && competition.competitorLimit && (
               <p className="mb-2">
                 Competitor limit:&#8194;<b>{competition.competitorLimit}</b>

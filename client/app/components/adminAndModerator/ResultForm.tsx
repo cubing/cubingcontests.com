@@ -13,6 +13,7 @@ import { roundFormats } from '~/helpers/roundFormats';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 import Time from '../Time';
 import { setNewRecordsForResult } from '~/shared_helpers/sharedFunctions';
+import Loading from '../Loading';
 
 /**
  * This component has two uses: for entering results on PostResultsScreen, in which case it requires
@@ -44,6 +45,7 @@ const ResultForm = ({
   roundFormat,
   setRoundFormat,
   recordPairs,
+  loadingRecordPairs = false,
   recordTypes,
   nextFocusTargetId,
   setErrorMessages,
@@ -65,6 +67,7 @@ const ResultForm = ({
   roundFormat?: RoundFormat;
   setRoundFormat?: (val: RoundFormat) => void;
   recordPairs: IRecordPair[];
+  loadingRecordPairs?: boolean;
   recordTypes: IRecordType[];
   nextFocusTargetId?: string;
   setErrorMessages: (val: string[]) => void;
@@ -235,12 +238,18 @@ const ResultForm = ({
         />
       ))}
       <div className="mb-3">
-        Best:&nbsp;
-        <Time result={tempResult} event={event} recordTypes={recordTypes} />
-        {roundCanHaveAverage && (
+        {loadingRecordPairs ? (
+          <Loading small dontCenter />
+        ) : (
           <>
-            &#8194;|&#8194;Average:&nbsp;
-            <Time result={tempResult} event={event} recordTypes={recordTypes} average />
+            Best:&nbsp;
+            <Time result={tempResult} event={event} recordTypes={recordTypes} />
+            {roundCanHaveAverage && (
+              <>
+                &#8194;|&#8194;Average:&nbsp;
+                <Time result={tempResult} event={event} recordTypes={recordTypes} average />
+              </>
+            )}
           </>
         )}
       </div>

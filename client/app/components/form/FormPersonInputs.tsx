@@ -4,8 +4,11 @@ import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from './FormTextInput';
 import { IPerson } from '@sh/interfaces';
+import Loading from '../Loading';
+import C from '~/shared_helpers/constants';
+import { limitRequests } from '~/helpers/utilityFunctions';
 
-const MAX_MATCHES = 8;
+const MAX_MATCHES = 7;
 
 const FormPersonInputs = ({
   title,
@@ -36,25 +39,28 @@ const FormPersonInputs = ({
   const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
   const [personSelection, setPersonSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number>(null);
+  const [fetchMatchedPersonsTimer, setFetchMatchedPersonsTimer] = useState<NodeJS.Timeout>(null);
 
-  const queryMatchedPersons = async (value: string) => {
+  const queryMatchedPersons = (value: string) => {
     if (value.trim()) {
-      const { payload, errors } = await myFetch.get(`/persons?searchParam=${value}`);
-
       setMatchedPersons([null]);
 
-      if (errors) {
-        setErrorMessages(errors);
-      } else if (payload.length > 0) {
-        const newMatchedPersons = payload.slice(0, MAX_MATCHES);
+      limitRequests(fetchMatchedPersonsTimer, setFetchMatchedPersonsTimer, async () => {
+        const { payload, errors } = await myFetch.get(`/persons?searchParam=${value}`);
 
-        if (newMatchedPersons.length < MAX_MATCHES) newMatchedPersons.push(null);
+        if (errors) {
+          setErrorMessages(errors);
+        } else if (payload.length > 0) {
+          const newMatchedPersons = payload.slice(0, MAX_MATCHES);
 
-        setMatchedPersons(newMatchedPersons);
+          if (newMatchedPersons.length < MAX_MATCHES) newMatchedPersons.push(null);
 
-        // Update current person selection
-        if (newMatchedPersons.length < personSelection) setPersonSelection(0);
-      }
+          setMatchedPersons(newMatchedPersons);
+
+          // Update current person selection
+          if (newMatchedPersons.length < personSelection) setPersonSelection(0);
+        }
+      });
     } else {
       if (matchedPersons.length > 1) setMatchedPersons([null]);
     }
@@ -179,6 +185,11 @@ const FormPersonInputs = ({
           />
           {i === focusedInput && personName && (
             <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
+              {fetchMatchedPersonsTimer !== null && (
+                <li className="list-group-item">
+                  <Loading small />
+                </li>
+              )}
               {matchedPersons.map((person: IPerson, index) =>
                 person !== null ? (
                   <li

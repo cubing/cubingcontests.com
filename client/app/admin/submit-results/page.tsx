@@ -10,8 +10,9 @@ import myFetch from '~/helpers/myFetch';
 import { IEvent, IPerson, IResult, IResultsSubmissionInfo } from '~/shared_helpers/interfaces';
 import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
-import { checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
+import { checkErrorsBeforeSubmit, limitRequests } from '~/helpers/utilityFunctions';
 import { RoundFormat } from '~/shared_helpers/enums';
+import C from '~/shared_helpers/constants';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -21,6 +22,7 @@ const SubmitResults = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
+  const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState<RoundFormat>();
@@ -35,7 +37,7 @@ const SubmitResults = () => {
   );
 
   useEffect(() => {
-    fetchSubmissionInfo(date, (payload: IResultsSubmissionInfo) => {
+    fetchSubmissionInfo(date).then((payload: IResultsSubmissionInfo) => {
       setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
       setEvent(payload.events[0]);
       setRoundFormat(payload.events[0].defaultRoundFormat);
@@ -47,15 +49,17 @@ const SubmitResults = () => {
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
-  const fetchSubmissionInfo = async (recordsUpTo: Date, callback: (payload: IResultsSubmissionInfo) => void) => {
+  const fetchSubmissionInfo = async (recordsUpTo: Date) => {
     const { payload, errors } = await myFetch.get(`/results/submission-info?records_up_to=${recordsUpTo}`, {
       authorize: true,
     });
 
-    if (errors) setErrorMessages(errors);
-    else {
+    if (errors) {
+      setErrorMessages(errors);
+      Promise.reject();
+    } else {
       setErrorMessages([]);
-      callback(payload);
+      return payload;
     }
   };
 
@@ -106,8 +110,10 @@ const SubmitResults = () => {
 
     // Update the record pairs with the new date
     if (newDate) {
-      fetchSubmissionInfo(date, (payload: IResultsSubmissionInfo) => {
-        setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+      limitRequests(fetchRecordPairsTimer, setFetchRecordPairsTimer, () => {
+        fetchSubmissionInfo(newDate).then((payload: IResultsSubmissionInfo) => {
+          setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+        });
       });
     }
   };
@@ -121,6 +127,7 @@ const SubmitResults = () => {
           errorMessages={errorMessages}
           successMessage={successMessage}
           handleSubmit={handleSubmit}
+          disableButton={fetchRecordPairsTimer !== null}
         >
           <ResultForm
             event={event}
@@ -133,6 +140,7 @@ const SubmitResults = () => {
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
             recordPairs={recordPairs}
+            loadingRecordPairs={fetchRecordPairsTimer !== null}
             recordTypes={resultsSubmissionInfo.activeRecordTypes}
             nextFocusTargetId="video_link"
             setErrorMessages={setErrorMessages}
