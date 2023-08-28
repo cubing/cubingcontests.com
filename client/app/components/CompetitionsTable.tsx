@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType, Role } from '@sh/enums';
-import { competitionStates } from '~/helpers/competitionStates';
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const CompetitionsTable = async ({

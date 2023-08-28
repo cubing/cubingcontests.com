@@ -172,7 +172,6 @@ const ResultForm = ({
 
   const reset = (newRoundFormat: RoundFormat) => {
     if (setRoundFormat) setRoundFormat(newRoundFormat);
-    setSuccessMessage('');
     setErrorMessages([]);
     setPersons(Array(event.participants || 1).fill(null));
     setPersonNames(Array(event.participants || 1).fill(''));
