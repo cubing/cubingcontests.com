@@ -9,6 +9,7 @@ import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
+import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
@@ -54,6 +55,13 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
   }, [competition]);
 
   const competitionType = competitionTypeOptions.find((el) => el.value === competition.type)?.label || 'ERROR';
+  const isOngoing =
+    competition.state < CompetitionState.Finished &&
+    areIntervalsOverlapping(
+      { start: new Date(competition.startDate), end: new Date(competition.endDate || competition.startDate) },
+      { start: startOfToday(), end: endOfToday() },
+      { inclusive: true },
+    );
 
   useEffect(() => {
     // If hash is not empty, set initial tab number
@@ -133,9 +141,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
           </div>
           <hr className="d-md-none mt-2 mb-3" />
           <div className="col-md-7">
-            {competition.state === CompetitionState.Ongoing && (
-              <p className="mb-4">This {competitionType.toLowerCase()} is currently ongoing</p>
-            )}
+            {isOngoing && <p className="mb-4">This contest is currently ongoing</p>}
             {competition.state === CompetitionState.Finished && (
               <p className="mb-4">The results for this {competitionType.toLowerCase()} are currently being checked</p>
             )}
