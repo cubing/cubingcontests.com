@@ -28,7 +28,6 @@ import {
   RoundType,
 } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
-import Countries from '@sh/Countries';
 import {
   colorOptions,
   competitionTypeOptions,
@@ -92,9 +91,9 @@ const CompetitionForm = ({
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
   const [activityCode, setActivityCode] = useState('');
-  // These are in UTC, but get displayed in the local timezone of the venue
-  const [activityStartTime, setActivityStartTime] = useState<Date>();
-  const [activityEndTime, setActivityEndTime] = useState<Date>();
+  // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
+  const [activityStartTime, setActivityStartTime] = useState<Date>(addHours(getDateOnly(new Date()), 12));
+  const [activityEndTime, setActivityEndTime] = useState<Date>(addHours(getDateOnly(new Date()), 13));
 
   const isAdmin = role === Role.Admin;
   competitionTypeOptions[2].disabled = !isAdmin; // only enable competition type for admins
@@ -387,16 +386,8 @@ const CompetitionForm = ({
   };
 
   const changeActiveTab = (newTab: number) => {
-    if (newTab === 2) {
-      if (latitude && longitude) {
-        setActiveTab(newTab);
-        // By default set the start time to 12:00 on the first day of the comp and the end time to 13:00
-        const firstDay = getDateOnly(startDate);
-        setActivityStartTime(zonedTimeToUtc(addHours(firstDay, 12), venueTimezone));
-        setActivityEndTime(zonedTimeToUtc(addHours(firstDay, 13), venueTimezone));
-      } else {
-        setErrorMessages(['Please enter the coordinates first']);
-      }
+    if (newTab === 2 && (!latitude || !longitude)) {
+      setErrorMessages(['Please enter the coordinates first']);
     } else {
       setActiveTab(newTab);
     }
@@ -436,8 +427,22 @@ const CompetitionForm = ({
         } else {
           setVenueTimezone(payload.timezone);
 
+          // Adjust times to the new time zone
           if (type === CompetitionType.Meetup) {
             setStartDate(zonedTimeToUtc(zonedTimeToUtc(startDate, venueTimezone), payload.timezone));
+          } else if (type === CompetitionType.Competition) {
+            setActivityStartTime(zonedTimeToUtc(zonedTimeToUtc(activityStartTime, venueTimezone), payload.timezone));
+            setActivityEndTime(zonedTimeToUtc(zonedTimeToUtc(activityEndTime, venueTimezone), payload.timezone));
+            setRooms(
+              rooms.map((r) => ({
+                ...r,
+                activities: r.activities.map((a) => ({
+                  ...a,
+                  startTime: zonedTimeToUtc(zonedTimeToUtc(a.startTime, venueTimezone), payload.timezone),
+                  endTime: zonedTimeToUtc(zonedTimeToUtc(a.endTime, venueTimezone), payload.timezone),
+                })),
+              })),
+            );
           }
         }
       });
