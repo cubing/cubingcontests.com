@@ -28,11 +28,11 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker push denimint/cubingcontests-api:latest
 fi
 
-echo -e "\nPlease provide the path you want to download the DB dumps to (leave empty to prevent download)"
+echo -e "\nProvide a path to the directory you want to download the DB dumps to (leave empty to abort)"
 read PATH
 
 if [ -n "$PATH" ]; then
-  ./download-db-dumps.sh "$PATH"
+  ./scripts/download-db-dumps.sh "$PATH"
 fi
 
 echo -e "\nDone!"

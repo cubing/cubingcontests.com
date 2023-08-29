@@ -11,8 +11,8 @@
 if [ ! -f ".env" ]; then
   echo "Error: .env file not found in the current directory"
   exit 1
-elif [ -z "$1" ]; then
-  echo "Error: please provide the path to the directory containing the DB dumps as the first argument"
+elif [ ! -d "$1" ]; then
+  echo "Error: please provide a valid path to the directory containing the DB dumps as the first argument"
   exit 2
 fi
 

@@ -6,8 +6,8 @@
 if [ ! -f ".env" ]; then
   echo "Error: .env file not found in the current directory"
   exit 1
-elif [ -z "$1" ]; then
-  echo "Please provide the path where you want the dump to be saved as the first argument"
+elif [ ! -d "$1" ]; then
+  echo "Please provide a valid path to the directory where you want the dump to be saved as the first argument"
   exit 2
 else
   # Remove final / from the path (if it's present at all)
