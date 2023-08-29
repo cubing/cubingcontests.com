@@ -49,7 +49,7 @@ export class CompetitionsController {
 
     if (latitude > 90 || latitude < -90) throw new BadRequestException(`Invalid latitude: ${latitude}`);
     if (longitude > 180 || longitude < -180) throw new BadRequestException(`Invalid longitude: ${longitude}`);
-    console.log(latitude, longitude);
+
     return { timezone: find(latitude, longitude)[0] };
   }
 

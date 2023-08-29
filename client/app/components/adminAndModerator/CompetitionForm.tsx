@@ -253,18 +253,18 @@ const CompetitionForm = ({
           type !== CompetitionType.Competition
             ? processedStartDate
             : // Finds the start time of the round based on the schedule, but then gets only the date
-            getDateOnly(
-              // This is necessary, because the date could be different due to time zones
-              utcToZonedTime(
-                (() => {
-                  for (const room of rooms) {
-                    const activity = room.activities.find((a) => a.activityCode === round.roundId);
-                    if (activity) return activity.startTime;
-                  }
-                })(),
-                venueTimezone,
+              getDateOnly(
+                // This is necessary, because the date could be different due to time zones
+                utcToZonedTime(
+                  (() => {
+                    for (const room of rooms) {
+                      const activity = room.activities.find((a) => a.activityCode === round.roundId);
+                      if (activity) return activity.startTime;
+                    }
+                  })(),
+                  venueTimezone,
+                ),
               ),
-            ),
       })),
     }));
 
@@ -450,10 +450,10 @@ const CompetitionForm = ({
   };
 
   const changeStartDate = (newDate: Date) => {
-    if (type !== CompetitionType.Meetup) {
-      setStartDate(newDate);
-    } else {
+    if (type === CompetitionType.Meetup) {
       setStartDate(zonedTimeToUtc(newDate, venueTimezone));
+    } else {
+      setStartDate(newDate);
     }
   };
 
@@ -706,7 +706,7 @@ const CompetitionForm = ({
                 </label>
                 <DatePicker
                   id="start_date"
-                  selected={utcToZonedTime(startDate, venueTimezone)}
+                  selected={type === CompetitionType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate}
                   showTimeSelect={type !== CompetitionType.Competition}
                   timeFormat="p"
                   // P is date select only, Pp is date and time select
