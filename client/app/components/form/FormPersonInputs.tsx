@@ -18,6 +18,7 @@ const FormPersonInputs = ({
   infiniteInputs = false,
   nextFocusTargetId,
   disabled = false,
+  addNewPersonFromNewTab = false,
   checkCustomErrors,
   setErrorMessages,
   setSuccessMessage,
@@ -30,6 +31,7 @@ const FormPersonInputs = ({
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
   disabled?: boolean;
+  addNewPersonFromNewTab?: boolean;
   checkCustomErrors?: (newSelectedPerson: IPerson) => boolean;
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage?: (val: string) => void;
@@ -127,8 +129,13 @@ const FormPersonInputs = ({
 
   const selectCompetitor = (inputIndex: number) => {
     if (matchedPersons[personSelection] === null) {
-      window.location.href = '/mod/person';
       setFocusedInput(null);
+
+      if (addNewPersonFromNewTab) {
+        open('/mod/person', '_blank');
+      } else {
+        window.location.href = '/mod/person';
+      }
     } else {
       const newSelectedPerson = matchedPersons[personSelection];
       const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));

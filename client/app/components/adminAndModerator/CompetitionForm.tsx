@@ -253,18 +253,18 @@ const CompetitionForm = ({
           type !== CompetitionType.Competition
             ? processedStartDate
             : // Finds the start time of the round based on the schedule, but then gets only the date
-              getDateOnly(
-                // This is necessary, because the date could be different due to time zones
-                utcToZonedTime(
-                  (() => {
-                    for (const room of rooms) {
-                      const activity = room.activities.find((a) => a.activityCode === round.roundId);
-                      if (activity) return activity.startTime;
-                    }
-                  })(),
-                  venueTimezone,
-                ),
+            getDateOnly(
+              // This is necessary, because the date could be different due to time zones
+              utcToZonedTime(
+                (() => {
+                  for (const room of rooms) {
+                    const activity = room.activities.find((a) => a.activityCode === round.roundId);
+                    if (activity) return activity.startTime;
+                  }
+                })(),
+                venueTimezone,
               ),
+            ),
       })),
     }));
 
@@ -746,6 +746,7 @@ const CompetitionForm = ({
                 infiniteInputs
                 nextFocusTargetId="contact"
                 disabled={disableIfCompFinished}
+                addNewPersonFromNewTab
               />
             </div>
             <FormTextInput
