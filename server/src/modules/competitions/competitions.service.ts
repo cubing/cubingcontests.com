@@ -131,7 +131,15 @@ export class CompetitionsService {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (comp) throw new BadRequestException(`Competition with id ${createCompDto.competitionId} already exists`);
+    if (comp) throw new BadRequestException(`A competition with the ID ${createCompDto.competitionId} already exists`);
+
+    try {
+      comp = await this.competitionModel.findOne({ name: createCompDto.name }).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+
+    if (comp) throw new BadRequestException(`A competition with the name ${createCompDto.name} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)

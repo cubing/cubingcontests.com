@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from './FormTextInput';
 import { IPerson } from '@sh/interfaces';
