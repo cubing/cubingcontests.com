@@ -40,7 +40,7 @@ if [ "$1" == "--revert" ]; then
   echo "Reverting to version $VERSION (press ENTER to continue...)"
   read
 
-  ./dump-db.sh ~/dump
+  ./dump-db.sh /dump
 
   # Stop Docker containers
   sudo docker compose -f docker-compose-prod.yml down &&

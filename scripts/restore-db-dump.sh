@@ -48,7 +48,7 @@ fi
 
 read ANSWER
 
-if [ "$ANSWER" == "y" ]; then
+if [ "$ANSWER" == "y" ] || [ "$ANSWER" == "Y" ]; then
   source .env
   collections=( "competitions" "people" "rounds" "results" "recordtypes" "events" "schedules" )
 
@@ -61,11 +61,13 @@ if [ "$ANSWER" == "y" ]; then
   for col in "${collections[@]}"; do
     if [ $OVERWRITE == true ]; then
       # Drop collection (if it returns true, that means it successfully dropped the collection)
-      sudo docker exec $DB_CONTAINER mongosh --eval "db.$col.drop()" "mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@localhost:27017/cubingcontests"
+      sudo docker exec $DB_CONTAINER mongosh --eval "db.$col.drop()" \
+        "mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@localhost:27017/cubingcontests"
     fi
 
     # Restore collection
-    sudo docker exec $DB_CONTAINER mongorestore -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD --db cubingcontests -c $col /dump/cubingcontests/$col.bson
+    sudo docker exec $DB_CONTAINER mongorestore -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD \
+      --db cubingcontests -c $col /dump/cubingcontests/$col.bson
   done
 
   # Delete dump directory
