@@ -12,7 +12,7 @@ const CreatePerson = () => {
   const [name, setName] = useState('');
   const [localizedName, setLocalizedName] = useState('');
   const [wcaId, setWcaId] = useState('');
-  const [countryIso2, setCountryIso2] = useState('');
+  const [countryIso2, setCountryIso2] = useState('NOT_SELECTED');
 
   useEffect(() => {
     document.getElementById('wca_id')?.focus();
@@ -25,6 +25,7 @@ const CreatePerson = () => {
     const tempErrors: string[] = [];
 
     if (!name.trim()) tempErrors.push('Please enter a name');
+    if (countryIso2 === 'NOT_SELECTED') tempErrors.push('Please select a country');
     if (wcaId && wcaId.length !== 10) tempErrors.push('A WCA ID must have exactly ten characters');
 
     if (tempErrors.length > 0) {

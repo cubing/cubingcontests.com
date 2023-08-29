@@ -15,6 +15,7 @@ export class CreatePersonDto {
   @IsString()
   wcaId?: string;
 
-  @IsIn(Countries.map((el) => el.code))
+  // Allow all countries except the online option
+  @IsIn(Countries.slice(1).map((el) => el.code))
   countryIso2: string;
 }

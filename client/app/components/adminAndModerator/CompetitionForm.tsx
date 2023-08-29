@@ -67,7 +67,7 @@ const CompetitionForm = ({
   const [name, setName] = useState('');
   const [type, setType] = useState(CompetitionType.Meetup);
   const [city, setCity] = useState('');
-  const [countryIso2, setCountryId] = useState('');
+  const [countryIso2, setCountryId] = useState('NOT_SELECTED');
   const [venue, setVenue] = useState('');
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState('0'); // vertical coordinate (Y); ranges from -90 to 90
@@ -299,7 +299,7 @@ const CompetitionForm = ({
       type,
       city: type !== CompetitionType.Online ? city.trim() : undefined,
       // If it's an online competition, set country ISO to online
-      countryIso2: type !== CompetitionType.Online ? countryIso2 : Countries[0].code,
+      countryIso2: type !== CompetitionType.Online ? countryIso2 : 'ONLINE',
       venue: type !== CompetitionType.Online ? venue.trim() : undefined,
       address: type !== CompetitionType.Online ? address.trim() : undefined,
       latitudeMicrodegrees,
@@ -353,6 +353,7 @@ const CompetitionForm = ({
 
     if (type !== CompetitionType.Online) {
       if (!newComp.city) tempErrors.push('Please enter a city');
+      if (['NOT_SELECTED', 'ONLINE'].includes(newComp.countryIso2)) tempErrors.push('Please select a country');
       if (!newComp.venue) tempErrors.push('Please enter a venue');
       if (!newComp.address) tempErrors.push('Please enter an address');
       if (newComp.latitudeMicrodegrees === null || newComp.longitudeMicrodegrees === null)
