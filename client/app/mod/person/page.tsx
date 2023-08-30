@@ -52,8 +52,7 @@ const CreatePerson = () => {
         countryIso2,
       };
 
-      // const { errors } = await myFetch.post('/persons', person);
-      const errors: any = null;
+      const { errors } = await myFetch.post('/persons', person);
 
       if (errors) {
         setErrorMessages(errors);
