@@ -224,6 +224,9 @@ const CompetitionForm = ({
     }
   }, [organizers]);
 
+  // TEMPORARY FOR DEBUGGING!!!
+  useEffect(() => console.log(startDate.toUTCString()), [startDate]);
+
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
@@ -235,33 +238,41 @@ const CompetitionForm = ({
     let processedStartDate = startDate;
     const endDateOnly = getDateOnly(endDate);
 
-    if (type === CompetitionType.Competition) {
-      processedStartDate = getDateOnly(startDate);
-    }
+    if (type === CompetitionType.Competition) processedStartDate = getDateOnly(startDate);
+
+    const getRoundDate = (round: IRound): Date => {
+      switch (type) {
+        // If it's a meetup, get the real date using the time zone (it could be different from the UTC date)
+        case CompetitionType.Meetup: {
+          return getDateOnly(utcToZonedTime(startDate, venueTimezone));
+        }
+        // If it's a competition, find the start time of the round using the schedule and get
+        // the date using the time zone. Again, the date could be different from the UTC date.
+        case CompetitionType.Competition: {
+          let roundStartTime: Date;
+
+          for (const room of rooms) {
+            const activity = room.activities.find((a) => a.activityCode === round.roundId);
+
+            if (activity) {
+              roundStartTime = activity.startTime;
+              break;
+            }
+          }
+
+          return getDateOnly(utcToZonedTime(roundStartTime, venueTimezone));
+        }
+        // If it's an online comp, just get the date
+        case CompetitionType.Online: {
+          return getDateOnly(startDate);
+        }
+      }
+    };
 
     // Set the competition ID and date for every round
     const compEvents = competitionEvents.map((compEvent) => ({
       ...compEvent,
-      rounds: compEvent.rounds.map((round) => ({
-        ...round,
-        competitionId,
-        date:
-          type !== CompetitionType.Competition
-            ? processedStartDate
-            : // Finds the start time of the round based on the schedule, but then gets only the date
-            getDateOnly(
-              // This is necessary, because the date could be different due to time zones
-              utcToZonedTime(
-                (() => {
-                  for (const room of rooms) {
-                    const activity = room.activities.find((a) => a.activityCode === round.roundId);
-                    if (activity) return activity.startTime;
-                  }
-                })(),
-                venueTimezone,
-              ),
-            ),
-      })),
+      rounds: compEvent.rounds.map((round) => ({ ...round, competitionId, date: getRoundDate(round) })),
     }));
 
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
@@ -425,17 +436,17 @@ const CompetitionForm = ({
 
           // Adjust times to the new time zone
           if (type === CompetitionType.Meetup) {
-            setStartDate(zonedTimeToUtc(zonedTimeToUtc(startDate, venueTimezone), payload.timezone));
+            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimezone), payload.timezone));
           } else if (type === CompetitionType.Competition) {
-            setActivityStartTime(zonedTimeToUtc(zonedTimeToUtc(activityStartTime, venueTimezone), payload.timezone));
-            setActivityEndTime(zonedTimeToUtc(zonedTimeToUtc(activityEndTime, venueTimezone), payload.timezone));
+            setActivityStartTime(zonedTimeToUtc(utcToZonedTime(activityStartTime, venueTimezone), payload.timezone));
+            setActivityEndTime(zonedTimeToUtc(utcToZonedTime(activityEndTime, venueTimezone), payload.timezone));
             setRooms(
               rooms.map((r) => ({
                 ...r,
                 activities: r.activities.map((a) => ({
                   ...a,
-                  startTime: zonedTimeToUtc(zonedTimeToUtc(a.startTime, venueTimezone), payload.timezone),
-                  endTime: zonedTimeToUtc(zonedTimeToUtc(a.endTime, venueTimezone), payload.timezone),
+                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimezone), payload.timezone),
+                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimezone), payload.timezone),
                 })),
               })),
             );
