@@ -65,7 +65,7 @@ export class PersonsService {
     }
 
     if (duplicatePerson) {
-      if (duplicatePerson.wcaId) throw new BadRequestException('A person with the same WCA ID already exists');
+      if (createPersonDto.wcaId) throw new BadRequestException('A person with the same WCA ID already exists');
       throw new BadRequestException('A person with the same name and country already exists');
     }
 
@@ -86,6 +86,7 @@ export class PersonsService {
     if (createPersonDto.wcaId) newPerson.wcaId = createPersonDto.wcaId.trim().toUpperCase();
 
     try {
+      console.log(`Creating new person with name ${newPerson.name}`);
       await this.model.create(newPerson);
     } catch (err) {
       throw new InternalServerErrorException(

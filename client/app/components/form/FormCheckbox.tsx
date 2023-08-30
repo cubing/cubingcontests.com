@@ -3,11 +3,13 @@ const FormCheckbox = ({
   id,
   selected,
   setSelected,
+  disabled = false,
 }: {
   title?: string;
   id?: string;
   selected: boolean;
-  setSelected: (val: unknown) => void;
+  setSelected: (val: boolean) => void;
+  disabled?: boolean;
 }) => {
   if (!id && !title) {
     throw new Error('Neither title nor id are set in FormCheckbox!');
@@ -16,8 +18,15 @@ const FormCheckbox = ({
   const inputId = `${id || title}_checkbox`;
 
   return (
-    <div className="form-check">
-      <input className="form-check-input" type="checkbox" checked={selected} onChange={setSelected} id={inputId} />
+    <div className="mb-3 form-check">
+      <input
+        className="form-check-input"
+        id={inputId}
+        type="checkbox"
+        checked={selected}
+        onChange={() => setSelected(!selected)}
+        disabled={disabled}
+      />
       {title && (
         <label className="form-check-label" htmlFor={inputId}>
           {title}

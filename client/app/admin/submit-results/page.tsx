@@ -98,7 +98,6 @@ const SubmitResults = () => {
 
   const onVideoLinkKeyDown = (e: any) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
       document.getElementById('form_submit_button').focus();
     }
   };

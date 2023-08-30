@@ -6,33 +6,39 @@ const FormTextInput = ({
   id,
   value,
   placeholder = '',
-  monospace = false,
-  disabled = false,
-  password = false,
-  required = false,
   setValue,
   onFocus,
   onBlur,
   onKeyDown,
+  required = false,
+  disabled = false,
+  password = false,
+  monospace = false,
 }: {
   title?: string;
   id?: string;
   placeholder?: string;
-  monospace?: boolean;
-  disabled?: boolean;
-  password?: boolean;
-  required?: boolean;
   value: string;
   setValue: any;
   onFocus?: () => void;
   onBlur?: () => void;
   onKeyDown?: (e: any) => void;
+  required?: boolean;
+  disabled?: boolean;
+  password?: boolean;
+  monospace?: boolean;
 }) => {
-  const [hidePassword, setHidePassword] = useState(password);
-
   if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput!');
 
+  const [hidePassword, setHidePassword] = useState(password);
+
   const inputId = id || title;
+
+  const handleKeyDown = (e: any) => {
+    if (e.key === 'Enter') e.preventDefault();
+
+    if (onKeyDown) onKeyDown(e);
+  };
 
   return (
     <div className="mb-3 fs-5">
@@ -50,7 +56,7 @@ const FormTextInput = ({
           disabled={disabled}
           required={required}
           onChange={(e: any) => setValue(e.target.value)}
-          onKeyDown={onKeyDown}
+          onKeyDown={handleKeyDown}
           onFocus={onFocus}
           onBlur={onBlur}
           className={'flex-grow-1 form-control' + (monospace ? ' font-monospace' : '')}

@@ -154,7 +154,6 @@ const ResultForm = ({
 
   const onAttemptKeyDown = (e: any, index: number) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
       focusNext(index);
       updateTempBestAndAverage();
     } else if (e.key === 'Backspace') {

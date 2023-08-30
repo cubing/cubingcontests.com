@@ -46,7 +46,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
     >
       <>
         {tRecordTypes.map((rt) => (
-          <div key={rt.wcaEquivalent} className="row mb-3">
+          <div key={rt.wcaEquivalent} className="row mb-2">
             <label htmlFor={rt.wcaEquivalent + '_label_input'} className="col-2 form-label">
               {rt.wcaEquivalent}&#8194;label
             </label>

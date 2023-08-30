@@ -153,8 +153,6 @@ const FormPersonInputs = ({
 
   const onPersonKeyDown = async (inputIndex: number, e: any) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
-
       // Make sure the focused input is not empty
       if (personNames[inputIndex]) {
         selectCompetitor(inputIndex);

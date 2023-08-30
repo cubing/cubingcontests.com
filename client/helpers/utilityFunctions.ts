@@ -207,13 +207,14 @@ export const limitRequests = (
   setFetchTimer: (val: NodeJS.Timeout) => void,
   callback: () => void,
 ) => {
-  if (fetchTimer) clearTimeout(fetchTimer);
+  if (fetchTimer !== null) clearTimeout(fetchTimer);
 
   setFetchTimer(
     setTimeout(async () => {
-      setFetchTimer(null);
+      await callback();
 
-      callback();
+      // Resetting this AFTER the callback, so that the fetch request can complete first
+      setFetchTimer(null);
     }, C.fetchThrottleTimeout),
   );
 };

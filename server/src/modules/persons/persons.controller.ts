@@ -28,7 +28,6 @@ export class PersonsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto) {
-    console.log(`Creating new person with name ${createPersonDto.name}`);
     return await this.personsService.createPerson(createPersonDto);
   }
 }

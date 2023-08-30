@@ -8,22 +8,31 @@ const countries = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countrie
 const FormCountrySelect = ({
   countryIso2,
   setCountryId,
+  onKeyDown,
   disabled = false,
 }: {
   countryIso2: string;
   setCountryId: any;
+  onKeyDown?: (e: any) => void;
   disabled?: boolean;
 }) => {
+  const handleKeyDown = (e: any) => {
+    if (e.key === 'Enter') e.preventDefault();
+
+    if (onKeyDown) onKeyDown(e);
+  };
+
   return (
     <div className="mb-3 fs-5">
-      <label htmlFor="country_id" className="form-label">
+      <label htmlFor="country_iso_2" className="form-label">
         Country
       </label>
       <select
-        id="country_id"
+        id="country_iso_2"
         className="form-select"
         value={countryIso2}
         onChange={(e) => setCountryId(e.target.value)}
+        onKeyDown={handleKeyDown}
         disabled={disabled}
       >
         {countries.map((el) => (
