@@ -12,7 +12,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
   });
 
   // Gets just the events for the current records category
-  const filteredEventRecords = eventRecords.filter((er) =>
+  const filteredEventRecords = eventRecords?.filter((er) =>
     er.event.groups.includes(recordsCategories.find((rc) => rc.value === params.category).group),
   );
 
@@ -32,7 +32,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
     <>
       <h2 className="mb-4 text-center">Records</h2>
 
-      {eventRecords?.length === 0 ? (
+      {!eventRecords || eventRecords.length === 0 ? (
         <p className="mx-2 fs-5">No records have been set yet</p>
       ) : (
         <>

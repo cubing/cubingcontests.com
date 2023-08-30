@@ -10,7 +10,7 @@ const FormRadio = ({
   title: string;
   options: MultiChoiceOption[];
   selected: unknown;
-  setSelected: (value: unknown) => void;
+  setSelected: (val: unknown) => void;
   disabled?: boolean;
 }) => {
   return (

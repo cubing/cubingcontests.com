@@ -15,16 +15,14 @@ const Form = ({
   disableButton?: boolean;
   errorMessages: string[];
   successMessage?: string;
-  handleSubmit: () => void;
+  handleSubmit?: () => void;
 }) => {
-  const onSubmit = (e: any) => {
-    e.preventDefault();
-
-    handleSubmit();
-  };
-
   return (
-    <form className="container my-4 mx-auto px-2 fs-5" style={{ maxWidth: '720px' }} onSubmit={(e: any) => onSubmit(e)}>
+    <form
+      className="container my-4 mx-auto px-2 fs-5"
+      style={{ maxWidth: '720px' }}
+      onSubmit={(e: any) => e.preventDefault()}
+    >
       {errorMessages.length > 0 ? (
         <ErrorMessages errorMessages={errorMessages} />
       ) : (
@@ -34,7 +32,13 @@ const Form = ({
       {children}
 
       {!hideButton && buttonText && (
-        <button type="submit" id="form_submit_button" className="d-block mt-4 btn btn-primary" disabled={disableButton}>
+        <button
+          type="submit"
+          id="form_submit_button"
+          className="d-block mt-4 btn btn-primary"
+          disabled={disableButton}
+          onClick={handleSubmit}
+        >
           {buttonText}
         </button>
       )}

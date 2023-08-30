@@ -6,6 +6,7 @@ import Form from '@c/form/Form';
 import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
+import FormCheckbox from '../form/FormCheckbox';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -59,17 +60,13 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               />
             </div>
             <div className="col-1" />
-            <div className="col-3 ps-5 form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                checked={rt.active}
-                onChange={() => changeActive(rt.wcaEquivalent)}
-                id={rt.wcaEquivalent + '_checkbox'}
+            <div className="col-3 ps-5">
+              <FormCheckbox
+                title="Active"
+                id={rt.wcaEquivalent}
+                selected={rt.active}
+                setSelected={() => changeActive(rt.wcaEquivalent)}
               />
-              <label className="form-check-label" htmlFor={rt.wcaEquivalent + '_checkbox'}>
-                Active
-              </label>
             </div>
             <label htmlFor="color_select" className="col-1 form-label">
               Color

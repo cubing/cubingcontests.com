@@ -30,21 +30,21 @@ const FormTextInput = ({
 }) => {
   const [hidePassword, setHidePassword] = useState(password);
 
-  if (!id && !title) {
-    throw new Error('Neither title nor id are set in FormTextInput!');
-  }
+  if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput!');
+
+  const inputId = id || title;
 
   return (
     <div className="mb-3 fs-5">
       {title && (
-        <label htmlFor={id} className="form-label">
+        <label htmlFor={inputId} className="form-label">
           {title}
         </label>
       )}
       <div className="d-flex justify-content-between align-items-center gap-3">
         <input
           type={hidePassword ? 'password' : 'text'}
-          id={id || title}
+          id={inputId}
           value={value}
           placeholder={placeholder}
           disabled={disabled}
