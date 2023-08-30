@@ -15,7 +15,6 @@ export class PersonsService {
     const people = await this.model.find({
       localizedName: { $exists: false },
       wcaId: { $exists: true },
-      createdAt: { $gt: new Date('2023-08-20T00:00:00.000Z') },
     });
 
     for (const person of people) {
