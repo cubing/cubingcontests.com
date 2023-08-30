@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Request, Controller, Get, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { PersonsService } from './persons.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
@@ -27,7 +27,7 @@ export class PersonsController {
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto) {
-    return await this.personsService.createPerson(createPersonDto);
+  async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto, @Request() req: any) {
+    return await this.personsService.createPerson(createPersonDto, req.user);
   }
 }

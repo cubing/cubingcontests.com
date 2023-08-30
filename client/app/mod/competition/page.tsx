@@ -30,7 +30,6 @@ const fetchData = async (
     if (errors) {
       setErrorMessages(errors);
     } else if (payload) {
-      console.log(payload.competition);
       setCompetition(payload.competition);
     }
   }

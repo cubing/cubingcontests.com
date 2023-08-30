@@ -4,4 +4,5 @@ export interface IPerson {
   name: string;
   localizedName?: string; // name in the local language
   countryIso2: string;
+  createdBy: unknown;
 }

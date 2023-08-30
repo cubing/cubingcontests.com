@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { PersonDocument } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
 import { IPerson } from '@sh/interfaces';
+import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 @Injectable()
 export class PersonsService {
@@ -48,7 +49,7 @@ export class PersonsService {
     }
   }
 
-  async createPerson(createPersonDto: CreatePersonDto) {
+  async createPerson(createPersonDto: CreatePersonDto, user: IPartialUser) {
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 
@@ -79,11 +80,9 @@ export class PersonsService {
     }
 
     // If it's not the first person to be created, get the highest person id in the DB and increment it
-    if (newestPerson.length === 1) {
-      newPerson.personId = newestPerson[0].personId + 1;
-    }
-
+    if (newestPerson.length === 1) newPerson.personId = newestPerson[0].personId + 1;
     if (createPersonDto.wcaId) newPerson.wcaId = createPersonDto.wcaId.trim().toUpperCase();
+    newPerson.createdBy = new mongoose.Types.ObjectId(user._id as string);
 
     try {
       console.log(`Creating new person with name ${newPerson.name}`);
