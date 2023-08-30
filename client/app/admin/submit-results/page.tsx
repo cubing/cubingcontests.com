@@ -12,7 +12,6 @@ import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import { checkErrorsBeforeSubmit, limitRequests } from '~/helpers/utilityFunctions';
 import { RoundFormat } from '~/shared_helpers/enums';
-import C from '~/shared_helpers/constants';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');

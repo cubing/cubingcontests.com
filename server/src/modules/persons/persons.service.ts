@@ -10,6 +10,26 @@ import { IPerson } from '@sh/interfaces';
 export class PersonsService {
   constructor(@InjectModel('Person') private readonly model: Model<PersonDocument>) {}
 
+  // THIS IS TEMPORARY!!!
+  async onModuleInit() {
+    const people = await this.model.find({
+      localizedName: { $exists: false },
+      wcaId: { $exists: true },
+      createdAt: { $gt: new Date('2023-08-20T00:00:00.000Z') },
+    });
+
+    for (const person of people) {
+      const data = await fetch(`https://www.worldcubeassociation.org/api/v0/persons/${person.wcaId}`);
+      const json: any = await data.json();
+
+      if (json?.person?.name.includes(' (')) {
+        person.localizedName = json.person.name.split(' (')[1].slice(0, -1);
+        await person.save();
+        console.log('Saved with localized name:', person);
+      }
+    }
+  }
+
   async getPersons(searchParam: string): Promise<PersonDocument[]> {
     try {
       if (!searchParam) {
