@@ -96,9 +96,7 @@ const SubmitResults = () => {
   };
 
   const onVideoLinkKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
-      document.getElementById('form_submit_button').focus();
-    }
+    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
   };
 
   const changeDate = (newDate: Date) => {

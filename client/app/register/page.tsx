@@ -13,10 +13,6 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    document.getElementById('username').focus();
-  }, []);
-
   const handleSubmit = async () => {
     const tempErrors: string[] = [];
 
@@ -41,7 +37,7 @@ const Register = () => {
     <>
       <h2 className="mb-4 text-center">Register</h2>
       <Form buttonText="Register" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-        <FormTextInput id="username" title="Username" value={username} setValue={setUsername} />
+        <FormTextInput title="Username" value={username} setValue={setUsername} autoFocus />
         <FormTextInput title="Email" value={email} setValue={setEmail} />
         <FormTextInput title="Password" value={password} setValue={setPassword} password />
         <Link href="/login" className="d-block mt-4 fs-5">

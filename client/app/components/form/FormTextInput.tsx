@@ -10,6 +10,7 @@ const FormTextInput = ({
   onFocus,
   onBlur,
   onKeyDown,
+  autoFocus = false,
   required = false,
   disabled = false,
   submitOnEnter = false,
@@ -24,6 +25,7 @@ const FormTextInput = ({
   onFocus?: () => void;
   onBlur?: () => void;
   onKeyDown?: (e: any) => void;
+  autoFocus?: boolean;
   required?: boolean;
   disabled?: boolean;
   password?: boolean;
@@ -55,6 +57,7 @@ const FormTextInput = ({
           id={inputId}
           value={value}
           placeholder={placeholder}
+          autoFocus={autoFocus}
           disabled={disabled}
           required={required}
           onChange={(e: any) => setValue(e.target.value)}

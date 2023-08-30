@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormCountrySelect from '@c/form/FormCountrySelect';
 import FormTextInput from '@c/form/FormTextInput';
-import { limitRequests } from '~/helpers/utilityFunctions';
 import FormCheckbox from '~/app/components/form/FormCheckbox';
+import { limitRequests } from '~/helpers/utilityFunctions';
 
 const INVALID_WCA_ID_ERROR = 'Please enter a valid WCA ID';
 
@@ -20,17 +20,8 @@ const CreatePerson = () => {
   const [noWcaId, setNoWcaId] = useState(false);
   const [countryIso2, setCountryIso2] = useState('NOT_SELECTED');
   const [fetchPersonDataTimer, setFetchPersonDataTimer] = useState<NodeJS.Timeout>(null);
-  // This is needed when we want to focus the next input AFTER rerender
-  const [nextFocusTarget, setNextFocusTarget] = useState('wca_id');
 
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (nextFocusTarget !== '') {
-      document.getElementById(nextFocusTarget)?.focus();
-      setNextFocusTarget('');
-    }
-  }, [nextFocusTarget]);
 
   const handleSubmit = async () => {
     resetMessages();
@@ -42,11 +33,11 @@ const CreatePerson = () => {
       if (!getWcaIdIsValid()) tempErrors.push(INVALID_WCA_ID_ERROR);
       if (!name.trim() || countryIso2 === 'NOT_SELECTED') tempErrors.push('Invalid competitor, please try again');
 
-      setNextFocusTarget('wca_id');
+      document.getElementById('wca_id').focus();
     } else {
       if (!name.trim()) {
         tempErrors.push('Please enter a name');
-        setNextFocusTarget('full_name');
+        document.getElementById('full_name').focus();
       }
       if (countryIso2 === 'NOT_SELECTED') tempErrors.push('Please select a country');
     }
@@ -61,7 +52,8 @@ const CreatePerson = () => {
         countryIso2,
       };
 
-      const { errors } = await myFetch.post('/persons', person);
+      // const { errors } = await myFetch.post('/persons', person);
+      const errors: any = null;
 
       if (errors) {
         setErrorMessages(errors);
@@ -81,40 +73,6 @@ const CreatePerson = () => {
         }
       }
     }
-  };
-
-  const changeNoWcaId = (value: boolean) => {
-    setNoWcaId(value);
-
-    if (value) {
-      setWcaId('');
-      setNextFocusTarget('full_name');
-    } else {
-      reset();
-      setNextFocusTarget('wca_id');
-    }
-  };
-
-  const changeName = (value: string) => {
-    setName(value);
-    resetMessages();
-  };
-
-  const onNameKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('localized_name').focus();
-  };
-
-  const changeLocalizedName = (value: string) => {
-    setLocalizedName(value);
-    resetMessages();
-  };
-
-  const onLocNameKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('country_iso_2').focus();
-  };
-
-  const onCountryKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
   };
 
   const getWcaIdIsValid = (value = wcaId) => value && /[0-9]{4}[A-Z]{4}[0-9]{2}/.test(value);
@@ -141,7 +99,8 @@ const CreatePerson = () => {
 
             if (errors) {
               setErrorMessages([`Competitor with WCA ID ${value} not found`]);
-              setNextFocusTarget('wca_id');
+              // It doesn't focus without the setTimeout because of a rerender after the checkbox is changed
+              setTimeout(() => document.getElementById('wca_id').focus(), 1); // 1 millisecond
             } else {
               if (payload?.person?.name) {
                 // Extract localized name
@@ -153,12 +112,48 @@ const CreatePerson = () => {
 
               if (payload?.person?.country_iso2) setCountryIso2(payload.person.country_iso2);
 
-              setNextFocusTarget('form_submit_button');
+              // It doesn't focus without the setTimeout because of a rerender after the checkbox is changed
+              setTimeout(() => document.getElementById('form_submit_button').focus(), 1); // 1 millisecond
             }
           });
         }
       }
     }
+  };
+
+  const changeNoWcaId = (value: boolean) => {
+    setNoWcaId(value);
+
+    // It doesn't focus without the setTimeout because of a rerender after the checkbox is changed
+    if (value) {
+      setWcaId('');
+      setTimeout(() => document.getElementById('full_name').focus(), 0);
+    } else {
+      reset();
+      setTimeout(() => document.getElementById('wca_id').focus(), 0);
+    }
+  };
+
+  const changeName = (value: string) => {
+    setName(value);
+    resetMessages();
+  };
+
+  const onNameKeyDown = (e: any) => {
+    if (e.key === 'Enter') document.getElementById('localized_name').focus();
+  };
+
+  const changeLocalizedName = (value: string) => {
+    setLocalizedName(value);
+    resetMessages();
+  };
+
+  const onLocNameKeyDown = (e: any) => {
+    if (e.key === 'Enter') document.getElementById('country_iso_2').focus();
+  };
+
+  const onCountryKeyDown = (e: any) => {
+    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
   };
 
   const resetMessages = () => {
@@ -184,11 +179,12 @@ const CreatePerson = () => {
         disableButton={fetchPersonDataTimer !== null}
       >
         <FormTextInput
-          id="wca_id"
           title="WCA ID"
+          id="wca_id"
           monospace
           value={wcaId}
           setValue={changeWcaId}
+          autoFocus
           disabled={noWcaId || fetchPersonDataTimer !== null}
         />
         <FormCheckbox

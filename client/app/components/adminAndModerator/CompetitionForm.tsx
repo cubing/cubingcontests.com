@@ -213,10 +213,6 @@ const CompetitionForm = ({
     }
   }, [competition, events]);
 
-  useEffect(() => {
-    document.getElementById('competition_name').focus();
-  }, []);
-
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
     if (errorMessages.find((el) => el !== '')) window.scrollTo(0, 0);
@@ -629,10 +625,10 @@ const CompetitionForm = ({
         {activeTab === 0 && (
           <>
             <FormTextInput
-              id="competition_name"
               title="Contest name"
               value={name}
               setValue={changeName}
+              autoFocus
               disabled={disableIfCompApproved}
             />
             <FormTextInput
