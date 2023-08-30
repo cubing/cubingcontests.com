@@ -12,6 +12,7 @@ const FormTextInput = ({
   onKeyDown,
   required = false,
   disabled = false,
+  submitOnEnter = false,
   password = false,
   monospace = false,
 }: {
@@ -27,6 +28,7 @@ const FormTextInput = ({
   disabled?: boolean;
   password?: boolean;
   monospace?: boolean;
+  submitOnEnter?: boolean;
 }) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput!');
 
@@ -35,7 +37,7 @@ const FormTextInput = ({
   const inputId = id || title;
 
   const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter') e.preventDefault();
+    if (e.key === 'Enter' && !submitOnEnter) e.preventDefault();
 
     if (onKeyDown) onKeyDown(e);
   };

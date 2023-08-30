@@ -6,7 +6,10 @@ import Loading from '@c/Loading';
 import { Role } from '@sh/enums';
 
 const fetchUser = async (role: Role, setAuthorized: (value: boolean) => void) => {
-  const { payload } = await myFetch.get(`/auth/validate${role}`, { authorize: true, redirect: 'mod' });
+  const { payload } = await myFetch.get(`/auth/validate${role}`, {
+    authorize: true,
+    redirect: window.location.pathname,
+  });
 
   if (payload) {
     localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);

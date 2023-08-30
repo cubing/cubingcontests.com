@@ -70,7 +70,7 @@ const doFetch = async (
     if ([401, 403].includes(res.status)) {
       localStorage.removeItem('jwtToken');
       if (!redirect) window.location.href = '/login';
-      else window.location.href = `/login?redirect=${redirect}`;
+      else window.location.replace(`/login?redirect=${redirect}`);
       return {};
     } else {
       let errors: string[];

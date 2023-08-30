@@ -22,6 +22,7 @@ const FormPersonInputs = ({
   checkCustomErrors,
   setErrorMessages,
   setSuccessMessage,
+  redirectToOnAddPerson = '',
 }: {
   title: string;
   personNames: string[];
@@ -35,6 +36,7 @@ const FormPersonInputs = ({
   checkCustomErrors?: (newSelectedPerson: IPerson) => boolean;
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage?: (val: string) => void;
+  redirectToOnAddPerson?: string;
 }) => {
   // The null element represents the option "add new person"
   const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
@@ -43,9 +45,10 @@ const FormPersonInputs = ({
   const [fetchMatchedPersonsTimer, setFetchMatchedPersonsTimer] = useState<NodeJS.Timeout>(null);
 
   const queryMatchedPersons = (value: string) => {
-    if (value.trim()) {
-      setMatchedPersons([null]);
+    setMatchedPersons([null]);
+    setPersonSelection(0);
 
+    if (value.trim()) {
       limitRequests(fetchMatchedPersonsTimer, setFetchMatchedPersonsTimer, async () => {
         const { payload, errors } = await myFetch.get(`/persons?searchParam=${value}`);
 
@@ -61,8 +64,6 @@ const FormPersonInputs = ({
           if (newMatchedPersons.length < personSelection) setPersonSelection(0);
         }
       });
-    } else {
-      if (matchedPersons.length > 1) setMatchedPersons([null]);
     }
   };
 
@@ -134,7 +135,8 @@ const FormPersonInputs = ({
       if (addNewPersonFromNewTab) {
         open('/mod/person', '_blank');
       } else {
-        window.location.href = '/mod/person';
+        if (!redirectToOnAddPerson) window.location.href = '/mod/person';
+        else window.location.replace(`/mod/person?redirect=${redirectToOnAddPerson}`);
       }
     } else {
       const newSelectedPerson = matchedPersons[personSelection];

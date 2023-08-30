@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormCountrySelect from '@c/form/FormCountrySelect';
@@ -21,6 +22,8 @@ const CreatePerson = () => {
   const [fetchPersonDataTimer, setFetchPersonDataTimer] = useState<NodeJS.Timeout>(null);
   // This is needed when we want to focus the next input AFTER rerender
   const [nextFocusTarget, setNextFocusTarget] = useState('wca_id');
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (nextFocusTarget !== '') {
@@ -63,11 +66,19 @@ const CreatePerson = () => {
       if (errors) {
         setErrorMessages(errors);
       } else {
-        setErrorMessages([]);
-        setSuccessMessage(`${name} successfully added`);
+        const redirect = searchParams.get('redirect');
+
         reset();
-        if (noWcaId) document.getElementById('full_name').focus();
-        else document.getElementById('wca_id').focus();
+        setErrorMessages([]);
+        setSuccessMessage(`${name} successfully added${redirect ? '. Going back...' : ''}`);
+
+        // Redirect if there is a redirect parameter in the URL
+        if (!redirect) {
+          if (noWcaId) document.getElementById('full_name').focus();
+          else document.getElementById('wca_id').focus();
+        } else {
+          setTimeout(() => window.location.replace(redirect), 1000);
+        }
       }
     }
   };

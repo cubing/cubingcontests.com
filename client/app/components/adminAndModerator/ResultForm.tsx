@@ -224,6 +224,7 @@ const ResultForm = ({
           nextFocusTargetId="attempt_1"
           setErrorMessages={setErrorMessages}
           setSuccessMessage={setSuccessMessage}
+          redirectToOnAddPerson={window.location.pathname}
         />
       </div>
       {attempts.map((attempt, i) => (

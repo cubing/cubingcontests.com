@@ -35,9 +35,11 @@ const Login = () => {
       } else {
         localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
 
-        // Redirect to page in the ?redirect parameter or home if it's not set
+        // Redirect if there is a redirect parameter in the URL
         const redirect = searchParams.get('redirect');
-        if (redirect) window.location.href = `/${redirect}`;
+        console.log(redirect);
+
+        if (redirect) window.location.replace(redirect);
         else window.location.href = '/';
       }
     }
@@ -49,8 +51,8 @@ const Login = () => {
     <>
       <h2 className="mb-4 text-center">Login</h2>
       <Form buttonText="Log in" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-        <FormTextInput id="username" title="Username" value={username} setValue={setUsername} />
-        <FormTextInput title="Password" value={password} setValue={setPassword} password />
+        <FormTextInput id="username" title="Username" value={username} setValue={setUsername} submitOnEnter />
+        <FormTextInput title="Password" value={password} setValue={setPassword} password submitOnEnter />
         <Link href="/register" className="d-block mt-4 fs-5">
           Create account
         </Link>
