@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +9,8 @@ import { FaBars } from 'react-icons/fa';
 const NavbarItems = () => {
   const pathname = usePathname();
 
-  const [mobileItemsOpen, setMobileItemsOpen] = useState<boolean>(false);
+  // Whether or not the navbar menu is expanded (mobile-only)
+  const [expanded, setExpanded] = useState(false);
   // const [searchTerm, setSearchTerm] = useState<string>('');
   // const [searchResults, setSearchResults] = useState<ISearchResult[]>([
   //   { title: 'Meetup in Munich on June 14, 2023', url: 'http://localhost:3000/contests/Munich14062023' },
@@ -37,23 +39,36 @@ const NavbarItems = () => {
       <Link className="navbar-brand fs-3" href="/">
         Cubing Contests
       </Link>
-      <button className="cr-icon-button d-lg-none" onClick={() => setMobileItemsOpen((prev) => !prev)} type="button">
+      <button className="cr-icon-button d-lg-none" onClick={() => setExpanded(!expanded)} type="button">
         <FaBars />
       </button>
-      <div className={'navbar-collapse justify-content-end' + (mobileItemsOpen ? '' : ' collapse')}>
+      <div className={'navbar-collapse justify-content-end' + (expanded ? '' : ' collapse')}>
         <ul className="mt-3 mt-lg-0 navbar-nav align-items-end gap-lg-4 fs-5">
           <li className="nav-item">
-            <Link className={'nav-link' + (pathname === '/' ? ' active' : '')} aria-current="page" href="/">
+            <Link
+              className={'nav-link' + (pathname === '/' ? ' active' : '')}
+              aria-current="page"
+              href="/"
+              onClick={() => setExpanded(false)}
+            >
               Home
             </Link>
           </li>
           <li className="nav-item">
-            <Link className={'nav-link' + (pathname === '/competitions' ? ' active' : '')} href="/competitions">
+            <Link
+              className={'nav-link' + (pathname === '/competitions' ? ' active' : '')}
+              href="/competitions"
+              onClick={() => setExpanded(false)}
+            >
               Contests
             </Link>
           </li>
           <li className="nav-item">
-            <Link className={'nav-link' + (/^\/records\//.test(pathname) ? ' active' : '')} href="/records">
+            <Link
+              className={'nav-link' + (/^\/records\//.test(pathname) ? ' active' : '')}
+              href="/records"
+              onClick={() => setExpanded(false)}
+            >
               Records
             </Link>
           </li>
