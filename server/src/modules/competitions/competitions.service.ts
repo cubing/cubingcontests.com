@@ -18,7 +18,7 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { ICompetitionEvent, ICompetitionData, IResult, ICompetition, IRound } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionData, ICompetition } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import { Role } from '@sh/enums';
@@ -51,22 +51,6 @@ export class CompetitionsService {
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
-
-  // TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async onModuleInit() {
-    const comps = await this.model.find();
-    const filtered = comps.filter((el) => typeof el.events[0].event?._id === 'string');
-
-    for (const comp of filtered) {
-      for (const event of comp.events) {
-        event.event = await this.eventsService.getEventById(event.event.eventId);
-      }
-
-      await comp.save();
-    }
-
-    console.log(filtered.length);
-  }
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
     const queryFilter: any = {

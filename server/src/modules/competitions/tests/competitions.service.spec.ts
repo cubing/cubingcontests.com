@@ -5,7 +5,6 @@ import { EventsService } from '@m/events/events.service';
 import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { UpdateCompetitionDto } from '../dto/update-competition.dto';
 import { Role } from '@sh/enums';
 
 // Mocks and stubs
@@ -17,12 +16,6 @@ import { CompetitionModelMock } from './mocks/competition.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 import { newCompetitionEventsStub } from './stubs/new-competition-events.stub';
-
-const mockUser = {
-  username: 'user',
-  personId: 1,
-  roles: [Role.Admin],
-};
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
