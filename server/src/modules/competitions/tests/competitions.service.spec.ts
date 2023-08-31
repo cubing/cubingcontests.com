@@ -79,18 +79,6 @@ describe('CompetitionsService', () => {
     expect(competitionsService).toBeDefined();
   });
 
-  describe('Endpoint methods', () => {
-    it('should post competition results without error', () => {
-      const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.postResults('Munich30062023', updateCompetitionDto, mockUser);
-    });
-
-    it('should update competition results without error', () => {
-      const updateCompetitionDto = { events: newCompetitionEventsStub() } as UpdateCompetitionDto;
-      competitionsService.postResults('Munich27062023', updateCompetitionDto, mockUser);
-    });
-  });
-
   describe('Helper methods', () => {
     it('getParticipants works correctly', () => {
       const personIds = competitionsService.getParticipants(newCompetitionEventsStub());

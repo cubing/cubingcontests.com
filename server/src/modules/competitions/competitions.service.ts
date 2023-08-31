@@ -18,7 +18,7 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { ICompetitionEvent, ICompetitionData, IResult, ICompetition } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionData, IResult, ICompetition, IRound } from '@sh/interfaces';
 import { setNewRecords } from '@sh/sharedFunctions';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import { Role } from '@sh/enums';
@@ -51,6 +51,22 @@ export class CompetitionsService {
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
+
+  // TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async onModuleInit() {
+    const comps = await this.model.find();
+    const filtered = comps.filter((el) => typeof el.events[0].event?._id === 'string');
+
+    for (const comp of filtered) {
+      for (const event of comp.events) {
+        event.event = await this.eventsService.getEventById(event.event.eventId);
+      }
+
+      await comp.save();
+    }
+
+    console.log(filtered.length);
+  }
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
     const queryFilter: any = {
@@ -189,7 +205,11 @@ export class CompetitionsService {
       if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
       if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
 
-      comp.events = await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
+      try {
+        comp.events = await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
+      } catch (err) {
+        throw new InternalServerErrorException(err.message);
+      }
     }
 
     if (isAdmin || comp.state < CompetitionState.Approved) {
@@ -256,24 +276,31 @@ export class CompetitionsService {
       throw new BadRequestException('You may not post the results for a finished competition');
     }
 
-    // Store the results temporarily in case there is an error
-    let tempResults: IResult[];
+    // Store the rounds and results temporarily in case there is an error
+    let tempRounds: RoundDocument[]; // these are saved and then used to restore the old ones if there was an error
+    let tempResults: ResultDocument[]; // these are deleted and recreated if there was an error
 
     try {
-      tempResults = (await this.resultModel.find({ competitionId }).exec()) as IResult[];
+      tempRounds = await this.roundModel.find({ competitionId }).exec();
+      tempResults = await this.resultModel.find({ competitionId }).exec();
       await this.resultModel.deleteMany({ competitionId }).exec();
 
-      comp.events = await this.updateCompetitionResults(updateCompetitionDto.events);
+      // This updates the rounds and results for every event
+      await this.updateCompetitionResults(comp, updateCompetitionDto.events);
       comp.participants = this.getParticipants(updateCompetitionDto.events).length;
       comp.state = CompetitionState.Ongoing;
     } catch (err) {
-      // Reset the results if there was an error while posting the results
+      const errorMessage = `Error while posting competition results: ${err.message}`;
+      console.error(errorMessage); // in case these queries are unsuccessful too
+
+      for (const round of tempRounds) await this.roundModel.updateOne({ _id: round._id }, round);
+
       if (tempResults?.length > 0) {
         await this.resultModel.deleteMany({ competitionId }).exec();
         await this.resultModel.create(tempResults);
       }
 
-      throw new InternalServerErrorException(`Error while posting competition results: ${err.message}`);
+      throw new InternalServerErrorException(errorMessage);
     }
 
     await this.saveCompetition(comp);
@@ -393,12 +420,10 @@ export class CompetitionsService {
 
       if (sameEventInNew) {
         for (const round of compEvent.rounds) {
-          if (!sameEventInNew.rounds.some((el) => (el as RoundDocument)._id.toString() === round._id.toString())) {
-            // Delete round if it has no results
-            if (round.results.length === 0) {
-              await this.roundModel.deleteOne({ _id: round._id });
-              compEvent.rounds = compEvent.rounds.filter((el) => el !== round);
-            }
+          // Delete round if it has no results
+          if (round.results.length === 0 && !sameEventInNew.rounds.some((el) => el.roundId === round.roundId)) {
+            await this.roundModel.deleteOne({ _id: round._id });
+            compEvent.rounds = compEvent.rounds.filter((el) => el !== round);
           }
         }
       }
@@ -415,12 +440,10 @@ export class CompetitionsService {
 
       if (sameEventInComp) {
         for (const round of newEvent.rounds) {
-          const sameRoundInComp = sameEventInComp.rounds.find(
-            (el) => el._id.toString() === (round as RoundDocument)._id.toString(),
-          );
+          const sameRoundInComp = sameEventInComp.rounds.find((el) => el.roundId === round.roundId);
 
           if (sameRoundInComp) {
-            // Update round
+            // Update permitted round fields
             const updateObj: any = { $set: { roundTypeId: round.roundTypeId } };
 
             if (sameRoundInComp.results.length === 0) {
@@ -455,17 +478,16 @@ export class CompetitionsService {
   }
 
   // Assumes that all records in newCompEvents have been reset (because they need to be set from scratch)
-  async updateCompetitionResults(newCompEvents: ICompetitionEvent[]): Promise<CompetitionEvent[]> {
+  async updateCompetitionResults(competition: CompetitionDocument, newCompEvents: ICompetitionEvent[]) {
     // Save all results from every event and set new records, if there are any
-    for (const compEvent of newCompEvents) {
-      const recordPairs = await this.resultsService.getEventRecordPairs(
-        compEvent.event.eventId,
-        new Date(compEvent.rounds[0].date), // the date is passed in as an ISO date string and must be converted
-      );
-      compEvent.rounds = setNewRecords(compEvent.rounds, recordPairs);
+    for (const compEvent of competition.events) {
+      const newCompEvent = newCompEvents.find((el) => (el.event as any)._id === compEvent.event._id.toString());
+      const recordPairs = await this.resultsService.getEventRecordPairs(compEvent.event.eventId, competition.startDate);
+
+      compEvent.rounds = setNewRecords(newCompEvent.rounds, recordPairs) as RoundDocument[];
 
       try {
-        for (const round of compEvent.rounds) {
+        for (const round of newCompEvent.rounds) {
           const newResults = await this.resultModel.create(round.results);
 
           await this.roundModel

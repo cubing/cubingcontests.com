@@ -125,11 +125,15 @@ const CompetitionForm = ({
     () => !isAdmin && mode === 'edit' && competition.state >= CompetitionState.Finished,
     [competition, mode, isAdmin],
   );
+  // This has been nominated for the best variable name award!
+  const disableIfCompFinishedEvenForAdmin = useMemo(
+    () => mode === 'edit' && competition.state >= CompetitionState.Finished,
+    [competition, mode, isAdmin],
+  );
   const disableIfCompApproved = useMemo(
     () => !isAdmin && mode === 'edit' && competition.state >= CompetitionState.Approved,
     [competition, mode, isAdmin],
   );
-  // This has been nominated for the best variable name award
   const disableIfCompApprovedEvenForAdmin = useMemo(
     () => mode === 'edit' && competition.state >= CompetitionState.Approved,
     [competition, mode],
@@ -809,7 +813,7 @@ const CompetitionForm = ({
                 type="button"
                 className="btn btn-success"
                 onClick={addCompetitionEvent}
-                disabled={competitionEvents.length === filteredEvents.length || disableIfCompFinished}
+                disabled={disableIfCompFinishedEvenForAdmin || competitionEvents.length === filteredEvents.length}
               >
                 Add Event
               </button>
@@ -820,7 +824,7 @@ const CompetitionForm = ({
                   events={remainingEvents}
                   eventId={newEventId}
                   setEventId={setNewEventId}
-                  disabled={disableIfCompFinished}
+                  disabled={disableIfCompFinishedEvenForAdmin}
                 />
               </div>
             </div>
@@ -832,7 +836,7 @@ const CompetitionForm = ({
                     type="button"
                     className="ms-3 btn btn-danger btn-sm"
                     onClick={() => removeCompetitionEvent(compEvent.event.eventId)}
-                    disabled={disableIfCompFinished || compEvent.rounds.some((r) => r.results.length > 0)}
+                    disabled={disableIfCompFinishedEvenForAdmin || compEvent.rounds.some((r) => r.results.length > 0)}
                   >
                     Remove Event
                   </button>
@@ -848,7 +852,7 @@ const CompetitionForm = ({
                           title="Round format"
                           options={getFilteredRoundFormats(compEvent.event)}
                           selected={round.format}
-                          disabled={disableIfCompFinished || round.results.length > 0}
+                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
                         />
                       </div>
@@ -860,7 +864,7 @@ const CompetitionForm = ({
                           options={roundProceedOptions}
                           selected={round.proceed.type}
                           setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                          disabled={disableIfCompFinished || round.results.length > 0}
+                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
                         />
                         <FormTextInput
                           id="round_proceed_value"
@@ -868,7 +872,7 @@ const CompetitionForm = ({
                           setValue={(val: string) =>
                             changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)
                           }
-                          disabled={disableIfCompFinished || round.results.length > 0}
+                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
                         />
                       </>
                     )}
@@ -880,7 +884,7 @@ const CompetitionForm = ({
                       type="button"
                       className="btn btn-success btn-sm"
                       onClick={() => addRound(compEvent.event.eventId)}
-                      disabled={disableIfCompFinished}
+                      disabled={disableIfCompFinishedEvenForAdmin}
                     >
                       Add Round
                     </button>
@@ -891,7 +895,7 @@ const CompetitionForm = ({
                       className="btn btn-danger btn-sm"
                       onClick={() => removeEventRound(compEvent.event.eventId)}
                       disabled={
-                        disableIfCompFinished ||
+                        disableIfCompFinishedEvenForAdmin ||
                         compEvent.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
                       }
                     >
