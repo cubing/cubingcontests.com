@@ -1,5 +1,5 @@
 import { WcaRecordType } from '../enums';
-import { IEvent, IPerson, IRecordType } from '../interfaces';
+import { ICompetition, IEvent, IPerson, IRecordType } from '../interfaces';
 
 export interface IResult {
   competitionId?: string; // not needed for submitted results
@@ -23,13 +23,11 @@ export interface IResult {
 // Used for storing all records (including ties) for a specific record type and event
 export interface IEventRecords {
   event: IEvent;
-  bestRecords: {
+  records: {
+    type: 'single' | 'average' | 'mean';
     result: IResult;
     persons: IPerson[];
-  }[];
-  avgRecords: {
-    result: IResult;
-    persons: IPerson[];
+    competition: ICompetition;
   }[];
 }
 

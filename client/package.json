@@ -14,6 +14,7 @@
     "@types/react": "18.2.12",
     "@types/react-dom": "18.2.5",
     "bootstrap": "^5.3.0",
+    "country-flag-icons": "^1.5.7",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "eslint": "8.43.0",

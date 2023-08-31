@@ -1,7 +1,7 @@
 import { CompetitionDocument } from '~/src/models/competition.model';
 import { competitionsStub } from '../stubs/competitions.stub';
 
-export const mockCompetitionModel = (): any => ({
+export const CompetitionModelMock = (): any => ({
   tempOutput: undefined,
   find(query: any, selectObj: any) {
     this.tempOutput = competitionsStub();

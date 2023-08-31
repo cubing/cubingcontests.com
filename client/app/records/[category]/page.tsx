@@ -1,9 +1,9 @@
 import myFetch from '~/helpers/myFetch';
-import { IEventRecords, IPerson } from '@sh/interfaces';
-import { formatTime, getCountry, getSolves, getFormattedDate } from '~/helpers/utilityFunctions';
-import { EventGroup } from '@sh/enums';
+import { IEventRecords } from '@sh/interfaces';
+import { formatTime, getSolves, getFormattedDate } from '~/helpers/utilityFunctions';
 import RecordsCategoryTabs from '~/app/components/RecordsCategoryTabs';
 import { recordsCategories } from '~/helpers/recordsCategories';
+import Country from '~/app/components/Country';
 
 const Records = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
@@ -16,16 +16,11 @@ const Records = async ({ params }: { params: { category: string } }) => {
     er.event.groups.includes(recordsCategories.find((rc) => rc.value === params.category).group),
   );
 
-  const getCompetitorCountries = (persons: IPerson[]): string => {
-    const countries: string[] = [];
-
-    for (const person of persons) {
-      if (!countries.includes(person.countryIso2)) {
-        countries.push(person.countryIso2);
-      }
-    }
-
-    return countries.map((el) => getCountry(el)).join(' & ');
+  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED
+  const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
+    if (type === 'single') return 'Single';
+    else if (type === 'average') return 'Average';
+    else if (type === 'mean') return 'Mean';
   };
 
   return (
@@ -38,13 +33,10 @@ const Records = async ({ params }: { params: { category: string } }) => {
         <>
           <RecordsCategoryTabs eventRecords={eventRecords} category={params.category} />
 
-          {filteredEventRecords.map(({ event, avgRecords, bestRecords }: IEventRecords) => {
-            const isGroupEvent = event.groups.includes(EventGroup.Team);
-            const hasVideoLink =
-              bestRecords.some((el) => el.result.videoLink) || avgRecords.some((el) => el.result.videoLink);
-            const showSolves =
-              bestRecords.some((el) => el.result.attempts.length > 1) ||
-              avgRecords.some((el) => el.result.attempts.length > 1);
+          {filteredEventRecords.map(({ event, records }: IEventRecords) => {
+            const showSolves = records.some((el) => el.result.attempts.length > 1);
+            const hasCompetition = records.some((el) => el.competition);
+            const hasLink = records.some((el) => el.result.videoLink || el.result.discussionLink);
 
             return (
               <div key={event.eventId} className="mb-3">
@@ -54,49 +46,63 @@ const Records = async ({ params }: { params: { category: string } }) => {
                     <thead>
                       <tr>
                         <th>Type</th>
-                        <th>{isGroupEvent ? 'Names' : 'Name'}</th>
+                        <th>Name</th>
                         <th>Result</th>
-                        <th>{isGroupEvent ? 'Citizens of' : 'Citizen of'}</th>
+                        <th>Representing</th>
                         <th>Date</th>
+                        {hasCompetition && <th>Competition</th>}
                         {showSolves && <th>Solves</th>}
-                        {hasVideoLink && <th>Link</th>}
+                        {hasLink && <th>Links</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {bestRecords.map((bestRecord) => (
-                        <tr key={bestRecord.result.personIds.join()}>
-                          <td>Single</td>
-                          <td>{bestRecord.persons.map((el) => el.name).join(' & ')}</td>
-                          <td>{formatTime(bestRecord.result.best, event)}</td>
-                          <td>{getCompetitorCountries(bestRecord.persons)}</td>
-                          <td>{getFormattedDate(bestRecord.result.date)}</td>
-                          {showSolves && <td>{getSolves(event, bestRecord.result.attempts)}</td>}
-                          {hasVideoLink && (
+                      {records.map((record) =>
+                        record.persons.map((person, i) => (
+                          <tr key={record.type + (record.result as any)._id + person.personId}>
+                            <td>{!i && getRecordType(record.type)}</td>
+                            <td>{person.name}</td>
                             <td>
-                              <a href={bestRecord.result.videoLink} target="_blank">
-                                Video
-                              </a>
+                              {!i &&
+                                formatTime(
+                                  record.type === 'single' ? record.result.best : record.result.average,
+                                  event,
+                                )}
                             </td>
-                          )}
-                        </tr>
-                      ))}
-                      {avgRecords.map((avgRecord) => (
-                        <tr key={avgRecord.result.personIds.join()}>
-                          <td>Average</td>
-                          <td>{avgRecord.persons.map((el) => el.name).join(' & ')}</td>
-                          <td>{formatTime(avgRecord.result.average, event, { isAverage: true })}</td>
-                          <td>{getCompetitorCountries(avgRecord.persons)}</td>
-                          <td>{getFormattedDate(avgRecord.result.date)}</td>
-                          {showSolves && <td>{getSolves(event, avgRecord.result.attempts)}</td>}
-                          {hasVideoLink && (
                             <td>
-                              <a href={avgRecord.result.videoLink} target="_blank">
-                                Video
-                              </a>
+                              <Country countryIso2={person.countryIso2} />
                             </td>
-                          )}
-                        </tr>
-                      ))}
+                            <td>{!i && getFormattedDate(record.result.date)}</td>
+                            {hasCompetition && (
+                              <td>
+                                {!i && (
+                                  <a href={`/competitions/${record.competition.competitionId}`}>
+                                    {record.competition.name}
+                                  </a>
+                                )}
+                              </td>
+                            )}
+                            {showSolves && <td>{!i && getSolves(event, record.result.attempts)}</td>}
+                            {hasLink && (
+                              <td>
+                                {!i && (
+                                  <div className="d-flex gap-2">
+                                    {record.result.videoLink && (
+                                      <a href={record.result.videoLink} target="_blank">
+                                        Video
+                                      </a>
+                                    )}
+                                    {record.result.discussionLink && (
+                                      <a href={record.result.discussionLink} target="_blank">
+                                        Discussion
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                            )}
+                          </tr>
+                        )),
+                      )}
                     </tbody>
                   </table>
                 </div>

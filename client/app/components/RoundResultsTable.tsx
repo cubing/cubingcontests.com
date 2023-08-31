@@ -2,6 +2,9 @@ import Time from './Time';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { getSolves, getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
+import Country from './Country';
+
+const DELIMITER = ' x '; // the spaces are En space characters
 
 const RoundResultsTable = ({
   round,
@@ -22,12 +25,28 @@ const RoundResultsTable = ({
   const roundCanHaveAverage = getRoundCanHaveAverage(round.format, event);
   const roundRanksWithAverage = getRoundRanksWithAverage(round.format, event);
 
-  const getName = (personIds: number[]): string => {
+  const getNamesAndFlags = (personIds: number[]) => {
     if (!persons) throw new Error('Name not found');
 
-    return personIds
-      .map((id) => persons.find((p: IPerson) => p.personId === id)?.name || '(name not found)')
-      .join(' & ');
+    return (
+      <span className="d-flex gap-1">
+        {personIds.map((id, i) => {
+          const person = persons.find((p: IPerson) => p.personId === id);
+
+          if (person) {
+            return (
+              <span key={person.personId} className="d-flex align-items-center gap-2 gap-lg-3">
+                {i !== 0 && DELIMITER}
+                {person.name}
+                <Country countryIso2={person.countryIso2} noText />
+              </span>
+            );
+          }
+
+          return <span key={person.personId}>{i !== 0 && DELIMITER}(name not found)</span>;
+        })}
+      </span>
+    );
   };
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
@@ -70,7 +89,7 @@ const RoundResultsTable = ({
               <td className="ps-2" style={getRankingHighlight(result)}>
                 {result.ranking}
               </td>
-              <td>{getName(result.personIds)}</td>
+              <td>{getNamesAndFlags(result.personIds)}</td>
               <td>
                 <Time result={result} event={event} recordTypes={recordTypes} />
               </td>

@@ -46,7 +46,7 @@ export class CompetitionsService {
     private resultsService: ResultsService,
     private recordTypesService: RecordTypesService,
     private personsService: PersonsService,
-    @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
+    @InjectModel('Competition') private readonly model: Model<CompetitionDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
@@ -60,7 +60,7 @@ export class CompetitionsService {
     if (region) queryFilter.countryIso2 = region;
 
     try {
-      const competitions = await this.competitionModel
+      const competitions = await this.model
         .find(queryFilter, {
           ...excl,
           createdBy: 0,
@@ -77,9 +77,9 @@ export class CompetitionsService {
   async getModCompetitions(user: IPartialUser): Promise<ICompetition[]> {
     try {
       if (user.roles.includes(Role.Admin)) {
-        return await this.competitionModel.find({}, excl).sort({ startDate: -1 }).exec();
+        return await this.model.find({}, excl).sort({ startDate: -1 }).exec();
       } else {
-        return await this.competitionModel
+        return await this.model
           .find(
             { createdBy: user.personId },
             {
@@ -126,7 +126,7 @@ export class CompetitionsService {
   async createCompetition(createCompDto: CreateCompetitionDto, creatorPersonId: number) {
     let comp;
     try {
-      comp = await this.competitionModel.findOne({ competitionId: createCompDto.competitionId }).exec();
+      comp = await this.model.findOne({ competitionId: createCompDto.competitionId }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -134,7 +134,7 @@ export class CompetitionsService {
     if (comp) throw new BadRequestException(`A competition with the ID ${createCompDto.competitionId} already exists`);
 
     try {
-      comp = await this.competitionModel.findOne({ name: createCompDto.name }).exec();
+      comp = await this.model.findOne({ name: createCompDto.name }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -171,7 +171,7 @@ export class CompetitionsService {
         newCompetition.compDetails.schedule = await this.scheduleModel.create(createCompDto.compDetails.schedule);
       }
 
-      await this.competitionModel.create(newCompetition);
+      await this.model.create(newCompetition);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -288,9 +288,9 @@ export class CompetitionsService {
 
     try {
       if (!populateEvents) {
-        competition = await this.competitionModel.findOne({ competitionId }).exec();
+        competition = await this.model.findOne({ competitionId }).exec();
       } else {
-        competition = await this.competitionModel
+        competition = await this.model
           .findOne({ competitionId })
           .populate(eventPopulateOptions.event)
           .populate(eventPopulateOptions.rounds)
@@ -328,7 +328,7 @@ export class CompetitionsService {
     let competition: CompetitionDocument;
 
     try {
-      competition = await this.competitionModel
+      competition = await this.model
         // createdBy is used to check access rights below, and then excluded
         .findOne({ competitionId }, exclSysButKeepCreatedBy)
         .populate(eventPopulateOptions.event)

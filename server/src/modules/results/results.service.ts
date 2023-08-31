@@ -10,6 +10,7 @@ import { IEventRecords, IRecordType, IRecordPair, IEventRecordPairs, IResultsSub
 import { getDateOnly, setNewRecordsForResult } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
+import { CompetitionsService } from '../competitions/competitions.service';
 
 @Injectable()
 export class ResultsService {
@@ -18,6 +19,7 @@ export class ResultsService {
     private recordTypesService: RecordTypesService,
     private personsService: PersonsService,
     @InjectModel('Result') private readonly model: Model<ResultDocument>,
+    @InjectModel('Competition') private readonly competitionModel: Model<ResultDocument>,
   ) {}
 
   // Gets the current records for the requested record type for all events.
@@ -43,25 +45,33 @@ export class ResultsService {
 
     for (const rt of activeRecordTypes) {
       for (const event of events) {
-        const newRecordByEvent: IEventRecords = { event, bestRecords: [], avgRecords: [] };
+        const newRecordByEvent: IEventRecords = { event, records: [] };
 
         const [singleResults, averageResults] = await this.getEventRecordResults(event.eventId, rt.wcaEquivalent);
 
         for (const result of singleResults) {
-          newRecordByEvent.bestRecords.push({
+          newRecordByEvent.records.push({
+            type: 'single',
             result,
             persons: await this.personsService.getPersonsById(result.personIds),
+            competition: result.competitionId
+              ? await this.competitionModel.findOne({ competitionId: result.competitionId })
+              : undefined,
           });
         }
 
         for (const result of averageResults) {
-          newRecordByEvent.avgRecords.push({
+          newRecordByEvent.records.push({
+            type: result.attempts.length === 3 ? 'mean' : 'average',
             result,
             persons: await this.personsService.getPersonsById(result.personIds),
+            competition: result.competitionId
+              ? await this.competitionModel.findOne({ competitionId: result.competitionId })
+              : undefined,
           });
         }
 
-        if (newRecordByEvent.bestRecords.length > 0 || newRecordByEvent.avgRecords.length > 0) {
+        if (newRecordByEvent.records.length > 0) {
           recordsByEvent.push(newRecordByEvent);
         }
       }

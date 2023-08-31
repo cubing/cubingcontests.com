@@ -13,7 +13,7 @@ import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
 import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
 import { ResultsServiceMock } from '@m/results/tests/mocks/results.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
-import { mockCompetitionModel } from './mocks/competition.model';
+import { CompetitionModelMock } from './mocks/competition.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 import { newCompetitionEventsStub } from './stubs/new-competition-events.stub';
@@ -52,7 +52,7 @@ describe('CompetitionsService', () => {
         },
         {
           provide: getModelToken('Competition'),
-          useFactory: mockCompetitionModel,
+          useFactory: CompetitionModelMock,
         },
         {
           provide: getModelToken('Round'),
