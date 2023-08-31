@@ -1,8 +1,9 @@
 import Time from './Time';
+import Solves from './Solves';
+import Country from './Country';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
-import { getSolves, getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
-import Country from './Country';
+import { getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
 
 const DELIMITER = ' x '; // the spaces are En space characters
 
@@ -35,7 +36,7 @@ const RoundResultsTable = ({
 
           if (person) {
             return (
-              <span key={person.personId} className="d-flex align-items-center gap-2 gap-lg-3">
+              <span key={person.personId} className="d-flex align-items-center">
                 {i !== 0 && DELIMITER}
                 {person.name}
                 <Country countryIso2={person.countryIso2} noText />
@@ -98,7 +99,9 @@ const RoundResultsTable = ({
                   <Time result={result} event={event} recordTypes={recordTypes} average />
                 </td>
               )}
-              <td>{getSolves(event, result.attempts)}</td>
+              <td>
+                <Solves event={event} attempts={result.attempts} />
+              </td>
               {onEditResult && (
                 <td className="py-1">
                   <button type="button" onClick={() => onEditResult(result)} className="me-2 btn btn-primary btn-sm">

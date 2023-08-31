@@ -145,13 +145,6 @@ export const formatTime = (
   }
 };
 
-export const getSolves = (event: IEvent, attempts: number[]): string => {
-  if (attempts.length === 1) return '';
-
-  // The character in quotes is an em space
-  return attempts.map((el) => formatTime(el, event)).join(' ');
-};
-
 // Returns the authorized user's role with the highest privilege
 export const getRole = (): Role => {
   let role: Role;

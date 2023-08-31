@@ -21,7 +21,7 @@ const EventResults = ({
   }
 
   return (
-    <div className="mt-5">
+    <div className="mt-4">
       {rounds.map((round: IRound) => (
         <div key={round.roundId} className="mb-4">
           {round.results.length === 0 ? (
