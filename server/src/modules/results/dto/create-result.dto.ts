@@ -57,4 +57,8 @@ export class CreateResultDto implements IResult {
   @IsOptional()
   @IsUrl()
   videoLink?: string;
+
+  @IsOptional()
+  @IsUrl()
+  discussionLink?: string;
 }

@@ -29,6 +29,7 @@ const SubmitResults = () => {
   const [date, setDate] = useState(new Date());
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');
+  const [discussionLink, setDiscussionLink] = useState('');
 
   const recordPairs = useMemo(
     () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
@@ -63,39 +64,54 @@ const SubmitResults = () => {
   };
 
   const handleSubmit = async () => {
-    checkErrorsBeforeSubmit(
-      attempts,
-      roundFormat,
-      event,
-      competitors,
-      setErrorMessages,
-      setSuccessMessage,
-      async ({ parsedAttempts, best, average }) => {
-        const newResult: IResult = {
-          eventId: event.eventId,
-          date,
-          personIds: competitors.map((el) => el.personId),
-          attempts: parsedAttempts,
-          best,
-          average,
-          videoLink,
-        };
+    // Validation
+    const tempErrors: string[] = [];
 
-        const { errors } = await myFetch.post('/results', newResult);
+    if (!date) tempErrors.push('Please enter a valid date');
+    if (!videoLink.trim()) tempErrors.push('Please enter the link to a video showing the solves as proof');
 
-        if (errors) {
-          setErrorMessages(errors);
-        } else {
-          setSuccessMessage('Successfully submitted');
-          setVideoLink('');
-          setResultFormResetTrigger(!resultFormResetTrigger);
-        }
-      },
-      true, // require at least one non-DNF/DNS result
-    );
+    if (tempErrors.length > 0) {
+      setErrorMessages(tempErrors);
+    } else {
+      checkErrorsBeforeSubmit(
+        attempts,
+        roundFormat,
+        event,
+        competitors,
+        setErrorMessages,
+        setSuccessMessage,
+        async ({ parsedAttempts, best, average }) => {
+          const newResult: IResult = {
+            eventId: event.eventId,
+            date,
+            personIds: competitors.map((el) => el.personId),
+            attempts: parsedAttempts,
+            best,
+            average,
+            videoLink,
+            discussionLink,
+          };
+
+          const { errors } = await myFetch.post('/results', newResult);
+
+          if (errors) {
+            setErrorMessages(errors);
+          } else {
+            setSuccessMessage('Successfully submitted');
+            setVideoLink('');
+            setResultFormResetTrigger(!resultFormResetTrigger);
+          }
+        },
+        true, // require at least one non-DNF/DNS result
+      );
+    }
   };
 
   const onVideoLinkKeyDown = (e: any) => {
+    if (e.key === 'Enter') document.getElementById('discussion_link').focus();
+  };
+
+  const onDiscussionLinkKeyDown = (e: any) => {
     if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
   };
 
@@ -143,14 +159,6 @@ const SubmitResults = () => {
             setSuccessMessage={setSuccessMessage}
             resetTrigger={resultFormResetTrigger}
           />
-          <FormTextInput
-            id="video_link"
-            title="Link to video"
-            placeholder="https://youtube.com/watch?v=xyz"
-            value={videoLink}
-            setValue={setVideoLink}
-            onKeyDown={onVideoLinkKeyDown}
-          />
           <div className="mb-3">
             <label htmlFor="start_date" className="d-block form-label">
               Date
@@ -163,6 +171,22 @@ const SubmitResults = () => {
               className="form-control"
             />
           </div>
+          <FormTextInput
+            id="video_link"
+            title="Link to video"
+            placeholder="https://youtube.com/watch?v=xyz"
+            value={videoLink}
+            setValue={setVideoLink}
+            onKeyDown={onVideoLinkKeyDown}
+          />
+          <FormTextInput
+            id="discussion_link"
+            title="Link to discussion (optional)"
+            placeholder="https://speedsolving.com/threads/xyz"
+            value={discussionLink}
+            setValue={setDiscussionLink}
+            onKeyDown={onDiscussionLinkKeyDown}
+          />
         </Form>
       </>
     );

@@ -39,6 +39,9 @@ export class Result implements IResult {
 
   @Prop({ unique: true })
   videoLink?: string;
+
+  @Prop()
+  discussionLink?: string;
 }
 
 export type ResultDocument = HydratedDocument<Result>;

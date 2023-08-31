@@ -17,6 +17,7 @@ export interface IResult {
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
   videoLink?: string; // only used for submission-based events
+  discussionLink?: string; // only used for submission-based events
 }
 
 // Used for storing all records (including ties) for a specific record type and event

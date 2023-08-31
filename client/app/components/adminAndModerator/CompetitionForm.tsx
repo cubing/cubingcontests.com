@@ -147,6 +147,10 @@ const CompetitionForm = ({
     () => activityCode && roomOptions.some((el) => el.value === selectedRoom),
     [activityCode, roomOptions, selectedRoom],
   );
+  const displayedStartDate = useMemo(
+    () => (startDate && type === CompetitionType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate),
+    [startDate, type, venueTimezone],
+  );
 
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
@@ -225,13 +229,20 @@ const CompetitionForm = ({
   }, [organizers]);
 
   // TEMPORARY FOR DEBUGGING!!!
-  useEffect(() => console.log(startDate.toUTCString()), [startDate]);
+  useEffect(() => {
+    if (startDate) console.log(startDate.toUTCString());
+  }, [startDate]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
+    if (!startDate || (type === CompetitionType.Competition && !endDate)) {
+      setErrorMessages(['Please enter valid dates']);
+      return;
+    }
+
     const selectedOrganizers = organizers.filter((el) => el !== null);
     const latitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(latitude) : undefined;
     const longitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(longitude) : undefined;
@@ -328,7 +339,7 @@ const CompetitionForm = ({
       if (type === CompetitionType.Meetup) newComp.timezone = competition.timezone;
     }
 
-    // Check for errors
+    // Validation
     const tempErrors: string[] = [];
 
     if (mode === 'copy') {
@@ -457,7 +468,7 @@ const CompetitionForm = ({
   };
 
   const changeStartDate = (newDate: Date) => {
-    if (type === CompetitionType.Meetup) {
+    if (newDate && type === CompetitionType.Meetup) {
       setStartDate(zonedTimeToUtc(newDate, venueTimezone));
     } else {
       setStartDate(newDate);
@@ -580,24 +591,29 @@ const CompetitionForm = ({
   };
 
   const changeActivityStartTime = (newTime: Date) => {
-    setActivityStartTime(zonedTimeToUtc(newTime, venueTimezone));
+    if (newTime) setActivityStartTime(zonedTimeToUtc(newTime, venueTimezone));
+    else setActivityStartTime(newTime);
   };
 
   // Get the same date as the start time and use the new end time (the end time input is for time only)
   const changeActivityEndTime = (newTime: Date) => {
-    const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
-    const newActivityEndTime = zonedTimeToUtc(
-      new Date(
-        zonedStartTime.getUTCFullYear(),
-        zonedStartTime.getUTCMonth(),
-        zonedStartTime.getUTCDate(),
-        newTime.getUTCHours(),
-        newTime.getUTCMinutes(),
-      ),
-      venueTimezone,
-    );
+    if (newTime) {
+      const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
+      const newActivityEndTime = zonedTimeToUtc(
+        new Date(
+          zonedStartTime.getUTCFullYear(),
+          zonedStartTime.getUTCMonth(),
+          zonedStartTime.getUTCDate(),
+          newTime.getUTCHours(),
+          newTime.getUTCMinutes(),
+        ),
+        venueTimezone,
+      );
 
-    setActivityEndTime(newActivityEndTime);
+      setActivityEndTime(newActivityEndTime);
+    } else {
+      setActivityEndTime(newTime);
+    }
   };
 
   const addActivity = () => {
@@ -713,7 +729,7 @@ const CompetitionForm = ({
                 </label>
                 <DatePicker
                   id="start_date"
-                  selected={type === CompetitionType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate}
+                  selected={displayedStartDate}
                   showTimeSelect={type !== CompetitionType.Competition}
                   timeFormat="p"
                   // P is date select only, Pp is date and time select
@@ -943,7 +959,7 @@ const CompetitionForm = ({
                 </label>
                 <DatePicker
                   id="activity_start_time"
-                  selected={utcToZonedTime(activityStartTime, venueTimezone)}
+                  selected={activityStartTime && utcToZonedTime(activityStartTime, venueTimezone)}
                   showTimeSelect
                   timeIntervals={15}
                   timeFormat="p"
@@ -959,7 +975,7 @@ const CompetitionForm = ({
                 </label>
                 <DatePicker
                   id="activity_end_time"
-                  selected={utcToZonedTime(activityEndTime, venueTimezone)}
+                  selected={activityEndTime && utcToZonedTime(activityEndTime, venueTimezone)}
                   showTimeSelect
                   showTimeSelectOnly
                   timeIntervals={15}

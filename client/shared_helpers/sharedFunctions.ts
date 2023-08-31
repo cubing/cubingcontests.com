@@ -152,5 +152,10 @@ export const setNewRecordsForResult = (result: IResult, recordPairs: IRecordPair
 };
 
 export const getDateOnly = (date: Date): Date => {
+  if (!date) {
+    console.error(`The date passed to getDateOnly is invalid: ${date}`);
+    return null;
+  }
+
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
