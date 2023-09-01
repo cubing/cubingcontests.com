@@ -77,3 +77,9 @@ export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent):
 export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
   return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
 };
+
+export const fixTimesOverTenMinutes = (result: IResult) => {
+  if (result.best > 60000) result.best -= result.best % 100;
+
+  result.attempts = result.attempts.map((att) => (att > 60000 ? att - (att % 100) : att));
+};

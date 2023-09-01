@@ -38,19 +38,25 @@ export const getFormattedCoords = (comp: ICompetition): string => {
 };
 
 const getResult = (time: string, event: IEvent): number => {
+  if (time.length > 7) throw new Error('getResult does not support times >= 10 hours');
+
   if (time === 'DNF') return -1;
   else if (time === 'DNS') return -2;
 
   // If the event is Fewest Moves, return as is converted to integer
   if (event.eventId === '333fm') return parseInt(time);
 
+  let hours = 0;
   let minutes = 0;
+
+  if (time.length === 7) hours = parseInt(time[0]);
+
   if (time.length > 4) {
-    minutes = parseInt(time.slice(0, -4));
+    minutes = parseInt(time.slice(time.length === 7 ? 1 : 0, -4));
     time = time.slice(-4);
   }
 
-  const centiseconds = parseInt(time) + minutes * 6000;
+  const centiseconds = parseInt(time) + minutes * 6000 + hours * 360000;
   return centiseconds;
 };
 
@@ -133,6 +139,7 @@ export const formatTime = (
       if (noFormatting) output = Number(output.replace('.', '')).toString();
     } else {
       output += seconds.toFixed(0);
+      if (noFormatting) output += '00';
     }
 
     return output;

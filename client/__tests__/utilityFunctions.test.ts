@@ -15,6 +15,10 @@ describe('formatTime', () => {
       expect(formatTime(880, EventFormat.Time)).toBe('8.80');
     });
 
+    it('formats 10.00 correctly', () => {
+      expect(formatTime(1000, EventFormat.Time)).toBe('10.00');
+    });
+
     it('formats 30.05 correctly', () => {
       expect(formatTime(3005, EventFormat.Time)).toBe('30.05');
     });
@@ -34,16 +38,24 @@ describe('formatTime', () => {
   });
 
   describe('format time singles without formatting (no commas or colons)', () => {
-    it('formats (0.0)9 without formatting correctly', () => {
+    it('formats 0.09 without formatting correctly', () => {
       expect(formatTime(9, EventFormat.Time, { noFormatting: true })).toBe('9');
     });
 
-    it('formats (0.)78 without formatting correctly', () => {
+    it('formats 0.78 without formatting correctly', () => {
       expect(formatTime(78, EventFormat.Time, { noFormatting: true })).toBe('78');
+    });
+
+    it('formats 20.00 correctly', () => {
+      expect(formatTime(2000, EventFormat.Time, { noFormatting: true })).toBe('2000');
     });
 
     it('formats 1:08.45 without formatting correctly', () => {
       expect(formatTime(6845, EventFormat.Time, { noFormatting: true })).toBe('10845');
+    });
+
+    it('formats 12:35.00 correctly', () => {
+      expect(formatTime(75500, EventFormat.Time, { noFormatting: true })).toBe('123500');
     });
   });
 

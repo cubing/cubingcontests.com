@@ -7,7 +7,7 @@ import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { CompetitionState, WcaRecordType } from '@sh/enums';
 import { IEventRecords, IRecordType, IRecordPair, IEventRecordPairs, IResultsSubmissionInfo } from '@sh/interfaces';
-import { getDateOnly, setResultRecords } from '@sh/sharedFunctions';
+import { fixTimesOverTenMinutes, getDateOnly, setResultRecords } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -107,6 +107,7 @@ export class ResultsService {
 
     // The date is passed in as an ISO date string and it may also include time, if the frontend has a bug
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
+    fixTimesOverTenMinutes(createResultDto);
 
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
     let round: RoundDocument;
@@ -214,6 +215,8 @@ export class ResultsService {
   async submitResult(createResultDto: CreateResultDto) {
     // The date is passed in as an ISO date string and may include time too, so the time must be removed
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
+    fixTimesOverTenMinutes(createResultDto);
+
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
 
     // Create result or submit result if it's not for a competition
