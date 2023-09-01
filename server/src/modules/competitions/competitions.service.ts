@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';

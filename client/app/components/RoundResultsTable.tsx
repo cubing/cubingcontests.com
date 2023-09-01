@@ -1,11 +1,12 @@
 import Time from './Time';
 import Solves from './Solves';
 import Country from './Country';
+import PersonName from './PersonName';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { getRoundCanHaveAverage, getRoundRanksWithAverage } from '@sh/sharedFunctions';
 
-const DELIMITER = ' x '; // the spaces are En space characters
+const PERSONS_DELIMITER = <span className="ms-1 me-2">x</span>;
 
 const RoundResultsTable = ({
   round,
@@ -30,21 +31,21 @@ const RoundResultsTable = ({
     if (!persons) throw new Error('Name not found');
 
     return (
-      <span className="d-flex gap-1">
+      <span className="d-flex">
         {personIds.map((id, i) => {
           const person = persons.find((p: IPerson) => p.personId === id);
 
           if (person) {
             return (
               <span key={person.personId} className="d-flex align-items-center">
-                {i !== 0 && DELIMITER}
-                {person.name}
+                {i !== 0 && PERSONS_DELIMITER}
+                <PersonName person={person} />
                 <Country countryIso2={person.countryIso2} noText />
               </span>
             );
           }
 
-          return <span key={person.personId}>{i !== 0 && DELIMITER}(name not found)</span>;
+          return <span key={person.personId}>{i !== 0 && PERSONS_DELIMITER}(name not found)</span>;
         })}
       </span>
     );

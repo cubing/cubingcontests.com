@@ -7,7 +7,6 @@ import {
   IsOptional,
   IsString,
   IsUrl,
-  Min,
 } from 'class-validator';
 import { IResult } from '@sh/interfaces';
 

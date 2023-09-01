@@ -29,7 +29,7 @@ const CompetitionsTable = async ({
           {competitions.map((comp: ICompetition, index: number) => (
             <li
               key={comp.competitionId}
-              className={'list-group-item list-group-item-action' + (index % 2 === 1 ? ' list-group-item-dark' : '')}
+              className={'list-group-item' + (index % 2 === 1 ? ' list-group-item-dark' : '')}
             >
               <div className="d-flex justify-content-between mb-2">
                 <Link href={`/competitions/${comp.competitionId}`} className="link-primary">

@@ -51,7 +51,8 @@ const Schedule = ({
       <h1 className="mb-4 text-center">Schedule</h1>
       {days.map((day) => (
         <div key={day.date.toString()}>
-          <h4 className="mb-4 fw-bold">{day.date.toDateString()}</h4>
+          <h4 className="mx-2 mb-4 fw-bold">{day.date.toDateString()}</h4>
+
           <div className="flex-grow-1 mb-5 table-responsive">
             <table className="table table-hover text-nowrap">
               <thead>

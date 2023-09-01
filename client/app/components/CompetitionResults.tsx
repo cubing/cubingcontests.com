@@ -25,9 +25,9 @@ const getTabNumber = (hash: string): number => {
 const getHashFromTab = (tab: number): string => {
   switch (tab) {
     case 1:
-      return 'Results';
+      return '#Results';
     case 2:
-      return 'Schedule';
+      return '#Schedule';
     default:
       return '';
   }
@@ -72,7 +72,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
 
   const changeActiveTab = (newTab: number) => {
     setActiveTab(newTab);
-    window.location.hash = getHashFromTab(newTab);
+    window.location.replace(getHashFromTab(newTab));
   };
 
   const getFormattedOrganizers = (): string => {

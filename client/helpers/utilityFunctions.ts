@@ -1,7 +1,7 @@
 import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import Countries from '@sh/Countries';
-import { Role, RoundFormat } from '@sh/enums';
+import { EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
 import { ICompetition, IEvent, IPerson } from '@sh/interfaces';
@@ -104,7 +104,7 @@ export const formatTime = (
     return 'DNF';
   } else if (time === -2) {
     return 'DNS';
-  } else if (event.format === 'number') {
+  } else if (event.format === EventFormat.Number) {
     if (isAverage) return (time / 100).toFixed(2);
     else return time.toString();
   } else {

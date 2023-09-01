@@ -46,13 +46,13 @@ export class RecordTypesService {
     }
   }
 
-  async updateRecordTypes(updateRecordTypesDtoS: UpdateRecordTypeDto[]): Promise<void> {
+  async updateRecordTypes(updateRTsDtoS: UpdateRecordTypeDto[]): Promise<void> {
     let recordTypes; // this needs to just hold the PREVIOUS record types; used for setting records below
 
     try {
       recordTypes = await this.recordTypeModel.find().exec();
 
-      for (const newRecordType of updateRecordTypesDtoS) {
+      for (const newRecordType of updateRTsDtoS) {
         await this.recordTypeModel.updateOne({ wcaEquivalent: newRecordType.wcaEquivalent }, newRecordType).exec();
       }
     } catch (err) {
@@ -60,29 +60,29 @@ export class RecordTypesService {
     }
 
     // Set the records
-    for (let i = 0; i < updateRecordTypesDtoS.length; i++) {
+    for (let i = 0; i < updateRTsDtoS.length; i++) {
       // FOR NOW THIS ONLY WORKS FOR WR!!!
-      if (updateRecordTypesDtoS[i].wcaEquivalent !== WcaRecordType.WR) break;
+      if (updateRTsDtoS[i].wcaEquivalent !== WcaRecordType.WR) break;
 
       // Remove records if set to inactive but was active before, or set the records for the opposite case
-      if (!updateRecordTypesDtoS[i].active && recordTypes[i]?.active) {
-        console.log(`Unsetting ${updateRecordTypesDtoS[i].wcaEquivalent} records`);
+      if (!updateRTsDtoS[i].active && recordTypes[i]?.active) {
+        console.log(`Unsetting ${updateRTsDtoS[i].wcaEquivalent} records`);
 
         await this.resultModel
           .updateMany(
-            { regionalSingleRecord: updateRecordTypesDtoS[i].wcaEquivalent },
+            { regionalSingleRecord: updateRTsDtoS[i].wcaEquivalent },
             { $unset: { regionalSingleRecord: '' } },
           )
           .exec();
 
         await this.resultModel
           .updateMany(
-            { regionalAverageRecord: updateRecordTypesDtoS[i].wcaEquivalent },
+            { regionalAverageRecord: updateRTsDtoS[i].wcaEquivalent },
             { $unset: { regionalAverageRecord: '' } },
           )
           .exec();
-      } else if (updateRecordTypesDtoS[i].active && !recordTypes[i]?.active) {
-        console.log(`Setting ${updateRecordTypesDtoS[i].wcaEquivalent} records`);
+      } else if (updateRTsDtoS[i].active && !recordTypes[i]?.active) {
+        console.log(`Setting ${updateRTsDtoS[i].wcaEquivalent} records`);
 
         try {
           const events: EventDocument[] = await this.eventModel.find().exec();
@@ -115,7 +115,7 @@ export class RecordTypesService {
 
             for (const singleRecord of singleRecords) {
               console.log(
-                `New single ${updateRecordTypesDtoS[i].wcaEquivalent} for event ${event.eventId}: ${singleRecord.best}`,
+                `New single ${updateRTsDtoS[i].wcaEquivalent} for event ${event.eventId}: ${singleRecord.best}`,
               );
 
               // Update all tied records on the day
@@ -126,7 +126,7 @@ export class RecordTypesService {
                     date: singleRecord._id, // _id is actually the date from the group stage
                     best: singleRecord.best,
                   },
-                  { $set: { regionalSingleRecord: updateRecordTypesDtoS[i].wcaEquivalent } },
+                  { $set: { regionalSingleRecord: updateRTsDtoS[i].wcaEquivalent } },
                 )
                 .exec();
             }
@@ -157,7 +157,7 @@ export class RecordTypesService {
 
             for (const avgRecord of avgRecords) {
               console.log(
-                `New average ${updateRecordTypesDtoS[i].wcaEquivalent} for event ${event.eventId}: ${avgRecord.average}`,
+                `New average ${updateRTsDtoS[i].wcaEquivalent} for event ${event.eventId}: ${avgRecord.average}`,
               );
 
               // Update all tied records on the day
@@ -168,14 +168,14 @@ export class RecordTypesService {
                     date: avgRecord._id, // _id is actually the date from the group stage
                     average: avgRecord.average,
                   },
-                  { $set: { regionalAverageRecord: updateRecordTypesDtoS[i].wcaEquivalent } },
+                  { $set: { regionalAverageRecord: updateRTsDtoS[i].wcaEquivalent } },
                 )
                 .exec();
             }
           }
         } catch (err) {
           throw new InternalServerErrorException(
-            `Error while setting initial ${updateRecordTypesDtoS[i].wcaEquivalent} records: ${err.message}`,
+            `Error while setting initial ${updateRTsDtoS[i].wcaEquivalent} records: ${err.message}`,
           );
         }
       }

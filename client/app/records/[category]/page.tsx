@@ -2,9 +2,10 @@ import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import Country from '~/app/components/Country';
 import Solves from '~/app/components/Solves';
+import PersonName from '~/app/components/PersonName';
+import RecordsCategoryTabs from '~/app/components/RecordsCategoryTabs';
 import { IEvent, IRecord, IEventRecords, IPerson } from '@sh/interfaces';
 import { formatTime, getFormattedDate } from '~/helpers/utilityFunctions';
-import RecordsCategoryTabs from '~/app/components/RecordsCategoryTabs';
 import { recordsCategories } from '~/helpers/recordsCategories';
 
 const Records = async ({ params }: { params: { category: string } }) => {
@@ -27,7 +28,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
 
   const getTime = (record: IRecord, event: IEvent): string => {
     if (record.type === 'single') return formatTime(record.result.best, event);
-    return formatTime(record.result.average, event);
+    return formatTime(record.result.average, event, { isAverage: true });
   };
 
   const getId = (record: IRecord, person?: IPerson): string => {
@@ -74,8 +75,8 @@ const Records = async ({ params }: { params: { category: string } }) => {
                         </div>
                         <div className="d-flex flex-column gap-2">
                           {record.persons.map((person) => (
-                            <span key={person.personId} className="d-flex align-items-center">
-                              {person.name}&nbsp;
+                            <span key={person.personId} className="d-flex align-items-center gap-1">
+                              <PersonName person={person} />
                               <Country countryIso2={person.countryIso2} noText />
                             </span>
                           ))}
@@ -119,7 +120,9 @@ const Records = async ({ params }: { params: { category: string } }) => {
                         record.persons.map((person, i) => (
                           <tr key={getId(record, person)}>
                             <td>{!i && getRecordType(record)}</td>
-                            <td>{person.name}</td>
+                            <td>
+                              <PersonName person={person} />
+                            </td>
                             <td>{!i && getTime(record, event)}</td>
                             <td>
                               <Country countryIso2={person.countryIso2} />

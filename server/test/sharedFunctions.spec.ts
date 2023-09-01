@@ -5,7 +5,6 @@ import {
   newCompetitionEventsStub,
   newFakeCompetitionEventsStub,
 } from '~/src/modules/competitions/tests/stubs/new-competition-events.stub';
-import { sameDayBLDRoundsStub, sameDayFMRoundsStub } from '~/src/modules/competitions/tests/stubs/same-day-rounds.stub';
 
 describe('compareAvgs', () => {
   it('compares averages correctly when a < b', () => {
