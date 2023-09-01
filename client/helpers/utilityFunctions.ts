@@ -1,11 +1,11 @@
 import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import Countries from '@sh/Countries';
-import { ICompetition, IEvent, IPerson } from '@sh/interfaces';
 import { Role, RoundFormat } from '@sh/enums';
-import { roundFormats } from './roundFormats';
+import C from '@sh/constants';
+import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
+import { ICompetition, IEvent, IPerson } from '@sh/interfaces';
 import { IResultInfo } from './interfaces/ResultInfo';
-import C from '~/shared_helpers/constants';
 
 export const getCountry = (countryIso2: string): string => {
   return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
@@ -90,22 +90,6 @@ export const getBestAverageAndAttempts = (attempts: string[], roundFormat: Round
   }
 
   return { parsedAttempts, best, average };
-};
-
-export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
-  // Bo1 and Bo2 rounds cannot have an average
-  const numberOfAttempts = roundFormats[roundFormat].attempts;
-  if (numberOfAttempts < 3) return false;
-
-  // If the default round format for the event is Ao5, but the number of attempts in the round
-  // is less than five, the round cannot have an average
-  if (numberOfAttempts < 5 && event.defaultRoundFormat === RoundFormat.Average) return false;
-
-  return true;
-};
-
-export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
-  return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
 };
 
 export const formatTime = (

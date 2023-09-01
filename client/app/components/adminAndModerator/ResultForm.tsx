@@ -7,12 +7,13 @@ import FormSelect from '../form/FormSelect';
 import FormPersonInputs from '../form/FormPersonInputs';
 import { ICompetitionEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import { RoundFormat, RoundType } from '@sh/enums';
-import { getBestAverageAndAttempts, getRoundCanHaveAverage } from '~/helpers/utilityFunctions';
+import { roundFormats } from '@sh/roundFormats';
+import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
+import { getBestAverageAndAttempts } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { roundFormats } from '~/helpers/roundFormats';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 import Time from '../Time';
-import { setNewRecordsForResult } from '~/shared_helpers/sharedFunctions';
+import { setResultRecords } from '~/shared_helpers/sharedFunctions';
 import Loading from '../Loading';
 
 /**
@@ -185,7 +186,7 @@ const ResultForm = ({
 
   const updateTempBestAndAverage = (newAttempts = attempts) => {
     const { best, average } = getBestAverageAndAttempts(newAttempts, roundFormat, event);
-    const newTempResult = setNewRecordsForResult({ best, average } as IResult, recordPairs);
+    const newTempResult = setResultRecords({ best, average } as IResult, recordPairs);
     setTempResult(newTempResult);
   };
 

@@ -8,12 +8,12 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel('User') private readonly model: Model<UserDocument>) {}
+  constructor(@InjectModel('User') private readonly userModel: Model<UserDocument>) {}
 
   // WARNING: this method returns the hashed password too. It is ONLY to be used in the auth module.
   async getUser(username: string) {
     try {
-      const user: UserDocument = await this.model.findOne({ username }).exec();
+      const user: UserDocument = await this.userModel.findOne({ username }).exec();
 
       if (user) {
         return {
@@ -32,7 +32,7 @@ export class UsersService {
 
   async getPartialUserById(id: string): Promise<IPartialUser> {
     try {
-      const user: UserDocument = await this.model.findOne({ _id: id }).exec();
+      const user: UserDocument = await this.userModel.findOne({ _id: id }).exec();
 
       if (user) {
         return {
@@ -50,17 +50,17 @@ export class UsersService {
   // WARNING: this expects that the password is ALREADY encrypted! That is done in the auth module.
   async createUser(createUserDto: CreateUserDto) {
     try {
-      const sameUsernameUser: UserDocument = await this.model.findOne({ username: createUserDto.username }).exec();
+      const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: createUserDto.username }).exec();
       if (sameUsernameUser) {
         throw new BadRequestException(`User with username ${createUserDto.username} already exists`);
       }
 
-      const sameEmailUser: UserDocument = await this.model.findOne({ email: createUserDto.email }).exec();
+      const sameEmailUser: UserDocument = await this.userModel.findOne({ email: createUserDto.email }).exec();
       if (sameEmailUser) {
         throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
       }
 
-      await this.model.create(createUserDto);
+      await this.userModel.create(createUserDto);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -68,7 +68,7 @@ export class UsersService {
 
   async getUserRoles(id: string): Promise<Role[]> {
     try {
-      const user: UserDocument = await this.model.findById(id).exec();
+      const user: UserDocument = await this.userModel.findById(id).exec();
       return user.roles;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -77,7 +77,7 @@ export class UsersService {
 
   async getUsersTotal(): Promise<number> {
     try {
-      return await this.model.find().count().exec();
+      return await this.userModel.find().count().exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

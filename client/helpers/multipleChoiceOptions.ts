@@ -1,6 +1,6 @@
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
 import { Color, CompetitionType, RoundProceed } from '~/shared_helpers/enums';
-import { roundFormats } from './roundFormats';
+import { roundFormats } from '../shared_helpers/roundFormats';
 
 export const colorOptions: MultiChoiceOption[] = [
   {

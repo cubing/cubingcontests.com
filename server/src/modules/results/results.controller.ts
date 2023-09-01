@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+  Request,
+  UnauthorizedException,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { format } from 'date-fns';
 import { ResultsService } from './results.service';
 import { Roles } from '~/src/helpers/roles.decorator';
@@ -11,12 +23,14 @@ import { CreateResultDto } from './dto/create-result.dto';
 export class ResultsController {
   constructor(private readonly service: ResultsService) {}
 
-  @Get('records/:wcaequivalent') // GET /results/records/:wcaequivalent
-  async getRecords(@Param('wcaequivalent') wcaEquivalent: string) {
+  // GET /results/records/:wca_equivalent
+  @Get('records/:wca_equivalent')
+  async getRecords(@Param('wca_equivalent') wcaEquivalent: string) {
     return await this.service.getRecords(wcaEquivalent);
   }
 
-  @Get('submission-info') // GET /results/submission-info?records_up_to=DATE
+  // GET /results/submission-info?records_up_to=...
+  @Get('submission-info')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async getSubmissionInfo(@Query('records_up_to') recordsUpTo: string | Date) {
@@ -25,11 +39,38 @@ export class ResultsController {
     return await this.service.getSubmissionInfo(recordsUpTo);
   }
 
+  // POST /results/:round_id
+  @Post(':round_id')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async createResult(
+    @Param('round_id') roundId: string,
+    @Body(new ValidationPipe()) createResultDto: CreateResultDto,
+    @Request() req: any,
+  ) {
+    console.log(`Creating new result for competition ${createResultDto.competitionId}, round ${roundId}`);
+    return await this.service.createResult(createResultDto, roundId, req.user);
+  }
+
+  // DELETE /results/:competition_id/:result_id
+  @Delete(':competition_id/:result_id')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async deleteCompetitionResult(
+    @Param('competition_id') competitionId: string,
+    @Param('result_id') resultId: string,
+    @Request() req: any,
+  ) {
+    console.log(`Deleting result with id ${resultId} from competition ${competitionId}`);
+    return await this.service.deleteCompetitionResult(resultId, competitionId, req.user);
+  }
+
+  // POST /results
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async createResult(@Body(new ValidationPipe()) createResultDto: CreateResultDto) {
-    console.log(`Creating new result for event ${createResultDto.eventId}`);
-    return await this.service.createResult(createResultDto);
+  async submitResult(@Body(new ValidationPipe()) createResultDto: CreateResultDto) {
+    console.log(`Submitting new result for event ${createResultDto.eventId}`);
+    return await this.service.submitResult(createResultDto);
   }
 }

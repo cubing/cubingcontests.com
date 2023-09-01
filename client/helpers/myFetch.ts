@@ -12,19 +12,24 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5
 const doFetch = async (
   url: string,
   method: HttpMethod,
-  revalidate: number | false,
+  revalidate: number | false = false,
   body: unknown = null,
-  authorize: boolean,
+  authorize = true,
   redirect?: string,
 ): Promise<IFetchObj> => {
   const options: any = { method, headers: {} };
 
   if (method === 'GET') {
     options.next = { revalidate };
-  } else if (method === 'POST' || method === 'PATCH') {
+  } else if (['POST', 'PATCH'].includes(method)) {
     options.headers['Content-type'] = 'application/json';
     options.body = JSON.stringify(body);
+  } else if (method !== 'DELETE') {
+    throw new Error(`Unsupported HTTP method: ${method}`);
   }
+
+  // Add API base URL if the passed URL is not a full link
+  if (!/https?:\/\//.test(url)) url = API_BASE_URL + url;
 
   if (authorize) {
     const jwtToken = localStorage.getItem('jwtToken');
@@ -34,16 +39,12 @@ const doFetch = async (
     } else {
       if (!redirect) window.location.href = '/login';
       else window.location.href = `/login?redirect=${redirect}`;
-
       return {};
     }
   }
 
   // Fetch
   let res;
-
-  // Add API base URL if the passed URL is not a full link
-  if (!/https?:\/\//.test(url)) url = API_BASE_URL + url;
 
   try {
     res = await fetch(url, options);
@@ -52,7 +53,7 @@ const doFetch = async (
     return { errors: [err?.message || `Unknown error while fetching from ${url}`] };
   }
 
-  // Get JSON if it was returned
+  // Get JSON, if it was returned
   let json;
 
   if (res.headers.get('content-type')?.includes('application/json')) {
@@ -123,12 +124,11 @@ const myFetch = {
   ): Promise<IFetchObj> {
     return await doFetch(url, 'POST', false, body, authorize);
   },
-  async patch(
-    url: string,
-    body: unknown,
-    { authorize = true }: { authorize?: boolean } = { authorize: true },
-  ): Promise<IFetchObj> {
-    return await doFetch(url, 'PATCH', false, body, authorize);
+  async patch(url: string, body: unknown): Promise<IFetchObj> {
+    return await doFetch(url, 'PATCH', false, body);
+  },
+  async delete(url: string): Promise<IFetchObj> {
+    return await doFetch(url, 'DELETE');
   },
 };
 

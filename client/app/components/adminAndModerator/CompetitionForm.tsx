@@ -358,7 +358,7 @@ const CompetitionForm = ({
       tempErrors.push('Please enter all organizers');
     else if (newComp.organizers.length === 0) tempErrors.push('Please enter at least one organizer');
 
-    if (newComp.events.length === 0) tempErrors.push('You must enter at least one event');
+    if (newComp.events.length === 0) tempErrors.push('You must select at least one event');
     else if (!competitionEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
 
@@ -386,7 +386,7 @@ const CompetitionForm = ({
     } else {
       const { errors } =
         mode === 'edit'
-          ? await myFetch.patch(`/competitions/${competition.competitionId}`, newComp) // edit competition
+          ? await myFetch.patch(`/competitions/${competition.competitionId}?action=update`, newComp) // edit competition
           : await myFetch.post('/competitions', newComp); // create competition
 
       if (errors) {

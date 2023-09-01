@@ -1,6 +1,6 @@
-import { compareAsc } from 'date-fns';
-import { WcaRecordType } from './enums';
-import { IRound, IResult, IRecordPair } from './interfaces';
+import { RoundFormat, WcaRecordType } from './enums';
+import { IResult, IRecordPair, IEvent } from './interfaces';
+import { roundFormats } from './roundFormats';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
@@ -31,106 +31,8 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
   return a.average - b.average;
 };
 
-// Sets new records in-place in the rounds array and returns that array.
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
-export const setNewRecords = (rounds: IRound[], recordPairs: IRecordPair[]): IRound[] => {
-  if (recordPairs.length === 0) return rounds;
-
-  // Initialize with one empty day, because there is always going to be at least one
-  const compDays: IRound[][] = [[]];
-  let lastDate: Date = null;
-  // All dates have to be converted, because they are passed in as ISO date strings
-  const sortedRounds = [...rounds].sort((a, b) =>
-    compareAsc(getDateOnly(new Date(a.date)), getDateOnly(new Date(b.date))),
-  );
-
-  // Firstly, separate all rounds by date (the time of the round is ignored); and reset records
-  for (const round of sortedRounds) {
-    const roundDate = getDateOnly(new Date(round.date));
-
-    if (lastDate === null || roundDate.getTime() === lastDate.getTime()) {
-      compDays[compDays.length - 1].push(round);
-    } else {
-      compDays.push([round]);
-    }
-
-    lastDate = roundDate;
-
-    // Reset the records
-    for (const result of round.results) {
-      delete result.regionalSingleRecord;
-      delete result.regionalAverageRecord;
-    }
-  }
-
-  // Then set records for each day that had rounds
-  for (const recordPair of recordPairs) {
-    for (const compDay of compDays) {
-      // Initialize results arrays with dummy results
-      let bestSingleResults = [{ best: -1 }] as IResult[];
-      let bestAvgResults = [{ average: -1 }] as IResult[];
-
-      for (const round of compDay) {
-        for (const result of round.results) {
-          // TO-DO: MAKE SURE A PR/NR/CR DOES NOT OVERWRITE A NR/CR/WR
-
-          if (recordPair.wcaEquivalent === WcaRecordType.WR) {
-            const comparisonToBestSingle = compareSingles(result, bestSingleResults[0]);
-            const comparisonToRecordSingle = compareSingles(result, { best: recordPair.best } as IResult);
-
-            if (comparisonToBestSingle <= 0 && comparisonToRecordSingle <= 0) {
-              // If it's BETTER, reset the new records; if it's a TIE, add to the list
-              if (comparisonToBestSingle < 0) {
-                bestSingleResults = [result];
-              } else {
-                bestSingleResults.push(result);
-              }
-            }
-
-            const comparisonToBestAvg = compareAvgs(result, bestAvgResults[0], true);
-            const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
-
-            if (comparisonToBestAvg <= 0 && comparisonToRecordAvg <= 0) {
-              // If it's BETTER, reset the new records; if it's a TIE, add to the list
-              if (comparisonToBestAvg < 0) {
-                bestAvgResults = [result];
-              } else {
-                bestAvgResults.push(result);
-              }
-            }
-          }
-        }
-      }
-
-      // If no records were set, the best results would still be -1
-
-      if (bestSingleResults[0].best > 0) {
-        for (const result of bestSingleResults) {
-          console.log(`New ${result.eventId} single ${recordPair.wcaEquivalent} set: ${result.best}`);
-          result.regionalSingleRecord = recordPair.wcaEquivalent;
-        }
-
-        // Update recordPair for the sake of the following competition days
-        recordPair.best = bestSingleResults[0].best;
-      }
-
-      if (bestAvgResults[0].average > 0) {
-        for (const result of bestAvgResults) {
-          console.log(`New ${result.eventId} average ${recordPair.wcaEquivalent} set: ${result.average}`);
-          result.regionalAverageRecord = recordPair.wcaEquivalent;
-        }
-
-        // Update recordPair for the sake of the following competition days
-        recordPair.average = bestSingleResults[0].average;
-      }
-    }
-  }
-
-  return rounds;
-};
-
-// IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
-export const setNewRecordsForResult = (result: IResult, recordPairs: IRecordPair[]): IResult => {
+export const setResultRecords = (result: IResult, recordPairs: IRecordPair[]): IResult => {
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
@@ -158,4 +60,20 @@ export const getDateOnly = (date: Date): Date => {
   }
 
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+};
+
+export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
+  // Bo1 and Bo2 rounds cannot have an average
+  const numberOfAttempts = roundFormats[roundFormat].attempts;
+  if (numberOfAttempts < 3) return false;
+
+  // If the default round format for the event is Ao5, but the number of attempts in the round
+  // is less than five, the round cannot have an average
+  if (numberOfAttempts < 5 && event.defaultRoundFormat === RoundFormat.Average) return false;
+
+  return true;
+};
+
+export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
+  return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
 };

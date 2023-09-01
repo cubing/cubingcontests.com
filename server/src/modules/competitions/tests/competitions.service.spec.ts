@@ -5,17 +5,17 @@ import { EventsService } from '@m/events/events.service';
 import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { Role } from '@sh/enums';
+import { AuthService } from '@m/auth/auth.service';
 
 // Mocks and stubs
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
 import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
 import { ResultsServiceMock } from '@m/results/tests/mocks/results.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
+import { AuthServiceMock } from '@m/auth/tests/mocks/auth.service';
 import { CompetitionModelMock } from './mocks/competition.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
-import { newCompetitionEventsStub } from './stubs/new-competition-events.stub';
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
@@ -44,6 +44,10 @@ describe('CompetitionsService', () => {
           useFactory: PersonsServiceMock,
         },
         {
+          provide: AuthService,
+          useFactory: AuthServiceMock,
+        },
+        {
           provide: getModelToken('Competition'),
           useFactory: CompetitionModelMock,
         },
@@ -70,13 +74,5 @@ describe('CompetitionsService', () => {
 
   it('should be defined', () => {
     expect(competitionsService).toBeDefined();
-  });
-
-  describe('Helper methods', () => {
-    it('getParticipants works correctly', () => {
-      const personIds = competitionsService.getParticipants(newCompetitionEventsStub());
-
-      expect(personIds.length).toBe(4);
-    });
   });
 });

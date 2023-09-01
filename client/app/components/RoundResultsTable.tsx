@@ -3,7 +3,7 @@ import Solves from './Solves';
 import Country from './Country';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
-import { getRoundCanHaveAverage, getRoundRanksWithAverage } from '~/helpers/utilityFunctions';
+import { getRoundCanHaveAverage, getRoundRanksWithAverage } from '@sh/sharedFunctions';
 
 const DELIMITER = ' x '; // the spaces are En space characters
 
@@ -21,7 +21,7 @@ const RoundResultsTable = ({
   persons: IPerson[];
   recordTypes: IRecordType[];
   onEditResult?: (result: IResult) => void;
-  onDeleteResult?: (personIds: number[]) => void;
+  onDeleteResult?: (resultId: string) => void;
 }) => {
   const roundCanHaveAverage = getRoundCanHaveAverage(round.format, event);
   const roundRanksWithAverage = getRoundRanksWithAverage(round.format, event);
@@ -109,7 +109,7 @@ const RoundResultsTable = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onDeleteResult(result.personIds)}
+                    onClick={() => onDeleteResult((result as any)._id)}
                     className="btn btn-danger btn-sm"
                   >
                     Delete

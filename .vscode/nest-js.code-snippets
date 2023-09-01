@@ -48,5 +48,10 @@
       "\t$0",
       "}"
     ]
+  },
+  "Pretty JSON output": {
+    "scope": "typescript",
+    "prefix": "jsonstringify",
+    "body": "JSON.stringify($0, null, 2)"
   }
 }

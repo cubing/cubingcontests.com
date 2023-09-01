@@ -1,19 +1,19 @@
 import { RoundDocument } from '~/src/models/round.model';
 import { RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 
-export const roundsStub = (): RoundDocument[] => {
-  return [
+export const roundsStub = (): RoundDocument[] =>
+  [
     {
       roundId: '333tbf-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T06:49:04Z'),
+      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich19022023',
           eventId: '333tbf',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [3, 1],
           ranking: 1,
           attempts: [2148, 2866, 3614, -1, 2990],
@@ -23,7 +23,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich19022023',
           eventId: '333tbf',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [2, 4],
           ranking: 2,
           attempts: [14186, 10247, 10787, 17962, 5059],
@@ -35,14 +35,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333oh-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T06:49:04Z'),
+      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich19022023',
           eventId: '333oh',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [3],
           ranking: 1,
           attempts: [2060, 2047, 2449, 2110, 2120],
@@ -52,7 +52,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich19022023',
           eventId: '333oh',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [4],
           ranking: 2,
           attempts: [2512, 2322, 2999, 2361, 2107],
@@ -64,14 +64,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T06:49:04Z'),
+      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich19022023',
           eventId: '333',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [1],
           ranking: 1,
           attempts: [990, 1385, 1189, 1294, 1028],
@@ -81,7 +81,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich19022023',
           eventId: '333',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [4],
           ranking: 2,
           attempts: [1003, 1399, 1379, 1404, 1142],
@@ -91,7 +91,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich19022023',
           eventId: '333',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [3],
           ranking: 3,
           attempts: [1278, 1404, 1341, 1307, 1471],
@@ -101,7 +101,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich19022023',
           eventId: '333',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [2],
           ranking: 4,
           attempts: [1722, 1733, 1418, 1164, 1884],
@@ -113,14 +113,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333bf-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T06:49:04Z'),
+      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
         {
           competitionId: 'Munich19022023',
           eventId: '333bf',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [3],
           ranking: 1,
           attempts: [2217, -1, 2412],
@@ -131,7 +131,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich19022023',
           eventId: '333bf',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [1],
           ranking: 2,
           attempts: [7327, -1, -1],
@@ -141,7 +141,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich19022023',
           eventId: '333bf',
-          date: new Date('2023-02-19T06:49:04Z'),
+          date: new Date('2023-02-19T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [-1, -1, -1],
@@ -153,14 +153,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '444-r1',
       competitionId: 'Munich14062023',
-      date: new Date('2023-06-14T06:52:26Z'),
+      date: new Date('2023-06-14T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich14062023',
           eventId: '444',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [4003, 3872, 3762, 3910, 3555],
@@ -171,7 +171,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '444',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [6],
           ranking: 2,
           attempts: [4740, 4223, 5098, 4878, 4938],
@@ -181,7 +181,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '444',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [3],
           ranking: 3,
           attempts: [5446, 5335, 5336, 5558, 4485],
@@ -191,7 +191,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '444',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [4],
           ranking: 4,
           attempts: [8382, 6475, 6278, 7966, 6548],
@@ -201,7 +201,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '444',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [7],
           ranking: 5,
           attempts: [7531, 11159, 7330, -1, 7460],
@@ -213,14 +213,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '555-r1',
       competitionId: 'Munich14062023',
-      date: new Date('2023-06-14T06:52:26Z'),
+      date: new Date('2023-06-14T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich14062023',
           eventId: '555',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [7990, 8111, 7389, 7759, 6985],
@@ -231,7 +231,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '555',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [4],
           ranking: 2,
           attempts: [14325, 13912, 11970, 13471, 14007],
@@ -241,7 +241,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '555',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [6],
           ranking: 3,
           attempts: [9296, -2, -2, -2, -2],
@@ -253,14 +253,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333bf-r1',
       competitionId: 'Munich14062023',
-      date: new Date('2023-06-14T06:52:26Z'),
+      date: new Date('2023-06-14T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
         {
           competitionId: 'Munich14062023',
           eventId: '333bf',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [3],
           ranking: 1,
           attempts: [2789, 2719, -1],
@@ -270,7 +270,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333bf',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [4],
           ranking: 2,
           attempts: [-1, 3755, -1],
@@ -280,7 +280,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333bf',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [5],
           ranking: 3,
           attempts: [7086, 7922, 6237],
@@ -290,7 +290,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333bf',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [6],
           ranking: 4,
           attempts: [-1, 7980, -1],
@@ -302,14 +302,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333fm-r1',
       competitionId: 'Munich14062023',
-      date: new Date('2023-06-14T06:52:26Z'),
+      date: new Date('2023-06-14T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
         {
           competitionId: 'Munich14062023',
           eventId: '333fm',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [6],
           ranking: 1,
           attempts: [39, 51, 51],
@@ -320,7 +320,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333fm',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [3],
           ranking: 2,
           attempts: [49, 43, 52],
@@ -330,7 +330,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333fm',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [58, 53, 59],
@@ -342,14 +342,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333oh-r1',
       competitionId: 'Munich14062023',
-      date: new Date('2023-06-14T06:52:26Z'),
+      date: new Date('2023-06-14T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich14062023',
           eventId: '333oh',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [6],
           ranking: 1,
           attempts: [2382, 1869, 1976, 2143, 1691],
@@ -359,7 +359,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333oh',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [3],
           ranking: 2,
           attempts: [1939, 2589, 2055, 2170, 2503],
@@ -369,7 +369,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333oh',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [2904, 2289, 1932, 2276, 2302],
@@ -379,7 +379,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333oh',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [7],
           ranking: 4,
           attempts: [3058, 3046, 2636, 3795, 2280],
@@ -391,14 +391,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '222-r1',
       competitionId: 'Munich14062023',
-      date: new Date('2023-06-14T06:52:26Z'),
+      date: new Date('2023-06-14T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich14062023',
           eventId: '222',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [320, 485, 340, 525, 593],
@@ -408,7 +408,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '222',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [3],
           ranking: 2,
           attempts: [310, 748, 393, 536, 613],
@@ -418,7 +418,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '222',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [264, 625, 650, 510, 439],
@@ -428,7 +428,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '222',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [6],
           ranking: 4,
           attempts: [673, 473, 886, 743, 688],
@@ -438,7 +438,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '222',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [7],
           ranking: 5,
           attempts: [-1, 1075, 1247, -1, 593],
@@ -450,14 +450,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333-r1',
       competitionId: 'Munich14062023',
-      date: new Date('2023-06-14T06:52:26Z'),
+      date: new Date('2023-06-14T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich14062023',
           eventId: '333',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [1087, 1111, 1198, 1200, 1077],
@@ -468,7 +468,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [7],
           ranking: 2,
           attempts: [1273, 1198, 1226, 1206, 1449],
@@ -478,7 +478,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [3],
           ranking: 3,
           attempts: [1179, 1124, 1313, 1257, 1275],
@@ -488,7 +488,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [6],
           ranking: 4,
           attempts: [1360, 1240, 1039, 1598, 1318],
@@ -498,7 +498,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich14062023',
           eventId: '333',
-          date: new Date('2023-06-14T06:52:26Z'),
+          date: new Date('2023-06-14T00:00:00Z'),
           personIds: [4],
           ranking: 5,
           attempts: [1920, 1240, 1220, 1072, 2238],
@@ -510,14 +510,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '666-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '666',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [15299, 14398, 14084],
@@ -529,7 +529,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '666',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 2,
           attempts: [20168, 21170, 19841],
@@ -539,7 +539,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '666',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [25127, 22765, 20540],
@@ -549,7 +549,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '666',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 4,
           attempts: [23023, -1, 22636],
@@ -561,14 +561,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333tbf-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '333tbf',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3, 1],
           ranking: 1,
           attempts: [4391, 2044, 2193, 2927, 2474],
@@ -580,7 +580,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333tbf',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4, 7],
           ranking: 2,
           attempts: [8963, 6990, 6329, 5589, 6906],
@@ -592,14 +592,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '333',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [1159, 1143, 1161, 909, 1332],
@@ -610,7 +610,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [7],
           ranking: 2,
           attempts: [1158, 1139, -1, 974, 1350],
@@ -620,7 +620,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 3,
           attempts: [1395, 1366, 1133, 1213, 1193],
@@ -630,7 +630,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 4,
           attempts: [1097, 1858, 1195, 1519, 972],
@@ -640,7 +640,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 5,
           attempts: [1109, 1421, 1275, 1229, 1367],
@@ -650,7 +650,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [8],
           ranking: 6,
           attempts: [2140, 2172, 1699, 2000, 1881],
@@ -662,14 +662,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333oh-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '333oh',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 1,
           attempts: [1313, 1950, 1778, 2212, 2136],
@@ -681,7 +681,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333oh',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 2,
           attempts: [1962, 2406, 2313, 2399, 1779],
@@ -691,7 +691,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333oh',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [7],
           ranking: 3,
           attempts: [2502, 2738, 2702, 2077, 3037],
@@ -701,7 +701,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333oh',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [5],
           ranking: 4,
           attempts: [2767, 3237, 2674, 2344, 2557],
@@ -711,7 +711,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333oh',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 5,
           attempts: [2832, 3159, 2769, 3473, 3076],
@@ -721,7 +721,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333oh',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [8],
           ranking: 6,
           attempts: [3473, 4457, 3880, 3951, 4186],
@@ -733,14 +733,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '222-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '222',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 1,
           attempts: [458, 331, 153, 342, 338],
@@ -752,7 +752,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '222',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 2,
           attempts: [567, 332, 205, 517, 239],
@@ -762,7 +762,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '222',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [653, 323, 378, 394, 315],
@@ -772,7 +772,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '222',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [5],
           ranking: 4,
           attempts: [313, 387, 405, -1, 382],
@@ -782,7 +782,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '222',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [7],
           ranking: 5,
           attempts: [901, 663, 545, -1, 774],
@@ -794,14 +794,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '444-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '444',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [3922, 4608, 3960, 4231, 3502],
@@ -812,7 +812,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '444',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 2,
           attempts: [5498, 4623, 5206, 5648, 6121],
@@ -822,7 +822,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '444',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 3,
           attempts: [5453, 6386, 7375, 6468, 5605],
@@ -832,7 +832,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '444',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 4,
           attempts: [6799, 6199, 8245, 7172, 6065],
@@ -844,14 +844,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333bf-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '333bf',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 1,
           attempts: [2758, 2302, 3324],
@@ -862,7 +862,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333bf',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 2,
           attempts: [4002, -1, -1],
@@ -872,7 +872,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333bf',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [-1, -1, -1],
@@ -884,14 +884,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333tf-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '333tf',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1, 7],
           ranking: 1,
           attempts: [1949, 1299, 1371, 1403, 1552],
@@ -903,7 +903,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333tf',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4, 3],
           ranking: 2,
           attempts: [2465, 2396, 1762, 2030, 1923],
@@ -915,14 +915,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '555-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '555',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [5],
           ranking: 1,
           attempts: [8736, 7751, 6988, 7532, 7234],
@@ -933,7 +933,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '555',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 2,
           attempts: [9073, 9234, 9555, 11603, 8580],
@@ -943,7 +943,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '555',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 3,
           attempts: [10164, 11364, 10305, 9120, 10040],
@@ -953,7 +953,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '555',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 4,
           attempts: [11212, 10098, 11188, 11237, 11699],
@@ -965,14 +965,14 @@ export const roundsStub = (): RoundDocument[] => {
     {
       roundId: '333fm-r1',
       competitionId: 'Munich27062023',
-      date: new Date('2023-06-27T06:53:10Z'),
+      date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
         {
           competitionId: 'Munich27062023',
           eventId: '333fm',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3],
           ranking: 1,
           attempts: [41, 40, 57],
@@ -983,7 +983,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333fm',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1],
           ranking: 2,
           attempts: [50, 39, 51],
@@ -994,7 +994,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333fm',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4],
           ranking: 3,
           attempts: [52, 57, 49],
@@ -1004,7 +1004,7 @@ export const roundsStub = (): RoundDocument[] => {
         {
           competitionId: 'Munich27062023',
           eventId: '333fm',
-          date: new Date('2023-06-27T06:53:10Z'),
+          date: new Date('2023-06-27T00:00:00Z'),
           personIds: [5],
           ranking: 4,
           attempts: [60, 54, 60],
@@ -1014,4 +1014,3 @@ export const roundsStub = (): RoundDocument[] => {
       ],
     },
   ] as RoundDocument[];
-};

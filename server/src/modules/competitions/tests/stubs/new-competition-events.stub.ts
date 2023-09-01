@@ -10,14 +10,14 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '333-r1',
           competitionId: 'Munich30062023',
-          date: new Date('2023-06-30T09:33:18Z'),
+          date: new Date('2023-06-30T00:00:00Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Average,
           results: [
             {
               competitionId: 'Munich30062023',
               eventId: '333',
-              date: new Date('2023-06-30T09:33:18Z'),
+              date: new Date('2023-06-30T00:00:00Z'),
               personIds: [9],
               ranking: 1,
               attempts: [876, 989, 812, 711, 686],
@@ -28,7 +28,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'Munich30062023',
               eventId: '333',
-              date: new Date('2023-06-30T09:33:18Z'),
+              date: new Date('2023-06-30T00:00:00Z'),
               personIds: [1],
               ranking: 2,
               attempts: [1366, 1153, 1106, 1165, 1206],
@@ -38,7 +38,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'Munich30062023',
               eventId: '333',
-              date: new Date('2023-06-30T09:33:18Z'),
+              date: new Date('2023-06-30T00:00:00Z'),
               personIds: [4],
               ranking: 3,
               attempts: [1473, 1122, 1281, 995, 1366],
@@ -48,7 +48,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'Munich30062023',
               eventId: '333',
-              date: new Date('2023-06-30T09:33:18Z'),
+              date: new Date('2023-06-30T00:00:00Z'),
               personIds: [8],
               ranking: 4,
               attempts: [1463, 2571, 1370, 2124, 1632],
@@ -65,14 +65,14 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '333fm-r1',
           competitionId: 'Munich30062023',
-          date: new Date('2023-06-30T09:33:18Z'),
+          date: new Date('2023-06-30T00:00:00Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Mean,
           results: [
             {
               competitionId: 'Munich30062023',
               eventId: '333fm',
-              date: new Date('2023-06-30T09:33:18Z'),
+              date: new Date('2023-06-30T00:00:00Z'),
               personIds: [9],
               ranking: 1,
               attempts: [37, 34, 36],
@@ -82,7 +82,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'Munich30062023',
               eventId: '333fm',
-              date: new Date('2023-06-30T09:33:18Z'),
+              date: new Date('2023-06-30T00:00:00Z'),
               personIds: [4],
               ranking: 2,
               attempts: [49, 46, 46],
@@ -92,7 +92,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'Munich30062023',
               eventId: '333fm',
-              date: new Date('2023-06-30T09:33:18Z'),
+              date: new Date('2023-06-30T00:00:00Z'),
               personIds: [1],
               ranking: 3,
               attempts: [-1, -1, 32],
@@ -114,14 +114,14 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '222-r1',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T09:33:18Z'),
+          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.Average,
           results: [
             {
               competitionId: 'TestComp2023',
               eventId: '222',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [100],
               ranking: 1,
               attempts: [372, 389, 149, 299, 361],
@@ -132,7 +132,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '222',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [101],
               ranking: 2,
               attempts: [531, 398, 422, 601, 437],
@@ -142,7 +142,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '222',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [102],
               ranking: 3,
               attempts: [678, 922, 301, 529, 746],
@@ -154,14 +154,14 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '222-r2',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T09:33:18Z'),
+          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Average,
           results: [
             {
               competitionId: 'TestComp2023',
               eventId: '222',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [100],
               ranking: 1,
               attempts: [299, 314, 562, 135, 212],
@@ -172,7 +172,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '222',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [101],
               ranking: 2,
               attempts: [408, 332, 569, 420, 421],
@@ -189,14 +189,14 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '333fm-r1',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T09:33:18Z'),
+          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.Mean,
           results: [
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [999],
               ranking: 1,
               attempts: [29, 30, 34],
@@ -207,7 +207,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [998],
               ranking: 2,
               attempts: [-1, 29, -2],
@@ -217,7 +217,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [100],
               ranking: 3,
               attempts: [42, -2, -2],
@@ -227,7 +227,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [997],
               ranking: 4,
               attempts: [61, -1, -2],
@@ -239,14 +239,14 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '333fm-r2',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-02T11:33:18Z'), // DIFFERENT DAY
+          date: new Date('2023-07-02T00:00:00Z'), // DIFFERENT DAY
           roundTypeId: RoundType.Second,
           format: RoundFormat.Mean,
           results: [
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-02T11:33:18Z'),
+              date: new Date('2023-07-02T00:00:00Z'),
               personIds: [998],
               ranking: 1,
               attempts: [30, 29, 31],
@@ -257,7 +257,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-02T09:33:18Z'), // different time to throw a wrench in it
+              date: new Date('2023-07-02T00:00:00Z'), // different time to throw a wrench in it
               personIds: [999],
               ranking: 2,
               attempts: [38, 32, 44],
@@ -267,7 +267,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-02T13:33:18Z'), // different time to throw a wrench in it
+              date: new Date('2023-07-02T00:00:00Z'), // different time to throw a wrench in it
               personIds: [100],
               ranking: 3,
               attempts: [41, -1, -2],
@@ -279,14 +279,14 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '333fm-r3',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-02T09:33:18Z'), // same day (earlier time, which should be irrelevant)
+          date: new Date('2023-07-02T00:00:00Z'), // same day (earlier time, which should be irrelevant)
           roundTypeId: RoundType.Semi,
           format: RoundFormat.Mean,
           results: [
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-02T09:33:18Z'),
+              date: new Date('2023-07-02T00:00:00Z'),
               personIds: [998],
               ranking: 1,
               attempts: [29, 28, 31],
@@ -297,7 +297,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-02T09:33:18Z'),
+              date: new Date('2023-07-02T00:00:00Z'),
               personIds: [999],
               ranking: 2,
               attempts: [34, 30, 32],
@@ -307,7 +307,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-02T09:33:18Z'),
+              date: new Date('2023-07-02T00:00:00Z'),
               personIds: [100],
               ranking: 3,
               attempts: [43, -2, -2],
@@ -319,14 +319,14 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '333fm-r4',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-03T09:33:18Z'), // DIFFERENT DAY (no records)
+          date: new Date('2023-07-03T00:00:00Z'), // DIFFERENT DAY (no records)
           roundTypeId: RoundType.Final,
           format: RoundFormat.Mean,
           results: [
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-03T09:33:18Z'),
+              date: new Date('2023-07-03T00:00:00Z'),
               personIds: [998],
               ranking: 1,
               attempts: [33, 31, 33],
@@ -336,7 +336,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333fm',
-              date: new Date('2023-07-03T09:33:18Z'),
+              date: new Date('2023-07-03T00:00:00Z'),
               personIds: [999],
               ranking: 2,
               attempts: [35, 32, -1],
@@ -353,14 +353,14 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
         {
           roundId: '333bf-r1',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T09:33:18Z'),
+          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.BestOf3,
           results: [
             {
               competitionId: 'TestComp2023',
               eventId: '333bf',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [998],
               ranking: 2,
               attempts: [-1, 1976, -1],
@@ -370,7 +370,7 @@ export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
             {
               competitionId: 'TestComp2023',
               eventId: '333bf',
-              date: new Date('2023-07-01T09:33:18Z'),
+              date: new Date('2023-07-01T00:00:00Z'),
               personIds: [999],
               ranking: 1,
               attempts: [2217, 3564, 2604],

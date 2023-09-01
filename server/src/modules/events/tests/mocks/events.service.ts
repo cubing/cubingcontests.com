@@ -1,7 +1,7 @@
 import { eventsStub } from '../stubs/events.stub';
 
 export const EventsServiceMock = (): any => ({
-  async getEvents(eventIds?: string[]) {
+  getEvents(eventIds?: string[]) {
     let tempOutput = eventsStub();
 
     if (eventIds) {
@@ -9,5 +9,8 @@ export const EventsServiceMock = (): any => ({
     }
 
     return tempOutput;
+  },
+  getEventById(eventId: string) {
+    return eventsStub().find((el) => el.eventId === eventId);
   },
 });

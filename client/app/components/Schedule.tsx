@@ -1,6 +1,6 @@
 import { format, isSameDay } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
-import { roundFormats } from '~/helpers/roundFormats';
+import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
 import { IActivity, ICompetitionEvent, IRoom } from '@sh/interfaces';
 

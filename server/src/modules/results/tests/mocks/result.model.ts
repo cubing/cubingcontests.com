@@ -6,9 +6,12 @@ export const ResultModelMock = (): any => ({
   tempOutput: undefined,
   create(results: IResult | IResult[]): ResultDocument | ResultDocument[] {
     if (Array.isArray(results)) {
-      return results as ResultDocument[];
+      return results.map((result) => ({ ...result, save() {} })) as ResultDocument[];
     } else {
-      return results as ResultDocument;
+      return {
+        ...results,
+        save() {},
+      } as ResultDocument;
     }
   },
   updateOne() {

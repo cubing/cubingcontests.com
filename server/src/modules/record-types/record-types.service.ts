@@ -23,16 +23,16 @@ export class RecordTypesService {
       const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find().exec();
 
       if (recordTypes.length === 0) {
-        console.log('Seeding the record types table...');
+        console.log('Seeding the record types collection...');
 
         await this.recordTypeModel.insertMany(recordTypesSeed);
 
-        console.log('Record types table successfully seeded');
+        console.log('Record types collection successfully seeded');
       } else {
-        console.log('Record types table already seeded');
+        console.log('Record types collection already seeded');
       }
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new InternalServerErrorException(`Error while seeding records types collection: ${err.message}`);
     }
   }
 

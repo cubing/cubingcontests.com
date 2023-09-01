@@ -1,6 +1,6 @@
 import RoundResultsTable from './RoundResultsTable';
 import { ICompetitionEvent, IPerson, IRecordType, IRound } from '@sh/interfaces';
-import { roundFormats } from '~/helpers/roundFormats';
+import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
 
 const EventResults = ({
@@ -12,7 +12,7 @@ const EventResults = ({
   compEvent: ICompetitionEvent | null;
   persons: IPerson[];
   recordTypes: IRecordType[];
-  onDeleteResult?: (personIds: number[]) => void;
+  onDeleteResult?: (resultId: string) => void;
 }) => {
   let rounds = compEvent.rounds.length > 0 ? [...compEvent.rounds] : [];
 

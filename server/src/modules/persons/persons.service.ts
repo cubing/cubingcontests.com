@@ -1,22 +1,27 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { CreatePersonDto } from './dto/create-person.dto';
-import { PersonDocument } from '~/src/models/person.model';
 import { excl } from '~/src/helpers/dbHelpers';
+import { PersonDocument } from '~/src/models/person.model';
+import { RoundDocument } from '~/src/models/round.model';
+import { CreatePersonDto } from './dto/create-person.dto';
 import { IPerson } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
+import { CompetitionEvent } from '~/src/models/competition.model';
 
 @Injectable()
 export class PersonsService {
-  constructor(@InjectModel('Person') private readonly model: Model<PersonDocument>) {}
+  constructor(
+    @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
+    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
+  ) {}
 
   async getPersons(searchParam: string): Promise<PersonDocument[]> {
     try {
       if (!searchParam) {
-        return await this.model.find({}, excl).exec();
+        return await this.personModel.find({}, excl).exec();
       } else {
-        return await this.model.find({ name: { $regex: searchParam, $options: 'i' } }, excl).exec();
+        return await this.personModel.find({ name: { $regex: searchParam, $options: 'i' } }, excl).exec();
       }
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -35,15 +40,46 @@ export class PersonsService {
     }
 
     try {
-      return await this.model.find(queryFilter, excl).exec();
+      return await this.personModel.find(queryFilter, excl).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
+  async getCompetitionParticipants({
+    competitionId,
+    compEvents,
+  }: {
+    competitionId?: string;
+    compEvents?: CompetitionEvent[];
+  }): Promise<PersonDocument[]> {
+    const personIds: number[] = [];
+    let compRounds: RoundDocument[] = [];
+
+    if (compEvents) {
+      for (const compEvent of compEvents) compRounds.push(...compEvent.rounds);
+    } else {
+      try {
+        compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
+      } catch (err) {
+        throw new InternalServerErrorException('Error while searching for competition rounds');
+      }
+    }
+
+    for (const round of compRounds) {
+      for (const result of round.results) {
+        for (const personId of result.personIds) {
+          if (!personIds.includes(personId)) personIds.push(personId);
+        }
+      }
+    }
+
+    return await this.getPersonsById(personIds);
+  }
+
   async getPersonsTotal(): Promise<number> {
     try {
-      return await this.model.find().count().exec();
+      return await this.personModel.find().count().exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -55,9 +91,9 @@ export class PersonsService {
 
     try {
       if (createPersonDto.wcaId) {
-        duplicatePerson = await this.model.findOne({ wcaId: createPersonDto.wcaId }).exec();
+        duplicatePerson = await this.personModel.findOne({ wcaId: createPersonDto.wcaId }).exec();
       } else {
-        duplicatePerson = await this.model
+        duplicatePerson = await this.personModel
           .findOne({ name: createPersonDto.name, countryIso2: createPersonDto.countryIso2 })
           .exec();
       }
@@ -74,7 +110,7 @@ export class PersonsService {
     const newPerson = createPersonDto as IPerson;
 
     try {
-      newestPerson = await this.model.find().sort({ personId: -1 }).limit(1).exec();
+      newestPerson = await this.personModel.find().sort({ personId: -1 }).limit(1).exec();
     } catch (err: any) {
       throw new InternalServerErrorException(err.message);
     }
@@ -86,7 +122,7 @@ export class PersonsService {
 
     try {
       console.log(`Creating new person with name ${newPerson.name}`);
-      await this.model.create(newPerson);
+      await this.personModel.create(newPerson);
     } catch (err) {
       throw new InternalServerErrorException(
         `Error while creating new person with name ${createPersonDto.name}: ${err.message}`,

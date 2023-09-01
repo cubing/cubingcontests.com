@@ -24,7 +24,7 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 export class CompetitionsController {
   constructor(private readonly service: CompetitionsService) {}
 
-  // GET /competitions?region=REGION
+  // GET /competitions?region=...
   @Get()
   async getCompetitions(@Query('region') region: string) {
     console.log('Getting contests');
@@ -53,18 +53,18 @@ export class CompetitionsController {
     return { timezone: find(latitude, longitude)[0] };
   }
 
-  // GET /competitions/:id
-  @Get(':id')
-  async getCompetition(@Param('id') competitionId: string) {
+  // GET /competitions/:competition_id
+  @Get(':competition_id')
+  async getCompetition(@Param('competition_id') competitionId: string) {
     console.log(`Getting contest with id ${competitionId}`);
     return await this.service.getCompetition(competitionId);
   }
 
-  // GET /competitions/mod/:id
-  @Get('mod/:id')
+  // GET /competitions/mod/:competition_id
+  @Get('mod/:competition_id')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModCompetition(@Param('id') competitionId: string, @Request() req: any) {
+  async getModCompetition(@Param('competition_id') competitionId: string, @Request() req: any) {
     console.log(`Getting contest with id ${competitionId} with moderator info`);
     return await this.service.getCompetition(competitionId, req.user);
   }
@@ -81,25 +81,24 @@ export class CompetitionsController {
     return await this.service.createCompetition(createCompetitionDto, req.user.personId);
   }
 
-  // PATCH /competitions/:id?action=change_state/post_results
-  @Patch(':id')
+  // PATCH /competitions/:competition-id?action=...
+  @Patch(':competition_id')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async updateCompetition(
-    @Param('id') competitionId: string,
-    @Request() req: any, // this is passed in by the guards
+    @Param('competition_id') competitionId: string,
+    @Query('action') action: 'update' | 'change_state',
     @Body(new ValidationPipe()) updateCompetitionDto: UpdateCompetitionDto,
-    @Query('action') action?: 'change_state' | 'post_results',
+    @Request() req: any, // this is passed in by the guards
   ) {
-    if (!action) {
+    if (action === 'update') {
       console.log(`Updating contest ${competitionId}`);
       return await this.service.updateCompetition(competitionId, updateCompetitionDto, req.user);
-    } else if (action === 'post_results') {
-      console.log(`Posting results for ${competitionId}`);
-      return await this.service.postResults(competitionId, updateCompetitionDto, req.user);
     } else if (action === 'change_state') {
       console.log(`Setting state ${updateCompetitionDto.state} for contest ${competitionId}`);
       return await this.service.updateState(competitionId, updateCompetitionDto.state, req.user);
+    } else {
+      throw new BadRequestException(`Unsupported action when updating competition: ${action}`);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
@@ -6,6 +6,7 @@ import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
+import { CompetitionDocument } from '~/src/models/competition.model';
 
 @Injectable()
 export class AuthService {
@@ -73,5 +74,15 @@ export class AuthService {
 
   async getUserRoles(id: string): Promise<Role[]> {
     return await this.usersService.getUserRoles(id);
+  }
+
+  checkAccessRightsToComp(user: IPartialUser, competition: CompetitionDocument) {
+    if (
+      !user.roles.includes(Role.Admin) &&
+      (!user.roles.includes(Role.Moderator) || competition.createdBy !== user.personId)
+    ) {
+      console.log(`User ${user.username} denied access rights to contest ${competition.competitionId}`);
+      throw new UnauthorizedException('User does not have access rights for this contest');
+    }
   }
 }

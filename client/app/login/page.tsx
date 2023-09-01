@@ -26,17 +26,18 @@ const Login = () => {
 
       if (errors) {
         tempErrors.push(...errors);
-      } else if (!payload.accessToken) {
-        tempErrors.push('Access token not received');
-      } else {
-        localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
+      } else if (payload) {
+        if (!payload.accessToken) {
+          tempErrors.push('Access token not received');
+        } else {
+          localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
 
-        // Redirect if there is a redirect parameter in the URL
-        const redirect = searchParams.get('redirect');
-        console.log(redirect);
+          // Redirect if there is a redirect parameter in the URL
+          const redirect = searchParams.get('redirect');
 
-        if (redirect) window.location.replace(redirect);
-        else window.location.href = '/';
+          if (redirect) window.location.replace(redirect);
+          else window.location.href = '/';
+        }
       }
     }
 

@@ -10,7 +10,7 @@ import { CreatePersonDto } from './dto/create-person.dto';
 export class PersonsController {
   constructor(private readonly personsService: PersonsService) {}
 
-  // GET /persons?searchParam=[name]
+  // GET /persons?searchParam=...
   @Get()
   async getPersons(@Query('searchParam') searchParam: string) {
     return await this.personsService.getPersons(searchParam);

@@ -33,7 +33,6 @@ export class CreateResultDto implements IResult {
 
   @IsOptional()
   @IsNumber()
-  @Min(1)
   ranking?: number;
 
   @ArrayMinSize(1)

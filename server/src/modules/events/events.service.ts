@@ -9,23 +9,23 @@ import { EventGroup } from '@sh/enums';
 
 @Injectable()
 export class EventsService {
-  constructor(@InjectModel('Event') private readonly model: Model<EventDocument>) {}
+  constructor(@InjectModel('Event') private readonly eventModel: Model<EventDocument>) {}
 
   async onModuleInit() {
     try {
-      const events: EventDocument[] = await this.model.find().exec();
+      const events: EventDocument[] = await this.eventModel.find().exec();
 
-      console.log('Seeding the events table...');
+      console.log('Seeding the events collection...');
 
       // Add new events from events seed
       for (const newEvent of eventsSeed) {
         if (!events.some((ev) => ev.eventId === newEvent.eventId)) {
           console.log(`Adding new event: ${newEvent.eventId}`);
-          await this.model.create(newEvent);
+          await this.eventModel.create(newEvent);
         }
       }
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new InternalServerErrorException(`Error while seeding events collection: ${err.message}`);
     }
   }
 
@@ -33,7 +33,7 @@ export class EventsService {
     const queryFilter: any = eventIds ? { eventId: { $in: eventIds } } : {};
 
     try {
-      return await this.model.find(queryFilter, excl).sort({ rank: 1 }).exec();
+      return await this.eventModel.find(queryFilter, excl).sort({ rank: 1 }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -41,7 +41,7 @@ export class EventsService {
 
   async getSubmissionBasedEvents(): Promise<EventDocument[]> {
     try {
-      return await this.model
+      return await this.eventModel
         .find({ groups: { $in: [EventGroup.SubmissionOnly, EventGroup.SubmissionsAllowed] } }, excl)
         .sort({ rank: 1 })
         .exec();
@@ -54,7 +54,7 @@ export class EventsService {
     let event: EventDocument;
 
     try {
-      event = await this.model.findOne({ eventId }, excl).exec();
+      event = await this.eventModel.findOne({ eventId }, excl).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -66,13 +66,13 @@ export class EventsService {
 
   async createEvent(createEventDto: CreateEventDto) {
     try {
-      const event: EventDocument = await this.model.findOne({ eventId: createEventDto.eventId }).exec();
+      const event: EventDocument = await this.eventModel.findOne({ eventId: createEventDto.eventId }).exec();
 
       if (event) {
         throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
       }
 
-      await this.model.create(createEventDto);
+      await this.eventModel.create(createEventDto);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

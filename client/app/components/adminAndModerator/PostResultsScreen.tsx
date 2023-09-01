@@ -5,12 +5,11 @@ import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound } from '@
 import RoundResultsTable from '@c/RoundResultsTable';
 import myFetch from '~/helpers/myFetch';
 import { CompetitionState } from '@sh/enums';
-import { compareAvgs, compareSingles, setNewRecords } from '@sh/sharedFunctions';
-import { roundFormats } from '~/helpers/roundFormats';
-import { getRoundRanksWithAverage, formatTime, checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
+import { formatTime, checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
 import { IResultInfo } from '~/helpers/interfaces/ResultInfo';
 import ErrorMessages from '../ErrorMessages';
+import Loading from '../Loading';
 
 const PostResultsScreen = ({
   compData: { competition, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
@@ -20,6 +19,7 @@ const PostResultsScreen = ({
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
+  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
   const [round, setRound] = useState<IRound>(competition.events[0].rounds[0]);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
@@ -35,6 +35,8 @@ const PostResultsScreen = ({
     () => recordPairsByEvent.find((el) => el.eventId === currEvent.eventId).recordPairs,
     [recordPairsByEvent, currEvent],
   );
+
+  const isEditable = [CompetitionState.Approved, CompetitionState.Ongoing].includes(competition.state);
 
   useEffect(() => {
     console.log('Records:', recordPairsByEvent);
@@ -56,82 +58,69 @@ const PostResultsScreen = ({
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
-  const postResults = async (newCompetitionEvents: ICompetitionEvent[]) => {
-    if ([CompetitionState.Approved, CompetitionState.Ongoing].includes(competition.state)) {
-      const { errors } = await myFetch.patch(`/competitions/${competition.competitionId}?action=post_results`, {
-        events: newCompetitionEvents,
-      });
+  const submitResult = () => {
+    if (isEditable) {
+      checkErrorsBeforeSubmit(
+        attempts,
+        round.format,
+        currEvent,
+        currentPersons,
+        setErrorMessages,
+        setSuccessMessage,
+        async ({ parsedAttempts, best, average }: IResultInfo) => {
+          setLoadingDuringSubmit(true);
 
-      if (errors) setErrorMessages(errors);
+          const newResult = {
+            competitionId: competition.competitionId,
+            eventId: currEvent.eventId,
+            date: round.date,
+            compNotPublished: true,
+            personIds: currentPersons.map((el) => el.personId),
+            ranking: 0, // real rankings assigned on the backend
+            attempts: parsedAttempts,
+            best,
+            average,
+          };
+
+          const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResult);
+
+          if (errors) {
+            setErrorMessages(errors);
+          } else {
+            setLoadingDuringSubmit(false);
+            // Add new persons to list of persons
+            setPersons([
+              ...persons,
+              ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId)),
+            ]);
+            setResultFormResetTrigger(!resultFormResetTrigger);
+            updateRoundAndCompEvents(payload);
+          }
+        },
+      );
     } else {
       setErrorMessages(['Submitting results is disabled']);
     }
   };
 
-  const submitResult = () => {
-    checkErrorsBeforeSubmit(
-      attempts,
-      round.format,
-      currEvent,
-      currentPersons,
-      setErrorMessages,
-      setSuccessMessage,
-      ({ parsedAttempts, best, average }: IResultInfo) => {
-        const newRound = {
-          ...round,
-          results: [
-            ...round.results,
-            {
-              competitionId: competition.competitionId,
-              eventId: currEvent.eventId,
-              date: round.date,
-              compNotPublished: true,
-              personIds: currentPersons.map((el) => el.personId),
-              ranking: 0, // real rankings assigned below
-              attempts: parsedAttempts,
-              best,
-              average,
-            },
-          ],
-        };
+  const updateRoundAndCompEvents = (updatedRound: IRound) => {
+    setRound(updatedRound);
 
-        // Sort the results and set rankings correctly
-        newRound.results = mapRankings(
-          newRound.results.sort(roundFormats[newRound.format].isAverage ? compareAvgs : compareSingles),
-        );
-
-        // Add new persons to list of persons
-        setPersons([...persons, ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId))]);
-
-        updateRoundAndCompEventsAndSubmit(newRound);
-        setResultFormResetTrigger(!resultFormResetTrigger);
-      },
-    );
-  };
-
-  const updateRoundAndCompEventsAndSubmit = (newRound: IRound) => {
     const newCompetitionEvents = competitionEvents.map((ce) =>
       ce.event.eventId !== currEvent.eventId
         ? ce
         : {
             ...ce,
-            rounds: setNewRecords(
-              ce.rounds.map((r) => (r.roundTypeId !== newRound.roundTypeId ? r : newRound)),
-              recordPairs,
-            ),
+            rounds: ce.rounds.map((r) => (r.roundId !== updatedRound.roundId ? r : updatedRound)),
           },
     );
 
     setCompetitionEvents(newCompetitionEvents);
-    setRound(newRound);
-
-    // Send the updated results to the backend
-    postResults(newCompetitionEvents);
   };
 
   const editResult = (result: IResult) => {
     // Delete result and then set the inputs if the deletion was successful
-    deleteResult(result.personIds, () => {
+    deleteResult((result as any)._id, () => {
       const newCurrentPersons = persons.filter((p) => result.personIds.includes(p.personId));
       setCurrentPersons(newCurrentPersons);
 
@@ -142,43 +131,27 @@ const PostResultsScreen = ({
     });
   };
 
-  const deleteResult = (personIds: number[], editCallback?: () => void) => {
-    const newRound: IRound = {
-      ...round,
-      // Checking by a single person ID from a team event result is enough
-      results: mapRankings(round.results.filter((res) => !res.personIds.includes(personIds[0]))),
-    };
+  const deleteResult = async (resultId: string, editCallback?: () => void) => {
+    if (isEditable) {
+      setLoadingDuringSubmit(true);
 
-    updateRoundAndCompEventsAndSubmit(newRound);
+      const { payload, errors } = await myFetch.delete(`/results/${competition.competitionId}/${resultId}`);
 
-    if (editCallback) {
-      editCallback();
-    } else {
-      setResultFormResetTrigger(!resultFormResetTrigger);
-    }
-  };
-
-  // Assumes results are already sorted
-  const mapRankings = (results: IResult[]): IResult[] => {
-    if (results.length === 0) return results;
-
-    const newResults: IResult[] = [];
-    let prevResult = results[0];
-    let ranking = 1;
-
-    for (let i = 0; i < results.length; i++) {
-      // If the previous result was not tied with this one, increase ranking
-      if (!getRoundRanksWithAverage(round.format, currEvent)) {
-        if (compareSingles(prevResult, results[i]) < 0) ranking = i + 1;
+      if (errors) {
+        setErrorMessages(errors);
       } else {
-        if (compareAvgs(prevResult, results[i]) < 0) ranking = i + 1;
+        setLoadingDuringSubmit(false);
+        updateRoundAndCompEvents(payload);
+
+        if (editCallback) {
+          editCallback();
+        } else {
+          setResultFormResetTrigger(!resultFormResetTrigger);
+        }
       }
-
-      newResults.push({ ...results[i], ranking });
-      prevResult = results[i];
+    } else {
+      setErrorMessages(['Deleting and editing results is disabled']);
     }
-
-    return newResults;
   };
 
   return (
@@ -208,7 +181,13 @@ const PostResultsScreen = ({
             resetTrigger={resultFormResetTrigger}
           />
           <button type="button" id="submit_attempt_button" onClick={submitResult} className="btn btn-primary">
-            Submit
+            {!loadingDuringSubmit ? (
+              'Submit'
+            ) : (
+              <div style={{ width: '3.15rem' }}>
+                <Loading small />
+              </div>
+            )}
           </button>
         </div>
         <div className="col-9">

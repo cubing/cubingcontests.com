@@ -2,7 +2,7 @@ import { PersonDocument } from '~/src/models/person.model';
 import { personsStub } from '../stubs/persons.stub';
 
 export const PersonsServiceMock = (): any => ({
-  async getPersonsById(personIds?: number[]) {
+  getPersonsById(personIds?: number[]) {
     let tempOutput = personsStub();
 
     if (personIds) {
@@ -10,5 +10,8 @@ export const PersonsServiceMock = (): any => ({
     }
 
     return tempOutput;
+  },
+  getCompetitionParticipants() {
+    return 999;
   },
 });
