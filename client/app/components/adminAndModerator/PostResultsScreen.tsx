@@ -124,7 +124,7 @@ const PostResultsScreen = ({
       const newCurrentPersons = persons.filter((p) => result.personIds.includes(p.personId));
       setCurrentPersons(newCurrentPersons);
 
-      const newAttempts = result.attempts.map((el) => formatTime(el, currEvent, { removeFormatting: true }));
+      const newAttempts = result.attempts.map((el) => formatTime(el, currEvent.format, { noFormatting: true }));
       setAttempts(newAttempts);
 
       document.getElementById('attempt_1').focus();

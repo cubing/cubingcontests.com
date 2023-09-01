@@ -23,7 +23,6 @@ export const RoundModelMock = (): any => ({
       .events.find((e) => e.event.eventId === eventId)
       .rounds.find((r) => r.roundId === roundId);
 
-    console.log(this.tempOutput);
     return this;
   },
   populate() {

@@ -27,8 +27,8 @@ const Records = async ({ params }: { params: { category: string } }) => {
   };
 
   const getTime = (record: IRecord, event: IEvent): string => {
-    if (record.type === 'single') return formatTime(record.result.best, event);
-    return formatTime(record.result.average, event, { isAverage: true });
+    if (record.type === 'single') return formatTime(record.result.best, event.format);
+    return formatTime(record.result.average, event.format, { isAverage: true });
   };
 
   const getId = (record: IRecord, person?: IPerson): string => {

@@ -57,7 +57,7 @@ const Time = ({
 
   return (
     <div className="d-inline-flex align-items-center gap-2">
-      {formatTime(average ? result.average : result.best, event, { isAverage: average })}
+      {formatTime(average ? result.average : result.best, event.format, { isAverage: average })}
       {getRecordBadge(result)}
     </div>
   );

@@ -94,18 +94,18 @@ export const getBestAverageAndAttempts = (attempts: string[], roundFormat: Round
 
 export const formatTime = (
   time: number,
-  event: IEvent,
-  { isAverage = false, removeFormatting = false }: { isAverage?: boolean; removeFormatting?: boolean } = {
+  eventFormat: EventFormat,
+  { isAverage = false, noFormatting = false }: { isAverage?: boolean; noFormatting?: boolean } = {
     isAverage: false,
-    removeFormatting: false,
+    noFormatting: false,
   },
 ): string => {
   if (time === -1) {
     return 'DNF';
   } else if (time === -2) {
     return 'DNS';
-  } else if (event.format === EventFormat.Number) {
-    if (isAverage) return (time / 100).toFixed(2);
+  } else if (eventFormat === EventFormat.Number) {
+    if (isAverage && !noFormatting) return (time / 100).toFixed(2);
     else return time.toString();
   } else {
     let output = '';
@@ -113,18 +113,28 @@ export const formatTime = (
     const minutes = Math.floor(time / 6000) % 60;
     const seconds = (time - hours * 360000 - minutes * 6000) / 100;
 
-    if (hours > 0) output = hours + ':';
-    if (hours > 0 || minutes > 0) {
-      if (minutes === 0) output += '00:';
-      else if (minutes < 10 && hours > 0) output += '0' + minutes + ':';
-      else output += minutes + ':';
+    if (hours > 0) {
+      output = hours.toString();
+      if (!noFormatting) output += ':';
     }
-    if (seconds < 10 && (hours > 0 || minutes > 0)) output += '0';
-    output += seconds;
-    if (!output.includes('.')) output += '.00';
-    else if (output.split('.')[1].length === 1) output += '0';
 
-    if (removeFormatting) return output.replace(/[.:]/g, '');
+    if (hours > 0 || minutes > 0) {
+      if (minutes === 0) output += '00';
+      else if (minutes < 10 && hours > 0) output += '0' + minutes;
+      else output += minutes;
+
+      if (!noFormatting) output += ':';
+    }
+
+    if (seconds < 10 && (hours > 0 || minutes > 0)) output += '0';
+    // Only times under ten minutes can have decimals
+    if (hours === 0 && minutes < 10) {
+      output += seconds.toFixed(2);
+      if (noFormatting) output = Number(output.replace('.', '')).toString();
+    } else {
+      output += seconds.toFixed(0);
+    }
+
     return output;
   }
 };

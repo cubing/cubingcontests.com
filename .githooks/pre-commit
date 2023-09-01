@@ -17,8 +17,14 @@ cd "$(git rev-parse --show-toplevel)"
 STAGED_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E 'client/.*\.(ts|tsx)$' | sed -E 's/client\///'))
 
 if [[ "$STAGED_FILES" != "" ]]; then
-  # CLIENT BUILD
+  # AUTOMATED TESTS
+  echo -e "Running all /client test suites..."
+
   cd client
+  npx jest
+  verify_exit
+
+  # CLIENT BUILD
   npx next build
   verify_exit
 
