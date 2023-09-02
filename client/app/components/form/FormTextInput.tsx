@@ -16,6 +16,7 @@ const FormTextInput = ({
   submitOnEnter = false,
   password = false,
   monospace = false,
+  invalid = false,
 }: {
   title?: string;
   id?: string;
@@ -31,6 +32,7 @@ const FormTextInput = ({
   password?: boolean;
   monospace?: boolean;
   submitOnEnter?: boolean;
+  invalid?: boolean;
 }) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput!');
 
@@ -64,7 +66,7 @@ const FormTextInput = ({
           onKeyDown={handleKeyDown}
           onFocus={onFocus}
           onBlur={onBlur}
-          className={'flex-grow-1 form-control' + (monospace ? ' font-monospace' : '')}
+          className={'flex-grow-1 form-control' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
         />
         {password && (
           <button

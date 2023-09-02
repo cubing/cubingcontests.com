@@ -7,7 +7,6 @@ import myFetch from '~/helpers/myFetch';
 import { CompetitionState } from '@sh/enums';
 import { formatTime, checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
-import { IResultInfo } from '~/helpers/interfaces/ResultInfo';
 import ErrorMessages from '../ErrorMessages';
 import Loading from '../Loading';
 
@@ -23,7 +22,7 @@ const PostResultsScreen = ({
 
   const [round, setRound] = useState<IRound>(competition.events[0].rounds[0]);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
-  const [attempts, setAttempts] = useState<string[]>([]);
+  const [attempts, setAttempts] = useState<number[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
   const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>(competition.events);
 
@@ -60,29 +59,29 @@ const PostResultsScreen = ({
 
   const submitResult = () => {
     if (isEditable) {
-      checkErrorsBeforeSubmit(
+      const newResult: IResult = {
+        competitionId: competition.competitionId,
+        eventId: currEvent.eventId,
+        date: round.date,
+        compNotPublished: true,
+        personIds: currentPersons.map((el) => el?.personId || null),
+        ranking: 0, // real rankings assigned on the backend
         attempts,
+        best: -1,
+        average: -1,
+      };
+
+      checkErrorsBeforeSubmit(
+        newResult,
         round.format,
         currEvent,
         currentPersons,
         setErrorMessages,
         setSuccessMessage,
-        async ({ parsedAttempts, best, average }: IResultInfo) => {
+        async (newResultWithBestAndAverage) => {
           setLoadingDuringSubmit(true);
 
-          const newResult = {
-            competitionId: competition.competitionId,
-            eventId: currEvent.eventId,
-            date: round.date,
-            compNotPublished: true,
-            personIds: currentPersons.map((el) => el.personId),
-            ranking: 0, // real rankings assigned on the backend
-            attempts: parsedAttempts,
-            best,
-            average,
-          };
-
-          const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResult);
+          const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAverage);
 
           if (errors) {
             setErrorMessages(errors);
@@ -121,11 +120,8 @@ const PostResultsScreen = ({
   const editResult = (result: IResult) => {
     // Delete result and then set the inputs if the deletion was successful
     deleteResult((result as any)._id, () => {
-      const newCurrentPersons = persons.filter((p) => result.personIds.includes(p.personId));
-      setCurrentPersons(newCurrentPersons);
-
-      const newAttempts = result.attempts.map((el) => formatTime(el, currEvent.format, { noFormatting: true }));
-      setAttempts(newAttempts);
+      setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
+      setAttempts(result.attempts);
 
       document.getElementById('attempt_1').focus();
     });

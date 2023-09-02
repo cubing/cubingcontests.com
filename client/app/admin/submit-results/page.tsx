@@ -25,7 +25,7 @@ const SubmitResults = () => {
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState<RoundFormat>();
-  const [attempts, setAttempts] = useState<string[]>([]);
+  const [attempts, setAttempts] = useState<number[]>([]);
   const [date, setDate] = useState(new Date());
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');
@@ -67,32 +67,36 @@ const SubmitResults = () => {
     // Validation
     const tempErrors: string[] = [];
 
-    if (!date) tempErrors.push('Please enter a valid date');
-    if (!videoLink.trim()) tempErrors.push('Please enter the link to a video showing the solves as proof');
+    if (!date) errorMessages.push('Please enter a valid date');
+    if (!videoLink.trim()) {
+      tempErrors.push('Please enter a video link');
+      document.getElementById('video_link').focus();
+    }
 
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
     } else {
-      checkErrorsBeforeSubmit(
+      const newResult: IResult = {
+        eventId: event.eventId,
+        date,
+        personIds: competitors.map((el) => el?.personId || null),
         attempts,
+        best: -1,
+        average: -1,
+        videoLink,
+        discussionLink: discussionLink || undefined,
+      };
+      console.log(newResult);
+
+      checkErrorsBeforeSubmit(
+        newResult,
         roundFormat,
         event,
         competitors,
         setErrorMessages,
         setSuccessMessage,
-        async ({ parsedAttempts, best, average }) => {
-          const newResult: IResult = {
-            eventId: event.eventId,
-            date,
-            personIds: competitors.map((el) => el.personId),
-            attempts: parsedAttempts,
-            best,
-            average,
-            videoLink,
-            discussionLink,
-          };
-
-          const { errors } = await myFetch.post('/results', newResult);
+        async (newResultWithBestAndAverage) => {
+          const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
 
           if (errors) {
             setErrorMessages(errors);

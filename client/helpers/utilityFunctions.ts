@@ -4,8 +4,9 @@ import Countries from '@sh/Countries';
 import { EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
-import { ICompetition, IEvent, IPerson } from '@sh/interfaces';
-import { IResultInfo } from './interfaces/ResultInfo';
+import { ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces';
+import { roundFormatOptions } from './multipleChoiceOptions';
+import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
 
 export const getCountry = (countryIso2: string): string => {
   return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
@@ -37,65 +38,73 @@ export const getFormattedCoords = (comp: ICompetition): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(5)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(5)}`;
 };
 
-const getResult = (time: string, event: IEvent): number => {
-  if (time.length > 7) throw new Error('getResult does not support times >= 10 hours');
+// Returns null if the time is invalid (e.g. 81.45); returns 0 if it's empty
+export const getResult = (time: string, eventFormat: EventFormat): number | null => {
+  if (time.length > 7) throw new Error('getResult does not support times >= 10 hours long');
+  else if (time === '') return 0;
 
-  if (time === 'DNF') return -1;
-  else if (time === 'DNS') return -2;
-
-  // If the event is Fewest Moves, return as is converted to integer
-  if (event.eventId === '333fm') return parseInt(time);
+  if (eventFormat === EventFormat.Number) return parseInt(time);
 
   let hours = 0;
   let minutes = 0;
+  let centiseconds: number;
 
   if (time.length === 7) hours = parseInt(time[0]);
 
   if (time.length > 4) {
     minutes = parseInt(time.slice(time.length === 7 ? 1 : 0, -4));
-    time = time.slice(-4);
+    centiseconds = parseInt(time.slice(-4));
+  } else {
+    centiseconds = parseInt(time);
   }
 
-  const centiseconds = parseInt(time) + minutes * 6000 + hours * 360000;
-  return centiseconds;
+  if (minutes >= 60 || centiseconds >= 6000) return null;
+
+  return hours * 360000 + minutes * 6000 + centiseconds;
 };
 
-// Returns the best result, the average and the parsed attempts
-export const getBestAverageAndAttempts = (attempts: string[], roundFormat: RoundFormat, event: IEvent): IResultInfo => {
-  const parsedAttempts = attempts.map((el) => (el.trim() ? getResult(el, event) : -2));
+// Returns the best and average times
+export const getBestAndAverage = (
+  attempts: number[],
+  roundFormat: RoundFormat,
+  event: IEvent,
+): { best: number; average: number } => {
   let best: number, average: number;
+  let sum = 0;
+  let DNFDNScount = 0;
 
-  // If the attempt is 0, -1 or -2, then it's a special value that is always worse than other values (e.g. DNF/DNS)
-  best = Math.min(...parsedAttempts.map((att) => (att > 0 ? att : Infinity)));
+  // This actually follows the rule that the lower the attempt value is - the better
+  const convertedAttempts = attempts.map((attempt) => {
+    if (attempt > 0) {
+      sum += attempt;
+      return attempt;
+    }
+
+    DNFDNScount++;
+    return Infinity;
+  });
+
+  best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
   if (
     // No averages for rounds that don't support them
     !getRoundCanHaveAverage(roundFormat, event) ||
-    // DNF average if there are multiple DNF/DNS results
-    parsedAttempts.filter((el) => el <= 0).length > 1 ||
-    // DNF average if there is a DNF/DNS in a Mo3
-    (parsedAttempts.filter((el) => el <= 0).length > 0 && parsedAttempts.length === 3)
+    DNFDNScount > 1 ||
+    (DNFDNScount > 0 && attempts.length === 3)
   ) {
     average = -1;
   } else {
-    let sum = parsedAttempts.reduce((prev: number, curr: number) => {
-      if (prev <= 0) prev = 0; // in case the very first value was DNF/DNS
-      if (curr <= 0) return prev; // ignore DNF, DNS, etc.
-      return curr + prev;
-    }) as number;
-
     // Subtract best and worst results, if it's an Ao5 round
-    if (parsedAttempts.length === 5) {
+    if (attempts.length === 5) {
       sum -= best;
-      // Only subtract worst if there is no DNF, DNS, etc.
-      if (!parsedAttempts.some((el) => el <= 0)) sum -= Math.max(...parsedAttempts);
+      if (DNFDNScount === 0) sum -= Math.max(...attempts);
     }
 
-    average = Math.round((sum / 3) * (event.eventId === '333fm' ? 100 : 1));
+    average = Math.round((sum / 3) * (event.format === EventFormat.Number ? 100 : 1));
   }
 
-  return { parsedAttempts, best, average };
+  return { best, average };
 };
 
 export const formatTime = (
@@ -159,15 +168,15 @@ export const getRole = (): Role => {
 };
 
 // Checks if there are any errors, and if not, calls the callback function,
-// passing it the best single, the average, and the parsed attempts
+// passing it the result with the best single and average set
 export const checkErrorsBeforeSubmit = (
-  attempts: string[],
+  result: IResult,
   roundFormat: RoundFormat,
   event: IEvent,
   persons: IPerson[],
   setErrorMessages: (val: string[]) => void,
   setSuccessMessage: (val: string) => void,
-  callback: (resultInfo: IResultInfo) => void,
+  callback: (result: IResult) => void,
   requireRealResult = false,
 ) => {
   const errorMessages: string[] = [];
@@ -180,9 +189,10 @@ export const checkErrorsBeforeSubmit = (
 
   let realResultExists = false; // real meaning not DNF or DNS
 
-  for (let i = 0; i < attempts.length; i++) {
-    if (attempts[i] === '') errorMessages.push(`Please enter attempt ${i + 1}`);
-    else if (!['DNF', 'DNS'].includes(attempts[i])) realResultExists = true;
+  for (let i = 0; i < result.attempts.length; i++) {
+    if (result.attempts[i] === null) errorMessages.push(`Attempt ${i + 1} is invalid`);
+    else if (result.attempts[i] === 0) errorMessages.push(`Please enter attempt ${i + 1}`);
+    else if (result.attempts[i] > 0) realResultExists = true;
   }
 
   if (requireRealResult && !realResultExists) errorMessages.push('You cannot submit only DNF/DNS results');
@@ -192,7 +202,12 @@ export const checkErrorsBeforeSubmit = (
   } else {
     setErrorMessages([]);
     setSuccessMessage('');
-    callback(getBestAverageAndAttempts(attempts, roundFormat, event));
+
+    const { best, average } = getBestAndAverage(result.attempts, roundFormat, event);
+    result.best = best;
+    result.average = average;
+
+    callback(result);
   }
 };
 
@@ -211,4 +226,13 @@ export const limitRequests = (
       setFetchTimer(null);
     }, C.fetchThrottleTimeout),
   );
+};
+
+// Disallows Mo3 format for events that have Ao5 as the default format, and vice versa for all other events
+export const getAllowedRoundFormats = (event: IEvent): MultiChoiceOption[] => {
+  if (event.defaultRoundFormat === RoundFormat.Average) {
+    return roundFormatOptions.filter((el) => el.value !== RoundFormat.Mean);
+  } else {
+    return roundFormatOptions.filter((el) => el.value !== RoundFormat.Average);
+  }
 };

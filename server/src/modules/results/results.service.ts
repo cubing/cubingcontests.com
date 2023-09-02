@@ -213,6 +213,8 @@ export class ResultsService {
   }
 
   async submitResult(createResultDto: CreateResultDto) {
+    if (!createResultDto.videoLink) throw new BadRequestException('Please enter a video link');
+
     // The date is passed in as an ISO date string and may include time too, so the time must be removed
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
     fixTimesOverTenMinutes(createResultDto);

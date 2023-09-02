@@ -36,7 +36,7 @@ import {
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
-import { limitRequests } from '~/helpers/utilityFunctions';
+import { getAllowedRoundFormats, limitRequests } from '~/helpers/utilityFunctions';
 import Loading from '../Loading';
 
 registerLocale('en-GB', enGB);
@@ -395,15 +395,6 @@ const CompetitionForm = ({
         setErrorMessages([]);
         window.location.href = '/mod';
       }
-    }
-  };
-
-  // Disallows Mo3 format for events that have Ao5 as the default format, and vice versa for all other events
-  const getFilteredRoundFormats = (event: IEvent): MultiChoiceOption[] => {
-    if (event.defaultRoundFormat === RoundFormat.Average) {
-      return roundFormatOptions.filter((el) => el.value !== RoundFormat.Mean);
-    } else {
-      return roundFormatOptions.filter((el) => el.value !== RoundFormat.Average);
     }
   };
 
@@ -850,7 +841,7 @@ const CompetitionForm = ({
                       <div className="col-8">
                         <FormSelect
                           title="Round format"
-                          options={getFilteredRoundFormats(compEvent.event)}
+                          options={getAllowedRoundFormats(compEvent.event)}
                           selected={round.format}
                           disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
