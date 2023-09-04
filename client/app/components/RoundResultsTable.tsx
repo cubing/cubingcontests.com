@@ -66,9 +66,11 @@ const RoundResultsTable = ({
 
               return (
                 <tr key={personId}>
-                  <td className="ps-2" style={getRankingHighlight(result)}>
-                    {i === 0 ? result.ranking : ''}
-                  </td>
+                  {i === 0 && (
+                    <td rowSpan={event.participants || 1} className="ps-2" style={getRankingHighlight(result)}>
+                      {i === 0 ? result.ranking : ''}
+                    </td>
+                  )}
                   <td>
                     {person ? (
                       <span key={person.personId} className="d-flex align-items-center">
