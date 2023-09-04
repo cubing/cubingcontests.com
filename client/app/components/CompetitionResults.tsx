@@ -2,14 +2,15 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { utcToZonedTime, format } from 'date-fns-tz';
-import EventResultsTable from './EventResults';
 import Tabs from './Tabs';
+import ContestTypeBadge from './ContestTypeBadge';
+import EventResultsTable from './EventResults';
 import Schedule from './Schedule';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
-import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
+import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
@@ -104,9 +105,9 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
         // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/
         <div className="row w-100 mb-4 px-2 fs-5">
           <div className="col-md-5">
-            <p className="mb-2">
-              Type:&#8194;<b>{competitionType}</b>
-            </p>
+            <div className="mb-2">
+              <ContestTypeBadge type={competition.type} />
+            </div>
             <p className="mb-2">Date:&#8194;{formattedDate}</p>
             {formattedTime && (
               <p>

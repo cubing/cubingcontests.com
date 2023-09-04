@@ -37,14 +37,17 @@ export const competitionTypeOptions: MultiChoiceOption[] = [
   {
     label: 'Meetup',
     value: CompetitionType.Meetup,
+    color: Color.Green,
   },
   {
     label: 'Online',
     value: CompetitionType.Online,
+    color: Color.Blue,
   },
   {
     label: 'Competition',
     value: CompetitionType.Competition,
+    color: Color.Red,
   },
 ];
 

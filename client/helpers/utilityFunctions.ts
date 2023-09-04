@@ -1,7 +1,7 @@
 import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import Countries from '@sh/Countries';
-import { EventFormat, Role, RoundFormat } from '@sh/enums';
+import { Color, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
 import { ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces';
@@ -289,5 +289,33 @@ export const getAllowedRoundFormats = (event: IEvent): MultiChoiceOption[] => {
     return roundFormatOptions.filter((el) => el.value !== RoundFormat.Mean);
   } else {
     return roundFormatOptions.filter((el) => el.value !== RoundFormat.Average);
+  }
+};
+
+export const getBGClassFromColor = (color: Color): string => {
+  // THE MAGENTA OPTION IS SKIPPED FOR NOW
+  switch (color) {
+    case Color.Red: {
+      return 'bg-danger';
+    }
+    case Color.Blue: {
+      return 'bg-primary';
+    }
+    case Color.Green: {
+      return 'bg-success';
+    }
+    case Color.Yellow: {
+      return 'bg-warning';
+    }
+    case Color.White: {
+      return 'bg-light';
+    }
+    case Color.Cyan: {
+      return 'bg-info';
+    }
+    default: {
+      console.error(`Unknown color: ${color}`);
+      return 'bg-dark';
+    }
   }
 };

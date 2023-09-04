@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType, Role } from '@sh/enums';
-import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
+import ContestTypeBadge from './ContestTypeBadge';
 
 const CompetitionsTable = async ({
   competitions,
@@ -96,7 +96,9 @@ const CompetitionsTable = async ({
                     </>
                   )}
                 </td>
-                <td>{competitionTypeOptions.find((el) => el.value === comp.type).label}</td>
+                <td>
+                  <ContestTypeBadge type={comp.type} />
+                </td>
                 <td>{comp.participants || ''}</td>
                 <td>{comp.events.length}</td>
                 {/* THIS IS DESKTOP-ONLY */}
