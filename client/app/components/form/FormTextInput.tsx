@@ -22,7 +22,7 @@ const FormTextInput = ({
   id?: string;
   placeholder?: string;
   value: string;
-  setValue: any;
+  setValue?: (val: any) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   onKeyDown?: (e: any) => void;
@@ -62,7 +62,7 @@ const FormTextInput = ({
           autoFocus={autoFocus}
           disabled={disabled}
           required={required}
-          onChange={(e: any) => setValue(e.target.value)}
+          onChange={setValue ? (e: any) => setValue(e.target.value) : undefined}
           onKeyDown={handleKeyDown}
           onFocus={onFocus}
           onBlur={onBlur}

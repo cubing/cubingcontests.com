@@ -5,7 +5,7 @@ import Solves from '~/app/components/Solves';
 import PersonName from '~/app/components/PersonName';
 import RecordsCategoryTabs from '~/app/components/RecordsCategoryTabs';
 import { IEvent, IRecord, IEventRecords, IPerson } from '@sh/interfaces';
-import { formatTime, getFormattedDate } from '~/helpers/utilityFunctions';
+import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { recordsCategories } from '~/helpers/recordsCategories';
 
 const Records = async ({ params }: { params: { category: string } }) => {
@@ -27,8 +27,8 @@ const Records = async ({ params }: { params: { category: string } }) => {
   };
 
   const getTime = (record: IRecord, event: IEvent): string => {
-    if (record.type === 'single') return formatTime(record.result.best, event.format);
-    return formatTime(record.result.average, event.format, { isAverage: true });
+    if (record.type === 'single') return getFormattedTime(record.result.best, event.format);
+    return getFormattedTime(record.result.average, event.format);
   };
 
   const getId = (record: IRecord, person?: IPerson): string => {

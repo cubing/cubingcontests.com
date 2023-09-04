@@ -5,7 +5,7 @@ import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound } from '@
 import RoundResultsTable from '@c/RoundResultsTable';
 import myFetch from '~/helpers/myFetch';
 import { CompetitionState } from '@sh/enums';
-import { formatTime, checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
+import { checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
 import ErrorMessages from '../ErrorMessages';
 import Loading from '../Loading';
@@ -158,7 +158,7 @@ const PostResultsScreen = ({
         successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
       )}
       <div className="row my-4">
-        <div className="col-3 pe-4">
+        <div className="col-4 pe-4">
           <ResultForm
             event={currEvent}
             competitionEvents={competitionEvents}
@@ -175,6 +175,7 @@ const PostResultsScreen = ({
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
             resetTrigger={resultFormResetTrigger}
+            noGrid
           />
           <button type="button" id="submit_attempt_button" onClick={submitResult} className="btn btn-primary">
             {!loadingDuringSubmit ? (
@@ -186,7 +187,7 @@ const PostResultsScreen = ({
             )}
           </button>
         </div>
-        <div className="col-9">
+        <div className="col-8">
           <h2 className="mb-4 text-center">
             {competitionEvents.length > 0 ? 'Edit' : 'Post'} results for&nbsp;
             {competition.name}

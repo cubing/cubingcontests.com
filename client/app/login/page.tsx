@@ -18,8 +18,14 @@ const Login = () => {
   const handleSubmit = async () => {
     const tempErrors: string[] = [];
 
-    if (!username) tempErrors.push('Please enter a username');
-    if (!password) tempErrors.push('Please enter a password');
+    if (!password) {
+      tempErrors.push('Please enter a password');
+      document.getElementById('password').focus();
+    }
+    if (!username) {
+      tempErrors.push('Please enter a username');
+      document.getElementById('username').focus();
+    }
 
     if (tempErrors.length === 0) {
       const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
@@ -48,8 +54,8 @@ const Login = () => {
     <>
       <h2 className="mb-4 text-center">Login</h2>
       <Form buttonText="Log in" errorMessages={errorMessages} handleSubmit={handleSubmit}>
-        <FormTextInput title="Username" value={username} setValue={setUsername} autoFocus submitOnEnter />
-        <FormTextInput title="Password" value={password} setValue={setPassword} password submitOnEnter />
+        <FormTextInput id="username" title="Username" value={username} setValue={setUsername} autoFocus submitOnEnter />
+        <FormTextInput id="password" title="Password" value={password} setValue={setPassword} password submitOnEnter />
         <Link href="/register" className="d-block mt-4 fs-5">
           Create account
         </Link>

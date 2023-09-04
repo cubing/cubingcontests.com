@@ -5,7 +5,7 @@ import FormEventSelect from '../form/FormEventSelect';
 import FormSelect from '../form/FormSelect';
 import FormPersonInputs from '../form/FormPersonInputs';
 import { ICompetitionEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
-import { RoundFormat, RoundType } from '@sh/enums';
+import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
 import { getAllowedRoundFormats, getBestAndAverage } from '~/helpers/utilityFunctions';
@@ -45,6 +45,7 @@ const ResultForm = ({
   setErrorMessages,
   setSuccessMessage,
   resetTrigger,
+  noGrid = false,
 }: {
   event: IEvent;
   setEvent?: (val: IEvent) => void;
@@ -67,6 +68,7 @@ const ResultForm = ({
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage: (val: string) => void;
   resetTrigger: boolean;
+  noGrid?: boolean;
 }) => {
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
@@ -137,7 +139,8 @@ const ResultForm = ({
   const focusNext = (index: number) => {
     // Focus next time input or the submit button if it's the last input
     if (index + 1 < attempts.length) {
-      document.getElementById(`attempt_${index + 2}`)?.focus();
+      if (event.format !== EventFormat.Multi) document.getElementById(`attempt_${index + 2}`)?.focus();
+      else document.getElementById(`attempt_${index + 2}_solved`).focus();
     } else {
       if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
     }
@@ -146,9 +149,9 @@ const ResultForm = ({
   const reset = (newRoundFormat: RoundFormat) => {
     if (setRoundFormat) setRoundFormat(newRoundFormat);
     setErrorMessages([]);
-    setPersons(Array(event.participants || 1).fill(null));
-    setPersonNames(Array(event.participants || 1).fill(''));
-    setAttempts(Array(roundFormats[newRoundFormat].attempts).fill(0));
+    setPersons(new Array(event.participants || 1).fill(null));
+    setPersonNames(new Array(event.participants || 1).fill(''));
+    setAttempts(new Array(roundFormats[newRoundFormat].attempts).fill(0));
     setTempResult({ best: -1, average: -1 } as IResult);
 
     document.getElementById('Competitor_1')?.focus();
@@ -178,7 +181,7 @@ const ResultForm = ({
           />
         )}
       </div>
-      <div className="mb-4">
+      <div className="mb-3">
         <FormPersonInputs
           title="Competitor"
           personNames={personNames}
@@ -186,10 +189,11 @@ const ResultForm = ({
           persons={persons}
           setPersons={setPersons}
           checkCustomErrors={checkPersonSelectionErrors}
-          nextFocusTargetId="attempt_1"
+          nextFocusTargetId={event.format !== EventFormat.Multi ? 'attempt_1' : 'attempt_1_solved'}
           setErrorMessages={setErrorMessages}
           setSuccessMessage={setSuccessMessage}
           redirectToOnAddPerson={window.location.pathname}
+          noGrid={noGrid}
         />
       </div>
       {attempts.map((attempt, i) => (
@@ -207,13 +211,15 @@ const ResultForm = ({
           <Loading small dontCenter />
         ) : (
           <>
-            Best:&nbsp;
-            <Time result={tempResult} event={event} recordTypes={recordTypes} />
+            <div>
+              Best:&nbsp;
+              <Time result={tempResult} event={event} recordTypes={recordTypes} />
+            </div>
             {roundCanHaveAverage && (
-              <>
-                &#8194;|&#8194;Average:&nbsp;
+              <div className="mt-2">
+                Average:&nbsp;
                 <Time result={tempResult} event={event} recordTypes={recordTypes} average />
-              </>
+              </div>
             )}
           </>
         )}

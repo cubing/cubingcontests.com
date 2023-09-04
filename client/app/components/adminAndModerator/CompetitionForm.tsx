@@ -28,14 +28,8 @@ import {
   RoundType,
 } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
-import {
-  colorOptions,
-  competitionTypeOptions,
-  roundFormatOptions,
-  roundProceedOptions,
-} from '~/helpers/multipleChoiceOptions';
+import { colorOptions, competitionTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import { getAllowedRoundFormats, limitRequests } from '~/helpers/utilityFunctions';
 import Loading from '../Loading';
 

@@ -38,11 +38,81 @@ export const getFormattedCoords = (comp: ICompetition): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(5)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(5)}`;
 };
 
-// Returns null if the time is invalid (e.g. 81.45); returns 0 if it's empty
-export const getResult = (time: string, eventFormat: EventFormat): number | null => {
-  if (time.length > 7) throw new Error('getResult does not support times >= 10 hours long');
-  else if (time === '') return 0;
+export const getFormattedTime = (time: number, eventFormat: EventFormat, noFormatting = false): string => {
+  if (time === -1) {
+    return 'DNF';
+  } else if (time === -2) {
+    return 'DNS';
+  } else if (eventFormat === EventFormat.Number) {
+    // FMC singles are limited to 99 moves, so if it's more than that, it must be the mean. Format it accordingly.
+    if (time >= 100 && !noFormatting) return (time / 100).toFixed(2);
+    else return time.toString();
+  } else {
+    let centiseconds: number;
+    let timeStr = time.toString();
 
+    if (eventFormat !== EventFormat.Multi) centiseconds = time;
+    else centiseconds = parseInt(timeStr.slice(timeStr.length - 11, -4));
+
+    let output = '';
+    const hours = Math.floor(centiseconds / 360000);
+    const minutes = Math.floor(centiseconds / 6000) % 60;
+    const seconds = (centiseconds - hours * 360000 - minutes * 6000) / 100;
+
+    if (hours > 0) {
+      output = hours.toString();
+      if (!noFormatting) output += ':';
+    }
+
+    if (hours > 0 || minutes > 0) {
+      if (minutes === 0) output += '00';
+      else if (minutes < 10 && hours > 0) output += '0' + minutes;
+      else output += minutes;
+
+      if (!noFormatting) output += ':';
+    }
+
+    if (seconds < 10 && (hours > 0 || minutes > 0)) output += '0';
+
+    // Only times under ten minutes can have decimals (or if noFormatting = true)
+    if ((hours === 0 && minutes < 10) || noFormatting) {
+      output += seconds.toFixed(2);
+      if (noFormatting) output = Number(output.replace('.', '')).toString();
+    } else {
+      output += Math.floor(seconds).toFixed(0); // remove the decimals
+    }
+
+    if (eventFormat !== EventFormat.Multi) {
+      return output;
+    } else {
+      if (time < 0) timeStr = timeStr.replace('-', '');
+
+      const points = (time < 0 ? -1 : 1) * (9999 - parseInt(timeStr.slice(0, -11)));
+      const missed = parseInt(timeStr.slice(timeStr.length - 4));
+      const solved = points + missed;
+
+      if (time > 0) {
+        if (noFormatting) return `${solved};${solved + missed};${output}`;
+        return `${solved}/${solved + missed} ${output}`;
+      } else {
+        if (noFormatting) return `${solved};${solved + missed};${output}`;
+        return `DNF (${solved}/${solved + missed} ${output})`;
+      }
+    }
+  }
+};
+
+// Returns null if the time is invalid (e.g. 8145); returns 0 if it's empty.
+// solved and attempted are only required for the Multi event format.
+export const getAttempt = (
+  eventFormat: EventFormat,
+  time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
+  solved: string,
+  attempted: string,
+  noRounding = false,
+): number | null => {
+  if (time.length > 7) throw new Error('getResult does not support times >= 10 hours long');
+  if (time === '') return 0;
   if (eventFormat === EventFormat.Number) return parseInt(time);
 
   let hours = 0;
@@ -52,15 +122,48 @@ export const getResult = (time: string, eventFormat: EventFormat): number | null
   if (time.length === 7) hours = parseInt(time[0]);
 
   if (time.length > 4) {
+    // Round attempts >= 10 minutes long, unless noRounding = true
+    if (time.length >= 6 && !noRounding) time = time.slice(0, -2) + '00';
     minutes = parseInt(time.slice(time.length === 7 ? 1 : 0, -4));
     centiseconds = parseInt(time.slice(-4));
   } else {
     centiseconds = parseInt(time);
   }
 
+  // Return null if the time is invalid
   if (minutes >= 60 || centiseconds >= 6000) return null;
 
-  return hours * 360000 + minutes * 6000 + centiseconds;
+  centiseconds = hours * 360000 + minutes * 6000 + centiseconds;
+
+  if (eventFormat !== EventFormat.Multi) {
+    return centiseconds;
+  } else {
+    if (!solved || !attempted) return null;
+    const solvedNum = parseInt(solved);
+    const attemptedNum = parseInt(attempted);
+    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) return null;
+    /**
+     * Information about how this works: https://www.worldcubeassociation.org/export/results
+     *
+     * The difference is that CC allows multi results up to 9999 cubes instead of 99,
+     * time is stored as centiseconds, and it stores DNFs with all of the same information
+     * (they are stored as negative numbers).
+     */
+    let multiOutput = ''; // DDDDTTTTTTTMMMM
+    const missed: number = attemptedNum - solvedNum;
+    let points: number = solvedNum - missed;
+
+    if (points <= 0) {
+      if (points < 0 || solvedNum < 2) multiOutput += '-';
+      points = -points;
+    }
+
+    multiOutput += 9999 - points;
+    multiOutput += new Array(7 - centiseconds.toString().length).fill('0').join('') + centiseconds;
+    multiOutput += new Array(4 - missed.toString().length).fill('0').join('') + missed;
+
+    return parseInt(multiOutput);
+  }
 };
 
 // Returns the best and average times
@@ -105,54 +208,6 @@ export const getBestAndAverage = (
   }
 
   return { best, average };
-};
-
-export const formatTime = (
-  time: number,
-  eventFormat: EventFormat,
-  { isAverage = false, noFormatting = false }: { isAverage?: boolean; noFormatting?: boolean } = {
-    isAverage: false,
-    noFormatting: false,
-  },
-): string => {
-  if (time === -1) {
-    return 'DNF';
-  } else if (time === -2) {
-    return 'DNS';
-  } else if (eventFormat === EventFormat.Number) {
-    if (isAverage && !noFormatting) return (time / 100).toFixed(2);
-    else return time.toString();
-  } else {
-    let output = '';
-    const hours = Math.floor(time / 360000);
-    const minutes = Math.floor(time / 6000) % 60;
-    const seconds = (time - hours * 360000 - minutes * 6000) / 100;
-
-    if (hours > 0) {
-      output = hours.toString();
-      if (!noFormatting) output += ':';
-    }
-
-    if (hours > 0 || minutes > 0) {
-      if (minutes === 0) output += '00';
-      else if (minutes < 10 && hours > 0) output += '0' + minutes;
-      else output += minutes;
-
-      if (!noFormatting) output += ':';
-    }
-
-    if (seconds < 10 && (hours > 0 || minutes > 0)) output += '0';
-    // Only times under ten minutes can have decimals
-    if (hours === 0 && minutes < 10) {
-      output += seconds.toFixed(2);
-      if (noFormatting) output = Number(output.replace('.', '')).toString();
-    } else {
-      output += seconds.toFixed(0);
-      if (noFormatting) output += '00';
-    }
-
-    return output;
-  }
 };
 
 // Returns the authorized user's role with the highest privilege

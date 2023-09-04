@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatTime } from '~/helpers/utilityFunctions';
+import { getFormattedTime } from '~/helpers/utilityFunctions';
 import { Color } from '~/shared_helpers/enums';
 import { IEvent, IRecordType, IResult } from '~/shared_helpers/interfaces';
 
@@ -57,7 +57,7 @@ const Time = ({
 
   return (
     <div className="d-inline-flex align-items-center gap-2">
-      {formatTime(average ? result.average : result.best, event.format, { isAverage: average })}
+      {getFormattedTime(average ? result.average : result.best, event.format)}
       {getRecordBadge(result)}
     </div>
   );

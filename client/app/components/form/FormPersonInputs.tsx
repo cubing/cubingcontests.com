@@ -23,6 +23,7 @@ const FormPersonInputs = ({
   setErrorMessages,
   setSuccessMessage,
   redirectToOnAddPerson = '',
+  noGrid = false,
 }: {
   title: string;
   personNames: string[];
@@ -37,6 +38,7 @@ const FormPersonInputs = ({
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage?: (val: string) => void;
   redirectToOnAddPerson?: string;
+  noGrid?: boolean;
 }) => {
   // The null element represents the option "add new person"
   const [matchedPersons, setMatchedPersons] = useState<IPerson[]>([null]);
@@ -175,9 +177,9 @@ const FormPersonInputs = ({
   };
 
   return (
-    <div className={'row' + (personNames.length > 1 ? ' row-cols-2' : '')}>
+    <div className="row">
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className="col">
+        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? 'col-6' : ''}>
           <FormTextInput
             title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
             id={`${title}_${inputIndex + 1}`}

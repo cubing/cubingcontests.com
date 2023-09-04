@@ -1,10 +1,68 @@
-import { compareAvgs, setResultRecords } from '@sh/sharedFunctions';
+import { compareAvgs, compareSingles, setResultRecords } from '@sh/sharedFunctions';
 import { IRecordPair, IResult } from '@sh/interfaces';
 import { WcaRecordType } from '@sh/enums';
 import {
   newCompetitionEventsStub,
   newFakeCompetitionEventsStub,
 } from '~/src/modules/competitions/tests/stubs/new-competition-events.stub';
+
+describe('compareSingles', () => {
+  it('compares singles correctly when a < b', () => {
+    expect(compareSingles({ best: 10 } as IResult, { best: 11 } as IResult)).toBeLessThan(0);
+  });
+
+  it('compares singles correctly when a > b', () => {
+    expect(compareSingles({ best: 10 } as IResult, { best: 9 } as IResult)).toBeGreaterThan(0);
+  });
+
+  it('compares singles correctly when a = b', () => {
+    expect(compareSingles({ best: 10 } as IResult, { best: 10 } as IResult)).toBe(0);
+  });
+
+  it('compares singles correctly when a is DNF', () => {
+    expect(compareSingles({ best: -1 } as IResult, { best: 10 } as IResult)).toBeGreaterThan(0);
+  });
+
+  it('compares singles correctly when b is DNF', () => {
+    expect(compareSingles({ best: 10 } as IResult, { best: -1 } as IResult)).toBeLessThan(0);
+  });
+
+  it('compares singles correctly when a and b are DNF', () => {
+    expect(compareSingles({ best: -1 } as IResult, { best: -1 } as IResult)).toBe(0);
+  });
+
+  it('compares singles correctly when a is DNS and b is DNF', () => {
+    expect(compareSingles({ best: -2 } as IResult, { best: -1 } as IResult)).toBe(0);
+  });
+
+  it('compares singles correctly when a is DNF and b is DNS', () => {
+    expect(compareSingles({ best: -1 } as IResult, { best: -2 } as IResult)).toBe(0);
+  });
+
+  describe('compare Multi-Blind singles', () => {
+    it('compares Multi-Blind singles correctly when a is 2/2 and b is 9/10', () => {
+      expect(
+        compareSingles({ best: 999700043890000 } as IResult, { best: 999100774000001 } as IResult),
+      ).toBeGreaterThan(0);
+    });
+
+    it('compares Multi-Blind singles correctly when a is 3/3 59.68 and b is 3/3 1:05.57', () => {
+      expect(compareSingles({ best: 999600059680000 } as IResult, { best: 999600065570000 } as IResult)).toBeLessThan(
+        0,
+      );
+    });
+
+    it('compares Multi-Blind singles correctly when a is 51/55 58:06 and b is 49/51 58:06', () => {
+      expect(
+        compareSingles({ best: 995203486000004 } as IResult, { best: 995203486000002 } as IResult),
+      ).toBeGreaterThan(0);
+    });
+
+    it('compares Multi-Blind singles correctly when a is DNF (6/15) and b is DNF (1/2)', () => {
+      expect(compareSingles({ best: -999603161000009 } as IResult, { best: -999900516420001 } as IResult)).toBe(0);
+    });
+  });
+});
 
 describe('compareAvgs', () => {
   it('compares averages correctly when a < b', () => {

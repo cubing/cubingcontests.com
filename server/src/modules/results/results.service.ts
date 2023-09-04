@@ -102,12 +102,13 @@ export class ResultsService {
   }
 
   async createResult(createResultDto: CreateResultDto, roundId: string, user: IPartialUser): Promise<RoundDocument> {
-    // This is put here deliberately, because this function also checks access rights!
+    // getCompetition is put here deliberately, because this function also checks access rights!
     const comp = await this.getCompetition(createResultDto.competitionId, user);
+    const event = await this.eventsService.getEventById(createResultDto.eventId);
 
     // The date is passed in as an ISO date string and it may also include time, if the frontend has a bug
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
-    fixTimesOverTenMinutes(createResultDto);
+    fixTimesOverTenMinutes(createResultDto, event.format);
 
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
     let round: RoundDocument;
@@ -121,7 +122,6 @@ export class ResultsService {
         .exec();
 
       oldResults = [...round.results];
-      const event = await this.eventsService.getEventById(createResultDto.eventId);
 
       // Create new result and update the round's results
       const newResult = await this.resultModel.create(setResultRecords(createResultDto, recordPairs));
@@ -156,7 +156,7 @@ export class ResultsService {
   }
 
   async deleteCompetitionResult(resultId: string, competitionId: string, user: IPartialUser): Promise<RoundDocument> {
-    // This is put here deliberately, because this function also checks access rights!
+    // getCompetition is put here deliberately, because this function also checks access rights!
     const comp = await this.getCompetition(competitionId, user);
     let result: ResultDocument;
 
@@ -215,9 +215,11 @@ export class ResultsService {
   async submitResult(createResultDto: CreateResultDto) {
     if (!createResultDto.videoLink) throw new BadRequestException('Please enter a video link');
 
+    const event = await this.eventsService.getEventById(createResultDto.eventId);
+
     // The date is passed in as an ISO date string and may include time too, so the time must be removed
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
-    fixTimesOverTenMinutes(createResultDto);
+    fixTimesOverTenMinutes(createResultDto, event.format);
 
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
 

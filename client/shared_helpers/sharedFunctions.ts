@@ -1,4 +1,4 @@
-import { RoundFormat, WcaRecordType } from './enums';
+import { EventFormat, RoundFormat, WcaRecordType } from './enums';
 import { IResult, IRecordPair, IEvent } from './interfaces';
 import { roundFormats } from './roundFormats';
 
@@ -7,6 +7,7 @@ import { roundFormats } from './roundFormats';
 export const compareSingles = (a: IResult, b: IResult): number => {
   if (a.best <= 0 && b.best > 0) return 1;
   else if (a.best > 0 && b.best <= 0) return -1;
+  else if (a.best <= 0 && b.best <= 0) return 0;
   return a.best - b.best;
 };
 
@@ -17,10 +18,8 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
   if (a.average <= 0) {
     if (b.average <= 0) {
       if (noTieBreaker) return 0;
-
       return compareSingles(a, b);
     }
-
     return 1;
   } else if (a.average > 0 && b.average <= 0) {
     return -1;
@@ -78,8 +77,10 @@ export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent
   return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
 };
 
-export const fixTimesOverTenMinutes = (result: IResult) => {
-  if (result.best > 60000) result.best -= result.best % 100;
+export const fixTimesOverTenMinutes = (result: IResult, eventFormat: EventFormat) => {
+  if (eventFormat === EventFormat.Time) {
+    if (result.best > 60000) result.best -= result.best % 100;
 
-  result.attempts = result.attempts.map((att) => (att > 60000 ? att - (att % 100) : att));
+    result.attempts = result.attempts.map((att) => (att > 60000 ? att - (att % 100) : att));
+  }
 };
