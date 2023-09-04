@@ -4,171 +4,117 @@ import Country from '~/app/components/Country';
 import Solves from '~/app/components/Solves';
 import PersonName from '~/app/components/PersonName';
 import RecordsCategoryTabs from '~/app/components/RecordsCategoryTabs';
-import { IEvent, IRecord, IEventRecords, IPerson } from '@sh/interfaces';
+import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
-import { recordsCategories } from '~/helpers/recordsCategories';
+import { eventCategories } from '~/helpers/eventCategories';
+import RankingsTable from '~/app/components/RankingsTable';
 
 const Records = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
-  const { payload: eventRecords }: { payload?: IEventRecords[] } = await myFetch.get('/results/records/WR', {
+  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await myFetch.get('/results/records/WR', {
     revalidate: 300,
   });
 
   // Gets just the events for the current records category
-  const filteredEventRecords = eventRecords?.filter((er) =>
-    er.event.groups.includes(recordsCategories.find((rc) => rc.value === params.category).group),
+  const filteredEventRecords = recordsByEvent?.filter((er) =>
+    er.event.groups.includes(eventCategories.find((rc) => rc.value === params.category).group),
   );
 
-  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED
-  const getRecordType = (record: IRecord): string => {
-    if (record.type === 'single') return 'Single';
-    else if (record.type === 'average') return 'Average';
-    else if (record.type === 'mean') return 'Mean';
+  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingsTable has this same function too.
+  const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
+    if (type === 'single') return 'Single';
+    else if (type === 'average') return 'Average';
+    else if (type === 'mean') return 'Mean';
   };
 
-  const getTime = (record: IRecord, event: IEvent): string => {
-    if (record.type === 'single') return getFormattedTime(record.result.best, event.format);
-    return getFormattedTime(record.result.average, event.format);
-  };
+  if (recordsByEvent) {
+    return (
+      <div>
+        <h2 className="mb-4 text-center">Records</h2>
 
-  const getId = (record: IRecord, person?: IPerson): string => {
-    return record.type + (record.result as any)._id + person?.personId;
-  };
+        {!recordsByEvent || recordsByEvent.length === 0 ? (
+          <p className="mx-2 fs-5">No records have been set yet</p>
+        ) : (
+          <>
+            <RecordsCategoryTabs recordsByEvent={recordsByEvent} category={params.category} />
 
-  return (
-    <>
-      <h2 className="mb-4 text-center">Records</h2>
+            {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
+              const showSolves = rankings.some((el) => el.result.attempts.length > 1);
+              const hasCompetition = rankings.some((el) => el.competition);
+              const hasLink = rankings.some((el) => el.result.videoLink || el.result.discussionLink);
 
-      {!eventRecords || eventRecords.length === 0 ? (
-        <p className="mx-2 fs-5">No records have been set yet</p>
-      ) : (
-        <>
-          <RecordsCategoryTabs eventRecords={eventRecords} category={params.category} />
+              return (
+                <div key={event.eventId} className="mb-3">
+                  <h3 className="mx-2">{event.name}</h3>
 
-          {filteredEventRecords.map(({ event, records }: IEventRecords) => {
-            const showSolves = records.some((el) => el.result.attempts.length > 1);
-            const hasCompetition = records.some((el) => el.competition);
-            const hasLink = records.some((el) => el.result.videoLink || el.result.discussionLink);
-
-            return (
-              <div key={event.eventId} className="mb-3">
-                <h3 className="mx-2">{event.name}</h3>
-
-                <div className="d-block d-lg-none my-3 border-top border-bottom">
-                  <ul className="list-group list-group-flush">
-                    {records.map((record) => (
-                      <li
-                        key={getId(record)}
-                        className="d-flex flex-column gap-3 py-3 list-group-item list-group-item-dark"
-                      >
-                        <div className="d-flex justify-content-between">
-                          <span>
-                            <b>{getTime(record, event)}</b>&#8194;{getRecordType(record)}
-                          </span>
-                          {record.competition ? (
-                            <Link href={`/competitions/${record.competition.competitionId}`}>
-                              {getFormattedDate(record.result.date)}
-                            </Link>
-                          ) : (
-                            <span>{getFormattedDate(record.result.date)}</span>
-                          )}
-                        </div>
-                        <div className="d-flex flex-column gap-2">
-                          {record.persons.map((person) => (
-                            <span key={person.personId} className="d-flex align-items-center gap-1">
-                              <PersonName person={person} />
-                              <Country countryIso2={person.countryIso2} noText />
+                  <div className="d-block d-lg-none my-3 border-top border-bottom">
+                    <ul className="list-group list-group-flush">
+                      {rankings.map(({ type, result, competition, persons }) => (
+                        <li
+                          key={type + (result as any)._id}
+                          className="d-flex flex-column gap-3 py-3 list-group-item list-group-item-dark"
+                        >
+                          <div className="d-flex justify-content-between">
+                            <span>
+                              <b>{getFormattedTime(type === 'single' ? result.best : result.average, event.format)}</b>
+                              &#8194;{getRecordType(type)}
                             </span>
-                          ))}
-                        </div>
-                        {showSolves && <Solves event={event} attempts={record.result.attempts} />}
-                        {hasLink && (
-                          <div className="d-flex gap-2">
-                            {record.result.videoLink && (
-                              <a href={record.result.videoLink} target="_blank">
-                                Video
-                              </a>
-                            )}
-                            {record.result.discussionLink && (
-                              <a href={record.result.discussionLink} target="_blank">
-                                Discussion
-                              </a>
+                            {competition ? (
+                              <Link href={`/competitions/${competition.competitionId}`}>
+                                {getFormattedDate(result.date)}
+                              </Link>
+                            ) : (
+                              <span>{getFormattedDate(result.date)}</span>
                             )}
                           </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                          <div className="d-flex flex-column gap-2">
+                            {persons.map((person) => (
+                              <span key={person.personId} className="d-flex align-items-center gap-1">
+                                <PersonName person={person} />
+                                <Country countryIso2={person.countryIso2} noText />
+                              </span>
+                            ))}
+                          </div>
+                          {showSolves && <Solves event={event} attempts={result.attempts} />}
+                          {hasLink && (
+                            <div className="d-flex gap-2">
+                              {result.videoLink && (
+                                <a href={result.videoLink} target="_blank">
+                                  Video
+                                </a>
+                              )}
+                              {result.discussionLink && (
+                                <a href={result.discussionLink} target="_blank">
+                                  Discussion
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-                <div className="d-none d-lg-block flex-grow-1 table-responsive">
-                  <table className="table table-hover table-responsive text-nowrap">
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Name</th>
-                        <th>Result</th>
-                        <th>Representing</th>
-                        <th>Date</th>
-                        {hasCompetition && <th>Competition</th>}
-                        {showSolves && <th>Solves</th>}
-                        {hasLink && <th>Links</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {records.map((record) =>
-                        record.persons.map((person, i) => (
-                          <tr key={getId(record, person)}>
-                            <td>{!i && getRecordType(record)}</td>
-                            <td>
-                              <PersonName person={person} />
-                            </td>
-                            <td>{!i && getTime(record, event)}</td>
-                            <td>
-                              <Country countryIso2={person.countryIso2} />
-                            </td>
-                            <td>{!i && getFormattedDate(record.result.date)}</td>
-                            {hasCompetition && (
-                              <td>
-                                {!i && (
-                                  <Link href={`/competitions/${record.competition.competitionId}`}>
-                                    {record.competition.name}
-                                  </Link>
-                                )}
-                              </td>
-                            )}
-                            {showSolves && <td>{!i && <Solves event={event} attempts={record.result.attempts} />}</td>}
-                            {hasLink && (
-                              <td>
-                                {!i && (
-                                  <div className="d-flex gap-2">
-                                    {record.result.videoLink && (
-                                      <a href={record.result.videoLink} target="_blank">
-                                        Video
-                                      </a>
-                                    )}
-                                    {record.result.discussionLink && (
-                                      <a href={record.result.discussionLink} target="_blank">
-                                        Discussion
-                                      </a>
-                                    )}
-                                  </div>
-                                )}
-                              </td>
-                            )}
-                          </tr>
-                        )),
-                      )}
-                    </tbody>
-                  </table>
+                  <div className="d-none d-lg-block">
+                    <RankingsTable
+                      rankings={rankings}
+                      event={event}
+                      recordsTable
+                      hideCompetitionColumn={!hasCompetition}
+                      hideSolvesColumn={!showSolves}
+                      hideLinksColumn={!hasLink}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </>
-      )}
-    </>
-  );
+              );
+            })}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return <p className="mt-5 text-center fs-4">Error while loading the page</p>;
 };
 
 export default Records;

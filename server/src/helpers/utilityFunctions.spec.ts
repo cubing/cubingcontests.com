@@ -3,6 +3,7 @@ import { EventDocument } from '../models/event.model';
 import { RoundDocument } from '../models/round.model';
 import { eventsSeed } from '../seeds/events.seed';
 import { unrankedRoundsStub } from '../modules/competitions/tests/stubs/unranked-rounds';
+import { getRoundRanksWithAverage } from '../../../client/shared_helpers/sharedFunctions';
 
 describe('sortResultsAndSetRankings works correctly', () => {
   const unrankedRounds = unrankedRoundsStub() as RoundDocument[];
@@ -11,8 +12,10 @@ describe('sortResultsAndSetRankings works correctly', () => {
     const round = unrankedRounds[0];
     round.results = await sortResultsAndSetRankings(
       round.results,
-      eventsSeed.find((el) => el.eventId === '333') as EventDocument,
-      round.format,
+      getRoundRanksWithAverage(
+        round.format,
+        eventsSeed.find((el) => el.eventId === '333'),
+      ),
     );
 
     expect(round.results[0].ranking).toBe(1);
@@ -29,8 +32,10 @@ describe('sortResultsAndSetRankings works correctly', () => {
     const round = unrankedRounds[1];
     round.results = await sortResultsAndSetRankings(
       round.results,
-      eventsSeed.find((el) => el.eventId === '333fm') as EventDocument,
-      round.format,
+      getRoundRanksWithAverage(
+        round.format,
+        eventsSeed.find((el) => el.eventId === '333'),
+      ),
     );
 
     // The first two results are tied, the last two have tied means, but there is a tie-breaker
@@ -52,8 +57,10 @@ describe('sortResultsAndSetRankings works correctly', () => {
     const round = unrankedRounds[2];
     round.results = await sortResultsAndSetRankings(
       round.results,
-      eventsSeed.find((el) => el.eventId === '333bf') as EventDocument,
-      round.format,
+      getRoundRanksWithAverage(
+        round.format,
+        eventsSeed.find((el) => el.eventId === '333'),
+      ),
     );
 
     expect(round.results[0].ranking).toBe(1);
@@ -76,8 +83,10 @@ describe('sortResultsAndSetRankings works correctly', () => {
     const round = unrankedRounds[3];
     round.results = await sortResultsAndSetRankings(
       round.results,
-      eventsSeed.find((el) => el.eventId === '222') as EventDocument,
-      round.format,
+      getRoundRanksWithAverage(
+        round.format,
+        eventsSeed.find((el) => el.eventId === '333'),
+      ),
     );
 
     expect(round.results[0].ranking).toBe(1);
@@ -92,8 +101,10 @@ describe('sortResultsAndSetRankings works correctly', () => {
     const round = unrankedRounds[4];
     round.results = await sortResultsAndSetRankings(
       round.results,
-      eventsSeed.find((el) => el.eventId === '555') as EventDocument,
-      round.format,
+      getRoundRanksWithAverage(
+        round.format,
+        eventsSeed.find((el) => el.eventId === '333'),
+      ),
     );
 
     expect(round.results[0].ranking).toBe(1);

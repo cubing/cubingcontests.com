@@ -6,8 +6,8 @@ import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { CompetitionState, WcaRecordType } from '@sh/enums';
-import { IEventRecords, IRecordType, IRecordPair, IEventRecordPairs, IResultsSubmissionInfo } from '@sh/interfaces';
-import { fixTimesOverTenMinutes, getDateOnly, setResultRecords } from '@sh/sharedFunctions';
+import { IEventRankings, IRecordType, IRecordPair, IEventRecordPairs, IResultsSubmissionInfo } from '@sh/interfaces';
+import { fixTimesOverTenMinutes, getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -28,9 +28,47 @@ export class ResultsService {
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
   ) {}
 
+  async getRankings(eventId: string, forAverage = false): Promise<IEventRankings> {
+    const event = await this.eventsService.getEventById(eventId);
+
+    if (!event) throw new BadRequestException(`Event with ID ${eventId} not found`);
+
+    const eventRankings: IEventRankings = {
+      event,
+      rankings: [],
+    };
+
+    const queryFilter: any = { eventId, compNotPublished: { $exists: false } };
+
+    if (forAverage) queryFilter.average = { $gt: 0 };
+    else queryFilter.best = { $gt: 0 };
+
+    // TO-DO: unify this with the same code in getRecords
+    let eventResults = await this.resultModel
+      .find(queryFilter, excl)
+      .sort(forAverage ? { average: 1 } : { best: 1 })
+      .limit(100)
+      .exec();
+
+    eventResults = await sortResultsAndSetRankings(eventResults, forAverage, true);
+
+    for (const result of eventResults) {
+      eventRankings.rankings.push({
+        type: forAverage ? 'average' : 'single',
+        result,
+        persons: await this.personsService.getPersonsById(result.personIds),
+        competition: result.competitionId
+          ? await this.competitionModel.findOne({ competitionId: result.competitionId }, excl)
+          : undefined,
+      });
+    }
+
+    return eventRankings;
+  }
+
   // Gets the current records for the requested record type for all events.
   // Includes person objects for each record, and includes all ties.
-  async getRecords(wcaEquivalent: string): Promise<IEventRecords[]> {
+  async getRecords(wcaEquivalent: string): Promise<IEventRankings[]> {
     // Make sure the requested record type is valid
     if (
       !Object.values(WcaRecordType)
@@ -46,17 +84,17 @@ export class ResultsService {
       throw new BadRequestException(`The record type ${wcaEquivalent} is inactive`);
     }
 
-    const recordsByEvent: IEventRecords[] = [];
+    const recordsByEvent: IEventRankings[] = [];
     const events = await this.eventsService.getEvents();
 
     for (const rt of activeRecordTypes) {
       for (const event of events) {
-        const newRecordByEvent: IEventRecords = { event, records: [] };
+        const eventRecords: IEventRankings = { event, rankings: [] };
 
         const [singleResults, averageResults] = await this.getEventRecordResults(event.eventId, rt.wcaEquivalent);
 
         for (const result of singleResults) {
-          newRecordByEvent.records.push({
+          eventRecords.rankings.push({
             type: 'single',
             result,
             persons: await this.personsService.getPersonsById(result.personIds),
@@ -67,7 +105,7 @@ export class ResultsService {
         }
 
         for (const result of averageResults) {
-          newRecordByEvent.records.push({
+          eventRecords.rankings.push({
             type: result.attempts.length === 3 ? 'mean' : 'average',
             result,
             persons: await this.personsService.getPersonsById(result.personIds),
@@ -77,8 +115,8 @@ export class ResultsService {
           });
         }
 
-        if (newRecordByEvent.records.length > 0) {
-          recordsByEvent.push(newRecordByEvent);
+        if (eventRecords.rankings.length > 0) {
+          recordsByEvent.push(eventRecords);
         }
       }
     }
@@ -126,7 +164,7 @@ export class ResultsService {
       // Create new result and update the round's results
       const newResult = await this.resultModel.create(setResultRecords(createResultDto, recordPairs));
       round.results.push(newResult);
-      round.results = await sortResultsAndSetRankings(round.results, event, round.format);
+      round.results = await sortResultsAndSetRankings(round.results, getRoundRanksWithAverage(round.format, event));
       await round.save(); // save the round for resetCancelledRecords
 
       await this.resetCancelledRecords(createResultDto);
@@ -182,7 +220,7 @@ export class ResultsService {
       const event = await this.eventsService.getEventById(result.eventId);
 
       round.results = round.results.filter((el) => el._id.toString() !== resultId);
-      round.results = await sortResultsAndSetRankings(round.results, event, round.format);
+      round.results = await sortResultsAndSetRankings(round.results, getRoundRanksWithAverage(round.format, event));
       round.save(); // save the round for updateRecordsAfterDeletion
 
       await this.updateRecordsAfterDeletion(result);

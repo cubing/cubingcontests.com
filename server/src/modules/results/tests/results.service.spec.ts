@@ -6,7 +6,7 @@ import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { AuthService } from '@m/auth/auth.service';
 import { Role, WcaRecordType } from '@sh/enums';
-import { IEventRecords } from '@sh/interfaces';
+import { IEventRankings } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 // Mocks and stubs
@@ -69,18 +69,18 @@ describe('ResultsService', () => {
   describe('Endpoints', () => {
     it('gets current records', async () => {
       const eventRecords = await resultsService.getRecords(WcaRecordType.WR);
-      const records333 = eventRecords.find((el: IEventRecords) => el.event.eventId === '333');
-      const records333fm = eventRecords.find((el: IEventRecords) => el.event.eventId === '333fm');
+      const records333 = eventRecords.find((el: IEventRankings) => el.event.eventId === '333');
+      const records333fm = eventRecords.find((el: IEventRankings) => el.event.eventId === '333fm');
 
       // Check 3x3x3 records
-      expect(records333.records.length).toBe(2);
-      expect(records333.records[0].result.best).toBe(909);
-      expect(records333.records[1].result.average).toBe(1132);
+      expect(records333.rankings.length).toBe(2);
+      expect(records333.rankings[0].result.best).toBe(909);
+      expect(records333.rankings[1].result.average).toBe(1132);
       // Check 3x3x3 FM records (they should have a tie)
-      expect(records333fm.records.length).toBe(3);
-      expect(records333fm.records[0].result.best).toBe(39);
-      expect(records333fm.records[1].result.best).toBe(39);
-      expect(records333fm.records[2].result.average).toBe(4600);
+      expect(records333fm.rankings.length).toBe(3);
+      expect(records333fm.rankings[0].result.best).toBe(39);
+      expect(records333fm.rankings[1].result.best).toBe(39);
+      expect(records333fm.rankings[2].result.average).toBe(4600);
     });
 
     describe('createResult', () => {

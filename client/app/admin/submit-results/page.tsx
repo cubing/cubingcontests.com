@@ -86,7 +86,6 @@ const SubmitResults = () => {
         videoLink,
         discussionLink: discussionLink || undefined,
       };
-      console.log(newResult);
 
       checkErrorsBeforeSubmit(
         newResult,

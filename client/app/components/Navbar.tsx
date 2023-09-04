@@ -6,6 +6,29 @@ import Link from 'next/link';
 import { FaBars } from 'react-icons/fa';
 // import { ISearchResult } from '~/helpers/interfaces';
 
+const links = [
+  {
+    route: '/',
+    title: 'Home',
+    getIsActive: (pathname: string) => pathname === '/',
+  },
+  {
+    route: '/competitions',
+    title: 'Contests',
+    getIsActive: (pathname: string) => pathname === '/competitions',
+  },
+  {
+    route: '/rankings',
+    title: 'Rankings',
+    getIsActive: (pathname: string) => /^\/rankings\//.test(pathname),
+  },
+  {
+    route: '/records',
+    title: 'Records',
+    getIsActive: (pathname: string) => /^\/records/.test(pathname),
+  },
+];
+
 const NavbarItems = () => {
   const pathname = usePathname();
 
@@ -39,39 +62,23 @@ const NavbarItems = () => {
       <Link className="navbar-brand fs-3" href="/">
         Cubing Contests
       </Link>
-      <button className="cr-icon-button d-lg-none" onClick={() => setExpanded(!expanded)} type="button">
+      <button className="cc-icon-button d-lg-none" onClick={() => setExpanded(!expanded)} type="button">
         <FaBars />
       </button>
       <div className={'navbar-collapse justify-content-end' + (expanded ? '' : ' collapse')}>
-        <ul className="mt-3 mt-lg-0 navbar-nav align-items-end gap-lg-4 fs-5">
-          <li className="nav-item">
-            <Link
-              className={'nav-link' + (pathname === '/' ? ' active' : '')}
-              aria-current="page"
-              href="/"
-              onClick={() => setExpanded(false)}
-            >
-              Home
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link
-              className={'nav-link' + (pathname === '/competitions' ? ' active' : '')}
-              href="/competitions"
-              onClick={() => setExpanded(false)}
-            >
-              Contests
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link
-              className={'nav-link' + (/^\/records\//.test(pathname) ? ' active' : '')}
-              href="/records"
-              onClick={() => setExpanded(false)}
-            >
-              Records
-            </Link>
-          </li>
+        <ul className="navbar-nav align-items-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
+          {links.map(({ route, title, getIsActive }) => (
+            <li key={route} className="nav-item">
+              <Link
+                className={'nav-link' + (getIsActive(pathname) ? ' active' : '')}
+                aria-current="page"
+                href={route}
+                onClick={() => setExpanded(false)}
+              >
+                {title}
+              </Link>
+            </li>
+          ))}
         </ul>
         {/* <form className="d-flex mt-3 ms-0 mt-lg-0 ms-lg-4" role="search">
           <input

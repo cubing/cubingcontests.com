@@ -7,6 +7,7 @@ const Competitions = async () => {
   return (
     <>
       <h2 className="mb-4 text-center">All contests</h2>
+
       {competitions?.length > 0 ? (
         <CompetitionsTable competitions={competitions} />
       ) : (

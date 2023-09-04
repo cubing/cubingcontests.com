@@ -1,13 +1,13 @@
 'use client';
 
 import Tabs from './Tabs';
-import { IEventRecords } from '@sh/interfaces';
-import { recordsCategories } from '~/helpers/recordsCategories';
+import { IEventRankings } from '@sh/interfaces';
+import { eventCategories } from '~/helpers/eventCategories';
 import { EventGroup } from '~/shared_helpers/enums';
 
-const RecordsCategoryTabs = ({ eventRecords, category }: { eventRecords: IEventRecords[]; category: string }) => {
-  const filteredCategories = recordsCategories.filter(
-    (cat) => cat.group !== EventGroup.Removed && eventRecords.some((el) => el.event.groups.includes(cat.group)),
+const RecordsCategoryTabs = ({ recordsByEvent, category }: { recordsByEvent: IEventRankings[]; category: string }) => {
+  const filteredCategories = eventCategories.filter(
+    (cat) => cat.group !== EventGroup.Removed && recordsByEvent.some((el) => el.event.groups.includes(cat.group)),
   );
 
   const changeRecordsCategory = (newActiveTab: number) => {

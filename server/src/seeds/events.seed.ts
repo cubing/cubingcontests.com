@@ -1,6 +1,12 @@
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
 
+///////////////////////////////////////////////////////////////////
+// The event IDs are the same as the official WCA event IDs, or
+// the event IDs from icons.cubing.net. If neither has the event,
+// the ID is chosen specifically for Cubing Contests.
+///////////////////////////////////////////////////////////////////
+
 export const eventsSeed: IEvent[] = [
   ///////////////////////////////////////////////////////////////////
   // WCA

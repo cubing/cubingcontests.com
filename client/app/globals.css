@@ -1,15 +1,21 @@
-.cr-icon-button {
+.cc-icon-button {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 10px;
+  padding: 0.1rem 0.3rem;
   border: 0;
   background: none;
   font-size: 1.5rem;
   color: white;
+  cursor: pointer;
 
-  &:active {
+  &:hover {
     color: lightgray;
+  }
+
+  &:active,
+  &.cc-icon-button_active {
+    color: #aaa;
   }
 }
 
@@ -19,6 +25,15 @@
   width: 100%;
 }
 
-.flag-icon {
+.cc-flag-icon {
   width: 1.75rem;
+}
+
+.cc-homepage-link {
+  /* 768px corresponds to Bootstrap's md size */
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 12rem;
+    white-space: nowrap;
+  }
 }

@@ -1,6 +1,6 @@
 import { EventGroup } from '@sh/enums';
 
-export const recordsCategories = [
+export const eventCategories = [
   { title: 'WCA events', mobileTitle: 'WCA', value: 'wca', group: EventGroup.WCA },
   { title: 'Unofficial', value: 'unofficial', group: EventGroup.Unofficial },
   { title: 'Remote', value: 'remote', group: EventGroup.SubmissionOnly },

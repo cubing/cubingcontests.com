@@ -11,6 +11,12 @@ import { CreateResultDto } from './dto/create-result.dto';
 export class ResultsController {
   constructor(private readonly service: ResultsService) {}
 
+  // GET /results/rankings/:eventId/:singleOrAvg
+  @Get('rankings/:eventId/:singleOrAvg')
+  async getRankings(@Param('eventId') eventId: string, @Param('singleOrAvg') singleOrAvg: 'single' | 'average') {
+    return await this.service.getRankings(eventId, singleOrAvg === 'average');
+  }
+
   // GET /results/records/:wca_equivalent
   @Get('records/:wca_equivalent')
   async getRecords(@Param('wca_equivalent') wcaEquivalent: string) {

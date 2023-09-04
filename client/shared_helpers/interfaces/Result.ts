@@ -20,17 +20,17 @@ export interface IResult {
   discussionLink?: string; // only used for submission-based events
 }
 
-export interface IRecord {
+export interface IRanking {
   type: 'single' | 'average' | 'mean';
   result: IResult;
   persons: IPerson[];
   competition: ICompetition;
 }
 
-// Used for storing all records (including ties) for a specific record type and event
-export interface IEventRecords {
+// Used for storing rankings for a specific event
+export interface IEventRankings {
   event: IEvent;
-  records: IRecord[];
+  rankings: IRanking[];
 }
 
 // Used for storing just the single/average record pairs for all record types for a specific event

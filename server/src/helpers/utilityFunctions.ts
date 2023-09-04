@@ -1,21 +1,22 @@
-import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
-import { RoundFormat } from '@sh/enums';
+import { compareAvgs, compareSingles } from '@sh/sharedFunctions';
 import { ResultDocument } from '../models/result.model';
-import { EventDocument } from '../models/event.model';
 
 // Assumes results are already sorted
 export const sortResultsAndSetRankings = async (
   results: ResultDocument[],
-  event: EventDocument,
-  roundFormat: RoundFormat,
+  ranksWithAverage: boolean,
+  dontSort = false, // this can be set to true if the results are already sorted
 ): Promise<ResultDocument[]> => {
   if (results.length === 0) return results;
 
-  const ranksWithAverage = getRoundRanksWithAverage(roundFormat, event);
   let sortedResults: ResultDocument[];
 
-  if (ranksWithAverage) sortedResults = results.sort(compareAvgs);
-  else sortedResults = results.sort(compareSingles);
+  if (dontSort) {
+    sortedResults = results;
+  } else {
+    if (ranksWithAverage) sortedResults = results.sort(compareAvgs);
+    else sortedResults = results.sort(compareSingles);
+  }
 
   let prevResult = sortedResults[0];
   let ranking = 1;

@@ -15,15 +15,20 @@ export default function Home() {
         done in a competition-like setting, but instead need to be submitted individually, similar to how speedrun
         rankings work.
       </p>
-      <div className="my-4 d-flex flex-wrap justify-content-center gap-2 gap-lg-5">
-        <Link href="/competitions" className="d-block mb-2 fs-5">
-          <button type="button" className="btn btn-primary">
+      <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
+        <Link href="/competitions" className="cc-homepage-link">
+          <button type="button" className="w-100 btn btn-primary">
             See all contests
           </button>
         </Link>
-        <Link href="/records" className="fs-5">
-          <button type="button" className="btn btn-primary">
+        <Link href="/records" className="cc-homepage-link">
+          <button type="button" className="w-100 btn btn-primary">
             See current records
+          </button>
+        </Link>
+        <Link href="/rankings" className="cc-homepage-link">
+          <button type="button" className="w-100 btn btn-primary">
+            See rankings
           </button>
         </Link>
       </div>

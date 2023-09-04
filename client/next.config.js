@@ -7,6 +7,11 @@ const nextConfig = {
         destination: '/records/wca',
         permanent: true,
       },
+      {
+        source: '/rankings',
+        destination: '/rankings/333/single',
+        permanent: true,
+      },
     ];
   },
 };
