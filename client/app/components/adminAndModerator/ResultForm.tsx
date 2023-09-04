@@ -202,7 +202,7 @@ const ResultForm = ({
           number={i + 1}
           attempt={attempt}
           setAttempt={(val: number) => changeAttempt(i, val)}
-          eventFormat={event.format}
+          event={event}
           focusNext={() => focusNext(i)}
         />
       ))}

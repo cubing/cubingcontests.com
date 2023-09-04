@@ -3,19 +3,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import FormTextInput from './form/FormTextInput';
 import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
-import { EventFormat } from '~/shared_helpers/enums';
+import { EventFormat } from '@sh/enums';
+import { IEvent } from '@sh/interfaces';
 
 const TimeInput = ({
   number,
   attempt,
   setAttempt,
-  eventFormat,
+  event,
   focusNext,
 }: {
   number: number;
   attempt: number;
   setAttempt: (val: number) => void;
-  eventFormat: EventFormat;
+  event: IEvent;
   focusNext: () => void;
 }) => {
   const [attemptText, setAttemptText] = useState('');
@@ -39,7 +40,6 @@ const TimeInput = ({
   }, [attemptText]);
 
   const isInvalidAttempt = attempt === null;
-  // && (eventFormat !== EventFormat.Multi || (!!attemptText && !!solved && !!attempted));
 
   useEffect(() => {
     if (attempt !== null) {
@@ -52,8 +52,8 @@ const TimeInput = ({
         setAttemptText('DNF');
       } else if (attempt === -2) {
         setAttemptText('DNS');
-      } else if (eventFormat !== EventFormat.Multi) {
-        setAttemptText(getFormattedTime(attempt, eventFormat, true));
+      } else if (event.format !== EventFormat.Multi) {
+        setAttemptText(getFormattedTime(attempt, event.format, true));
       } else {
         const [newSolved, newAttempted, newAttText] = getFormattedTime(attempt, EventFormat.Multi, true).split(';');
 
@@ -65,11 +65,13 @@ const TimeInput = ({
   }, [attempt]);
 
   const changeSolved = (value: string) => {
-    if (value.length <= 2 && !/[^0-9]/.test(value)) {
+    if (((event.eventId !== '333mbo' && value.length <= 2) || value.length <= 3) && !/[^0-9]/.test(value)) {
       setSolved(value);
-      setAttempt(getAttempt(eventFormat, attemptText, value, attempted, true));
+      setAttempt(getAttempt(event.format, attemptText, value, attempted, true));
 
-      if (value.length === 2) document.getElementById(`attempt_${number}_attempted`).focus();
+      if ((event.eventId !== '333mbo' && value.length >= 2) || value.length >= 3) {
+        document.getElementById(`attempt_${number}_attempted`).focus();
+      }
     }
   };
 
@@ -78,11 +80,13 @@ const TimeInput = ({
   };
 
   const changeAttempted = (value: string) => {
-    if (value.length <= 2 && !/[^0-9]/.test(value)) {
+    if (((event.eventId !== '333mbo' && value.length <= 2) || value.length <= 3) && !/[^0-9]/.test(value)) {
       setAttempted(value);
-      setAttempt(getAttempt(eventFormat, attemptText, solved, value, true));
+      setAttempt(getAttempt(event.format, attemptText, solved, value, true));
 
-      if (value.length === 2) document.getElementById(`attempt_${number}`).focus();
+      if ((event.eventId !== '333mbo' && value.length >= 2) || value.length >= 3) {
+        document.getElementById(`attempt_${number}`).focus();
+      }
     }
   };
 
@@ -104,21 +108,21 @@ const TimeInput = ({
         setAttemptText(newAttText);
 
         if (newAttText === '') setAttempt(0);
-        else setAttempt(getAttempt(eventFormat, newAttText, solved, attempted, true));
+        else setAttempt(getAttempt(event.format, newAttText, solved, attempted, true));
       }
     } else if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
     } else if (['f', 'F', 'd', 'D', '/'].includes(e.key)) {
       e.preventDefault();
 
-      if (eventFormat !== EventFormat.Multi) {
+      if (event.format !== EventFormat.Multi) {
         setAttempt(-1); // set DNF
         focusNext();
       }
     } else if (['s', 'S', '*'].includes(e.key)) {
       e.preventDefault();
 
-      if (eventFormat !== EventFormat.Multi) {
+      if (event.format !== EventFormat.Multi) {
         setAttempt(-2); // set DNS
         focusNext();
       }
@@ -127,8 +131,8 @@ const TimeInput = ({
       const newAttText = attemptText + e.key;
 
       // Maximum length is 2 for event format Number and 7 for everything else.
-      if (newAttText.length <= 2 || (newAttText.length <= 7 && eventFormat !== EventFormat.Number)) {
-        const newAttempt = getAttempt(eventFormat, newAttText, solved, attempted, true);
+      if (newAttText.length <= 2 || (newAttText.length <= 7 && event.format !== EventFormat.Number)) {
+        const newAttempt = getAttempt(event.format, newAttText, solved, attempted, true);
         setAttempt(newAttempt);
 
         // If the updated attempt is valid (not null), it will get updated in useEffect anyways
@@ -139,12 +143,12 @@ const TimeInput = ({
 
   const onAttemptFocusOut = () => {
     // Get rid of the decimals if the attempt is >= 10 minutes
-    setAttempt(getAttempt(eventFormat, attemptText, solved, attempted, false));
+    setAttempt(getAttempt(event.format, attemptText, solved, attempted, false));
   };
 
   return (
     <div className="row">
-      {eventFormat === EventFormat.Multi && (
+      {event.format === EventFormat.Multi && (
         <>
           <div className="col-3">
             <FormTextInput
@@ -170,11 +174,11 @@ const TimeInput = ({
           </div>
         </>
       )}
-      <div className={eventFormat !== EventFormat.Multi ? 'col' : 'col-6'}>
+      <div className={event.format !== EventFormat.Multi ? 'col' : 'col-6'}>
         <FormTextInput
           id={`attempt_${number}`}
           value={formattedAttemptText}
-          placeholder={eventFormat === EventFormat.Multi ? `Time ${number}` : `Attempt ${number}`}
+          placeholder={event.format === EventFormat.Multi ? `Time ${number}` : `Attempt ${number}`}
           onKeyDown={(e: any) => onAttemptKeyDown(e)}
           onBlur={onAttemptFocusOut}
           invalid={isInvalidAttempt}
