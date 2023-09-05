@@ -173,7 +173,7 @@ export const eventsSeed: IEvent[] = [
     rank: 1020,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    groups: [EventGroup.Unofficial],
+    groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
   },
   {
     eventId: 'mmagic',
@@ -181,7 +181,7 @@ export const eventsSeed: IEvent[] = [
     rank: 1030,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    groups: [EventGroup.Unofficial],
+    groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
   },
   {
     eventId: '333ohbfr',
@@ -207,7 +207,7 @@ export const eventsSeed: IEvent[] = [
     rank: 1060,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    groups: [EventGroup.Unofficial],
+    groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
   },
   ///////////////////////////////////////////////////////////////////
   // REMOTE-ONLY
@@ -218,7 +218,7 @@ export const eventsSeed: IEvent[] = [
     rank: 2000,
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
-    groups: [EventGroup.SubmissionOnly],
+    groups: [EventGroup.SubmissionOnly, EventGroup.RemovedWCA],
   },
   {
     eventId: '333bf2mr',
