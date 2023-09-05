@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { FaCaretRight, FaCaretDown } from 'react-icons/fa';
 import Country from './Country';
 import Competitor from './Competitor';
 import Solves from './Solves';
@@ -32,6 +36,8 @@ const RankingRow = ({
   showLinksColumn: boolean;
   forRecordsTable?: boolean;
 }) => {
+  const [teamExpanded, setTeamExpanded] = useState(false);
+
   // On the records page we only want the person and country to be shown, if
   const onlyKeepPerson = forRecordsTable && !isFirstRow;
 
@@ -55,11 +61,17 @@ const RankingRow = ({
       )}
       {!forRecordsTable && event.participants > 1 && (
         <td>
-          <div className="d-flex flex-column gap-1">
-            {persons.slice(1).map((teammate) => (
-              <Competitor key={teammate.personId} person={teammate} />
-            ))}
-          </div>
+          {persons.length === 2 ? (
+            <Competitor person={persons[1]} />
+          ) : (
+            <div className="d-flex flex-column align-items-start gap-2 m-0 p-0">
+              <span className="text-white" onClick={() => setTeamExpanded(!teamExpanded)}>
+                <u style={{ cursor: 'pointer' }}>{teamExpanded ? 'Collapse' : 'Expand'}</u>
+                <span className="ms-1 fs-5">{teamExpanded ? <FaCaretDown /> : <FaCaretRight />}</span>
+              </span>
+              {teamExpanded && persons.map((teammate) => <Competitor key={teammate.personId} person={teammate} />)}
+            </div>
+          )}
         </td>
       )}
       {showSolvesColumn && (

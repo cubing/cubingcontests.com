@@ -34,7 +34,7 @@ const RankingsTable = ({
             <th>Representing</th>
             <th>Date</th>
             {hasCompetition && <th>Competition</th>}
-            {showTeammates && <th>{event.participants === 2 ? 'Teammate' : 'Teammates'}</th>}
+            {showTeammates && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
             {showSolves && <th>Solves</th>}
             {hasLink && <th>Links</th>}
           </tr>
