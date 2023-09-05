@@ -3,6 +3,7 @@ import { ICompetition } from '@sh/interfaces';
 import { getCountry, getFormattedDate } from '~/helpers/utilityFunctions';
 import { CompetitionState, CompetitionType, Role } from '@sh/enums';
 import ContestTypeBadge from './ContestTypeBadge';
+import Country from './Country';
 
 const CompetitionsTable = async ({
   competitions,
@@ -43,7 +44,7 @@ const CompetitionsTable = async ({
                 <div>
                   {comp.type !== CompetitionType.Online ? (
                     <>
-                      {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
+                      {comp.city}, <Country countryIso2={comp.countryIso2} swapPositions />
                     </>
                   ) : (
                     <>Online</>
@@ -91,9 +92,9 @@ const CompetitionsTable = async ({
                 </td>
                 <td>
                   {comp.type !== CompetitionType.Online && (
-                    <>
-                      {comp.city}, <b>{getCountry(comp.countryIso2)}</b>
-                    </>
+                    <span>
+                      {comp.city}, <Country countryIso2={comp.countryIso2} swapPositions />
+                    </span>
                   )}
                 </td>
                 <td>

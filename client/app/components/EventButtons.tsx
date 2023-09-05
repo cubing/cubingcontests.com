@@ -8,38 +8,50 @@ import { eventCategories } from '~/helpers/eventCategories';
 
 const EventButtons = ({
   events,
-  activeEvent,
   singleOrAvg,
+  activeEvent,
+  onEventSelect,
+  hideCategories = false,
 }: {
   events: IEvent[];
+  singleOrAvg?: 'single' | 'average'; // mutually exclusive with onEventSelect
   activeEvent?: IEvent;
-  singleOrAvg: 'single' | 'average';
+  onEventSelect?: (eventId: string) => void; // mutually exclusive with singleOrAvg
+  hideCategories?: boolean;
 }) => {
+  if (!!onEventSelect === !!singleOrAvg) {
+    throw new Error('Error: onEventSelect and singleOrAvg are mutually exclusive props in EventButtons');
+  }
+
   const [selectedCat, setSelectedCat] = useState(eventCategories.find((el) => activeEvent.groups.includes(el.group)));
 
+  // If hideCategories = true, just show all events that were passed in
   const filteredEvents = useMemo(
-    () => events.filter((el) => el.groups.includes(selectedCat.group)),
-    [events, selectedCat],
+    () => (hideCategories ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
+    [events, hideCategories, selectedCat],
   );
 
   const handleEventClick = (eventId: string) => {
-    window.location.href = `/rankings/${eventId}/${singleOrAvg}`;
+    if (onEventSelect) onEventSelect(eventId);
+    else window.location.href = `/rankings/${eventId}/${singleOrAvg}`;
   };
 
   return (
     <div>
-      <div className="btn-group btn-group-sm my-2" role="group" aria-label="Type">
-        {eventCategories.map((cat) => (
-          <button
-            key={cat.value}
-            type="button"
-            className={'btn btn-primary' + (cat === selectedCat ? ' active' : '')}
-            onClick={() => setSelectedCat(cat)}
-          >
-            {cat.title}
-          </button>
-        ))}
-      </div>
+      {!hideCategories && (
+        <div className="btn-group btn-group-sm my-2" role="group" aria-label="Type">
+          {eventCategories.map((cat) => (
+            <button
+              key={cat.value}
+              type="button"
+              className={'btn btn-primary' + (cat === selectedCat ? ' active' : '')}
+              onClick={() => setSelectedCat(cat)}
+            >
+              {cat.title}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="d-flex flex-wrap mb-3 fs-3">
         {filteredEvents.map(({ eventId, name, groups }) => {

@@ -11,6 +11,7 @@ import { CompetitionState, CompetitionType } from '@sh/enums';
 import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
+import EventButtons from './EventButtons';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
@@ -36,7 +37,7 @@ const getHashFromTab = (tab: number): string => {
 
 const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } }: { data: ICompetitionData }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const [currEvent, setCurrEvent] = useState<ICompetitionEvent>(competition.events[0]);
+  const [selectedEvent, setSelectedEvent] = useState<ICompetitionEvent>(competition.events[0]);
 
   const tabs = useMemo(
     () =>
@@ -54,6 +55,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
     if (competition.type === CompetitionType.Competition) return null;
     return format(utcToZonedTime(competition.startDate, competition.timezone || 'UTC'), 'H:mm');
   }, [competition]);
+  const events = useMemo(() => competition.events.map((el) => el.event), [competition.events]);
 
   const competitionType = competitionTypeOptions.find((el) => el.value === competition.type)?.label || 'ERROR';
   const isOngoing =
@@ -95,6 +97,10 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
     );
 
     return output;
+  };
+
+  const selectEvent = (eventId: string) => {
+    setSelectedEvent(competition.events.find((el) => el.event.eventId === eventId));
   };
 
   return (
@@ -157,18 +163,8 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
 
       {activeTab === 1 && (
         <>
-          <div className="mx-2 d-flex flex-row flex-wrap gap-2">
-            {competition.events.map((compEvent: ICompetitionEvent) => (
-              <button
-                key={compEvent.event.eventId}
-                onClick={() => setCurrEvent(compEvent)}
-                className={'btn btn-light' + (currEvent === compEvent ? ' active' : '')}
-              >
-                {compEvent.event.name}
-              </button>
-            ))}
-          </div>
-          <EventResultsTable compEvent={currEvent} persons={persons} recordTypes={activeRecordTypes} />
+          <EventButtons events={events} activeEvent={selectedEvent.event} onEventSelect={selectEvent} hideCategories />
+          <EventResultsTable compEvent={selectedEvent} persons={persons} recordTypes={activeRecordTypes} />
         </>
       )}
       {activeTab === 2 && (
