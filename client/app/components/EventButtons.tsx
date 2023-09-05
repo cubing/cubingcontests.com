@@ -39,7 +39,7 @@ const EventButtons = ({
   return (
     <div>
       {!hideCategories && (
-        <div className="btn-group btn-group-sm my-2" role="group" aria-label="Type">
+        <div className="btn-group btn-group-sm mt-2 mb-3" role="group" aria-label="Type">
           {eventCategories.map((cat) => (
             <button
               key={cat.value}

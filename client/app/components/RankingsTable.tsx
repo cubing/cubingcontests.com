@@ -27,10 +27,8 @@ const RankingsTable = ({
 
   if (rankings.length === 0) {
     return (
-      <p className="mt-4 ms-2 fs-5">
-        {forAverage
-          ? "There aren't any average results for this event yet"
-          : "There aren't any results for this event yet"}
+      <p className="mt-4 mx-2 fs-5">
+        {forAverage ? 'There are no average results for this event yet' : 'There are no results for this event yet'}
       </p>
     );
   }

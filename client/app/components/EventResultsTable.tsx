@@ -3,7 +3,7 @@ import { ICompetitionEvent, IPerson, IRecordType, IRound } from '@sh/interfaces'
 import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
 
-const EventResults = ({
+const EventResultsTable = ({
   compEvent,
   persons,
   recordTypes,
@@ -49,4 +49,4 @@ const EventResults = ({
   );
 };
 
-export default EventResults;
+export default EventResultsTable;

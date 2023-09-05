@@ -9,6 +9,7 @@ import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
 import { EventGroup } from '~/shared_helpers/enums';
+import EventTitle from '~/app/components/EventTitle';
 
 // SEO
 export const metadata = {
@@ -53,16 +54,9 @@ const Records = async ({ params }: { params: { category: string } }) => {
             <RecordsCategoryTabs recordsByEvent={recordsByEvent} category={params.category} />
 
             {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
-              const isOrWasWCAEvent =
-                event.groups.includes(EventGroup.WCA) || event.groups.includes(EventGroup.RemovedWCA);
-
               return (
                 <div key={event.eventId} className="mb-3">
-                  <h3 className="d-flex align-items-center mx-2">
-                    {isOrWasWCAEvent && <span className={`cubing-icon event-${event.eventId} me-2`}></span>}
-                    {event.eventId === 'fto' && <span className="cubing-icon unofficial-fto me-2"></span>}
-                    {event.name}
-                  </h3>
+                  <EventTitle event={event} showIcon linkToRankings />
 
                   <div className="d-block d-lg-none my-3 border-top border-bottom">
                     <ul className="list-group list-group-flush">

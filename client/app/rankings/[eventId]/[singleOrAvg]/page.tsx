@@ -4,6 +4,7 @@ import { IEvent, IEventRankings } from '@sh/interfaces';
 import EventButtons from '~/app/components/EventButtons';
 import Link from 'next/link';
 import { RoundFormat } from '~/shared_helpers/enums';
+import EventTitle from '~/app/components/EventTitle';
 
 // SEO
 export const metadata = {
@@ -59,9 +60,9 @@ const Rankings = async ({
               </div>
             </div>
           </div>
-
-          <h4>{currEvent.name}</h4>
         </div>
+
+        <EventTitle event={currEvent} />
 
         <RankingsTable rankings={payload.rankings} event={payload.event} forAverage={singleOrAvg === 'average'} />
       </div>

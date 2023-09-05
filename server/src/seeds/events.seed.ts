@@ -181,7 +181,7 @@ export const eventsSeed: IEvent[] = [
     rank: 1030,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
+    groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
   },
   {
     eventId: '333ohbfr',
@@ -207,7 +207,7 @@ export const eventsSeed: IEvent[] = [
     rank: 1060,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
-    groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
+    groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
   },
   ///////////////////////////////////////////////////////////////////
   // REMOTE-ONLY

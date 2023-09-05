@@ -4,14 +4,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { utcToZonedTime, format } from 'date-fns-tz';
 import Tabs from './Tabs';
 import ContestTypeBadge from './ContestTypeBadge';
-import EventResultsTable from './EventResults';
+import EventResultsTable from './EventResultsTable';
+import EventButtons from './EventButtons';
 import Schedule from './Schedule';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
 import { CompetitionState, CompetitionType } from '@sh/enums';
 import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
-import EventButtons from './EventButtons';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
