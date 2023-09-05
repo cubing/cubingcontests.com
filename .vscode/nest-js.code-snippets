@@ -52,6 +52,6 @@
   "Pretty JSON output": {
     "scope": "typescript",
     "prefix": "jsonstringify",
-    "body": "JSON.stringify($0, null, 2)"
+    "body": "console.log(JSON.stringify($0, null, 2))"
   }
 }

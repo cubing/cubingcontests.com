@@ -8,14 +8,14 @@ import { eventCategories } from '~/helpers/eventCategories';
 
 const EventButtons = ({
   events,
-  selectedEvent,
+  activeEvent,
   singleOrAvg,
 }: {
   events: IEvent[];
-  selectedEvent?: string;
+  activeEvent?: IEvent;
   singleOrAvg: 'single' | 'average';
 }) => {
-  const [selectedCat, setSelectedCat] = useState(eventCategories[0]);
+  const [selectedCat, setSelectedCat] = useState(eventCategories.find((el) => activeEvent.groups.includes(el.group)));
 
   const filteredEvents = useMemo(
     () => events.filter((el) => el.groups.includes(selectedCat.group)),
@@ -44,12 +44,13 @@ const EventButtons = ({
       <div className="d-flex flex-wrap mb-3 fs-3">
         {filteredEvents.map(({ eventId, name, groups }) => {
           const isOrWasWCAEvent = groups.includes(EventGroup.WCA) || groups.includes(EventGroup.RemovedWCA);
+          const isActive = activeEvent.eventId === eventId;
 
           if (isOrWasWCAEvent || eventId === 'fto') {
             return (
               <div
                 key={eventId}
-                className={'cc-icon-button' + (selectedEvent === eventId ? ' cc-icon-button_active' : '')}
+                className={'cc-icon-button' + (isActive ? ' cc-icon-button_active' : '')}
                 onClick={() => handleEventClick(eventId)}
               >
                 <span className={`cubing-icon ${isOrWasWCAEvent ? 'event' : 'unofficial'}-${eventId}`}></span>
@@ -61,7 +62,7 @@ const EventButtons = ({
             <button
               key={eventId}
               type="button"
-              className="btn btn-light btn-sm m-1"
+              className={'btn btn-light btn-sm m-1' + (isActive ? ' active' : '')}
               onClick={() => handleEventClick(eventId)}
             >
               {name.replace('3x3x3', '3x3').replace('Blindfolded', 'BLD')}

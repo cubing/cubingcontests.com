@@ -1,7 +1,6 @@
 import Time from './Time';
 import Solves from './Solves';
-import Country from './Country';
-import PersonName from './PersonName';
+import Competitor from './Competitor';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { getRoundCanHaveAverage, getRoundRanksWithAverage } from '@sh/sharedFunctions';
@@ -72,14 +71,7 @@ const RoundResultsTable = ({
                     </td>
                   )}
                   <td>
-                    {person ? (
-                      <span key={person.personId} className="d-flex align-items-center">
-                        <PersonName person={person} />
-                        <Country countryIso2={person.countryIso2} noText />
-                      </span>
-                    ) : (
-                      <span key={person.personId}>(name not found)</span>
-                    )}
+                    {person ? <Competitor person={person} /> : <span key={person.personId}>(name not found)</span>}
                   </td>
                   <td>{i === 0 && <Time result={result} event={event} recordTypes={recordTypes} />}</td>
                   {roundCanHaveAverage && (

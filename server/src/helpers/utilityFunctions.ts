@@ -1,17 +1,16 @@
 import { compareAvgs, compareSingles } from '@sh/sharedFunctions';
 import { ResultDocument } from '../models/result.model';
 
-// Assumes results are already sorted
-export const sortResultsAndSetRankings = async (
+export const setRankings = async (
   results: ResultDocument[],
   ranksWithAverage: boolean,
-  dontSort = false, // this can be set to true if the results are already sorted
+  dontSortOrSave = false,
 ): Promise<ResultDocument[]> => {
   if (results.length === 0) return results;
 
   let sortedResults: ResultDocument[];
 
-  if (dontSort) {
+  if (dontSortOrSave) {
     sortedResults = results;
   } else {
     if (ranksWithAverage) sortedResults = results.sort(compareAvgs);
@@ -32,8 +31,8 @@ export const sortResultsAndSetRankings = async (
     }
 
     sortedResults[i].ranking = ranking;
-    await sortedResults[i].save(); // update the result in the DB
     prevResult = sortedResults[i];
+    if (!dontSortOrSave) await sortedResults[i].save(); // update the result in the DB
   }
 
   return sortedResults;

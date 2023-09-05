@@ -16,7 +16,7 @@ const Rankings = async ({
   const { payload: events }: { payload?: IEvent[] } = await myFetch.get('/events');
 
   if (payload && events) {
-    const hasLink = payload.rankings.some((el) => el.result.videoLink || el.result.discussionLink);
+    const currEvent = events.find((el) => el.eventId === eventId);
 
     return (
       <div>
@@ -24,7 +24,7 @@ const Rankings = async ({
 
         <div className="mb-3 px-2">
           <h4>Event</h4>
-          <EventButtons events={events} selectedEvent={eventId} singleOrAvg={singleOrAvg} />
+          <EventButtons events={events} activeEvent={currEvent} singleOrAvg={singleOrAvg} />
 
           <div className="d-flex gap-3 mb-4">
             <div>
@@ -47,11 +47,11 @@ const Rankings = async ({
           </div>
 
           <h4>
-            {events.find((el) => el.eventId === eventId).name} {singleOrAvg === 'single' ? 'Single' : 'Average'}
+            {currEvent.name} {singleOrAvg === 'single' ? 'Single' : 'Average'}
           </h4>
         </div>
 
-        <RankingsTable rankings={payload.rankings} event={payload.event} hideLinksColumn={!hasLink} />
+        <RankingsTable rankings={payload.rankings} event={payload.event} />
       </div>
     );
   }

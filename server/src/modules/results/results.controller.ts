@@ -14,12 +14,14 @@ export class ResultsController {
   // GET /results/rankings/:eventId/:singleOrAvg
   @Get('rankings/:eventId/:singleOrAvg')
   async getRankings(@Param('eventId') eventId: string, @Param('singleOrAvg') singleOrAvg: 'single' | 'average') {
+    console.log(`Getting ${singleOrAvg} rankings for ${eventId}`);
     return await this.service.getRankings(eventId, singleOrAvg === 'average');
   }
 
   // GET /results/records/:wca_equivalent
   @Get('records/:wca_equivalent')
   async getRecords(@Param('wca_equivalent') wcaEquivalent: string) {
+    console.log(`Getting ${wcaEquivalent} records`);
     return await this.service.getRecords(wcaEquivalent);
   }
 

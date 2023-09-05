@@ -24,7 +24,7 @@ export interface IRanking {
   type: 'single' | 'average' | 'mean';
   result: IResult;
   persons: IPerson[];
-  competition: ICompetition;
+  competition?: ICompetition; // optional, because not all results have a competition
 }
 
 // Used for storing rankings for a specific event

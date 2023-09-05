@@ -1,13 +1,12 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
-import Country from '~/app/components/Country';
 import Solves from '~/app/components/Solves';
-import PersonName from '~/app/components/PersonName';
+import Competitor from '~/app/components/Competitor';
 import RecordsCategoryTabs from '~/app/components/RecordsCategoryTabs';
+import RankingsTable from '~/app/components/RankingsTable';
 import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
-import RankingsTable from '~/app/components/RankingsTable';
 
 const Records = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
@@ -39,10 +38,6 @@ const Records = async ({ params }: { params: { category: string } }) => {
             <RecordsCategoryTabs recordsByEvent={recordsByEvent} category={params.category} />
 
             {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
-              const showSolves = rankings.some((el) => el.result.attempts.length > 1);
-              const hasCompetition = rankings.some((el) => el.competition);
-              const hasLink = rankings.some((el) => el.result.videoLink || el.result.discussionLink);
-
               return (
                 <div key={event.eventId} className="mb-3">
                   <h3 className="mx-2">{event.name}</h3>
@@ -69,14 +64,11 @@ const Records = async ({ params }: { params: { category: string } }) => {
                           </div>
                           <div className="d-flex flex-column gap-2">
                             {persons.map((person) => (
-                              <span key={person.personId} className="d-flex align-items-center gap-1">
-                                <PersonName person={person} />
-                                <Country countryIso2={person.countryIso2} noText />
-                              </span>
+                              <Competitor key={person.personId} person={person} />
                             ))}
                           </div>
-                          {showSolves && <Solves event={event} attempts={result.attempts} />}
-                          {hasLink && (
+                          {type !== 'single' && <Solves event={event} attempts={result.attempts} />}
+                          {(result.videoLink || result.discussionLink) && (
                             <div className="d-flex gap-2">
                               {result.videoLink && (
                                 <a href={result.videoLink} target="_blank">
@@ -96,14 +88,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                   </div>
 
                   <div className="d-none d-lg-block">
-                    <RankingsTable
-                      rankings={rankings}
-                      event={event}
-                      recordsTable
-                      hideCompetitionColumn={!hasCompetition}
-                      hideSolvesColumn={!showSolves}
-                      hideLinksColumn={!hasLink}
-                    />
+                    <RankingsTable rankings={rankings} event={event} recordsTable />
                   </div>
                 </div>
               );

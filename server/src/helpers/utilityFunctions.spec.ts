@@ -1,16 +1,15 @@
-import { sortResultsAndSetRankings } from './utilityFunctions';
-import { EventDocument } from '../models/event.model';
+import { setRankings } from './utilityFunctions';
 import { RoundDocument } from '../models/round.model';
 import { eventsSeed } from '../seeds/events.seed';
 import { unrankedRoundsStub } from '../modules/competitions/tests/stubs/unranked-rounds';
 import { getRoundRanksWithAverage } from '../../../client/shared_helpers/sharedFunctions';
 
-describe('sortResultsAndSetRankings works correctly', () => {
+describe('setRankings works correctly', () => {
   const unrankedRounds = unrankedRoundsStub() as RoundDocument[];
 
   it('sets rankings for 3x3x3 round correctly', async () => {
     const round = unrankedRounds[0];
-    round.results = await sortResultsAndSetRankings(
+    round.results = await setRankings(
       round.results,
       getRoundRanksWithAverage(
         round.format,
@@ -30,7 +29,7 @@ describe('sortResultsAndSetRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 FM round correctly', async () => {
     const round = unrankedRounds[1];
-    round.results = await sortResultsAndSetRankings(
+    round.results = await setRankings(
       round.results,
       getRoundRanksWithAverage(
         round.format,
@@ -55,7 +54,7 @@ describe('sortResultsAndSetRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 BLD round correctly', async () => {
     const round = unrankedRounds[2];
-    round.results = await sortResultsAndSetRankings(
+    round.results = await setRankings(
       round.results,
       getRoundRanksWithAverage(
         round.format,
@@ -81,7 +80,7 @@ describe('sortResultsAndSetRankings works correctly', () => {
 
   it('sets rankings for 2x2x2 round with Bo3 format correctly', async () => {
     const round = unrankedRounds[3];
-    round.results = await sortResultsAndSetRankings(
+    round.results = await setRankings(
       round.results,
       getRoundRanksWithAverage(
         round.format,
@@ -99,7 +98,7 @@ describe('sortResultsAndSetRankings works correctly', () => {
 
   it('sets rankings for 5x5x5 round with only DNF averages correctly', async () => {
     const round = unrankedRounds[4];
-    round.results = await sortResultsAndSetRankings(
+    round.results = await setRankings(
       round.results,
       getRoundRanksWithAverage(
         round.format,
