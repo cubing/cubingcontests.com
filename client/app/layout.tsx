@@ -1,18 +1,17 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import '@/globals.css';
-
 import Navbar from '@c/Navbar';
 
+// SEO
 export const metadata = {
   title: 'Cubing Contests',
-  description: "A place for hosting unofficial Rubik's cube competitions or meetups.",
-  keywords: "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing cubing puzzle",
-  icons: {
-    icon: '/favicon.png',
-  },
+  description: "The best place for hosting unofficial Rubik's cube competitions and speedcuber meetups.",
+  keywords:
+    "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
+  icons: { icon: '/favicon.png' },
   metadataBase: new URL('https://cubingcontests.com'),
   openGraph: {
-    images: ['/projects/contest_results.jpg'],
+    images: ['/api/cubing_contests_1.jpg'],
   },
 };
 
