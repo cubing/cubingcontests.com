@@ -18,10 +18,13 @@ export class EventsService {
       console.log('Seeding the events collection...');
 
       // Add new events from events seed
-      for (const newEvent of eventsSeed) {
-        if (!events.some((ev) => ev.eventId === newEvent.eventId)) {
-          console.log(`Adding new event: ${newEvent.eventId}`);
-          await this.eventModel.create(newEvent);
+      for (const event of eventsSeed) {
+        if (!events.some((ev) => ev.eventId === event.eventId)) {
+          console.log(`Adding new event: ${event.eventId}`);
+          await this.eventModel.create(event);
+        } else {
+          console.log(`Updating event ${event.eventId}`);
+          await this.eventModel.updateOne({ eventId: event.eventId }, event);
         }
       }
     } catch (err) {
