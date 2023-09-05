@@ -15,6 +15,7 @@ export enum EventGroup {
   SubmissionsAllowed = 6,
   Team = 7,
   RemovedWCA = 8, // e.g. magic, mmagic, 333ft, 333mbo
+  Hidden = 9,
 }
 
 export enum RoundFormat {

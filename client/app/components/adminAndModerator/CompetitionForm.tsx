@@ -477,19 +477,21 @@ const CompetitionForm = ({
   };
 
   const changeRoundProceed = (eventIndex: number, roundIndex: number, type: RoundProceed, value?: string) => {
-    const newCompetitionEvents = competitionEvents.map((event, i) =>
-      i !== eventIndex
-        ? event
-        : {
-            ...event,
-            rounds: event.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : { ...round, proceed: { type, value: value ? Number(value) : round.proceed.value } },
-            ),
-          },
-    );
-    setCompetitionEvents(newCompetitionEvents);
+    if (!value || (!/[^0-9]/.test(value) && value.length <= 2)) {
+      const newCompetitionEvents = competitionEvents.map((event, i) =>
+        i !== eventIndex
+          ? event
+          : {
+              ...event,
+              rounds: event.rounds.map((round, i) =>
+                i !== roundIndex
+                  ? round
+                  : { ...round, proceed: { type, value: value ? Number(value) : round.proceed.value } },
+              ),
+            },
+      );
+      setCompetitionEvents(newCompetitionEvents);
+    }
   };
 
   const getNewRound = (eventId: string, roundNumber: number): IRound => {
@@ -827,7 +829,7 @@ const CompetitionForm = ({
                   </button>
                 </div>
                 {compEvent.rounds.map((round, roundIndex) => (
-                  <div key={round.roundTypeId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
+                  <div key={round.roundId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
                     <div className="mb-3 row">
                       <div className="col-4">
                         <h5 className="mt-2">{roundTypes[round.roundTypeId].label}</h5>
@@ -845,11 +847,12 @@ const CompetitionForm = ({
                     {round.roundTypeId !== RoundType.Final && (
                       <>
                         <FormRadio
+                          id={`${round.roundId}_proceed_type`}
                           title="Proceed to next round"
                           options={roundProceedOptions}
                           selected={round.proceed.type}
                           setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
+                          disabled={disableIfCompFinishedEvenForAdmin}
                         />
                         <FormTextInput
                           id="round_proceed_value"
@@ -857,7 +860,7 @@ const CompetitionForm = ({
                           setValue={(val: string) =>
                             changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)
                           }
-                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
+                          disabled={disableIfCompFinishedEvenForAdmin}
                         />
                       </>
                     )}

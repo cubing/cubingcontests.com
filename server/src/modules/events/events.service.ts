@@ -30,7 +30,9 @@ export class EventsService {
   }
 
   async getEvents(eventIds?: string[]): Promise<EventDocument[]> {
-    const queryFilter: any = eventIds ? { eventId: { $in: eventIds } } : {};
+    const queryFilter: any = { groups: { $ne: EventGroup.Hidden } };
+
+    if (eventIds) queryFilter.eventId = { $in: eventIds };
 
     try {
       return await this.eventModel.find(queryFilter, excl).sort({ rank: 1 }).exec();

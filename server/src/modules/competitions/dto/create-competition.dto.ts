@@ -283,6 +283,6 @@ class ProceedDto implements IProceed {
   type: RoundProceed;
 
   @IsNumber()
-  @Min(5)
+  @Min(2)
   value: number;
 }

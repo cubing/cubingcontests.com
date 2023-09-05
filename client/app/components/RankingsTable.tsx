@@ -5,10 +5,12 @@ const RankingsTable = ({
   rankings,
   event,
   recordsTable = false,
+  forAverage = false,
 }: {
   rankings: IRanking[];
   event: IEvent;
   recordsTable?: boolean;
+  forAverage?: boolean;
 }) => {
   const hasCompetition = rankings.some((el) => el.competition);
   const showTeammates = !recordsTable && event?.participants > 1;
@@ -22,6 +24,16 @@ const RankingsTable = ({
     else if (type === 'average') return 'Average';
     else if (type === 'mean') return 'Mean';
   };
+
+  if (rankings.length === 0) {
+    return (
+      <p className="mt-4 ms-2 fs-5">
+        {forAverage
+          ? "There aren't any average results for this event yet"
+          : "There aren't any results for this event yet"}
+      </p>
+    );
+  }
 
   return (
     <div className="table-responsive flex-grow-1">

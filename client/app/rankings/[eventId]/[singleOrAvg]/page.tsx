@@ -3,6 +3,7 @@ import RankingsTable from '~/app/components/RankingsTable';
 import { IEvent, IEventRankings } from '@sh/interfaces';
 import EventButtons from '~/app/components/EventButtons';
 import Link from 'next/link';
+import { RoundFormat } from '~/shared_helpers/enums';
 
 const Rankings = async ({
   params: { eventId, singleOrAvg },
@@ -20,7 +21,7 @@ const Rankings = async ({
 
     return (
       <div>
-        <h2 className="mb-4 text-center">Rankings</h2>
+        <h2 className="mb-3 text-center">Rankings</h2>
 
         <div className="mb-3 px-2">
           <h4>Event</h4>
@@ -40,18 +41,16 @@ const Rankings = async ({
                   href={`/rankings/${eventId}/average`}
                   className={'btn btn-primary' + (singleOrAvg === 'average' ? ' active' : '')}
                 >
-                  Average
+                  {currEvent.defaultRoundFormat === RoundFormat.Average ? 'Average' : 'Mean'}
                 </Link>
               </div>
             </div>
           </div>
 
-          <h4>
-            {currEvent.name} {singleOrAvg === 'single' ? 'Single' : 'Average'}
-          </h4>
+          <h4>{currEvent.name}</h4>
         </div>
 
-        <RankingsTable rankings={payload.rankings} event={payload.event} />
+        <RankingsTable rankings={payload.rankings} event={payload.event} forAverage={singleOrAvg === 'average'} />
       </div>
     );
   }

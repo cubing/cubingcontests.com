@@ -46,7 +46,7 @@ export class ResultsService {
           { $unwind: '$personIds' },
           { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
           { $sort: { average: 1 } },
-          { $limit: 100 },
+          // { $limit: 100 },
         ])
         .exec()
       : await this.resultModel
@@ -55,7 +55,7 @@ export class ResultsService {
           { $unwind: '$personIds' },
           { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
           { $sort: { best: 1 } },
-          { $limit: 100 },
+          // { $limit: 100 },
         ])
         .exec();
 

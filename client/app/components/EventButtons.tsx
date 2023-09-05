@@ -47,7 +47,8 @@ const EventButtons = ({
               className={'btn btn-primary' + (cat === selectedCat ? ' active' : '')}
               onClick={() => setSelectedCat(cat)}
             >
-              {cat.title}
+              <span className="d-inline d-lg-none">{cat.mobileTitle || cat.title}</span>
+              <span className="d-none d-lg-inline">{cat.title}</span>
             </button>
           ))}
         </div>

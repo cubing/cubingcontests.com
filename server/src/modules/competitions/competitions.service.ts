@@ -342,19 +342,14 @@ export class CompetitionsService {
                 if (comp.state < CompetitionState.Approved) sameRoundInComp.date = round.date;
               }
 
-              // Update proceed object if the updated round has it and the round has no results
-              // or set it, if the round previously had no proceed object (meaning it was the final round)
-              if (round.proceed) {
-                if (sameRoundInComp.results.length === 0 || !sameRoundInComp.proceed)
-                  sameRoundInComp.proceed = round.proceed;
-              }
-              // Unset proceed object if it got deleted (the round became the final round due to a deletion)
+              // Update proceed object if the updated round has it, or unset proceed if it doesn't,
+              // meaning that the round became the final round due to a deletion
+              if (round.proceed) sameRoundInComp.proceed = round.proceed;
               else sameRoundInComp.proceed = undefined;
 
               await sameRoundInComp.save();
-            }
-            // If it's a new round, add it
-            else {
+            } else {
+              // If it's a new round, add it
               sameEventInComp.rounds.push(await this.roundModel.create(round));
             }
           }
