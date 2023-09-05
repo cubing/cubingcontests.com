@@ -111,7 +111,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
         // For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/
         <div className="row w-100 mb-4 px-2 fs-5">
           <div className="col-md-5">
-            <div className="mb-2">
+            <div className="mb-3">
               <ContestTypeBadge type={competition.type} />
             </div>
             <p className="mb-2">Date:&#8194;{formattedDate}</p>
