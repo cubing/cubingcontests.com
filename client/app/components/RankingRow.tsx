@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { FaCaretRight, FaCaretDown } from 'react-icons/fa';
 import Country from './Country';
 import Competitor from './Competitor';
+import CompetitionName from '@c/CompetitionName';
 import Solves from './Solves';
 import { ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { getFormattedDate, getFormattedTime } from '~/helpers/utilityFunctions';
@@ -46,7 +46,7 @@ const RankingRow = ({
       <td>
         <div className="d-flex flex-wrap align-items-start gap-2">
           {personsToDisplay.map((person, index) => (
-            <span key={person.personId} className="d-flex">
+            <span key={person.personId} className="d-flex gap-2">
               <Competitor key={person.personId} person={person} noCountry={!showAllTeammates} />
               {index !== personsToDisplay.length - 1 && <span>&</span>}
             </span>
@@ -63,7 +63,7 @@ const RankingRow = ({
       <td>
         {!onlyKeepPerson &&
           (competition ? (
-            <Link href={`/competitions/${competition.competitionId}`}>{competition.name}</Link>
+            <CompetitionName competition={competition} />
           ) : (
             <div className="d-flex gap-2">
               {result.videoLink && (

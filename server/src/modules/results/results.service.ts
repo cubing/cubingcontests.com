@@ -100,7 +100,6 @@ export class ResultsService {
     }
 
     const rankedResults = await setRankings(eventResults, forAverage, true);
-    console.log(rankedResults);
 
     for (const result of rankedResults) {
       const persons: PersonDocument[] = [];

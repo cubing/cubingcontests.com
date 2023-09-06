@@ -12,6 +12,7 @@ import { CompetitionState, CompetitionType } from '@sh/enums';
 import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
+import Country from './Country';
 
 const getTabNumber = (hash: string): number => {
   switch (hash) {
@@ -123,7 +124,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
             )}
             {competition.type !== CompetitionType.Online && (
               <p className="mb-2">
-                City:&#8194;{competition.city}, <b>{getCountry(competition.countryIso2)}</b>
+                City:&#8194;{competition.city}, <Country countryIso2={competition.countryIso2} swapPositions />
               </p>
             )}
             {competition.venue && <p className="mb-2">Venue:&#8194;{competition.venue}</p>}

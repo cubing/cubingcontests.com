@@ -11,7 +11,7 @@ const Country = ({
   noText?: boolean;
 }) => {
   return (
-    <span className={'d-inline-flex align-items-center gap-2' + (noText ? ' mx-2' : '')}>
+    <span className="d-inline-flex align-items-center gap-2">
       {!noText && swapPositions && getCountry(countryIso2)}
       {(Flags as any)[countryIso2]({ title: getCountry(countryIso2), className: 'cc-flag-icon' })}
       {!noText && !swapPositions && getCountry(countryIso2)}
