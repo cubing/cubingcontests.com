@@ -17,9 +17,8 @@ const RankingRow = ({
   persons,
   competition,
   event,
-  showCompetitionColumn,
-  showSolvesColumn,
-  showLinksColumn,
+  showAllTeammates,
+  showSolves,
   forRecordsTable = false,
 }: {
   firstColumnValue: string | number;
@@ -31,55 +30,41 @@ const RankingRow = ({
   persons: IPerson[];
   competition: ICompetition;
   event: IEvent;
-  showCompetitionColumn: boolean;
-  showSolvesColumn: boolean;
-  showLinksColumn: boolean;
+  showAllTeammates: boolean;
+  showSolves: boolean;
   forRecordsTable?: boolean;
 }) => {
   const [teamExpanded, setTeamExpanded] = useState(false);
 
   // On the records page we only want the person and country to be shown, if
   const onlyKeepPerson = forRecordsTable && !isFirstRow;
+  const personsToDisplay = showAllTeammates ? persons : persons.slice(0, 1);
 
   return (
     <tr>
       <td>{!onlyKeepPerson && <span className={!isFirstRow ? 'text-secondary' : ''}>{firstColumnValue}</span>}</td>
       <td>
-        <Competitor person={persons[0]} noCountry />
+        <div className="d-flex flex-wrap align-items-start gap-2">
+          {personsToDisplay.map((person, index) => (
+            <span key={person.personId} className="d-flex">
+              <Competitor key={person.personId} person={person} noCountry={!showAllTeammates} />
+              {index !== personsToDisplay.length - 1 && <span>&</span>}
+            </span>
+          ))}
+        </div>
       </td>
       <td>{!onlyKeepPerson && getFormattedTime(result[bestOrAvg], event.format)}</td>
-      <td>
-        <Country countryIso2={persons[0].countryIso2} />
-      </td>
+      {!showAllTeammates && (
+        <td>
+          <Country countryIso2={persons[0].countryIso2} />
+        </td>
+      )}
       <td>{!onlyKeepPerson && getFormattedDate(result.date)}</td>
-      {showCompetitionColumn && (
-        <td>
-          {!onlyKeepPerson && competition && (
+      <td>
+        {!onlyKeepPerson &&
+          (competition ? (
             <Link href={`/competitions/${competition.competitionId}`}>{competition.name}</Link>
-          )}
-        </td>
-      )}
-      {!forRecordsTable && event.participants > 1 && (
-        <td>
-          {persons.length === 2 ? (
-            <Competitor person={persons[1]} />
           ) : (
-            <div className="d-flex flex-column align-items-start gap-2 m-0 p-0">
-              <span className="text-white" onClick={() => setTeamExpanded(!teamExpanded)}>
-                <u style={{ cursor: 'pointer' }}>{teamExpanded ? 'Collapse' : 'Expand'}</u>
-                <span className="ms-1 fs-5">{teamExpanded ? <FaCaretDown /> : <FaCaretRight />}</span>
-              </span>
-              {teamExpanded && persons.map((teammate) => <Competitor key={teammate.personId} person={teammate} />)}
-            </div>
-          )}
-        </td>
-      )}
-      {showSolvesColumn && (
-        <td>{!onlyKeepPerson && bestOrAvg === 'average' && <Solves event={event} attempts={result.attempts} />}</td>
-      )}
-      {showLinksColumn && (
-        <td>
-          {!onlyKeepPerson && (
             <div className="d-flex gap-2">
               {result.videoLink && (
                 <a href={result.videoLink} target="_blank">
@@ -92,8 +77,29 @@ const RankingRow = ({
                 </a>
               )}
             </div>
+          ))}
+      </td>
+      {event?.participants > 1 && !showAllTeammates && (
+        <td>
+          {persons.length === 2 ? (
+            <Competitor person={persons[1]} />
+          ) : (
+            <div className="d-flex flex-column align-items-start gap-2">
+              {/* The style is necessary, because the icon is too tall, so it makes the whole row taller */}
+              <span className="mb-2 text-white" style={{ height: '1.5rem', marginTop: '-4px' }}>
+                <u style={{ cursor: 'pointer' }} onClick={() => setTeamExpanded(!teamExpanded)}>
+                  {teamExpanded ? 'Collapse' : 'Expand'}
+                </u>
+                <span className="ms-1 fs-5">{teamExpanded ? <FaCaretDown /> : <FaCaretRight />}</span>
+              </span>
+
+              {teamExpanded && persons.map((teammate) => <Competitor key={teammate.personId} person={teammate} />)}
+            </div>
           )}
         </td>
+      )}
+      {showSolves && (
+        <td>{!onlyKeepPerson && bestOrAvg === 'average' && <Solves event={event} attempts={result.attempts} />}</td>
       )}
     </tr>
   );

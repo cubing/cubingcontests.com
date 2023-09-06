@@ -29,7 +29,7 @@ export class ResultsService {
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
   ) {}
 
-  async getRankings(eventId: string, forAverage = false): Promise<IEventRankings> {
+  async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
     if (!event) throw new BadRequestException(`Event with ID ${eventId} not found`);
@@ -38,44 +38,69 @@ export class ResultsService {
       event,
       rankings: [],
     };
+    let eventResults: ResultDocument[] = [];
+    const singlesFilter = { eventId, compNotPublished: { $exists: false }, best: { $gt: 0 } };
+    const avgsFilter = { eventId, compNotPublished: { $exists: false }, average: { $gt: 0 } };
 
-    const personalBests = forAverage
-      ? await this.resultModel
-        .aggregate([
-          { $match: { eventId, compNotPublished: { $exists: false }, average: { $gt: 0 } } },
-          { $unwind: '$personIds' },
-          { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
-          { $sort: { average: 1 } },
-          // { $limit: 100 },
-        ])
-        .exec()
-      : await this.resultModel
-        .aggregate([
-          { $match: { eventId, compNotPublished: { $exists: false }, best: { $gt: 0 } } },
-          { $unwind: '$personIds' },
-          { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
-          { $sort: { best: 1 } },
-          // { $limit: 100 },
-        ])
-        .exec();
+    if (!show) {
+      // Get top persons
 
-    const eventResults: ResultDocument[] = [];
+      const personalBests = forAverage
+        ? await this.resultModel
+          .aggregate([
+            { $match: avgsFilter },
+            { $unwind: '$personIds' },
+            { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
+            { $sort: { average: 1 } },
+            // { $limit: 100 },
+          ])
+          .exec()
+        : await this.resultModel
+          .aggregate([
+            { $match: singlesFilter },
+            { $unwind: '$personIds' },
+            { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
+            { $sort: { best: 1 } },
+            // { $limit: 100 },
+          ])
+          .exec();
 
-    for (const pb of personalBests) {
-      const result = await this.resultModel
-        .findOne({ personIds: pb._id.personId, ...(forAverage ? { average: pb.average } : { best: pb.best }) })
-        .exec();
+      for (const pb of personalBests) {
+        const result = await this.resultModel
+          .findOne({ personIds: pb._id.personId, ...(forAverage ? { average: pb.average } : { best: pb.best }) }, excl)
+          .exec();
 
-      // If it's a team event...
-      if (result.personIds.length > 1) {
-        // Sort the person IDs in the result, so that the person, whose PR this result is, is first
-        result.personIds.sort((a, b) => (a === pb._id.personId ? -1 : 0));
+        // If it's a team event...
+        if (result.personIds.length > 1) {
+          // Sort the person IDs in the result, so that the person, whose PR this result is, is first
+          result.personIds.sort((a, b) => (a === pb._id.personId ? -1 : 0));
+        }
+
+        eventResults.push(result);
       }
+    } else {
+      // Get top results
 
-      eventResults.push(result);
+      if (forAverage) {
+        eventResults = await this.resultModel.find(avgsFilter, excl).sort({ average: 1 }).exec();
+      } else {
+        eventResults = await this.resultModel
+          .aggregate([
+            { $match: { eventId, compNotPublished: { $exists: false } } },
+            { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
+            { $project: excl },
+            { $match: { attempts: { $gt: 0 } } },
+            { $sort: { attempts: 1 } },
+          ])
+          .exec();
+
+        // Set the unwound attempts as best, so that the frontend can use the same logic for everything
+        for (const result of eventResults) result.best = result.attempts as any as number;
+      }
     }
 
     const rankedResults = await setRankings(eventResults, forAverage, true);
+    console.log(rankedResults);
 
     for (const result of rankedResults) {
       const persons: PersonDocument[] = [];

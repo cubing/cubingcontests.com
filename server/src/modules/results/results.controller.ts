@@ -11,11 +11,15 @@ import { CreateResultDto } from './dto/create-result.dto';
 export class ResultsController {
   constructor(private readonly service: ResultsService) {}
 
-  // GET /results/rankings/:eventId/:singleOrAvg
+  // GET /results/rankings/:eventId/:singleOrAvg(?show=results)
   @Get('rankings/:eventId/:singleOrAvg')
-  async getRankings(@Param('eventId') eventId: string, @Param('singleOrAvg') singleOrAvg: 'single' | 'average') {
+  async getRankings(
+    @Param('eventId') eventId: string,
+    @Param('singleOrAvg') singleOrAvg: 'single' | 'average',
+    @Query('show') show?: 'results',
+  ) {
     console.log(`Getting ${singleOrAvg} rankings for ${eventId}`);
-    return await this.service.getRankings(eventId, singleOrAvg === 'average');
+    return await this.service.getRankings(eventId, singleOrAvg === 'average', show);
   }
 
   // GET /results/records/:wca_equivalent
@@ -25,7 +29,7 @@ export class ResultsController {
     return await this.service.getRecords(wcaEquivalent);
   }
 
-  // GET /results/submission-info?records_up_to=...
+  // GET /results/submission-info(?records_up_to=...)
   @Get('submission-info')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)

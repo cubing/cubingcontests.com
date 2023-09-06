@@ -4,18 +4,25 @@ import { IEvent, IRanking } from '@sh/interfaces';
 const RankingsTable = ({
   rankings,
   event,
-  recordsTable = false,
   forAverage = false,
+  recordsTable = false,
+  topResultsRankings = false,
 }: {
   rankings: IRanking[];
   event: IEvent;
-  recordsTable?: boolean;
   forAverage?: boolean;
+  // These two parameters are mutually-exclusive
+  recordsTable?: boolean;
+  topResultsRankings?: boolean;
 }) => {
-  const hasCompetition = rankings.some((el) => el.competition);
-  const showTeammates = !recordsTable && event?.participants > 1;
-  const showSolves = rankings.some((el) => el.type !== 'single');
+  if (topResultsRankings && recordsTable) {
+    throw new Error('forAverage and topResultsRankings cannot both be true in RankingsTable');
+  }
+
+  const hasComp = rankings.some((el) => el.competition);
   const hasLink = rankings.some((el) => el.result.videoLink || el.result.discussionLink);
+  const showAllTeammates = event?.participants > 1 && topResultsRankings && !recordsTable;
+  const showSolves = rankings.some((el) => el.type !== 'single');
   let lastRanking = 0;
 
   // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
@@ -39,14 +46,17 @@ const RankingsTable = ({
         <thead>
           <tr>
             <th>{recordsTable ? 'Type' : '#'}</th>
-            <th>Name</th>
+            <th>{!showAllTeammates ? 'Name' : 'Team'}</th>
             <th>Result</th>
-            <th>Representing</th>
+            {!showAllTeammates && <th>Representing</th>}
             <th>Date</th>
-            {hasCompetition && <th>Competition</th>}
-            {showTeammates && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
+            <th>
+              {hasComp ? 'Competition' : ''}
+              {hasComp && hasLink ? ' / ' : ''}
+              {hasLink ? 'Links' : ''}
+            </th>
+            {event?.participants > 1 && !showAllTeammates && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
             {showSolves && <th>Solves</th>}
-            {hasLink && <th>Links</th>}
           </tr>
         </thead>
         <tbody>
@@ -58,7 +68,7 @@ const RankingsTable = ({
             if (recordsTable) {
               return persons.map((person, i) => (
                 <RankingRow
-                  key={type + (result as any)._id + person.personId}
+                  key={`${type}_${(result as any)._id}_${person.personId}`}
                   firstColumnValue={getRecordType(type)}
                   isFirstRow={i === 0}
                   bestOrAvg={type === 'single' ? 'best' : 'average'}
@@ -66,17 +76,19 @@ const RankingsTable = ({
                   persons={[person]}
                   competition={competition}
                   event={event}
-                  showCompetitionColumn={hasCompetition}
-                  showSolvesColumn={showSolves}
-                  showLinksColumn={hasLink}
+                  showAllTeammates={showAllTeammates}
+                  showSolves={showSolves}
                   forRecordsTable
                 />
               ));
             }
 
+            let key = `${(result as any)._id}_${persons[0].personId}`;
+            if ((result as any).attemptNumber !== undefined) key += `_${(result as any).attemptNumber}`;
+
             return (
               <RankingRow
-                key={(result as any)._id + persons[0].personId}
+                key={key}
                 firstColumnValue={result.ranking}
                 isFirstRow={!isTiedRanking}
                 bestOrAvg={type === 'single' ? 'best' : 'average'}
@@ -84,9 +96,8 @@ const RankingsTable = ({
                 persons={persons}
                 competition={competition}
                 event={event}
-                showCompetitionColumn={hasCompetition}
-                showSolvesColumn={showSolves}
-                showLinksColumn={hasLink}
+                showAllTeammates={showAllTeammates}
+                showSolves={showSolves}
               />
             );
           })}

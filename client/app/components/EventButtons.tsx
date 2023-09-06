@@ -2,6 +2,7 @@
 
 import '@cubing/icons';
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { IEvent } from '@sh/interfaces';
 import { EventGroup } from '@sh/enums';
 import { eventCategories } from '~/helpers/eventCategories';
@@ -25,6 +26,8 @@ const EventButtons = ({
 
   const [selectedCat, setSelectedCat] = useState(eventCategories.find((el) => activeEvent.groups.includes(el.group)));
 
+  const searchParams = useSearchParams();
+
   // If hideCategories = true, just show all events that were passed in
   const filteredEvents = useMemo(
     () => (hideCategories ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
@@ -32,8 +35,12 @@ const EventButtons = ({
   );
 
   const handleEventClick = (eventId: string) => {
-    if (onEventSelect) onEventSelect(eventId);
-    else window.location.href = `/rankings/${eventId}/${singleOrAvg}`;
+    if (onEventSelect) {
+      onEventSelect(eventId);
+    } else {
+      const show = searchParams.get('show');
+      window.location.href = `/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`;
+    }
   };
 
   return (
