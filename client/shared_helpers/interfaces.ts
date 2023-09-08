@@ -4,6 +4,7 @@ export type { IPerson } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
 export type {
   IResult,
+  IAttempt,
   IRanking,
   IEventRankings,
   IRecordPair,

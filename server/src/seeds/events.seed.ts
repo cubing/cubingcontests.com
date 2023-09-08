@@ -129,7 +129,7 @@ export const eventsSeed: IEvent[] = [
     rank: 160,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    groups: [EventGroup.WCA],
+    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed],
   },
   {
     eventId: '555bf',
@@ -137,7 +137,7 @@ export const eventsSeed: IEvent[] = [
     rank: 170,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    groups: [EventGroup.WCA],
+    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed],
   },
   {
     eventId: '333mbf',

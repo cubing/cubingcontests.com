@@ -3,7 +3,7 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import { ICompetition, ICompetitionEvent, ICompetitionDetails } from '@sh/interfaces';
 import { RoundDocument } from './round.model';
 import { PersonDocument } from './person.model';
-import { CompetitionState, CompetitionType } from '@sh/enums';
+import { ContestState, ContestType } from '@sh/enums';
 import { EventDocument } from './event.model';
 import { ScheduleDocument } from './schedule.model';
 
@@ -34,14 +34,14 @@ class Competition implements ICompetition {
   @Prop({ required: true })
   createdBy: number;
 
-  @Prop({ enum: CompetitionState, required: true })
-  state: CompetitionState;
+  @Prop({ enum: ContestState, required: true })
+  state: ContestState;
 
   @Prop({ required: true })
   name: string;
 
-  @Prop({ enum: CompetitionType, required: true, immutable: true })
-  type: CompetitionType;
+  @Prop({ enum: ContestType, required: true, immutable: true })
+  type: ContestType;
 
   @Prop()
   city?: string;

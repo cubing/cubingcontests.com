@@ -66,7 +66,12 @@ export const ResultModelMock = (): any => ({
       this.tempOutput.sort(
         (a: ResultDocument, b: ResultDocument) => params.date * (a.date.getTime() - b.date.getTime()),
       );
+    } else if (params?.best) {
+      this.tempOutput.sort((a: ResultDocument, b: ResultDocument) => params.best * (a.best - b.best));
+    } else if (params?.average) {
+      this.tempOutput.sort((a: ResultDocument, b: ResultDocument) => params.average * (a.average - b.average));
     }
+
     return this;
   },
   limit(count: number) {

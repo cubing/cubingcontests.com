@@ -87,47 +87,49 @@ const multiBlindExamples = [
 ];
 
 describe('getAttempt', () => {
+  const dummyAtt = { result: 0 };
+
   describe('parse time attempts', () => {
     it('parses 553 correctly', () => {
-      expect(getAttempt(EventFormat.Time, '553', '', '')).toBe(553);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '553', '', '').result).toBe(553);
     });
 
     it('parses 2453 correctly', () => {
-      expect(getAttempt(EventFormat.Time, '2453', '', '')).toBe(2453);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '2453', '', '').result).toBe(2453);
     });
 
     it('parses 24253 correctly', () => {
-      expect(getAttempt(EventFormat.Time, '24253', '', '')).toBe(16253);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '24253', '', '').result).toBe(16253);
     });
 
     it('parses 141786 correctly', () => {
-      expect(getAttempt(EventFormat.Time, '141786', '', '')).toBe(85700);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '141786', '', '').result).toBe(85700);
     });
 
     it('parses 141786 without rounding correctly', () => {
-      expect(getAttempt(EventFormat.Time, '141786', '', '', true)).toBe(85786);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '141786', '', '', true).result).toBe(85786);
     });
 
     it('parses 1000284 correctly', () => {
-      expect(getAttempt(EventFormat.Time, '1000284', '', '')).toBe(360200);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '1000284', '', '').result).toBe(360200);
     });
 
     it('parses 1000284 without rounding correctly', () => {
-      expect(getAttempt(EventFormat.Time, '1000284', '', '', true)).toBe(360284);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '1000284', '', '', true).result).toBe(360284);
     });
 
     it('parses empty time correctly', () => {
-      expect(getAttempt(EventFormat.Time, '', '', '')).toBe(0);
+      expect(getAttempt(dummyAtt, EventFormat.Time, '', '', '').result).toBe(0);
     });
   });
 
   describe('parse Multi-Blind attempts', () => {
     it('parses 36 move FMC correctly', () => {
-      expect(getAttempt(EventFormat.Number, '36', '', '')).toBe(36);
+      expect(getAttempt(dummyAtt, EventFormat.Number, '36', '', '').result).toBe(36);
     });
 
     it('parses empty number correctly', () => {
-      expect(getAttempt(EventFormat.Number, '', '', '')).toBe(0);
+      expect(getAttempt(dummyAtt, EventFormat.Number, '', '', '').result).toBe(0);
     });
   });
 
@@ -135,13 +137,14 @@ describe('getAttempt', () => {
     for (const example of multiBlindExamples) {
       it(`parses ${example.formatted} correctly`, () => {
         expect(
-          getAttempt(EventFormat.Multi, example.inputs.time, example.inputs.solved, example.inputs.attempted),
+          getAttempt(dummyAtt, EventFormat.Multi, example.inputs.time, example.inputs.solved, example.inputs.attempted)
+            .result,
         ).toBe(example.result);
       });
     }
 
     it('parses empty Multi-Blind attempt correctly', () => {
-      expect(getAttempt(EventFormat.Multi, '', '', '')).toBe(0);
+      expect(getAttempt(dummyAtt, EventFormat.Multi, '', '', '').result).toBe(0);
     });
   });
 });

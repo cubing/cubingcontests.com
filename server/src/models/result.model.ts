@@ -1,6 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { IResult } from '@sh/interfaces';
+import { IAttempt, IResult } from '@sh/interfaces';
+
+@Schema({ _id: false })
+export class Attempt implements IAttempt {
+  @Prop({ required: true })
+  result: number;
+
+  @Prop()
+  memo?: number;
+}
+
+const AttemptSchema = SchemaFactory.createForClass(Attempt);
 
 @Schema({ timestamps: true })
 export class Result implements IResult {
@@ -22,8 +33,11 @@ export class Result implements IResult {
   @Prop()
   ranking?: number;
 
-  @Prop({ type: [Number], required: true })
-  attempts: number[];
+  // @Prop({ type: [AttemptSchema], required: true })
+  // attempts: Attempt[];
+  @Prop()
+  // @ts-ignore
+  attempts: IAttempt[] | number[];
 
   @Prop({ required: true })
   best: number;

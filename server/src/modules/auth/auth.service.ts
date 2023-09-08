@@ -4,7 +4,7 @@ import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
-import { Role } from '@sh/enums';
+import { ContestState, Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { CompetitionDocument } from '~/src/models/competition.model';
 
@@ -76,10 +76,16 @@ export class AuthService {
     return await this.usersService.getUserRoles(id);
   }
 
-  checkAccessRightsToComp(user: IPartialUser, competition: CompetitionDocument) {
+  checkAccessRightsToComp(
+    user: IPartialUser,
+    competition: CompetitionDocument,
+    { ignoreState = false }: { ignoreState: boolean } = { ignoreState: false },
+  ) {
     if (
       !user.roles.includes(Role.Admin) &&
-      (!user.roles.includes(Role.Moderator) || competition.createdBy !== user.personId)
+      (!user.roles.includes(Role.Moderator) ||
+        competition.createdBy !== user.personId ||
+        (competition.state >= ContestState.Finished && !ignoreState))
     ) {
       console.log(`User ${user.username} denied access rights to contest ${competition.competitionId}`);
       throw new UnauthorizedException('User does not have access rights for this contest');

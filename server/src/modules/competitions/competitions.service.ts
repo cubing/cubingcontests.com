@@ -13,7 +13,7 @@ import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ICompetitionEvent, ICompetitionData, ICompetition } from '@sh/interfaces';
-import { CompetitionState, CompetitionType } from '@sh/enums';
+import { ContestState, ContestType } from '@sh/enums';
 import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -48,7 +48,7 @@ export class CompetitionsService {
   ) {}
 
   async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
-    const queryFilter: any = { state: { $gt: CompetitionState.Created } };
+    const queryFilter: any = { state: { $gt: ContestState.Created } };
     if (region) queryFilter.countryIso2 = region;
 
     try {
@@ -76,7 +76,7 @@ export class CompetitionsService {
 
     try {
       // TEMPORARILY DISABLED until mod-only protection is added
-      // if (competition?.state > CompetitionState.Created) {
+      // if (competition?.state > ContestState.Created) {
 
       const output: ICompetitionData = {
         competition,
@@ -130,7 +130,7 @@ export class CompetitionsService {
         ...createCompDto,
         events: competitionEvents,
         createdBy: creatorPersonId,
-        state: CompetitionState.Created,
+        state: ContestState.Created,
         participants: 0,
       };
 
@@ -138,12 +138,12 @@ export class CompetitionsService {
         createCompDto.organizers.map((org) => org.personId),
       );
 
-      if (createCompDto.type === CompetitionType.Meetup) {
+      if (createCompDto.type === ContestType.Meetup) {
         newCompetition.timezone = find(
           createCompDto.latitudeMicrodegrees / 1000000,
           createCompDto.longitudeMicrodegrees / 1000000,
         )[0];
-      } else if (createCompDto.type === CompetitionType.Competition) {
+      } else if (createCompDto.type === ContestType.Competition) {
         newCompetition.compDetails.schedule = await this.scheduleModel.create(createCompDto.compDetails.schedule);
       }
 
@@ -155,20 +155,20 @@ export class CompetitionsService {
 
   async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, user: IPartialUser) {
     const comp = await this.findCompetition(competitionId, true);
+    // Makes sure the user is an admin or a moderator who has access rights to the UNFINISHED comp.
+    // If the comp is finished and the user is not an admin, an unauthorized exception is thrown.
     this.authService.checkAccessRightsToComp(user, comp);
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (isAdmin || comp.state < CompetitionState.Finished) {
-      comp.organizers = await this.personsService.getPersonsById(
-        updateCompetitionDto.organizers.map((org) => org.personId),
-      );
-      if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
-      if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
+    comp.organizers = await this.personsService.getPersonsById(
+      updateCompetitionDto.organizers.map((org) => org.personId),
+    );
+    if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
+    if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
 
-      comp.events = await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
-    }
+    comp.events = await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
 
-    if (isAdmin || comp.state < CompetitionState.Approved) {
+    if (isAdmin || comp.state < ContestState.Approved) {
       comp.name = updateCompetitionDto.name;
       if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
       if (updateCompetitionDto.venue) comp.venue = updateCompetitionDto.venue;
@@ -187,7 +187,7 @@ export class CompetitionsService {
     }
 
     // Even an admin is not allowed to edit these after a comp has been approved
-    if (comp.state < CompetitionState.Approved) {
+    if (comp.state < ContestState.Approved) {
       comp.startDate = updateCompetitionDto.startDate;
       if (comp.endDate) comp.endDate = updateCompetitionDto.endDate;
     }
@@ -195,7 +195,7 @@ export class CompetitionsService {
     await this.saveCompetition(comp);
   }
 
-  async updateState(competitionId: string, newState: CompetitionState, user: IPartialUser) {
+  async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
     const comp = await this.findCompetition(competitionId);
     this.authService.checkAccessRightsToComp(user, comp);
     const isAdmin = user.roles.includes(Role.Admin);
@@ -203,19 +203,22 @@ export class CompetitionsService {
     if (
       isAdmin ||
       // Allow mods only to finish an ongoing competition
-      (comp.state === CompetitionState.Ongoing && newState === CompetitionState.Finished)
+      (comp.state === ContestState.Ongoing && newState === ContestState.Finished)
     ) {
       comp.state = newState;
     }
 
-    if (isAdmin && newState === CompetitionState.Published) {
-      console.log(`Publishing competition ${comp.competitionId}`);
+    if (isAdmin && newState === ContestState.Published) {
+      console.log(`Publishing contest ${comp.competitionId}...`);
 
       try {
+        // Unset compNotPublished from rounds and results so that the results can be included in the rankings
         await this.roundModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
         await this.resultModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
+
+        await this.resultsService.resetRecordsCancelledByPublishedComp(comp.competitionId);
       } catch (err) {
-        throw new InternalServerErrorException(`Error while publishing competition: ${err.message}`);
+        throw new InternalServerErrorException(`Error while publishing contest: ${err.message}`);
       }
     }
 
@@ -274,7 +277,7 @@ export class CompetitionsService {
 
     if (!competition) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
-    if (user) this.authService.checkAccessRightsToComp(user, competition);
+    if (user) this.authService.checkAccessRightsToComp(user, competition, { ignoreState: true });
     competition.createdBy = undefined;
 
     if (competition.compDetails) {
@@ -339,7 +342,7 @@ export class CompetitionsService {
 
               if (sameRoundInComp.results.length === 0) {
                 sameRoundInComp.format = round.format;
-                if (comp.state < CompetitionState.Approved) sameRoundInComp.date = round.date;
+                if (comp.state < ContestState.Approved) sameRoundInComp.date = round.date;
               }
 
               // Update proceed object if the updated round has it, or unset proceed if it doesn't,

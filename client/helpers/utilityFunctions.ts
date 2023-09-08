@@ -1,16 +1,11 @@
 import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
-import Countries from '@sh/Countries';
 import { Color, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
-import { ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces';
+import { IAttempt, ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { roundFormatOptions } from './multipleChoiceOptions';
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
-
-export const getCountry = (countryIso2: string): string => {
-  return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
-};
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string): string => {
   if (!startDate) throw new Error('Start date missing!');
@@ -105,16 +100,18 @@ export const getFormattedTime = (time: number, eventFormat: EventFormat, noForma
 // Returns null if the time is invalid (e.g. 8145); returns 0 if it's empty.
 // solved and attempted are only required for the Multi event format.
 export const getAttempt = (
+  attempt: IAttempt,
   eventFormat: EventFormat,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
   solved: string,
   attempted: string,
   noRounding = false,
-): number | null => {
-  if (time.length > 7) throw new Error('getResult does not support times >= 10 hours long');
-  if (time === '') return 0;
-  if (eventFormat === EventFormat.Number) return parseInt(time);
+): IAttempt => {
+  if (time.length > 7) throw new Error('times >= 10 hours long are not supported');
+  if (time === '') return { ...attempt, result: 0 };
+  if (eventFormat === EventFormat.Number) return { ...attempt, result: parseInt(time) };
 
+  const newAttempt = { ...attempt };
   let hours = 0;
   let minutes = 0;
   let centiseconds: number;
@@ -124,6 +121,7 @@ export const getAttempt = (
   if (time.length > 4) {
     // Round attempts >= 10 minutes long, unless noRounding = true
     if (time.length >= 6 && !noRounding) time = time.slice(0, -2) + '00';
+
     minutes = parseInt(time.slice(time.length === 7 ? 1 : 0, -4));
     centiseconds = parseInt(time.slice(-4));
   } else {
@@ -131,24 +129,22 @@ export const getAttempt = (
   }
 
   // Return null if the time is invalid
-  if (minutes >= 60 || centiseconds >= 6000) return null;
-
+  if (minutes >= 60 || centiseconds >= 6000) return { ...attempt, result: null };
   centiseconds = hours * 360000 + minutes * 6000 + centiseconds;
 
   if (eventFormat !== EventFormat.Multi) {
-    return centiseconds;
+    newAttempt.result = centiseconds;
   } else {
-    if (!solved || !attempted) return null;
+    if (!solved || !attempted) return { ...attempt, result: null };
+
     const solvedNum = parseInt(solved);
     const attemptedNum = parseInt(attempted);
-    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) return null;
-    /**
-     * Information about how this works: https://www.worldcubeassociation.org/export/results
-     *
-     * The difference is that CC allows multi results up to 9999 cubes instead of 99,
-     * time is stored as centiseconds, and it stores DNFs with all of the same information
-     * (they are stored as negative numbers).
-     */
+
+    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) {
+      return { ...attempt, result: null };
+    }
+
+    // See the IResult interface for information about how this works
     let multiOutput = ''; // DDDDTTTTTTTMMMM
     const missed: number = attemptedNum - solvedNum;
     let points: number = solvedNum - missed;
@@ -162,13 +158,15 @@ export const getAttempt = (
     multiOutput += new Array(7 - centiseconds.toString().length).fill('0').join('') + centiseconds;
     multiOutput += new Array(4 - missed.toString().length).fill('0').join('') + missed;
 
-    return parseInt(multiOutput);
+    newAttempt.result = parseInt(multiOutput);
   }
+
+  return newAttempt;
 };
 
 // Returns the best and average times
 export const getBestAndAverage = (
-  attempts: number[],
+  attempts: IAttempt[],
   roundFormat: RoundFormat,
   event: IEvent,
 ): { best: number; average: number } => {
@@ -177,12 +175,11 @@ export const getBestAndAverage = (
   let DNFDNScount = 0;
 
   // This actually follows the rule that the lower the attempt value is - the better
-  const convertedAttempts = attempts.map((attempt) => {
-    if (attempt > 0) {
-      sum += attempt;
-      return attempt;
+  const convertedAttempts = attempts.map(({ result }) => {
+    if (result > 0) {
+      sum += result;
+      return result;
     }
-
     DNFDNScount++;
     return Infinity;
   });
@@ -201,7 +198,7 @@ export const getBestAndAverage = (
     // Subtract best and worst results, if it's an Ao5 round
     if (attempts.length === 5) {
       sum -= best;
-      if (DNFDNScount === 0) sum -= Math.max(...attempts);
+      if (DNFDNScount === 0) sum -= Math.max(...convertedAttempts);
     }
 
     average = Math.round((sum / 3) * (event.format === EventFormat.Number ? 100 : 1));
@@ -242,13 +239,14 @@ export const checkErrorsBeforeSubmit = (
     errorMessages.push('You cannot enter the same person twice');
   }
 
-  let realResultExists = false; // real meaning not DNF or DNS
+  const realResultExists = false; // real meaning not DNF or DNS
 
-  for (let i = 0; i < result.attempts.length; i++) {
-    if (result.attempts[i] === null) errorMessages.push(`Attempt ${i + 1} is invalid`);
-    else if (result.attempts[i] === 0) errorMessages.push(`Please enter attempt ${i + 1}`);
-    else if (result.attempts[i] > 0) realResultExists = true;
-  }
+  // for (let i = 0; i < result.attempts.length; i++) {
+  //   if (result.attempts[i].result === null || result.attempts[i].memo === null)
+  //     errorMessages.push(`Attempt ${i + 1} is invalid`);
+  //   else if (result.attempts[i].result === 0) errorMessages.push(`Please enter attempt ${i + 1}`);
+  //   else if (result.attempts[i].result > 0) realResultExists = true;
+  // }
 
   if (requireRealResult && !realResultExists) errorMessages.push('You cannot submit only DNF/DNS results');
 
@@ -258,6 +256,7 @@ export const checkErrorsBeforeSubmit = (
     setErrorMessages([]);
     setSuccessMessage('');
 
+    // @ts-ignore
     const { best, average } = getBestAndAverage(result.attempts, roundFormat, event);
     result.best = best;
     result.average = average;

@@ -3,7 +3,6 @@ import {
   IsDateString,
   IsEnum,
   IsIn,
-  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -17,10 +16,11 @@ import {
   IsNotEmpty,
   ArrayMaxSize,
   IsBoolean,
+  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import Countries from '@sh/Countries';
-import { Color, CompetitionType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import {
   IPerson,
   ICompetitionDetails,
@@ -56,34 +56,34 @@ export class CreateCompetitionDto implements ICompetition {
   @Matches(titleRegex, getTitleRegexOpts('contest name'))
   name: string;
 
-  @IsEnum(CompetitionType)
-  type: CompetitionType;
+  @IsEnum(ContestType)
+  type: ContestType;
 
-  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
+  @ValidateIf((obj) => obj.type !== ContestType.Online)
   @IsString()
   city?: string;
 
   @IsIn(Countries.map((el) => el.code))
   countryIso2: string;
 
-  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
+  @ValidateIf((obj) => obj.type !== ContestType.Online)
   @IsString()
   @MinLength(3)
   @Matches(titleRegex, getTitleRegexOpts('venue'))
   venue?: string;
 
-  @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.address)
+  @ValidateIf((obj) => obj.type === ContestType.Competition || obj.address)
   @IsString()
   address?: string;
 
-  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
-  @IsNumber()
+  @ValidateIf((obj) => obj.type !== ContestType.Online)
+  @IsInt()
   @Min(-90000000)
   @Max(90000000)
   latitudeMicrodegrees?: number;
 
-  @ValidateIf((obj) => obj.type !== CompetitionType.Online)
-  @IsNumber()
+  @ValidateIf((obj) => obj.type !== ContestType.Online)
+  @IsInt()
   @Min(-180000000)
   @Max(180000000)
   longitudeMicrodegrees?: number;
@@ -91,7 +91,7 @@ export class CreateCompetitionDto implements ICompetition {
   @IsDateString()
   startDate: Date;
 
-  @ValidateIf((obj) => obj.type === CompetitionType.Competition)
+  @ValidateIf((obj) => obj.type === ContestType.Competition)
   @IsDateString()
   endDate?: Date;
 
@@ -100,7 +100,7 @@ export class CreateCompetitionDto implements ICompetition {
   @Type(() => CreatePersonDto)
   organizers: IPerson[];
 
-  @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.contact)
+  @ValidateIf((obj) => obj.type === ContestType.Competition || obj.contact)
   @IsEmail()
   contact?: string;
 
@@ -108,9 +108,9 @@ export class CreateCompetitionDto implements ICompetition {
   @IsString()
   description?: string;
 
-  @ValidateIf((obj) => obj.type === CompetitionType.Competition || obj.competitorLimit)
-  @IsNumber()
-  @Min(5)
+  @ValidateIf((obj) => obj.type === ContestType.Competition || obj.competitorLimit)
+  @IsInt()
+  @Min(4)
   competitorLimit?: number;
 
   @IsString()
@@ -122,7 +122,7 @@ export class CreateCompetitionDto implements ICompetition {
   @Type(() => CompetitionEventDto)
   events: ICompetitionEvent[];
 
-  @ValidateIf((obj) => obj.type === CompetitionType.Competition)
+  @ValidateIf((obj) => obj.type === ContestType.Competition)
   @ValidateNested()
   @Type(() => CompetitionDetailsDto)
   compDetails?: ICompetitionDetails;
@@ -146,7 +146,7 @@ class ScheduleDto implements ISchedule {
   @IsDateString()
   startDate: Date;
 
-  @IsNumber()
+  @IsInt()
   @Min(1)
   numberOfDays: number;
 
@@ -157,7 +157,7 @@ class ScheduleDto implements ISchedule {
 }
 
 class VenueDto implements IVenue {
-  @IsNumber()
+  @IsInt()
   @Min(1)
   id: number;
 
@@ -166,10 +166,12 @@ class VenueDto implements IVenue {
   @Matches(titleRegex, getTitleRegexOpts('venue names in the schedule'))
   name: string;
 
+  @IsInt()
   @Min(-90000000)
   @Max(90000000)
   latitudeMicrodegrees: number;
 
+  @IsInt()
   @Min(-180000000)
   @Max(180000000)
   longitudeMicrodegrees: number;
@@ -181,13 +183,14 @@ class VenueDto implements IVenue {
   @IsNotEmpty()
   timezone: string;
 
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => RoomDto)
   rooms: IRoom[];
 }
 
 class RoomDto implements IRoom {
-  @IsNumber()
+  @IsInt()
   @Min(1)
   id: number;
 
@@ -199,13 +202,14 @@ class RoomDto implements IRoom {
   @IsEnum(Color)
   color: Color;
 
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => ActivityDto)
   activities: IActivity[];
 }
 
 class ActivityDto implements IActivity {
-  @IsNumber()
+  @IsInt()
   @Min(1)
   id: number;
 
@@ -282,7 +286,7 @@ class ProceedDto implements IProceed {
   @IsEnum(RoundProceed)
   type: RoundProceed;
 
-  @IsNumber()
+  @IsInt()
   @Min(2)
   value: number;
 }

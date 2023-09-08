@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound } from '@sh/interfaces';
+import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
 import RoundResultsTable from '@c/RoundResultsTable';
 import myFetch from '~/helpers/myFetch';
-import { CompetitionState } from '@sh/enums';
-import { checkErrorsBeforeSubmit } from '~/helpers/utilityFunctions';
+import { ContestState, Role } from '@sh/enums';
+import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
 import ErrorMessages from '../ErrorMessages';
 import Loading from '../Loading';
@@ -15,6 +15,7 @@ const PostResultsScreen = ({
 }: {
   compData: ICompetitionData;
 }) => {
+  const [role, setRole] = useState<Role>(getRole());
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
@@ -22,7 +23,7 @@ const PostResultsScreen = ({
 
   const [round, setRound] = useState<IRound>(competition.events[0].rounds[0]);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
-  const [attempts, setAttempts] = useState<number[]>([]);
+  const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
   const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>(competition.events);
 
@@ -35,15 +36,17 @@ const PostResultsScreen = ({
     [recordPairsByEvent, currEvent],
   );
 
-  const isEditable = [CompetitionState.Approved, CompetitionState.Ongoing].includes(competition.state);
+  const isEditable = role === Role.Admin || [ContestState.Approved, ContestState.Ongoing].includes(competition.state);
 
   useEffect(() => {
     console.log('Records:', recordPairsByEvent);
 
-    if (competition.state < CompetitionState.Approved) {
-      setErrorMessages(["This competition hasn't been approved yet. Submitting results is disabled."]);
-    } else if (competition.state >= CompetitionState.Finished) {
-      setErrorMessages(['This competition is over. Submitting results is disabled.']);
+    if (!isEditable) {
+      if (competition.state < ContestState.Approved) {
+        setErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
+      } else if (competition.state >= ContestState.Finished) {
+        setErrorMessages(['This contest is over. Submitting results is disabled.']);
+      }
     }
   }, [competition, recordPairsByEvent]);
 
@@ -63,13 +66,14 @@ const PostResultsScreen = ({
         competitionId: competition.competitionId,
         eventId: currEvent.eventId,
         date: round.date,
-        compNotPublished: true,
         personIds: currentPersons.map((el) => el?.personId || null),
         ranking: 0, // real rankings assigned on the backend
         attempts,
         best: -1,
         average: -1,
       };
+
+      if (competition.state < ContestState.Finished) newResult.compNotPublished = true;
 
       checkErrorsBeforeSubmit(
         newResult,
@@ -97,8 +101,6 @@ const PostResultsScreen = ({
           }
         },
       );
-    } else {
-      setErrorMessages(['Submitting results is disabled']);
     }
   };
 
@@ -121,6 +123,7 @@ const PostResultsScreen = ({
     // Delete result and then set the inputs if the deletion was successful
     deleteResult((result as any)._id, () => {
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
+      // @ts-ignore
       setAttempts(result.attempts);
 
       document.getElementById('attempt_1').focus();
@@ -145,8 +148,6 @@ const PostResultsScreen = ({
           setResultFormResetTrigger(!resultFormResetTrigger);
         }
       }
-    } else {
-      setErrorMessages(['Deleting and editing results is disabled']);
     }
   };
 
@@ -177,7 +178,13 @@ const PostResultsScreen = ({
             resetTrigger={resultFormResetTrigger}
             noGrid
           />
-          <button type="button" id="submit_attempt_button" onClick={submitResult} className="btn btn-primary">
+          <button
+            type="button"
+            id="submit_attempt_button"
+            onClick={submitResult}
+            disabled={!isEditable}
+            className="btn btn-primary"
+          >
             {!loadingDuringSubmit ? (
               'Submit'
             ) : (
@@ -201,6 +208,7 @@ const PostResultsScreen = ({
               recordTypes={activeRecordTypes}
               onEditResult={editResult}
               onDeleteResult={deleteResult}
+              disableEditAndDelete={!isEditable}
             />
           </div>
         </div>

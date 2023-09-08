@@ -1,5 +1,5 @@
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
-import { Color, CompetitionType, RoundProceed } from '~/shared_helpers/enums';
+import { Color, ContestType, RoundProceed } from '~/shared_helpers/enums';
 import { roundFormats } from '../shared_helpers/roundFormats';
 
 export const colorOptions: MultiChoiceOption[] = [
@@ -36,17 +36,17 @@ export const colorOptions: MultiChoiceOption[] = [
 export const competitionTypeOptions: MultiChoiceOption[] = [
   {
     label: 'Meetup',
-    value: CompetitionType.Meetup,
+    value: ContestType.Meetup,
     color: Color.Green,
   },
   {
     label: 'Online',
-    value: CompetitionType.Online,
+    value: ContestType.Online,
     color: Color.Blue,
   },
   {
     label: 'Competition',
-    value: CompetitionType.Competition,
+    value: ContestType.Competition,
     color: Color.Red,
   },
 ];

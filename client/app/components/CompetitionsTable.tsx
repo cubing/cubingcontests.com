@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ICompetition } from '@sh/interfaces';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
-import { CompetitionState, CompetitionType, Role } from '@sh/enums';
+import { ContestState, ContestType } from '@sh/enums';
 import ContestTypeBadge from './ContestTypeBadge';
 import Country from './Country';
 
@@ -12,14 +12,14 @@ const CompetitionsTable = async ({
   onCopyCompetition,
   onPostCompResults,
   onChangeCompState,
-  role,
+  isAdmin = false,
 }: {
   competitions: ICompetition[];
   onEditCompetition?: (competitionId: string) => void;
   onCopyCompetition?: (competitionId: string) => void;
   onPostCompResults?: (competitionId: string) => void;
-  onChangeCompState?: (competitionId: string, newState: CompetitionState) => void;
-  role?: Role; // used on the admin dashboard
+  onChangeCompState?: (competitionId: string, newState: ContestState) => void;
+  isAdmin?: boolean; // used on the admin dashboard
 }) => {
   return (
     <>
@@ -42,7 +42,7 @@ const CompetitionsTable = async ({
               </div>
               <div className="d-flex justify-content-between gap-3">
                 <div>
-                  {comp.type !== CompetitionType.Online ? (
+                  {comp.type !== ContestType.Online ? (
                     <>
                       {comp.city}, <Country countryIso2={comp.countryIso2} swapPositions />
                     </>
@@ -91,7 +91,7 @@ const CompetitionsTable = async ({
                   </Link>
                 </td>
                 <td>
-                  {comp.type !== CompetitionType.Online && (
+                  {comp.type !== ContestType.Online && (
                     <span>
                       {comp.city}, <Country countryIso2={comp.countryIso2} swapPositions />
                     </span>
@@ -102,62 +102,61 @@ const CompetitionsTable = async ({
                 </td>
                 <td>{comp.participants || ''}</td>
                 <td>{comp.events.length}</td>
+
                 {/* THIS IS DESKTOP-ONLY */}
                 {onEditCompetition && (
-                  <>
-                    <td className="d-flex gap-2">
+                  <td className="d-flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onEditCompetition(comp.competitionId)}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onCopyCompetition(comp.competitionId)}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Clone
+                    </button>
+                    {comp.state === ContestState.Created && isAdmin && (
                       <button
                         type="button"
-                        onClick={() => onEditCompetition(comp.competitionId)}
-                        className="btn btn-primary btn-sm"
+                        onClick={() => onChangeCompState(comp.competitionId, ContestState.Approved)}
+                        className="btn btn-warning btn-sm"
                       >
-                        Edit
+                        Approve
                       </button>
+                    )}
+                    {([ContestState.Approved, ContestState.Ongoing].includes(comp.state) || isAdmin) && (
                       <button
                         type="button"
-                        onClick={() => onCopyCompetition(comp.competitionId)}
-                        className="btn btn-primary btn-sm"
+                        onClick={() => onPostCompResults(comp.competitionId)}
+                        className={'btn btn-sm ' + (comp.state < ContestState.Finished ? 'btn-success' : 'btn-warning')}
                       >
-                        Copy
+                        {comp.state < ContestState.Finished ? 'Enter Results' : 'Edit Results'}
                       </button>
-                      {comp.state === CompetitionState.Created && role === Role.Admin && (
-                        <button
-                          type="button"
-                          onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Approved)}
-                          className="btn btn-warning btn-sm"
-                        >
-                          Approve
-                        </button>
-                      )}
-                      {[CompetitionState.Approved, CompetitionState.Ongoing].includes(comp.state) && (
-                        <button
-                          type="button"
-                          onClick={() => onPostCompResults(comp.competitionId)}
-                          className="btn btn-success btn-sm"
-                        >
-                          Enter Results
-                        </button>
-                      )}
-                      {comp.state === CompetitionState.Ongoing && (
-                        <button
-                          type="button"
-                          onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Finished)}
-                          className="btn btn-warning btn-sm"
-                        >
-                          Finish
-                        </button>
-                      )}
-                      {comp.state === CompetitionState.Finished && role === Role.Admin && (
-                        <button
-                          type="button"
-                          onClick={() => onChangeCompState(comp.competitionId, CompetitionState.Published)}
-                          className="btn btn-warning btn-sm"
-                        >
-                          Publish
-                        </button>
-                      )}
-                    </td>
-                  </>
+                    )}
+                    {comp.state === ContestState.Ongoing && (
+                      <button
+                        type="button"
+                        onClick={() => onChangeCompState(comp.competitionId, ContestState.Finished)}
+                        className="btn btn-warning btn-sm"
+                      >
+                        Finish
+                      </button>
+                    )}
+                    {comp.state === ContestState.Finished && isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => onChangeCompState(comp.competitionId, ContestState.Published)}
+                        className="btn btn-warning btn-sm"
+                      >
+                        Publish
+                      </button>
+                    )}
+                  </td>
                 )}
               </tr>
             ))}

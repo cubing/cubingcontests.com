@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsNumber, IsString, Matches, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsString, Matches, Min } from 'class-validator';
 import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 
@@ -10,7 +10,7 @@ export class UpdateRecordTypeDto implements IRecordType {
   @IsEnum(WcaRecordType)
   wcaEquivalent: WcaRecordType;
 
-  @IsNumber()
+  @IsInt()
   @Min(1)
   order: number;
 

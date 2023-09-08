@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import '@cubing/icons';
+import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import Solves from '~/app/components/Solves';
 import Competitor from '~/app/components/Competitor';
@@ -8,7 +8,6 @@ import RankingsTable from '~/app/components/RankingsTable';
 import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
-import { EventGroup } from '~/shared_helpers/enums';
 import EventTitle from '~/app/components/EventTitle';
 
 // SEO
@@ -83,6 +82,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                               <Competitor key={person.personId} person={person} />
                             ))}
                           </div>
+                          {/* @ts-ignore */}
                           {type !== 'single' && <Solves event={event} attempts={result.attempts} />}
                           {(result.videoLink || result.discussionLink) && (
                             <div className="d-flex gap-2">

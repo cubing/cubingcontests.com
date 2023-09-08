@@ -38,12 +38,14 @@ export const setResultRecords = (result: IResult, recordPairs: IRecordPair[]): I
       const comparisonToRecordSingle = compareSingles(result, { best: recordPair.best } as IResult);
 
       if (result.best > 0 && comparisonToRecordSingle <= 0) {
+        console.log(`New ${result.eventId} single WR: ${result.best}`);
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
       const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
 
       if (result.average > 0 && comparisonToRecordAvg <= 0) {
+        console.log(`New ${result.eventId} average WR: ${result.average}`);
         result.regionalAverageRecord = recordPair.wcaEquivalent;
       }
     }
@@ -81,6 +83,8 @@ export const fixTimesOverTenMinutes = (result: IResult, eventFormat: EventFormat
   if (eventFormat === EventFormat.Time) {
     if (result.best > 60000) result.best -= result.best % 100;
 
-    result.attempts = result.attempts.map((att) => (att > 60000 ? att - (att % 100) : att));
+    // result.attempts = result.attempts.map((att) =>
+    //   att.result > 60000 ? { ...att, result: att.result - (att.result % 100) } : att,
+    // );
   }
 };

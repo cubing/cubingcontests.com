@@ -13,6 +13,7 @@ const RoundResultsTable = ({
   // If one of these is defined, the other must be defined too
   onEditResult,
   onDeleteResult,
+  disableEditAndDelete = false,
 }: {
   round: IRound;
   event: IEvent;
@@ -20,6 +21,7 @@ const RoundResultsTable = ({
   recordTypes: IRecordType[];
   onEditResult?: (result: IResult) => void;
   onDeleteResult?: (resultId: string) => void;
+  disableEditAndDelete?: boolean;
 }) => {
   const roundCanHaveAverage = getRoundCanHaveAverage(round.format, event);
   const roundRanksWithAverage = getRoundRanksWithAverage(round.format, event);
@@ -77,6 +79,7 @@ const RoundResultsTable = ({
                   {roundCanHaveAverage && (
                     <td>{i === 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}</td>
                   )}
+                  {/* @ts-ignore */}
                   <td>{i === 0 && <Solves event={event} attempts={result.attempts} />}</td>
                   {onEditResult && (
                     <td className="py-1">
@@ -85,6 +88,7 @@ const RoundResultsTable = ({
                           <button
                             type="button"
                             onClick={() => onEditResult(result)}
+                            disabled={disableEditAndDelete}
                             className="me-2 btn btn-primary btn-sm"
                           >
                             Edit
@@ -92,6 +96,7 @@ const RoundResultsTable = ({
                           <button
                             type="button"
                             onClick={() => onDeleteResult((result as any)._id)}
+                            disabled={disableEditAndDelete}
                             className="btn btn-danger btn-sm"
                           >
                             Delete

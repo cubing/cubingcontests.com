@@ -1,14 +1,18 @@
 import {
   ArrayMinSize,
+  ArrayMaxSize,
   IsBoolean,
   IsDateString,
+  IsInt,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
+  Min,
+  ValidateNested,
 } from 'class-validator';
-import { IResult } from '@sh/interfaces';
+import { IAttempt, IResult } from '@sh/interfaces';
+import { Type } from 'class-transformer';
 
 export class CreateResultDto implements IResult {
   @IsOptional()
@@ -27,21 +31,24 @@ export class CreateResultDto implements IResult {
   @IsBoolean()
   compNotPublished: boolean;
 
-  @IsNumber({}, { each: true })
+  @ArrayMinSize(1)
+  @IsInt({ each: true })
   personIds: number[];
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   ranking?: number;
 
   @ArrayMinSize(1)
-  @IsNumber({}, { each: true })
-  attempts: number[];
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => AttemptDto)
+  attempts: IAttempt[];
 
-  @IsNumber()
+  @IsInt()
   best: number;
 
-  @IsNumber()
+  @IsInt()
   average: number;
 
   @IsOptional()
@@ -59,4 +66,14 @@ export class CreateResultDto implements IResult {
   @IsOptional()
   @IsUrl()
   discussionLink?: string;
+}
+
+class AttemptDto implements IAttempt {
+  @IsInt()
+  result: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  memo?: number;
 }

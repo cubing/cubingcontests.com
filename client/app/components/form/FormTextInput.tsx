@@ -46,6 +46,12 @@ const FormTextInput = ({
     if (onKeyDown) onKeyDown(e);
   };
 
+  const handleFocus = (e: any) => {
+    // Prevent the whole input from being highlighted
+    e.target.selectionStart = e.target.selectionEnd;
+    if (onFocus) onFocus();
+  };
+
   return (
     <div className="mb-3 fs-5">
       {title && (
@@ -62,9 +68,10 @@ const FormTextInput = ({
           autoFocus={autoFocus}
           disabled={disabled}
           required={required}
+          readOnly={!setValue}
           onChange={setValue ? (e: any) => setValue(e.target.value) : undefined}
           onKeyDown={handleKeyDown}
-          onFocus={onFocus}
+          onFocus={(e: any) => handleFocus(e)}
           onBlur={onBlur}
           className={'flex-grow-1 form-control' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
         />

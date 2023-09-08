@@ -4,7 +4,16 @@ import { useEffect, useMemo, useState } from 'react';
 import FormEventSelect from '../form/FormEventSelect';
 import FormSelect from '../form/FormSelect';
 import FormPersonInputs from '../form/FormPersonInputs';
-import { ICompetitionEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
+import {
+  IAttempt,
+  ICompetitionEvent,
+  IEvent,
+  IPerson,
+  IRecordPair,
+  IRecordType,
+  IResult,
+  IRound,
+} from '@sh/interfaces';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
@@ -53,8 +62,8 @@ const ResultForm = ({
   competitionEvents?: ICompetitionEvent[];
   persons: IPerson[];
   setPersons: (val: IPerson[]) => void;
-  attempts: number[];
-  setAttempts: (val: number[]) => void;
+  attempts: IAttempt[];
+  setAttempts: (val: IAttempt[]) => void;
   // If one of these three is set, all of them must be set!
   round?: IRound;
   setRound?: (val: IRound) => void;
@@ -90,6 +99,8 @@ const ResultForm = ({
 
   useEffect(() => {
     if (attempts.length > 0) {
+      console.log('Attempts:', attempts);
+
       const { best, average } = getBestAndAverage(attempts, roundFormat, event);
       setTempResult(setResultRecords({ best, average } as IResult, recordPairs));
     }
@@ -132,15 +143,17 @@ const ResultForm = ({
     return false;
   };
 
-  const changeAttempt = (index: number, value: number) => {
-    setAttempts(attempts.map((el, i) => (i !== index ? el : value)));
+  const changeAttempt = (index: number, newAttempt: IAttempt) => {
+    setAttempts(attempts.map((el, i) => (i !== index ? el : newAttempt)));
   };
 
   const focusNext = (index: number) => {
     // Focus next time input or the submit button if it's the last input
     if (index + 1 < attempts.length) {
       if (event.format !== EventFormat.Multi) document.getElementById(`attempt_${index + 2}`)?.focus();
-      else document.getElementById(`attempt_${index + 2}_solved`).focus();
+      // If Multi format and the next attempt is not DNS, focus the solved input, if it's DNS, focus the time input
+      else if (attempts[index + 1].result !== -2) document.getElementById(`attempt_${index + 2}_solved`).focus();
+      else document.getElementById(`attempt_${index + 2}`).focus();
     } else {
       if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
     }
@@ -151,7 +164,7 @@ const ResultForm = ({
     setErrorMessages([]);
     setPersons(new Array(event.participants || 1).fill(null));
     setPersonNames(new Array(event.participants || 1).fill(''));
-    setAttempts(new Array(roundFormats[newRoundFormat].attempts).fill(0));
+    setAttempts(new Array(roundFormats[newRoundFormat].attempts).fill({ result: 0 }));
     setTempResult({ best: -1, average: -1 } as IResult);
 
     document.getElementById('Competitor_1')?.focus();
@@ -201,7 +214,7 @@ const ResultForm = ({
           key={i}
           number={i + 1}
           attempt={attempt}
-          setAttempt={(val: number) => changeAttempt(i, val)}
+          setAttempt={(val: IAttempt) => changeAttempt(i, val)}
           event={event}
           focusNext={() => focusNext(i)}
         />

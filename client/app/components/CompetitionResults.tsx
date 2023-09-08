@@ -8,8 +8,8 @@ import EventResultsTable from './EventResultsTable';
 import EventButtons from './EventButtons';
 import Schedule from './Schedule';
 import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
-import { CompetitionState, CompetitionType } from '@sh/enums';
-import { getCountry, getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
+import { ContestState, ContestType } from '@sh/enums';
+import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 import Country from './Country';
@@ -42,7 +42,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
 
   const tabs = useMemo(
     () =>
-      competition.type === CompetitionType.Competition
+      competition.type === ContestType.Competition
         ? ['General Info', 'Results', 'Schedule']
         : ['General Info', 'Results'],
     [competition],
@@ -53,14 +53,14 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
   );
   // Not used for competitions
   const formattedTime = useMemo(() => {
-    if (competition.type === CompetitionType.Competition) return null;
+    if (competition.type === ContestType.Competition) return null;
     return format(utcToZonedTime(competition.startDate, competition.timezone || 'UTC'), 'H:mm');
   }, [competition]);
   const events = useMemo(() => competition.events.map((el) => el.event), [competition.events]);
 
   const competitionType = competitionTypeOptions.find((el) => el.value === competition.type)?.label || 'ERROR';
   const isOngoing =
-    competition.state < CompetitionState.Finished &&
+    competition.state < ContestState.Finished &&
     areIntervalsOverlapping(
       { start: new Date(competition.startDate), end: new Date(competition.endDate || competition.startDate) },
       { start: startOfToday(), end: endOfToday() },
@@ -119,10 +119,10 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
             {formattedTime && (
               <p>
                 Starts at:&#8194;{formattedTime}
-                {competition.type === CompetitionType.Online ? ' (UTC)' : ''}
+                {competition.type === ContestType.Online ? ' (UTC)' : ''}
               </p>
             )}
-            {competition.type !== CompetitionType.Online && (
+            {competition.type !== ContestType.Online && (
               <p className="mb-2">
                 City:&#8194;{competition.city}, <Country countryIso2={competition.countryIso2} swapPositions />
               </p>
@@ -136,7 +136,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
             <p className="mb-2">
               {competition.organizers.length > 1 ? 'Organizers' : 'Organizer'}:&#8194;{getFormattedOrganizers()}
             </p>
-            {competition.state < CompetitionState.Published && competition.competitorLimit && (
+            {competition.state < ContestState.Published && competition.competitorLimit && (
               <p className="mb-2">
                 Competitor limit:&#8194;<b>{competition.competitorLimit}</b>
               </p>
@@ -150,7 +150,7 @@ const CompetitionResults = ({ data: { competition, persons, activeRecordTypes } 
           <hr className="d-md-none mt-2 mb-3" />
           <div className="col-md-7">
             {isOngoing && <p className="mb-4">This contest is currently ongoing</p>}
-            {competition.state === CompetitionState.Finished && (
+            {competition.state === ContestState.Finished && (
               <p className="mb-4">The results for this {competitionType.toLowerCase()} are currently being checked</p>
             )}
             {competition.description && (

@@ -44,14 +44,14 @@ export enum RoundProceed {
   Number = 2,
 }
 
-export enum CompetitionType {
+export enum ContestType {
   Meetup = 1,
   Competition = 2,
   Online = 3,
 }
 
 // The order is important here
-export enum CompetitionState {
+export enum ContestState {
   Created = 10,
   Approved = 20,
   Ongoing = 30,

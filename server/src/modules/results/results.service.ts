@@ -5,8 +5,16 @@ import { ResultDocument } from '~/src/models/result.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { CompetitionState, WcaRecordType } from '@sh/enums';
-import { IEventRankings, IRecordType, IRecordPair, IEventRecordPairs, IResultsSubmissionInfo } from '@sh/interfaces';
+import { ContestState, WcaRecordType } from '@sh/enums';
+import {
+  IEventRankings,
+  IRecordType,
+  IRecordPair,
+  IEventRecordPairs,
+  IResultsSubmissionInfo,
+  IAttempt,
+  ICompetition,
+} from '@sh/interfaces';
 import { fixTimesOverTenMinutes, getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
@@ -28,6 +36,18 @@ export class ResultsService {
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
   ) {}
+
+  async onModuleInit() {
+    const results = await this.resultModel.find().exec();
+
+    for (const res of results) {
+      if (res.attempts.length > 0 && typeof res.attempts[0] === 'number') {
+        res.attempts = res.attempts.map((el) => ({ result: el })) as IAttempt[];
+        console.log(JSON.stringify(res, null, 2));
+        await res.save();
+      }
+    }
+  }
 
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
@@ -89,13 +109,13 @@ export class ResultsService {
             { $match: { eventId, compNotPublished: { $exists: false } } },
             { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
             { $project: excl },
-            { $match: { attempts: { $gt: 0 } } },
-            { $sort: { attempts: 1 } },
+            { $match: { 'attempts.result': { $gt: 0 } } },
+            { $sort: { 'attempts.result': 1 } },
           ])
           .exec();
 
         // Set the unwound attempts as best, so that the frontend can use the same logic for everything
-        for (const result of eventResults) result.best = result.attempts as any as number;
+        for (const result of eventResults) result.best = (result.attempts as any).result;
       }
     }
 
@@ -225,9 +245,9 @@ export class ResultsService {
       round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format, event));
       await round.save(); // save the round for resetCancelledRecords
 
-      await this.resetCancelledRecords(createResultDto);
+      await this.resetCancelledRecords(createResultDto, comp);
 
-      comp.state = CompetitionState.Ongoing;
+      if (comp.state < ContestState.Ongoing) comp.state = ContestState.Ongoing;
       comp.participants = (
         await this.personsService.getCompetitionParticipants({ competitionId: comp.competitionId })
       ).length;
@@ -245,7 +265,7 @@ export class ResultsService {
         round.results = oldResults;
         await round.save();
       }
-      await this.updateRecordsAfterDeletion(createResultDto);
+      await this.updateRecordsAfterDeletion(createResultDto, comp);
 
       throw new InternalServerErrorException(`Error while creating result: ${err.message}`);
     }
@@ -281,7 +301,7 @@ export class ResultsService {
       round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format, event));
       round.save(); // save the round for updateRecordsAfterDeletion
 
-      await this.updateRecordsAfterDeletion(result);
+      await this.updateRecordsAfterDeletion(result, comp);
 
       comp.participants = (
         await this.personsService.getCompetitionParticipants({ competitionId: comp.competitionId })
@@ -302,7 +322,7 @@ export class ResultsService {
         round.results = oldResults;
         await round.save();
       }
-      await this.resetCancelledRecords(result);
+      await this.resetCancelledRecords(result, comp);
 
       throw new InternalServerErrorException('Error while updating round during result deletion');
     }
@@ -408,8 +428,8 @@ export class ResultsService {
     };
 
     try {
-      // Get most recent result with a single record
-      const [singleRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
+      // Get fastest single record result
+      const [singleRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ best: 1 }).limit(1).exec();
 
       // If found, get all tied record results, with the oldest at the top
       if (singleRecordResult) {
@@ -421,8 +441,8 @@ export class ResultsService {
       delete queryFilter.best;
       queryFilter.regionalAverageRecord = wcaEquivalent;
 
-      // Get most recent result with an average record
-      const [avgRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ date: -1 }).limit(1).exec();
+      // Get fastest average record result
+      const [avgRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ average: 1 }).limit(1).exec();
 
       // If found, get all tied record results, with the oldest at the top
       if (avgRecordResult) {
@@ -436,61 +456,116 @@ export class ResultsService {
     }
   }
 
-  // Resets records set on the same day as the given result or after that day
-  private async resetCancelledRecords(createResultDto: CreateResultDto | ResultDocument) {
+  // Resets records set on the same day as the given result or after that day. If comp is set,
+  // only resets the records for that competition (used only when creating contest result, not for submitting).
+  private async resetCancelledRecords(result: CreateResultDto | ResultDocument, comp?: ICompetition) {
+    if (result.best <= 0 && result.average <= 0) return;
+
+    // If the comp isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
+    // reset ALL results that are no longer records. If comp is undefined, also do it for all results.
+    // THIS CODE IS SIMILAR TO updateRecordsAfterDeletion
+    const queryBase: any = { eventId: result.eventId, date: { $gte: result.date } };
+    if (comp && comp.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
+
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
     try {
-      // Remove single records
-      await this.resultModel.updateMany(
-        { eventId: createResultDto.eventId, date: { $gte: createResultDto.date }, best: { $gt: createResultDto.best } },
-        { $unset: { regionalSingleRecord: '' } },
-      );
+      // Remove cancelled single records
+      if (result.best > 0) {
+        await this.resultModel
+          .updateMany({ ...queryBase, best: { $gt: result.best } }, { $unset: { regionalSingleRecord: '' } })
+          .exec();
+      }
 
-      // Remove average records
-      await this.resultModel.updateMany(
-        {
-          eventId: createResultDto.eventId,
-          date: { $gte: createResultDto.date },
-          average: { $gt: createResultDto.average },
-        },
-        { $unset: { regionalAverageRecord: '' } },
-      );
+      // Remove cancelled average records
+      if (result.average > 0) {
+        await this.resultModel
+          .updateMany({ ...queryBase, average: { $gt: result.average } }, { $unset: { regionalAverageRecord: '' } })
+          .exec();
+      }
     } catch (err) {
-      throw new InternalServerErrorException(`Error while resetting future records: ${err.message}`);
+      throw new InternalServerErrorException(`Error while resetting cancelled WRs: ${err.message}`);
     }
   }
 
-  // Set records that are now recognized after a result deletion. Sets records on the same day and into the future.
-  private async updateRecordsAfterDeletion(result: ResultDocument | CreateResultDto) {
+  async resetRecordsCancelledByPublishedComp(competitionId: string) {
+    const recordResults = await this.resultModel
+      .find({
+        competitionId,
+        $or: [{ regionalSingleRecord: { $exists: true } }, { regionalAverageRecord: { $exists: true } }],
+      })
+      .exec();
+
+    for (const res of recordResults) {
+      console.log(`Resetting records for ${res.eventId} from result: ${JSON.stringify(res, null, 2)}`);
+      await this.resetCancelledRecords(res);
+    }
+  }
+
+  // Sets records that are now recognized after a contest result deletion. Does if for all days from the result's
+  // date onward. If comp is set, only sets records for that competition, otherwise does it for ALL results.
+  private async updateRecordsAfterDeletion(result: ResultDocument | CreateResultDto, comp?: ICompetition) {
+    if (result.best <= 0 && result.average <= 0) return;
+
+    // If the comp isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
+    // reset ALL results that are no longer records. If comp is undefined, also do it for all results.
+    // THIS CODE IS SIMILAR TO resetCancelledRecords
+    const queryBase: any = { _id: { $ne: (result as any)._id }, eventId: result.eventId, date: { $gte: result.date } };
+    if (comp && comp.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
+    else queryBase.compNotPublished = { $exists: false };
+
     // This is done so that we get records BEFORE the date of the deleted result
     const recordsUpTo = new Date(result.date.getTime() - 1);
     const recordPairs = await this.getEventRecordPairs(result.eventId, recordsUpTo);
 
     // TO-DO: DIFFERENT RECORD TYPES NEED TO BE PROPERLY SUPPORTED
-    for (const recordPair of recordPairs) {
+    for (const rp of recordPairs) {
       try {
         // Set single records
-        await this.resultModel.updateMany(
-          {
-            eventId: result.eventId,
-            date: { $gte: result.date },
-            best: { $lte: recordPair.best, $gt: 0 },
-          },
-          { $set: { regionalSingleRecord: recordPair.wcaEquivalent } },
-        );
+        if (result.best > 0) {
+          // Look for non-DNF singles better than the record and get the best one of those
+          const [bestSingleResult] = await this.resultModel
+            .find({ ...queryBase, best: { $lte: rp.best, $gt: 0 } })
+            .sort({ best: 1 })
+            .limit(1)
+            .exec();
+
+          if (bestSingleResult) {
+            console.log(`Setting ${result.eventId} single records after deletion: ${bestSingleResult.best}`);
+
+            // Sets all tied records
+            await this.resultModel
+              .updateMany(
+                { ...queryBase, best: bestSingleResult.best },
+                { $set: { regionalSingleRecord: rp.wcaEquivalent } },
+              )
+              .exec();
+          }
+        }
 
         // Set average records
-        await this.resultModel.updateMany(
-          {
-            eventId: result.eventId,
-            date: { $gte: result.date },
-            average: { $lte: recordPair.average, $gt: 0 },
-          },
-          { $set: { regionalAverageRecord: recordPair.wcaEquivalent } },
-        );
+        if (result.average > 0) {
+          // Look for non-DNF averages better than the record and get the best one of those
+          const [bestAvgResult] = await this.resultModel
+            .find({ ...queryBase, average: { $lte: rp.average, $gt: 0 } })
+            .sort({ average: 1 })
+            .limit(1)
+            .exec();
+
+          if (bestAvgResult) {
+            console.log(`Setting ${result.eventId} average records after deletion: ${bestAvgResult.average}`);
+
+            // Sets all tied records
+            await this.resultModel
+              .updateMany(
+                { ...queryBase, average: bestAvgResult.average },
+                { $set: { regionalAverageRecord: rp.wcaEquivalent } },
+              )
+              .exec();
+          }
+        }
       } catch (err) {
         throw new InternalServerErrorException(
-          `Error while updating ${recordPair.wcaEquivalent} records after result deletion`,
+          `Error while updating ${rp.wcaEquivalent} records after result deletion: ${err.message}`,
         );
       }
     }

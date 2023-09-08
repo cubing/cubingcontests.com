@@ -17,16 +17,7 @@ import FormPersonInputs from '../form/FormPersonInputs';
 import Tabs from '../Tabs';
 import Schedule from '../Schedule';
 import { ICompetition, ICompetitionDetails, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
-import {
-  Color,
-  CompetitionState,
-  CompetitionType,
-  EventGroup,
-  Role,
-  RoundFormat,
-  RoundProceed,
-  RoundType,
-} from '@sh/enums';
+import { Color, ContestState, ContestType, EventGroup, Role, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
 import { colorOptions, competitionTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
@@ -58,7 +49,7 @@ const CompetitionForm = ({
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
-  const [type, setType] = useState(CompetitionType.Meetup);
+  const [type, setType] = useState(ContestType.Meetup);
   const [city, setCity] = useState('');
   const [countryIso2, setCountryId] = useState('NOT_SELECTED');
   const [venue, setVenue] = useState('');
@@ -93,14 +84,14 @@ const CompetitionForm = ({
   competitionTypeOptions[2].disabled = !isAdmin; // only enable competition type for admins
 
   const tabs = useMemo(
-    () => (type === CompetitionType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
+    () => (type === ContestType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
     [type],
   );
   const filteredEvents = useMemo(() => {
     const newFiltEv = events.filter(
       (ev) =>
         ev.groups.some((g) => [EventGroup.WCA, EventGroup.Unofficial].includes(g)) &&
-        (type === CompetitionType.Meetup || !ev.groups.includes(EventGroup.MeetupOnly)),
+        (type === ContestType.Meetup || !ev.groups.includes(EventGroup.MeetupOnly)),
     );
 
     // Reset new event ID and main event ID if new filtered events don't include them
@@ -116,20 +107,20 @@ const CompetitionForm = ({
     [filteredEvents, competitionEvents],
   );
   const disableIfCompFinished = useMemo(
-    () => !isAdmin && mode === 'edit' && competition.state >= CompetitionState.Finished,
+    () => !isAdmin && mode === 'edit' && competition.state >= ContestState.Finished,
     [competition, mode, isAdmin],
   );
   // This has been nominated for the best variable name award!
   const disableIfCompFinishedEvenForAdmin = useMemo(
-    () => mode === 'edit' && competition.state >= CompetitionState.Finished,
+    () => mode === 'edit' && competition.state >= ContestState.Finished,
     [competition, mode, isAdmin],
   );
   const disableIfCompApproved = useMemo(
-    () => !isAdmin && mode === 'edit' && competition.state >= CompetitionState.Approved,
+    () => !isAdmin && mode === 'edit' && competition.state >= ContestState.Approved,
     [competition, mode, isAdmin],
   );
   const disableIfCompApprovedEvenForAdmin = useMemo(
-    () => mode === 'edit' && competition.state >= CompetitionState.Approved,
+    () => mode === 'edit' && competition.state >= ContestState.Approved,
     [competition, mode],
   );
   const roomOptions = useMemo(
@@ -146,7 +137,7 @@ const CompetitionForm = ({
     [activityCode, roomOptions, selectedRoom],
   );
   const displayedStartDate = useMemo(
-    () => (startDate && type === CompetitionType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate),
+    () => (startDate && type === ContestType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate),
     [startDate, type, venueTimezone],
   );
 
@@ -178,12 +169,12 @@ const CompetitionForm = ({
       setMainEventId(competition.mainEventId);
 
       switch (competition.type) {
-        case CompetitionType.Meetup: {
+        case ContestType.Meetup: {
           setStartDate(new Date(competition.startDate));
           setVenueTimezone(competition.timezone);
           break;
         }
-        case CompetitionType.Competition: {
+        case ContestType.Competition: {
           // Convert the dates from string to Date
           setStartDate(new Date(competition.startDate));
           setEndDate(new Date(competition.endDate));
@@ -193,7 +184,7 @@ const CompetitionForm = ({
           setVenueTimezone(venue.timezone);
           break;
         }
-        case CompetitionType.Online: {
+        case ContestType.Online: {
           setStartDate(new Date(competition.startDate));
           break;
         }
@@ -236,28 +227,28 @@ const CompetitionForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
-    if (!startDate || (type === CompetitionType.Competition && !endDate)) {
+    if (!startDate || (type === ContestType.Competition && !endDate)) {
       setErrorMessages(['Please enter valid dates']);
       return;
     }
 
     const selectedOrganizers = organizers.filter((el) => el !== null);
-    const latitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(latitude) : undefined;
-    const longitudeMicrodegrees = type !== CompetitionType.Online ? coordToMicrodegrees(longitude) : undefined;
+    const latitudeMicrodegrees = type !== ContestType.Online ? coordToMicrodegrees(latitude) : undefined;
+    const longitudeMicrodegrees = type !== ContestType.Online ? coordToMicrodegrees(longitude) : undefined;
     let processedStartDate = startDate;
     const endDateOnly = getDateOnly(endDate);
 
-    if (type === CompetitionType.Competition) processedStartDate = getDateOnly(startDate);
+    if (type === ContestType.Competition) processedStartDate = getDateOnly(startDate);
 
     const getRoundDate = (round: IRound): Date => {
       switch (type) {
         // If it's a meetup, get the real date using the time zone (it could be different from the UTC date)
-        case CompetitionType.Meetup: {
+        case ContestType.Meetup: {
           return getDateOnly(utcToZonedTime(startDate, venueTimezone));
         }
         // If it's a competition, find the start time of the round using the schedule and get
         // the date using the time zone. Again, the date could be different from the UTC date.
-        case CompetitionType.Competition: {
+        case ContestType.Competition: {
           let roundStartTime: Date;
 
           for (const room of rooms) {
@@ -272,7 +263,7 @@ const CompetitionForm = ({
           return getDateOnly(utcToZonedTime(roundStartTime, venueTimezone));
         }
         // If it's an online comp, just get the date
-        case CompetitionType.Online: {
+        case ContestType.Online: {
           return getDateOnly(startDate);
         }
       }
@@ -286,7 +277,7 @@ const CompetitionForm = ({
 
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
 
-    if (type === CompetitionType.Competition) {
+    if (type === ContestType.Competition) {
       compDetails = {
         schedule: {
           competitionId,
@@ -312,15 +303,15 @@ const CompetitionForm = ({
       competitionId,
       name: name.trim(),
       type,
-      city: type !== CompetitionType.Online ? city.trim() : undefined,
+      city: type !== ContestType.Online ? city.trim() : undefined,
       // If it's an online competition, set country ISO to online
-      countryIso2: type !== CompetitionType.Online ? countryIso2 : 'ONLINE',
-      venue: type !== CompetitionType.Online ? venue.trim() : undefined,
-      address: type !== CompetitionType.Online ? address.trim() : undefined,
+      countryIso2: type !== ContestType.Online ? countryIso2 : 'ONLINE',
+      venue: type !== ContestType.Online ? venue.trim() : undefined,
+      address: type !== ContestType.Online ? address.trim() : undefined,
       latitudeMicrodegrees,
       longitudeMicrodegrees,
       startDate: processedStartDate,
-      endDate: type === CompetitionType.Competition ? endDateOnly : undefined,
+      endDate: type === ContestType.Competition ? endDateOnly : undefined,
       organizers: selectedOrganizers,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
@@ -334,7 +325,7 @@ const CompetitionForm = ({
       newComp.createdBy = competition.createdBy;
       newComp.state = competition.state;
       newComp.participants = competition.participants;
-      if (type === CompetitionType.Meetup) newComp.timezone = competition.timezone;
+      if (type === ContestType.Meetup) newComp.timezone = competition.timezone;
     }
 
     // Validation
@@ -357,16 +348,16 @@ const CompetitionForm = ({
       tempErrors.push('The selected main event is not on the list of events');
 
     const meetupOnlyCompEvent = competitionEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
-    if (type !== CompetitionType.Meetup && meetupOnlyCompEvent)
+    if (type !== ContestType.Meetup && meetupOnlyCompEvent)
       tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 
-    if (type === CompetitionType.Competition) {
+    if (type === ContestType.Competition) {
       if (!newComp.contact) tempErrors.push('Please enter a contact email');
       if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
     }
 
-    if (type !== CompetitionType.Online) {
+    if (type !== ContestType.Online) {
       if (!newComp.city) tempErrors.push('Please enter a city');
       if (['NOT_SELECTED', 'ONLINE'].includes(newComp.countryIso2)) tempErrors.push('Please select a country');
       if (!newComp.venue) tempErrors.push('Please enter a venue');
@@ -409,7 +400,7 @@ const CompetitionForm = ({
     setName(value);
   };
 
-  const changeType = (newType: CompetitionType) => {
+  const changeType = (newType: ContestType) => {
     setType(newType);
   };
 
@@ -435,9 +426,9 @@ const CompetitionForm = ({
           setVenueTimezone(payload.timezone);
 
           // Adjust times to the new time zone
-          if (type === CompetitionType.Meetup) {
+          if (type === ContestType.Meetup) {
             setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimezone), payload.timezone));
-          } else if (type === CompetitionType.Competition) {
+          } else if (type === ContestType.Competition) {
             setActivityStartTime(zonedTimeToUtc(utcToZonedTime(activityStartTime, venueTimezone), payload.timezone));
             setActivityEndTime(zonedTimeToUtc(utcToZonedTime(activityEndTime, venueTimezone), payload.timezone));
             setRooms(
@@ -457,7 +448,7 @@ const CompetitionForm = ({
   };
 
   const changeStartDate = (newDate: Date) => {
-    if (newDate && type === CompetitionType.Meetup) {
+    if (newDate && type === ContestType.Meetup) {
       setStartDate(zonedTimeToUtc(newDate, venueTimezone));
     } else {
       setStartDate(newDate);
@@ -662,7 +653,7 @@ const CompetitionForm = ({
               setSelected={(val: any) => changeType(val)}
               disabled={mode !== 'new'}
             />
-            {type !== CompetitionType.Online && (
+            {type !== ContestType.Online && (
               <>
                 <div className="row">
                   <div className="col">
@@ -703,12 +694,12 @@ const CompetitionForm = ({
             <div className="mb-3 row">
               <div className="col">
                 <label htmlFor="start_date" className="form-label">
-                  {type === CompetitionType.Competition ? (
+                  {type === ContestType.Competition ? (
                     'Start date'
                   ) : (
                     <>
                       Start date and time
-                      {type === CompetitionType.Online ? (
+                      {type === ContestType.Online ? (
                         ' (UTC)'
                       ) : fetchTimezoneTimer === null ? (
                         ` (${venueTimezone})`
@@ -721,17 +712,17 @@ const CompetitionForm = ({
                 <DatePicker
                   id="start_date"
                   selected={displayedStartDate}
-                  showTimeSelect={type !== CompetitionType.Competition}
+                  showTimeSelect={type !== ContestType.Competition}
                   timeFormat="p"
                   // P is date select only, Pp is date and time select
-                  dateFormat={type === CompetitionType.Competition ? 'P' : 'Pp'}
+                  dateFormat={type === ContestType.Competition ? 'P' : 'Pp'}
                   locale="en-GB"
                   onChange={(date: Date) => changeStartDate(date)}
                   className="form-control"
                   disabled={disableIfCompApprovedEvenForAdmin}
                 />
               </div>
-              {type === CompetitionType.Competition && (
+              {type === ContestType.Competition && (
                 <div className="col">
                   <label htmlFor="end_date" className="form-label">
                     End date
@@ -765,7 +756,7 @@ const CompetitionForm = ({
             </div>
             <FormTextInput
               id="contact"
-              title={'Contact' + (type !== CompetitionType.Competition ? ' (optional)' : '')}
+              title={'Contact' + (type !== ContestType.Competition ? ' (optional)' : '')}
               placeholder="john@example.com"
               value={contact}
               setValue={setContact}
@@ -785,7 +776,7 @@ const CompetitionForm = ({
               />
             </div>
             <FormTextInput
-              title={'Competitor limit' + (type !== CompetitionType.Competition ? ' (optional)' : '')}
+              title={'Competitor limit' + (type !== ContestType.Competition ? ' (optional)' : '')}
               value={competitorLimit}
               setValue={setCompetitorLimit}
               disabled={disableIfCompApproved}

@@ -1,9 +1,9 @@
-import { CompetitionState } from '@sh/enums';
+import { ContestState } from '@sh/enums';
 
 export const competitionStates: any = {
-  [CompetitionState.Created]: { id: CompetitionState.Created, label: 'Created' },
-  [CompetitionState.Approved]: { id: CompetitionState.Approved, label: 'Approved' },
-  [CompetitionState.Ongoing]: { id: CompetitionState.Ongoing, label: 'Ongoing' },
-  [CompetitionState.Finished]: { id: CompetitionState.Finished, label: 'Finished' },
-  [CompetitionState.Published]: { id: CompetitionState.Published, label: 'Published' },
+  [ContestState.Created]: { id: ContestState.Created, label: 'Created' },
+  [ContestState.Approved]: { id: ContestState.Approved, label: 'Approved' },
+  [ContestState.Ongoing]: { id: ContestState.Ongoing, label: 'Ongoing' },
+  [ContestState.Finished]: { id: ContestState.Finished, label: 'Finished' },
+  [ContestState.Published]: { id: ContestState.Published, label: 'Published' },
 };

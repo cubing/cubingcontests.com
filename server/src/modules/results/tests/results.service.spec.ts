@@ -67,11 +67,12 @@ describe('ResultsService', () => {
   });
 
   describe('Endpoints', () => {
-    it('gets current records', async () => {
+    it.only('gets current records', async () => {
       const eventRecords = await resultsService.getRecords(WcaRecordType.WR);
       const records333 = eventRecords.find((el: IEventRankings) => el.event.eventId === '333');
       const records333fm = eventRecords.find((el: IEventRankings) => el.event.eventId === '333fm');
 
+      console.log(JSON.stringify(records333.rankings[0], null, 2));
       // Check 3x3x3 records
       expect(records333.rankings.length).toBe(2);
       expect(records333.rankings[0].result.best).toBe(909);
@@ -92,7 +93,7 @@ describe('ResultsService', () => {
           compNotPublished: true,
           personIds: [99],
           ranking: 0,
-          attempts: [1054, 1342, 942, 999, 1115],
+          attempts: [{ result: 1054 }, { result: 1342 }, { result: 942 }, { result: 999 }, { result: 1115 }],
           best: 942,
           average: 1056,
         };

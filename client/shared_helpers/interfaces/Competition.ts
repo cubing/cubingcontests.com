@@ -1,4 +1,4 @@
-import { CompetitionType, CompetitionState } from '../enums';
+import { ContestType, ContestState } from '../enums';
 import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } from '../interfaces';
 
 // IMPORTANT: when updating this interface, also update:
@@ -13,10 +13,10 @@ export interface ICompetition {
   competitionId: string;
   // This is optional, because it's not set on creation and only returned to the frontend for authorized users
   createdBy?: number; // peson ID of the moderator/admin, who created the competition
-  state?: CompetitionState; // optional, because it's not needed on creation
+  state?: ContestState; // optional, because it's not needed on creation
 
   name: string;
-  type: CompetitionType;
+  type: ContestType;
   city?: string; // not needed for online comps
   countryIso2: string; // for online comps there is a special value
   venue?: string; // not needed for online comps

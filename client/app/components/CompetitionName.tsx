@@ -5,7 +5,7 @@ import { ICompetition } from '~/shared_helpers/interfaces';
 const CompetitionName = ({ competition }: { competition: ICompetition }) => {
   return (
     <span className="d-flex align-items-center gap-2">
-      <Country countryIso2={competition.countryIso2} noText />
+      {competition.countryIso2 !== 'ONLINE' && <Country countryIso2={competition.countryIso2} noText />}
       <Link href={`/competitions/${competition.competitionId}`}>{competition.name}</Link>
     </span>
   );

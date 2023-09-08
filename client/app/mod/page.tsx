@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import CompetitionsTable from '@c/CompetitionsTable';
-import { CompetitionState, Role } from '@sh/enums';
+import { ContestState, Role } from '@sh/enums';
 import { ICompetition } from '~/shared_helpers/interfaces';
 import { getRole } from '~/helpers/utilityFunctions';
 
@@ -55,7 +55,7 @@ const ModeratorDashboard = () => {
     window.location.href = `/mod/competition/${competitionId}`;
   };
 
-  const changeCompState = async (competitionId: string, newState: CompetitionState) => {
+  const changeCompState = async (competitionId: string, newState: ContestState) => {
     await myFetch.patch(`/competitions/${competitionId}?action=change_state`, {
       state: newState,
     });
@@ -115,7 +115,7 @@ const ModeratorDashboard = () => {
           onCopyCompetition={copyCompetition}
           onPostCompResults={postCompResults}
           onChangeCompState={changeCompState}
-          role={role}
+          isAdmin={role === Role.Admin}
         />
       ) : (
         <p className="fs-5">You haven&apos;t created any contests yet</p>

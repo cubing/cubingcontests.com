@@ -7,7 +7,7 @@ import enGB from 'date-fns/locale/en-GB';
 import Loading from '@c/Loading';
 import Form from '@c/form/Form';
 import myFetch from '~/helpers/myFetch';
-import { IEvent, IPerson, IResult, IResultsSubmissionInfo } from '~/shared_helpers/interfaces';
+import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '~/shared_helpers/interfaces';
 import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import { checkErrorsBeforeSubmit, limitRequests } from '~/helpers/utilityFunctions';
@@ -25,7 +25,7 @@ const SubmitResults = () => {
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState<RoundFormat>();
-  const [attempts, setAttempts] = useState<number[]>([]);
+  const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [date, setDate] = useState(new Date());
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');

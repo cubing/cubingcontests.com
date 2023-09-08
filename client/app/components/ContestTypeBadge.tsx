@@ -1,8 +1,8 @@
 import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
 import { getBGClassFromColor } from '~/helpers/utilityFunctions';
-import { CompetitionType } from '~/shared_helpers/enums';
+import { ContestType } from '~/shared_helpers/enums';
 
-const ContestTypeBadge = ({ type }: { type: CompetitionType }) => {
+const ContestTypeBadge = ({ type }: { type: ContestType }) => {
   const contestType = competitionTypeOptions.find((el) => el.value === type);
 
   return (
