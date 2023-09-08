@@ -18,6 +18,7 @@ const RankingRow = ({
   competition,
   event,
   showAllTeammates,
+  showTeamColumn = false,
   showSolves,
   forRecordsTable = false,
 }: {
@@ -31,6 +32,7 @@ const RankingRow = ({
   competition: ICompetition;
   event: IEvent;
   showAllTeammates: boolean;
+  showTeamColumn?: boolean;
   showSolves: boolean;
   forRecordsTable?: boolean;
 }) => {
@@ -79,7 +81,7 @@ const RankingRow = ({
             </div>
           ))}
       </td>
-      {event?.participants > 1 && !showAllTeammates && (
+      {showTeamColumn && (
         <td>
           {persons.length === 2 ? (
             <Competitor person={persons[1]} />

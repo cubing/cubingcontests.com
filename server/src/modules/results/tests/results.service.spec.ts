@@ -67,7 +67,7 @@ describe('ResultsService', () => {
   });
 
   describe('Endpoints', () => {
-    it.only('gets current records', async () => {
+    it('gets current records', async () => {
       const eventRecords = await resultsService.getRecords(WcaRecordType.WR);
       const records333 = eventRecords.find((el: IEventRankings) => el.event.eventId === '333');
       const records333fm = eventRecords.find((el: IEventRankings) => el.event.eventId === '333fm');

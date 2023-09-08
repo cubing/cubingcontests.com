@@ -10,12 +10,13 @@ import ResultForm from './ResultForm';
 import ErrorMessages from '../ErrorMessages';
 import Loading from '../Loading';
 
+const role = getRole();
+
 const PostResultsScreen = ({
   compData: { competition, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
 }: {
   compData: ICompetitionData;
 }) => {
-  const [role, setRole] = useState<Role>(getRole());
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);

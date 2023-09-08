@@ -22,6 +22,7 @@ const RankingsTable = ({
   const hasComp = rankings.some((el) => el.competition);
   const hasLink = rankings.some((el) => el.result.videoLink || el.result.discussionLink);
   const showAllTeammates = event?.participants > 1 && topResultsRankings && !recordsTable;
+  const showTeamColumn = event?.participants > 1 && !showAllTeammates && !recordsTable;
   const showSolves = rankings.some((el) => el.type !== 'single');
   let lastRanking = 0;
 
@@ -55,7 +56,7 @@ const RankingsTable = ({
               {hasComp && hasLink ? ' / ' : ''}
               {hasLink ? 'Links' : ''}
             </th>
-            {event?.participants > 1 && !showAllTeammates && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
+            {showTeamColumn && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
             {showSolves && <th>Solves</th>}
           </tr>
         </thead>
@@ -97,6 +98,7 @@ const RankingsTable = ({
                 competition={competition}
                 event={event}
                 showAllTeammates={showAllTeammates}
+                showTeamColumn={showTeamColumn}
                 showSolves={showSolves}
               />
             );

@@ -12,7 +12,6 @@ import {
   IRecordPair,
   IEventRecordPairs,
   IResultsSubmissionInfo,
-  IAttempt,
   ICompetition,
 } from '@sh/interfaces';
 import { fixTimesOverTenMinutes, getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
