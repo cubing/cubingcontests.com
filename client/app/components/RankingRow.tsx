@@ -99,7 +99,6 @@ const RankingRow = ({
         </td>
       )}
       {showSolves && (
-        // @ts-ignore
         <td>{!onlyKeepPerson && bestOrAvg === 'average' && <Solves event={event} attempts={result.attempts} />}</td>
       )}
     </tr>

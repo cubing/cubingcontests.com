@@ -82,7 +82,6 @@ const Records = async ({ params }: { params: { category: string } }) => {
                               <Competitor key={person.personId} person={person} />
                             ))}
                           </div>
-                          {/* @ts-ignore */}
                           {type !== 'single' && <Solves event={event} attempts={result.attempts} />}
                           {(result.videoLink || result.discussionLink) && (
                             <div className="d-flex gap-2">

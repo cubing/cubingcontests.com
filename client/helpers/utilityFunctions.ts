@@ -239,14 +239,14 @@ export const checkErrorsBeforeSubmit = (
     errorMessages.push('You cannot enter the same person twice');
   }
 
-  const realResultExists = false; // real meaning not DNF or DNS
+  let realResultExists = false; // real meaning not DNF or DNS
 
-  // for (let i = 0; i < result.attempts.length; i++) {
-  //   if (result.attempts[i].result === null || result.attempts[i].memo === null)
-  //     errorMessages.push(`Attempt ${i + 1} is invalid`);
-  //   else if (result.attempts[i].result === 0) errorMessages.push(`Please enter attempt ${i + 1}`);
-  //   else if (result.attempts[i].result > 0) realResultExists = true;
-  // }
+  for (let i = 0; i < result.attempts.length; i++) {
+    if (result.attempts[i].result === null || result.attempts[i].memo === null)
+      errorMessages.push(`Attempt ${i + 1} is invalid`);
+    else if (result.attempts[i].result === 0) errorMessages.push(`Please enter attempt ${i + 1}`);
+    else if (result.attempts[i].result > 0) realResultExists = true;
+  }
 
   if (requireRealResult && !realResultExists) errorMessages.push('You cannot submit only DNF/DNS results');
 
@@ -256,7 +256,6 @@ export const checkErrorsBeforeSubmit = (
     setErrorMessages([]);
     setSuccessMessage('');
 
-    // @ts-ignore
     const { best, average } = getBestAndAverage(result.attempts, roundFormat, event);
     result.best = best;
     result.average = average;

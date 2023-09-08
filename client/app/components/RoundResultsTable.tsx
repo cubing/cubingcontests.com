@@ -79,7 +79,6 @@ const RoundResultsTable = ({
                   {roundCanHaveAverage && (
                     <td>{i === 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}</td>
                   )}
-                  {/* @ts-ignore */}
                   <td>{i === 0 && <Solves event={event} attempts={result.attempts} />}</td>
                   {onEditResult && (
                     <td className="py-1">

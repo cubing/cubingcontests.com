@@ -33,11 +33,8 @@ export class Result implements IResult {
   @Prop()
   ranking?: number;
 
-  // @Prop({ type: [AttemptSchema], required: true })
-  // attempts: Attempt[];
-  @Prop()
-  // @ts-ignore
-  attempts: IAttempt[] | number[];
+  @Prop({ type: [AttemptSchema], required: true })
+  attempts: Attempt[];
 
   @Prop({ required: true })
   best: number;

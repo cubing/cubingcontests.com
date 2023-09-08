@@ -23,7 +23,7 @@ export interface IResult {
   // This is an array, because for team events (e.g. Team-Blind) it stores multiple IDs
   personIds: number[];
   ranking?: number; // not needed for submitted results
-  attempts: IAttempt[] | number[];
+  attempts: IAttempt[];
   best: number;
   average: number; // for FMC it's 100 times the mean (to avoid decimals)
   regionalSingleRecord?: string;

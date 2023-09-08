@@ -37,21 +37,6 @@ export class ResultsService {
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
   ) {}
 
-  async onModuleInit() {
-    const results = await this.resultModel.find().exec();
-
-    console.log('RESULTS MODULE INIT');
-    for (const res of results) {
-      console.log(JSON.stringify(res, null, 2));
-
-      if (res.attempts.length > 0 && typeof res.attempts[0] === 'number') {
-        res.attempts = res.attempts.map((el) => ({ result: el })) as IAttempt[];
-        console.log(JSON.stringify(res, null, 2));
-        await res.save();
-      }
-    }
-  }
-
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
@@ -70,23 +55,23 @@ export class ResultsService {
 
       const personalBests = forAverage
         ? await this.resultModel
-            .aggregate([
-              { $match: avgsFilter },
-              { $unwind: '$personIds' },
-              { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
-              { $sort: { average: 1 } },
-              // { $limit: 100 },
-            ])
-            .exec()
+          .aggregate([
+            { $match: avgsFilter },
+            { $unwind: '$personIds' },
+            { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
+            { $sort: { average: 1 } },
+            // { $limit: 100 },
+          ])
+          .exec()
         : await this.resultModel
-            .aggregate([
-              { $match: singlesFilter },
-              { $unwind: '$personIds' },
-              { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
-              { $sort: { best: 1 } },
-              // { $limit: 100 },
-            ])
-            .exec();
+          .aggregate([
+            { $match: singlesFilter },
+            { $unwind: '$personIds' },
+            { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
+            { $sort: { best: 1 } },
+            // { $limit: 100 },
+          ])
+          .exec();
 
       for (const pb of personalBests) {
         const result = await this.resultModel

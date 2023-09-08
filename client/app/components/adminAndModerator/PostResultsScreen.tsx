@@ -123,7 +123,6 @@ const PostResultsScreen = ({
     // Delete result and then set the inputs if the deletion was successful
     deleteResult((result as any)._id, () => {
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
-      // @ts-ignore
       setAttempts(result.attempts);
 
       document.getElementById('attempt_1').focus();
@@ -195,10 +194,7 @@ const PostResultsScreen = ({
           </button>
         </div>
         <div className="col-8">
-          <h2 className="mb-4 text-center">
-            {competitionEvents.length > 0 ? 'Edit' : 'Post'} results for&nbsp;
-            {competition.name}
-          </h2>
+          <h2 className="mb-4 text-center">Enter results for {competition.name}</h2>
           {/* THIS STYLING IS A TEMPORARY SOLUTION!!! */}
           <div className="overflow-y-auto" style={{ maxHeight: '650px' }}>
             <RoundResultsTable

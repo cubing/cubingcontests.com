@@ -83,8 +83,8 @@ export const fixTimesOverTenMinutes = (result: IResult, eventFormat: EventFormat
   if (eventFormat === EventFormat.Time) {
     if (result.best > 60000) result.best -= result.best % 100;
 
-    // result.attempts = result.attempts.map((att) =>
-    //   att.result > 60000 ? { ...att, result: att.result - (att.result % 100) } : att,
-    // );
+    result.attempts = result.attempts.map((att) =>
+      att.result > 60000 ? { ...att, result: att.result - (att.result % 100) } : att,
+    );
   }
 };
