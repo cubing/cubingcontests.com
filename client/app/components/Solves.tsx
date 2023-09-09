@@ -1,11 +1,19 @@
 import { IAttempt, IEvent } from '@sh/interfaces';
 import { getFormattedTime } from '~/helpers/utilityFunctions';
 
-const Solves = ({ event, attempts }: { event: IEvent; attempts: IAttempt[] }) => {
+const Solves = ({
+  event,
+  attempts,
+  showMultiPoints = false,
+}: {
+  event: IEvent;
+  attempts: IAttempt[];
+  showMultiPoints?: boolean;
+}) => {
   return (
     <div className="d-flex gap-2">
       {attempts.map((attempt, index) => (
-        <span key={index}>{getFormattedTime(attempt.result, event.format)}</span>
+        <span key={index}>{getFormattedTime(attempt.result, { eventFormat: event.format, showMultiPoints })}</span>
       ))}
     </div>
   );

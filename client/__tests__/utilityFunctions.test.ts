@@ -205,87 +205,87 @@ describe('getAttempt', () => {
 describe('getFormattedTime', () => {
   describe('format time singles', () => {
     it('formats 0.07 correctly', () => {
-      expect(getFormattedTime(7, EventFormat.Time)).toBe('0.07');
+      expect(getFormattedTime(7)).toBe('0.07');
     });
 
     it('formats 0.35 correctly', () => {
-      expect(getFormattedTime(35, EventFormat.Time)).toBe('0.35');
+      expect(getFormattedTime(35)).toBe('0.35');
     });
 
     it('formats 8.80 correctly', () => {
-      expect(getFormattedTime(880, EventFormat.Time)).toBe('8.80');
+      expect(getFormattedTime(880)).toBe('8.80');
     });
 
     it('formats 10.00 correctly', () => {
-      expect(getFormattedTime(1000, EventFormat.Time)).toBe('10.00');
+      expect(getFormattedTime(1000)).toBe('10.00');
     });
 
     it('formats 30.05 correctly', () => {
-      expect(getFormattedTime(3005, EventFormat.Time)).toBe('30.05');
+      expect(getFormattedTime(3005)).toBe('30.05');
     });
 
     it('formats 2:45.07 correctly', () => {
-      expect(getFormattedTime(16507, EventFormat.Time)).toBe('2:45.07');
+      expect(getFormattedTime(16507)).toBe('2:45.07');
     });
 
     // Results over ten minutes long must have no decimals
     it('formats 23:00.35 correctly', () => {
-      expect(getFormattedTime(138035, EventFormat.Time)).toBe('23:00');
+      expect(getFormattedTime(138035)).toBe('23:00');
     });
 
     it('formats 1:32:08(.36) correctly', () => {
-      expect(getFormattedTime(552836, EventFormat.Time)).toBe('1:32:08');
+      expect(getFormattedTime(552836)).toBe('1:32:08');
     });
   });
 
   describe('format time singles without formatting (no commas or colons)', () => {
     it('formats 0.09 without formatting correctly', () => {
-      expect(getFormattedTime(9, EventFormat.Time, true)).toBe('9');
+      expect(getFormattedTime(9, { noFormatting: true })).toBe('9');
     });
 
     it('formats 0.78 without formatting correctly', () => {
-      expect(getFormattedTime(78, EventFormat.Time, true)).toBe('78');
+      expect(getFormattedTime(78, { noFormatting: true })).toBe('78');
     });
 
     it('formats 20.00 correctly', () => {
-      expect(getFormattedTime(2000, EventFormat.Time, true)).toBe('2000');
+      expect(getFormattedTime(2000, { noFormatting: true })).toBe('2000');
     });
 
     it('formats 1:08.45 without formatting correctly', () => {
-      expect(getFormattedTime(6845, EventFormat.Time, true)).toBe('10845');
+      expect(getFormattedTime(6845, { noFormatting: true })).toBe('10845');
     });
 
     it('formats 12:35.00 correctly', () => {
-      expect(getFormattedTime(75500, EventFormat.Time, true)).toBe('123500');
+      expect(getFormattedTime(75500, { noFormatting: true })).toBe('123500');
     });
   });
 
   describe('format numbers (FMC)', () => {
     it('formats 37 correctly', () => {
-      expect(getFormattedTime(37, EventFormat.Number)).toBe('37');
+      expect(getFormattedTime(37, { eventFormat: EventFormat.Number })).toBe('37');
     });
 
     it('formats 41.33 correctly', () => {
-      expect(getFormattedTime(4133, EventFormat.Number)).toBe('41.33');
+      expect(getFormattedTime(4133, { eventFormat: EventFormat.Number })).toBe('41.33');
     });
 
     it('formats 40.00 correctly', () => {
-      expect(getFormattedTime(4000, EventFormat.Number)).toBe('40.00');
+      expect(getFormattedTime(4000, { eventFormat: EventFormat.Number })).toBe('40.00');
     });
 
     it('formats 39.66 without formatting correctly', () => {
-      expect(getFormattedTime(3966, EventFormat.Number, true)).toBe('3966');
+      expect(getFormattedTime(3966, { eventFormat: EventFormat.Number, noFormatting: true })).toBe('3966');
     });
   });
 
   describe('format Multi-Blind attempts', () => {
     for (const example of multiBlindExamples) {
       it(`formats ${example.formatted} correctly`, () => {
-        expect(getFormattedTime(example.result, EventFormat.Multi)).toBe(example.formatted);
+        expect(getFormattedTime(example.result, { eventFormat: EventFormat.Multi })).toBe(example.formatted);
       });
 
       it(`formats ${example.formatted} without formatting correctly`, () => {
-        expect(getFormattedTime(example.result, EventFormat.Multi, true)).toBe(
+        expect(getFormattedTime(example.result, { eventFormat: EventFormat.Multi, noFormatting: true })).toBe(
           `${example.inputs.solved};${example.inputs.attempted};${example.inputs.time}`,
         );
       });
@@ -293,10 +293,10 @@ describe('getFormattedTime', () => {
   });
 
   it('formats DNF correctly', () => {
-    expect(getFormattedTime(-1, EventFormat.Time)).toBe('DNF');
+    expect(getFormattedTime(-1)).toBe('DNF');
   });
 
   it('formats DNS correctly', () => {
-    expect(getFormattedTime(-2, EventFormat.Time)).toBe('DNS');
+    expect(getFormattedTime(-2)).toBe('DNS');
   });
 });

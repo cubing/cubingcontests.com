@@ -66,7 +66,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                         >
                           <div className="d-flex justify-content-between">
                             <span>
-                              <b>{getFormattedTime(r.result, event.format)}</b>
+                              <b>{getFormattedTime(r.result, { eventFormat: event.format })}</b>
                               &#8194;{getRecordType(r.type)}
                             </span>
                             {r.competition ? (

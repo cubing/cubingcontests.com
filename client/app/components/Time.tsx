@@ -19,7 +19,7 @@ const Time = ({
 
   return (
     <div className="d-inline-flex align-items-center gap-2">
-      {getFormattedTime(average ? result.average : result.best, event.format)}
+      {getFormattedTime(average ? result.average : result.best, { eventFormat: event.format })}
 
       {recordType && (
         <span className={'badge ' + getBGClassFromColor(recordType?.color)} style={{ fontSize: '0.7rem' }}>

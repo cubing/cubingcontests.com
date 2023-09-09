@@ -59,6 +59,7 @@ const SubmitResults = () => {
       Promise.reject();
     } else {
       setErrorMessages([]);
+      console.log('Submission info:', payload);
       return payload;
     }
   };

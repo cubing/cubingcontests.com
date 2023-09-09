@@ -71,9 +71,12 @@ const TimeInput = ({
         if (attempt.result === 0) {
           setAttemptText('');
         } else if (event.format !== EventFormat.Multi) {
-          setAttemptText(getFormattedTime(attempt.result, event.format, true));
+          setAttemptText(getFormattedTime(attempt.result, { eventFormat: event.format, noFormatting: true }));
         } else {
-          const formattedTime = getFormattedTime(attempt.result, EventFormat.Multi, true);
+          const formattedTime = getFormattedTime(attempt.result, {
+            eventFormat: EventFormat.Multi,
+            noFormatting: true,
+          });
           const [newSolved, newAttempted, newAttText] = formattedTime.split(';');
 
           setSolved(newSolved);
@@ -83,8 +86,7 @@ const TimeInput = ({
 
         // Memo time
         if (attempt.memo > 0) {
-          console.log(attempt.memo, getFormattedTime(attempt.memo, EventFormat.Time, true));
-          setMemoText(getFormattedTime(attempt.memo, EventFormat.Time, true));
+          setMemoText(getFormattedTime(attempt.memo, { noFormatting: true }));
         }
       }
     }

@@ -8,6 +8,7 @@ import CompetitionName from '@c/CompetitionName';
 import Solves from './Solves';
 import { IEvent, IPerson, IRanking } from '@sh/interfaces';
 import { getFormattedDate, getFormattedTime } from '~/helpers/utilityFunctions';
+import { EventFormat } from '~/shared_helpers/enums';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
 const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
@@ -55,7 +56,10 @@ const RankingRow = ({
           ))}
         </div>
       </td>
-      <td>{!onlyKeepPerson && getFormattedTime(ranking.result, event.format)}</td>
+      <td>
+        {!onlyKeepPerson &&
+          getFormattedTime(ranking.result, { eventFormat: event.format, showMultiPoints: !forRecordsTable })}
+      </td>
       {!showAllTeammates && (
         <td>
           <Country countryIso2={person.countryIso2} />
@@ -104,7 +108,9 @@ const RankingRow = ({
         <td>
           {!onlyKeepPerson && (
             <>
-              {ranking.attempts && <Solves event={event} attempts={ranking.attempts} />}
+              {ranking.attempts && (
+                <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
+              )}
               {ranking.memo && <span>[{getFormattedTime(ranking.memo)}]</span>}
             </>
           )}

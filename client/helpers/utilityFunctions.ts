@@ -7,6 +7,10 @@ import { IAttempt, ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces
 import { roundFormatOptions } from './multipleChoiceOptions';
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
 
+export const getFormattedCoords = (comp: ICompetition): string => {
+  return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
+};
+
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string): string => {
   if (!startDate) throw new Error('Start date missing!');
 
@@ -28,12 +32,18 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
   }
 };
 
-// Shows 5 decimals instead of 6
-export const getFormattedCoords = (comp: ICompetition): string => {
-  return `${(comp.latitudeMicrodegrees / 1000000).toFixed(5)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(5)}`;
-};
-
-export const getFormattedTime = (time: number, eventFormat = EventFormat.Time, noFormatting = false): string => {
+export const getFormattedTime = (
+  time: number,
+  {
+    eventFormat = EventFormat.Time,
+    noFormatting = false,
+    showMultiPoints = false,
+  }: { eventFormat?: EventFormat; noFormatting?: boolean; showMultiPoints?: boolean } = {
+    eventFormat: EventFormat.Time,
+    noFormatting: false,
+    showMultiPoints: false,
+  },
+): string => {
   if (time === -1) {
     return 'DNF';
   } else if (time === -2) {
@@ -88,7 +98,8 @@ export const getFormattedTime = (time: number, eventFormat = EventFormat.Time, n
 
       if (time > 0) {
         if (noFormatting) return `${solved};${solved + missed};${output}`;
-        return `${solved}/${solved + missed} ${output}`;
+        // This includes an En space before the points part
+        return `${solved}/${solved + missed} ${output}` + (showMultiPoints ? ` (${points})` : '');
       } else {
         if (noFormatting) return `${solved};${solved + missed};${output}`;
         return `DNF (${solved}/${solved + missed} ${output})`;
