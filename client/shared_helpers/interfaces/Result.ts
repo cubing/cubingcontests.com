@@ -33,10 +33,18 @@ export interface IResult {
 }
 
 export interface IRanking {
-  type: 'single' | 'average' | 'mean';
-  result: IResult;
+  type?: 'single' | 'average' | 'mean'; // only set for the records page
+  ranking?: number; // only set for the rankings page
   persons: IPerson[];
+  resultId: string;
+  result: number; // either the single time or the average time
+  attemptNumber?: number; // only set for top single results rankings
+  memo?: number; // only set for top single results rankings for events with the HasMemo group
+  date: Date;
   competition?: ICompetition; // optional, because not all results have a competition
+  attempts?: IAttempt[]; // only set for the average and mean ranking type
+  videoLink?: string;
+  discussionLink?: string;
 }
 
 // Used for storing rankings for a specific event

@@ -20,18 +20,12 @@ const RankingsTable = ({
   }
 
   const hasComp = rankings.some((el) => el.competition);
-  const hasLink = rankings.some((el) => el.result.videoLink || el.result.discussionLink);
+  const hasLink = rankings.some((el) => el.videoLink || el.discussionLink);
   const showAllTeammates = event?.participants > 1 && topResultsRankings && !recordsTable;
   const showTeamColumn = event?.participants > 1 && !showAllTeammates && !recordsTable;
-  const showSolves = rankings.some((el) => el.type !== 'single');
+  const hasSolves = rankings.some((el) => el.attempts);
+  const showDetailsColumn = hasSolves || rankings.some((el) => el.memo);
   let lastRanking = 0;
-
-  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
-  const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
-    if (type === 'single') return 'Single';
-    else if (type === 'average') return 'Average';
-    else if (type === 'mean') return 'Mean';
-  };
 
   if (rankings.length === 0) {
     return (
@@ -57,49 +51,44 @@ const RankingsTable = ({
               {hasLink ? 'Links' : ''}
             </th>
             {showTeamColumn && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
-            {showSolves && <th>Solves</th>}
+            {showDetailsColumn && <th>{hasSolves ? 'Solves' : 'Memorization time'}</th>}
           </tr>
         </thead>
         <tbody>
-          {rankings.map(({ type, result, competition, persons }: IRanking) => {
+          {rankings.map((ranking) => {
             let isTiedRanking = false;
-            if (result.ranking === lastRanking) isTiedRanking = true;
-            else lastRanking = result.ranking;
+            if (ranking.ranking === lastRanking) isTiedRanking = true;
+            else lastRanking = ranking.ranking;
 
             if (recordsTable) {
-              return persons.map((person, i) => (
+              return ranking.persons.map((person, i) => (
                 <RankingRow
-                  key={`${type}_${(result as any)._id}_${person.personId}`}
-                  firstColumnValue={getRecordType(type)}
+                  key={`${ranking.type}_${ranking.resultId}_${person.personId}`}
                   isFirstRow={i === 0}
-                  bestOrAvg={type === 'single' ? 'best' : 'average'}
-                  result={result}
-                  persons={[person]}
-                  competition={competition}
                   event={event}
+                  ranking={ranking}
+                  person={person}
                   showAllTeammates={showAllTeammates}
-                  showSolves={showSolves}
+                  showDetailsColumn={showDetailsColumn}
                   forRecordsTable
                 />
               ));
             }
 
-            let key = `${(result as any)._id}_${persons[0].personId}`;
-            if ((result as any).attemptNumber !== undefined) key += `_${(result as any).attemptNumber}`;
+            let key = `${ranking.resultId}_${ranking.persons[0].personId}`;
+            if (ranking.attemptNumber !== undefined) key += `_${ranking.attemptNumber}`;
 
             return (
               <RankingRow
                 key={key}
-                firstColumnValue={result.ranking}
                 isFirstRow={!isTiedRanking}
-                bestOrAvg={type === 'single' ? 'best' : 'average'}
-                result={result}
-                persons={persons}
-                competition={competition}
                 event={event}
+                ranking={ranking}
+                // The backend sets the first person in the array as the person being ranked
+                person={ranking.persons[0]}
                 showAllTeammates={showAllTeammates}
                 showTeamColumn={showTeamColumn}
-                showSolves={showSolves}
+                showDetailsColumn={showDetailsColumn}
               />
             );
           })}

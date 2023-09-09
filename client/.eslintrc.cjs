@@ -21,14 +21,14 @@ module.exports = {
       },
     ],
     'comma-dangle': ['error', 'always-multiline'],
-    'max-len': [
-      'warn',
-      {
-        code: 120,
-        tabWidth: 2,
-        ignoreComments: true,
-        ignoreTrailingComments: false,
-      },
-    ],
+    // 'max-len': [
+    //   'warn',
+    //   {
+    //     code: 120,
+    //     tabWidth: 2,
+    //     ignoreComments: true,
+    //     ignoreTrailingComments: false,
+    //   },
+    // ],
   },
 };

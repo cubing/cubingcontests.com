@@ -72,16 +72,15 @@ describe('ResultsService', () => {
       const records333 = eventRecords.find((el: IEventRankings) => el.event.eventId === '333');
       const records333fm = eventRecords.find((el: IEventRankings) => el.event.eventId === '333fm');
 
-      console.log(JSON.stringify(records333.rankings[0], null, 2));
       // Check 3x3x3 records
       expect(records333.rankings.length).toBe(2);
-      expect(records333.rankings[0].result.best).toBe(909);
-      expect(records333.rankings[1].result.average).toBe(1132);
+      expect(records333.rankings[0].result).toBe(909); // single
+      expect(records333.rankings[1].result).toBe(1132); // single
       // Check 3x3x3 FM records (they should have a tie)
       expect(records333fm.rankings.length).toBe(3);
-      expect(records333fm.rankings[0].result.best).toBe(39);
-      expect(records333fm.rankings[1].result.best).toBe(39);
-      expect(records333fm.rankings[2].result.average).toBe(4600);
+      expect(records333fm.rankings[0].result).toBe(39); // single
+      expect(records333fm.rankings[1].result).toBe(39); // single
+      expect(records333fm.rankings[2].result).toBe(4600); // mean
     });
 
     describe('createResult', () => {

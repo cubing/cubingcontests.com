@@ -50,7 +50,6 @@
     ]
   },
   "Pretty JSON output": {
-    "scope": "typescript",
     "prefix": "jsonstringify",
     "body": "console.log(JSON.stringify($0, null, 2))"
   }

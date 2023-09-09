@@ -49,7 +49,7 @@ const SubmitResults = () => {
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
-  const fetchSubmissionInfo = async (recordsUpTo: Date) => {
+  const fetchSubmissionInfo = async (recordsUpTo: Date): Promise<IResultsSubmissionInfo> => {
     const { payload, errors } = await myFetch.get(`/results/submission-info?records_up_to=${recordsUpTo}`, {
       authorize: true,
     });
@@ -146,21 +146,22 @@ const SubmitResults = () => {
         >
           <ResultForm
             event={event}
-            setEvent={setEvent}
-            events={resultsSubmissionInfo.events}
             persons={competitors}
             setPersons={setCompetitors}
             attempts={attempts}
             setAttempts={setAttempts}
-            roundFormat={roundFormat}
-            setRoundFormat={setRoundFormat}
             recordPairs={recordPairs}
             loadingRecordPairs={fetchRecordPairsTimer !== null}
             recordTypes={resultsSubmissionInfo.activeRecordTypes}
             nextFocusTargetId="video_link"
+            resetTrigger={resultFormResetTrigger}
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
-            resetTrigger={resultFormResetTrigger}
+            forSubmitResultsPage
+            setEvent={setEvent}
+            events={resultsSubmissionInfo.events}
+            roundFormat={roundFormat}
+            setRoundFormat={setRoundFormat}
           />
           <div className="mb-3">
             <label htmlFor="start_date" className="d-block form-label">

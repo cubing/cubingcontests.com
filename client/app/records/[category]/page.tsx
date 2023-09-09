@@ -34,7 +34,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
     er.event.groups.includes(eventCategories.find((rc) => rc.value === params.category).group),
   );
 
-  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingsTable has this same function too.
+  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingRow has this same function too.
   const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
     if (type === 'single') return 'Single';
     else if (type === 'average') return 'Average';
@@ -59,39 +59,39 @@ const Records = async ({ params }: { params: { category: string } }) => {
 
                   <div className="d-block d-lg-none my-3 border-top border-bottom">
                     <ul className="list-group list-group-flush">
-                      {rankings.map(({ type, result, competition, persons }) => (
+                      {rankings.map((r) => (
                         <li
-                          key={type + (result as any)._id}
+                          key={r.type + r.resultId}
                           className="d-flex flex-column gap-3 py-3 list-group-item list-group-item-dark"
                         >
                           <div className="d-flex justify-content-between">
                             <span>
-                              <b>{getFormattedTime(type === 'single' ? result.best : result.average, event.format)}</b>
-                              &#8194;{getRecordType(type)}
+                              <b>{getFormattedTime(r.result, event.format)}</b>
+                              &#8194;{getRecordType(r.type)}
                             </span>
-                            {competition ? (
-                              <Link href={`/competitions/${competition.competitionId}`}>
-                                {getFormattedDate(result.date)}
+                            {r.competition ? (
+                              <Link href={`/competitions/${r.competition.competitionId}`}>
+                                {getFormattedDate(r.date)}
                               </Link>
                             ) : (
-                              <span>{getFormattedDate(result.date)}</span>
+                              <span>{getFormattedDate(r.date)}</span>
                             )}
                           </div>
                           <div className="d-flex flex-column gap-2">
-                            {persons.map((person) => (
+                            {r.persons.map((person) => (
                               <Competitor key={person.personId} person={person} />
                             ))}
                           </div>
-                          {type !== 'single' && <Solves event={event} attempts={result.attempts} />}
-                          {(result.videoLink || result.discussionLink) && (
+                          {r.attempts && <Solves event={event} attempts={r.attempts} />}
+                          {(r.videoLink || r.discussionLink) && (
                             <div className="d-flex gap-2">
-                              {result.videoLink && (
-                                <a href={result.videoLink} target="_blank">
+                              {r.videoLink && (
+                                <a href={r.videoLink} target="_blank">
                                   Video
                                 </a>
                               )}
-                              {result.discussionLink && (
-                                <a href={result.discussionLink} target="_blank">
+                              {r.discussionLink && (
+                                <a href={r.discussionLink} target="_blank">
                                   Discussion
                                 </a>
                               )}

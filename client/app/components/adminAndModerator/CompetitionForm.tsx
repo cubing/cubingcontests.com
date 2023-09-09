@@ -101,7 +101,7 @@ const CompetitionForm = ({
     }
 
     return newFiltEv;
-  }, [events, type, mainEventId]);
+  }, [events, type, mainEventId, newEventId]);
   const remainingEvents = useMemo(
     () => filteredEvents.filter((ev) => !competitionEvents.some((ce) => ce.event.eventId === ev.eventId)),
     [filteredEvents, competitionEvents],

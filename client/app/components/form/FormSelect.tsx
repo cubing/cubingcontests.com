@@ -4,14 +4,14 @@ const FormSelect = ({
   title,
   options,
   selected,
-  disabled = false,
   setSelected,
+  disabled = false,
 }: {
   title?: string;
   options: MultiChoiceOption[];
   selected: string | number;
+  setSelected: (val: any) => void;
   disabled?: boolean;
-  setSelected: (value: any) => void;
 }) => {
   const id = `select_${title.toLowerCase().replaceAll(' ', '_')}`;
 

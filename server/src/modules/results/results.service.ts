@@ -13,6 +13,7 @@ import {
   IEventRecordPairs,
   IResultsSubmissionInfo,
   ICompetition,
+  IRanking,
 } from '@sh/interfaces';
 import { fixTimesOverTenMinutes, getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
@@ -36,6 +37,33 @@ export class ResultsService {
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
   ) {}
 
+  async onModuleInit() {
+    await this.resultModel.updateMany({ eventId: '333tbf' }, { $set: { eventId: '333-team-bld' } }).exec();
+    await this.resultModel.updateMany({ eventId: '333tf' }, { $set: { eventId: '333-team-factory' } }).exec();
+    await this.resultModel.updateMany({ eventId: '333ohbfr' }, { $set: { eventId: '333-oh-bld-team-relay' } }).exec();
+    await this.resultModel.updateMany({ eventId: '333bf2mr' }, { $set: { eventId: '333bf-2-person-relay' } }).exec();
+    await this.resultModel.updateMany({ eventId: '333bf3mr' }, { $set: { eventId: '333bf-3-person-relay' } }).exec();
+    await this.resultModel.updateMany({ eventId: '333bf4mr' }, { $set: { eventId: '333bf-4-person-relay' } }).exec();
+    await this.resultModel.updateMany({ eventId: '333bf8mr' }, { $set: { eventId: '333bf-8-person-relay' } }).exec();
+    await this.roundModel.updateMany({ roundId: '333tbf-r1' }, { $set: { roundId: '333-team-bld-r1' } }).exec();
+    await this.roundModel
+      .updateMany({ roundId: '333bf2mr-r1' }, { $set: { roundId: '333bf-2-person-relay-r1' } })
+      .exec();
+    await this.roundModel.updateMany({ eventId: '333tf-r1' }, { $set: { eventId: '333-team-factory-r1' } }).exec();
+    await this.roundModel
+      .updateMany({ eventId: '333ohbfr-r1' }, { $set: { eventId: '333-oh-bld-team-relay-r1' } })
+      .exec();
+    await this.roundModel
+      .updateMany({ roundId: '333bf3mr-r1' }, { $set: { roundId: '333bf-3-person-relay-r1' } })
+      .exec();
+    await this.roundModel
+      .updateMany({ roundId: '333bf4mr-r1' }, { $set: { roundId: '333bf-4-person-relay-r1' } })
+      .exec();
+    await this.roundModel
+      .updateMany({ roundId: '333bf8mr-r1' }, { $set: { roundId: '333bf-8-person-relay-r1' } })
+      .exec();
+  }
+
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
@@ -49,48 +77,27 @@ export class ResultsService {
     const singlesFilter = { eventId, compNotPublished: { $exists: false }, best: { $gt: 0 } };
     const avgsFilter = { eventId, compNotPublished: { $exists: false }, average: { $gt: 0 } };
 
-    if (!show) {
-      // Get top persons
+    if (!forAverage) {
+      if (!show) {
+        // Get top singles by person
 
-      const personalBests = forAverage
-        ? await this.resultModel
-          .aggregate([
-            { $match: avgsFilter },
-            { $unwind: '$personIds' },
-            { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
-            { $sort: { average: 1 } },
-            // { $limit: 100 },
-          ])
-          .exec()
-        : await this.resultModel
+        const prSingles = await this.resultModel
           .aggregate([
             { $match: singlesFilter },
             { $unwind: '$personIds' },
             { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
             { $sort: { best: 1 } },
-            // { $limit: 100 },
           ])
           .exec();
 
-      for (const pb of personalBests) {
-        const result = await this.resultModel
-          .findOne({ personIds: pb._id.personId, ...(forAverage ? { average: pb.average } : { best: pb.best }) }, excl)
-          .exec();
-
-        // If it's a team event...
-        if (result.personIds.length > 1) {
-          // Sort the person IDs in the result, so that the person, whose PR this result is, is first
-          result.personIds.sort((a, b) => (a === pb._id.personId ? -1 : 0));
+        for (const pr of prSingles) {
+          const result = await this.resultModel.findOne({ personIds: pr._id.personId, best: pr.best }, excl).exec();
+          this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
+          eventResults.push(result);
         }
-
-        eventResults.push(result);
-      }
-    } else {
-      // Get top results
-
-      if (forAverage) {
-        eventResults = await this.resultModel.find(avgsFilter, excl).sort({ average: 1 }).exec();
       } else {
+        // Get all top single results
+
         eventResults = await this.resultModel
           .aggregate([
             { $match: { eventId, compNotPublished: { $exists: false } } },
@@ -100,32 +107,93 @@ export class ResultsService {
             { $sort: { 'attempts.result': 1 } },
           ])
           .exec();
-
-        // Set the unwound attempts as best, so that the frontend can use the same logic for everything
-        for (const result of eventResults) result.best = (result.attempts as any).result;
-      }
-    }
-
-    const rankedResults = await setRankings(eventResults, forAverage, true);
-
-    for (const result of rankedResults) {
-      const persons: PersonDocument[] = [];
-
-      // This is done so that the persons array stays in the right order
-      for (const personId of result.personIds) {
-        const [person] = await this.personsService.getPersonsById(personId);
-        if (!person) throw new InternalServerErrorException(`Person with ID ${personId} not found`);
-        persons.push(person);
       }
 
-      eventRankings.rankings.push({
-        type: forAverage ? 'average' : 'single',
-        result,
-        persons,
-        competition: result.competitionId
-          ? await this.competitionModel.findOne({ competitionId: result.competitionId }, excl).exec()
-          : undefined,
-      });
+      const rankedResults = await setRankings(eventResults, false, true);
+
+      for (const result of rankedResults) {
+        const ranking: IRanking = {
+          ranking: result.ranking,
+          persons: [],
+          resultId: result._id.toString(),
+          result: show ? (result.attempts as any).result : result.best,
+          // Will be left undefined if the request wasn't for top single results
+          attemptNumber: (result as any).attemptNumber,
+          date: result.date,
+          videoLink: result.videoLink,
+          discussionLink: result.discussionLink,
+        };
+        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds);
+
+        // This is done so that the persons array stays in the same order
+        for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
+
+        // Set memo, if the result has it
+        if (show) {
+          ranking.memo = (result.attempts as any).memo; // will be left undefined if there is no memo
+        } else {
+          const tiedBestAttempts = result.attempts.filter((el) => el.result === result.best);
+          if (tiedBestAttempts.length === 1) ranking.memo = tiedBestAttempts[0].memo;
+        }
+
+        if (result.competitionId) {
+          ranking.competition = await this.competitionModel
+            .findOne({ competitionId: result.competitionId }, excl)
+            .exec();
+        }
+
+        eventRankings.rankings.push(ranking);
+      }
+    } else {
+      if (!show) {
+        // Get top averages by person
+
+        const prAverages = await this.resultModel
+          .aggregate([
+            { $match: avgsFilter },
+            { $unwind: '$personIds' },
+            { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
+            { $sort: { average: 1 } },
+          ])
+          .exec();
+
+        for (const pr of prAverages) {
+          const result = await this.resultModel
+            .findOne({ personIds: pr._id.personId, average: pr.average }, excl)
+            .exec();
+          this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
+          eventResults.push(result);
+        }
+      } else {
+        // Get all top average results
+        eventResults = await this.resultModel.find(avgsFilter, excl).sort({ average: 1 }).exec();
+      }
+
+      const rankedResults = await setRankings(eventResults, true, true);
+
+      for (const result of rankedResults) {
+        const ranking: IRanking = {
+          ranking: result.ranking,
+          persons: [],
+          resultId: result._id.toString(),
+          result: result.average,
+          date: result.date,
+          videoLink: result.videoLink,
+          discussionLink: result.discussionLink,
+        };
+        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds);
+
+        // This is done so that the persons array stays in the same order
+        for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
+
+        if (result.competitionId) {
+          ranking.competition = await this.competitionModel
+            .findOne({ competitionId: result.competitionId }, excl)
+            .exec();
+        }
+
+        eventRankings.rankings.push(ranking);
+      }
     }
 
     return eventRankings;
@@ -161,22 +229,31 @@ export class ResultsService {
         for (const result of singleResults) {
           eventRecords.rankings.push({
             type: 'single',
-            result,
             persons: await this.personsService.getPersonsById(result.personIds),
+            resultId: result._id.toString(),
+            result: result.best,
+            date: result.date,
             competition: result.competitionId
               ? await this.competitionModel.findOne({ competitionId: result.competitionId }, excl).exec()
               : undefined,
+            videoLink: result.videoLink,
+            discussionLink: result.discussionLink,
           });
         }
 
         for (const result of averageResults) {
           eventRecords.rankings.push({
             type: result.attempts.length === 3 ? 'mean' : 'average',
-            result,
             persons: await this.personsService.getPersonsById(result.personIds),
+            resultId: result._id.toString(),
+            result: result.average,
+            date: result.date,
             competition: result.competitionId
               ? await this.competitionModel.findOne({ competitionId: result.competitionId }, excl).exec()
               : undefined,
+            attempts: result.attempts,
+            videoLink: result.videoLink,
+            discussionLink: result.discussionLink,
           });
         }
 
@@ -197,7 +274,7 @@ export class ResultsService {
       events: submissionBasedEvents,
       recordPairsByEvent: await this.getRecordPairs(
         submissionBasedEvents.map((el) => el.eventId),
-        recordsUpTo,
+        recordsUpTo, // getRecordPairs gets just the date from this
         activeRecordTypes,
       ),
       activeRecordTypes,
@@ -573,5 +650,13 @@ export class ResultsService {
     else this.authService.checkAccessRightsToComp(user, comp);
 
     return comp;
+  }
+
+  // Sets the person being ranked as the first person in the list, if it's a team event
+  private setRankedPersonAsFirst(personId: number, personIds: number[]) {
+    if (personIds.length > 1) {
+      // Sort the person IDs in the result, so that the person, whose PR this result is, is first
+      personIds.sort((a, b) => (a === personId ? -1 : 0));
+    }
   }
 }

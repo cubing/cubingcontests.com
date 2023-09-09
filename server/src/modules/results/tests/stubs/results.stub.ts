@@ -20,7 +20,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c44'),
       competitionId: 'Munich19022023',
-      eventId: '333tbf',
+      eventId: '333-team-bld',
       date: new Date('2023-02-19T00:00:00Z'),
       personIds: [2, 4],
       ranking: 2,
@@ -31,7 +31,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c45'),
       competitionId: 'Munich19022023',
-      eventId: '333tbf',
+      eventId: '333-team-bld',
       date: new Date('2023-02-19T00:00:00Z'),
       personIds: [3, 1],
       ranking: 1,
@@ -44,7 +44,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c46'),
       competitionId: 'Munich19022023',
-      eventId: '333tbf',
+      eventId: '333-team-bld',
       date: new Date('2023-02-19T00:00:00Z'),
       personIds: [2, 4],
       ranking: 2,
@@ -240,7 +240,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c43'),
       competitionId: 'Munich19022023',
-      eventId: '333tbf',
+      eventId: '333-team-bld',
       date: new Date('2023-02-19T00:00:00Z'),
       personIds: [3, 1],
       ranking: 1,
@@ -525,7 +525,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c71'),
       competitionId: 'Munich27062023',
-      eventId: '333tbf',
+      eventId: '333-team-bld',
       date: new Date('2023-06-27T00:00:00Z'),
       personIds: [3, 1],
       ranking: 1,
@@ -538,7 +538,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c72'),
       competitionId: 'Munich27062023',
-      eventId: '333tbf',
+      eventId: '333-team-bld',
       date: new Date('2023-06-27T00:00:00Z'),
       personIds: [4, 7],
       ranking: 2,
@@ -820,7 +820,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8b'),
       competitionId: 'Munich27062023',
-      eventId: '333tf',
+      eventId: '333-team-factory',
       date: new Date('2023-06-27T00:00:00Z'),
       personIds: [1, 7],
       ranking: 1,
@@ -833,7 +833,7 @@ export const resultsStub = (): ResultDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8c'),
       competitionId: 'Munich27062023',
-      eventId: '333tf',
+      eventId: '333-team-factory',
       date: new Date('2023-06-27T00:00:00Z'),
       personIds: [4, 3],
       ranking: 2,

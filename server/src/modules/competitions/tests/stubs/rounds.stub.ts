@@ -4,7 +4,7 @@ import { RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 export const roundsStub = (): RoundDocument[] =>
   [
     {
-      roundId: '333tbf-r1',
+      roundId: '333-team-bld-r1',
       competitionId: 'Munich19022023',
       date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
@@ -12,7 +12,7 @@ export const roundsStub = (): RoundDocument[] =>
       results: [
         {
           competitionId: 'Munich19022023',
-          eventId: '333tbf',
+          eventId: '333-team-bld',
           date: new Date('2023-02-19T00:00:00Z'),
           personIds: [3, 1],
           ranking: 1,
@@ -22,7 +22,7 @@ export const roundsStub = (): RoundDocument[] =>
         },
         {
           competitionId: 'Munich19022023',
-          eventId: '333tbf',
+          eventId: '333-team-bld',
           date: new Date('2023-02-19T00:00:00Z'),
           personIds: [2, 4],
           ranking: 2,
@@ -559,7 +559,7 @@ export const roundsStub = (): RoundDocument[] =>
       ],
     },
     {
-      roundId: '333tbf-r1',
+      roundId: '333-team-bld-r1',
       competitionId: 'Munich27062023',
       date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
@@ -567,7 +567,7 @@ export const roundsStub = (): RoundDocument[] =>
       results: [
         {
           competitionId: 'Munich27062023',
-          eventId: '333tbf',
+          eventId: '333-team-bld',
           date: new Date('2023-06-27T00:00:00Z'),
           personIds: [3, 1],
           ranking: 1,
@@ -579,7 +579,7 @@ export const roundsStub = (): RoundDocument[] =>
         },
         {
           competitionId: 'Munich27062023',
-          eventId: '333tbf',
+          eventId: '333-team-bld',
           date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4, 7],
           ranking: 2,
@@ -882,7 +882,7 @@ export const roundsStub = (): RoundDocument[] =>
       ],
     },
     {
-      roundId: '333tf-r1',
+      roundId: '333-team-factory-r1',
       competitionId: 'Munich27062023',
       date: new Date('2023-06-27T00:00:00Z'),
       roundTypeId: RoundType.Final,
@@ -890,7 +890,7 @@ export const roundsStub = (): RoundDocument[] =>
       results: [
         {
           competitionId: 'Munich27062023',
-          eventId: '333tf',
+          eventId: '333-team-factory',
           date: new Date('2023-06-27T00:00:00Z'),
           personIds: [1, 7],
           ranking: 1,
@@ -902,7 +902,7 @@ export const roundsStub = (): RoundDocument[] =>
         },
         {
           competitionId: 'Munich27062023',
-          eventId: '333tf',
+          eventId: '333-team-factory',
           date: new Date('2023-06-27T00:00:00Z'),
           personIds: [4, 3],
           ranking: 2,

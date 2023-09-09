@@ -16,6 +16,7 @@ export enum EventGroup {
   Team = 7,
   RemovedWCA = 8, // e.g. magic, mmagic, 333ft, 333mbo
   Hidden = 9,
+  HasMemo = 10, // e.g. 3x3-5x5 Blindfolded, Multi-Blind, etc., but NOT Team-Blind
 }
 
 export enum RoundFormat {

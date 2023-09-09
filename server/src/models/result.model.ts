@@ -18,7 +18,9 @@ export class Result implements IResult {
   @Prop()
   competitionId?: string;
 
-  @Prop({ required: true, immutable: true })
+  // THIS IS TEMPORARY
+  // @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   eventId: string;
 
   @Prop({ required: true })

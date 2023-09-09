@@ -49,7 +49,7 @@ const PostResultsScreen = ({
         setErrorMessages(['This contest is over. Submitting results is disabled.']);
       }
     }
-  }, [competition, recordPairsByEvent]);
+  }, [competition, recordPairsByEvent, isEditable]);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
@@ -162,21 +162,20 @@ const PostResultsScreen = ({
         <div className="col-4 pe-4">
           <ResultForm
             event={currEvent}
-            competitionEvents={competitionEvents}
             persons={currentPersons}
             setPersons={setCurrentPersons}
             attempts={attempts}
             setAttempts={setAttempts}
-            round={round}
-            setRound={setRound}
-            rounds={competitionEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
             recordPairs={recordPairs}
             recordTypes={activeRecordTypes}
             nextFocusTargetId="submit_attempt_button"
+            resetTrigger={resultFormResetTrigger}
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
-            resetTrigger={resultFormResetTrigger}
-            noGrid
+            round={round}
+            setRound={setRound}
+            rounds={competitionEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
+            competitionEvents={competitionEvents}
           />
           <button
             type="button"

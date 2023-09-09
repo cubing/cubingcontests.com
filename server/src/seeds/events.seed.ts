@@ -65,7 +65,7 @@ export const eventsSeed: IEvent[] = [
     rank: 70,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    groups: [EventGroup.WCA],
+    groups: [EventGroup.WCA, EventGroup.HasMemo],
   },
   {
     eventId: '333fm',
@@ -129,7 +129,7 @@ export const eventsSeed: IEvent[] = [
     rank: 160,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed],
+    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed, EventGroup.HasMemo],
   },
   {
     eventId: '555bf',
@@ -137,7 +137,7 @@ export const eventsSeed: IEvent[] = [
     rank: 170,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
-    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed],
+    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed, EventGroup.HasMemo],
   },
   {
     eventId: '333mbf',
@@ -145,13 +145,13 @@ export const eventsSeed: IEvent[] = [
     rank: 180,
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
-    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed],
+    groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed, EventGroup.HasMemo],
   },
   ///////////////////////////////////////////////////////////////////
   // UNOFFICIAL
   ///////////////////////////////////////////////////////////////////
   {
-    eventId: '333tbf',
+    eventId: '333-team-bld',
     name: '3x3x3 Team-Blind',
     rank: 1000,
     format: EventFormat.Time,
@@ -184,7 +184,7 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
   },
   {
-    eventId: '333ohbfr',
+    eventId: '333-oh-bld-team-relay',
     name: '3x3x3 + OH + BLD Team Relay',
     rank: 1040,
     format: EventFormat.Time,
@@ -193,7 +193,7 @@ export const eventsSeed: IEvent[] = [
     participants: 3,
   },
   {
-    eventId: '333tf',
+    eventId: '333-team-factory',
     name: '3x3x3 Team Factory',
     rank: 1050,
     format: EventFormat.Time,
@@ -218,11 +218,11 @@ export const eventsSeed: IEvent[] = [
     rank: 2000,
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
-    groups: [EventGroup.SubmissionOnly, EventGroup.RemovedWCA],
+    groups: [EventGroup.SubmissionOnly, EventGroup.RemovedWCA, EventGroup.HasMemo],
   },
   {
-    eventId: '333bf2mr',
-    name: '3x3x3 Blindfolded 2-Man Relay',
+    eventId: '333bf-2-person-relay',
+    name: '3x3x3 Blindfolded 2-man Relay',
     rank: 2010,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
@@ -230,8 +230,8 @@ export const eventsSeed: IEvent[] = [
     participants: 2,
   },
   {
-    eventId: '333bf3mr',
-    name: '3x3x3 Blindfolded 3-Man Relay',
+    eventId: '333bf-3-person-relay',
+    name: '3x3x3 Blindfolded 3-man Relay',
     rank: 2020,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
@@ -239,8 +239,8 @@ export const eventsSeed: IEvent[] = [
     participants: 3,
   },
   {
-    eventId: '333bf4mr',
-    name: '3x3x3 Blindfolded 4-Man Relay',
+    eventId: '333bf-4-person-relay',
+    name: '3x3x3 Blindfolded 4-man Relay',
     rank: 2030,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
@@ -248,8 +248,8 @@ export const eventsSeed: IEvent[] = [
     participants: 4,
   },
   {
-    eventId: '333bf8mr',
-    name: '3x3x3 Blindfolded 8-Man Relay',
+    eventId: '333bf-8-person-relay',
+    name: '3x3x3 Blindfolded 8-man Relay',
     rank: 2040,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,

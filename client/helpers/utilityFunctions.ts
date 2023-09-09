@@ -33,7 +33,7 @@ export const getFormattedCoords = (comp: ICompetition): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(5)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(5)}`;
 };
 
-export const getFormattedTime = (time: number, eventFormat: EventFormat, noFormatting = false): string => {
+export const getFormattedTime = (time: number, eventFormat = EventFormat.Time, noFormatting = false): string => {
   if (time === -1) {
     return 'DNF';
   } else if (time === -2) {
@@ -97,21 +97,8 @@ export const getFormattedTime = (time: number, eventFormat: EventFormat, noForma
   }
 };
 
-// Returns null if the time is invalid (e.g. 8145); returns 0 if it's empty.
-// solved and attempted are only required for the Multi event format.
-export const getAttempt = (
-  attempt: IAttempt,
-  eventFormat: EventFormat,
-  time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
-  solved: string,
-  attempted: string,
-  noRounding = false,
-): IAttempt => {
-  if (time.length > 7) throw new Error('times >= 10 hours long are not supported');
-  if (time === '') return { ...attempt, result: 0 };
-  if (eventFormat === EventFormat.Number) return { ...attempt, result: parseInt(time) };
-
-  const newAttempt = { ...attempt };
+// Returns null if the time is invalid
+const getCentiseconds = (time: string, noRounding = false): number | null => {
   let hours = 0;
   let minutes = 0;
   let centiseconds: number;
@@ -128,20 +115,37 @@ export const getAttempt = (
     centiseconds = parseInt(time);
   }
 
-  // Return null if the time is invalid
-  if (minutes >= 60 || centiseconds >= 6000) return { ...attempt, result: null };
-  centiseconds = hours * 360000 + minutes * 6000 + centiseconds;
+  if (minutes >= 60 || centiseconds >= 6000) return null;
 
-  if (eventFormat !== EventFormat.Multi) {
-    newAttempt.result = centiseconds;
-  } else {
-    if (!solved || !attempted) return { ...attempt, result: null };
+  return hours * 360000 + minutes * 6000 + centiseconds;
+};
+
+// Returns null if the time is invalid (e.g. 8145); returns 0 if it's empty.
+// solved and attempted are only required for the Multi event format.
+export const getAttempt = (
+  attempt: IAttempt,
+  eventFormat: EventFormat,
+  time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
+  solved: string,
+  attempted: string,
+  memo: string | undefined, // only used for events with the event group HasMemo
+  noRounding = false,
+): IAttempt => {
+  if (time.length > 7 || memo?.length > 7) throw new Error('times >= 10 hours long are not supported');
+
+  if (eventFormat === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
+
+  const newAttempt: IAttempt = { result: time ? getCentiseconds(time, noRounding) : 0 };
+  if (memo !== undefined) newAttempt.memo = memo ? getCentiseconds(memo, noRounding) : 0;
+
+  if (eventFormat === EventFormat.Multi && newAttempt.result) {
+    if (!solved || !attempted) return { ...newAttempt, result: null };
 
     const solvedNum = parseInt(solved);
     const attemptedNum = parseInt(attempted);
 
     if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) {
-      return { ...attempt, result: null };
+      return { ...newAttempt, result: null };
     }
 
     // See the IResult interface for information about how this works
@@ -155,7 +159,7 @@ export const getAttempt = (
     }
 
     multiOutput += 9999 - points;
-    multiOutput += new Array(7 - centiseconds.toString().length).fill('0').join('') + centiseconds;
+    multiOutput += new Array(7 - newAttempt.result.toString().length).fill('0').join('') + newAttempt.result;
     multiOutput += new Array(4 - missed.toString().length).fill('0').join('') + missed;
 
     newAttempt.result = parseInt(multiOutput);

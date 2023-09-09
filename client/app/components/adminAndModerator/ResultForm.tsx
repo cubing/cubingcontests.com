@@ -30,60 +30,61 @@ import TimeInput from '../TimeInput';
  * setEvent, events, roundFormat and setRoundformat must be left undefined.
  *
  * The other use case is on the submit results page, in which case those props must be left undefined,
- * but setEvent, events, roundFormat and setRoundFormat must be set.
+ * but setEvent, events, roundFormat and setRoundFormat must be set. In this case forSubmitResultsPage = true.
  */
 
 const ResultForm = ({
   event,
-  setEvent,
-  events,
-  competitionEvents,
   persons,
   setPersons,
   attempts,
   setAttempts,
-  round,
-  setRound,
-  rounds, // all rounds for the current competition event
-  roundFormat,
-  setRoundFormat,
   recordPairs,
   loadingRecordPairs = false,
   recordTypes,
   nextFocusTargetId,
+  resetTrigger,
   setErrorMessages,
   setSuccessMessage,
-  resetTrigger,
-  noGrid = false,
+  forSubmitResultsPage = false,
+  round,
+  setRound,
+  rounds,
+  competitionEvents,
+  setEvent,
+  events,
+  roundFormat,
+  setRoundFormat,
 }: {
   event: IEvent;
-  setEvent?: (val: IEvent) => void;
-  events?: IEvent[];
-  competitionEvents?: ICompetitionEvent[];
   persons: IPerson[];
   setPersons: (val: IPerson[]) => void;
   attempts: IAttempt[];
   setAttempts: (val: IAttempt[]) => void;
-  // If one of these three is set, all of them must be set!
-  round?: IRound;
-  setRound?: (val: IRound) => void;
-  rounds?: IRound[];
-  roundFormat?: RoundFormat;
-  setRoundFormat?: (val: RoundFormat) => void;
   recordPairs: IRecordPair[];
   loadingRecordPairs?: boolean;
   recordTypes: IRecordType[];
   nextFocusTargetId?: string;
+  resetTrigger: boolean;
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage: (val: string) => void;
-  resetTrigger: boolean;
-  noGrid?: boolean;
+  forSubmitResultsPage?: boolean;
+  // These props are for PostResultsScreen
+  round?: IRound;
+  setRound?: (val: IRound) => void;
+  rounds?: IRound[]; // all rounds for the current competition event
+  competitionEvents?: ICompetitionEvent[];
+  // These props are for the submit results page
+  setEvent?: (val: IEvent) => void;
+  events?: IEvent[];
+  roundFormat?: RoundFormat;
+  setRoundFormat?: (val: RoundFormat) => void;
 }) => {
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
   const [personNames, setPersonNames] = useState(['']);
 
-  if (!roundFormat) roundFormat = round.format;
+  if (!forSubmitResultsPage) roundFormat = round.format;
 
   const roundCanHaveAverage = useMemo(() => getRoundCanHaveAverage(roundFormat, event), [roundFormat, event]);
 
@@ -116,21 +117,17 @@ const ResultForm = ({
   }, [nonNullPersons.length]);
 
   const changeEvent = (newEventId: string) => {
-    if (round) {
+    if (forSubmitResultsPage) {
+      setEvent(events.find((el) => el.eventId === newEventId));
+    } else {
       const newCompEvent = competitionEvents.find((el) => el.event.eventId === newEventId);
       setRound(newCompEvent.rounds[0]);
-    } else {
-      setEvent(events.find((el) => el.eventId === newEventId));
     }
   };
 
   const changeRound = (newRoundType: RoundType) => {
     const currCompEvent = competitionEvents.find((ce) => ce.event.eventId === event.eventId);
     setRound(currCompEvent.rounds.find((r) => r.roundTypeId === newRoundType));
-  };
-
-  const changeRoundFormat = (newRoundFormat: RoundFormat) => {
-    reset(newRoundFormat);
   };
 
   // Returns true if there are errors
@@ -150,17 +147,19 @@ const ResultForm = ({
   const focusNext = (index: number) => {
     // Focus next time input or the submit button if it's the last input
     if (index + 1 < attempts.length) {
-      if (event.format !== EventFormat.Multi) document.getElementById(`attempt_${index + 2}`)?.focus();
-      // If Multi format and the next attempt is not DNS, focus the solved input, if it's DNS, focus the time input
-      else if (attempts[index + 1].result !== -2) document.getElementById(`attempt_${index + 2}_solved`).focus();
-      else document.getElementById(`attempt_${index + 2}`).focus();
+      // If Multi format and the next attempt is not DNS, focus the solved input, therwise focus the time input
+      if (event.format === EventFormat.Multi && attempts[index + 1].result !== -2) {
+        document.getElementById(`attempt_${index + 2}_solved`).focus();
+      } else {
+        document.getElementById(`attempt_${index + 2}`).focus();
+      }
     } else {
       if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
     }
   };
 
   const reset = (newRoundFormat: RoundFormat) => {
-    if (setRoundFormat) setRoundFormat(newRoundFormat);
+    if (forSubmitResultsPage) setRoundFormat(newRoundFormat);
     setErrorMessages([]);
     setPersons(new Array(event.participants || 1).fill(null));
     setPersonNames(new Array(event.participants || 1).fill(''));
@@ -173,7 +172,7 @@ const ResultForm = ({
   return (
     <>
       <FormEventSelect
-        events={round ? competitionEvents.map((el) => el.event) : events}
+        events={forSubmitResultsPage ? events : competitionEvents.map((el) => el.event)}
         eventId={event.eventId}
         setEventId={(val) => changeEvent(val)}
       />
@@ -190,7 +189,7 @@ const ResultForm = ({
             title="Format"
             options={getAllowedRoundFormats(event)}
             selected={roundFormat}
-            setSelected={changeRoundFormat}
+            setSelected={(val: RoundFormat) => reset(val)}
           />
         )}
       </div>
@@ -206,7 +205,7 @@ const ResultForm = ({
           setErrorMessages={setErrorMessages}
           setSuccessMessage={setSuccessMessage}
           redirectToOnAddPerson={window.location.pathname}
-          noGrid={noGrid}
+          noGrid={!forSubmitResultsPage}
         />
       </div>
       {attempts.map((attempt, i) => (
@@ -217,6 +216,7 @@ const ResultForm = ({
           setAttempt={(val: IAttempt) => changeAttempt(i, val)}
           event={event}
           focusNext={() => focusNext(i)}
+          memoInputForBld={forSubmitResultsPage}
         />
       ))}
       <div className="mb-3">
