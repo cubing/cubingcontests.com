@@ -46,19 +46,23 @@ const EventButtons = ({
   return (
     <div>
       {!hideCategories && (
-        <div className="btn-group btn-group-sm mt-2 mb-3" role="group" aria-label="Type">
-          {eventCategories.map((cat) => (
-            <button
-              key={cat.value}
-              type="button"
-              className={'btn btn-primary' + (cat === selectedCat ? ' active' : '')}
-              onClick={() => setSelectedCat(cat)}
-            >
-              <span className="d-inline d-lg-none">{cat.mobileTitle || cat.title}</span>
-              <span className="d-none d-lg-inline">{cat.title}</span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="btn-group btn-group-sm mt-2 mb-3" role="group" aria-label="Type">
+            {eventCategories.map((cat) => (
+              <button
+                key={cat.value}
+                type="button"
+                className={'btn btn-primary' + (cat === selectedCat ? ' active' : '')}
+                onClick={() => setSelectedCat(cat)}
+              >
+                <span className="d-inline d-lg-none">{cat.mobileTitle || cat.title}</span>
+                <span className="d-none d-lg-inline">{cat.title}</span>
+              </button>
+            ))}
+          </div>
+
+          {selectedCat.description && <p>{selectedCat.description}</p>}
+        </>
       )}
 
       <div className="d-flex flex-wrap mb-3 fs-3">

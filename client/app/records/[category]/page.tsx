@@ -33,6 +33,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
   const filteredEventRecords = recordsByEvent?.filter((er) =>
     er.event.groups.includes(eventCategories.find((rc) => rc.value === params.category).group),
   );
+  const selectedCat = eventCategories.find((el) => el.value === params.category);
 
   // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingRow has this same function too.
   const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
@@ -51,6 +52,10 @@ const Records = async ({ params }: { params: { category: string } }) => {
         ) : (
           <>
             <RecordsCategoryTabs recordsByEvent={recordsByEvent} category={params.category} />
+
+            {(selectedCat.recordsPageDescription || selectedCat.description) && (
+              <p className="mx-2 mb-4">{selectedCat.recordsPageDescription || selectedCat.description}</p>
+            )}
 
             {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
               return (

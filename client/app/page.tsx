@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import C from '~/shared_helpers/constants';
 
 export default function Home() {
   return (
@@ -34,7 +35,7 @@ export default function Home() {
       </div>
       <p>
         If you would like to create an unofficial competition or meetup, host unofficial events for a WCA competition,
-        or submit individual results for a remote event, please send an inquiry to cube327@tuta.io
+        or submit individual results for a remote event, please send an inquiry to {C.contactEmail}
       </p>
     </div>
   );
