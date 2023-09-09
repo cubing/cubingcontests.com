@@ -37,33 +37,6 @@ export class ResultsService {
     @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
   ) {}
 
-  async onModuleInit() {
-    await this.resultModel.updateMany({ eventId: '333tbf' }, { $set: { eventId: '333-team-bld' } }).exec();
-    await this.resultModel.updateMany({ eventId: '333tf' }, { $set: { eventId: '333-team-factory' } }).exec();
-    await this.resultModel.updateMany({ eventId: '333ohbfr' }, { $set: { eventId: '333-oh-bld-team-relay' } }).exec();
-    await this.resultModel.updateMany({ eventId: '333bf2mr' }, { $set: { eventId: '333bf-2-person-relay' } }).exec();
-    await this.resultModel.updateMany({ eventId: '333bf3mr' }, { $set: { eventId: '333bf-3-person-relay' } }).exec();
-    await this.resultModel.updateMany({ eventId: '333bf4mr' }, { $set: { eventId: '333bf-4-person-relay' } }).exec();
-    await this.resultModel.updateMany({ eventId: '333bf8mr' }, { $set: { eventId: '333bf-8-person-relay' } }).exec();
-    await this.roundModel.updateMany({ roundId: '333tbf-r1' }, { $set: { roundId: '333-team-bld-r1' } }).exec();
-    await this.roundModel
-      .updateMany({ roundId: '333bf2mr-r1' }, { $set: { roundId: '333bf-2-person-relay-r1' } })
-      .exec();
-    await this.roundModel.updateMany({ eventId: '333tf-r1' }, { $set: { eventId: '333-team-factory-r1' } }).exec();
-    await this.roundModel
-      .updateMany({ eventId: '333ohbfr-r1' }, { $set: { eventId: '333-oh-bld-team-relay-r1' } })
-      .exec();
-    await this.roundModel
-      .updateMany({ roundId: '333bf3mr-r1' }, { $set: { roundId: '333bf-3-person-relay-r1' } })
-      .exec();
-    await this.roundModel
-      .updateMany({ roundId: '333bf4mr-r1' }, { $set: { roundId: '333bf-4-person-relay-r1' } })
-      .exec();
-    await this.roundModel
-      .updateMany({ roundId: '333bf8mr-r1' }, { $set: { roundId: '333bf-8-person-relay-r1' } })
-      .exec();
-  }
-
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 

@@ -136,7 +136,7 @@ export const getAttempt = (
   if (eventFormat === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
 
   const newAttempt: IAttempt = { result: time ? getCentiseconds(time, noRounding) : 0 };
-  if (memo !== undefined) newAttempt.memo = memo ? getCentiseconds(memo, noRounding) : 0;
+  if (memo !== undefined) newAttempt.memo = getCentiseconds(memo, noRounding);
 
   if (eventFormat === EventFormat.Multi && newAttempt.result) {
     if (!solved || !attempted) return { ...newAttempt, result: null };

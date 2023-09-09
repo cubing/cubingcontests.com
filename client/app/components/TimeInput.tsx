@@ -43,7 +43,8 @@ const TimeInput = ({
   const includeMemo = memoInputForBld && event.groups.includes(EventGroup.HasMemo);
 
   const [attemptText, setAttemptText] = useState('');
-  const [memoText, setMemoText] = useState<string>(undefined);
+  // undefined is used as the empty value, so that it doesn't get saved in the DB if left empty
+  const [memoText, setMemoText] = useState<string | undefined>(undefined);
   const [solved, setSolved] = useState('');
   const [attempted, setAttempted] = useState('');
 
@@ -53,15 +54,18 @@ const TimeInput = ({
   const isInvalidAttempt = attempt.result === null || attempt.memo === null;
 
   useEffect(() => {
-    if (attempt.result !== null) {
+    if (attempt.result !== null && attempt.memo !== null) {
+      // Reset these by default and set them further down if needed
       setSolved('');
       setAttempted('');
       setMemoText(undefined);
 
       if (attempt.result === -1) {
         setAttemptText('DNF');
+        setMemoText(undefined);
       } else if (attempt.result === -2) {
         setAttemptText('DNS');
+        setMemoText(undefined);
       } else {
         // Attempt time
         if (attempt.result === 0) {
@@ -78,7 +82,10 @@ const TimeInput = ({
         }
 
         // Memo time
-        if (attempt.memo > 0) setMemoText(getFormattedTime(attempt.memo, EventFormat.Time, true));
+        if (attempt.memo > 0) {
+          console.log(attempt.memo, getFormattedTime(attempt.memo, EventFormat.Time, true));
+          setMemoText(getFormattedTime(attempt.memo, EventFormat.Time, true));
+        }
       }
     }
   }, [attempt]);
@@ -189,7 +196,7 @@ const TimeInput = ({
 
   const onTimeFocusOut = (forMemoTime = false) => {
     // Get rid of the decimals if one of the times is >= 10 minutes
-    if (attemptText.length >= 6 || (forMemoTime && memoText.length >= 6)) {
+    if (attemptText.length >= 6 || (forMemoTime && memoText?.length >= 6)) {
       setAttempt(getAttempt(attempt, event.format, attemptText, solved, attempted, memoText, false));
     }
   };
