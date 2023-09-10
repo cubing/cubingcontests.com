@@ -8,15 +8,15 @@
   font-size: 1.5rem;
   color: white;
   cursor: pointer;
+}
 
-  &:hover {
-    color: lightgray;
-  }
+.cc-icon-button:hover {
+  color: lightgray;
+}
 
-  &:active,
-  &.cc-icon-button_active {
-    color: #aaa;
-  }
+.cc-icon-button:active,
+.cc-icon-button.cc-icon-button_active {
+  color: #aaa;
 }
 
 /* This class is used by react datepicker */
@@ -30,9 +30,9 @@
   margin: 0;
 }
 
-.cc-homepage-link {
-  /* 768px corresponds to Bootstrap's md size */
-  @media (max-width: 768px) {
+/* 768px corresponds to Bootstrap's md size */
+@media (max-width: 768px) {
+  .cc-homepage-link {
     width: 100%;
     max-width: 12rem;
     white-space: nowrap;

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { IEvent } from '@sh/interfaces';
 import { EventGroup } from '@sh/enums';
 import { eventCategories } from '~/helpers/eventCategories';
+import EventIcon from './EventIcon';
 
 const EventButtons = ({
   events,
@@ -66,33 +67,14 @@ const EventButtons = ({
       )}
 
       <div className="d-flex flex-wrap mb-3 fs-3">
-        {filteredEvents.map(({ eventId, name, groups }) => {
-          const isOrWasWCAEvent = groups.includes(EventGroup.WCA) || groups.includes(EventGroup.RemovedWCA);
-          const isActive = activeEvent.eventId === eventId;
-
-          if (isOrWasWCAEvent || eventId === 'fto') {
-            return (
-              <div
-                key={eventId}
-                className={'cc-icon-button' + (isActive ? ' cc-icon-button_active' : '')}
-                onClick={() => handleEventClick(eventId)}
-              >
-                <span className={`cubing-icon ${isOrWasWCAEvent ? 'event' : 'unofficial'}-${eventId}`}></span>
-              </div>
-            );
-          }
-
-          return (
-            <button
-              key={eventId}
-              type="button"
-              className={'btn btn-light btn-sm m-1' + (isActive ? ' active' : '')}
-              onClick={() => handleEventClick(eventId)}
-            >
-              {name.replace('3x3x3', '3x3').replace('Blindfolded', 'BLD')}
-            </button>
-          );
-        })}
+        {filteredEvents.map((event) => (
+          <EventIcon
+            key={event.eventId}
+            event={event}
+            onClick={handleEventClick}
+            isActive={activeEvent.eventId === event.eventId}
+          />
+        ))}
       </div>
     </div>
   );

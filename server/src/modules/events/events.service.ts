@@ -47,7 +47,7 @@ export class EventsService {
   async getSubmissionBasedEvents(): Promise<EventDocument[]> {
     try {
       return await this.eventModel
-        .find({ groups: { $in: [EventGroup.SubmissionOnly, EventGroup.SubmissionsAllowed] } }, excl)
+        .find({ groups: { $in: [EventGroup.ExtremeBLD, EventGroup.SubmissionsAllowed] } }, excl)
         .sort({ rank: 1 })
         .exec();
     } catch (err) {

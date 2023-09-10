@@ -8,7 +8,7 @@ export enum EventGroup {
   // The first four are used for grouping events on the rankings pages. An event MUST include ONE of these main groups.
   WCA = 1, // event ranks are the same as on the WCA
   Unofficial = 2, // event ranks start from 1000
-  SubmissionOnly = 3, // ...from 2000
+  ExtremeBLD = 3, // ...from 2000
   Removed = 4, // ...from 3000
 
   MeetupOnly = 5,
