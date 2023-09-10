@@ -21,7 +21,7 @@ const SubmitResults = () => {
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState<RoundFormat>();
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
-  const [date, setDate] = useState(null);
+  const [date, setDate] = useState<Date>(); // undefined means the date was reset, null means it's invalid
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');
   const [discussionLink, setDiscussionLink] = useState('');
@@ -101,6 +101,7 @@ const SubmitResults = () => {
             setErrorMessages(errors);
           } else {
             setSuccessMessage('Successfully submitted');
+            setDate(undefined);
             setVideoLink('');
             setResultFormResetTrigger(!resultFormResetTrigger);
 

@@ -42,7 +42,8 @@ const FormDateInput = ({
   const inputId = id || title + '_date';
 
   useEffect(() => {
-    if (value !== null) setDateText(format(value, 'ddMMyyyy'));
+    if (value) setDateText(format(value, 'ddMMyyyy'));
+    else if (value === undefined) setDateText('');
   }, [value]);
 
   useEffect(() => {
@@ -105,7 +106,7 @@ const FormDateInput = ({
         onKeyDown={(e) => onKeyDown(e)}
         onClick={changeCursorPosition}
         onFocus={changeCursorPosition}
-        className="form-control"
+        className={'form-control' + (value === null && dateText.length === 8 ? ' is-invalid' : '')}
       />
     </div>
   );
