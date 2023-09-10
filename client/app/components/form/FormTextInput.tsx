@@ -73,7 +73,7 @@ const FormTextInput = ({
           onKeyDown={handleKeyDown}
           onFocus={(e: any) => handleFocus(e)}
           onBlur={onBlur}
-          className={'flex-grow-1 form-control' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
+          className={'form-control flex-grow-1' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
         />
         {password && (
           <button

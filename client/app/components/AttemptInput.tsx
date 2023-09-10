@@ -25,13 +25,14 @@ const getFormattedText = (text: string): string => {
   return output;
 };
 
-const TimeInput = ({
+const AttemptInput = ({
   number,
   attempt,
   setAttempt,
   event,
   focusNext,
   memoInputForBld = false,
+  resetTrigger,
 }: {
   number: number;
   attempt: IAttempt;
@@ -39,31 +40,28 @@ const TimeInput = ({
   event: IEvent;
   focusNext: () => void;
   memoInputForBld?: boolean;
+  resetTrigger: boolean;
 }) => {
-  const includeMemo = memoInputForBld && event.groups.includes(EventGroup.HasMemo);
-
+  const [solved, setSolved] = useState('');
+  const [attempted, setAttempted] = useState('');
   const [attemptText, setAttemptText] = useState('');
   // undefined is used as the empty value, so that it doesn't get saved in the DB if left empty
   const [memoText, setMemoText] = useState<string | undefined>(undefined);
-  const [solved, setSolved] = useState('');
-  const [attempted, setAttempted] = useState('');
 
   const formattedAttemptText = useMemo(() => getFormattedText(attemptText), [attemptText]);
   const formattedMemoText = useMemo(() => getFormattedText(memoText), [memoText]);
 
   const isInvalidAttempt = attempt.result === null || attempt.memo === null;
+  const includeMemo = memoInputForBld && event.groups.includes(EventGroup.HasMemo);
 
   useEffect(() => {
     if (attempt.result !== null && attempt.memo !== null) {
-      // Reset these by default and set them further down if needed
-      setSolved('');
-      setAttempted('');
-      setMemoText(undefined);
-
       if (attempt.result === -1) {
         setAttemptText('DNF');
         setMemoText(undefined);
       } else if (attempt.result === -2) {
+        setSolved('');
+        setAttempted('');
         setAttemptText('DNS');
         setMemoText(undefined);
       } else {
@@ -91,6 +89,13 @@ const TimeInput = ({
       }
     }
   }, [attempt]);
+
+  useEffect(() => {
+    setSolved('');
+    setAttempted('');
+    setAttemptText('');
+    setMemoText(undefined);
+  }, [resetTrigger]);
 
   const changeSolved = (value: string) => {
     if (((event.eventId !== '333mbo' && value.length <= 2) || value.length <= 3) && !/[^0-9]/.test(value)) {
@@ -178,8 +183,8 @@ const TimeInput = ({
           const newAttempt = getAttempt(attempt, event.format, newAttText, solved, attempted, memoText, true);
           setAttempt(newAttempt);
 
-          // If the updated attempt is valid (not null), it will get updated in useEffect anyways
-          if (newAttempt.result === null) setAttemptText(newAttText);
+          // If the updated attempt is valid, it will get updated in useEffect anyways
+          if (newAttempt.result === null || newAttempt.memo === null) setAttemptText(newAttText);
         }
       } else {
         if (e.key === '0' && memoText === undefined) return; // don't allow entering 0 as the first digit
@@ -189,8 +194,8 @@ const TimeInput = ({
           const newAttempt = getAttempt(attempt, event.format, attemptText, solved, attempted, newMemoText, true);
           setAttempt(newAttempt);
 
-          // If the updated memo is valid (not null), it will get updated in useEffect anyways
-          if (newAttempt.memo === null) setMemoText(newMemoText);
+          // If the updated attempt is valid, it will get updated in useEffect anyways
+          if (newAttempt.memo === null || newAttempt.result === null) setMemoText(newMemoText);
         }
       }
     }
@@ -258,4 +263,4 @@ const TimeInput = ({
   );
 };
 
-export default TimeInput;
+export default AttemptInput;

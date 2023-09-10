@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
 import RoundResultsTable from '@c/RoundResultsTable';
 import myFetch from '~/helpers/myFetch';
-import { ContestState, Role } from '@sh/enums';
+import { ContestState, EventFormat, Role } from '@sh/enums';
 import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
 import ErrorMessages from '../ErrorMessages';
@@ -125,8 +125,6 @@ const PostResultsScreen = ({
     deleteResult((result as any)._id, () => {
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setAttempts(result.attempts);
-
-      document.getElementById('attempt_1').focus();
     });
   };
 
@@ -142,11 +140,8 @@ const PostResultsScreen = ({
         setLoadingDuringSubmit(false);
         updateRoundAndCompEvents(payload);
 
-        if (editCallback) {
-          editCallback();
-        } else {
-          setResultFormResetTrigger(!resultFormResetTrigger);
-        }
+        if (editCallback) editCallback();
+        else setErrorMessages([]);
       }
     }
   };

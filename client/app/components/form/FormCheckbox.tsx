@@ -25,6 +25,9 @@ const FormCheckbox = ({
         type="checkbox"
         checked={selected}
         onChange={() => setSelected(!selected)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.preventDefault();
+        }}
         disabled={disabled}
       />
       {title && (

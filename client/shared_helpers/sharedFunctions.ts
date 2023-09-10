@@ -31,21 +31,21 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
 };
 
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
-export const setResultRecords = (result: IResult, recordPairs: IRecordPair[]): IResult => {
+export const setResultRecords = (result: IResult, recordPairs: IRecordPair[], noConsoleLog = false): IResult => {
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
       const comparisonToRecordSingle = compareSingles(result, { best: recordPair.best } as IResult);
 
       if (result.best > 0 && comparisonToRecordSingle <= 0) {
-        console.log(`New ${result.eventId} single WR: ${result.best}`);
+        if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
       const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
 
       if (result.average > 0 && comparisonToRecordAvg <= 0) {
-        console.log(`New ${result.eventId} average WR: ${result.average}`);
+        if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
         result.regionalAverageRecord = recordPair.wcaEquivalent;
       }
     }

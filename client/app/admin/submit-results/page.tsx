@@ -1,9 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import enGB from 'date-fns/locale/en-GB';
 import Loading from '@c/Loading';
 import Form from '@c/form/Form';
 import myFetch from '~/helpers/myFetch';
@@ -12,9 +9,7 @@ import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import { checkErrorsBeforeSubmit, limitRequests } from '~/helpers/utilityFunctions';
 import { RoundFormat } from '~/shared_helpers/enums';
-
-registerLocale('en-GB', enGB);
-setDefaultLocale('en-GB');
+import FormDateInput from '~/app/components/form/FormDateInput';
 
 const SubmitResults = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -26,7 +21,7 @@ const SubmitResults = () => {
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState<RoundFormat>();
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(null);
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');
   const [discussionLink, setDiscussionLink] = useState('');
@@ -37,7 +32,7 @@ const SubmitResults = () => {
   );
 
   useEffect(() => {
-    fetchSubmissionInfo(date).then((payload: IResultsSubmissionInfo) => {
+    fetchSubmissionInfo(new Date()).then((payload: IResultsSubmissionInfo) => {
       setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
       setEvent(payload.events[0]);
       setRoundFormat(payload.events[0].defaultRoundFormat);
@@ -68,7 +63,11 @@ const SubmitResults = () => {
     // Validation
     const tempErrors: string[] = [];
 
-    if (!date) errorMessages.push('Please enter a valid date');
+    if (!date) {
+      tempErrors.push('Please enter a valid date');
+      document.getElementById('date').focus();
+    }
+
     if (!videoLink.trim()) {
       tempErrors.push('Please enter a video link');
       document.getElementById('video_link').focus();
@@ -104,6 +103,11 @@ const SubmitResults = () => {
             setSuccessMessage('Successfully submitted');
             setVideoLink('');
             setResultFormResetTrigger(!resultFormResetTrigger);
+
+            // Update record pairs
+            fetchSubmissionInfo(date).then((payload: IResultsSubmissionInfo) => {
+              setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+            });
           }
         },
         true, // require at least one non-DNF/DNS result
@@ -154,7 +158,7 @@ const SubmitResults = () => {
             recordPairs={recordPairs}
             loadingRecordPairs={fetchRecordPairsTimer !== null}
             recordTypes={resultsSubmissionInfo.activeRecordTypes}
-            nextFocusTargetId="video_link"
+            nextFocusTargetId="date"
             resetTrigger={resultFormResetTrigger}
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
@@ -163,19 +167,15 @@ const SubmitResults = () => {
             events={resultsSubmissionInfo.events}
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
+            showOptionToKeepCompetitors
           />
-          <div className="mb-3">
-            <label htmlFor="start_date" className="d-block form-label">
-              Date
-            </label>
-            <DatePicker
-              selected={date}
-              dateFormat="P"
-              locale="en-GB"
-              onChange={(date: Date) => changeDate(date)}
-              className="form-control"
-            />
-          </div>
+          <FormDateInput
+            id="date"
+            title="Date (dd.mm.yyyy)"
+            value={date}
+            setValue={changeDate}
+            nextFocusTargetId="video_link"
+          />
           <FormTextInput
             id="video_link"
             title="Link to video"
