@@ -46,11 +46,14 @@ export class RecordTypesService {
     }
   }
 
-  async updateRecordTypes(updateRTsDtoS: UpdateRecordTypeDto[]): Promise<void> {
+  // updateRTsDtoS = update record types DTOs (plural, cause it's an array)
+  async updateRecordTypes(updateRTsDtoS: UpdateRecordTypeDto[]) {
     let recordTypes; // this needs to just hold the PREVIOUS record types; used for setting records below
+    let events: EventDocument[];
 
     try {
       recordTypes = await this.recordTypeModel.find().exec();
+      events = await this.eventModel.find().exec();
 
       for (const newRecordType of updateRTsDtoS) {
         await this.recordTypeModel.updateOne({ wcaEquivalent: newRecordType.wcaEquivalent }, newRecordType).exec();
@@ -59,124 +62,107 @@ export class RecordTypesService {
       throw new InternalServerErrorException(`Error while creating record types: ${err.message}`);
     }
 
+    if (!recordTypes) throw new InternalServerErrorException('Unable to find existing record types');
+    if (!events) throw new InternalServerErrorException('Unable to find events while updating record types');
+
     // Set the records
     for (let i = 0; i < updateRTsDtoS.length; i++) {
-      // FOR NOW THIS ONLY WORKS FOR WR!!!
-      if (updateRTsDtoS[i].wcaEquivalent !== WcaRecordType.WR) break;
+      const wcaEquiv = updateRTsDtoS[i].wcaEquivalent;
 
-      // Remove records if set to inactive but was active before, or set the records for the opposite case
-      if (!updateRTsDtoS[i].active && recordTypes[i]?.active) {
-        console.log(`Unsetting ${updateRTsDtoS[i].wcaEquivalent} records`);
+      // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if (wcaEquiv === WcaRecordType.WR) {
+        // Remove records if set to inactive but was active before, or set the records for the opposite case
+        if (!updateRTsDtoS[i].active && recordTypes[i].active) {
+          console.log(`Unsetting ${wcaEquiv} records`);
 
-        await this.resultModel
-          .updateMany(
-            { regionalSingleRecord: updateRTsDtoS[i].wcaEquivalent },
-            { $unset: { regionalSingleRecord: '' } },
-          )
-          .exec();
+          // Remove single records
+          await this.resultModel
+            .updateMany({ regionalSingleRecord: wcaEquiv }, { $unset: { regionalSingleRecord: '' } })
+            .exec();
 
-        await this.resultModel
-          .updateMany(
-            { regionalAverageRecord: updateRTsDtoS[i].wcaEquivalent },
-            { $unset: { regionalAverageRecord: '' } },
-          )
-          .exec();
-      } else if (updateRTsDtoS[i].active && !recordTypes[i]?.active) {
-        console.log(`Setting ${updateRTsDtoS[i].wcaEquivalent} records`);
+          // Remove average records
+          await this.resultModel
+            .updateMany({ regionalAverageRecord: wcaEquiv }, { $unset: { regionalAverageRecord: '' } })
+            .exec();
+        } else if (updateRTsDtoS[i].active && !recordTypes[i].active) {
+          console.log(`Setting ${wcaEquiv} records`);
 
-        try {
-          const events: EventDocument[] = await this.eventModel.find().exec();
+          try {
+            for (const event of events) {
+              // SET SINGLE RECORDS
 
-          for (const event of events) {
-            // Set single records
-            const bestSinglesByDay = await this.resultModel
-              .aggregate([
-                { $match: { eventId: event.eventId, compNotPublished: { $exists: false }, best: { $gt: 0 } } },
-                { $sort: { date: 1 } },
-                {
-                  $group: {
-                    _id: '$date',
-                    best: { $min: '$best' },
-                  },
-                },
-                { $sort: { _id: 1 } }, // for some reason the group stage breaks the ordering by date
-              ])
-              .exec();
-
-            // THIS SEEMS SUBOPTIMAL, MAYBE DO THIS DIRECTLY IN THE QUERY SOMEHOW
-            let bestResult = Infinity;
-            const singleRecords = bestSinglesByDay.filter((res) => {
-              if (res.best <= bestResult) {
-                bestResult = res.best;
-                return true;
-              }
-              return false;
-            });
-
-            for (const singleRecord of singleRecords) {
-              console.log(
-                `New single ${updateRTsDtoS[i].wcaEquivalent} for event ${event.eventId}: ${singleRecord.best}`,
-              );
-
-              // Update all tied records on the day
-              await this.resultModel
-                .updateMany(
-                  {
-                    eventId: event.eventId,
-                    date: singleRecord._id, // _id is actually the date from the group stage
-                    best: singleRecord.best,
-                  },
-                  { $set: { regionalSingleRecord: updateRTsDtoS[i].wcaEquivalent } },
-                )
+              const bestSinglesByDay = await this.resultModel
+                .aggregate([
+                  { $match: { eventId: event.eventId, compNotPublished: { $exists: false }, best: { $gt: 0 } } },
+                  { $group: { _id: '$date', best: { $min: '$best' } } },
+                  { $sort: { _id: 1 } },
+                ])
                 .exec();
-            }
 
-            // Set average records
-            const bestAvgsByDay = await this.resultModel
-              .aggregate([
-                { $match: { eventId: event.eventId, compNotPublished: { $exists: false }, average: { $gt: 0 } } },
-                { $sort: { date: 1 } },
-                {
-                  $group: {
-                    _id: '$date',
-                    average: { $min: '$average' },
-                  },
-                },
-                { $sort: { _id: 1 } },
-              ])
-              .exec();
+              // THIS SEEMS SUBOPTIMAL, MAYBE DO THIS DIRECTLY IN THE QUERY SOMEHOW
+              let bestResult = Infinity;
+              const singleRecords = bestSinglesByDay.filter((res) => {
+                if (res.best <= bestResult) {
+                  bestResult = res.best;
+                  return true;
+                }
+                return false;
+              });
 
-            bestResult = Infinity;
-            const avgRecords = bestAvgsByDay.filter((res) => {
-              if (res.average <= bestResult) {
-                bestResult = res.average;
-                return true;
+              for (const singleRecord of singleRecords) {
+                console.log(`New single ${wcaEquiv} for event ${event.eventId}: ${singleRecord.best}`);
+
+                // Update all tied records on the day
+                await this.resultModel
+                  .updateMany(
+                    {
+                      eventId: event.eventId,
+                      date: singleRecord._id, // _id is the date from the group stage
+                      best: singleRecord.best,
+                    },
+                    { $set: { regionalSingleRecord: wcaEquiv } },
+                  )
+                  .exec();
               }
-              return false;
-            });
 
-            for (const avgRecord of avgRecords) {
-              console.log(
-                `New average ${updateRTsDtoS[i].wcaEquivalent} for event ${event.eventId}: ${avgRecord.average}`,
-              );
+              // SET AVERAGE RECORDS
 
-              // Update all tied records on the day
-              await this.resultModel
-                .updateMany(
-                  {
-                    eventId: event.eventId,
-                    date: avgRecord._id, // _id is actually the date from the group stage
-                    average: avgRecord.average,
-                  },
-                  { $set: { regionalAverageRecord: updateRTsDtoS[i].wcaEquivalent } },
-                )
+              const bestAvgsByDay = await this.resultModel
+                .aggregate([
+                  { $match: { eventId: event.eventId, compNotPublished: { $exists: false }, average: { $gt: 0 } } },
+                  { $group: { _id: '$date', average: { $min: '$average' } } },
+                  { $sort: { _id: 1 } },
+                ])
                 .exec();
+
+              bestResult = Infinity;
+              const avgRecords = bestAvgsByDay.filter((res) => {
+                if (res.average <= bestResult) {
+                  bestResult = res.average;
+                  return true;
+                }
+                return false;
+              });
+
+              for (const avgRecord of avgRecords) {
+                console.log(`New average ${wcaEquiv} for event ${event.eventId}: ${avgRecord.average}`);
+
+                // Update all tied records on the day
+                await this.resultModel
+                  .updateMany(
+                    {
+                      eventId: event.eventId,
+                      date: avgRecord._id,
+                      average: avgRecord.average,
+                    },
+                    { $set: { regionalAverageRecord: wcaEquiv } },
+                  )
+                  .exec();
+              }
             }
+          } catch (err) {
+            throw new InternalServerErrorException(`Error while setting initial ${wcaEquiv} records: ${err.message}`);
           }
-        } catch (err) {
-          throw new InternalServerErrorException(
-            `Error while setting initial ${updateRTsDtoS[i].wcaEquivalent} records: ${err.message}`,
-          );
         }
       }
     }

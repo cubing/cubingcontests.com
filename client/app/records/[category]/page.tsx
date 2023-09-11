@@ -119,7 +119,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
     );
   }
 
-  return <p className="mt-5 text-center fs-4">Error while loading the page</p>;
+  return <p className="mt-5 text-center fs-4">Records not found</p>;
 };
 
 export default Records;
