@@ -135,7 +135,7 @@ const getCentiseconds = (time: string, noRounding = false): number | null => {
 // solved and attempted are only required for the Multi event format.
 export const getAttempt = (
   attempt: IAttempt,
-  eventFormat: EventFormat,
+  event: IEvent,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
   solved: string,
   attempted: string,
@@ -144,20 +144,22 @@ export const getAttempt = (
 ): IAttempt => {
   if (time.length > 7 || memo?.length > 7) throw new Error('times >= 10 hours long are not supported');
 
-  if (eventFormat === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
+  if (event.format === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
 
   const newAttempt: IAttempt = { result: time ? getCentiseconds(time, noRounding) : 0 };
   if (memo !== undefined) newAttempt.memo = getCentiseconds(memo, noRounding);
 
-  if (eventFormat === EventFormat.Multi && newAttempt.result) {
+  if (event.format === EventFormat.Multi && newAttempt.result) {
     if (!solved || !attempted) return { ...newAttempt, result: null };
 
     const solvedNum = parseInt(solved);
     const attemptedNum = parseInt(attempted);
 
-    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) {
-      return { ...newAttempt, result: null };
-    }
+    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) return { ...newAttempt, result: null };
+
+    // Disallow submitting multi times longer than 1:00:20 (accounts for +2s), and the opposite for old style
+    if (event.eventId === '333mbf' && newAttempt.result > 362000) return { ...newAttempt, result: null };
+    else if (event.eventId === '333mbo' && newAttempt.result <= 362000) return { ...newAttempt, result: null };
 
     // See the IResult interface for information about how this works
     let multiOutput = ''; // DDDDTTTTTTTMMMM

@@ -38,6 +38,7 @@ const Form = ({
           className="d-block mt-4 btn btn-primary"
           disabled={disableButton}
           onClick={handleSubmit}
+          onSubmit={(e) => e.preventDefault()}
         >
           {buttonText}
         </button>

@@ -100,7 +100,7 @@ const AttemptInput = ({
   const changeSolved = (value: string) => {
     if (((event.eventId !== '333mbo' && value.length <= 2) || value.length <= 3) && !/[^0-9]/.test(value)) {
       setSolved(value);
-      if (attemptText) setAttempt(getAttempt(attempt, event.format, attemptText, value, attempted, memoText, true));
+      if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, value, attempted, memoText, true));
 
       if ((event.eventId !== '333mbo' && value.length >= 2) || value.length >= 3) {
         document.getElementById(`attempt_${number}_attempted`).focus();
@@ -123,7 +123,7 @@ const AttemptInput = ({
   const changeAttempted = (value: string) => {
     if (((event.eventId !== '333mbo' && value.length <= 2) || value.length <= 3) && !/[^0-9]/.test(value)) {
       setAttempted(value);
-      if (attemptText) setAttempt(getAttempt(attempt, event.format, attemptText, solved, value, memoText, true));
+      if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, solved, value, memoText, true));
 
       if ((event.eventId !== '333mbo' && value.length >= 2) || value.length >= 3) {
         document.getElementById(`attempt_${number}`).focus();
@@ -155,11 +155,11 @@ const AttemptInput = ({
         if (!forMemoTime && attemptText !== '') {
           const newAttText = attemptText.slice(0, -1);
           setAttemptText(newAttText);
-          setAttempt(getAttempt(attempt, event.format, newAttText, solved, attempted, memoText, true));
+          setAttempt(getAttempt(attempt, event, newAttText, solved, attempted, memoText, true));
         } else if (forMemoTime && memoText !== undefined) {
           const newMemoText = memoText.slice(0, -1) || undefined;
           setMemoText(newMemoText);
-          setAttempt(getAttempt(attempt, event.format, attemptText, solved, attempted, newMemoText, true));
+          setAttempt(getAttempt(attempt, event, attemptText, solved, attempted, newMemoText, true));
         }
       }
     } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
@@ -180,7 +180,7 @@ const AttemptInput = ({
 
         // Maximum length is 2 for event format Number and 7 for everything else.
         if (newAttText.length <= 2 || (newAttText.length <= 7 && event.format !== EventFormat.Number)) {
-          const newAttempt = getAttempt(attempt, event.format, newAttText, solved, attempted, memoText, true);
+          const newAttempt = getAttempt(attempt, event, newAttText, solved, attempted, memoText, true);
           setAttempt(newAttempt);
 
           // If the updated attempt is valid, it will get updated in useEffect anyways
@@ -191,7 +191,7 @@ const AttemptInput = ({
         const newMemoText = (memoText || '') + e.key;
 
         if (newMemoText.length <= 7) {
-          const newAttempt = getAttempt(attempt, event.format, attemptText, solved, attempted, newMemoText, true);
+          const newAttempt = getAttempt(attempt, event, attemptText, solved, attempted, newMemoText, true);
           setAttempt(newAttempt);
 
           // If the updated attempt is valid, it will get updated in useEffect anyways
@@ -204,7 +204,7 @@ const AttemptInput = ({
   const onTimeFocusOut = (forMemoTime = false) => {
     // Get rid of the decimals if one of the times is >= 10 minutes
     if (attemptText.length >= 6 || (forMemoTime && memoText?.length >= 6)) {
-      setAttempt(getAttempt(attempt, event.format, attemptText, solved, attempted, memoText, false));
+      setAttempt(getAttempt(attempt, event, attemptText, solved, attempted, memoText, false));
     }
   };
 

@@ -104,11 +104,6 @@ const SubmitResults = () => {
             setDate(undefined);
             setVideoLink('');
             setResultFormResetTrigger(!resultFormResetTrigger);
-
-            // Update record pairs
-            fetchSubmissionInfo(date).then((payload: IResultsSubmissionInfo) => {
-              setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
-            });
           }
         },
         true, // require at least one non-DNF/DNS result
