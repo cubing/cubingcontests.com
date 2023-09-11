@@ -3,13 +3,13 @@ import { EventGroup } from '@sh/enums';
 
 const unofficialEventIcons = [
   'fto',
-  // '333-team-bld',
-  // '333-team-factory',
-  // '333-oh-bld-team-relay',
-  // '333bf-2-person-relay',
-  // '333bf-3-person-relay',
-  // '333bf-4-person-relay',
-  // '333bf-8-person-relay',
+  '333-team-bld',
+  '333-team-factory',
+  '333-oh-bld-team-relay',
+  '333bf-2-person-relay',
+  '333bf-3-person-relay',
+  '333bf-4-person-relay',
+  '333bf-8-person-relay',
   '666bf',
   '777bf',
 ];
