@@ -147,15 +147,18 @@ export const getAttempt = (
   if (event.format === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
 
   const newAttempt: IAttempt = { result: time ? getCentiseconds(time, noRounding) : 0 };
-  if (memo !== undefined) newAttempt.memo = getCentiseconds(memo, noRounding);
+  if (memo !== undefined) {
+    newAttempt.memo = getCentiseconds(memo, noRounding);
+    if (newAttempt.memo >= newAttempt.result) return { ...newAttempt, result: null };
+  }
 
   if (event.format === EventFormat.Multi && newAttempt.result) {
-    if (!solved || !attempted) return { ...newAttempt, result: null };
+    if (!solved || !attempted) return { result: null };
 
     const solvedNum = parseInt(solved);
     const attemptedNum = parseInt(attempted);
 
-    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) return { ...newAttempt, result: null };
+    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) return { result: null };
 
     // Disallow submitting multi times longer than 1:00:20 (accounts for +2s), and the opposite for old style
     if (event.eventId === '333mbf' && newAttempt.result > 362000) return { ...newAttempt, result: null };

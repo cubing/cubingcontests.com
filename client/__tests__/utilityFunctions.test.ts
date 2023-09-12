@@ -42,6 +42,10 @@ const timeExamples = [
     inputs: { time: '248344', memo: '159452' },
     outputAtt: { result: null, memo: null },
   },
+  {
+    inputs: { time: '155452', memo: '242344' },
+    outputAtt: { result: null, memo: 146344 },
+  },
 ];
 
 const mockNumberEvent = {
