@@ -10,6 +10,7 @@ import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import { checkErrorsBeforeSubmit, limitRequests } from '~/helpers/utilityFunctions';
 import { RoundFormat } from '~/shared_helpers/enums';
 import FormDateInput from '~/app/components/form/FormDateInput';
+import Button from '~/app/components/Button';
 
 const SubmitResults = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -17,6 +18,7 @@ const SubmitResults = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
   const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
+  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState<RoundFormat>();
@@ -59,7 +61,7 @@ const SubmitResults = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const submitResult = async () => {
     // Validation
     const tempErrors: string[] = [];
 
@@ -95,11 +97,14 @@ const SubmitResults = () => {
         setErrorMessages,
         setSuccessMessage,
         async (newResultWithBestAndAverage) => {
+          setLoadingDuringSubmit(true);
+
           const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
 
           if (errors) {
             setErrorMessages(errors);
           } else {
+            setLoadingDuringSubmit(false);
             setSuccessMessage('Successfully submitted');
             setDate(undefined);
             setVideoLink('');
@@ -136,20 +141,14 @@ const SubmitResults = () => {
   };
 
   const onDiscussionLinkKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
+    if (e.key === 'Enter') document.getElementById('submit_button').focus();
   };
 
   if (resultsSubmissionInfo) {
     return (
       <>
         <h2 className="text-center">Submit Result</h2>
-        <Form
-          buttonText="Submit"
-          errorMessages={errorMessages}
-          successMessage={successMessage}
-          handleSubmit={handleSubmit}
-          disableButton={fetchRecordPairsTimer !== null}
-        >
+        <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
           <ResultForm
             event={event}
             persons={competitors}
@@ -193,6 +192,7 @@ const SubmitResults = () => {
             setValue={setDiscussionLink}
             onKeyDown={onDiscussionLinkKeyDown}
           />
+          <Button id="submit_button" text="Submit" onClick={submitResult} loading={loadingDuringSubmit} />
         </Form>
       </>
     );

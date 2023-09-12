@@ -8,7 +8,7 @@ import { ContestState, Role } from '@sh/enums';
 import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
 import ErrorMessages from '../ErrorMessages';
-import Loading from '../Loading';
+import Button from '../Button';
 
 const role = getRole();
 
@@ -172,21 +172,13 @@ const PostResultsScreen = ({
             rounds={competitionEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
             competitionEvents={competitionEvents}
           />
-          <button
-            type="button"
+          <Button
             id="submit_attempt_button"
+            text="Submit"
             onClick={submitResult}
             disabled={!isEditable}
-            className="btn btn-primary"
-          >
-            {!loadingDuringSubmit ? (
-              'Submit'
-            ) : (
-              <div style={{ width: '3.15rem' }}>
-                <Loading small />
-              </div>
-            )}
-          </button>
+            loading={loadingDuringSubmit}
+          />
         </div>
         <div className="col-8">
           <h2 className="mb-4 text-center">Enter results for {competition.name}</h2>
