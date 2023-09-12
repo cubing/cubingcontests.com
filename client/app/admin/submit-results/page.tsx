@@ -192,7 +192,13 @@ const SubmitResults = () => {
             setValue={setDiscussionLink}
             onKeyDown={onDiscussionLinkKeyDown}
           />
-          <Button id="submit_button" text="Submit" onClick={submitResult} loading={loadingDuringSubmit} />
+          <Button
+            id="submit_button"
+            text="Submit"
+            onClick={submitResult}
+            disabled={fetchRecordPairsTimer !== null}
+            loading={loadingDuringSubmit}
+          />
         </Form>
       </>
     );
