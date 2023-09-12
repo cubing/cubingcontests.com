@@ -10,6 +10,7 @@ import {
   IsUrl,
   Min,
   ValidateNested,
+  Max,
 } from 'class-validator';
 import { IAttempt, IResult } from '@sh/interfaces';
 import { Type } from 'class-transformer';
@@ -75,5 +76,6 @@ class AttemptDto implements IAttempt {
   @IsOptional()
   @IsInt()
   @Min(1)
+  @Max(8639999) // one centisecond under 24 hours
   memo?: number;
 }

@@ -17,8 +17,6 @@ const Time = ({
     (rt) => (average ? result.regionalAverageRecord : result.regionalSingleRecord) === rt.wcaEquivalent,
   );
 
-  console.log(result, event, average);
-
   return (
     <div className="d-inline-flex align-items-center gap-2">
       {getFormattedTime(average ? result.average : result.best, { eventFormat: event.format, showMultiPoints: true })}

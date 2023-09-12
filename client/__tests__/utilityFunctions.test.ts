@@ -28,6 +28,10 @@ const timeExamples = [
     inputs: { time: '1000284', memo: undefined as string },
     outputAtt: { result: 360284, memo: undefined as number },
   },
+  {
+    inputs: { time: '11510694', memo: undefined as string },
+    outputAtt: { result: 4266694, memo: undefined as number },
+  },
   // With memo
   {
     inputs: { time: '51234', memo: '25842' },
@@ -39,12 +43,16 @@ const timeExamples = [
   },
   // INVALID TIMES
   {
-    inputs: { time: '248344', memo: '159452' },
+    inputs: { time: '248344', memo: '653452' }, // 83 seconds; 65 minutes
     outputAtt: { result: null, memo: null },
   },
   {
-    inputs: { time: '155452', memo: '242344' },
+    inputs: { time: '155452', memo: '242344' }, // memo longer than time
     outputAtt: { result: null, memo: 146344 },
+  },
+  {
+    inputs: { time: '25085622', memo: undefined as string }, // > 24 hours
+    outputAtt: { result: null, memo: undefined as number },
   },
 ];
 

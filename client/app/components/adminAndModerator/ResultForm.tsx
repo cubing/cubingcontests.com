@@ -201,7 +201,7 @@ const ResultForm = ({
         ) : (
           <FormSelect
             title="Format"
-            options={getAllowedRoundFormats(event)}
+            options={getAllowedRoundFormats(event, forSubmitResultsPage)}
             selected={roundFormat}
             setSelected={(val: RoundFormat) => reset(val)}
           />

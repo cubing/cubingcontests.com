@@ -111,12 +111,9 @@ const SubmitResults = () => {
     }
   };
 
-  const onVideoLinkKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('discussion_link').focus();
-  };
-
-  const onDiscussionLinkKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
+  const changeEvent = (newEvent: IEvent) => {
+    setEvent(newEvent);
+    setRoundFormat(newEvent.defaultRoundFormat);
   };
 
   const changeDate = (newDate: Date) => {
@@ -132,6 +129,14 @@ const SubmitResults = () => {
         });
       });
     }
+  };
+
+  const onVideoLinkKeyDown = (e: any) => {
+    if (e.key === 'Enter') document.getElementById('discussion_link').focus();
+  };
+
+  const onDiscussionLinkKeyDown = (e: any) => {
+    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
   };
 
   if (resultsSubmissionInfo) {
@@ -159,7 +164,7 @@ const SubmitResults = () => {
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
             forSubmitResultsPage
-            setEvent={setEvent}
+            setEvent={changeEvent}
             events={resultsSubmissionInfo.events}
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}

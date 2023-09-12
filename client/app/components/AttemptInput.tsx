@@ -16,7 +16,7 @@ const getFormattedText = (text: string): string => {
   else if (['DNF', 'DNS'].includes(text)) return text;
   else if (text.length < 5) output = (parseInt(text) / 100).toFixed(2);
   else {
-    if (text.length === 7) output = text[0] + ':'; // hours
+    if (text.length >= 7) output += text.slice(0, text.length - 6) + ':'; // hours
     output += text.slice(Math.max(text.length - 6, 0), -4) + ':'; // minutes
     const seconds = parseInt(text.slice(text.length - 4)) / 100;
     output += (seconds < 10 ? '0' : '') + seconds.toFixed(2); // seconds
@@ -178,8 +178,8 @@ const AttemptInput = ({
         if (e.key === '0' && attemptText === '') return; // don't allow entering 0 as the first digit
         const newAttText = attemptText + e.key;
 
-        // Maximum length is 2 for event format Number and 7 for everything else.
-        if (newAttText.length <= 2 || (newAttText.length <= 7 && event.format !== EventFormat.Number)) {
+        // Maximum length is 2 for event format Number and 8 for everything else.
+        if (newAttText.length <= 2 || (newAttText.length <= 8 && event.format !== EventFormat.Number)) {
           const newAttempt = getAttempt(attempt, event, newAttText, solved, attempted, memoText, true);
           setAttempt(newAttempt);
 
@@ -190,7 +190,7 @@ const AttemptInput = ({
         if (e.key === '0' && memoText === undefined) return; // don't allow entering 0 as the first digit
         const newMemoText = (memoText || '') + e.key;
 
-        if (newMemoText.length <= 7) {
+        if (newMemoText.length <= 8) {
           const newAttempt = getAttempt(attempt, event, attemptText, solved, attempted, newMemoText, true);
           setAttempt(newAttempt);
 

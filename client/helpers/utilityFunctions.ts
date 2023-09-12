@@ -114,18 +114,18 @@ const getCentiseconds = (time: string, noRounding = false): number | null => {
   let minutes = 0;
   let centiseconds: number;
 
-  if (time.length === 7) hours = parseInt(time[0]);
-
-  if (time.length > 4) {
+  if (time.length >= 5) {
     // Round attempts >= 10 minutes long, unless noRounding = true
     if (time.length >= 6 && !noRounding) time = time.slice(0, -2) + '00';
 
-    minutes = parseInt(time.slice(time.length === 7 ? 1 : 0, -4));
+    if (time.length >= 7) hours = parseInt(time.slice(0, time.length - 6));
+    minutes = parseInt(time.slice(Math.max(time.length - 6, 0), -4));
     centiseconds = parseInt(time.slice(-4));
   } else {
     centiseconds = parseInt(time);
   }
 
+  if (hours >= 24) return null;
   if (minutes >= 60 || centiseconds >= 6000) return null;
 
   return hours * 360000 + minutes * 6000 + centiseconds;
@@ -142,7 +142,9 @@ export const getAttempt = (
   memo: string | undefined, // only used for events with the event group HasMemo
   noRounding = false,
 ): IAttempt => {
-  if (time.length > 7 || memo?.length > 7) throw new Error('times >= 10 hours long are not supported');
+  if (time.length > 8 || memo?.length > 8) throw new Error('times longer than 8 digits are not supported');
+  if (time.length > 2 && event.format === EventFormat.Number)
+    throw new Error('Fewest Moves solutions longer than 2 digits are not supported');
 
   if (event.format === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
 
@@ -302,12 +304,18 @@ export const limitRequests = (
 };
 
 // Disallows Mo3 format for events that have Ao5 as the default format, and vice versa for all other events
-export const getAllowedRoundFormats = (event: IEvent): MultiChoiceOption[] => {
+export const getAllowedRoundFormats = (event: IEvent, excludeBo3 = false): MultiChoiceOption[] => {
+  let output: MultiChoiceOption[] = roundFormatOptions;
+
   if (event.defaultRoundFormat === RoundFormat.Average) {
-    return roundFormatOptions.filter((el) => el.value !== RoundFormat.Mean);
+    output = output.filter((el) => el.value !== RoundFormat.Mean);
   } else {
-    return roundFormatOptions.filter((el) => el.value !== RoundFormat.Average);
+    if (excludeBo3) output = output.filter((el) => el.value !== RoundFormat.BestOf3);
+
+    output = output.filter((el) => el.value !== RoundFormat.Average);
   }
+
+  return output;
 };
 
 export const getBGClassFromColor = (color: Color): string => {
