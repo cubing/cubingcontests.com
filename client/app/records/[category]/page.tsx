@@ -53,9 +53,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
           <>
             <RecordsCategoryTabs recordsByEvent={recordsByEvent} category={params.category} />
 
-            {(selectedCat.recordsPageDescription || selectedCat.description) && (
-              <p className="mx-2 mb-4">{selectedCat.recordsPageDescription || selectedCat.description}</p>
-            )}
+            {selectedCat.description && <p className="mx-2 mb-4">{selectedCat.description}</p>}
 
             {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
               return (
