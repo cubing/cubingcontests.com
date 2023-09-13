@@ -21,7 +21,7 @@ const SubmitResults = () => {
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
   const [event, setEvent] = useState<IEvent>();
-  const [roundFormat, setRoundFormat] = useState<RoundFormat>();
+  const [roundFormat, setRoundFormat] = useState(RoundFormat.BestOf1);
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [date, setDate] = useState<Date>(); // undefined means the date was reset, null means it's invalid
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
@@ -37,7 +37,6 @@ const SubmitResults = () => {
     fetchSubmissionInfo(new Date()).then((payload: IResultsSubmissionInfo) => {
       setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
       setEvent(payload.events[0]);
-      setRoundFormat(payload.events[0].defaultRoundFormat);
     });
   }, []);
 
@@ -116,11 +115,6 @@ const SubmitResults = () => {
     }
   };
 
-  const changeEvent = (newEvent: IEvent) => {
-    setEvent(newEvent);
-    setRoundFormat(newEvent.defaultRoundFormat);
-  };
-
   const changeDate = (newDate: Date) => {
     setDate(newDate);
     setErrorMessages([]);
@@ -163,7 +157,7 @@ const SubmitResults = () => {
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
             forSubmitResultsPage
-            setEvent={changeEvent}
+            setEvent={setEvent}
             events={resultsSubmissionInfo.events}
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
