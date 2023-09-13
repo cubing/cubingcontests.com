@@ -1,4 +1,4 @@
-import { compareAvgs, compareSingles } from '@sh/sharedFunctions';
+import { compareAvgs, compareSingles, getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import { ResultDocument } from '../models/result.model';
 import { EventFormat, EventGroup } from '@sh/enums';
 import { IEvent, IResult } from '@sh/interfaces';
@@ -41,7 +41,7 @@ export const setRankings = async (
 };
 
 export const fixTimesOverTenMinutes = (result: IResult, event: IEvent) => {
-  if (event.format === EventFormat.Time && !event.groups.includes(EventGroup.ExtremeBLD)) {
+  if (event.format === EventFormat.Time && !getAlwaysShowDecimals(event)) {
     if (result.best > 60000) result.best -= result.best % 100;
 
     result.attempts = result.attempts.map((att) =>

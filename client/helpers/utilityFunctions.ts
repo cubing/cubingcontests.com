@@ -37,10 +37,12 @@ export const getFormattedTime = (
   {
     eventFormat = EventFormat.Time,
     noFormatting = false,
+    alwaysShowDecimals = false,
     showMultiPoints = false,
-  }: { eventFormat?: EventFormat; noFormatting?: boolean; showMultiPoints?: boolean } = {
+  }: { eventFormat?: EventFormat; noFormatting?: boolean; alwaysShowDecimals?: boolean; showMultiPoints?: boolean } = {
     eventFormat: EventFormat.Time,
     noFormatting: false,
+    alwaysShowDecimals: false,
     showMultiPoints: false,
   },
 ): string => {
@@ -80,7 +82,7 @@ export const getFormattedTime = (
     if (seconds < 10 && (hours > 0 || minutes > 0)) output += '0';
 
     // Only times under ten minutes can have decimals (or if noFormatting = true)
-    if ((hours === 0 && minutes < 10) || noFormatting) {
+    if ((hours === 0 && minutes < 10) || noFormatting || alwaysShowDecimals) {
       output += seconds.toFixed(2);
       if (noFormatting) output = Number(output.replace('.', '')).toString();
     } else {

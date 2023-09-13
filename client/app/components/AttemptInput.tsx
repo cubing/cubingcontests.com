@@ -5,6 +5,7 @@ import FormTextInput from './form/FormTextInput';
 import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
 import { IAttempt, IEvent } from '@sh/interfaces';
+import { getAlwaysShowDecimals } from '~/shared_helpers/sharedFunctions';
 
 const getIsDNSKey = (e: any): boolean => ['s', 'S', '*'].includes(e.key);
 
@@ -207,8 +208,7 @@ const AttemptInput = ({
     if (attemptText.length >= 6 || (forMemoTime && memoText?.length >= 6)) {
       setAttempt(
         getAttempt(attempt, event, attemptText, solved, attempted, memoText, {
-          // Do round the time, unless it's an ExtremeBLD event (excluding Multi-Blind Old Style)
-          roundTime: !event.groups.includes(EventGroup.ExtremeBLD) || event.format === EventFormat.Multi,
+          roundTime: !getAlwaysShowDecimals(event),
           roundMemo: true,
         }),
       );

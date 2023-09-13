@@ -1,4 +1,4 @@
-import { RoundFormat, WcaRecordType } from './enums';
+import { EventFormat, EventGroup, RoundFormat, WcaRecordType } from './enums';
 import { IResult, IRecordPair, IEvent } from './interfaces';
 import { roundFormats } from './roundFormats';
 
@@ -77,4 +77,8 @@ export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent):
 
 export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
   return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
+};
+
+export const getAlwaysShowDecimals = (event: IEvent): boolean => {
+  return event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
 };
