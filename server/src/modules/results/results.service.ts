@@ -15,13 +15,13 @@ import {
   ICompetition,
   IRanking,
 } from '@sh/interfaces';
-import { fixTimesOverTenMinutes, getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { CompetitionDocument } from '~/src/models/competition.model';
 import { RoundDocument } from '~/src/models/round.model';
-import { setRankings } from '~/src/helpers/utilityFunctions';
+import { setRankings, fixTimesOverTenMinutes } from '~/src/helpers/utilityFunctions';
 import { AuthService } from '../auth/auth.service';
 import { PersonDocument } from '~/src/models/person.model';
 
@@ -261,7 +261,7 @@ export class ResultsService {
 
     // The date is passed in as an ISO date string and it may also include time, if the frontend has a bug
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
-    fixTimesOverTenMinutes(createResultDto, event.format);
+    fixTimesOverTenMinutes(createResultDto, event);
 
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
     let round: RoundDocument;
@@ -382,7 +382,7 @@ export class ResultsService {
 
     // The date is passed in as an ISO date string and may include time too, so the time must be removed
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
-    fixTimesOverTenMinutes(createResultDto, event.format);
+    fixTimesOverTenMinutes(createResultDto, event);
 
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
 

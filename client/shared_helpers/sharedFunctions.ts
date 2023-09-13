@@ -1,4 +1,4 @@
-import { EventFormat, RoundFormat, WcaRecordType } from './enums';
+import { RoundFormat, WcaRecordType } from './enums';
 import { IResult, IRecordPair, IEvent } from './interfaces';
 import { roundFormats } from './roundFormats';
 
@@ -77,14 +77,4 @@ export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent):
 
 export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
   return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
-};
-
-export const fixTimesOverTenMinutes = (result: IResult, eventFormat: EventFormat) => {
-  if (eventFormat === EventFormat.Time) {
-    if (result.best > 60000) result.best -= result.best % 100;
-
-    result.attempts = result.attempts.map((att) =>
-      att.result > 60000 ? { ...att, result: att.result - (att.result % 100) } : att,
-    );
-  }
 };

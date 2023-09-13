@@ -109,14 +109,14 @@ export const getFormattedTime = (
 };
 
 // Returns null if the time is invalid
-const getCentiseconds = (time: string, noRounding = false): number | null => {
+const getCentiseconds = (time: string, round = true): number | null => {
   let hours = 0;
   let minutes = 0;
   let centiseconds: number;
 
   if (time.length >= 5) {
     // Round attempts >= 10 minutes long, unless noRounding = true
-    if (time.length >= 6 && !noRounding) time = time.slice(0, -2) + '00';
+    if (time.length >= 6 && round) time = time.slice(0, -2) + '00';
 
     if (time.length >= 7) hours = parseInt(time.slice(0, time.length - 6));
     minutes = parseInt(time.slice(Math.max(time.length - 6, 0), -4));
@@ -140,7 +140,10 @@ export const getAttempt = (
   solved: string,
   attempted: string,
   memo: string | undefined, // only used for events with the event group HasMemo
-  noRounding = false,
+  { roundTime, roundMemo }: { roundTime: boolean; roundMemo: boolean } = {
+    roundTime: false,
+    roundMemo: false,
+  },
 ): IAttempt => {
   if (time.length > 8 || memo?.length > 8) throw new Error('times longer than 8 digits are not supported');
   if (time.length > 2 && event.format === EventFormat.Number)
@@ -148,9 +151,9 @@ export const getAttempt = (
 
   if (event.format === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
 
-  const newAttempt: IAttempt = { result: time ? getCentiseconds(time, noRounding) : 0 };
+  const newAttempt: IAttempt = { result: time ? getCentiseconds(time, roundTime) : 0 };
   if (memo !== undefined) {
-    newAttempt.memo = getCentiseconds(memo, noRounding);
+    newAttempt.memo = getCentiseconds(memo, roundMemo);
     if (newAttempt.memo >= newAttempt.result) return { ...newAttempt, result: null };
   }
 

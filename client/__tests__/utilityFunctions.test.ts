@@ -2,6 +2,11 @@ import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
 import { EventFormat } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
 
+const roundOpts = {
+  roundTime: true,
+  roundMemo: true,
+};
+
 const mockTimeEvent = {
   eventId: '333',
   format: EventFormat.Time,
@@ -182,7 +187,7 @@ describe('getAttempt', () => {
       const { inputs, outputAtt } = example;
 
       it(`parses ${example.inputs.time}${example.inputs.memo ? ` with ${inputs.memo} memo` : ''} correctly`, () => {
-        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, '', '', inputs.memo);
+        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, '', '', inputs.memo, roundOpts);
         const expectedResult =
           outputAtt.result >= 60000 ? outputAtt.result - (outputAtt.result % 100) : outputAtt.result;
         const expectedMemo = outputAtt.memo >= 60000 ? outputAtt.memo - (outputAtt.memo % 100) : outputAtt.memo;
@@ -192,7 +197,7 @@ describe('getAttempt', () => {
       });
 
       it(`parses ${inputs.time}${inputs.memo ? ` with ${inputs.memo} memo` : ''} without rounding correctly`, () => {
-        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, '', '', inputs.memo, true);
+        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, '', '', inputs.memo);
 
         expect(output.result).toBe(outputAtt.result);
         expect(output.memo).toBe(outputAtt.memo);
@@ -200,19 +205,19 @@ describe('getAttempt', () => {
     }
 
     it('parses empty time correctly', () => {
-      expect(getAttempt(dummyAtt, mockTimeEvent, '', '', '', undefined).result).toBe(0);
+      expect(getAttempt(dummyAtt, mockTimeEvent, '', '', '', undefined, roundOpts).result).toBe(0);
     });
   });
 
   describe('parse Time attempts', () => {
     it('parses 36 move FMC correctly', () => {
-      const output = getAttempt(dummyAtt, mockNumberEvent, '36', '', '', undefined);
+      const output = getAttempt(dummyAtt, mockNumberEvent, '36', '', '', undefined, roundOpts);
       expect(output.result).toBe(36);
       expect(output.memo).toBeUndefined();
     });
 
     it('parses empty number correctly', () => {
-      const output = getAttempt(dummyAtt, mockNumberEvent, '', '', '', undefined);
+      const output = getAttempt(dummyAtt, mockNumberEvent, '', '', '', undefined, roundOpts);
       expect(output.result).toBe(0);
       expect(output.memo).toBe(undefined);
     });
@@ -224,25 +229,41 @@ describe('getAttempt', () => {
 
       if (Number(inp.time) <= 1002000) {
         it(`parses ${example.formatted} for Multi-Blind correctly`, () => {
-          const output = getAttempt(dummyAtt, mockMultiEvent, inp.time, inp.solved, inp.attempted, inp.memo);
+          const output = getAttempt(dummyAtt, mockMultiEvent, inp.time, inp.solved, inp.attempted, inp.memo, roundOpts);
           expect(output.result).toBe(output.result);
           expect(output.memo).toBe(example.memo);
         });
 
         it(`disallows ${example.formatted} for Multi-Blind Old Style`, () => {
-          const output = getAttempt(dummyAtt, mockOldStyleEvent, inp.time, inp.solved, inp.attempted, inp.memo);
+          const output = getAttempt(
+            dummyAtt,
+            mockOldStyleEvent,
+            inp.time,
+            inp.solved,
+            inp.attempted,
+            inp.memo,
+            roundOpts,
+          );
           expect(output.result).toBe(null);
           expect(output.memo).toBe(example.memo);
         });
       } else {
         it(`parses ${example.formatted} for Multi-Blind Old Style correctly`, () => {
-          const output = getAttempt(dummyAtt, mockOldStyleEvent, inp.time, inp.solved, inp.attempted, inp.memo);
+          const output = getAttempt(
+            dummyAtt,
+            mockOldStyleEvent,
+            inp.time,
+            inp.solved,
+            inp.attempted,
+            inp.memo,
+            roundOpts,
+          );
           expect(output.result).toBe(output.result);
           expect(output.memo).toBe(example.memo);
         });
 
         it(`disallows ${example.formatted} for Multi-Blind`, () => {
-          const output = getAttempt(dummyAtt, mockMultiEvent, inp.time, inp.solved, inp.attempted, inp.memo);
+          const output = getAttempt(dummyAtt, mockMultiEvent, inp.time, inp.solved, inp.attempted, inp.memo, roundOpts);
           expect(output.result).toBe(null);
           expect(output.memo).toBe(example.memo);
         });
@@ -250,7 +271,7 @@ describe('getAttempt', () => {
     }
 
     it('parses empty Multi-Blind attempt correctly', () => {
-      expect(getAttempt(dummyAtt, mockMultiEvent, '', '', '', undefined).result).toBe(0);
+      expect(getAttempt(dummyAtt, mockMultiEvent, '', '', '', undefined, roundOpts).result).toBe(0);
     });
   });
 });
