@@ -490,7 +490,6 @@ const CompetitionForm = ({
       roundId: `${eventId}-r${roundNumber}`,
       competitionId: 'temp', // this gets replaced for all rounds on submit
       date: startDate,
-      compNotPublished: true,
       roundTypeId: RoundType.Final,
       format: events.find((el) => el.eventId === eventId).defaultRoundFormat,
       results: [],

@@ -30,7 +30,7 @@ export class CreateResultDto implements IResult {
 
   @IsOptional()
   @IsBoolean()
-  compNotPublished: boolean;
+  unapproved: boolean;
 
   @ArrayMinSize(1)
   @IsInt({ each: true })

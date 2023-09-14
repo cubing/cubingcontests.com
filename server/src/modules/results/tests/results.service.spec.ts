@@ -89,7 +89,7 @@ describe('ResultsService', () => {
           eventId: '333',
           competitionId: 'Munich19022023',
           date: new Date('2023-02-19T00:00:00Z'),
-          compNotPublished: true,
+          unapproved: true,
           personIds: [99],
           ranking: 0,
           attempts: [{ result: 1054 }, { result: 1342 }, { result: 942 }, { result: 999 }, { result: 1115 }],

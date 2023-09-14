@@ -47,8 +47,8 @@ export class ResultsService {
       rankings: [],
     };
     let eventResults: ResultDocument[] = [];
-    const singlesFilter = { eventId, compNotPublished: { $exists: false }, best: { $gt: 0 } };
-    const avgsFilter = { eventId, compNotPublished: { $exists: false }, average: { $gt: 0 } };
+    const singlesFilter = { eventId, unapproved: { $exists: false }, best: { $gt: 0 } };
+    const avgsFilter = { eventId, unapproved: { $exists: false }, average: { $gt: 0 } };
 
     if (!forAverage) {
       if (!show) {
@@ -73,7 +73,7 @@ export class ResultsService {
 
         eventResults = await this.resultModel
           .aggregate([
-            { $match: { eventId, compNotPublished: { $exists: false } } },
+            { $match: { eventId, unapproved: { $exists: false } } },
             { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
             { $project: excl },
             { $match: { 'attempts.result': { $gt: 0 } } },
@@ -471,7 +471,7 @@ export class ResultsService {
     const queryFilter: any = {
       eventId,
       regionalSingleRecord: wcaEquivalent,
-      compNotPublished: { $exists: false },
+      unapproved: { $exists: false },
     };
 
     try {
@@ -558,7 +558,7 @@ export class ResultsService {
     // THIS CODE IS SIMILAR TO resetCancelledRecords
     const queryBase: any = { _id: { $ne: (result as any)._id }, eventId: result.eventId, date: { $gte: result.date } };
     if (comp && comp.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
-    else queryBase.compNotPublished = { $exists: false };
+    else queryBase.unapproved = { $exists: false };
 
     // This is done so that we get records BEFORE the date of the deleted result
     const recordsUpTo = new Date(result.date.getTime() - 1);

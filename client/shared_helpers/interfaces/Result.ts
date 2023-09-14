@@ -19,7 +19,7 @@ export interface IResult {
   competitionId?: string; // not needed for submitted results
   eventId: string;
   date: Date;
-  compNotPublished?: boolean; // unset by default, set if true
+  unapproved?: boolean; // undefined by default, set if true
   // This is an array, because for team events (e.g. Team-Blind) it stores multiple IDs
   personIds: number[];
   ranking?: number; // not needed for submitted results

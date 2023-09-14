@@ -29,9 +29,6 @@ export class Round implements IRound {
   @Prop({ required: true })
   date: Date;
 
-  @Prop()
-  compNotPublished?: boolean;
-
   @Prop({ enum: RoundType, required: true })
   roundTypeId: RoundType;
 

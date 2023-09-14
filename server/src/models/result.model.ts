@@ -27,7 +27,7 @@ export class Result implements IResult {
   date: Date;
 
   @Prop()
-  compNotPublished?: boolean;
+  unapproved?: boolean;
 
   @Prop({ required: true })
   personIds: number[];

@@ -262,10 +262,6 @@ class RoundDto implements IRound {
   @IsDateString()
   date: Date;
 
-  @IsOptional()
-  @IsBoolean()
-  compNotPublished: boolean;
-
   @IsEnum(RoundType)
   roundTypeId: RoundType;
 

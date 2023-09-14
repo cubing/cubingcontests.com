@@ -212,9 +212,8 @@ export class CompetitionsService {
       console.log(`Publishing contest ${comp.competitionId}...`);
 
       try {
-        // Unset compNotPublished from rounds and results so that the results can be included in the rankings
-        await this.roundModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
-        await this.resultModel.updateMany({ competitionId: comp.competitionId }, { $unset: { compNotPublished: '' } });
+        // Unset unapproved from the results so that they can be included in the rankings
+        await this.resultModel.updateMany({ competitionId: comp.competitionId }, { $unset: { unapproved: '' } });
 
         await this.resultsService.resetRecordsCancelledByPublishedComp(comp.competitionId);
       } catch (err) {
