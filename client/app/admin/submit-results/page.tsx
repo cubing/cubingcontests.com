@@ -107,6 +107,7 @@ const SubmitResults = () => {
             setSuccessMessage('Successfully submitted');
             setDate(undefined);
             setVideoLink('');
+            setDiscussionLink('');
             setResultFormResetTrigger(!resultFormResetTrigger);
           }
         },
@@ -132,6 +133,13 @@ const SubmitResults = () => {
 
   const onVideoLinkKeyDown = (e: any) => {
     if (e.key === 'Enter') document.getElementById('discussion_link').focus();
+  };
+
+  const onVideoLinkFocusOut = () => {
+    if (videoLink.includes('youtube.com') && videoLink.includes('&')) {
+      // Remove unnecessary params from youtube links
+      setVideoLink(videoLink.slice(0, videoLink.indexOf('&')));
+    }
   };
 
   const onDiscussionLinkKeyDown = (e: any) => {
@@ -177,6 +185,7 @@ const SubmitResults = () => {
             value={videoLink}
             setValue={setVideoLink}
             onKeyDown={onVideoLinkKeyDown}
+            onBlur={onVideoLinkFocusOut}
           />
           <FormTextInput
             id="discussion_link"
