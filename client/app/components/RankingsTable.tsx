@@ -35,6 +35,10 @@ const RankingsTable = ({
     );
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////
+  // REMEMBER TO UPDATE THE MOBILE VIEW OF THE RECORDS PAGE IN ACCORDANCE WITH THIS
+  /////////////////////////////////////////////////////////////////////////////////////////
+
   return (
     <div className="table-responsive flex-grow-1">
       <table className="table table-hover table-responsive text-nowrap">

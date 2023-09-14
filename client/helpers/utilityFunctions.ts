@@ -2,7 +2,7 @@ import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { Color, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
-import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
+import { getAlwaysShowDecimals, getRoundCanHaveAverage } from '@sh/sharedFunctions';
 import { IAttempt, ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { roundFormatOptions } from './multipleChoiceOptions';
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
@@ -35,14 +35,15 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
 export const getFormattedTime = (
   time: number,
   {
-    eventFormat = EventFormat.Time,
+    event,
     noFormatting = false,
-    alwaysShowDecimals = false,
     showMultiPoints = false,
-  }: { eventFormat?: EventFormat; noFormatting?: boolean; alwaysShowDecimals?: boolean; showMultiPoints?: boolean } = {
-    eventFormat: EventFormat.Time,
+  }: {
+    event?: IEvent;
+    noFormatting?: boolean;
+    showMultiPoints?: boolean;
+  } = {
     noFormatting: false,
-    alwaysShowDecimals: false,
     showMultiPoints: false,
   },
 ): string => {
@@ -50,7 +51,7 @@ export const getFormattedTime = (
     return 'DNF';
   } else if (time === -2) {
     return 'DNS';
-  } else if (eventFormat === EventFormat.Number) {
+  } else if (event?.format === EventFormat.Number) {
     // FMC singles are limited to 99 moves, so if it's more than that, it must be the mean. Format it accordingly.
     if (time >= 100 && !noFormatting) return (time / 100).toFixed(2);
     else return time.toString();
@@ -58,7 +59,7 @@ export const getFormattedTime = (
     let centiseconds: number;
     let timeStr = time.toString();
 
-    if (eventFormat !== EventFormat.Multi) centiseconds = time;
+    if (event?.format !== EventFormat.Multi) centiseconds = time;
     else centiseconds = parseInt(timeStr.slice(timeStr.length - 11, -4));
 
     let output = '';
@@ -82,14 +83,14 @@ export const getFormattedTime = (
     if (seconds < 10 && (hours > 0 || minutes > 0)) output += '0';
 
     // Only times under ten minutes can have decimals (or if noFormatting = true)
-    if ((hours === 0 && minutes < 10) || noFormatting || alwaysShowDecimals) {
+    if ((hours === 0 && minutes < 10) || noFormatting || (event && getAlwaysShowDecimals(event))) {
       output += seconds.toFixed(2);
       if (noFormatting) output = Number(output.replace('.', '')).toString();
     } else {
       output += Math.floor(seconds).toFixed(0); // remove the decimals
     }
 
-    if (eventFormat !== EventFormat.Multi) {
+    if (event?.format !== EventFormat.Multi) {
       return output;
     } else {
       if (time < 0) timeStr = timeStr.replace('-', '');

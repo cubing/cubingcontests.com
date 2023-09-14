@@ -70,12 +70,9 @@ const AttemptInput = ({
         if (attempt.result === 0) {
           setAttemptText('');
         } else if (event.format !== EventFormat.Multi) {
-          setAttemptText(getFormattedTime(attempt.result, { eventFormat: event.format, noFormatting: true }));
+          setAttemptText(getFormattedTime(attempt.result, { event, noFormatting: true }));
         } else {
-          const formattedTime = getFormattedTime(attempt.result, {
-            eventFormat: EventFormat.Multi,
-            noFormatting: true,
-          });
+          const formattedTime = getFormattedTime(attempt.result, { event, noFormatting: true });
           const [newSolved, newAttempted, newAttText] = formattedTime.split(';');
 
           setSolved(newSolved);

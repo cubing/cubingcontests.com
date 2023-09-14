@@ -8,7 +8,6 @@ import CompetitionName from '@c/CompetitionName';
 import Solves from './Solves';
 import { IEvent, IPerson, IRanking } from '@sh/interfaces';
 import { getFormattedDate, getFormattedTime } from '~/helpers/utilityFunctions';
-import { getAlwaysShowDecimals } from '~/shared_helpers/sharedFunctions';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
 const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
@@ -43,6 +42,10 @@ const RankingRow = ({
   const firstColumnValue = ranking.ranking || getRecordType(ranking.type);
   const personsToDisplay = showAllTeammates ? ranking.persons : [person];
 
+  /////////////////////////////////////////////////////////////////////////////////////////
+  // REMEMBER TO UPDATE THE MOBILE VIEW OF THE RECORDS PAGE IN ACCORDANCE WITH THIS
+  /////////////////////////////////////////////////////////////////////////////////////////
+
   return (
     <tr>
       <td>{!onlyKeepPerson && <span className={!isFirstRow ? 'text-secondary' : ''}>{firstColumnValue}</span>}</td>
@@ -56,14 +59,7 @@ const RankingRow = ({
           ))}
         </div>
       </td>
-      <td>
-        {!onlyKeepPerson &&
-          getFormattedTime(ranking.result, {
-            eventFormat: event.format,
-            alwaysShowDecimals: getAlwaysShowDecimals(event),
-            showMultiPoints: !forRecordsTable,
-          })}
-      </td>
+      <td>{!onlyKeepPerson && getFormattedTime(ranking.result, { event, showMultiPoints: !forRecordsTable })}</td>
       {!showAllTeammates && (
         <td>
           <Country countryIso2={person.countryIso2} />

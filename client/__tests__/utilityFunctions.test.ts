@@ -1,5 +1,5 @@
 import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
-import { EventFormat } from '@sh/enums';
+import { EventFormat, EventGroup } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
 
 const roundOpts = {
@@ -10,6 +10,7 @@ const roundOpts = {
 const mockTimeEvent = {
   eventId: '333',
   format: EventFormat.Time,
+  groups: [EventGroup.WCA],
 } as IEvent;
 
 const timeExamples = [
@@ -64,16 +65,19 @@ const timeExamples = [
 const mockNumberEvent = {
   eventId: '333fm',
   format: EventFormat.Number,
+  groups: [EventGroup.WCA],
 } as IEvent;
 
 const mockMultiEvent = {
   eventId: '333mbf',
   format: EventFormat.Multi,
+  groups: [EventGroup.WCA],
 } as IEvent;
 
 const mockOldStyleEvent = {
   eventId: '333mbo',
   format: EventFormat.Multi,
+  groups: [EventGroup.ExtremeBLD],
 } as IEvent;
 
 const multiBlindExamples = [
@@ -336,30 +340,30 @@ describe('getFormattedTime', () => {
 
   describe('format numbers (FMC)', () => {
     it('formats 37 correctly', () => {
-      expect(getFormattedTime(37, { eventFormat: EventFormat.Number })).toBe('37');
+      expect(getFormattedTime(37, { event: mockNumberEvent })).toBe('37');
     });
 
     it('formats 41.33 correctly', () => {
-      expect(getFormattedTime(4133, { eventFormat: EventFormat.Number })).toBe('41.33');
+      expect(getFormattedTime(4133, { event: mockNumberEvent })).toBe('41.33');
     });
 
     it('formats 40.00 correctly', () => {
-      expect(getFormattedTime(4000, { eventFormat: EventFormat.Number })).toBe('40.00');
+      expect(getFormattedTime(4000, { event: mockNumberEvent })).toBe('40.00');
     });
 
     it('formats 39.66 without formatting correctly', () => {
-      expect(getFormattedTime(3966, { eventFormat: EventFormat.Number, noFormatting: true })).toBe('3966');
+      expect(getFormattedTime(3966, { event: mockNumberEvent, noFormatting: true })).toBe('3966');
     });
   });
 
   describe('format Multi-Blind attempts', () => {
     for (const example of multiBlindExamples) {
       it(`formats ${example.formatted} correctly`, () => {
-        expect(getFormattedTime(example.result, { eventFormat: EventFormat.Multi })).toBe(example.formatted);
+        expect(getFormattedTime(example.result, { event: mockMultiEvent })).toBe(example.formatted);
       });
 
       it(`formats ${example.formatted} without formatting correctly`, () => {
-        expect(getFormattedTime(example.result, { eventFormat: EventFormat.Multi, noFormatting: true })).toBe(
+        expect(getFormattedTime(example.result, { event: mockMultiEvent, noFormatting: true })).toBe(
           `${example.inputs.solved};${example.inputs.attempted};${example.inputs.time}`,
         );
       });
