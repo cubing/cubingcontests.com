@@ -18,6 +18,8 @@ This is a place for hosting unofficial Rubik's cube competitions, unofficial eve
 
 <img src="https://cubingcontests.com/api/cubing_contests_7.jpg" width="300"/>
 
+<img src="https://cubingcontests.com/api/cubing_contests_8.jpg" width="300"/>
+
 ## Admin features
 
 In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the moderator dashboard (`/mod`), and set the wanted records as active. They can also be given custom labels in order to differentiate them from official WCA records. In order to change a label, the admin must first deactivate the record type, which removes all records from the database, and then change the label and reactivate it, which will set all of the records again. Keep in mind that activating/deactivating a record type is a resource-intensive operation.
