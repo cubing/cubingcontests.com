@@ -1,9 +1,11 @@
+import '@cubing/icons';
 import { IEvent } from '@sh/interfaces';
 import { EventGroup } from '@sh/enums';
 
 const unofficialEventIcons = [
   'fto',
   '333-team-bld',
+  '234567relay',
   '333-team-factory',
   '333-oh-bld-team-relay',
   '333bf-2-person-relay',

@@ -1,4 +1,3 @@
-import '@cubing/icons';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import Solves from '~/app/components/Solves';

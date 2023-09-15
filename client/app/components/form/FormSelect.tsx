@@ -6,17 +6,19 @@ const FormSelect = ({
   selected,
   setSelected,
   disabled = false,
+  noMargin = false,
 }: {
   title?: string;
   options: MultiChoiceOption[];
   selected: string | number;
   setSelected: (val: any) => void;
   disabled?: boolean;
+  noMargin?: boolean;
 }) => {
   const id = `select_${title.toLowerCase().replaceAll(' ', '_')}`;
 
   return (
-    <div className="mb-3 fs-5">
+    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
       {title && (
         <label htmlFor={id} className="form-label">
           {title}

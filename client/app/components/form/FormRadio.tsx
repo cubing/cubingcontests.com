@@ -7,6 +7,7 @@ const FormRadio = ({
   selected,
   setSelected,
   disabled = false,
+  oneLine = false,
 }: {
   title: string;
   id?: string;
@@ -14,10 +15,11 @@ const FormRadio = ({
   selected: unknown;
   setSelected: (val: unknown) => void;
   disabled?: boolean;
+  oneLine?: boolean;
 }) => {
   return (
-    <>
-      <h5>{title}</h5>
+    <div className={oneLine ? 'd-flex align-items-center gap-5' : ''}>
+      <h5 className={oneLine ? 'm-0' : ''}>{title}</h5>
 
       <div className="my-3 d-flex gap-5">
         {options.map((option) => {
@@ -40,7 +42,7 @@ const FormRadio = ({
           );
         })}
       </div>
-    </>
+    </div>
   );
 };
 

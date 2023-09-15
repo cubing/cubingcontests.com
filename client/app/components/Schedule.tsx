@@ -3,6 +3,7 @@ import { utcToZonedTime } from 'date-fns-tz';
 import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
 import { IActivity, ICompetitionEvent, IRoom } from '@sh/interfaces';
+import EventTitle from './EventTitle';
 
 const Schedule = ({
   rooms,
@@ -81,9 +82,14 @@ const Schedule = ({
                       <td>{format(activity.startTime, 'HH:mm')}</td>
                       <td>{format(activity.endTime, 'HH:mm')}</td>
                       <td>
-                        {activity.activityCode !== 'other-misc'
-                          ? `${compEvent.event.name} ${roundTypes[round.roundTypeId].label}`
-                          : activity.name}
+                        {activity.activityCode !== 'other-misc' ? (
+                          <span className="d-flex gap-1">
+                            <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />
+                            <span>{roundTypes[round.roundTypeId].label}</span>
+                          </span>
+                        ) : (
+                          activity.name
+                        )}
                       </td>
                       <td>{rooms.find((room) => room.activities.some((a) => a.id === activity.id)).name}</td>
                       <td>{activity.activityCode !== 'other-misc' && round ? roundFormats[round.format].label : ''}</td>

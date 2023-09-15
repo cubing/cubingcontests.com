@@ -24,6 +24,7 @@ import { roundTypes } from '~/helpers/roundTypes';
 import { getAllowedRoundFormats, limitRequests } from '~/helpers/utilityFunctions';
 import Loading from '../Loading';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import EventTitle from '../EventTitle';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -83,7 +84,6 @@ const CompetitionForm = ({
   const [activityEndTime, setActivityEndTime] = useState<Date>(addHours(getDateOnly(new Date()), 13));
 
   const isAdmin = role === Role.Admin;
-  competitionTypeOptions[2].disabled = !isAdmin; // only enable competition type for admins
 
   const tabs = useMemo(
     () => (type === ContestType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
@@ -853,7 +853,8 @@ const CompetitionForm = ({
             {competitionEvents.map((compEvent, eventIndex) => (
               <div key={compEvent.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h4>{compEvent.event.name}</h4>
+                  <EventTitle event={compEvent.event} fontSize="4" noMargin showIcon />
+
                   <button
                     type="button"
                     className="ms-3 btn btn-danger btn-sm"
@@ -865,17 +866,16 @@ const CompetitionForm = ({
                 </div>
                 {compEvent.rounds.map((round, roundIndex) => (
                   <div key={round.roundId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
-                    <div className="mb-3 row">
-                      <div className="col-4">
-                        <h5 className="mt-2">{roundTypes[round.roundTypeId].label}</h5>
-                      </div>
-                      <div className="col-8">
+                    <div className="d-flex justify-content-between align-items-center gap-5 w-100 mt-2 mb-3">
+                      <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
+                      <div className="flex-grow-1">
                         <FormSelect
-                          title="Round format"
+                          title=""
                           options={getAllowedRoundFormats(compEvent.event)}
                           selected={round.format}
-                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
+                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
+                          noMargin
                         />
                       </div>
                     </div>
@@ -883,11 +883,12 @@ const CompetitionForm = ({
                       <>
                         <FormRadio
                           id={`${round.roundId}_proceed_type`}
-                          title="Proceed to next round"
+                          title="Proceed to next round:"
                           options={roundProceedOptions}
                           selected={round.proceed.type}
                           setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
                           disabled={disableIfCompFinishedEvenForAdmin}
+                          oneLine
                         />
                         <FormTextInput
                           id="round_proceed_value"

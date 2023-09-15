@@ -1,6 +1,5 @@
 'use client';
 
-import '@cubing/icons';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { IEvent } from '@sh/interfaces';

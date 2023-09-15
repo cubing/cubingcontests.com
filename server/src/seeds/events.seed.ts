@@ -184,9 +184,17 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
   },
   {
+    eventId: '234567relay',
+    name: '2x2x2-7x7x7 Relay',
+    rank: 1100,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf3,
+    groups: [EventGroup.Unofficial, EventGroup.Team],
+  },
+  {
     eventId: '333ft',
     name: '3x3x3 With Feet',
-    rank: 1040,
+    rank: 1200,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
@@ -194,7 +202,7 @@ export const eventsSeed: IEvent[] = [
   {
     eventId: '333-team-factory',
     name: '3x3x3 Team Factory',
-    rank: 1050,
+    rank: 1210,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.Team],
