@@ -159,9 +159,13 @@ const CompetitionForm = ({
 
     return output;
   }, [competitionEvents, rooms]);
+  const isEditableSchedule = useMemo(() => !competition || competition.state < ContestState.Approved, [competition]);
   const isValidActivity = useMemo(
-    () => activityCode && roomOptions.some((el) => el.value === selectedRoom),
-    [activityCode, roomOptions, selectedRoom],
+    () =>
+      activityCode &&
+      (activityCode !== 'other-misc' || customActivity) &&
+      roomOptions.some((el) => el.value === selectedRoom),
+    [activityCode, customActivity, roomOptions, selectedRoom],
   );
 
   //////////////////////////////////////////////////////////////////////////////
@@ -1020,7 +1024,7 @@ const CompetitionForm = ({
             <button
               type="button"
               className="mt-3 mb-2 btn btn-success"
-              disabled={!isValidActivity}
+              disabled={!isEditableSchedule || !isValidActivity}
               onClick={addActivity}
             >
               Add to schedule
@@ -1034,7 +1038,7 @@ const CompetitionForm = ({
           rooms={rooms}
           compEvents={competitionEvents}
           timezone={venueTimezone}
-          onDeleteActivity={(id: number) => deleteActivity(id)}
+          onDeleteActivity={isEditableSchedule ? (id: number) => deleteActivity(id) : undefined}
         />
       )}
     </>

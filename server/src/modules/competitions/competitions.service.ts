@@ -180,9 +180,11 @@ export class CompetitionsService {
       if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
       comp.mainEventId = updateCompetitionDto.mainEventId;
 
-      // TO-DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       if (updateCompetitionDto.compDetails) {
-        // comp.compDetails.schedule = updateCompetitionDto.compDetails.schedule;
+        await this.scheduleModel.updateOne(
+          { _id: comp.compDetails.schedule._id },
+          updateCompetitionDto.compDetails.schedule,
+        );
       }
     }
 
