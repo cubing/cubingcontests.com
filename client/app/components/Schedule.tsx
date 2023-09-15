@@ -8,10 +8,12 @@ const Schedule = ({
   rooms,
   compEvents,
   timezone,
+  onDeleteActivity,
 }: {
   rooms: IRoom[];
   compEvents: ICompetitionEvent[];
   timezone: string;
+  onDeleteActivity?: (id: number) => void;
 }) => {
   const allActivities = [];
 
@@ -62,6 +64,7 @@ const Schedule = ({
                   <th scope="col">Activity</th>
                   <th scope="col">Room</th>
                   <th scope="col">Format</th>
+                  {onDeleteActivity && <th scope="col">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -84,6 +87,17 @@ const Schedule = ({
                       </td>
                       <td>{rooms.find((room) => room.activities.some((a) => a.id === activity.id)).name}</td>
                       <td>{activity.activityCode !== 'other-misc' && round ? roundFormats[round.format].label : ''}</td>
+                      {onDeleteActivity && (
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => onDeleteActivity(activity.id)}
+                            className="btn btn-danger btn-sm"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

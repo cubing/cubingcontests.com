@@ -23,6 +23,7 @@ import { colorOptions, competitionTypeOptions, roundProceedOptions } from '~/hel
 import { roundTypes } from '~/helpers/roundTypes';
 import { getAllowedRoundFormats, limitRequests } from '~/helpers/utilityFunctions';
 import Loading from '../Loading';
+import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -76,6 +77,7 @@ const CompetitionForm = ({
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
   const [activityCode, setActivityCode] = useState('');
+  const [customActivity, setCustomActivity] = useState('');
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
   const [activityStartTime, setActivityStartTime] = useState<Date>(addHours(getDateOnly(new Date()), 12));
   const [activityEndTime, setActivityEndTime] = useState<Date>(addHours(getDateOnly(new Date()), 13));
@@ -123,6 +125,10 @@ const CompetitionForm = ({
     () => mode === 'edit' && competition.state >= ContestState.Approved,
     [competition, mode],
   );
+  const displayedStartDate = useMemo(
+    () => (startDate && type === ContestType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate),
+    [startDate, type, venueTimezone],
+  );
   const roomOptions = useMemo(
     () =>
       rooms.map((room) => ({
@@ -132,13 +138,30 @@ const CompetitionForm = ({
     [rooms.length],
   );
   const isValidRoom = useMemo(() => roomName.trim() !== '', [roomName]);
+  const activityOptions = useMemo(() => {
+    const output: MultiChoiceOption[] = [];
+
+    for (const compEvent of competitionEvents) {
+      for (const round of compEvent.rounds) {
+        // Add all rounds not already added to the schedule as activity code options
+        if (!rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId))) {
+          output.push({
+            label: `${compEvent.event.name} ${roundTypes[round.roundTypeId].label}`,
+            value: round.roundId,
+          });
+        }
+      }
+    }
+
+    output.push({ label: 'Custom', value: 'other-misc' });
+
+    setActivityCode(output[0].value as string); // set selected activity code as the first available option
+
+    return output;
+  }, [competitionEvents, rooms]);
   const isValidActivity = useMemo(
     () => activityCode && roomOptions.some((el) => el.value === selectedRoom),
     [activityCode, roomOptions, selectedRoom],
-  );
-  const displayedStartDate = useMemo(
-    () => (startDate && type === ContestType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate),
-    [startDate, type, venueTimezone],
   );
 
   //////////////////////////////////////////////////////////////////////////////
@@ -221,6 +244,9 @@ const CompetitionForm = ({
   useEffect(() => {
     if (startDate) console.log(startDate.toUTCString());
   }, [startDate]);
+  useEffect(() => {
+    console.log(rooms);
+  }, [rooms]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -608,6 +634,7 @@ const CompetitionForm = ({
               {
                 id: room.activities.length + 1,
                 activityCode,
+                name: activityCode === 'other-misc' ? customActivity : undefined,
                 startTime: activityStartTime,
                 endTime: activityEndTime,
               },
@@ -617,6 +644,20 @@ const CompetitionForm = ({
 
     setRooms(newRooms);
     setActivityCode('');
+    setCustomActivity('');
+  };
+
+  const deleteActivity = (activityId: number) => {
+    const newRooms = rooms.map((room) =>
+      room.id !== selectedRoom
+        ? room
+        : {
+            ...room,
+            activities: room.activities.filter((a) => a.id !== activityId),
+          },
+    );
+
+    setRooms(newRooms);
   };
 
   return (
@@ -920,20 +961,29 @@ const CompetitionForm = ({
             </button>
             <hr />
             <h3 className="mb-3">Schedule</h3>
-            <div className="mb-3 row">
+            <div className="row">
               <div className="col">
                 <FormSelect
                   title="Room"
                   options={roomOptions}
                   selected={selectedRoom}
-                  disabled={rooms.length === 0}
                   setSelected={setSelectedRoom}
+                  disabled={rooms.length === 0}
                 />
               </div>
               <div className="col">
-                <FormTextInput title="Activity code (TEMPORARY)" value={activityCode} setValue={setActivityCode} />
+                <FormSelect
+                  title="Activity"
+                  options={activityOptions}
+                  selected={activityCode}
+                  setSelected={setActivityCode}
+                  disabled={!selectedRoom}
+                />
               </div>
             </div>
+            {activityCode === 'other-misc' && (
+              <FormTextInput title="Custom activity" value={customActivity} setValue={setCustomActivity} />
+            )}
             <div className="mb-3 row">
               <div className="col">
                 <label htmlFor="activity_start_time" className="form-label">
@@ -979,7 +1029,14 @@ const CompetitionForm = ({
         )}
       </Form>
 
-      {activeTab === 2 && <Schedule rooms={rooms} compEvents={competitionEvents} timezone={venueTimezone} />}
+      {activeTab === 2 && (
+        <Schedule
+          rooms={rooms}
+          compEvents={competitionEvents}
+          timezone={venueTimezone}
+          onDeleteActivity={(id: number) => deleteActivity(id)}
+        />
+      )}
     </>
   );
 };
