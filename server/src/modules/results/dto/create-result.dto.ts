@@ -14,6 +14,7 @@ import {
 } from 'class-validator';
 import { IAttempt, IResult } from '@sh/interfaces';
 import { Type } from 'class-transformer';
+import C from '@sh/constants';
 
 export class CreateResultDto implements IResult {
   @IsOptional()
@@ -68,6 +69,6 @@ class AttemptDto implements IAttempt {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(8639999) // one centisecond under 24 hours
+  @Max(C.maxTime - 1)
   memo?: number;
 }

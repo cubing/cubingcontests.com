@@ -6,12 +6,12 @@ import Loading from '@c/Loading';
 import Form from '@c/form/Form';
 import FormDateInput from '~/app/components/form/FormDateInput';
 import FormTextInput from '~/app/components/form/FormTextInput';
+import FormCheckbox from '~/app/components/form/FormCheckbox';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import Button from '~/app/components/Button';
 import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
 import { Role, RoundFormat } from '@sh/enums';
 import { checkErrorsBeforeSubmit, getRole, limitRequests } from '~/helpers/utilityFunctions';
-import FormCheckbox from '~/app/components/form/FormCheckbox';
 
 const SubmitResults = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -31,11 +31,13 @@ const SubmitResults = () => {
   const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [discussionLink, setDiscussionLink] = useState('');
 
-  const role = useMemo(getRole, [getRole]);
   const recordPairs = useMemo(
     () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
     [resultsSubmissionInfo, event],
   );
+  const role = useMemo(getRole, [getRole]);
+
+  const isAdmin = role === Role.Admin;
 
   useEffect(() => console.log(successMessage), [successMessage]); // TEMP
 
@@ -181,6 +183,7 @@ const SubmitResults = () => {
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
             showOptionToKeepCompetitors
+            allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
           />
           <FormDateInput
             id="date"
@@ -199,7 +202,7 @@ const SubmitResults = () => {
             onBlur={onVideoLinkFocusOut}
             disabled={videoUnavailable}
           />
-          {role === Role.Admin && (
+          {isAdmin && (
             <FormCheckbox title="Video unavailable" selected={videoUnavailable} setSelected={setVideoUnavailable} />
           )}
           <FormTextInput

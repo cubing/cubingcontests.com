@@ -16,6 +16,7 @@ import {
   IRanking,
 } from '@sh/interfaces';
 import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import C from '@sh/constants';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -76,7 +77,7 @@ export class ResultsService {
             { $match: { eventId, unapproved: { $exists: false } } },
             { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
             { $project: excl },
-            { $match: { 'attempts.result': { $gt: 0 } } },
+            { $match: { 'attempts.result': { $gt: 0, $ne: C.maxTime } } },
             { $sort: { 'attempts.result': 1 } },
           ])
           .exec();

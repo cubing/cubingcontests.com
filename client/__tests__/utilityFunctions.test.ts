@@ -1,6 +1,7 @@
 import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
+import C from '~/shared_helpers/constants';
 
 const roundOpts = {
   roundTime: true,
@@ -376,5 +377,15 @@ describe('getFormattedTime', () => {
 
   it('formats DNS correctly', () => {
     expect(getFormattedTime(-2)).toBe('DNS');
+  });
+
+  it('formats unknown time correctly', () => {
+    expect(getFormattedTime(C.maxTime)).toBe('Unknown');
+  });
+
+  it('formats Multi attempt with unknown time correctly', () => {
+    const attempt = Number(`9995${C.maxTime}0001`);
+    console.log(attempt);
+    expect(getFormattedTime(attempt, { event: mockMultiEvent })).toBe('5/6 Unknown time');
   });
 });

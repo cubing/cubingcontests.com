@@ -5,7 +5,8 @@ import FormTextInput from './form/FormTextInput';
 import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
 import { IAttempt, IEvent } from '@sh/interfaces';
-import { getAlwaysShowDecimals } from '~/shared_helpers/sharedFunctions';
+import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
+import C from '@sh/constants';
 
 const getIsDNSKey = (e: any): boolean => ['s', 'S', '*'].includes(e.key);
 
@@ -14,7 +15,7 @@ const getFormattedText = (text: string): string => {
 
   if (text === undefined) return ''; // for memo
   else if (text === '') return '0.00'; // for attempt result
-  else if (['DNF', 'DNS'].includes(text)) return text;
+  else if (['DNF', 'DNS', 'Unknown'].includes(text)) return text;
   else if (text.length < 5) output = (parseInt(text) / 100).toFixed(2);
   else {
     if (text.length >= 7) output += text.slice(0, text.length - 6) + ':'; // hours
@@ -34,6 +35,7 @@ const AttemptInput = ({
   focusNext,
   memoInputForBld = false,
   resetTrigger,
+  allowUnknownTime = false,
 }: {
   number: number;
   attempt: IAttempt;
@@ -42,6 +44,7 @@ const AttemptInput = ({
   focusNext: () => void;
   memoInputForBld?: boolean;
   resetTrigger: boolean;
+  allowUnknownTime?: boolean;
 }) => {
   const [solved, setSolved] = useState('');
   const [attempted, setAttempted] = useState('');
@@ -57,15 +60,7 @@ const AttemptInput = ({
 
   useEffect(() => {
     if (attempt.result !== null && attempt.memo !== null) {
-      if (attempt.result === -1) {
-        setAttemptText('DNF');
-        setMemoText(undefined);
-      } else if (attempt.result === -2) {
-        setSolved('');
-        setAttempted('');
-        setAttemptText('DNS');
-        setMemoText(undefined);
-      } else {
+      if (![-1, -2, C.maxTime].includes(attempt.result)) {
         // Attempt time
         if (attempt.result === 0) {
           setAttemptText('');
@@ -77,7 +72,7 @@ const AttemptInput = ({
 
           setSolved(newSolved);
           setAttempted(newAttempted);
-          setAttemptText(newAttText);
+          setAttemptText(newAttText === C.maxTime.toString() ? 'Unknown time' : newAttText);
         }
 
         // Memo time
@@ -103,6 +98,10 @@ const AttemptInput = ({
     e.preventDefault();
 
     setAttempt({ result: -2 }); // set DNS
+    setSolved('');
+    setAttempted('');
+    setAttemptText('DNS');
+    setMemoText(undefined);
     focusNext();
   };
 
@@ -147,7 +146,7 @@ const AttemptInput = ({
       e.preventDefault();
 
       if (
-        (event.format !== EventFormat.Multi && attempt.result < 0) ||
+        (event.format !== EventFormat.Multi && (attempt.result < 0 || attempt.result === C.maxTime)) ||
         // For Multi format we can only erase a DNS, otherwise we must be erasing the time
         (event.format === EventFormat.Multi && attempt.result === -2)
       ) {
@@ -164,13 +163,29 @@ const AttemptInput = ({
           setAttempt(getAttempt(attempt, event, attemptText, solved, attempted, newMemoText));
         }
       }
-    } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-      e.preventDefault();
-    } else if (['f', 'F', 'd', 'D', '/'].includes(e.key) && !forMemo) {
+    }
+    // else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
+    else if (['f', 'F', 'd', 'D', '/'].includes(e.key) && !forMemo) {
       e.preventDefault();
 
       if (event.format !== EventFormat.Multi) {
-        setAttempt({ ...attempt, result: -1 }); // set DNF
+        setAttempt({ result: -1 }); // set DNF
+        setAttemptText('DNF');
+        setMemoText(undefined);
+        focusNext();
+      }
+    } else if (['u', 'U'].includes(e.key) && !forMemo) {
+      e.preventDefault();
+
+      if (allowUnknownTime) {
+        if (event.format !== EventFormat.Multi) {
+          setAttempt({ result: C.maxTime });
+          setAttemptText('Unknown');
+          setMemoText(undefined);
+        } else {
+          setAttempt(getAttempt(attempt, event, C.maxTime.toString(), solved, attempted));
+        }
+
         focusNext();
       }
     } else if (getIsDNSKey(e) && !forMemo) {
@@ -259,7 +274,7 @@ const AttemptInput = ({
             placeholder="Memo"
             onKeyDown={(e: any) => onTimeKeyDown(e, true)}
             onBlur={() => onTimeFocusOut(true)}
-            disabled={[-1, -2].includes(attempt.result)}
+            disabled={['DNF', 'DNS', 'Unknown'].includes(formattedAttemptText)}
             invalid={isInvalidAttempt}
           />
         </div>

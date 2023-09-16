@@ -51,6 +51,8 @@ export const getFormattedTime = (
     return 'DNF';
   } else if (time === -2) {
     return 'DNS';
+  } else if (time === C.maxTime) {
+    return 'Unknown';
   } else if (event?.format === EventFormat.Number) {
     // FMC singles are limited to 99 moves, so if it's more than that, it must be the mean. Format it accordingly.
     if (time >= 100 && !noFormatting) return (time / 100).toFixed(2);
@@ -102,7 +104,10 @@ export const getFormattedTime = (
       if (time > 0) {
         if (noFormatting) return `${solved};${solved + missed};${output}`;
         // This includes an En space before the points part
-        return `${solved}/${solved + missed} ${output}` + (showMultiPoints ? ` (${points})` : '');
+        return (
+          `${solved}/${solved + missed} ${centiseconds !== C.maxTime ? output : 'Unknown time'}` +
+          (showMultiPoints ? ` (${points})` : '')
+        );
       } else {
         if (noFormatting) return `${solved};${solved + missed};${output}`;
         return `DNF (${solved}/${solved + missed} ${output})`;

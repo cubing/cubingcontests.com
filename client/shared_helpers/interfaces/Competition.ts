@@ -1,14 +1,16 @@
 import { ContestType, ContestState } from '../enums';
 import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } from '../interfaces';
 
-// IMPORTANT: when updating this interface, also update:
-//    (1) the create competition DTO (and update DTO, if needed)
-//    (2) the competition model
-// And also consider the following:
-//    (3) CompetitionForm component
-//    (4) CompetitionResults component
-//    (5) createCompetition method in the competition service
-//    (6) updateCompetition method in the competition service
+/**
+ * IMPORTANT: when updating this interface, also update:
+ *    (1) the create competition DTO (and update DTO, if needed)
+ *    (2) the competition model
+ * And also consider the following:
+ *    (3) CompetitionForm component
+ *    (4) CompetitionResults component
+ *    (5) createCompetition method in the competition service
+ *    (6) updateCompetition method in the competition service
+ */
 export interface ICompetition {
   competitionId: string;
   // This is optional, because it's not set on creation and only returned to the frontend for authorized users

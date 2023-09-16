@@ -26,12 +26,7 @@ import { roundTypes } from '~/helpers/roundTypes';
 import { setResultRecords } from '~/shared_helpers/sharedFunctions';
 
 /**
- * This component has two uses: for entering results on PostResultsScreen, in which case it requires
- * round, setRound, rounds and competitionEvents to be set, since it works with actual rounds.
- * setEvent, events, roundFormat and setRoundformat must be left undefined.
- *
- * The other use case is on the submit results page, in which case those props must be left undefined,
- * but setEvent, events, roundFormat and setRoundFormat must be set. In this case forSubmitResultsPage = true.
+ * This component has two uses: for entering results on PostResultsScreen, as well as for the submit results page
  */
 
 const ResultForm = ({
@@ -57,6 +52,7 @@ const ResultForm = ({
   roundFormat,
   setRoundFormat,
   showOptionToKeepCompetitors = false,
+  allowUnknownTime = false,
 }: {
   event: IEvent;
   persons: IPerson[];
@@ -82,6 +78,7 @@ const ResultForm = ({
   roundFormat?: RoundFormat;
   setRoundFormat?: (val: RoundFormat) => void;
   showOptionToKeepCompetitors?: boolean;
+  allowUnknownTime?: boolean;
 }) => {
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
@@ -254,6 +251,7 @@ const ResultForm = ({
           focusNext={() => focusNext(i)}
           memoInputForBld={forSubmitResultsPage}
           resetTrigger={attemptsResetTrigger}
+          allowUnknownTime={allowUnknownTime}
         />
       ))}
       <div className="mb-3">
