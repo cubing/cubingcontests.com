@@ -385,7 +385,6 @@ describe('getFormattedTime', () => {
 
   it('formats Multi attempt with unknown time correctly', () => {
     const attempt = Number(`9995${C.maxTime}0001`);
-    console.log(attempt);
     expect(getFormattedTime(attempt, { event: mockMultiEvent })).toBe('5/6 Unknown time');
   });
 });

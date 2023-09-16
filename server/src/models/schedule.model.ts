@@ -5,7 +5,7 @@ import { Color } from '@sh/enums';
 
 @Schema({ _id: false })
 class Activity implements IActivity {
-  @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   id: number;
 
   @Prop({ required: true, immutable: true })
@@ -28,7 +28,7 @@ const ActivitySchema = SchemaFactory.createForClass(Activity);
 
 @Schema({ _id: false })
 class Room implements IRoom {
-  @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   id: number;
 
   @Prop({ required: true })
@@ -45,7 +45,7 @@ const RoomSchema = SchemaFactory.createForClass(Room);
 
 @Schema({ _id: false })
 class Venue implements IVenue {
-  @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   id: number;
 
   @Prop({ required: true })
