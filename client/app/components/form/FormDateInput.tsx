@@ -14,8 +14,8 @@ const FormDateInput = ({
 }: {
   title: string;
   id?: string;
-  value: Date | null;
-  setValue: (val: Date | null) => void;
+  value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
+  setValue: (val: Date | null | undefined) => void;
   nextFocusTargetId: string;
 }) => {
   const [dateText, setDateText] = useState('');
@@ -47,17 +47,25 @@ const FormDateInput = ({
   }, [value]);
 
   useEffect(() => {
+    if (dateText) {
+      if (dateText.length < 8) {
+        setValue(null);
+      } else {
+        const parsed = parseISO(`${dateText.slice(4)}-${dateText.slice(2, 4)}-${dateText.slice(0, 2)}`);
+        setValue(isValid(parsed) ? parsed : null);
+      }
+    } else if (value !== undefined) {
+      setValue(undefined);
+    }
+  }, [dateText]);
+
+  useEffect(() => {
     changeCursorPosition();
   }, [position]);
 
-  useEffect(() => {
-    if (dateText.length < 8) {
-      setValue(null);
-    } else {
-      const parsed = parseISO(`${dateText.slice(4)}-${dateText.slice(2, 4)}-${dateText.slice(0, 2)}`);
-      setValue(isValid(parsed) ? parsed : null);
-    }
-  }, [dateText]);
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
 
   const onKeyDown = (e: any) => {
     if (e.key === 'Enter') {

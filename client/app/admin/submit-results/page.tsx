@@ -23,7 +23,8 @@ const SubmitResults = () => {
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState(RoundFormat.BestOf1);
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
-  const [date, setDate] = useState<Date>(); // undefined means the date was reset, null means it's invalid
+  // null means the date is invalid; undefined means it's empty
+  const [date, setDate] = useState<Date | null | undefined>();
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');
   const [discussionLink, setDiscussionLink] = useState('');
@@ -32,6 +33,8 @@ const SubmitResults = () => {
     () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
     [resultsSubmissionInfo, event],
   );
+
+  useEffect(() => console.log(successMessage), [successMessage]); // TEMP
 
   useEffect(() => {
     fetchSubmissionInfo(new Date()).then((payload: IResultsSubmissionInfo) => {
@@ -44,6 +47,10 @@ const SubmitResults = () => {
   useEffect(() => {
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
+
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
 
   const fetchSubmissionInfo = async (recordsUpTo: Date): Promise<IResultsSubmissionInfo> => {
     const { payload, errors } = await myFetch.get(`/results/submission-info?records_up_to=${recordsUpTo}`, {
@@ -100,10 +107,11 @@ const SubmitResults = () => {
 
           const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
 
+          setLoadingDuringSubmit(false);
+
           if (errors) {
             setErrorMessages(errors);
           } else {
-            setLoadingDuringSubmit(false);
             setSuccessMessage('Successfully submitted');
             setDate(undefined);
             setVideoLink('');
@@ -117,6 +125,7 @@ const SubmitResults = () => {
   };
 
   const changeDate = (newDate: Date) => {
+    console.log('TEST');
     setDate(newDate);
     setErrorMessages([]);
     setSuccessMessage('');

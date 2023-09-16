@@ -92,10 +92,11 @@ const PostResultsScreen = ({
 
           const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAverage);
 
+          setLoadingDuringSubmit(false);
+
           if (errors) {
             setErrorMessages(errors);
           } else {
-            setLoadingDuringSubmit(false);
             // Add new persons to list of persons
             setPersons([
               ...persons,
