@@ -95,16 +95,9 @@ const AttemptInput = ({
     setMemoText(undefined);
   }, [resetTrigger]);
 
-  const changeSolved = (value: string) => {
-    if (((event.eventId !== '333mbo' && value.length <= 2) || value.length <= 3) && !/[^0-9]/.test(value)) {
-      setSolved(value);
-      if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, value, attempted, memoText));
-
-      if ((event.eventId !== '333mbo' && value.length >= 2) || value.length >= 3) {
-        document.getElementById(`attempt_${number}_attempted`).focus();
-      }
-    }
-  };
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
 
   const handleSetDNS = (e: any) => {
     e.preventDefault();
@@ -113,19 +106,30 @@ const AttemptInput = ({
     focusNext();
   };
 
+  const getIsValidCubesValue = (val: string) =>
+    (val.length <= 2 || (val.length <= 3 && event.eventId === '333mbo')) && !/[^0-9]/.test(val);
+  const getIsEnteredCubesValue = (val: string) => val.length === 3 || (event.eventId !== '333mbo' && val.length === 2);
+
+  const changeSolved = (value: string) => {
+    if (getIsValidCubesValue(value)) {
+      setSolved(value);
+      if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, value, attempted, memoText));
+
+      if (getIsEnteredCubesValue(value)) document.getElementById(`attempt_${number}_attempted`).focus();
+    }
+  };
+
   const onSolvedKeyDown = (e: any) => {
     if (e.key === 'Enter') document.getElementById(`attempt_${number}_attempted`).focus();
     else if (getIsDNSKey(e)) handleSetDNS(e);
   };
 
   const changeAttempted = (value: string) => {
-    if (((event.eventId !== '333mbo' && value.length <= 2) || value.length <= 3) && !/[^0-9]/.test(value)) {
+    if (getIsValidCubesValue(value)) {
       setAttempted(value);
       if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, solved, value, memoText));
 
-      if ((event.eventId !== '333mbo' && value.length >= 2) || value.length >= 3) {
-        document.getElementById(`attempt_${number}`).focus();
-      }
+      if (getIsEnteredCubesValue(value)) document.getElementById(`attempt_${number}`).focus();
     }
   };
 
