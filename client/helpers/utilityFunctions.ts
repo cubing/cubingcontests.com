@@ -311,13 +311,13 @@ export const limitRequests = (
 };
 
 // Disallows Mo3 format for events that have Ao5 as the default format, and vice versa for all other events
-export const getAllowedRoundFormats = (event: IEvent, excludeBo3 = false): MultiChoiceOption[] => {
+export const getAllowedRoundFormatOptions = (event: IEvent, exclBo3IfDefFormatIsMo3 = false): MultiChoiceOption[] => {
   let output: MultiChoiceOption[] = roundFormatOptions;
 
   if (event.defaultRoundFormat === RoundFormat.Average) {
     output = output.filter((el) => el.value !== RoundFormat.Mean);
   } else {
-    if (excludeBo3) output = output.filter((el) => el.value !== RoundFormat.BestOf3);
+    if (exclBo3IfDefFormatIsMo3) output = output.filter((el) => el.value !== RoundFormat.BestOf3);
 
     output = output.filter((el) => el.value !== RoundFormat.Average);
   }

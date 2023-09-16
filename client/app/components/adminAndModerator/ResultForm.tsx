@@ -21,7 +21,7 @@ import {
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
-import { getAllowedRoundFormats, getBestAndAverage } from '~/helpers/utilityFunctions';
+import { getAllowedRoundFormatOptions, getBestAndAverage } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { setResultRecords } from '~/shared_helpers/sharedFunctions';
 
@@ -94,17 +94,19 @@ const ResultForm = ({
 
   const roundCanHaveAverage = useMemo(() => getRoundCanHaveAverage(roundFormat, event), [roundFormat, event]);
 
-  useEffect(() => reset(roundFormat), [resetTrigger, roundFormat, event]);
+  useEffect(() => reset(), [resetTrigger]);
 
   useEffect(() => {
-    // Set perons names if there are no null persons (needed for the edit result feature on PostResultsScreen)
+    // Set persons names if there are no null persons (needed for the edit result feature on PostResultsScreen)
     if (!persons.some((el) => el === null)) {
       setPersonNames(persons.map((el) => el.name));
 
       if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
       else document.getElementById('attempt_1').focus();
+    } else {
+      document.getElementById(`Competitor_${persons.findIndex((el) => el === null) + 1}`)?.focus();
     }
-  }, [persons]);
+  }, [persons, roundFormat, event]);
 
   useEffect(() => {
     if (attempts.length > 0) {
@@ -115,27 +117,32 @@ const ResultForm = ({
     }
   }, [attempts, recordPairs]);
 
-  const nonNullPersons = persons.filter((el) => el !== null);
-
-  useEffect(() => {
-    // Focus the first empty competitor input
-    if (persons.some((el) => el !== null)) {
-      document.getElementById(`Competitor_${persons.findIndex((el) => el === null) + 1}`)?.focus();
-    }
-  }, [nonNullPersons.length]);
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
 
   const changeEvent = (newEventId: string) => {
+    let newEvent: IEvent;
+
     if (forSubmitResultsPage) {
-      setEvent(events.find((el) => el.eventId === newEventId));
+      newEvent = events.find((el) => el.eventId === newEventId);
+      setEvent(newEvent);
     } else {
       const newCompEvent = competitionEvents.find((el) => el.event.eventId === newEventId);
+      newEvent = newCompEvent.event;
       setRound(newCompEvent.rounds[0]);
     }
+
+    reset({ newEvent, resetCompetitors: newEvent.participants !== event.participants });
   };
 
+  // Only used for PostResultsScreen
   const changeRound = (newRoundType: RoundType) => {
     const currCompEvent = competitionEvents.find((ce) => ce.event.eventId === event.eventId);
-    setRound(currCompEvent.rounds.find((r) => r.roundTypeId === newRoundType));
+    const newRound = currCompEvent.rounds.find((r) => r.roundTypeId === newRoundType);
+
+    setRound(newRound);
+    reset({ newRoundFormat: newRound.format, resetCompetitors: true });
   };
 
   // Returns true if there are errors
@@ -166,20 +173,32 @@ const ResultForm = ({
     }
   };
 
-  const reset = (newRoundFormat: RoundFormat) => {
-    if (forSubmitResultsPage) setRoundFormat(newRoundFormat);
+  const reset = (
+    {
+      newRoundFormat = roundFormat,
+      newEvent = event,
+      resetCompetitors = !keepCompetitors,
+    }: { newRoundFormat?: RoundFormat; newEvent?: IEvent; resetCompetitors?: boolean } = {
+      newRoundFormat: roundFormat,
+      newEvent: event,
+      resetCompetitors: !keepCompetitors,
+    },
+  ) => {
+    if (forSubmitResultsPage) {
+      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent, true).map((el) => el.value);
+
+      if (!allowedRoundFormats.includes(newRoundFormat)) setRoundFormat(RoundFormat.BestOf1);
+      else setRoundFormat(newRoundFormat);
+    }
+
     setErrorMessages([]);
     setAttempts(new Array(roundFormats[newRoundFormat].attempts).fill({ result: 0 }));
     setAttemptsResetTrigger(!attemptsResetTrigger);
     setTempResult({ best: -1, average: -1 } as IResult);
 
-    if (!keepCompetitors) {
-      setPersons(new Array(event.participants || 1).fill(null));
-      setPersonNames(new Array(event.participants || 1).fill(''));
-      document.getElementById('Competitor_1')?.focus();
-    } else {
-      if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
-      else document.getElementById('attempt_1').focus();
+    if (resetCompetitors) {
+      setPersons(new Array(newEvent.participants || 1).fill(null));
+      setPersonNames(new Array(newEvent.participants || 1).fill(''));
     }
   };
 
@@ -201,9 +220,9 @@ const ResultForm = ({
         ) : (
           <FormSelect
             title="Format"
-            options={getAllowedRoundFormats(event, forSubmitResultsPage)}
+            options={getAllowedRoundFormatOptions(event, forSubmitResultsPage)}
             selected={roundFormat}
-            setSelected={(val: RoundFormat) => reset(val)}
+            setSelected={(val: RoundFormat) => reset({ newRoundFormat: val, resetCompetitors: false })}
           />
         )}
       </div>

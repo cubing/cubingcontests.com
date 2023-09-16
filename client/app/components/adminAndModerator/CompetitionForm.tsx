@@ -21,7 +21,7 @@ import { Color, ContestState, ContestType, EventGroup, Role, RoundFormat, RoundP
 import { getDateOnly } from '@sh/sharedFunctions';
 import { colorOptions, competitionTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getAllowedRoundFormats, limitRequests } from '~/helpers/utilityFunctions';
+import { getAllowedRoundFormatOptions, limitRequests } from '~/helpers/utilityFunctions';
 import Loading from '../Loading';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import EventTitle from '../EventTitle';
@@ -871,7 +871,7 @@ const CompetitionForm = ({
                       <div className="flex-grow-1">
                         <FormSelect
                           title=""
-                          options={getAllowedRoundFormats(compEvent.event)}
+                          options={getAllowedRoundFormatOptions(compEvent.event)}
                           selected={round.format}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
                           disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
@@ -964,7 +964,12 @@ const CompetitionForm = ({
                 ></span>
               </div>
             </div>
-            <button type="button" className="mt-3 mb-2 btn btn-success" disabled={!isValidRoom} onClick={addRoom}>
+            <button
+              type="button"
+              className="mt-3 mb-2 btn btn-success"
+              disabled={!isValidRoom || !isEditableSchedule}
+              onClick={addRoom}
+            >
               Create
             </button>
             <hr />

@@ -61,6 +61,10 @@ const PostResultsScreen = ({
     if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
+
   const submitResult = () => {
     if (isEditable) {
       const newResult: IResult = {
