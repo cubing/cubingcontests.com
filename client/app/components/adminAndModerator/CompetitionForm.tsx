@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import enGB from 'date-fns/locale/en-GB';
-import { addHours, differenceInDays } from 'date-fns';
+import { addHours, differenceInDays, format, parseISO } from 'date-fns';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
 import Form from '../form/Form';
@@ -25,6 +25,7 @@ import { getAllowedRoundFormatOptions, limitRequests } from '~/helpers/utilityFu
 import Loading from '../Loading';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import EventTitle from '../EventTitle';
+import { titleRegex } from '~/shared_helpers/regex';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -137,7 +138,7 @@ const CompetitionForm = ({
       })),
     [rooms.length],
   );
-  const isValidRoom = useMemo(() => roomName.trim() !== '', [roomName]);
+  const isValidRoom = useMemo(() => titleRegex.test(roomName), [roomName]);
   const activityOptions = useMemo(() => {
     const output: MultiChoiceOption[] = [];
 
@@ -385,6 +386,7 @@ const CompetitionForm = ({
       if (!newComp.contact) tempErrors.push('Please enter a contact email');
       if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
+      if (activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
     }
 
     if (type !== ContestType.Online) {
@@ -603,7 +605,7 @@ const CompetitionForm = ({
 
   const changeActivityStartTime = (newTime: Date) => {
     if (newTime) setActivityStartTime(zonedTimeToUtc(newTime, venueTimezone));
-    else setActivityStartTime(newTime);
+    else setActivityStartTime(null);
   };
 
   // Get the same date as the start time and use the new end time (the end time input is for time only)
@@ -611,19 +613,12 @@ const CompetitionForm = ({
     if (newTime) {
       const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
       const newActivityEndTime = zonedTimeToUtc(
-        new Date(
-          zonedStartTime.getUTCFullYear(),
-          zonedStartTime.getUTCMonth(),
-          zonedStartTime.getUTCDate(),
-          newTime.getUTCHours(),
-          newTime.getUTCMinutes(),
-        ),
+        parseISO(`${format(zonedStartTime, 'yyyy-MM-dd')}T${format(newTime, 'HH:mm:00')}`),
         venueTimezone,
       );
-
       setActivityEndTime(newActivityEndTime);
     } else {
-      setActivityEndTime(newTime);
+      setActivityEndTime(null);
     }
   };
 
