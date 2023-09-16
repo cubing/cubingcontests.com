@@ -5,7 +5,7 @@ import { ResultDocument } from '~/src/models/result.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { ContestState, WcaRecordType } from '@sh/enums';
+import { ContestState, Role, WcaRecordType } from '@sh/enums';
 import {
   IEventRankings,
   IRecordType,
@@ -259,6 +259,11 @@ export class ResultsService {
     const comp = await this.getCompetition(createResultDto.competitionId, user);
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
+    // Admins are allowed to edit finished comps too, so this check is necessary.
+    // If it's a finished comp and the user is not an admin, they won't have access rights
+    // anyways, so the roles don't need to be checked here.
+    if (comp.state < ContestState.Finished) createResultDto.unapproved = true;
+
     // The date is passed in as an ISO date string and it may also include time, if the frontend has a bug
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
     fixTimesOverTenMinutes(createResultDto, event);
@@ -365,7 +370,7 @@ export class ResultsService {
     }
   }
 
-  async submitResult(createResultDto: CreateResultDto) {
+  async submitResult(createResultDto: CreateResultDto, user: IPartialUser) {
     if (!createResultDto.videoLink) throw new BadRequestException('Please enter a video link');
 
     let duplicateResult: ResultDocument;
@@ -379,6 +384,8 @@ export class ResultsService {
     if (duplicateResult) throw new BadRequestException('A result with the same video link already exists');
 
     const event = await this.eventsService.getEventById(createResultDto.eventId);
+
+    if (!user.roles.includes(Role.Admin)) createResultDto.unapproved = true;
 
     // The date is passed in as an ISO date string and may include time too, so the time must be removed
     createResultDto.date = getDateOnly(new Date(createResultDto.date));

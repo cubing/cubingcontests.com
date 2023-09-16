@@ -78,8 +78,6 @@ const PostResultsScreen = ({
         average: -1,
       };
 
-      if (competition.state < ContestState.Finished) newResult.unapproved = true;
-
       checkErrorsBeforeSubmit(
         newResult,
         round.format,

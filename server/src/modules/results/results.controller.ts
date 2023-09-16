@@ -69,8 +69,8 @@ export class ResultsController {
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async submitResult(@Body(new ValidationPipe()) createResultDto: CreateResultDto) {
+  async submitResult(@Body(new ValidationPipe()) createResultDto: CreateResultDto, @Request() req: any) {
     console.log(`Submitting new result for event ${createResultDto.eventId}`);
-    return await this.service.submitResult(createResultDto);
+    return await this.service.submitResult(createResultDto, req.user);
   }
 }
