@@ -53,14 +53,6 @@ export class CreateResultDto implements IResult {
   average: number;
 
   @IsOptional()
-  @IsString()
-  regionalSingleRecord?: string;
-
-  @IsOptional()
-  @IsString()
-  regionalAverageRecord?: string;
-
-  @IsOptional()
   @IsUrl()
   videoLink?: string;
 

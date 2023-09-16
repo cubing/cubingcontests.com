@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
-import RoundResultsTable from '@c/RoundResultsTable';
 import myFetch from '~/helpers/myFetch';
-import { ContestState, Role } from '@sh/enums';
-import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
 import ResultForm from './ResultForm';
 import ErrorMessages from '../ErrorMessages';
 import Button from '../Button';
+import RoundResultsTable from '@c/RoundResultsTable';
+import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
+import { ContestState, Role } from '@sh/enums';
+import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
 
 const role = getRole();
 

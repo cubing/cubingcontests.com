@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
+import Loading from '@c/Loading';
 import CompetitionForm from '@c/adminAndModerator/CompetitionForm';
 import { ICompetition, IEvent } from '@sh/interfaces';
-import Loading from '@c/Loading';
-import { Role } from '~/shared_helpers/enums';
 import { getRole } from '~/helpers/utilityFunctions';
 
 const fetchData = async (
@@ -37,9 +36,10 @@ const fetchData = async (
 
 const CreateEditCompetition = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [role, setRole] = useState<Role>();
   const [events, setEvents] = useState<IEvent[]>();
   const [competition, setCompetition] = useState<ICompetition>();
+
+  const role = useMemo(getRole, [getRole]);
 
   const searchParams = useSearchParams();
 
@@ -54,7 +54,6 @@ const CreateEditCompetition = () => {
   }
 
   useEffect(() => {
-    setRole(getRole());
     fetchData(competitionId, setEvents, setCompetition, setErrorMessages);
   }, [competitionId]);
 

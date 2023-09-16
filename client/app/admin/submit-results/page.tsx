@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import myFetch from '~/helpers/myFetch';
 import Loading from '@c/Loading';
 import Form from '@c/form/Form';
-import myFetch from '~/helpers/myFetch';
-import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '~/shared_helpers/interfaces';
+import FormDateInput from '~/app/components/form/FormDateInput';
 import FormTextInput from '~/app/components/form/FormTextInput';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
-import { checkErrorsBeforeSubmit, limitRequests } from '~/helpers/utilityFunctions';
-import { RoundFormat } from '~/shared_helpers/enums';
-import FormDateInput from '~/app/components/form/FormDateInput';
 import Button from '~/app/components/Button';
+import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
+import { Role, RoundFormat } from '@sh/enums';
+import { checkErrorsBeforeSubmit, getRole, limitRequests } from '~/helpers/utilityFunctions';
+import FormCheckbox from '~/app/components/form/FormCheckbox';
 
 const SubmitResults = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -27,8 +28,10 @@ const SubmitResults = () => {
   const [date, setDate] = useState<Date | null | undefined>();
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
   const [videoLink, setVideoLink] = useState('');
+  const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [discussionLink, setDiscussionLink] = useState('');
 
+  const role = useMemo(getRole, [getRole]);
   const recordPairs = useMemo(
     () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
     [resultsSubmissionInfo, event],
@@ -76,7 +79,7 @@ const SubmitResults = () => {
       document.getElementById('date').focus();
     }
 
-    if (!videoLink.trim()) {
+    if (!videoUnavailable && !videoLink.trim()) {
       tempErrors.push('Please enter a video link');
       document.getElementById('video_link').focus();
     }
@@ -91,7 +94,7 @@ const SubmitResults = () => {
         attempts,
         best: -1,
         average: -1,
-        videoLink,
+        videoLink: videoUnavailable ? undefined : videoLink,
         discussionLink: discussionLink || undefined,
       };
 
@@ -125,7 +128,6 @@ const SubmitResults = () => {
   };
 
   const changeDate = (newDate: Date) => {
-    console.log('TEST');
     setDate(newDate);
     setErrorMessages([]);
     setSuccessMessage('');
@@ -185,7 +187,7 @@ const SubmitResults = () => {
             title="Date (dd.mm.yyyy)"
             value={date}
             setValue={changeDate}
-            nextFocusTargetId="video_link"
+            nextFocusTargetId={videoUnavailable ? 'discussion_link' : 'video_link'}
           />
           <FormTextInput
             id="video_link"
@@ -195,7 +197,11 @@ const SubmitResults = () => {
             setValue={setVideoLink}
             onKeyDown={onVideoLinkKeyDown}
             onBlur={onVideoLinkFocusOut}
+            disabled={videoUnavailable}
           />
+          {role === Role.Admin && (
+            <FormCheckbox title="Video unavailable" selected={videoUnavailable} setSelected={setVideoUnavailable} />
+          )}
           <FormTextInput
             id="discussion_link"
             title="Link to discussion (optional)"

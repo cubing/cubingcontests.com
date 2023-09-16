@@ -371,17 +371,20 @@ export class ResultsService {
   }
 
   async submitResult(createResultDto: CreateResultDto, user: IPartialUser) {
-    if (!createResultDto.videoLink) throw new BadRequestException('Please enter a video link');
+    if (!createResultDto.videoLink && !user.roles.includes(Role.Admin))
+      throw new BadRequestException('Please enter a video link');
 
-    let duplicateResult: ResultDocument;
+    if (createResultDto.videoLink) {
+      let duplicateResult: ResultDocument;
 
-    try {
-      duplicateResult = await this.resultModel.findOne({ videoLink: createResultDto.videoLink }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while searching for duplicate result: ${err.message}`);
+      try {
+        duplicateResult = await this.resultModel.findOne({ videoLink: createResultDto.videoLink }).exec();
+      } catch (err) {
+        throw new InternalServerErrorException(`Error while searching for duplicate result: ${err.message}`);
+      }
+
+      if (duplicateResult) throw new BadRequestException('A result with the same video link already exists');
     }
-
-    if (duplicateResult) throw new BadRequestException('A result with the same video link already exists');
 
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 

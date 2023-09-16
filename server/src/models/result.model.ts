@@ -18,8 +18,6 @@ export class Result implements IResult {
   @Prop()
   competitionId?: string;
 
-  // THIS IS TEMPORARY
-  // @Prop({ required: true, immutable: true })
   @Prop({ required: true })
   eventId: string;
 
@@ -50,7 +48,7 @@ export class Result implements IResult {
   @Prop()
   regionalAverageRecord?: string;
 
-  @Prop({ unique: true })
+  @Prop()
   videoLink?: string;
 
   @Prop()

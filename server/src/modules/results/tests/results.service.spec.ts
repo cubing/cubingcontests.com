@@ -8,6 +8,7 @@ import { AuthService } from '@m/auth/auth.service';
 import { Role, WcaRecordType } from '@sh/enums';
 import { IEventRankings } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
+import { ResultDocument } from '~/src/models/result.model';
 
 // Mocks and stubs
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
@@ -98,9 +99,10 @@ describe('ResultsService', () => {
         };
 
         await resultsService.createResult(newResult, '333-r1', mockUser);
+        const createdResult = newResult as unknown as ResultDocument;
 
-        expect(newResult.regionalSingleRecord).toBe('WR');
-        expect(newResult.regionalAverageRecord).toBe('WR');
+        expect(createdResult.regionalSingleRecord).toBe('WR');
+        expect(createdResult.regionalAverageRecord).toBe('WR');
       });
     });
 
