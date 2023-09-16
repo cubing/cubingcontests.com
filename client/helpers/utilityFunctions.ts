@@ -140,9 +140,10 @@ export const getAttempt = (
   attempt: IAttempt,
   event: IEvent,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
-  solved: string,
-  attempted: string,
-  memo: string | undefined, // only used for events with the event group HasMemo
+  // These are optional if the event format is Number
+  solved?: string,
+  attempted?: string,
+  memo?: string | undefined, // only used for events with the event group HasMemo, otherwise set to undefined
   { roundTime, roundMemo }: { roundTime: boolean; roundMemo: boolean } = {
     roundTime: false,
     roundMemo: false,

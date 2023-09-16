@@ -133,11 +133,11 @@ const AttemptInput = ({
     if (e.key === 'Enter') document.getElementById(`attempt_${number}`).focus();
   };
 
-  const onTimeKeyDown = (e: any, forMemoTime = false) => {
+  const onTimeKeyDown = (e: any, forMemo = false) => {
     if (e.key === 'Enter') {
       e.preventDefault();
 
-      if (includeMemo && !forMemoTime) document.getElementById(`attempt_${number}_memo`).focus();
+      if (includeMemo && !forMemo) document.getElementById(`attempt_${number}_memo`).focus();
       else focusNext();
     } else if (e.key === 'Backspace') {
       e.preventDefault();
@@ -150,11 +150,11 @@ const AttemptInput = ({
         setAttempt({ ...attempt, result: 0 });
         if (event.format === EventFormat.Multi) document.getElementById(`attempt_${number}_solved`).focus();
       } else {
-        if (!forMemoTime && attemptText !== '') {
+        if (!forMemo && attemptText !== '') {
           const newAttText = attemptText.slice(0, -1);
           setAttemptText(newAttText);
           setAttempt(getAttempt(attempt, event, newAttText, solved, attempted, memoText));
-        } else if (forMemoTime && memoText !== undefined) {
+        } else if (forMemo && memoText !== undefined) {
           const newMemoText = memoText.slice(0, -1) || undefined;
           setMemoText(newMemoText);
           setAttempt(getAttempt(attempt, event, attemptText, solved, attempted, newMemoText));
@@ -162,47 +162,44 @@ const AttemptInput = ({
       }
     } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
       e.preventDefault();
-    } else if (['f', 'F', 'd', 'D', '/'].includes(e.key) && !forMemoTime) {
+    } else if (['f', 'F', 'd', 'D', '/'].includes(e.key) && !forMemo) {
       e.preventDefault();
 
       if (event.format !== EventFormat.Multi) {
         setAttempt({ ...attempt, result: -1 }); // set DNF
         focusNext();
       }
-    } else if (getIsDNSKey(e) && !forMemoTime) {
+    } else if (getIsDNSKey(e) && !forMemo) {
       handleSetDNS(e);
     } else if (/^[0-9]$/.test(e.key)) {
-      if (!forMemoTime) {
-        if (e.key === '0' && attemptText === '') return; // don't allow entering 0 as the first digit
-        const newAttText = attemptText + e.key;
+      const text = forMemo ? memoText || '' : attemptText;
+      const newText = text + e.key;
+      if (e.key === '0' && text === '') return; // don't allow entering 0 as the first digit
 
-        // Maximum length is 2 for event format Number and 8 for everything else.
-        if (newAttText.length <= 2 || (newAttText.length <= 8 && event.format !== EventFormat.Number)) {
-          const newAttempt = getAttempt(attempt, event, newAttText, solved, attempted, memoText);
-          setAttempt(newAttempt);
+      if (newText.length <= 2 || (newText.length <= 8 && event.format !== EventFormat.Number)) {
+        const newAttempt = getAttempt(
+          attempt,
+          event,
+          forMemo ? attemptText : newText,
+          solved,
+          attempted,
+          forMemo ? newText : memoText,
+        );
+        setAttempt(newAttempt);
 
-          // If the updated attempt is valid, it will get updated in useEffect anyways
-          if (newAttempt.result === null || newAttempt.memo === null) setAttemptText(newAttText);
-        }
-      } else {
-        if (e.key === '0' && memoText === undefined) return; // don't allow entering 0 as the first digit
-        const newMemoText = (memoText || '') + e.key;
-
-        if (newMemoText.length <= 8) {
-          const newAttempt = getAttempt(attempt, event, attemptText, solved, attempted, newMemoText);
-          setAttempt(newAttempt);
-
-          // If the updated attempt is valid, it will get updated in useEffect anyways
-          if (newAttempt.memo === null || newAttempt.result === null) setMemoText(newMemoText);
+        // If the updated attempt is valid, it will get updated in useEffect anyways
+        if (newAttempt.result === null || newAttempt.memo === null) {
+          if (forMemo) setMemoText(newText);
+          else setAttemptText(newText);
         }
       }
     }
   };
 
-  const onTimeFocusOut = (forMemoTime = false) => {
+  const onTimeFocusOut = (forMemo = false) => {
     // Get rid of the decimals if one of the times is >= 10 minutes and the event category is not
     // ExtremeBLD (with the exception of Multi format, which should still have its time rounded)
-    if (attemptText.length >= 6 || (forMemoTime && memoText?.length >= 6)) {
+    if (attemptText.length >= 6 || (forMemo && memoText?.length >= 6)) {
       setAttempt(
         getAttempt(attempt, event, attemptText, solved, attempted, memoText, {
           roundTime: !getAlwaysShowDecimals(event),
@@ -243,8 +240,8 @@ const AttemptInput = ({
       <div className="col">
         <FormTextInput
           id={`attempt_${number}`}
-          value={formattedAttemptText}
           placeholder={event.format === EventFormat.Multi ? `Time ${number}` : `Attempt ${number}`}
+          value={event.format !== EventFormat.Number ? formattedAttemptText : attemptText}
           onKeyDown={(e: any) => onTimeKeyDown(e)}
           onBlur={onTimeFocusOut}
           invalid={isInvalidAttempt}

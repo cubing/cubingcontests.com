@@ -62,7 +62,7 @@ export const roundProceedOptions: MultiChoiceOption[] = [
     value: RoundProceed.Number,
   },
   {
-    label: 'Percentage',
+    label: '%',
     value: RoundProceed.Percentage,
   },
 ];

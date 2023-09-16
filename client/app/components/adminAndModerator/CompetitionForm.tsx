@@ -865,8 +865,8 @@ const CompetitionForm = ({
                   </button>
                 </div>
                 {compEvent.rounds.map((round, roundIndex) => (
-                  <div key={round.roundId} className="mb-3 pt-2 px-4 border rounded bg-body-secondary">
-                    <div className="d-flex justify-content-between align-items-center gap-5 w-100 mt-2 mb-3">
+                  <div key={round.roundId} className="mb-3 py-3 px-4 border rounded bg-body-secondary">
+                    <div className="d-flex justify-content-between align-items-center gap-5 w-100">
                       <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
                       <div className="flex-grow-1">
                         <FormSelect
@@ -880,7 +880,7 @@ const CompetitionForm = ({
                       </div>
                     </div>
                     {round.roundTypeId !== RoundType.Final && (
-                      <>
+                      <div className="d-flex justify-content-between align-items-center gap-3 mt-3">
                         <FormRadio
                           id={`${round.roundId}_proceed_type`}
                           title="Proceed to next round:"
@@ -890,15 +890,18 @@ const CompetitionForm = ({
                           disabled={disableIfCompFinishedEvenForAdmin}
                           oneLine
                         />
-                        <FormTextInput
-                          id="round_proceed_value"
-                          value={round.proceed.value.toString()}
-                          setValue={(val: string) =>
-                            changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)
-                          }
-                          disabled={disableIfCompFinishedEvenForAdmin}
-                        />
-                      </>
+                        <div style={{ width: '5rem' }}>
+                          <FormTextInput
+                            id="round_proceed_value"
+                            value={round.proceed.value.toString()}
+                            setValue={(val: string) =>
+                              changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)
+                            }
+                            disabled={disableIfCompFinishedEvenForAdmin}
+                            noMargin
+                          />
+                        </div>
+                      </div>
                     )}
                   </div>
                 ))}

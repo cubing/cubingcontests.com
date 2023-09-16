@@ -21,7 +21,7 @@ const FormRadio = ({
     <div className={oneLine ? 'd-flex align-items-center gap-5' : ''}>
       <h5 className={oneLine ? 'm-0' : ''}>{title}</h5>
 
-      <div className="my-3 d-flex gap-5">
+      <div className={'d-flex gap-5' + (oneLine ? '' : ' my-3')}>
         {options.map((option) => {
           const uniqueId = `radio_${id || title}_${option.value}`;
 

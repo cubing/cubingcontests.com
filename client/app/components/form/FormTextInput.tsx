@@ -17,6 +17,7 @@ const FormTextInput = ({
   password = false,
   monospace = false,
   invalid = false,
+  noMargin = false,
 }: {
   title?: string;
   id?: string;
@@ -33,6 +34,7 @@ const FormTextInput = ({
   monospace?: boolean;
   submitOnEnter?: boolean;
   invalid?: boolean;
+  noMargin?: boolean;
 }) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput!');
 
@@ -53,7 +55,7 @@ const FormTextInput = ({
   };
 
   return (
-    <div className="mb-3 fs-5">
+    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
       {title && (
         <label htmlFor={inputId} className="form-label">
           {title}
