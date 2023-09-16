@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { ISchedule, IVenue, IRoom, IActivity } from '@sh/interfaces';
 import { Color } from '@sh/enums';
 

@@ -8,6 +8,7 @@ import CompetitionName from '@c/CompetitionName';
 import Solves from './Solves';
 import { IEvent, IPerson, IRanking } from '@sh/interfaces';
 import { getFormattedDate, getFormattedTime } from '~/helpers/utilityFunctions';
+import RankingLinks from './RankingLinks';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
 const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
@@ -71,18 +72,7 @@ const RankingRow = ({
           (ranking.competition ? (
             <CompetitionName competition={ranking.competition} />
           ) : (
-            <div className="d-flex gap-2">
-              {ranking.videoLink && (
-                <a href={ranking.videoLink} target="_blank">
-                  Video
-                </a>
-              )}
-              {ranking.discussionLink && (
-                <a href={ranking.discussionLink} target="_blank">
-                  Discussion
-                </a>
-              )}
-            </div>
+            <RankingLinks ranking={ranking} />
           ))}
       </td>
       {showTeamColumn && (

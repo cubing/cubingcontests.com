@@ -8,6 +8,7 @@ import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
 import EventTitle from '~/app/components/EventTitle';
+import RankingLinks from '~/app/components/RankingLinks';
 
 // SEO
 export const metadata = {
@@ -85,20 +86,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                             ))}
                           </div>
                           {r.attempts && <Solves event={event} attempts={r.attempts} />}
-                          {(r.videoLink || r.discussionLink) && (
-                            <div className="d-flex gap-2">
-                              {r.videoLink && (
-                                <a href={r.videoLink} target="_blank">
-                                  Video
-                                </a>
-                              )}
-                              {r.discussionLink && (
-                                <a href={r.discussionLink} target="_blank">
-                                  Discussion
-                                </a>
-                              )}
-                            </div>
-                          )}
+                          {!r.competition && <RankingLinks ranking={r} />}
                         </li>
                       ))}
                     </ul>
