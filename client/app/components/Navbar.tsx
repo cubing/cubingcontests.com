@@ -4,28 +4,33 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { FaBars } from 'react-icons/fa';
+import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
 // import { ISearchResult } from '~/helpers/interfaces';
 
-const links = [
+const links: INavigationItem[] = [
   {
-    route: '/',
     title: 'Home',
+    value: 'home',
+    route: '/',
     getIsActive: (pathname: string) => pathname === '/',
   },
   {
-    route: '/competitions',
     title: 'Contests',
+    value: 'contests',
+    route: '/competitions',
     getIsActive: (pathname: string) => pathname === '/competitions',
   },
   {
-    route: '/rankings',
     title: 'Rankings',
+    value: 'rankings',
+    route: '/rankings',
     getIsActive: (pathname: string) => /^\/rankings\//.test(pathname),
   },
   {
-    route: '/records',
     title: 'Records',
-    getIsActive: (pathname: string) => /^\/records/.test(pathname),
+    value: 'records',
+    route: '/records',
+    getIsActive: (pathname: string) => /^\/records\//.test(pathname),
   },
 ];
 

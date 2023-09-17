@@ -47,7 +47,7 @@ const CompetitionForm = ({
   role: Role;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
 
   const [competitionId, setCompetitionId] = useState('');
@@ -87,7 +87,11 @@ const CompetitionForm = ({
   const isAdmin = role === Role.Admin;
 
   const tabs = useMemo(
-    () => (type === ContestType.Competition ? ['Details', 'Events', 'Schedule'] : ['Details', 'Events']),
+    () => [
+      { title: 'Details', value: 'details' },
+      { title: 'Events', value: 'events' },
+      { title: 'Schedule', value: 'schedule', hidden: type !== ContestType.Competition },
+    ],
     [type],
   );
   const filteredEvents = useMemo(() => {
@@ -415,8 +419,8 @@ const CompetitionForm = ({
     }
   };
 
-  const changeActiveTab = (newTab: number) => {
-    if (newTab === 2 && (!latitude || !longitude)) {
+  const changeActiveTab = (newTab: string) => {
+    if (newTab === 'schedule' && (!latitude || !longitude)) {
       setErrorMessages(['Please enter the coordinates first']);
     } else {
       setActiveTab(newTab);
@@ -665,12 +669,12 @@ const CompetitionForm = ({
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
         handleSubmit={handleSubmit}
-        hideButton={activeTab === 2}
+        hideButton={activeTab === 'schedule'}
         disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
       >
-        <Tabs titles={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
+        <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
-        {activeTab === 0 && (
+        {activeTab === 'details' && (
           <>
             <FormTextInput
               title="Contest name"
@@ -823,7 +827,7 @@ const CompetitionForm = ({
           </>
         )}
 
-        {activeTab === 1 && (
+        {activeTab === 'events' && (
           <>
             <div className="my-4 d-flex align-items-center gap-3">
               <button
@@ -937,7 +941,7 @@ const CompetitionForm = ({
           </>
         )}
 
-        {activeTab === 2 && (
+        {activeTab === 'schedule' && (
           <>
             <h3 className="mb-3">Rooms</h3>
             <div className="row">
@@ -1037,7 +1041,7 @@ const CompetitionForm = ({
         )}
       </Form>
 
-      {activeTab === 2 && (
+      {activeTab === 'schedule' && (
         <Schedule
           rooms={rooms}
           compEvents={competitionEvents}

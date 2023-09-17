@@ -54,7 +54,7 @@ const RankingRow = ({
         <div className="d-flex flex-wrap align-items-start gap-2">
           {personsToDisplay.map((person, index) => (
             <span key={person.personId} className="d-flex gap-2">
-              <Competitor key={person.personId} person={person} noCountry={!showAllTeammates} />
+              <Competitor key={person.personId} person={person} noFlag={!showAllTeammates} />
               {index !== personsToDisplay.length - 1 && <span>&</span>}
             </span>
           ))}

@@ -8,7 +8,7 @@ const RankingLinks = ({ ranking }: { ranking: IRanking }) => {
           Video
         </a>
       ) : (
-        'Video unavailable'
+        'Video no longer available'
       )}
       {ranking.discussionLink && (
         <a href={ranking.discussionLink} target="_blank">

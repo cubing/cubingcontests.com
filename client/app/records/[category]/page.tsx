@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
+import Tabs from '~/app/components/Tabs';
+import RankingsTable from '~/app/components/RankingsTable';
+import RankingLinks from '~/app/components/RankingLinks';
+import EventTitle from '~/app/components/EventTitle';
 import Solves from '~/app/components/Solves';
 import Competitor from '~/app/components/Competitor';
-import RecordsCategoryTabs from '~/app/components/RecordsCategoryTabs';
-import RankingsTable from '~/app/components/RankingsTable';
 import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
-import EventTitle from '~/app/components/EventTitle';
-import RankingLinks from '~/app/components/RankingLinks';
+import { EventGroup } from '~/shared_helpers/enums';
 
 // SEO
 export const metadata = {
@@ -34,6 +35,12 @@ const Records = async ({ params }: { params: { category: string } }) => {
     er.event.groups.includes(eventCategories.find((rc) => rc.value === params.category).group),
   );
   const selectedCat = eventCategories.find((el) => el.value === params.category);
+  const tabs = eventCategories.map((cat) => ({
+    title: cat.title,
+    value: cat.value,
+    route: `/records/${cat.value}`,
+    hidden: cat.group === EventGroup.Removed || !recordsByEvent.some((el) => el.event.groups.includes(cat.group)),
+  }));
 
   // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingRow has this same function too.
   const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
@@ -51,7 +58,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
           <p className="mx-2 fs-5">No records have been set yet</p>
         ) : (
           <>
-            <RecordsCategoryTabs recordsByEvent={recordsByEvent} category={params.category} />
+            <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
 
             {selectedCat.description && <p className="mx-2 mb-4">{selectedCat.description}</p>}
 

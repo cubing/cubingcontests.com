@@ -61,53 +61,56 @@ const RoundResultsTable = ({
           </tr>
         </thead>
         <tbody>
-          {round.results.map((result: IResult) =>
-            result.personIds.map((personId, i) => {
-              const person = persons.find((p: IPerson) => p.personId === personId);
-
-              return (
-                <tr key={personId}>
-                  {i === 0 && (
-                    <td rowSpan={event.participants || 1} className="ps-2" style={getRankingHighlight(result)}>
-                      {i === 0 ? result.ranking : ''}
-                    </td>
-                  )}
-                  <td>
-                    {person ? <Competitor person={person} /> : <span key={person.personId}>(name not found)</span>}
-                  </td>
-                  <td>{i === 0 && <Time result={result} event={event} recordTypes={recordTypes} />}</td>
-                  {roundCanHaveAverage && (
-                    <td>{i === 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}</td>
-                  )}
-                  <td>{i === 0 && <Solves event={event} attempts={result.attempts} />}</td>
-                  {onEditResult && (
-                    <td className="py-1">
-                      {i === 0 && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => onEditResult(result)}
-                            disabled={disableEditAndDelete}
-                            className="me-2 btn btn-primary btn-sm"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onDeleteResult((result as any)._id)}
-                            disabled={disableEditAndDelete}
-                            className="btn btn-danger btn-sm"
-                          >
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              );
-            }),
-          )}
+          {round.results.map((result: IResult) => (
+            <tr key={result.personIds[0]}>
+              <td className="ps-2" style={getRankingHighlight(result)}>
+                {result.ranking}
+              </td>
+              <td className="d-flex flex-wrap gap-2">
+                {result.personIds.map((personId, i) => {
+                  const person = persons.find((p: IPerson) => p.personId === personId);
+                  if (!person) return <span key={person.personId}>(name not found)</span>;
+                  return (
+                    <span key={person.personId} className="d-flex gap-2">
+                      <Competitor person={person} />
+                      {i !== result.personIds.length - 1 && <span>&</span>}
+                    </span>
+                  );
+                })}
+              </td>
+              <td>
+                <Time result={result} event={event} recordTypes={recordTypes} />
+              </td>
+              {roundCanHaveAverage && (
+                <td>
+                  <Time result={result} event={event} recordTypes={recordTypes} average />
+                </td>
+              )}
+              <td>
+                <Solves event={event} attempts={result.attempts} />
+              </td>
+              {onEditResult && (
+                <td className="py-1">
+                  <button
+                    type="button"
+                    onClick={() => onEditResult(result)}
+                    disabled={disableEditAndDelete}
+                    className="me-2 btn btn-primary btn-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteResult((result as any)._id)}
+                    disabled={disableEditAndDelete}
+                    className="btn btn-danger btn-sm"
+                  >
+                    Delete
+                  </button>
+                </td>
+              )}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
