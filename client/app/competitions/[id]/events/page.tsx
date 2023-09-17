@@ -4,6 +4,7 @@ import { ICompetition } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
+import EventTitle from '~/app/components/EventTitle';
 
 const CompetitionEvents = async ({ params }: { params: { id: string } }) => {
   const { payload: competitionData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
@@ -28,7 +29,7 @@ const CompetitionEvents = async ({ params }: { params: { id: string } }) => {
             {competition.events.map((compEvent) =>
               compEvent.rounds.map((round, roundIndex) => (
                 <tr key={round.roundId} className={roundIndex !== 0 ? 'table-active' : ''}>
-                  <td>{roundIndex === 0 && compEvent.event.name}</td>
+                  <td>{roundIndex === 0 && <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />}</td>
                   <td>{roundTypes[round.roundTypeId].label}</td>
                   <td>{roundFormats[round.format].label}</td>
                   {hasNonFinalRound && (
