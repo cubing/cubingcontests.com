@@ -39,8 +39,6 @@ const SubmitResults = () => {
 
   const isAdmin = role === Role.Admin;
 
-  useEffect(() => console.log(successMessage), [successMessage]); // TEMP
-
   useEffect(() => {
     fetchSubmissionInfo(new Date()).then((payload: IResultsSubmissionInfo) => {
       setResultsSubmissionInfo(payload as IResultsSubmissionInfo);

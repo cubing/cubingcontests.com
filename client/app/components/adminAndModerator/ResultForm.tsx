@@ -91,18 +91,16 @@ const ResultForm = ({
 
   const roundCanHaveAverage = useMemo(() => getRoundCanHaveAverage(roundFormat, event), [roundFormat, event]);
 
-  useEffect(() => reset(), [resetTrigger]);
+  useEffect(() => {
+    reset();
+    focusFirstInput();
+  }, [resetTrigger]);
 
   useEffect(() => {
     // Set persons names if there are no null persons (needed for the edit result feature on PostResultsScreen)
-    if (!persons.some((el) => el === null)) {
-      setPersonNames(persons.map((el) => el.name));
+    if (!persons.some((el) => el === null)) setPersonNames(persons.map((el) => el.name));
 
-      if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
-      else document.getElementById('attempt_1').focus();
-    } else {
-      document.getElementById(`Competitor_${persons.findIndex((el) => el === null) + 1}`)?.focus();
-    }
+    focusFirstInput();
   }, [persons, roundFormat, event]);
 
   useEffect(() => {
@@ -156,6 +154,17 @@ const ResultForm = ({
 
   const changeAttempt = (index: number, newAttempt: IAttempt) => {
     setAttempts(attempts.map((el, i) => (i !== index ? el : newAttempt)));
+  };
+
+  const focusFirstInput = () => {
+    const firstNullPersonIndex = persons.findIndex((el) => el === null);
+
+    if (firstNullPersonIndex !== -1) {
+      document.getElementById(`Competitor_${firstNullPersonIndex + 1}`)?.focus();
+    } else {
+      if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
+      else document.getElementById('attempt_1').focus();
+    }
   };
 
   const focusNext = (index: number) => {
