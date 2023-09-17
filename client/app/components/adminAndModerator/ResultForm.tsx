@@ -120,6 +120,7 @@ const ResultForm = ({
 
   const changeEvent = (newEventId: string) => {
     let newEvent: IEvent;
+    let newRoundFormat = roundFormat;
 
     if (forSubmitResultsPage) {
       newEvent = events.find((el) => el.eventId === newEventId);
@@ -128,9 +129,10 @@ const ResultForm = ({
       const newCompEvent = competitionEvents.find((el) => el.event.eventId === newEventId);
       newEvent = newCompEvent.event;
       setRound(newCompEvent.rounds[0]);
+      newRoundFormat = newCompEvent.rounds[0].format;
     }
 
-    reset({ newEvent, resetCompetitors: newEvent.participants !== event.participants });
+    reset({ newEvent, newRoundFormat, resetCompetitors: newEvent.participants !== event.participants });
   };
 
   // Only used for PostResultsScreen
@@ -172,12 +174,12 @@ const ResultForm = ({
 
   const reset = (
     {
-      newRoundFormat = roundFormat,
       newEvent = event,
+      newRoundFormat = roundFormat,
       resetCompetitors = !keepCompetitors,
-    }: { newRoundFormat?: RoundFormat; newEvent?: IEvent; resetCompetitors?: boolean } = {
-      newRoundFormat: roundFormat,
+    }: { newEvent?: IEvent; newRoundFormat?: RoundFormat; resetCompetitors?: boolean } = {
       newEvent: event,
+      newRoundFormat: roundFormat,
       resetCompetitors: !keepCompetitors,
     },
   ) => {
