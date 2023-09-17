@@ -5,8 +5,7 @@ const contactMsg = `Contact ${C.contactEmail} if you would like to submit a resu
 
 export const eventCategories = [
   {
-    title: 'WCA events',
-    mobileTitle: 'WCA',
+    title: 'WCA',
     value: 'wca',
     group: EventGroup.WCA,
     description: `This is based on results from speedcuber meetups. 4x4-5x5 Blindfolded and Multi-Blind also allow submitted results with video evidence. ${contactMsg}`,
@@ -27,5 +26,7 @@ export const eventCategories = [
     title: 'Removed',
     value: 'removed',
     group: EventGroup.Removed,
+    description:
+      'These events have been removed and will no longer be hosted on Cubing Contests. Team-Blind Old Style is the old format that had inspection time.',
   },
 ];

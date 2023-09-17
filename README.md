@@ -1,6 +1,6 @@
 # Cubing Contests
 
-This is a place for hosting unofficial Rubik's cube competitions, unofficial events held at WCA competitions, speedcuber meetups, and other unofficial events. It's currently a **work-in-progress**, but eventually this will be an open platform for posting results that anyone will be able to spin up on their own server and use for their own local community. But you can (**and are encouraged to**) use the main instance that will be available to everyone: [**cubingcontests.com**](https://cubingcontests.com/).
+This is a place for hosting unofficial Rubik's cube competitions, unofficial events held at WCA competitions, speedcuber meetups, and other unofficial events.
 
 ## Screenshots
 
