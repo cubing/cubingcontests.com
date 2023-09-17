@@ -201,7 +201,12 @@ const SubmitResults = () => {
             disabled={videoUnavailable}
           />
           {isAdmin && (
-            <FormCheckbox title="Video unavailable" selected={videoUnavailable} setSelected={setVideoUnavailable} />
+            // Same text as in RankingLinks
+            <FormCheckbox
+              title="Video no longer available"
+              selected={videoUnavailable}
+              setSelected={setVideoUnavailable}
+            />
           )}
           <FormTextInput
             id="discussion_link"
