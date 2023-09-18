@@ -13,7 +13,7 @@ import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
 const role = getRole();
 
 const PostResultsScreen = ({
-  compData: { competition, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
+  compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
 }: {
   compData: IContestData;
 }) => {
@@ -22,34 +22,34 @@ const PostResultsScreen = ({
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
-  const [round, setRound] = useState<IRound>(competition.events[0].rounds[0]);
+  const [round, setRound] = useState<IRound>(contest.events[0].rounds[0]);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
-  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(competition.events);
+  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
 
   const currEvent = useMemo(
-    () => competition.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
-    [competition, round.roundId],
+    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
+    [contest, round.roundId],
   );
   const recordPairs = useMemo(
     () => recordPairsByEvent.find((el) => el.eventId === currEvent.eventId).recordPairs,
     [recordPairsByEvent, currEvent],
   );
 
-  const isEditable = role === Role.Admin || [ContestState.Approved, ContestState.Ongoing].includes(competition.state);
+  const isEditable = role === Role.Admin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
 
   useEffect(() => {
     console.log('Records:', recordPairsByEvent);
 
     if (!isEditable) {
-      if (competition.state < ContestState.Approved) {
+      if (contest.state < ContestState.Approved) {
         setErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
-      } else if (competition.state >= ContestState.Finished) {
+      } else if (contest.state >= ContestState.Finished) {
         setErrorMessages(['This contest is over. Submitting results is disabled.']);
       }
     }
-  }, [competition, recordPairsByEvent, isEditable]);
+  }, [contest, recordPairsByEvent, isEditable]);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
@@ -68,7 +68,7 @@ const PostResultsScreen = ({
   const submitResult = () => {
     if (isEditable) {
       const newResult: IResult = {
-        competitionId: competition.competitionId,
+        competitionId: contest.competitionId,
         eventId: currEvent.eventId,
         date: round.date,
         personIds: currentPersons.map((el) => el?.personId || null),
@@ -135,7 +135,7 @@ const PostResultsScreen = ({
     if (isEditable) {
       setLoadingDuringSubmit(true);
 
-      const { payload, errors } = await myFetch.delete(`/results/${competition.competitionId}/${resultId}`);
+      const { payload, errors } = await myFetch.delete(`/results/${contest.competitionId}/${resultId}`);
 
       if (errors) {
         setErrorMessages(errors);
@@ -184,7 +184,7 @@ const PostResultsScreen = ({
           />
         </div>
         <div className="col-8">
-          <h2 className="mb-4 text-center">Enter results for {competition.name}</h2>
+          <h2 className="mb-4 text-center">Enter results for {contest.name}</h2>
           {/* THIS STYLING IS A TEMPORARY SOLUTION!!! */}
           <div className="overflow-y-auto" style={{ maxHeight: '650px' }}>
             <RoundResultsTable

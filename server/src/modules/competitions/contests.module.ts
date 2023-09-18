@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CompetitionsService } from './competitions.service';
-import { CompetitionsController } from './competitions.controller';
+import { CompetitionsService } from './contests.service';
+import { CompetitionsController } from './contests.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ContestSchema } from '~/src/models/competition.model';
+import { ContestSchema } from '~/src/models/contest.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { ResultSchema } from '~/src/models/result.model';
 import { RecordTypesModule } from '@m/record-types/record-types.module';

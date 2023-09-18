@@ -48,7 +48,7 @@ export class ResultsController {
     @Body(new ValidationPipe()) createResultDto: CreateResultDto,
     @Request() req: any,
   ) {
-    console.log(`Creating new result for competition ${createResultDto.competitionId}, round ${roundId}`);
+    console.log(`Creating new result for contest ${createResultDto.competitionId}, round ${roundId}`);
     return await this.service.createResult(createResultDto, roundId, req.user);
   }
 
@@ -61,7 +61,7 @@ export class ResultsController {
     @Param('result_id') resultId: string,
     @Request() req: any,
   ) {
-    console.log(`Deleting result with id ${resultId} from competition ${competitionId}`);
+    console.log(`Deleting result with id ${resultId} from contest ${competitionId}`);
     return await this.service.deleteCompetitionResult(resultId, competitionId, req.user);
   }
 

@@ -7,7 +7,7 @@ import { RoundDocument } from '~/src/models/round.model';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { IPerson } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { ContestEvent } from '~/src/models/competition.model';
+import { ContestEvent } from '~/src/models/contest.model';
 
 @Injectable()
 export class PersonsService {
@@ -62,7 +62,7 @@ export class PersonsService {
       try {
         compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
       } catch (err) {
-        throw new InternalServerErrorException('Error while searching for competition rounds');
+        throw new InternalServerErrorException('Error while searching for contest rounds');
       }
     }
 

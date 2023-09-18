@@ -41,7 +41,7 @@ export interface IRanking {
   attemptNumber?: number; // only set for top single results rankings
   memo?: number; // only set for top single results rankings for events with the HasMemo group
   date: Date;
-  competition?: IContest; // optional, because not all results have a competition
+  contest?: IContest; // optional, because some results are submitted, so they have no contest
   attempts?: IAttempt[]; // only set for the average and mean ranking type
   videoLink?: string;
   discussionLink?: string;

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import Loading from '@c/Loading';
 import ContestForm from '~/app/components/adminAndModerator/ContestForm';
-import { IContest, IEvent } from '@sh/interfaces';
+import { IContest, IContestData, IEvent } from '@sh/interfaces';
 import { getRole } from '~/helpers/utilityFunctions';
 
 const fetchData = async (
@@ -24,12 +24,15 @@ const fetchData = async (
   setEvents(events);
 
   if (competitionId) {
-    const { payload, errors } = await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true });
+    const { payload, errors }: { payload?: IContestData; errors?: string[] } = await myFetch.get(
+      `/competitions/mod/${competitionId}`,
+      { authorize: true },
+    );
 
     if (errors) {
       setErrorMessages(errors);
     } else if (payload) {
-      setCompetition(payload.competition);
+      setCompetition(payload.contest);
     }
   }
 };
@@ -37,7 +40,7 @@ const fetchData = async (
 const CreateEditContestPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [events, setEvents] = useState<IEvent[]>();
-  const [competition, setCompetition] = useState<IContest>();
+  const [contest, setCompetition] = useState<IContest>();
 
   const role = useMemo(getRole, [getRole]);
 
@@ -57,11 +60,11 @@ const CreateEditContestPage = () => {
     fetchData(competitionId, setEvents, setCompetition, setErrorMessages);
   }, [competitionId]);
 
-  if (events && (mode === 'new' || competition)) {
+  if (events && (mode === 'new' || contest)) {
     return (
       <>
         <h2 className="mb-4 text-center">{mode === 'edit' ? 'Edit Competition' : 'Create Competition'}</h2>
-        <ContestForm events={events} competition={competition} mode={mode} role={role} />
+        <ContestForm events={events} contest={contest} mode={mode} role={role} />
       </>
     );
   }

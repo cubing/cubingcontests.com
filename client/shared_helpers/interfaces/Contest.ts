@@ -3,18 +3,18 @@ import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } fr
 
 /**
  * IMPORTANT: when updating this interface, also update:
- *    (1) the create competition DTO (and update DTO, if needed)
- *    (2) the competition model
+ *    (1) the create contest DTO (and update DTO, if needed)
+ *    (2) the contest model
  * And also consider the following:
  *    (3) CompetitionForm component
- *    (4) CompetitionResults component
- *    (5) createCompetition method in the competition service
- *    (6) updateCompetition method in the competition service
+ *    (4) ContestResults component
+ *    (5) createCompetition method in the contest service
+ *    (6) updateCompetition method in the contest service
  */
 export interface IContest {
   competitionId: string;
   // This is optional, because it's not set on creation and only returned to the frontend for authorized users
-  createdBy?: number; // peson ID of the moderator/admin, who created the competition
+  createdBy?: number; // peson ID of the moderator/admin, who created the contest
   state?: ContestState; // optional, because it's not needed on creation
 
   name: string;
@@ -26,7 +26,7 @@ export interface IContest {
   latitudeMicrodegrees?: number; // vertical coordinate (Y); ranges from -90 to 90; not needed for online comps
   longitudeMicrodegrees?: number; // horizontal coordinate (X); ranges from -180 to 180; not needed for online comps
   // These are stored as ISO date strings in the DB, but are date objects everywhere else
-  startDate: Date; // includes the time if it's not a competition (always stored as UTC for online comps)
+  startDate: Date; // includes the time if it's not a competition type (always stored as UTC for online comps)
   endDate?: Date; // competition-only
   timezone?: string; // meetup-only; not needed on creation
   organizers: IPerson[]; // stored as references
@@ -48,10 +48,10 @@ export interface ICompetitionDetails {
   schedule: ISchedule; // stored as a reference
 }
 
-// COMPETITION DATA (just used for sending full competition information to the frontend)
+// CONTEST DATA (just used for sending full contest information to the frontend)
 export interface IContestData {
-  competition: IContest;
-  persons: IPerson[]; // info about competitors from THIS competition
+  contest: IContest;
+  persons: IPerson[]; // info about competitors who competed in this contest
   activeRecordTypes: IRecordType[];
-  recordPairsByEvent?: IEventRecordPairs[]; // only set if competition data is requested by a moderator
+  recordPairsByEvent?: IEventRecordPairs[]; // only set if contest data is requested by a moderator
 }

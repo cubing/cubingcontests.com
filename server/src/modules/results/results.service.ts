@@ -20,7 +20,7 @@ import C from '@sh/constants';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { ContestDocument } from '~/src/models/competition.model';
+import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { setRankings, fixTimesOverTenMinutes } from '~/src/helpers/utilityFunctions';
 import { AuthService } from '../auth/auth.service';
@@ -35,7 +35,7 @@ export class ResultsService {
     private authService: AuthService,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Competition') private readonly competitionModel: Model<ContestDocument>,
+    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
   ) {}
 
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
@@ -111,9 +111,7 @@ export class ResultsService {
         }
 
         if (result.competitionId) {
-          ranking.competition = await this.competitionModel
-            .findOne({ competitionId: result.competitionId }, excl)
-            .exec();
+          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec();
         }
 
         eventRankings.rankings.push(ranking);
@@ -161,9 +159,7 @@ export class ResultsService {
         for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
 
         if (result.competitionId) {
-          ranking.competition = await this.competitionModel
-            .findOne({ competitionId: result.competitionId }, excl)
-            .exec();
+          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec();
         }
 
         eventRankings.rankings.push(ranking);
@@ -207,8 +203,8 @@ export class ResultsService {
             resultId: result._id.toString(),
             result: result.best,
             date: result.date,
-            competition: result.competitionId
-              ? await this.competitionModel.findOne({ competitionId: result.competitionId }, excl).exec()
+            contest: result.competitionId
+              ? await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec()
               : undefined,
             videoLink: result.videoLink,
             discussionLink: result.discussionLink,
@@ -222,8 +218,8 @@ export class ResultsService {
             resultId: result._id.toString(),
             result: result.average,
             date: result.date,
-            competition: result.competitionId
-              ? await this.competitionModel.findOne({ competitionId: result.competitionId }, excl).exec()
+            contest: result.competitionId
+              ? await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec()
               : undefined,
             attempts: result.attempts,
             videoLink: result.videoLink,
@@ -422,7 +418,7 @@ export class ResultsService {
 
     const recordPairsByEvent: IEventRecordPairs[] = [];
 
-    // Get current records for this competition's events
+    // Get current records for this contest's events
     for (const eventId of eventIds) {
       recordPairsByEvent.push({
         eventId,
@@ -515,7 +511,7 @@ export class ResultsService {
   }
 
   // Resets records set on the same day as the given result or after that day. If comp is set,
-  // only resets the records for that competition (used only when creating contest result, not for submitting).
+  // only resets the records for that contest (used only when creating contest result, not for submitting).
   private async resetCancelledRecords(result: CreateResultDto | ResultDocument, comp?: IContest) {
     if (result.best <= 0 && result.average <= 0) return;
 
@@ -633,7 +629,7 @@ export class ResultsService {
     let comp: ContestDocument;
 
     try {
-      comp = await this.competitionModel.findOne({ competitionId }).exec();
+      comp = await this.contestModel.findOne({ competitionId }).exec();
     } catch (err) {
       throw new InternalServerErrorException(
         `Error while searching for competition with ID ${competitionId}: ${err.message}`,

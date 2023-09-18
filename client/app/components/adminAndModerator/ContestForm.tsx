@@ -37,12 +37,12 @@ const coordToMicrodegrees = (value: string): number | null => {
 
 const ContestForm = ({
   events,
-  competition,
+  contest,
   mode,
   role,
 }: {
   events: IEvent[];
-  competition?: IContest;
+  contest?: IContest;
   mode: 'new' | 'edit' | 'copy';
   role: Role;
 }) => {
@@ -114,21 +114,21 @@ const ContestForm = ({
     [filteredEvents, contestEvents],
   );
   const disableIfCompFinished = useMemo(
-    () => !isAdmin && mode === 'edit' && competition.state >= ContestState.Finished,
-    [competition, mode, isAdmin],
+    () => !isAdmin && mode === 'edit' && contest.state >= ContestState.Finished,
+    [contest, mode, isAdmin],
   );
   // This has been nominated for the best variable name award!
   const disableIfCompFinishedEvenForAdmin = useMemo(
-    () => mode === 'edit' && competition.state >= ContestState.Finished,
-    [competition, mode, isAdmin],
+    () => mode === 'edit' && contest.state >= ContestState.Finished,
+    [contest, mode, isAdmin],
   );
   const disableIfCompApproved = useMemo(
-    () => !isAdmin && mode === 'edit' && competition.state >= ContestState.Approved,
-    [competition, mode, isAdmin],
+    () => !isAdmin && mode === 'edit' && contest.state >= ContestState.Approved,
+    [contest, mode, isAdmin],
   );
   const disableIfCompApprovedEvenForAdmin = useMemo(
-    () => mode === 'edit' && competition.state >= ContestState.Approved,
-    [competition, mode],
+    () => mode === 'edit' && contest.state >= ContestState.Approved,
+    [contest, mode],
   );
   const displayedStartDate = useMemo(
     () => (startDate && type === ContestType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate),
@@ -164,7 +164,7 @@ const ContestForm = ({
 
     return output;
   }, [contestEvents, rooms]);
-  const isEditableSchedule = useMemo(() => !competition || competition.state < ContestState.Approved, [competition]);
+  const isEditableSchedule = useMemo(() => !contest || contest.state < ContestState.Approved, [contest]);
   const isValidActivity = useMemo(
     () =>
       activityCode &&
@@ -179,64 +179,64 @@ const ContestForm = ({
 
   useEffect(() => {
     if (mode !== 'new') {
-      setCompetitionId(competition.competitionId);
-      setName(competition.name);
-      setType(competition.type);
-      if (competition.city) setCity(competition.city);
-      setCountryId(competition.countryIso2);
-      if (competition.venue) setVenue(competition.venue);
-      if (competition.address) setAddress(competition.address);
-      if (competition.latitudeMicrodegrees && competition.longitudeMicrodegrees) {
-        setLatitude((competition.latitudeMicrodegrees / 1000000).toFixed(6));
-        setLongitude((competition.longitudeMicrodegrees / 1000000).toFixed(6));
+      setCompetitionId(contest.competitionId);
+      setName(contest.name);
+      setType(contest.type);
+      if (contest.city) setCity(contest.city);
+      setCountryId(contest.countryIso2);
+      if (contest.venue) setVenue(contest.venue);
+      if (contest.address) setAddress(contest.address);
+      if (contest.latitudeMicrodegrees && contest.longitudeMicrodegrees) {
+        setLatitude((contest.latitudeMicrodegrees / 1000000).toFixed(6));
+        setLongitude((contest.longitudeMicrodegrees / 1000000).toFixed(6));
       }
-      setOrganizerNames([...competition.organizers.map((el) => el.name), '']);
-      setOrganizers([...competition.organizers, null]);
-      if (competition.contact) setContact(competition.contact);
-      if (competition.description) setDescription(competition.description);
-      if (competition.competitorLimit) setCompetitorLimit(competition.competitorLimit.toString());
+      setOrganizerNames([...contest.organizers.map((el) => el.name), '']);
+      setOrganizers([...contest.organizers, null]);
+      if (contest.contact) setContact(contest.contact);
+      if (contest.description) setDescription(contest.description);
+      if (contest.competitorLimit) setCompetitorLimit(contest.competitorLimit.toString());
       setNewEventId(
-        events.find((ev) => !competition.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
+        events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
       );
-      setMainEventId(competition.mainEventId);
+      setMainEventId(contest.mainEventId);
 
-      switch (competition.type) {
+      switch (contest.type) {
         case ContestType.Meetup: {
-          setStartDate(new Date(competition.startDate));
-          setVenueTimezone(competition.timezone);
+          setStartDate(new Date(contest.startDate));
+          setVenueTimezone(contest.timezone);
           break;
         }
         case ContestType.Competition: {
           // Convert the dates from string to Date
-          setStartDate(new Date(competition.startDate));
-          setEndDate(new Date(competition.endDate));
+          setStartDate(new Date(contest.startDate));
+          setEndDate(new Date(contest.endDate));
 
-          const venue = competition.compDetails.schedule.venues[0];
+          const venue = contest.compDetails.schedule.venues[0];
           setRooms(venue.rooms);
           setVenueTimezone(venue.timezone);
           break;
         }
         case ContestType.Online: {
-          setStartDate(new Date(competition.startDate));
+          setStartDate(new Date(contest.startDate));
           break;
         }
         default:
-          throw new Error(`Unknown contest type: ${competition.type}`);
+          throw new Error(`Unknown contest type: ${contest.type}`);
       }
 
       if (mode === 'copy') {
         // Remove the round IDs and all results
         setContestEvents(
-          competition.events.map((ce) => ({
+          contest.events.map((ce) => ({
             ...ce,
             rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
           })),
         );
       } else if (mode === 'edit') {
-        setContestEvents(competition.events);
+        setContestEvents(contest.events);
       }
     }
-  }, [competition, events]);
+  }, [contest, events]);
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
@@ -357,21 +357,21 @@ const ContestForm = ({
     };
 
     if (mode === 'edit') {
-      newComp.createdBy = competition.createdBy;
-      newComp.state = competition.state;
-      newComp.participants = competition.participants;
-      if (type === ContestType.Meetup) newComp.timezone = competition.timezone;
+      newComp.createdBy = contest.createdBy;
+      newComp.state = contest.state;
+      newComp.participants = contest.participants;
+      if (type === ContestType.Meetup) newComp.timezone = contest.timezone;
     }
 
     // Validation
     const tempErrors: string[] = [];
 
     if (mode === 'copy') {
-      if (newComp.competitionId === competition.competitionId) tempErrors.push('The competition ID cannot be the same');
-      if (newComp.name === competition.name) tempErrors.push('The competition name cannot be the same');
+      if (newComp.competitionId === contest.competitionId) tempErrors.push('The contest ID cannot be the same');
+      if (newComp.name === contest.name) tempErrors.push('The name cannot be the same');
     }
 
-    if (!newComp.competitionId) tempErrors.push('Please enter a competition ID');
+    if (!newComp.competitionId) tempErrors.push('Please enter a contest ID');
     if (!newComp.name) tempErrors.push('Please enter a name');
 
     if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
@@ -406,8 +406,8 @@ const ContestForm = ({
     } else {
       const { errors } =
         mode === 'edit'
-          ? await myFetch.patch(`/competitions/${competition.competitionId}?action=update`, newComp) // edit competition
-          : await myFetch.post('/competitions', newComp); // create competition
+          ? await myFetch.patch(`/competitions/${contest.competitionId}?action=update`, newComp) // edit
+          : await myFetch.post('/competitions', newComp); // create
 
       if (errors) {
         setErrorMessages(errors);

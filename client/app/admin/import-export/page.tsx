@@ -5,7 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import Button from '~/app/components/Button';
 import Form from '~/app/components/form/Form';
 import { getContestIdFromName } from '~/helpers/utilityFunctions';
-import { ContestType } from '@sh/enums';
+import { ContestType, RoundFormat, RoundType } from '@sh/enums';
 import { IContest, IEvent } from '@sh/interfaces';
 import C from '@sh/constants';
 
@@ -31,7 +31,7 @@ const ImportExportPage = () => {
     setLoadingDuringSubmit(true);
 
     const rawRounds = contestData.split(/\n\s+/).map((el) => el.trim());
-    const newCompetitions: IContest[] = [];
+    const newContests: IContest[] = [];
     const processedRounds = [];
 
     for (const rawRound of rawRounds) {
@@ -48,13 +48,13 @@ const ImportExportPage = () => {
       const { payload: compData, errors } = await myFetch.get(`${C.wcaApiBase}/competitions/${competitionId}.json`);
 
       if (errors) {
-        setErrorMessages([`Please enter the correct competition name for ${name}`]);
+        setErrorMessages([`Please enter the correct contest name for ${name}`]);
         setLoadingDuringSubmit(false);
         return;
       } else {
         console.log(compData);
 
-        const newCompetition: IContest = {
+        const newContest: IContest = {
           competitionId,
           name,
           type: ContestType.Competition, // THIS IS HARDCODED!!!
@@ -72,13 +72,27 @@ const ImportExportPage = () => {
           events: [
             {
               event: events.find((el) => el.eventId === 'fto'), // THIS IS HARDCODED!!!
-              rounds: [],
+              rounds: [
+                {
+                  roundId: 'fto-r1', // HARDCODED
+                  competitionId,
+                  date: new Date(compData.start_date), // CHANGE
+                  roundTypeId: RoundType.Final, // CHANGE
+                  format: RoundFormat.Average, // CHANGE
+                  // proceed:
+                  results: [],
+                },
+              ],
             },
           ],
-          // compDetails
+          compDetails: {
+            schedule: {},
+          },
         } as IContest;
 
-        console.log(newCompetition);
+        console.log(newContest);
+
+        newContests.push(newContest);
       }
     }
 

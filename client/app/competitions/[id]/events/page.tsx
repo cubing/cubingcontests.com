@@ -9,12 +9,12 @@ import EventTitle from '~/app/components/EventTitle';
 const ContestEvents = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
-  const { competition }: { competition: IContest } = contestData;
+  const { contest }: { contest: IContest } = contestData;
 
-  const hasNonFinalRound = competition.events.some((ev) => ev.rounds.some((r) => r.proceed));
+  const hasNonFinalRound = contest.events.some((ev) => ev.rounds.some((r) => r.proceed));
 
   return (
-    <ContestLayout competition={competition} activeTab="events">
+    <ContestLayout contest={contest} activeTab="events">
       <div className="flex-grow-1 mb-5 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
@@ -26,7 +26,7 @@ const ContestEvents = async ({ params }: { params: { id: string } }) => {
             </tr>
           </thead>
           <tbody>
-            {competition.events.map((compEvent) =>
+            {contest.events.map((compEvent) =>
               compEvent.rounds.map((round, roundIndex) => (
                 <tr key={round.roundId} className={roundIndex !== 0 ? 'table-active' : ''}>
                   <td>{roundIndex === 0 && <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />}</td>

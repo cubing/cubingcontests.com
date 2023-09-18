@@ -12,9 +12,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { find } from 'geo-tz';
-import { CreateContestDto } from './dto/create-competition.dto';
-import { CompetitionsService } from './competitions.service';
-import { UpdateCompetitionDto } from './dto/update-competition.dto';
+import { CreateContestDto } from './dto/create-contest.dto';
+import { CompetitionsService } from './contests.service';
+import { UpdateCompetitionDto } from './dto/update-contest.dto';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
@@ -98,7 +98,7 @@ export class CompetitionsController {
       console.log(`Setting state ${updateCompetitionDto.state} for contest ${competitionId}`);
       return await this.service.updateState(competitionId, updateCompetitionDto.state, req.user);
     } else {
-      throw new BadRequestException(`Unsupported action when updating competition: ${action}`);
+      throw new BadRequestException(`Unsupported action when updating contest: ${action}`);
     }
   }
 }

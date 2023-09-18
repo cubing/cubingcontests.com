@@ -4,7 +4,7 @@ import { ResultsService } from './results.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ResultSchema } from '~/src/models/result.model';
 import { RoundSchema } from '~/src/models/round.model';
-import { ContestSchema } from '~/src/models/competition.model';
+import { ContestSchema } from '~/src/models/contest.model';
 import { RecordTypesModule } from '@m/record-types/record-types.module';
 import { EventsModule } from '@m/events/events.module';
 import { PersonsModule } from '@m/persons/persons.module';

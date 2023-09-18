@@ -69,11 +69,7 @@ const RankingRow = ({
       <td>{!onlyKeepPerson && getFormattedDate(ranking.date)}</td>
       <td>
         {!onlyKeepPerson &&
-          (ranking.competition ? (
-            <ContestName competition={ranking.competition} />
-          ) : (
-            <RankingLinks ranking={ranking} />
-          ))}
+          (ranking.contest ? <ContestName contest={ranking.contest} /> : <RankingLinks ranking={ranking} />)}
       </td>
       {showTeamColumn && (
         <td>

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { CompetitionsService } from '../competitions.service';
+import { CompetitionsService } from '../contests.service';
 import { EventsService } from '@m/events/events.service';
 import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
@@ -13,13 +13,13 @@ import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types
 import { ResultsServiceMock } from '@m/results/tests/mocks/results.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
 import { AuthServiceMock } from '@m/auth/tests/mocks/auth.service';
-import { CompetitionModelMock } from './mocks/competition.model';
+import { CompetitionModelMock } from './mocks/contest.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
-  // let competitionModel: Model<ContestDocument>;
+  // let contestModel: Model<ContestDocument>;
   // let roundModel: Model<RoundDocument>;
   // let resultModel: Model<ResultDocument>;
 
@@ -67,7 +67,7 @@ describe('CompetitionsService', () => {
     }).compile();
 
     competitionsService = module.get<CompetitionsService>(CompetitionsService);
-    // competitionModel = module.get<Model<ContestDocument>>(getModelToken('Competition'));
+    // contestModel = module.get<Model<ContestDocument>>(getModelToken('Competition'));
     // roundModel = module.get<Model<RoundDocument>>(getModelToken('Round'));
     // resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
   });

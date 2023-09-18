@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
-import { CreateContestDto } from './dto/create-competition.dto';
-import { UpdateCompetitionDto } from './dto/update-competition.dto';
+import { CreateContestDto } from './dto/create-contest.dto';
+import { UpdateCompetitionDto } from './dto/update-contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ContestEvent, ContestDocument } from '~/src/models/competition.model';
+import { ContestEvent, ContestDocument } from '~/src/models/contest.model';
 import { excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
 import { RoundDocument } from '~/src/models/round.model';
 import { ResultDocument } from '~/src/models/result.model';
@@ -41,7 +41,7 @@ export class CompetitionsService {
     private recordTypesService: RecordTypesService,
     private personsService: PersonsService,
     private authService: AuthService,
-    @InjectModel('Competition') private readonly competitionModel: Model<ContestDocument>,
+    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
@@ -52,8 +52,8 @@ export class CompetitionsService {
     if (region) queryFilter.countryIso2 = region;
 
     try {
-      const competitions = await this.competitionModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
-      return competitions;
+      const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+      return contests;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -64,30 +64,30 @@ export class CompetitionsService {
     if (!user.roles.includes(Role.Admin)) queryFilter = { createdBy: user.personId };
 
     try {
-      return await this.competitionModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+      return await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
   async getCompetition(competitionId: string, user?: IPartialUser): Promise<IContestData> {
-    const competition = await this.getFullCompetition(competitionId, user);
+    const contest = await this.getFullCompetition(competitionId, user);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
     try {
       // TEMPORARILY DISABLED until mod-only protection is added
-      // if (competition?.state > ContestState.Created) {
+      // if (contest?.state > ContestState.Created) {
 
       const output: IContestData = {
-        competition,
-        persons: await this.personsService.getCompetitionParticipants({ compEvents: competition.events }),
+        contest,
+        persons: await this.personsService.getCompetitionParticipants({ compEvents: contest.events }),
         activeRecordTypes,
       };
 
       if (user) {
         output.recordPairsByEvent = await this.resultsService.getRecordPairs(
-          competition.events.map((el) => el.event.eventId),
-          competition.startDate,
+          contest.events.map((el) => el.event.eventId),
+          contest.startDate,
           activeRecordTypes,
         );
       }
@@ -98,24 +98,24 @@ export class CompetitionsService {
     }
   }
 
-  // Create new competition, if one with that id doesn't already exist (no results yet)
+  // Create new contest, if one with that id doesn't already exist (no results yet)
   async createCompetition(createCompDto: CreateContestDto, creatorPersonId: number) {
     let comp;
     try {
-      comp = await this.competitionModel.findOne({ competitionId: createCompDto.competitionId }).exec();
+      comp = await this.contestModel.findOne({ competitionId: createCompDto.competitionId }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (comp) throw new BadRequestException(`A competition with the ID ${createCompDto.competitionId} already exists`);
+    if (comp) throw new BadRequestException(`A contest with the ID ${createCompDto.competitionId} already exists`);
 
     try {
-      comp = await this.competitionModel.findOne({ name: createCompDto.name }).exec();
+      comp = await this.contestModel.findOne({ name: createCompDto.name }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (comp) throw new BadRequestException(`A competition with the name ${createCompDto.name} already exists`);
+    if (comp) throw new BadRequestException(`A contest with the name ${createCompDto.name} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
@@ -125,7 +125,7 @@ export class CompetitionsService {
         contestEvents.push(await this.getNewContestEvent(compEvent));
       }
 
-      // Create new competition
+      // Create new contest
       const newCompetition: IContest = {
         ...createCompDto,
         events: contestEvents,
@@ -147,7 +147,7 @@ export class CompetitionsService {
         newCompetition.compDetails.schedule = await this.scheduleModel.create(createCompDto.compDetails.schedule);
       }
 
-      await this.competitionModel.create(newCompetition);
+      await this.contestModel.create(newCompetition);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
@@ -231,13 +231,13 @@ export class CompetitionsService {
   /////////////////////////////////////////////////////////////////////////////////////
 
   private async findCompetition(competitionId: string, populateEvents = false): Promise<ContestDocument> {
-    let competition: ContestDocument;
+    let contest: ContestDocument;
 
     try {
       if (!populateEvents) {
-        competition = await this.competitionModel.findOne({ competitionId }).exec();
+        contest = await this.contestModel.findOne({ competitionId }).exec();
       } else {
-        competition = await this.competitionModel
+        contest = await this.contestModel
           .findOne({ competitionId })
           .populate(eventPopulateOptions.event)
           .populate(eventPopulateOptions.rounds)
@@ -247,25 +247,25 @@ export class CompetitionsService {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (!competition) throw new NotFoundException(`Competition with id ${competitionId} not found`);
+    if (!contest) throw new NotFoundException(`Competition with id ${competitionId} not found`);
 
-    return competition;
+    return contest;
   }
 
-  private async saveCompetition(competition: ContestDocument) {
+  private async saveCompetition(contest: ContestDocument) {
     try {
-      await competition.save();
+      await contest.save();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
-  // Finds the competition with the given competition id with the rounds and results populated
+  // Finds the contest with the given competition ID with the rounds and results populated
   private async getFullCompetition(competitionId: string, user?: IPartialUser): Promise<ContestDocument> {
-    let competition: ContestDocument;
+    let contest: ContestDocument;
 
     try {
-      competition = await this.competitionModel
+      contest = await this.contestModel
         // createdBy is used to check access rights below, and then excluded
         .findOne({ competitionId }, exclSysButKeepCreatedBy)
         .populate(eventPopulateOptions.event)
@@ -276,20 +276,20 @@ export class CompetitionsService {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (!competition) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
-    if (user) this.authService.checkAccessRightsToComp(user, competition, { ignoreState: true });
-    competition.createdBy = undefined;
+    if (user) this.authService.checkAccessRightsToComp(user, contest, { ignoreState: true });
+    contest.createdBy = undefined;
 
-    if (competition.compDetails) {
+    if (contest.compDetails) {
       try {
-        await competition.populate({ path: 'compDetails.schedule', model: 'Schedule' });
+        await contest.populate({ path: 'compDetails.schedule', model: 'Schedule' });
       } catch (err) {
         throw new InternalServerErrorException(err.message);
       }
     }
 
-    return competition;
+    return contest;
   }
 
   private async getNewContestEvent(compEvent: IContestEvent): Promise<ContestEvent> {
@@ -303,7 +303,7 @@ export class CompetitionsService {
     };
   }
 
-  // Deletes/adds/updates competition events and rounds
+  // Deletes/adds/updates contest events and rounds
   private async updateContestEvents(comp: ContestDocument, newEvents: IContestEvent[]): Promise<ContestEvent[]> {
     try {
       // Remove deleted rounds and events
@@ -334,7 +334,7 @@ export class CompetitionsService {
           for (const round of newEvent.rounds) {
             const sameRoundInComp = sameEventInComp.rounds.find((el) => el.roundId === round.roundId);
 
-            // If the competition already has this round, update the permitted fields
+            // If the contest already has this round, update the permitted fields
             if (sameRoundInComp) {
               sameRoundInComp.roundTypeId = round.roundTypeId;
 

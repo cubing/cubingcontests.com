@@ -79,10 +79,8 @@ const Records = async ({ params }: { params: { category: string } }) => {
                               <b>{getFormattedTime(r.result, { event })}</b>
                               &#8194;{getRecordType(r.type)}
                             </span>
-                            {r.competition ? (
-                              <Link href={`/competitions/${r.competition.competitionId}`}>
-                                {getFormattedDate(r.date)}
-                              </Link>
+                            {r.contest ? (
+                              <Link href={`/competitions/${r.contest.competitionId}`}>{getFormattedDate(r.date)}</Link>
                             ) : (
                               <span>{getFormattedDate(r.date)}</span>
                             )}
@@ -93,7 +91,7 @@ const Records = async ({ params }: { params: { category: string } }) => {
                             ))}
                           </div>
                           {r.attempts && <Solves event={event} attempts={r.attempts} />}
-                          {!r.competition && <RankingLinks ranking={r} />}
+                          {!r.contest && <RankingLinks ranking={r} />}
                         </li>
                       ))}
                     </ul>

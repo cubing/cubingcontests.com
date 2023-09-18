@@ -19,7 +19,7 @@ const RankingsTable = ({
     throw new Error('forAverage and topResultsRankings cannot both be true in RankingsTable');
   }
 
-  const hasComp = rankings.some((el) => el.competition);
+  const hasComp = rankings.some((el) => el.contest);
   const hasLink = rankings.some((el) => el.videoLink || el.discussionLink);
   const showAllTeammates = event?.participants > 1 && topResultsRankings && !recordsTable;
   const showTeamColumn = event?.participants > 1 && !showAllTeammates && !recordsTable;

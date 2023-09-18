@@ -6,7 +6,7 @@ import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { ContestState, Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { ContestDocument } from '~/src/models/competition.model';
+import { ContestDocument } from '~/src/models/contest.model';
 
 @Injectable()
 export class AuthService {
@@ -78,16 +78,16 @@ export class AuthService {
 
   checkAccessRightsToComp(
     user: IPartialUser,
-    competition: ContestDocument,
+    contest: ContestDocument,
     { ignoreState = false }: { ignoreState: boolean } = { ignoreState: false },
   ) {
     if (
       !user.roles.includes(Role.Admin) &&
       (!user.roles.includes(Role.Moderator) ||
-        competition.createdBy !== user.personId ||
-        (competition.state >= ContestState.Finished && !ignoreState))
+        contest.createdBy !== user.personId ||
+        (contest.state >= ContestState.Finished && !ignoreState))
     ) {
-      console.log(`User ${user.username} denied access rights to contest ${competition.competitionId}`);
+      console.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);
       throw new UnauthorizedException('User does not have access rights for this contest');
     }
   }

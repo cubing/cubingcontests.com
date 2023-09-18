@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ContestDocument } from '~/src/models/competition.model';
+import { ContestDocument } from '~/src/models/contest.model';
 import { ContestState, ContestType, RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 import { IRound } from '@sh/interfaces';
 import { eventsSeed } from '~/src/seeds/events.seed';

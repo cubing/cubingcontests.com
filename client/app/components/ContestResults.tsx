@@ -5,17 +5,13 @@ import EventResultsTable from '@c/EventResultsTable';
 import EventButtons from '@c/EventButtons';
 import { IContestData, IContestEvent } from '@sh/interfaces';
 
-const CompetitionResults = ({
-  contestData: { competition, persons, activeRecordTypes },
-}: {
-  contestData: IContestData;
-}) => {
-  const [selectedEvent, setSelectedEvent] = useState<IContestEvent>(competition.events[0]);
+const ContestResults = ({ contestData: { contest, persons, activeRecordTypes } }: { contestData: IContestData }) => {
+  const [selectedEvent, setSelectedEvent] = useState<IContestEvent>(contest.events[0]);
 
-  const events = competition.events.map((el) => el.event);
+  const events = contest.events.map((el) => el.event);
 
   const selectEvent = (eventId: string) => {
-    setSelectedEvent(competition.events.find((el) => el.event.eventId === eventId));
+    setSelectedEvent(contest.events.find((el) => el.event.eventId === eventId));
   };
 
   return (
@@ -26,4 +22,4 @@ const CompetitionResults = ({
   );
 };
 
-export default CompetitionResults;
+export default ContestResults;

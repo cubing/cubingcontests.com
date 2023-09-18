@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CompetitionsModule } from './modules/competitions/competitions.module';
+import { CompetitionsModule } from './modules/competitions/contests.module';
 import { PersonsModule } from './modules/persons/persons.module';
 import { EventsModule } from './modules/events/events.module';
 import { UsersModule } from './modules/users/users.module';
