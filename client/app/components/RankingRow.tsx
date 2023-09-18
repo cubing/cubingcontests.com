@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { FaCaretRight, FaCaretDown } from 'react-icons/fa';
 import Country from './Country';
 import Competitor from './Competitor';
-import CompetitionName from '@c/CompetitionName';
+import ContestName from '@c/ContestName';
 import Solves from './Solves';
 import { IEvent, IPerson, IRanking } from '@sh/interfaces';
 import { getFormattedDate, getFormattedTime } from '~/helpers/utilityFunctions';
@@ -70,7 +70,7 @@ const RankingRow = ({
       <td>
         {!onlyKeepPerson &&
           (ranking.competition ? (
-            <CompetitionName competition={ranking.competition} />
+            <ContestName competition={ranking.competition} />
           ) : (
             <RankingLinks ranking={ranking} />
           ))}

@@ -16,12 +16,12 @@ import FormSelect from '../form/FormSelect';
 import FormPersonInputs from '../form/FormPersonInputs';
 import Tabs from '../Tabs';
 import Schedule from '../Schedule';
-import { ICompetition, ICompetitionDetails, ICompetitionEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
+import { IContest, ICompetitionDetails, IContestEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
 import { Color, ContestState, ContestType, EventGroup, Role, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
-import { colorOptions, competitionTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
+import { colorOptions, contestTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getAllowedRoundFormatOptions, limitRequests } from '~/helpers/utilityFunctions';
+import { getAllowedRoundFormatOptions, getContestIdFromName, limitRequests } from '~/helpers/utilityFunctions';
 import Loading from '../Loading';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import EventTitle from '../EventTitle';
@@ -35,14 +35,14 @@ const coordToMicrodegrees = (value: string): number | null => {
   return parseInt(Number(value).toFixed(6).replace('.', ''));
 };
 
-const CompetitionForm = ({
+const ContestForm = ({
   events,
   competition,
   mode,
   role,
 }: {
   events: IEvent[];
-  competition?: ICompetition;
+  competition?: IContest;
   mode: 'new' | 'edit' | 'copy';
   role: Role;
 }) => {
@@ -69,7 +69,7 @@ const CompetitionForm = ({
 
   // Event stuff
   const [newEventId, setNewEventId] = useState('333');
-  const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>([]);
+  const [contestEvents, setContestEvents] = useState<IContestEvent[]>([]);
   const [mainEventId, setMainEventId] = useState('333');
 
   // Schedule stuff
@@ -110,8 +110,8 @@ const CompetitionForm = ({
     return newFiltEv;
   }, [events, type, mainEventId, newEventId]);
   const remainingEvents = useMemo(
-    () => filteredEvents.filter((ev) => !competitionEvents.some((ce) => ce.event.eventId === ev.eventId)),
-    [filteredEvents, competitionEvents],
+    () => filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId)),
+    [filteredEvents, contestEvents],
   );
   const disableIfCompFinished = useMemo(
     () => !isAdmin && mode === 'edit' && competition.state >= ContestState.Finished,
@@ -146,7 +146,7 @@ const CompetitionForm = ({
   const activityOptions = useMemo(() => {
     const output: MultiChoiceOption[] = [];
 
-    for (const compEvent of competitionEvents) {
+    for (const compEvent of contestEvents) {
       for (const round of compEvent.rounds) {
         // Add all rounds not already added to the schedule as activity code options
         if (!rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId))) {
@@ -163,7 +163,7 @@ const CompetitionForm = ({
     setActivityCode(output[0].value as string); // set selected activity code as the first available option
 
     return output;
-  }, [competitionEvents, rooms]);
+  }, [contestEvents, rooms]);
   const isEditableSchedule = useMemo(() => !competition || competition.state < ContestState.Approved, [competition]);
   const isValidActivity = useMemo(
     () =>
@@ -226,14 +226,14 @@ const CompetitionForm = ({
 
       if (mode === 'copy') {
         // Remove the round IDs and all results
-        setCompetitionEvents(
+        setContestEvents(
           competition.events.map((ce) => ({
             ...ce,
             rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
           })),
         );
       } else if (mode === 'edit') {
-        setCompetitionEvents(competition.events);
+        setContestEvents(competition.events);
       }
     }
   }, [competition, events]);
@@ -305,7 +305,7 @@ const CompetitionForm = ({
     };
 
     // Set the competition ID and date for every round
-    const compEvents = competitionEvents.map((compEvent) => ({
+    const compEvents = contestEvents.map((compEvent) => ({
       ...compEvent,
       rounds: compEvent.rounds.map((round) => ({ ...round, competitionId, date: getRoundDate(round) })),
     }));
@@ -334,7 +334,7 @@ const CompetitionForm = ({
       };
     }
 
-    const newComp: ICompetition = {
+    const newComp: IContest = {
       competitionId,
       name: name.trim(),
       type,
@@ -379,15 +379,14 @@ const CompetitionForm = ({
     else if (newComp.organizers.length === 0) tempErrors.push('Please enter at least one organizer');
 
     if (newComp.events.length === 0) tempErrors.push('You must select at least one event');
-    else if (!competitionEvents.some((el) => el.event.eventId === mainEventId))
+    else if (!contestEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
 
-    const meetupOnlyCompEvent = competitionEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
+    const meetupOnlyCompEvent = contestEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
     if (type !== ContestType.Meetup && meetupOnlyCompEvent)
       tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 
     if (type === ContestType.Competition) {
-      if (!newComp.contact) tempErrors.push('Please enter a contact email');
       if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
       if (activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
@@ -429,8 +428,8 @@ const CompetitionForm = ({
 
   const changeName = (value: string) => {
     // If not editing a competition, update Competition ID accordingly, unless it deviates from the name
-    if (mode !== 'edit' && competitionId === name.replaceAll(/[^a-zA-Z0-9]/g, '')) {
-      setCompetitionId(value.replaceAll(/[^a-zA-Z0-9]/g, ''));
+    if (mode !== 'edit' && competitionId === getContestIdFromName(name)) {
+      setCompetitionId(getContestIdFromName(value));
     }
 
     setName(value);
@@ -492,7 +491,7 @@ const CompetitionForm = ({
   };
 
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
-    const newCompetitionEvents = competitionEvents.map((event, i) =>
+    const newContestEvents = contestEvents.map((event, i) =>
       i !== eventIndex
         ? event
         : {
@@ -500,12 +499,12 @@ const CompetitionForm = ({
             rounds: event.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, format: value })),
           },
     );
-    setCompetitionEvents(newCompetitionEvents);
+    setContestEvents(newContestEvents);
   };
 
   const changeRoundProceed = (eventIndex: number, roundIndex: number, type: RoundProceed, value?: string) => {
     if (!value || (!/[^0-9]/.test(value) && value.length <= 2)) {
-      const newCompetitionEvents = competitionEvents.map((event, i) =>
+      const newContestEvents = contestEvents.map((event, i) =>
         i !== eventIndex
           ? event
           : {
@@ -517,7 +516,7 @@ const CompetitionForm = ({
               ),
             },
       );
-      setCompetitionEvents(newCompetitionEvents);
+      setContestEvents(newContestEvents);
     }
   };
 
@@ -533,7 +532,7 @@ const CompetitionForm = ({
   };
 
   const addRound = (eventId: string) => {
-    const updatedCompEvent = competitionEvents.find((el) => el.event.eventId === eventId);
+    const updatedCompEvent = contestEvents.find((el) => el.event.eventId === eventId);
 
     // Update the currently semi-final round
     if (updatedCompEvent.rounds.length > 2) {
@@ -552,11 +551,11 @@ const CompetitionForm = ({
     // Add new round
     updatedCompEvent.rounds.push(getNewRound(eventId, updatedCompEvent.rounds.length + 1));
 
-    setCompetitionEvents(competitionEvents.map((el) => (el.event.eventId === eventId ? updatedCompEvent : el)));
+    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? updatedCompEvent : el)));
   };
 
   const removeEventRound = (eventId: string) => {
-    const updatedCompEvent = competitionEvents.find((el) => el.event.eventId === eventId);
+    const updatedCompEvent = contestEvents.find((el) => el.event.eventId === eventId);
     updatedCompEvent.rounds = updatedCompEvent.rounds.slice(0, -1);
 
     // Update new final round
@@ -570,18 +569,18 @@ const CompetitionForm = ({
       newSemiRound.roundTypeId = RoundType.Semi;
     }
 
-    setCompetitionEvents(competitionEvents.map((el) => (el.event.eventId === eventId ? updatedCompEvent : el)));
+    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? updatedCompEvent : el)));
   };
 
-  const addCompetitionEvent = () => {
-    setCompetitionEvents(
+  const addContestEvent = () => {
+    setContestEvents(
       [
-        ...competitionEvents,
+        ...contestEvents,
         {
           event: events.find((el) => el.eventId === newEventId),
           rounds: [getNewRound(newEventId, 1)],
         },
-      ].sort((a: ICompetitionEvent, b: ICompetitionEvent) => a.event.rank - b.event.rank),
+      ].sort((a: IContestEvent, b: IContestEvent) => a.event.rank - b.event.rank),
     );
 
     if (remainingEvents.length > 1) {
@@ -590,8 +589,8 @@ const CompetitionForm = ({
     }
   };
 
-  const removeCompetitionEvent = (eventId: string) => {
-    setCompetitionEvents(competitionEvents.filter((el) => el.event.eventId !== eventId));
+  const removeContestEvent = (eventId: string) => {
+    setContestEvents(contestEvents.filter((el) => el.event.eventId !== eventId));
   };
 
   const addRoom = () => {
@@ -691,7 +690,7 @@ const CompetitionForm = ({
             />
             <FormRadio
               title="Type"
-              options={competitionTypeOptions}
+              options={contestTypeOptions}
               selected={type}
               setSelected={(val: any) => changeType(val)}
               disabled={mode !== 'new'}
@@ -799,7 +798,7 @@ const CompetitionForm = ({
             </div>
             <FormTextInput
               id="contact"
-              title={'Contact' + (type !== ContestType.Competition ? ' (optional)' : '')}
+              title="Contact (optional)"
               placeholder="john@example.com"
               value={contact}
               setValue={setContact}
@@ -833,8 +832,8 @@ const CompetitionForm = ({
               <button
                 type="button"
                 className="btn btn-success"
-                onClick={addCompetitionEvent}
-                disabled={disableIfCompFinishedEvenForAdmin || competitionEvents.length === filteredEvents.length}
+                onClick={addContestEvent}
+                disabled={disableIfCompFinishedEvenForAdmin || contestEvents.length === filteredEvents.length}
               >
                 Add Event
               </button>
@@ -849,7 +848,7 @@ const CompetitionForm = ({
                 />
               </div>
             </div>
-            {competitionEvents.map((compEvent, eventIndex) => (
+            {contestEvents.map((compEvent, eventIndex) => (
               <div key={compEvent.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <EventTitle event={compEvent.event} fontSize="4" noMargin showIcon />
@@ -857,7 +856,7 @@ const CompetitionForm = ({
                   <button
                     type="button"
                     className="ms-3 btn btn-danger btn-sm"
-                    onClick={() => removeCompetitionEvent(compEvent.event.eventId)}
+                    onClick={() => removeContestEvent(compEvent.event.eventId)}
                     disabled={disableIfCompFinishedEvenForAdmin || compEvent.rounds.some((r) => r.results.length > 0)}
                   >
                     Remove Event
@@ -1044,7 +1043,7 @@ const CompetitionForm = ({
       {activeTab === 'schedule' && (
         <Schedule
           rooms={rooms}
-          compEvents={competitionEvents}
+          compEvents={contestEvents}
           timezone={venueTimezone}
           onDeleteActivity={isEditableSchedule ? (id: number) => deleteActivity(id) : undefined}
         />
@@ -1053,4 +1052,4 @@ const CompetitionForm = ({
   );
 };
 
-export default CompetitionForm;
+export default ContestForm;

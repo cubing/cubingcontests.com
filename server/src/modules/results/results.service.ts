@@ -12,7 +12,7 @@ import {
   IRecordPair,
   IEventRecordPairs,
   IResultsSubmissionInfo,
-  ICompetition,
+  IContest,
   IRanking,
 } from '@sh/interfaces';
 import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
@@ -20,7 +20,7 @@ import C from '@sh/constants';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { CompetitionDocument } from '~/src/models/competition.model';
+import { ContestDocument } from '~/src/models/competition.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { setRankings, fixTimesOverTenMinutes } from '~/src/helpers/utilityFunctions';
 import { AuthService } from '../auth/auth.service';
@@ -35,7 +35,7 @@ export class ResultsService {
     private authService: AuthService,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
+    @InjectModel('Competition') private readonly competitionModel: Model<ContestDocument>,
   ) {}
 
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
@@ -516,7 +516,7 @@ export class ResultsService {
 
   // Resets records set on the same day as the given result or after that day. If comp is set,
   // only resets the records for that competition (used only when creating contest result, not for submitting).
-  private async resetCancelledRecords(result: CreateResultDto | ResultDocument, comp?: ICompetition) {
+  private async resetCancelledRecords(result: CreateResultDto | ResultDocument, comp?: IContest) {
     if (result.best <= 0 && result.average <= 0) return;
 
     // If the comp isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
@@ -561,7 +561,7 @@ export class ResultsService {
 
   // Sets records that are now recognized after a contest result deletion. Does if for all days from the result's
   // date onward. If comp is set, only sets records for that competition, otherwise does it for ALL results.
-  private async updateRecordsAfterDeletion(result: ResultDocument | CreateResultDto, comp?: ICompetition) {
+  private async updateRecordsAfterDeletion(result: ResultDocument | CreateResultDto, comp?: IContest) {
     if (result.best <= 0 && result.average <= 0) return;
 
     // If the comp isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
@@ -629,8 +629,8 @@ export class ResultsService {
     }
   }
 
-  private async getCompetition(competitionId: string, user: IPartialUser): Promise<CompetitionDocument> {
-    let comp: CompetitionDocument;
+  private async getCompetition(competitionId: string, user: IPartialUser): Promise<ContestDocument> {
+    let comp: ContestDocument;
 
     try {
       comp = await this.competitionModel.findOne({ competitionId }).exec();

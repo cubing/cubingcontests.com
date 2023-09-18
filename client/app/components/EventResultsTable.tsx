@@ -1,5 +1,5 @@
 import RoundResultsTable from './RoundResultsTable';
-import { ICompetitionEvent, IPerson, IRecordType, IRound } from '@sh/interfaces';
+import { IContestEvent, IPerson, IRecordType, IRound } from '@sh/interfaces';
 import { roundTypes } from '~/helpers/roundTypes';
 
 const EventResultsTable = ({
@@ -8,7 +8,7 @@ const EventResultsTable = ({
   recordTypes,
   onDeleteResult,
 }: {
-  compEvent: ICompetitionEvent | null;
+  compEvent: IContestEvent | null;
   persons: IPerson[];
   recordTypes: IRecordType[];
   onDeleteResult?: (resultId: string) => void;

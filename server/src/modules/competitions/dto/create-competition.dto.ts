@@ -23,8 +23,8 @@ import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/en
 import {
   IPerson,
   ICompetitionDetails,
-  ICompetitionEvent,
-  ICompetition,
+  IContestEvent,
+  IContest,
   IEvent,
   IRound,
   IProceed,
@@ -42,7 +42,7 @@ import C from '@sh/constants';
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-]{2,}$/;
 
-export class CreateCompetitionDto implements ICompetition {
+export class CreateContestDto implements IContest {
   @IsString()
   @MinLength(10)
   @MaxLength(45)
@@ -99,7 +99,7 @@ export class CreateCompetitionDto implements ICompetition {
   @Type(() => CreatePersonDto)
   organizers: IPerson[];
 
-  @ValidateIf((obj) => obj.type === ContestType.Competition || obj.contact)
+  @IsOptional()
   @IsEmail()
   contact?: string;
 
@@ -118,8 +118,8 @@ export class CreateCompetitionDto implements ICompetition {
 
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
-  @Type(() => CompetitionEventDto)
-  events: ICompetitionEvent[];
+  @Type(() => ContestEventDto)
+  events: IContestEvent[];
 
   @ValidateIf((obj) => obj.type === ContestType.Competition)
   @ValidateNested()
@@ -237,7 +237,7 @@ class ActivityDto implements IActivity {
 // COMPETITION EVENT
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-class CompetitionEventDto implements ICompetitionEvent {
+class ContestEventDto implements IContestEvent {
   @ValidateNested()
   @Type(() => CreateEventDto)
   event: IEvent;

@@ -3,11 +3,11 @@ import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { Color, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 import { getAlwaysShowDecimals, getRoundCanHaveAverage } from '@sh/sharedFunctions';
-import { IAttempt, ICompetition, IEvent, IPerson, IResult } from '@sh/interfaces';
+import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { roundFormatOptions } from './multipleChoiceOptions';
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
 
-export const getFormattedCoords = (comp: ICompetition): string => {
+export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
 };
 
@@ -357,3 +357,5 @@ export const getBGClassFromColor = (color: Color): string => {
     }
   }
 };
+
+export const getContestIdFromName = (name: string): string => name.replaceAll(/[^a-zA-Z0-9]/g, '');

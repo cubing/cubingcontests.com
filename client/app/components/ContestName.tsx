@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import Country from './Country';
-import { ICompetition } from '~/shared_helpers/interfaces';
+import { IContest } from '@sh/interfaces';
 
-const CompetitionName = ({ competition }: { competition: ICompetition }) => {
+const ContestName = ({ competition }: { competition: IContest }) => {
   return (
     <span className="d-flex align-items-center gap-2">
       {competition.countryIso2 !== 'ONLINE' && <Country countryIso2={competition.countryIso2} noText />}
@@ -11,4 +11,4 @@ const CompetitionName = ({ competition }: { competition: ICompetition }) => {
   );
 };
 
-export default CompetitionName;
+export default ContestName;

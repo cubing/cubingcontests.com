@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
-import { CreateCompetitionDto } from './dto/create-competition.dto';
+import { CreateContestDto } from './dto/create-competition.dto';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CompetitionEvent, CompetitionDocument } from '~/src/models/competition.model';
+import { ContestEvent, ContestDocument } from '~/src/models/competition.model';
 import { excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
 import { RoundDocument } from '~/src/models/round.model';
 import { ResultDocument } from '~/src/models/result.model';
@@ -12,7 +12,7 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
-import { ICompetitionEvent, ICompetitionData, ICompetition } from '@sh/interfaces';
+import { IContestEvent, IContestData, IContest } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
 import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
@@ -41,13 +41,13 @@ export class CompetitionsService {
     private recordTypesService: RecordTypesService,
     private personsService: PersonsService,
     private authService: AuthService,
-    @InjectModel('Competition') private readonly competitionModel: Model<CompetitionDocument>,
+    @InjectModel('Competition') private readonly competitionModel: Model<ContestDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
-  async getCompetitions(region?: string): Promise<CompetitionDocument[]> {
+  async getCompetitions(region?: string): Promise<ContestDocument[]> {
     const queryFilter: any = { state: { $gt: ContestState.Created } };
     if (region) queryFilter.countryIso2 = region;
 
@@ -59,7 +59,7 @@ export class CompetitionsService {
     }
   }
 
-  async getModCompetitions(user: IPartialUser): Promise<ICompetition[]> {
+  async getModCompetitions(user: IPartialUser): Promise<IContest[]> {
     let queryFilter: any = {};
     if (!user.roles.includes(Role.Admin)) queryFilter = { createdBy: user.personId };
 
@@ -70,7 +70,7 @@ export class CompetitionsService {
     }
   }
 
-  async getCompetition(competitionId: string, user?: IPartialUser): Promise<ICompetitionData> {
+  async getCompetition(competitionId: string, user?: IPartialUser): Promise<IContestData> {
     const competition = await this.getFullCompetition(competitionId, user);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
@@ -78,7 +78,7 @@ export class CompetitionsService {
       // TEMPORARILY DISABLED until mod-only protection is added
       // if (competition?.state > ContestState.Created) {
 
-      const output: ICompetitionData = {
+      const output: IContestData = {
         competition,
         persons: await this.personsService.getCompetitionParticipants({ compEvents: competition.events }),
         activeRecordTypes,
@@ -99,7 +99,7 @@ export class CompetitionsService {
   }
 
   // Create new competition, if one with that id doesn't already exist (no results yet)
-  async createCompetition(createCompDto: CreateCompetitionDto, creatorPersonId: number) {
+  async createCompetition(createCompDto: CreateContestDto, creatorPersonId: number) {
     let comp;
     try {
       comp = await this.competitionModel.findOne({ competitionId: createCompDto.competitionId }).exec();
@@ -119,16 +119,16 @@ export class CompetitionsService {
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
-      const competitionEvents: CompetitionEvent[] = [];
+      const contestEvents: ContestEvent[] = [];
 
       for (const compEvent of createCompDto.events) {
-        competitionEvents.push(await this.getNewCompetitionEvent(compEvent));
+        contestEvents.push(await this.getNewContestEvent(compEvent));
       }
 
       // Create new competition
-      const newCompetition: ICompetition = {
+      const newCompetition: IContest = {
         ...createCompDto,
-        events: competitionEvents,
+        events: contestEvents,
         createdBy: creatorPersonId,
         state: ContestState.Created,
         participants: 0,
@@ -166,7 +166,7 @@ export class CompetitionsService {
     if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
     if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
 
-    comp.events = await this.updateCompetitionEvents(comp, updateCompetitionDto.events);
+    comp.events = await this.updateContestEvents(comp, updateCompetitionDto.events);
 
     if (isAdmin || comp.state < ContestState.Approved) {
       comp.name = updateCompetitionDto.name;
@@ -230,8 +230,8 @@ export class CompetitionsService {
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
-  private async findCompetition(competitionId: string, populateEvents = false): Promise<CompetitionDocument> {
-    let competition: CompetitionDocument;
+  private async findCompetition(competitionId: string, populateEvents = false): Promise<ContestDocument> {
+    let competition: ContestDocument;
 
     try {
       if (!populateEvents) {
@@ -252,7 +252,7 @@ export class CompetitionsService {
     return competition;
   }
 
-  private async saveCompetition(competition: CompetitionDocument) {
+  private async saveCompetition(competition: ContestDocument) {
     try {
       await competition.save();
     } catch (err) {
@@ -261,8 +261,8 @@ export class CompetitionsService {
   }
 
   // Finds the competition with the given competition id with the rounds and results populated
-  private async getFullCompetition(competitionId: string, user?: IPartialUser): Promise<CompetitionDocument> {
-    let competition: CompetitionDocument;
+  private async getFullCompetition(competitionId: string, user?: IPartialUser): Promise<ContestDocument> {
+    let competition: ContestDocument;
 
     try {
       competition = await this.competitionModel
@@ -292,7 +292,7 @@ export class CompetitionsService {
     return competition;
   }
 
-  private async getNewCompetitionEvent(compEvent: ICompetitionEvent): Promise<CompetitionEvent> {
+  private async getNewContestEvent(compEvent: IContestEvent): Promise<ContestEvent> {
     const eventRounds: RoundDocument[] = [];
 
     for (const round of compEvent.rounds) eventRounds.push(await this.roundModel.create(round));
@@ -304,10 +304,7 @@ export class CompetitionsService {
   }
 
   // Deletes/adds/updates competition events and rounds
-  private async updateCompetitionEvents(
-    comp: CompetitionDocument,
-    newEvents: ICompetitionEvent[],
-  ): Promise<CompetitionEvent[]> {
+  private async updateContestEvents(comp: ContestDocument, newEvents: IContestEvent[]): Promise<ContestEvent[]> {
     try {
       // Remove deleted rounds and events
       for (const compEvent of comp.events) {
@@ -358,7 +355,7 @@ export class CompetitionsService {
             }
           }
         } else {
-          comp.events.push(await this.getNewCompetitionEvent(newEvent));
+          comp.events.push(await this.getNewContestEvent(newEvent));
         }
       }
 

@@ -6,7 +6,7 @@ import ResultForm from './ResultForm';
 import ErrorMessages from '../ErrorMessages';
 import Button from '../Button';
 import RoundResultsTable from '@c/RoundResultsTable';
-import { ICompetitionEvent, ICompetitionData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
+import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
 import { ContestState, Role } from '@sh/enums';
 import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
 
@@ -15,7 +15,7 @@ const role = getRole();
 const PostResultsScreen = ({
   compData: { competition, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
 }: {
-  compData: ICompetitionData;
+  compData: IContestData;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
@@ -26,7 +26,7 @@ const PostResultsScreen = ({
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
-  const [competitionEvents, setCompetitionEvents] = useState<ICompetitionEvent[]>(competition.events);
+  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(competition.events);
 
   const currEvent = useMemo(
     () => competition.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
@@ -111,7 +111,7 @@ const PostResultsScreen = ({
   const updateRoundAndCompEvents = (updatedRound: IRound) => {
     setRound(updatedRound);
 
-    const newCompetitionEvents = competitionEvents.map((ce) =>
+    const newContestEvents = contestEvents.map((ce) =>
       ce.event.eventId !== currEvent.eventId
         ? ce
         : {
@@ -120,7 +120,7 @@ const PostResultsScreen = ({
           },
     );
 
-    setCompetitionEvents(newCompetitionEvents);
+    setContestEvents(newContestEvents);
   };
 
   const editResult = (result: IResult) => {
@@ -172,8 +172,8 @@ const PostResultsScreen = ({
             setSuccessMessage={setSuccessMessage}
             round={round}
             setRound={setRound}
-            rounds={competitionEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
-            competitionEvents={competitionEvents}
+            rounds={contestEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
+            contestEvents={contestEvents}
           />
           <Button
             id="submit_attempt_button"

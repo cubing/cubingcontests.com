@@ -2,7 +2,7 @@ import { format, isSameDay } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
-import { IActivity, ICompetitionEvent, IRoom } from '@sh/interfaces';
+import { IActivity, IContestEvent, IRoom } from '@sh/interfaces';
 import EventTitle from './EventTitle';
 
 const Schedule = ({
@@ -12,7 +12,7 @@ const Schedule = ({
   onDeleteActivity,
 }: {
   rooms: IRoom[];
-  compEvents: ICompetitionEvent[];
+  compEvents: IContestEvent[];
   timezone: string;
   onDeleteActivity?: (id: number) => void;
 }) => {

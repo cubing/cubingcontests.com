@@ -1,4 +1,4 @@
-export type { ICompetition, ICompetitionEvent, ICompetitionData, ICompetitionDetails } from './interfaces/Competition';
+export type { IContest, IContestEvent, IContestData, ICompetitionDetails } from './interfaces/Contest';
 export type { IEvent } from './interfaces/Event';
 export type { IPerson } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';

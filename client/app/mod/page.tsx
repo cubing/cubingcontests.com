@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
-import CompetitionsTable from '@c/CompetitionsTable';
+import ContestsTable from '@c/ContestsTable';
 import { ContestState, Role } from '@sh/enums';
-import { ICompetition } from '~/shared_helpers/interfaces';
+import { IContest } from '~/shared_helpers/interfaces';
 import { getRole } from '~/helpers/utilityFunctions';
 
 const fetchData = async (
   role: Role,
-  setCompetitions: (value: ICompetition[]) => void,
+  setCompetitions: (value: IContest[]) => void,
   setPersonsTotal: (value: number) => void,
   setUsersTotal: (value: number) => void,
 ) => {
@@ -27,7 +27,7 @@ const fetchData = async (
 
 const ModeratorDashboard = () => {
   const [role, setRole] = useState<Role>();
-  const [competitions, setCompetitions] = useState<ICompetition[]>();
+  const [competitions, setCompetitions] = useState<IContest[]>();
   const [personsTotal, setPersonsTotal] = useState<number>(null);
   const [usersTotal, setUsersTotal] = useState<number>(null);
 
@@ -87,6 +87,11 @@ const ModeratorDashboard = () => {
                 Submit results
               </button>
             </Link>
+            <Link href="/admin/import-export">
+              <button type="button" className="btn btn-warning">
+                Import/Export
+              </button>
+            </Link>
             <Link href="/admin/record-types">
               <button type="button" className="btn btn-secondary">
                 Configure record types
@@ -109,7 +114,7 @@ const ModeratorDashboard = () => {
         Number of contests: <b>{competitions ? competitions.length : '?'}</b>
       </p>
       {competitions?.length > 0 ? (
-        <CompetitionsTable
+        <ContestsTable
           competitions={competitions}
           onEditCompetition={editCompetition}
           onCopyCompetition={copyCompetition}

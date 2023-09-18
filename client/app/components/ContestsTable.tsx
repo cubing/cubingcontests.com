@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { ICompetition } from '@sh/interfaces';
+import { IContest } from '@sh/interfaces';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
 import { ContestState, ContestType } from '@sh/enums';
 import ContestTypeBadge from './ContestTypeBadge';
 import Country from './Country';
 
-const CompetitionsTable = async ({
+const ContestsTable = async ({
   competitions,
   // If one of these is defined, the other must be defined too
   onEditCompetition,
@@ -14,7 +14,7 @@ const CompetitionsTable = async ({
   onChangeCompState,
   isAdmin = false,
 }: {
-  competitions: ICompetition[];
+  competitions: IContest[];
   onEditCompetition?: (competitionId: string) => void;
   onCopyCompetition?: (competitionId: string) => void;
   onPostCompResults?: (competitionId: string) => void;
@@ -27,7 +27,7 @@ const CompetitionsTable = async ({
 
       <div className="d-block d-lg-none border-top border-bottom">
         <ul className="list-group list-group-flush">
-          {competitions.map((comp: ICompetition, index: number) => (
+          {competitions.map((comp: IContest, index: number) => (
             <li
               key={comp.competitionId}
               className={'list-group-item' + (index % 2 === 1 ? ' list-group-item-dark' : '')}
@@ -82,7 +82,7 @@ const CompetitionsTable = async ({
             </tr>
           </thead>
           <tbody>
-            {competitions.map((comp: ICompetition) => (
+            {competitions.map((comp: IContest) => (
               <tr key={comp.competitionId}>
                 <td>{getFormattedDate(comp.startDate, comp.endDate)}</td>
                 <td>
@@ -167,4 +167,4 @@ const CompetitionsTable = async ({
   );
 };
 
-export default CompetitionsTable;
+export default ContestsTable;

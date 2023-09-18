@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { ICompetition, ICompetitionEvent, ICompetitionDetails } from '@sh/interfaces';
+import { IContest, IContestEvent, ICompetitionDetails } from '@sh/interfaces';
 import { RoundDocument } from './round.model';
 import { PersonDocument } from './person.model';
 import { ContestState, ContestType } from '@sh/enums';
@@ -8,7 +8,7 @@ import { EventDocument } from './event.model';
 import { ScheduleDocument } from './schedule.model';
 
 @Schema({ _id: false })
-export class CompetitionEvent implements ICompetitionEvent {
+export class ContestEvent implements IContestEvent {
   @Prop({ type: mongoose.Types.ObjectId, ref: 'Event', required: true })
   event: EventDocument;
 
@@ -16,7 +16,7 @@ export class CompetitionEvent implements ICompetitionEvent {
   rounds: RoundDocument[];
 }
 
-const CompetitionEventSchema = SchemaFactory.createForClass(CompetitionEvent);
+const ContestEventSchema = SchemaFactory.createForClass(ContestEvent);
 
 @Schema({ _id: false })
 export class CompetitionDetails implements ICompetitionDetails {
@@ -27,7 +27,7 @@ export class CompetitionDetails implements ICompetitionDetails {
 const CompetitionDetailsSchema = SchemaFactory.createForClass(CompetitionDetails);
 
 @Schema({ timestamps: true })
-class Competition implements ICompetition {
+class Competition implements IContest {
   @Prop({ required: true, immutable: true, unique: true })
   competitionId: string;
 
@@ -85,8 +85,8 @@ class Competition implements ICompetition {
   @Prop({ required: true })
   mainEventId: string;
 
-  @Prop({ type: [CompetitionEventSchema] })
-  events: CompetitionEvent[];
+  @Prop({ type: [ContestEventSchema] })
+  events: ContestEvent[];
 
   @Prop({ default: 0 })
   participants: number;
@@ -95,6 +95,6 @@ class Competition implements ICompetition {
   compDetails?: CompetitionDetails;
 }
 
-export type CompetitionDocument = HydratedDocument<Competition>;
+export type ContestDocument = HydratedDocument<Competition>;
 
-export const CompetitionSchema = SchemaFactory.createForClass(Competition);
+export const ContestSchema = SchemaFactory.createForClass(Competition);

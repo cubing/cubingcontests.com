@@ -1,19 +1,19 @@
 import myFetch from '~/helpers/myFetch';
 import { utcToZonedTime, format } from 'date-fns-tz';
-import CompetitionLayout from '~/app/components/CompetitionLayout';
+import ContestLayout from '~/app/components/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
-import { ICompetition } from '@sh/interfaces';
+import { IContest } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
 import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
-import { competitionTypeOptions } from '~/helpers/multipleChoiceOptions';
+import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 import Competitor from '~/app/components/Competitor';
 
 const Competition = async ({ params }: { params: { id: string } }) => {
-  const { payload: competitionData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
-  if (!competitionData) return <h3 className="mt-4 text-center">Competition not found</h3>;
-  const { competition }: { competition: ICompetition } = competitionData;
+  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
+  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
+  const { competition }: { competition: IContest } = contestData;
 
   const formattedDate = getFormattedDate(competition.startDate, competition.endDate ? competition.endDate : null);
   // Not used for competition type contests
@@ -22,7 +22,7 @@ const Competition = async ({ params }: { params: { id: string } }) => {
       ? null
       : format(utcToZonedTime(competition.startDate, competition.timezone || 'UTC'), 'H:mm');
 
-  const competitionType = competitionTypeOptions.find((el) => el.value === competition.type)?.label || 'ERROR';
+  const competitionType = contestTypeOptions.find((el) => el.value === competition.type)?.label || 'ERROR';
   const isOngoing =
     competition.state < ContestState.Finished &&
     areIntervalsOverlapping(
@@ -49,7 +49,7 @@ const Competition = async ({ params }: { params: { id: string } }) => {
   };
 
   return (
-    <CompetitionLayout competition={competition} activeTab="details">
+    <ContestLayout competition={competition} activeTab="details">
       {/* For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/ */}
       <div className="row w-100 mb-4 px-2 fs-5">
         <div className="col-md-5">
@@ -58,7 +58,7 @@ const Competition = async ({ params }: { params: { id: string } }) => {
           </div>
           <p className="mb-2">Date:&#8194;{formattedDate}</p>
           {formattedTime && (
-            <p>
+            <p className="mb-2">
               Starts at:&#8194;{formattedTime}
               {competition.type === ContestType.Online ? ' (UTC)' : ''}
             </p>
@@ -111,7 +111,7 @@ const Competition = async ({ params }: { params: { id: string } }) => {
           )}
         </div>
       </div>
-    </CompetitionLayout>
+    </ContestLayout>
   );
 };
 

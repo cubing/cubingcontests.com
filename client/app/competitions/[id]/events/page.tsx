@@ -1,20 +1,20 @@
 import myFetch from '~/helpers/myFetch';
-import CompetitionLayout from '@c/CompetitionLayout';
-import { ICompetition } from '@sh/interfaces';
+import ContestLayout from '@c/ContestLayout';
+import { IContest } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
 import EventTitle from '~/app/components/EventTitle';
 
-const CompetitionEvents = async ({ params }: { params: { id: string } }) => {
-  const { payload: competitionData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
-  if (!competitionData) return <h3 className="mt-4 text-center">Competition not found</h3>;
-  const { competition }: { competition: ICompetition } = competitionData;
+const ContestEvents = async ({ params }: { params: { id: string } }) => {
+  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
+  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
+  const { competition }: { competition: IContest } = contestData;
 
   const hasNonFinalRound = competition.events.some((ev) => ev.rounds.some((r) => r.proceed));
 
   return (
-    <CompetitionLayout competition={competition} activeTab="events">
+    <ContestLayout competition={competition} activeTab="events">
       <div className="flex-grow-1 mb-5 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
@@ -46,8 +46,8 @@ const CompetitionEvents = async ({ params }: { params: { id: string } }) => {
           </tbody>
         </table>
       </div>
-    </CompetitionLayout>
+    </ContestLayout>
   );
 };
 
-export default CompetitionEvents;
+export default ContestEvents;

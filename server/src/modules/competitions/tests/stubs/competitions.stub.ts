@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import { CompetitionDocument } from '~/src/models/competition.model';
+import { ContestDocument } from '~/src/models/competition.model';
 import { ContestState, ContestType, RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
 import { IRound } from '@sh/interfaces';
 import { eventsSeed } from '~/src/seeds/events.seed';
 
-export const competitionsStub = (): CompetitionDocument[] => {
+export const competitionsStub = (): ContestDocument[] => {
   return [
     {
       _id: new mongoose.Types.ObjectId('649d2a23675dfd951d5ff308'),
@@ -1321,5 +1321,5 @@ export const competitionsStub = (): CompetitionDocument[] => {
         },
       ],
     },
-  ] as CompetitionDocument[];
+  ] as ContestDocument[];
 };

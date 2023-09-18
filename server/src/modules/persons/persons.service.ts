@@ -7,7 +7,7 @@ import { RoundDocument } from '~/src/models/round.model';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { IPerson } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { CompetitionEvent } from '~/src/models/competition.model';
+import { ContestEvent } from '~/src/models/competition.model';
 
 @Injectable()
 export class PersonsService {
@@ -51,7 +51,7 @@ export class PersonsService {
     compEvents,
   }: {
     competitionId?: string;
-    compEvents?: CompetitionEvent[];
+    compEvents?: ContestEvent[];
   }): Promise<PersonDocument[]> {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];

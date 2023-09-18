@@ -11,7 +11,7 @@ import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } fr
  *    (5) createCompetition method in the competition service
  *    (6) updateCompetition method in the competition service
  */
-export interface ICompetition {
+export interface IContest {
   competitionId: string;
   // This is optional, because it's not set on creation and only returned to the frontend for authorized users
   createdBy?: number; // peson ID of the moderator/admin, who created the competition
@@ -30,16 +30,16 @@ export interface ICompetition {
   endDate?: Date; // competition-only
   timezone?: string; // meetup-only; not needed on creation
   organizers: IPerson[]; // stored as references
-  contact?: string; // required for competitions
+  contact?: string;
   description?: string;
   competitorLimit?: number; // required for competitions
   mainEventId: string;
-  events: ICompetitionEvent[];
+  events: IContestEvent[];
   participants?: number; // optional, because it's not needed on creation
   compDetails?: ICompetitionDetails; // competition-only
 }
 
-export interface ICompetitionEvent {
+export interface IContestEvent {
   event: IEvent; // stored as a reference
   rounds: IRound[]; // stored as references
 }
@@ -49,8 +49,8 @@ export interface ICompetitionDetails {
 }
 
 // COMPETITION DATA (just used for sending full competition information to the frontend)
-export interface ICompetitionData {
-  competition: ICompetition;
+export interface IContestData {
+  competition: IContest;
   persons: IPerson[]; // info about competitors from THIS competition
   activeRecordTypes: IRecordType[];
   recordPairsByEvent?: IEventRecordPairs[]; // only set if competition data is requested by a moderator

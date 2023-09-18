@@ -1,5 +1,5 @@
 import myFetch from '~/helpers/myFetch';
-import CompetitionsTable from '@c/CompetitionsTable';
+import ContestsTable from '@c/ContestsTable';
 
 // SEO
 export const metadata = {
@@ -22,7 +22,7 @@ const Competitions = async () => {
       <h2 className="mb-4 text-center">All contests</h2>
 
       {competitions?.length > 0 ? (
-        <CompetitionsTable competitions={competitions} />
+        <ContestsTable competitions={competitions} />
       ) : (
         <p className="mx-2 fs-5">No contests have been held yet</p>
       )}

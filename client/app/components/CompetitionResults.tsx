@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import EventResultsTable from '@c/EventResultsTable';
 import EventButtons from '@c/EventButtons';
-import { ICompetitionData, ICompetitionEvent } from '@sh/interfaces';
+import { IContestData, IContestEvent } from '@sh/interfaces';
 
 const CompetitionResults = ({
-  competitionData: { competition, persons, activeRecordTypes },
+  contestData: { competition, persons, activeRecordTypes },
 }: {
-  competitionData: ICompetitionData;
+  contestData: IContestData;
 }) => {
-  const [selectedEvent, setSelectedEvent] = useState<ICompetitionEvent>(competition.events[0]);
+  const [selectedEvent, setSelectedEvent] = useState<IContestEvent>(competition.events[0]);
 
   const events = competition.events.map((el) => el.event);
 

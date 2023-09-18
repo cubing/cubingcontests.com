@@ -2,8 +2,8 @@ import { compareAvgs, compareSingles, setResultRecords } from '@sh/sharedFunctio
 import { IRecordPair, IResult } from '@sh/interfaces';
 import { WcaRecordType } from '@sh/enums';
 import {
-  newCompetitionEventsStub,
-  newFakeCompetitionEventsStub,
+  newContestEventsStub,
+  newFakeContestEventsStub,
 } from '~/src/modules/competitions/tests/stubs/new-competition-events.stub';
 
 describe('compareSingles', () => {
@@ -120,7 +120,7 @@ describe('setResultRecords', () => {
   ];
 
   it('sets new 3x3x3 records correctly', async () => {
-    const result = setResultRecords(newCompetitionEventsStub()[0].rounds[0].results[0], mock333RecordPairs());
+    const result = setResultRecords(newContestEventsStub()[0].rounds[0].results[0], mock333RecordPairs());
 
     // 6.86 single and 8.00 average WRs
     expect(result.regionalAverageRecord).toBe('WR');
@@ -128,7 +128,7 @@ describe('setResultRecords', () => {
   });
 
   it('updates 3x3x3 BLD single record correctly', async () => {
-    const result = setResultRecords(newFakeCompetitionEventsStub()[2].rounds[0].results[0], mockBLDRecordPairs());
+    const result = setResultRecords(newFakeContestEventsStub()[2].rounds[0].results[0], mockBLDRecordPairs());
 
     expect(result.regionalSingleRecord).toBe('WR');
     expect(result.regionalAverageRecord).toBeUndefined();

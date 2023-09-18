@@ -6,7 +6,7 @@ import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { ContestState, Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { CompetitionDocument } from '~/src/models/competition.model';
+import { ContestDocument } from '~/src/models/competition.model';
 
 @Injectable()
 export class AuthService {
@@ -78,7 +78,7 @@ export class AuthService {
 
   checkAccessRightsToComp(
     user: IPartialUser,
-    competition: CompetitionDocument,
+    competition: ContestDocument,
     { ignoreState = false }: { ignoreState: boolean } = { ignoreState: false },
   ) {
     if (

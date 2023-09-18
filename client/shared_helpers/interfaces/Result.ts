@@ -1,5 +1,5 @@
 import { WcaRecordType } from '../enums';
-import { ICompetition, IEvent, IPerson, IRecordType } from '../interfaces';
+import { IContest, IEvent, IPerson, IRecordType } from '../interfaces';
 
 export interface IAttempt {
   /**
@@ -41,7 +41,7 @@ export interface IRanking {
   attemptNumber?: number; // only set for top single results rankings
   memo?: number; // only set for top single results rankings for events with the HasMemo group
   date: Date;
-  competition?: ICompetition; // optional, because not all results have a competition
+  competition?: IContest; // optional, because not all results have a competition
   attempts?: IAttempt[]; // only set for the average and mean ranking type
   videoLink?: string;
   discussionLink?: string;

@@ -1,8 +1,8 @@
 import { RoundFormat, RoundType } from '@sh/enums';
-import { ICompetitionEvent } from '@sh/interfaces';
+import { IContestEvent } from '@sh/interfaces';
 import { eventsSeed } from '~/src/seeds/events.seed';
 
-export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
+export const newContestEventsStub = (): IContestEvent[] => {
   return [
     {
       event: eventsSeed.find((el) => el.eventId === '333'),
@@ -106,7 +106,7 @@ export const newCompetitionEventsStub = (): ICompetitionEvent[] => {
   ];
 };
 
-export const newFakeCompetitionEventsStub = (): ICompetitionEvent[] => {
+export const newFakeContestEventsStub = (): IContestEvent[] => {
   return [
     {
       event: eventsSeed.find((el) => el.eventId === '222'),

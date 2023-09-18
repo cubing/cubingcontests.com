@@ -1,12 +1,12 @@
 import Tabs from './Tabs';
-import { ICompetition } from '@sh/interfaces';
+import { IContest } from '@sh/interfaces';
 
-const CompetitionLayout = ({
+const ContestLayout = ({
   competition,
   activeTab,
   children,
 }: {
-  competition: ICompetition;
+  competition: IContest;
   activeTab: string;
   children: React.ReactNode;
 }) => {
@@ -32,4 +32,4 @@ const CompetitionLayout = ({
   );
 };
 
-export default CompetitionLayout;
+export default ContestLayout;

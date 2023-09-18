@@ -12,7 +12,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { find } from 'geo-tz';
-import { CreateCompetitionDto } from './dto/create-competition.dto';
+import { CreateContestDto } from './dto/create-competition.dto';
 import { CompetitionsService } from './competitions.service';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
@@ -75,7 +75,7 @@ export class CompetitionsController {
   @Roles(Role.Admin, Role.Moderator)
   async createCompetition(
     @Request() req: any, // this is passed in by the guards
-    @Body(new ValidationPipe()) createCompetitionDto: CreateCompetitionDto,
+    @Body(new ValidationPipe()) createCompetitionDto: CreateContestDto,
   ) {
     console.log('Creating contest');
     return await this.service.createCompetition(createCompetitionDto, req.user.personId);

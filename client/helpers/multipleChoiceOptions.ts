@@ -33,7 +33,7 @@ export const colorOptions: MultiChoiceOption[] = [
   },
 ];
 
-export const competitionTypeOptions: MultiChoiceOption[] = [
+export const contestTypeOptions: MultiChoiceOption[] = [
   {
     label: 'Meetup',
     value: ContestType.Meetup,

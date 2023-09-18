@@ -19,7 +19,7 @@ import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 
 describe('CompetitionsService', () => {
   let competitionsService: CompetitionsService;
-  // let competitionModel: Model<CompetitionDocument>;
+  // let competitionModel: Model<ContestDocument>;
   // let roundModel: Model<RoundDocument>;
   // let resultModel: Model<ResultDocument>;
 
@@ -67,7 +67,7 @@ describe('CompetitionsService', () => {
     }).compile();
 
     competitionsService = module.get<CompetitionsService>(CompetitionsService);
-    // competitionModel = module.get<Model<CompetitionDocument>>(getModelToken('Competition'));
+    // competitionModel = module.get<Model<ContestDocument>>(getModelToken('Competition'));
     // roundModel = module.get<Model<RoundDocument>>(getModelToken('Round'));
     // resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
   });

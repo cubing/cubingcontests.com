@@ -6,7 +6,7 @@ import { getTitleRegexOpts, titleRegex } from '~/src/helpers/regex';
 export class CreateEventDto implements IEvent {
   @IsString()
   @MinLength(3)
-  @Matches(/^[a-z0-9]*$/)
+  @Matches(/^[a-z0-9-_]*$/)
   eventId: string;
 
   @IsString()

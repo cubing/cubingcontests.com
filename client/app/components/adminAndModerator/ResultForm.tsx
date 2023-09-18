@@ -8,16 +8,7 @@ import FormPersonInputs from '../form/FormPersonInputs';
 import FormCheckbox from '../form/FormCheckbox';
 import AttemptInput from '../AttemptInput';
 import Time from '../Time';
-import {
-  IAttempt,
-  ICompetitionEvent,
-  IEvent,
-  IPerson,
-  IRecordPair,
-  IRecordType,
-  IResult,
-  IRound,
-} from '@sh/interfaces';
+import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
@@ -46,7 +37,7 @@ const ResultForm = ({
   round,
   setRound,
   rounds,
-  competitionEvents,
+  contestEvents,
   setEvent,
   events,
   roundFormat,
@@ -71,7 +62,7 @@ const ResultForm = ({
   round?: IRound;
   setRound?: (val: IRound) => void;
   rounds?: IRound[]; // all rounds for the current competition event
-  competitionEvents?: ICompetitionEvent[];
+  contestEvents?: IContestEvent[];
   // These props are for the submit results page
   setEvent?: (val: IEvent) => void;
   events?: IEvent[];
@@ -124,7 +115,7 @@ const ResultForm = ({
       newEvent = events.find((el) => el.eventId === newEventId);
       setEvent(newEvent);
     } else {
-      const newCompEvent = competitionEvents.find((el) => el.event.eventId === newEventId);
+      const newCompEvent = contestEvents.find((el) => el.event.eventId === newEventId);
       newEvent = newCompEvent.event;
       setRound(newCompEvent.rounds[0]);
       newRoundFormat = newCompEvent.rounds[0].format;
@@ -135,7 +126,7 @@ const ResultForm = ({
 
   // Only used for PostResultsScreen
   const changeRound = (newRoundType: RoundType) => {
-    const currCompEvent = competitionEvents.find((ce) => ce.event.eventId === event.eventId);
+    const currCompEvent = contestEvents.find((ce) => ce.event.eventId === event.eventId);
     const newRound = currCompEvent.rounds.find((r) => r.roundTypeId === newRoundType);
 
     setRound(newRound);
@@ -213,7 +204,7 @@ const ResultForm = ({
   return (
     <>
       <FormEventSelect
-        events={forSubmitResultsPage ? events : competitionEvents.map((el) => el.event)}
+        events={forSubmitResultsPage ? events : contestEvents.map((el) => el.event)}
         eventId={event.eventId}
         setEventId={(val) => changeEvent(val)}
       />

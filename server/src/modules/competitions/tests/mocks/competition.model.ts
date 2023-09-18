@@ -1,4 +1,4 @@
-import { CompetitionDocument } from '~/src/models/competition.model';
+import { ContestDocument } from '~/src/models/competition.model';
 import { competitionsStub } from '../stubs/competitions.stub';
 
 export const CompetitionModelMock = (): any => ({
@@ -7,15 +7,15 @@ export const CompetitionModelMock = (): any => ({
     this.tempOutput = competitionsStub();
 
     if (query?.countryIso2) {
-      this.tempOutput = this.tempOutput.filter((el: CompetitionDocument) => el.countryIso2 === query.countryIso2);
+      this.tempOutput = this.tempOutput.filter((el: ContestDocument) => el.countryIso2 === query.countryIso2);
     }
     if (query?.state) {
-      this.tempOutput = this.tempOutput.filter((el: CompetitionDocument) => el.state > query.state.$gt);
+      this.tempOutput = this.tempOutput.filter((el: ContestDocument) => el.state > query.state.$gt);
     }
 
     // Exclude createdBy, if requested
     if (selectObj?.createdBy === 0) {
-      this.tempOutput = this.tempOutput.map((el: CompetitionDocument) => {
+      this.tempOutput = this.tempOutput.map((el: ContestDocument) => {
         const { createdBy, ...rest } = el;
         return rest;
       });
@@ -27,14 +27,13 @@ export const CompetitionModelMock = (): any => ({
   sort(params: any) {
     if (params?.startDate)
       this.tempOutput.sort(
-        (a: CompetitionDocument, b: CompetitionDocument) =>
-          params.rank * (a.startDate.getTime() - b.startDate.getTime()),
+        (a: ContestDocument, b: ContestDocument) => params.rank * (a.startDate.getTime() - b.startDate.getTime()),
       );
     return this;
   },
   findOne(query: any) {
     if (query?.competitionId) {
-      this.tempOutput = competitionsStub().find((el: CompetitionDocument) => el.competitionId === query.competitionId);
+      this.tempOutput = competitionsStub().find((el: ContestDocument) => el.competitionId === query.competitionId);
     }
 
     return this;
