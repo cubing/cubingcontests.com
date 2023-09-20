@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { CompetitionsService } from './contests.service';
-import { CompetitionsController } from './contests.controller';
+import { ContestsService } from './contests.service';
+import { ContestsController } from './contests.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ContestSchema } from '~/src/models/contest.model';
 import { RoundSchema } from '~/src/models/round.model';
@@ -26,7 +26,7 @@ import { AuthModule } from '../auth/auth.module';
       { name: 'Schedule', schema: ScheduleSchema },
     ]),
   ],
-  controllers: [CompetitionsController],
-  providers: [CompetitionsService],
+  controllers: [ContestsController],
+  providers: [ContestsService],
 })
-export class CompetitionsModule {}
+export class ContestsModule {}

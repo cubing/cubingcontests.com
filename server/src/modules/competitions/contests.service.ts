@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
 import { CreateContestDto } from './dto/create-contest.dto';
-import { UpdateCompetitionDto } from './dto/update-contest.dto';
+import { UpdateContestDto } from './dto/update-contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ContestEvent, ContestDocument } from '~/src/models/contest.model';
@@ -34,7 +34,7 @@ const eventPopulateOptions = {
 };
 
 @Injectable()
-export class CompetitionsService {
+export class ContestsService {
   constructor(
     private eventsService: EventsService,
     private resultsService: ResultsService,
@@ -47,7 +47,7 @@ export class CompetitionsService {
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
-  async getCompetitions(region?: string): Promise<ContestDocument[]> {
+  async getContests(region?: string): Promise<ContestDocument[]> {
     const queryFilter: any = { state: { $gt: ContestState.Created } };
     if (region) queryFilter.countryIso2 = region;
 
@@ -59,7 +59,7 @@ export class CompetitionsService {
     }
   }
 
-  async getModCompetitions(user: IPartialUser): Promise<IContest[]> {
+  async getModContests(user: IPartialUser): Promise<IContest[]> {
     let queryFilter: any = {};
     if (!user.roles.includes(Role.Admin)) queryFilter = { createdBy: user.personId };
 
@@ -70,7 +70,7 @@ export class CompetitionsService {
     }
   }
 
-  async getCompetition(competitionId: string, user?: IPartialUser): Promise<IContestData> {
+  async getContest(competitionId: string, user?: IPartialUser): Promise<IContestData> {
     const contest = await this.getFullCompetition(competitionId, user);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
@@ -80,7 +80,7 @@ export class CompetitionsService {
 
       const output: IContestData = {
         contest,
-        persons: await this.personsService.getCompetitionParticipants({ compEvents: contest.events }),
+        persons: await this.personsService.getCompetitionParticipants({ contestEvents: contest.events }),
         activeRecordTypes,
       };
 
@@ -99,52 +99,56 @@ export class CompetitionsService {
   }
 
   // Create new contest, if one with that id doesn't already exist (no results yet)
-  async createCompetition(createCompDto: CreateContestDto, creatorPersonId: number) {
+  async createContest(createContestDto: CreateContestDto, creatorPersonId: number, saveResults = false) {
     let comp;
     try {
-      comp = await this.contestModel.findOne({ competitionId: createCompDto.competitionId }).exec();
+      comp = await this.contestModel.findOne({ competitionId: createContestDto.competitionId }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (comp) throw new BadRequestException(`A contest with the ID ${createCompDto.competitionId} already exists`);
+    if (comp) throw new BadRequestException(`A contest with the ID ${createContestDto.competitionId} already exists`);
 
     try {
-      comp = await this.contestModel.findOne({ name: createCompDto.name }).exec();
+      comp = await this.contestModel.findOne({ name: createContestDto.name }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (comp) throw new BadRequestException(`A contest with the name ${createCompDto.name} already exists`);
+    if (comp) throw new BadRequestException(`A contest with the name ${createContestDto.name} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
       const contestEvents: ContestEvent[] = [];
 
-      for (const compEvent of createCompDto.events) {
-        contestEvents.push(await this.getNewContestEvent(compEvent));
+      for (const contestEvent of createContestDto.events) {
+        contestEvents.push(await this.getNewContestEvent(contestEvent, saveResults));
       }
 
       // Create new contest
       const newCompetition: IContest = {
-        ...createCompDto,
+        ...createContestDto,
         events: contestEvents,
         createdBy: creatorPersonId,
         state: ContestState.Created,
-        participants: 0,
+        participants: !saveResults
+          ? 0
+          : (await this.personsService.getCompetitionParticipants({ contestEvents: contestEvents })).length,
       };
 
       newCompetition.organizers = await this.personsService.getPersonsById(
-        createCompDto.organizers.map((org) => org.personId),
+        createContestDto.organizers.map((org) => org.personId),
       );
 
-      if (createCompDto.type === ContestType.Meetup) {
+      if (createContestDto.type === ContestType.Meetup) {
         newCompetition.timezone = find(
-          createCompDto.latitudeMicrodegrees / 1000000,
-          createCompDto.longitudeMicrodegrees / 1000000,
+          createContestDto.latitudeMicrodegrees / 1000000,
+          createContestDto.longitudeMicrodegrees / 1000000,
         )[0];
-      } else if (createCompDto.type === ContestType.Competition) {
-        newCompetition.compDetails.schedule = await this.scheduleModel.create(createCompDto.compDetails.schedule);
+      }
+
+      if (createContestDto.compDetails?.schedule) {
+        newCompetition.compDetails.schedule = await this.scheduleModel.create(createContestDto.compDetails.schedule);
       }
 
       await this.contestModel.create(newCompetition);
@@ -153,84 +157,92 @@ export class CompetitionsService {
     }
   }
 
-  async updateCompetition(competitionId: string, updateCompetitionDto: UpdateCompetitionDto, user: IPartialUser) {
-    const comp = await this.findCompetition(competitionId, true);
-    // Makes sure the user is an admin or a moderator who has access rights to the UNFINISHED comp.
-    // If the comp is finished and the user is not an admin, an unauthorized exception is thrown.
-    this.authService.checkAccessRightsToComp(user, comp);
+  async updateContest(competitionId: string, updateContestDto: UpdateContestDto, user: IPartialUser) {
+    const contest = await this.findContest(competitionId, true);
+    // Makes sure the user is an admin or a moderator who has access rights to the UNFINISHED contest.
+    // If the contest is finished and the user is not an admin, an unauthorized exception is thrown.
+    this.authService.checkAccessRightsToContest(user, contest);
     const isAdmin = user.roles.includes(Role.Admin);
 
-    comp.organizers = await this.personsService.getPersonsById(
-      updateCompetitionDto.organizers.map((org) => org.personId),
+    contest.organizers = await this.personsService.getPersonsById(
+      updateContestDto.organizers.map((org) => org.personId),
     );
-    if (updateCompetitionDto.contact) comp.contact = updateCompetitionDto.contact;
-    if (updateCompetitionDto.description) comp.description = updateCompetitionDto.description;
+    if (updateContestDto.contact) contest.contact = updateContestDto.contact;
+    if (updateContestDto.description) contest.description = updateContestDto.description;
 
-    comp.events = await this.updateContestEvents(comp, updateCompetitionDto.events);
+    contest.events = await this.updateContestEvents(contest, updateContestDto.events);
 
-    if (isAdmin || comp.state < ContestState.Approved) {
-      comp.name = updateCompetitionDto.name;
-      if (updateCompetitionDto.city) comp.city = updateCompetitionDto.city;
-      if (updateCompetitionDto.venue) comp.venue = updateCompetitionDto.venue;
-      if (updateCompetitionDto.address) comp.address = updateCompetitionDto.address;
-      if (updateCompetitionDto.latitudeMicrodegrees && updateCompetitionDto.longitudeMicrodegrees) {
-        comp.latitudeMicrodegrees = updateCompetitionDto.latitudeMicrodegrees;
-        comp.longitudeMicrodegrees = updateCompetitionDto.longitudeMicrodegrees;
+    if (isAdmin || contest.state < ContestState.Approved) {
+      contest.name = updateContestDto.name;
+      if (updateContestDto.city) contest.city = updateContestDto.city;
+      if (updateContestDto.venue) contest.venue = updateContestDto.venue;
+      if (updateContestDto.address) contest.address = updateContestDto.address;
+      if (updateContestDto.latitudeMicrodegrees && updateContestDto.longitudeMicrodegrees) {
+        contest.latitudeMicrodegrees = updateContestDto.latitudeMicrodegrees;
+        contest.longitudeMicrodegrees = updateContestDto.longitudeMicrodegrees;
       }
-      if (updateCompetitionDto.competitorLimit) comp.competitorLimit = updateCompetitionDto.competitorLimit;
-      comp.mainEventId = updateCompetitionDto.mainEventId;
+      if (updateContestDto.competitorLimit) contest.competitorLimit = updateContestDto.competitorLimit;
+      contest.mainEventId = updateContestDto.mainEventId;
 
-      if (updateCompetitionDto.compDetails) {
-        await this.scheduleModel.updateOne(
-          { _id: comp.compDetails.schedule._id },
-          updateCompetitionDto.compDetails.schedule,
-        );
+      if (updateContestDto.compDetails) {
+        if (contest.compDetails) {
+          await this.scheduleModel.updateOne(
+            { _id: contest.compDetails.schedule._id },
+            updateContestDto.compDetails.schedule,
+          );
+        } else {
+          contest.compDetails = {
+            schedule: await this.scheduleModel.create(updateContestDto.compDetails.schedule),
+          };
+        }
       }
     }
 
     // Even an admin is not allowed to edit these after a comp has been approved
-    if (comp.state < ContestState.Approved) {
-      comp.startDate = updateCompetitionDto.startDate;
-      if (comp.endDate) comp.endDate = updateCompetitionDto.endDate;
+    if (contest.state < ContestState.Approved) {
+      contest.startDate = updateContestDto.startDate;
+      if (contest.endDate) contest.endDate = updateContestDto.endDate;
     }
 
-    await this.saveCompetition(comp);
+    await this.saveContest(contest);
   }
 
   async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
-    const comp = await this.findCompetition(competitionId);
-    this.authService.checkAccessRightsToComp(user, comp);
+    const contest = await this.findContest(competitionId);
+    this.authService.checkAccessRightsToContest(user, contest);
     const isAdmin = user.roles.includes(Role.Admin);
+
+    if (!contest.compDetails) throw new BadRequestException('A competition without a schedule cannot be approved');
 
     if (
       isAdmin ||
-      // Allow mods only to finish an ongoing competition
-      (comp.state === ContestState.Ongoing && newState === ContestState.Finished)
+      // Allow mods only to finish an ongoing contest
+      (contest.state === ContestState.Ongoing && newState === ContestState.Finished)
     ) {
-      comp.state = newState;
+      contest.state = newState;
     }
 
     if (isAdmin && newState === ContestState.Published) {
-      console.log(`Publishing contest ${comp.competitionId}...`);
+      console.log(`Publishing contest ${contest.competitionId}...`);
 
       try {
         // Unset unapproved from the results so that they can be included in the rankings
-        await this.resultModel.updateMany({ competitionId: comp.competitionId }, { $unset: { unapproved: '' } });
+        await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
 
-        await this.resultsService.resetRecordsCancelledByPublishedComp(comp.competitionId);
+        await this.resultsService.resetRecordsCancelledByPublishedComp(contest.competitionId);
       } catch (err) {
         throw new InternalServerErrorException(`Error while publishing contest: ${err.message}`);
       }
     }
 
-    await this.saveCompetition(comp);
+    await this.saveContest(contest);
   }
 
   /////////////////////////////////////////////////////////////////////////////////////
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
-  private async findCompetition(competitionId: string, populateEvents = false): Promise<ContestDocument> {
+  private async findContest(competitionId: string, populateEvents = false): Promise<ContestDocument> {
     let contest: ContestDocument;
 
     try {
@@ -252,7 +264,7 @@ export class CompetitionsService {
     return contest;
   }
 
-  private async saveCompetition(contest: ContestDocument) {
+  private async saveContest(contest: ContestDocument) {
     try {
       await contest.save();
     } catch (err) {
@@ -278,7 +290,7 @@ export class CompetitionsService {
 
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
-    if (user) this.authService.checkAccessRightsToComp(user, contest, { ignoreState: true });
+    if (user) this.authService.checkAccessRightsToContest(user, contest, { ignoreState: true });
     contest.createdBy = undefined;
 
     if (contest.compDetails) {
@@ -292,79 +304,90 @@ export class CompetitionsService {
     return contest;
   }
 
-  private async getNewContestEvent(compEvent: IContestEvent): Promise<ContestEvent> {
+  private async getNewContestEvent(contestEvent: IContestEvent, saveResults = false): Promise<ContestEvent> {
     const eventRounds: RoundDocument[] = [];
 
-    for (const round of compEvent.rounds) eventRounds.push(await this.roundModel.create(round));
+    try {
+      for (const round of contestEvent.rounds) {
+        // This is only used for the import contest feature and can only be used by an admin
+        if (saveResults) {
+          round.results = await this.resultModel.create(round.results.map((r) => ({ ...r, unapproved: true })));
+        }
+
+        eventRounds.push(await this.roundModel.create(round));
+      }
+    } catch (err) {
+      throw new InternalServerErrorException('Error while creating rounds for co');
+    }
 
     return {
-      event: await this.eventsService.getEventById(compEvent.event.eventId),
+      event: await this.eventsService.getEventById(contestEvent.event.eventId),
       rounds: eventRounds,
     };
   }
 
   // Deletes/adds/updates contest events and rounds
-  private async updateContestEvents(comp: ContestDocument, newEvents: IContestEvent[]): Promise<ContestEvent[]> {
+  private async updateContestEvents(contest: ContestDocument, newEvents: IContestEvent[]): Promise<ContestEvent[]> {
     try {
       // Remove deleted rounds and events
-      for (const compEvent of comp.events) {
-        const sameEventInNew = newEvents.find((el) => el.event.eventId === compEvent.event.eventId);
+      for (const contestEvent of contest.events) {
+        const sameEventInNew = newEvents.find((el) => el.event.eventId === contestEvent.event.eventId);
 
         if (sameEventInNew) {
-          for (const round of compEvent.rounds) {
+          for (const round of contestEvent.rounds) {
             // Delete round if it has no results
             if (round.results.length === 0 && !sameEventInNew.rounds.some((el) => el.roundId === round.roundId)) {
               await round.deleteOne();
-              compEvent.rounds = compEvent.rounds.filter((el) => el !== round);
+              contestEvent.rounds = contestEvent.rounds.filter((el) => el !== round);
             }
           }
         }
         // Delete event and all of its rounds if it has no results
-        else if (!compEvent.rounds.some((el) => el.results.length > 0)) {
-          for (const round of compEvent.rounds) await round.deleteOne();
-          comp.events = comp.events.filter((el) => el.event.eventId !== compEvent.event.eventId);
+        else if (!contestEvent.rounds.some((el) => el.results.length > 0)) {
+          for (const round of contestEvent.rounds) await round.deleteOne();
+          contest.events = contest.events.filter((el) => el.event.eventId !== contestEvent.event.eventId);
         }
       }
 
       // Update rounds and add new events
       for (const newEvent of newEvents) {
-        const sameEventInComp = comp.events.find((el) => el.event.eventId === newEvent.event.eventId);
+        const sameEventInContest = contest.events.find((el) => el.event.eventId === newEvent.event.eventId);
 
-        if (sameEventInComp) {
+        if (sameEventInContest) {
           for (const round of newEvent.rounds) {
-            const sameRoundInComp = sameEventInComp.rounds.find((el) => el.roundId === round.roundId);
+            const sameRoundInContest = sameEventInContest.rounds.find((el) => el.roundId === round.roundId);
 
             // If the contest already has this round, update the permitted fields
-            if (sameRoundInComp) {
-              sameRoundInComp.roundTypeId = round.roundTypeId;
+            if (sameRoundInContest) {
+              sameRoundInContest.roundTypeId = round.roundTypeId;
 
-              if (sameRoundInComp.results.length === 0) {
-                sameRoundInComp.format = round.format;
-                if (comp.state < ContestState.Approved) sameRoundInComp.date = round.date;
+              if (sameRoundInContest.results.length === 0) {
+                sameRoundInContest.format = round.format;
+                if (contest.state < ContestState.Approved) sameRoundInContest.date = round.date;
               }
 
               // Update proceed object if the updated round has it, or unset proceed if it doesn't,
               // meaning that the round became the final round due to a deletion
-              if (round.proceed) sameRoundInComp.proceed = round.proceed;
-              else sameRoundInComp.proceed = undefined;
+              if (round.proceed) sameRoundInContest.proceed = round.proceed;
+              else sameRoundInContest.proceed = undefined;
 
-              await sameRoundInComp.save();
+              await sameRoundInContest.save();
             } else {
               // If it's a new round, add it
-              sameEventInComp.rounds.push(await this.roundModel.create(round));
+              sameEventInContest.rounds.push(await this.roundModel.create(round));
             }
           }
         } else {
-          comp.events.push(await this.getNewContestEvent(newEvent));
+          contest.events.push(await this.getNewContestEvent(newEvent));
         }
       }
 
-      // Sort competition events by rank
-      comp.events.sort((a, b) => a.event.rank - b.event.rank);
+      // Sort contest events by rank
+      contest.events.sort((a, b) => a.event.rank - b.event.rank);
 
-      return comp.events;
+      return contest.events;
     } catch (err) {
-      throw new InternalServerErrorException(`Error while updating competition events: ${err.message}`);
+      throw new InternalServerErrorException(`Error while updating contest events: ${err.message}`);
     }
   }
 }

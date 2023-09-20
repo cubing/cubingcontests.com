@@ -41,7 +41,7 @@ const RoundResultsTable = ({
               ? round.proceed.value
               : Math.floor((round.results.length * round.proceed.value) / 100))))
     ) {
-      return { color: 'black', background: '#10c010' };
+      return { color: `black`, background: `#10c010` };
     }
 
     return {};
@@ -69,7 +69,7 @@ const RoundResultsTable = ({
               <td className="d-flex flex-wrap gap-2">
                 {result.personIds.map((personId, i) => {
                   const person = persons.find((p: IPerson) => p.personId === personId);
-                  if (!person) return <span key={person.personId}>(name not found)</span>;
+                  if (!person) return <span key={personId}>(name not found)</span>;
                   return (
                     <span key={person.personId} className="d-flex gap-2">
                       <Competitor person={person} />

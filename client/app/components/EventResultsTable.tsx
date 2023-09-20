@@ -3,40 +3,34 @@ import { IContestEvent, IPerson, IRecordType, IRound } from '@sh/interfaces';
 import { roundTypes } from '~/helpers/roundTypes';
 
 const EventResultsTable = ({
-  compEvent,
+  contestEvent,
   persons,
   recordTypes,
   onDeleteResult,
 }: {
-  compEvent: IContestEvent | null;
+  contestEvent: IContestEvent | null;
   persons: IPerson[];
   recordTypes: IRecordType[];
   onDeleteResult?: (resultId: string) => void;
 }) => {
-  let rounds = compEvent.rounds.length > 0 ? [...compEvent.rounds] : [];
+  let rounds = contestEvent.rounds.length > 0 ? [...contestEvent.rounds] : [];
 
-  if (compEvent?.rounds.some((el) => el.results.length > 0)) {
-    rounds = [...compEvent.rounds].reverse();
+  if (contestEvent?.rounds.some((el) => el.results.length > 0)) {
+    rounds = [...contestEvent.rounds].reverse();
   }
-
-  // {round.results.length === 0 ? (
-  //   <h5 className="px-2">
-  //     {roundTypes[round.roundTypeId].label}&nbsp;format:&#8194;<b>{roundFormats[round.format].label}</b>
-  //   </h5>
-  // )
 
   return (
     <div className="mt-3">
       {rounds.map((round: IRound) => (
         <div key={round.roundId} className="mb-3">
           <h3 className="mx-2 mb-4 fs-3">
-            {compEvent.event.name}
+            {contestEvent.event.name}
             {rounds.length > 1 && ` ${roundTypes[round.roundTypeId].label}`}
           </h3>
 
           <RoundResultsTable
             round={round}
-            event={compEvent.event}
+            event={contestEvent.event}
             persons={persons}
             recordTypes={recordTypes}
             onDeleteResult={onDeleteResult}

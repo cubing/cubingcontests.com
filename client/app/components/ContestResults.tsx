@@ -17,7 +17,7 @@ const ContestResults = ({ contestData: { contest, persons, activeRecordTypes } }
   return (
     <>
       <EventButtons events={events} activeEvent={selectedEvent.event} onEventSelect={selectEvent} hideCategories />
-      <EventResultsTable compEvent={selectedEvent} persons={persons} recordTypes={activeRecordTypes} />
+      <EventResultsTable contestEvent={selectedEvent} persons={persons} recordTypes={activeRecordTypes} />
     </>
   );
 };

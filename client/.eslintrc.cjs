@@ -16,11 +16,11 @@ module.exports = {
       },
     ],
     quotes: [
-      'error',
-      'single',
-      {
-        avoidEscape: true,
-      },
+      'warn',
+      'backtick',
+      // {
+      //   avoidEscape: true,
+      // },
     ],
     'comma-dangle': ['error', 'always-multiline'],
     // 'max-len': [

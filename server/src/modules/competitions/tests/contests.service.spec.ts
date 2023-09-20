@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { CompetitionsService } from '../contests.service';
+import { ContestsService } from '../contests.service';
 import { EventsService } from '@m/events/events.service';
 import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
@@ -17,8 +17,8 @@ import { CompetitionModelMock } from './mocks/contest.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 
-describe('CompetitionsService', () => {
-  let competitionsService: CompetitionsService;
+describe('ContestsService', () => {
+  let competitionsService: ContestsService;
   // let contestModel: Model<ContestDocument>;
   // let roundModel: Model<RoundDocument>;
   // let resultModel: Model<ResultDocument>;
@@ -26,7 +26,7 @@ describe('CompetitionsService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CompetitionsService,
+        ContestsService,
         {
           provide: EventsService,
           useFactory: EventsServiceMock,
@@ -66,7 +66,7 @@ describe('CompetitionsService', () => {
       ],
     }).compile();
 
-    competitionsService = module.get<CompetitionsService>(CompetitionsService);
+    competitionsService = module.get<ContestsService>(ContestsService);
     // contestModel = module.get<Model<ContestDocument>>(getModelToken('Competition'));
     // roundModel = module.get<Model<RoundDocument>>(getModelToken('Round'));
     // resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));

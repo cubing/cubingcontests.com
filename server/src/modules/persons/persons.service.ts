@@ -48,16 +48,16 @@ export class PersonsService {
 
   async getCompetitionParticipants({
     competitionId,
-    compEvents,
+    contestEvents,
   }: {
     competitionId?: string;
-    compEvents?: ContestEvent[];
+    contestEvents?: ContestEvent[];
   }): Promise<PersonDocument[]> {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
-    if (compEvents) {
-      for (const compEvent of compEvents) compRounds.push(...compEvent.rounds);
+    if (contestEvents) {
+      for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
     } else {
       try {
         compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();

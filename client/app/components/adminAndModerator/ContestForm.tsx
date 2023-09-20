@@ -27,12 +27,12 @@ import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import EventTitle from '../EventTitle';
 import { titleRegex } from '~/shared_helpers/regex';
 
-registerLocale('en-GB', enGB);
-setDefaultLocale('en-GB');
+registerLocale(`en-GB`, enGB);
+setDefaultLocale(`en-GB`);
 
 const coordToMicrodegrees = (value: string): number | null => {
   if (!value) return null;
-  return parseInt(Number(value).toFixed(6).replace('.', ''));
+  return parseInt(Number(value).toFixed(6).replace(`.`, ``));
 };
 
 const ContestForm = ({
@@ -43,43 +43,43 @@ const ContestForm = ({
 }: {
   events: IEvent[];
   contest?: IContest;
-  mode: 'new' | 'edit' | 'copy';
+  mode: `new` | `edit` | `copy`;
   role: Role;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState('details');
+  const [activeTab, setActiveTab] = useState(`details`);
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
 
-  const [competitionId, setCompetitionId] = useState('');
-  const [name, setName] = useState('');
+  const [competitionId, setCompetitionId] = useState(``);
+  const [name, setName] = useState(``);
   const [type, setType] = useState(ContestType.Meetup);
-  const [city, setCity] = useState('');
-  const [countryIso2, setCountryId] = useState('NOT_SELECTED');
-  const [venue, setVenue] = useState('');
-  const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('0'); // vertical coordinate (Y); ranges from -90 to 90
-  const [longitude, setLongitude] = useState('0'); // horizontal coordinate (X); ranges from -180 to 180
+  const [city, setCity] = useState(``);
+  const [countryIso2, setCountryId] = useState(`NOT_SELECTED`);
+  const [venue, setVenue] = useState(``);
+  const [address, setAddress] = useState(``);
+  const [latitude, setLatitude] = useState(`0`); // vertical coordinate (Y); ranges from -90 to 90
+  const [longitude, setLongitude] = useState(`0`); // horizontal coordinate (X); ranges from -180 to 180
   const [startDate, setStartDate] = useState(addHours(getDateOnly(new Date()), 12)); // use 12:00 as default start time
   const [endDate, setEndDate] = useState(new Date());
-  const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
+  const [organizerNames, setOrganizerNames] = useState<string[]>([``]);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
-  const [contact, setContact] = useState('');
-  const [description, setDescription] = useState('');
-  const [competitorLimit, setCompetitorLimit] = useState('');
+  const [contact, setContact] = useState(``);
+  const [description, setDescription] = useState(``);
+  const [competitorLimit, setCompetitorLimit] = useState(``);
 
   // Event stuff
-  const [newEventId, setNewEventId] = useState('333');
+  const [newEventId, setNewEventId] = useState(`333`);
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>([]);
-  const [mainEventId, setMainEventId] = useState('333');
+  const [mainEventId, setMainEventId] = useState(`333`);
 
   // Schedule stuff
-  const [venueTimezone, setVenueTimezone] = useState('GMT'); // e.g. Europe/Berlin
+  const [venueTimezone, setVenueTimezone] = useState(`GMT`); // e.g. Europe/Berlin
   const [rooms, setRooms] = useState<IRoom[]>([]);
-  const [roomName, setRoomName] = useState('');
+  const [roomName, setRoomName] = useState(``);
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
-  const [activityCode, setActivityCode] = useState('');
-  const [customActivity, setCustomActivity] = useState('');
+  const [activityCode, setActivityCode] = useState(``);
+  const [customActivity, setCustomActivity] = useState(``);
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
   const [activityStartTime, setActivityStartTime] = useState<Date>(addHours(getDateOnly(new Date()), 12));
   const [activityEndTime, setActivityEndTime] = useState<Date>(addHours(getDateOnly(new Date()), 13));
@@ -88,9 +88,9 @@ const ContestForm = ({
 
   const tabs = useMemo(
     () => [
-      { title: 'Details', value: 'details' },
-      { title: 'Events', value: 'events' },
-      { title: 'Schedule', value: 'schedule', hidden: type !== ContestType.Competition },
+      { title: `Details`, value: `details` },
+      { title: `Events`, value: `events` },
+      { title: `Schedule`, value: `schedule`, hidden: type !== ContestType.Competition },
     ],
     [type],
   );
@@ -114,20 +114,20 @@ const ContestForm = ({
     [filteredEvents, contestEvents],
   );
   const disableIfCompFinished = useMemo(
-    () => !isAdmin && mode === 'edit' && contest.state >= ContestState.Finished,
+    () => !isAdmin && mode === `edit` && contest.state >= ContestState.Finished,
     [contest, mode, isAdmin],
   );
   // This has been nominated for the best variable name award!
   const disableIfCompFinishedEvenForAdmin = useMemo(
-    () => mode === 'edit' && contest.state >= ContestState.Finished,
+    () => mode === `edit` && contest.state >= ContestState.Finished,
     [contest, mode, isAdmin],
   );
   const disableIfCompApproved = useMemo(
-    () => !isAdmin && mode === 'edit' && contest.state >= ContestState.Approved,
+    () => !isAdmin && mode === `edit` && contest.state >= ContestState.Approved,
     [contest, mode, isAdmin],
   );
   const disableIfCompApprovedEvenForAdmin = useMemo(
-    () => mode === 'edit' && contest.state >= ContestState.Approved,
+    () => mode === `edit` && contest.state >= ContestState.Approved,
     [contest, mode],
   );
   const displayedStartDate = useMemo(
@@ -158,7 +158,7 @@ const ContestForm = ({
       }
     }
 
-    output.push({ label: 'Custom', value: 'other-misc' });
+    output.push({ label: `Custom`, value: `other-misc` });
 
     setActivityCode(output[0].value as string); // set selected activity code as the first available option
 
@@ -168,7 +168,7 @@ const ContestForm = ({
   const isValidActivity = useMemo(
     () =>
       activityCode &&
-      (activityCode !== 'other-misc' || customActivity) &&
+      (activityCode !== `other-misc` || customActivity) &&
       roomOptions.some((el) => el.value === selectedRoom),
     [activityCode, customActivity, roomOptions, selectedRoom],
   );
@@ -178,7 +178,7 @@ const ContestForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   useEffect(() => {
-    if (mode !== 'new') {
+    if (mode !== `new`) {
       setCompetitionId(contest.competitionId);
       setName(contest.name);
       setType(contest.type);
@@ -190,13 +190,13 @@ const ContestForm = ({
         setLatitude((contest.latitudeMicrodegrees / 1000000).toFixed(6));
         setLongitude((contest.longitudeMicrodegrees / 1000000).toFixed(6));
       }
-      setOrganizerNames([...contest.organizers.map((el) => el.name), '']);
+      setOrganizerNames([...contest.organizers.map((el) => el.name), ``]);
       setOrganizers([...contest.organizers, null]);
       if (contest.contact) setContact(contest.contact);
       if (contest.description) setDescription(contest.description);
       if (contest.competitorLimit) setCompetitorLimit(contest.competitorLimit.toString());
       setNewEventId(
-        events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
+        events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || `333`,
       );
       setMainEventId(contest.mainEventId);
 
@@ -211,9 +211,21 @@ const ContestForm = ({
           setStartDate(new Date(contest.startDate));
           setEndDate(new Date(contest.endDate));
 
-          const venue = contest.compDetails.schedule.venues[0];
-          setRooms(venue.rooms);
-          setVenueTimezone(venue.timezone);
+          let timezone: string;
+
+          if (contest.compDetails) {
+            const venue = contest.compDetails.schedule.venues[0];
+            timezone = venue.timezone;
+            setRooms(venue.rooms);
+            setVenueTimezone(venue.timezone);
+          } else {
+            fetchTimezone(contest.latitudeMicrodegrees, contest.longitudeMicrodegrees).then((tz) => {
+              timezone = tz;
+            });
+          }
+
+          setActivityStartTime(zonedTimeToUtc(addHours(getDateOnly(new Date(contest.startDate)), 12), timezone));
+          setActivityEndTime(zonedTimeToUtc(addHours(getDateOnly(new Date(contest.startDate)), 13), timezone));
           break;
         }
         case ContestType.Online: {
@@ -224,7 +236,7 @@ const ContestForm = ({
           throw new Error(`Unknown contest type: ${contest.type}`);
       }
 
-      if (mode === 'copy') {
+      if (mode === `copy`) {
         // Remove the round IDs and all results
         setContestEvents(
           contest.events.map((ce) => ({
@@ -232,7 +244,7 @@ const ContestForm = ({
             rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
           })),
         );
-      } else if (mode === 'edit') {
+      } else if (mode === `edit`) {
         setContestEvents(contest.events);
       }
     }
@@ -240,7 +252,7 @@ const ContestForm = ({
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
-    if (errorMessages.find((el) => el !== '')) window.scrollTo(0, 0);
+    if (errorMessages.find((el) => el !== ``)) window.scrollTo(0, 0);
   }, [errorMessages]);
 
   useEffect(() => {
@@ -263,7 +275,7 @@ const ContestForm = ({
 
   const handleSubmit = async () => {
     if (!startDate || (type === ContestType.Competition && !endDate)) {
-      setErrorMessages(['Please enter valid dates']);
+      setErrorMessages([`Please enter valid dates`]);
       return;
     }
 
@@ -340,7 +352,7 @@ const ContestForm = ({
       type,
       city: type !== ContestType.Online ? city.trim() : undefined,
       // If it's an online competition, set country ISO to online
-      countryIso2: type !== ContestType.Online ? countryIso2 : 'ONLINE',
+      countryIso2: type !== ContestType.Online ? countryIso2 : `ONLINE`,
       venue: type !== ContestType.Online ? venue.trim() : undefined,
       address: type !== ContestType.Online ? address.trim() : undefined,
       latitudeMicrodegrees,
@@ -356,7 +368,7 @@ const ContestForm = ({
       compDetails,
     };
 
-    if (mode === 'edit') {
+    if (mode === `edit`) {
       newComp.createdBy = contest.createdBy;
       newComp.state = contest.state;
       newComp.participants = contest.participants;
@@ -366,61 +378,61 @@ const ContestForm = ({
     // Validation
     const tempErrors: string[] = [];
 
-    if (mode === 'copy') {
-      if (newComp.competitionId === contest.competitionId) tempErrors.push('The contest ID cannot be the same');
-      if (newComp.name === contest.name) tempErrors.push('The name cannot be the same');
+    if (mode === `copy`) {
+      if (newComp.competitionId === contest.competitionId) tempErrors.push(`The contest ID cannot be the same`);
+      if (newComp.name === contest.name) tempErrors.push(`The name cannot be the same`);
     }
 
-    if (!newComp.competitionId) tempErrors.push('Please enter a contest ID');
-    if (!newComp.name) tempErrors.push('Please enter a name');
+    if (!newComp.competitionId) tempErrors.push(`Please enter a contest ID`);
+    if (!newComp.name) tempErrors.push(`Please enter a name`);
 
-    if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
-      tempErrors.push('Please enter all organizers');
-    else if (newComp.organizers.length === 0) tempErrors.push('Please enter at least one organizer');
+    if (selectedOrganizers.length < organizerNames.filter((el) => el !== ``).length)
+      tempErrors.push(`Please enter all organizers`);
+    else if (newComp.organizers.length === 0) tempErrors.push(`Please enter at least one organizer`);
 
-    if (newComp.events.length === 0) tempErrors.push('You must select at least one event');
+    if (newComp.events.length === 0) tempErrors.push(`You must select at least one event`);
     else if (!contestEvents.some((el) => el.event.eventId === mainEventId))
-      tempErrors.push('The selected main event is not on the list of events');
+      tempErrors.push(`The selected main event is not on the list of events`);
 
     const meetupOnlyCompEvent = contestEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
     if (type !== ContestType.Meetup && meetupOnlyCompEvent)
       tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 
     if (type === ContestType.Competition) {
-      if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
-      if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
-      if (activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
+      if (!newComp.competitorLimit) tempErrors.push(`Please enter a valid competitor limit`);
+      if (newComp.startDate > newComp.endDate) tempErrors.push(`The start date must be before the end date`);
+      if (activityOptions.length > 1) tempErrors.push(`Please add all rounds to the schedule`);
     }
 
     if (type !== ContestType.Online) {
-      if (!newComp.city) tempErrors.push('Please enter a city');
-      if (['NOT_SELECTED', 'ONLINE'].includes(newComp.countryIso2)) tempErrors.push('Please select a country');
-      if (!newComp.venue) tempErrors.push('Please enter a venue');
-      if (!newComp.address) tempErrors.push('Please enter an address');
+      if (!newComp.city) tempErrors.push(`Please enter a city`);
+      if ([`NOT_SELECTED`, `ONLINE`].includes(newComp.countryIso2)) tempErrors.push(`Please select a country`);
+      if (!newComp.venue) tempErrors.push(`Please enter a venue`);
+      if (!newComp.address) tempErrors.push(`Please enter an address`);
       if (newComp.latitudeMicrodegrees === null || newComp.longitudeMicrodegrees === null)
-        tempErrors.push('Please enter valid venue coordinates');
+        tempErrors.push(`Please enter valid venue coordinates`);
     }
 
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
     } else {
       const { errors } =
-        mode === 'edit'
+        mode === `edit`
           ? await myFetch.patch(`/competitions/${contest.competitionId}?action=update`, newComp) // edit
-          : await myFetch.post('/competitions', newComp); // create
+          : await myFetch.post(`/competitions`, newComp); // create
 
       if (errors) {
         setErrorMessages(errors);
       } else {
         setErrorMessages([]);
-        window.location.href = '/mod';
+        window.location.href = `/mod`;
       }
     }
   };
 
   const changeActiveTab = (newTab: string) => {
-    if (newTab === 'schedule' && (!latitude || !longitude)) {
-      setErrorMessages(['Please enter the coordinates first']);
+    if (newTab === `schedule` && (!latitude || !longitude)) {
+      setErrorMessages([`Please enter the coordinates first`]);
     } else {
       setActiveTab(newTab);
     }
@@ -428,7 +440,7 @@ const ContestForm = ({
 
   const changeName = (value: string) => {
     // If not editing a competition, update Competition ID accordingly, unless it deviates from the name
-    if (mode !== 'edit' && competitionId === getContestIdFromName(name)) {
+    if (mode !== `edit` && competitionId === getContestIdFromName(name)) {
       setCompetitionId(getContestIdFromName(value));
     }
 
@@ -437,6 +449,21 @@ const ContestForm = ({
 
   const changeType = (newType: ContestType) => {
     setType(newType);
+  };
+
+  const fetchTimezone = async (latMicro: number, longMicro: number): Promise<string> => {
+    const { errors, payload } = await myFetch.get(
+      `/competitions/timezone?latitude=${latMicro}&longitude=${longMicro}`,
+      { authorize: true },
+    );
+
+    if (errors) {
+      setErrorMessages(errors);
+      Promise.reject();
+    } else {
+      setVenueTimezone(payload.timezone);
+      return payload.timezone;
+    }
   };
 
   const changeCoordinates = async (newLat: string, newLong: string) => {
@@ -450,34 +477,25 @@ const ContestForm = ({
       setLongitude(processedLongitude.toString());
 
       limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
-        const { errors, payload } = await myFetch.get(
-          `/competitions/timezone?latitude=${processedLatitude}&longitude=${processedLongitude}`,
-          { authorize: true },
-        );
-
-        if (errors) {
-          setErrorMessages(errors);
-        } else {
-          setVenueTimezone(payload.timezone);
-
+        fetchTimezone(processedLatitude, processedLongitude).then((timezone: string) => {
           // Adjust times to the new time zone
           if (type === ContestType.Meetup) {
-            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimezone), payload.timezone));
+            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimezone), timezone));
           } else if (type === ContestType.Competition) {
-            setActivityStartTime(zonedTimeToUtc(utcToZonedTime(activityStartTime, venueTimezone), payload.timezone));
-            setActivityEndTime(zonedTimeToUtc(utcToZonedTime(activityEndTime, venueTimezone), payload.timezone));
+            setActivityStartTime(zonedTimeToUtc(utcToZonedTime(activityStartTime, venueTimezone), timezone));
+            setActivityEndTime(zonedTimeToUtc(utcToZonedTime(activityEndTime, venueTimezone), timezone));
             setRooms(
               rooms.map((r) => ({
                 ...r,
                 activities: r.activities.map((a) => ({
                   ...a,
-                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimezone), payload.timezone),
-                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimezone), payload.timezone),
+                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimezone), timezone),
+                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimezone), timezone),
                 })),
               })),
             );
           }
-        }
+        });
       });
     }
   };
@@ -523,7 +541,7 @@ const ContestForm = ({
   const getNewRound = (eventId: string, roundNumber: number): IRound => {
     return {
       roundId: `${eventId}-r${roundNumber}`,
-      competitionId: 'temp', // this gets replaced for all rounds on submit
+      competitionId: `temp`, // this gets replaced for all rounds on submit
       date: startDate,
       roundTypeId: RoundType.Final,
       format: events.find((el) => el.eventId === eventId).defaultRoundFormat,
@@ -594,7 +612,7 @@ const ContestForm = ({
   };
 
   const addRoom = () => {
-    setRoomName('');
+    setRoomName(``);
     setRooms([
       ...rooms,
       {
@@ -616,7 +634,7 @@ const ContestForm = ({
     if (newTime) {
       const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
       const newActivityEndTime = zonedTimeToUtc(
-        parseISO(`${format(zonedStartTime, 'yyyy-MM-dd')}T${format(newTime, 'HH:mm:00')}`),
+        parseISO(`${format(zonedStartTime, `yyyy-MM-dd`)}T${format(newTime, `HH:mm:00`)}`),
         venueTimezone,
       );
       setActivityEndTime(newActivityEndTime);
@@ -636,7 +654,7 @@ const ContestForm = ({
               {
                 id: room.activities.length + 1,
                 activityCode,
-                name: activityCode === 'other-misc' ? customActivity : undefined,
+                name: activityCode === `other-misc` ? customActivity : undefined,
                 startTime: activityStartTime,
                 endTime: activityEndTime,
               },
@@ -645,8 +663,8 @@ const ContestForm = ({
     );
 
     setRooms(newRooms);
-    setActivityCode('');
-    setCustomActivity('');
+    setActivityCode(``);
+    setCustomActivity(``);
   };
 
   const deleteActivity = (activityId: number) => {
@@ -665,15 +683,15 @@ const ContestForm = ({
   return (
     <>
       <Form
-        buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
+        buttonText={mode === `edit` ? `Edit Contest` : `Create Contest`}
         errorMessages={errorMessages}
         handleSubmit={handleSubmit}
-        hideButton={activeTab === 'schedule'}
+        hideButton={activeTab === `schedule`}
         disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
       >
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
-        {activeTab === 'details' && (
+        {activeTab === `details` && (
           <>
             <FormTextInput
               title="Contest name"
@@ -686,14 +704,14 @@ const ContestForm = ({
               title="Contest ID"
               value={competitionId}
               setValue={setCompetitionId}
-              disabled={mode === 'edit'}
+              disabled={mode === `edit`}
             />
             <FormRadio
               title="Type"
               options={contestTypeOptions}
               selected={type}
               setSelected={(val: any) => changeType(val)}
-              disabled={mode !== 'new'}
+              disabled={mode !== `new`}
             />
             {type !== ContestType.Online && (
               <>
@@ -705,7 +723,7 @@ const ContestForm = ({
                     <FormCountrySelect
                       countryIso2={countryIso2}
                       setCountryId={setCountryId}
-                      disabled={mode === 'edit'}
+                      disabled={mode === `edit`}
                     />
                   </div>
                 </div>
@@ -737,12 +755,12 @@ const ContestForm = ({
               <div className="col">
                 <label htmlFor="start_date" className="form-label">
                   {type === ContestType.Competition ? (
-                    'Start date'
+                    `Start date`
                   ) : (
                     <>
                       Start date and time
                       {type === ContestType.Online ? (
-                        ' (UTC)'
+                        ` (UTC)`
                       ) : fetchTimezoneTimer === null ? (
                         ` (${venueTimezone})`
                       ) : (
@@ -757,7 +775,7 @@ const ContestForm = ({
                   showTimeSelect={type !== ContestType.Competition}
                   timeFormat="p"
                   // P is date select only, Pp is date and time select
-                  dateFormat={type === ContestType.Competition ? 'P' : 'Pp'}
+                  dateFormat={type === ContestType.Competition ? `P` : `Pp`}
                   locale="en-GB"
                   onChange={(date: Date) => changeStartDate(date)}
                   className="form-control"
@@ -818,7 +836,7 @@ const ContestForm = ({
               />
             </div>
             <FormTextInput
-              title={'Competitor limit' + (type !== ContestType.Competition ? ' (optional)' : '')}
+              title={`Competitor limit` + (type !== ContestType.Competition ? ` (optional)` : ``)}
               value={competitorLimit}
               setValue={setCompetitorLimit}
               disabled={disableIfCompApproved}
@@ -826,7 +844,7 @@ const ContestForm = ({
           </>
         )}
 
-        {activeTab === 'events' && (
+        {activeTab === `events` && (
           <>
             <div className="my-4 d-flex align-items-center gap-3">
               <button
@@ -888,7 +906,7 @@ const ContestForm = ({
                           disabled={disableIfCompFinishedEvenForAdmin}
                           oneLine
                         />
-                        <div style={{ width: '5rem' }}>
+                        <div style={{ width: `5rem` }}>
                           <FormTextInput
                             id="round_proceed_value"
                             value={round.proceed.value.toString()}
@@ -940,7 +958,7 @@ const ContestForm = ({
           </>
         )}
 
-        {activeTab === 'schedule' && (
+        {activeTab === `schedule` && (
           <>
             <h3 className="mb-3">Rooms</h3>
             <div className="row">
@@ -953,10 +971,10 @@ const ContestForm = ({
               <div className="col-1 d-flex align-items-end">
                 <span
                   style={{
-                    marginBottom: '19px',
-                    width: '100%',
-                    height: '2rem',
-                    borderRadius: '5px',
+                    marginBottom: `19px`,
+                    width: `100%`,
+                    height: `2rem`,
+                    borderRadius: `5px`,
                     backgroundColor: `#${roomColor}`,
                   }}
                 ></span>
@@ -992,7 +1010,7 @@ const ContestForm = ({
                 />
               </div>
             </div>
-            {activityCode === 'other-misc' && (
+            {activityCode === `other-misc` && (
               <FormTextInput title="Custom activity" value={customActivity} setValue={setCustomActivity} />
             )}
             <div className="mb-3 row">
@@ -1004,7 +1022,7 @@ const ContestForm = ({
                   id="activity_start_time"
                   selected={activityStartTime && utcToZonedTime(activityStartTime, venueTimezone)}
                   showTimeSelect
-                  timeIntervals={15}
+                  timeIntervals={5}
                   timeFormat="p"
                   dateFormat="Pp"
                   locale="en-GB"
@@ -1021,7 +1039,7 @@ const ContestForm = ({
                   selected={activityEndTime && utcToZonedTime(activityEndTime, venueTimezone)}
                   showTimeSelect
                   showTimeSelectOnly
-                  timeIntervals={15}
+                  timeIntervals={5}
                   dateFormat="HH:mm"
                   onChange={(date: Date) => changeActivityEndTime(date)}
                   className="form-control"
@@ -1040,7 +1058,7 @@ const ContestForm = ({
         )}
       </Form>
 
-      {activeTab === 'schedule' && (
+      {activeTab === `schedule` && (
         <Schedule
           rooms={rooms}
           compEvents={contestEvents}

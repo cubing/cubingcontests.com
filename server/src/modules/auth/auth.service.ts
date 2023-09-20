@@ -76,7 +76,7 @@ export class AuthService {
     return await this.usersService.getUserRoles(id);
   }
 
-  checkAccessRightsToComp(
+  checkAccessRightsToContest(
     user: IPartialUser,
     contest: ContestDocument,
     { ignoreState = false }: { ignoreState: boolean } = { ignoreState: false },

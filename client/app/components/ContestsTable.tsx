@@ -6,7 +6,7 @@ import ContestTypeBadge from './ContestTypeBadge';
 import Country from './Country';
 
 const ContestsTable = async ({
-  competitions,
+  contests,
   // If one of these is defined, the other must be defined too
   onEditCompetition,
   onCopyCompetition,
@@ -14,7 +14,7 @@ const ContestsTable = async ({
   onChangeCompState,
   isAdmin = false,
 }: {
-  competitions: IContest[];
+  contests: IContest[];
   onEditCompetition?: (competitionId: string) => void;
   onCopyCompetition?: (competitionId: string) => void;
   onPostCompResults?: (competitionId: string) => void;
@@ -27,37 +27,37 @@ const ContestsTable = async ({
 
       <div className="d-block d-lg-none border-top border-bottom">
         <ul className="list-group list-group-flush">
-          {competitions.map((comp: IContest, index: number) => (
+          {contests.map((contest: IContest, index: number) => (
             <li
-              key={comp.competitionId}
-              className={'list-group-item' + (index % 2 === 1 ? ' list-group-item-dark' : '')}
+              key={contest.competitionId}
+              className={`list-group-item` + (index % 2 === 1 ? ` list-group-item-dark` : ``)}
             >
               <div className="d-flex justify-content-between mb-2">
-                <Link href={`/competitions/${comp.competitionId}`} className="link-primary">
-                  {comp.name}
+                <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
+                  {contest.name}
                 </Link>
                 <p className="ms-2 text-nowrap">
-                  <b>{getFormattedDate(comp.startDate, comp.endDate)}</b>
+                  <b>{getFormattedDate(contest.startDate, contest.endDate)}</b>
                 </p>
               </div>
               <div className="d-flex justify-content-between gap-3">
                 <div>
-                  {comp.type !== ContestType.Online ? (
+                  {contest.type !== ContestType.Online ? (
                     <>
-                      {comp.city}, <Country countryIso2={comp.countryIso2} swapPositions />
+                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
                     </>
                   ) : (
                     <>Online</>
                   )}
                 </div>
                 <div className="text-end">
-                  {comp.participants > 0 && (
+                  {contest.participants > 0 && (
                     <span>
-                      Participants:&nbsp;<b>{comp.participants}</b>
-                      {', '}
+                      Participants:&nbsp;<b>{contest.participants}</b>
+                      {`, `}
                     </span>
                   )}
-                  Events:&nbsp;<b>{comp.events.length}</b>
+                  Events:&nbsp;<b>{contest.events.length}</b>
                 </div>
               </div>
             </li>
@@ -82,75 +82,86 @@ const ContestsTable = async ({
             </tr>
           </thead>
           <tbody>
-            {competitions.map((comp: IContest) => (
-              <tr key={comp.competitionId}>
-                <td>{getFormattedDate(comp.startDate, comp.endDate)}</td>
+            {contests.map((contest: IContest) => (
+              <tr key={contest.competitionId}>
+                <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                 <td>
-                  <Link href={`/competitions/${comp.competitionId}`} className="link-primary">
-                    {comp.name}
+                  <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
+                    {contest.name}
                   </Link>
                 </td>
                 <td>
-                  {comp.type !== ContestType.Online && (
+                  {contest.type !== ContestType.Online && (
                     <span>
-                      {comp.city}, <Country countryIso2={comp.countryIso2} swapPositions />
+                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
                     </span>
                   )}
                 </td>
                 <td>
-                  <ContestTypeBadge type={comp.type} />
+                  <ContestTypeBadge type={contest.type} />
                 </td>
-                <td>{comp.participants || ''}</td>
-                <td>{comp.events.length}</td>
+                <td>{contest.participants || ``}</td>
+                <td>{contest.events.length}</td>
 
                 {/* THIS IS DESKTOP-ONLY */}
                 {onEditCompetition && (
                   <td className="d-flex gap-2">
                     <button
                       type="button"
-                      onClick={() => onEditCompetition(comp.competitionId)}
+                      onClick={() => onEditCompetition(contest.competitionId)}
                       className="btn btn-primary btn-sm"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
-                      onClick={() => onCopyCompetition(comp.competitionId)}
+                      onClick={() => onCopyCompetition(contest.competitionId)}
                       className="btn btn-primary btn-sm"
                     >
                       Clone
                     </button>
-                    {comp.state === ContestState.Created && isAdmin && (
+                    {contest.state === ContestState.Created &&
+                      isAdmin &&
+                      (contest.type !== ContestType.Competition || contest.compDetails) && (
                       <button
                         type="button"
-                        onClick={() => onChangeCompState(comp.competitionId, ContestState.Approved)}
+                        onClick={() => onChangeCompState(contest.competitionId, ContestState.Approved)}
                         className="btn btn-warning btn-sm"
                       >
-                        Approve
+                          Approve
                       </button>
                     )}
-                    {([ContestState.Approved, ContestState.Ongoing].includes(comp.state) || isAdmin) && (
+                    {[ContestState.Approved, ContestState.Ongoing].includes(contest.state) && (
                       <button
                         type="button"
-                        onClick={() => onPostCompResults(comp.competitionId)}
-                        className={'btn btn-sm ' + (comp.state < ContestState.Finished ? 'btn-success' : 'btn-warning')}
+                        onClick={() => onPostCompResults(contest.competitionId)}
+                        className="btn btn-sm btn-success"
                       >
-                        {comp.state < ContestState.Finished ? 'Enter Results' : 'Edit Results'}
+                        Enter Results
                       </button>
                     )}
-                    {comp.state === ContestState.Ongoing && (
+                    {contest.state > ContestState.Ongoing && isAdmin && (
                       <button
                         type="button"
-                        onClick={() => onChangeCompState(comp.competitionId, ContestState.Finished)}
+                        onClick={() => onPostCompResults(contest.competitionId)}
+                        className="btn btn-sm btn-secondary"
+                      >
+                        Edit Results
+                      </button>
+                    )}
+                    {contest.state === ContestState.Ongoing && (
+                      <button
+                        type="button"
+                        onClick={() => onChangeCompState(contest.competitionId, ContestState.Finished)}
                         className="btn btn-warning btn-sm"
                       >
                         Finish
                       </button>
                     )}
-                    {comp.state === ContestState.Finished && isAdmin && (
+                    {contest.state === ContestState.Finished && isAdmin && (
                       <button
                         type="button"
-                        onClick={() => onChangeCompState(comp.competitionId, ContestState.Published)}
+                        onClick={() => onChangeCompState(contest.competitionId, ContestState.Published)}
                         className="btn btn-warning btn-sm"
                       >
                         Publish

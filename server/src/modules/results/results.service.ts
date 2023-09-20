@@ -253,7 +253,7 @@ export class ResultsService {
 
   async createResult(createResultDto: CreateResultDto, roundId: string, user: IPartialUser): Promise<RoundDocument> {
     // getCompetition is put here deliberately, because this function also checks access rights!
-    const comp = await this.getCompetition(createResultDto.competitionId, user);
+    const comp = await this.getContest(createResultDto.competitionId, user);
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
     // Admins are allowed to edit finished comps too, so this check is necessary.
@@ -312,7 +312,7 @@ export class ResultsService {
 
   async deleteCompetitionResult(resultId: string, competitionId: string, user: IPartialUser): Promise<RoundDocument> {
     // getCompetition is put here deliberately, because this function also checks access rights!
-    const comp = await this.getCompetition(competitionId, user);
+    const comp = await this.getContest(competitionId, user);
     let result: ResultDocument;
 
     // Find result first
@@ -625,7 +625,7 @@ export class ResultsService {
     }
   }
 
-  private async getCompetition(competitionId: string, user: IPartialUser): Promise<ContestDocument> {
+  private async getContest(competitionId: string, user: IPartialUser): Promise<ContestDocument> {
     let comp: ContestDocument;
 
     try {
@@ -637,7 +637,7 @@ export class ResultsService {
     }
 
     if (!comp) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
-    else this.authService.checkAccessRightsToComp(user, comp);
+    else this.authService.checkAccessRightsToContest(user, comp);
 
     return comp;
   }

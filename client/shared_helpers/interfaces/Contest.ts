@@ -8,7 +8,7 @@ import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } fr
  * And also consider the following:
  *    (3) CompetitionForm component
  *    (4) ContestResults component
- *    (5) createCompetition method in the contest service
+ *    (5) createContest method in the contest service
  *    (6) updateCompetition method in the contest service
  */
 export interface IContest {
@@ -36,6 +36,7 @@ export interface IContest {
   mainEventId: string;
   events: IContestEvent[];
   participants?: number; // optional, because it's not needed on creation
+  // IMPORTANT: this is not set when importing a competition and must be set manually by an admin
   compDetails?: ICompetitionDetails; // competition-only
 }
 

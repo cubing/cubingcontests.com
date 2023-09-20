@@ -10,16 +10,16 @@ import { getRole } from '~/helpers/utilityFunctions';
 
 const fetchData = async (
   role: Role,
-  setCompetitions: (value: IContest[]) => void,
+  setContests: (value: IContest[]) => void,
   setPersonsTotal: (value: number) => void,
   setUsersTotal: (value: number) => void,
 ) => {
-  const { payload: competitions } = await myFetch.get('/competitions/mod', { authorize: true });
-  setCompetitions(competitions);
+  const { payload: contests } = await myFetch.get(`/competitions/mod`, { authorize: true });
+  setContests(contests);
 
   if (role === Role.Admin) {
-    const { payload: personsTotal } = await myFetch.get('/persons/total');
-    const { payload: usersTotal } = await myFetch.get('/users/total', { authorize: true });
+    const { payload: personsTotal } = await myFetch.get(`/persons/total`);
+    const { payload: usersTotal } = await myFetch.get(`/users/total`, { authorize: true });
     setPersonsTotal(personsTotal);
     setUsersTotal(usersTotal);
   }
@@ -27,7 +27,7 @@ const fetchData = async (
 
 const ModeratorDashboard = () => {
   const [role, setRole] = useState<Role>();
-  const [competitions, setCompetitions] = useState<IContest[]>();
+  const [contests, setContests] = useState<IContest[]>();
   const [personsTotal, setPersonsTotal] = useState<number>(null);
   const [usersTotal, setUsersTotal] = useState<number>(null);
 
@@ -35,12 +35,12 @@ const ModeratorDashboard = () => {
     const tempRole = getRole();
 
     setRole(tempRole);
-    fetchData(tempRole, setCompetitions, setPersonsTotal, setUsersTotal);
+    fetchData(tempRole, setContests, setPersonsTotal, setUsersTotal);
   }, []);
 
   const logOut = () => {
-    localStorage.removeItem('jwtToken');
-    window.location.href = '/';
+    localStorage.removeItem(`jwtToken`);
+    window.location.href = `/`;
   };
 
   const editCompetition = (competitionId: string) => {
@@ -66,7 +66,7 @@ const ModeratorDashboard = () => {
   return (
     <>
       <h2 className="text-center">Moderator Dashboard</h2>
-      <button type="button" className="mt-4 btn btn-danger" style={{ width: 'max-content' }} onClick={logOut}>
+      <button type="button" className="mt-4 btn btn-danger" style={{ width: `max-content` }} onClick={logOut}>
         Log out
       </button>
       <div className="my-4 d-flex gap-3 fs-5">
@@ -111,11 +111,11 @@ const ModeratorDashboard = () => {
         </p>
       )}
       <p>
-        Number of contests: <b>{competitions ? competitions.length : '?'}</b>
+        Number of contests: <b>{contests ? contests.length : `?`}</b>
       </p>
-      {competitions?.length > 0 ? (
+      {contests?.length > 0 ? (
         <ContestsTable
-          competitions={competitions}
+          contests={contests}
           onEditCompetition={editCompetition}
           onCopyCompetition={copyCompetition}
           onPostCompResults={postCompResults}
