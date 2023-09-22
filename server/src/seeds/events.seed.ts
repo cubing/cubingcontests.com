@@ -151,7 +151,7 @@ export const eventsSeed: IEvent[] = [
   // UNOFFICIAL
   ///////////////////////////////////////////////////////////////////
   {
-    eventId: '333-team-bld',
+    eventId: '333_team_bld',
     name: '3x3x3 Team-Blind',
     rank: 1000,
     format: EventFormat.Time,
@@ -200,7 +200,7 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
   },
   {
-    eventId: '333-team-factory',
+    eventId: '333_team_factory',
     name: '3x3x3 Team Factory',
     rank: 1210,
     format: EventFormat.Time,
@@ -209,7 +209,7 @@ export const eventsSeed: IEvent[] = [
     participants: 2,
   },
   {
-    eventId: '333-oh-bld-team-relay',
+    eventId: '333_oh_bld_team_relay',
     name: '3x3x3 + OH + BLD Team Relay',
     rank: 1900,
     format: EventFormat.Time,
@@ -218,7 +218,7 @@ export const eventsSeed: IEvent[] = [
     participants: 3,
   },
   {
-    eventId: '333bf-2-person-relay',
+    eventId: '333bf_2_person_relay',
     name: '3x3x3 Blindfolded 2-man Relay',
     rank: 1910,
     format: EventFormat.Time,
@@ -227,7 +227,7 @@ export const eventsSeed: IEvent[] = [
     participants: 2,
   },
   {
-    eventId: '333bf-3-person-relay',
+    eventId: '333bf_3_person_relay',
     name: '3x3x3 Blindfolded 3-man Relay',
     rank: 1920,
     format: EventFormat.Time,
@@ -236,7 +236,7 @@ export const eventsSeed: IEvent[] = [
     participants: 3,
   },
   {
-    eventId: '333bf-4-person-relay',
+    eventId: '333bf_4_person_relay',
     name: '3x3x3 Blindfolded 4-man Relay',
     rank: 1930,
     format: EventFormat.Time,
@@ -245,7 +245,7 @@ export const eventsSeed: IEvent[] = [
     participants: 4,
   },
   {
-    eventId: '333bf-8-person-relay',
+    eventId: '333bf_8_person_relay',
     name: '3x3x3 Blindfolded 8-man Relay',
     rank: 1940,
     format: EventFormat.Time,
@@ -297,7 +297,7 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
   },
   {
-    eventId: '234567relay-bld',
+    eventId: '234567relay_bld',
     name: '2x2x2-7x7x7 Relay Blindfolded',
     rank: 2200,
     format: EventFormat.Time,
@@ -305,7 +305,7 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
   },
   {
-    eventId: 'minx-bld',
+    eventId: 'minx_bld',
     name: 'Megaminx Blindfolded',
     rank: 2300,
     format: EventFormat.Time,

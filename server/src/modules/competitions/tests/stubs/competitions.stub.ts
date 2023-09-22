@@ -24,10 +24,10 @@ export const competitionsStub = (): ContestDocument[] => {
       participants: 4,
       events: [
         {
-          event: eventsSeed.find((el) => el.eventId === '333-team-bld'),
+          event: eventsSeed.find((el) => el.eventId === '333_team_bld'),
           rounds: [
             {
-              roundId: '333-team-bld-r1',
+              roundId: '333_team_bld-r1',
               competitionId: 'Munich19022023',
               date: new Date('2023-02-19T00:00:00Z'),
               roundTypeId: RoundType.Final,
@@ -36,7 +36,7 @@ export const competitionsStub = (): ContestDocument[] => {
                 {
                   // There should be an _id here too, but whatever, this is just a stub
                   competitionId: 'Munich19022023',
-                  eventId: '333-team-bld',
+                  eventId: '333_team_bld',
                   date: new Date('2023-02-19T00:00:00Z'),
                   personIds: [3, 1],
                   ranking: 1,
@@ -47,7 +47,7 @@ export const competitionsStub = (): ContestDocument[] => {
                 },
                 {
                   competitionId: 'Munich19022023',
-                  eventId: '333-team-bld',
+                  eventId: '333_team_bld',
                   date: new Date('2023-02-19T00:00:00Z'),
                   personIds: [2, 4],
                   ranking: 2,
@@ -740,10 +740,10 @@ export const competitionsStub = (): ContestDocument[] => {
           ],
         },
         {
-          event: eventsSeed.find((el) => el.eventId === '333-team-bld'),
+          event: eventsSeed.find((el) => el.eventId === '333_team_bld'),
           rounds: [
             {
-              roundId: '333-team-bld-r1',
+              roundId: '333_team_bld-r1',
               competitionId: 'Munich27062023',
               date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
@@ -751,7 +751,7 @@ export const competitionsStub = (): ContestDocument[] => {
               results: [
                 {
                   competitionId: 'Munich27062023',
-                  eventId: '333-team-bld',
+                  eventId: '333_team_bld',
                   date: new Date('2023-06-27T00:00:00Z'),
                   personIds: [3, 1],
                   ranking: 1,
@@ -763,7 +763,7 @@ export const competitionsStub = (): ContestDocument[] => {
                 },
                 {
                   competitionId: 'Munich27062023',
-                  eventId: '333-team-bld',
+                  eventId: '333_team_bld',
                   date: new Date('2023-06-27T00:00:00Z'),
                   personIds: [4, 7],
                   ranking: 2,

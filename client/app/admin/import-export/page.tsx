@@ -182,7 +182,7 @@ const ImportExportPage = () => {
 
     // Set contest events
     for (const key of Object.keys(compData.roundsByEvent)) {
-      const event = events.find((el) => el.eventId === key.replaceAll(`_`, `-`));
+      const event = events.find((el) => el.eventId === key);
       const roundsInfo = compData.roundsByEvent[key];
       const rounds: IRound[] = [];
 
@@ -216,7 +216,7 @@ const ImportExportPage = () => {
             .map((line: string) => line.trim())
             .filter((line: string) => line !== ``)
             .map((line: string): IResult => {
-              if (event.eventId !== `333-team-bld`) {
+              if (event.eventId !== `333_team_bld`) {
                 // The rankings can have mistakes, so they're skipped
                 const [ranking, name, average, best, ...attempts] = line.split(`,`);
 

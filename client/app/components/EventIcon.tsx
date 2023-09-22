@@ -3,17 +3,17 @@ import { IEvent } from '@sh/interfaces';
 import { EventGroup } from '@sh/enums';
 
 const unofficialEventIcons = [
-  'fto',
-  '333-team-bld',
-  '234567relay',
-  '333-team-factory',
-  '333-oh-bld-team-relay',
-  '333bf-2-person-relay',
-  '333bf-3-person-relay',
-  '333bf-4-person-relay',
-  '333bf-8-person-relay',
-  '666bf',
-  '777bf',
+  `fto`,
+  `333-team-bld`,
+  `234567relay`,
+  `333-team-factory`,
+  `333-oh-bld-team-relay`,
+  `333bf-2-person-relay`,
+  `333bf-3-person-relay`,
+  `333bf-4-person-relay`,
+  `333bf-8-person-relay`,
+  `666bf`,
+  `777bf`,
 ];
 
 const EventIcon = ({
@@ -26,7 +26,9 @@ const EventIcon = ({
   isActive?: boolean;
 }) => {
   const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) || event.groups.includes(EventGroup.RemovedWCA);
-  const iconExists = isOrWasWCAEvent || unofficialEventIcons.includes(event.eventId);
+  // THIS IS TEMPORARILY UNTIL THE ICON IDS ARE CHANGED
+  const tempEventId = event.eventId.replaceAll(`_`, `-`);
+  const iconExists = isOrWasWCAEvent || unofficialEventIcons.includes(tempEventId);
 
   if (!iconExists) {
     if (!onClick) return <></>;
@@ -34,22 +36,22 @@ const EventIcon = ({
     return (
       <button
         type="button"
-        className={'btn btn-light btn-sm m-1' + (isActive ? ' active' : '')}
+        className={`btn btn-light btn-sm m-1` + (isActive ? ` active` : ``)}
         onClick={() => onClick(event.eventId)}
       >
-        {event.name.replace('3x3x3', '3x3').replace('Blindfolded', 'BLD').replace('man Relay', 'man')}
+        {event.name.replace(`3x3x3`, `3x3`).replace(`Blindfolded`, `BLD`).replace(`man Relay`, `man`)}
       </button>
     );
   }
 
-  if (!onClick) return <span className={`cubing-icon ${isOrWasWCAEvent ? 'event' : 'unofficial'}-${event.eventId}`} />;
+  if (!onClick) return <span className={`cubing-icon ${isOrWasWCAEvent ? `event` : `unofficial`}-${tempEventId}`} />;
 
   return (
     <div
-      className={'cc-icon-button' + (isActive ? ' cc-icon-button_active' : '')}
+      className={`cc-icon-button` + (isActive ? ` cc-icon-button_active` : ``)}
       onClick={() => onClick(event.eventId)}
     >
-      <span className={`cubing-icon ${isOrWasWCAEvent ? 'event' : 'unofficial'}-${event.eventId}`} />
+      <span className={`cubing-icon ${isOrWasWCAEvent ? `event` : `unofficial`}-${tempEventId}`} />
     </div>
   );
 };
