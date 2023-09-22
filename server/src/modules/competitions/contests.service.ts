@@ -212,7 +212,9 @@ export class ContestsService {
     this.authService.checkAccessRightsToContest(user, contest);
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (!contest.compDetails) throw new BadRequestException('A competition without a schedule cannot be approved');
+    if (contest.type === ContestType.Competition && !contest.compDetails) {
+      throw new BadRequestException('A competition without a schedule cannot be approved');
+    }
 
     if (
       isAdmin ||
