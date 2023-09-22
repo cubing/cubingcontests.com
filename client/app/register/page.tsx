@@ -9,24 +9,24 @@ import myFetch from '~/helpers/myFetch';
 const Register = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState(``);
+  const [email, setEmail] = useState(``);
+  const [password, setPassword] = useState(``);
 
   const handleSubmit = async () => {
     const tempErrors: string[] = [];
 
-    if (!username) tempErrors.push('Please enter a username');
-    if (!email) tempErrors.push('Please enter an email address');
-    if (!password) tempErrors.push('Please enter a password');
+    if (!username) tempErrors.push(`Please enter a username`);
+    if (!email) tempErrors.push(`Please enter an email address`);
+    if (!password) tempErrors.push(`Please enter a password`);
 
     if (tempErrors.length === 0) {
-      const { errors } = await myFetch.post('/auth/register', { username, email, password }, { authorize: false });
+      const { errors } = await myFetch.post(`/auth/register`, { username, email, password }, { authorize: false });
 
       if (errors) {
         tempErrors.push(...errors);
       } else {
-        window.location.href = '/login';
+        window.location.href = `/login`;
       }
     }
 

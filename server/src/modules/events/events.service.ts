@@ -13,18 +13,6 @@ export class EventsService {
 
   async onModuleInit() {
     try {
-      await this.eventModel.updateOne({ eventId: '333-team-bld' }, { eventId: '333_team_bld' }).exec();
-      await this.eventModel.updateOne({ eventId: '333-team-factory' }, { eventId: '333_team_factory' }).exec();
-      await this.eventModel
-        .updateOne({ eventId: '333-oh-bld-team-relay' }, { eventId: '333_oh_bld_team_relay' })
-        .exec();
-      await this.eventModel.updateOne({ eventId: '333bf-2-person-relay' }, { eventId: '333bf_2_person_relay' }).exec();
-      await this.eventModel.updateOne({ eventId: '333bf-3-person-relay' }, { eventId: '333bf_3_person_relay' }).exec();
-      await this.eventModel.updateOne({ eventId: '333bf-4-person-relay' }, { eventId: '333bf_4_person_relay' }).exec();
-      await this.eventModel.updateOne({ eventId: '333bf-8-person-relay' }, { eventId: '333bf_8_person_relay' }).exec();
-      await this.eventModel.updateOne({ eventId: '234567relay-bld' }, { eventId: '234567relay_bld' }).exec();
-      await this.eventModel.updateOne({ eventId: 'minx-bld' }, { eventId: 'minx_bld' }).exec();
-
       const events: EventDocument[] = await this.eventModel.find().exec();
 
       console.log('Seeding the events collection...');

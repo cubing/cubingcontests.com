@@ -37,8 +37,6 @@ export const setRankings = async (
     if (!dontSortOrSave) await sortedResults[i].save(); // update the result in the DB
   }
 
-  console.log(sortedResults.slice(0, 10));
-
   return sortedResults;
 };
 

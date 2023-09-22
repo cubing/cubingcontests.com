@@ -38,29 +38,6 @@ export class ResultsService {
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
   ) {}
 
-  async onModuleInit() {
-    await this.resultModel.updateMany({ eventId: '333-team-bld' }, { eventId: '333_team_bld' }).exec();
-    await this.resultModel.updateMany({ eventId: '333-team-factory' }, { eventId: '333_team_factory' }).exec();
-    await this.resultModel
-      .updateMany({ eventId: '333-oh-bld-team-relay' }, { eventId: '333_oh_bld_team_relay' })
-      .exec();
-    await this.resultModel.updateMany({ eventId: '333bf-2-person-relay' }, { eventId: '333bf_2_person_relay' }).exec();
-    await this.resultModel.updateMany({ eventId: '333bf-3-person-relay' }, { eventId: '333bf_3_person_relay' }).exec();
-    await this.resultModel.updateMany({ eventId: '333bf-4-person-relay' }, { eventId: '333bf_4_person_relay' }).exec();
-    await this.resultModel.updateMany({ eventId: '333bf-8-person-relay' }, { eventId: '333bf_8_person_relay' }).exec();
-    await this.resultModel.updateMany({ eventId: '234567relay-bld' }, { eventId: '234567relay_bld' }).exec();
-    await this.resultModel.updateMany({ eventId: 'minx-bld' }, { eventId: 'minx_bld' }).exec();
-
-    await this.roundModel.updateMany({ roundId: '333-team-bld-r1' }, { roundId: '333_team_bld-r1' }).exec();
-    await this.roundModel.updateMany({ roundId: '333-team-factory-r1' }, { roundId: '333_team_factory-r1' }).exec();
-    await this.roundModel
-      .updateMany({ roundId: '333-oh-bld-team-relay-r1' }, { roundId: '333_oh_bld_team_relay-r1' })
-      .exec();
-
-    await this.roundModel.updateMany({ roundId: '333tf-r1' }, { roundId: '333_team_factory-r1' }).exec();
-    await this.roundModel.updateMany({ roundId: '333ohbfr-r1' }, { roundId: '333_oh_bld_team_relay-r1' }).exec();
-  }
-
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 

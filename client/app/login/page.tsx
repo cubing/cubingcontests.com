@@ -10,8 +10,8 @@ import Form from '@c/form/Form';
 const Login = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState(``);
+  const [password, setPassword] = useState(``);
 
   const searchParams = useSearchParams();
 
@@ -19,30 +19,30 @@ const Login = () => {
     const tempErrors: string[] = [];
 
     if (!password) {
-      tempErrors.push('Please enter a password');
-      document.getElementById('password').focus();
+      tempErrors.push(`Please enter a password`);
+      document.getElementById(`password`).focus();
     }
     if (!username) {
-      tempErrors.push('Please enter a username');
-      document.getElementById('username').focus();
+      tempErrors.push(`Please enter a username`);
+      document.getElementById(`username`).focus();
     }
 
     if (tempErrors.length === 0) {
-      const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
+      const { payload, errors } = await myFetch.post(`/auth/login`, { username, password }, { authorize: false });
 
       if (errors) {
         tempErrors.push(...errors);
       } else if (payload) {
         if (!payload.accessToken) {
-          tempErrors.push('Access token not received');
+          tempErrors.push(`Access token not received`);
         } else {
-          localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
+          localStorage.setItem(`jwtToken`, `Bearer ${payload.accessToken}`);
 
           // Redirect if there is a redirect parameter in the URL
-          const redirect = searchParams.get('redirect');
+          const redirect = searchParams.get(`redirect`);
 
           if (redirect) window.location.replace(redirect);
-          else window.location.href = '/';
+          else window.location.href = `/`;
         }
       }
     }
