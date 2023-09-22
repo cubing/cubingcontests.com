@@ -1,6 +1,6 @@
 import { compareAvgs, compareSingles, getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import { ResultDocument } from '../models/result.model';
-import { EventFormat, EventGroup } from '@sh/enums';
+import { EventFormat } from '@sh/enums';
 import { IEvent, IResult } from '@sh/interfaces';
 
 export const setRankings = async (
@@ -36,6 +36,8 @@ export const setRankings = async (
     prevResult = sortedResults[i];
     if (!dontSortOrSave) await sortedResults[i].save(); // update the result in the DB
   }
+
+  console.log(sortedResults.slice(0, 10));
 
   return sortedResults;
 };

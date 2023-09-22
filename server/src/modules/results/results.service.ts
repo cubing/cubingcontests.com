@@ -81,6 +81,9 @@ export class ResultsService {
             { $sort: { 'attempts.result': 1 } },
           ])
           .exec();
+
+        // This is necessary for setRankings to work correctly
+        for (const res of eventResults) res.best = (res.attempts as any).result;
       }
 
       const rankedResults = await setRankings(eventResults, false, true);

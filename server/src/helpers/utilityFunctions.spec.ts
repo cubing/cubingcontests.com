@@ -1,8 +1,9 @@
 import { setRankings } from './utilityFunctions';
 import { RoundDocument } from '../models/round.model';
+import { ResultDocument } from '../models/result.model';
 import { eventsSeed } from '../seeds/events.seed';
 import { unrankedRoundsStub } from '../modules/competitions/tests/stubs/unranked-rounds';
-import { getRoundRanksWithAverage } from '../../../client/shared_helpers/sharedFunctions';
+import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
 
 describe('setRankings works correctly', () => {
   const unrankedRounds = unrankedRoundsStub() as RoundDocument[];
@@ -112,5 +113,35 @@ describe('setRankings works correctly', () => {
     expect(round.results[1].ranking).toBe(2);
     expect(round.results[1].best).toBe(4913);
     expect(round.results[1].average).toBe(-1);
+  });
+
+  it('sets rankings for 3x3x3 top single results (pre-sorted) correctly', async () => {
+    const top333SingleRankings = await setRankings(
+      [
+        { best: 467 },
+        { best: 494 },
+        { best: 545 },
+        { best: 547 },
+        { best: 552 },
+        { best: 555 },
+        { best: 555 },
+        { best: 573 },
+        { best: 590 },
+        { best: 590 },
+      ] as ResultDocument[],
+      false,
+      true,
+    );
+
+    expect(top333SingleRankings[0].ranking).toBe(1);
+    expect(top333SingleRankings[1].ranking).toBe(2);
+    expect(top333SingleRankings[2].ranking).toBe(3);
+    expect(top333SingleRankings[3].ranking).toBe(4);
+    expect(top333SingleRankings[4].ranking).toBe(5);
+    expect(top333SingleRankings[5].ranking).toBe(6);
+    expect(top333SingleRankings[6].ranking).toBe(6);
+    expect(top333SingleRankings[7].ranking).toBe(8);
+    expect(top333SingleRankings[8].ranking).toBe(9);
+    expect(top333SingleRankings[9].ranking).toBe(9);
   });
 });

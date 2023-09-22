@@ -5,7 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import Button from '~/app/components/Button';
 import Form from '~/app/components/form/Form';
 import { ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { IContest, IContestEvent, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
+import { IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
