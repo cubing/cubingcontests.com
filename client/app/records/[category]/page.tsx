@@ -66,12 +66,12 @@ const Records = async ({ params }: { params: { category: string } }) => {
                 <div key={event.eventId} className="mb-3">
                   <EventTitle event={event} showIcon linkToRankings />
 
-                  <div className="d-block d-lg-none my-3 border-top border-bottom">
+                  <div className="d-block d-lg-none mt-2 mb-4 border-top border-bottom">
                     <ul className="list-group list-group-flush">
                       {rankings.map((r) => (
                         <li
                           key={r.type + r.resultId}
-                          className="d-flex flex-column gap-3 py-3 list-group-item list-group-item-dark"
+                          className="d-flex flex-column gap-2 py-3 list-group-item list-group-item-dark"
                         >
                           <div className="d-flex justify-content-between">
                             <span>

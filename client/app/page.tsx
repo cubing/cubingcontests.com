@@ -13,7 +13,7 @@ export default function Home() {
         The events are split up into multiple categories: WCA, Unofficial, and Extreme BLD. Extreme BLD events are not
         meant to be done in a competition-like setting, but instead need to be submitted individually with video
         evidence. 4x4 Blindfolded, 5x5 Blindfolded, Multi-Blind, as well as the team relay events also allow submitted
-        results. Contact {C.contactEmail} if you would like to submit a result.
+        results.
       </p>
       <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
         <Link href="/competitions" className="cc-homepage-link">
@@ -33,8 +33,8 @@ export default function Home() {
         </Link>
       </div>
       <p>
-        If you would like to host unofficial events for a WCA competition or create an unofficial competition or meetup,
-        please send an inquiry to {C.contactEmail}.
+        If you would like to host unofficial events for a WCA competition, create an unofficial competition or meetup,
+        or submit a result with video evidence, please send an inquiry to {C.contactEmail}.
       </p>
     </div>
   );
