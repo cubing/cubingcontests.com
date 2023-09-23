@@ -2,9 +2,8 @@ import { BadRequestException, Injectable, InternalServerErrorException } from '@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDocument } from '~/src/models/user.model';
-import { CreateUserDto } from './dto/create-user.dto';
 import { Role } from '@sh/enums';
-import { IPartialUser } from '~/src/helpers/interfaces/User';
+import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
 
 @Injectable()
 export class UsersService {
@@ -48,19 +47,19 @@ export class UsersService {
   }
 
   // WARNING: this expects that the password is ALREADY encrypted! That is done in the auth module.
-  async createUser(createUserDto: CreateUserDto) {
+  async createUser(newUser: IUser) {
     try {
-      const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: createUserDto.username }).exec();
+      const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: newUser.username }).exec();
       if (sameUsernameUser) {
-        throw new BadRequestException(`User with username ${createUserDto.username} already exists`);
+        throw new BadRequestException(`User with username ${newUser.username} already exists`);
       }
 
-      const sameEmailUser: UserDocument = await this.userModel.findOne({ email: createUserDto.email }).exec();
+      const sameEmailUser: UserDocument = await this.userModel.findOne({ email: newUser.email }).exec();
       if (sameEmailUser) {
-        throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
+        throw new BadRequestException(`User with email ${newUser.email} already exists`);
       }
 
-      await this.userModel.create(createUserDto);
+      await this.userModel.create(newUser);
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

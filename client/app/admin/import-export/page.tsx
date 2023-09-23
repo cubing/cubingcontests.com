@@ -126,7 +126,8 @@ const ImportExportPage = () => {
     setContestJSON(``);
     setLoadingDuringSubmit(true);
 
-    const competitionId = getContestIdFromName(competitionIdText).trim();
+    const competitionId = getContestIdFromName(competitionIdText.trim());
+    console.log(competitionId);
     const persons: IPerson[] = []; // used for results preview
     const notFoundPersonNames: string[] = [];
 

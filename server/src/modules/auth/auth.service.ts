@@ -20,7 +20,8 @@ export class AuthService {
       throw new InternalServerErrorException(`Error while creating password hash: ${err.message}`);
     }
 
-    await this.usersService.createUser(createUserDto);
+    // Give the user the user role by default
+    await this.usersService.createUser({ ...createUserDto, roles: [Role.User] });
   }
 
   // The user comes from the passport local auth guard (local strategy), which uses the validateUser

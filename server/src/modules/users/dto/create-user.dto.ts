@@ -3,7 +3,6 @@ import { IUser } from '~/src/helpers/interfaces/User';
 
 const passwordValidationMessage = `The password must satisfy the following requirements:
 
-Only alphanumeric characters and # ! @ % $ & ^ * _ - + = : ; < > ? , . /
 Minimum length of 10
 At least one lowercase letter
 At least one uppercase letter
@@ -21,8 +20,7 @@ export class CreateUserDto implements IUser {
   email: string;
 
   @IsString()
-  @MaxLength(64, { message: 'The password cannot be longer than 64 characters' })
-  @Matches(/^[a-zA-Z0-9#!@%$&^*_\-+=:;<>?,./]*$/, { message: () => '' })
+  @MaxLength(100, { message: 'The password cannot be longer than 100 characters' })
   @IsStrongPassword({ minLength: 10 }, { message: passwordValidationMessage })
   password: string;
 }

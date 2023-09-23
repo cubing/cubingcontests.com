@@ -130,7 +130,7 @@ export class ContestsService {
         ...createContestDto,
         events: contestEvents,
         createdBy: creatorPersonId,
-        state: !saveResults ? ContestState.Created : ContestState.Finished,
+        state: ContestState.Created,
         participants: !saveResults
           ? 0
           : (await this.personsService.getCompetitionParticipants({ contestEvents: contestEvents })).length,
@@ -208,20 +208,23 @@ export class ContestsService {
   }
 
   async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
-    const contest = await this.findContest(competitionId);
+    const contest = await this.findContest(competitionId, true);
     this.authService.checkAccessRightsToContest(user, contest);
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (contest.type === ContestType.Competition && !contest.compDetails) {
+    if (contest.type === ContestType.Competition && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
-    }
 
     if (
       isAdmin ||
       // Allow mods only to finish an ongoing contest
       (contest.state === ContestState.Ongoing && newState === ContestState.Finished)
     ) {
-      contest.state = newState;
+      // If the contest is set as approved and it already has results, set it as ongoing straightaway.
+      // A contest can have results before being approved if it's an imported contest.
+      if (newState === ContestState.Approved && contest.events.some((e) => e.rounds.some((r) => r.results.length > 0)))
+        contest.state = ContestState.Ongoing;
+      else contest.state = newState;
     }
 
     if (isAdmin && newState === ContestState.Published) {
