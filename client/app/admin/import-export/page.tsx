@@ -11,6 +11,7 @@ import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/help
 import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
 import EventResultsTable from '~/app/components/EventResultsTable';
 import FormTextInput from '~/app/components/form/FormTextInput';
+import FormEventSelect from '~/app/components/form/FormEventSelect';
 
 const setRankings = (results: IResult[], ranksWithAverage: boolean): IResult[] => {
   if (results.length === 0) return results;
@@ -81,6 +82,7 @@ const ImportExportPage = () => {
   const [contest, setContest] = useState<IContest>();
   const [persons, setPersons] = useState<IPerson[]>([]);
   const [contestJSON, setContestJSON] = useState(``);
+  const [selectedEventId, setSelectedEventId] = useState(``);
 
   useEffect(() => {
     fetchData(setEvents, setErrorMessages);
@@ -91,6 +93,10 @@ const ImportExportPage = () => {
       setLoadingDuringSubmit(false);
     }
   }, [errorMessages]);
+
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
 
   const importContest = async () => {
     if (contest) {
@@ -166,6 +172,7 @@ const ImportExportPage = () => {
     };
 
     if (newContest.mainEventId === `333_team_bld`) newContest.mainEventId = `333tbfo`;
+    setSelectedEventId(newContest.mainEventId);
 
     // Set organizer objects
     for (const org of wcaCompData.organisers) {
@@ -362,7 +369,16 @@ const ImportExportPage = () => {
       )}
 
       {contest?.events.length > 0 && (
-        <EventResultsTable contestEvent={contest.events[0]} persons={persons} recordTypes={[]} />
+        <>
+          <div style={{ maxWidth: `500px` }}>
+            <FormEventSelect
+              events={contest.events.map((el) => el.event)}
+              eventId={selectedEventId}
+              setEventId={setSelectedEventId}
+            />
+          </div>
+          <EventResultsTable contestEvent={contest.events[0]} persons={persons} recordTypes={[]} />
+        </>
       )}
     </>
   );

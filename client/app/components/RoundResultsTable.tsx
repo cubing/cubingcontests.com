@@ -25,6 +25,7 @@ const RoundResultsTable = ({
 }) => {
   const roundCanHaveAverage = getRoundCanHaveAverage(round.format, event);
   const roundRanksWithAverage = getRoundRanksWithAverage(round.format, event);
+  let lastRanking = 0;
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {
@@ -61,56 +62,61 @@ const RoundResultsTable = ({
           </tr>
         </thead>
         <tbody>
-          {round.results.map((result: IResult) => (
-            <tr key={result.personIds[0]}>
-              <td className="ps-2" style={getRankingHighlight(result)}>
-                {result.ranking}
-              </td>
-              <td className="d-flex flex-wrap gap-2">
-                {result.personIds.map((personId, i) => {
-                  const person = persons.find((p: IPerson) => p.personId === personId);
-                  if (!person) return <span key={personId}>(name not found)</span>;
-                  return (
-                    <span key={person.personId} className="d-flex gap-2">
-                      <Competitor person={person} />
-                      {i !== result.personIds.length - 1 && <span>&</span>}
-                    </span>
-                  );
-                })}
-              </td>
-              <td>
-                <Time result={result} event={event} recordTypes={recordTypes} />
-              </td>
-              {roundCanHaveAverage && (
+          {round.results.map((result: IResult) => {
+            const isTie = result.ranking === lastRanking;
+            lastRanking = result.ranking;
+
+            return (
+              <tr key={result.personIds[0]}>
+                <td className="ps-2" style={getRankingHighlight(result)}>
+                  <span className={isTie ? `text-secondary` : ``}>{result.ranking}</span>
+                </td>
+                <td className="d-flex flex-wrap gap-2">
+                  {result.personIds.map((personId, i) => {
+                    const person = persons.find((p: IPerson) => p.personId === personId);
+                    if (!person) return <span key={personId}>(name not found)</span>;
+                    return (
+                      <span key={person.personId} className="d-flex gap-2">
+                        <Competitor person={person} />
+                        {i !== result.personIds.length - 1 && <span>&</span>}
+                      </span>
+                    );
+                  })}
+                </td>
                 <td>
-                  <Time result={result} event={event} recordTypes={recordTypes} average />
+                  <Time result={result} event={event} recordTypes={recordTypes} />
                 </td>
-              )}
-              <td>
-                <Solves event={event} attempts={result.attempts} />
-              </td>
-              {onEditResult && (
-                <td className="py-1">
-                  <button
-                    type="button"
-                    onClick={() => onEditResult(result)}
-                    disabled={disableEditAndDelete}
-                    className="me-2 btn btn-primary btn-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteResult((result as any)._id)}
-                    disabled={disableEditAndDelete}
-                    className="btn btn-danger btn-sm"
-                  >
-                    Delete
-                  </button>
+                {roundCanHaveAverage && (
+                  <td>
+                    <Time result={result} event={event} recordTypes={recordTypes} average />
+                  </td>
+                )}
+                <td>
+                  <Solves event={event} attempts={result.attempts} />
                 </td>
-              )}
-            </tr>
-          ))}
+                {onEditResult && (
+                  <td className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => onEditResult(result)}
+                      disabled={disableEditAndDelete}
+                      className="me-2 btn btn-primary btn-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteResult((result as any)._id)}
+                      disabled={disableEditAndDelete}
+                      className="btn btn-danger btn-sm"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

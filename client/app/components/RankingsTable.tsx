@@ -16,7 +16,7 @@ const RankingsTable = ({
   topResultsRankings?: boolean;
 }) => {
   if (topResultsRankings && recordsTable) {
-    throw new Error('forAverage and topResultsRankings cannot both be true in RankingsTable');
+    throw new Error(`forAverage and topResultsRankings cannot both be true in RankingsTable`);
   }
 
   const hasComp = rankings.some((el) => el.contest);
@@ -30,7 +30,7 @@ const RankingsTable = ({
   if (rankings.length === 0) {
     return (
       <p className="mt-4 mx-2 fs-5">
-        {forAverage ? 'There are no average results for this event yet' : 'There are no results for this event yet'}
+        {forAverage ? `There are no average results for this event yet` : `There are no results for this event yet`}
       </p>
     );
   }
@@ -44,31 +44,30 @@ const RankingsTable = ({
       <table className="table table-hover table-responsive text-nowrap">
         <thead>
           <tr>
-            <th>{recordsTable ? 'Type' : '#'}</th>
-            <th>{!showAllTeammates ? 'Name' : 'Team'}</th>
+            <th>{recordsTable ? `Type` : `#`}</th>
+            <th>{!showAllTeammates ? `Name` : `Team`}</th>
             <th>Result</th>
             {!showAllTeammates && <th>Representing</th>}
             <th>Date</th>
             <th>
-              {hasComp ? 'Competition' : ''}
-              {hasComp && hasLink ? ' / ' : ''}
-              {hasLink ? 'Links' : ''}
+              {hasComp ? `Competition` : ``}
+              {hasComp && hasLink ? ` / ` : ``}
+              {hasLink ? `Links` : ``}
             </th>
-            {showTeamColumn && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
-            {showDetailsColumn && <th>{hasSolves ? 'Solves' : 'Memorization time'}</th>}
+            {showTeamColumn && <th>{event.participants === 2 ? `Teammate` : `Team`}</th>}
+            {showDetailsColumn && <th>{hasSolves ? `Solves` : `Memorization time`}</th>}
           </tr>
         </thead>
         <tbody>
           {rankings.map((ranking) => {
-            let isTiedRanking = false;
-            if (ranking.ranking === lastRanking) isTiedRanking = true;
-            else lastRanking = ranking.ranking;
+            const isTiedRanking = ranking.ranking === lastRanking;
+            lastRanking = ranking.ranking;
 
             if (recordsTable) {
               return ranking.persons.map((person, i) => (
                 <RankingRow
                   key={`${ranking.type}_${ranking.resultId}_${person.personId}`}
-                  isFirstRow={i === 0}
+                  onlyKeepPerson={i !== 0}
                   event={event}
                   ranking={ranking}
                   person={person}
@@ -85,7 +84,7 @@ const RankingsTable = ({
             return (
               <RankingRow
                 key={key}
-                isFirstRow={!isTiedRanking}
+                isTiedRanking={isTiedRanking}
                 event={event}
                 ranking={ranking}
                 // The backend sets the first person in the array as the person being ranked

@@ -11,14 +11,15 @@ import { getFormattedDate, getFormattedTime } from '~/helpers/utilityFunctions';
 import RankingLinks from './RankingLinks';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
-const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
-  if (type === 'single') return 'Single';
-  else if (type === 'average') return 'Average';
-  else if (type === 'mean') return 'Mean';
+const getRecordType = (type: `single` | `average` | `mean`): string => {
+  if (type === `single`) return `Single`;
+  else if (type === `average`) return `Average`;
+  else if (type === `mean`) return `Mean`;
 };
 
 const RankingRow = ({
-  isFirstRow,
+  isTiedRanking,
+  onlyKeepPerson = false,
   event,
   ranking,
   person,
@@ -27,7 +28,8 @@ const RankingRow = ({
   showDetailsColumn,
   forRecordsTable = false,
 }: {
-  isFirstRow: boolean;
+  isTiedRanking?: boolean;
+  onlyKeepPerson?: boolean;
   event: IEvent;
   ranking: IRanking;
   person: IPerson; // the person being ranked
@@ -37,9 +39,6 @@ const RankingRow = ({
   forRecordsTable?: boolean;
 }) => {
   const [teamExpanded, setTeamExpanded] = useState(false);
-
-  // On the records page we only want the person and country to be shown, if
-  const onlyKeepPerson = forRecordsTable && !isFirstRow;
   const firstColumnValue = ranking.ranking || getRecordType(ranking.type);
   const personsToDisplay = showAllTeammates ? ranking.persons : [person];
 
@@ -49,7 +48,7 @@ const RankingRow = ({
 
   return (
     <tr>
-      <td>{!onlyKeepPerson && <span className={!isFirstRow ? 'text-secondary' : ''}>{firstColumnValue}</span>}</td>
+      <td>{!onlyKeepPerson && <span className={isTiedRanking ? `text-secondary` : ``}>{firstColumnValue}</span>}</td>
       <td>
         <div className="d-flex flex-wrap align-items-start gap-2">
           {personsToDisplay.map((person, index) => (
@@ -78,9 +77,9 @@ const RankingRow = ({
           ) : (
             <div className="d-flex flex-column align-items-start gap-2">
               {/* The style is necessary, because the icon is too tall, so it makes the whole row taller */}
-              <span className="mb-2 text-white" style={{ height: '1.5rem', marginTop: '-4px' }}>
-                <u style={{ cursor: 'pointer' }} onClick={() => setTeamExpanded(!teamExpanded)}>
-                  {teamExpanded ? 'Collapse' : 'Expand'}
+              <span className="mb-2 text-white" style={{ height: `1.5rem`, marginTop: `-4px` }}>
+                <u style={{ cursor: `pointer` }} onClick={() => setTeamExpanded(!teamExpanded)}>
+                  {teamExpanded ? `Collapse` : `Expand`}
                 </u>
                 <span className="ms-1 fs-5">{teamExpanded ? <FaCaretDown /> : <FaCaretRight />}</span>
               </span>
