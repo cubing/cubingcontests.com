@@ -6,7 +6,7 @@ import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
 import myFetch from '~/helpers/myFetch';
 
-const Register = () => {
+const RegisterPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const [username, setUsername] = useState(``);
@@ -48,4 +48,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterPage;

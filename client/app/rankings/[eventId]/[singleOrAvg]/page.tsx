@@ -18,7 +18,7 @@ export const metadata = {
   },
 };
 
-const Rankings = async ({
+const RankingsPage = async ({
   params: { eventId, singleOrAvg },
   searchParams,
 }: {
@@ -97,4 +97,4 @@ const Rankings = async ({
   return <p className="mt-5 text-center fs-4">Error while loading the page</p>;
 };
 
-export default Rankings;
+export default RankingsPage;

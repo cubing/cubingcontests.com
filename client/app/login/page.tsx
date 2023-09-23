@@ -7,7 +7,7 @@ import myFetch from '~/helpers/myFetch';
 import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
 
-const Login = () => {
+const LoginPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const [username, setUsername] = useState(``);
@@ -64,4 +64,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

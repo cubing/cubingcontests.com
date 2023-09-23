@@ -25,7 +25,7 @@ const fetchData = async (
   }
 };
 
-const ModeratorDashboard = () => {
+const ModeratorDashboardPage = () => {
   const [role, setRole] = useState<Role>();
   const [contests, setContests] = useState<IContest[]>();
   const [personsTotal, setPersonsTotal] = useState<number>(null);
@@ -129,4 +129,4 @@ const ModeratorDashboard = () => {
   );
 };
 
-export default ModeratorDashboard;
+export default ModeratorDashboardPage;

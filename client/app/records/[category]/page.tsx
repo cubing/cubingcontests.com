@@ -23,7 +23,7 @@ export const metadata = {
   },
 };
 
-const Records = async ({ params }: { params: { category: string } }) => {
+const RecordsPage = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
   const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await myFetch.get(`/results/records/WR`, {
     revalidate: 300,
@@ -111,4 +111,4 @@ const Records = async ({ params }: { params: { category: string } }) => {
   return <p className="mt-5 text-center fs-4">Records not found</p>;
 };
 
-export default Records;
+export default RecordsPage;

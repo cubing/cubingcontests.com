@@ -13,7 +13,7 @@ import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/
 import { Role, RoundFormat } from '@sh/enums';
 import { checkErrorsBeforeSubmit, getRole, limitRequests } from '~/helpers/utilityFunctions';
 
-const SubmitResults = () => {
+const SubmitResultsPage = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
@@ -231,4 +231,4 @@ const SubmitResults = () => {
   return <Loading errorMessages={errorMessages} />;
 };
 
-export default SubmitResults;
+export default SubmitResultsPage;

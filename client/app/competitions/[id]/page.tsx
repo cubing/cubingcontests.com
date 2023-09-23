@@ -10,7 +10,7 @@ import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 import Competitor from '~/app/components/Competitor';
 
-const Competition = async ({ params }: { params: { id: string } }) => {
+const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
@@ -50,9 +50,8 @@ const Competition = async ({ params }: { params: { id: string } }) => {
 
   return (
     <ContestLayout contest={contest} activeTab="details">
-      {/* For some reason if you remove w-100, it wants to be even wider and causes horizontal scrolling :/ */}
-      <div className="row w-100 mb-4 px-2 fs-5">
-        <div className="col-md-5">
+      <div className="row mb-4 fs-5">
+        <div className="col-md-5 mx-2">
           <div className="mb-3">
             <ContestTypeBadge type={contest.type} />
           </div>
@@ -98,15 +97,17 @@ const Competition = async ({ params }: { params: { id: string } }) => {
             </p>
           )}
         </div>
+
         <hr className="d-md-none mt-2 mb-3" />
-        <div className="col-md-7">
+
+        <div className="col-md-7 mx-2">
           {isOngoing && <p className="mb-4">This contest is currently ongoing</p>}
           {contest.state === ContestState.Finished && (
             <p className="mb-4">The results for this {contestType.toLowerCase()} are currently being checked</p>
           )}
           {contest.description && (
             <p className="lh-base" style={{ whiteSpace: 'pre-wrap' }}>
-              <b>Description:</b>&#8195;{getFormattedDescription()}
+              <b>Description:</b>&#8194;{getFormattedDescription()}
             </p>
           )}
         </div>
@@ -115,4 +116,4 @@ const Competition = async ({ params }: { params: { id: string } }) => {
   );
 };
 
-export default Competition;
+export default ContestDetailsPage;

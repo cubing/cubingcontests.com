@@ -12,7 +12,7 @@ import C from '@sh/constants';
 
 const INVALID_WCA_ID_ERROR = `Please enter a valid WCA ID`;
 
-const CreatePerson = () => {
+const CreatePersonPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState(``);
   const [name, setName] = useState(``);
@@ -231,4 +231,4 @@ const CreatePerson = () => {
   );
 };
 
-export default CreatePerson;
+export default CreatePersonPage;

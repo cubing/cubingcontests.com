@@ -6,7 +6,7 @@ import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
 import EventTitle from '~/app/components/EventTitle';
 
-const ContestEvents = async ({ params }: { params: { id: string } }) => {
+const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
@@ -50,4 +50,4 @@ const ContestEvents = async ({ params }: { params: { id: string } }) => {
   );
 };
 
-export default ContestEvents;
+export default ContestEventsPage;

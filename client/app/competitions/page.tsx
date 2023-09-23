@@ -5,8 +5,7 @@ import ContestsTable from '@c/ContestsTable';
 export const metadata = {
   title: `All contests | Cubing Contests`,
   description: `List of unofficial Rubik's Cube competitions and speedcuber meetups.`,
-  keywords:
-    `rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle`,
+  keywords: `rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle`,
   icons: { icon: `/favicon.png` },
   metadataBase: new URL(`https://cubingcontests.com`),
   openGraph: {
@@ -14,7 +13,7 @@ export const metadata = {
   },
 };
 
-const Competitions = async () => {
+const ContestsPage = async () => {
   const { payload: contests } = await myFetch.get(`/competitions`, { revalidate: 60 });
 
   return (
@@ -30,4 +29,4 @@ const Competitions = async () => {
   );
 };
 
-export default Competitions;
+export default ContestsPage;
