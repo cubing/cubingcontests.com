@@ -130,7 +130,7 @@ export class ContestsService {
         ...createContestDto,
         events: contestEvents,
         createdBy: creatorPersonId,
-        state: ContestState.Created,
+        state: !saveResults ? ContestState.Created : ContestState.Finished,
         participants: !saveResults
           ? 0
           : (await this.personsService.getCompetitionParticipants({ contestEvents: contestEvents })).length,

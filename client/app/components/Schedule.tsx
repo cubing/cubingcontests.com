@@ -22,8 +22,8 @@ const Schedule = ({
     allActivities.push(
       ...room.activities.map((activity) => ({
         ...activity,
-        startTime: typeof activity.startTime === 'string' ? new Date(activity.startTime) : activity.startTime,
-        endTime: typeof activity.endTime === 'string' ? new Date(activity.endTime) : activity.endTime,
+        startTime: typeof activity.startTime === `string` ? new Date(activity.startTime) : activity.startTime,
+        endTime: typeof activity.endTime === `string` ? new Date(activity.endTime) : activity.endTime,
       })),
     );
   }
@@ -54,7 +54,7 @@ const Schedule = ({
       <h1 className="mb-4 text-center">Schedule</h1>
       {days.map((day) => (
         <div key={day.date.toString()}>
-          <h4 className="mx-2 mb-4 fw-bold">{day.date.toDateString()}</h4>
+          <h4 className="mx-2 mb-3 fw-bold">{day.date.toDateString()}</h4>
 
           <div className="flex-grow-1 mb-5 table-responsive">
             <table className="table table-hover text-nowrap">
@@ -72,17 +72,17 @@ const Schedule = ({
                 {day.activities.map((activity) => {
                   let compEvent, round;
 
-                  if (activity.activityCode !== 'other-misc') {
-                    compEvent = compEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
+                  if (activity.activityCode !== `other-misc`) {
+                    compEvent = compEvents.find((ce) => ce.event.eventId === activity.activityCode.split(`-`)[0]);
                     round = compEvent?.rounds.find((r) => r.roundId === activity.activityCode);
                   }
 
                   return (
                     <tr key={activity.id}>
-                      <td>{format(activity.startTime, 'HH:mm')}</td>
-                      <td>{format(activity.endTime, 'HH:mm')}</td>
+                      <td>{format(activity.startTime, `HH:mm`)}</td>
+                      <td>{format(activity.endTime, `HH:mm`)}</td>
                       <td>
-                        {activity.activityCode !== 'other-misc' ? (
+                        {activity.activityCode !== `other-misc` ? (
                           <span className="d-flex gap-1">
                             <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />
                             <span>{roundTypes[round.roundTypeId].label}</span>
@@ -92,7 +92,7 @@ const Schedule = ({
                         )}
                       </td>
                       <td>{rooms.find((room) => room.activities.some((a) => a.id === activity.id)).name}</td>
-                      <td>{activity.activityCode !== 'other-misc' && round ? roundFormats[round.format].label : ''}</td>
+                      <td>{activity.activityCode !== `other-misc` && round ? roundFormats[round.format].label : ``}</td>
                       {onDeleteActivity && (
                         <td>
                           <button

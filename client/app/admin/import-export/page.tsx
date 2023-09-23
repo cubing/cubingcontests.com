@@ -7,7 +7,7 @@ import Form from '~/app/components/form/Form';
 import { ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import C from '@sh/constants';
-import { getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
+import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
 import EventResultsTable from '~/app/components/EventResultsTable';
 import FormTextInput from '~/app/components/form/FormTextInput';
@@ -165,6 +165,8 @@ const ImportExportPage = () => {
       // compDetails.schedule needs to be set by an admin manually after the competition has been imported
     };
 
+    if (newContest.mainEventId === `333_team_bld`) newContest.mainEventId = `333tbfo`;
+
     // Set organizer objects
     for (const org of wcaCompData.organisers) {
       const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${org.name}`);
@@ -186,7 +188,8 @@ const ImportExportPage = () => {
 
     // Set contest events
     for (const key of Object.keys(compData.roundsByEvent)) {
-      const event = events.find((el) => el.eventId === key);
+      const ccEventId = key === `333_team_bld` ? `333tbfo` : key;
+      const event = events.find((el) => el.eventId === ccEventId);
       const roundsInfo = compData.roundsByEvent[key];
       const rounds: IRound[] = [];
 
@@ -206,49 +209,50 @@ const ImportExportPage = () => {
           }.csv`,
         );
 
-        console.log(roundData);
-
         if (errors) {
-          setErrorMessages([`Error while fetching ${event.eventId} results for ${competitionId}: ${errors[0]}`]);
+          setErrorMessages([`Error while fetching ${ccEventId} results for ${competitionId}: ${errors[0]}`]);
           return;
         }
 
+        const lines = roundData.split(/\n/);
+
         const results: IResult[] = setRankings(
-          roundData
-            .split(/\n/)
+          lines
             .slice(1)
             .map((line: string) => line.trim())
             .filter((line: string) => line !== ``)
             .map((line: string): IResult => {
-              if (event.eventId !== `333_team_bld`) {
-                // The rankings can have mistakes, so they're skipped
-                const [ranking, name, average, best, ...attempts] = line.split(`,`);
+              const fields = lines[0].split(`,`);
+              const parts = line.split(`,`);
+              const personNames = [];
+              const attempts = [];
 
-                return {
-                  competitionId,
-                  eventId: event.eventId,
-                  date,
-                  personIds: [name] as any, // personIds are set below
-                  ranking: 0,
-                  attempts: attempts.map((att) => ({ result: convertTime(att) })),
-                  best: convertTime(best),
-                  average: convertTime(average),
-                };
-              } else {
-                // The rankings can have mistakes, so they're skipped
-                const [ranking, teamName, name1, wcaId1, name2, wcaId2, average, best, ...attempts] = line.split(`,`);
-
-                return {
-                  competitionId,
-                  eventId: event.eventId,
-                  date,
-                  personIds: [`${name1}|${wcaId1}`, `${name2}|${wcaId2}`] as any, // personIds are set below
-                  ranking: 0,
-                  attempts: attempts.map((att) => ({ result: convertTime(att) })),
-                  best: convertTime(best),
-                  average: convertTime(average),
-                };
+              for (let i = 1; i < fields.length; i++) {
+                if ([`name`, `name1`].includes(fields[i])) {
+                  personNames.push(parts[i]);
+                } else if (fields[i] === `wcaID1`) {
+                  personNames[0] += `|${parts[i]}`;
+                } else if (fields[i] === `name2`) {
+                  personNames.push(parts[i]);
+                } else if (fields[i] === `wcaID2`) {
+                  personNames[1] += `|${parts[i]}`;
+                } else if (fields[i].includes(`attempt`)) {
+                  attempts.push({ result: convertTime(parts[i]) });
+                }
               }
+
+              const { best, average } = getBestAndAverage(attempts, format, event);
+
+              return {
+                competitionId,
+                eventId: ccEventId,
+                date,
+                personIds: personNames as any, // personIds are set below
+                ranking: 0,
+                attempts,
+                best,
+                average,
+              };
             }),
           getRoundRanksWithAverage(format, event),
         );
@@ -284,7 +288,7 @@ const ImportExportPage = () => {
         }
 
         rounds.push({
-          roundId: `${event.eventId}-r${i + 1}`,
+          roundId: `${ccEventId}-r${i + 1}`,
           competitionId,
           date,
           roundTypeId: getRoundType(i, roundsInfo.length),
@@ -319,6 +323,14 @@ const ImportExportPage = () => {
     setLoadingDuringSubmit(false);
   };
 
+  const cancelImport = () => {
+    setErrorMessages([]);
+    setContestJSON(``);
+    setContest(null);
+    setPersons([]);
+    setCompetitionIdText(``);
+  };
+
   return (
     <>
       <h2 className="mb-3 text-center">Import and export contests</h2>
@@ -326,7 +338,12 @@ const ImportExportPage = () => {
       <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
         <FormTextInput title="Contest name / ID" value={competitionIdText} setValue={setCompetitionIdText} />
         {contest ? (
-          <Button text="Import Contest" onClick={importContest} loading={loadingDuringSubmit} />
+          <div className="d-flex gap-3">
+            <Button text="Import Contest" onClick={importContest} loading={loadingDuringSubmit} />
+            <button type="button" className="btn btn-danger" onClick={cancelImport} disabled={loadingDuringSubmit}>
+              Cancel
+            </button>
+          </div>
         ) : (
           <Button text="Preview" onClick={previewContest} />
         )}

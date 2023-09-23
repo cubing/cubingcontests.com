@@ -40,7 +40,7 @@ import { CreateResultDto } from '@m/results/dto/create-result.dto';
 import { titleRegex, getTitleRegexOpts } from '~/src/helpers/regex';
 import C from '@sh/constants';
 
-const activityCodeRegex = /^[a-z0-9][a-z0-9-]{2,}$/;
+const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
 export class CreateContestDto implements IContest {
   @IsString()
