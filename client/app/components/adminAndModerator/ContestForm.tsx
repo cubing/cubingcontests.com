@@ -211,21 +211,21 @@ const ContestForm = ({
           setStartDate(new Date(contest.startDate));
           setEndDate(new Date(contest.endDate));
 
-          let timezone: string;
+          const setDefaultActivityTimes = (timezone: string) => {
+            setActivityStartTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 12), timezone));
+            setActivityEndTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 13), timezone));
+          };
 
           if (contest.compDetails) {
             const venue = contest.compDetails.schedule.venues[0];
-            timezone = venue.timezone;
             setRooms(venue.rooms);
             setVenueTimezone(venue.timezone);
+            setDefaultActivityTimes(venue.timezone);
           } else {
-            fetchTimezone(contest.latitudeMicrodegrees, contest.longitudeMicrodegrees).then((tz) => {
-              timezone = tz;
-            });
+            fetchTimezone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then(
+              (timezone) => setDefaultActivityTimes(timezone),
+            );
           }
-
-          setActivityStartTime(zonedTimeToUtc(addHours(getDateOnly(new Date(contest.startDate)), 12), timezone));
-          setActivityEndTime(zonedTimeToUtc(addHours(getDateOnly(new Date(contest.startDate)), 13), timezone));
           break;
         }
         case ContestType.Online: {

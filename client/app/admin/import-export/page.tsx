@@ -75,6 +75,7 @@ const fetchData = async (setEvents: (val: IEvent[]) => void, setErrorMessages: (
 const ImportExportPage = () => {
   const [events, setEvents] = useState<IEvent[]>();
   const [errorMessages, setErrorMessages] = useState([]);
+  const [successMessage, setSuccessMessage] = useState(``);
   const [competitionIdText, setCompetitionIdText] = useState(``);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [contest, setContest] = useState<IContest>();
@@ -95,6 +96,7 @@ const ImportExportPage = () => {
     if (contest) {
       setLoadingDuringSubmit(true);
       setErrorMessages([]);
+      setSuccessMessage(``);
 
       const { errors } = await myFetch.post(`/competitions?save_results=true`, contest);
 
@@ -105,6 +107,7 @@ const ImportExportPage = () => {
         setPersons([]);
         setCompetitionIdText(``);
         setContestJSON(``);
+        setSuccessMessage(`Contest successfully imported`);
       }
 
       setLoadingDuringSubmit(false);
@@ -113,6 +116,7 @@ const ImportExportPage = () => {
 
   const previewContest = async () => {
     setErrorMessages([]);
+    setSuccessMessage(``);
     setContestJSON(``);
     setLoadingDuringSubmit(true);
 
@@ -175,7 +179,7 @@ const ImportExportPage = () => {
       } else if (matches.length > 1) {
         setErrorMessages([`Multiple organizers found with the name ${org.name}`]);
         return;
-      } else {
+      } else if (!notFoundPersonNames.includes(org.name)) {
         notFoundPersonNames.push(org.name);
       }
     }
@@ -265,7 +269,7 @@ const ImportExportPage = () => {
             } else if (matches.length > 1) {
               setErrorMessages([`Multiple persons found with the name "${result.personIds[j]}"`]);
               return;
-            } else {
+            } else if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
               notFoundPersonNames.push(result.personIds[j] as any);
             }
           }
@@ -319,7 +323,7 @@ const ImportExportPage = () => {
     <>
       <h2 className="mb-3 text-center">Import and export contests</h2>
 
-      <Form errorMessages={errorMessages} hideButton>
+      <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
         <FormTextInput title="Contest name / ID" value={competitionIdText} setValue={setCompetitionIdText} />
         {contest ? (
           <Button text="Import Contest" onClick={importContest} loading={loadingDuringSubmit} />
@@ -329,9 +333,12 @@ const ImportExportPage = () => {
       </Form>
 
       {contestJSON && (
-        <div className="mx-auto mb-4" style={{ maxWidth: `900px` }}>
+        <div className="mx-auto mb-3" style={{ maxWidth: `900px` }}>
           <h3 className="mb-4 text-center">JSON</h3>
-          <p className="p-4 border rounded-4 bg-black text-white font-monospace" style={{ whiteSpace: `pre-wrap` }}>
+          <p
+            className="p-4 border rounded-4 bg-black text-white font-monospace overflow-y-auto"
+            style={{ whiteSpace: `pre-wrap`, maxHeight: `450px` }}
+          >
             {contestJSON}
           </p>
         </div>

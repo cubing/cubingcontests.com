@@ -77,7 +77,7 @@ export class UsersService {
 
   async getUsersTotal(): Promise<number> {
     try {
-      return await this.userModel.find().count().exec();
+      return await this.userModel.countDocuments().exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

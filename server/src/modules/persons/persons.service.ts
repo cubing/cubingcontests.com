@@ -79,7 +79,7 @@ export class PersonsService {
 
   async getPersonsTotal(): Promise<number> {
     try {
-      return await this.personModel.find().count().exec();
+      return await this.personModel.countDocuments().exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
