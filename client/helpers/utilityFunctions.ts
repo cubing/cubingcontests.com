@@ -182,9 +182,11 @@ export const getAttempt = (
 
     if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) return { result: null };
 
-    // Disallow submitting multi times longer than 1:00:20 (accounts for +2s), and the opposite for old style
-    if (event.eventId === `333mbf` && newAttempt.result > 362000) return { ...newAttempt, result: null };
-    else if (event.eventId === `333mbo` && newAttempt.result <= 362000) return { ...newAttempt, result: null };
+    const maxTime = Math.min(attemptedNum, 6) * 60000 + attemptedNum * 200; // accounts for +2s
+
+    // Disallow submitting multi times > max time, and <= 1 hour for old style
+    if (event.eventId === `333mbf` && newAttempt.result > maxTime) return { ...newAttempt, result: null };
+    else if (event.eventId === `333mbo` && newAttempt.result <= 360000) return { ...newAttempt, result: null };
 
     // See the IResult interface for information about how this works
     let multiOutput = ``; // DDDDTTTTTTTMMMM
