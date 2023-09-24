@@ -6,7 +6,7 @@ import Form from '@c/form/Form';
 import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
-import FormCheckbox from '../form/FormCheckbox';
+import FormCheckbox from '@c/form/FormCheckbox';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -14,13 +14,13 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [tRecordTypes, setTRecordTypes] = useState<IRecordType[]>(recordTypes);
 
   const handleSubmit = async () => {
-    console.log('New record types:', tRecordTypes);
-    const { errors } = await myFetch.post('/record-types', tRecordTypes);
+    console.log(`New record types:`, tRecordTypes);
+    const { errors } = await myFetch.post(`/record-types`, tRecordTypes);
 
     if (errors) {
       setErrorMessages(errors);
     } else {
-      window.location.href = '/mod';
+      window.location.href = `/mod`;
     }
   };
 
@@ -40,20 +40,20 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
 
   return (
     <Form
-      buttonText={recordTypes?.length > 0 ? 'Edit' : 'Create'}
+      buttonText={recordTypes?.length > 0 ? `Edit` : `Create`}
       errorMessages={errorMessages}
       handleSubmit={handleSubmit}
     >
       <>
         {tRecordTypes.map((rt) => (
           <div key={rt.wcaEquivalent} className="row mb-2">
-            <label htmlFor={rt.wcaEquivalent + '_label_input'} className="col-2 form-label">
+            <label htmlFor={rt.wcaEquivalent + `_label_input`} className="col-2 form-label">
               {rt.wcaEquivalent}&#8194;label
             </label>
             <div className="col-2">
               <input
                 type="text"
-                id={rt.wcaEquivalent + '_label_input'}
+                id={rt.wcaEquivalent + `_label_input`}
                 value={rt.label}
                 onChange={(e: any) => changeLabel(rt.wcaEquivalent, e.target.value)}
                 className="form-control"

@@ -21,13 +21,13 @@ const Tabs = ({
             {!forServerSidePage ? (
               <button
                 type="button"
-                className={'nav-link' + (activeTab === tab.value ? ' active' : '')}
+                className={`nav-link` + (activeTab === tab.value ? ` active` : ``)}
                 onClick={() => setActiveTab(tab.value)}
               >
                 {tab.title}
               </button>
             ) : (
-              <Link href={tab.route} className={'nav-link' + (activeTab === tab.value ? ' active' : '')}>
+              <Link href={tab.route} className={`nav-link` + (activeTab === tab.value ? ` active` : ``)}>
                 {tab.title}
               </Link>
             )}
