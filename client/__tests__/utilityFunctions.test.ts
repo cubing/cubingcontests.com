@@ -387,4 +387,12 @@ describe('getFormattedTime', () => {
     const attempt = Number(`9995${C.maxTime}0001`);
     expect(getFormattedTime(attempt, { event: mockMultiEvent })).toBe('5/6 Unknown time');
   });
+
+  it('formats 0:34 memo time correctly', () => {
+    expect(getFormattedTime(3400, { alwaysShowMinutes: true, showDecimals: false })).toBe('0:34');
+  });
+
+  it('formats 14:07 memo time correctly', () => {
+    expect(getFormattedTime(84700, { showDecimals: false })).toBe('14:07');
+  });
 });

@@ -38,13 +38,19 @@ export const getFormattedTime = (
     event,
     noFormatting = false,
     showMultiPoints = false,
+    showDecimals = true,
+    alwaysShowMinutes = false,
   }: {
     event?: IEvent;
     noFormatting?: boolean;
     showMultiPoints?: boolean;
+    showDecimals?: boolean; // if the time is >= 1 hour, they won't be shown regardless of this value
+    alwaysShowMinutes?: boolean;
   } = {
     noFormatting: false,
     showMultiPoints: false,
+    showDecimals: true,
+    alwaysShowMinutes: false,
   },
 ): string => {
   if (time === -1) {
@@ -74,18 +80,24 @@ export const getFormattedTime = (
       if (!noFormatting) output += `:`;
     }
 
-    if (hours > 0 || minutes > 0) {
-      if (minutes === 0) output += `00`;
+    const showMinutes = hours > 0 || minutes > 0 || alwaysShowMinutes;
+
+    if (showMinutes) {
+      if (hours > 0 && minutes === 0) output += `00`;
       else if (minutes < 10 && hours > 0) output += `0` + minutes;
       else output += minutes;
 
       if (!noFormatting) output += `:`;
     }
 
-    if (seconds < 10 && (hours > 0 || minutes > 0)) output += `0`;
+    if (seconds < 10 && showMinutes) output += `0`;
 
-    // Only times under ten minutes can have decimals (or if noFormatting = true)
-    if ((hours === 0 && minutes < 10) || noFormatting || (event && getAlwaysShowDecimals(event))) {
+    // Only times under ten minutes can have decimals, or if noFormatting = true, or if it's an event that always
+    // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
+    if (
+      ((hours === 0 && minutes < 10) || noFormatting || (event && getAlwaysShowDecimals(event) && time < 360000)) &&
+      showDecimals
+    ) {
       output += seconds.toFixed(2);
       if (noFormatting) output = Number(output.replace(`.`, ``)).toString();
     } else {
