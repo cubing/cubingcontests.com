@@ -8,20 +8,27 @@ import { IAttempt, IEvent } from '@sh/interfaces';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import C from '@sh/constants';
 
-const getIsDNSKey = (e: any): boolean => [`s`, `S`, `*`].includes(e.key);
+const getIsDNSKey = (e: any): boolean => ['s', 'S', '*'].includes(e.key);
 
-const getFormattedText = (text: string): string => {
-  let output = ``;
+const getFormattedText = (text: string, forMemo = false): string => {
+  let output = '';
+  const decimals = forMemo ? 0 : 2;
 
-  if (text === undefined) return ``; // for memo
-  else if (text === ``) return `0.00`; // for attempt result
-  else if ([`DNF`, `DNS`, `Unknown`].includes(text)) return text;
-  else if (text.length < 5) output = (parseInt(text) / 100).toFixed(2);
+  if (forMemo && text === undefined) return '0:00';
+  else if (!forMemo && text === '') return '0.00';
+  else if (['DNF', 'DNS', 'Unknown'].includes(text)) return text;
+  // Memo time formatting always requires minutes, even if they're 0
+  else if (text.length < 5 && !forMemo) output = (parseInt(text) / 100).toFixed(decimals);
   else {
-    if (text.length >= 7) output += text.slice(0, text.length - 6) + `:`; // hours
-    output += text.slice(Math.max(text.length - 6, 0), -4) + `:`; // minutes
-    const seconds = parseInt(text.slice(text.length - 4)) / 100;
-    output += (seconds < 10 ? `0` : ``) + seconds.toFixed(2); // seconds
+    if (text.length >= 7) output += text.slice(0, text.length - 6) + ':'; // hours
+    if (text.length >= 5) {
+      output += text.slice(Math.max(text.length - 6, 0), -4) + ':'; // minutes
+      const seconds = parseInt(text.slice(text.length - 4)) / 100;
+      output += (seconds < 10 ? '0' : '') + seconds.toFixed(decimals); // seconds
+    } else {
+      const seconds = Number(text.slice(0, -2));
+      output += '0:' + (seconds < 10 ? '0' : '') + seconds;
+    }
   }
 
   return output;
@@ -46,14 +53,14 @@ const AttemptInput = ({
   resetTrigger: boolean;
   allowUnknownTime?: boolean;
 }) => {
-  const [solved, setSolved] = useState(``);
-  const [attempted, setAttempted] = useState(``);
-  const [attemptText, setAttemptText] = useState(``);
-  // undefined is used as the empty value, so that it doesn't get saved in the DB if left empty
-  const [memoText, setMemoText] = useState<string | undefined>(undefined);
+  const [solved, setSolved] = useState('');
+  const [attempted, setAttempted] = useState('');
+  const [attemptText, setAttemptText] = useState('');
+  // undefined is the empty value. If left like that, the memo won't be saved in the DB.
+  const [memoText, setMemoText] = useState(undefined);
 
   const formattedAttemptText = useMemo(() => getFormattedText(attemptText), [attemptText]);
-  const formattedMemoText = useMemo(() => getFormattedText(memoText), [memoText]);
+  const formattedMemoText = useMemo(() => getFormattedText(memoText, true), [memoText]);
 
   const isInvalidAttempt = attempt.result === null || attempt.memo === null;
   const includeMemo = memoInputForBld && event.groups.includes(EventGroup.HasMemo);
@@ -158,7 +165,9 @@ const AttemptInput = ({
           setAttemptText(newAttText);
           setAttempt(getAttempt(attempt, event, newAttText, solved, attempted, memoText));
         } else if (forMemo && memoText !== undefined) {
-          const newMemoText = memoText.slice(0, -1) || undefined;
+          let newMemoText = memoText.slice(0, -3) + '00';
+          if (newMemoText === '00') newMemoText = undefined;
+          console.log(newMemoText);
           setMemoText(newMemoText);
           setAttempt(getAttempt(attempt, event, attemptText, solved, attempted, newMemoText));
         }
@@ -192,11 +201,13 @@ const AttemptInput = ({
       handleSetDNS(e);
     } else if (/^[0-9]$/.test(e.key)) {
       let text: string;
-      if (forMemo) text = memoText || ``;
+      if (forMemo) text = memoText || `00`;
       else text = isNaN(Number(attemptText)) ? `` : attemptText;
 
-      const newText = text + e.key;
-      if (e.key === `0` && text === ``) return; // don't allow entering 0 as the first digit
+      if (e.key === '0' && ['', '00'].includes(text)) return; // don't allow entering 0 as the first digit
+
+      const newText = !forMemo ? text + e.key : text.slice(0, -2) + e.key + '00';
+      console.log(newText);
 
       if (newText.length <= 2 || (newText.length <= 8 && event.format !== EventFormat.Number)) {
         const newAttempt = getAttempt(
@@ -274,7 +285,7 @@ const AttemptInput = ({
           <FormTextInput
             id={`attempt_${number}_memo`}
             value={formattedMemoText}
-            placeholder="Memo"
+            placeholder="Memo (seconds)"
             onKeyDown={(e: any) => onTimeKeyDown(e, true)}
             onBlur={() => onTimeFocusOut(true)}
             disabled={[`DNF`, `DNS`, `Unknown`].includes(formattedAttemptText)}

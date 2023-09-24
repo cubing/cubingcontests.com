@@ -30,7 +30,7 @@ module.exports = {
         omitLastInOneLineBlock: true,
       },
     ],
-    quotes: ['warn', 'backtick'],
+    quotes: 'off',
     'comma-dangle': ['error', 'always-multiline'],
     'max-len': [
       'warn',

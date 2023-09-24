@@ -19,15 +19,21 @@
   color: #aaa;
 }
 
+.cc-flag-icon {
+  width: 1.75rem;
+  margin: 0;
+}
+
+/* Override Bootstrap's styling for the outline of a focused invalid input to make it easier to distinguish from
+   other invalid inputs near it that are NOT focused (this only increases the alpha number in the rgba function) */
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-danger-rgb), 0.65);
+}
+
 /* This class is used by react datepicker */
 .react-datepicker-wrapper {
   display: block;
   width: 100%;
-}
-
-.cc-flag-icon {
-  width: 1.75rem;
-  margin: 0;
 }
 
 /* 768px corresponds to Bootstrap's md size */
