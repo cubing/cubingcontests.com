@@ -14,7 +14,7 @@ const fetchData = async (
   setCompetition: (value: IContest) => void,
   setErrorMessages: (value: string[]) => void,
 ) => {
-  const { payload: events, errors } = await myFetch.get('/events');
+  const { payload: events, errors } = await myFetch.get(`/events`);
 
   if (errors) {
     setErrorMessages(errors);
@@ -46,24 +46,24 @@ const CreateEditContestPage = () => {
 
   const searchParams = useSearchParams();
 
-  let mode: 'new' | 'edit' | 'copy' = 'new';
-  let competitionId = searchParams.get('edit_id');
+  let mode: `new` | `edit` | `copy` = `new`;
+  let competitionId = searchParams.get(`edit_id`);
 
   if (competitionId) {
-    mode = 'edit';
+    mode = `edit`;
   } else {
-    competitionId = searchParams.get('copy_id');
-    if (competitionId) mode = 'copy';
+    competitionId = searchParams.get(`copy_id`);
+    if (competitionId) mode = `copy`;
   }
 
   useEffect(() => {
     fetchData(competitionId, setEvents, setCompetition, setErrorMessages);
   }, [competitionId]);
 
-  if (events && (mode === 'new' || contest)) {
+  if (events && (mode === `new` || contest)) {
     return (
       <>
-        <h2 className="mb-4 text-center">{mode === 'edit' ? 'Edit Competition' : 'Create Competition'}</h2>
+        <h2 className="mb-4 text-center">{mode === `edit` ? `Edit Competition` : `Create Competition`}</h2>
         <ContestForm events={events} contest={contest} mode={mode} role={role} />
       </>
     );

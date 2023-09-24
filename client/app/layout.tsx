@@ -4,21 +4,20 @@ import Navbar from '@c/Navbar';
 
 // SEO
 export const metadata = {
-  title: 'Cubing Contests',
-  description: "The best place for hosting unofficial Rubik's cube competitions and speedcuber meetups.",
-  keywords:
-    "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
-  icons: { icon: '/favicon.png' },
-  metadataBase: new URL('https://cubingcontests.com'),
+  title: `Cubing Contests`,
+  description: `The best place for hosting unofficial Rubik's cube competitions and speedcuber meetups.`,
+  keywords: `rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle`,
+  icons: { icon: `/favicon.png` },
+  metadataBase: new URL(`https://cubingcontests.com`),
   openGraph: {
-    images: ['/api/cubing_contests_1.jpg'],
+    images: [`/api/cubing_contests_1.jpg`],
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body data-bs-theme="dark" className="min-vh-100 d-flex flex-column" style={{ overflowX: 'hidden' }}>
+      <body data-bs-theme="dark" className="min-vh-100 d-flex flex-column" style={{ overflowX: `hidden` }}>
         <nav className="navbar navbar-expand-lg bg-body-tertiary">
           <Navbar />
         </nav>
@@ -32,14 +31,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             href="https://github.com/dmint789/cubing-contests"
             target="_blank"
             className="d-inline-flex justify-content-center align-items-center"
-            style={{ width: '1.75rem', height: '1.75rem' }}
+            style={{ width: `1.75rem`, height: `1.75rem` }}
           >
             <svg
               width="98"
               height="96"
               xmlns="http://www.w3.org/2000/svg"
               className="flex-shrink-0"
-              style={{ transform: 'scale(0.25)' }}
+              style={{ transform: `scale(0.25)` }}
             >
               <path
                 fillRule="evenodd"

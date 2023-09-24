@@ -317,7 +317,7 @@ export const eventsSeed: IEvent[] = [
   ///////////////////////////////////////////////////////////////////
   {
     eventId: '333tbfo',
-    name: '3x3x3 Team-Blind Old Style',
+    name: '3x3x3 Team-Blind With Inspection',
     rank: 3000,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
