@@ -11,7 +11,7 @@ const ConfigureRecordTypesPage = async () => {
   const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
 
   useEffect(() => {
-    myFetch.get('/record-types', { authorize: true }).then(({ payload, errors }) => {
+    myFetch.get(`/record-types`, { authorize: true }).then(({ payload, errors }) => {
       if (errors) setErrorMessages(errors);
       else setRecordTypes(payload as IRecordType[]);
     });

@@ -28,7 +28,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
           <tbody>
             {contest.events.map((compEvent) =>
               compEvent.rounds.map((round, roundIndex) => (
-                <tr key={round.roundId} className={roundIndex !== 0 ? 'table-active' : ''}>
+                <tr key={round.roundId} className={roundIndex !== 0 ? `table-active` : ``}>
                   <td>{roundIndex === 0 && <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />}</td>
                   <td>{roundTypes[round.roundTypeId].label}</td>
                   <td>{roundFormats[round.format].label}</td>
@@ -36,7 +36,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                     <td>
                       {round.roundTypeId !== RoundType.Final &&
                         `Top ${round.proceed.value}${
-                          round.proceed.type === RoundProceed.Percentage ? '%' : ''
+                          round.proceed.type === RoundProceed.Percentage ? `%` : ``
                         } advance to next round`}
                     </td>
                   )}

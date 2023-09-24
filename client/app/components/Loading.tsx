@@ -12,10 +12,10 @@ const Loading = ({
   }
 
   return (
-    <div className={dontCenter ? 'ms-2 d-inline' : 'd-flex justify-content-center'}>
+    <div className={dontCenter ? `ms-2 d-inline` : `d-flex justify-content-center`}>
       <div
         className="spinner-border"
-        style={{ marginTop: small ? '0' : '5rem', width: small ? '1.5rem' : '4rem', height: small ? '1.5rem' : '4rem' }}
+        style={{ marginTop: small ? `0` : `5rem`, width: small ? `1.5rem` : `4rem`, height: small ? `1.5rem` : `4rem` }}
         role="status"
       >
         <span className="visually-hidden">Loading...</span>

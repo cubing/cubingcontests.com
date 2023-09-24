@@ -9,27 +9,27 @@ import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
 
 const links: INavigationItem[] = [
   {
-    title: 'Home',
-    value: 'home',
-    route: '/',
-    getIsActive: (pathname: string) => pathname === '/',
+    title: `Home`,
+    value: `home`,
+    route: `/`,
+    getIsActive: (pathname: string) => pathname === `/`,
   },
   {
-    title: 'Contests',
-    value: 'contests',
-    route: '/competitions',
-    getIsActive: (pathname: string) => pathname === '/competitions',
+    title: `Contests`,
+    value: `contests`,
+    route: `/competitions`,
+    getIsActive: (pathname: string) => pathname === `/competitions`,
   },
   {
-    title: 'Rankings',
-    value: 'rankings',
-    route: '/rankings',
+    title: `Rankings`,
+    value: `rankings`,
+    route: `/rankings`,
     getIsActive: (pathname: string) => /^\/rankings\//.test(pathname),
   },
   {
-    title: 'Records',
-    value: 'records',
-    route: '/records',
+    title: `Records`,
+    value: `records`,
+    route: `/records`,
     getIsActive: (pathname: string) => /^\/records\//.test(pathname),
   },
 ];
@@ -39,15 +39,15 @@ const NavbarItems = () => {
 
   // Whether or not the navbar menu is expanded (mobile-only)
   const [expanded, setExpanded] = useState(false);
-  // const [searchTerm, setSearchTerm] = useState<string>('');
+  // const [searchTerm, setSearchTerm] = useState<string>(``);
   // const [searchResults, setSearchResults] = useState<ISearchResult[]>([
-  //   { title: 'Meetup in Munich on June 14, 2023', url: 'http://localhost:3000/contests/Munich14062023' },
-  //   { title: 'Meetup in Munich on February 19, 2023', url: 'http://localhost:3000/contests/Munich19022023' },
+  //   { title: `Meetup in Munich on June 14, 2023`, url: `http://localhost:3000/contests/Munich14062023` },
+  //   { title: `Meetup in Munich on February 19, 2023`, url: `http://localhost:3000/contests/Munich19022023` },
   // ]);
 
   // useEffect(() => {
   //   const fetchSearchResults = async () => {
-  //     // const res = await fetch('http://localhost:5000/api/contests', {
+  //     // const res = await fetch(`http://localhost:5000/api/contests`, {
   //     //   next: { revalidate: 0 },
   //     // });
   //     // const json = await res.json();
@@ -70,12 +70,12 @@ const NavbarItems = () => {
       <button className="cc-icon-button d-lg-none" onClick={() => setExpanded(!expanded)} type="button">
         <FaBars />
       </button>
-      <div className={'navbar-collapse justify-content-end' + (expanded ? '' : ' collapse')}>
+      <div className={`navbar-collapse justify-content-end` + (expanded ? `` : ` collapse`)}>
         <ul className="navbar-nav align-items-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
           {links.map(({ route, title, getIsActive }) => (
             <li key={route} className="nav-item">
               <Link
-                className={'nav-link' + (getIsActive(pathname) ? ' active' : '')}
+                className={`nav-link` + (getIsActive(pathname) ? ` active` : ``)}
                 aria-current="page"
                 href={route}
                 onClick={() => setExpanded(false)}
@@ -95,7 +95,7 @@ const NavbarItems = () => {
           />
         </form> */}
       </div>
-      {/* {searchResults.length > 0 && searchTerm !== '' && (
+      {/* {searchResults.length > 0 && searchTerm !== `` && (
         <div className="position-absolute bottom-0 end-0 dropdown">
           <ul className="position-absolute top-0 end-0 mt-3 me-2 dropdown-menu show">
             {searchResults.map((result) => (

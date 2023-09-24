@@ -7,16 +7,16 @@ const EventTitle = ({
   showIcon = false,
   linkToRankings = false,
   noMargin = false,
-  fontSize = '3',
+  fontSize = `3`,
 }: {
   event: IEvent;
   showIcon?: boolean;
   linkToRankings?: boolean;
   noMargin?: boolean;
-  fontSize?: '1' | '2' | '3' | '4' | '5' | '6';
+  fontSize?: `1` | `2` | `3` | `4` | `5` | `6`;
 }) => {
   return (
-    <h3 className={'d-flex align-items-center gap-2 fs-' + fontSize + (noMargin ? ' m-0' : ' mx-2 mb-3')}>
+    <h3 className={`d-flex align-items-center gap-2 fs-` + fontSize + (noMargin ? ` m-0` : ` mx-2 mb-3`)}>
       {showIcon && <EventIcon event={event} />}
 
       {!linkToRankings ? (

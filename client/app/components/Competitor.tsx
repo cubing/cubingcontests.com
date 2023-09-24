@@ -4,7 +4,7 @@ import Country from './Country';
 const Competitor = ({ person, noFlag = false }: { person: IPerson; noFlag?: boolean }) => {
   if (person.wcaId)
     return (
-      <span className={noFlag ? '' : 'd-flex align-items-center gap-2'}>
+      <span className={noFlag ? `` : `d-flex align-items-center gap-2`}>
         <a href={`https://www.worldcubeassociation.org/persons/${person.wcaId}`} target="_blank">
           {person.name}
         </a>
