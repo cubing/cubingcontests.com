@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { IEvent } from '@sh/interfaces';
 import { eventCategories } from '~/helpers/eventCategories';
-import EventIcon from './EventIcon';
+import EventIcon from '@c/EventIcon';
 
 const EventButtons = ({
   events,
@@ -14,13 +14,13 @@ const EventButtons = ({
   hideCategories = false,
 }: {
   events: IEvent[];
-  singleOrAvg?: 'single' | 'average'; // mutually exclusive with onEventSelect
+  singleOrAvg?: `single` | `average`; // mutually exclusive with onEventSelect
   activeEvent?: IEvent;
   onEventSelect?: (eventId: string) => void; // mutually exclusive with singleOrAvg
   hideCategories?: boolean;
 }) => {
   if (!!onEventSelect === !!singleOrAvg) {
-    throw new Error('Error: onEventSelect and singleOrAvg are mutually exclusive props in EventButtons');
+    throw new Error(`Error: onEventSelect and singleOrAvg are mutually exclusive props in EventButtons`);
   }
 
   const [selectedCat, setSelectedCat] = useState(eventCategories.find((el) => activeEvent.groups.includes(el.group)));
@@ -37,8 +37,8 @@ const EventButtons = ({
     if (onEventSelect) {
       onEventSelect(eventId);
     } else {
-      const show = searchParams.get('show');
-      window.location.href = `/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`;
+      const show = searchParams.get(`show`);
+      window.location.href = `/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ``}`;
     }
   };
 
@@ -51,7 +51,7 @@ const EventButtons = ({
               <button
                 key={cat.value}
                 type="button"
-                className={'btn btn-primary' + (cat === selectedCat ? ' active' : '')}
+                className={`btn btn-primary` + (cat === selectedCat ? ` active` : ``)}
                 onClick={() => setSelectedCat(cat)}
               >
                 {cat.title}

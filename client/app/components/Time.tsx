@@ -22,7 +22,7 @@ const Time = ({
       {getFormattedTime(average ? result.average : result.best, { event, showMultiPoints: true })}
 
       {recordType && (
-        <span className={'badge ' + getBGClassFromColor(recordType?.color)} style={{ fontSize: '0.7rem' }}>
+        <span className={`badge ` + getBGClassFromColor(recordType?.color)} style={{ fontSize: `0.7rem` }}>
           {recordType.label}
         </span>
       )}

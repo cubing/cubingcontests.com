@@ -15,13 +15,7 @@ module.exports = {
         omitLastInOneLineBlock: true,
       },
     ],
-    quotes: [
-      'warn',
-      'backtick',
-      // {
-      //   avoidEscape: true,
-      // },
-    ],
+    quotes: ['warn', 'backtick'],
     'comma-dangle': ['error', 'always-multiline'],
     // 'max-len': [
     //   'warn',

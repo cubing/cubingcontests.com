@@ -73,7 +73,7 @@ const ResultForm = ({
 }) => {
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
-  const [personNames, setPersonNames] = useState(['']);
+  const [personNames, setPersonNames] = useState([``]);
   // If this is null, that means the option is disabled
   const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
   const [attemptsResetTrigger, setAttemptsResetTrigger] = useState(true);
@@ -96,7 +96,7 @@ const ResultForm = ({
 
   useEffect(() => {
     if (attempts.length > 0) {
-      console.log('Attempts:', attempts);
+      console.log(`Attempts:`, attempts);
 
       const { best, average } = getBestAndAverage(attempts, roundFormat, event);
       setTempResult(setResultRecords({ best, average } as IResult, recordPairs, true));
@@ -136,7 +136,7 @@ const ResultForm = ({
   // Returns true if there are errors
   const checkPersonSelectionErrors = (newSelectedPerson: IPerson): boolean => {
     if (round?.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))) {
-      setErrorMessages(["That competitor's results have already been entered"]);
+      setErrorMessages([`That competitor's results have already been entered`]);
       return true;
     }
 
@@ -153,8 +153,8 @@ const ResultForm = ({
     if (firstNullPersonIndex !== -1) {
       document.getElementById(`Competitor_${firstNullPersonIndex + 1}`)?.focus();
     } else {
-      if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
-      else document.getElementById('attempt_1').focus();
+      if (event.format === EventFormat.Multi) document.getElementById(`attempt_1_solved`).focus();
+      else document.getElementById(`attempt_1`).focus();
     }
   };
 
@@ -197,7 +197,7 @@ const ResultForm = ({
 
     if (resetCompetitors) {
       setPersons(new Array(newEvent.participants || 1).fill(null));
-      setPersonNames(new Array(newEvent.participants || 1).fill(''));
+      setPersonNames(new Array(newEvent.participants || 1).fill(``));
     }
   };
 
@@ -233,7 +233,7 @@ const ResultForm = ({
           persons={persons}
           setPersons={setPersons}
           checkCustomErrors={checkPersonSelectionErrors}
-          nextFocusTargetId={event.format !== EventFormat.Multi ? 'attempt_1' : 'attempt_1_solved'}
+          nextFocusTargetId={event.format !== EventFormat.Multi ? `attempt_1` : `attempt_1_solved`}
           setErrorMessages={setErrorMessages}
           setSuccessMessage={setSuccessMessage}
           redirectToOnAddPerson={window.location.pathname}
@@ -267,7 +267,7 @@ const ResultForm = ({
             </div>
             {roundCanHaveAverage && (
               <div className="mt-2">
-                {attempts.length === 5 ? 'Average:' : 'Mean:'}&nbsp;
+                {attempts.length === 5 ? `Average:` : `Mean:`}&nbsp;
                 <Time result={tempResult} event={event} recordTypes={recordTypes} average />
               </div>
             )}

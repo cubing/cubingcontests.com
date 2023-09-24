@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import myFetch from '~/helpers/myFetch';
 import ResultForm from './ResultForm';
-import ErrorMessages from '../ErrorMessages';
-import Button from '../Button';
+import ErrorMessages from '@c/ErrorMessages';
+import Button from '@c/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
 import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
 import { ContestState, Role } from '@sh/enums';
@@ -18,7 +18,7 @@ const PostResultsScreen = ({
   compData: IContestData;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState(``);
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
@@ -29,7 +29,7 @@ const PostResultsScreen = ({
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
 
   const currEvent = useMemo(
-    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
+    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split(`-`)[0]).event,
     [contest, round.roundId],
   );
   const recordPairs = useMemo(
@@ -40,25 +40,25 @@ const PostResultsScreen = ({
   const isEditable = role === Role.Admin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
 
   useEffect(() => {
-    console.log('Records:', recordPairsByEvent);
+    console.log(`Records:`, recordPairsByEvent);
 
     if (!isEditable) {
       if (contest.state < ContestState.Approved) {
-        setErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
+        setErrorMessages([`This contest hasn't been approved yet. Submitting results is disabled.`]);
       } else if (contest.state >= ContestState.Finished) {
-        setErrorMessages(['This contest is over. Submitting results is disabled.']);
+        setErrorMessages([`This contest is over. Submitting results is disabled.`]);
       }
     }
   }, [contest, recordPairsByEvent, isEditable]);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
-    document.getElementById('Competitor_1').focus();
+    document.getElementById(`Competitor_1`).focus();
   }, [round.roundId]);
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
-    if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
+    if (successMessage || errorMessages.some((el) => el !== ``)) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -186,7 +186,7 @@ const PostResultsScreen = ({
         <div className="col-8">
           <h2 className="mb-4 text-center">Enter results for {contest.name}</h2>
           {/* THIS STYLING IS A TEMPORARY SOLUTION!!! */}
-          <div className="overflow-y-auto" style={{ maxHeight: '650px' }}>
+          <div className="overflow-y-auto" style={{ maxHeight: `650px` }}>
             <RoundResultsTable
               round={round}
               event={currEvent}

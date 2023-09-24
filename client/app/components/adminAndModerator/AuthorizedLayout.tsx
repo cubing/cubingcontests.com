@@ -12,7 +12,7 @@ const fetchUser = async (role: Role, setAuthorized: (value: boolean) => void) =>
   });
 
   if (payload) {
-    localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
+    localStorage.setItem(`jwtToken`, `Bearer ${payload.accessToken}`);
     setAuthorized(true);
   }
 };

@@ -12,16 +12,16 @@ import { ContestEvent } from '~/src/models/contest.model';
 @Injectable()
 export class PersonsService {
   constructor(
-    @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
-    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
+    @InjectModel(`Person`) private readonly personModel: Model<PersonDocument>,
+    @InjectModel(`Round`) private readonly roundModel: Model<RoundDocument>,
   ) {}
 
-  async getPersons(searchParam: string): Promise<PersonDocument[]> {
+  async getPersons(searchParam?: string): Promise<PersonDocument[]> {
     try {
       if (!searchParam) {
         return await this.personModel.find({}, excl).exec();
       } else {
-        return await this.personModel.find({ name: { $regex: searchParam, $options: 'i' } }, excl).exec();
+        return await this.personModel.find({ name: { $regex: searchParam, $options: `i` } }, excl).exec();
       }
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -32,7 +32,7 @@ export class PersonsService {
     let queryFilter = {};
 
     if (personIds) {
-      if (typeof personIds === 'number') {
+      if (typeof personIds === `number`) {
         queryFilter = { personId: personIds };
       } else {
         queryFilter = { personId: { $in: personIds } };
@@ -60,9 +60,9 @@ export class PersonsService {
       for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
     } else {
       try {
-        compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
+        compRounds = await this.roundModel.find({ competitionId }).populate(`results`).exec();
       } catch (err) {
-        throw new InternalServerErrorException('Error while searching for contest rounds');
+        throw new InternalServerErrorException(`Error while searching for contest rounds`);
       }
     }
 
@@ -102,8 +102,8 @@ export class PersonsService {
     }
 
     if (duplicatePerson) {
-      if (createPersonDto.wcaId) throw new BadRequestException('A person with the same WCA ID already exists');
-      throw new BadRequestException('A person with the same name and country already exists');
+      if (createPersonDto.wcaId) throw new BadRequestException(`A person with the same WCA ID already exists`);
+      throw new BadRequestException(`A person with the same name and country already exists`);
     }
 
     let newestPerson: PersonDocument[];
