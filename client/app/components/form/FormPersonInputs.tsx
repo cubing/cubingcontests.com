@@ -22,7 +22,7 @@ const FormPersonInputs = ({
   checkCustomErrors,
   setErrorMessages,
   setSuccessMessage,
-  redirectToOnAddPerson = '',
+  redirectToOnAddPerson = ``,
   noGrid = false,
 }: {
   title: string;
@@ -70,7 +70,7 @@ const FormPersonInputs = ({
   };
 
   // This is called first on focus leave for the previous input and then on focus for the new input
-  const changeFocusedInput = (inputIndex: number | null, inputValue = '') => {
+  const changeFocusedInput = (inputIndex: number | null, inputValue = ``) => {
     setFocusedInput(inputIndex);
     setPersonSelection(0);
     queryMatchedPersons(inputValue);
@@ -80,7 +80,7 @@ const FormPersonInputs = ({
   const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: IPerson[]): boolean => {
     // Add new empty input if there isn't an empty one left
     if (infiniteInputs && !newPersons.some((el) => el === null)) {
-      newPersonNames.push('');
+      newPersonNames.push(``);
       newPersons.push(null);
       return true;
     }
@@ -109,7 +109,7 @@ const FormPersonInputs = ({
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
     setErrorMessages([]);
-    if (setSuccessMessage) setSuccessMessage('');
+    if (setSuccessMessage) setSuccessMessage(``);
 
     queryMatchedPersons(value);
   };
@@ -135,9 +135,9 @@ const FormPersonInputs = ({
       setFocusedInput(null);
 
       if (addNewPersonFromNewTab) {
-        open('/mod/person', '_blank');
+        open(`/mod/person`, `_blank`);
       } else {
-        if (!redirectToOnAddPerson) window.location.href = '/mod/person';
+        if (!redirectToOnAddPerson) window.location.href = `/mod/person`;
         else window.location.replace(`/mod/person?redirect=${redirectToOnAddPerson}`);
       }
     } else {
@@ -156,16 +156,16 @@ const FormPersonInputs = ({
   };
 
   const onPersonKeyDown = async (inputIndex: number, e: any) => {
-    if (e.key === 'Enter') {
+    if (e.key === `Enter`) {
       // Make sure the focused input is not empty
       if (personNames[inputIndex]) {
         selectCompetitor(inputIndex);
       }
-    } else if (e.key === 'ArrowDown') {
+    } else if (e.key === `ArrowDown`) {
       e.preventDefault();
 
       setPersonSelection(Math.min(personSelection + 1, matchedPersons.length - 1));
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === `ArrowUp`) {
       e.preventDefault();
 
       setPersonSelection(Math.max(personSelection - 1, 0));
@@ -179,7 +179,7 @@ const FormPersonInputs = ({
   return (
     <div className="row">
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? 'col-6' : ''}>
+        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? `col-6` : ``}>
           <FormTextInput
             title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
             id={`${title}_${inputIndex + 1}`}
@@ -200,8 +200,8 @@ const FormPersonInputs = ({
               {matchedPersons.map((person: IPerson, matchIndex) => (
                 <li
                   key={matchIndex}
-                  className={'list-group-item' + (matchIndex === personSelection ? ' active' : '')}
-                  style={{ cursor: 'pointer' }}
+                  className={`list-group-item` + (matchIndex === personSelection ? ` active` : ``)}
+                  style={{ cursor: `pointer` }}
                   aria-current={matchIndex === personSelection}
                   onMouseEnter={() => setPersonSelection(matchIndex)}
                   onMouseDown={() => selectCompetitor(inputIndex)}
@@ -209,10 +209,10 @@ const FormPersonInputs = ({
                   {person !== null ? (
                     <>
                       {person.name}
-                      {person.localizedName ? ` (${person.localizedName})` : ''}
+                      {person.localizedName ? ` (${person.localizedName})` : ``}
                     </>
                   ) : (
-                    '(add new person)'
+                    `(add new person)`
                   )}
                 </li>
               ))}

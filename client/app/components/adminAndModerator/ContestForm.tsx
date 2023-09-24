@@ -960,6 +960,9 @@ const ContestForm = ({
 
         {activeTab === `schedule` && (
           <>
+            {contest.state > ContestState.Created && (
+              <p className="mb-4 text-danger">The schedule cannot be edited after the competition has been approved</p>
+            )}
             <h3 className="mb-3">Rooms</h3>
             <div className="row">
               <div className="col-8">

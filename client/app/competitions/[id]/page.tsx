@@ -20,9 +20,9 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const formattedTime =
     contest.type === ContestType.Competition
       ? null
-      : format(utcToZonedTime(contest.startDate, contest.timezone || 'UTC'), 'H:mm');
+      : format(utcToZonedTime(contest.startDate, contest.timezone || `UTC`), `H:mm`);
 
-  const contestType = contestTypeOptions.find((el) => el.value === contest.type)?.label || 'ERROR';
+  const contestType = contestTypeOptions.find((el) => el.value === contest.type)?.label || `ERROR`;
   const isOngoing =
     contest.state < ContestState.Finished &&
     areIntervalsOverlapping(
@@ -34,8 +34,8 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const getFormattedDescription = () => {
     // This parses links using markdown link syntax
     const markdownLinkRegex = /(\[[^\]]*\]\(https?:\/\/[^)]*\))/g;
-    const tempString = contest.description.replace(markdownLinkRegex, ':::::$1:::::');
-    const output = tempString.split(':::::').map((part, index) =>
+    const tempString = contest.description.replace(markdownLinkRegex, `:::::$1:::::`);
+    const output = tempString.split(`:::::`).map((part, index) =>
       markdownLinkRegex.test(part) ? (
         <a key={index} href={/\((https?:\/\/[^)]*)\)/.exec(part)[1]} target="_blank">
           {/\[([^\]]*)\]/.exec(part)[1]}
@@ -59,7 +59,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
           {formattedTime && (
             <p className="mb-2">
               Starts at:&#8194;{formattedTime}
-              {contest.type === ContestType.Online ? ' (UTC)' : ''}
+              {contest.type === ContestType.Online ? ` (UTC)` : ``}
             </p>
           )}
           {contest.type !== ContestType.Online && (
@@ -74,11 +74,11 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
           )}
           {contest.contact && (
             <p className="mb-2">
-              Contact:&#8194;<span style={{ whiteSpace: 'nowrap' }}>{contest.contact}</span>
+              Contact:&#8194;<span style={{ whiteSpace: `nowrap` }}>{contest.contact}</span>
             </p>
           )}
           <p className="mb-2">
-            {contest.organizers.length > 1 ? 'Organizers' : 'Organizer'}:&#8194;
+            {contest.organizers.length > 1 ? `Organizers` : `Organizer`}:&#8194;
             {contest.organizers.map((org, index) => (
               <span key={org.personId} className="d-flex-inline">
                 {index !== 0 && <span>, </span>}
@@ -106,7 +106,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             <p className="mb-4">The results for this {contestType.toLowerCase()} are currently being checked</p>
           )}
           {contest.description && (
-            <p className="lh-base" style={{ whiteSpace: 'pre-wrap' }}>
+            <p className="lh-base" style={{ whiteSpace: `pre-wrap` }}>
               <b>Description:</b>&#8194;{getFormattedDescription()}
             </p>
           )}
