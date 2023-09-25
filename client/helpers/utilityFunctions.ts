@@ -6,6 +6,7 @@ import { getAlwaysShowDecimals, getRoundCanHaveAverage } from '@sh/sharedFunctio
 import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { roundFormatOptions } from './multipleChoiceOptions';
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
+import { IUserInfo } from './interfaces/UserInfo';
 
 export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
@@ -263,16 +264,21 @@ export const getBestAndAverage = (
   return { best, average };
 };
 
-// Returns the authorized user's role with the highest privilege
-export const getRole = (): Role => {
+// Returns the authenticated user's info
+export const getUserInfo = (): IUserInfo => {
   let role: Role;
   // Decode the JWT (only take the part after "Bearer ")
   const authorizedUser: any = jwtDecode(localStorage.getItem(`jwtToken`).split(` `)[1]);
 
   if (authorizedUser.roles.includes(Role.Admin)) role = Role.Admin;
   else if (authorizedUser.roles.includes(Role.Moderator)) role = Role.Moderator;
+  else if (authorizedUser.roles.includes(Role.User)) role = Role.User;
+  else console.error(`Unsupported user role!`);
 
-  return role;
+  return {
+    username: authorizedUser.username,
+    role,
+  };
 };
 
 // Checks if there are any errors, and if not, calls the callback function,
@@ -304,6 +310,7 @@ export const checkErrorsBeforeSubmit = (
     else if (result.attempts[i].result > 0) realResultExists = true;
   }
 
+  // SAME MESSAGE AS IN THE EQUIVALENT CHECK ON THE BACKEND
   if (requireRealResult && !realResultExists) errorMessages.push(`You cannot submit only DNF/DNS results`);
 
   if (errorMessages.length > 0) {

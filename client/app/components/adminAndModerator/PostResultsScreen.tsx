@@ -8,9 +8,9 @@ import Button from '@c/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
 import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
 import { ContestState, Role } from '@sh/enums';
-import { checkErrorsBeforeSubmit, getRole } from '~/helpers/utilityFunctions';
+import { checkErrorsBeforeSubmit, getUserInfo } from '~/helpers/utilityFunctions';
 
-const role = getRole();
+const role: Role = getUserInfo().role;
 
 const PostResultsScreen = ({
   compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent },

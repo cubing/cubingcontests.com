@@ -3,7 +3,7 @@ import RankingsTable from '~/app/components/RankingsTable';
 import { IEvent, IEventRankings } from '@sh/interfaces';
 import EventButtons from '~/app/components/EventButtons';
 import Link from 'next/link';
-import { RoundFormat } from '~/shared_helpers/enums';
+import { EventGroup, RoundFormat } from '~/shared_helpers/enums';
 import EventTitle from '~/app/components/EventTitle';
 
 // SEO
@@ -80,6 +80,12 @@ const RankingsPage = async ({
               </div>
             </div>
           </div>
+
+          {currEvent.groups.some((g) => [EventGroup.SubmissionsAllowed, EventGroup.ExtremeBLD].includes(g)) && (
+            <Link href={`/user/submit-results?eventId=${eventId}`} className="btn btn-success btn-sm">
+              Submit a result
+            </Link>
+          )}
         </div>
 
         <EventTitle event={currEvent} />

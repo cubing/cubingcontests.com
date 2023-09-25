@@ -11,7 +11,8 @@ import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import Button from '~/app/components/Button';
 import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
 import { Role, RoundFormat } from '@sh/enums';
-import { checkErrorsBeforeSubmit, getRole, limitRequests } from '~/helpers/utilityFunctions';
+import { checkErrorsBeforeSubmit, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { useSearchParams } from 'next/navigation';
 
 const SubmitResultsPage = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -31,18 +32,24 @@ const SubmitResultsPage = () => {
   const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [discussionLink, setDiscussionLink] = useState(``);
 
+  const searchParams = useSearchParams();
+
   const recordPairs = useMemo(
     () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
     [resultsSubmissionInfo, event],
   );
-  const role = useMemo(getRole, [getRole]);
+  const role = useMemo(() => getUserInfo().role, [getUserInfo]);
 
   const isAdmin = role === Role.Admin;
 
   useEffect(() => {
     fetchSubmissionInfo(new Date()).then((payload: IResultsSubmissionInfo) => {
       setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
-      setEvent(payload.events[0]);
+
+      const event = payload.events.find((el) => el.eventId === searchParams.get('eventId'));
+
+      if (event) setEvent(event);
+      else setEvent(payload.events[0]);
     });
   }, []);
 
@@ -56,7 +63,7 @@ const SubmitResultsPage = () => {
   //////////////////////////////////////////////////////////////////////////////
 
   const fetchSubmissionInfo = async (recordsUpTo: Date): Promise<IResultsSubmissionInfo> => {
-    const { payload, errors } = await myFetch.get(`/results/submission-info?records_up_to=${recordsUpTo}`, {
+    const { payload, errors } = await myFetch.get(`/results/submission-info?recordsUpTo=${recordsUpTo}`, {
       authorize: true,
     });
 
@@ -181,7 +188,7 @@ const SubmitResultsPage = () => {
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
             showOptionToKeepCompetitors
-            allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
+            isAdmin={isAdmin}
           />
           <FormDateInput
             id="date"

@@ -63,13 +63,15 @@ const doFetch = async (
       console.error(err);
       return { errors: [err?.message || 'Unknown error while parsing JSON'] };
     }
+  } else if (url.slice(url.length - 5) === '.json') {
+    json = JSON.parse(await res.text());
   }
 
   // Handle bad requests/server errors
   if (res.status >= 400) {
     // If unauthorized, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
-      localStorage.removeItem('jwtToken');
+      // localStorage.removeItem('jwtToken');
       if (!redirect) window.location.href = '/login';
       else window.location.replace(`/login?redirect=${redirect}`);
       return {};

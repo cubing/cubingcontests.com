@@ -88,7 +88,7 @@ const CreatePersonPage = () => {
     }
   };
 
-  const getWcaIdIsValid = (value = wcaId) => value && /[0-9]{4}[A-Z]{4}[0-9]{2}/.test(value);
+  const getWcaIdIsValid = (value = wcaId) => value && C.wcaIdRegex.test(value);
 
   const changeWcaId = (value: string) => {
     value = value.trim().toUpperCase();
@@ -112,18 +112,16 @@ const CreatePersonPage = () => {
               setErrorMessages([`Competitor with WCA ID ${value} not found`]);
               setNextFocusTarget(`wca_id`);
             } else {
-              const person = JSON.parse(payload);
-
-              if (!person?.name || !person?.country) {
+              if (!payload?.name || !payload?.country) {
                 setErrorMessages([`Error while getting competitor data. Please contact an admin about this error.`]);
               } else {
                 // Extract localized name
-                const stringParts = person.name.split(` (`);
+                const stringParts = payload.name.split(` (`);
                 setName(stringParts[0]);
 
                 if (stringParts.length > 1) setLocalizedName(stringParts[1].slice(0, -1)); // get rid of )
 
-                setCountryIso2(person.country);
+                setCountryIso2(payload.country);
                 setNextFocusTarget(`form_submit_button`);
               }
             }

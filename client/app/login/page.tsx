@@ -39,10 +39,10 @@ const LoginPage = () => {
           localStorage.setItem(`jwtToken`, `Bearer ${payload.accessToken}`);
 
           // Redirect if there is a redirect parameter in the URL
-          const redirect = searchParams.get(`redirect`);
+          const redirect = searchParams.get('redirect');
 
           if (redirect) window.location.replace(redirect);
-          else window.location.href = `/`;
+          else window.location.href = '/';
         }
       }
     }

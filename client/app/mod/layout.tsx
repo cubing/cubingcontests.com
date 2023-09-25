@@ -1,9 +1,9 @@
 'use client';
 
+import AuthorizedLayout from '@c/AuthorizedLayout';
 import { Role } from '@sh/enums';
-import AuthorizedLayout from '@c/adminAndModerator/AuthorizedLayout';
 
-// This layout is almost the same as the admin layout
+// This layout is almost the same as the admin and user layouts
 
 const ModLayout = ({ children }: { children: React.ReactNode }) => {
   return <AuthorizedLayout role={Role.Moderator}>{children}</AuthorizedLayout>;

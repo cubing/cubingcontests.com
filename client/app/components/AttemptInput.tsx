@@ -167,7 +167,7 @@ const AttemptInput = ({
         } else if (forMemo && memoText !== undefined) {
           let newMemoText = memoText.slice(0, -3) + '00';
           if (newMemoText === '00') newMemoText = undefined;
-          console.log(newMemoText);
+
           setMemoText(newMemoText);
           setAttempt(getAttempt(attempt, event, attemptText, solved, attempted, newMemoText));
         }
@@ -207,7 +207,6 @@ const AttemptInput = ({
       if (e.key === '0' && ['', '00'].includes(text)) return; // don't allow entering 0 as the first digit
 
       const newText = !forMemo ? text + e.key : text.slice(0, -2) + e.key + '00';
-      console.log(newText);
 
       if (newText.length <= 2 || (newText.length <= 8 && event.format !== EventFormat.Number)) {
         const newAttempt = getAttempt(
