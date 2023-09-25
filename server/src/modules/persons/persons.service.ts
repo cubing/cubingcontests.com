@@ -46,6 +46,14 @@ export class PersonsService {
     }
   }
 
+  async getPersonByWcaId(wcaId: string): Promise<PersonDocument> {
+    try {
+      return await this.personModel.findOne({ wcaId }).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   async getCompetitionParticipants({
     competitionId,
     contestEvents,
@@ -85,7 +93,7 @@ export class PersonsService {
     }
   }
 
-  async createPerson(createPersonDto: CreatePersonDto, user: IPartialUser) {
+  async createPerson(createPersonDto: CreatePersonDto, user: IPartialUser): Promise<PersonDocument> {
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 
@@ -122,7 +130,7 @@ export class PersonsService {
 
     try {
       console.log(`Creating new person with name ${newPerson.name}`);
-      await this.personModel.create(newPerson);
+      return await this.personModel.create(newPerson);
     } catch (err) {
       throw new InternalServerErrorException(
         `Error while creating new person with name ${createPersonDto.name}: ${err.message}`,

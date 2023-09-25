@@ -24,7 +24,7 @@ const Button = ({
       {!loading ? (
         text
       ) : (
-        <div style={{ width: `3.15rem` }}>
+        <div style={{ width: '3.15rem' }}>
           <Loading small />
         </div>
       )}

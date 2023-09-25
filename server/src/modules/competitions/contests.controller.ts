@@ -40,7 +40,7 @@ export class ContestsController {
     return await this.service.getModContests(req.user);
   }
 
-  // GET /competitions/timezone
+  // GET /competitions/timezone?latitude=...&longitude=...
   @Get('timezone')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
@@ -53,30 +53,30 @@ export class ContestsController {
     return { timezone: find(latitude, longitude)[0] };
   }
 
-  // GET /competitions/:competition_id
-  @Get(':competition_id')
-  async getContest(@Param('competition_id') competitionId: string) {
+  // GET /competitions/:competitionId
+  @Get(':competitionId')
+  async getContest(@Param('competitionId') competitionId: string) {
     console.log(`Getting contest with id ${competitionId}`);
     return await this.service.getContest(competitionId);
   }
 
-  // GET /competitions/mod/:competition_id
-  @Get('mod/:competition_id')
+  // GET /competitions/mod/:competitionId
+  @Get('mod/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModCompetition(@Param('competition_id') competitionId: string, @Request() req: any) {
+  async getModCompetition(@Param('competitionId') competitionId: string, @Request() req: any) {
     console.log(`Getting contest with id ${competitionId} with moderator info`);
     return await this.service.getContest(competitionId, req.user);
   }
 
-  // POST /competitions?save_results=true
+  // POST /competitions?saveResults=true
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async createContest(
     @Request() req: any, // this is passed in by the guards
     @Body(new ValidationPipe()) createContestDto: CreateContestDto,
-    @Query('save_results') saveResults = false,
+    @Query('saveResults') saveResults = false,
   ) {
     console.log(`Creating contest ${createContestDto.competitionId}`);
 
@@ -87,12 +87,12 @@ export class ContestsController {
     );
   }
 
-  // PATCH /competitions/:competition-id?action=...
-  @Patch(':competition_id')
+  // PATCH /competitions/:competitionId?action=...
+  @Patch(':competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async updateContest(
-    @Param('competition_id') competitionId: string,
+    @Param('competitionId') competitionId: string,
     @Query('action') action: 'update' | 'change_state',
     @Body(new ValidationPipe()) updateContestDto: UpdateContestDto,
     @Request() req: any, // this is passed in by the guards

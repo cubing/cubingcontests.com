@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
@@ -407,8 +407,18 @@ export class ResultsService {
   }
 
   async submitResult(createResultDto: CreateResultDto, user: IPartialUser) {
-    if (!createResultDto.videoLink && !user.roles.includes(Role.Admin))
-      throw new BadRequestException(`Please enter a video link`);
+    const isAdmin = user.roles.includes(Role.Admin);
+
+    // Disallow admin-only features
+    if (!isAdmin) {
+      if (!createResultDto.videoLink) throw new UnauthorizedException(`Please enter a video link`);
+      if (createResultDto.attempts.some((a) => a.result === C.maxTime))
+        throw new UnauthorizedException(`You are not authorized to set unknown time`);
+    }
+
+    // SAME MESSAGE AS IN THE EQUIVALENT CHECK ON THE FRONTEND
+    if (!createResultDto.attempts.some((a) => a.result > 0))
+      throw new BadRequestException(`You cannot submit only DNF/DNS results`);
 
     if (createResultDto.videoLink) {
       let duplicateResult: ResultDocument;
@@ -424,7 +434,7 @@ export class ResultsService {
 
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
-    if (!user.roles.includes(Role.Admin)) createResultDto.unapproved = true;
+    if (!isAdmin) createResultDto.unapproved = true;
 
     // The date is passed in as an ISO date string and may include time too, so the time must be removed
     createResultDto.date = getDateOnly(new Date(createResultDto.date));

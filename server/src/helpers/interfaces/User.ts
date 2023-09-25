@@ -4,9 +4,7 @@ export interface IPartialUser {
   _id?: unknown;
   personId?: number; // assigned manually by an admin
   username: string;
-  // Optional, because roles are not assigned on creation; they are assigned manually.
-  // This is REQUIRED in the user model.
-  roles?: Role[];
+  roles?: Role[]; // optional, because it's not needed for the create DTO, it's set by the backend automatically
 }
 
 export interface IUser extends IPartialUser {

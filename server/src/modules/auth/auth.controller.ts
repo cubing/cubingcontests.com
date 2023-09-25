@@ -1,4 +1,17 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Request,
+  UnauthorizedException,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { LocalAuthGuard } from '~/src/guards/local-auth.guard';
@@ -11,11 +24,13 @@ import { Role } from '@sh/enums';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  // POST /auth/register
   @Post('register')
   async register(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
     return await this.authService.register(createUserDto);
   }
 
+  // POST /auth/login
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @UseGuards(LocalAuthGuard)
@@ -23,17 +38,14 @@ export class AuthController {
     return await this.authService.login(req.user);
   }
 
-  @Get('validateadmin')
+  // GET /auth/validate/:role
+  @Get('validate/:role')
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
-  async validateAdmin(@Request() req: any) {
-    return await this.authService.revalidate(req.user);
-  }
+  @Roles(Role.Admin, Role.Moderator, Role.User)
+  async validate(@Param('role') role: Role, @Request() req: any) {
+    // Return refreshed JWT
+    if (req.user.roles.includes(role)) return await this.authService.revalidate(req.user);
 
-  @Get('validatemod')
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Moderator)
-  async validateMod(@Request() req: any) {
-    return await this.authService.revalidate(req.user);
+    throw new UnauthorizedException();
   }
 }

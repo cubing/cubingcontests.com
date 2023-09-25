@@ -6,7 +6,7 @@ import myFetch from '~/helpers/myFetch';
 import Loading from '@c/Loading';
 import ContestForm from '~/app/components/adminAndModerator/ContestForm';
 import { IContest, IContestData, IEvent } from '@sh/interfaces';
-import { getRole } from '~/helpers/utilityFunctions';
+import { getUserInfo } from '~/helpers/utilityFunctions';
 
 const fetchData = async (
   competitionId: string,
@@ -42,7 +42,7 @@ const CreateEditContestPage = () => {
   const [events, setEvents] = useState<IEvent[]>();
   const [contest, setCompetition] = useState<IContest>();
 
-  const role = useMemo(getRole, [getRole]);
+  const role = useMemo(() => getUserInfo().role, [getUserInfo]);
 
   const searchParams = useSearchParams();
 

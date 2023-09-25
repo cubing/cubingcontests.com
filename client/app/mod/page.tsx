@@ -6,7 +6,7 @@ import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
 import { ContestState, Role } from '@sh/enums';
 import { IContest } from '~/shared_helpers/interfaces';
-import { getRole } from '~/helpers/utilityFunctions';
+import { getUserInfo } from '~/helpers/utilityFunctions';
 
 const fetchData = async (
   role: Role,
@@ -32,7 +32,7 @@ const ModeratorDashboardPage = () => {
   const [usersTotal, setUsersTotal] = useState<number>(null);
 
   useEffect(() => {
-    const tempRole = getRole();
+    const tempRole: Role = getUserInfo().role;
 
     setRole(tempRole);
     fetchData(tempRole, setContests, setPersonsTotal, setUsersTotal);
@@ -70,32 +70,22 @@ const ModeratorDashboardPage = () => {
         Log out
       </button>
       <div className="my-4 d-flex gap-3 fs-5">
-        <Link href="/mod/competition">
-          <button type="button" className="btn btn-success">
-            Create new contest
-          </button>
+        <Link href="/mod/competition" className="btn btn-success">
+          Create new contest
         </Link>
-        <Link href="/mod/person">
-          <button type="button" className="btn btn-success">
-            Add competitors
-          </button>
+        <Link href="/mod/person" className="btn btn-success">
+          Add competitors
+        </Link>
+        <Link href="/user/submit-results" className="btn btn-success">
+          Submit results
         </Link>
         {role === Role.Admin && (
           <>
-            <Link href="/admin/submit-results">
-              <button type="button" className="btn btn-success">
-                Submit results
-              </button>
+            <Link href="/admin/import-export" className="btn btn-warning">
+              Import/Export
             </Link>
-            <Link href="/admin/import-export">
-              <button type="button" className="btn btn-warning">
-                Import/Export
-              </button>
-            </Link>
-            <Link href="/admin/record-types">
-              <button type="button" className="btn btn-secondary">
-                Configure record types
-              </button>
+            <Link href="/admin/record-types" className="btn btn-secondary">
+              Configure record types
             </Link>
           </>
         )}

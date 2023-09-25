@@ -43,7 +43,7 @@ const ResultForm = ({
   roundFormat,
   setRoundFormat,
   showOptionToKeepCompetitors = false,
-  allowUnknownTime = false,
+  isAdmin = false,
 }: {
   event: IEvent;
   persons: IPerson[];
@@ -69,11 +69,11 @@ const ResultForm = ({
   roundFormat?: RoundFormat;
   setRoundFormat?: (val: RoundFormat) => void;
   showOptionToKeepCompetitors?: boolean;
-  allowUnknownTime?: boolean;
+  isAdmin?: boolean;
 }) => {
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
-  const [personNames, setPersonNames] = useState([``]);
+  const [personNames, setPersonNames] = useState(['']);
   // If this is null, that means the option is disabled
   const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
   const [attemptsResetTrigger, setAttemptsResetTrigger] = useState(true);
@@ -89,7 +89,9 @@ const ResultForm = ({
 
   useEffect(() => {
     // Set persons names if there are no null persons (needed for the edit result feature on PostResultsScreen)
-    if (!persons.some((el) => el === null)) setPersonNames(persons.map((el) => el.name));
+    if (!persons.some((el) => el === null)) {
+      setPersonNames(persons.map((el) => el.name));
+    }
 
     focusFirstInput();
   }, [persons, roundFormat, event]);
@@ -197,7 +199,7 @@ const ResultForm = ({
 
     if (resetCompetitors) {
       setPersons(new Array(newEvent.participants || 1).fill(null));
-      setPersonNames(new Array(newEvent.participants || 1).fill(``));
+      setPersonNames(new Array(newEvent.participants || 1).fill(''));
     }
   };
 
@@ -253,7 +255,7 @@ const ResultForm = ({
           focusNext={() => focusNext(i)}
           memoInputForBld={forSubmitResultsPage}
           resetTrigger={attemptsResetTrigger}
-          allowUnknownTime={allowUnknownTime}
+          allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
         />
       ))}
       <div className="mb-3">

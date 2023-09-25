@@ -30,4 +30,15 @@ export class PersonsController {
   async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto, @Request() req: any) {
     return await this.personsService.createPerson(createPersonDto, req.user);
   }
+
+  // POST /persons/create-or-get
+  @Post('create-or-get')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.User)
+  async createOrGetPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto, @Request() req: any) {
+    const person = await this.personsService.getPersonByWcaId(createPersonDto.wcaId);
+
+    if (person) return person;
+    else return await this.personsService.createPerson(createPersonDto, req.user);
+  }
 }

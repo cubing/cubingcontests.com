@@ -97,7 +97,9 @@ const ContestForm = ({
   const filteredEvents = useMemo(() => {
     const newFiltEv = events.filter(
       (ev) =>
-        ev.groups.some((g) => [EventGroup.WCA, EventGroup.Unofficial].includes(g)) &&
+        (ev.groups.some((g) => [EventGroup.WCA, EventGroup.Unofficial].includes(g)) ||
+          // Admins are allowed to select removed events too
+          (isAdmin && ev.groups.some((g) => g === EventGroup.Removed))) &&
         (type === ContestType.Meetup || !ev.groups.includes(EventGroup.MeetupOnly)),
     );
 

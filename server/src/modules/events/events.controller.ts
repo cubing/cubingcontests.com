@@ -10,16 +10,11 @@ import { CreateEventDto } from './dto/create-event.dto';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  // GET /events?submission_based=true
+  // GET /events
   @Get()
-  async getEvents(@Query('submission_based') submissionBased?: boolean) {
-    if (!submissionBased) {
-      console.log('Getting all events');
-      return await this.eventsService.getEvents();
-    } else {
-      console.log('Getting all events that allow submissions');
-      return await this.eventsService.getSubmissionBasedEvents();
-    }
+  async getEvents() {
+    console.log('Getting all events');
+    return await this.eventsService.getEvents();
   }
 
   // POST /events

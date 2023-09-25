@@ -131,12 +131,14 @@ const ImportExportPage = () => {
     const persons: IPerson[] = []; // used for results preview
     const notFoundPersonNames: string[] = [];
 
-    const { payload: p1, errors: e1 } = await myFetch.get(
+    const { payload: compData, errors: e1 } = await myFetch.get(
       `https://raw.githubusercontent.com/cubing/unofficial.cubing.net/main/data/competitions/${competitionId}/competition-info.json`,
     );
-    const { payload: p2, errors: e2 } = await myFetch.get(`${C.wcaApiBase}/competitions/${competitionId}.json`);
+    const { payload: wcaCompData, errors: e2 } = await myFetch.get(
+      `${C.wcaApiBase}/competitions/${competitionId}.json`,
+    );
     // The WCIF data from the endpoint above doesn't include the competitor limit
-    const { payload: p3, errors: e3 } = await myFetch.get(
+    const { payload, errors: e3 } = await myFetch.get(
       `https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}`,
     );
 
@@ -146,9 +148,7 @@ const ImportExportPage = () => {
       return;
     }
 
-    const compData = JSON.parse(p1);
-    const wcaCompData = JSON.parse(p2);
-    const competitorLimit = p3.competitor_limit;
+    const competitorLimit = payload.competitor_limit;
     const startDate = new Date(wcaCompData.date.from);
     const endDate = new Date(wcaCompData.date.till);
 

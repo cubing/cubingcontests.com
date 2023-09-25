@@ -22,29 +22,29 @@ export class ResultsController {
     return await this.service.getRankings(eventId, singleOrAvg === 'average', show);
   }
 
-  // GET /results/records/:wca_equivalent
-  @Get('records/:wca_equivalent')
-  async getRecords(@Param('wca_equivalent') wcaEquivalent: string) {
+  // GET /results/records/:wcaEquivalent
+  @Get('records/:wcaEquivalent')
+  async getRecords(@Param('wcaEquivalent') wcaEquivalent: string) {
     console.log(`Getting ${wcaEquivalent} records`);
     return await this.service.getRecords(wcaEquivalent);
   }
 
-  // GET /results/submission-info(?records_up_to=...)
+  // GET /results/submission-info(?recordsUpTo=...)
   @Get('submission-info')
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
-  async getSubmissionInfo(@Query('records_up_to') recordsUpTo: string | Date) {
+  @Roles(Role.User)
+  async getSubmissionInfo(@Query('recordsUpTo') recordsUpTo: string | Date) {
     recordsUpTo = new Date(recordsUpTo);
     console.log(`Getting results submission info with records up to ${format(recordsUpTo, 'd MMM yyyy')}`);
     return await this.service.getSubmissionInfo(recordsUpTo);
   }
 
-  // POST /results/:round_id
-  @Post(':round_id')
+  // POST /results/:roundId
+  @Post(':roundId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async createResult(
-    @Param('round_id') roundId: string,
+    @Param('roundId') roundId: string,
     @Body(new ValidationPipe()) createResultDto: CreateResultDto,
     @Request() req: any,
   ) {
@@ -52,13 +52,13 @@ export class ResultsController {
     return await this.service.createResult(createResultDto, roundId, req.user);
   }
 
-  // DELETE /results/:competition_id/:result_id
-  @Delete(':competition_id/:result_id')
+  // DELETE /results/:competitionId/:resultId
+  @Delete(':competitionId/:resultId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async deleteCompetitionResult(
-    @Param('competition_id') competitionId: string,
-    @Param('result_id') resultId: string,
+    @Param('competitionId') competitionId: string,
+    @Param('resultId') resultId: string,
     @Request() req: any,
   ) {
     console.log(`Deleting result with id ${resultId} from contest ${competitionId}`);
@@ -68,7 +68,7 @@ export class ResultsController {
   // POST /results
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
+  @Roles(Role.User)
   async submitResult(@Body(new ValidationPipe()) createResultDto: CreateResultDto, @Request() req: any) {
     console.log(`Submitting new result for event ${createResultDto.eventId}`);
     return await this.service.submitResult(createResultDto, req.user);
