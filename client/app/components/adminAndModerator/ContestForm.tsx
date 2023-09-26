@@ -17,7 +17,7 @@ import FormPersonInputs from '../form/FormPersonInputs';
 import Tabs from '../Tabs';
 import Schedule from '../Schedule';
 import { IContest, ICompetitionDetails, IContestEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
-import { Color, ContestState, ContestType, EventGroup, Role, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import { Color, ContestState, ContestType, EventGroup, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
 import { colorOptions, contestTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
@@ -265,14 +265,6 @@ const ContestForm = ({
       document.getElementById(`Organizer_${organizerNames.length}`)?.focus();
     }
   }, [organizers]);
-
-  // TEMPORARY FOR DEBUGGING!!!
-  useEffect(() => {
-    if (startDate) console.log(startDate.toUTCString());
-  }, [startDate]);
-  useEffect(() => {
-    console.log(rooms);
-  }, [rooms]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS

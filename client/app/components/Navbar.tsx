@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { FaBars } from 'react-icons/fa';
@@ -8,12 +8,10 @@ import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 // import { ISearchResult } from '~/helpers/interfaces';
 
-const userInfo: IUserInfo = getUserInfo();
-
 const NavbarItems = () => {
   const pathname = usePathname();
 
-  // Whether or not the navbar menu is expanded (mobile-only)
+  const [userInfo, setUserInfo] = useState<IUserInfo>();
   const [expanded, setExpanded] = useState(false);
   const [resultsExpanded, setResultsExpanded] = useState(false);
   const [userExpanded, setUserExpanded] = useState(false);
@@ -22,6 +20,9 @@ const NavbarItems = () => {
   //   { title: `Meetup in Munich on June 14, 2023`, url: `http://localhost:3000/contests/Munich14062023` },
   //   { title: `Meetup in Munich on February 19, 2023`, url: `http://localhost:3000/contests/Munich19022023` },
   // ]);
+
+  // This is done to avoid the hydration error on SSR pages
+  useEffect(() => setUserInfo(getUserInfo()), [getUserInfo]);
 
   // useEffect(() => {
   //   const fetchSearchResults = async () => {
@@ -137,15 +138,16 @@ const NavbarItems = () => {
               <ul className={`dropdown-menu py-0 px-3 px-lg-2 ${userExpanded ? 'show' : ''}`}>
                 {userInfo.isMod && (
                   <li>
-                    <Link
-                      className={`nav-link ${pathname === '/mod' ? ' active' : ''}`}
-                      href="/mod"
-                      onClick={collapseAll}
-                    >
+                    <Link className="nav-link" href="/mod" onClick={collapseAll}>
                       Mod Dashboard
                     </Link>
                   </li>
                 )}
+                <li>
+                  <Link className="nav-link" href="/user/submit-results" onClick={collapseAll}>
+                    Submit Results
+                  </Link>
+                </li>
                 <li>
                   <button type="button" className="nav-link" onClick={logOut}>
                     Log Out

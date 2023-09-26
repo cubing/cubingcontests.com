@@ -18,9 +18,10 @@ import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 const userInfo: IUserInfo = getUserInfo();
 
 const SubmitResultsPage = () => {
-  const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState(``);
+  const [showGuidelines, setShowGuidelines] = useState(false);
+  const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
   const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
@@ -168,6 +169,30 @@ const SubmitResultsPage = () => {
     return (
       <>
         <h2 className="text-center">Submit Result</h2>
+
+        <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: '900px' }}>
+          <p>
+            Here you can submit results for events that allow submissions. They will be included in the rankings after
+            an admin approves them. A result can only be accepted if it has video evidence of the entire solve
+            (including memorization, if applicable).
+          </p>
+          <button type="button" className="btn btn-success btn-sm" onClick={() => setShowGuidelines(!showGuidelines)}>
+            {showGuidelines ? 'Hide Guidelines' : 'Show Guidelines'}
+          </button>
+          {showGuidelines && (
+            <div className="mt-4">
+              <p>1. For blindfolded events, it must be visible that your mask is on</p>
+              <p>2. If the video is sped up, the final time must be visible at the end of the video with no cuts</p>
+              <p>
+                3. For team events, every participant must use a different scramble, must be in the same place, and
+                should be visible at the same time, if possible
+              </p>
+              <p>4. If you&apos;re submitting a Mean of 3, there must be no cuts between the individual solves</p>
+              <p>*. Bonus points if it&apos;s visible that a new scramble was generated and applied</p>
+            </div>
+          )}
+        </div>
+
         <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
           <ResultForm
             event={event}

@@ -292,13 +292,13 @@ export class ResultsService {
 
   async createResult(createResultDto: CreateResultDto, roundId: string, user: IPartialUser): Promise<RoundDocument> {
     // getCompetition is put here deliberately, because this function also checks access rights!
-    const comp = await this.getContest(createResultDto.competitionId, user);
+    const contest = await this.getContest(createResultDto.competitionId, user);
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
-    // Admins are allowed to edit finished comps too, so this check is necessary.
-    // If it's a finished comp and the user is not an admin, they won't have access rights
+    // Admins are allowed to edit finished contests too, so this check is necessary.
+    // If it's a finished contest and the user is not an admin, they won't have access rights
     // anyways, so the roles don't need to be checked here.
-    if (comp.state < ContestState.Finished) createResultDto.unapproved = true;
+    if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
 
     // The date is passed in as an ISO date string and it may also include time, if the frontend has a bug
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
@@ -323,13 +323,13 @@ export class ResultsService {
       round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format, event));
       await round.save(); // save the round for resetCancelledRecords
 
-      await this.resetCancelledRecords(createResultDto, comp);
+      await this.resetCancelledRecords(createResultDto, contest);
 
-      if (comp.state < ContestState.Ongoing) comp.state = ContestState.Ongoing;
-      comp.participants = (
-        await this.personsService.getCompetitionParticipants({ competitionId: comp.competitionId })
+      if (contest.state < ContestState.Ongoing) contest.state = ContestState.Ongoing;
+      contest.participants = (
+        await this.personsService.getCompetitionParticipants({ competitionId: contest.competitionId })
       ).length;
-      comp.save();
+      contest.save();
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
@@ -343,7 +343,7 @@ export class ResultsService {
         round.results = oldResults;
         await round.save();
       }
-      await this.updateRecordsAfterDeletion(createResultDto, comp);
+      await this.updateRecordsAfterDeletion(createResultDto, contest);
 
       throw new InternalServerErrorException(`Error while creating result: ${err.message}`);
     }
@@ -351,7 +351,7 @@ export class ResultsService {
 
   async deleteCompetitionResult(resultId: string, competitionId: string, user: IPartialUser): Promise<RoundDocument> {
     // getCompetition is put here deliberately, because this function also checks access rights!
-    const comp = await this.getContest(competitionId, user);
+    const contest = await this.getContest(competitionId, user);
     let result: ResultDocument;
 
     // Find result first
@@ -379,12 +379,12 @@ export class ResultsService {
       round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format, event));
       round.save(); // save the round for updateRecordsAfterDeletion
 
-      await this.updateRecordsAfterDeletion(result, comp);
+      await this.updateRecordsAfterDeletion(result, contest);
 
-      comp.participants = (
-        await this.personsService.getCompetitionParticipants({ competitionId: comp.competitionId })
+      contest.participants = (
+        await this.personsService.getCompetitionParticipants({ competitionId: contest.competitionId })
       ).length;
-      await comp.save();
+      await contest.save();
 
       // Delete the result
       await this.resultModel.deleteOne({ _id: resultId }).exec();
@@ -400,7 +400,7 @@ export class ResultsService {
         round.results = oldResults;
         await round.save();
       }
-      await this.resetCancelledRecords(result, comp);
+      await this.resetCancelledRecords(result, contest);
 
       throw new InternalServerErrorException(`Error while updating round during result deletion`);
     }
@@ -442,14 +442,13 @@ export class ResultsService {
 
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
 
-    // Create result or submit result if it's not for a competition
     try {
       await this.resultModel.create(setResultRecords(createResultDto, recordPairs));
     } catch (err) {
       throw new InternalServerErrorException(`Error while submitting result: ${err.message}`);
     }
 
-    await this.resetCancelledRecords(createResultDto);
+    if (isAdmin) await this.resetCancelledRecords(createResultDto);
   }
 
   /////////////////////////////////////////////////////////////////////////////////////
@@ -559,16 +558,16 @@ export class ResultsService {
     }
   }
 
-  // Resets records set on the same day as the given result or after that day. If comp is set,
+  // Resets records set on the same day as the given result or after that day. If contest is set,
   // only resets the records for that contest (used only when creating contest result, not for submitting).
-  private async resetCancelledRecords(result: CreateResultDto | ResultDocument, comp?: IContest) {
+  private async resetCancelledRecords(result: CreateResultDto | ResultDocument, contest?: IContest) {
     if (result.best <= 0 && result.average <= 0) return;
 
-    // If the comp isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
-    // reset ALL results that are no longer records. If comp is undefined, also do it for all results.
+    // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
+    // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
     // THIS CODE IS SIMILAR TO updateRecordsAfterDeletion
     const queryBase: any = { eventId: result.eventId, date: { $gte: result.date } };
-    if (comp && comp.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
+    if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
 
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
     try {
@@ -605,15 +604,15 @@ export class ResultsService {
   }
 
   // Sets records that are now recognized after a contest result deletion. Does if for all days from the result's
-  // date onward. If comp is set, only sets records for that competition, otherwise does it for ALL results.
-  private async updateRecordsAfterDeletion(result: ResultDocument | CreateResultDto, comp?: IContest) {
+  // date onward. If contest is set, only sets records for that contest, otherwise does it for ALL results.
+  private async updateRecordsAfterDeletion(result: ResultDocument | CreateResultDto, contest: IContest) {
     if (result.best <= 0 && result.average <= 0) return;
 
-    // If the comp isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
-    // reset ALL results that are no longer records. If comp is undefined, also do it for all results.
+    // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
+    // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
     // THIS CODE IS SIMILAR TO resetCancelledRecords
     const queryBase: any = { _id: { $ne: (result as any)._id }, eventId: result.eventId, date: { $gte: result.date } };
-    if (comp && comp.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
+    if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
     else queryBase.unapproved = { $exists: false };
 
     // This is done so that we get records BEFORE the date of the deleted result
@@ -635,7 +634,7 @@ export class ResultsService {
           if (bestSingleResult) {
             console.log(`Setting ${result.eventId} single records after deletion: ${bestSingleResult.best}`);
 
-            // Sets all tied records
+            // Set all tied records
             await this.resultModel
               .updateMany(
                 { ...queryBase, best: bestSingleResult.best },
@@ -657,7 +656,7 @@ export class ResultsService {
           if (bestAvgResult) {
             console.log(`Setting ${result.eventId} average records after deletion: ${bestAvgResult.average}`);
 
-            // Sets all tied records
+            // Set all tied records
             await this.resultModel
               .updateMany(
                 { ...queryBase, average: bestAvgResult.average },
@@ -675,20 +674,20 @@ export class ResultsService {
   }
 
   private async getContest(competitionId: string, user: IPartialUser): Promise<ContestDocument> {
-    let comp: ContestDocument;
+    let contest: ContestDocument;
 
     try {
-      comp = await this.contestModel.findOne({ competitionId }).exec();
+      contest = await this.contestModel.findOne({ competitionId }).exec();
     } catch (err) {
       throw new InternalServerErrorException(
         `Error while searching for competition with ID ${competitionId}: ${err.message}`,
       );
     }
 
-    if (!comp) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
-    else this.authService.checkAccessRightsToContest(user, comp);
+    if (!contest) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
+    else this.authService.checkAccessRightsToContest(user, contest);
 
-    return comp;
+    return contest;
   }
 
   // Sets the person being ranked as the first person in the list, if it's a team event
