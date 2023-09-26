@@ -21,7 +21,12 @@ import { Color, ContestState, ContestType, EventGroup, Role, RoundFormat, RoundP
 import { getDateOnly } from '@sh/sharedFunctions';
 import { colorOptions, contestTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getAllowedRoundFormatOptions, getContestIdFromName, limitRequests } from '~/helpers/utilityFunctions';
+import {
+  getAllowedRoundFormatOptions,
+  getContestIdFromName,
+  getUserInfo,
+  limitRequests,
+} from '~/helpers/utilityFunctions';
 import Loading from '../Loading';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import EventTitle from '../EventTitle';
@@ -30,21 +35,21 @@ import { titleRegex } from '~/shared_helpers/regex';
 registerLocale(`en-GB`, enGB);
 setDefaultLocale(`en-GB`);
 
+const isAdmin = getUserInfo()?.isAdmin;
+
 const coordToMicrodegrees = (value: string): number | null => {
   if (!value) return null;
-  return parseInt(Number(value).toFixed(6).replace(`.`, ``));
+  return parseInt(Number(value).toFixed(6).replace('.', ''));
 };
 
 const ContestForm = ({
   events,
   contest,
   mode,
-  role,
 }: {
   events: IEvent[];
   contest?: IContest;
   mode: `new` | `edit` | `copy`;
-  role: Role;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(`details`);
@@ -83,8 +88,6 @@ const ContestForm = ({
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
   const [activityStartTime, setActivityStartTime] = useState<Date>(addHours(getDateOnly(new Date()), 12));
   const [activityEndTime, setActivityEndTime] = useState<Date>(addHours(getDateOnly(new Date()), 13));
-
-  const isAdmin = role === Role.Admin;
 
   const tabs = useMemo(
     () => [

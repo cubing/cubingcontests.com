@@ -7,10 +7,11 @@ import ErrorMessages from '@c/ErrorMessages';
 import Button from '@c/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
 import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
-import { ContestState, Role } from '@sh/enums';
+import { ContestState } from '@sh/enums';
 import { checkErrorsBeforeSubmit, getUserInfo } from '~/helpers/utilityFunctions';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
-const role: Role = getUserInfo().role;
+const userInfo: IUserInfo = getUserInfo();
 
 const PostResultsScreen = ({
   compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
@@ -18,7 +19,7 @@ const PostResultsScreen = ({
   compData: IContestData;
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState(``);
+  const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
@@ -29,7 +30,7 @@ const PostResultsScreen = ({
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
 
   const currEvent = useMemo(
-    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split(`-`)[0]).event,
+    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
     [contest, round.roundId],
   );
   const recordPairs = useMemo(
@@ -37,10 +38,10 @@ const PostResultsScreen = ({
     [recordPairsByEvent, currEvent],
   );
 
-  const isEditable = role === Role.Admin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
+  const isEditable = userInfo.isAdmin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
 
   useEffect(() => {
-    console.log(`Records:`, recordPairsByEvent);
+    console.log('Records:', recordPairsByEvent);
 
     if (!isEditable) {
       if (contest.state < ContestState.Approved) {

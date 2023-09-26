@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
-import { ContestState, Role } from '@sh/enums';
+import { ContestState } from '@sh/enums';
 import { IContest } from '~/shared_helpers/interfaces';
 import { getUserInfo } from '~/helpers/utilityFunctions';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+
+const userInfo: IUserInfo = getUserInfo();
 
 const fetchData = async (
-  role: Role,
+  isAdmin: boolean,
   setContests: (value: IContest[]) => void,
   setPersonsTotal: (value: number) => void,
   setUsersTotal: (value: number) => void,
@@ -17,7 +20,7 @@ const fetchData = async (
   const { payload: contests } = await myFetch.get(`/competitions/mod`, { authorize: true });
   setContests(contests);
 
-  if (role === Role.Admin) {
+  if (isAdmin) {
     const { payload: personsTotal } = await myFetch.get(`/persons/total`);
     const { payload: usersTotal } = await myFetch.get(`/users/total`, { authorize: true });
     setPersonsTotal(personsTotal);
@@ -26,22 +29,13 @@ const fetchData = async (
 };
 
 const ModeratorDashboardPage = () => {
-  const [role, setRole] = useState<Role>();
   const [contests, setContests] = useState<IContest[]>();
   const [personsTotal, setPersonsTotal] = useState<number>(null);
   const [usersTotal, setUsersTotal] = useState<number>(null);
 
   useEffect(() => {
-    const tempRole: Role = getUserInfo().role;
-
-    setRole(tempRole);
-    fetchData(tempRole, setContests, setPersonsTotal, setUsersTotal);
+    fetchData(userInfo.isAdmin, setContests, setPersonsTotal, setUsersTotal);
   }, []);
-
-  const logOut = () => {
-    localStorage.removeItem(`jwtToken`);
-    window.location.href = `/`;
-  };
 
   const editCompetition = (competitionId: string) => {
     window.location.href = `/mod/competition?edit_id=${competitionId}`;
@@ -66,9 +60,6 @@ const ModeratorDashboardPage = () => {
   return (
     <>
       <h2 className="text-center">Moderator Dashboard</h2>
-      <button type="button" className="mt-4 btn btn-danger" style={{ width: `max-content` }} onClick={logOut}>
-        Log out
-      </button>
       <div className="my-4 d-flex gap-3 fs-5">
         <Link href="/mod/competition" className="btn btn-success">
           Create new contest
@@ -79,7 +70,7 @@ const ModeratorDashboardPage = () => {
         <Link href="/user/submit-results" className="btn btn-success">
           Submit results
         </Link>
-        {role === Role.Admin && (
+        {userInfo.isAdmin && (
           <>
             <Link href="/admin/import-export" className="btn btn-warning">
               Import/Export
@@ -110,7 +101,7 @@ const ModeratorDashboardPage = () => {
           onCopyCompetition={copyCompetition}
           onPostCompResults={postCompResults}
           onChangeCompState={changeCompState}
-          isAdmin={role === Role.Admin}
+          isAdmin={userInfo.isAdmin}
         />
       ) : (
         <p className="fs-5">You haven&apos;t created any contests yet</p>

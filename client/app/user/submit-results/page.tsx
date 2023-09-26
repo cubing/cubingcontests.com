@@ -10,9 +10,12 @@ import FormCheckbox from '~/app/components/form/FormCheckbox';
 import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import Button from '~/app/components/Button';
 import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
-import { Role, RoundFormat } from '@sh/enums';
+import { RoundFormat } from '@sh/enums';
 import { checkErrorsBeforeSubmit, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { useSearchParams } from 'next/navigation';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+
+const userInfo: IUserInfo = getUserInfo();
 
 const SubmitResultsPage = () => {
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -28,9 +31,9 @@ const SubmitResultsPage = () => {
   // null means the date is invalid; undefined means it's empty
   const [date, setDate] = useState<Date | null | undefined>();
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
-  const [videoLink, setVideoLink] = useState(``);
+  const [videoLink, setVideoLink] = useState('');
   const [videoUnavailable, setVideoUnavailable] = useState(false);
-  const [discussionLink, setDiscussionLink] = useState(``);
+  const [discussionLink, setDiscussionLink] = useState('');
 
   const searchParams = useSearchParams();
 
@@ -38,9 +41,6 @@ const SubmitResultsPage = () => {
     () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
     [resultsSubmissionInfo, event],
   );
-  const role = useMemo(() => getUserInfo().role, [getUserInfo]);
-
-  const isAdmin = role === Role.Admin;
 
   useEffect(() => {
     fetchSubmissionInfo(new Date()).then((payload: IResultsSubmissionInfo) => {
@@ -188,7 +188,7 @@ const SubmitResultsPage = () => {
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
             showOptionToKeepCompetitors
-            isAdmin={isAdmin}
+            isAdmin={userInfo.isAdmin}
           />
           <FormDateInput
             id="date"
@@ -207,7 +207,7 @@ const SubmitResultsPage = () => {
             onBlur={onVideoLinkFocusOut}
             disabled={videoUnavailable}
           />
-          {isAdmin && (
+          {userInfo.isAdmin && (
             // Same text as in RankingLinks
             <FormCheckbox
               title="Video no longer available"

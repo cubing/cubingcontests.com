@@ -4,41 +4,19 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { FaBars } from 'react-icons/fa';
-import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
+import { getUserInfo } from '~/helpers/utilityFunctions';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 // import { ISearchResult } from '~/helpers/interfaces';
 
-const links: INavigationItem[] = [
-  {
-    title: `Home`,
-    value: `home`,
-    route: `/`,
-    getIsActive: (pathname: string) => pathname === `/`,
-  },
-  {
-    title: `Contests`,
-    value: `contests`,
-    route: `/competitions`,
-    getIsActive: (pathname: string) => pathname === `/competitions`,
-  },
-  {
-    title: `Rankings`,
-    value: `rankings`,
-    route: `/rankings`,
-    getIsActive: (pathname: string) => /^\/rankings\//.test(pathname),
-  },
-  {
-    title: `Records`,
-    value: `records`,
-    route: `/records`,
-    getIsActive: (pathname: string) => /^\/records\//.test(pathname),
-  },
-];
+const userInfo: IUserInfo = getUserInfo();
 
 const NavbarItems = () => {
   const pathname = usePathname();
 
   // Whether or not the navbar menu is expanded (mobile-only)
   const [expanded, setExpanded] = useState(false);
+  const [resultsExpanded, setResultsExpanded] = useState(false);
+  const [userExpanded, setUserExpanded] = useState(false);
   // const [searchTerm, setSearchTerm] = useState<string>(``);
   // const [searchResults, setSearchResults] = useState<ISearchResult[]>([
   //   { title: `Meetup in Munich on June 14, 2023`, url: `http://localhost:3000/contests/Munich14062023` },
@@ -62,6 +40,28 @@ const NavbarItems = () => {
   //   fetchSearchResults();
   // }, [searchTerm]);
 
+  const logOut = () => {
+    collapseAll();
+    localStorage.removeItem('jwtToken');
+    window.location.href = '/';
+  };
+
+  const toggleDropdown = (dropdown: 'results' | 'user', newValue = !resultsExpanded) => {
+    if (dropdown === 'results') {
+      setResultsExpanded(newValue);
+      setUserExpanded(false);
+    } else {
+      setUserExpanded(newValue);
+      setResultsExpanded(false);
+    }
+  };
+
+  const collapseAll = () => {
+    setExpanded(false);
+    setResultsExpanded(false);
+    setUserExpanded(false);
+  };
+
   return (
     <div className="container-md position-relative">
       <Link className="navbar-brand fs-3" href="/">
@@ -71,19 +71,89 @@ const NavbarItems = () => {
         <FaBars />
       </button>
       <div className={`navbar-collapse justify-content-end` + (expanded ? `` : ` collapse`)}>
-        <ul className="navbar-nav align-items-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
-          {links.map(({ route, title, getIsActive }) => (
-            <li key={route} className="nav-item">
-              <Link
-                className={`nav-link` + (getIsActive(pathname) ? ` active` : ``)}
-                aria-current="page"
-                href={route}
-                onClick={() => setExpanded(false)}
-              >
-                {title}
+        <ul className="navbar-nav align-items-start align-items-lg-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
+          <li className="nav-item">
+            <Link className={`nav-link ${pathname === '/' ? ' active' : ''}`} href="/" onClick={collapseAll}>
+              Home
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link
+              className={`nav-link ${pathname === '/competitions' ? ' active' : ''}`}
+              href="/competitions"
+              onClick={collapseAll}
+            >
+              Contests
+            </Link>
+          </li>
+          <li
+            className="nav-item dropdown"
+            onMouseEnter={() => toggleDropdown('results', true)}
+            onMouseLeave={() => toggleDropdown('results', false)}
+          >
+            <button
+              type="button"
+              className={`nav-link dropdown-toggle ${/^\/(rankings|records)\//.test(pathname) ? 'active' : ''}`}
+              onClick={() => toggleDropdown('results')}
+            >
+              Results
+            </button>
+            <ul className={`dropdown-menu py-0 px-3 px-lg-2 ${resultsExpanded ? 'show' : ''}`}>
+              <li>
+                <Link
+                  className={`nav-link ${/^\/records\//.test(pathname) ? ' active' : ''}`}
+                  href="/records"
+                  onClick={collapseAll}
+                >
+                  Records
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className={`nav-link ${/^\/rankings\//.test(pathname) ? ' active' : ''}`}
+                  href="/rankings"
+                  onClick={collapseAll}
+                >
+                  Rankings
+                </Link>
+              </li>
+            </ul>
+          </li>
+          {!userInfo ? (
+            <li className="nav-item">
+              <Link className="nav-link" href="/login" onClick={collapseAll}>
+                Log In
               </Link>
             </li>
-          ))}
+          ) : (
+            <li
+              className="nav-item dropdown"
+              onMouseEnter={() => toggleDropdown('user', true)}
+              onMouseLeave={() => toggleDropdown('user', false)}
+            >
+              <button type="button" className="nav-link dropdown-toggle" onClick={() => toggleDropdown('user')}>
+                {userInfo.username}
+              </button>
+              <ul className={`dropdown-menu py-0 px-3 px-lg-2 ${userExpanded ? 'show' : ''}`}>
+                {userInfo.isMod && (
+                  <li>
+                    <Link
+                      className={`nav-link ${pathname === '/mod' ? ' active' : ''}`}
+                      href="/mod"
+                      onClick={collapseAll}
+                    >
+                      Mod Dashboard
+                    </Link>
+                  </li>
+                )}
+                <li>
+                  <button type="button" className="nav-link" onClick={logOut}>
+                    Log Out
+                  </button>
+                </li>
+              </ul>
+            </li>
+          )}
         </ul>
         {/* <form className="d-flex mt-3 ms-0 mt-lg-0 ms-lg-4" role="search">
           <input

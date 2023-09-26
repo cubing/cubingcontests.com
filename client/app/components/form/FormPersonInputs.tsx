@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Loading from '../Loading';
 import FormTextInput from './FormTextInput';
@@ -8,8 +8,9 @@ import Competitor from '@c/Competitor';
 import { IPerson } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
-import { Role } from '~/shared_helpers/enums';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
+const userInfo: IUserInfo = getUserInfo();
 const MAX_MATCHES = 6;
 
 const FormPersonInputs = ({
@@ -25,7 +26,7 @@ const FormPersonInputs = ({
   checkCustomErrors,
   setErrorMessages,
   setSuccessMessage,
-  redirectToOnAddPerson = ``,
+  redirectToOnAddPerson = '',
   noGrid = false,
 }: {
   title: string;
@@ -43,10 +44,8 @@ const FormPersonInputs = ({
   redirectToOnAddPerson?: string;
   noGrid?: boolean;
 }) => {
-  const isMod = useMemo(() => [Role.Admin, Role.Moderator].includes(getUserInfo().role), [getUserInfo]);
-
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
-  const defaultMatchedPersons: IPerson[] = isMod ? [null] : [];
+  const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
 
   const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(defaultMatchedPersons);
   const [personSelection, setPersonSelection] = useState(0);
@@ -155,7 +154,7 @@ const FormPersonInputs = ({
   const selectCompetitor = async (inputIndex: number) => {
     if (matchedPersons[personSelection] === null) {
       // Only mods are allowed to open the add new competitor page
-      if (isMod) {
+      if (userInfo.isMod) {
         setFocusedInput(null);
 
         if (addNewPersonFromNewTab) {
