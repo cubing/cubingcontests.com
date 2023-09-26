@@ -268,21 +268,55 @@ const ImportExportPage = () => {
         // Set the personIds
         for (const result of results) {
           for (let j = 0; j < result.personIds.length; j++) {
-            const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${result.personIds[j]}`);
+            // If the WCA ID is available, use that
+            const parts = (result.personIds[j] as any).split('|');
 
-            if (errors) {
-              setErrorMessages([`Error while fetching person with the name ${result.personIds[j]}`]);
-              return;
-            }
+            if (parts[1]) {
+              // Create new person using WCA person info
+              const { payload: wcaPerson, errors } = await myFetch.get(`${C.wcaApiBase}/persons/${parts[1]}.json`);
 
-            if (matches.length === 1) {
-              result.personIds[j] = matches[0].personId;
-              persons.push(matches[0]);
-            } else if (matches.length > 1) {
-              setErrorMessages([`Multiple persons found with the name "${result.personIds[j]}"`]);
-              return;
-            } else if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
-              notFoundPersonNames.push(result.personIds[j] as any);
+              if (errors) {
+                setErrorMessages(errors);
+
+                if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
+                  notFoundPersonNames.push(result.personIds[j] as any);
+                }
+              } else if (wcaPerson) {
+                const newPerson = {
+                  personId: 0,
+                  name: wcaPerson.name,
+                  wcaId: parts[1],
+                  countryIso2: wcaPerson.country,
+                  createdBy: '',
+                };
+
+                const { payload: person, errors } = await myFetch.post(`/persons/create-or-get`, newPerson);
+
+                if (errors) {
+                  setErrorMessages(errors);
+                  return;
+                } else {
+                  result.personIds[j] = person.personId;
+                  persons.push(person);
+                }
+              }
+            } else {
+              const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${result.personIds[j]}`);
+
+              if (errors) {
+                setErrorMessages([`Error while fetching person with the name "${result.personIds[j]}"`]);
+                return;
+              }
+
+              if (matches.length === 1) {
+                result.personIds[j] = matches[0].personId;
+                persons.push(matches[0]);
+              } else if (matches.length > 1) {
+                setErrorMessages([`Multiple persons found with the name "${result.personIds[j]}"`]);
+                return;
+              } else if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
+                notFoundPersonNames.push(result.personIds[j] as any);
+              }
             }
           }
         }
