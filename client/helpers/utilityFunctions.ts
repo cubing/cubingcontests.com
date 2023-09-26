@@ -266,19 +266,23 @@ export const getBestAndAverage = (
 
 // Returns the authenticated user's info
 export const getUserInfo = (): IUserInfo => {
-  let role: Role;
-  // Decode the JWT (only take the part after "Bearer ")
-  const authorizedUser: any = jwtDecode(localStorage.getItem(`jwtToken`).split(` `)[1]);
+  if (typeof localStorage !== 'undefined') {
+    const token = localStorage.getItem('jwtToken');
 
-  if (authorizedUser.roles.includes(Role.Admin)) role = Role.Admin;
-  else if (authorizedUser.roles.includes(Role.Moderator)) role = Role.Moderator;
-  else if (authorizedUser.roles.includes(Role.User)) role = Role.User;
-  else console.error(`Unsupported user role!`);
+    if (token) {
+      // Decode the JWT (only take the part after "Bearer ")
+      const authorizedUser: any = jwtDecode(token.split(' ')[1]);
 
-  return {
-    username: authorizedUser.username,
-    role,
-  };
+      const userInfo: IUserInfo = {
+        username: authorizedUser.username,
+        roles: authorizedUser.roles,
+        isAdmin: authorizedUser.roles.includes(Role.Admin),
+        isMod: authorizedUser.roles.includes(Role.Moderator),
+      };
+
+      return userInfo;
+    }
+  }
 };
 
 // Checks if there are any errors, and if not, calls the callback function,
