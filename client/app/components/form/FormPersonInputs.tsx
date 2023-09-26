@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Loading from '../Loading';
 import FormTextInput from './FormTextInput';
@@ -224,7 +224,7 @@ const FormPersonInputs = ({
   return (
     <div className="row">
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? `col-6` : ``}>
+        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? `col-md-6` : ``}>
           <FormTextInput
             title={(personNames.length > 1 ? `${title} ${inputIndex + 1}` : title) + ' (WCA ID or name)'}
             id={`${title}_${inputIndex + 1}`}

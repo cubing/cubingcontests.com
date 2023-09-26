@@ -241,26 +241,30 @@ const AttemptInput = ({
     }
   };
 
+  const cubesInputClasses = 'px-0' + (includeMemo ? ' col-2' : ' col-3');
+
   return (
-    <div className="row">
+    <div className="row px-3 gap-2 gap-md-3">
       {event.format === EventFormat.Multi && (
         <>
-          <div className={includeMemo ? `col-2` : `col-3`}>
+          <div className={cubesInputClasses}>
             <FormTextInput
               id={`attempt_${number}_solved`}
+              title={number === 1 ? 'Solved' : ''}
               value={solved}
-              placeholder="Solved"
+              placeholder="10"
               setValue={(val: string) => changeSolved(val)}
               onKeyDown={(e: any) => onSolvedKeyDown(e)}
               disabled={attempt.result === -2}
               invalid={isInvalidAttempt}
             />
           </div>
-          <div className={includeMemo ? `col-2` : `col-3`}>
+          <div className={cubesInputClasses}>
             <FormTextInput
               id={`attempt_${number}_attempted`}
+              title={number === 1 ? 'Total' : ''}
               value={attempted}
-              placeholder="Total"
+              placeholder="10"
               setValue={(val: string) => changeAttempted(val)}
               onKeyDown={(e: any) => onAttemptedKeyDown(e)}
               disabled={attempt.result === -2}
@@ -269,9 +273,10 @@ const AttemptInput = ({
           </div>
         </>
       )}
-      <div className="col">
+      <div className="col px-0">
         <FormTextInput
           id={`attempt_${number}`}
+          title={number === 1 ? 'Time' : ''}
           placeholder={event.format === EventFormat.Multi ? `Time ${number}` : `Attempt ${number}`}
           value={event.format !== EventFormat.Number ? formattedAttemptText : attemptText}
           onKeyDown={(e: any) => onTimeKeyDown(e)}
@@ -280,9 +285,10 @@ const AttemptInput = ({
         />
       </div>
       {includeMemo && (
-        <div className="col">
+        <div className="col px-0">
           <FormTextInput
             id={`attempt_${number}_memo`}
+            title={number === 1 ? 'Memo' : ''}
             value={formattedMemoText}
             placeholder="Memo (seconds)"
             onKeyDown={(e: any) => onTimeKeyDown(e, true)}

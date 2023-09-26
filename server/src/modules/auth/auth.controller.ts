@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Param,
   Post,
-  Query,
   Request,
   UnauthorizedException,
   UseGuards,
