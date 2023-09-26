@@ -158,9 +158,9 @@ const FormPersonInputs = ({
         setFocusedInput(null);
 
         if (addNewPersonFromNewTab) {
-          open(`/mod/person`, `_blank`);
+          open('/mod/person', '_blank');
         } else {
-          if (!redirectToOnAddPerson) window.location.href = `/mod/person`;
+          if (!redirectToOnAddPerson) window.location.href = '/mod/person';
           else window.location.replace(`/mod/person?redirect=${redirectToOnAddPerson}`);
         }
       }

@@ -10,25 +10,25 @@ import FormCheckbox from '~/app/components/form/FormCheckbox';
 import { limitRequests } from '~/helpers/utilityFunctions';
 import C from '@sh/constants';
 
-const INVALID_WCA_ID_ERROR = `Please enter a valid WCA ID`;
+const INVALID_WCA_ID_ERROR = 'Please enter a valid WCA ID';
 
 const CreatePersonPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState(``);
-  const [name, setName] = useState(``);
-  const [localizedName, setLocalizedName] = useState(``);
-  const [wcaId, setWcaId] = useState(``);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [name, setName] = useState('');
+  const [localizedName, setLocalizedName] = useState('');
+  const [wcaId, setWcaId] = useState('');
   const [noWcaId, setNoWcaId] = useState(false);
-  const [countryIso2, setCountryIso2] = useState(`NOT_SELECTED`);
+  const [countryIso2, setCountryIso2] = useState('NOT_SELECTED');
   const [fetchPersonDataTimer, setFetchPersonDataTimer] = useState<NodeJS.Timeout>(null);
-  const [nextFocusTarget, setNextFocusTarget] = useState(``);
+  const [nextFocusTarget, setNextFocusTarget] = useState('');
 
   const searchParams = useSearchParams();
 
   useEffect(() => {
     if (nextFocusTarget) {
       document.getElementById(nextFocusTarget)?.focus();
-      setNextFocusTarget(``);
+      setNextFocusTarget('');
     }
     // These dependencies are required so that it focuses AFTER everything has been rerendered
   }, [nextFocusTarget, wcaId, name, localizedName, countryIso2, fetchPersonDataTimer]);
@@ -45,15 +45,15 @@ const CreatePersonPage = () => {
 
     if (!noWcaId) {
       if (!getWcaIdIsValid()) tempErrors.push(INVALID_WCA_ID_ERROR);
-      else if (!name.trim() || countryIso2 === `NOT_SELECTED`) tempErrors.push(`Invalid competitor, please try again`);
+      else if (!name.trim() || countryIso2 === 'NOT_SELECTED') tempErrors.push('Invalid competitor, please try again');
 
-      setNextFocusTarget(`wca_id`);
+      setNextFocusTarget('wca_id');
     } else {
       if (!name.trim()) {
-        tempErrors.push(`Please enter a name`);
-        setNextFocusTarget(`full_name`);
+        tempErrors.push('Please enter a name');
+        setNextFocusTarget('full_name');
       }
-      if (countryIso2 === `NOT_SELECTED`) tempErrors.push(`Please select a country`);
+      if (countryIso2 === 'NOT_SELECTED') tempErrors.push('Please select a country');
     }
 
     if (tempErrors.length > 0) {
@@ -66,21 +66,21 @@ const CreatePersonPage = () => {
         countryIso2,
       };
 
-      const { errors } = await myFetch.post(`/persons`, person);
+      const { errors } = await myFetch.post('/persons', person);
 
       if (errors) {
         setErrorMessages(errors);
       } else {
-        const redirect = searchParams.get(`redirect`);
+        const redirect = searchParams.get('redirect');
 
         reset();
         setErrorMessages([]);
-        setSuccessMessage(`${name} successfully added${redirect ? `. Going back...` : ``}`);
+        setSuccessMessage(`${name} successfully added${redirect ? '. Going back...' : ''}`);
 
         // Redirect if there is a redirect parameter in the URL, otherwise focus the first input
         if (!redirect) {
-          if (noWcaId) setNextFocusTarget(`full_name`);
-          else setNextFocusTarget(`wca_id`);
+          if (noWcaId) setNextFocusTarget('full_name');
+          else setNextFocusTarget('wca_id');
         } else {
           setTimeout(() => window.location.replace(redirect), 1000); // 1 second delay
         }
@@ -94,7 +94,7 @@ const CreatePersonPage = () => {
     value = value.trim().toUpperCase();
 
     if (/[^A-Z0-9]/.test(value)) {
-      setErrorMessages([`A WCA ID can only have alphanumeric characters`]);
+      setErrorMessages(['A WCA ID can only have alphanumeric characters']);
     } else if (value.length <= 10) {
       setWcaId(value);
       resetMessages();
@@ -110,19 +110,19 @@ const CreatePersonPage = () => {
 
             if (errors) {
               setErrorMessages([`Competitor with WCA ID ${value} not found`]);
-              setNextFocusTarget(`wca_id`);
+              setNextFocusTarget('wca_id');
             } else {
               if (!payload?.name || !payload?.country) {
-                setErrorMessages([`Error while getting competitor data. Please contact an admin about this error.`]);
+                setErrorMessages(['Error while getting competitor data. Please contact an admin about this error.']);
               } else {
                 // Extract localized name
-                const stringParts = payload.name.split(` (`);
+                const stringParts = payload.name.split(' (');
                 setName(stringParts[0]);
 
                 if (stringParts.length > 1) setLocalizedName(stringParts[1].slice(0, -1)); // get rid of )
 
                 setCountryIso2(payload.country);
-                setNextFocusTarget(`form_submit_button`);
+                setNextFocusTarget('form_submit_button');
               }
             }
           });
@@ -135,11 +135,11 @@ const CreatePersonPage = () => {
     setNoWcaId(value);
 
     if (value) {
-      setWcaId(``);
-      setNextFocusTarget(`full_name`);
+      setWcaId('');
+      setNextFocusTarget('full_name');
     } else {
       reset();
-      setNextFocusTarget(`wca_id`);
+      setNextFocusTarget('wca_id');
     }
   };
 
@@ -149,7 +149,7 @@ const CreatePersonPage = () => {
   };
 
   const onNameKeyDown = (e: any) => {
-    if (e.key === `Enter`) document.getElementById(`localized_name`).focus();
+    if (e.key === 'Enter') document.getElementById('localized_name').focus();
   };
 
   const changeLocalizedName = (value: string) => {
@@ -158,23 +158,23 @@ const CreatePersonPage = () => {
   };
 
   const onLocNameKeyDown = (e: any) => {
-    if (e.key === `Enter`) document.getElementById(`country_iso_2`).focus();
+    if (e.key === 'Enter') document.getElementById('country_iso_2').focus();
   };
 
   const onCountryKeyDown = (e: any) => {
-    if (e.key === `Enter`) document.getElementById(`form_submit_button`).focus();
+    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
   };
 
   const resetMessages = () => {
-    setSuccessMessage(``);
+    setSuccessMessage('');
     setErrorMessages([]);
   };
 
   const reset = (exceptWcaId = false) => {
-    setName(``);
-    setLocalizedName(``);
-    setCountryIso2(`NOT_SELECTED`);
-    if (!exceptWcaId) setWcaId(``);
+    setName('');
+    setLocalizedName('');
+    setCountryIso2('NOT_SELECTED');
+    if (!exceptWcaId) setWcaId('');
   };
 
   return (
