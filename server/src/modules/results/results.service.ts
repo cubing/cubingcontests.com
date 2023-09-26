@@ -290,6 +290,14 @@ export class ResultsService {
     };
   }
 
+  async getTotalUnapprovedSubmittedResults(): Promise<number> {
+    try {
+      return await this.resultModel.countDocuments({ competitionId: { $exists: false }, unapproved: true }).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   async createResult(createResultDto: CreateResultDto, roundId: string, user: IPartialUser): Promise<RoundDocument> {
     // getCompetition is put here deliberately, because this function also checks access rights!
     const contest = await this.getContest(createResultDto.competitionId, user);
