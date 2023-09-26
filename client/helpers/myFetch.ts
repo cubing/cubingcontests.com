@@ -71,7 +71,6 @@ const doFetch = async (
   if (res.status >= 400) {
     // If unauthorized, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
-      // localStorage.removeItem('jwtToken');
       if (!redirect) window.location.href = '/login';
       else window.location.replace(`/login?redirect=${redirect}`);
       return {};

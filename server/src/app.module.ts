@@ -10,6 +10,8 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RecordTypesModule } from './modules/record-types/record-types.module';
 import { ResultsModule } from './modules/results/results.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { ResultsModule } from './modules/results/results.module';
     RecordTypesModule,
     ResultsModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

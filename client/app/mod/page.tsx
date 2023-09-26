@@ -5,7 +5,7 @@ import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
 import { ContestState } from '@sh/enums';
-import { IContest } from '~/shared_helpers/interfaces';
+import { IAdminStats, IContest } from '~/shared_helpers/interfaces';
 import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
@@ -14,27 +14,29 @@ const userInfo: IUserInfo = getUserInfo();
 const fetchData = async (
   isAdmin: boolean,
   setContests: (value: IContest[]) => void,
-  setPersonsTotal: (value: number) => void,
-  setUsersTotal: (value: number) => void,
+  setAdminStats: (value: IAdminStats) => void,
 ) => {
   const { payload: contests } = await myFetch.get(`/competitions/mod`, { authorize: true });
-  setContests(contests);
 
-  if (isAdmin) {
-    const { payload: personsTotal } = await myFetch.get(`/persons/total`);
-    const { payload: usersTotal } = await myFetch.get(`/users/total`, { authorize: true });
-    setPersonsTotal(personsTotal);
-    setUsersTotal(usersTotal);
+  if (contests) {
+    setContests(contests);
+
+    if (isAdmin) {
+      const { payload } = await myFetch.get('/admin-stats', { authorize: true });
+
+      if (payload) {
+        setAdminStats(payload);
+      }
+    }
   }
 };
 
 const ModeratorDashboardPage = () => {
   const [contests, setContests] = useState<IContest[]>();
-  const [personsTotal, setPersonsTotal] = useState<number>(null);
-  const [usersTotal, setUsersTotal] = useState<number>(null);
+  const [adminStats, setAdminStats] = useState<IAdminStats>();
 
   useEffect(() => {
-    fetchData(userInfo.isAdmin, setContests, setPersonsTotal, setUsersTotal);
+    fetchData(userInfo.isAdmin, setContests, setAdminStats);
   }, []);
 
   const editCompetition = (competitionId: string) => {
@@ -81,15 +83,18 @@ const ModeratorDashboardPage = () => {
           </>
         )}
       </div>
-      {personsTotal !== null && (
-        <p>
-          Competitors in DB: <b>{personsTotal}</b>
-        </p>
-      )}
-      {usersTotal !== null && (
-        <p>
-          Users in DB: <b>{usersTotal}</b>
-        </p>
+      {adminStats && (
+        <>
+          <p>
+            Competitors in DB: <b>{adminStats.totalPersons}</b>
+          </p>
+          <p>
+            Users in DB: <b>{adminStats.totalUsers}</b>
+          </p>
+          <p>
+            Unapproved results: <b>{adminStats.totalUnapprovedSubmittedResults}</b>
+          </p>
+        </>
       )}
       <p>
         Number of contests: <b>{contests ? contests.length : `?`}</b>

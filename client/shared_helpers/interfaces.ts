@@ -13,3 +13,4 @@ export type {
 } from './interfaces/Result';
 export type { IRound, IProceed } from './interfaces/Round';
 export type { ISchedule, IVenue, IRoom, IActivity } from './interfaces/Schedule';
+export type { IAdminStats } from './interfaces/AdminStats';
