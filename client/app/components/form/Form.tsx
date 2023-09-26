@@ -19,8 +19,8 @@ const Form = ({
 }) => {
   return (
     <form
-      className="container my-4 mx-auto px-2 fs-5"
-      style={{ maxWidth: `720px` }}
+      className="container my-4 mx-auto px-3 fs-5"
+      style={{ maxWidth: '720px' }}
       onSubmit={(e: any) => e.preventDefault()}
     >
       {errorMessages.length > 0 ? (

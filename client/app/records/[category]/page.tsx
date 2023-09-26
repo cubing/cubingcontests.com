@@ -59,49 +59,59 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
           <>
             <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
 
-            {selectedCat.description && <p className="mx-2 mb-4">{selectedCat.description}</p>}
+            {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
 
-            {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
-              return (
-                <div key={event.eventId} className="mb-3">
-                  <EventTitle event={event} showIcon linkToRankings />
+            {params.category === 'extremebld' && (
+              <Link href={`/user/submit-results`} className="btn btn-success btn">
+                Submit a result
+              </Link>
+            )}
 
-                  <div className="d-block d-lg-none mt-2 mb-4 border-top border-bottom">
-                    <ul className="list-group list-group-flush">
-                      {rankings.map((r) => (
-                        <li
-                          key={r.type + r.resultId}
-                          className="d-flex flex-column gap-2 py-3 list-group-item list-group-item-dark"
-                        >
-                          <div className="d-flex justify-content-between">
-                            <span>
-                              <b>{getFormattedTime(r.result, { event })}</b>
-                              &#8194;{getRecordType(r.type)}
-                            </span>
-                            {r.contest ? (
-                              <Link href={`/competitions/${r.contest.competitionId}`}>{getFormattedDate(r.date)}</Link>
-                            ) : (
-                              <span>{getFormattedDate(r.date)}</span>
-                            )}
-                          </div>
-                          <div className="d-flex flex-column gap-2">
-                            {r.persons.map((person) => (
-                              <Competitor key={person.personId} person={person} />
-                            ))}
-                          </div>
-                          {r.attempts && <Solves event={event} attempts={r.attempts} />}
-                          {!r.contest && <RankingLinks ranking={r} />}
-                        </li>
-                      ))}
-                    </ul>
+            <div className="mt-4">
+              {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
+                return (
+                  <div key={event.eventId} className="mb-3">
+                    <EventTitle event={event} showIcon linkToRankings />
+
+                    <div className="d-block d-lg-none mt-2 mb-4 border-top border-bottom">
+                      <ul className="list-group list-group-flush">
+                        {rankings.map((r) => (
+                          <li
+                            key={r.type + r.resultId}
+                            className="d-flex flex-column gap-2 py-3 list-group-item list-group-item-dark"
+                          >
+                            <div className="d-flex justify-content-between">
+                              <span>
+                                <b>{getFormattedTime(r.result, { event })}</b>
+                                &#8194;{getRecordType(r.type)}
+                              </span>
+                              {r.contest ? (
+                                <Link href={`/competitions/${r.contest.competitionId}`}>
+                                  {getFormattedDate(r.date)}
+                                </Link>
+                              ) : (
+                                <span>{getFormattedDate(r.date)}</span>
+                              )}
+                            </div>
+                            <div className="d-flex flex-column gap-2">
+                              {r.persons.map((person) => (
+                                <Competitor key={person.personId} person={person} />
+                              ))}
+                            </div>
+                            {r.attempts && <Solves event={event} attempts={r.attempts} />}
+                            {!r.contest && <RankingLinks ranking={r} />}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="d-none d-lg-block">
+                      <RankingsTable rankings={rankings} event={event} recordsTable />
+                    </div>
                   </div>
-
-                  <div className="d-none d-lg-block">
-                    <RankingsTable rankings={rankings} event={event} recordsTable />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </>
         )}
       </div>

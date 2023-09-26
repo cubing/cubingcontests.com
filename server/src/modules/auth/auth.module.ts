@@ -17,7 +17,7 @@ import { JwtStrategy } from './jwt.strategy';
       // The fallback is the same as in .env.dev. It's necessary, because that file isn't
       // loaded until the Nest JS dependencies are initialized.
       secret: process.env.JWT_SECRET || 'jwt_secret',
-      signOptions: { expiresIn: '18000s' }, // 5 hours
+      signOptions: { expiresIn: '43200s' }, // 12 hours
     }),
   ],
   controllers: [AuthController],
