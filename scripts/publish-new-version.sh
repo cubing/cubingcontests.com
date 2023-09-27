@@ -7,6 +7,7 @@ read NEW_VERSION
 if [ -z "$1" ] || [ "$1" != '--no-git' ]; then
   echo "Pushing to Github..."
   git push origin main &&
+  git push origin dev &&
   git tag --force --annotate $NEW_VERSION -m "Version $NEW_VERSION" &&
   git push --force origin --tags
 fi
@@ -28,11 +29,11 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker push denimint/cubingcontests-api:latest
 fi
 
-echo -e "\nProvide a path to the directory you want to download the DB dumps to (leave empty to abort)"
-read PATH
+# echo -e "\nProvide a path to the directory you want to download the DB dumps to (leave empty to abort)"
+# read PATH
 
-if [ -n "$PATH" ]; then
-  ./scripts/download-db-dumps.sh "$PATH"
-fi
+# if [ -n "$PATH" ]; then
+#   ./scripts/download-db-dumps.sh "$PATH"
+# fi
 
 echo -e "\nDone!"
