@@ -12,7 +12,7 @@ import { UpdateRecordTypeDto } from './dto/update-record-type.dto';
 export class RecordTypesController {
   constructor(private readonly service: RecordTypesService) {}
 
-  @Get() // GET /record-types(?active=true/false)
+  @Get() // GET /record-types?active=true/false
   async getRecordTypes(@Query('active') active: boolean) {
     console.log('Getting record types');
     return await this.service.getRecordTypes({ active });

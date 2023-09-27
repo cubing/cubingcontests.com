@@ -392,8 +392,13 @@ export const getBGClassFromColor = (color: Color): string => {
 };
 
 export const getContestIdFromName = (name: string): string => {
-  let output = name.replaceAll(/[^a-zA-Z0-9 ]/g, ``);
-  const parts = output.split(` `);
-  output = parts.map((el) => el[0].toUpperCase() + el.slice(1)).join(``);
+  let output = name.replaceAll(/[^a-zA-Z0-9 ]/g, '');
+  const parts = output.split(' ');
+
+  output = parts
+    .filter((el) => el !== '')
+    .map((el) => el[0].toUpperCase() + el.slice(1))
+    .join('');
+
   return output;
 };

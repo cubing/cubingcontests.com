@@ -86,95 +86,100 @@ const ContestsTable = async ({
             </tr>
           </thead>
           <tbody>
-            {contests.map((contest: IContest) => (
-              <tr key={contest.competitionId}>
-                <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
-                <td>
-                  <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
-                    {contest.name}
-                  </Link>
-                </td>
-                <td>
-                  {contest.type !== ContestType.Online && (
-                    <span>
-                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
-                    </span>
-                  )}
-                </td>
-                <td>
-                  <ContestTypeBadge type={contest.type} />
-                </td>
-                <td>{contest.participants || ``}</td>
-                <td>{contest.events.length}</td>
+            {contests.map((contest: IContest) => {
+              const showApproveButton =
+                contest.state === ContestState.Created &&
+                isAdmin &&
+                (contest.type !== ContestType.Competition || contest.compDetails);
 
-                {/* THIS IS DESKTOP-ONLY */}
-                {onEditCompetition && (
-                  <td className="d-flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onEditCompetition(contest.competitionId)}
-                      className="btn btn-primary btn-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onCopyCompetition(contest.competitionId)}
-                      className="btn btn-primary btn-sm"
-                    >
-                      Clone
-                    </button>
-                    {contest.state === ContestState.Created &&
-                      isAdmin &&
-                      (contest.type !== ContestType.Competition || contest.compDetails) && (
-                      <button
-                        type="button"
-                        onClick={() => onChangeCompState(contest.competitionId, ContestState.Approved)}
-                        className="btn btn-warning btn-sm"
-                      >
-                          Approve
-                      </button>
-                    )}
-                    {[ContestState.Approved, ContestState.Ongoing].includes(contest.state) && (
-                      <button
-                        type="button"
-                        onClick={() => onPostCompResults(contest.competitionId)}
-                        className="btn btn-sm btn-success"
-                      >
-                        Enter Results
-                      </button>
-                    )}
-                    {contest.state > ContestState.Ongoing && isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => onPostCompResults(contest.competitionId)}
-                        className="btn btn-sm btn-secondary"
-                      >
-                        Edit Results
-                      </button>
-                    )}
-                    {contest.state === ContestState.Ongoing && (
-                      <button
-                        type="button"
-                        onClick={() => onChangeCompState(contest.competitionId, ContestState.Finished)}
-                        className="btn btn-warning btn-sm"
-                      >
-                        Finish
-                      </button>
-                    )}
-                    {contest.state === ContestState.Finished && isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => onChangeCompState(contest.competitionId, ContestState.Published)}
-                        className="btn btn-warning btn-sm"
-                      >
-                        Publish
-                      </button>
+              return (
+                <tr key={contest.competitionId}>
+                  <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
+                  <td>
+                    <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
+                      {contest.name}
+                    </Link>
+                  </td>
+                  <td>
+                    {contest.type !== ContestType.Online && (
+                      <span>
+                        {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
+                      </span>
                     )}
                   </td>
-                )}
-              </tr>
-            ))}
+                  <td>
+                    <ContestTypeBadge type={contest.type} />
+                  </td>
+                  <td>{contest.participants || ``}</td>
+                  <td>{contest.events.length}</td>
+
+                  {/* THIS IS DESKTOP-ONLY */}
+                  {onEditCompetition && (
+                    <td className="d-flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onEditCompetition(contest.competitionId)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onCopyCompetition(contest.competitionId)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        Clone
+                      </button>
+                      {showApproveButton && (
+                        <button
+                          type="button"
+                          onClick={() => onChangeCompState(contest.competitionId, ContestState.Approved)}
+                          className="btn btn-warning btn-sm"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      {[ContestState.Approved, ContestState.Ongoing].includes(contest.state) && (
+                        <button
+                          type="button"
+                          onClick={() => onPostCompResults(contest.competitionId)}
+                          className="btn btn-sm btn-success"
+                        >
+                          Enter Results
+                        </button>
+                      )}
+                      {contest.state > ContestState.Ongoing && isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => onPostCompResults(contest.competitionId)}
+                          className="btn btn-sm btn-secondary"
+                        >
+                          Edit Results
+                        </button>
+                      )}
+                      {contest.state === ContestState.Ongoing && (
+                        <button
+                          type="button"
+                          onClick={() => onChangeCompState(contest.competitionId, ContestState.Finished)}
+                          className="btn btn-warning btn-sm"
+                        >
+                          Finish
+                        </button>
+                      )}
+                      {contest.state === ContestState.Finished && isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => onChangeCompState(contest.competitionId, ContestState.Published)}
+                          className="btn btn-warning btn-sm"
+                        >
+                          Publish
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
