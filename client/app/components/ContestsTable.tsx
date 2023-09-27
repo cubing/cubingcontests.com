@@ -7,6 +7,7 @@ import Country from './Country';
 
 const ContestsTable = async ({
   contests,
+  modView = false,
   // If one of these is defined, the other must be defined too
   onEditCompetition,
   onCopyCompetition,
@@ -15,6 +16,7 @@ const ContestsTable = async ({
   isAdmin = false,
 }: {
   contests: IContest[];
+  modView?: boolean;
   onEditCompetition?: (competitionId: string) => void;
   onCopyCompetition?: (competitionId: string) => void;
   onPostCompResults?: (competitionId: string) => void;
@@ -25,49 +27,51 @@ const ContestsTable = async ({
     <>
       {/* MOBILE VIEW */}
 
-      <div className="d-block d-lg-none border-top border-bottom">
-        <ul className="list-group list-group-flush">
-          {contests.map((contest: IContest, index: number) => (
-            <li
-              key={contest.competitionId}
-              className={`list-group-item` + (index % 2 === 1 ? ` list-group-item-dark` : ``)}
-            >
-              <div className="d-flex justify-content-between mb-2">
-                <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
-                  {contest.name}
-                </Link>
-                <p className="ms-2 text-nowrap">
-                  <b>{getFormattedDate(contest.startDate, contest.endDate)}</b>
-                </p>
-              </div>
-              <div className="d-flex justify-content-between gap-3">
-                <div>
-                  {contest.type !== ContestType.Online ? (
-                    <>
-                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
-                    </>
-                  ) : (
-                    <>Online</>
-                  )}
+      {!modView && (
+        <div className="d-block d-lg-none border-top border-bottom">
+          <ul className="list-group list-group-flush">
+            {contests.map((contest: IContest, index: number) => (
+              <li
+                key={contest.competitionId}
+                className={`list-group-item` + (index % 2 === 1 ? ` list-group-item-dark` : ``)}
+              >
+                <div className="d-flex justify-content-between mb-2">
+                  <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
+                    {contest.name}
+                  </Link>
+                  <p className="ms-2 text-nowrap">
+                    <b>{getFormattedDate(contest.startDate, contest.endDate)}</b>
+                  </p>
                 </div>
-                <div className="text-end">
-                  {contest.participants > 0 && (
-                    <span>
-                      Participants:&nbsp;<b>{contest.participants}</b>
-                      {`, `}
-                    </span>
-                  )}
-                  Events:&nbsp;<b>{contest.events.length}</b>
+                <div className="d-flex justify-content-between gap-3">
+                  <div>
+                    {contest.type !== ContestType.Online ? (
+                      <>
+                        {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
+                      </>
+                    ) : (
+                      <>Online</>
+                    )}
+                  </div>
+                  <div className="text-end">
+                    {contest.participants > 0 && (
+                      <span>
+                        Participants:&nbsp;<b>{contest.participants}</b>
+                        {`, `}
+                      </span>
+                    )}
+                    Events:&nbsp;<b>{contest.events.length}</b>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* DESKTOP VIEW (includes admin/moderator-only features) */}
 
-      <div className="d-none d-lg-block flex-grow-1 mb-5 table-responsive">
+      <div className={`${!modView && 'd-none d-lg-block'} flex-grow-1 mb-5 table-responsive`}>
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>

@@ -62,43 +62,46 @@ const ModeratorDashboardPage = () => {
   return (
     <>
       <h2 className="text-center">Moderator Dashboard</h2>
-      <div className="my-4 d-flex gap-3 fs-5">
-        <Link href="/mod/competition" className="btn btn-success">
-          Create new contest
-        </Link>
-        <Link href="/mod/person" className="btn btn-success">
-          Add competitors
-        </Link>
-        <Link href="/user/submit-results" className="btn btn-success">
-          Submit results
-        </Link>
-        {userInfo.isAdmin && (
+
+      <div className="px-2">
+        <div className="my-4 d-flex flex-wrap gap-3 fs-5">
+          <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
+            Create new contest
+          </Link>
+          <Link href="/mod/person" className="btn btn-success btn-sm btn-lg-md">
+            Add competitors
+          </Link>
+          <Link href="/user/submit-results" className="btn btn-success btn-sm btn-lg-md">
+            Submit results
+          </Link>
+          {userInfo.isAdmin && (
+            <>
+              <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
+                Import/Export
+              </Link>
+              <Link href="/admin/record-types" className="btn btn-secondary btn-sm btn-lg-md">
+                Configure record types
+              </Link>
+            </>
+          )}
+        </div>
+        {adminStats && (
           <>
-            <Link href="/admin/import-export" className="btn btn-warning">
-              Import/Export
-            </Link>
-            <Link href="/admin/record-types" className="btn btn-secondary">
-              Configure record types
-            </Link>
+            <p>
+              Competitors in DB: <b>{adminStats.totalPersons}</b>
+            </p>
+            <p>
+              Users in DB: <b>{adminStats.totalUsers}</b>
+            </p>
+            <p>
+              Unapproved results: <b>{adminStats.totalUnapprovedSubmittedResults}</b>
+            </p>
           </>
         )}
+        <p>
+          Number of contests: <b>{contests ? contests.length : '?'}</b>
+        </p>
       </div>
-      {adminStats && (
-        <>
-          <p>
-            Competitors in DB: <b>{adminStats.totalPersons}</b>
-          </p>
-          <p>
-            Users in DB: <b>{adminStats.totalUsers}</b>
-          </p>
-          <p>
-            Unapproved results: <b>{adminStats.totalUnapprovedSubmittedResults}</b>
-          </p>
-        </>
-      )}
-      <p>
-        Number of contests: <b>{contests ? contests.length : `?`}</b>
-      </p>
       {contests?.length > 0 ? (
         <ContestsTable
           contests={contests}
@@ -106,6 +109,7 @@ const ModeratorDashboardPage = () => {
           onCopyCompetition={copyCompetition}
           onPostCompResults={postCompResults}
           onChangeCompState={changeCompState}
+          modView
           isAdmin={userInfo.isAdmin}
         />
       ) : (

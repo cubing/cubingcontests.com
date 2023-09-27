@@ -971,10 +971,10 @@ const ContestForm = ({
               <div className="col-1 d-flex align-items-end">
                 <span
                   style={{
-                    marginBottom: `19px`,
-                    width: `100%`,
-                    height: `2rem`,
-                    borderRadius: `5px`,
+                    marginBottom: '19px',
+                    width: '100%',
+                    height: '2rem',
+                    borderRadius: '5px',
                     backgroundColor: `#${roomColor}`,
                   }}
                 ></span>

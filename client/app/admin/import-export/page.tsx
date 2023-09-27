@@ -392,11 +392,11 @@ const ImportExportPage = () => {
       </Form>
 
       {contestJSON && (
-        <div className="mx-auto mb-3" style={{ maxWidth: `900px` }}>
+        <div className="w-100 mx-auto mb-3" style={{ maxWidth: '900px' }}>
           <h3 className="mb-4 text-center">JSON</h3>
           <p
-            className="p-4 border rounded-4 bg-black text-white font-monospace overflow-y-auto"
-            style={{ whiteSpace: `pre-wrap`, maxHeight: `450px` }}
+            className="mx-2 p-4 border rounded-4 bg-black text-white font-monospace overflow-y-auto"
+            style={{ whiteSpace: 'pre-wrap', maxHeight: '450px' }}
           >
             {contestJSON}
           </p>
