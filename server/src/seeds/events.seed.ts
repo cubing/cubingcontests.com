@@ -148,7 +148,7 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed, EventGroup.HasMemo],
   },
   ///////////////////////////////////////////////////////////////////
-  // UNOFFICIAL
+  // Unofficial
   ///////////////////////////////////////////////////////////////////
   {
     eventId: '333_team_bld',
@@ -184,25 +184,57 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
   },
   {
-    eventId: '234567relay',
-    name: '2x2x2-7x7x7 Relay',
-    rank: 1100,
+    eventId: '333_mirror_blocks',
+    name: 'Mirror Cube',
+    rank: 1040,
     format: EventFormat.Time,
-    defaultRoundFormat: RoundFormat.BestOf3,
-    groups: [EventGroup.Unofficial, EventGroup.Team],
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial, EventGroup.Hidden],
+  },
+  {
+    eventId: '333mts',
+    name: '3x3x3 Match The Scramble',
+    rank: 1050,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Mean,
+    groups: [EventGroup.Unofficial, EventGroup.Hidden],
   },
   {
     eventId: '333ft',
     name: '3x3x3 With Feet',
-    rank: 1200,
+    rank: 1100,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA, EventGroup.Hidden],
   },
   {
+    eventId: '234relay',
+    name: '2x2x2-4x4x4 Relay',
+    rank: 1200,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf3,
+    groups: [EventGroup.Unofficial, EventGroup.Team, EventGroup.Hidden],
+  },
+  {
+    eventId: '2345relay',
+    name: '2x2x2-5x5x5 Relay',
+    rank: 1210,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf3,
+    groups: [EventGroup.Unofficial, EventGroup.Team, EventGroup.Hidden],
+  },
+  {
+    eventId: '234567relay',
+    name: '2x2x2-7x7x7 Relay',
+    rank: 1220,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf3,
+    groups: [EventGroup.Unofficial, EventGroup.Team],
+  },
+  {
     eventId: '333_team_factory',
     name: '3x3x3 Team Factory',
-    rank: 1210,
+    rank: 1300,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.Team],
@@ -254,7 +286,7 @@ export const eventsSeed: IEvent[] = [
     participants: 8,
   },
   ///////////////////////////////////////////////////////////////////
-  // ETREME BLD
+  // Extreme BLD
   ///////////////////////////////////////////////////////////////////
   {
     eventId: '333mbo',
@@ -313,12 +345,47 @@ export const eventsSeed: IEvent[] = [
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
   },
   ///////////////////////////////////////////////////////////////////
-  // REMOVED
+  // Miscellaneous
+  ///////////////////////////////////////////////////////////////////
+  {
+    eventId: '333_inspectionless',
+    name: '3x3x3 Without Inspection',
+    rank: 3000,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Miscellaneous, EventGroup.Hidden],
+  },
+  {
+    eventId: '333_scrambling',
+    name: '3x3x3 Scrambling',
+    rank: 3010,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Miscellaneous, EventGroup.Hidden],
+  },
+  {
+    eventId: '333oh_x2',
+    name: '3x3x3 Two Cubes One-Handed',
+    rank: 3020,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Mean,
+    groups: [EventGroup.Miscellaneous, EventGroup.Hidden],
+  },
+  {
+    eventId: '333oh_h2o',
+    name: '3x3x3 H2OH',
+    rank: 3900,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.BestOf1,
+    groups: [EventGroup.Miscellaneous, EventGroup.Hidden],
+  },
+  ///////////////////////////////////////////////////////////////////
+  // Removed
   ///////////////////////////////////////////////////////////////////
   {
     eventId: '333tbfo',
     name: '3x3x3 Team-Blind With Inspection',
-    rank: 3000,
+    rank: 4000,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Removed, EventGroup.Team],

@@ -9,7 +9,8 @@ export enum EventGroup {
   WCA = 1, // event ranks are the same as on the WCA
   Unofficial = 2, // event ranks start from 1000
   ExtremeBLD = 3, // ...from 2000
-  Removed = 4, // ...from 3000
+  Miscellaneous = 11, // ...from 3000
+  Removed = 4, // ...from 4000
 
   MeetupOnly = 5,
   SubmissionsAllowed = 6,
