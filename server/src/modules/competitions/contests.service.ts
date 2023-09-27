@@ -334,7 +334,7 @@ export class ContestsService {
         eventRounds.push(await this.roundModel.create(round));
       }
     } catch (err) {
-      throw new InternalServerErrorException(`Error while creating rounds for co`);
+      throw new InternalServerErrorException(`Error while creating rounds for contest: ${err.message}`);
     }
 
     return {

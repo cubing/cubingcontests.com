@@ -437,7 +437,7 @@ const ContestForm = ({
 
   const changeName = (value: string) => {
     // If not editing a competition, update Competition ID accordingly, unless it deviates from the name
-    if (mode !== `edit` && competitionId === getContestIdFromName(name)) {
+    if (mode !== 'edit' && competitionId === getContestIdFromName(name)) {
       setCompetitionId(getContestIdFromName(value));
     }
 

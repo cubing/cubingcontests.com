@@ -61,13 +61,13 @@ const getRoundType = (index: number, totalRounds: number): RoundType => {
 };
 
 const convertTime = (value: string): number => {
-  if (value === `DNF`) return -1;
-  if (value === `DNS`) return -2;
-  return getCentiseconds(value.replaceAll(/[:.]/g, ``));
+  if (value === 'DNF') return -1;
+  if (value === 'DNS') return -2;
+  return getCentiseconds(value.replaceAll(/[:.]/g, ''));
 };
 
 const fetchData = async (setEvents: (val: IEvent[]) => void, setErrorMessages: (val: string[]) => void) => {
-  const { payload: events, errors } = await myFetch.get(`/events`);
+  const { payload: events, errors } = await myFetch.get('/events');
 
   if (errors) setErrorMessages(errors);
   else setEvents(events);
@@ -76,13 +76,13 @@ const fetchData = async (setEvents: (val: IEvent[]) => void, setErrorMessages: (
 const ImportExportPage = () => {
   const [events, setEvents] = useState<IEvent[]>();
   const [errorMessages, setErrorMessages] = useState([]);
-  const [successMessage, setSuccessMessage] = useState(``);
-  const [competitionIdText, setCompetitionIdText] = useState(``);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [competitionIdText, setCompetitionIdText] = useState('');
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [contest, setContest] = useState<IContest>();
   const [persons, setPersons] = useState<IPerson[]>([]);
-  const [contestJSON, setContestJSON] = useState(``);
-  const [selectedEventId, setSelectedEventId] = useState(``);
+  const [contestJSON, setContestJSON] = useState('');
+  const [selectedEventId, setSelectedEventId] = useState('');
 
   useEffect(() => {
     fetchData(setEvents, setErrorMessages);
@@ -102,18 +102,18 @@ const ImportExportPage = () => {
     if (contest) {
       setLoadingDuringSubmit(true);
       setErrorMessages([]);
-      setSuccessMessage(``);
+      setSuccessMessage('');
 
-      const { errors } = await myFetch.post(`/competitions?save_results=true`, contest);
+      const { errors } = await myFetch.post('/competitions?saveResults=true', contest);
 
       if (errors) {
         setErrorMessages(errors);
       } else {
         setContest(null);
         setPersons([]);
-        setCompetitionIdText(``);
-        setContestJSON(``);
-        setSuccessMessage(`Contest successfully imported`);
+        setCompetitionIdText('');
+        setContestJSON('');
+        setSuccessMessage('Contest successfully imported');
       }
 
       setLoadingDuringSubmit(false);
@@ -122,12 +122,11 @@ const ImportExportPage = () => {
 
   const previewContest = async () => {
     setErrorMessages([]);
-    setSuccessMessage(``);
-    setContestJSON(``);
+    setSuccessMessage('');
+    setContestJSON('');
     setLoadingDuringSubmit(true);
 
     const competitionId = getContestIdFromName(competitionIdText.trim());
-    console.log(competitionId);
     const persons: IPerson[] = []; // used for results preview
     const notFoundPersonNames: string[] = [];
 
@@ -378,7 +377,12 @@ const ImportExportPage = () => {
       <h2 className="mb-3 text-center">Import and export contests</h2>
 
       <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
-        <FormTextInput title="Contest name / ID" value={competitionIdText} setValue={setCompetitionIdText} />
+        <FormTextInput
+          title="Contest name / ID"
+          value={competitionIdText}
+          setValue={setCompetitionIdText}
+          disabled={!!contest}
+        />
         {contest ? (
           <div className="d-flex gap-3">
             <Button text="Import Contest" onClick={importContest} loading={loadingDuringSubmit} />
