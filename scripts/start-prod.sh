@@ -73,7 +73,7 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
 else #### DEVELOPMENT ####
 
   # Stop Docker containers
-  docker compose -f docker-compose-prod.yml down &&
+  docker compose -f docker-compose-prod-dev.yml down &&
   docker compose down &&
 
   # Remove all images that contain "denimint"
@@ -81,7 +81,12 @@ else #### DEVELOPMENT ####
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
 
   if [ "$2" != "--cleanup" ]; then
-    docker compose -f docker-compose-prod.yml up
+    # Build client container
+    docker build --build-arg API_BASE_URL='http://localhost:5000/api' -t cubingcontests-client --file client.Dockerfile . &&
+    # Build API container
+    docker build -t cubingcontests-api --file server.Dockerfile . &&
+
+    docker compose -f docker-compose-prod-dev.yml up
   fi
 
 fi
