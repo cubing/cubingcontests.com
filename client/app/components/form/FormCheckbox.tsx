@@ -12,7 +12,7 @@ const FormCheckbox = ({
   disabled?: boolean;
 }) => {
   if (!id && !title) {
-    throw new Error(`Neither title nor id are set in FormCheckbox!`);
+    throw new Error('Neither title nor id are set in FormCheckbox!');
   }
 
   const inputId = `${id || title}_checkbox`;
@@ -26,7 +26,7 @@ const FormCheckbox = ({
         checked={selected}
         onChange={() => setSelected(!selected)}
         onKeyDown={(e) => {
-          if (e.key === `Enter`) e.preventDefault();
+          if (e.key === 'Enter') e.preventDefault();
         }}
         disabled={disabled}
       />

@@ -15,10 +15,10 @@ const FormSelect = ({
   disabled?: boolean;
   noMargin?: boolean;
 }) => {
-  const id = `select_${title.toLowerCase().replaceAll(` `, `_`)}`;
+  const id = `select_${title.toLowerCase().replaceAll(' ', '_')}`;
 
   return (
-    <div className={`fs-5` + (noMargin ? `` : ` mb-3`)}>
+    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
       {title && (
         <label htmlFor={id} className="form-label">
           {title}
@@ -28,7 +28,7 @@ const FormSelect = ({
         id={id}
         className="form-select"
         value={selected}
-        onChange={(e) => setSelected(typeof selected === `string` ? e.target.value.toString() : Number(e.target.value))}
+        onChange={(e) => setSelected(typeof selected === 'string' ? e.target.value.toString() : Number(e.target.value))}
         disabled={disabled}
       >
         {options.map((option: MultiChoiceOption) => (

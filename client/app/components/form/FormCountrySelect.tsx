@@ -3,7 +3,7 @@
 import Countries from '@sh/Countries';
 
 // Add not selected option and remove online option
-const countries = [{ name: `Select country`, code: `NOT_SELECTED` }, ...Countries.slice(1)];
+const countries = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countries.slice(1)];
 
 const FormCountrySelect = ({
   countryIso2,
@@ -17,7 +17,7 @@ const FormCountrySelect = ({
   disabled?: boolean;
 }) => {
   const handleKeyDown = (e: any) => {
-    if (e.key === `Enter`) e.preventDefault();
+    if (e.key === 'Enter') e.preventDefault();
 
     if (onKeyDown) onKeyDown(e);
   };
