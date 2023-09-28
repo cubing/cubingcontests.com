@@ -4,8 +4,9 @@ import ContestsTable from '@c/ContestsTable';
 // SEO
 export const metadata = {
   title: 'All contests | Cubing Contests',
-  description: `List of unofficial Rubik's Cube competitions and speedcuber meetups.`,
-  keywords: `rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle`,
+  description: "List of unofficial Rubik's Cube competitions and speedcuber meetups.",
+  keywords:
+    "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: '/favicon.png' },
   metadataBase: new URL('https://cubingcontests.com'),
   openGraph: {
