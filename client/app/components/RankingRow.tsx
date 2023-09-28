@@ -12,9 +12,7 @@ import RankingLinks from './RankingLinks';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
 const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
-  if (type === 'single') return 'Single';
-  else if (type === 'average') return 'Average';
-  else if (type === 'mean') return 'Mean';
+  return type[0].toUpperCase() + type.slice(1);
 };
 
 const RankingRow = ({

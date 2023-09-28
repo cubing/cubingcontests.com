@@ -34,9 +34,13 @@ export class AuthService {
       roles: user.roles,
     };
 
-    return {
-      accessToken: this.jwtService.sign(payload),
-    };
+    try {
+      return {
+        accessToken: this.jwtService.sign(payload),
+      };
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {

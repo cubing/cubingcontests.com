@@ -28,6 +28,8 @@ const LoginPage = () => {
     }
 
     if (tempErrors.length === 0) {
+      setErrorMessages([]);
+
       const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
 
       if (errors) {

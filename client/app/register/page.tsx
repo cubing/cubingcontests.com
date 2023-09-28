@@ -21,6 +21,8 @@ const RegisterPage = () => {
     if (!password) tempErrors.push('Please enter a password');
 
     if (tempErrors.length === 0) {
+      setErrorMessages([]);
+
       const { errors } = await myFetch.post('/auth/register', { username, email, password }, { authorize: false });
 
       if (errors) {

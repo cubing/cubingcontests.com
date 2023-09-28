@@ -83,8 +83,6 @@ const doFetch = async (
         else errors = json.message;
 
         errors = errors.filter((err) => err !== '');
-
-        console.error(json);
       } else {
         errors = ['Unknown error'];
       }
