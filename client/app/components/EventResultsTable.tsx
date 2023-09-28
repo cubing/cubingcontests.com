@@ -22,7 +22,7 @@ const EventResultsTable = ({
   return (
     <div className="mt-3">
       {rounds.map((round: IRound) => (
-        <div key={round.roundId} className="mb-3">
+        <div key={round.roundId} className="mb-4">
           <h3 className="mx-2 mb-4 fs-3">
             {contestEvent.event.name}
             {rounds.length > 1 && ` ${roundTypes[round.roundTypeId].label}`}

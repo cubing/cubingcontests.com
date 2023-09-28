@@ -42,14 +42,14 @@ const RoundResultsTable = ({
               ? round.proceed.value
               : Math.floor((round.results.length * round.proceed.value) / 100))))
     ) {
-      return { color: `black`, background: `#10c010` };
+      return { color: 'black', background: '#10c010' };
     }
 
     return {};
   };
 
   return (
-    <div className="flex-grow-1 mb-5 table-responsive">
+    <div className="flex-grow-1 table-responsive">
       <table className="table table-hover table-responsive text-nowrap">
         <thead>
           <tr>
@@ -69,7 +69,7 @@ const RoundResultsTable = ({
             return (
               <tr key={result.personIds[0]}>
                 <td className="ps-2" style={getRankingHighlight(result)}>
-                  <span className={isTie ? `text-secondary` : ``}>{result.ranking}</span>
+                  <span className={isTie ? 'text-secondary' : ''}>{result.ranking}</span>
                 </td>
                 <td className="d-flex flex-wrap gap-2">
                   {result.personIds.map((personId, i) => {
