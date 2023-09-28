@@ -19,7 +19,7 @@ const userInfo: IUserInfo = getUserInfo();
 
 const SubmitResultsPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState(``);
+  const [successMessage, setSuccessMessage] = useState('');
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
@@ -56,7 +56,7 @@ const SubmitResultsPage = () => {
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
-    if (successMessage || errorMessages.some((el) => el !== ``)) window.scrollTo(0, 0);
+    if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ const SubmitResultsPage = () => {
       Promise.reject();
     } else {
       setErrorMessages([]);
-      console.log(`Submission info:`, payload);
+      console.log('Submission info:', payload);
       return payload;
     }
   };
@@ -83,13 +83,13 @@ const SubmitResultsPage = () => {
     const tempErrors: string[] = [];
 
     if (!date) {
-      tempErrors.push(`Please enter a valid date`);
-      document.getElementById(`date`).focus();
+      tempErrors.push('Please enter a valid date');
+      document.getElementById('date').focus();
     }
 
     if (!videoUnavailable && !videoLink.trim()) {
-      tempErrors.push(`Please enter a video link`);
-      document.getElementById(`video_link`).focus();
+      tempErrors.push('Please enter a video link');
+      document.getElementById('video_link').focus();
     }
 
     if (tempErrors.length > 0) {
@@ -116,17 +116,17 @@ const SubmitResultsPage = () => {
         async (newResultWithBestAndAverage) => {
           setLoadingDuringSubmit(true);
 
-          const { errors } = await myFetch.post(`/results`, newResultWithBestAndAverage);
+          const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
 
           setLoadingDuringSubmit(false);
 
           if (errors) {
             setErrorMessages(errors);
           } else {
-            setSuccessMessage(`Successfully submitted`);
+            setSuccessMessage('Successfully submitted');
             setDate(undefined);
-            setVideoLink(``);
-            setDiscussionLink(``);
+            setVideoLink('');
+            setDiscussionLink('');
             setResultFormResetTrigger(!resultFormResetTrigger);
           }
         },
@@ -138,7 +138,7 @@ const SubmitResultsPage = () => {
   const changeDate = (newDate: Date) => {
     setDate(newDate);
     setErrorMessages([]);
-    setSuccessMessage(``);
+    setSuccessMessage('');
 
     // Update the record pairs with the new date
     if (newDate) {
@@ -151,18 +151,18 @@ const SubmitResultsPage = () => {
   };
 
   const onVideoLinkKeyDown = (e: any) => {
-    if (e.key === `Enter`) document.getElementById(`discussion_link`).focus();
+    if (e.key === 'Enter') document.getElementById('discussion_link').focus();
   };
 
   const onVideoLinkFocusOut = () => {
-    if (videoLink.includes(`youtube.com`) && videoLink.includes(`&`)) {
+    if (videoLink.includes('youtube.com') && videoLink.includes('&')) {
       // Remove unnecessary params from youtube links
-      setVideoLink(videoLink.slice(0, videoLink.indexOf(`&`)));
+      setVideoLink(videoLink.slice(0, videoLink.indexOf('&')));
     }
   };
 
   const onDiscussionLinkKeyDown = (e: any) => {
-    if (e.key === `Enter`) document.getElementById(`submit_button`).focus();
+    if (e.key === 'Enter') document.getElementById('submit_button').focus();
   };
 
   if (resultsSubmissionInfo) {
@@ -220,14 +220,14 @@ const SubmitResultsPage = () => {
             title="Date (dd.mm.yyyy)"
             value={date}
             setValue={changeDate}
-            nextFocusTargetId={videoUnavailable ? `discussion_link` : `video_link`}
+            nextFocusTargetId={videoUnavailable ? 'discussion_link' : 'video_link'}
           />
           <FormTextInput
             id="video_link"
             title="Link to video"
             placeholder="https://youtube.com/watch?v=xyz"
             value={videoLink}
-            setValue={setVideoLink}
+            onChange={setVideoLink}
             onKeyDown={onVideoLinkKeyDown}
             onBlur={onVideoLinkFocusOut}
             disabled={videoUnavailable}
@@ -245,7 +245,7 @@ const SubmitResultsPage = () => {
             title="Link to discussion (optional)"
             placeholder="https://speedsolving.com/threads/xyz"
             value={discussionLink}
-            setValue={setDiscussionLink}
+            onChange={setDiscussionLink}
             onKeyDown={onDiscussionLinkKeyDown}
           />
           <Button

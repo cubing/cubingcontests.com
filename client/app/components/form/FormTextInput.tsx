@@ -5,8 +5,8 @@ const FormTextInput = ({
   title,
   id,
   value,
-  placeholder = ``,
-  setValue,
+  placeholder = '',
+  onChange,
   onFocus,
   onBlur,
   onKeyDown,
@@ -23,7 +23,7 @@ const FormTextInput = ({
   id?: string;
   placeholder?: string;
   value: string;
-  setValue?: (val: any) => void;
+  onChange: (val: any) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   onKeyDown?: (e: any) => void;
@@ -36,14 +36,14 @@ const FormTextInput = ({
   invalid?: boolean;
   noMargin?: boolean;
 }) => {
-  if (!id && !title) throw new Error(`Neither title nor id are set in FormTextInput!`);
+  if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput!');
 
   const [hidePassword, setHidePassword] = useState(password);
 
   const inputId = id || title;
 
   const handleKeyDown = (e: any) => {
-    if (e.key === `Enter` && !submitOnEnter) e.preventDefault();
+    if (e.key === 'Enter' && !submitOnEnter) e.preventDefault();
 
     if (onKeyDown) onKeyDown(e);
   };
@@ -55,7 +55,7 @@ const FormTextInput = ({
   };
 
   return (
-    <div className={`fs-5` + (noMargin ? `` : ` mb-3`)}>
+    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
       {title && (
         <label htmlFor={inputId} className="form-label">
           {title}
@@ -63,19 +63,18 @@ const FormTextInput = ({
       )}
       <div className="d-flex justify-content-between align-items-center gap-3">
         <input
-          type={hidePassword ? `password` : `text`}
+          type={hidePassword ? 'password' : 'text'}
           id={inputId}
           value={value}
           placeholder={placeholder}
           autoFocus={autoFocus}
           disabled={disabled}
           required={required}
-          readOnly={!setValue}
-          onChange={setValue ? (e: any) => setValue(e.target.value) : undefined}
+          onChange={(e: any) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={(e: any) => handleFocus(e)}
           onBlur={onBlur}
-          className={`form-control flex-grow-1` + (monospace ? ` font-monospace` : ``) + (invalid ? ` is-invalid` : ``)}
+          className={'form-control flex-grow-1' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
         />
         {password && (
           <button

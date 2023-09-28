@@ -91,7 +91,7 @@ const FormPersonInputs = ({
   };
 
   // This is called first on focus leave for the previous input and then on focus for the new input
-  const changeFocusedInput = (inputIndex: number | null, inputValue = ``) => {
+  const changeFocusedInput = (inputIndex: number | null, inputValue = '') => {
     setFocusedInput(inputIndex);
     setPersonSelection(0);
     queryMatchedPersons(inputValue);
@@ -170,7 +170,7 @@ const FormPersonInputs = ({
 
       // If selection was done using the WCA ID, personId would be 0 here
       if (newSelectedPerson.personId === 0) {
-        const { payload, errors } = await myFetch.post(`/persons/create-or-get`, newSelectedPerson);
+        const { payload, errors } = await myFetch.post('/persons/create-or-get', newSelectedPerson);
 
         if (errors) {
           setErrorMessages(errors);
@@ -192,12 +192,12 @@ const FormPersonInputs = ({
   };
 
   const onPersonKeyDown = async (inputIndex: number, e: any) => {
-    if (e.key === `Enter`) {
+    if (e.key === 'Enter') {
       // Make sure the focused input is not empty
       if (personNames[inputIndex]) {
         selectCompetitor(inputIndex);
       }
-    } else if (e.key === `ArrowDown`) {
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault();
 
       if (personSelection + 1 <= matchedPersons.length - defaultMatchedPersons.length) {
@@ -205,7 +205,7 @@ const FormPersonInputs = ({
       } else {
         setPersonSelection(0);
       }
-    } else if (e.key === `ArrowUp`) {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
 
       if (personSelection - 1 >= 0) {
@@ -223,12 +223,12 @@ const FormPersonInputs = ({
   return (
     <div className="row">
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? `col-md-6` : ``}>
+        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? 'col-md-6' : ''}>
           <FormTextInput
             title={(personNames.length > 1 ? `${title} ${inputIndex + 1}` : title) + ' (WCA ID or name)'}
             id={`${title}_${inputIndex + 1}`}
             value={personName}
-            setValue={(val: string) => changePersonName(inputIndex, val)}
+            onChange={(val: string) => changePersonName(inputIndex, val)}
             onKeyDown={(e: any) => onPersonKeyDown(inputIndex, e)}
             onFocus={() => changeFocusedInput(inputIndex, personName)}
             onBlur={() => changeFocusedInput(null)}

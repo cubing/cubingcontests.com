@@ -43,11 +43,11 @@ const setRankings = (results: IResult[], ranksWithAverage: boolean): IResult[] =
 
 const convertRoundFormat = (value: string): RoundFormat => {
   switch (value) {
-    case `avg5`:
+    case 'avg5':
       return RoundFormat.Average;
-    case `bo3`:
+    case 'bo3':
       return RoundFormat.BestOf3;
-    case `bo2`:
+    case 'bo2':
       return RoundFormat.BestOf2;
     default:
       throw new Error(`Unknown round format: ${value}`);
@@ -143,7 +143,7 @@ const ImportExportPage = () => {
 
     if (e1 || e2 || e3) {
       const errors = [...(e1 ? e1 : []), ...(e2 ? e2 : []), ...(e3 ? e3 : [])];
-      setErrorMessages([`There was an error while fetching the data`, ...errors]);
+      setErrorMessages(['There was an error while fetching the data', ...errors]);
       return;
     }
 
@@ -157,7 +157,7 @@ const ImportExportPage = () => {
       type: ContestType.Competition, // THIS IS HARDCODED!!!
       city: wcaCompData.city,
       countryIso2: wcaCompData.country,
-      venue: wcaCompData.venue.name.split(`]`)[0].replace(`[`, ``),
+      venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
       address: wcaCompData.venue.address,
       latitudeMicrodegrees: wcaCompData.venue.coordinates.latitude * 1000000,
       longitudeMicrodegrees: wcaCompData.venue.coordinates.longitude * 1000000,
@@ -171,7 +171,7 @@ const ImportExportPage = () => {
       // compDetails.schedule needs to be set by an admin manually after the competition has been imported
     };
 
-    if (newContest.mainEventId === `333_team_bld`) newContest.mainEventId = `333tbfo`;
+    if (newContest.mainEventId === '333_team_bld') newContest.mainEventId = '333tbfo';
     setSelectedEventId(newContest.mainEventId);
 
     // Set organizer objects
@@ -195,7 +195,7 @@ const ImportExportPage = () => {
 
     // Set contest events
     for (const key of Object.keys(compData.roundsByEvent)) {
-      const ccEventId = key === `333_team_bld` ? `333tbfo` : key;
+      const ccEventId = key === '333_team_bld' ? '333tbfo' : key;
       const event = events.find((el) => el.eventId === ccEventId);
       const roundsInfo = compData.roundsByEvent[key];
       const rounds: IRound[] = [];
@@ -227,23 +227,23 @@ const ImportExportPage = () => {
           lines
             .slice(1)
             .map((line: string) => line.trim())
-            .filter((line: string) => line !== ``)
+            .filter((line: string) => line !== '')
             .map((line: string): IResult => {
-              const fields = lines[0].split(`,`);
-              const parts = line.split(`,`);
+              const fields = lines[0].split(',');
+              const parts = line.split(',');
               const personNames = [];
               const attempts = [];
 
               for (let i = 1; i < fields.length; i++) {
-                if ([`name`, `name1`].includes(fields[i])) {
+                if (['name', 'name1'].includes(fields[i])) {
                   personNames.push(parts[i]);
-                } else if (fields[i] === `wcaID1`) {
+                } else if (fields[i] === 'wcaID1') {
                   personNames[0] += `|${parts[i]}`;
-                } else if (fields[i] === `name2`) {
+                } else if (fields[i] === 'name2') {
                   personNames.push(parts[i]);
-                } else if (fields[i] === `wcaID2`) {
+                } else if (fields[i] === 'wcaID2') {
                   personNames[1] += `|${parts[i]}`;
-                } else if (fields[i].includes(`attempt`)) {
+                } else if (fields[i].includes('attempt')) {
                   attempts.push({ result: convertTime(parts[i]) });
                 }
               }
@@ -289,7 +289,7 @@ const ImportExportPage = () => {
                   createdBy: '',
                 };
 
-                const { payload: person, errors } = await myFetch.post(`/persons/create-or-get`, newPerson);
+                const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
 
                 if (errors) {
                   setErrorMessages(errors);
@@ -344,16 +344,16 @@ const ImportExportPage = () => {
     setContestJSON(JSON.stringify(newContest, null, 2));
 
     if (notFoundPersonNames.length > 0) {
-      if (!notFoundPersonNames.some((el) => el.includes(`|`))) {
-        setErrorMessages([`Persons with these names were not found: ${notFoundPersonNames.join(`, `)}`]);
+      if (!notFoundPersonNames.some((el) => el.includes('|'))) {
+        setErrorMessages([`Persons with these names were not found: ${notFoundPersonNames.join(', ')}`]);
       } else {
         setErrorMessages([
           `Persons with these names / WCA IDs were not found: ${notFoundPersonNames
             .map((el) => {
-              const parts = el.split(`|`);
+              const parts = el.split('|');
               return parts[1] || parts[0];
             })
-            .join(`, `)}`,
+            .join(', ')}`,
         ]);
       }
     } else {
@@ -366,10 +366,10 @@ const ImportExportPage = () => {
 
   const cancelImport = () => {
     setErrorMessages([]);
-    setContestJSON(``);
+    setContestJSON('');
     setContest(null);
     setPersons([]);
-    setCompetitionIdText(``);
+    setCompetitionIdText('');
   };
 
   return (
@@ -380,7 +380,7 @@ const ImportExportPage = () => {
         <FormTextInput
           title="Contest name / ID"
           value={competitionIdText}
-          setValue={setCompetitionIdText}
+          onChange={setCompetitionIdText}
           disabled={!!contest}
         />
         {contest ? (
@@ -409,7 +409,7 @@ const ImportExportPage = () => {
 
       {contest?.events.length > 0 && (
         <>
-          <div style={{ maxWidth: `500px` }}>
+          <div style={{ maxWidth: '500px' }}>
             <FormEventSelect
               events={contest.events.map((el) => el.event)}
               eventId={selectedEventId}

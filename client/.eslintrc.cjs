@@ -4,6 +4,7 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
     'react-hooks/exhaustive-deps': 'off',
     'no-irregular-whitespace': 'off',
     indent: ['warn', 2, { offsetTernaryExpressions: true, SwitchCase: 1 }],
@@ -15,7 +16,7 @@ module.exports = {
         omitLastInOneLineBlock: true,
       },
     ],
-    quotes: 'off',
+    quotes: ['warn', 'single', { avoidEscape: true }],
     'comma-dangle': ['error', 'always-multiline'],
     // 'max-len': [
     //   'warn',
