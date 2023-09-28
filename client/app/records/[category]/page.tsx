@@ -13,19 +13,19 @@ import { EventGroup } from '~/shared_helpers/enums';
 
 // SEO
 export const metadata = {
-  title: `Records | Cubing Contests`,
+  title: 'Records | Cubing Contests',
   description: `Records from unofficial Rubik's Cube competitions and speedcuber meetups.`,
   keywords: `records rankings rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle`,
-  icons: { icon: `/favicon.png` },
-  metadataBase: new URL(`https://cubingcontests.com`),
+  icons: { icon: '/favicon.png' },
+  metadataBase: new URL('https://cubingcontests.com'),
   openGraph: {
-    images: [`/api/cubing_contests_3.jpg`],
+    images: ['/api/cubing_contests_3.jpg'],
   },
 };
 
 const RecordsPage = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
-  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await myFetch.get(`/results/records/WR`, {
+  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await myFetch.get('/results/records/WR', {
     revalidate: 300,
   });
 
@@ -42,10 +42,10 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
   }));
 
   // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingRow has this same function too.
-  const getRecordType = (type: `single` | `average` | `mean`): string => {
-    if (type === `single`) return `Single`;
-    else if (type === `average`) return `Average`;
-    else if (type === `mean`) return `Mean`;
+  const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
+    if (type === 'single') return 'Single';
+    else if (type === 'average') return 'Average';
+    else if (type === 'mean') return 'Mean';
   };
 
   if (recordsByEvent) {
@@ -62,7 +62,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
             {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
 
             {params.category === 'extremebld' && (
-              <Link href={`/user/submit-results`} className="btn btn-success btn">
+              <Link href={'/user/submit-results'} className="btn btn-success btn">
                 Submit a result
               </Link>
             )}

@@ -16,7 +16,7 @@ const fetchData = async (
   setContests: (value: IContest[]) => void,
   setAdminStats: (value: IAdminStats) => void,
 ) => {
-  const { payload: contests } = await myFetch.get(`/competitions/mod`, { authorize: true });
+  const { payload: contests } = await myFetch.get('/competitions/mod', { authorize: true });
 
   if (contests) {
     setContests(contests);

@@ -45,7 +45,7 @@ const PostResultsScreen = ({
 
     if (!isEditable) {
       if (contest.state < ContestState.Approved) {
-        setErrorMessages(['This contest hasn\'t been approved yet. Submitting results is disabled.']);
+        setErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
       } else if (contest.state >= ContestState.Finished) {
         setErrorMessages(['This contest is over. Submitting results is disabled.']);
       }
@@ -187,7 +187,7 @@ const PostResultsScreen = ({
           </div>
         </div>
         <div className="col-lg-9 h-100 overflow-y-auto">
-          <h2 className="mb-4 text-center">Enter results for {contest.name}</h2>
+          <h2 className="my-2 mb-4 text-center">Enter results for {contest.name}</h2>
 
           <RoundResultsTable
             round={round}
