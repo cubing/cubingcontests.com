@@ -81,8 +81,10 @@ else #### DEVELOPMENT ####
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
 
   if [ "$2" != "--cleanup" ]; then
-    # Build client container
-    docker build -t cubingcontests-client --file client.Dockerfile . &&
+
+    # Build client container (the argument is taken from .env)
+    source .env
+    docker build --build-arg API_BASE_URL=$API_BASE_URL -t cubingcontests-client --file client.Dockerfile . &&
     # Build API container
     docker build -t cubingcontests-api --file server.Dockerfile . &&
 

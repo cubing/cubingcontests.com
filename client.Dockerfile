@@ -6,6 +6,8 @@ COPY client /home/app/client
 
 WORKDIR /home/app/client
 
+ARG API_BASE_URL
+
 RUN npm install
 RUN npm run build
 

@@ -23,14 +23,8 @@ module.exports = {
     '@typescript-eslint/no-empty-function': 'off', // this messes with mock functions in tests
     indent: ['error', 2, { ignoredNodes: ['PropertyDefinition'] }],
     // The rules below are copied from client/.eslintrc.cjs
-    semi: [
-      'error',
-      'always',
-      {
-        omitLastInOneLineBlock: true,
-      },
-    ],
-    quotes: 'off',
+    semi: ['error', 'always', { omitLastInOneLineBlock: true }],
+    quotes: ['warn', 'single', { avoidEscape: true }],
     'comma-dangle': ['error', 'always-multiline'],
     'max-len': [
       'warn',
