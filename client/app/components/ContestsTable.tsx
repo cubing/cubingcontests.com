@@ -33,7 +33,7 @@ const ContestsTable = async ({
             {contests.map((contest: IContest, index: number) => (
               <li
                 key={contest.competitionId}
-                className={`list-group-item` + (index % 2 === 1 ? ` list-group-item-dark` : ``)}
+                className={'list-group-item' + (index % 2 === 1 ? ' list-group-item-dark' : '')}
               >
                 <div className="d-flex justify-content-between mb-2">
                   <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
@@ -57,7 +57,7 @@ const ContestsTable = async ({
                     {contest.participants > 0 && (
                       <span>
                         Participants:&nbsp;<b>{contest.participants}</b>
-                        {`, `}
+                        {', '}
                       </span>
                     )}
                     Events:&nbsp;<b>{contest.events.length}</b>
@@ -110,7 +110,7 @@ const ContestsTable = async ({
                   <td>
                     <ContestTypeBadge type={contest.type} />
                   </td>
-                  <td>{contest.participants || ``}</td>
+                  <td>{contest.participants || ''}</td>
                   <td>{contest.events.length}</td>
 
                   {/* THIS IS DESKTOP-ONLY */}
