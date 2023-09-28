@@ -16,9 +16,10 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   echo -e "\nPushing to Dockerhub"
   docker login -u denimint
   # Remove all images that contain "cubingcontests"
-  docker images -q | grep cubingcontests | xargs -tI % docker rmi % --force
+  docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
-  docker build -t denimint/cubingcontests-client:$NEW_VERSION --file client.Dockerfile . &&
+  docker build --build-arg API_BASE_URL='https://cubingcontests.com/api' \
+    -t denimint/cubingcontests-client:$NEW_VERSION --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$NEW_VERSION denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$NEW_VERSION &&
   docker push denimint/cubingcontests-client:latest &&
