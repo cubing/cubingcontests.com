@@ -82,7 +82,7 @@ else #### DEVELOPMENT ####
 
   if [ "$2" != "--cleanup" ]; then
     # Build client container
-    docker build --build-arg API_BASE_URL='http://localhost:5000/api' -t cubingcontests-client --file client.Dockerfile . &&
+    docker build -t cubingcontests-client --file client.Dockerfile . &&
     # Build API container
     docker build -t cubingcontests-api --file server.Dockerfile . &&
 

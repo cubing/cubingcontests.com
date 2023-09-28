@@ -4,7 +4,10 @@ interface IFetchObj {
   errors?: string[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_ENVIRONMENT === 'production'
+    ? process.env.NEXT_PUBLIC_API_BASE_URL
+    : 'http://localhost:5000/api';
 
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,

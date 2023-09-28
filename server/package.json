@@ -8,7 +8,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch --preserveWatchOutput",
-    "fulldev": "concurrently -kc yellow,green --hide 1 \"sleep 3 && npm run dev\" \"cd .. && docker compose --env-file .env.dev up\"",
+    "fulldev": "concurrently -kc yellow,green --hide 1 \"sleep 3 && npm run dev\" \"cd .. && docker compose up\"",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
