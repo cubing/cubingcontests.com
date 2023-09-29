@@ -67,7 +67,13 @@ const AttemptInput = ({
 
   useEffect(() => {
     if (attempt.result !== null && attempt.memo !== null) {
-      if (![-1, -2, C.maxTime].includes(attempt.result)) {
+      if (attempt.result === -1) {
+        setAttemptText('DNF');
+      } else if (attempt.result === -2) {
+        setAttemptText('DNS');
+      } else if (attempt.result === C.maxTime) {
+        setAttemptText('Unknown');
+      } else {
         // Attempt time
         if (attempt.result === 0) {
           setAttemptText('');
@@ -151,7 +157,7 @@ const AttemptInput = ({
       else focusNext();
     } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
       e.preventDefault();
-    } else if (e.key === 'Backspace') {
+    } else if (['Backspace', 'Delete'].includes(e.key)) {
       e.preventDefault();
 
       if (

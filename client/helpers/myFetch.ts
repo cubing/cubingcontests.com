@@ -4,7 +4,9 @@ interface IFetchObj {
   errors?: string[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+// If NEXT_PUBLIC_API_BASE_URL = '/api', that means it's empty and we're in a development environment
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL !== '/api' ? process.env.NEXT_PUBLIC_API_BASE_URL : 'http://localhost:5000/api';
 
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,
@@ -83,6 +85,8 @@ const doFetch = async (
         else errors = json.message;
 
         errors = errors.filter((err) => err !== '');
+      } else if (res.status === 404) {
+        errors = ['Not found'];
       } else {
         errors = ['Unknown error'];
       }

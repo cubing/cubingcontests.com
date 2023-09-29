@@ -184,7 +184,7 @@ const CreatePersonPage = () => {
         buttonText="Submit"
         errorMessages={errorMessages}
         successMessage={successMessage}
-        handleSubmit={handleSubmit}
+        onSubmit={handleSubmit}
         disableButton={fetchPersonDataTimer !== null}
       >
         <FormTextInput

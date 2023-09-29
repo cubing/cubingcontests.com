@@ -33,27 +33,27 @@ export class ResultsService {
     private recordTypesService: RecordTypesService,
     private personsService: PersonsService,
     private authService: AuthService,
-    @InjectModel(`Result`) private readonly resultModel: Model<ResultDocument>,
-    @InjectModel(`Round`) private readonly roundModel: Model<RoundDocument>,
-    @InjectModel(`Competition`) private readonly contestModel: Model<ContestDocument>,
+    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
+    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
+    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
   ) {}
 
   async onModuleInit() {
-    if (process.env.NODE_ENV !== `production`) {
+    if (process.env.NODE_ENV !== 'production') {
       const results = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
 
       for (const res of results) {
         const rounds = await this.roundModel.find({ results: res }).exec();
-        if (rounds.length === 0) console.error(`Error: contest result has no round:`, res);
-        else if (rounds.length > 1) console.error(`Error: result`, res, `belongs to multiple rounds:`, rounds);
+        if (rounds.length === 0) console.error('Error: contest result has no round:', res);
+        else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
       }
 
       const rounds = await this.roundModel.find().exec();
 
       for (const round of rounds) {
         const contests = await this.contestModel.find({ 'events.rounds': round }).exec();
-        if (contests.length === 0) console.error(`Error: round has no contest:`, round);
-        else if (contests.length > 1) console.error(`Error: round`, round, `belongs to multiple contests:`, contests);
+        if (contests.length === 0) console.error('Error: round has no contest:', round);
+        else if (contests.length > 1) console.error('Error: round', round, 'belongs to multiple contests:', contests);
       }
 
       const persons = await this.personsService.getPersons();
@@ -74,7 +74,7 @@ export class ResultsService {
     }
   }
 
-  async getRankings(eventId: string, forAverage = false, show?: `results`): Promise<IEventRankings> {
+  async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
     if (!event) throw new BadRequestException(`Event with ID ${eventId} not found`);
@@ -94,8 +94,8 @@ export class ResultsService {
         const prSingles = await this.resultModel
           .aggregate([
             { $match: singlesFilter },
-            { $unwind: `$personIds` },
-            { $group: { _id: { personId: `$personIds` }, best: { $min: `$best` } } },
+            { $unwind: '$personIds' },
+            { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
             { $sort: { best: 1 } },
           ])
           .exec();
@@ -111,7 +111,7 @@ export class ResultsService {
         eventResults = await this.resultModel
           .aggregate([
             { $match: { eventId, unapproved: { $exists: false } } },
-            { $unwind: { path: `$attempts`, includeArrayIndex: `attemptNumber` } },
+            { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
             { $project: excl },
             { $match: { 'attempts.result': { $gt: 0, $ne: C.maxTime } } },
             { $sort: { 'attempts.result': 1 } },
@@ -162,8 +162,8 @@ export class ResultsService {
         const prAverages = await this.resultModel
           .aggregate([
             { $match: avgsFilter },
-            { $unwind: `$personIds` },
-            { $group: { _id: { personId: `$personIds` }, average: { $min: `$average` } } },
+            { $unwind: '$personIds' },
+            { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
             { $sort: { average: 1 } },
           ])
           .exec();
@@ -227,7 +227,7 @@ export class ResultsService {
     }
 
     const recordsByEvent: IEventRankings[] = [];
-    const events = await this.eventsService.getEvents();
+    const events = await this.eventsService.getEvents({ excludeRemovedMiscAndHidden: true });
 
     for (const rt of activeRecordTypes) {
       for (const event of events) {
@@ -237,7 +237,7 @@ export class ResultsService {
 
         for (const result of singleResults) {
           eventRecords.rankings.push({
-            type: `single`,
+            type: 'single',
             persons: await this.personsService.getPersonsById(result.personIds),
             resultId: result._id.toString(),
             result: result.best,
@@ -252,7 +252,7 @@ export class ResultsService {
 
         for (const result of averageResults) {
           eventRecords.rankings.push({
-            type: result.attempts.length === 3 ? `mean` : `average`,
+            type: result.attempts.length === 3 ? 'mean' : 'average',
             persons: await this.personsService.getPersonsById(result.personIds),
             resultId: result._id.toString(),
             result: result.average,
@@ -320,7 +320,7 @@ export class ResultsService {
     try {
       round = await this.roundModel
         .findOne({ competitionId: createResultDto.competitionId, roundId })
-        .populate(`results`)
+        .populate('results')
         .exec();
 
       oldResults = [...round.results];
@@ -341,7 +341,7 @@ export class ResultsService {
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
-        .populate(`results`)
+        .populate('results')
         .exec();
 
       return updatedRound;
@@ -366,19 +366,19 @@ export class ResultsService {
     try {
       result = await this.resultModel.findOne({ _id: resultId }).exec();
     } catch (err) {
-      throw new InternalServerErrorException(`Error while deleting result: ${err.message}`);
+      throw new InternalServerErrorException('Error while deleting result:', err.message);
     }
 
     if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);
     if (result.competitionId !== competitionId)
-      throw new BadRequestException(`The result's competition ID doesn't match the URL parameter`);
+      throw new BadRequestException("The result's competition ID doesn't match the URL parameter");
 
     // Update round
     let round: RoundDocument;
     let oldResults: ResultDocument[];
 
     try {
-      round = await this.roundModel.findOne({ results: resultId }).populate(`results`).exec();
+      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
 
       oldResults = [...round.results];
       const event = await this.eventsService.getEventById(result.eventId);
@@ -399,7 +399,7 @@ export class ResultsService {
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId, roundId: round.roundId }, excl)
-        .populate(`results`)
+        .populate('results')
         .exec();
 
       return updatedRound;
@@ -410,7 +410,7 @@ export class ResultsService {
       }
       await this.resetCancelledRecords(result, contest);
 
-      throw new InternalServerErrorException(`Error while updating round during result deletion`);
+      throw new InternalServerErrorException('Error while updating round during result deletion:', err.message);
     }
   }
 
@@ -419,14 +419,14 @@ export class ResultsService {
 
     // Disallow admin-only features
     if (!isAdmin) {
-      if (!createResultDto.videoLink) throw new UnauthorizedException(`Please enter a video link`);
+      if (!createResultDto.videoLink) throw new UnauthorizedException('Please enter a video link');
       if (createResultDto.attempts.some((a) => a.result === C.maxTime))
-        throw new UnauthorizedException(`You are not authorized to set unknown time`);
+        throw new UnauthorizedException('You are not authorized to set unknown time');
     }
 
     // SAME MESSAGE AS IN THE EQUIVALENT CHECK ON THE FRONTEND
     if (!createResultDto.attempts.some((a) => a.result > 0))
-      throw new BadRequestException(`You cannot submit only DNF/DNS results`);
+      throw new BadRequestException('You cannot submit only DNF/DNS results');
 
     if (createResultDto.videoLink) {
       let duplicateResult: ResultDocument;
@@ -434,10 +434,10 @@ export class ResultsService {
       try {
         duplicateResult = await this.resultModel.findOne({ videoLink: createResultDto.videoLink }).exec();
       } catch (err) {
-        throw new InternalServerErrorException(`Error while searching for duplicate result: ${err.message}`);
+        throw new InternalServerErrorException('Error while searching for duplicate result:', err.message);
       }
 
-      if (duplicateResult) throw new BadRequestException(`A result with the same video link already exists`);
+      if (duplicateResult) throw new BadRequestException('A result with the same video link already exists');
     }
 
     const event = await this.eventsService.getEventById(createResultDto.eventId);
@@ -453,7 +453,7 @@ export class ResultsService {
     try {
       await this.resultModel.create(setResultRecords(createResultDto, recordPairs));
     } catch (err) {
-      throw new InternalServerErrorException(`Error while submitting result: ${err.message}`);
+      throw new InternalServerErrorException('Error while submitting result:', err.message);
     }
 
     if (isAdmin) await this.resetCancelledRecords(createResultDto);
@@ -490,7 +490,7 @@ export class ResultsService {
     recordsUpTo = new Date(8640000000000000), // this shouldn't include time (so the time should be midnight)
     activeRecordTypes?: IRecordType[],
   ): Promise<IRecordPair[]> {
-    if (!eventId) throw new InternalServerErrorException(`getEventRecordPairs received no eventId`);
+    if (!eventId) throw new InternalServerErrorException('getEventRecordPairs received no eventId');
     if (!activeRecordTypes) activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
     const recordPairs: IRecordPair[] = [];
@@ -582,18 +582,18 @@ export class ResultsService {
       // Remove cancelled single records
       if (result.best > 0) {
         await this.resultModel
-          .updateMany({ ...queryBase, best: { $gt: result.best } }, { $unset: { regionalSingleRecord: `` } })
+          .updateMany({ ...queryBase, best: { $gt: result.best } }, { $unset: { regionalSingleRecord: '' } })
           .exec();
       }
 
       // Remove cancelled average records
       if (result.average > 0) {
         await this.resultModel
-          .updateMany({ ...queryBase, average: { $gt: result.average } }, { $unset: { regionalAverageRecord: `` } })
+          .updateMany({ ...queryBase, average: { $gt: result.average } }, { $unset: { regionalAverageRecord: '' } })
           .exec();
       }
     } catch (err) {
-      throw new InternalServerErrorException(`Error while resetting cancelled WRs: ${err.message}`);
+      throw new InternalServerErrorException('Error while resetting cancelled WRs:', err.message);
     }
   }
 

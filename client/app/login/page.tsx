@@ -55,7 +55,8 @@ const LoginPage = () => {
   return (
     <>
       <h2 className="mb-4 text-center">Login</h2>
-      <Form buttonText="Log in" errorMessages={errorMessages} handleSubmit={handleSubmit}>
+
+      <Form buttonText="Log in" errorMessages={errorMessages} onSubmit={handleSubmit}>
         <FormTextInput id="username" title="Username" value={username} onChange={setUsername} autoFocus submitOnEnter />
         <FormTextInput id="password" title="Password" value={password} onChange={setPassword} password submitOnEnter />
         <Link href="/register" className="d-block mt-4 fs-5">

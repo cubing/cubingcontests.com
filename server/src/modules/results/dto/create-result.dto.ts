@@ -26,7 +26,7 @@ export class CreateResultDto implements IResult {
   @IsNotEmpty()
   eventId: string;
 
-  @IsDateString()
+  @IsDateString({}, { message: 'Please enter a valid date' })
   date: Date;
 
   @IsOptional()
@@ -54,11 +54,11 @@ export class CreateResultDto implements IResult {
   average: number;
 
   @IsOptional()
-  @IsUrl()
+  @IsUrl({}, { message: 'Please enter a valid video link' })
   videoLink?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsUrl({}, { message: 'Please enter a valid discussion link' })
   discussionLink?: string;
 }
 

@@ -20,14 +20,14 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { AuthService } from '../auth/auth.service';
 
 const eventPopulateOptions = {
-  event: { path: `events.event`, model: `Event` },
+  event: { path: 'events.event', model: 'Event' },
   rounds: {
-    path: `events.rounds`,
-    model: `Round`,
+    path: 'events.rounds',
+    model: 'Round',
     populate: [
       {
-        path: `results`,
-        model: `Result`,
+        path: 'results',
+        model: 'Result',
       },
     ],
   },
@@ -41,20 +41,20 @@ export class ContestsService {
     private recordTypesService: RecordTypesService,
     private personsService: PersonsService,
     private authService: AuthService,
-    @InjectModel(`Competition`) private readonly contestModel: Model<ContestDocument>,
-    @InjectModel(`Round`) private readonly roundModel: Model<RoundDocument>,
-    @InjectModel(`Result`) private readonly resultModel: Model<ResultDocument>,
-    @InjectModel(`Schedule`) private readonly scheduleModel: Model<ScheduleDocument>,
+    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
+    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
+    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
+    @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
   async onModuleInit() {
-    if (process.env.NODE_ENV !== `production`) {
+    if (process.env.NODE_ENV !== 'production') {
       const schedules = await this.scheduleModel.find().exec();
 
       for (const s of schedules) {
         const contests = await this.contestModel.find({ 'compDetails.schedule': s._id }).exec();
-        if (contests.length === 0) console.error(`Error: schedule has no contest:`, s);
-        else if (contests.length > 1) console.error(`Error: schedule`, s, `belongs to multiple contests:`, contests);
+        if (contests.length === 0) console.error('Error: schedule has no contest:', s);
+        else if (contests.length > 1) console.error('Error: schedule', s, 'belongs to multiple contests:', contests);
       }
     }
   }
@@ -181,8 +181,19 @@ export class ContestsService {
     );
     if (updateContestDto.contact) contest.contact = updateContestDto.contact;
     if (updateContestDto.description) contest.description = updateContestDto.description;
-
     contest.events = await this.updateContestEvents(contest, updateContestDto.events);
+    if (updateContestDto.compDetails) {
+      if (contest.compDetails) {
+        await this.scheduleModel.updateOne(
+          { _id: contest.compDetails.schedule._id },
+          updateContestDto.compDetails.schedule,
+        );
+      } else {
+        contest.compDetails = {
+          schedule: await this.scheduleModel.create(updateContestDto.compDetails.schedule),
+        };
+      }
+    }
 
     if (isAdmin || contest.state < ContestState.Approved) {
       contest.name = updateContestDto.name;
@@ -195,19 +206,6 @@ export class ContestsService {
       }
       if (updateContestDto.competitorLimit) contest.competitorLimit = updateContestDto.competitorLimit;
       contest.mainEventId = updateContestDto.mainEventId;
-
-      if (updateContestDto.compDetails) {
-        if (contest.compDetails) {
-          await this.scheduleModel.updateOne(
-            { _id: contest.compDetails.schedule._id },
-            updateContestDto.compDetails.schedule,
-          );
-        } else {
-          contest.compDetails = {
-            schedule: await this.scheduleModel.create(updateContestDto.compDetails.schedule),
-          };
-        }
-      }
     }
 
     // Even an admin is not allowed to edit these after a comp has been approved
@@ -225,7 +223,7 @@ export class ContestsService {
     const isAdmin = user.roles.includes(Role.Admin);
 
     if (contest.type === ContestType.Competition && !contest.compDetails)
-      throw new BadRequestException(`A competition without a schedule cannot be approved`);
+      throw new BadRequestException('A competition without a schedule cannot be approved');
 
     if (
       isAdmin ||
@@ -244,11 +242,11 @@ export class ContestsService {
 
       try {
         // Unset unapproved from the results so that they can be included in the rankings
-        await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: `` } });
+        await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
 
         await this.resultsService.resetRecordsCancelledByPublishedComp(contest.competitionId);
       } catch (err) {
-        throw new InternalServerErrorException(`Error while publishing contest: ${err.message}`);
+        throw new InternalServerErrorException('Error while publishing contest:', err.message);
       }
     }
 
@@ -299,7 +297,7 @@ export class ContestsService {
         .findOne({ competitionId }, exclSysButKeepCreatedBy)
         .populate(eventPopulateOptions.event)
         .populate(eventPopulateOptions.rounds)
-        .populate({ path: `organizers`, model: `Person` })
+        .populate({ path: 'organizers', model: 'Person' })
         .exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -312,7 +310,7 @@ export class ContestsService {
 
     if (contest.compDetails) {
       try {
-        await contest.populate({ path: `compDetails.schedule`, model: `Schedule` });
+        await contest.populate({ path: 'compDetails.schedule', model: 'Schedule' });
       } catch (err) {
         throw new InternalServerErrorException(err.message);
       }
@@ -334,7 +332,7 @@ export class ContestsService {
         eventRounds.push(await this.roundModel.create(round));
       }
     } catch (err) {
-      throw new InternalServerErrorException(`Error while creating rounds for contest: ${err.message}`);
+      throw new InternalServerErrorException('Error while creating rounds for contest:', err.message);
     }
 
     return {
@@ -404,7 +402,7 @@ export class ContestsService {
 
       return contest.events;
     } catch (err) {
-      throw new InternalServerErrorException(`Error while updating contest events: ${err.message}`);
+      throw new InternalServerErrorException('Error while updating contest events:', err.message);
     }
   }
 }

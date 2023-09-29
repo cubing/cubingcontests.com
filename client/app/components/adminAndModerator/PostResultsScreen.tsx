@@ -8,7 +8,7 @@ import Button from '@c/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
 import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
 import { ContestState } from '@sh/enums';
-import { checkErrorsBeforeSubmit, getUserInfo } from '~/helpers/utilityFunctions';
+import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
 const userInfo: IUserInfo = getUserInfo();
@@ -45,7 +45,7 @@ const PostResultsScreen = ({
 
     if (!isEditable) {
       if (contest.state < ContestState.Approved) {
-        setErrorMessages(['This contest hasn\'t been approved yet. Submitting results is disabled.']);
+        setErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
       } else if (contest.state >= ContestState.Finished) {
         setErrorMessages(['This contest is over. Submitting results is disabled.']);
       }
@@ -79,7 +79,7 @@ const PostResultsScreen = ({
         average: -1,
       };
 
-      checkErrorsBeforeSubmit(
+      checkErrorsBeforeResultSubmission(
         newResult,
         round.format,
         currEvent,
@@ -157,6 +157,7 @@ const PostResultsScreen = ({
       ) : (
         successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
       )}
+
       <div className="row h-100 py-4">
         <div className="col-lg-3 mb-4">
           <div className="px-2">

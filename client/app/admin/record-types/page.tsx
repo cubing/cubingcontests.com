@@ -6,7 +6,7 @@ import RecordTypesForm from '@c/adminAndModerator/RecordTypesForm';
 import { IRecordType } from '~/shared_helpers/interfaces';
 import Loading from '@c/Loading';
 
-const ConfigureRecordTypesPage = async () => {
+const ConfigureRecordTypesPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
 
@@ -21,6 +21,7 @@ const ConfigureRecordTypesPage = async () => {
     return (
       <>
         <h2 className="mb-4 text-center">Record Types</h2>
+
         <RecordTypesForm recordTypes={recordTypes} />
       </>
     );

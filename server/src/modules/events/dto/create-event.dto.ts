@@ -1,4 +1,4 @@
-import { ArrayMinSize, IsEnum, IsInt, IsString, Matches, Min, MinLength } from 'class-validator';
+import { ArrayMinSize, IsEnum, IsInt, IsOptional, IsString, Matches, Max, Min, MinLength } from 'class-validator';
 import { IEvent } from '@sh/interfaces';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { getTitleRegexOpts, titleRegex } from '~/src/helpers/regex';
@@ -6,7 +6,7 @@ import { getTitleRegexOpts, titleRegex } from '~/src/helpers/regex';
 export class CreateEventDto implements IEvent {
   @IsString()
   @MinLength(3)
-  @Matches(/^[a-z0-9-_]*$/)
+  @Matches(/^[a-z0-9_]*$/)
   eventId: string;
 
   @IsString()
@@ -15,7 +15,7 @@ export class CreateEventDto implements IEvent {
   name: string;
 
   @IsInt()
-  @Min(0)
+  @Min(1)
   rank: number;
 
   @IsEnum(EventFormat)
@@ -27,4 +27,10 @@ export class CreateEventDto implements IEvent {
   @ArrayMinSize(1)
   @IsEnum(EventGroup, { each: true })
   groups: EventGroup[];
+
+  @IsOptional()
+  @IsInt()
+  @Min(2)
+  @Max(20)
+  participants?: number;
 }

@@ -43,7 +43,7 @@
   width: 100%;
 }
 
-/* 768px corresponds to Bootstrap's md size */
+/* 768px corresponds to Bootstrap's md size (THIS IS USED IN OTHER PLACES TOO, REPLACE IT WITH A GLOBAL VARIABLE) */
 @media (max-width: 768px) {
   .cc-homepage-link {
     width: 100%;

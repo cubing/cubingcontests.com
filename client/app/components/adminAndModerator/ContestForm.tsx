@@ -31,16 +31,12 @@ import Loading from '../Loading';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import EventTitle from '../EventTitle';
 import { titleRegex } from '~/shared_helpers/regex';
+import FormNumberInput from '../form/FormNumberInput';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
 
 const isAdmin = getUserInfo()?.isAdmin;
-
-const coordToMicrodegrees = (value: string): number | null => {
-  if (!value) return null;
-  return parseInt(Number(value).toFixed(6).replace('.', ''));
-};
 
 const ContestForm = ({
   events,
@@ -62,15 +58,15 @@ const ContestForm = ({
   const [countryIso2, setCountryId] = useState('NOT_SELECTED');
   const [venue, setVenue] = useState('');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('0'); // vertical coordinate (Y); ranges from -90 to 90
-  const [longitude, setLongitude] = useState('0'); // horizontal coordinate (X); ranges from -180 to 180
+  const [latitude, setLatitude] = useState(0); // vertical coordinate (Y); ranges from -90 to 90
+  const [longitude, setLongitude] = useState(0); // horizontal coordinate (X); ranges from -180 to 180
   const [startDate, setStartDate] = useState(addHours(getDateOnly(new Date()), 12)); // use 12:00 as default start time
   const [endDate, setEndDate] = useState(new Date());
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
   const [contact, setContact] = useState('');
   const [description, setDescription] = useState('');
-  const [competitorLimit, setCompetitorLimit] = useState('');
+  const [competitorLimit, setCompetitorLimit] = useState(0);
 
   // Event stuff
   const [newEventId, setNewEventId] = useState('333');
@@ -89,6 +85,10 @@ const ContestForm = ({
   const [activityStartTime, setActivityStartTime] = useState<Date>(addHours(getDateOnly(new Date()), 12));
   const [activityEndTime, setActivityEndTime] = useState<Date>(addHours(getDateOnly(new Date()), 13));
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Use memo
+  //////////////////////////////////////////////////////////////////////////////
+
   const tabs = useMemo(
     () => [
       { title: 'Details', value: 'details' },
@@ -100,9 +100,7 @@ const ContestForm = ({
   const filteredEvents = useMemo(() => {
     const newFiltEv = events.filter(
       (ev) =>
-        (ev.groups.some((g) => [EventGroup.WCA, EventGroup.Unofficial].includes(g)) ||
-          // Admins are allowed to select removed events too
-          (isAdmin && ev.groups.some((g) => g === EventGroup.Removed))) &&
+        (isAdmin || ev.groups.some((g) => ![EventGroup.ExtremeBLD, EventGroup.Removed].includes(g))) &&
         (type === ContestType.Meetup || !ev.groups.includes(EventGroup.MeetupOnly)),
     );
 
@@ -164,9 +162,7 @@ const ContestForm = ({
     }
 
     output.push({ label: 'Custom', value: 'other-misc' });
-
     setActivityCode(output[0].value as string); // set selected activity code as the first available option
-
     return output;
   }, [contestEvents, rooms]);
   const isEditableSchedule = useMemo(() => !contest || contest.state < ContestState.Approved, [contest]);
@@ -192,14 +188,14 @@ const ContestForm = ({
       if (contest.venue) setVenue(contest.venue);
       if (contest.address) setAddress(contest.address);
       if (contest.latitudeMicrodegrees && contest.longitudeMicrodegrees) {
-        setLatitude((contest.latitudeMicrodegrees / 1000000).toFixed(6));
-        setLongitude((contest.longitudeMicrodegrees / 1000000).toFixed(6));
+        setLatitude(contest.latitudeMicrodegrees / 1000000);
+        setLongitude(contest.longitudeMicrodegrees / 1000000);
       }
       setOrganizerNames([...contest.organizers.map((el) => el.name), '']);
       setOrganizers([...contest.organizers, null]);
       if (contest.contact) setContact(contest.contact);
       if (contest.description) setDescription(contest.description);
-      if (contest.competitorLimit) setCompetitorLimit(contest.competitorLimit.toString());
+      if (contest.competitorLimit) setCompetitorLimit(contest.competitorLimit);
       setNewEventId(
         events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
       );
@@ -277,8 +273,8 @@ const ContestForm = ({
     }
 
     const selectedOrganizers = organizers.filter((el) => el !== null);
-    const latitudeMicrodegrees = type !== ContestType.Online ? coordToMicrodegrees(latitude) : undefined;
-    const longitudeMicrodegrees = type !== ContestType.Online ? coordToMicrodegrees(longitude) : undefined;
+    const latitudeMicrodegrees = type !== ContestType.Online && latitude ? latitude * 1000000 : undefined;
+    const longitudeMicrodegrees = type !== ContestType.Online && longitude ? longitude * 1000000 : undefined;
     let processedStartDate = startDate;
     const endDateOnly = getDateOnly(endDate);
 
@@ -359,7 +355,7 @@ const ContestForm = ({
       organizers: selectedOrganizers,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
-      competitorLimit: competitorLimit && !isNaN(parseInt(competitorLimit)) ? parseInt(competitorLimit) : undefined,
+      competitorLimit: competitorLimit || undefined,
       mainEventId,
       events: compEvents,
       compDetails,
@@ -390,13 +386,13 @@ const ContestForm = ({
     if (newComp.events.length === 0) tempErrors.push('You must select at least one event');
     else if (!contestEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
+    if (newComp.competitorLimit === null) tempErrors.push('Please enter a valid competitor limit');
 
     const meetupOnlyCompEvent = contestEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
     if (type !== ContestType.Meetup && meetupOnlyCompEvent)
       tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 
     if (type === ContestType.Competition) {
-      if (!newComp.competitorLimit) tempErrors.push('Please enter a valid competitor limit');
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
       if (activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
     }
@@ -406,7 +402,7 @@ const ContestForm = ({
       if (['NOT_SELECTED', 'ONLINE'].includes(newComp.countryIso2)) tempErrors.push('Please select a country');
       if (!newComp.venue) tempErrors.push('Please enter a venue');
       if (!newComp.address) tempErrors.push('Please enter an address');
-      if (newComp.latitudeMicrodegrees === null || newComp.longitudeMicrodegrees === null)
+      if (newComp.latitudeMicrodegrees === undefined || newComp.longitudeMicrodegrees === undefined)
         tempErrors.push('Please enter valid venue coordinates');
     }
 
@@ -428,8 +424,8 @@ const ContestForm = ({
   };
 
   const changeActiveTab = (newTab: string) => {
-    if (newTab === 'schedule' && (!latitude || !longitude)) {
-      setErrorMessages(['Please enter the coordinates first']);
+    if (newTab === 'schedule' && (latitude === null || longitude === null)) {
+      setErrorMessages(['Please enter valid coordinates first']);
     } else {
       setActiveTab(newTab);
     }
@@ -448,11 +444,10 @@ const ContestForm = ({
     setType(newType);
   };
 
-  const fetchTimezone = async (latMicro: number, longMicro: number): Promise<string> => {
-    const { errors, payload } = await myFetch.get(
-      `/competitions/timezone?latitude=${latMicro}&longitude=${longMicro}`,
-      { authorize: true },
-    );
+  const fetchTimezone = async (lat: number, long: number): Promise<string> => {
+    const { errors, payload } = await myFetch.get(`/competitions/timezone?latitude=${lat}&longitude=${long}`, {
+      authorize: true,
+    });
 
     if (errors) {
       setErrorMessages(errors);
@@ -463,15 +458,16 @@ const ContestForm = ({
     }
   };
 
-  const changeCoordinates = async (newLat: string, newLong: string) => {
-    const getIsValidCoord = (val: string) => !/[^0-9.-]/.test(val) && !isNaN(Number(val));
-
-    if (getIsValidCoord(newLat) && getIsValidCoord(newLong)) {
+  const changeCoordinates = async (newLat: number, newLong: number) => {
+    if (newLat === null || newLong === null) {
+      setLatitude(newLat);
+      setLongitude(newLong);
+    } else {
       const processedLatitude = Math.min(Math.max(Number(newLat), -90), 90);
       const processedLongitude = Math.min(Math.max(Number(newLong), -180), 180);
 
-      setLatitude(processedLatitude.toString());
-      setLongitude(processedLongitude.toString());
+      setLatitude(processedLatitude);
+      setLongitude(processedLongitude);
 
       limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
         fetchTimezone(processedLatitude, processedLongitude).then((timezone: string) => {
@@ -517,22 +513,21 @@ const ContestForm = ({
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundProceed = (eventIndex: number, roundIndex: number, type: RoundProceed, value?: string) => {
-    if (!value || (!/[^0-9]/.test(value) && value.length <= 2)) {
-      const newContestEvents = contestEvents.map((event, i) =>
-        i !== eventIndex
-          ? event
-          : {
-              ...event,
-              rounds: event.rounds.map((round, i) =>
-                i !== roundIndex
-                  ? round
-                  : { ...round, proceed: { type, value: value ? Number(value) : round.proceed.value } },
-              ),
-            },
-      );
-      setContestEvents(newContestEvents);
-    }
+  const changeRoundProceed = (eventIndex: number, roundIndex: number, type: RoundProceed, newVal?: number) => {
+    const newContestEvents = contestEvents.map((event, i) =>
+      i !== eventIndex
+        ? event
+        : {
+            ...event,
+            rounds: event.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : { ...round, proceed: { type, value: newVal === undefined ? round.proceed.value : newVal } },
+            ),
+          },
+    );
+
+    setContestEvents(newContestEvents);
   };
 
   const getNewRound = (eventId: string, roundNumber: number): IRound => {
@@ -682,7 +677,7 @@ const ContestForm = ({
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
-        handleSubmit={handleSubmit}
+        onSubmit={handleSubmit}
         hideButton={activeTab === 'schedule'}
         disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
       >
@@ -707,7 +702,7 @@ const ContestForm = ({
               title="Type"
               options={contestTypeOptions}
               selected={type}
-              setSelected={(val: any) => changeType(val)}
+              setSelected={changeType}
               disabled={mode !== 'new'}
             />
             {type !== ContestType.Online && (
@@ -730,18 +725,18 @@ const ContestForm = ({
                     <FormTextInput title="Venue" value={venue} onChange={setVenue} disabled={disableIfCompApproved} />
                   </div>
                   <div className="col-3">
-                    <FormTextInput
+                    <FormNumberInput
                       title="Latitude"
                       value={latitude}
-                      onChange={(val: string) => changeCoordinates(val, longitude)}
+                      onChange={(val) => changeCoordinates(val, longitude)}
                       disabled={disableIfCompApprovedEvenForAdmin}
                     />
                   </div>
                   <div className="col-3">
-                    <FormTextInput
+                    <FormNumberInput
                       title="Longitude"
                       value={longitude}
-                      onChange={(val: string) => changeCoordinates(latitude, val)}
+                      onChange={(val) => changeCoordinates(latitude, val)}
                       disabled={disableIfCompApprovedEvenForAdmin}
                     />
                   </div>
@@ -832,11 +827,13 @@ const ContestForm = ({
                 disabled={disableIfCompFinished}
               />
             </div>
-            <FormTextInput
+            <FormNumberInput
               title={'Competitor limit' + (type !== ContestType.Competition ? ' (optional)' : '')}
               value={competitorLimit}
               onChange={setCompetitorLimit}
               disabled={disableIfCompApproved}
+              integer
+              noNegative
             />
           </>
         )}
@@ -904,13 +901,14 @@ const ContestForm = ({
                           oneLine
                         />
                         <div style={{ width: '5rem' }}>
-                          <FormTextInput
+                          <FormNumberInput
                             id="round_proceed_value"
-                            value={round.proceed.value.toString()}
-                            onChange={(val: string) =>
-                              changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)
-                            }
+                            value={round.proceed.value}
+                            onChange={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
                             disabled={disableIfCompFinishedEvenForAdmin}
+                            integer
+                            noZero
+                            noNegative
                             noMargin
                           />
                         </div>
@@ -957,9 +955,6 @@ const ContestForm = ({
 
         {activeTab === 'schedule' && (
           <>
-            {contest.state > ContestState.Created && (
-              <p className="mb-4 text-danger">The schedule cannot be edited after the competition has been approved</p>
-            )}
             <h3 className="mb-3">Rooms</h3>
             <div className="row">
               <div className="col-8">
@@ -980,12 +975,7 @@ const ContestForm = ({
                 ></span>
               </div>
             </div>
-            <button
-              type="button"
-              className="mt-3 mb-2 btn btn-success"
-              disabled={!isValidRoom || !isEditableSchedule}
-              onClick={addRoom}
-            >
+            <button type="button" className="mt-3 mb-2 btn btn-success" disabled={!isValidRoom} onClick={addRoom}>
               Create
             </button>
             <hr />
@@ -1049,7 +1039,7 @@ const ContestForm = ({
             <button
               type="button"
               className="mt-3 mb-2 btn btn-success"
-              disabled={!isEditableSchedule || !isValidActivity}
+              disabled={!isValidActivity}
               onClick={addActivity}
             >
               Add to schedule

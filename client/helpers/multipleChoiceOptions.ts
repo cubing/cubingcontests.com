@@ -1,6 +1,7 @@
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
-import { Color, ContestType, RoundProceed } from '~/shared_helpers/enums';
+import { Color, ContestType, EventFormat, RoundProceed } from '~/shared_helpers/enums';
 import { roundFormats } from '../shared_helpers/roundFormats';
+import { eventCategories } from './eventCategories';
 
 export const colorOptions: MultiChoiceOption[] = [
   {
@@ -66,3 +67,23 @@ export const roundProceedOptions: MultiChoiceOption[] = [
     value: RoundProceed.Percentage,
   },
 ];
+
+export const eventFormatOptions: MultiChoiceOption[] = [
+  {
+    label: 'Time',
+    value: EventFormat.Time,
+  },
+  {
+    label: 'Number',
+    value: EventFormat.Number,
+  },
+  {
+    label: 'Multi-Blind',
+    value: EventFormat.Multi,
+  },
+];
+
+export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((el) => ({
+  label: el.title,
+  value: el.group,
+}));

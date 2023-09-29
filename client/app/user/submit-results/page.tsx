@@ -11,7 +11,7 @@ import ResultForm from '~/app/components/adminAndModerator/ResultForm';
 import Button from '~/app/components/Button';
 import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
 import { RoundFormat } from '@sh/enums';
-import { checkErrorsBeforeSubmit, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { checkErrorsBeforeResultSubmission, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { useSearchParams } from 'next/navigation';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
@@ -79,60 +79,43 @@ const SubmitResultsPage = () => {
   };
 
   const submitResult = async () => {
-    // Validation
-    const tempErrors: string[] = [];
+    const newResult: IResult = {
+      eventId: event.eventId,
+      date,
+      personIds: competitors.map((el) => el?.personId || null),
+      attempts,
+      best: -1,
+      average: -1,
+      videoLink: videoUnavailable ? undefined : videoLink,
+      discussionLink: discussionLink || undefined,
+    };
 
-    if (!date) {
-      tempErrors.push('Please enter a valid date');
-      document.getElementById('date').focus();
-    }
+    checkErrorsBeforeResultSubmission(
+      newResult,
+      roundFormat,
+      event,
+      competitors,
+      setErrorMessages,
+      setSuccessMessage,
+      async (newResultWithBestAndAverage) => {
+        setLoadingDuringSubmit(true);
 
-    if (!videoUnavailable && !videoLink.trim()) {
-      tempErrors.push('Please enter a video link');
-      document.getElementById('video_link').focus();
-    }
+        const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
 
-    if (tempErrors.length > 0) {
-      setErrorMessages(tempErrors);
-    } else {
-      const newResult: IResult = {
-        eventId: event.eventId,
-        date,
-        personIds: competitors.map((el) => el?.personId || null),
-        attempts,
-        best: -1,
-        average: -1,
-        videoLink: videoUnavailable ? undefined : videoLink,
-        discussionLink: discussionLink || undefined,
-      };
+        setLoadingDuringSubmit(false);
 
-      checkErrorsBeforeSubmit(
-        newResult,
-        roundFormat,
-        event,
-        competitors,
-        setErrorMessages,
-        setSuccessMessage,
-        async (newResultWithBestAndAverage) => {
-          setLoadingDuringSubmit(true);
-
-          const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
-
-          setLoadingDuringSubmit(false);
-
-          if (errors) {
-            setErrorMessages(errors);
-          } else {
-            setSuccessMessage('Successfully submitted');
-            setDate(undefined);
-            setVideoLink('');
-            setDiscussionLink('');
-            setResultFormResetTrigger(!resultFormResetTrigger);
-          }
-        },
-        true, // require at least one non-DNF/DNS result
-      );
-    }
+        if (errors) {
+          setErrorMessages(errors);
+        } else {
+          setSuccessMessage('Successfully submitted');
+          setDate(undefined);
+          setVideoLink('');
+          setDiscussionLink('');
+          setResultFormResetTrigger(!resultFormResetTrigger);
+        }
+      },
+      true, // require at least one non-DNF/DNS result
+    );
   };
 
   const changeDate = (newDate: Date) => {

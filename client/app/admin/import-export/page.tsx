@@ -2,25 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Button from '~/app/components/Button';
-import Form from '~/app/components/form/Form';
+import Button from '@c/Button';
+import Form from '@c/form/Form';
+import EventResultsTable from '@c/EventResultsTable';
+import FormTextInput from '@c/form/FormTextInput';
+import FormEventSelect from '@c/form/FormEventSelect';
 import { ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
-import EventResultsTable from '~/app/components/EventResultsTable';
-import FormTextInput from '~/app/components/form/FormTextInput';
-import FormEventSelect from '~/app/components/form/FormEventSelect';
 
 const setRankings = (results: IResult[], ranksWithAverage: boolean): IResult[] => {
   if (results.length === 0) return results;
 
-  let sortedResults: IResult[];
-
-  if (ranksWithAverage) sortedResults = results.sort(compareAvgs);
-  else sortedResults = results.sort(compareSingles);
-
+  const sortedResults: IResult[] = results.sort(ranksWithAverage ? compareAvgs : compareSingles);
   let prevResult = sortedResults[0];
   let ranking = 1;
 
@@ -66,17 +62,10 @@ const convertTime = (value: string): number => {
   return getCentiseconds(value.replaceAll(/[:.]/g, ''));
 };
 
-const fetchData = async (setEvents: (val: IEvent[]) => void, setErrorMessages: (val: string[]) => void) => {
-  const { payload: events, errors } = await myFetch.get('/events');
-
-  if (errors) setErrorMessages(errors);
-  else setEvents(events);
-};
-
 const ImportExportPage = () => {
-  const [events, setEvents] = useState<IEvent[]>();
   const [errorMessages, setErrorMessages] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [events, setEvents] = useState<IEvent[]>();
   const [competitionIdText, setCompetitionIdText] = useState('');
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [contest, setContest] = useState<IContest>();
@@ -85,7 +74,10 @@ const ImportExportPage = () => {
   const [selectedEventId, setSelectedEventId] = useState('');
 
   useEffect(() => {
-    fetchData(setEvents, setErrorMessages);
+    myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
+      if (errors) setErrorMessages(errors);
+      else setEvents(payload);
+    });
   }, []);
 
   useEffect(() => {
@@ -373,7 +365,7 @@ const ImportExportPage = () => {
   };
 
   return (
-    <>
+    <div>
       <h2 className="mb-3 text-center">Import and export contests</h2>
 
       <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
@@ -419,7 +411,7 @@ const ImportExportPage = () => {
           <EventResultsTable contestEvent={contest.events[0]} persons={persons} recordTypes={[]} />
         </>
       )}
-    </>
+    </div>
   );
 };
 

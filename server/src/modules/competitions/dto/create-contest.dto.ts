@@ -87,11 +87,11 @@ export class CreateContestDto implements IContest {
   @Max(180000000)
   longitudeMicrodegrees?: number;
 
-  @IsDateString()
+  @IsDateString({}, { message: 'Please enter a valid start date' })
   startDate: Date;
 
   @ValidateIf((obj) => obj.type === ContestType.Competition)
-  @IsDateString()
+  @IsDateString({}, { message: 'Please enter a valid end date' })
   endDate?: Date;
 
   @ArrayMinSize(1)
@@ -109,7 +109,7 @@ export class CreateContestDto implements IContest {
 
   @ValidateIf((obj) => obj.type === ContestType.Competition || obj.competitorLimit)
   @IsInt()
-  @Min(4)
+  @Min(5)
   competitorLimit?: number;
 
   @IsString()
@@ -281,7 +281,7 @@ class ProceedDto implements IProceed {
   @IsEnum(RoundProceed)
   type: RoundProceed;
 
-  @IsInt()
-  @Min(2)
+  @IsInt({ message: 'Please enter valid round proceed values' })
+  @Min(1, { message: 'The round proceed value must be at least 1' })
   value: number;
 }

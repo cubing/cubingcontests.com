@@ -42,7 +42,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
     <Form
       buttonText={recordTypes?.length > 0 ? 'Edit' : 'Create'}
       errorMessages={errorMessages}
-      handleSubmit={handleSubmit}
+      onSubmit={handleSubmit}
     >
       <>
         {tRecordTypes.map((rt) => (

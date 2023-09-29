@@ -71,7 +71,7 @@ const ContestsTable = async ({
 
       {/* DESKTOP VIEW (includes admin/moderator-only features) */}
 
-      <div className={`${!modView && 'd-none d-lg-block'} flex-grow-1 mb-5 table-responsive`}>
+      <div className={`${!modView && 'd-none d-lg-block'} mb-5 table-responsive`}>
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>

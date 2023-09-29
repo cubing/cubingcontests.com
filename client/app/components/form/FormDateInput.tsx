@@ -73,7 +73,7 @@ const FormDateInput = ({
       document.getElementById(nextFocusTargetId)?.focus();
     } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
       e.preventDefault();
-    } else if (e.key === 'Backspace') {
+    } else if (['Backspace', 'Delete'].includes(e.key)) {
       e.preventDefault();
 
       if (position > 0) {

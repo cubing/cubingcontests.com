@@ -12,8 +12,8 @@ const FormRadio = ({
   title: string;
   id?: string;
   options: MultiChoiceOption[];
-  selected: unknown;
-  setSelected: (val: unknown) => void;
+  selected: any;
+  setSelected: (val: any) => void;
   disabled?: boolean;
   oneLine?: boolean;
 }) => {

@@ -9,13 +9,13 @@ import Competitor from '~/app/components/Competitor';
 import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
-import { EventGroup } from '~/shared_helpers/enums';
 
 // SEO
 export const metadata = {
   title: 'Records | Cubing Contests',
-  description: 'Records from unofficial Rubik\'s Cube competitions and speedcuber meetups.',
-  keywords: 'records rankings rubik\'s rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle',
+  description: "Records from unofficial Rubik's Cube competitions and speedcuber meetups.",
+  keywords:
+    "records rankings rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: '/favicon.png' },
   metadataBase: new URL('https://cubingcontests.com'),
   openGraph: {
@@ -38,7 +38,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
     title: cat.title,
     value: cat.value,
     route: `/records/${cat.value}`,
-    hidden: cat.group === EventGroup.Removed || !recordsByEvent?.some((el) => el.event.groups.includes(cat.group)),
+    hidden: !recordsByEvent?.some((el) => el.event.groups.includes(cat.group)),
   }));
 
   // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingRow has this same function too.

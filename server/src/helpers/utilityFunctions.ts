@@ -15,8 +15,7 @@ export const setRankings = async (
   if (dontSortOrSave) {
     sortedResults = results;
   } else {
-    if (ranksWithAverage) sortedResults = results.sort(compareAvgs);
-    else sortedResults = results.sort(compareSingles);
+    sortedResults = results.sort(ranksWithAverage ? compareAvgs : compareSingles);
   }
 
   let prevResult = sortedResults[0];

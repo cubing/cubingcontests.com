@@ -38,7 +38,8 @@ const RegisterPage = () => {
   return (
     <>
       <h2 className="mb-4 text-center">Register</h2>
-      <Form buttonText="Register" errorMessages={errorMessages} handleSubmit={handleSubmit}>
+
+      <Form buttonText="Register" errorMessages={errorMessages} onSubmit={handleSubmit}>
         <FormTextInput title="Username" value={username} onChange={setUsername} autoFocus />
         <FormTextInput title="Email" value={email} onChange={setEmail} />
         <FormTextInput title="Password" value={password} onChange={setPassword} password />

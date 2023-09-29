@@ -11,32 +11,26 @@ import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
 const userInfo: IUserInfo = getUserInfo();
 
-const fetchData = async (
-  isAdmin: boolean,
-  setContests: (value: IContest[]) => void,
-  setAdminStats: (value: IAdminStats) => void,
-) => {
-  const { payload: contests } = await myFetch.get('/competitions/mod', { authorize: true });
-
-  if (contests) {
-    setContests(contests);
-
-    if (isAdmin) {
-      const { payload } = await myFetch.get('/admin-stats', { authorize: true });
-
-      if (payload) {
-        setAdminStats(payload);
-      }
-    }
-  }
-};
-
 const ModeratorDashboardPage = () => {
   const [contests, setContests] = useState<IContest[]>();
   const [adminStats, setAdminStats] = useState<IAdminStats>();
 
+  const fetchData = async () => {
+    const { payload: contests } = await myFetch.get('/competitions/mod', { authorize: true });
+
+    if (contests) {
+      setContests(contests);
+
+      if (userInfo.isAdmin) {
+        const { payload } = await myFetch.get('/admin-stats', { authorize: true });
+
+        if (payload) setAdminStats(payload);
+      }
+    }
+  };
+
   useEffect(() => {
-    fetchData(userInfo.isAdmin, setContests, setAdminStats);
+    fetchData();
   }, []);
 
   const editCompetition = (competitionId: string) => {
@@ -60,7 +54,7 @@ const ModeratorDashboardPage = () => {
   };
 
   return (
-    <>
+    <div>
       <h2 className="text-center">Moderator Dashboard</h2>
 
       <div className="px-2">
@@ -78,6 +72,9 @@ const ModeratorDashboardPage = () => {
             <>
               <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
                 Import/Export
+              </Link>
+              <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
+                Configure events
               </Link>
               <Link href="/admin/record-types" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure record types
@@ -115,7 +112,7 @@ const ModeratorDashboardPage = () => {
       ) : (
         <p className="fs-5">You haven&apos;t created any contests yet</p>
       )}
-    </>
+    </div>
   );
 };
 

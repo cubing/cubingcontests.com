@@ -36,7 +36,7 @@ const FormTextInput = ({
   invalid?: boolean;
   noMargin?: boolean;
 }) => {
-  if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput!');
+  if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput');
 
   const [hidePassword, setHidePassword] = useState(password);
 

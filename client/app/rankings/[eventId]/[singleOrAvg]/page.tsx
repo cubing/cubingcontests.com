@@ -27,15 +27,15 @@ const RankingsPage = async ({
   searchParams: { show: 'results' };
 }) => {
   // Refreshes rankings every 5 minutes
-  const { payload }: { payload?: IEventRankings } = await myFetch.get(
+  const { payload: eventRankings }: { payload?: IEventRankings } = await myFetch.get(
     `/results/rankings/${eventId}/${singleOrAvg}${searchParams.show ? '?show=results' : ''}`,
     { revalidate: 300 },
   );
   const { payload: events }: { payload?: IEvent[] } = await myFetch.get('/events');
 
-  if (payload && events) {
-    const currEvent = events.find((el) => el.eventId === eventId);
+  const currEvent = events?.find((el) => el.eventId === eventId);
 
+  if (eventRankings && events && currEvent) {
     return (
       <div>
         <h2 className="mb-3 text-center">Rankings</h2>
@@ -92,8 +92,8 @@ const RankingsPage = async ({
         <EventTitle event={currEvent} />
 
         <RankingsTable
-          rankings={payload.rankings}
-          event={payload.event}
+          rankings={eventRankings.rankings}
+          event={eventRankings.event}
           forAverage={singleOrAvg === 'average'}
           topResultsRankings={!!searchParams.show}
         />
@@ -101,7 +101,7 @@ const RankingsPage = async ({
     );
   }
 
-  return <p className="mt-5 text-center fs-4">Error while loading the page</p>;
+  return <p className="mt-5 text-center fs-4">Event not found</p>;
 };
 
 export default RankingsPage;
