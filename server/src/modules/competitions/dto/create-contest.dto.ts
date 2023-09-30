@@ -12,13 +12,12 @@ import {
   ValidateNested,
   IsEmail,
   ValidateIf,
-  MaxLength,
   IsNotEmpty,
   ArrayMaxSize,
   IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import Countries, { nonOnlineCountryCodes } from '@sh/Countries';
+import { nonOnlineCountryCodes } from '@sh/Countries';
 import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import {
   IPerson,

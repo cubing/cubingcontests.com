@@ -178,6 +178,11 @@ const ContestForm = ({
   // Use effect
   //////////////////////////////////////////////////////////////////////////////
 
+  // TEMPORARY FOR DEBUGGING
+  useEffect(() => {
+    console.log(activityStartTime.toUTCString(), activityEndTime.toUTCString());
+  }, [activityStartTime, activityEndTime]);
+
   useEffect(() => {
     if (mode !== 'new') {
       setCompetitionId(contest.competitionId);
@@ -597,17 +602,25 @@ const ContestForm = ({
     ]);
   };
 
-  const changeActivityStartTime = (newTime: Date) => {
-    if (newTime) setActivityStartTime(zonedTimeToUtc(newTime, venueTimezone));
-    else setActivityStartTime(null);
+  const changeActivityStartTime = (newTimeZoned: Date) => {
+    if (newTimeZoned) {
+      const newTimeUTC = zonedTimeToUtc(newTimeZoned, venueTimezone);
+      setActivityStartTime(newTimeUTC);
+
+      // Change the activity end time too
+      const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
+      setActivityEndTime(new Date(newTimeUTC.getTime() + activityLength));
+    } else {
+      setActivityStartTime(null);
+    }
   };
 
   // Get the same date as the start time and use the new end time (the end time input is for time only)
-  const changeActivityEndTime = (newTime: Date) => {
-    if (newTime) {
+  const changeActivityEndTime = (newTimeZoned: Date) => {
+    if (newTimeZoned) {
       const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
       const newActivityEndTime = zonedTimeToUtc(
-        parseISO(`${format(zonedStartTime, 'yyyy-MM-dd')}T${format(newTime, 'HH:mm:00')}`),
+        parseISO(`${format(zonedStartTime, 'yyyy-MM-dd')}T${format(newTimeZoned, 'HH:mm:00')}`),
         venueTimezone,
       );
       setActivityEndTime(newActivityEndTime);
@@ -654,12 +667,11 @@ const ContestForm = ({
   };
 
   return (
-    <>
+    <div>
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
         onSubmit={handleSubmit}
-        hideButton={activeTab === 'schedule'}
         disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
       >
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
@@ -905,7 +917,7 @@ const ContestForm = ({
                       onClick={() => addRound(compEvent.event.eventId)}
                       disabled={disableIfCompFinishedEvenForAdmin}
                     >
-                      Add Round
+                      Add Round {compEvent.rounds.length + 1}
                     </button>
                   )}
                   {compEvent.rounds.length > 1 && (
@@ -1037,7 +1049,7 @@ const ContestForm = ({
           onDeleteActivity={isEditableSchedule ? (id: number) => deleteActivity(id) : undefined}
         />
       )}
-    </>
+    </div>
   );
 };
 
