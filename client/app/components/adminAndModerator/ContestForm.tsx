@@ -7,15 +7,18 @@ import enGB from 'date-fns/locale/en-GB';
 import { addHours, differenceInDays, format, parseISO } from 'date-fns';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
-import Form from '../form/Form';
-import FormTextInput from '../form/FormTextInput';
-import FormCountrySelect from '../form/FormCountrySelect';
-import FormEventSelect from '../form/FormEventSelect';
-import FormRadio from '../form/FormRadio';
-import FormSelect from '../form/FormSelect';
-import FormPersonInputs from '../form/FormPersonInputs';
-import Tabs from '../Tabs';
-import Schedule from '../Schedule';
+import Loading from '@c/Loading';
+import Form from '@c/form/Form';
+import FormTextInput from '@c/form/FormTextInput';
+import FormCountrySelect from '@c/form/FormCountrySelect';
+import FormEventSelect from '@c/form/FormEventSelect';
+import FormRadio from '@c/form/FormRadio';
+import FormSelect from '@c/form/FormSelect';
+import FormPersonInputs from '@c/form/FormPersonInputs';
+import FormNumberInput from '@c/form/FormNumberInput';
+import EventTitle from '@c/EventTitle';
+import Tabs from '@c/Tabs';
+import Schedule from '@c/Schedule';
 import { IContest, ICompetitionDetails, IContestEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
 import { Color, ContestState, ContestType, EventGroup, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
@@ -27,11 +30,8 @@ import {
   getUserInfo,
   limitRequests,
 } from '~/helpers/utilityFunctions';
-import Loading from '../Loading';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
-import EventTitle from '../EventTitle';
-import { titleRegex } from '~/shared_helpers/regex';
-import FormNumberInput from '../form/FormNumberInput';
+import C from '@sh/constants';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -145,7 +145,7 @@ const ContestForm = ({
       })),
     [rooms.length],
   );
-  const isValidRoom = useMemo(() => titleRegex.test(roomName), [roomName]);
+  const isValidRoom = useMemo(() => C.titleRegex.test(roomName), [roomName]);
   const activityOptions = useMemo(() => {
     const output: MultiChoiceOption[] = [];
 
@@ -273,8 +273,9 @@ const ContestForm = ({
     }
 
     const selectedOrganizers = organizers.filter((el) => el !== null);
-    const latitudeMicrodegrees = type !== ContestType.Online && latitude ? latitude * 1000000 : undefined;
-    const longitudeMicrodegrees = type !== ContestType.Online && longitude ? longitude * 1000000 : undefined;
+    const latitudeMicrodegrees = type !== ContestType.Online && latitude ? Math.round(latitude * 1000000) : undefined;
+    const longitudeMicrodegrees =
+      type !== ContestType.Online && longitude ? Math.round(longitude * 1000000) : undefined;
     let processedStartDate = startDate;
     const endDateOnly = getDateOnly(endDate);
 
@@ -371,22 +372,11 @@ const ContestForm = ({
     // Validation
     const tempErrors: string[] = [];
 
-    if (mode === 'copy') {
-      if (newComp.competitionId === contest.competitionId) tempErrors.push('The contest ID cannot be the same');
-      if (newComp.name === contest.name) tempErrors.push('The name cannot be the same');
-    }
-
-    if (!newComp.competitionId) tempErrors.push('Please enter a contest ID');
-    if (!newComp.name) tempErrors.push('Please enter a name');
-
     if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
       tempErrors.push('Please enter all organizers');
-    else if (newComp.organizers.length === 0) tempErrors.push('Please enter at least one organizer');
 
-    if (newComp.events.length === 0) tempErrors.push('You must select at least one event');
-    else if (!contestEvents.some((el) => el.event.eventId === mainEventId))
+    if (contestEvents.length > 0 && !contestEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
-    if (newComp.competitorLimit === null) tempErrors.push('Please enter a valid competitor limit');
 
     const meetupOnlyCompEvent = contestEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
     if (type !== ContestType.Meetup && meetupOnlyCompEvent)
@@ -395,15 +385,6 @@ const ContestForm = ({
     if (type === ContestType.Competition) {
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
       if (activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
-    }
-
-    if (type !== ContestType.Online) {
-      if (!newComp.city) tempErrors.push('Please enter a city');
-      if (['NOT_SELECTED', 'ONLINE'].includes(newComp.countryIso2)) tempErrors.push('Please select a country');
-      if (!newComp.venue) tempErrors.push('Please enter a venue');
-      if (!newComp.address) tempErrors.push('Please enter an address');
-      if (newComp.latitudeMicrodegrees === undefined || newComp.longitudeMicrodegrees === undefined)
-        tempErrors.push('Please enter valid venue coordinates');
     }
 
     if (tempErrors.length > 0) {

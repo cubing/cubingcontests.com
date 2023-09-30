@@ -205,3 +205,5 @@ const Countries = [
 ];
 
 export default Countries;
+
+export const nonOnlineCountryCodes = Countries.slice(1).map((el) => el.code);
