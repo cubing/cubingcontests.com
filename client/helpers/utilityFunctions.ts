@@ -1,5 +1,6 @@
 import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 import { Color, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
@@ -17,17 +18,20 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
   if (typeof endDate === 'string') endDate = new Date(endDate);
 
   const fullFormat = 'd MMM yyyy';
+  // If we don't do this, format adjusts the date according to the user's local time zone
+  const adjustedStartDate = utcToZonedTime(startDate, 'UTC');
 
   if (!endDate || isSameDay(startDate, endDate)) {
-    return format(startDate, fullFormat);
+    return format(adjustedStartDate, fullFormat);
   } else {
     let startFormat: string;
+    const adjustedEndDate = utcToZonedTime(endDate, 'UTC');
 
     if (!isSameYear(startDate, endDate)) startFormat = fullFormat;
     else if (!isSameMonth(startDate, endDate)) startFormat = 'd MMM';
     else startFormat = 'd';
 
-    return `${format(startDate, startFormat)} - ${format(endDate, fullFormat)}`;
+    return `${format(adjustedStartDate, startFormat)} - ${format(adjustedEndDate, fullFormat)}`;
   }
 };
 
