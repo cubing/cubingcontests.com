@@ -45,6 +45,8 @@ const convertRoundFormat = (value: string): RoundFormat => {
       return RoundFormat.BestOf3;
     case 'bo2':
       return RoundFormat.BestOf2;
+    case 'bo1':
+      return RoundFormat.BestOf1;
     default:
       throw new Error(`Unknown round format: ${value}`);
   }
