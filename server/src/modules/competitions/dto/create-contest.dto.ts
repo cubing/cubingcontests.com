@@ -36,7 +36,7 @@ import {
 import { CreateEventDto } from '@m/events/dto/create-event.dto';
 import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
-import { getTitleRegexOpts, getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
+import { getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
@@ -49,7 +49,6 @@ export class CreateContestDto implements IContest {
 
   @IsString()
   @MinLength(10, getMinLengthOpts('contest name', 10))
-  @Matches(C.titleRegex, getTitleRegexOpts('contest name'))
   name: string;
 
   @IsEnum(ContestType)
@@ -66,7 +65,6 @@ export class CreateContestDto implements IContest {
   @ValidateIf((obj) => obj.type !== ContestType.Online)
   @IsString()
   @MinLength(3, getMinLengthOpts('venue name', 3))
-  @Matches(C.titleRegex, getTitleRegexOpts('venue name'))
   venue?: string;
 
   @ValidateIf((obj) => obj.type === ContestType.Competition || obj.address)
@@ -192,7 +190,6 @@ class RoomDto implements IRoom {
 
   @IsString()
   @MinLength(3, getMinLengthOpts('room names in the schedule', 3))
-  @Matches(C.titleRegex, getTitleRegexOpts('room names in the schedule'))
   name: string;
 
   @IsEnum(Color)
@@ -215,7 +212,6 @@ class ActivityDto implements IActivity {
 
   @ValidateIf((obj) => obj.activityCode === 'other-misc')
   @IsString()
-  @Matches(C.titleRegex, getTitleRegexOpts('custom activity names'))
   name?: string;
 
   @IsDateString({}, { message: 'Please enter valid activity start times' })

@@ -31,7 +31,6 @@ import {
 import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
-import C from '@sh/constants';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -145,7 +144,6 @@ const ContestForm = ({
       })),
     [rooms.length],
   );
-  const isValidRoom = useMemo(() => C.titleRegex.test(roomName), [roomName]);
   const activityOptions = useMemo(() => {
     const output: MultiChoiceOption[] = [];
 
@@ -968,7 +966,7 @@ const ContestForm = ({
                 ></span>
               </div>
             </div>
-            <button type="button" className="mt-3 mb-2 btn btn-success" disabled={!isValidRoom} onClick={addRoom}>
+            <button type="button" className="mt-3 mb-2 btn btn-success" disabled={!roomName.trim()} onClick={addRoom}>
               Create
             </button>
             <hr />

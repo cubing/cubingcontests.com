@@ -1,7 +1,3 @@
-export const getTitleRegexOpts = (propertyName: string) => ({
-  message: `The ${propertyName} must only contain alphanumeric characters or these special characters: - ' : #`,
-});
-
 export const getMinLengthOpts = (propertyName: string, length: number) => ({
   message: `The ${propertyName} cannot be shorter than ${length} characters`,
 });

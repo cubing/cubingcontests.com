@@ -1,8 +1,7 @@
 import { ArrayMinSize, IsEnum, IsInt, IsOptional, IsString, Matches, Max, Min, MinLength } from 'class-validator';
 import { IEvent } from '@sh/interfaces';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
-import { getMinLengthOpts, getTitleRegexOpts } from '~/src/helpers/validation';
-import C from '@sh/constants';
+import { getMinLengthOpts } from '~/src/helpers/validation';
 
 export class CreateEventDto implements IEvent {
   @IsString()
@@ -12,7 +11,6 @@ export class CreateEventDto implements IEvent {
 
   @IsString()
   @MinLength(3, getMinLengthOpts('event name', 3))
-  @Matches(C.titleRegex, getTitleRegexOpts('event name'))
   name: string;
 
   @IsInt()
