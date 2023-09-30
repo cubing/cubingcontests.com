@@ -74,8 +74,8 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
               <p className="mb-2">Coordinates:&#8194;{getFormattedCoords(contest)}</p>
             )}
             {contest.contact && (
-              <p className="mb-2">
-                Contact:&#8194;<span style={{ whiteSpace: 'nowrap' }}>{contest.contact}</span>
+              <p className="mb-2 text-break">
+                Contact:&#8194;<span className="fs-6">{contest.contact}</span>
               </p>
             )}
             <p className="mb-2">
