@@ -282,7 +282,6 @@ export const getUserInfo = (): IUserInfo => {
 // passing it the result with the best single and average set
 export const checkErrorsBeforeResultSubmission = (
   result: IResult,
-  roundFormat: RoundFormat,
   event: IEvent,
   persons: IPerson[],
   setErrorMessages: (val: string[]) => void,

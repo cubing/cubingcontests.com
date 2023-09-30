@@ -17,12 +17,14 @@ export const eventCategories = [
   },
   {
     title: 'Extreme BLD',
+    shortTitle: 'BLD!',
     value: 'extremebld',
     group: EventGroup.ExtremeBLD,
     description: 'These events are submission-only and require video evidence',
   },
   {
     title: 'Miscellaneous',
+    shortTitle: 'Misc.',
     value: 'miscellaneous',
     group: EventGroup.Miscellaneous,
   },

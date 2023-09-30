@@ -2,7 +2,7 @@ import { IRecordPair } from '@sh/interfaces';
 import { WcaRecordType } from '@sh/enums';
 
 export const ResultsServiceMock = () => ({
-  async getEventRecordPairs(eventId: string): Promise<IRecordPair[]> {
+  async getEventRecordPairs(): Promise<IRecordPair[]> {
     return [
       {
         wcaEquivalent: WcaRecordType.WR,

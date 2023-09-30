@@ -64,7 +64,7 @@ const SubmitResultsPage = () => {
   //////////////////////////////////////////////////////////////////////////////
 
   const fetchSubmissionInfo = async (recordsUpTo: Date): Promise<IResultsSubmissionInfo> => {
-    const { payload, errors } = await myFetch.get(`/results/submission-info?recordsUpTo=${recordsUpTo}`, {
+    const { payload, errors } = await myFetch.get(`/results/submission-info/${recordsUpTo}`, {
       authorize: true,
     });
 
@@ -92,7 +92,6 @@ const SubmitResultsPage = () => {
 
     checkErrorsBeforeResultSubmission(
       newResult,
-      roundFormat,
       event,
       competitors,
       setErrorMessages,

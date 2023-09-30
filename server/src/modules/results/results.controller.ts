@@ -29,11 +29,11 @@ export class ResultsController {
     return await this.service.getRecords(wcaEquivalent);
   }
 
-  // GET /results/submission-info(?recordsUpTo=...)
-  @Get('submission-info')
+  // GET /results/submission-info/:recordsUpTo
+  @Get('submission-info/:recordsUpTo')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
-  async getSubmissionInfo(@Query('recordsUpTo') recordsUpTo: string | Date) {
+  async getSubmissionInfo(@Param('recordsUpTo') recordsUpTo: string | Date) {
     recordsUpTo = new Date(recordsUpTo);
     console.log(`Getting results submission info with records up to ${format(recordsUpTo, 'd MMM yyyy')}`);
     return await this.service.getSubmissionInfo(recordsUpTo);

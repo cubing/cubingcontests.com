@@ -14,6 +14,7 @@ import {
   IResultsSubmissionInfo,
   IContest,
   IRanking,
+  IEvent,
 } from '@sh/interfaces';
 import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import C from '@sh/constants';
@@ -26,6 +27,17 @@ import { RoundDocument } from '~/src/models/round.model';
 import { setRankings, fixTimesOverTenMinutes } from '~/src/helpers/utilityFunctions';
 import { AuthService } from '../auth/auth.service';
 import { PersonDocument } from '~/src/models/person.model';
+
+const getBaseSinglesFilter = (event: IEvent) => ({
+  eventId: event.eventId,
+  best: { $gt: 0 },
+});
+
+const getBaseAvgsFilter = (event: IEvent) => ({
+  eventId: event.eventId,
+  average: { $gt: 0 },
+  attempts: { $size: roundFormats[event.defaultRoundFormat].attempts },
+});
 
 @Injectable()
 export class ResultsService {
@@ -85,12 +97,13 @@ export class ResultsService {
       rankings: [],
     };
     let eventResults: ResultDocument[] = [];
-    const singlesFilter = { eventId, unapproved: { $exists: false }, best: { $gt: 0 } };
-    const avgsFilter = {
-      eventId,
+    const singlesFilter = {
+      ...getBaseSinglesFilter(event),
       unapproved: { $exists: false },
-      average: { $gt: 0 },
-      attempts: { $size: roundFormats[event.defaultRoundFormat].attempts },
+    };
+    const avgsFilter = {
+      ...getBaseAvgsFilter(event),
+      unapproved: { $exists: false },
     };
 
     if (!forAverage) {
@@ -288,7 +301,7 @@ export class ResultsService {
     return {
       events: submissionBasedEvents,
       recordPairsByEvent: await this.getRecordPairs(
-        submissionBasedEvents.map((el) => el.eventId),
+        submissionBasedEvents,
         recordsUpTo, // getRecordPairs gets just the date from this
         activeRecordTypes,
       ),
@@ -318,7 +331,7 @@ export class ResultsService {
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
     fixTimesOverTenMinutes(createResultDto, event);
 
-    const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
+    const recordPairs = await this.getEventRecordPairs(event, createResultDto.date);
     let round: RoundDocument;
     let newResult: ResultDocument;
     let oldResults: ResultDocument[];
@@ -453,7 +466,7 @@ export class ResultsService {
     createResultDto.date = getDateOnly(new Date(createResultDto.date));
     fixTimesOverTenMinutes(createResultDto, event);
 
-    const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
+    const recordPairs = await this.getEventRecordPairs(event, createResultDto.date);
 
     try {
       await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
@@ -470,20 +483,19 @@ export class ResultsService {
 
   // Gets record pairs for multiple events
   async getRecordPairs(
-    eventIds: string[],
+    events: IEvent[],
     recordsUpTo: Date,
     activeRecordTypes: IRecordType[],
   ): Promise<IEventRecordPairs[]> {
-    if (!eventIds) eventIds = (await this.eventsService.getEvents()).map((el) => el.eventId);
     recordsUpTo = getDateOnly(recordsUpTo);
 
     const recordPairsByEvent: IEventRecordPairs[] = [];
 
     // Get current records for this contest's events
-    for (const eventId of eventIds) {
+    for (const event of events) {
       recordPairsByEvent.push({
-        eventId,
-        recordPairs: await this.getEventRecordPairs(eventId, recordsUpTo, activeRecordTypes),
+        eventId: event.eventId,
+        recordPairs: await this.getEventRecordPairs(event, recordsUpTo, activeRecordTypes),
       });
     }
 
@@ -491,11 +503,10 @@ export class ResultsService {
   }
 
   private async getEventRecordPairs(
-    eventId: string,
+    event: IEvent,
     recordsUpTo = new Date(8640000000000000), // this shouldn't include time (so the time should be midnight)
     activeRecordTypes?: IRecordType[],
   ): Promise<IRecordPair[]> {
-    if (!eventId) throw new InternalServerErrorException('getEventRecordPairs received no eventId');
     if (!activeRecordTypes) activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
     const recordPairs: IRecordPair[] = [];
@@ -506,7 +517,7 @@ export class ResultsService {
         const recordPair: IRecordPair = { wcaEquivalent: rt.wcaEquivalent, best: -1, average: -1 };
 
         const [singleRecord] = await this.resultModel
-          .find({ eventId, best: { $gt: 0 }, date: { $lte: recordsUpTo } })
+          .find({ ...getBaseSinglesFilter(event), date: { $lte: recordsUpTo } })
           .sort({ best: 1 })
           .limit(1)
           .exec();
@@ -514,7 +525,7 @@ export class ResultsService {
         if (singleRecord) recordPair.best = singleRecord.best;
 
         const [avgRecord] = await this.resultModel
-          .find({ eventId, average: { $gt: 0 }, date: { $lte: recordsUpTo } })
+          .find({ ...getBaseAvgsFilter(event), date: { $lte: recordsUpTo } })
           .sort({ average: 1 })
           .limit(1)
           .exec();
@@ -630,7 +641,8 @@ export class ResultsService {
 
     // This is done so that we get records BEFORE the date of the deleted result
     const recordsUpTo = new Date(result.date.getTime() - 1);
-    const recordPairs = await this.getEventRecordPairs(result.eventId, recordsUpTo);
+    const event = await this.eventsService.getEventById(result.eventId);
+    const recordPairs = await this.getEventRecordPairs(event, recordsUpTo);
 
     // TO-DO: DIFFERENT RECORD TYPES NEED TO BE PROPERLY SUPPORTED
     for (const rp of recordPairs) {

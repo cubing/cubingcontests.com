@@ -6,7 +6,7 @@ import ResultForm from './ResultForm';
 import ErrorMessages from '@c/ErrorMessages';
 import Button from '@c/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
-import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt } from '@sh/interfaces';
+import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt, IEventRecordPairs } from '@sh/interfaces';
 import { ContestState } from '@sh/enums';
 import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
@@ -14,7 +14,7 @@ import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 const userInfo: IUserInfo = getUserInfo();
 
 const PostResultsScreen = ({
-  compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent },
+  compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent: initialRecordPairs },
 }: {
   compData: IContestData;
 }) => {
@@ -22,6 +22,7 @@ const PostResultsScreen = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
 
   const [round, setRound] = useState<IRound>(contest.events[0].rounds[0]);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
@@ -81,21 +82,38 @@ const PostResultsScreen = ({
 
       checkErrorsBeforeResultSubmission(
         newResult,
-        round.format,
         currEvent,
         currentPersons,
         setErrorMessages,
         setSuccessMessage,
-        async (newResultWithBestAndAverage) => {
+        async (newResultWithBestAndAvg) => {
           setLoadingDuringSubmit(true);
 
-          const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAverage);
+          const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
 
           setLoadingDuringSubmit(false);
 
           if (errors) {
             setErrorMessages(errors);
           } else {
+            const eventRecordPair = recordPairsByEvent.find((el) => el.eventId === newResult.eventId);
+            if (
+              newResultWithBestAndAvg.best < eventRecordPair.recordPairs[0].best ||
+              newResultWithBestAndAvg.average < eventRecordPair.recordPairs[0].average
+            ) {
+              const { payload, errors } = await myFetch.get(`/competitions/mod/${contest.competitionId}`, {
+                authorize: true,
+              });
+
+              if (errors) {
+                setErrorMessages(errors);
+                return;
+              } else {
+                console.log('New records:', payload.recordPairsByEvent);
+                setRecordPairsByEvent(payload.recordPairsByEvent);
+              }
+            }
+
             // Add new persons to list of persons
             setPersons([
               ...persons,
