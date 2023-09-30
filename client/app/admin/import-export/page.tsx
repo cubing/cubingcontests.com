@@ -240,7 +240,7 @@ const ImportExportPage = () => {
                 }
               }
 
-              const { best, average } = getBestAndAverage(attempts, format, event);
+              const { best, average } = getBestAndAverage(attempts, event);
 
               return {
                 competitionId,
@@ -253,7 +253,7 @@ const ImportExportPage = () => {
                 average,
               };
             }),
-          getRoundRanksWithAverage(format, event),
+          getRoundRanksWithAverage(format),
         );
 
         // Set the personIds

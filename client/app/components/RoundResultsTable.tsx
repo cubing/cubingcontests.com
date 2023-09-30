@@ -1,9 +1,10 @@
-import Time from './Time';
-import Solves from './Solves';
-import Competitor from './Competitor';
+import Time from '@c/Time';
+import Solves from '@c/Solves';
+import Competitor from '@c/Competitor';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
-import { getRoundCanHaveAverage, getRoundRanksWithAverage } from '@sh/sharedFunctions';
+import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
+import { roundFormats } from '@sh/roundFormats';
 
 const RoundResultsTable = ({
   round,
@@ -23,8 +24,8 @@ const RoundResultsTable = ({
   onDeleteResult?: (resultId: string) => void;
   disableEditAndDelete?: boolean;
 }) => {
-  const roundCanHaveAverage = getRoundCanHaveAverage(round.format, event);
-  const roundRanksWithAverage = getRoundRanksWithAverage(round.format, event);
+  const roundCanHaveAverage = roundFormats[round.format].attempts >= 3;
+  const roundRanksWithAverage = getRoundRanksWithAverage(round.format);
   let lastRanking = 0;
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round

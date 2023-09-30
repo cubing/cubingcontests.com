@@ -52,10 +52,12 @@ export const contestTypeOptions: MultiChoiceOption[] = [
   },
 ];
 
-export const roundFormatOptions: MultiChoiceOption[] = Object.values(roundFormats).map((rf: any) => ({
-  label: rf.label,
-  value: rf.id,
-}));
+export const roundFormatOptions: MultiChoiceOption[] = Object.values(roundFormats)
+  .sort((a: any, b: any) => a.attempts - b.attempts)
+  .map((rf: any) => ({
+    label: rf.label,
+    value: rf.id,
+  }));
 
 export const roundProceedOptions: MultiChoiceOption[] = [
   {

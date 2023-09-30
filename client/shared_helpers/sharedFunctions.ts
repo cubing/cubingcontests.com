@@ -31,7 +31,12 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
 };
 
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
-export const setResultRecords = (result: IResult, recordPairs: IRecordPair[], noConsoleLog = false): IResult => {
+export const setResultRecords = (
+  result: IResult,
+  event: IEvent,
+  recordPairs: IRecordPair[],
+  noConsoleLog = false,
+): IResult => {
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
@@ -42,11 +47,13 @@ export const setResultRecords = (result: IResult, recordPairs: IRecordPair[], no
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
-      const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
+      if (result.attempts.length === roundFormats[event.defaultRoundFormat].attempts) {
+        const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
 
-      if (result.average > 0 && comparisonToRecordAvg <= 0) {
-        if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
-        result.regionalAverageRecord = recordPair.wcaEquivalent;
+        if (result.average > 0 && comparisonToRecordAvg <= 0) {
+          if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
+          result.regionalAverageRecord = recordPair.wcaEquivalent;
+        }
       }
     }
   }
@@ -63,20 +70,8 @@ export const getDateOnly = (date: Date): Date => {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
 
-export const getRoundCanHaveAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
-  // Bo1 and Bo2 rounds cannot have an average
-  const numberOfAttempts = roundFormats[roundFormat].attempts;
-  if (numberOfAttempts < 3) return false;
-
-  // If the default round format for the event is Ao5, but the number of attempts in the round
-  // is less than five, the round cannot have an average
-  if (numberOfAttempts < 5 && event.defaultRoundFormat === RoundFormat.Average) return false;
-
-  return true;
-};
-
-export const getRoundRanksWithAverage = (roundFormat: RoundFormat, event: IEvent): boolean => {
-  return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat) && getRoundCanHaveAverage(roundFormat, event);
+export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean => {
+  return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
 };
 
 export const getAlwaysShowDecimals = (event: IEvent): boolean => {

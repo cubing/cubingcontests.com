@@ -22,14 +22,14 @@ import Schedule from '@c/Schedule';
 import { IContest, ICompetitionDetails, IContestEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
 import { Color, ContestState, ContestType, EventGroup, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
-import { colorOptions, contestTypeOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
-import { roundTypes } from '~/helpers/roundTypes';
 import {
-  getAllowedRoundFormatOptions,
-  getContestIdFromName,
-  getUserInfo,
-  limitRequests,
-} from '~/helpers/utilityFunctions';
+  colorOptions,
+  contestTypeOptions,
+  roundFormatOptions,
+  roundProceedOptions,
+} from '~/helpers/multipleChoiceOptions';
+import { roundTypes } from '~/helpers/roundTypes';
+import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 
@@ -874,7 +874,7 @@ const ContestForm = ({
                       <div className="flex-grow-1">
                         <FormSelect
                           title=""
-                          options={getAllowedRoundFormatOptions(compEvent.event)}
+                          options={roundFormatOptions}
                           selected={round.format}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
                           disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}

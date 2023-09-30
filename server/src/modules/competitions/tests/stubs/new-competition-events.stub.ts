@@ -181,6 +181,26 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
             },
           ],
         },
+        {
+          roundId: '222-r3',
+          competitionId: 'TestComp2023',
+          date: new Date('2023-07-01T00:00:00Z'),
+          roundTypeId: RoundType.Final,
+          format: RoundFormat.Mean,
+          results: [
+            {
+              competitionId: 'TestComp2023',
+              eventId: '222',
+              date: new Date('2023-07-01T00:00:00Z'),
+              personIds: [100],
+              ranking: 1,
+              attempts: [{ result: 100 }, { result: 101 }, { result: 102 }],
+              // The single should be the new WR, the average shouldn't, cause this is Mo3
+              best: 100,
+              average: 101,
+            },
+          ],
+        },
       ],
     },
     {

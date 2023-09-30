@@ -5,6 +5,7 @@ import {
   newContestEventsStub,
   newFakeContestEventsStub,
 } from '~/src/modules/competitions/tests/stubs/new-competition-events.stub';
+import { eventsSeed } from '~/src/seeds/events.seed';
 
 describe('compareSingles', () => {
   it('compares singles correctly when a < b', () => {
@@ -111,6 +112,14 @@ describe('setResultRecords', () => {
     },
   ];
 
+  const mock222RecordPairs = (): IRecordPair[] => [
+    {
+      wcaEquivalent: WcaRecordType.WR,
+      best: 124,
+      average: 211,
+    },
+  ];
+
   const mockBLDRecordPairs = (): IRecordPair[] => [
     {
       wcaEquivalent: WcaRecordType.WR,
@@ -120,7 +129,8 @@ describe('setResultRecords', () => {
   ];
 
   it('sets new 3x3x3 records correctly', async () => {
-    const result = setResultRecords(newContestEventsStub()[0].rounds[0].results[0], mock333RecordPairs());
+    const contestEvent = newContestEventsStub().find((el) => el.event.eventId === '333');
+    const result = setResultRecords(contestEvent.rounds[0].results[0], contestEvent.event, mock333RecordPairs());
 
     // 6.86 single and 8.00 average WRs
     expect(result.regionalAverageRecord).toBe('WR');
@@ -128,11 +138,20 @@ describe('setResultRecords', () => {
   });
 
   it('updates 3x3x3 BLD single record correctly', async () => {
-    const result = setResultRecords(newFakeContestEventsStub()[2].rounds[0].results[0], mockBLDRecordPairs());
+    const contestEvent = newFakeContestEventsStub().find((el) => el.event.eventId === '333bf');
+    const result = setResultRecords(contestEvent.rounds[0].results[0], contestEvent.event, mockBLDRecordPairs());
 
     expect(result.regionalSingleRecord).toBe('WR');
     expect(result.regionalAverageRecord).toBeUndefined();
-    // expect(rounds[0].results[1].regionalSingleRecord).toBeUndefined();
-    // expect(rounds[0].results[1].regionalAverageRecord).toBe('WR');
+  });
+
+  it("does not set average records when the number of attempts doesn't match the default format's number of attempts", () => {
+    const contestEvent = newFakeContestEventsStub().find((el) => el.event.eventId === '222');
+    const result = setResultRecords(contestEvent.rounds[2].results[0], contestEvent.event, mock222RecordPairs());
+
+    expect(result.regionalSingleRecord).toBe('WR');
+    expect(result.best).toBe(100);
+    expect(result.regionalAverageRecord).toBeUndefined();
+    expect(result.average).toBe(101);
   });
 });

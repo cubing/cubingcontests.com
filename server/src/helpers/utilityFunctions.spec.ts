@@ -10,13 +10,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 round correctly', async () => {
     const round = unrankedRounds[0];
-    round.results = await setRankings(
-      round.results,
-      getRoundRanksWithAverage(
-        round.format,
-        eventsSeed.find((el) => el.eventId === '333'),
-      ),
-    );
+    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].average).toBe(1170);
@@ -30,13 +24,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 FM round correctly', async () => {
     const round = unrankedRounds[1];
-    round.results = await setRankings(
-      round.results,
-      getRoundRanksWithAverage(
-        round.format,
-        eventsSeed.find((el) => el.eventId === '333'),
-      ),
-    );
+    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
 
     // The first two results are tied, the last two have tied means, but there is a tie-breaker
     expect(round.results[0].ranking).toBe(1);
@@ -55,13 +43,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 BLD round correctly', async () => {
     const round = unrankedRounds[2];
-    round.results = await setRankings(
-      round.results,
-      getRoundRanksWithAverage(
-        round.format,
-        eventsSeed.find((el) => el.eventId === '333'),
-      ),
-    );
+    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(1938);
@@ -81,13 +63,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 2x2x2 round with Bo3 format correctly', async () => {
     const round = unrankedRounds[3];
-    round.results = await setRankings(
-      round.results,
-      getRoundRanksWithAverage(
-        round.format,
-        eventsSeed.find((el) => el.eventId === '333'),
-      ),
-    );
+    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(221);
@@ -99,13 +75,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 5x5x5 round with only DNF averages correctly', async () => {
     const round = unrankedRounds[4];
-    round.results = await setRankings(
-      round.results,
-      getRoundRanksWithAverage(
-        round.format,
-        eventsSeed.find((el) => el.eventId === '333'),
-      ),
-    );
+    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(3845);

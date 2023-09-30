@@ -17,6 +17,7 @@ import {
 } from '@sh/interfaces';
 import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import C from '@sh/constants';
+import { roundFormats } from '@sh/roundFormats';
 import { excl } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -85,7 +86,12 @@ export class ResultsService {
     };
     let eventResults: ResultDocument[] = [];
     const singlesFilter = { eventId, unapproved: { $exists: false }, best: { $gt: 0 } };
-    const avgsFilter = { eventId, unapproved: { $exists: false }, average: { $gt: 0 } };
+    const avgsFilter = {
+      eventId,
+      unapproved: { $exists: false },
+      average: { $gt: 0 },
+      attempts: { $size: roundFormats[event.defaultRoundFormat].attempts },
+    };
 
     if (!forAverage) {
       if (!show) {
@@ -326,9 +332,9 @@ export class ResultsService {
       oldResults = [...round.results];
 
       // Create new result and update the round's results
-      const newResult = await this.resultModel.create(setResultRecords(createResultDto, recordPairs));
+      const newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
       round.results.push(newResult);
-      round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format, event));
+      round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
       await round.save(); // save the round for resetCancelledRecords
 
       await this.resetCancelledRecords(createResultDto, contest);
@@ -384,7 +390,7 @@ export class ResultsService {
       const event = await this.eventsService.getEventById(result.eventId);
 
       round.results = round.results.filter((el) => el._id.toString() !== resultId);
-      round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format, event));
+      round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
       round.save(); // save the round for updateRecordsAfterDeletion
 
       await this.updateRecordsAfterDeletion(result, contest);
@@ -451,7 +457,7 @@ export class ResultsService {
     const recordPairs = await this.getEventRecordPairs(createResultDto.eventId, createResultDto.date);
 
     try {
-      await this.resultModel.create(setResultRecords(createResultDto, recordPairs));
+      await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
     } catch (err) {
       throw new InternalServerErrorException('Error while submitting result:', err.message);
     }

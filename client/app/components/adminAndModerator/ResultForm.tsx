@@ -1,20 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Loading from '../Loading';
-import FormEventSelect from '../form/FormEventSelect';
-import FormSelect from '../form/FormSelect';
-import FormPersonInputs from '../form/FormPersonInputs';
-import FormCheckbox from '../form/FormCheckbox';
-import AttemptInput from '../AttemptInput';
-import Time from '../Time';
+import Loading from '@c/Loading';
+import FormEventSelect from '@c/form/FormEventSelect';
+import FormSelect from '@c/form/FormSelect';
+import FormPersonInputs from '@c/form/FormPersonInputs';
+import FormCheckbox from '@c/form/FormCheckbox';
+import AttemptInput from '@c/AttemptInput';
+import Time from '@c/Time';
 import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
-import { getRoundCanHaveAverage } from '@sh/sharedFunctions';
-import { getAllowedRoundFormatOptions, getBestAndAverage } from '~/helpers/utilityFunctions';
+import { getBestAndAverage } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { setResultRecords } from '~/shared_helpers/sharedFunctions';
+import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 
 /**
  * This component has two uses: for entering results on PostResultsScreen, as well as for the submit results page
@@ -80,7 +80,7 @@ const ResultForm = ({
 
   if (!forSubmitResultsPage) roundFormat = round.format;
 
-  const roundCanHaveAverage = useMemo(() => getRoundCanHaveAverage(roundFormat, event), [roundFormat, event]);
+  const roundCanHaveAverage = roundFormats[roundFormat].attempts >= 3;
 
   useEffect(() => {
     reset();
@@ -100,8 +100,8 @@ const ResultForm = ({
     if (attempts.length > 0) {
       console.log('Attempts:', attempts);
 
-      const { best, average } = getBestAndAverage(attempts, roundFormat, event);
-      setTempResult(setResultRecords({ best, average } as IResult, recordPairs, true));
+      const { best, average } = getBestAndAverage(attempts, event);
+      setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
     }
   }, [attempts, recordPairs]);
 
@@ -138,7 +138,7 @@ const ResultForm = ({
   // Returns true if there are errors
   const checkPersonSelectionErrors = (newSelectedPerson: IPerson): boolean => {
     if (round?.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))) {
-      setErrorMessages(['That competitor\'s results have already been entered']);
+      setErrorMessages(["That competitor's results have already been entered"]);
       return true;
     }
 
@@ -174,6 +174,15 @@ const ResultForm = ({
     }
   };
 
+  const getAllowedRoundFormatOptions = (event: IEvent) => {
+    if (event.defaultRoundFormat !== RoundFormat.Average) {
+      console.log(roundFormatOptions);
+      return roundFormatOptions.filter((el) => el.value !== RoundFormat.BestOf3);
+    }
+
+    return roundFormatOptions;
+  };
+
   const reset = (
     {
       newEvent = event,
@@ -186,16 +195,17 @@ const ResultForm = ({
     },
   ) => {
     if (forSubmitResultsPage) {
-      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent, true).map((el) => el.value);
+      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((el) => el.value);
 
       if (!allowedRoundFormats.includes(newRoundFormat)) setRoundFormat(RoundFormat.BestOf1);
       else setRoundFormat(newRoundFormat);
     }
 
     setErrorMessages([]);
-    setAttempts(new Array(roundFormats[newRoundFormat].attempts).fill({ result: 0 }));
+    const newAttempts = new Array(roundFormats[newRoundFormat].attempts).fill({ result: 0 });
+    setAttempts(newAttempts);
     setAttemptsResetTrigger(!attemptsResetTrigger);
-    setTempResult({ best: -1, average: -1 } as IResult);
+    setTempResult({ best: -1, average: -1, attempts: newAttempts } as IResult);
 
     if (resetCompetitors) {
       setPersons(new Array(newEvent.participants || 1).fill(null));
@@ -211,19 +221,19 @@ const ResultForm = ({
         setEventId={(val) => changeEvent(val)}
       />
       <div className="mb-3 fs-5">
-        {round ? (
+        {forSubmitResultsPage ? (
+          <FormSelect
+            title="Format"
+            options={getAllowedRoundFormatOptions(event)}
+            selected={roundFormat}
+            setSelected={(val: RoundFormat) => reset({ newRoundFormat: val, resetCompetitors: false })}
+          />
+        ) : (
           <FormSelect
             title="Round"
             options={rounds.map((el) => ({ label: roundTypes[el.roundTypeId].label, value: el.roundTypeId }))}
             selected={round.roundTypeId}
             setSelected={(val) => changeRound(val)}
-          />
-        ) : (
-          <FormSelect
-            title="Format"
-            options={getAllowedRoundFormatOptions(event, forSubmitResultsPage)}
-            selected={roundFormat}
-            setSelected={(val: RoundFormat) => reset({ newRoundFormat: val, resetCompetitors: false })}
           />
         )}
       </div>

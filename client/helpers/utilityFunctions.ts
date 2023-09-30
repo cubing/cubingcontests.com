@@ -2,11 +2,10 @@ import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { Color, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
-import { getAlwaysShowDecimals, getRoundCanHaveAverage } from '@sh/sharedFunctions';
+import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';
-import { roundFormatOptions } from './multipleChoiceOptions';
-import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
 import { IUserInfo } from './interfaces/UserInfo';
+import { roundFormats } from '~/shared_helpers/roundFormats';
 
 export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
@@ -222,11 +221,7 @@ export const getAttempt = (
 };
 
 // Returns the best and average times
-export const getBestAndAverage = (
-  attempts: IAttempt[],
-  roundFormat: RoundFormat,
-  event: IEvent,
-): { best: number; average: number } => {
+export const getBestAndAverage = (attempts: IAttempt[], event: IEvent): { best: number; average: number } => {
   let best: number, average: number;
   let sum = 0;
   let DNFDNScount = 0;
@@ -244,12 +239,7 @@ export const getBestAndAverage = (
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (
-    // No averages for rounds that don't support them
-    !getRoundCanHaveAverage(roundFormat, event) ||
-    DNFDNScount > 1 ||
-    (DNFDNScount > 0 && attempts.length === 3)
-  ) {
+  if (attempts.length < 3 || DNFDNScount > 1 || (DNFDNScount > 0 && attempts.length === 3)) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
@@ -323,7 +313,7 @@ export const checkErrorsBeforeResultSubmission = (
     setErrorMessages([]);
     setSuccessMessage('');
 
-    const { best, average } = getBestAndAverage(result.attempts, roundFormat, event);
+    const { best, average } = getBestAndAverage(result.attempts, event);
     result.best = best;
     result.average = average;
 
@@ -346,21 +336,6 @@ export const limitRequests = (
       setFetchTimer(null);
     }, C.fetchThrottleTimeout),
   );
-};
-
-// Disallows Mo3 format for events that have Ao5 as the default format, and vice versa for all other events
-export const getAllowedRoundFormatOptions = (event: IEvent, exclBo3IfDefFormatIsMo3 = false): MultiChoiceOption[] => {
-  let output: MultiChoiceOption[] = roundFormatOptions;
-
-  if (event.defaultRoundFormat === RoundFormat.Average) {
-    output = output.filter((el) => el.value !== RoundFormat.Mean);
-  } else {
-    if (exclBo3IfDefFormatIsMo3) output = output.filter((el) => el.value !== RoundFormat.BestOf3);
-
-    output = output.filter((el) => el.value !== RoundFormat.Average);
-  }
-
-  return output;
 };
 
 export const getBGClassFromColor = (color: Color): string => {
