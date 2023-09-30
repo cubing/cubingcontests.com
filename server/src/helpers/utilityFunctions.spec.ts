@@ -1,7 +1,6 @@
 import { setRankings } from './utilityFunctions';
 import { RoundDocument } from '../models/round.model';
 import { ResultDocument } from '../models/result.model';
-import { eventsSeed } from '../seeds/events.seed';
 import { unrankedRoundsStub } from '../modules/competitions/tests/stubs/unranked-rounds';
 import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
 

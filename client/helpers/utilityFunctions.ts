@@ -5,7 +5,6 @@ import C from '@sh/constants';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { IUserInfo } from './interfaces/UserInfo';
-import { roundFormats } from '~/shared_helpers/roundFormats';
 
 export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;

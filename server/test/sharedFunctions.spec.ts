@@ -5,7 +5,6 @@ import {
   newContestEventsStub,
   newFakeContestEventsStub,
 } from '~/src/modules/competitions/tests/stubs/new-competition-events.stub';
-import { eventsSeed } from '~/src/seeds/events.seed';
 
 describe('compareSingles', () => {
   it('compares singles correctly when a < b', () => {
@@ -145,7 +144,7 @@ describe('setResultRecords', () => {
     expect(result.regionalAverageRecord).toBeUndefined();
   });
 
-  it("does not set average records when the number of attempts doesn't match the default format's number of attempts", () => {
+  it("doesn't set avg records when the # of attempts doesn't match the default format's # of attempts", () => {
     const contestEvent = newFakeContestEventsStub().find((el) => el.event.eventId === '222');
     const result = setResultRecords(contestEvent.rounds[2].results[0], contestEvent.event, mock222RecordPairs());
 

@@ -83,13 +83,13 @@ export class AuthService {
 
   checkAccessRightsToContest(
     user: IPartialUser,
-    contest: ContestDocument,
+    contest: ContestDocument, // this must be populated
     { ignoreState = false }: { ignoreState: boolean } = { ignoreState: false },
   ) {
     if (
       !user.roles.includes(Role.Admin) &&
       (!user.roles.includes(Role.Moderator) ||
-        contest.createdBy !== user.personId ||
+        (!contest.organizers.some((el) => el.personId === user.personId) && contest.createdBy !== user.personId) ||
         (contest.state >= ContestState.Finished && !ignoreState))
     ) {
       console.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);

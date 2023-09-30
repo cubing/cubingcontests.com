@@ -73,17 +73,23 @@ export class ContestsService {
 
   async getModContests(user: IPartialUser): Promise<IContest[]> {
     let queryFilter: any = {};
-    if (!user.roles.includes(Role.Admin)) queryFilter = { createdBy: user.personId };
+
+    // Check access rights
+    if (!user.roles.includes(Role.Admin)) {
+      const [person] = await this.personsService.getPersonsById(user.personId);
+      queryFilter = { $or: [{ organizers: person._id }, { createdBy: user.personId }] };
+    }
 
     try {
-      return await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+      const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+      return contests;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
   async getContest(competitionId: string, user?: IPartialUser): Promise<IContestData> {
-    const contest = await this.getFullCompetition(competitionId, user);
+    const contest = await this.getFullContest(competitionId, user);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
     try {
@@ -170,10 +176,9 @@ export class ContestsService {
   }
 
   async updateContest(competitionId: string, updateContestDto: UpdateContestDto, user: IPartialUser) {
-    const contest = await this.findContest(competitionId, true);
     // Makes sure the user is an admin or a moderator who has access rights to the UNFINISHED contest.
     // If the contest is finished and the user is not an admin, an unauthorized exception is thrown.
-    this.authService.checkAccessRightsToContest(user, contest);
+    const contest = await this.getFullContest(competitionId, user, { ignoreState: false, exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
     contest.organizers = await this.personsService.getPersonsById(
@@ -218,8 +223,7 @@ export class ContestsService {
   }
 
   async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
-    const contest = await this.findContest(competitionId, true);
-    this.authService.checkAccessRightsToContest(user, contest);
+    const contest = await this.getFullContest(competitionId, user, { exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
     if (contest.type === ContestType.Competition && !contest.compDetails)
@@ -257,44 +261,36 @@ export class ContestsService {
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
-  private async findContest(competitionId: string, populateEvents = false): Promise<ContestDocument> {
-    let contest: ContestDocument;
-
-    try {
-      if (!populateEvents) {
-        contest = await this.contestModel.findOne({ competitionId }).exec();
-      } else {
-        contest = await this.contestModel
-          .findOne({ competitionId })
-          .populate(eventPopulateOptions.event)
-          .populate(eventPopulateOptions.rounds)
-          .exec();
-      }
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
-
-    if (!contest) throw new NotFoundException(`Competition with id ${competitionId} not found`);
-
-    return contest;
-  }
-
   private async saveContest(contest: ContestDocument) {
     try {
+      console.log('test3', contest);
       await contest.save();
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new InternalServerErrorException(`Error while saving contest ${contest.competitionId}:`, err.message);
     }
   }
 
   // Finds the contest with the given competition ID with the rounds and results populated
-  private async getFullCompetition(competitionId: string, user?: IPartialUser): Promise<ContestDocument> {
+  private async getFullContest(
+    competitionId: string,
+    user?: IPartialUser,
+    {
+      ignoreState = true,
+      exclude = true,
+    }: {
+      ignoreState?: boolean;
+      exclude?: boolean; // whether or not to exclude internal fields
+    } = {
+      ignoreState: true,
+      exclude: true,
+    },
+  ): Promise<ContestDocument> {
     let contest: ContestDocument;
 
     try {
       contest = await this.contestModel
-        // createdBy is used to check access rights below, and then excluded
-        .findOne({ competitionId }, exclSysButKeepCreatedBy)
+        // createdBy is used to check access rights below (along with organizers list), and then excluded
+        .findOne({ competitionId }, exclude ? exclSysButKeepCreatedBy : {})
         .populate(eventPopulateOptions.event)
         .populate(eventPopulateOptions.rounds)
         .populate({ path: 'organizers', model: 'Person' })
@@ -303,10 +299,10 @@ export class ContestsService {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    if (!contest) throw new NotFoundException(`Contest with id ${competitionId} not found`);
 
-    if (user) this.authService.checkAccessRightsToContest(user, contest, { ignoreState: true });
-    contest.createdBy = undefined;
+    if (user) this.authService.checkAccessRightsToContest(user, contest, { ignoreState });
+    if (exclude) contest.createdBy = undefined;
 
     if (contest.compDetails) {
       try {

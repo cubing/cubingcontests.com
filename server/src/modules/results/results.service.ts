@@ -387,7 +387,6 @@ export class ResultsService {
       round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
 
       oldResults = [...round.results];
-      const event = await this.eventsService.getEventById(result.eventId);
 
       round.results = round.results.filter((el) => el._id.toString() !== resultId);
       round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
@@ -691,7 +690,10 @@ export class ResultsService {
     let contest: ContestDocument;
 
     try {
-      contest = await this.contestModel.findOne({ competitionId }).exec();
+      contest = await this.contestModel
+        .findOne({ competitionId })
+        .populate({ path: 'organizers', model: 'Person' }) // needed for access rights checking
+        .exec();
     } catch (err) {
       throw new InternalServerErrorException(
         `Error while searching for competition with ID ${competitionId}: ${err.message}`,
