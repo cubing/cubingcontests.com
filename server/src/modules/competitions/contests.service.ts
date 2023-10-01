@@ -263,7 +263,6 @@ export class ContestsService {
 
   private async saveContest(contest: ContestDocument) {
     try {
-      console.log('test3', contest);
       await contest.save();
     } catch (err) {
       throw new InternalServerErrorException(`Error while saving contest ${contest.competitionId}:`, err.message);

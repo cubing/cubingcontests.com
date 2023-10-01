@@ -7,12 +7,12 @@ import EventTitle from './EventTitle';
 
 const Schedule = ({
   rooms,
-  compEvents,
+  contestEvents,
   timezone,
   onDeleteActivity,
 }: {
   rooms: IRoom[];
-  compEvents: IContestEvent[];
+  contestEvents: IContestEvent[];
   timezone: string;
   onDeleteActivity?: (id: number) => void;
 }) => {
@@ -70,11 +70,12 @@ const Schedule = ({
               </thead>
               <tbody>
                 {day.activities.map((activity) => {
-                  let compEvent, round;
+                  let contestEvent, round;
 
                   if (activity.activityCode !== 'other-misc') {
-                    compEvent = compEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
-                    round = compEvent?.rounds.find((r) => r.roundId === activity.activityCode);
+                    contestEvent = contestEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
+                    if (!contestEvent) throw new Error(`Contest event for activity ${activity.activityCode} not found`);
+                    round = contestEvent.rounds.find((r) => r.roundId === activity.activityCode);
                   }
 
                   return (
@@ -84,7 +85,7 @@ const Schedule = ({
                       <td>
                         {activity.activityCode !== 'other-misc' ? (
                           <span className="d-flex gap-1">
-                            <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />
+                            <EventTitle event={contestEvent.event} fontSize="6" noMargin showIcon />
                             <span>{roundTypes[round.roundTypeId].label}</span>
                           </span>
                         ) : (

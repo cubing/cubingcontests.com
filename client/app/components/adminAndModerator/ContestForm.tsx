@@ -178,11 +178,12 @@ const ContestForm = ({
 
   // TEMPORARY FOR DEBUGGING
   useEffect(() => {
-    console.log(activityStartTime.toUTCString(), activityEndTime.toUTCString());
-  }, [activityStartTime, activityEndTime]);
+    console.log('Rooms', rooms);
+  }, [rooms]);
 
   useEffect(() => {
     if (mode !== 'new') {
+      console.log(contest);
       setCompetitionId(contest.competitionId);
       setName(contest.name);
       setType(contest.type);
@@ -313,10 +314,11 @@ const ContestForm = ({
       }
     };
 
-    // Set the competition ID and date for every round
+    // Set the competition ID and date for every round and empty results if there were any from
+    // editing the contest, in order to avoid sending too much data to the backend
     const compEvents = contestEvents.map((compEvent) => ({
       ...compEvent,
-      rounds: compEvent.rounds.map((round) => ({ ...round, competitionId, date: getRoundDate(round) })),
+      rounds: compEvent.rounds.map((round) => ({ ...round, competitionId, date: getRoundDate(round), results: [] })),
     }));
 
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
@@ -526,44 +528,57 @@ const ContestForm = ({
   };
 
   const addRound = (eventId: string) => {
-    const updatedCompEvent = contestEvents.find((el) => el.event.eventId === eventId);
+    const compEvent = contestEvents.find((el) => el.event.eventId === eventId);
 
     // Update the currently semi-final round
-    if (updatedCompEvent.rounds.length > 2) {
-      const semiRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 2];
-      semiRound.roundTypeId = Object.values(RoundType)[updatedCompEvent.rounds.length - 2];
+    if (compEvent.rounds.length > 2) {
+      const semiRound = compEvent.rounds[compEvent.rounds.length - 2];
+      semiRound.roundTypeId = Object.values(RoundType)[compEvent.rounds.length - 2];
     }
 
     // Update the currently last round
-    const lastRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 1];
+    const lastRound = compEvent.rounds[compEvent.rounds.length - 1];
     lastRound.proceed = {
       type: RoundProceed.Percentage,
       value: 50,
     };
-    lastRound.roundTypeId = updatedCompEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
+    lastRound.roundTypeId = compEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
 
     // Add new round
-    updatedCompEvent.rounds.push(getNewRound(eventId, updatedCompEvent.rounds.length + 1));
+    compEvent.rounds.push(getNewRound(eventId, compEvent.rounds.length + 1));
 
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? updatedCompEvent : el)));
+    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? compEvent : el)));
   };
 
   const removeEventRound = (eventId: string) => {
-    const updatedCompEvent = contestEvents.find((el) => el.event.eventId === eventId);
-    updatedCompEvent.rounds = updatedCompEvent.rounds.slice(0, -1);
+    const compEvent = contestEvents.find((el) => el.event.eventId === eventId);
+
+    // Remove the schedule activity for that round
+    for (const room of rooms) {
+      const activityToDelete = room.activities.find(
+        (el) => el.activityCode === compEvent.rounds[compEvent.rounds.length - 1].roundId,
+      );
+
+      if (activityToDelete) {
+        deleteActivity(activityToDelete.id);
+        break;
+      }
+    }
+
+    compEvent.rounds = compEvent.rounds.slice(0, -1);
 
     // Update new final round
-    const newLastRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 1];
+    const newLastRound = compEvent.rounds[compEvent.rounds.length - 1];
     delete newLastRound.proceed;
     newLastRound.roundTypeId = RoundType.Final;
 
     // Update new semi final round
-    if (updatedCompEvent.rounds.length > 2) {
-      const newSemiRound = updatedCompEvent.rounds[updatedCompEvent.rounds.length - 2];
+    if (compEvent.rounds.length > 2) {
+      const newSemiRound = compEvent.rounds[compEvent.rounds.length - 2];
       newSemiRound.roundTypeId = RoundType.Semi;
     }
 
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? updatedCompEvent : el)));
+    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? compEvent : el)));
   };
 
   const addContestEvent = () => {
@@ -584,6 +599,23 @@ const ContestForm = ({
   };
 
   const removeContestEvent = (eventId: string) => {
+    const newContestEvents: IContestEvent[] = [];
+
+    for (const event of contestEvents) {
+      if (event.event.eventId === eventId) {
+        // Remove all schedule activities for that event
+        for (const room of rooms) {
+          for (const activity of room.activities) {
+            if (event.rounds.some((r) => r.roundId === activity.activityCode)) {
+              deleteActivity(activity.id);
+            }
+          }
+        }
+      } else {
+        newContestEvents.push(event);
+      }
+    }
+
     setContestEvents(contestEvents.filter((el) => el.event.eventId !== eventId));
   };
 
@@ -636,7 +668,11 @@ const ContestForm = ({
             activities: [
               ...room.activities,
               {
-                id: room.activities.length + 1,
+                // Gets the current highest ID + 1
+                id:
+                  room.activities.length === 0
+                    ? 1
+                    : room.activities.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
                 activityCode,
                 name: activityCode === 'other-misc' ? customActivity : undefined,
                 startTime: activityStartTime,
@@ -652,16 +688,18 @@ const ContestForm = ({
   };
 
   const deleteActivity = (activityId: number) => {
-    const newRooms = rooms.map((room) =>
-      room.id !== selectedRoom
-        ? room
-        : {
-            ...room,
-            activities: room.activities.filter((a) => a.id !== activityId),
-          },
-    );
-
-    setRooms(newRooms);
+    setRooms((prevRooms) => {
+      const newRooms = prevRooms.map((room) =>
+        room.id !== selectedRoom
+          ? room
+          : {
+              ...room,
+              activities: room.activities.filter((a) => a.id !== activityId),
+            },
+      );
+      console.log('New rooms:', newRooms);
+      return newRooms;
+    });
   };
 
   return (
@@ -851,21 +889,21 @@ const ContestForm = ({
                 />
               </div>
             </div>
-            {contestEvents.map((compEvent, eventIndex) => (
-              <div key={compEvent.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
+            {contestEvents.map((ce, eventIndex) => (
+              <div key={ce.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <EventTitle event={compEvent.event} fontSize="4" noMargin showIcon />
+                  <EventTitle event={ce.event} fontSize="4" noMargin showIcon />
 
                   <button
                     type="button"
                     className="ms-3 btn btn-danger btn-sm"
-                    onClick={() => removeContestEvent(compEvent.event.eventId)}
-                    disabled={disableIfCompFinishedEvenForAdmin || compEvent.rounds.some((r) => r.results.length > 0)}
+                    onClick={() => removeContestEvent(ce.event.eventId)}
+                    disabled={disableIfCompFinishedEvenForAdmin || ce.rounds.some((r) => r.results.length > 0)}
                   >
                     Remove Event
                   </button>
                 </div>
-                {compEvent.rounds.map((round, roundIndex) => (
+                {ce.rounds.map((round, roundIndex) => (
                   <div key={round.roundId} className="mb-3 py-3 px-4 border rounded bg-body-secondary">
                     <div className="d-flex justify-content-between align-items-center gap-5 w-100">
                       <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
@@ -908,24 +946,24 @@ const ContestForm = ({
                   </div>
                 ))}
                 <div className="d-flex gap-3">
-                  {compEvent.rounds.length < 10 && (
+                  {ce.rounds.length < 10 && (
                     <button
                       type="button"
                       className="btn btn-success btn-sm"
-                      onClick={() => addRound(compEvent.event.eventId)}
+                      onClick={() => addRound(ce.event.eventId)}
                       disabled={disableIfCompFinishedEvenForAdmin}
                     >
-                      Add Round {compEvent.rounds.length + 1}
+                      Add Round {ce.rounds.length + 1}
                     </button>
                   )}
-                  {compEvent.rounds.length > 1 && (
+                  {ce.rounds.length > 1 && (
                     <button
                       type="button"
                       className="btn btn-danger btn-sm"
-                      onClick={() => removeEventRound(compEvent.event.eventId)}
+                      onClick={() => removeEventRound(ce.event.eventId)}
                       disabled={
                         disableIfCompFinishedEvenForAdmin ||
-                        compEvent.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
+                        ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
                       }
                     >
                       Remove Round
@@ -1042,7 +1080,7 @@ const ContestForm = ({
       {activeTab === 'schedule' && (
         <Schedule
           rooms={rooms}
-          compEvents={contestEvents}
+          contestEvents={contestEvents}
           timezone={venueTimezone}
           onDeleteActivity={isEditableSchedule ? (id: number) => deleteActivity(id) : undefined}
         />
