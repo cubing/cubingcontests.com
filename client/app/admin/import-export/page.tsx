@@ -291,23 +291,51 @@ const ImportExportPage = () => {
                 }
               }
             } else {
-              const { payload: matches, errors } = await myFetch.get(
+              const { payload: person, errors } = await myFetch.get(
                 `/persons?searchParam=${result.personIds[j]}&exactMatch=true`,
               );
 
               if (errors) {
-                setErrorMessages([`Error while fetching person with the name "${result.personIds[j]}"`]);
+                setErrorMessages([`Error while fetching person with the name "${result.personIds[j]}" from the WCA`]);
                 return;
               }
 
-              if (matches.length === 1) {
-                result.personIds[j] = matches[0].personId;
-                persons.push(matches[0]);
-              } else if (matches.length > 1) {
-                setErrorMessages([`Multiple persons found with the name "${result.personIds[j]}"`]);
-                return;
-              } else if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
-                notFoundPersonNames.push(result.personIds[j] as any);
+              if (person) {
+                result.personIds[j] = person.personId;
+                persons.push(person);
+              } else {
+                const {
+                  payload: { result: wcaPersons },
+                  errors,
+                } = await myFetch.get(
+                  `https://www.worldcubeassociation.org/api/v0/search/users?q=${result.personIds[j]}&persons_table=true`,
+                );
+
+                if (errors) {
+                  setErrorMessages(errors);
+                  return;
+                } else if (wcaPersons.length === 1) {
+                  // THIS CODE IS TAKEN FROM ABOVE WHERE WE SEARCH USING THE WCA ID
+                  const newPerson = {
+                    personId: 0,
+                    name: wcaPersons[0].name,
+                    wcaId: wcaPersons[0].wca_id,
+                    countryIso2: wcaPersons[0].country.iso2,
+                    createdBy: '',
+                  };
+
+                  const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
+
+                  if (errors) {
+                    setErrorMessages(errors);
+                    return;
+                  } else {
+                    result.personIds[j] = person.personId;
+                    persons.push(person);
+                  }
+                } else if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
+                  notFoundPersonNames.push(result.personIds[j] as any);
+                }
               }
             }
           }
@@ -384,7 +412,7 @@ const ImportExportPage = () => {
             </button>
           </div>
         ) : (
-          <Button text="Preview" onClick={previewContest} />
+          <Button text="Preview" onClick={previewContest} loading={loadingDuringSubmit} />
         )}
       </Form>
 

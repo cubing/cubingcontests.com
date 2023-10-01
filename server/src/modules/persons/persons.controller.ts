@@ -14,7 +14,6 @@ export class PersonsController {
   @Get()
   async getPersons(@Query('searchParam') searchParam: string, @Query('exactMatch') exactMatch = false) {
     if (exactMatch) {
-      console.log(searchParam);
       return await this.personsService.getPersonByName(searchParam);
     } else {
       return await this.personsService.getPersons(searchParam);
