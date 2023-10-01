@@ -53,8 +53,11 @@ const EventIcon = ({
     .replaceAll(/7x7x7/g, '7x7')
     .replaceAll(/8x8x8/g, '8x8')
     .replaceAll(/9x9x9/g, '9x9')
+    .replace('Blindfolded', 'BLD')
+    .replace('One-Handed', 'OH')
+    .replace('Without', 'No')
     .replace(' Cuboid', '')
-    .replace('Blindfolded', 'BLD');
+    .replace(' Challenge', '');
 
   if (!iconExists) {
     if (!onClick) return <></>;

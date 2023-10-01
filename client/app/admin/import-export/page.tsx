@@ -169,7 +169,7 @@ const ImportExportPage = () => {
     setSelectedEventId(newContest.mainEventId);
 
     // Set organizer objects
-    for (const org of wcaCompData.organisers) {
+    for (const org of [...wcaCompData.organisers, ...wcaCompData.wcaDelegates]) {
       const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${org.name}`);
 
       if (errors) {

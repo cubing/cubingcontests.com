@@ -1,12 +1,12 @@
 import myFetch from '~/helpers/myFetch';
-import { utcToZonedTime, format } from 'date-fns-tz';
+import { utcToZonedTime } from 'date-fns-tz';
 import ContestLayout from '~/app/components/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import { IContest } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
 import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
-import { areIntervalsOverlapping, endOfToday, startOfToday } from 'date-fns';
+import { areIntervalsOverlapping, endOfToday, format, startOfToday } from 'date-fns';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 import Competitor from '~/app/components/Competitor';
 
