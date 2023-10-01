@@ -9,7 +9,7 @@ const DebugPage = () => {
 
   const onDebugInputKeyDown = (e: any) => {
     console.log('Event:', e);
-    setDebugOutput(`Pressed key code: "${e.key}"`);
+    setDebugOutput(`key: "${e.key}", keyCode: "${e.keyCode}", which: "${e.which}"`);
   };
 
   return (
