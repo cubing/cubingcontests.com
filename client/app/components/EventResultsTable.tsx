@@ -27,18 +27,22 @@ const EventResultsTable = ({
 
   return (
     <div className="my-3">
-      <EventTitle event={contestEvent.event} linkToRankings showDescription />
-
-      <div className="mb-4 px-2" style={{ maxWidth: '450px' }}>
-        <FormSelect
-          options={contestEvent.rounds.map((el) => ({
-            label: roundTypes[el.roundTypeId].label,
-            value: el.roundTypeId,
-          }))}
-          selected={currRound.roundTypeId}
-          setSelected={(val) => setCurrRound(contestEvent.rounds.find((el) => el.roundTypeId === val))}
-        />
+      <div className="mb-4">
+        <EventTitle event={contestEvent.event} linkToRankings showDescription />
       </div>
+
+      {contestEvent.rounds.length > 1 && (
+        <div className="mb-4 px-2" style={{ maxWidth: '450px' }}>
+          <FormSelect
+            options={contestEvent.rounds.map((el) => ({
+              label: roundTypes[el.roundTypeId].label,
+              value: el.roundTypeId,
+            }))}
+            selected={currRound.roundTypeId}
+            setSelected={(val) => setCurrRound(contestEvent.rounds.find((el) => el.roundTypeId === val))}
+          />
+        </div>
+      )}
 
       <RoundResultsTable
         round={currRound}
