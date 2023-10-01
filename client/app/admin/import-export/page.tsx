@@ -12,6 +12,7 @@ import { IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
+import ContestResults from '~/app/components/ContestResults';
 
 const setRankings = (results: IResult[], ranksWithAverage: boolean): IResult[] => {
   if (results.length === 0) return results;
@@ -73,7 +74,6 @@ const ImportExportPage = () => {
   const [contest, setContest] = useState<IContest>();
   const [persons, setPersons] = useState<IPerson[]>([]);
   const [contestJSON, setContestJSON] = useState('');
-  const [selectedEventId, setSelectedEventId] = useState('');
 
   useEffect(() => {
     myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
@@ -166,7 +166,6 @@ const ImportExportPage = () => {
     };
 
     if (newContest.mainEventId === '333_team_bld') newContest.mainEventId = '333tbfo';
-    setSelectedEventId(newContest.mainEventId);
 
     // Set organizer objects
     for (const org of [...wcaCompData.organisers, ...wcaCompData.wcaDelegates]) {
@@ -401,18 +400,7 @@ const ImportExportPage = () => {
         </div>
       )}
 
-      {contest?.events.length > 0 && (
-        <>
-          <div style={{ maxWidth: '500px' }}>
-            <FormEventSelect
-              events={contest.events.map((el) => el.event)}
-              eventId={selectedEventId}
-              setEventId={setSelectedEventId}
-            />
-          </div>
-          <EventResultsTable contestEvent={contest.events[0]} persons={persons} recordTypes={[]} />
-        </>
-      )}
+      {contest?.events.length > 0 && <ContestResults contest={contest} persons={persons} />}
     </div>
   );
 };

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 
 const FormNumberInput = ({
-  title,
   id,
+  title,
   placeholder,
   value,
   onChange,
@@ -16,8 +16,8 @@ const FormNumberInput = ({
   invalid = false,
   noMargin = false,
 }: {
-  title?: string;
   id?: string;
+  title?: string;
   placeholder?: string;
   // undefined is the empty value, null is the invalid value
   value: number | null | undefined;

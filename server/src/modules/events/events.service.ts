@@ -105,15 +105,21 @@ export class EventsService {
       .exec();
     if (eventWithSameRank) throw new BadRequestException(`Event with rank ${updateEventDto.rank} already exists`);
 
-    const res = await this.eventModel.updateOne({ eventId }, updateEventDto).exec();
+    const event = await this.eventModel.findOne({ eventId }).exec();
+    if (!event) throw new BadRequestException(`Event with id ${eventId} does not exist`);
 
-    if (res.matchedCount === 0) throw new BadRequestException(`Event with id ${eventId} does not exist`);
+    event.name = updateEventDto.name;
+    event.rank = updateEventDto.rank;
+    event.groups = updateEventDto.groups;
+    event.description = updateEventDto.description;
 
     const newId = updateEventDto.eventId;
 
     if (newId !== eventId) {
       const eventWithNewId = await this.eventModel.findOne({ eventId: updateEventDto.eventId }).exec();
       if (eventWithNewId) throw new BadRequestException(`Event with id ${updateEventDto.eventId} already exists`);
+
+      event.eventId = newId;
 
       console.log(`Updating rounds, schedules, and results, changing event id ${eventId} to ${newId}`);
 
@@ -141,6 +147,12 @@ export class EventsService {
           err.message,
         );
       }
+    }
+
+    try {
+      await event.save();
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while saving event ${eventId}:`, err.message);
     }
 
     return await this.getEvents({ includeHidden: true });

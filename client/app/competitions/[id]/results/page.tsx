@@ -8,7 +8,11 @@ const ContestResultsPage = async ({ params }: { params: { id: string } }) => {
 
   return (
     <ContestLayout contest={contestData.contest} activeTab="results">
-      <ContestResults contestData={contestData} />
+      <ContestResults
+        contest={contestData.contest}
+        persons={contestData.persons}
+        activeRecordTypes={contestData.activeRecordTypes}
+      />
     </ContestLayout>
   );
 };

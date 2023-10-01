@@ -11,13 +11,13 @@ const EventButtons = ({
   singleOrAvg,
   activeEvent,
   onEventSelect,
-  hideCategories = false,
+  showCategories = false,
 }: {
   events: IEvent[];
   singleOrAvg?: 'single' | 'average'; // mutually exclusive with onEventSelect
   activeEvent?: IEvent;
   onEventSelect?: (eventId: string) => void; // mutually exclusive with singleOrAvg
-  hideCategories?: boolean;
+  showCategories?: boolean;
 }) => {
   if (!!onEventSelect === !!singleOrAvg) {
     throw new Error('Error: onEventSelect and singleOrAvg are mutually exclusive props in EventButtons');
@@ -29,8 +29,8 @@ const EventButtons = ({
 
   // If hideCategories = true, just show all events that were passed in
   const filteredEvents = useMemo(
-    () => (hideCategories ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
-    [events, hideCategories, selectedCat],
+    () => (!showCategories ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
+    [events, selectedCat],
   );
 
   const handleEventClick = (eventId: string) => {
@@ -44,9 +44,9 @@ const EventButtons = ({
 
   return (
     <div>
-      {!hideCategories && (
+      {showCategories && (
         <>
-          <div className="btn-group btn-group-sm mt-2 mb-3" role="group" aria-label="Type">
+          <div className="btn-group btn-group-sm mt-2 mb-3" role="group">
             {eventCategories.map((cat) => (
               <button
                 key={cat.value}
@@ -70,7 +70,7 @@ const EventButtons = ({
             key={event.eventId}
             event={event}
             onClick={handleEventClick}
-            isActive={activeEvent.eventId === event.eventId}
+            isActive={events.length > 1 && activeEvent.eventId === event.eventId}
           />
         ))}
       </div>

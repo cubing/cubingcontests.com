@@ -32,6 +32,7 @@ import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '~/shared_helpers/constants';
+import FormTextArea from '../form/FormTextArea';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -847,19 +848,12 @@ const ContestForm = ({
               onChange={setContact}
               disabled={disableIfCompFinished}
             />
-            <div className="mb-3">
-              <label htmlFor="description" className="form-label">
-                Description (optional)
-              </label>
-              <textarea
-                id="description"
-                rows={10}
-                value={description}
-                onChange={(e: any) => setDescription(e.target.value)}
-                className="form-control"
-                disabled={disableIfCompFinished}
-              />
-            </div>
+            <FormTextArea
+              title="Description (optional)"
+              value={description}
+              onChange={setDescription}
+              disabled={disableIfCompFinished}
+            />
             <FormNumberInput
               title={'Competitor limit' + (type !== ContestType.Competition ? ' (optional)' : '')}
               value={competitorLimit}
@@ -896,7 +890,7 @@ const ContestForm = ({
             {contestEvents.map((ce, eventIndex) => (
               <div key={ce.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <EventTitle event={ce.event} fontSize="4" noMargin showIcon />
+                  <EventTitle event={ce.event} fontSize="4" noMargin showIcon showDescription />
 
                   <button
                     type="button"

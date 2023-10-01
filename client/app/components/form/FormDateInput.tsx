@@ -6,14 +6,14 @@ import isValid from 'date-fns/isValid';
 import { format } from 'date-fns';
 
 const FormDateInput = ({
-  title,
   id,
+  title,
   value,
   setValue,
   nextFocusTargetId,
 }: {
-  title: string;
   id?: string;
+  title: string;
   value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
   setValue: (val: Date | null | undefined) => void;
   nextFocusTargetId: string;

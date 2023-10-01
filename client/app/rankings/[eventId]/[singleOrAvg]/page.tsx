@@ -42,7 +42,7 @@ const RankingsPage = async ({
 
         <div className="mb-3 px-2">
           <h4>Event</h4>
-          <EventButtons events={events} activeEvent={currEvent} singleOrAvg={singleOrAvg} />
+          <EventButtons events={events} activeEvent={currEvent} singleOrAvg={singleOrAvg} showCategories />
 
           <div className="d-flex flex-wrap gap-3 mb-4">
             <div>
@@ -89,7 +89,7 @@ const RankingsPage = async ({
           )}
         </div>
 
-        <EventTitle event={currEvent} />
+        <EventTitle event={currEvent} showDescription />
 
         <RankingsTable
           rankings={eventRankings.rankings}

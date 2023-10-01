@@ -232,7 +232,7 @@ const ResultForm = ({
             title="Round"
             options={rounds.map((el) => ({ label: roundTypes[el.roundTypeId].label, value: el.roundTypeId }))}
             selected={round.roundTypeId}
-            setSelected={(val) => changeRound(val)}
+            setSelected={changeRound}
           />
         )}
       </div>

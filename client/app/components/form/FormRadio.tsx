@@ -1,16 +1,16 @@
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 
 const FormRadio = ({
-  title,
   id,
+  title,
   options,
   selected,
   setSelected,
   disabled = false,
   oneLine = false,
 }: {
-  title: string;
   id?: string;
+  title: string;
   options: MultiChoiceOption[];
   selected: any;
   setSelected: (val: any) => void;

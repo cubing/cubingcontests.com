@@ -24,6 +24,14 @@
   margin: 0;
 }
 
+.cc-tooltip .cc-tooltip-text {
+  visibility: hidden;
+}
+
+.cc-tooltip:hover .cc-tooltip-text {
+  visibility: visible;
+}
+
 /* 992px corresponds to Bootstrap's lg size */
 @media (min-width: 992px) {
   .cc-vh-100-desktop-only {

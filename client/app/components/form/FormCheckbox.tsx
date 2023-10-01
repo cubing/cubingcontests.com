@@ -1,12 +1,12 @@
 const FormCheckbox = ({
-  title,
   id,
+  title,
   selected,
   setSelected,
   disabled = false,
 }: {
-  title?: string;
   id?: string;
+  title?: string;
   selected: boolean;
   setSelected: (val: boolean) => void;
   disabled?: boolean;

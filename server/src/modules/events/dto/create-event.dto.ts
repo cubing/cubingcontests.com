@@ -32,4 +32,8 @@ export class CreateEventDto implements IEvent {
   @Min(2, { message: 'The number of participants cannot be less than 2' })
   @Max(20, { message: 'The number of participants cannot be more than 20' })
   participants?: number;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
 }

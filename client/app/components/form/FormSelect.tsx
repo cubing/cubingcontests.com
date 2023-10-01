@@ -15,7 +15,8 @@ const FormSelect = ({
   disabled?: boolean;
   noMargin?: boolean;
 }) => {
-  const id = `select_${title.toLowerCase().replaceAll(' ', '_')}`;
+  let id = 'select';
+  if (title) id += `_${title.toLowerCase().replaceAll(' ', '_')}`;
 
   return (
     <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>

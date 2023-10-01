@@ -27,6 +27,9 @@ class Event implements IEvent {
 
   @Prop({ immutable: true })
   participants?: number;
+
+  @Prop()
+  description?: string;
 }
 
 export type EventDocument = HydratedDocument<Event>;

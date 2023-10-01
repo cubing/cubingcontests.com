@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const FormTextInput = ({
-  title,
   id,
+  title,
   value,
   placeholder = '',
   onChange,
@@ -19,8 +19,8 @@ const FormTextInput = ({
   invalid = false,
   noMargin = false,
 }: {
-  title?: string;
   id?: string;
+  title?: string;
   placeholder?: string;
   value: string;
   onChange: (val: any) => void;

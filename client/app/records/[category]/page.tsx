@@ -69,7 +69,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
               {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
                 return (
                   <div key={event.eventId} className="mb-3">
-                    <EventTitle event={event} showIcon linkToRankings />
+                    <EventTitle event={event} showIcon linkToRankings showDescription />
 
                     <div className="d-block d-lg-none mt-2 mb-4 border-top border-bottom">
                       <ul className="list-group list-group-flush">

@@ -13,6 +13,7 @@ import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/
 import FormRadio from '~/app/components/form/FormRadio';
 import FormNumberInput from '~/app/components/form/FormNumberInput';
 import FormCheckbox from '~/app/components/form/FormCheckbox';
+import FormTextArea from '~/app/components/form/FormTextArea';
 
 const CreateEditEventPage = () => {
   const [errorMessages, setErrorMessages] = useState([]);
@@ -33,6 +34,7 @@ const CreateEditEventPage = () => {
   const [removedWCA, setRemovedWCA] = useState(false);
   const [hasMemo, setHasMemo] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
     myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
@@ -74,9 +76,10 @@ const CreateEditEventPage = () => {
       format,
       defaultRoundFormat,
       groups: [category],
+      participants: participants > 1 ? participants : undefined,
+      description: description || undefined,
     };
 
-    if (participants > 1) newEvent.participants = participants;
     if (meetupOnly) newEvent.groups.push(EventGroup.MeetupOnly);
     if (submissionsAllowed) newEvent.groups.push(EventGroup.SubmissionsAllowed);
     if (removedWCA) newEvent.groups.push(EventGroup.RemovedWCA);
@@ -122,6 +125,7 @@ const CreateEditEventPage = () => {
     setRemovedWCA(event.groups.includes(EventGroup.RemovedWCA));
     setHasMemo(event.groups.includes(EventGroup.HasMemo));
     setHidden(event.groups.includes(EventGroup.Hidden));
+    setDescription(event.description);
 
     window.scrollTo(0, 0);
   };
@@ -182,7 +186,7 @@ const CreateEditEventPage = () => {
                 options={roundFormatOptions}
                 selected={defaultRoundFormat}
                 setSelected={setDefaultRoundFormat}
-                disabled={loadingDuringSubmit}
+                disabled={mode === 'edit' || loadingDuringSubmit}
               />
             </div>
             <div className="col">
@@ -190,7 +194,7 @@ const CreateEditEventPage = () => {
                 title="Participants"
                 value={participants}
                 onChange={setParticipants}
-                disabled={loadingDuringSubmit}
+                disabled={mode === 'edit' || loadingDuringSubmit}
                 integer
                 min={1}
               />
@@ -201,7 +205,7 @@ const CreateEditEventPage = () => {
             options={eventFormatOptions}
             selected={format}
             setSelected={setFormat}
-            disabled={loadingDuringSubmit}
+            disabled={mode === 'edit' || loadingDuringSubmit}
           />
           <div className="mb-4">
             <FormRadio
@@ -238,6 +242,13 @@ const CreateEditEventPage = () => {
             disabled={loadingDuringSubmit}
           />
           <FormCheckbox title="Hidden" selected={hidden} setSelected={setHidden} disabled={loadingDuringSubmit} />
+          <FormTextArea
+            title="Description (optional)"
+            value={description}
+            onChange={setDescription}
+            rows={4}
+            disabled={loadingDuringSubmit}
+          />
         </Form>
       )}
 
