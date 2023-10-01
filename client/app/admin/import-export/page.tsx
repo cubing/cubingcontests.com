@@ -112,6 +112,76 @@ const ImportExportPage = () => {
     }
   };
 
+  // null means person not found, undefined means there was an errorr
+  const fetchPerson = async (name: string): Promise<IPerson | null | undefined> => {
+    const newPerson = { personId: 0, name: '', wcaId: '', countryIso2: '', createdBy: '' };
+    // If the WCA ID is available, use that
+    const parts = name.split('|');
+
+    if (parts[1]) {
+      // Create new person using WCA person info
+      const { payload: wcaPerson, errors } = await myFetch.get(`${C.wcaApiBase}/persons/${parts[1]}.json`);
+
+      if (errors) {
+        setErrorMessages(errors);
+        return undefined;
+      } else if (wcaPerson) {
+        newPerson.name = wcaPerson.name;
+        newPerson.wcaId = parts[1];
+        newPerson.countryIso2 = wcaPerson.country;
+
+        const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
+
+        if (errors) {
+          setErrorMessages(errors);
+          return undefined;
+        } else {
+          return person;
+        }
+      }
+    }
+
+    // If not, first try looking in the CC database
+    const englishNameOnly = name.split('(')[0].trim(); // get rid of the ( and everything after it
+    const { payload, errors: e1 } = await myFetch.get(`/persons?searchParam=${englishNameOnly}&exactMatch=true`);
+
+    if (e1) {
+      setErrorMessages([`Error while fetching person with the name ${name}`]);
+      return undefined;
+    } else if (payload) {
+      return payload;
+    }
+
+    // If not found, try searching for exact name matches in the WCA database
+    const {
+      payload: { result: wcaPersonMatches },
+      errors,
+    } = await myFetch.get(
+      `https://www.worldcubeassociation.org/api/v0/search/users?q=${englishNameOnly}&persons_table=true`,
+    );
+
+    if (errors) {
+      setErrorMessages(errors);
+      return undefined;
+    } else if (wcaPersonMatches.length === 1) {
+      // Same code as above in the WCA ID search section
+      newPerson.name = wcaPersonMatches[0].name;
+      newPerson.wcaId = wcaPersonMatches[0].wca_id;
+      newPerson.countryIso2 = wcaPersonMatches[0].country.iso2;
+
+      const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
+
+      if (errors) {
+        setErrorMessages(errors);
+        return undefined;
+      } else {
+        return person;
+      }
+    }
+
+    return null;
+  };
+
   const previewContest = async () => {
     setErrorMessages([]);
     setSuccessMessage('');
@@ -167,18 +237,11 @@ const ImportExportPage = () => {
 
     // Set organizer objects
     for (const org of [...wcaCompData.organisers, ...wcaCompData.wcaDelegates]) {
-      const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${org.name}&exactMatch=true`);
+      const person = await fetchPerson(org.name);
 
-      if (errors) {
-        setErrorMessages([`Error while fetching organizer with the name ${org.name}`]);
-        return;
-      }
-
-      if (matches.length === 1) {
-        newContest.organizers.push(matches[0]);
-      } else if (matches.length > 1) {
-        setErrorMessages([`Multiple organizers found with the name ${org.name}`]);
-        return;
+      if (person === undefined) return;
+      if (person !== null) {
+        if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
       } else if (!notFoundPersonNames.includes(org.name)) {
         notFoundPersonNames.push(org.name);
       }
@@ -258,85 +321,15 @@ const ImportExportPage = () => {
         // Set the personIds
         for (const result of results) {
           for (let j = 0; j < result.personIds.length; j++) {
-            // If the WCA ID is available, use that
-            const parts = (result.personIds[j] as any).split('|');
+            const name = result.personIds[j] as any;
+            const person = await fetchPerson(name);
 
-            if (parts[1]) {
-              // Create new person using WCA person info
-              const { payload: wcaPerson, errors } = await myFetch.get(`${C.wcaApiBase}/persons/${parts[1]}.json`);
-
-              if (errors) {
-                setErrorMessages(errors);
-
-                if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
-                  notFoundPersonNames.push(result.personIds[j] as any);
-                }
-              } else if (wcaPerson) {
-                const newPerson = {
-                  personId: 0,
-                  name: wcaPerson.name,
-                  wcaId: parts[1],
-                  countryIso2: wcaPerson.country,
-                  createdBy: '',
-                };
-
-                const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
-
-                if (errors) {
-                  setErrorMessages(errors);
-                  return;
-                } else {
-                  result.personIds[j] = person.personId;
-                  persons.push(person);
-                }
-              }
-            } else {
-              const { payload: person, errors } = await myFetch.get(
-                `/persons?searchParam=${result.personIds[j]}&exactMatch=true`,
-              );
-
-              if (errors) {
-                setErrorMessages([`Error while fetching person with the name "${result.personIds[j]}" from the WCA`]);
-                return;
-              }
-
-              if (person) {
-                result.personIds[j] = person.personId;
-                persons.push(person);
-              } else {
-                const {
-                  payload: { result: wcaPersons },
-                  errors,
-                } = await myFetch.get(
-                  `https://www.worldcubeassociation.org/api/v0/search/users?q=${result.personIds[j]}&persons_table=true`,
-                );
-
-                if (errors) {
-                  setErrorMessages(errors);
-                  return;
-                } else if (wcaPersons.length === 1) {
-                  // THIS CODE IS TAKEN FROM ABOVE WHERE WE SEARCH USING THE WCA ID
-                  const newPerson = {
-                    personId: 0,
-                    name: wcaPersons[0].name,
-                    wcaId: wcaPersons[0].wca_id,
-                    countryIso2: wcaPersons[0].country.iso2,
-                    createdBy: '',
-                  };
-
-                  const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
-
-                  if (errors) {
-                    setErrorMessages(errors);
-                    return;
-                  } else {
-                    result.personIds[j] = person.personId;
-                    persons.push(person);
-                  }
-                } else if (!notFoundPersonNames.includes(result.personIds[j] as any)) {
-                  notFoundPersonNames.push(result.personIds[j] as any);
-                }
-              }
+            if (person === undefined) return;
+            if (person !== null) {
+              result.personIds[j] = person.personId;
+              persons.push(person);
+            } else if (!notFoundPersonNames.includes(name)) {
+              notFoundPersonNames.push(name);
             }
           }
         }

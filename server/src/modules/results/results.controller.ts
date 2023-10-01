@@ -33,10 +33,10 @@ export class ResultsController {
   @Get('submission-info/:recordsUpTo')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
-  async getSubmissionInfo(@Param('recordsUpTo') recordsUpTo: string | Date) {
-    recordsUpTo = new Date(recordsUpTo);
-    console.log(`Getting results submission info with records up to ${format(recordsUpTo, 'd MMM yyyy')}`);
-    return await this.service.getSubmissionInfo(recordsUpTo);
+  async getSubmissionInfo(@Param('recordsUpTo') recordsUpTo: string) {
+    const recordsUpToDate = new Date(recordsUpTo);
+    console.log(`Getting results submission info with records up to ${format(recordsUpToDate, 'd MMM yyyy')}`);
+    return await this.service.getSubmissionInfo(recordsUpToDate);
   }
 
   // POST /results/:roundId

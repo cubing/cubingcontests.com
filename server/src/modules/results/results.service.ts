@@ -19,7 +19,7 @@ import {
 import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import C from '@sh/constants';
 import { roundFormats } from '@sh/roundFormats';
-import { excl } from '~/src/helpers/dbHelpers';
+import { excl, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
@@ -723,7 +723,7 @@ export class ResultsService {
     try {
       contest = await this.contestModel
         .findOne({ competitionId })
-        .populate({ path: 'organizers', model: 'Person' }) // needed for access rights checking
+        .populate(orgPopulateOptions) // needed for access rights checking
         .exec();
     } catch (err) {
       throw new InternalServerErrorException(

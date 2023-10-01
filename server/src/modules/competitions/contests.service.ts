@@ -5,7 +5,7 @@ import { UpdateContestDto } from './dto/update-contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ContestEvent, ContestDocument } from '~/src/models/contest.model';
-import { excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
+import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { RoundDocument } from '~/src/models/round.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { ResultsService } from '@m/results/results.service';
@@ -18,20 +18,6 @@ import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { AuthService } from '../auth/auth.service';
-
-const eventPopulateOptions = {
-  event: { path: 'events.event', model: 'Event' },
-  rounds: {
-    path: 'events.rounds',
-    model: 'Round',
-    populate: [
-      {
-        path: 'results',
-        model: 'Result',
-      },
-    ],
-  },
-};
 
 @Injectable()
 export class ContestsService {
@@ -89,6 +75,7 @@ export class ContestsService {
   }
 
   async getContest(competitionId: string, user?: IPartialUser): Promise<IContestData> {
+    // This also checks access rights to the contest if it's a request for a mod contest (user is defined)
     const contest = await this.getFullContest(competitionId, user);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
@@ -225,22 +212,25 @@ export class ContestsService {
   }
 
   async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
-    const contest = await this.getFullContest(competitionId, user, { exclude: false });
+    // The organizers are needed for access rights checking below
+    const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions);
+
+    await this.authService.checkAccessRightsToContest(user, contest, { ignoreState: true });
+
+    const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
 
     if (contest.type === ContestType.Competition && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
 
-    if (
-      isAdmin ||
-      // Allow mods only to finish an ongoing contest
-      (contest.state === ContestState.Ongoing && newState === ContestState.Finished)
-    ) {
-      // If the contest is set as approved and it already has results, set it as ongoing straightaway.
-      // A contest can have results before being approved if it's an imported contest.
-      if (newState === ContestState.Approved && contest.events.some((e) => e.rounds.some((r) => r.results.length > 0)))
-        contest.state = ContestState.Ongoing;
-      else contest.state = newState;
+    // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
+    // A contest can have results before being approved if it's an imported contest.
+    if (isAdmin && resultFromContest && contest.state < ContestState.Ongoing && newState === ContestState.Approved) {
+      contest.state = ContestState.Ongoing;
+    }
+    // Allow mods only to finish an ongoing contest
+    else if (isAdmin || (contest.state === ContestState.Ongoing && newState === ContestState.Finished)) {
+      contest.state = newState;
     }
 
     if (isAdmin && newState === ContestState.Published) {
@@ -294,7 +284,7 @@ export class ContestsService {
         .findOne({ competitionId }, exclude ? exclSysButKeepCreatedBy : {})
         .populate(eventPopulateOptions.event)
         .populate(eventPopulateOptions.rounds)
-        .populate({ path: 'organizers', model: 'Person' })
+        .populate(orgPopulateOptions)
         .exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);

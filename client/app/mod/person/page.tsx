@@ -120,6 +120,7 @@ const CreatePersonPage = () => {
                 setName(stringParts[0]);
 
                 if (stringParts.length > 1) setLocalizedName(stringParts[1].slice(0, -1)); // get rid of )
+                else setLocalizedName('');
 
                 setCountryIso2(payload.country);
                 setNextFocusTarget('form_submit_button');

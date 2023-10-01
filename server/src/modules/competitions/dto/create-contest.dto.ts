@@ -157,6 +157,7 @@ class VenueDto implements IVenue {
   @Min(1)
   id: number;
 
+  // Is validated above in the venue field, ASSUMING that the frontend sets them as the same thing
   @IsString()
   name: string;
 
@@ -189,7 +190,7 @@ class RoomDto implements IRoom {
   id: number;
 
   @IsString()
-  @MinLength(3, getMinLengthOpts('room names in the schedule', 3))
+  @IsNotEmpty()
   name: string;
 
   @IsEnum(Color)

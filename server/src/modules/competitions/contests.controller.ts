@@ -106,10 +106,10 @@ export class ContestsController {
   @Roles(Role.Admin, Role.Moderator)
   async updateState(
     @Param('competitionId') competitionId: string,
-    @Param('newState') newState: ContestState,
+    @Param('newState') newState: string,
     @Request() req: any, // this is passed in by the guards
   ) {
     console.log(`Setting state ${newState} for contest ${competitionId}`);
-    return await this.service.updateState(competitionId, newState, req.user);
+    return await this.service.updateState(competitionId, parseInt(newState) as ContestState, req.user);
   }
 }
