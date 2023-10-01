@@ -56,7 +56,7 @@ export class CreateContestDto implements IContest {
 
   @ValidateIf((obj) => obj.type !== ContestType.Online)
   @IsString()
-  @IsNotEmpty({ message: 'Please enter a city' })
+  @IsNotEmpty({ message: 'Please enter the city' })
   city?: string;
 
   @IsIn(nonOnlineCountryCodes, invalidCountryOpts)
@@ -64,12 +64,12 @@ export class CreateContestDto implements IContest {
 
   @ValidateIf((obj) => obj.type !== ContestType.Online)
   @IsString()
-  @MinLength(3, getMinLengthOpts('venue name', 3))
+  @IsNotEmpty({ message: 'Please enter the venue name' })
   venue?: string;
 
   @ValidateIf((obj) => obj.type === ContestType.Competition || obj.address)
   @IsString()
-  @IsNotEmpty({ message: 'Please enter an address' })
+  @IsNotEmpty({ message: 'Please enter the address' })
   address?: string;
 
   @ValidateIf((obj) => obj.type !== ContestType.Online)
@@ -106,7 +106,7 @@ export class CreateContestDto implements IContest {
 
   @ValidateIf((obj) => obj.type === ContestType.Competition || obj.competitorLimit)
   @IsInt({ message: 'Please enter a valid competitor limit' })
-  @Min(5, { message: 'The competitor limit cannot be less than 5' })
+  @Min(C.minCompetitorLimit, { message: `The competitor limit cannot be less than ${C.minCompetitorLimit}` })
   competitorLimit?: number;
 
   @IsString()

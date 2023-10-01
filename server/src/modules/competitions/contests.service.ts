@@ -184,8 +184,8 @@ export class ContestsService {
     contest.organizers = await this.personsService.getPersonsById(
       updateContestDto.organizers.map((org) => org.personId),
     );
-    if (updateContestDto.contact) contest.contact = updateContestDto.contact;
-    if (updateContestDto.description) contest.description = updateContestDto.description;
+    contest.contact = updateContestDto.contact;
+    contest.description = updateContestDto.description;
     contest.events = await this.updateContestEvents(contest, updateContestDto.events);
     if (updateContestDto.compDetails) {
       if (contest.compDetails) {
@@ -202,21 +202,23 @@ export class ContestsService {
 
     if (isAdmin || contest.state < ContestState.Approved) {
       contest.name = updateContestDto.name;
-      if (updateContestDto.city) contest.city = updateContestDto.city;
-      if (updateContestDto.venue) contest.venue = updateContestDto.venue;
-      if (updateContestDto.address) contest.address = updateContestDto.address;
+      if (contest.type !== ContestType.Online) {
+        contest.city = updateContestDto.city;
+        contest.venue = updateContestDto.venue;
+        contest.address = updateContestDto.address;
+      }
       if (updateContestDto.latitudeMicrodegrees && updateContestDto.longitudeMicrodegrees) {
         contest.latitudeMicrodegrees = updateContestDto.latitudeMicrodegrees;
         contest.longitudeMicrodegrees = updateContestDto.longitudeMicrodegrees;
       }
-      if (updateContestDto.competitorLimit) contest.competitorLimit = updateContestDto.competitorLimit;
+      contest.competitorLimit = updateContestDto.competitorLimit;
       contest.mainEventId = updateContestDto.mainEventId;
     }
 
     // Even an admin is not allowed to edit these after a comp has been approved
     if (contest.state < ContestState.Approved) {
       contest.startDate = updateContestDto.startDate;
-      if (contest.endDate) contest.endDate = updateContestDto.endDate;
+      if (contest.type === ContestType.Competition) contest.endDate = updateContestDto.endDate;
     }
 
     await this.saveContest(contest);

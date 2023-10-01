@@ -169,8 +169,8 @@ export const getAttempt = (
   event: IEvent,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
   // These are optional if the event format is Number
-  solved?: string,
-  attempted?: string,
+  solved?: number | null | undefined,
+  attempted?: number | null | undefined,
   memo?: string | undefined, // only used for events with the event group HasMemo, otherwise set to undefined
   { roundTime, roundMemo }: { roundTime: boolean; roundMemo: boolean } = {
     roundTime: false,
@@ -190,14 +190,10 @@ export const getAttempt = (
   }
 
   if (event.format === EventFormat.Multi && newAttempt.result) {
-    if (!solved || !attempted) return { result: null };
+    if ([null, undefined].includes(solved) || [null, undefined].includes(attempted) || solved > attempted)
+      return { result: null };
 
-    const solvedNum = parseInt(solved);
-    const attemptedNum = parseInt(attempted);
-
-    if (isNaN(solvedNum) || isNaN(attemptedNum) || solvedNum > attemptedNum) return { result: null };
-
-    const maxTime = Math.min(attemptedNum, 6) * 60000 + attemptedNum * 200; // accounts for +2s
+    const maxTime = Math.min(attempted, 6) * 60000 + attempted * 200; // accounts for +2s
 
     // Disallow submitting multi times > max time, and <= 1 hour for old style
     if (event.eventId === '333mbf' && newAttempt.result > maxTime) return { ...newAttempt, result: null };
@@ -205,11 +201,11 @@ export const getAttempt = (
 
     // See the IResult interface for information about how this works
     let multiOutput = ''; // DDDDTTTTTTTMMMM
-    const missed: number = attemptedNum - solvedNum;
-    let points: number = solvedNum - missed;
+    const missed: number = attempted - solved;
+    let points: number = solved - missed;
 
     if (points <= 0) {
-      if (points < 0 || solvedNum < 2) multiOutput += '-';
+      if (points < 0 || solved < 2) multiOutput += '-';
       points = -points;
     }
 

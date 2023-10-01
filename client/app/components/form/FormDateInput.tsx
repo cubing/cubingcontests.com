@@ -73,7 +73,9 @@ const FormDateInput = ({
       document.getElementById(nextFocusTargetId)?.focus();
     } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
       e.preventDefault();
-    } else if (['Backspace', 'Delete'].includes(e.key)) {
+    }
+    // UNIDENTIFIED IS HERE TEMPORARILY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    else if (['Backspace', 'Delete', 'Unidentified'].includes(e.key)) {
       e.preventDefault();
 
       if (position > 0) {

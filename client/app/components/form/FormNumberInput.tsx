@@ -8,21 +8,26 @@ const FormNumberInput = ({
   placeholder,
   value,
   onChange,
+  onKeyDown,
   disabled = false,
   integer = false,
-  noNegative = false,
-  noZero = false,
+  min = -Infinity,
+  max = Infinity,
+  invalid = false,
   noMargin = false,
 }: {
   title?: string;
   id?: string;
   placeholder?: string;
-  value: number | null;
+  // undefined is the empty value, null is the invalid value
+  value: number | null | undefined;
   onChange: (val: number) => void;
+  onKeyDown?: (e: any) => void;
   disabled?: boolean;
   integer?: boolean;
-  noNegative?: boolean;
-  noZero?: boolean;
+  min?: number;
+  max?: number;
+  invalid?: boolean;
   noMargin?: boolean;
 }) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormNumberInput');
@@ -32,7 +37,8 @@ const FormNumberInput = ({
   const inputId = id || title;
 
   useEffect(() => {
-    if (value !== null) setDisplayValue(value.toString());
+    if (value === undefined) setDisplayValue('');
+    else if (value !== null) setDisplayValue(value.toString());
   }, [value]);
 
   const validateAndChange = (newValue: string) => {
@@ -41,21 +47,28 @@ const FormNumberInput = ({
     const numberValue = Number(newValue);
 
     if (
-      newValue &&
+      newValue !== '' &&
       !/[^0-9.-]/.test(newValue) &&
       !isNaN(numberValue) &&
       (!integer || !newValue.includes('.')) &&
-      (!noNegative || numberValue >= 0) &&
-      (!noZero || numberValue !== 0)
+      numberValue >= min &&
+      numberValue <= max
     ) {
       onChange(numberValue);
-    } else {
+    } else if (newValue) {
       onChange(null);
+    } else {
+      onChange(undefined);
     }
   };
 
+  const handleKeyDown = (e: any) => {
+    if (e.key === 'Enter') e.preventDefault();
+    if (onKeyDown) onKeyDown(e);
+  };
+
   return (
-    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
+    <div className={`fs-5 ${noMargin ? '' : 'mb-3'}`}>
       {title && (
         <label htmlFor={inputId} className="form-label">
           {title}
@@ -67,8 +80,9 @@ const FormNumberInput = ({
         value={displayValue}
         placeholder={placeholder}
         onChange={(e: any) => validateAndChange(e.target.value)}
+        onKeyDown={handleKeyDown}
         disabled={disabled}
-        className={`form-control ${value === null ? ' is-invalid' : ''}`}
+        className={`form-control ${value === null || invalid ? 'is-invalid' : ''}`}
       />
     </div>
   );

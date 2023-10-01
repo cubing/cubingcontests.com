@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import FormTextInput from './form/FormTextInput';
+import FormNumberInput from './form/FormNumberInput';
 import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
 import { IAttempt, IEvent } from '@sh/interfaces';
@@ -53,8 +54,8 @@ const AttemptInput = ({
   resetTrigger: boolean;
   allowUnknownTime?: boolean;
 }) => {
-  const [solved, setSolved] = useState('');
-  const [attempted, setAttempted] = useState('');
+  const [solved, setSolved] = useState<number>(undefined);
+  const [attempted, setAttempted] = useState<number>(undefined);
   const [attemptText, setAttemptText] = useState('');
   // undefined is the empty value. If left like that, the memo won't be saved in the DB.
   const [memoText, setMemoText] = useState(undefined);
@@ -83,8 +84,8 @@ const AttemptInput = ({
           const formattedTime = getFormattedTime(attempt.result, { event, noFormatting: true });
           const [newSolved, newAttempted, newAttText] = formattedTime.split(';');
 
-          setSolved(newSolved);
-          setAttempted(newAttempted);
+          setSolved(Number(newSolved));
+          setAttempted(Number(newAttempted));
           setAttemptText(newAttText === C.maxTime.toString() ? 'Unknown time' : newAttText);
         }
 
@@ -97,8 +98,8 @@ const AttemptInput = ({
   }, [attempt]);
 
   useEffect(() => {
-    setSolved('');
-    setAttempted('');
+    setSolved(undefined);
+    setAttempted(undefined);
     setAttemptText('');
     setMemoText(undefined);
   }, [resetTrigger]);
@@ -111,24 +112,20 @@ const AttemptInput = ({
     e.preventDefault();
 
     setAttempt({ result: -2 }); // set DNS
-    setSolved('');
-    setAttempted('');
+    setSolved(undefined);
+    setAttempted(undefined);
     setAttemptText('DNS');
     setMemoText(undefined);
     focusNext();
   };
 
-  const getIsValidCubesValue = (val: string) =>
-    (val.length <= 2 || (val.length <= 3 && event.eventId === '333mbo')) && !/[^0-9]/.test(val);
-  const getIsEnteredCubesValue = (val: string) => val.length === 3 || (event.eventId !== '333mbo' && val.length === 2);
+  const getIsEnteredCubesValue = (val: number) => val >= 100 || (event.eventId !== '333mbo' && val >= 10);
 
-  const changeSolved = (value: string) => {
-    if (getIsValidCubesValue(value)) {
-      setSolved(value);
-      if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, value, attempted, memoText));
+  const changeSolved = (newSolved: number | null | undefined) => {
+    setSolved(newSolved);
+    if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, newSolved, attempted, memoText));
 
-      if (getIsEnteredCubesValue(value)) document.getElementById(`attempt_${number}_attempted`).focus();
-    }
+    if (getIsEnteredCubesValue(newSolved)) document.getElementById(`attempt_${number}_attempted`).focus();
   };
 
   const onSolvedKeyDown = (e: any) => {
@@ -136,13 +133,11 @@ const AttemptInput = ({
     else if (getIsDNSKey(e)) handleSetDNS(e);
   };
 
-  const changeAttempted = (value: string) => {
-    if (getIsValidCubesValue(value)) {
-      setAttempted(value);
-      if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, solved, value, memoText));
+  const changeAttempted = (newAttempted: number | null | undefined) => {
+    setAttempted(newAttempted);
+    if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, solved, newAttempted, memoText));
 
-      if (getIsEnteredCubesValue(value)) document.getElementById(`attempt_${number}`).focus();
-    }
+    if (getIsEnteredCubesValue(newAttempted)) document.getElementById(`attempt_${number}`).focus();
   };
 
   const onAttemptedKeyDown = (e: any) => {
@@ -157,7 +152,9 @@ const AttemptInput = ({
       else focusNext();
     } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
       e.preventDefault();
-    } else if (['Backspace', 'Delete'].includes(e.key)) {
+    }
+    // UNIDENTIFIED IS HERE TEMPORARILY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    else if (['Backspace', 'Delete', 'Unidentified'].includes(e.key)) {
       e.preventDefault();
 
       if (
@@ -256,26 +253,32 @@ const AttemptInput = ({
       {event.format === EventFormat.Multi && (
         <>
           <div className={cubesInputClasses}>
-            <FormTextInput
+            <FormNumberInput
               id={`attempt_${number}_solved`}
               title={number === 1 ? 'Solved' : ''}
               value={solved}
               placeholder="10"
-              onChange={(val: string) => changeSolved(val)}
+              onChange={changeSolved}
               onKeyDown={(e: any) => onSolvedKeyDown(e)}
               disabled={attempt.result === -2}
+              integer
+              min={0}
+              max={event.eventId === '333mbo' ? 999 : 99}
               invalid={isInvalidAttempt}
             />
           </div>
           <div className={cubesInputClasses}>
-            <FormTextInput
+            <FormNumberInput
               id={`attempt_${number}_attempted`}
               title={number === 1 ? 'Total' : ''}
               value={attempted}
               placeholder="10"
-              onChange={(val: string) => changeAttempted(val)}
+              onChange={changeAttempted}
               onKeyDown={(e: any) => onAttemptedKeyDown(e)}
               disabled={attempt.result === -2}
+              integer
+              min={2}
+              max={event.eventId === '333mbo' ? 999 : 99}
               invalid={isInvalidAttempt}
             />
           </div>

@@ -31,6 +31,7 @@ import {
 import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import C from '~/shared_helpers/constants';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -65,7 +66,7 @@ const ContestForm = ({
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
   const [contact, setContact] = useState('');
   const [description, setDescription] = useState('');
-  const [competitorLimit, setCompetitorLimit] = useState(0);
+  const [competitorLimit, setCompetitorLimit] = useState<number>(undefined);
 
   // Event stuff
   const [newEventId, setNewEventId] = useState('333');
@@ -183,7 +184,6 @@ const ContestForm = ({
 
   useEffect(() => {
     if (mode !== 'new') {
-      console.log(contest);
       setCompetitionId(contest.competitionId);
       setName(contest.name);
       setType(contest.type);
@@ -277,13 +277,13 @@ const ContestForm = ({
     }
 
     const selectedOrganizers = organizers.filter((el) => el !== null);
-    const latitudeMicrodegrees = type !== ContestType.Online && latitude ? Math.round(latitude * 1000000) : undefined;
-    const longitudeMicrodegrees =
-      type !== ContestType.Online && longitude ? Math.round(longitude * 1000000) : undefined;
-    let processedStartDate = startDate;
+    let latitudeMicrodegrees: number, longitudeMicrodegrees: number;
+    if (type !== ContestType.Online) {
+      if (latitude) latitudeMicrodegrees = Math.round(latitude * 1000000);
+      if (longitude) longitudeMicrodegrees = Math.round(longitude * 1000000);
+    }
+    const processedStartDate = type === ContestType.Competition ? getDateOnly(startDate) : startDate;
     const endDateOnly = getDateOnly(endDate);
-
-    if (type === ContestType.Competition) processedStartDate = getDateOnly(startDate);
 
     const getRoundDate = (round: IRound): Date => {
       switch (type) {
@@ -759,6 +759,8 @@ const ContestForm = ({
                       value={latitude}
                       onChange={(val) => changeCoordinates(val, longitude)}
                       disabled={disableIfCompApprovedEvenForAdmin}
+                      min={-90}
+                      max={90}
                     />
                   </div>
                   <div className="col-3">
@@ -767,6 +769,8 @@ const ContestForm = ({
                       value={longitude}
                       onChange={(val) => changeCoordinates(latitude, val)}
                       disabled={disableIfCompApprovedEvenForAdmin}
+                      min={-180}
+                      max={180}
                     />
                   </div>
                 </div>
@@ -862,7 +866,7 @@ const ContestForm = ({
               onChange={setCompetitorLimit}
               disabled={disableIfCompApproved}
               integer
-              noNegative
+              min={C.minCompetitorLimit}
             />
           </>
         )}
@@ -936,8 +940,8 @@ const ContestForm = ({
                             onChange={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
                             disabled={disableIfCompFinishedEvenForAdmin}
                             integer
-                            noZero
-                            noNegative
+                            min={round.proceed.type === RoundProceed.Percentage ? 1 : 2}
+                            max={round.proceed.type === RoundProceed.Percentage ? 99 : Infinity}
                             noMargin
                           />
                         </div>

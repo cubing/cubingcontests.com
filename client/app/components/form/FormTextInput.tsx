@@ -44,7 +44,6 @@ const FormTextInput = ({
 
   const handleKeyDown = (e: any) => {
     if (e.key === 'Enter' && !submitOnEnter) e.preventDefault();
-
     if (onKeyDown) onKeyDown(e);
   };
 

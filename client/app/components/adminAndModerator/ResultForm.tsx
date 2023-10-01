@@ -176,7 +176,6 @@ const ResultForm = ({
 
   const getAllowedRoundFormatOptions = (event: IEvent) => {
     if (event.defaultRoundFormat !== RoundFormat.Average) {
-      console.log(roundFormatOptions);
       return roundFormatOptions.filter((el) => el.value !== RoundFormat.BestOf3);
     }
 

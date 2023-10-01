@@ -171,8 +171,7 @@ const CreateEditEventPage = () => {
                 onChange={setRank}
                 disabled={loadingDuringSubmit}
                 integer
-                noZero
-                noNegative
+                min={1}
               />
             </div>
           </div>
@@ -193,8 +192,7 @@ const CreateEditEventPage = () => {
                 onChange={setParticipants}
                 disabled={loadingDuringSubmit}
                 integer
-                noZero
-                noNegative
+                min={1}
               />
             </div>
           </div>

@@ -13,17 +13,19 @@ const DebugPage = () => {
   };
 
   return (
-    <div className="mx-auto">
-      <h2>Page for debugging</h2>
+    <div>
+      <div className="mx-auto px-3" style={{ maxWidth: '768px' }}>
+        <h2 className="text-center">Page for debugging</h2>
 
-      <p className="mt-5 mb-4 fs-5">{debugOutput}</p>
+        <p className="mt-5 mb-4 fs-5">{debugOutput}</p>
 
-      <FormTextInput
-        title="Debug input"
-        value={debugInputValue}
-        onChange={setDebugInputValue}
-        onKeyDown={onDebugInputKeyDown}
-      />
+        <FormTextInput
+          title="Debug input"
+          value={debugInputValue}
+          onChange={setDebugInputValue}
+          onKeyDown={onDebugInputKeyDown}
+        />
+      </div>
     </div>
   );
 };
