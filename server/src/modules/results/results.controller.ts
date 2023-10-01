@@ -56,13 +56,13 @@ export class ResultsController {
   @Delete(':competitionId/:resultId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async deleteCompetitionResult(
+  async deleteContestResult(
     @Param('competitionId') competitionId: string,
     @Param('resultId') resultId: string,
     @Request() req: any,
   ) {
     console.log(`Deleting result with id ${resultId} from contest ${competitionId}`);
-    return await this.service.deleteCompetitionResult(resultId, competitionId, req.user);
+    return await this.service.deleteContestResult(resultId, competitionId, req.user);
   }
 
   // POST /results

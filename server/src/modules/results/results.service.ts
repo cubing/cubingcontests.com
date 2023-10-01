@@ -27,15 +27,16 @@ import { RoundDocument } from '~/src/models/round.model';
 import { setRankings, fixTimesOverTenMinutes } from '~/src/helpers/utilityFunctions';
 import { AuthService } from '../auth/auth.service';
 import { PersonDocument } from '~/src/models/person.model';
+import { EventDocument } from '~/src/models/event.model';
 
-const getBaseSinglesFilter = (event: IEvent) => ({
+const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => ({
   eventId: event.eventId,
-  best: { $gt: 0 },
+  best,
 });
 
-const getBaseAvgsFilter = (event: IEvent) => ({
+const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => ({
   eventId: event.eventId,
-  average: { $gt: 0 },
+  average,
   attempts: { $size: roundFormats[event.defaultRoundFormat].attempts },
 });
 
@@ -318,7 +319,7 @@ export class ResultsService {
   }
 
   async createResult(createResultDto: CreateResultDto, roundId: string, user: IPartialUser): Promise<RoundDocument> {
-    // getCompetition is put here deliberately, because this function also checks access rights!
+    // getContest is put here deliberately, because this function also checks access rights!
     const contest = await this.getContest(createResultDto.competitionId, user);
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
@@ -350,11 +351,11 @@ export class ResultsService {
       round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
       await round.save(); // save the round for resetCancelledRecords
 
-      await this.resetCancelledRecords(createResultDto, contest);
+      await this.resetCancelledRecords(createResultDto, event, contest);
 
       if (contest.state < ContestState.Ongoing) contest.state = ContestState.Ongoing;
       contest.participants = (
-        await this.personsService.getCompetitionParticipants({ competitionId: contest.competitionId })
+        await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
       ).length;
       contest.save();
 
@@ -370,14 +371,14 @@ export class ResultsService {
         round.results = oldResults;
         await round.save();
       }
-      await this.updateRecordsAfterDeletion(createResultDto, contest);
+      await this.updateRecordsAfterDeletion(createResultDto, contest, event);
 
       throw new InternalServerErrorException(`Error while creating result: ${err.message}`);
     }
   }
 
-  async deleteCompetitionResult(resultId: string, competitionId: string, user: IPartialUser): Promise<RoundDocument> {
-    // getCompetition is put here deliberately, because this function also checks access rights!
+  async deleteContestResult(resultId: string, competitionId: string, user: IPartialUser): Promise<RoundDocument> {
+    // getContest is put here deliberately, because this function also checks access rights!
     const contest = await this.getContest(competitionId, user);
     let result: ResultDocument;
 
@@ -395,6 +396,7 @@ export class ResultsService {
     // Update round
     let round: RoundDocument;
     let oldResults: ResultDocument[];
+    const event = await this.eventsService.getEventById(result.eventId);
 
     try {
       round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
@@ -405,10 +407,10 @@ export class ResultsService {
       round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
       round.save(); // save the round for updateRecordsAfterDeletion
 
-      await this.updateRecordsAfterDeletion(result, contest);
+      await this.updateRecordsAfterDeletion(result, contest, event);
 
       contest.participants = (
-        await this.personsService.getCompetitionParticipants({ competitionId: contest.competitionId })
+        await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
       ).length;
       await contest.save();
 
@@ -426,7 +428,8 @@ export class ResultsService {
         round.results = oldResults;
         await round.save();
       }
-      await this.resetCancelledRecords(result, contest);
+
+      await this.resetCancelledRecords(result, event, contest);
 
       throw new InternalServerErrorException('Error while updating round during result deletion:', err.message);
     }
@@ -474,7 +477,7 @@ export class ResultsService {
       throw new InternalServerErrorException('Error while submitting result:', err.message);
     }
 
-    if (isAdmin) await this.resetCancelledRecords(createResultDto);
+    if (isAdmin) await this.resetCancelledRecords(createResultDto, event);
   }
 
   /////////////////////////////////////////////////////////////////////////////////////
@@ -582,37 +585,6 @@ export class ResultsService {
     }
   }
 
-  // Resets records set on the same day as the given result or after that day. If contest is set,
-  // only resets the records for that contest (used only when creating contest result, not for submitting).
-  private async resetCancelledRecords(result: CreateResultDto | ResultDocument, contest?: IContest) {
-    if (result.best <= 0 && result.average <= 0) return;
-
-    // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
-    // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
-    // THIS CODE IS SIMILAR TO updateRecordsAfterDeletion
-    const queryBase: any = { eventId: result.eventId, date: { $gte: result.date } };
-    if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
-
-    // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
-    try {
-      // Remove cancelled single records
-      if (result.best > 0) {
-        await this.resultModel
-          .updateMany({ ...queryBase, best: { $gt: result.best } }, { $unset: { regionalSingleRecord: '' } })
-          .exec();
-      }
-
-      // Remove cancelled average records
-      if (result.average > 0) {
-        await this.resultModel
-          .updateMany({ ...queryBase, average: { $gt: result.average } }, { $unset: { regionalAverageRecord: '' } })
-          .exec();
-      }
-    } catch (err) {
-      throw new InternalServerErrorException('Error while resetting cancelled WRs:', err.message);
-    }
-  }
-
   async resetRecordsCancelledByPublishedComp(competitionId: string) {
     const recordResults = await this.resultModel
       .find({
@@ -627,21 +599,67 @@ export class ResultsService {
     }
   }
 
+  // Resets records set on the same day as the given result or after that day. If contest is set,
+  // only resets the records for that contest (used only when creating contest result, not for submitting).
+  private async resetCancelledRecords(
+    result: CreateResultDto | ResultDocument,
+    event?: EventDocument,
+    contest?: IContest,
+  ) {
+    if (result.best <= 0 && result.average <= 0) return;
+    if (!event) event = await this.eventsService.getEventById(result.eventId);
+
+    // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
+    // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
+    // THIS CODE IS SIMILAR TO updateRecordsAfterDeletion
+    const queryBase: any = { date: { $gte: result.date } };
+    if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
+
+    // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
+    try {
+      // Remove cancelled single records
+      if (result.best > 0) {
+        await this.resultModel
+          .updateMany(
+            { ...queryBase, ...getBaseSinglesFilter(event, { $gt: result.best }) },
+            { $unset: { regionalSingleRecord: '' } },
+          )
+          .exec();
+      }
+
+      // Remove cancelled average records
+      if (result.average > 0) {
+        await this.resultModel
+          .updateMany(
+            { ...queryBase, ...getBaseAvgsFilter(event, { $gt: result.average }) },
+            { $unset: { regionalAverageRecord: '' } },
+          )
+          .exec();
+      }
+    } catch (err) {
+      throw new InternalServerErrorException('Error while resetting cancelled WRs:', err.message);
+    }
+  }
+
   // Sets records that are now recognized after a contest result deletion. Does if for all days from the result's
   // date onward. If contest is set, only sets records for that contest, otherwise does it for ALL results.
-  private async updateRecordsAfterDeletion(result: ResultDocument | CreateResultDto, contest: IContest) {
+  private async updateRecordsAfterDeletion(
+    result: ResultDocument | CreateResultDto,
+    contest: IContest,
+    event?: EventDocument,
+  ) {
     if (result.best <= 0 && result.average <= 0) return;
+    if (!event) event = await this.eventsService.getEventById(result.eventId);
 
     // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
     // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
     // THIS CODE IS SIMILAR TO resetCancelledRecords
-    const queryBase: any = { _id: { $ne: (result as any)._id }, eventId: result.eventId, date: { $gte: result.date } };
+    const queryBase: any = { _id: { $ne: (result as any)._id }, date: { $gte: result.date } };
     if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
     else queryBase.unapproved = { $exists: false };
 
     // This is done so that we get records BEFORE the date of the deleted result
     const recordsUpTo = new Date(result.date.getTime() - 1);
-    const event = await this.eventsService.getEventById(result.eventId);
     const recordPairs = await this.getEventRecordPairs(event, recordsUpTo);
 
     // TO-DO: DIFFERENT RECORD TYPES NEED TO BE PROPERLY SUPPORTED
@@ -649,9 +667,12 @@ export class ResultsService {
       try {
         // Set single records
         if (result.best > 0) {
+          const bestFilter: any = { $gt: 0 };
+          if (rp.best > 0) bestFilter.$lte = rp.best;
+
           // Look for non-DNF singles better than the record and get the best one of those
           const [bestSingleResult] = await this.resultModel
-            .find({ ...queryBase, best: { $lte: rp.best, $gt: 0 } })
+            .find({ ...queryBase, ...getBaseSinglesFilter(event, bestFilter) })
             .sort({ best: 1 })
             .limit(1)
             .exec();
@@ -671,9 +692,12 @@ export class ResultsService {
 
         // Set average records
         if (result.average > 0) {
+          const averageFilter: any = { $gt: 0 };
+          if (rp.average > 0) averageFilter.$lte = rp.average;
+
           // Look for non-DNF averages better than the record and get the best one of those
           const [bestAvgResult] = await this.resultModel
-            .find({ ...queryBase, average: { $lte: rp.average, $gt: 0 } })
+            .find({ ...queryBase, ...getBaseAvgsFilter(event, averageFilter) })
             .sort({ average: 1 })
             .limit(1)
             .exec();

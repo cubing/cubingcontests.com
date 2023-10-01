@@ -11,7 +11,7 @@ export const PersonsServiceMock = (): any => ({
 
     return tempOutput;
   },
-  getCompetitionParticipants() {
+  getContestParticipants() {
     return 999;
   },
 });

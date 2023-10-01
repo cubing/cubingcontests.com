@@ -106,7 +106,7 @@ describe('ResultsService', () => {
       });
     });
 
-    // describe('deleteCompetitionResult', () => {});
+    // describe('deleteContestResult', () => {});
 
     // describe('submitResult', () => {});
   });

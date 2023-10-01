@@ -98,7 +98,7 @@ export class ContestsService {
 
       const output: IContestData = {
         contest,
-        persons: await this.personsService.getCompetitionParticipants({ contestEvents: contest.events }),
+        persons: await this.personsService.getContestParticipants({ contestEvents: contest.events }),
         activeRecordTypes,
       };
 
@@ -151,7 +151,7 @@ export class ContestsService {
         state: ContestState.Created,
         participants: !saveResults
           ? 0
-          : (await this.personsService.getCompetitionParticipants({ contestEvents: contestEvents })).length,
+          : (await this.personsService.getContestParticipants({ contestEvents: contestEvents })).length,
       };
 
       newCompetition.organizers = await this.personsService.getPersonsById(
