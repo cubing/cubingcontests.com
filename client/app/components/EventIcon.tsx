@@ -44,7 +44,17 @@ const EventIcon = ({
 }) => {
   const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) || event.groups.includes(EventGroup.RemovedWCA);
   const iconExists = isOrWasWCAEvent || unofficialEventIcons.includes(event.eventId);
-  const eventName = event.name.replaceAll(/([1-9])x[1-9]x[1-9]/g, '$1x$1').replace('Blindfolded', 'BLD');
+  const eventName = event.name
+    .replaceAll(/2x2x2/g, '2x2')
+    .replaceAll(/3x3x3/g, '3x3')
+    .replaceAll(/4x4x4/g, '4x4')
+    .replaceAll(/5x5x5/g, '5x5')
+    .replaceAll(/6x6x6/g, '6x6')
+    .replaceAll(/7x7x7/g, '7x7')
+    .replaceAll(/8x8x8/g, '8x8')
+    .replaceAll(/9x9x9/g, '9x9')
+    .replace(' Cuboid', '')
+    .replace('Blindfolded', 'BLD');
 
   if (!iconExists) {
     if (!onClick) return <></>;

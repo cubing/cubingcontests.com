@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { IContest } from '@sh/interfaces';
-import { getFormattedDate } from '~/helpers/utilityFunctions';
+import { getBSClassFromColor, getFormattedDate } from '~/helpers/utilityFunctions';
 import { ContestState, ContestType } from '@sh/enums';
 import ContestTypeBadge from './ContestTypeBadge';
 import Country from './Country';
+import { FaCircle } from 'react-icons/fa';
+import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const ContestsTable = async ({
   contests,
@@ -33,24 +35,34 @@ const ContestsTable = async ({
             {contests.map((contest: IContest, index: number) => (
               <li
                 key={contest.competitionId}
-                className={'list-group-item' + (index % 2 === 1 ? ' list-group-item-dark' : '')}
+                className={`list-group-item ps-2 ${index % 2 === 1 ? ' list-group-item-dark' : ''}`}
               >
-                <div className="d-flex justify-content-between mb-2">
-                  <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
-                    {contest.name}
-                  </Link>
-                  <p className="ms-2 text-nowrap">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div className="d-flex align-items-center gap-2">
+                    <FaCircle
+                      className={`text-${getBSClassFromColor(
+                        contestTypeOptions.find((el) => el.value === contest.type).color,
+                      )}`}
+                      style={{ minWidth: '0.5rem', width: '0.5rem' }}
+                    />
+
+                    <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
+                      {contest.name}
+                    </Link>
+                  </div>
+
+                  <p className="ms-2 mb-0 text-end">
                     <b>{getFormattedDate(contest.startDate, contest.endDate)}</b>
                   </p>
                 </div>
                 <div className="d-flex justify-content-between gap-3">
-                  <div>
+                  <div className="ms-2">
                     {contest.type !== ContestType.Online ? (
-                      <>
+                      <span>
                         {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
-                      </>
+                      </span>
                     ) : (
-                      <>Online</>
+                      'Online'
                     )}
                   </div>
                   <div className="text-end">

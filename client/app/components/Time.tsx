@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBGClassFromColor, getFormattedTime } from '~/helpers/utilityFunctions';
+import { getBSClassFromColor, getFormattedTime } from '~/helpers/utilityFunctions';
 import { IEvent, IRecordType, IResult } from '~/shared_helpers/interfaces';
 
 const Time = ({
@@ -22,7 +22,7 @@ const Time = ({
       {getFormattedTime(average ? result.average : result.best, { event, showMultiPoints: true })}
 
       {recordType && (
-        <span className={'badge ' + getBGClassFromColor(recordType?.color)} style={{ fontSize: '0.7rem' }}>
+        <span className={`badge bg-${getBSClassFromColor(recordType?.color)}`} style={{ fontSize: '0.7rem' }}>
           {recordType.label}
         </span>
       )}

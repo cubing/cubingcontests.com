@@ -340,30 +340,30 @@ export const limitRequests = (
   );
 };
 
-export const getBGClassFromColor = (color: Color): string => {
+export const getBSClassFromColor = (color: Color): string => {
   // THE MAGENTA OPTION IS SKIPPED FOR NOW
   switch (color) {
     case Color.Red: {
-      return 'bg-danger';
+      return 'danger';
     }
     case Color.Blue: {
-      return 'bg-primary';
+      return 'primary';
     }
     case Color.Green: {
-      return 'bg-success';
+      return 'success';
     }
     case Color.Yellow: {
-      return 'bg-warning';
+      return 'warning';
     }
     case Color.White: {
-      return 'bg-light';
+      return 'light';
     }
     case Color.Cyan: {
-      return 'bg-info';
+      return 'info';
     }
     default: {
       console.error(`Unknown color: ${color}`);
-      return 'bg-dark';
+      return 'dark';
     }
   }
 };
