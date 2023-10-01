@@ -398,8 +398,8 @@ const ContestForm = ({
     } else {
       const { errors } =
         mode === 'edit'
-          ? await myFetch.patch(`/competitions/${contest.competitionId}?action=update`, newComp) // edit
-          : await myFetch.post('/competitions', newComp); // create
+          ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp)
+          : await myFetch.post('/competitions', newComp);
 
       if (errors) {
         setErrorMessages(errors);

@@ -10,10 +10,15 @@ import { CreatePersonDto } from './dto/create-person.dto';
 export class PersonsController {
   constructor(private readonly personsService: PersonsService) {}
 
-  // GET /persons?searchParam=...
+  // GET /persons?searchParam=...(&exactMatch=true)
   @Get()
-  async getPersons(@Query('searchParam') searchParam: string) {
-    return await this.personsService.getPersons(searchParam);
+  async getPersons(@Query('searchParam') searchParam: string, @Query('exactMatch') exactMatch = false) {
+    if (exactMatch) {
+      console.log(searchParam);
+      return await this.personsService.getPersonByName(searchParam);
+    } else {
+      return await this.personsService.getPersons(searchParam);
+    }
   }
 
   // POST /persons

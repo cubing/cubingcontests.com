@@ -8,12 +8,14 @@ import { ContestState } from '@sh/enums';
 import { IAdminStats, IContest } from '~/shared_helpers/interfaces';
 import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+import ErrorMessages from '../components/ErrorMessages';
 
 const userInfo: IUserInfo = getUserInfo();
 
 const ModeratorDashboardPage = () => {
   const [contests, setContests] = useState<IContest[]>();
   const [adminStats, setAdminStats] = useState<IAdminStats>();
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const fetchData = async () => {
     const { payload: contests } = await myFetch.get('/competitions/mod', { authorize: true });
@@ -22,9 +24,13 @@ const ModeratorDashboardPage = () => {
       setContests(contests);
 
       if (userInfo.isAdmin) {
-        const { payload } = await myFetch.get('/admin-stats', { authorize: true });
+        const { payload, errors } = await myFetch.get('/admin-stats', { authorize: true });
 
-        if (payload) setAdminStats(payload);
+        if (errors) {
+          setErrorMessages(errors);
+        } else {
+          setAdminStats(payload);
+        }
       }
     }
   };
@@ -46,16 +52,20 @@ const ModeratorDashboardPage = () => {
   };
 
   const changeCompState = async (competitionId: string, newState: ContestState) => {
-    await myFetch.patch(`/competitions/${competitionId}?action=change_state`, {
-      state: newState,
-    });
+    const { errors } = await myFetch.patch(`/competitions/${competitionId}/${newState}`);
 
-    window.location.reload();
+    if (errors) {
+      setErrorMessages(errors);
+    } else {
+      window.location.reload();
+    }
   };
 
   return (
     <div>
       <h2 className="text-center">Moderator Dashboard</h2>
+
+      <ErrorMessages errorMessages={errorMessages} />
 
       <div className="px-2">
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">

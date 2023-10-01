@@ -24,7 +24,15 @@ export class PersonsService {
         return await this.personModel.find({ name: { $regex: searchParam, $options: 'i' } }, excl).exec();
       }
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new InternalServerErrorException('Error while getting persons:', err.message);
+    }
+  }
+
+  async getPersonByName(name: string): Promise<PersonDocument> {
+    try {
+      return await this.personModel.findOne({ name }, excl).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while getting person with name ${name}:`, err.message);
     }
   }
 
@@ -42,7 +50,7 @@ export class PersonsService {
     try {
       return await this.personModel.find(queryFilter, excl).exec();
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new InternalServerErrorException('Error while getting persons by person ID:', err.message);
     }
   }
 

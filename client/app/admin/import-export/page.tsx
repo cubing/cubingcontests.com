@@ -4,15 +4,13 @@ import { useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Button from '@c/Button';
 import Form from '@c/form/Form';
-import EventResultsTable from '@c/EventResultsTable';
 import FormTextInput from '@c/form/FormTextInput';
-import FormEventSelect from '@c/form/FormEventSelect';
+import ContestResults from '~/app/components/ContestResults';
 import { ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
-import ContestResults from '~/app/components/ContestResults';
 
 const setRankings = (results: IResult[], ranksWithAverage: boolean): IResult[] => {
   if (results.length === 0) return results;
@@ -169,7 +167,7 @@ const ImportExportPage = () => {
 
     // Set organizer objects
     for (const org of [...wcaCompData.organisers, ...wcaCompData.wcaDelegates]) {
-      const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${org.name}`);
+      const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${org.name}&exactMatch=true`);
 
       if (errors) {
         setErrorMessages([`Error while fetching organizer with the name ${org.name}`]);
@@ -293,7 +291,9 @@ const ImportExportPage = () => {
                 }
               }
             } else {
-              const { payload: matches, errors } = await myFetch.get(`/persons?searchParam=${result.personIds[j]}`);
+              const { payload: matches, errors } = await myFetch.get(
+                `/persons?searchParam=${result.personIds[j]}&exactMatch=true`,
+              );
 
               if (errors) {
                 setErrorMessages([`Error while fetching person with the name "${result.personIds[j]}"`]);

@@ -17,7 +17,7 @@ import { ContestsService } from './contests.service';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '@sh/enums';
+import { ContestState, Role } from '@sh/enums';
 import { RolesGuard } from '~/src/guards/roles.guard';
 
 @Controller('competitions')
@@ -87,24 +87,29 @@ export class ContestsController {
     );
   }
 
-  // PATCH /competitions/:competitionId?action=...
+  // PATCH /competitions/:competitionId
   @Patch(':competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async updateContest(
     @Param('competitionId') competitionId: string,
-    @Query('action') action: 'update' | 'change_state',
     @Body(new ValidationPipe()) updateContestDto: UpdateContestDto,
     @Request() req: any, // this is passed in by the guards
   ) {
-    if (action === 'update') {
-      console.log(`Updating contest ${competitionId}`);
-      return await this.service.updateContest(competitionId, updateContestDto, req.user);
-    } else if (action === 'change_state') {
-      console.log(`Setting state ${updateContestDto.state} for contest ${competitionId}`);
-      return await this.service.updateState(competitionId, updateContestDto.state, req.user);
-    } else {
-      throw new BadRequestException(`Unsupported action when updating contest: ${action}`);
-    }
+    console.log(`Updating contest ${competitionId}`);
+    return await this.service.updateContest(competitionId, updateContestDto, req.user);
+  }
+
+  // PATCH /competitions/:competitionId/:newState
+  @Patch(':competitionId/:newState')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async updateState(
+    @Param('competitionId') competitionId: string,
+    @Param('newState') newState: ContestState,
+    @Request() req: any, // this is passed in by the guards
+  ) {
+    console.log(`Setting state ${newState} for contest ${competitionId}`);
+    return await this.service.updateState(competitionId, newState, req.user);
   }
 }

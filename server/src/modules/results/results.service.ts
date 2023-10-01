@@ -70,21 +70,16 @@ export class ResultsService {
         else if (contests.length > 1) console.error('Error: round', round, 'belongs to multiple contests:', contests);
       }
 
-      const persons = await this.personsService.getPersons();
+      // const persons = await this.personsService.getPersons();
 
-      for (const p of persons) {
-        const resultsCount = await this.resultModel.count({ personIds: p.personId }).exec();
-        const contestsOrganizedCount = await this.contestModel.count({ organizers: p }).exec();
-        const personsWithSameName = await this.personsService.getPersons(p.name);
+      // for (const p of persons) {
+      //   const resultsCount = await this.resultModel.count({ personIds: p.personId }).exec();
+      //   const contestsOrganizedCount = await this.contestModel.count({ organizers: p }).exec();
 
-        if (resultsCount === 0 && contestsOrganizedCount === 0) {
-          console.error(`${p.name} (personId: ${p.personId}) has no results and no contests that they organize`);
-        }
-
-        if (personsWithSameName.length > 1) {
-          console.error(`Multiple persons with the name ${p.name} found:`, personsWithSameName);
-        }
-      }
+      //   if (resultsCount === 0 && contestsOrganizedCount === 0) {
+      //     console.error(`${p.name} (personId: ${p.personId}) has no results and no contests that they organize`);
+      //   }
+      // }
     }
   }
 

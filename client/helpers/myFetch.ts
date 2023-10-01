@@ -25,7 +25,7 @@ const doFetch = async (
     options.next = { revalidate };
   } else if (['POST', 'PATCH'].includes(method)) {
     options.headers['Content-type'] = 'application/json';
-    options.body = JSON.stringify(body);
+    if (body) options.body = JSON.stringify(body);
   } else if (method !== 'DELETE') {
     throw new Error(`Unsupported HTTP method: ${method}`);
   }
@@ -127,7 +127,8 @@ const myFetch = {
   ): Promise<IFetchObj> {
     return await doFetch(url, 'POST', false, body, authorize);
   },
-  async patch(url: string, body: unknown): Promise<IFetchObj> {
+  // PATCH requests can be made without a body if necessary
+  async patch(url: string, body?: unknown): Promise<IFetchObj> {
     return await doFetch(url, 'PATCH', false, body);
   },
   async delete(url: string): Promise<IFetchObj> {
