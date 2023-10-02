@@ -11,9 +11,7 @@ const FormCheckbox = ({
   setSelected: (val: boolean) => void;
   disabled?: boolean;
 }) => {
-  if (!id && !title) {
-    throw new Error('Neither title nor id are set in FormCheckbox!');
-  }
+  if (!id && !title) throw new Error('Neither title nor id are set in FormCheckbox!');
 
   const inputId = `${id || title}_checkbox`;
 

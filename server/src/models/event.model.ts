@@ -5,8 +5,6 @@ import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 
 @Schema({ timestamps: true })
 class Event implements IEvent {
-  // THIS IS TEMPORARY
-  // @Prop({ required: true, immutable: true, unique: true })
   @Prop({ required: true, unique: true })
   eventId: string;
 

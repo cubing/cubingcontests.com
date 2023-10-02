@@ -8,7 +8,7 @@ class Activity implements IActivity {
   @Prop({ required: true })
   id: number;
 
-  @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   activityCode: string;
 
   @Prop()
@@ -71,7 +71,7 @@ const VenueSchema = SchemaFactory.createForClass(Venue);
 
 @Schema({ timestamps: true })
 export class Schedule implements ISchedule {
-  @Prop({ required: true, immutable: true, unique: true })
+  @Prop({ required: true, unique: true })
   competitionId: string;
 
   @Prop({ required: true })

@@ -15,11 +15,14 @@ import { roundFormats } from '@sh/roundFormats';
 import { eventCategories } from '~/helpers/eventCategories';
 import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 
+type Mode = 'view' | 'add' | 'edit';
+
 const CreateEditEventPage = () => {
   const [errorMessages, setErrorMessages] = useState([]);
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
-  const [mode, setMode] = useState<'view' | 'add' | 'edit'>('view');
+  const [mode, setMode] = useState<Mode>('view');
+  const [eventIdUnlocked, setEventIdUnlocked] = useState(false);
 
   const [eventId, setEventId] = useState('');
   const [name, setName] = useState('');
@@ -96,7 +99,7 @@ const CreateEditEventPage = () => {
     if (errors) {
       setErrorMessages(errors);
     } else {
-      setMode('view');
+      reset('view');
       setEvents(payload);
     }
 
@@ -104,13 +107,11 @@ const CreateEditEventPage = () => {
   };
 
   const onAddEvent = () => {
-    setErrorMessages([]);
-    setMode('add');
+    reset('add');
   };
 
   const onEditEvent = (event: IEvent) => {
-    setErrorMessages([]);
-    setMode('edit');
+    reset('edit');
 
     setEventId(event.eventId);
     setNewEventId(event.eventId);
@@ -130,9 +131,10 @@ const CreateEditEventPage = () => {
     window.scrollTo(0, 0);
   };
 
-  const cancel = () => {
+  const reset = (newMode: Mode = 'view') => {
     setErrorMessages([]);
-    setMode('view');
+    setEventIdUnlocked(false);
+    setMode(newMode);
   };
 
   return (
@@ -149,7 +151,7 @@ const CreateEditEventPage = () => {
           errorMessages={errorMessages}
           onSubmit={handleSubmit}
           showCancelButton
-          onCancel={cancel}
+          onCancel={reset}
           disableButton={loadingDuringSubmit}
         >
           <FormTextInput
@@ -165,7 +167,7 @@ const CreateEditEventPage = () => {
                 title="Event ID"
                 value={newEventId}
                 onChange={setNewEventId}
-                disabled={loadingDuringSubmit}
+                disabled={!eventIdUnlocked || loadingDuringSubmit}
               />
             </div>
             <div className="col">
@@ -179,6 +181,7 @@ const CreateEditEventPage = () => {
               />
             </div>
           </div>
+          <FormCheckbox title="Unlock event ID" selected={eventIdUnlocked} setSelected={setEventIdUnlocked} />
           <div className="row">
             <div className="col">
               <FormSelect

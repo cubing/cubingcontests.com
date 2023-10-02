@@ -11,7 +11,7 @@ class RecordType implements IRecordType {
   @Prop({ enum: WcaRecordType, required: true, immutable: true, unique: true })
   wcaEquivalent: WcaRecordType;
 
-  @Prop({ required: true, immutable: true, unique: true })
+  @Prop({ required: true, unique: true })
   order: number;
 
   @Prop({ required: true })

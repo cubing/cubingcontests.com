@@ -8,7 +8,7 @@ export class Person implements IPerson {
   @Prop({ required: true, immutable: true, unique: true })
   personId: number;
 
-  @Prop({ immutable: true })
+  @Prop()
   wcaId?: string;
 
   @Prop({ required: true })

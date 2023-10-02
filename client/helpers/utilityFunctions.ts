@@ -1,7 +1,7 @@
 import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
-import { Color, EventFormat, Role, RoundFormat } from '@sh/enums';
+import { Color, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';

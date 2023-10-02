@@ -28,7 +28,7 @@ const CompetitionDetailsSchema = SchemaFactory.createForClass(CompetitionDetails
 
 @Schema({ timestamps: true })
 class Competition implements IContest {
-  @Prop({ required: true, immutable: true, unique: true })
+  @Prop({ required: true, unique: true })
   competitionId: string;
 
   @Prop({ required: true })

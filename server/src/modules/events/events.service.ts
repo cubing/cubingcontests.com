@@ -121,25 +121,39 @@ export class EventsService {
 
       event.eventId = newId;
 
-      console.log(`Updating rounds, schedules, and results, changing event id ${eventId} to ${newId}`);
-
       try {
         // Update rounds and schedules
+        console.log(`Updating rounds and schedules, changing event id ${eventId} to ${newId}`);
+
         for (let i = 1; i <= 10; i++) {
           const roundId = `${eventId}-r${i}`;
           const newRoundId = `${newId}-r${i}`;
-          const activityCodeKey = 'venues.rooms.activities.activityCode';
-
           const res = await this.roundModel.updateMany({ roundId }, { $set: { roundId: newRoundId } }).exec();
-          console.log('TEMPORARY LOG: matched rounds count on event id edit', res.matchedCount);
 
-          if (res.matchedCount > 0)
-            await this.scheduleModel
-              .updateMany({ [activityCodeKey]: roundId }, { $set: { [activityCodeKey]: newRoundId } })
-              .exec();
+          if (res.matchedCount > 0) {
+            // TO-DO: UPDATE CHILD ACTIVITIES' CODES TOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            const schedules = await this.scheduleModel.find({ 'venues.rooms.activities.activityCode': roundId }).exec();
+
+            for (const schedule of schedules) {
+              // Keep in mind that one schedule can only have one occurrence of the same activity code
+              venue_loop: for (const venue of schedule.venues) {
+                for (const room of venue.rooms) {
+                  for (const activity of room.activities) {
+                    if (activity.activityCode === roundId) {
+                      activity.activityCode = newRoundId;
+                      await schedule.save();
+                      break venue_loop;
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
 
         // Update results
+        console.log(`Updating results, changing event id ${eventId} to ${newId}`);
+
         await this.resultModel.updateMany({ eventId }, { $set: { eventId: newId } }).exec();
       } catch (err) {
         throw new InternalServerErrorException(
