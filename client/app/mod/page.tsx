@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
+import ErrorMessages from '@c/ErrorMessages';
 import { ContestState } from '@sh/enums';
-import { IAdminStats, IContest } from '~/shared_helpers/interfaces';
-import { getUserInfo } from '~/helpers/utilityFunctions';
+import { IAdminStats, IContest } from '@sh/interfaces';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import ErrorMessages from '../components/ErrorMessages';
+import { getUserInfo } from '~/helpers/utilityFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -17,26 +17,18 @@ const ModeratorDashboardPage = () => {
   const [adminStats, setAdminStats] = useState<IAdminStats>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
-  const fetchData = async () => {
-    const { payload: contests } = await myFetch.get('/competitions/mod', { authorize: true });
-
-    if (contests) {
-      setContests(contests);
-
-      if (userInfo.isAdmin) {
-        const { payload, errors } = await myFetch.get('/admin-stats', { authorize: true });
-
-        if (errors) {
-          setErrorMessages(errors);
-        } else {
-          setAdminStats(payload);
-        }
-      }
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    myFetch.get('/competitions/mod', { authorize: true }).then(({ payload: contests, errors }) => {
+      if (errors) setErrorMessages(errors);
+      else setContests(contests);
+    });
+
+    if (userInfo.isAdmin) {
+      myFetch.get('/admin-stats', { authorize: true }).then(({ payload, errors }) => {
+        if (errors) setErrorMessages(errors);
+        else setAdminStats(payload);
+      });
+    }
   }, []);
 
   const editCompetition = (competitionId: string) => {
@@ -95,18 +87,17 @@ const ModeratorDashboardPage = () => {
         {adminStats && (
           <>
             <p>
-              Competitors in DB: <b>{adminStats.totalPersons}</b>
+              Total competitors: <b>{adminStats.totalPersons}</b>&#8194;|&#8194;Total users:&nbsp;
+              <b>{adminStats.totalUsers}</b>
             </p>
             <p>
-              Users in DB: <b>{adminStats.totalUsers}</b>
-            </p>
-            <p>
-              Unapproved results: <b>{adminStats.totalUnapprovedSubmittedResults}</b>
+              Total results:&nbsp;<b>{adminStats.totalResults}</b>&#8194;|&#8194;Unapproved:&nbsp;
+              <b>{adminStats.totalUnapprovedSubmittedResults}</b>
             </p>
           </>
         )}
         <p>
-          Number of contests: <b>{contests ? contests.length : '?'}</b>
+          Number of contests: <b>{contests?.length || 0}</b>
         </p>
       </div>
       {contests?.length > 0 ? (

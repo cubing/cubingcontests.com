@@ -432,9 +432,7 @@ const ContestForm = ({
   };
 
   const fetchTimezone = async (lat: number, long: number): Promise<string> => {
-    const { errors, payload } = await myFetch.get(`/competitions/timezone?latitude=${lat}&longitude=${long}`, {
-      authorize: true,
-    });
+    const { errors, payload } = await myFetch.get(`/timezone?latitude=${lat}&longitude=${long}`, { authorize: true });
 
     if (errors) {
       setErrorMessages(errors);

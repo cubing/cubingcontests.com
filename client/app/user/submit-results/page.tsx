@@ -137,9 +137,9 @@ const SubmitResultsPage = () => {
   };
 
   const onVideoLinkFocusOut = () => {
-    if (videoLink.includes('youtube.com') && videoLink.includes('&')) {
+    if ((videoLink.includes('youtube.com') || videoLink.includes('youtu.be')) && videoLink.includes('&')) {
       // Remove unnecessary params from youtube links
-      setVideoLink(videoLink.slice(0, videoLink.indexOf('&')));
+      setVideoLink(videoLink.split('&')[0]);
     }
   };
 
@@ -207,7 +207,7 @@ const SubmitResultsPage = () => {
           <FormTextInput
             id="video_link"
             title="Link to video"
-            placeholder="https://youtube.com/watch?v=xyz"
+            placeholder="E.g: https://youtube.com/watch?v=xyz"
             value={videoLink}
             onChange={setVideoLink}
             onKeyDown={onVideoLinkKeyDown}
@@ -225,7 +225,7 @@ const SubmitResultsPage = () => {
           <FormTextInput
             id="discussion_link"
             title="Link to discussion (optional)"
-            placeholder="https://speedsolving.com/threads/xyz"
+            placeholder="E.g: https://speedsolving.com/threads/xyz"
             value={discussionLink}
             onChange={setDiscussionLink}
             onKeyDown={onDiscussionLinkKeyDown}
@@ -234,8 +234,7 @@ const SubmitResultsPage = () => {
             id="submit_button"
             text="Submit"
             onClick={submitResult}
-            disabled={fetchRecordPairsTimer !== null}
-            loading={loadingDuringSubmit}
+            loading={loadingDuringSubmit || fetchRecordPairsTimer !== null}
           />
         </Form>
       </>

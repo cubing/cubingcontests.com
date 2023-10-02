@@ -16,7 +16,11 @@ export class AppService {
     const adminStats: IAdminStats = {
       totalPersons: await this.personsService.getPersonsTotal(),
       totalUsers: await this.usersService.getUsersTotal(),
-      totalUnapprovedSubmittedResults: await this.resultsService.getTotalUnapprovedSubmittedResults(),
+      totalResults: await this.resultsService.getTotalResults(),
+      totalUnapprovedSubmittedResults: await this.resultsService.getTotalResults({
+        competitionId: { $exists: false },
+        unapproved: true,
+      }),
     };
 
     return adminStats;

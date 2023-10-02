@@ -326,8 +326,13 @@ const ImportExportPage = () => {
 
             if (person === undefined) return;
             if (person !== null) {
-              result.personIds[j] = person.personId;
-              persons.push(person);
+              if (!persons.some((p) => p.personId === person.personId)) {
+                result.personIds[j] = person.personId;
+                persons.push(person);
+              } else {
+                setErrorMessages([`${person.name} is included in the results twice`]);
+                return;
+              }
             } else if (!notFoundPersonNames.includes(name)) {
               notFoundPersonNames.push(name);
             }

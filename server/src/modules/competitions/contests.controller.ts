@@ -1,17 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Param,
-  Request,
-  Body,
-  Query,
-  ValidationPipe,
-  UseGuards,
-  BadRequestException,
-} from '@nestjs/common';
-import { find } from 'geo-tz';
+import { Controller, Get, Post, Patch, Param, Request, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { ContestsService } from './contests.service';
 import { UpdateContestDto } from './dto/update-contest.dto';
@@ -38,19 +25,6 @@ export class ContestsController {
   async getModContests(@Request() req: any) {
     console.log('Getting contests with moderator info');
     return await this.service.getModContests(req.user);
-  }
-
-  // GET /competitions/timezone?latitude=...&longitude=...
-  @Get('timezone')
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin, Role.Moderator)
-  async getTimezone(@Query('latitude') latitude: number, @Query('longitude') longitude: number) {
-    console.log('Getting timezone');
-
-    if (latitude > 90 || latitude < -90) throw new BadRequestException(`Invalid latitude: ${latitude}`);
-    if (longitude > 180 || longitude < -180) throw new BadRequestException(`Invalid longitude: ${longitude}`);
-
-    return { timezone: find(latitude, longitude)[0] };
   }
 
   // GET /competitions/:competitionId

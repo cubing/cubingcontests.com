@@ -1,13 +1,16 @@
 import myFetch from '~/helpers/myFetch';
 import ContestLayout from '@c/ContestLayout';
+import EventTitle from '@c/EventTitle';
 import { IContest } from '@sh/interfaces';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
+import C from '@sh/constants';
 import { roundTypes } from '~/helpers/roundTypes';
-import EventTitle from '~/app/components/EventTitle';
 
 const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
+  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
+    revalidate: C.contestInfoRevalidate,
+  });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
 

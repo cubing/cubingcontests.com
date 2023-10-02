@@ -1,9 +1,12 @@
 import myFetch from '~/helpers/myFetch';
 import ContestLayout from '@c/ContestLayout';
 import ContestResults from '@c/ContestResults';
+import C from '@sh/constants';
 
 const ContestResultsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 30 });
+  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
+    revalidate: C.contestResultsRevalidate,
+  });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
 
   return (

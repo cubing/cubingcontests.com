@@ -1,17 +1,20 @@
-import myFetch from '~/helpers/myFetch';
+import { areIntervalsOverlapping, endOfToday, format, startOfToday } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
+import myFetch from '~/helpers/myFetch';
 import ContestLayout from '~/app/components/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
+import Competitor from '@c/Competitor';
 import { IContest } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
+import C from '@sh/constants';
 import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
-import { areIntervalsOverlapping, endOfToday, format, startOfToday } from 'date-fns';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
-import Competitor from '~/app/components/Competitor';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 60 });
+  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
+    revalidate: C.contestInfoRevalidate,
+  });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
 

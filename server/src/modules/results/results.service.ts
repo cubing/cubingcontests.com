@@ -53,15 +53,48 @@ export class ResultsService {
   ) {}
 
   async onModuleInit() {
+    // DB consistency checks (done only in development)
     if (process.env.NODE_ENV !== 'production') {
-      const results = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
+      // Look for orphan contest results or ones that somehow belong to multiple rounds
+      const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
 
-      for (const res of results) {
+      for (const res of contestResults) {
         const rounds = await this.roundModel.find({ results: res }).exec();
         if (rounds.length === 0) console.error('Error: contest result has no round:', res);
         else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
       }
 
+      // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
+      let knownDuplicates = [
+        'https://www.youtube.com/watch?v=3MfyECPWhms',
+        'https://www.youtube.com/watch?v=h4T55MftnRc',
+        'https://www.youtube.com/watch?v=YYKOlLgQigA',
+      ];
+      const repeatedVideoLinks = await this.resultModel.aggregate([
+        { $match: { videoLink: { $exists: true, $nin: knownDuplicates } } },
+        { $group: { _id: '$videoLink', count: { $sum: 1 } } },
+        { $match: { count: { $gt: 1 } } },
+      ]);
+
+      if (repeatedVideoLinks.length > 0) {
+        console.log('These video links have multiple results:', repeatedVideoLinks);
+      }
+
+      // Look for duplicate discussion links
+      knownDuplicates = [
+        'https://www.speedsolving.com/forum/threads/6x6-blindfolded-rankings-thread.41968/page-11#post-1212891',
+      ];
+      const repeatedDiscussionLinks = await this.resultModel.aggregate([
+        { $match: { discussionLink: { $exists: true, $nin: knownDuplicates } } },
+        { $group: { _id: '$discussionLink', count: { $sum: 1 } } },
+        { $match: { count: { $gt: 1 } } },
+      ]);
+
+      if (repeatedDiscussionLinks.length > 0) {
+        console.log('These discussion links have multiple results:', repeatedDiscussionLinks);
+      }
+
+      // Look for orphan rounds or ones that belong to multiple contests
       const rounds = await this.roundModel.find().exec();
 
       for (const round of rounds) {
@@ -305,9 +338,9 @@ export class ResultsService {
     };
   }
 
-  async getTotalUnapprovedSubmittedResults(): Promise<number> {
+  async getTotalResults(queryFilter: any = {}): Promise<number> {
     try {
-      return await this.resultModel.countDocuments({ competitionId: { $exists: false }, unapproved: true }).exec();
+      return await this.resultModel.countDocuments(queryFilter).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

@@ -17,7 +17,7 @@ export const eventCategories = [
   },
   {
     title: 'Extreme BLD',
-    shortTitle: 'BLD!',
+    shortTitle: 'BLD',
     value: 'extremebld',
     group: EventGroup.ExtremeBLD,
     description: 'These events are submission-only and require video evidence',

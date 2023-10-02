@@ -1,10 +1,11 @@
 import myFetch from '~/helpers/myFetch';
-import RankingsTable from '~/app/components/RankingsTable';
-import { IEvent, IEventRankings } from '@sh/interfaces';
-import EventButtons from '~/app/components/EventButtons';
 import Link from 'next/link';
-import { EventGroup, RoundFormat } from '~/shared_helpers/enums';
+import RankingsTable from '~/app/components/RankingsTable';
+import EventButtons from '~/app/components/EventButtons';
 import EventTitle from '~/app/components/EventTitle';
+import { IEvent, IEventRankings } from '@sh/interfaces';
+import { EventGroup, RoundFormat } from '@sh/enums';
+import C from '@sh/constants';
 
 // SEO
 export const metadata = {
@@ -29,7 +30,7 @@ const RankingsPage = async ({
   // Refreshes rankings every 5 minutes
   const { payload: eventRankings }: { payload?: IEventRankings } = await myFetch.get(
     `/results/rankings/${eventId}/${singleOrAvg}${searchParams.show ? '?show=results' : ''}`,
-    { revalidate: 300 },
+    { revalidate: C.rankingsRevalidate },
   );
   const { payload: events }: { payload?: IEvent[] } = await myFetch.get('/events');
 

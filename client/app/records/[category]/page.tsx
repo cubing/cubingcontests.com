@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
-import Tabs from '~/app/components/Tabs';
-import RankingsTable from '~/app/components/RankingsTable';
-import RankingLinks from '~/app/components/RankingLinks';
-import EventTitle from '~/app/components/EventTitle';
-import Solves from '~/app/components/Solves';
-import Competitor from '~/app/components/Competitor';
+import Tabs from '@c/Tabs';
+import RankingsTable from '@c/RankingsTable';
+import RankingLinks from '@c/RankingLinks';
+import EventTitle from '@c/EventTitle';
+import Solves from '@c/Solves';
+import Competitor from '@c/Competitor';
 import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
+import C from '@sh/constants';
 
 // SEO
 export const metadata = {
@@ -26,7 +27,7 @@ export const metadata = {
 const RecordsPage = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
   const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await myFetch.get('/results/records/WR', {
-    revalidate: 300,
+    revalidate: C.rankingsRevalidate,
   });
 
   // Gets just the events for the current records category

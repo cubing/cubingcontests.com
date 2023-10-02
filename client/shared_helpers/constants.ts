@@ -3,7 +3,11 @@
 
 const C = {
   contactEmail: 'cube327@tuta.io',
-  fetchThrottleTimeout: 600, // the timeout between doing repetitive fetch requests that need to be limited
+  fetchThrottleTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
+  rankingsRevalidate: 300, // 5 minutes
+  contestsRevalidate: 60, // 1 minute
+  contestInfoRevalidate: 120, // 2 minutes
+  contestResultsRevalidate: 30, // 30 seconds
   maxRounds: 10, // maximum number of rounds allowed
   maxTime: 8640000, // 24 hours
   minCompetitorLimit: 5,
