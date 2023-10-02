@@ -149,12 +149,12 @@ const ContestForm = ({
   const activityOptions = useMemo(() => {
     const output: MultiChoiceOption[] = [];
 
-    for (const compEvent of contestEvents) {
-      for (const round of compEvent.rounds) {
+    for (const contestEvent of contestEvents) {
+      for (const round of contestEvent.rounds) {
         // Add all rounds not already added to the schedule as activity code options
         if (!rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId))) {
           output.push({
-            label: `${compEvent.event.name} ${roundTypes[round.roundTypeId].label}`,
+            label: `${contestEvent.event.name} ${roundTypes[round.roundTypeId].label}`,
             value: round.roundId,
           });
         }
@@ -317,9 +317,9 @@ const ContestForm = ({
 
     // Set the competition ID and date for every round and empty results if there were any from
     // editing the contest, in order to avoid sending too much data to the backend
-    const compEvents = contestEvents.map((compEvent) => ({
-      ...compEvent,
-      rounds: compEvent.rounds.map((round) => ({ ...round, competitionId, date: getRoundDate(round), results: [] })),
+    const processedCompEvents = contestEvents.map((ce) => ({
+      ...ce,
+      rounds: ce.rounds.map((round) => ({ ...round, competitionId, date: getRoundDate(round), results: [] })),
     }));
 
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
@@ -364,7 +364,7 @@ const ContestForm = ({
       description: description.trim() || undefined,
       competitorLimit: competitorLimit || undefined,
       mainEventId,
-      events: compEvents,
+      events: processedCompEvents,
       compDetails,
     };
 
@@ -529,35 +529,35 @@ const ContestForm = ({
   };
 
   const addRound = (eventId: string) => {
-    const compEvent = contestEvents.find((el) => el.event.eventId === eventId);
+    const contestEvent = contestEvents.find((el) => el.event.eventId === eventId);
 
     // Update the currently semi-final round
-    if (compEvent.rounds.length > 2) {
-      const semiRound = compEvent.rounds[compEvent.rounds.length - 2];
-      semiRound.roundTypeId = Object.values(RoundType)[compEvent.rounds.length - 2];
+    if (contestEvent.rounds.length > 2) {
+      const semiRound = contestEvent.rounds[contestEvent.rounds.length - 2];
+      semiRound.roundTypeId = Object.values(RoundType)[contestEvent.rounds.length - 2];
     }
 
     // Update the currently last round
-    const lastRound = compEvent.rounds[compEvent.rounds.length - 1];
+    const lastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
     lastRound.proceed = {
       type: RoundProceed.Percentage,
       value: 50,
     };
-    lastRound.roundTypeId = compEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
+    lastRound.roundTypeId = contestEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
 
     // Add new round
-    compEvent.rounds.push(getNewRound(eventId, compEvent.rounds.length + 1));
+    contestEvent.rounds.push(getNewRound(eventId, contestEvent.rounds.length + 1));
 
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? compEvent : el)));
+    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
   };
 
   const removeEventRound = (eventId: string) => {
-    const compEvent = contestEvents.find((el) => el.event.eventId === eventId);
+    const contestEvent = contestEvents.find((el) => el.event.eventId === eventId);
 
     // Remove the schedule activity for that round
     for (const room of rooms) {
       const activityToDelete = room.activities.find(
-        (el) => el.activityCode === compEvent.rounds[compEvent.rounds.length - 1].roundId,
+        (el) => el.activityCode === contestEvent.rounds[contestEvent.rounds.length - 1].roundId,
       );
 
       if (activityToDelete) {
@@ -566,20 +566,20 @@ const ContestForm = ({
       }
     }
 
-    compEvent.rounds = compEvent.rounds.slice(0, -1);
+    contestEvent.rounds = contestEvent.rounds.slice(0, -1);
 
     // Update new final round
-    const newLastRound = compEvent.rounds[compEvent.rounds.length - 1];
+    const newLastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
     delete newLastRound.proceed;
     newLastRound.roundTypeId = RoundType.Final;
 
     // Update new semi final round
-    if (compEvent.rounds.length > 2) {
-      const newSemiRound = compEvent.rounds[compEvent.rounds.length - 2];
+    if (contestEvent.rounds.length > 2) {
+      const newSemiRound = contestEvent.rounds[contestEvent.rounds.length - 2];
       newSemiRound.roundTypeId = RoundType.Semi;
     }
 
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? compEvent : el)));
+    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
   };
 
   const addContestEvent = () => {

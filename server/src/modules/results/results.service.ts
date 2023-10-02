@@ -580,7 +580,7 @@ export class ResultsService {
     }
   }
 
-  async resetRecordsCancelledByPublishedComp(competitionId: string) {
+  async resetRecordsCancelledByPublishedContest(competitionId: string) {
     const recordResults = await this.resultModel
       .find({
         competitionId,

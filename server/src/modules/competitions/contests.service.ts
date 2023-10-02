@@ -240,7 +240,7 @@ export class ContestsService {
         // Unset unapproved from the results so that they can be included in the rankings
         await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
 
-        await this.resultsService.resetRecordsCancelledByPublishedComp(contest.competitionId);
+        await this.resultsService.resetRecordsCancelledByPublishedContest(contest.competitionId);
       } catch (err) {
         throw new InternalServerErrorException('Error while publishing contest:', err.message);
       }
@@ -313,7 +313,12 @@ export class ContestsService {
       for (const round of contestEvent.rounds) {
         // This is only used for the import contest feature and can only be used by an admin
         if (saveResults) {
-          round.results = await this.resultModel.create(round.results.map((r) => ({ ...r, unapproved: true })));
+          round.results = await this.resultModel.create(
+            round.results.map((r) => ({
+              ...r,
+              unapproved: true,
+            })),
+          );
         }
 
         eventRounds.push(await this.roundModel.create(round));
