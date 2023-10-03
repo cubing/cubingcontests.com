@@ -34,11 +34,7 @@ const EventTitle = ({
         </Link>
       )}
 
-      {showDescription && event.description && (
-        <Tooltip id={`${event.eventId}_tooltip`} text={event.description}>
-          <FaQuestionCircle className="fs-6" style={{ color: 'var(--bs-gray-500)' }} />
-        </Tooltip>
-      )}
+      {showDescription && event.description && <Tooltip id={`${event.eventId}_tooltip`} text={event.description} />}
     </h3>
   );
 };

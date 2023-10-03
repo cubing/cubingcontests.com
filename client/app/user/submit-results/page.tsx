@@ -135,9 +135,11 @@ const SubmitResultsPage = () => {
   };
 
   const onVideoLinkFocusOut = () => {
-    if ((videoLink.includes('youtube.com') || videoLink.includes('youtu.be')) && videoLink.includes('&')) {
-      // Remove unnecessary params from youtube links
+    // Remove unnecessary params from youtube links
+    if (videoLink.includes('youtube.com') && videoLink.includes('&')) {
       setVideoLink(videoLink.split('&')[0]);
+    } else if (videoLink.includes('youtu.be') && videoLink.includes('?')) {
+      setVideoLink(videoLink.split('?')[0]);
     }
   };
 

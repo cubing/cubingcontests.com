@@ -1,15 +1,18 @@
 'use client';
 
 import { useEffect } from 'react';
+import { FaQuestionCircle } from 'react-icons/fa';
 
 const tooltipWidth = 200;
 const horizontalPadding = 10;
 
-const Tooltip = ({ id, text, children }: { id: string; text: string; children: React.ReactNode }) => {
+const Tooltip = ({ id, text }: { id: string; text: string }) => {
+  useEffect(() => {
+    window.addEventListener('resize', limitTooltipPosition);
+  }, []);
+
   useEffect(() => {
     limitTooltipPosition();
-
-    window.addEventListener('resize', limitTooltipPosition);
   }, [id]);
 
   // Limits the tooltip's horizontal position so that it doesn't go beyond the edge of the screen
@@ -43,14 +46,14 @@ const Tooltip = ({ id, text, children }: { id: string; text: string; children: R
           <div
             id={id}
             className="position-absolute p-3 rounded bg-black text-white fs-6"
-            style={{ width: `${tooltipWidth}px`, left: `${-tooltipWidth / 2}px` }}
+            style={{ width: `${tooltipWidth}px`, left: `${-tooltipWidth / 2}px`, whiteSpace: 'pre-wrap' }}
           >
             {text}
           </div>
         </div>
       </div>
 
-      {children}
+      <FaQuestionCircle className="m-1 fs-6" style={{ color: 'var(--bs-gray-500)' }} />
     </div>
   );
 };

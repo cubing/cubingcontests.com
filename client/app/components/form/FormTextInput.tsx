@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import Tooltip from '../Tooltip';
 
 const FormTextInput = ({
   id,
   title,
-  value,
   placeholder = '',
+  tooltip,
+  value,
   onChange,
   onFocus,
   onBlur,
@@ -22,6 +24,7 @@ const FormTextInput = ({
   id?: string;
   title?: string;
   placeholder?: string;
+  tooltip?: string;
   value: string;
   onChange: (val: any) => void;
   onFocus?: () => void;
@@ -56,9 +59,12 @@ const FormTextInput = ({
   return (
     <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
       {title && (
-        <label htmlFor={inputId} className="form-label">
-          {title}
-        </label>
+        <span className="d-flex align-items-center gap-2 mb-2">
+          <label htmlFor={inputId} className="form-label mb-1">
+            {title}
+          </label>
+          {tooltip && <Tooltip id={`${inputId}_tooltip`} text={tooltip} />}
+        </span>
       )}
       <div className="d-flex justify-content-between align-items-center gap-3">
         <input

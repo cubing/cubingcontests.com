@@ -12,6 +12,8 @@ import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
 const userInfo: IUserInfo = getUserInfo();
 const MAX_MATCHES = 6;
+const personInputTooltip =
+  "Enter the competitor's name if they are already on Cubing Contests. If not, enter their full WCA ID to add them.";
 
 const FormPersonInputs = ({
   title,
@@ -225,8 +227,9 @@ const FormPersonInputs = ({
       {personNames.map((personName: string, inputIndex: number) => (
         <div key={inputIndex} className={personNames.length > 1 && !noGrid ? 'col-md-6' : ''}>
           <FormTextInput
-            title={(personNames.length > 1 ? `${title} ${inputIndex + 1}` : title) + ' (WCA ID or name)'}
             id={`${title}_${inputIndex + 1}`}
+            title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
+            tooltip={inputIndex === 0 ? personInputTooltip : undefined}
             value={personName}
             onChange={(val: string) => changePersonName(inputIndex, val)}
             onKeyDown={(e: any) => onPersonKeyDown(inputIndex, e)}
