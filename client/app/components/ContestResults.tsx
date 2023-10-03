@@ -19,7 +19,6 @@ const ContestResults = ({
   const events = contest.events.map((el) => el.event);
 
   const selectEvent = (eventId: string) => {
-    console.log(contest.events.find((el) => el.event.eventId === eventId));
     setSelectedEvent(contest.events.find((el) => el.event.eventId === eventId));
   };
 

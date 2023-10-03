@@ -35,7 +35,7 @@ const EventTitle = ({
       )}
 
       {showDescription && event.description && (
-        <Tooltip text={event.description}>
+        <Tooltip id={`${event.eventId}_tooltip`} text={event.description}>
           <FaQuestionCircle className="fs-6" style={{ color: 'var(--bs-gray-500)' }} />
         </Tooltip>
       )}
