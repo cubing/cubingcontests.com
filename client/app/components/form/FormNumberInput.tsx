@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import FormInputLabel from './FormInputLabel';
+import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
 const FormNumberInput = ({
   id,
@@ -11,6 +12,7 @@ const FormNumberInput = ({
   value,
   onChange,
   onKeyDown,
+  nextFocusTargetId,
   disabled = false,
   integer = false,
   min = -Infinity,
@@ -26,6 +28,7 @@ const FormNumberInput = ({
   value: number | null | undefined;
   onChange: (val: number) => void;
   onKeyDown?: (e: any) => void;
+  nextFocusTargetId?: string;
   disabled?: boolean;
   integer?: boolean;
   min?: number;
@@ -65,11 +68,6 @@ const FormNumberInput = ({
     }
   };
 
-  const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter') e.preventDefault();
-    if (onKeyDown) onKeyDown(e);
-  };
-
   return (
     <div className={`fs-5 ${noMargin ? '' : 'mb-3'}`}>
       {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
@@ -79,7 +77,7 @@ const FormNumberInput = ({
         value={displayValue}
         placeholder={placeholder}
         onChange={(e: any) => validateAndChange(e.target.value)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId, onKeyDown })}
         disabled={disabled}
         className={`form-control ${value === null || invalid ? 'is-invalid' : ''}`}
       />

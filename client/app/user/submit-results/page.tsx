@@ -130,10 +130,6 @@ const SubmitResultsPage = () => {
     }
   };
 
-  const onVideoLinkKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('discussion_link').focus();
-  };
-
   const onVideoLinkFocusOut = () => {
     // Remove unnecessary params from youtube links
     if (videoLink.includes('youtube.com') && videoLink.includes('&')) {
@@ -141,10 +137,6 @@ const SubmitResultsPage = () => {
     } else if (videoLink.includes('youtu.be') && videoLink.includes('?')) {
       setVideoLink(videoLink.split('?')[0]);
     }
-  };
-
-  const onDiscussionLinkKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('submit_button').focus();
   };
 
   if (resultsSubmissionInfo) {
@@ -210,8 +202,8 @@ const SubmitResultsPage = () => {
             placeholder="E.g: https://youtube.com/watch?v=xyz"
             value={videoLink}
             onChange={setVideoLink}
-            onKeyDown={onVideoLinkKeyDown}
             onBlur={onVideoLinkFocusOut}
+            nextFocusTargetId="discussion_link"
             disabled={videoUnavailable}
           />
           {userInfo.isAdmin && (
@@ -228,7 +220,7 @@ const SubmitResultsPage = () => {
             placeholder="E.g: https://speedsolving.com/threads/xyz"
             value={discussionLink}
             onChange={setDiscussionLink}
-            onKeyDown={onDiscussionLinkKeyDown}
+            nextFocusTargetId="submit_button"
           />
           <Button
             id="submit_button"

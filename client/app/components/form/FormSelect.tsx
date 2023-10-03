@@ -1,6 +1,8 @@
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import FormInputLabel from './FormInputLabel';
 
 const FormSelect = ({
+  id,
   title,
   options,
   selected,
@@ -8,6 +10,7 @@ const FormSelect = ({
   disabled = false,
   noMargin = false,
 }: {
+  id?: string;
   title?: string;
   options: MultiChoiceOption[];
   selected: string | number;
@@ -15,18 +18,16 @@ const FormSelect = ({
   disabled?: boolean;
   noMargin?: boolean;
 }) => {
-  let id = 'select';
-  if (title) id += `_${title.toLowerCase().replaceAll(' ', '_')}`;
+  let inputId = 'select';
+
+  if (id) inputId = id;
+  else if (title) inputId = `${title.toLowerCase().replaceAll(' ', '_')}_select`;
 
   return (
     <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
-      {title && (
-        <label htmlFor={id} className="form-label">
-          {title}
-        </label>
-      )}
+      {title && <FormInputLabel text={title} inputId={inputId} />}
       <select
-        id={id}
+        id={inputId}
         className="form-select"
         value={selected}
         onChange={(e) => setSelected(typeof selected === 'string' ? e.target.value.toString() : Number(e.target.value))}

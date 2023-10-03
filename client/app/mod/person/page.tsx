@@ -149,21 +149,9 @@ const CreatePersonPage = () => {
     resetMessages();
   };
 
-  const onNameKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('localized_name').focus();
-  };
-
   const changeLocalizedName = (value: string) => {
     setLocalizedName(value);
     resetMessages();
-  };
-
-  const onLocNameKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('country_iso_2').focus();
-  };
-
-  const onCountryKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById('form_submit_button').focus();
   };
 
   const resetMessages = () => {
@@ -208,7 +196,7 @@ const CreatePersonPage = () => {
           id="full_name"
           value={name}
           onChange={changeName}
-          onKeyDown={onNameKeyDown}
+          nextFocusTargetId="localized_name"
           disabled={!noWcaId}
         />
         <FormTextInput
@@ -216,13 +204,13 @@ const CreatePersonPage = () => {
           id="localized_name"
           value={localizedName}
           onChange={changeLocalizedName}
-          onKeyDown={onLocNameKeyDown}
+          nextFocusTargetId="country_iso_2"
           disabled={!noWcaId}
         />
         <FormCountrySelect
           countryIso2={countryIso2}
           setCountryId={setCountryIso2}
-          onKeyDown={onCountryKeyDown}
+          nextFocusTargetId="form_submit_button"
           disabled={!noWcaId}
         />
       </Form>

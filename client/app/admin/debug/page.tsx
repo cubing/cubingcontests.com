@@ -9,7 +9,14 @@ const DebugPage = () => {
 
   const onDebugInputKeyDown = (e: any) => {
     console.log('Event:', e);
-    setDebugOutput(`key: "${e.key}", keyCode: "${e.keyCode}", which: "${e.which}"`);
+
+    const output = `key: "${e.key}"
+keyCode: "${e.keyCode}"
+nativeEvent.key: "${e.nativeEvent?.keyCode}"
+nativeEvent.code: "${e.nativeEvent?.keyCode}"
+nativeEvent.code: "${e.nativeEvent?.code}"`;
+
+    setDebugOutput(output);
   };
 
   return (
@@ -17,7 +24,9 @@ const DebugPage = () => {
       <div className="mx-auto px-3" style={{ maxWidth: '768px' }}>
         <h2 className="text-center">Page for debugging</h2>
 
-        <p className="mt-5 mb-4 fs-5">{debugOutput}</p>
+        <p className="mt-5 mb-4 fs-5" style={{ whiteSpace: 'pre-wrap' }}>
+          {debugOutput}
+        </p>
 
         <FormTextInput
           title="Debug input"

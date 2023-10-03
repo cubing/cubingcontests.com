@@ -156,23 +156,28 @@ const CreateEditEventPage = () => {
             title="Event name"
             value={name}
             onChange={setName}
+            nextFocusTargetId="event_id"
             disabled={loadingDuringSubmit}
           />
           <div className="row">
             <div className="col">
               <FormTextInput
+                id="event_id"
                 title="Event ID"
                 value={newEventId}
                 onChange={setNewEventId}
+                nextFocusTargetId="rank"
                 disabled={(mode === 'edit' && !eventIdUnlocked) || loadingDuringSubmit}
               />
             </div>
             <div className="col">
               <FormNumberInput
+                id="rank"
                 title="Rank"
                 tooltip="Determines the order of the events"
                 value={rank}
                 onChange={setRank}
+                nextFocusTargetId="default_format"
                 disabled={loadingDuringSubmit}
                 integer
                 min={1}
@@ -185,6 +190,7 @@ const CreateEditEventPage = () => {
           <div className="row">
             <div className="col">
               <FormSelect
+                id="default_format"
                 title="Default format"
                 options={roundFormatOptions}
                 selected={defaultRoundFormat}

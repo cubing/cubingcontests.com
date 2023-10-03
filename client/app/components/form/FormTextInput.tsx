@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import FormInputLabel from './FormInputLabel';
+import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
 const FormTextInput = ({
   id,
@@ -12,6 +13,7 @@ const FormTextInput = ({
   onFocus,
   onBlur,
   onKeyDown,
+  nextFocusTargetId,
   autoFocus = false,
   required = false,
   disabled = false,
@@ -30,6 +32,7 @@ const FormTextInput = ({
   onFocus?: () => void;
   onBlur?: () => void;
   onKeyDown?: (e: any) => void;
+  nextFocusTargetId?: string;
   autoFocus?: boolean;
   required?: boolean;
   disabled?: boolean;
@@ -44,11 +47,6 @@ const FormTextInput = ({
   const [hidePassword, setHidePassword] = useState(password);
 
   const inputId = id || title;
-
-  const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter' && !submitOnEnter) e.preventDefault();
-    if (onKeyDown) onKeyDown(e);
-  };
 
   const handleFocus = (e: any) => {
     // Prevent the whole input from being highlighted
@@ -69,7 +67,7 @@ const FormTextInput = ({
           disabled={disabled}
           required={required}
           onChange={(e: any) => onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId, onKeyDown, submitOnEnter })}
           onFocus={(e: any) => handleFocus(e)}
           onBlur={onBlur}
           className={'form-control flex-grow-1' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}

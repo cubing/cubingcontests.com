@@ -52,18 +52,42 @@ const LoginPage = () => {
     setErrorMessages(tempErrors);
   };
 
+  const changeUsername = (newValue: string) => {
+    setUsername(newValue);
+    setErrorMessages([]);
+  };
+
+  const changePassword = (newValue: string) => {
+    setPassword(newValue);
+    setErrorMessages([]);
+  };
+
   return (
-    <>
+    <div>
       <h2 className="mb-4 text-center">Login</h2>
 
       <Form buttonText="Log in" errorMessages={errorMessages} onSubmit={handleSubmit}>
-        <FormTextInput id="username" title="Username" value={username} onChange={setUsername} autoFocus submitOnEnter />
-        <FormTextInput id="password" title="Password" value={password} onChange={setPassword} password submitOnEnter />
+        <FormTextInput
+          id="username"
+          title="Username"
+          value={username}
+          onChange={changeUsername}
+          nextFocusTargetId="password"
+          autoFocus
+        />
+        <FormTextInput
+          id="password"
+          title="Password"
+          value={password}
+          onChange={changePassword}
+          password
+          submitOnEnter
+        />
         <Link href="/register" className="d-block mt-4 fs-5">
           Create account
         </Link>
       </Form>
-    </>
+    </div>
   );
 };
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import parseISO from 'date-fns/parseISO';
 import isValid from 'date-fns/isValid';
 import { format } from 'date-fns';
+import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
 const FormDateInput = ({
   id,
@@ -16,7 +17,7 @@ const FormDateInput = ({
   title: string;
   value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
   setValue: (val: Date | null | undefined) => void;
-  nextFocusTargetId: string;
+  nextFocusTargetId?: string;
 }) => {
   const [dateText, setDateText] = useState('');
   const [position, setPosition] = useState(0);
@@ -69,8 +70,7 @@ const FormDateInput = ({
 
   const onKeyDown = (e: any) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
-      document.getElementById(nextFocusTargetId)?.focus();
+      genericOnKeyDown(e, { nextFocusTargetId });
     } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
       e.preventDefault();
     }

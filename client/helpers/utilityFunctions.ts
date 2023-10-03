@@ -375,3 +375,19 @@ export const getContestIdFromName = (name: string): string => {
 
   return output;
 };
+
+export const genericOnKeyDown = (
+  e: any,
+  {
+    nextFocusTargetId,
+    onKeyDown,
+    submitOnEnter,
+  }: { nextFocusTargetId?: string; onKeyDown?: (e: any) => void; submitOnEnter?: boolean },
+) => {
+  if (e.key === 'Enter') {
+    if (!submitOnEnter) e.preventDefault();
+    if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
+  }
+
+  if (onKeyDown) onKeyDown(e);
+};

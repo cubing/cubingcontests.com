@@ -1,6 +1,7 @@
 'use client';
 
 import Countries from '@sh/Countries';
+import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
 // Add not selected option and remove online option
 const countries = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countries.slice(1)];
@@ -8,20 +9,14 @@ const countries = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countrie
 const FormCountrySelect = ({
   countryIso2,
   setCountryId,
-  onKeyDown,
+  nextFocusTargetId,
   disabled = false,
 }: {
   countryIso2: string;
   setCountryId: any;
-  onKeyDown?: (e: any) => void;
+  nextFocusTargetId?: string;
   disabled?: boolean;
 }) => {
-  const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter') e.preventDefault();
-
-    if (onKeyDown) onKeyDown(e);
-  };
-
   return (
     <div className="mb-3 fs-5">
       <label htmlFor="country_iso_2" className="form-label">
@@ -32,7 +27,7 @@ const FormCountrySelect = ({
         className="form-select"
         value={countryIso2}
         onChange={(e) => setCountryId(e.target.value)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId })}
         disabled={disabled}
       >
         {countries.map((el) => (

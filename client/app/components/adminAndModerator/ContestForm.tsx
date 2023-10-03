@@ -976,15 +976,26 @@ const ContestForm = ({
             <h3 className="mb-3">Rooms</h3>
             <div className="row">
               <div className="col-8">
-                <FormTextInput title="Room name" value={roomName} onChange={setRoomName} />
+                <FormTextInput
+                  title="Room name"
+                  value={roomName}
+                  onChange={setRoomName}
+                  disabled={disableIfCompFinished}
+                />
               </div>
               <div className="col-3">
-                <FormSelect title="Color" options={colorOptions} selected={roomColor} setSelected={setRoomColor} />
+                <FormSelect
+                  title="Color"
+                  options={colorOptions}
+                  selected={roomColor}
+                  setSelected={setRoomColor}
+                  disabled={disableIfCompFinished}
+                />
               </div>
               <div className="col-1 d-flex align-items-end">
                 <span
                   style={{
-                    marginBottom: '19px',
+                    marginBottom: '23px',
                     width: '100%',
                     height: '2rem',
                     borderRadius: '5px',
