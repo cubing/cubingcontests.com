@@ -32,7 +32,6 @@ const CreateEditEventPage = () => {
   const [defaultRoundFormat, setDefaultRoundFormat] = useState(RoundFormat.Average);
   const [participants, setParticipants] = useState(1);
   const [category, setCategory] = useState(EventGroup.Miscellaneous);
-  const [meetupOnly, setMeetupOnly] = useState(false);
   const [submissionsAllowed, setSubmissionsAllowed] = useState(false);
   const [removedWCA, setRemovedWCA] = useState(false);
   const [hasMemo, setHasMemo] = useState(false);
@@ -83,7 +82,6 @@ const CreateEditEventPage = () => {
       description: description || undefined,
     };
 
-    if (meetupOnly) newEvent.groups.push(EventGroup.MeetupOnly);
     if (submissionsAllowed) newEvent.groups.push(EventGroup.SubmissionsAllowed);
     if (removedWCA) newEvent.groups.push(EventGroup.RemovedWCA);
     if (hasMemo) newEvent.groups.push(EventGroup.HasMemo);
@@ -121,7 +119,6 @@ const CreateEditEventPage = () => {
     setDefaultRoundFormat(event.defaultRoundFormat);
     setParticipants(event.participants || 1);
     setCategory(event.groups.find((g) => eventCategories.some((ec) => ec.group === g)));
-    setMeetupOnly(event.groups.includes(EventGroup.MeetupOnly));
     setSubmissionsAllowed(event.groups.includes(EventGroup.SubmissionsAllowed));
     setRemovedWCA(event.groups.includes(EventGroup.RemovedWCA));
     setHasMemo(event.groups.includes(EventGroup.HasMemo));
@@ -185,7 +182,7 @@ const CreateEditEventPage = () => {
           <div className="row">
             <div className="col">
               <FormSelect
-                title="Default round format"
+                title="Default format"
                 options={roundFormatOptions}
                 selected={defaultRoundFormat}
                 setSelected={setDefaultRoundFormat}
@@ -220,12 +217,6 @@ const CreateEditEventPage = () => {
             />
           </div>
           <h5 className="mb-4">Options</h5>
-          <FormCheckbox
-            title="Meetup-only"
-            selected={meetupOnly}
-            setSelected={setMeetupOnly}
-            disabled={loadingDuringSubmit}
-          />
           <FormCheckbox
             title="Allow submissions"
             selected={submissionsAllowed}

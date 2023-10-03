@@ -100,9 +100,7 @@ const ContestForm = ({
   );
   const filteredEvents = useMemo(() => {
     const newFiltEv = events.filter(
-      (ev) =>
-        (isAdmin || ev.groups.some((g) => ![EventGroup.ExtremeBLD, EventGroup.Removed].includes(g))) &&
-        (type === ContestType.Meetup || !ev.groups.includes(EventGroup.MeetupOnly)),
+      (ev) => isAdmin || !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)),
     );
 
     // Reset new event ID and main event ID if new filtered events don't include them
@@ -383,10 +381,6 @@ const ContestForm = ({
 
     if (contestEvents.length > 0 && !contestEvents.some((el) => el.event.eventId === mainEventId))
       tempErrors.push('The selected main event is not on the list of events');
-
-    const meetupOnlyCompEvent = contestEvents.find((el) => el.event.groups.includes(EventGroup.MeetupOnly));
-    if (type !== ContestType.Meetup && meetupOnlyCompEvent)
-      tempErrors.push(`The event ${meetupOnlyCompEvent.event.name} is only allowed for meetups`);
 
     if (type === ContestType.Competition) {
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');

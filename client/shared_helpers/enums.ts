@@ -12,7 +12,7 @@ export enum EventGroup {
   Miscellaneous = 11, // ...from 3000
   Removed = 4, // ...from 4000
 
-  MeetupOnly = 5,
+  // MeetupOnly = 5,
   SubmissionsAllowed = 6,
   // Team = 7,
   RemovedWCA = 8, // e.g. magic, mmagic, 333ft, 333mbo
