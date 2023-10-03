@@ -164,12 +164,13 @@ const CreateEditEventPage = () => {
                 title="Event ID"
                 value={newEventId}
                 onChange={setNewEventId}
-                disabled={!eventIdUnlocked || loadingDuringSubmit}
+                disabled={(mode === 'edit' && !eventIdUnlocked) || loadingDuringSubmit}
               />
             </div>
             <div className="col">
               <FormNumberInput
-                title="Rank (determines event order)"
+                title="Rank"
+                tooltip="Determines the order of the events"
                 value={rank}
                 onChange={setRank}
                 disabled={loadingDuringSubmit}
@@ -178,7 +179,9 @@ const CreateEditEventPage = () => {
               />
             </div>
           </div>
-          <FormCheckbox title="Unlock event ID" selected={eventIdUnlocked} setSelected={setEventIdUnlocked} />
+          {mode === 'edit' && (
+            <FormCheckbox title="Unlock event ID" selected={eventIdUnlocked} setSelected={setEventIdUnlocked} />
+          )}
           <div className="row">
             <div className="col">
               <FormSelect

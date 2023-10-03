@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import FormInputLabel from './FormInputLabel';
 
 const FormNumberInput = ({
   id,
   title,
   placeholder,
+  tooltip,
   value,
   onChange,
   onKeyDown,
@@ -19,6 +21,7 @@ const FormNumberInput = ({
   id?: string;
   title?: string;
   placeholder?: string;
+  tooltip?: string;
   // undefined is the empty value, null is the invalid value
   value: number | null | undefined;
   onChange: (val: number) => void;
@@ -69,11 +72,7 @@ const FormNumberInput = ({
 
   return (
     <div className={`fs-5 ${noMargin ? '' : 'mb-3'}`}>
-      {title && (
-        <label htmlFor={inputId} className="form-label">
-          {title}
-        </label>
-      )}
+      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
       <input
         type="text"
         id={inputId}
