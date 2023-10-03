@@ -176,11 +176,15 @@ export class ContestsService {
     contest.events = await this.updateContestEvents(contest, updateContestDto.events);
     if (updateContestDto.compDetails) {
       if (contest.compDetails) {
-        await this.scheduleModel.updateOne(
-          { _id: contest.compDetails.schedule._id },
-          updateContestDto.compDetails.schedule,
-        );
-      } else {
+        if (isAdmin || contest.state < ContestState.Finished) {
+          await this.scheduleModel.updateOne(
+            { _id: contest.compDetails.schedule._id },
+            updateContestDto.compDetails.schedule,
+          );
+        }
+      }
+      // compDetails might be undefined if the contest was imported
+      else {
         contest.compDetails = {
           schedule: await this.scheduleModel.create(updateContestDto.compDetails.schedule),
         };

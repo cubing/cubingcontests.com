@@ -163,7 +163,6 @@ const ContestForm = ({
     setActivityCode(output[0].value as string); // set selected activity code as the first available option
     return output;
   }, [contestEvents, rooms]);
-  const isEditableSchedule = useMemo(() => !contest || contest.state < ContestState.Approved, [contest]);
   const isValidActivity = useMemo(
     () =>
       activityCode &&
@@ -994,7 +993,12 @@ const ContestForm = ({
                 ></span>
               </div>
             </div>
-            <button type="button" className="mt-3 mb-2 btn btn-success" disabled={!roomName.trim()} onClick={addRoom}>
+            <button
+              type="button"
+              className="mt-3 mb-2 btn btn-success"
+              disabled={disableIfCompFinished || !roomName.trim()}
+              onClick={addRoom}
+            >
               Create
             </button>
             <hr />
@@ -1006,7 +1010,7 @@ const ContestForm = ({
                   options={roomOptions}
                   selected={selectedRoom}
                   setSelected={setSelectedRoom}
-                  disabled={rooms.length === 0}
+                  disabled={disableIfCompFinished || rooms.length === 0}
                 />
               </div>
               <div className="col">
@@ -1015,12 +1019,17 @@ const ContestForm = ({
                   options={activityOptions}
                   selected={activityCode}
                   setSelected={setActivityCode}
-                  disabled={!selectedRoom}
+                  disabled={disableIfCompFinished || !selectedRoom}
                 />
               </div>
             </div>
             {activityCode === 'other-misc' && (
-              <FormTextInput title="Custom activity" value={customActivity} onChange={setCustomActivity} />
+              <FormTextInput
+                title="Custom activity"
+                value={customActivity}
+                onChange={setCustomActivity}
+                disabled={disableIfCompFinished}
+              />
             )}
             <div className="mb-3 row">
               <div className="col">
@@ -1036,6 +1045,7 @@ const ContestForm = ({
                   dateFormat="Pp"
                   locale="en-GB"
                   onChange={(date: Date) => changeActivityStartTime(date)}
+                  disabled={disableIfCompFinished}
                   className="form-control"
                 />
               </div>
@@ -1051,6 +1061,7 @@ const ContestForm = ({
                   timeIntervals={5}
                   dateFormat="HH:mm"
                   onChange={(date: Date) => changeActivityEndTime(date)}
+                  disabled={disableIfCompFinished}
                   className="form-control"
                 />
               </div>
@@ -1058,7 +1069,7 @@ const ContestForm = ({
             <button
               type="button"
               className="mt-3 mb-2 btn btn-success"
-              disabled={!isValidActivity}
+              disabled={disableIfCompFinished || !isValidActivity}
               onClick={addActivity}
             >
               Add to schedule
@@ -1072,7 +1083,7 @@ const ContestForm = ({
           rooms={rooms}
           contestEvents={contestEvents}
           timezone={venueTimezone}
-          onDeleteActivity={isEditableSchedule ? (id: number) => deleteActivity(id) : undefined}
+          onDeleteActivity={disableIfCompFinished ? undefined : (id: number) => deleteActivity(id)}
         />
       )}
     </div>

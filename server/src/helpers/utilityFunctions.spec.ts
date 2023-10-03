@@ -1,7 +1,7 @@
 import { setRankings } from './utilityFunctions';
 import { RoundDocument } from '../models/round.model';
 import { ResultDocument } from '../models/result.model';
-import { unrankedRoundsStub } from '../modules/competitions/tests/stubs/unranked-rounds';
+import { unrankedRoundsStub } from '../modules/contests/tests/stubs/unranked-rounds';
 import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
 
 describe('setRankings works correctly', () => {

@@ -4,7 +4,7 @@ import { WcaRecordType } from '@sh/enums';
 import {
   newContestEventsStub,
   newFakeContestEventsStub,
-} from '~/src/modules/competitions/tests/stubs/new-competition-events.stub';
+} from '~/src/modules/contests/tests/stubs/new-competition-events.stub';
 
 describe('compareSingles', () => {
   it('compares singles correctly when a < b', () => {

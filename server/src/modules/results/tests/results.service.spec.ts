@@ -15,8 +15,8 @@ import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
 import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
-import { RoundModelMock } from '@m/competitions/tests/mocks/round.model';
-import { CompetitionModelMock } from '@m/competitions/tests/mocks/contest.model';
+import { RoundModelMock } from '~/src/modules/contests/tests/mocks/round.model';
+import { CompetitionModelMock } from '~/src/modules/contests/tests/mocks/contest.model';
 import { AuthServiceMock } from '@m/auth/tests/mocks/auth.service';
 import { CreateResultDto } from '../dto/create-result.dto';
 
