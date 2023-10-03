@@ -5,7 +5,7 @@ import C from '@sh/constants';
 
 const ContestResultsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
-    revalidate: C.contestResultsRevalidate,
+    revalidate: C.contestResultsRev,
   });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
 

@@ -27,7 +27,7 @@ export const metadata = {
 const RecordsPage = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
   const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await myFetch.get('/results/records/WR', {
-    revalidate: C.rankingsRevalidate,
+    revalidate: C.rankingsRev,
   });
 
   // Gets just the events for the current records category

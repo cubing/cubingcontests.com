@@ -131,7 +131,7 @@ const CreateEditEventPage = () => {
     window.scrollTo(0, 0);
   };
 
-  const reset = (newMode: Mode = 'view') => {
+  const reset = (newMode: Mode) => {
     setErrorMessages([]);
     setEventIdUnlocked(false);
     setMode(newMode);
@@ -151,7 +151,7 @@ const CreateEditEventPage = () => {
           errorMessages={errorMessages}
           onSubmit={handleSubmit}
           showCancelButton
-          onCancel={reset}
+          onCancel={() => reset('view')}
           disableButton={loadingDuringSubmit}
         >
           <FormTextInput

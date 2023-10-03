@@ -20,6 +20,8 @@ restart_containers() {
 }
 
 if [ "$1" == "--revert" ]; then
+  echo "THIS IS UNSUPPORTED"
+  exit
 
   #### REVERT TO PREVIOUS VERSION ####
 

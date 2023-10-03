@@ -15,9 +15,7 @@ export const metadata = {
     "rankings rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: '/favicon.png' },
   metadataBase: new URL('https://cubingcontests.com'),
-  openGraph: {
-    images: ['/api/cubing_contests_4.jpg'],
-  },
+  openGraph: { images: ['/api/cubing_contests_4.jpg'] },
 };
 
 const RankingsPage = async ({
@@ -30,9 +28,9 @@ const RankingsPage = async ({
   // Refreshes rankings every 5 minutes
   const { payload: eventRankings }: { payload?: IEventRankings } = await myFetch.get(
     `/results/rankings/${eventId}/${singleOrAvg}${searchParams.show ? '?show=results' : ''}`,
-    { revalidate: C.rankingsRevalidate },
+    { revalidate: C.rankingsRev },
   );
-  const { payload: events }: { payload?: IEvent[] } = await myFetch.get('/events');
+  const { payload: events }: { payload?: IEvent[] } = await myFetch.get('/events', { revalidate: C.rankingsRev });
 
   const currEvent = events?.find((el) => el.eventId === eventId);
 

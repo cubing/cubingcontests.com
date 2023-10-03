@@ -16,7 +16,7 @@ export const metadata = {
 };
 
 const ContestsPage = async () => {
-  const { payload: contests } = await myFetch.get('/competitions', { revalidate: C.contestsRevalidate });
+  const { payload: contests } = await myFetch.get('/competitions', { revalidate: C.contestsRev });
 
   return (
     <div>

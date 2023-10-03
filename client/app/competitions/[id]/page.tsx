@@ -13,7 +13,7 @@ import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
-    revalidate: C.contestInfoRevalidate,
+    revalidate: C.contestInfoRev,
   });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;

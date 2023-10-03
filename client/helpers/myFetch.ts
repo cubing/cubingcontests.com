@@ -22,7 +22,9 @@ const doFetch = async (
   const options: any = { method, headers: {} };
 
   if (method === 'GET') {
-    options.next = { revalidate };
+    // If authorize is true, that overrides the revalidate timeout
+    if (authorize) options.next = { revalidate: 0 };
+    else options.next = { revalidate };
   } else if (['POST', 'PATCH'].includes(method)) {
     options.headers['Content-type'] = 'application/json';
     if (body) options.body = JSON.stringify(body);
@@ -73,6 +75,7 @@ const doFetch = async (
   if (res.status >= 400) {
     // If unauthorized, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
+      localStorage.removeItem('jwtToken');
       if (!redirect) window.location.href = '/login';
       else window.location.replace(`/login?redirect=${redirect}`);
       return {};
