@@ -181,7 +181,7 @@ const CreatePersonPage = () => {
           id="wca_id"
           monospace
           value={wcaId}
-          onChange={changeWcaId}
+          setValue={changeWcaId}
           autoFocus
           disabled={noWcaId || fetchPersonDataTimer !== null}
         />
@@ -195,7 +195,7 @@ const CreatePersonPage = () => {
           title="Full Name"
           id="full_name"
           value={name}
-          onChange={changeName}
+          setValue={changeName}
           nextFocusTargetId="localized_name"
           disabled={!noWcaId}
         />
@@ -203,7 +203,7 @@ const CreatePersonPage = () => {
           title="Localized Name"
           id="localized_name"
           value={localizedName}
-          onChange={changeLocalizedName}
+          setValue={changeLocalizedName}
           nextFocusTargetId="country_iso_2"
           disabled={!noWcaId}
         />

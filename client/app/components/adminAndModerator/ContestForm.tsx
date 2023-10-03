@@ -709,14 +709,14 @@ const ContestForm = ({
             <FormTextInput
               title="Contest name"
               value={name}
-              onChange={changeName}
+              setValue={changeName}
               autoFocus
               disabled={disableIfCompApproved}
             />
             <FormTextInput
               title="Contest ID"
               value={competitionId}
-              onChange={setCompetitionId}
+              setValue={setCompetitionId}
               disabled={mode === 'edit'}
             />
             <FormRadio
@@ -730,7 +730,7 @@ const ContestForm = ({
               <>
                 <div className="row">
                   <div className="col">
-                    <FormTextInput title="City" value={city} onChange={setCity} disabled={disableIfCompApproved} />
+                    <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfCompApproved} />
                   </div>
                   <div className="col">
                     <FormCountrySelect
@@ -740,16 +740,16 @@ const ContestForm = ({
                     />
                   </div>
                 </div>
-                <FormTextInput title="Address" value={address} onChange={setAddress} disabled={disableIfCompApproved} />
+                <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompApproved} />
                 <div className="row">
                   <div className="col-6">
-                    <FormTextInput title="Venue" value={venue} onChange={setVenue} disabled={disableIfCompApproved} />
+                    <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompApproved} />
                   </div>
                   <div className="col-3">
                     <FormNumberInput
                       title="Latitude"
                       value={latitude}
-                      onChange={(val) => changeCoordinates(val, longitude)}
+                      setValue={(val) => changeCoordinates(val, longitude)}
                       disabled={disableIfCompApprovedEvenForAdmin}
                       min={-90}
                       max={90}
@@ -759,7 +759,7 @@ const ContestForm = ({
                     <FormNumberInput
                       title="Longitude"
                       value={longitude}
-                      onChange={(val) => changeCoordinates(latitude, val)}
+                      setValue={(val) => changeCoordinates(latitude, val)}
                       disabled={disableIfCompApprovedEvenForAdmin}
                       min={-180}
                       max={180}
@@ -836,19 +836,19 @@ const ContestForm = ({
               title="Contact (optional)"
               placeholder="john@example.com"
               value={contact}
-              onChange={setContact}
+              setValue={setContact}
               disabled={disableIfCompFinished}
             />
             <FormTextArea
               title="Description (optional)"
               value={description}
-              onChange={setDescription}
+              setValue={setDescription}
               disabled={disableIfCompFinished}
             />
             <FormNumberInput
               title={'Competitor limit' + (type !== ContestType.Competition ? ' (optional)' : '')}
               value={competitorLimit}
-              onChange={setCompetitorLimit}
+              setValue={setCompetitorLimit}
               disabled={disableIfCompApproved}
               integer
               min={C.minCompetitorLimit}
@@ -922,7 +922,7 @@ const ContestForm = ({
                           <FormNumberInput
                             id="round_proceed_value"
                             value={round.proceed.value}
-                            onChange={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
+                            setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
                             disabled={disableIfCompFinishedEvenForAdmin}
                             integer
                             min={round.proceed.type === RoundProceed.Percentage ? 1 : 2}
@@ -979,7 +979,7 @@ const ContestForm = ({
                 <FormTextInput
                   title="Room name"
                   value={roomName}
-                  onChange={setRoomName}
+                  setValue={setRoomName}
                   disabled={disableIfCompFinished}
                 />
               </div>
@@ -1038,7 +1038,7 @@ const ContestForm = ({
               <FormTextInput
                 title="Custom activity"
                 value={customActivity}
-                onChange={setCustomActivity}
+                setValue={setCustomActivity}
                 disabled={disableIfCompFinished}
               />
             )}

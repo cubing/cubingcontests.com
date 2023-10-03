@@ -4,14 +4,14 @@ const FormTextArea = ({
   id,
   title,
   value,
-  onChange,
+  setValue,
   rows = 10,
   disabled = false,
 }: {
   id?: string;
   title?: string;
   value: string;
-  onChange: (val: string) => void;
+  setValue: (val: string) => void;
   rows?: number;
   disabled?: boolean;
 }) => {
@@ -30,7 +30,7 @@ const FormTextArea = ({
         id={inputId}
         rows={rows}
         value={value}
-        onChange={(e: any) => onChange(e.target.value)}
+        onChange={(e: any) => setValue(e.target.value)}
         className="form-control"
         disabled={disabled}
       />

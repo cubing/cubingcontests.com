@@ -40,13 +40,13 @@ const RegisterPage = () => {
       <h2 className="mb-4 text-center">Register</h2>
 
       <Form buttonText="Register" errorMessages={errorMessages} onSubmit={handleSubmit}>
-        <FormTextInput title="Username" value={username} onChange={setUsername} nextFocusTargetId="email" autoFocus />
-        <FormTextInput id="email" title="Email" value={email} onChange={setEmail} nextFocusTargetId="password" />
+        <FormTextInput title="Username" value={username} setValue={setUsername} nextFocusTargetId="email" autoFocus />
+        <FormTextInput id="email" title="Email" value={email} setValue={setEmail} nextFocusTargetId="password" />
         <FormTextInput
           id="password"
           title="Password"
           value={password}
-          onChange={setPassword}
+          setValue={setPassword}
           nextFocusTargetId="form_submit_button"
           password
         />

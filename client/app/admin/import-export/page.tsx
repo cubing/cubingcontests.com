@@ -399,7 +399,7 @@ const ImportExportPage = () => {
         <FormTextInput
           title="Contest name / ID"
           value={competitionIdText}
-          onChange={setCompetitionIdText}
+          setValue={setCompetitionIdText}
           disabled={!!contest}
         />
         {contest ? (

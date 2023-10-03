@@ -231,7 +231,7 @@ const FormPersonInputs = ({
             title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
             tooltip={inputIndex === 0 ? personInputTooltip : undefined}
             value={personName}
-            onChange={(val: string) => changePersonName(inputIndex, val)}
+            setValue={(val: string) => changePersonName(inputIndex, val)}
             onKeyDown={(e: any) => onPersonKeyDown(inputIndex, e)}
             onFocus={() => changeFocusedInput(inputIndex, personName)}
             onBlur={() => changeFocusedInput(null)}

@@ -155,7 +155,7 @@ const CreateEditEventPage = () => {
             id="event_name"
             title="Event name"
             value={name}
-            onChange={setName}
+            setValue={setName}
             nextFocusTargetId="event_id"
             disabled={loadingDuringSubmit}
           />
@@ -165,7 +165,7 @@ const CreateEditEventPage = () => {
                 id="event_id"
                 title="Event ID"
                 value={newEventId}
-                onChange={setNewEventId}
+                setValue={setNewEventId}
                 nextFocusTargetId="rank"
                 disabled={(mode === 'edit' && !eventIdUnlocked) || loadingDuringSubmit}
               />
@@ -176,7 +176,7 @@ const CreateEditEventPage = () => {
                 title="Rank"
                 tooltip="Determines the order of the events"
                 value={rank}
-                onChange={setRank}
+                setValue={setRank}
                 nextFocusTargetId="default_format"
                 disabled={loadingDuringSubmit}
                 integer
@@ -202,7 +202,7 @@ const CreateEditEventPage = () => {
               <FormNumberInput
                 title="Participants"
                 value={participants}
-                onChange={setParticipants}
+                setValue={setParticipants}
                 disabled={mode === 'edit' || loadingDuringSubmit}
                 integer
                 min={1}
@@ -248,7 +248,7 @@ const CreateEditEventPage = () => {
           <FormTextArea
             title="Description (optional)"
             value={description}
-            onChange={setDescription}
+            setValue={setDescription}
             rows={4}
             disabled={loadingDuringSubmit}
           />

@@ -201,7 +201,7 @@ const SubmitResultsPage = () => {
             title="Link to video"
             placeholder="E.g: https://youtube.com/watch?v=xyz"
             value={videoLink}
-            onChange={setVideoLink}
+            setValue={setVideoLink}
             onBlur={onVideoLinkFocusOut}
             nextFocusTargetId="discussion_link"
             disabled={videoUnavailable}
@@ -219,7 +219,7 @@ const SubmitResultsPage = () => {
             title="Link to discussion (optional)"
             placeholder="E.g: https://speedsolving.com/threads/xyz"
             value={discussionLink}
-            onChange={setDiscussionLink}
+            setValue={setDiscussionLink}
             nextFocusTargetId="submit_button"
           />
           <Button

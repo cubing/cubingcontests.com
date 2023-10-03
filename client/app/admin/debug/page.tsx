@@ -31,7 +31,7 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
         <FormTextInput
           title="Debug input"
           value={debugInputValue}
-          onChange={setDebugInputValue}
+          setValue={setDebugInputValue}
           onKeyDown={onDebugInputKeyDown}
         />
       </div>

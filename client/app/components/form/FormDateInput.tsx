@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import parseISO from 'date-fns/parseISO';
 import isValid from 'date-fns/isValid';
 import { format } from 'date-fns';
+import C from '@sh/constants';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
 const FormDateInput = ({
@@ -40,7 +41,7 @@ const FormDateInput = ({
     return prettyDate;
   }, [dateText]);
 
-  const inputId = id || title + '_date';
+  const inputId = id || title + '_date'; // takes id OR "[title]_date"
 
   useEffect(() => {
     if (value) setDateText(format(value, 'ddMMyyyy'));
@@ -68,31 +69,33 @@ const FormDateInput = ({
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
-  const onKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
-      genericOnKeyDown(e, { nextFocusTargetId });
-    } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
-      e.preventDefault();
-    }
-    // UNIDENTIFIED IS HERE TEMPORARILY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    else if (['Backspace', 'Delete', 'Unidentified'].includes(e.key)) {
-      e.preventDefault();
-
+  const onChange = (e: any) => {
+    if (e.target.value.length < prettyDate.length) {
       if (position > 0) {
-        if (position !== 3 && position !== 6) setPosition(position - 1);
+        if (![3, 6].includes(position)) setPosition(position - 1);
         else setPosition(position - 2);
 
         setDateText(dateText.slice(0, -1));
       }
-    } else if (/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-
+    } else if (e.target.value.length > prettyDate.length) {
       if (dateText.length < 8) {
-        setDateText(dateText + e.key);
+        const newCharacter = e.target.value[e.target.selectionStart - 1];
 
-        if (position === 1 || position === 4) setPosition(position + 2); // skip a dot
-        else setPosition(position + 1);
+        if (/[0-9]/.test(newCharacter)) {
+          setDateText(dateText + newCharacter);
+
+          if (position === 1 || position === 4) setPosition(position + 2); // skip a dot
+          else setPosition(position + 1);
+        }
       }
+    }
+  };
+
+  const onKeyDown = (e: any) => {
+    if (e.key === 'Enter') {
+      genericOnKeyDown(e, { nextFocusTargetId });
+    } else if (C.navigationKeys.includes(e.key)) {
+      e.preventDefault();
     }
   };
 
@@ -112,10 +115,10 @@ const FormDateInput = ({
         id={inputId}
         type="text"
         value={prettyDate}
-        onChange={(e) => e.preventDefault()}
+        onChange={(e) => onChange(e)}
         onKeyDown={(e) => onKeyDown(e)}
-        onClick={changeCursorPosition}
-        onFocus={changeCursorPosition}
+        onClick={() => changeCursorPosition()}
+        onFocus={() => changeCursorPosition()}
         className={'form-control' + (value === null && dateText.length === 8 ? ' is-invalid' : '')}
       />
     </div>

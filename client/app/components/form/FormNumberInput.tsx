@@ -10,7 +10,7 @@ const FormNumberInput = ({
   placeholder,
   tooltip,
   value,
-  onChange,
+  setValue,
   onKeyDown,
   nextFocusTargetId,
   disabled = false,
@@ -26,7 +26,7 @@ const FormNumberInput = ({
   tooltip?: string;
   // undefined is the empty value, null is the invalid value
   value: number | null | undefined;
-  onChange: (val: number) => void;
+  setValue: (val: number) => void;
   onKeyDown?: (e: any) => void;
   nextFocusTargetId?: string;
   disabled?: boolean;
@@ -60,11 +60,11 @@ const FormNumberInput = ({
       numberValue >= min &&
       numberValue <= max
     ) {
-      onChange(numberValue);
+      setValue(numberValue);
     } else if (newValue) {
-      onChange(null);
+      setValue(null);
     } else {
-      onChange(undefined);
+      setValue(undefined);
     }
   };
 

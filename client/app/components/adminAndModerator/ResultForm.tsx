@@ -98,8 +98,6 @@ const ResultForm = ({
 
   useEffect(() => {
     if (attempts.length > 0) {
-      console.log('Attempts:', attempts);
-
       const { best, average } = getBestAndAverage(attempts, event);
       setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
     }

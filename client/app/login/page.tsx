@@ -71,7 +71,7 @@ const LoginPage = () => {
           id="username"
           title="Username"
           value={username}
-          onChange={changeUsername}
+          setValue={changeUsername}
           nextFocusTargetId="password"
           autoFocus
         />
@@ -79,7 +79,7 @@ const LoginPage = () => {
           id="password"
           title="Password"
           value={password}
-          onChange={changePassword}
+          setValue={changePassword}
           password
           submitOnEnter
         />

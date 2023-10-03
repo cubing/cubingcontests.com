@@ -9,7 +9,9 @@ const FormTextInput = ({
   placeholder = '',
   tooltip,
   value,
+  setValue,
   onChange,
+  onClick,
   onFocus,
   onBlur,
   onKeyDown,
@@ -28,9 +30,11 @@ const FormTextInput = ({
   placeholder?: string;
   tooltip?: string;
   value: string;
-  onChange: (val: any) => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
+  setValue?: (val: any) => void;
+  onChange?: (e: any) => void;
+  onClick?: (e: any) => void;
+  onFocus?: (e: any) => void;
+  onBlur?: (e: any) => void;
   onKeyDown?: (e: any) => void;
   nextFocusTargetId?: string;
   autoFocus?: boolean;
@@ -43,6 +47,7 @@ const FormTextInput = ({
   noMargin?: boolean;
 }) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput');
+  if (setValue && onChange) throw new Error('setValue and onChange cannot be used at the same time in FormTextInput');
 
   const [hidePassword, setHidePassword] = useState(password);
 
@@ -51,7 +56,7 @@ const FormTextInput = ({
   const handleFocus = (e: any) => {
     // Prevent the whole input from being highlighted
     e.target.selectionStart = e.target.selectionEnd;
-    if (onFocus) onFocus();
+    if (onFocus) onFocus(e);
   };
 
   return (
@@ -66,8 +71,9 @@ const FormTextInput = ({
           autoFocus={autoFocus}
           disabled={disabled}
           required={required}
-          onChange={(e: any) => onChange(e.target.value)}
+          onChange={setValue ? (e) => setValue(e.target.value) : onChange}
           onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId, onKeyDown, submitOnEnter })}
+          onClick={onClick}
           onFocus={(e: any) => handleFocus(e)}
           onBlur={onBlur}
           className={'form-control flex-grow-1' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}

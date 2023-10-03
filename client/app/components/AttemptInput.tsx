@@ -9,9 +9,13 @@ import { IAttempt, IEvent } from '@sh/interfaces';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import C from '@sh/constants';
 
-const getIsDNSKey = (e: any): boolean => ['s', 'S', '*'].includes(e.key);
+const DNFKeys = ['f', 'F', 'd', 'D', '/'];
+const DNSKeys = ['s', 'S', '*'];
+const unknownTimeKeys = ['u', 'U'];
 
-const getFormattedText = (text: string, forMemo = false): string => {
+const getFormattedText = (text: string, { forMemo = false, isNumberFormat = false }): string => {
+  if (isNumberFormat) return text;
+
   let output = '';
   const decimals = forMemo ? 0 : 2;
 
@@ -60,8 +64,14 @@ const AttemptInput = ({
   // undefined is the empty value. If left like that, the memo won't be saved in the DB.
   const [memoText, setMemoText] = useState(undefined);
 
-  const formattedAttemptText = useMemo(() => getFormattedText(attemptText), [attemptText]);
-  const formattedMemoText = useMemo(() => getFormattedText(memoText, true), [memoText]);
+  const formattedAttemptText = useMemo(
+    () => getFormattedText(attemptText, { isNumberFormat: event.format === EventFormat.Number }),
+    [attemptText, event],
+  );
+  const formattedMemoText = useMemo(
+    () => getFormattedText(memoText, { forMemo: true, isNumberFormat: event.format === EventFormat.Number }),
+    [memoText, event],
+  );
 
   const isInvalidAttempt = attempt.result === null || attempt.memo === null;
   const includeMemo = memoInputForBld && event.groups.includes(EventGroup.HasMemo);
@@ -128,11 +138,6 @@ const AttemptInput = ({
     if (getIsEnteredCubesValue(newSolved)) document.getElementById(`attempt_${number}_attempted`).focus();
   };
 
-  const onSolvedKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById(`attempt_${number}_attempted`).focus();
-    else if (getIsDNSKey(e)) handleSetDNS(e);
-  };
-
   const changeAttempted = (newAttempted: number | null | undefined) => {
     setAttempted(newAttempted);
     if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, solved, newAttempted, memoText));
@@ -140,24 +145,17 @@ const AttemptInput = ({
     if (getIsEnteredCubesValue(newAttempted)) document.getElementById(`attempt_${number}`).focus();
   };
 
-  const onAttemptedKeyDown = (e: any) => {
-    if (e.key === 'Enter') document.getElementById(`attempt_${number}`).focus();
+  const onCubesKeyDown = (e: any) => {
+    if (DNSKeys.includes(e.key)) handleSetDNS(e);
   };
 
-  const onTimeKeyDown = (e: any, forMemo = false) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+  const onTimeChange = (e: any, forMemo = false) => {
+    const prevValue = forMemo ? formattedMemoText : formattedAttemptText;
 
-      if (includeMemo && !forMemo) document.getElementById(`attempt_${number}_memo`).focus();
-      else focusNext();
-    } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
-      e.preventDefault();
-    }
-    // UNIDENTIFIED IS HERE TEMPORARILY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    else if (['Backspace', 'Delete', 'Unidentified'].includes(e.key)) {
-      e.preventDefault();
-
+    // Erase character
+    if (e.target.value.length < prevValue.length) {
       if (
+        // For non-multi results we can erase DNF, DNS, and Unknown time
         (event.format !== EventFormat.Multi && (attempt.result < 0 || attempt.result === C.maxTime)) ||
         // For Multi format we can only erase a DNS, otherwise we must be erasing the time
         (event.format === EventFormat.Multi && attempt.result === -2)
@@ -170,6 +168,7 @@ const AttemptInput = ({
           setAttemptText(newAttText);
           setAttempt(getAttempt(attempt, event, newAttText, solved, attempted, memoText));
         } else if (forMemo && memoText !== undefined) {
+          // This is different, because the memo input has no decimals, but memo time is still stored as centiseconds
           let newMemoText = memoText.slice(0, -3) + '00';
           if (newMemoText === '00') newMemoText = undefined;
 
@@ -178,58 +177,72 @@ const AttemptInput = ({
         }
       }
     }
-    // else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
-    else if (['f', 'F', 'd', 'D', '/'].includes(e.key) && !forMemo) {
-      e.preventDefault();
+    // Enter character
+    else if (e.target.value.length > prevValue.length) {
+      const newCharacter = e.target.value[e.target.selectionStart - 1];
 
-      if (event.format !== EventFormat.Multi) {
-        setAttempt({ result: -1 }); // set DNF
-        setAttemptText('DNF');
-        setMemoText(undefined);
-        focusNext();
-      }
-    } else if (['u', 'U'].includes(e.key) && !forMemo) {
-      e.preventDefault();
-
-      if (allowUnknownTime) {
+      if (!forMemo && DNFKeys.includes(newCharacter)) {
         if (event.format !== EventFormat.Multi) {
-          setAttempt({ result: C.maxTime });
-          setAttemptText('Unknown');
+          setAttempt({ result: -1 }); // set DNF
+          setAttemptText('DNF');
           setMemoText(undefined);
-        } else {
-          setAttempt(getAttempt(attempt, event, C.maxTime.toString(), solved, attempted));
+          focusNext();
         }
+      } else if (!forMemo && DNSKeys.includes(newCharacter)) {
+        handleSetDNS(e);
+      } else if (!forMemo && unknownTimeKeys.includes(newCharacter)) {
+        if (allowUnknownTime) {
+          if (event.format !== EventFormat.Multi) {
+            setAttempt({ result: C.maxTime });
+            setAttemptText('Unknown');
+            setMemoText(undefined);
+          } else {
+            console.log(attempt, event, C.maxTime.toString(), solved, attempted);
+            setAttempt(getAttempt(attempt, event, C.maxTime.toString(), solved, attempted));
+          }
 
-        focusNext();
-      }
-    } else if (getIsDNSKey(e) && !forMemo) {
-      handleSetDNS(e);
-    } else if (/^[0-9]$/.test(e.key)) {
-      let text: string;
-      if (forMemo) text = memoText || '00';
-      else text = isNaN(Number(attemptText)) ? '' : attemptText;
+          focusNext();
+        }
+      } else if (/[0-9]/.test(newCharacter)) {
+        let text: string;
+        if (forMemo) text = memoText || '00';
+        else text = isNaN(Number(attemptText)) ? '' : attemptText;
 
-      if (e.key === '0' && ['', '00'].includes(text)) return; // don't allow entering 0 as the first digit
+        if (newCharacter === '0' && ['', '00'].includes(text)) return; // don't allow entering 0 as the first digit
 
-      const newText = !forMemo ? text + e.key : text.slice(0, -2) + e.key + '00';
+        const newText = !forMemo ? text + newCharacter : text.slice(0, -2) + newCharacter + '00';
 
-      if (newText.length <= 2 || (newText.length <= 8 && event.format !== EventFormat.Number)) {
-        const newAttempt = getAttempt(
-          attempt,
-          event,
-          forMemo ? attemptText : newText,
-          solved,
-          attempted,
-          forMemo ? newText : memoText,
-        );
-        setAttempt(newAttempt);
+        if (newText.length <= 2 || (newText.length <= 8 && event.format !== EventFormat.Number)) {
+          const newAttempt = getAttempt(
+            attempt,
+            event,
+            forMemo ? attemptText : newText,
+            solved,
+            attempted,
+            forMemo ? newText : memoText,
+          );
+          setAttempt(newAttempt);
 
-        // If the updated attempt is valid, it will get updated in useEffect anyways
-        if (newAttempt.result === null || newAttempt.memo === null) {
-          if (forMemo) setMemoText(newText);
-          else setAttemptText(newText);
+          // If the updated attempt is valid, it will get updated in useEffect anyways
+          if (newAttempt.result === null || newAttempt.memo === null) {
+            if (forMemo) setMemoText(newText);
+            else setAttemptText(newText);
+          } else if (event.format === EventFormat.Number && newText.length === 2) {
+            focusNext();
+          }
         }
       }
+    }
+  };
+
+  const onTimeKeyDown = (e: any, forMemo = false) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      if (includeMemo && !forMemo) document.getElementById(`attempt_${number}_memo`).focus();
+      else focusNext();
+    } else if (C.navigationKeys.includes(e.key)) {
+      e.preventDefault();
     }
   };
 
@@ -244,6 +257,11 @@ const AttemptInput = ({
         }),
       );
     }
+  };
+
+  const resetCursorPosition = (e: any) => {
+    e.target.selectionStart = e.target.value.length;
+    e.target.selectionEnd = e.target.value.length;
   };
 
   const cubesInputClasses = 'px-0' + (includeMemo ? ' col-2' : ' col-3');
@@ -268,9 +286,9 @@ const AttemptInput = ({
               id={`attempt_${number}_solved`}
               title={number === 1 ? 'Solved' : ''}
               value={solved}
-              placeholder="10"
-              onChange={changeSolved}
-              onKeyDown={(e: any) => onSolvedKeyDown(e)}
+              setValue={changeSolved}
+              onKeyDown={(e: any) => onCubesKeyDown(e)}
+              nextFocusTargetId={`attempt_${number}_attempted`}
               disabled={attempt.result === -2}
               integer
               min={0}
@@ -283,9 +301,9 @@ const AttemptInput = ({
               id={`attempt_${number}_attempted`}
               title={number === 1 ? 'Total' : ''}
               value={attempted}
-              placeholder="10"
-              onChange={changeAttempted}
-              onKeyDown={(e: any) => onAttemptedKeyDown(e)}
+              setValue={changeAttempted}
+              onKeyDown={(e: any) => onCubesKeyDown(e)}
+              nextFocusTargetId={`attempt_${number}`}
               disabled={attempt.result === -2}
               integer
               min={2}
@@ -298,13 +316,14 @@ const AttemptInput = ({
       <div className="col px-0">
         <FormTextInput
           id={`attempt_${number}`}
-          title={number === 1 ? 'Time' : ''}
-          placeholder={event.format === EventFormat.Multi ? `Time ${number}` : `Attempt ${number}`}
+          title={number === 1 ? (event.format !== EventFormat.Number ? 'Time' : 'Moves') : ''}
           tooltip={timeInputTooltip}
-          value={event.format !== EventFormat.Number ? formattedAttemptText : attemptText}
-          onChange={() => {}}
-          onKeyDown={(e: any) => onTimeKeyDown(e)}
-          onBlur={onTimeFocusOut}
+          value={formattedAttemptText}
+          onChange={(e) => onTimeChange(e)}
+          onKeyDown={(e) => onTimeKeyDown(e)}
+          onClick={resetCursorPosition}
+          onFocus={resetCursorPosition}
+          onBlur={() => onTimeFocusOut()}
           invalid={isInvalidAttempt}
         />
       </div>
@@ -313,10 +332,11 @@ const AttemptInput = ({
           <FormTextInput
             id={`attempt_${number}_memo`}
             title={number === 1 ? 'Memo' : ''}
-            placeholder="Memo (seconds)"
             value={formattedMemoText}
-            onChange={() => {}}
+            onChange={(e) => onTimeChange(e, true)}
             onKeyDown={(e: any) => onTimeKeyDown(e, true)}
+            onClick={resetCursorPosition}
+            onFocus={resetCursorPosition}
             onBlur={() => onTimeFocusOut(true)}
             disabled={['DNF', 'DNS', 'Unknown'].includes(formattedAttemptText)}
             invalid={isInvalidAttempt}
