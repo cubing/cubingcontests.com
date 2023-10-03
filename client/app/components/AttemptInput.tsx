@@ -9,8 +9,6 @@ import { IAttempt, IEvent } from '@sh/interfaces';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import C from '@sh/constants';
 
-const timeInputTooltip = 'Use D, F, or / for DNF\nUse S or * for DNS';
-
 const getIsDNSKey = (e: any): boolean => ['s', 'S', '*'].includes(e.key);
 
 const getFormattedText = (text: string, forMemo = false): string => {
@@ -250,6 +248,17 @@ const AttemptInput = ({
 
   const cubesInputClasses = 'px-0' + (includeMemo ? ' col-2' : ' col-3');
 
+  let timeInputTooltip: string;
+
+  if (number === 1) {
+    if (event.format !== EventFormat.Multi) {
+      timeInputTooltip = 'Use D, F, or / for DNF\nUse S or * for DNS';
+    } else {
+      timeInputTooltip =
+        "Enter the result even for DNF attempts (the're treated as DNF, but the result is still shown).\nUse S or * for DNS.";
+    }
+  }
+
   return (
     <div className="row px-3 gap-2 gap-md-3">
       {event.format === EventFormat.Multi && (
@@ -291,7 +300,7 @@ const AttemptInput = ({
           id={`attempt_${number}`}
           title={number === 1 ? 'Time' : ''}
           placeholder={event.format === EventFormat.Multi ? `Time ${number}` : `Attempt ${number}`}
-          tooltip={number === 1 ? timeInputTooltip : undefined}
+          tooltip={timeInputTooltip}
           value={event.format !== EventFormat.Number ? formattedAttemptText : attemptText}
           onChange={() => {}}
           onKeyDown={(e: any) => onTimeKeyDown(e)}

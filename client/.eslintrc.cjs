@@ -9,23 +9,9 @@ module.exports = {
     'no-irregular-whitespace': 'off',
     indent: ['warn', 2, { offsetTernaryExpressions: true, SwitchCase: 1 }],
     // WHEN EDITING ANY OF THE RULES BELOW, COPY THEM OVER TO server/.eslintrc.js
-    semi: [
-      'error',
-      'always',
-      {
-        omitLastInOneLineBlock: true,
-      },
-    ],
+    '@typescript-eslint/no-unused-vars': 'error',
+    semi: ['error', 'always', { omitLastInOneLineBlock: true }],
     quotes: ['warn', 'single', { avoidEscape: true }],
     'comma-dangle': ['error', 'always-multiline'],
-    // 'max-len': [
-    //   'warn',
-    //   {
-    //     code: 120,
-    //     tabWidth: 2,
-    //     ignoreComments: true,
-    //     ignoreTrailingComments: false,
-    //   },
-    // ],
   },
 };
