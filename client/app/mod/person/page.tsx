@@ -200,7 +200,7 @@ const CreatePersonPage = () => {
           disabled={!noWcaId}
         />
         <FormTextInput
-          title="Localized Name"
+          title="Localized Name (optional)"
           id="localized_name"
           value={localizedName}
           setValue={changeLocalizedName}

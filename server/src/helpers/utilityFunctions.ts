@@ -5,8 +5,11 @@ import { IEvent, IResult } from '@sh/interfaces';
 
 export const setRankings = async (
   results: ResultDocument[],
-  ranksWithAverage: boolean,
-  dontSortOrSave = false,
+  {
+    ranksWithAverage,
+    dontSortOrSave,
+    noTieBreakerForAvgs,
+  }: { ranksWithAverage?: boolean; dontSortOrSave?: boolean; noTieBreakerForAvgs?: boolean },
 ): Promise<ResultDocument[]> => {
   if (results.length === 0) return results;
 
@@ -14,8 +17,10 @@ export const setRankings = async (
 
   if (dontSortOrSave) {
     sortedResults = results;
+  } else if (ranksWithAverage) {
+    sortedResults = results.sort((a, b) => compareAvgs(a, b, noTieBreakerForAvgs));
   } else {
-    sortedResults = results.sort(ranksWithAverage ? compareAvgs : compareSingles);
+    sortedResults = results.sort(compareSingles);
   }
 
   let prevResult = sortedResults[0];
@@ -25,7 +30,7 @@ export const setRankings = async (
     // If the previous result was not tied with this one, increase ranking
     if (
       i > 0 &&
-      ((ranksWithAverage && compareAvgs(prevResult, sortedResults[i]) < 0) ||
+      ((ranksWithAverage && compareAvgs(prevResult, sortedResults[i], noTieBreakerForAvgs) < 0) ||
         (!ranksWithAverage && compareSingles(prevResult, sortedResults[i]) < 0))
     ) {
       ranking = i + 1;

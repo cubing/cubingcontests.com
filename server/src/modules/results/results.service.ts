@@ -170,7 +170,7 @@ export class ResultsService {
         for (const res of eventResults) res.best = (res.attempts as any).result;
       }
 
-      const rankedResults = await setRankings(eventResults, false, true);
+      const rankedResults = await setRankings(eventResults, { dontSortOrSave: true });
 
       for (const result of rankedResults) {
         const ranking: IRanking = {
@@ -228,7 +228,11 @@ export class ResultsService {
         eventResults = await this.resultModel.find(avgsFilter, excl).sort({ average: 1 }).exec();
       }
 
-      const rankedResults = await setRankings(eventResults, true, true);
+      const rankedResults = await setRankings(eventResults, {
+        ranksWithAverage: true,
+        dontSortOrSave: true,
+        noTieBreakerForAvgs: true,
+      });
 
       for (const result of rankedResults) {
         const ranking: IRanking = {
@@ -376,7 +380,7 @@ export class ResultsService {
       // Create new result and update the round's results
       const newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
       round.results.push(newResult);
-      round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
+      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
       await round.save(); // save the round for resetCancelledRecords
 
       await this.resetCancelledRecords(createResultDto, event, contest);
@@ -432,7 +436,7 @@ export class ResultsService {
       oldResults = [...round.results];
 
       round.results = round.results.filter((el) => el._id.toString() !== resultId);
-      round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
+      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
       round.save(); // save the round for updateRecordsAfterDeletion
 
       await this.updateRecordsAfterDeletion(result, contest, event);
@@ -774,7 +778,7 @@ export class ResultsService {
   private setRankedPersonAsFirst(personId: number, personIds: number[]) {
     if (personIds.length > 1) {
       // Sort the person IDs in the result, so that the person, whose PR this result is, is first
-      personIds.sort((a, b) => (a === personId ? -1 : 0));
+      personIds.sort((a) => (a === personId ? -1 : 0));
     }
   }
 }

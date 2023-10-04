@@ -9,7 +9,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 round correctly', async () => {
     const round = unrankedRounds[0];
-    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].average).toBe(1170);
@@ -23,7 +23,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 FM round correctly', async () => {
     const round = unrankedRounds[1];
-    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
     // The first two results are tied, the last two have tied means, but there is a tie-breaker
     expect(round.results[0].ranking).toBe(1);
@@ -42,7 +42,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 3x3x3 BLD round correctly', async () => {
     const round = unrankedRounds[2];
-    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(1938);
@@ -62,7 +62,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 2x2x2 round with Bo3 format correctly', async () => {
     const round = unrankedRounds[3];
-    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(221);
@@ -74,7 +74,7 @@ describe('setRankings works correctly', () => {
 
   it('sets rankings for 5x5x5 round with only DNF averages correctly', async () => {
     const round = unrankedRounds[4];
-    round.results = await setRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(3845);
@@ -98,8 +98,7 @@ describe('setRankings works correctly', () => {
         { best: 590 },
         { best: 590 },
       ] as ResultDocument[],
-      false,
-      true,
+      { dontSortOrSave: true },
     );
 
     expect(top333SingleRankings[0].ranking).toBe(1);
@@ -112,5 +111,27 @@ describe('setRankings works correctly', () => {
     expect(top333SingleRankings[7].ranking).toBe(8);
     expect(top333SingleRankings[8].ranking).toBe(9);
     expect(top333SingleRankings[9].ranking).toBe(9);
+  });
+
+  it('sets rankings for 3x3x3 top average results (pre-sorted) without tie breakers correctly', async () => {
+    const top333SingleRankings = await setRankings(
+      [
+        { average: 467 },
+        { average: 494 },
+        // It shouldn't matter that the first one has a better single, these should just be tied
+        { average: 545, best: 343 },
+        { average: 545, best: 435 },
+        { average: 552 },
+        { average: 555 },
+      ] as ResultDocument[],
+      { ranksWithAverage: true, dontSortOrSave: true, noTieBreakerForAvgs: true },
+    );
+
+    expect(top333SingleRankings[0].ranking).toBe(1);
+    expect(top333SingleRankings[1].ranking).toBe(2);
+    expect(top333SingleRankings[2].ranking).toBe(3);
+    expect(top333SingleRankings[3].ranking).toBe(3);
+    expect(top333SingleRankings[4].ranking).toBe(5);
+    expect(top333SingleRankings[5].ranking).toBe(6);
   });
 });

@@ -155,7 +155,7 @@ const ContestsTable = async ({
                           onClick={() => onPostCompResults(contest.competitionId)}
                           className="btn btn-sm btn-success"
                         >
-                          Enter Results
+                          Results
                         </button>
                       )}
                       {contest.state > ContestState.Ongoing && isAdmin && (
