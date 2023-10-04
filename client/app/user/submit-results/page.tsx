@@ -130,13 +130,19 @@ const SubmitResultsPage = () => {
     }
   };
 
-  const onVideoLinkFocusOut = () => {
+  const changeVideoLink = (newValue: string) => {
+    let newVideoLink: string;
+
     // Remove unnecessary params from youtube links
-    if (videoLink.includes('youtube.com') && videoLink.includes('&')) {
-      setVideoLink(videoLink.split('&')[0]);
-    } else if (videoLink.includes('youtu.be') && videoLink.includes('?')) {
-      setVideoLink(videoLink.split('?')[0]);
+    if (newValue.includes('youtube.com') && newValue.includes('&')) {
+      newVideoLink = newValue.split('&')[0];
+    } else if (newValue.includes('youtu.be') && newValue.includes('?')) {
+      newVideoLink = newValue.split('?')[0];
+    } else {
+      newVideoLink = newValue;
     }
+
+    setVideoLink(newVideoLink);
   };
 
   if (resultsSubmissionInfo) {
@@ -201,8 +207,7 @@ const SubmitResultsPage = () => {
             title="Link to video"
             placeholder="E.g: https://youtube.com/watch?v=xyz"
             value={videoLink}
-            setValue={setVideoLink}
-            onBlur={onVideoLinkFocusOut}
+            setValue={changeVideoLink}
             nextFocusTargetId="discussion_link"
             disabled={videoUnavailable}
           />

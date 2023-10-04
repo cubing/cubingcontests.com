@@ -61,7 +61,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
             {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
 
             {params.category === 'extremebld' && (
-              <Link href={'/user/submit-results'} className="btn btn-success btn">
+              <Link href={'/user/submit-results'} className="btn btn-success btn ms-2">
                 Submit a result
               </Link>
             )}

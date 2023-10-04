@@ -153,8 +153,8 @@ const FormPersonInputs = ({
     }
   };
 
-  const selectCompetitor = async (inputIndex: number) => {
-    if (matchedPersons[personSelection] === null) {
+  const selectCompetitor = async (inputIndex: number, selectionIndex: number) => {
+    if (matchedPersons[selectionIndex] === null) {
       // Only mods are allowed to open the add new competitor page
       if (userInfo.isMod) {
         setFocusedInput(null);
@@ -167,7 +167,7 @@ const FormPersonInputs = ({
         }
       }
     } else {
-      let newSelectedPerson = matchedPersons[personSelection];
+      let newSelectedPerson = matchedPersons[selectionIndex];
       const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
 
       // If selection was done using the WCA ID, personId would be 0 here
@@ -197,7 +197,7 @@ const FormPersonInputs = ({
     if (e.key === 'Enter') {
       // Make sure the focused input is not empty
       if (personNames[inputIndex]) {
-        selectCompetitor(inputIndex);
+        selectCompetitor(inputIndex, personSelection);
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -253,7 +253,7 @@ const FormPersonInputs = ({
                     style={{ cursor: 'pointer' }}
                     aria-current={matchIndex === personSelection}
                     onMouseEnter={() => setPersonSelection(matchIndex)}
-                    onMouseDown={() => selectCompetitor(inputIndex)}
+                    onMouseDown={() => selectCompetitor(inputIndex, matchIndex)}
                   >
                     {person !== null ? <Competitor person={person} showLocalizedName noLink /> : '(add new person)'}
                   </li>
