@@ -105,7 +105,7 @@ const ContestsTable = async ({
 
               return (
                 <tr key={contest.competitionId}>
-                  <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
+                  <td>{getFormattedDate(contest.startDate, contest.endDate, contest.timezone)}</td>
                   <td>
                     <Link href={`/competitions/${contest.competitionId}`} className="link-primary">
                       {contest.name}

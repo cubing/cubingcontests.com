@@ -5,20 +5,18 @@ import ContestLayout from '~/app/components/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import Competitor from '@c/Competitor';
-import { IContest } from '@sh/interfaces';
+import { IContest, IContestData } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
 import C from '@sh/constants';
 import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
-    revalidate: C.contestInfoRev,
-  });
-  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
-  const { contest }: { contest: IContest } = contestData;
+  const { payload } = await myFetch.get(`/competitions/${params.id}`, { revalidate: C.contestInfoRev });
+  if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
+  const { contest }: { contest: IContest } = payload as IContestData;
 
-  const formattedDate = getFormattedDate(contest.startDate, contest.endDate ? contest.endDate : null);
+  const formattedDate = getFormattedDate(contest.startDate, contest.endDate ? contest.endDate : null, contest.timezone);
   // Not used for competition type contests
   const formattedTime =
     contest.type === ContestType.Competition

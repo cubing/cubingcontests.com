@@ -11,7 +11,7 @@ export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
 };
 
-export const getFormattedDate = (startDate: Date | string, endDate?: Date | string): string => {
+export const getFormattedDate = (startDate: Date | string, endDate?: Date | string, timezone = 'UTC'): string => {
   if (!startDate) throw new Error('Start date missing!');
 
   if (typeof startDate === 'string') startDate = new Date(startDate);
@@ -19,7 +19,7 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
 
   const fullFormat = 'd MMM yyyy';
   // If we don't do this, format adjusts the date according to the user's local time zone
-  const adjustedStartDate = utcToZonedTime(startDate, 'UTC');
+  const adjustedStartDate = utcToZonedTime(startDate, timezone);
 
   if (!endDate || isSameDay(startDate, endDate)) {
     return format(adjustedStartDate, fullFormat);
