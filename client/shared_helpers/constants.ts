@@ -10,7 +10,7 @@ const C = {
   contestInfoRev: 120, // 2 minutes
   contestResultsRev: 30, // 30 seconds
   maxRounds: 10, // maximum number of rounds allowed
-  maxTime: 8640000, // 24 hours
+  maxTime: 8640000, // 24 hours (IF THIS IS EVER UPDATED, ALSO CONSIDER THE LINES WITH 24000000 IN AttemptInput)
   minCompetitorLimit: 5,
   wcaApiBase: 'https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api',
   wcaIdRegex: /[0-9]{4}[A-Z]{4}[0-9]{2}/,

@@ -154,7 +154,8 @@ export const getCentiseconds = (
     centiseconds = parseInt(time);
   }
 
-  if (hours >= 24 || minutes >= 60 || centiseconds >= 6000) {
+  // Disallow >60 minutes, >60 seconds, and times more than 24 hours long
+  if (minutes >= 60 || centiseconds >= 6000 || hours > 24 || (hours === 24 && minutes > 0 && centiseconds > 0)) {
     if (throwErrorWhenInvalidTime) throw new Error(`Invalid time: ${time}`);
     return null;
   }
@@ -168,11 +169,20 @@ export const getAttempt = (
   attempt: IAttempt,
   event: IEvent,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
-  // These are optional if the event format is Number
-  solved?: number | null | undefined,
-  attempted?: number | null | undefined,
-  memo?: string | undefined, // only used for events with the event group HasMemo, otherwise set to undefined
-  { roundTime, roundMemo }: { roundTime: boolean; roundMemo: boolean } = {
+  {
+    roundTime = false,
+    roundMemo = false,
+    solved,
+    attempted,
+    memo,
+  }: {
+    roundTime?: boolean;
+    roundMemo?: boolean;
+    // These three parameters are optional if the event format is Number
+    solved?: number | null | undefined;
+    attempted?: number | null | undefined;
+    memo?: string | undefined; // only used for events with the event group HasMemo
+  } = {
     roundTime: false,
     roundMemo: false,
   },

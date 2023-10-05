@@ -96,7 +96,7 @@ const AttemptInput = ({
 
           setSolved(Number(newSolved));
           setAttempted(Number(newAttempted));
-          setAttemptText(newAttText === C.maxTime.toString() ? 'Unknown time' : newAttText);
+          setAttemptText(newAttText === '24000000' ? 'Unknown' : newAttText);
         }
 
         // Memo time
@@ -133,14 +133,16 @@ const AttemptInput = ({
 
   const changeSolved = (newSolved: number | null | undefined) => {
     setSolved(newSolved);
-    if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, newSolved, attempted, memoText));
+    if (attemptText)
+      setAttempt(getAttempt(attempt, event, attemptText, { solved: newSolved, attempted, memo: memoText }));
 
     if (getIsEnteredCubesValue(newSolved)) document.getElementById(`attempt_${number}_attempted`).focus();
   };
 
   const changeAttempted = (newAttempted: number | null | undefined) => {
     setAttempted(newAttempted);
-    if (attemptText) setAttempt(getAttempt(attempt, event, attemptText, solved, newAttempted, memoText));
+    if (attemptText)
+      setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted: newAttempted, memo: memoText }));
 
     if (getIsEnteredCubesValue(newAttempted)) document.getElementById(`attempt_${number}`).focus();
   };
@@ -166,14 +168,14 @@ const AttemptInput = ({
         if (!forMemo && attemptText !== '') {
           const newAttText = attemptText.slice(0, -1);
           setAttemptText(newAttText);
-          setAttempt(getAttempt(attempt, event, newAttText, solved, attempted, memoText));
+          setAttempt(getAttempt(attempt, event, newAttText, { solved, attempted, memo: memoText }));
         } else if (forMemo && memoText !== undefined) {
           // This is different, because the memo input has no decimals, but memo time is still stored as centiseconds
           let newMemoText = memoText.slice(0, -3) + '00';
           if (newMemoText === '00') newMemoText = undefined;
 
           setMemoText(newMemoText);
-          setAttempt(getAttempt(attempt, event, attemptText, solved, attempted, newMemoText));
+          setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted, memo: newMemoText }));
         }
       }
     }
@@ -191,14 +193,15 @@ const AttemptInput = ({
       } else if (!forMemo && DNSKeys.includes(newCharacter)) {
         handleSetDNS(e);
       } else if (!forMemo && unknownTimeKeys.includes(newCharacter)) {
-        if (allowUnknownTime) {
+        // Multi-Blind doesn't allow unknown time (but Multi-Blind Old Style does)
+        if (allowUnknownTime && event.eventId !== '333mbf') {
           if (event.format !== EventFormat.Multi) {
             setAttempt({ result: C.maxTime });
             setAttemptText('Unknown');
             setMemoText(undefined);
           } else {
-            console.log(attempt, event, C.maxTime.toString(), solved, attempted);
-            setAttempt(getAttempt(attempt, event, C.maxTime.toString(), solved, attempted));
+            // C.maxTime is 24 hours
+            setAttempt(getAttempt(attempt, event, '24000000', { solved, attempted }));
           }
 
           focusNext();
@@ -213,14 +216,11 @@ const AttemptInput = ({
         const newText = !forMemo ? text + newCharacter : text.slice(0, -2) + newCharacter + '00';
 
         if (newText.length <= 2 || (newText.length <= 8 && event.format !== EventFormat.Number)) {
-          const newAttempt = getAttempt(
-            attempt,
-            event,
-            forMemo ? attemptText : newText,
+          const newAttempt = getAttempt(attempt, event, forMemo ? attemptText : newText, {
             solved,
             attempted,
-            forMemo ? newText : memoText,
-          );
+            memo: forMemo ? newText : memoText,
+          });
           setAttempt(newAttempt);
 
           // If the updated attempt is valid, it will get updated in useEffect anyways
@@ -251,9 +251,12 @@ const AttemptInput = ({
     // ExtremeBLD (with the exception of Multi format, which should still have its time rounded)
     if (attemptText.length >= 6 || (forMemo && memoText?.length >= 6)) {
       setAttempt(
-        getAttempt(attempt, event, attemptText, solved, attempted, memoText, {
+        getAttempt(attempt, event, attemptText, {
           roundTime: !getAlwaysShowDecimals(event),
           roundMemo: true,
+          solved,
+          attempted,
+          memo: memoText,
         }),
       );
     }
