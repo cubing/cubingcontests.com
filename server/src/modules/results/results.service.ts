@@ -16,9 +16,13 @@ import {
   IRanking,
   IEvent,
 } from '@sh/interfaces';
-import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import {
+  getDateOnly,
+  getDefaultAverageAttempts,
+  getRoundRanksWithAverage,
+  setResultRecords,
+} from '@sh/sharedFunctions';
 import C from '@sh/constants';
-import { roundFormats } from '@sh/roundFormats';
 import { excl, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -37,7 +41,7 @@ const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => ({
 const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => ({
   eventId: event.eventId,
   average,
-  attempts: { $size: roundFormats[event.defaultRoundFormat].attempts },
+  attempts: { $size: getDefaultAverageAttempts(event) },
 });
 
 @Injectable()
@@ -178,7 +182,22 @@ export class ResultsService {
     };
 
     if (!forAverage) {
-      if (!show) {
+      if (show === 'results') {
+        // Get all top single results
+
+        eventResults = await this.resultModel
+          .aggregate([
+            { $match: { eventId, unapproved: { $exists: false } } },
+            { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
+            { $project: excl },
+            { $match: { 'attempts.result': { $gt: 0, $ne: C.maxTime } } },
+            { $sort: { 'attempts.result': 1 } },
+          ])
+          .exec();
+
+        // This is necessary for setRankings to work correctly
+        for (const res of eventResults) res.best = (res.attempts as any).result;
+      } else {
         // Get top singles by person
 
         const prSingles = await this.resultModel
@@ -195,21 +214,6 @@ export class ResultsService {
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
-      } else {
-        // Get all top single results
-
-        eventResults = await this.resultModel
-          .aggregate([
-            { $match: { eventId, unapproved: { $exists: false } } },
-            { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
-            { $project: excl },
-            { $match: { 'attempts.result': { $gt: 0, $ne: C.maxTime } } },
-            { $sort: { 'attempts.result': 1 } },
-          ])
-          .exec();
-
-        // This is necessary for setRankings to work correctly
-        for (const res of eventResults) res.best = (res.attempts as any).result;
       }
 
       const rankedResults = await setRankings(eventResults, { dontSortOrSave: true });
@@ -232,7 +236,7 @@ export class ResultsService {
         for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
 
         // Set memo, if the result has it
-        if (show) {
+        if (show === 'results') {
           ranking.memo = (result.attempts as any).memo; // will be left undefined if there is no memo
         } else {
           const tiedBestAttempts = result.attempts.filter((el) => el.result === result.best);
@@ -246,7 +250,10 @@ export class ResultsService {
         eventRankings.rankings.push(ranking);
       }
     } else {
-      if (!show) {
+      if (show === 'results') {
+        // Get all top average results
+        eventResults = await this.resultModel.find(avgsFilter, excl).sort({ average: 1 }).exec();
+      } else {
         // Get top averages by person
 
         const prAverages = await this.resultModel
@@ -265,9 +272,6 @@ export class ResultsService {
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
-      } else {
-        // Get all top average results
-        eventResults = await this.resultModel.find(avgsFilter, excl).sort({ average: 1 }).exec();
       }
 
       const rankedResults = await setRankings(eventResults, {
@@ -282,6 +286,7 @@ export class ResultsService {
           persons: [],
           resultId: result._id.toString(),
           result: result.average,
+          attempts: result.attempts,
           date: result.date,
           videoLink: result.videoLink,
           discussionLink: result.discussionLink,

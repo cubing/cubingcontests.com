@@ -15,9 +15,8 @@ const RankingsTable = ({
   recordsTable?: boolean;
   topResultsRankings?: boolean;
 }) => {
-  if (topResultsRankings && recordsTable) {
+  if (topResultsRankings && recordsTable)
     throw new Error('forAverage and topResultsRankings cannot both be true in RankingsTable');
-  }
 
   const hasComp = rankings.some((el) => el.contest);
   const hasLink = rankings.some((el) => el.videoLink || el.discussionLink);
@@ -36,7 +35,7 @@ const RankingsTable = ({
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
-  // REMEMBER TO UPDATE THE MOBILE VIEW OF THE RECORDS PAGE IN ACCORDANCE WITH THIS
+  // REMEMBER TO UPDATE THE MOBILE VIEW OF THE RECORDS PAGE WHEN CHANGING THIS
   /////////////////////////////////////////////////////////////////////////////////////////
 
   return (

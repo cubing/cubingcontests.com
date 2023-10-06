@@ -89,16 +89,14 @@ const RankingRow = ({
       )}
       {showDetailsColumn && (
         <td>
-          {!onlyKeepPerson && (
-            <>
-              {ranking.attempts && (
-                <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
-              )}
-              {ranking.memo && (
+          {!onlyKeepPerson &&
+            (ranking.attempts ? (
+              <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
+            ) : (
+              ranking.memo && (
                 <span>[{getFormattedTime(ranking.memo, { showDecimals: false, alwaysShowMinutes: true })}]</span>
-              )}
-            </>
-          )}
+              )
+            ))}
         </td>
       )}
     </tr>

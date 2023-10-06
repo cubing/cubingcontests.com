@@ -74,6 +74,9 @@ export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean => {
   return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
 };
 
+export const getDefaultAverageAttempts = (event: IEvent) =>
+  roundFormats[event.defaultRoundFormat].attempts === 5 ? 5 : 3;
+
 export const getAlwaysShowDecimals = (event: IEvent): boolean => {
   return event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
 };

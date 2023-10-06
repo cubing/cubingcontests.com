@@ -10,10 +10,11 @@ import { ContestType, RoundFormat, RoundProceed, RoundType, WcaRecordType } from
 import { IContest, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
-import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
+import { compareAvgs, compareSingles, getDefaultAverageAttempts, getRoundRanksWithAverage } from '@sh/sharedFunctions';
 
 const setRankingsAndRecords = (
   results: IResult[],
+  event: IEvent,
   ranksWithAverage: boolean,
   recordPairs: IRecordPair[],
 ): IResult[] => {
@@ -24,8 +25,6 @@ const setRankingsAndRecords = (
   let ranking = 1;
   let bestSingleResults: IResult[] = [];
   let bestAvgResults: IResult[] = [];
-
-  console.log(sortedResults[0], recordPairs[0]);
 
   for (let i = 0; i < sortedResults.length; i++) {
     // If the previous result was not tied with this one, increase ranking
@@ -48,16 +47,17 @@ const setRankingsAndRecords = (
       bestSingleResults = [sortedResults[i]];
     }
 
-    if (compareAvgs(sortedResults[i], mockRecordResult, true) === 0) {
-      bestAvgResults.push(sortedResults[i]);
-    } else if (compareAvgs(sortedResults[i], mockRecordResult, true) < 0) {
-      bestAvgResults = [sortedResults[i]];
+    if (sortedResults[i].attempts.length === getDefaultAverageAttempts(event)) {
+      if (compareAvgs(sortedResults[i], mockRecordResult, true) === 0) {
+        bestAvgResults.push(sortedResults[i]);
+      } else if (compareAvgs(sortedResults[i], mockRecordResult, true) < 0) {
+        bestAvgResults = [sortedResults[i]];
+      }
     }
   }
 
   for (const result of bestSingleResults) result.regionalSingleRecord = WcaRecordType.WR;
   for (const result of bestAvgResults) result.regionalAverageRecord = WcaRecordType.WR;
-  console.log(sortedResults, bestSingleResults, bestAvgResults);
 
   return sortedResults;
 };
@@ -356,6 +356,7 @@ const ImportExportPage = () => {
                 average,
               };
             }),
+          event,
           getRoundRanksWithAverage(format),
           recordPairs,
         );

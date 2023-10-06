@@ -39,10 +39,10 @@ export interface IRanking {
   resultId: string;
   result: number; // either the single time or the average time
   attemptNumber?: number; // only set for top single results rankings
-  memo?: number; // only set for top single results rankings for events with the HasMemo group
+  memo?: number; // only set for single rankings for events with the HasMemo group
   date: Date;
   contest?: IContest; // optional, because some results are submitted, so they have no contest
-  attempts?: IAttempt[]; // only set for the average and mean ranking type
+  attempts?: IAttempt[]; // only set for the average and mean rankings
   videoLink?: string;
   discussionLink?: string;
 }
