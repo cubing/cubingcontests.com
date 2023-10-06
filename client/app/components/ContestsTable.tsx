@@ -69,10 +69,8 @@ const ContestsTable = async ({
                     {contest.participants > 0 && (
                       <span>
                         Participants:&nbsp;<b>{contest.participants}</b>
-                        {', '}
                       </span>
                     )}
-                    Events:&nbsp;<b>{contest.events.length}</b>
                   </div>
                 </div>
               </li>
@@ -92,7 +90,6 @@ const ContestsTable = async ({
               <th scope="col">Place</th>
               <th scope="col">Type</th>
               <th scope="col">Participants</th>
-              <th scope="col">Events</th>
               {onEditCompetition && <th scope="col">Actions</th>}
             </tr>
           </thead>
@@ -122,7 +119,6 @@ const ContestsTable = async ({
                     <ContestTypeBadge type={contest.type} />
                   </td>
                   <td>{contest.participants || ''}</td>
-                  <td>{contest.events.length}</td>
 
                   {onEditCompetition && (
                     <td className="d-flex gap-2">

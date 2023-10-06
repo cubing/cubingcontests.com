@@ -6,18 +6,26 @@ import Button from '@c/Button';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import ContestResults from '~/app/components/ContestResults';
-import { ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
+import { ContestType, RoundFormat, RoundProceed, RoundType, WcaRecordType } from '@sh/enums';
+import { IContest, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getRoundRanksWithAverage } from '@sh/sharedFunctions';
 
-const setRankings = (results: IResult[], ranksWithAverage: boolean): IResult[] => {
+const setRankingsAndRecords = (
+  results: IResult[],
+  ranksWithAverage: boolean,
+  recordPairs: IRecordPair[],
+): IResult[] => {
   if (results.length === 0) return results;
 
   const sortedResults: IResult[] = results.sort(ranksWithAverage ? compareAvgs : compareSingles);
   let prevResult = sortedResults[0];
   let ranking = 1;
+  let bestSingleResults: IResult[] = [];
+  let bestAvgResults: IResult[] = [];
+
+  console.log(sortedResults[0], recordPairs[0]);
 
   for (let i = 0; i < sortedResults.length; i++) {
     // If the previous result was not tied with this one, increase ranking
@@ -31,7 +39,25 @@ const setRankings = (results: IResult[], ranksWithAverage: boolean): IResult[] =
 
     sortedResults[i].ranking = ranking;
     prevResult = sortedResults[i];
+
+    const mockRecordResult = { best: recordPairs[0].best, average: recordPairs[0].average } as IResult;
+
+    if (compareSingles(sortedResults[i], mockRecordResult) === 0) {
+      bestSingleResults.push(sortedResults[i]);
+    } else if (compareSingles(sortedResults[i], mockRecordResult) < 0) {
+      bestSingleResults = [sortedResults[i]];
+    }
+
+    if (compareAvgs(sortedResults[i], mockRecordResult, true) === 0) {
+      bestAvgResults.push(sortedResults[i]);
+    } else if (compareAvgs(sortedResults[i], mockRecordResult, true) < 0) {
+      bestAvgResults = [sortedResults[i]];
+    }
   }
+
+  for (const result of bestSingleResults) result.regionalSingleRecord = WcaRecordType.WR;
+  for (const result of bestAvgResults) result.regionalAverageRecord = WcaRecordType.WR;
+  console.log(sortedResults, bestSingleResults, bestAvgResults);
 
   return sortedResults;
 };
@@ -67,6 +93,8 @@ const ImportExportPage = () => {
   const [errorMessages, setErrorMessages] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [events, setEvents] = useState<IEvent[]>();
+  const [activeRecordTypes, setActiveRecordTypes] = useState<IRecordType[]>();
+
   const [competitionIdText, setCompetitionIdText] = useState('');
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [contest, setContest] = useState<IContest>();
@@ -77,6 +105,11 @@ const ImportExportPage = () => {
     myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
       if (errors) setErrorMessages(errors);
       else setEvents(payload);
+    });
+
+    myFetch.get('/record-types?active=true', { authorize: true }).then(({ payload, errors }) => {
+      if (errors) setErrorMessages(errors);
+      else setActiveRecordTypes(payload);
     });
   }, []);
 
@@ -192,7 +225,7 @@ const ImportExportPage = () => {
     const persons: IPerson[] = []; // used for results preview
     const notFoundPersonNames: string[] = [];
 
-    const { payload: compData, errors: e1 } = await myFetch.get(
+    const { payload: unofficialCompData, errors: e1 } = await myFetch.get(
       `https://raw.githubusercontent.com/cubing/unofficial.cubing.net/main/data/competitions/${competitionId}/competition-info.json`,
     );
     const { payload: wcaCompData, errors: e2 } = await myFetch.get(
@@ -228,12 +261,12 @@ const ImportExportPage = () => {
       organizers: [], // this is set below
       description: `Unofficial events from ${wcaCompData.name}. For official events see the official [WCA competition page](https://worldcubeassociation.org/competitions/${competitionId}).`,
       competitorLimit,
-      mainEventId: Object.keys(compData.roundsByEvent)[0],
+      mainEventId: Object.keys(unofficialCompData.roundsByEvent)[0],
       events: [],
       // compDetails.schedule needs to be set by an admin manually after the competition has been imported
     };
 
-    if (newContest.mainEventId === '333_team_bld') newContest.mainEventId = '333tbfo';
+    if (newContest.mainEventId === '333_team_bld') newContest.mainEventId = '333_team_bld_old';
 
     // Set organizer objects
     for (const org of [...wcaCompData.organisers, ...wcaCompData.wcaDelegates]) {
@@ -248,15 +281,23 @@ const ImportExportPage = () => {
     }
 
     // Set contest events
-    for (const key of Object.keys(compData.roundsByEvent)) {
-      const ccEventId = key === '333_team_bld' ? '333tbfo' : key;
+    for (const key of Object.keys(unofficialCompData.roundsByEvent)) {
+      const ccEventId = key === '333_team_bld' ? '333_team_bld_old' : key;
       const event = events.find((el) => el.eventId === ccEventId);
-      const roundsInfo = compData.roundsByEvent[key];
+      const roundsInfo = unofficialCompData.roundsByEvent[key];
       const rounds: IRound[] = [];
 
       for (let i = 0; i < roundsInfo.length; i++) {
         const date = new Date(roundsInfo[i].roundEndDate);
         const format = convertRoundFormat(roundsInfo[i].roundFormatID);
+        const { payload: recordPairs, errors: e1 } = await myFetch.get(`/results/record-pairs/${ccEventId}/${date}`, {
+          authorize: true,
+        });
+
+        if (e1) {
+          setErrorMessages([`Error while fetching ${ccEventId} record pairs for ${competitionId}: ${e1[0]}`]);
+          return;
+        }
 
         if (date.getTime() > endDate.getTime() || date.getTime() < startDate.getTime()) {
           const message = `Round time is outside the date range for competition ${competitionId}`;
@@ -264,20 +305,20 @@ const ImportExportPage = () => {
           throw new Error(message);
         }
 
-        const { payload: roundData, errors } = await myFetch.get(
+        const { payload: roundData, errors: e2 } = await myFetch.get(
           `https://raw.githubusercontent.com/cubing/unofficial.cubing.net/main/data/competitions/${competitionId}/round-results/${key}-round${
             i + 1
           }.csv`,
         );
 
-        if (errors) {
-          setErrorMessages([`Error while fetching ${ccEventId} results for ${competitionId}: ${errors[0]}`]);
+        if (e2) {
+          setErrorMessages([`Error while fetching ${ccEventId} results for ${competitionId}: ${e2[0]}`]);
           return;
         }
 
         const lines = roundData.split(/\n/);
 
-        const results: IResult[] = setRankings(
+        const results: IResult[] = setRankingsAndRecords(
           lines
             .slice(1)
             .map((line: string) => line.trim())
@@ -316,6 +357,7 @@ const ImportExportPage = () => {
               };
             }),
           getRoundRanksWithAverage(format),
+          recordPairs,
         );
 
         // Set the personIds
@@ -426,7 +468,9 @@ const ImportExportPage = () => {
         </div>
       )}
 
-      {contest?.events.length > 0 && <ContestResults contest={contest} persons={persons} />}
+      {contest?.events.length > 0 && (
+        <ContestResults contest={contest} persons={persons} activeRecordTypes={activeRecordTypes} />
+      )}
     </div>
   );
 };

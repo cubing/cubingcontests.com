@@ -1,15 +1,16 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Request, UseGuards, ValidationPipe } from '@nestjs/common';
 import { format } from 'date-fns';
 import { ResultsService } from './results.service';
-import { Roles } from '~/src/helpers/roles.decorator';
+import { EventsService } from '@m/events/events.service';
+import { CreateResultDto } from './dto/create-result.dto';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
+import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
-import { CreateResultDto } from './dto/create-result.dto';
 
 @Controller('results')
 export class ResultsController {
-  constructor(private readonly service: ResultsService) {}
+  constructor(private readonly service: ResultsService, private readonly eventsService: EventsService) {}
 
   // GET /results/rankings/:eventId/:singleOrAvg(?show=results)
   @Get('rankings/:eventId/:singleOrAvg')
@@ -37,6 +38,18 @@ export class ResultsController {
     const recordsUpToDate = new Date(recordsUpTo);
     console.log(`Getting results submission info with records up to ${format(recordsUpToDate, 'd MMM yyyy')}`);
     return await this.service.getSubmissionInfo(recordsUpToDate);
+  }
+
+  // GET /results/record-pairs/:eventId/:recordsUpTo
+  @Get('record-pairs/:eventId/:recordsUpTo')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async getRecordPairs(@Param('eventId') eventId: string, @Param('recordsUpTo') recordsUpTo: string) {
+    const recordsUpToDate = new Date(recordsUpTo);
+    console.log(`Getting record pair for ${eventId} with records up to ${format(recordsUpToDate, 'd MMM yyyy')}`);
+
+    const event = await this.eventsService.getEventById(eventId);
+    return await this.service.getEventRecordPairs(event, recordsUpToDate);
   }
 
   // POST /results/:roundId

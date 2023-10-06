@@ -64,6 +64,49 @@ export class ResultsService {
         else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
       }
 
+      // Look for records that are worse than a previous result (DISABLE TO AVOID SLOWING DOWN THE DEV ENVIRONMENT)
+      // const events = await this.eventsService.getEvents({ includeHidden: true });
+
+      // for (const event of events) {
+      //   // Single records
+      //   const singleRecordResults = await this.resultModel
+      //     .find({ eventId: event.eventId, regionalSingleRecord: 'WR' })
+      //     .exec();
+
+      //   for (const result of singleRecordResults) {
+      //     const betterSinglesInThePast = await this.resultModel
+      //       .find({
+      //         ...getBaseSinglesFilter(event, { $lt: result.best, $gt: 0 }),
+      //         date: { $lte: result.date },
+      //         unapproved: { $exists: false },
+      //       })
+      //       .exec();
+
+      //     if (betterSinglesInThePast.length > 0) {
+      //       console.log(`${result.eventId} single WR`, result, 'is worse than these results:', betterSinglesInThePast);
+      //     }
+      //   }
+
+      //   // Average records
+      //   const averageRecordResults = await this.resultModel
+      //     .find({ eventId: event.eventId, regionalAverageRecord: 'WR' })
+      //     .exec();
+
+      //   for (const result of averageRecordResults) {
+      //     const betterAvgsInThePast = await this.resultModel
+      //       .find({
+      //         ...getBaseAvgsFilter(event, { $lt: result.average, $gt: 0 }),
+      //         date: { $lte: result.date },
+      //         unapproved: { $exists: false },
+      //       })
+      //       .exec();
+
+      //     if (betterAvgsInThePast.length > 0) {
+      //       console.log(`${result.eventId} average WR`, result, 'is worse than these results:', betterAvgsInThePast);
+      //     }
+      //   }
+      // }
+
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
       let knownDuplicates = [
         'https://www.youtube.com/watch?v=3MfyECPWhms',
@@ -75,7 +118,6 @@ export class ResultsService {
         { $group: { _id: '$videoLink', count: { $sum: 1 } } },
         { $match: { count: { $gt: 1 } } },
       ]);
-
       if (repeatedVideoLinks.length > 0) {
         console.log('These video links have multiple results:', repeatedVideoLinks);
       }
@@ -537,7 +579,7 @@ export class ResultsService {
     return recordPairsByEvent;
   }
 
-  private async getEventRecordPairs(
+  public async getEventRecordPairs(
     event: IEvent,
     recordsUpTo = new Date(8640000000000000), // this shouldn't include time (so the time should be midnight)
     activeRecordTypes?: IRecordType[],

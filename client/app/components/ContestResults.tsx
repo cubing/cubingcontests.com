@@ -8,11 +8,11 @@ import { IContest, IContestEvent, IPerson, IRecordType } from '@sh/interfaces';
 const ContestResults = ({
   contest,
   persons,
-  activeRecordTypes = [],
+  activeRecordTypes,
 }: {
   contest: IContest;
   persons: IPerson[];
-  activeRecordTypes?: IRecordType[];
+  activeRecordTypes: IRecordType[];
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<IContestEvent>(contest.events[0]);
 

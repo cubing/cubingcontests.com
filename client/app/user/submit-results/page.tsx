@@ -44,14 +44,20 @@ const SubmitResultsPage = () => {
   );
 
   useEffect(() => {
-    fetchSubmissionInfo(new Date()).then((payload: IResultsSubmissionInfo) => {
-      setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
+    myFetch
+      .get(`/results/submission-info/${new Date()}`, { authorize: true })
+      .then(({ payload, errors }: { payload?: IResultsSubmissionInfo; errors?: string[] }) => {
+        if (errors) {
+          setErrorMessages(errors);
+        } else {
+          console.log('Submission info:', payload);
+          setResultsSubmissionInfo(payload);
 
-      const event = payload.events.find((el) => el.eventId === searchParams.get('eventId'));
-
-      if (event) setEvent(event);
-      else setEvent(payload.events[0]);
-    });
+          const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get('eventId'));
+          if (event) setEvent(event);
+          else setEvent(payload.events[0]);
+        }
+      });
   }, []);
 
   // Scroll to the top of the page when a new error message is shown
@@ -62,19 +68,6 @@ const SubmitResultsPage = () => {
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
-
-  const fetchSubmissionInfo = async (recordsUpTo: Date): Promise<IResultsSubmissionInfo> => {
-    const { payload, errors } = await myFetch.get(`/results/submission-info/${recordsUpTo}`, { authorize: true });
-
-    if (errors) {
-      setErrorMessages(errors);
-      Promise.reject();
-    } else {
-      setErrorMessages([]);
-      console.log('Submission info:', payload);
-      return payload;
-    }
-  };
 
   const submitResult = async () => {
     const newResult: IResult = {
@@ -122,10 +115,11 @@ const SubmitResultsPage = () => {
 
     // Update the record pairs with the new date
     if (newDate) {
-      limitRequests(fetchRecordPairsTimer, setFetchRecordPairsTimer, () => {
-        fetchSubmissionInfo(newDate).then((payload: IResultsSubmissionInfo) => {
-          setResultsSubmissionInfo(payload as IResultsSubmissionInfo);
-        });
+      limitRequests(fetchRecordPairsTimer, setFetchRecordPairsTimer, async () => {
+        const { payload, errors } = await myFetch.get(`/results/submission-info/${newDate}`, { authorize: true });
+
+        if (errors) setErrorMessages(errors);
+        else setResultsSubmissionInfo(payload);
       });
     }
   };
