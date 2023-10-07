@@ -25,6 +25,7 @@ const setRankingsAndRecords = (
   let ranking = 1;
   let bestSingleResults: IResult[] = [];
   let bestAvgResults: IResult[] = [];
+  const mockRecordResult = { best: recordPairs[0].best, average: recordPairs[0].average } as IResult;
 
   for (let i = 0; i < sortedResults.length; i++) {
     // If the previous result was not tied with this one, increase ranking
@@ -39,12 +40,11 @@ const setRankingsAndRecords = (
     sortedResults[i].ranking = ranking;
     prevResult = sortedResults[i];
 
-    const mockRecordResult = { best: recordPairs[0].best, average: recordPairs[0].average } as IResult;
-
     if (compareSingles(sortedResults[i], mockRecordResult) === 0) {
       bestSingleResults.push(sortedResults[i]);
     } else if (compareSingles(sortedResults[i], mockRecordResult) < 0) {
       bestSingleResults = [sortedResults[i]];
+      mockRecordResult.best = sortedResults[i].best; // update the record
     }
 
     if (sortedResults[i].attempts.length === getDefaultAverageAttempts(event)) {
@@ -52,6 +52,7 @@ const setRankingsAndRecords = (
         bestAvgResults.push(sortedResults[i]);
       } else if (compareAvgs(sortedResults[i], mockRecordResult, true) < 0) {
         bestAvgResults = [sortedResults[i]];
+        mockRecordResult.average = sortedResults[i].average; // update the record
       }
     }
   }
@@ -216,6 +217,8 @@ const ImportExportPage = () => {
   };
 
   const previewContest = async () => {
+    if (competitionIdText.trim() === '') return;
+
     setErrorMessages([]);
     setSuccessMessage('');
     setContestJSON('');
@@ -276,7 +279,6 @@ const ImportExportPage = () => {
       if (person !== null) {
         if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
       } else if (!notFoundPersonNames.includes(org.name)) {
-        console.log('test', org.name);
         notFoundPersonNames.push(org.name);
       }
     }
@@ -378,7 +380,6 @@ const ImportExportPage = () => {
                 return;
               }
             } else if (!notFoundPersonNames.includes(name)) {
-              console.log(name);
               notFoundPersonNames.push(name);
             }
           }

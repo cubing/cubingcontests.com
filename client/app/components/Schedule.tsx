@@ -30,8 +30,6 @@ const Schedule = ({
     );
   }
 
-  console.log(allActivities, Math.floor(allActivities[0]?.id / 1000));
-
   allActivities.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   const days: {
