@@ -24,7 +24,7 @@ const FormSelect = ({
   else if (title) inputId = `${title.toLowerCase().replaceAll(' ', '_')}_select`;
 
   return (
-    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
+    <div className={`fs-5 ${noMargin ? '' : ' mb-3'}`}>
       {title && <FormInputLabel text={title} inputId={inputId} />}
       <select
         id={inputId}

@@ -4,6 +4,7 @@ import { roundFormats } from '@sh/roundFormats';
 import { roundTypes } from '~/helpers/roundTypes';
 import { IActivity, IContestEvent, IRoom } from '@sh/interfaces';
 import EventTitle from './EventTitle';
+import ColorSquare from './ColorSquare';
 
 const Schedule = ({
   rooms,
@@ -22,11 +23,14 @@ const Schedule = ({
     allActivities.push(
       ...room.activities.map((activity) => ({
         ...activity,
+        id: 1000 * room.id + activity.id, // this is necessary to give every activity a unique id
         startTime: typeof activity.startTime === 'string' ? new Date(activity.startTime) : activity.startTime,
         endTime: typeof activity.endTime === 'string' ? new Date(activity.endTime) : activity.endTime,
       })),
     );
   }
+
+  console.log(allActivities, Math.floor(allActivities[0]?.id / 1000));
 
   allActivities.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
@@ -71,6 +75,8 @@ const Schedule = ({
               <tbody>
                 {day.activities.map((activity) => {
                   let contestEvent, round;
+                  // See where the activity IDs are set above to understand how the room id is retrieved here
+                  const room = rooms.find((r) => r.id === Math.floor(activity.id / 1000));
 
                   if (activity.activityCode !== 'other-misc') {
                     contestEvent = contestEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
@@ -92,7 +98,12 @@ const Schedule = ({
                           activity.name
                         )}
                       </td>
-                      <td>{rooms.find((room) => room.activities.some((a) => a.id === activity.id)).name}</td>
+                      <td>
+                        <span className="d-flex gap-3">
+                          <ColorSquare color={room.color} style={{ height: '1.5rem', width: '1.8rem', margin: 0 }} />
+                          {room.name}
+                        </span>
+                      </td>
                       <td>{activity.activityCode !== 'other-misc' && round ? roundFormats[round.format].label : ''}</td>
                       {onDeleteActivity && (
                         <td>

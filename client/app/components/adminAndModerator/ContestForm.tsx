@@ -16,9 +16,11 @@ import FormRadio from '@c/form/FormRadio';
 import FormSelect from '@c/form/FormSelect';
 import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormNumberInput from '@c/form/FormNumberInput';
+import FormTextArea from '@c/form/FormTextArea';
 import EventTitle from '@c/EventTitle';
 import Tabs from '@c/Tabs';
 import Schedule from '@c/Schedule';
+import ColorSquare from '@c/ColorSquare';
 import { IContest, ICompetitionDetails, IContestEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
 import { Color, ContestState, ContestType, EventGroup, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
@@ -31,8 +33,7 @@ import {
 import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
-import C from '~/shared_helpers/constants';
-import FormTextArea from '../form/FormTextArea';
+import C from '@sh/constants';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -177,8 +178,8 @@ const ContestForm = ({
 
   // TEMPORARY FOR DEBUGGING
   useEffect(() => {
-    console.log('Rooms', rooms);
-  }, [rooms]);
+    console.log('Rooms', rooms, '| selected room:', selectedRoom);
+  }, [rooms, selectedRoom]);
 
   useEffect(() => {
     if (mode !== 'new') {
@@ -616,7 +617,7 @@ const ContestForm = ({
     setRooms([
       ...rooms,
       {
-        id: rooms.length + 1,
+        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
         name: roomName.trim(),
         color: roomColor,
         activities: [],
@@ -983,25 +984,18 @@ const ContestForm = ({
                   disabled={disableIfCompFinished}
                 />
               </div>
-              <div className="col-3">
-                <FormSelect
-                  title="Color"
-                  options={colorOptions}
-                  selected={roomColor}
-                  setSelected={setRoomColor}
-                  disabled={disableIfCompFinished}
-                />
-              </div>
-              <div className="col-1 d-flex align-items-end">
-                <span
-                  style={{
-                    marginBottom: '23px',
-                    width: '100%',
-                    height: '2rem',
-                    borderRadius: '5px',
-                    backgroundColor: `#${roomColor}`,
-                  }}
-                ></span>
+              <div className="col-4 d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div className="flex-grow-1">
+                  <FormSelect
+                    title="Color"
+                    options={colorOptions}
+                    selected={roomColor}
+                    setSelected={setRoomColor}
+                    disabled={disableIfCompFinished}
+                    noMargin
+                  />
+                </div>
+                <ColorSquare color={roomColor} />
               </div>
             </div>
             <button
