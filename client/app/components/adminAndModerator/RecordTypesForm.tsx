@@ -7,6 +7,7 @@ import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
 import FormCheckbox from '@c/form/FormCheckbox';
+import ColorSquare from '../ColorSquare';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -46,11 +47,13 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
     >
       <>
         {tRecordTypes.map((rt) => (
-          <div key={rt.wcaEquivalent} className="row mb-2">
-            <label htmlFor={rt.wcaEquivalent + '_label_input'} className="col-2 form-label">
-              {rt.wcaEquivalent}&#8194;label
-            </label>
-            <div className="col-2">
+          <div key={rt.wcaEquivalent} className="row align-items-center mb-3 mb-md-4">
+            <div className="d-none d-md-block col-2">
+              <label htmlFor={rt.wcaEquivalent + '_label_input'} className="form-label">
+                {rt.wcaEquivalent}&#8194;label
+              </label>
+            </div>
+            <div className="col-3 col-md-2 pe-0">
               <input
                 type="text"
                 id={rt.wcaEquivalent + '_label_input'}
@@ -59,33 +62,39 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                 className="form-control"
               />
             </div>
-            <div className="col-1" />
-            <div className="col-3 ps-5">
+            <div className="col-3 col-md-3 ps-md-5 pe-0">
               <FormCheckbox
                 title="Active"
                 id={rt.wcaEquivalent}
                 selected={rt.active}
                 setSelected={() => changeActive(rt.wcaEquivalent)}
+                noMargin
               />
             </div>
-            <label htmlFor="color_select" className="col-1 form-label">
-              Color
-            </label>
-            <div className="col-3">
-              <select
-                id="color_select"
-                className="form-select"
-                value={rt.color}
-                onChange={(e) => changeColor(rt.wcaEquivalent, e.target.value as Color)}
-              >
-                {colorOptions
-                  .filter((el) => el.value !== Color.Magenta)
-                  .map((colorOption) => (
-                    <option key={colorOption.value} value={colorOption.value}>
-                      {colorOption.label}
-                    </option>
-                  ))}
-              </select>
+            <div className="d-none d-md-block col-1">
+              <label htmlFor="color_select" className="form-label">
+                Color
+              </label>
+            </div>
+            <div className="col-6 col-md-4">
+              <span className="d-flex gap-2 gap-md-3">
+                <select
+                  id="color_select"
+                  className="form-select"
+                  value={rt.color}
+                  onChange={(e) => changeColor(rt.wcaEquivalent, e.target.value as Color)}
+                >
+                  {colorOptions
+                    .filter((el) => ![Color.White, Color.Magenta].includes(el.value as any))
+                    .map((colorOption) => (
+                      <option key={colorOption.value} value={colorOption.value}>
+                        {colorOption.label}
+                      </option>
+                    ))}
+                </select>
+
+                <ColorSquare color={rt.color} style={{ minWidth: '2.1rem' }} />
+              </span>
             </div>
           </div>
         ))}

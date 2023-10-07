@@ -367,6 +367,9 @@ export const getBSClassFromColor = (color: Color): string => {
     case Color.Cyan: {
       return 'info';
     }
+    case Color.Black: {
+      return 'dark';
+    }
     default: {
       console.error(`Unknown color: ${color}`);
       return 'dark';

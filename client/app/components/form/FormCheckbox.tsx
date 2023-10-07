@@ -4,19 +4,21 @@ const FormCheckbox = ({
   selected,
   setSelected,
   disabled = false,
+  noMargin = false,
 }: {
   id?: string;
   title?: string;
   selected: boolean;
   setSelected: (val: boolean) => void;
   disabled?: boolean;
+  noMargin?: boolean;
 }) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormCheckbox!');
 
   const inputId = `${id || title}_checkbox`;
 
   return (
-    <div className="mb-3 form-check">
+    <div className={`form-check ${noMargin ? '' : ' mb-3'}`}>
       <input
         className="form-check-input"
         id={inputId}

@@ -9,24 +9,28 @@ export const colorOptions: MultiChoiceOption[] = [
     value: Color.White,
   },
   {
-    label: 'Blue',
-    value: Color.Blue,
+    label: 'Black',
+    value: Color.Black,
   },
   {
     label: 'Red',
     value: Color.Red,
   },
   {
-    label: 'Green',
-    value: Color.Green,
-  },
-  {
     label: 'Yellow',
     value: Color.Yellow,
   },
   {
+    label: 'Green',
+    value: Color.Green,
+  },
+  {
     label: 'Cyan',
     value: Color.Cyan,
+  },
+  {
+    label: 'Blue',
+    value: Color.Blue,
   },
   {
     label: 'Magenta',

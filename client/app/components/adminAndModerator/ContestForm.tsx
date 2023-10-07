@@ -176,11 +176,6 @@ const ContestForm = ({
   // Use effect
   //////////////////////////////////////////////////////////////////////////////
 
-  // TEMPORARY FOR DEBUGGING
-  useEffect(() => {
-    console.log('Rooms', rooms, '| selected room:', selectedRoom);
-  }, [rooms, selectedRoom]);
-
   useEffect(() => {
     if (mode !== 'new') {
       setCompetitionId(contest.competitionId);
@@ -553,7 +548,7 @@ const ContestForm = ({
       );
 
       if (activityToDelete) {
-        deleteActivity(activityToDelete.id);
+        deleteActivity(room.id, activityToDelete.id);
         break;
       }
     }
@@ -600,7 +595,7 @@ const ContestForm = ({
         for (const room of rooms) {
           for (const activity of room.activities) {
             if (event.rounds.some((r) => r.roundId === activity.activityCode)) {
-              deleteActivity(activity.id);
+              deleteActivity(room.id, activity.id);
             }
           }
         }
@@ -680,17 +675,16 @@ const ContestForm = ({
     setCustomActivity('');
   };
 
-  const deleteActivity = (activityId: number) => {
+  const deleteActivity = (roomId: number, activityId: number) => {
     setRooms((prevRooms) => {
       const newRooms = prevRooms.map((room) =>
-        room.id !== selectedRoom
+        room.id !== roomId
           ? room
           : {
               ...room,
               activities: room.activities.filter((a) => a.id !== activityId),
             },
       );
-      console.log('New rooms:', newRooms);
       return newRooms;
     });
   };
@@ -1088,7 +1082,7 @@ const ContestForm = ({
           rooms={rooms}
           contestEvents={contestEvents}
           timezone={venueTimezone}
-          onDeleteActivity={disableIfCompFinished ? undefined : (id: number) => deleteActivity(id)}
+          onDeleteActivity={disableIfCompFinished ? undefined : deleteActivity}
         />
       )}
     </div>

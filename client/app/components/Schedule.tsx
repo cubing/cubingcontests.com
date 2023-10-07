@@ -15,7 +15,7 @@ const Schedule = ({
   rooms: IRoom[];
   contestEvents: IContestEvent[];
   timezone: string;
-  onDeleteActivity?: (id: number) => void;
+  onDeleteActivity?: (roomId: number, activityId: number) => void;
 }) => {
   const allActivities = [];
 
@@ -73,8 +73,10 @@ const Schedule = ({
               <tbody>
                 {day.activities.map((activity) => {
                   let contestEvent, round;
-                  // See where the activity IDs are set above to understand how the room id is retrieved here
-                  const room = rooms.find((r) => r.id === Math.floor(activity.id / 1000));
+                  // See where the activity IDs are set above to understand what's going on with the ID here
+                  const roomId = Math.floor(activity.id / 1000);
+                  const activityId = activity.id % 1000;
+                  const room = rooms.find((r) => r.id === roomId);
 
                   if (activity.activityCode !== 'other-misc') {
                     contestEvent = contestEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
@@ -107,7 +109,7 @@ const Schedule = ({
                         <td>
                           <button
                             type="button"
-                            onClick={() => onDeleteActivity(activity.id)}
+                            onClick={() => onDeleteActivity(roomId, activityId)}
                             className="btn btn-danger btn-sm"
                           >
                             Delete
