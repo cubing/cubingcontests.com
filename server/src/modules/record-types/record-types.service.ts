@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { format } from 'date-fns';
 import { InjectModel } from '@nestjs/mongoose';
 import { excl } from '~/src/helpers/dbHelpers';
 import { Model } from 'mongoose';
@@ -8,6 +9,7 @@ import { EventDocument } from '~/src/models/event.model';
 import { WcaRecordType } from '@sh/enums';
 import { UpdateRecordTypeDto } from './dto/update-record-type.dto';
 import { recordTypesSeed } from '~/src/seeds/record-types.seed';
+import { getBaseAvgsFilter, getBaseSinglesFilter } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
 export class RecordTypesService {
@@ -85,85 +87,85 @@ export class RecordTypesService {
             .updateMany({ regionalAverageRecord: wcaEquiv }, { $unset: { regionalAverageRecord: '' } })
             .exec();
         } else if (updateRTsDtoS[i].active && !recordTypes[i].active) {
-          console.log(`Setting ${wcaEquiv} records`);
-
           try {
             for (const event of events) {
-              // SET SINGLE RECORDS
-
-              const bestSinglesByDay = await this.resultModel
-                .aggregate([
-                  { $match: { eventId: event.eventId, unapproved: { $exists: false }, best: { $gt: 0 } } },
-                  { $group: { _id: '$date', best: { $min: '$best' } } },
-                  { $sort: { _id: 1 } },
-                ])
-                .exec();
-
-              // THIS SEEMS SUBOPTIMAL, MAYBE DO THIS DIRECTLY IN THE QUERY SOMEHOW
-              let bestResult = Infinity;
-              const singleRecords = bestSinglesByDay.filter((res) => {
-                if (res.best <= bestResult) {
-                  bestResult = res.best;
-                  return true;
-                }
-                return false;
-              });
-
-              for (const singleRecord of singleRecords) {
-                console.log(`New single ${wcaEquiv} for event ${event.eventId}: ${singleRecord.best}`);
-
-                // Update all tied records on the day
-                await this.resultModel
-                  .updateMany(
-                    {
-                      eventId: event.eventId,
-                      date: singleRecord._id, // _id is the date from the group stage
-                      best: singleRecord.best,
-                    },
-                    { $set: { regionalSingleRecord: wcaEquiv } },
-                  )
-                  .exec();
-              }
-
-              // SET AVERAGE RECORDS
-
-              const bestAvgsByDay = await this.resultModel
-                .aggregate([
-                  { $match: { eventId: event.eventId, unapproved: { $exists: false }, average: { $gt: 0 } } },
-                  { $group: { _id: '$date', average: { $min: '$average' } } },
-                  { $sort: { _id: 1 } },
-                ])
-                .exec();
-
-              bestResult = Infinity;
-              const avgRecords = bestAvgsByDay.filter((res) => {
-                if (res.average <= bestResult) {
-                  bestResult = res.average;
-                  return true;
-                }
-                return false;
-              });
-
-              for (const avgRecord of avgRecords) {
-                console.log(`New average ${wcaEquiv} for event ${event.eventId}: ${avgRecord.average}`);
-
-                // Update all tied records on the day
-                await this.resultModel
-                  .updateMany(
-                    {
-                      eventId: event.eventId,
-                      date: avgRecord._id,
-                      average: avgRecord.average,
-                    },
-                    { $set: { regionalAverageRecord: wcaEquiv } },
-                  )
-                  .exec();
-              }
+              await this.setEventSingleRecords(event, wcaEquiv);
+              await this.setEventAvgRecords(event, wcaEquiv);
             }
           } catch (err) {
             throw new InternalServerErrorException(`Error while setting initial ${wcaEquiv} records: ${err.message}`);
           }
         }
+      }
+    }
+  }
+
+  async setEventSingleRecords(
+    event: EventDocument,
+    wcaEquiv: WcaRecordType,
+    queryFilter: any = getBaseSinglesFilter(event),
+  ) {
+    console.log(queryFilter, typeof queryFilter.date);
+
+    const bestSingleResultsByDay = await this.resultModel
+      .aggregate([
+        { $match: queryFilter },
+        { $group: { _id: '$date', best: { $min: '$best' } } },
+        { $sort: { _id: 1 } },
+      ])
+      .exec();
+
+    let currentSingleRecord = Infinity;
+
+    for (const result of bestSingleResultsByDay) {
+      // Filter out the results that were not records at the time they were achieved
+      if (result.best <= currentSingleRecord) {
+        currentSingleRecord = result.best;
+
+        // _id is the date from the group stage
+        console.log(
+          `New single ${wcaEquiv} for ${event.eventId}: ${result.best} (${format(result._id, 'd MMM yyyy')})`,
+        );
+
+        const sameDayTiedRecordsFilter: any = queryFilter;
+        sameDayTiedRecordsFilter.date = result._id;
+        sameDayTiedRecordsFilter.best = result.best;
+
+        await this.resultModel
+          .updateMany(sameDayTiedRecordsFilter, { $set: { regionalSingleRecord: wcaEquiv } })
+          .exec();
+      }
+    }
+  }
+
+  async setEventAvgRecords(event: EventDocument, wcaEquiv: WcaRecordType, queryFilter: any = getBaseAvgsFilter(event)) {
+    const bestAvgResultsByDay = await this.resultModel
+      .aggregate([
+        { $match: queryFilter },
+        { $group: { _id: '$date', average: { $min: '$average' } } },
+        { $sort: { _id: 1 } },
+      ])
+      .exec();
+
+    let currentAvgRecord = Infinity;
+
+    for (const result of bestAvgResultsByDay) {
+      // Filter out the results that were not records at the time they were achieved
+      if (result.average <= currentAvgRecord) {
+        currentAvgRecord = result.average;
+
+        // _id is the date from the group stage
+        console.log(
+          `New average ${wcaEquiv} for ${event.eventId}: ${result.average} (${format(result._id, 'd MMM yyyy')})`,
+        );
+
+        const sameDayTiedRecordsFilter: any = queryFilter;
+        sameDayTiedRecordsFilter.date = result._id;
+        sameDayTiedRecordsFilter.average = result.average;
+
+        await this.resultModel
+          .updateMany(sameDayTiedRecordsFilter, { $set: { regionalAverageRecord: wcaEquiv } })
+          .exec();
       }
     }
   }

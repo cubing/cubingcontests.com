@@ -26,11 +26,11 @@ if [ -n "$3" ]; then
 elif [ -n "$2" ] && [ "$2" != "--overwrite" ]; then
   DB_CONTAINER=$2
 else
-  DB_CONTAINER=cc-mongo
+  DB_CONTAINER=cc-mongo-dev
 fi
 
 # Check that the container with the DB is running
-if [ -z "$(sudo docker ps | grep "$DB_CONTAINER$")" ]; then
+if [ -z "$(docker ps | grep "$DB_CONTAINER$")" ]; then
   echo "Error: Container $DB_CONTAINER not found"
   exit 3
 fi
@@ -53,25 +53,25 @@ if [ "$ANSWER" == "y" ] || [ "$ANSWER" == "Y" ]; then
   collections=( "competitions" "people" "rounds" "results" "recordtypes" "events" "schedules" )
 
   # Copy dump to Docker container and extract it
-  sudo docker cp "$DUMP_PATH/$FILENAME" $DB_CONTAINER:/$FILENAME
-  sudo docker exec $DB_CONTAINER sh -c "tar -xvzf /$FILENAME"
+  docker cp "$DUMP_PATH/$FILENAME" $DB_CONTAINER:/$FILENAME
+  docker exec $DB_CONTAINER sh -c "tar -xvzf /$FILENAME"
   # Delete the archive with the dump
-  sudo docker exec $DB_CONTAINER sh -c "rm -f /$FILENAME"
+  docker exec $DB_CONTAINER sh -c "rm -f /$FILENAME"
 
   for col in "${collections[@]}"; do
     if [ $OVERWRITE == true ]; then
       # Drop collection (if it returns true, that means it successfully dropped the collection)
-      sudo docker exec $DB_CONTAINER mongosh --eval "db.$col.drop()" \
+      docker exec $DB_CONTAINER mongosh --eval "db.$col.drop()" \
         "mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@localhost:27017/cubingcontests"
     fi
 
     # Restore collection
-    sudo docker exec $DB_CONTAINER mongorestore -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD \
+    docker exec $DB_CONTAINER mongorestore -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD \
       --db cubingcontests -c $col /dump/cubingcontests/$col.bson
   done
 
   # Delete dump directory
-  sudo docker exec $DB_CONTAINER sh -c "rm -rf /dump"
+  docker exec $DB_CONTAINER sh -c "rm -rf /dump"
 
   echo -e "\nDone!"
 else

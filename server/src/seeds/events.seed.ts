@@ -259,20 +259,4 @@ export const eventsSeed: IEvent[] = [
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
   },
-  {
-    eventId: '234567relay_bld',
-    name: '2x2x2-7x7x7 Relay Blindfolded',
-    rank: 2200,
-    format: EventFormat.Time,
-    defaultRoundFormat: RoundFormat.BestOf1,
-    groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
-  },
-  {
-    eventId: 'minx_bld',
-    name: 'Megaminx Blindfolded',
-    rank: 2300,
-    format: EventFormat.Time,
-    defaultRoundFormat: RoundFormat.BestOf1,
-    groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
-  },
 ];

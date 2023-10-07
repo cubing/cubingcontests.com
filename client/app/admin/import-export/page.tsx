@@ -276,6 +276,7 @@ const ImportExportPage = () => {
       if (person !== null) {
         if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
       } else if (!notFoundPersonNames.includes(org.name)) {
+        console.log('test', org.name);
         notFoundPersonNames.push(org.name);
       }
     }
@@ -377,6 +378,7 @@ const ImportExportPage = () => {
                 return;
               }
             } else if (!notFoundPersonNames.includes(name)) {
+              console.log(name);
               notFoundPersonNames.push(name);
             }
           }

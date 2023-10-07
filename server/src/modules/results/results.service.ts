@@ -16,33 +16,22 @@ import {
   IRanking,
   IEvent,
 } from '@sh/interfaces';
-import {
-  getDateOnly,
-  getDefaultAverageAttempts,
-  getRoundRanksWithAverage,
-  setResultRecords,
-} from '@sh/sharedFunctions';
+import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import C from '@sh/constants';
 import { excl, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
-import { setRankings, fixTimesOverTenMinutes } from '~/src/helpers/utilityFunctions';
+import {
+  setRankings,
+  fixTimesOverTenMinutes,
+  getBaseSinglesFilter,
+  getBaseAvgsFilter,
+} from '~/src/helpers/utilityFunctions';
 import { AuthService } from '../auth/auth.service';
 import { PersonDocument } from '~/src/models/person.model';
 import { EventDocument } from '~/src/models/event.model';
-
-const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => ({
-  eventId: event.eventId,
-  best,
-});
-
-const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => ({
-  eventId: event.eventId,
-  average,
-  attempts: { $size: getDefaultAverageAttempts(event) },
-});
 
 @Injectable()
 export class ResultsService {
@@ -68,7 +57,7 @@ export class ResultsService {
         else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
       }
 
-      // Look for records that are worse than a previous result (DISABLE TO AVOID SLOWING DOWN THE DEV ENVIRONMENT)
+      // Look for records that are worse than a previous result (DISABLED TO AVOID SLOWING DOWN THE DEV ENVIRONMENT)
       // const events = await this.eventsService.getEvents({ includeHidden: true });
 
       // for (const event of events) {
@@ -79,11 +68,7 @@ export class ResultsService {
 
       //   for (const result of singleRecordResults) {
       //     const betterSinglesInThePast = await this.resultModel
-      //       .find({
-      //         ...getBaseSinglesFilter(event, { $lt: result.best, $gt: 0 }),
-      //         date: { $lte: result.date },
-      //         unapproved: { $exists: false },
-      //       })
+      //       .find({ ...getBaseSinglesFilter(event, { best: { $lt: result.best, $gt: 0 } }), date: { $lte: result.date }})
       //       .exec();
 
       //     if (betterSinglesInThePast.length > 0) {
@@ -98,11 +83,7 @@ export class ResultsService {
 
       //   for (const result of averageRecordResults) {
       //     const betterAvgsInThePast = await this.resultModel
-      //       .find({
-      //         ...getBaseAvgsFilter(event, { $lt: result.average, $gt: 0 }),
-      //         date: { $lte: result.date },
-      //         unapproved: { $exists: false },
-      //       })
+      //       .find({...getBaseAvgsFilter(event, { average: { $lt: result.average, $gt: 0 }}), date: { $lte: result.date }})
       //       .exec();
 
       //     if (betterAvgsInThePast.length > 0) {
@@ -172,14 +153,6 @@ export class ResultsService {
       rankings: [],
     };
     let eventResults: ResultDocument[] = [];
-    const singlesFilter = {
-      ...getBaseSinglesFilter(event),
-      unapproved: { $exists: false },
-    };
-    const avgsFilter = {
-      ...getBaseAvgsFilter(event),
-      unapproved: { $exists: false },
-    };
 
     if (!forAverage) {
       if (show === 'results') {
@@ -187,7 +160,7 @@ export class ResultsService {
 
         eventResults = await this.resultModel
           .aggregate([
-            { $match: { eventId, unapproved: { $exists: false } } },
+            { $match: getBaseSinglesFilter(event) },
             { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
             { $project: excl },
             { $match: { 'attempts.result': { $gt: 0, $ne: C.maxTime } } },
@@ -202,7 +175,7 @@ export class ResultsService {
 
         const prSingles = await this.resultModel
           .aggregate([
-            { $match: singlesFilter },
+            { $match: getBaseSinglesFilter(event) },
             { $unwind: '$personIds' },
             { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
             { $sort: { best: 1 } },
@@ -252,13 +225,13 @@ export class ResultsService {
     } else {
       if (show === 'results') {
         // Get all top average results
-        eventResults = await this.resultModel.find(avgsFilter, excl).sort({ average: 1 }).exec();
+        eventResults = await this.resultModel.find(getBaseAvgsFilter(event)).sort({ average: 1 }).exec();
       } else {
         // Get top averages by person
 
         const prAverages = await this.resultModel
           .aggregate([
-            { $match: avgsFilter },
+            { $match: getBaseAvgsFilter(event) },
             { $unwind: '$personIds' },
             { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
             { $sort: { average: 1 } },
@@ -266,9 +239,7 @@ export class ResultsService {
           .exec();
 
         for (const pr of prAverages) {
-          const result = await this.resultModel
-            .findOne({ personIds: pr._id.personId, average: pr.average }, excl)
-            .exec();
+          const result = await this.resultModel.findOne({ personIds: pr._id.personId, average: pr.average }).exec();
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
@@ -465,7 +436,7 @@ export class ResultsService {
     try {
       result = await this.resultModel.findOne({ _id: resultId }).exec();
     } catch (err) {
-      throw new InternalServerErrorException('Error while deleting result:', err.message);
+      throw new InternalServerErrorException(`Error while deleting result: ${err.message}`);
     }
 
     if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);
@@ -510,7 +481,7 @@ export class ResultsService {
 
       await this.resetCancelledRecords(result, event, contest);
 
-      throw new InternalServerErrorException('Error while updating round during result deletion:', err.message);
+      throw new InternalServerErrorException(`Error while updating round during result deletion: ${err.message}`);
     }
   }
 
@@ -534,7 +505,7 @@ export class ResultsService {
       try {
         duplicateResult = await this.resultModel.findOne({ videoLink: createResultDto.videoLink }).exec();
       } catch (err) {
-        throw new InternalServerErrorException('Error while searching for duplicate result:', err.message);
+        throw new InternalServerErrorException(`Error while searching for duplicate result: ${err.message}`);
       }
 
       if (duplicateResult) throw new BadRequestException('A result with the same video link already exists');
@@ -553,7 +524,7 @@ export class ResultsService {
     try {
       await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
     } catch (err) {
-      throw new InternalServerErrorException('Error while submitting result:', err.message);
+      throw new InternalServerErrorException(`Error while submitting result: ${err.message}`);
     }
 
     if (isAdmin) await this.resetCancelledRecords(createResultDto, event);
@@ -599,7 +570,7 @@ export class ResultsService {
         const recordPair: IRecordPair = { wcaEquivalent: rt.wcaEquivalent, best: -1, average: -1 };
 
         const [singleRecord] = await this.resultModel
-          .find({ ...getBaseSinglesFilter(event), date: { $lte: recordsUpTo } })
+          .find({ ...getBaseSinglesFilter(event, { best: { $gt: 0 } }), date: { $lte: recordsUpTo } })
           .sort({ best: 1 })
           .limit(1)
           .exec();
@@ -607,7 +578,7 @@ export class ResultsService {
         if (singleRecord) recordPair.best = singleRecord.best;
 
         const [avgRecord] = await this.resultModel
-          .find({ ...getBaseAvgsFilter(event), date: { $lte: recordsUpTo } })
+          .find({ ...getBaseAvgsFilter(event, { average: { $gt: 0 } }), date: { $lte: recordsUpTo } })
           .sort({ average: 1 })
           .limit(1)
           .exec();
@@ -690,7 +661,6 @@ export class ResultsService {
 
     // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
     // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
-    // THIS CODE IS SIMILAR TO updateRecordsAfterDeletion
     const queryBase: any = { date: { $gte: result.date } };
     if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
 
@@ -700,7 +670,7 @@ export class ResultsService {
       if (result.best > 0) {
         await this.resultModel
           .updateMany(
-            { ...queryBase, ...getBaseSinglesFilter(event, { $gt: result.best }) },
+            { ...queryBase, ...getBaseSinglesFilter(event, { best: { $gt: result.best } }) },
             { $unset: { regionalSingleRecord: '' } },
           )
           .exec();
@@ -710,13 +680,13 @@ export class ResultsService {
       if (result.average > 0) {
         await this.resultModel
           .updateMany(
-            { ...queryBase, ...getBaseAvgsFilter(event, { $gt: result.average }) },
+            { ...queryBase, ...getBaseAvgsFilter(event, { average: { $gt: result.average } }) },
             { $unset: { regionalAverageRecord: '' } },
           )
           .exec();
       }
     } catch (err) {
-      throw new InternalServerErrorException('Error while resetting cancelled WRs:', err.message);
+      throw new InternalServerErrorException(`Error while resetting cancelled WRs: ${err.message}`);
     }
   }
 
@@ -730,12 +700,10 @@ export class ResultsService {
     if (result.best <= 0 && result.average <= 0) return;
     if (!event) event = await this.eventsService.getEventById(result.eventId);
 
-    // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
-    // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
-    // THIS CODE IS SIMILAR TO resetCancelledRecords
+    // If the contest isn't finished, only update its own records. If it is, meaning the deletion is done by the admin,
+    // update ALL results that are now records.
     const queryBase: any = { _id: { $ne: (result as any)._id }, date: { $gte: result.date } };
-    if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
-    else queryBase.unapproved = { $exists: false };
+    if (contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
 
     // This is done so that we get records BEFORE the date of the deleted result
     const recordsUpTo = new Date(result.date.getTime() - 1);
@@ -747,50 +715,24 @@ export class ResultsService {
         // Set single records
         if (result.best > 0) {
           const bestFilter: any = { $gt: 0 };
+          // Make sure it's better than the record at the time, if there was a record at all
           if (rp.best > 0) bestFilter.$lte = rp.best;
 
-          // Look for non-DNF singles better than the record and get the best one of those
-          const [bestSingleResult] = await this.resultModel
-            .find({ ...queryBase, ...getBaseSinglesFilter(event, bestFilter) })
-            .sort({ best: 1 })
-            .limit(1)
-            .exec();
+          await this.recordTypesService.setEventSingleRecords(event, rp.wcaEquivalent, {
+            ...queryBase,
+            ...getBaseSinglesFilter(event, { best: bestFilter }),
+          });
 
-          if (bestSingleResult) {
-            console.log(`Setting ${result.eventId} single records after deletion: ${bestSingleResult.best}`);
+          // Set average records
+          if (result.average > 0) {
+            const averageFilter: any = { $gt: 0 };
+            // Make sure it's better than the record at the time, if there was a record at all
+            if (rp.average > 0) averageFilter.$lte = rp.average;
 
-            // Set all tied records
-            await this.resultModel
-              .updateMany(
-                { ...queryBase, best: bestSingleResult.best },
-                { $set: { regionalSingleRecord: rp.wcaEquivalent } },
-              )
-              .exec();
-          }
-        }
-
-        // Set average records
-        if (result.average > 0) {
-          const averageFilter: any = { $gt: 0 };
-          if (rp.average > 0) averageFilter.$lte = rp.average;
-
-          // Look for non-DNF averages better than the record and get the best one of those
-          const [bestAvgResult] = await this.resultModel
-            .find({ ...queryBase, ...getBaseAvgsFilter(event, averageFilter) })
-            .sort({ average: 1 })
-            .limit(1)
-            .exec();
-
-          if (bestAvgResult) {
-            console.log(`Setting ${result.eventId} average records after deletion: ${bestAvgResult.average}`);
-
-            // Set all tied records
-            await this.resultModel
-              .updateMany(
-                { ...queryBase, average: bestAvgResult.average },
-                { $set: { regionalAverageRecord: rp.wcaEquivalent } },
-              )
-              .exec();
+            await this.recordTypesService.setEventAvgRecords(event, rp.wcaEquivalent, {
+              ...queryBase,
+              ...getBaseAvgsFilter(event, { average: averageFilter }),
+            });
           }
         }
       } catch (err) {
@@ -811,7 +753,8 @@ export class ResultsService {
         .exec();
     } catch (err) {
       throw new InternalServerErrorException(
-        `Error while searching for competition with ID ${competitionId}: ${err.message}`,
+        `Error while searching for competition with ID ${competitionId}:`,
+        err.message,
       );
     }
 

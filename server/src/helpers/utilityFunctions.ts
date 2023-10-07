@@ -1,4 +1,4 @@
-import { compareAvgs, compareSingles, getAlwaysShowDecimals } from '@sh/sharedFunctions';
+import { compareAvgs, compareSingles, getAlwaysShowDecimals, getDefaultAverageAttempts } from '@sh/sharedFunctions';
 import { ResultDocument } from '../models/result.model';
 import { EventFormat } from '@sh/enums';
 import { IEvent, IResult } from '@sh/interfaces';
@@ -52,4 +52,40 @@ export const fixTimesOverTenMinutes = (result: IResult, event: IEvent) => {
       att.result > 60000 ? { ...att, result: att.result - (att.result % 100) } : att,
     );
   }
+};
+
+export const getBaseSinglesFilter = (
+  event: IEvent,
+  {
+    best,
+    unapproved,
+  }: {
+    best: any;
+    unapproved?: any;
+  } = {
+    best: { $gt: 0 },
+    unapproved: { $exists: false },
+  },
+) => {
+  const output: any = { eventId: event.eventId, best };
+  if (unapproved !== undefined) output.unapproved = unapproved;
+  return output;
+};
+
+export const getBaseAvgsFilter = (
+  event: IEvent,
+  {
+    average,
+    unapproved,
+  }: {
+    average: any;
+    unapproved?: any;
+  } = {
+    average: { $gt: 0 },
+    unapproved: { $exists: false },
+  },
+) => {
+  const output: any = { eventId: event.eventId, average, attempts: { $size: getDefaultAverageAttempts(event) } };
+  if (unapproved !== undefined) output.unapproved = unapproved;
+  return output;
 };

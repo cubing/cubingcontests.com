@@ -8,9 +8,7 @@ fi
 source .env
 
 if [ -n "$1" ]; then
-  DB_CONTAINER=$1
+  docker exec -it $1 mongosh "mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@localhost:27017/cubingcontests"
 else
-  DB_CONTAINER=cc-mongo
+  sudo docker exec -it cc-mongo mongosh "mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@localhost:27017/cubingcontests"
 fi
-
-sudo docker exec -it $DB_CONTAINER mongosh "mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@localhost:27017/cubingcontests"

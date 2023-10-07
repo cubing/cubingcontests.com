@@ -165,6 +165,7 @@ export class ContestsService {
   async updateContest(competitionId: string, updateContestDto: UpdateContestDto, user: IPartialUser) {
     // Makes sure the user is an admin or a moderator who has access rights to the UNFINISHED contest.
     // If the contest is finished and the user is not an admin, an unauthorized exception is thrown.
+    // Do not exclude internal fields so that the contest can be saved.
     const contest = await this.getFullContest(competitionId, user, { ignoreState: false, exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
@@ -246,7 +247,7 @@ export class ContestsService {
 
         await this.resultsService.resetRecordsCancelledByPublishedContest(contest.competitionId);
       } catch (err) {
-        throw new InternalServerErrorException('Error while publishing contest:', err.message);
+        throw new InternalServerErrorException(`Error while publishing contest: ${err.message}`);
       }
     }
 
@@ -261,7 +262,7 @@ export class ContestsService {
     try {
       await contest.save();
     } catch (err) {
-      throw new InternalServerErrorException(`Error while saving contest ${contest.competitionId}:`, err.message);
+      throw new InternalServerErrorException(`Error while saving contest ${contest.competitionId}: ${err.message}`);
     }
   }
 
@@ -328,7 +329,7 @@ export class ContestsService {
         eventRounds.push(await this.roundModel.create(round));
       }
     } catch (err) {
-      throw new InternalServerErrorException('Error while creating rounds for contest:', err.message);
+      throw new InternalServerErrorException(`Error while creating rounds for contest: ${err.message}`);
     }
 
     return {
@@ -398,7 +399,7 @@ export class ContestsService {
 
       return contest.events;
     } catch (err) {
-      throw new InternalServerErrorException('Error while updating contest events:', err.message);
+      throw new InternalServerErrorException(`Error while updating contest events: ${err.message}`);
     }
   }
 }

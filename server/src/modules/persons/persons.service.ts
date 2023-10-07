@@ -24,7 +24,7 @@ export class PersonsService {
         return await this.personModel.find({ name: { $regex: searchParam, $options: 'i' } }, excl).exec();
       }
     } catch (err) {
-      throw new InternalServerErrorException('Error while getting persons:', err.message);
+      throw new InternalServerErrorException(`Error while getting persons: ${err.message}`);
     }
   }
 
@@ -32,7 +32,7 @@ export class PersonsService {
     try {
       return await this.personModel.findOne({ name }, excl).exec();
     } catch (err) {
-      throw new InternalServerErrorException(`Error while getting person with name ${name}:`, err.message);
+      throw new InternalServerErrorException(`Error while getting person with name ${name}: ${err.message}`);
     }
   }
 
@@ -50,13 +50,13 @@ export class PersonsService {
     try {
       return await this.personModel.find(queryFilter, excl).exec();
     } catch (err) {
-      throw new InternalServerErrorException('Error while getting persons by person ID:', err.message);
+      throw new InternalServerErrorException(`Error while getting persons by person ID: ${err.message}`);
     }
   }
 
   async getPersonByWcaId(wcaId: string): Promise<PersonDocument> {
     try {
-      return await this.personModel.findOne({ wcaId }).exec();
+      return await this.personModel.findOne({ wcaId }, excl).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

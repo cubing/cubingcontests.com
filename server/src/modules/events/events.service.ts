@@ -166,7 +166,7 @@ export class EventsService {
     try {
       await event.save();
     } catch (err) {
-      throw new InternalServerErrorException(`Error while saving event ${eventId}:`, err.message);
+      throw new InternalServerErrorException(`Error while saving event ${eventId}: ${err.message}`);
     }
 
     return await this.getEvents({ includeHidden: true });
