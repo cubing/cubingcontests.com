@@ -19,11 +19,11 @@ const ConfigureRecordTypesPage = () => {
 
   if (recordTypes) {
     return (
-      <>
+      <div>
         <h2 className="mb-4 text-center">Record Types</h2>
 
         <RecordTypesForm recordTypes={recordTypes} />
-      </>
+      </div>
     );
   }
 

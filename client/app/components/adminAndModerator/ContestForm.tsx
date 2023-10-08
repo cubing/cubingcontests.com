@@ -31,6 +31,7 @@ import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
+import Loading from '../Loading';
 
 const isAdmin = getUserInfo()?.isAdmin;
 
@@ -746,7 +747,9 @@ const ContestForm = ({
                 <div className="row">
                   <div className="col-6"></div>
                   <div className="col-6">
-                    <div className="text-secondary fs-6">Time zone: {venueTimeZone}</div>
+                    <div className="text-secondary fs-6">
+                      Time zone: {fetchTimezoneTimer === null ? venueTimeZone : <Loading small dontCenter />}
+                    </div>
                   </div>
                 </div>
               </>
