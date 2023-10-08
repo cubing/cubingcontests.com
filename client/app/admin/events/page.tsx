@@ -18,7 +18,7 @@ import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/
 type Mode = 'view' | 'add' | 'edit';
 
 const CreateEditEventPage = () => {
-  const [errorMessages, setErrorMessages] = useState([]);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [mode, setMode] = useState<Mode>('view');
@@ -255,7 +255,7 @@ const CreateEditEventPage = () => {
         </Form>
       )}
 
-      <div className="container mt-3 mb-5 table-responsive">
+      <div className="container my-5 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>

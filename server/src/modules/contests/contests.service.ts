@@ -62,7 +62,7 @@ export class ContestsService {
 
     // Check access rights
     if (!user.roles.includes(Role.Admin)) {
-      const [person] = await this.personsService.getPersonsById(user.personId);
+      const person = await this.personsService.getPersonById(user.personId);
       queryFilter = { $or: [{ organizers: person._id }, { createdBy: user.personId }] };
     }
 

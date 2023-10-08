@@ -28,26 +28,27 @@ export class PersonsService {
     }
   }
 
+  async getPersonById(personId: number): Promise<PersonDocument> {
+    try {
+      return await this.personModel.findOne({ personId }, excl).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while getting person with ID ${personId}: ${err.message}`);
+    }
+  }
+
+  async getPersonsById(personIds: number[]): Promise<PersonDocument[]> {
+    try {
+      return await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while getting persons by person ID: ${err.message}`);
+    }
+  }
+
   async getPersonByName(name: string): Promise<PersonDocument> {
     try {
       return await this.personModel.findOne({ name }, excl).exec();
     } catch (err) {
       throw new InternalServerErrorException(`Error while getting person with name ${name}: ${err.message}`);
-    }
-  }
-
-  async getPersonsById(personIds?: number[] | number): Promise<PersonDocument[]> {
-    let queryFilter = {};
-
-    if (personIds) {
-      if (typeof personIds === 'number') queryFilter = { personId: personIds };
-      else queryFilter = { personId: { $in: personIds } };
-    }
-
-    try {
-      return await this.personModel.find(queryFilter, excl).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while getting persons by person ID: ${err.message}`);
     }
   }
 

@@ -10,7 +10,7 @@ At least one uppercase letter
 At least one number
 At least one special character`;
 
-export class CreateUserDto implements IUser {
+export class UserDto {
   @IsString()
   @MinLength(3, getMinLengthOpts('username', 3))
   @Matches(/^[a-z0-9_-]*$/, {
@@ -18,10 +18,11 @@ export class CreateUserDto implements IUser {
   })
   username: string;
 
-  @IsString()
   @IsEmail({}, { message: 'Please enter a valid email address' })
   email: string;
+}
 
+export class CreateUserDto extends UserDto implements IUser {
   @IsString()
   @MaxLength(100, getMaxLengthOpts('password', 100))
   @IsStrongPassword({ minLength: 10 }, { message: passwordValidationMessage })

@@ -20,7 +20,7 @@ const userInfo: IUserInfo = getUserInfo();
 const SubmitResultsPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [showGuidelines, setShowGuidelines] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
   const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
@@ -152,19 +152,22 @@ const SubmitResultsPage = () => {
             an admin approves them. A result can only be accepted if it has video evidence of the entire solve
             (including memorization, if applicable).
           </p>
-          <button type="button" className="btn btn-success btn-sm" onClick={() => setShowGuidelines(!showGuidelines)}>
-            {showGuidelines ? 'Hide Guidelines' : 'Show Guidelines'}
+          <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
+            {showRules ? 'Hide rules' : 'Show rules'}
           </button>
-          {showGuidelines && (
+          {showRules && (
             <div className="mt-4">
-              <p>1. For blindfolded events, it must be visible that your mask is on</p>
-              <p>2. If the video is sped up, the final time must be visible at the end of the video with no cuts</p>
+              <p>1. For blindfolded events, it must be visible that your mask is on during the solving phase.</p>
+              <p>
+                2. The final time must be visible at the end of the video with no cuts after the end of the solve.
+                Having the time always visible is preferable.
+              </p>
               <p>
                 3. For team events, every participant must use a different scramble, must be in the same place, and
-                should be visible at the same time, if possible
+                should be visible at the same time, if possible.
               </p>
-              <p>4. If you&apos;re submitting a Mean of 3, there must be no cuts between the individual solves</p>
-              <p>*. Bonus points if it&apos;s visible that a new scramble was generated and applied</p>
+              <p>4. If you&apos;re submitting a Mean of 3, there must be no cuts between the solves.</p>
+              <p>*. Bonus points if it&apos;s visible that a new scramble was generated and applied.</p>
             </div>
           )}
         </div>

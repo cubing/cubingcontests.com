@@ -67,13 +67,13 @@ const ModeratorDashboardPage = () => {
           <Link href="/mod/person" className="btn btn-success btn-sm btn-lg-md">
             Add competitors
           </Link>
-          <Link href="/user/submit-results" className="btn btn-success btn-sm btn-lg-md">
-            Submit results
-          </Link>
           {userInfo.isAdmin && (
             <>
               <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
                 Import/Export
+              </Link>
+              <Link href="/admin/users" className="btn btn-warning btn-sm btn-lg-md">
+                Manage users
               </Link>
               <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure events
