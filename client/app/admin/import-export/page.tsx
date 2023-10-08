@@ -11,6 +11,7 @@ import { IContest, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } 
 import C from '@sh/constants';
 import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getDefaultAverageAttempts, getRoundRanksWithAverage } from '@sh/sharedFunctions';
+import { roundFormats } from '~/shared_helpers/roundFormats';
 
 const setRankingsAndRecords = (
   results: IResult[],
@@ -75,6 +76,17 @@ const convertRoundFormat = (value: string): RoundFormat => {
       return RoundFormat.BestOf1;
     default:
       throw new Error(`Unknown round format: ${value}`);
+  }
+};
+
+const convertEventId = (value: string): string => {
+  switch (value) {
+    case '333_team_bld':
+      return '333_team_bld_old';
+    case '333_match_the_scramble':
+      return '333mts';
+    default:
+      return value;
   }
 };
 
@@ -201,7 +213,7 @@ const ImportExportPage = () => {
       // Same code as above in the WCA ID search section
       newPerson.name = wcaPersonMatches[0].name;
       newPerson.wcaId = wcaPersonMatches[0].wca_id;
-      newPerson.countryIso2 = wcaPersonMatches[0].country.iso2;
+      newPerson.countryIso2 = wcaPersonMatches[0].country_iso2 || wcaPersonMatches[0].country.iso2;
 
       const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
 
@@ -269,7 +281,7 @@ const ImportExportPage = () => {
       // compDetails.schedule needs to be set by an admin manually after the competition has been imported
     };
 
-    if (newContest.mainEventId === '333_team_bld') newContest.mainEventId = '333_team_bld_old';
+    newContest.mainEventId = convertEventId(newContest.mainEventId);
 
     // Set organizer objects
     for (const org of [...wcaCompData.organisers, ...wcaCompData.wcaDelegates]) {
@@ -285,7 +297,7 @@ const ImportExportPage = () => {
 
     // Set contest events
     for (const key of Object.keys(unofficialCompData.roundsByEvent)) {
-      const ccEventId = key === '333_team_bld' ? '333_team_bld_old' : key;
+      const ccEventId = convertEventId(key);
       const event = events.find((el) => el.eventId === ccEventId);
       const roundsInfo = unofficialCompData.roundsByEvent[key];
       const rounds: IRound[] = [];
@@ -330,7 +342,7 @@ const ImportExportPage = () => {
               const fields = lines[0].split(',');
               const parts = line.split(',');
               const personNames = [];
-              const attempts = [];
+              let attempts = [];
 
               for (let i = 1; i < fields.length; i++) {
                 if (['name', 'name1'].includes(fields[i])) {
@@ -346,6 +358,8 @@ const ImportExportPage = () => {
                 }
               }
 
+              // Sometimes there are inconsistencies, where 5 attempts are filled in despite the round format
+              attempts = attempts.slice(0, roundFormats[format].attempts);
               const { best, average } = getBestAndAverage(attempts, event);
 
               return {
@@ -406,6 +420,7 @@ const ImportExportPage = () => {
       newContest.events.push({ event, rounds });
     }
 
+    console.log('New contest:', newContest);
     setContestJSON(JSON.stringify(newContest, null, 2));
 
     if (notFoundPersonNames.length > 0) {

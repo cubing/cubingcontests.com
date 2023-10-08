@@ -40,11 +40,8 @@ export class PersonsService {
     let queryFilter = {};
 
     if (personIds) {
-      if (typeof personIds === 'number') {
-        queryFilter = { personId: personIds };
-      } else {
-        queryFilter = { personId: { $in: personIds } };
-      }
+      if (typeof personIds === 'number') queryFilter = { personId: personIds };
+      else queryFilter = { personId: { $in: personIds } };
     }
 
     try {
