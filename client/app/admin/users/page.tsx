@@ -59,7 +59,6 @@ const ManageUsersPage = () => {
     if (isAdmin) newUser.roles.push(Role.Admin);
 
     console.log('New user:', newUser);
-
     const { payload, errors } = await myFetch.patch('/users', newUser);
 
     if (errors) {
