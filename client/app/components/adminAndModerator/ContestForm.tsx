@@ -1,13 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import enGB from 'date-fns/locale/en-GB';
 import { addHours, differenceInDays, format, parseISO } from 'date-fns';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
-import Loading from '@c/Loading';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCountrySelect from '@c/form/FormCountrySelect';
@@ -17,6 +13,7 @@ import FormSelect from '@c/form/FormSelect';
 import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormNumberInput from '@c/form/FormNumberInput';
 import FormTextArea from '@c/form/FormTextArea';
+import FormDatePicker from '@c/form/FormDatePicker';
 import EventTitle from '@c/EventTitle';
 import Tabs from '@c/Tabs';
 import Schedule from '@c/Schedule';
@@ -34,9 +31,6 @@ import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
-
-registerLocale('en-GB', enGB);
-setDefaultLocale('en-GB');
 
 const isAdmin = getUserInfo()?.isAdmin;
 
@@ -76,7 +70,7 @@ const ContestForm = ({
   const [mainEventId, setMainEventId] = useState('333');
 
   // Schedule stuff
-  const [venueTimezone, setVenueTimezone] = useState('GMT'); // e.g. Europe/Berlin
+  const [venueTimeZone, setVenueTimeZone] = useState('GMT'); // e.g. Europe/Berlin
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [roomName, setRoomName] = useState('');
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
@@ -133,10 +127,6 @@ const ContestForm = ({
     () => mode === 'edit' && contest.state >= ContestState.Approved,
     [contest, mode],
   );
-  const displayedStartDate = useMemo(
-    () => (startDate && type === ContestType.Meetup ? utcToZonedTime(startDate, venueTimezone) : startDate),
-    [startDate, type, venueTimezone],
-  );
   const roomOptions = useMemo(
     () =>
       rooms.map((room) => ({
@@ -171,6 +161,12 @@ const ContestForm = ({
       roomOptions.some((el) => el.value === selectedRoom),
     [activityCode, customActivity, roomOptions, selectedRoom],
   );
+  const startDateTitle = useMemo(() => {
+    if (type === ContestType.Competition) return 'Start date';
+    if (type === ContestType.Online) return 'Start date and time (UTC)';
+    if (fetchTimezoneTimer === null) return `Start date and time (${venueTimeZone})`;
+    return 'Start date and time (...)';
+  }, [type, venueTimeZone, fetchTimezoneTimer]);
 
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
@@ -202,7 +198,7 @@ const ContestForm = ({
       switch (contest.type) {
         case ContestType.Meetup: {
           setStartDate(new Date(contest.startDate));
-          setVenueTimezone(contest.timezone);
+          setVenueTimeZone(contest.timezone);
           break;
         }
         case ContestType.Competition: {
@@ -218,7 +214,7 @@ const ContestForm = ({
           if (contest.compDetails) {
             const venue = contest.compDetails.schedule.venues[0];
             setRooms(venue.rooms);
-            setVenueTimezone(venue.timezone);
+            setVenueTimeZone(venue.timezone);
             setDefaultActivityTimes(venue.timezone);
           } else {
             fetchTimezone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then(
@@ -255,9 +251,8 @@ const ContestForm = ({
   }, [errorMessages]);
 
   useEffect(() => {
-    if (organizers.length !== 1 && organizers.filter((el) => el === null).length === 1) {
+    if (organizers.length !== 1 && organizers.filter((el) => el === null).length === 1)
       document.getElementById(`Organizer_${organizerNames.length}`)?.focus();
-    }
   }, [organizers]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -276,32 +271,27 @@ const ContestForm = ({
       if (latitude) latitudeMicrodegrees = Math.round(latitude * 1000000);
       if (longitude) longitudeMicrodegrees = Math.round(longitude * 1000000);
     }
-    const processedStartDate = type === ContestType.Competition ? getDateOnly(startDate) : startDate;
-    const endDateOnly = getDateOnly(endDate);
 
     const getRoundDate = (round: IRound): Date => {
       switch (type) {
         // If it's a meetup, get the real date using the time zone (it could be different from the UTC date)
         case ContestType.Meetup: {
-          return getDateOnly(utcToZonedTime(startDate, venueTimezone));
+          return getDateOnly(utcToZonedTime(startDate, venueTimeZone));
         }
         // If it's a competition, find the start time of the round using the schedule and get
         // the date using the time zone. Again, the date could be different from the UTC date.
         case ContestType.Competition: {
           let roundStartTime: Date;
-
           for (const room of rooms) {
             const activity = room.activities.find((a) => a.activityCode === round.roundId);
-
             if (activity) {
               roundStartTime = activity.startTime;
               break;
             }
           }
-
-          return getDateOnly(utcToZonedTime(roundStartTime, venueTimezone));
+          return getDateOnly(utcToZonedTime(roundStartTime, venueTimeZone));
         }
-        // If it's an online comp, just get the date
+        // If it's an online comp, just get the date, since the time is already in UTC
         case ContestType.Online: {
           return getDateOnly(startDate);
         }
@@ -321,8 +311,8 @@ const ContestForm = ({
       compDetails = {
         schedule: {
           competitionId,
-          startDate: processedStartDate,
-          numberOfDays: differenceInDays(endDateOnly, processedStartDate) + 1,
+          startDate,
+          numberOfDays: differenceInDays(endDate, startDate) + 1,
           venues: [
             {
               id: 1,
@@ -330,7 +320,7 @@ const ContestForm = ({
               latitudeMicrodegrees,
               longitudeMicrodegrees,
               countryIso2,
-              timezone: venueTimezone,
+              timezone: venueTimeZone,
               // Only send the rooms that have at least one activity
               rooms: rooms.filter((el) => el.activities.length > 0),
             },
@@ -350,8 +340,8 @@ const ContestForm = ({
       address: type !== ContestType.Online ? address.trim() : undefined,
       latitudeMicrodegrees,
       longitudeMicrodegrees,
-      startDate: processedStartDate,
-      endDate: type === ContestType.Competition ? endDateOnly : undefined,
+      startDate,
+      endDate: type === ContestType.Competition ? endDate : undefined,
       organizers: selectedOrganizers,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
@@ -427,13 +417,13 @@ const ContestForm = ({
       setErrorMessages(errors);
       Promise.reject();
     } else {
-      setVenueTimezone(payload.timezone);
+      setVenueTimeZone(payload.timezone);
       return payload.timezone;
     }
   };
 
   const changeCoordinates = async (newLat: number, newLong: number) => {
-    if (newLat === null || newLong === null) {
+    if ([null, undefined].includes(newLat) || [null, undefined].includes(newLong)) {
       setLatitude(newLat);
       setLongitude(newLong);
     } else {
@@ -445,33 +435,26 @@ const ContestForm = ({
 
       limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
         fetchTimezone(processedLatitude, processedLongitude).then((timezone: string) => {
-          // Adjust times to the new time zone
+          // Adjust all times to the new time zone
+          setActivityStartTime(zonedTimeToUtc(utcToZonedTime(activityStartTime, venueTimeZone), timezone));
+          setActivityEndTime(zonedTimeToUtc(utcToZonedTime(activityEndTime, venueTimeZone), timezone));
+
           if (type === ContestType.Meetup) {
-            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimezone), timezone));
+            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimeZone), timezone));
           } else if (type === ContestType.Competition) {
-            setActivityStartTime(zonedTimeToUtc(utcToZonedTime(activityStartTime, venueTimezone), timezone));
-            setActivityEndTime(zonedTimeToUtc(utcToZonedTime(activityEndTime, venueTimezone), timezone));
             setRooms(
               rooms.map((r) => ({
                 ...r,
                 activities: r.activities.map((a) => ({
                   ...a,
-                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimezone), timezone),
-                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimezone), timezone),
+                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimeZone), timezone),
+                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimeZone), timezone),
                 })),
               })),
             );
           }
         });
       });
-    }
-  };
-
-  const changeStartDate = (newDate: Date) => {
-    if (newDate && type === ContestType.Meetup) {
-      setStartDate(zonedTimeToUtc(newDate, venueTimezone));
-    } else {
-      setStartDate(newDate);
     }
   };
 
@@ -508,7 +491,7 @@ const ContestForm = ({
     return {
       roundId: `${eventId}-r${roundNumber}`,
       competitionId: 'temp', // this gets replaced for all rounds on submit
-      date: startDate,
+      date: startDate, // this also gets set on submit
       roundTypeId: RoundType.Final,
       format: events.find((el) => el.eventId === eventId).defaultRoundFormat,
       results: [],
@@ -620,26 +603,25 @@ const ContestForm = ({
     ]);
   };
 
-  const changeActivityStartTime = (newTimeZoned: Date) => {
-    if (newTimeZoned) {
-      const newTimeUTC = zonedTimeToUtc(newTimeZoned, venueTimezone);
-      setActivityStartTime(newTimeUTC);
+  const changeActivityStartTime = (newTime: Date) => {
+    if (newTime) {
+      setActivityStartTime(newTime);
 
       // Change the activity end time too
       const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
-      setActivityEndTime(new Date(newTimeUTC.getTime() + activityLength));
+      setActivityEndTime(new Date(newTime.getTime() + activityLength));
     } else {
       setActivityStartTime(null);
     }
   };
 
   // Get the same date as the start time and use the new end time (the end time input is for time only)
-  const changeActivityEndTime = (newTimeZoned: Date) => {
-    if (newTimeZoned) {
-      const zonedStartTime = utcToZonedTime(activityStartTime, venueTimezone);
+  const changeActivityEndTime = (newTime: Date) => {
+    if (newTime) {
+      const zonedStartTime = utcToZonedTime(activityStartTime, venueTimeZone);
       const newActivityEndTime = zonedTimeToUtc(
-        parseISO(`${format(zonedStartTime, 'yyyy-MM-dd')}T${format(newTimeZoned, 'HH:mm:00')}`),
-        venueTimezone,
+        parseISO(`${format(zonedStartTime, 'yyyy-MM-dd')}T${format(newTime, 'HH:mm:00')}`),
+        venueTimeZone,
       );
       setActivityEndTime(newActivityEndTime);
     } else {
@@ -761,51 +743,34 @@ const ContestForm = ({
                     />
                   </div>
                 </div>
+                <div className="row">
+                  <div className="col-6"></div>
+                  <div className="col-6">
+                    <div className="text-secondary fs-6">Time zone: {venueTimeZone}</div>
+                  </div>
+                </div>
               </>
             )}
-            <div className="mb-3 row">
+            <div className="my-3 row">
               <div className="col">
-                <label htmlFor="start_date" className="form-label">
-                  {type === ContestType.Competition ? (
-                    'Start date'
-                  ) : (
-                    <>
-                      Start date and time
-                      {type === ContestType.Online ? (
-                        ' (UTC)'
-                      ) : fetchTimezoneTimer === null ? (
-                        ` (${venueTimezone})`
-                      ) : (
-                        <Loading small dontCenter />
-                      )}
-                    </>
-                  )}
-                </label>
-                <DatePicker
+                <FormDatePicker
                   id="start_date"
-                  selected={displayedStartDate}
-                  showTimeSelect={type !== ContestType.Competition}
-                  timeFormat="p"
-                  // P is date select only, Pp is date and time select
+                  title={startDateTitle}
+                  value={startDate}
+                  setValue={setStartDate}
+                  timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
                   dateFormat={type === ContestType.Competition ? 'P' : 'Pp'}
-                  locale="en-GB"
-                  onChange={(date: Date) => changeStartDate(date)}
-                  className="form-control"
                   disabled={disableIfCompApprovedEvenForAdmin}
+                  showUTCTime
                 />
               </div>
               {type === ContestType.Competition && (
                 <div className="col">
-                  <label htmlFor="end_date" className="form-label">
-                    End date
-                  </label>
-                  <DatePicker
+                  <FormDatePicker
                     id="end_date"
-                    selected={endDate}
-                    dateFormat="P"
-                    locale="en-GB"
-                    onChange={(date: Date) => setEndDate(date)}
-                    className="form-control"
+                    title="End date"
+                    value={endDate}
+                    setValue={setEndDate}
                     disabled={disableIfCompApprovedEvenForAdmin}
                   />
                 </div>
@@ -1030,38 +995,30 @@ const ContestForm = ({
                 disabled={disableIfCompFinished}
               />
             )}
-            <div className="mb-3 row">
+            <div className="mb-3 row align-items-end">
               <div className="col">
-                <label htmlFor="activity_start_time" className="form-label">
-                  Start time ({venueTimezone})
-                </label>
-                <DatePicker
+                <FormDatePicker
                   id="activity_start_time"
-                  selected={activityStartTime && utcToZonedTime(activityStartTime, venueTimezone)}
-                  showTimeSelect
-                  timeIntervals={5}
-                  timeFormat="p"
+                  title={`Start time (${venueTimeZone})`}
+                  value={activityStartTime}
+                  setValue={changeActivityStartTime}
+                  timeZone={venueTimeZone}
                   dateFormat="Pp"
-                  locale="en-GB"
-                  onChange={(date: Date) => changeActivityStartTime(date)}
+                  timeIntervals={5}
                   disabled={disableIfCompFinished}
-                  className="form-control"
+                  showUTCTime
                 />
               </div>
               <div className="col">
-                <label htmlFor="activity_end_time" className="form-label">
-                  End time ({venueTimezone})
-                </label>
-                <DatePicker
+                <FormDatePicker
                   id="activity_end_time"
-                  selected={activityEndTime && utcToZonedTime(activityEndTime, venueTimezone)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={5}
+                  value={activityEndTime}
+                  setValue={changeActivityEndTime}
+                  timeZone={venueTimeZone}
                   dateFormat="HH:mm"
-                  onChange={(date: Date) => changeActivityEndTime(date)}
+                  timeIntervals={5}
                   disabled={disableIfCompFinished}
-                  className="form-control"
+                  showUTCTime
                 />
               </div>
             </div>
@@ -1081,7 +1038,7 @@ const ContestForm = ({
         <Schedule
           rooms={rooms}
           contestEvents={contestEvents}
-          timezone={venueTimezone}
+          timezone={venueTimeZone}
           onDeleteActivity={disableIfCompFinished ? undefined : deleteActivity}
         />
       )}

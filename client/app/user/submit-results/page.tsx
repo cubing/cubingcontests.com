@@ -62,7 +62,7 @@ const SubmitResultsPage = () => {
 
   // Scroll to the top of the page when a new error message is shown
   useEffect(() => {
-    if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
+    if (successMessage || errorMessages.length > 0) window.scrollTo(0, 0);
   }, [errorMessages, successMessage]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -90,6 +90,8 @@ const SubmitResultsPage = () => {
       async (newResultWithBestAndAverage) => {
         setLoadingDuringSubmit(true);
 
+        console.log('New result:', newResultWithBestAndAverage, newResultWithBestAndAverage.date.toUTCString());
+
         const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
 
         setLoadingDuringSubmit(false);
@@ -109,9 +111,9 @@ const SubmitResultsPage = () => {
   };
 
   const changeDate = (newDate: Date) => {
-    setDate(newDate);
     setErrorMessages([]);
     setSuccessMessage('');
+    setDate(newDate);
 
     // Update the record pairs with the new date
     if (newDate) {

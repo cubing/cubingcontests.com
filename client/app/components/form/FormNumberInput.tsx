@@ -70,7 +70,8 @@ const FormNumberInput = ({
 
   return (
     <div className={`fs-5 ${noMargin ? '' : 'mb-3'}`}>
-      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
+      <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
+
       <input
         type="text"
         id={inputId}

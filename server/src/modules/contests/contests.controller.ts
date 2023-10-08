@@ -43,7 +43,7 @@ export class ContestsController {
     return await this.service.getContest(competitionId, req.user);
   }
 
-  // POST /competitions?saveResults=true
+  // POST /competitions(?saveResults=true)
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)

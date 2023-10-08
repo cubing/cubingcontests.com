@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Request, UseGuards, ValidationPipe } from '@nestjs/common';
-import { format } from 'date-fns';
 import { ResultsService } from './results.service';
 import { EventsService } from '@m/events/events.service';
 import { CreateResultDto } from './dto/create-result.dto';
@@ -36,7 +35,7 @@ export class ResultsController {
   @Roles(Role.User)
   async getSubmissionInfo(@Param('recordsUpTo') recordsUpTo: string) {
     const recordsUpToDate = new Date(recordsUpTo);
-    console.log(`Getting results submission info with records up to ${format(recordsUpToDate, 'd MMM yyyy')}`);
+    console.log(`Getting results submission info with records up to ${recordsUpToDate.toUTCString()}`);
     return await this.service.getSubmissionInfo(recordsUpToDate);
   }
 
@@ -46,7 +45,7 @@ export class ResultsController {
   @Roles(Role.Admin)
   async getRecordPairs(@Param('eventId') eventId: string, @Param('recordsUpTo') recordsUpTo: string) {
     const recordsUpToDate = new Date(recordsUpTo);
-    console.log(`Getting record pair for ${eventId} with records up to ${format(recordsUpToDate, 'd MMM yyyy')}`);
+    console.log(`Getting record pair for ${eventId} with records up to ${recordsUpToDate.toUTCString()}`);
 
     const event = await this.eventsService.getEventById(eventId);
     return await this.service.getEventRecordPairs(event, recordsUpToDate);

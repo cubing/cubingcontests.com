@@ -61,7 +61,8 @@ const FormTextInput = ({
 
   return (
     <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
-      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
+      <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
+
       <div className="d-flex justify-content-between align-items-center gap-3">
         <input
           type={hidePassword ? 'password' : 'text'}

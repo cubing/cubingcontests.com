@@ -25,7 +25,8 @@ const FormSelect = ({
 
   return (
     <div className={`fs-5 ${noMargin ? '' : ' mb-3'}`}>
-      {title && <FormInputLabel text={title} inputId={inputId} />}
+      <FormInputLabel text={title} inputId={inputId} />
+
       <select
         id={inputId}
         className="form-select"

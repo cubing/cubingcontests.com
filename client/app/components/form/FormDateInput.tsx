@@ -6,6 +6,7 @@ import isValid from 'date-fns/isValid';
 import { format } from 'date-fns';
 import C from '@sh/constants';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
+import { zonedTimeToUtc } from 'date-fns-tz';
 
 const FormDateInput = ({
   id,
@@ -41,7 +42,7 @@ const FormDateInput = ({
     return prettyDate;
   }, [dateText]);
 
-  const inputId = id || title + '_date'; // takes id OR "[title]_date"
+  const inputId = id || `${title}_date`;
 
   useEffect(() => {
     if (value) setDateText(format(value, 'ddMMyyyy'));
@@ -54,7 +55,8 @@ const FormDateInput = ({
         setValue(null);
       } else {
         const parsed = parseISO(`${dateText.slice(4)}-${dateText.slice(2, 4)}-${dateText.slice(0, 2)}`);
-        setValue(isValid(parsed) ? parsed : null);
+        // The conversion is necessary, because otherwise JS uses the user's local time zone
+        setValue(isValid(parsed) ? zonedTimeToUtc(parsed, 'UTC') : null);
       }
     } else if (value !== undefined) {
       setValue(undefined);

@@ -23,7 +23,7 @@ export class AppController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getTimezone(@Query('latitude') latitude: number, @Query('longitude') longitude: number) {
-    console.log('Getting timezone');
+    console.log(`Getting time zone for coordinates ${latitude}, ${longitude}`);
 
     if (latitude > 90 || latitude < -90) throw new BadRequestException(`Invalid latitude: ${latitude}`);
     if (longitude > 180 || longitude < -180) throw new BadRequestException(`Invalid longitude: ${longitude}`);

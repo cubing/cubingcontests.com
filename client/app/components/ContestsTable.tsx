@@ -89,7 +89,7 @@ const ContestsTable = async ({
               <th scope="col">Name</th>
               <th scope="col">Place</th>
               <th scope="col">Type</th>
-              <th scope="col">Participants</th>
+              <th scope="col">{onEditCompetition ? 'Ppl' : 'Participants'}</th>
               {onEditCompetition && <th scope="col">Actions</th>}
             </tr>
           </thead>
