@@ -7,7 +7,7 @@ import Form from '@c/form/Form';
 import FormCountrySelect from '@c/form/FormCountrySelect';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCheckbox from '~/app/components/form/FormCheckbox';
-import { limitRequests } from '~/helpers/utilityFunctions';
+import { limitRequests, splitNameAndLocalizedName } from '~/helpers/utilityFunctions';
 import C from '@sh/constants';
 
 const INVALID_WCA_ID_ERROR = 'Please enter a valid WCA ID';
@@ -115,13 +115,9 @@ const CreatePersonPage = () => {
               if (!payload?.name || !payload?.country) {
                 setErrorMessages(['Error while getting competitor data. Please contact an admin about this error.']);
               } else {
-                // Extract localized name
-                const stringParts = payload.name.split(' (');
-                setName(stringParts[0]);
-
-                if (stringParts.length > 1) setLocalizedName(stringParts[1].slice(0, -1)); // get rid of )
-                else setLocalizedName('');
-
+                const [name, localizedName] = splitNameAndLocalizedName(payload.name);
+                setName(name);
+                setLocalizedName(localizedName || '');
                 setCountryIso2(payload.country);
                 setNextFocusTarget('form_submit_button');
               }

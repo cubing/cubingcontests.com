@@ -404,3 +404,13 @@ export const genericOnKeyDown = (
 
   if (onKeyDown) onKeyDown(e);
 };
+
+export const splitNameAndLocalizedName = (value: string): [string, string | undefined] => {
+  let name, localizedName;
+
+  const stringParts = value.split(' (');
+  name = stringParts[0];
+  if (stringParts.length > 1) localizedName = stringParts[1].slice(0, -1); // get rid of )
+
+  return [name, localizedName];
+};

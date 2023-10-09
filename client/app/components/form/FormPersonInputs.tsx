@@ -7,7 +7,7 @@ import FormTextInput from './FormTextInput';
 import Competitor from '@c/Competitor';
 import { IPerson } from '@sh/interfaces';
 import C from '@sh/constants';
-import { getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { getUserInfo, limitRequests, splitNameAndLocalizedName } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
 const userInfo: IUserInfo = getUserInfo();
@@ -82,9 +82,10 @@ const FormPersonInputs = ({
           if (errors) {
             setErrorMessages(errors);
           } else {
+            const [name, localizedName] = splitNameAndLocalizedName(payload.name);
             // personId and createdBy are set later
             setMatchedPersons([
-              { personId: 0, name: payload.name, countryIso2: payload.country, wcaId: value, createdBy: '' },
+              { personId: 0, name, localizedName, countryIso2: payload.country, wcaId: value, createdBy: '' },
             ]);
           }
         }

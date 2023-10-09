@@ -6,6 +6,7 @@ import C from '@sh/constants';
 export class CreatePersonDto {
   @IsString()
   @MinLength(3, getMinLengthOpts('person name', 3))
+  @Matches(/^[^()]*$/, { message: 'Parentheses are not allowed in names' })
   name: string;
 
   @IsOptional()
