@@ -11,11 +11,13 @@ const Competitors = ({
   vertical?: boolean;
 }) => {
   if (vertical) {
-    <div className="d-flex flex-column gap-2">
-      {persons.map((person) => (
-        <Competitor key={person.personId} person={person} />
-      ))}
-    </div>;
+    return (
+      <div className="d-flex flex-column gap-2">
+        {persons.map((person) => (
+          <Competitor key={person.personId} person={person} />
+        ))}
+      </div>
+    );
   }
 
   return (

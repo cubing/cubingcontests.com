@@ -10,10 +10,9 @@ export default function Home() {
         competitions, speedcuber meetups, and other unofficial events.
       </p>
       <p>
-        The events are split up into multiple categories: WCA, Unofficial, and Extreme BLD. Extreme BLD events are not
-        meant to be done in a competition-like setting, but instead need to be submitted individually with video
-        evidence. 4x4 Blindfolded, 5x5 Blindfolded, Multi-Blind, as well as the team relay events also allow submitted
-        results.
+        The events are split up into multiple categories: WCA, Unofficial, Extreme BLD, and Miscellaneous. Extreme BLD
+        events are not meant to be done in a competition-like setting, but instead need to be submitted individually
+        with video evidence. Some other events also allow submitted results.
       </p>
       <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
         <Link href="/competitions" className="cc-homepage-link">

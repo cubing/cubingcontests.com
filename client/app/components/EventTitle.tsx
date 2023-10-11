@@ -28,6 +28,7 @@ const EventTitle = ({
         <Link
           href={`/rankings/${event.eventId}/single`}
           className="link-light link-underline-opacity-0 link-underline-opacity-100-hover"
+          style={{ maxWidth: '80vw' }}
         >
           {event.name}
         </Link>
