@@ -108,10 +108,12 @@ const AttemptInput = ({
   }, [attempt]);
 
   useEffect(() => {
-    setSolved(undefined);
-    setAttempted(undefined);
-    setAttemptText('');
-    setMemoText(undefined);
+    if (resetTrigger !== undefined) {
+      setSolved(undefined);
+      setAttempted(undefined);
+      setAttemptText('');
+      setMemoText(undefined);
+    }
   }, [resetTrigger]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -250,15 +252,15 @@ const AttemptInput = ({
     // Get rid of the decimals if one of the times is >= 10 minutes and the event category is not
     // ExtremeBLD (with the exception of Multi format, which should still have its time rounded)
     if (attemptText.length >= 6 || (forMemo && memoText?.length >= 6)) {
-      setAttempt(
-        getAttempt(attempt, event, attemptText, {
-          roundTime: !getAlwaysShowDecimals(event),
-          roundMemo: true,
-          solved,
-          attempted,
-          memo: memoText,
-        }),
-      );
+      const newAttempt = getAttempt(attempt, event, attemptText, {
+        roundTime: !getAlwaysShowDecimals(event),
+        roundMemo: true,
+        solved,
+        attempted,
+        memo: memoText,
+      });
+
+      if (newAttempt.result !== attempt.result || newAttempt.memo !== attempt.memo) setAttempt(newAttempt);
     }
   };
 

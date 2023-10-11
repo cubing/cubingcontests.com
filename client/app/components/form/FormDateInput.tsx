@@ -45,23 +45,13 @@ const FormDateInput = ({
   const inputId = id || `${title}_date`;
 
   useEffect(() => {
-    if (value) setDateText(format(value, 'ddMMyyyy'));
-    else if (value === undefined) setDateText('');
-  }, [value]);
-
-  useEffect(() => {
-    if (dateText) {
-      if (dateText.length < 8) {
-        setValue(null);
-      } else {
-        const parsed = parseISO(`${dateText.slice(4)}-${dateText.slice(2, 4)}-${dateText.slice(0, 2)}`);
-        // The conversion is necessary, because otherwise JS uses the user's local time zone
-        setValue(isValid(parsed) ? zonedTimeToUtc(parsed, 'UTC') : null);
-      }
-    } else if (value !== undefined) {
-      setValue(undefined);
+    if (value) {
+      setDateText(format(value, 'ddMMyyyy'));
+      setPosition(10);
+    } else if (value === undefined && dateText !== '') {
+      setDateText('');
     }
-  }, [dateText]);
+  }, [value]);
 
   useEffect(() => {
     changeCursorPosition();
@@ -72,19 +62,35 @@ const FormDateInput = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const onChange = (e: any) => {
+    // Backspace detection
     if (e.target.value.length < prettyDate.length) {
       if (position > 0) {
         if (![3, 6].includes(position)) setPosition(position - 1);
         else setPosition(position - 2);
 
-        setDateText(dateText.slice(0, -1));
+        const newDateText = dateText.slice(0, -1);
+        setDateText(newDateText);
+
+        if (newDateText) setValue(null);
+        else setValue(undefined);
       }
-    } else if (e.target.value.length > prettyDate.length) {
+    }
+    // New digit detection
+    else if (e.target.value.length > prettyDate.length) {
       if (dateText.length < 8) {
         const newCharacter = e.target.value[e.target.selectionStart - 1];
 
         if (/[0-9]/.test(newCharacter)) {
-          setDateText(dateText + newCharacter);
+          const newDateText = dateText + newCharacter;
+          setDateText(newDateText);
+
+          if (newDateText.length < 8) {
+            setValue(null);
+          } else {
+            const parsed = parseISO(`${newDateText.slice(4)}-${newDateText.slice(2, 4)}-${newDateText.slice(0, 2)}`);
+            // The conversion is necessary, because otherwise JS uses the user's local time zone
+            setValue(isValid(parsed) ? zonedTimeToUtc(parsed, 'UTC') : null);
+          }
 
           if (position === 1 || position === 4) setPosition(position + 2); // skip a dot
           else setPosition(position + 1);

@@ -9,6 +9,7 @@ import Solves from './Solves';
 import { IEvent, IPerson, IRanking } from '@sh/interfaces';
 import { getFormattedDate, getFormattedTime } from '~/helpers/utilityFunctions';
 import RankingLinks from './RankingLinks';
+import Competitors from './Competitors';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
 const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
@@ -48,14 +49,7 @@ const RankingRow = ({
     <tr>
       <td>{!onlyKeepPerson && <span className={isTiedRanking ? 'text-secondary' : ''}>{firstColumnValue}</span>}</td>
       <td>
-        <div className="d-flex flex-wrap align-items-start gap-2">
-          {personsToDisplay.map((person, index) => (
-            <span key={person.personId} className="d-flex gap-2">
-              <Competitor key={person.personId} person={person} noFlag={!showAllTeammates} />
-              {index !== personsToDisplay.length - 1 && <span>&</span>}
-            </span>
-          ))}
-        </div>
+        <Competitors persons={personsToDisplay} noFlag={!showAllTeammates} />
       </td>
       <td>{!onlyKeepPerson && getFormattedTime(ranking.result, { event, showMultiPoints: !forRecordsTable })}</td>
       {!showAllTeammates && (

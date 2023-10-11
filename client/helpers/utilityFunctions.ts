@@ -293,7 +293,6 @@ export const checkErrorsBeforeResultSubmission = (
   setErrorMessages: (val: string[]) => void,
   setSuccessMessage: (val: string) => void,
   callback: (result: IResult) => void,
-  requireRealResult = false,
 ) => {
   const errorMessages: string[] = [];
 
@@ -303,17 +302,11 @@ export const checkErrorsBeforeResultSubmission = (
     errorMessages.push('You cannot enter the same person twice');
   }
 
-  let realResultExists = false; // real meaning not DNF or DNS
-
   for (let i = 0; i < result.attempts.length; i++) {
     if (result.attempts[i].result === null || result.attempts[i].memo === null)
       errorMessages.push(`Attempt ${i + 1} is invalid`);
     else if (result.attempts[i].result === 0) errorMessages.push(`Please enter attempt ${i + 1}`);
-    else if (result.attempts[i].result > 0) realResultExists = true;
   }
-
-  // SAME MESSAGE AS IN THE EQUIVALENT CHECK ON THE BACKEND
-  if (requireRealResult && !realResultExists) errorMessages.push('You cannot submit only DNF/DNS results');
 
   if (errorMessages.length > 0) {
     setErrorMessages(errorMessages);
@@ -406,11 +399,28 @@ export const genericOnKeyDown = (
 };
 
 export const splitNameAndLocalizedName = (value: string): [string, string | undefined] => {
-  let name, localizedName;
-
   const stringParts = value.split(' (');
-  name = stringParts[0];
-  if (stringParts.length > 1) localizedName = stringParts[1].slice(0, -1); // get rid of )
+  const name = stringParts[0];
+  const localizedName = stringParts.length > 1 ? stringParts[1].slice(0, -1) : undefined;
 
   return [name, localizedName];
+};
+
+export const shortenEventName = (name: string): string => {
+  return name
+    .replaceAll(/2x2x2/g, '2x2')
+    .replaceAll(/3x3x3/g, '3x3')
+    .replaceAll(/4x4x4/g, '4x4')
+    .replaceAll(/5x5x5/g, '5x5')
+    .replaceAll(/6x6x6/g, '6x6')
+    .replaceAll(/7x7x7/g, '7x7')
+    .replaceAll(/8x8x8/g, '8x8')
+    .replaceAll(/9x9x9/g, '9x9')
+    .replace('Blindfolded', 'BLD')
+    .replace('Multi-Blind', 'MBLD')
+    .replace('One-Handed', 'OH')
+    .replace('Without', 'No')
+    .replace('Face-turning Octahedron', 'FTO')
+    .replace(' Cuboid', '')
+    .replace(' Challenge', '');
 };

@@ -305,9 +305,12 @@ const ImportExportPage = () => {
       for (let i = 0; i < roundsInfo.length; i++) {
         const date = new Date(roundsInfo[i].roundEndDate);
         const format = convertRoundFormat(roundsInfo[i].roundFormatID);
-        const { payload: recordPairs, errors: e1 } = await myFetch.get(`/results/record-pairs/${ccEventId}/${date}`, {
-          authorize: true,
-        });
+        const { payload: recordPairsByEvent, errors: e1 } = await myFetch.get(
+          `/results/record-pairs/${date}/${ccEventId}`,
+          {
+            authorize: true,
+          },
+        );
 
         if (e1) {
           setErrorMessages([`Error while fetching ${ccEventId} record pairs for ${competitionId}: ${e1[0]}`]);
@@ -359,7 +362,7 @@ const ImportExportPage = () => {
               }
 
               // Sometimes there are inconsistencies, where 5 attempts are filled in despite the round format
-              attempts = attempts.slice(0, roundFormats[format].attempts);
+              attempts = attempts.slice(0, roundFormats.find((rf) => rf.value === format).attempts);
               const { best, average } = getBestAndAverage(attempts, event);
 
               return {
@@ -375,7 +378,7 @@ const ImportExportPage = () => {
             }),
           event,
           getRoundRanksWithAverage(format),
-          recordPairs,
+          recordPairsByEvent[0].recordPairs,
         );
 
         // Set the personIds

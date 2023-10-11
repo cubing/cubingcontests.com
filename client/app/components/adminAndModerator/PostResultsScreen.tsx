@@ -20,7 +20,7 @@ const PostResultsScreen = ({
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true);
+  const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
 
@@ -147,6 +147,7 @@ const PostResultsScreen = ({
     deleteResult((result as any)._id, () => {
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setAttempts(result.attempts);
+      setResultFormResetTrigger(undefined);
     });
   };
 
@@ -160,10 +161,10 @@ const PostResultsScreen = ({
         setErrorMessages(errors);
       } else {
         setLoadingDuringSubmit(false);
+        setErrorMessages([]);
         updateRoundAndCompEvents(payload);
 
         if (editCallback) editCallback();
-        else setErrorMessages([]);
       }
     }
   };

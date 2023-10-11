@@ -8,6 +8,7 @@ import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormCheckbox from '@c/form/FormCheckbox';
 import { Role } from '@sh/enums';
 import { IFrontendUser } from '@sh/interfaces';
+import C from '@sh/constants';
 
 const ManageUsersPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -151,7 +152,12 @@ const ManageUsersPage = () => {
                 <td>{user.person?.name}</td>
                 <td>{getRoles(user)}</td>
                 <td>
-                  <button type="button" onClick={() => onEditUser(user)} className="btn btn-primary btn-sm">
+                  <button
+                    type="button"
+                    onClick={() => onEditUser(user)}
+                    className="btn btn-primary btn-sm"
+                    style={{ padding: C.smallButtonPadding }}
+                  >
                     Edit
                   </button>
                 </td>

@@ -14,4 +14,6 @@ export type {
 export type { IRound, IProceed } from './interfaces/Round';
 export type { ISchedule, IVenue, IRoom, IActivity } from './interfaces/Schedule';
 export type { IAdminStats } from './interfaces/AdminStats';
-export type { IFrontendUser } from './interfaces/User';
+
+export type { IFrontendUser } from './interfaces/frontend/User';
+export type { IFrontendResult } from './interfaces/frontend/Result';

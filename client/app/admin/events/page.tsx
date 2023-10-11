@@ -275,7 +275,7 @@ const CreateEditEventPage = () => {
                 <td>{event.name}</td>
                 <td>{event.eventId}</td>
                 <td>{event.rank}</td>
-                <td>{roundFormats[event.defaultRoundFormat].shortLabel}</td>
+                <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat).shortLabel}</td>
                 <td>{eventCategories.find((ec) => event.groups.includes(ec.group)).title}</td>
                 {/* <td>X</td> */}
                 <td>

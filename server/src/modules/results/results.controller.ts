@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Request, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ResultsService } from './results.service';
 import { EventsService } from '@m/events/events.service';
 import { CreateResultDto } from './dto/create-result.dto';
@@ -6,6 +18,7 @@ import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
+import { SubmitResultDto } from './dto/submit-result.dto';
 
 @Controller('results')
 export class ResultsController {
@@ -29,7 +42,7 @@ export class ResultsController {
     return await this.service.getRecords(wcaEquivalent);
   }
 
-  // GET /results/submission-info/:recordsUpTo
+  // GET /results/submission-info/:recordsUpTo(?resultId=...)
   @Get('submission-info/:recordsUpTo')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
@@ -39,16 +52,38 @@ export class ResultsController {
     return await this.service.getSubmissionInfo(recordsUpToDate);
   }
 
-  // GET /results/record-pairs/:eventId/:recordsUpTo
-  @Get('record-pairs/:eventId/:recordsUpTo')
+  // GET /results/editing-info/:resultId
+  @Get('editing-info/:resultId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async getRecordPairs(@Param('eventId') eventId: string, @Param('recordsUpTo') recordsUpTo: string) {
-    const recordsUpToDate = new Date(recordsUpTo);
-    console.log(`Getting record pair for ${eventId} with records up to ${recordsUpToDate.toUTCString()}`);
+  async getEditingInfo(@Param('resultId') resultId: string) {
+    console.log(`Getting results editing info for result with ID ${resultId}`);
+    return await this.service.getEditingInfo(resultId);
+  }
 
-    const event = await this.eventsService.getEventById(eventId);
-    return await this.service.getEventRecordPairs(event, recordsUpToDate);
+  // GET /results/record-pairs/:recordsUpTo/:eventIds(?excludeResultId=...)
+  @Get('record-pairs/:recordsUpTo/:eventIds')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.User)
+  async getRecordPairs(
+    @Param('recordsUpTo') recordsUpTo: string,
+    @Param('eventIds') eventIds: string,
+    @Query('excludeResultId') excludeResultId: string,
+  ) {
+    const recordsUpToDate = new Date(recordsUpTo);
+    console.log(`Getting record pair with records up to ${recordsUpToDate.toUTCString()}`);
+
+    const events = await this.eventsService.getEvents({ eventIds: eventIds.split(',') });
+    return await this.service.getRecordPairs(events, recordsUpToDate, { excludeResultId });
+  }
+
+  // GET /results/submission-based
+  @Get('submission-based')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async getSubmissionBasedResults() {
+    console.log('Getting submission-based results');
+    return await this.service.getSubmissionBasedResults();
   }
 
   // POST /results/:roundId
@@ -81,8 +116,17 @@ export class ResultsController {
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
-  async submitResult(@Body(new ValidationPipe()) createResultDto: CreateResultDto, @Request() req: any) {
-    console.log(`Submitting new result for event ${createResultDto.eventId}`);
-    return await this.service.submitResult(createResultDto, req.user);
+  async submitResult(@Body(new ValidationPipe()) submitResultDto: SubmitResultDto, @Request() req: any) {
+    console.log(`Submitting new result for event ${submitResultDto.eventId}`);
+    return await this.service.submitResult(submitResultDto, req.user);
+  }
+
+  // PATCH /results/:resultId
+  @Patch(':resultId')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async editResult(@Param('resultId') resultId: string, @Body(new ValidationPipe()) updateResultDto: SubmitResultDto) {
+    console.log(`Updating result with ID ${resultId}`);
+    return await this.service.editResult(resultId, updateResultDto);
   }
 }

@@ -5,7 +5,7 @@ import RankingsTable from '@c/RankingsTable';
 import RankingLinks from '@c/RankingLinks';
 import EventTitle from '@c/EventTitle';
 import Solves from '@c/Solves';
-import Competitor from '@c/Competitor';
+import Competitors from '~/app/components/Competitors';
 import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
@@ -92,11 +92,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
                                 <span>{getFormattedDate(r.date)}</span>
                               )}
                             </div>
-                            <div className="d-flex flex-column gap-2">
-                              {r.persons.map((person) => (
-                                <Competitor key={person.personId} person={person} />
-                              ))}
-                            </div>
+                            <Competitors persons={r.persons} vertical />
                             {r.attempts && <Solves event={event} attempts={r.attempts} />}
                             {!r.contest && <RankingLinks ranking={r} />}
                           </li>

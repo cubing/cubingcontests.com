@@ -1,10 +1,10 @@
 import { format, isSameDay } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
-import { roundFormats } from '@sh/roundFormats';
-import { roundTypes } from '~/helpers/roundTypes';
-import { IActivity, IContestEvent, IRoom } from '@sh/interfaces';
 import EventTitle from './EventTitle';
 import ColorSquare from './ColorSquare';
+import { roundFormats } from '@sh/roundFormats';
+import { IActivity, IContestEvent, IRoom, IRound } from '@sh/interfaces';
+import { roundTypes } from '~/helpers/roundTypes';
 
 const Schedule = ({
   rooms,
@@ -72,7 +72,7 @@ const Schedule = ({
               </thead>
               <tbody>
                 {day.activities.map((activity) => {
-                  let contestEvent, round;
+                  let contestEvent: IContestEvent, round: IRound;
                   // See where the activity IDs are set above to understand what's going on with the ID here
                   const roomId = Math.floor(activity.id / 1000);
                   const activityId = activity.id % 1000;
@@ -104,7 +104,11 @@ const Schedule = ({
                           {room.name}
                         </span>
                       </td>
-                      <td>{activity.activityCode !== 'other-misc' && round ? roundFormats[round.format].label : ''}</td>
+                      <td>
+                        {activity.activityCode !== 'other-misc' && round
+                          ? roundFormats.find((rf) => rf.value === round.format).label
+                          : ''}
+                      </td>
                       {onDeleteActivity && (
                         <td>
                           <button

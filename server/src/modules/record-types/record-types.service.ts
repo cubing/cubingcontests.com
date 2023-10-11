@@ -105,8 +105,6 @@ export class RecordTypesService {
     wcaEquiv: WcaRecordType,
     queryFilter: any = getBaseSinglesFilter(event),
   ) {
-    console.log(queryFilter, typeof queryFilter.date);
-
     const bestSingleResultsByDay = await this.resultModel
       .aggregate([
         { $match: queryFilter },

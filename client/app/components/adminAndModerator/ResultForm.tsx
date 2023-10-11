@@ -17,7 +17,8 @@ import { setResultRecords } from '~/shared_helpers/sharedFunctions';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 
 /**
- * This component has two uses: for entering results on PostResultsScreen, as well as for the submit results page
+ * This component has 3 uses: for entering results on PostResultsScreen,
+ * as well as for the submit results page and the edit result page.
  */
 
 const ResultForm = ({
@@ -42,6 +43,7 @@ const ResultForm = ({
   events,
   roundFormat,
   setRoundFormat,
+  disableMainSelects = false,
   showOptionToKeepCompetitors = false,
   isAdmin = false,
 }: {
@@ -54,7 +56,7 @@ const ResultForm = ({
   loadingRecordPairs?: boolean;
   recordTypes: IRecordType[];
   nextFocusTargetId?: string;
-  resetTrigger: boolean;
+  resetTrigger: boolean; // if this is undefined, that means we're editing a result
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage: (val: string) => void;
   forSubmitResultsPage?: boolean;
@@ -68,6 +70,7 @@ const ResultForm = ({
   events?: IEvent[];
   roundFormat?: RoundFormat;
   setRoundFormat?: (val: RoundFormat) => void;
+  disableMainSelects?: boolean;
   showOptionToKeepCompetitors?: boolean;
   isAdmin?: boolean;
 }) => {
@@ -76,36 +79,44 @@ const ResultForm = ({
   const [personNames, setPersonNames] = useState(['']);
   // If this is null, that means the option is disabled
   const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
-  const [attemptsResetTrigger, setAttemptsResetTrigger] = useState(true);
+  const [attemptsResetTrigger, setAttemptsResetTrigger] = useState<boolean>();
 
   if (!forSubmitResultsPage) roundFormat = round.format;
 
-  const roundCanHaveAverage = roundFormats[roundFormat].attempts >= 3;
+  const roundCanHaveAverage = roundFormats.find((rf) => rf.value === roundFormat).attempts >= 3;
 
   useEffect(() => {
-    reset();
-    focusFirstInput();
+    if (resetTrigger !== undefined) {
+      reset();
+      if (keepCompetitors) focusFirstAttempt();
+      else document.getElementById('Competitor_1').focus();
+    }
+    // If resetTrigger is undefined, that means we're editing a result and
+    else {
+      // Set person names if there are no null persons (needed when editing results)
+      if (!persons.some((el) => el === null)) setPersonNames(persons.map((el) => el.name));
+      updateTempResult();
+      focusFirstAttempt();
+    }
   }, [resetTrigger]);
 
   useEffect(() => {
-    // Set persons names if there are no null persons (needed for the edit result feature on PostResultsScreen)
-    if (!persons.some((el) => el === null)) {
-      setPersonNames(persons.map((el) => el.name));
-    }
-
-    focusFirstInput();
-  }, [persons, roundFormat, event]);
-
-  useEffect(() => {
-    if (attempts.length > 0) {
-      const { best, average } = getBestAndAverage(attempts, event);
-      setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
-    }
-  }, [attempts, recordPairs]);
+    updateTempResult();
+  }, [recordPairs]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
+
+  const focusFirstAttempt = () => {
+    if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
+    else document.getElementById('attempt_1').focus();
+  };
+
+  const updateTempResult = () => {
+    const { best, average } = getBestAndAverage(attempts, event);
+    setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
+  };
 
   const changeEvent = (newEventId: string) => {
     let newEvent: IEvent;
@@ -144,18 +155,12 @@ const ResultForm = ({
   };
 
   const changeAttempt = (index: number, newAttempt: IAttempt) => {
-    setAttempts(attempts.map((el, i) => (i !== index ? el : newAttempt)));
-  };
+    const newAttempts = attempts.map((el, i) => (i !== index ? el : newAttempt));
+    setAttempts(newAttempts);
 
-  const focusFirstInput = () => {
-    const firstNullPersonIndex = persons.findIndex((el) => el === null);
-
-    if (firstNullPersonIndex !== -1) {
-      document.getElementById(`Competitor_${firstNullPersonIndex + 1}`)?.focus();
-    } else {
-      if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
-      else document.getElementById('attempt_1').focus();
-    }
+    // Update temporary best and average
+    const { best, average } = getBestAndAverage(newAttempts, event);
+    setTempResult(setResultRecords({ best, average, attempts: newAttempts } as IResult, event, recordPairs, true));
   };
 
   const focusNext = (index: number) => {
@@ -199,7 +204,7 @@ const ResultForm = ({
     }
 
     setErrorMessages([]);
-    const newAttempts = new Array(roundFormats[newRoundFormat].attempts).fill({ result: 0 });
+    const newAttempts = new Array(roundFormats.find((rf) => rf.value === newRoundFormat).attempts).fill({ result: 0 });
     setAttempts(newAttempts);
     setAttemptsResetTrigger(!attemptsResetTrigger);
     setTempResult({ best: -1, average: -1, attempts: newAttempts } as IResult);
@@ -216,6 +221,7 @@ const ResultForm = ({
         events={forSubmitResultsPage ? events : contestEvents.map((el) => el.event)}
         eventId={event.eventId}
         setEventId={(val) => changeEvent(val)}
+        disabled={disableMainSelects}
       />
       <div className="mb-3 fs-5">
         {forSubmitResultsPage ? (
@@ -224,6 +230,7 @@ const ResultForm = ({
             options={getAllowedRoundFormatOptions(event)}
             selected={roundFormat}
             setSelected={(val: RoundFormat) => reset({ newRoundFormat: val, resetCompetitors: false })}
+            disabled={disableMainSelects}
           />
         ) : (
           <FormSelect

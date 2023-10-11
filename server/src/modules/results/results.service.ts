@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
@@ -15,6 +22,7 @@ import {
   IContest,
   IRanking,
   IEvent,
+  IFrontendResult,
 } from '@sh/interfaces';
 import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import C from '@sh/constants';
@@ -23,15 +31,11 @@ import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
-import {
-  setRankings,
-  fixTimesOverTenMinutes,
-  getBaseSinglesFilter,
-  getBaseAvgsFilter,
-} from '~/src/helpers/utilityFunctions';
+import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 import { AuthService } from '../auth/auth.service';
 import { PersonDocument } from '~/src/models/person.model';
 import { EventDocument } from '~/src/models/event.model';
+import { SubmitResultDto } from './dto/submit-result.dto';
 
 @Injectable()
 export class ResultsService {
@@ -49,93 +53,77 @@ export class ResultsService {
     // DB consistency checks (done only in development)
     if (process.env.NODE_ENV !== 'production') {
       // Look for orphan contest results or ones that somehow belong to multiple rounds
-      const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
-
-      for (const res of contestResults) {
-        const rounds = await this.roundModel.find({ results: res }).exec();
-        if (rounds.length === 0) console.error('Error: contest result has no round:', res);
-        else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
-      }
-
+      // const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
+      // for (const res of contestResults) {
+      //   const rounds = await this.roundModel.find({ results: res }).exec();
+      //   if (rounds.length === 0) console.error('Error: contest result has no round:', res);
+      //   else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
+      // }
       // Look for records that are worse than a previous result (DISABLED TO AVOID SLOWING DOWN THE DEV ENVIRONMENT)
       // const events = await this.eventsService.getEvents({ includeHidden: true });
-
       // for (const event of events) {
       //   // Single records
       //   const singleRecordResults = await this.resultModel
       //     .find({ eventId: event.eventId, regionalSingleRecord: 'WR' })
       //     .exec();
-
       //   for (const result of singleRecordResults) {
       //     const betterSinglesInThePast = await this.resultModel
       //       .find({ ...getBaseSinglesFilter(event, { best: { $lt: result.best, $gt: 0 } }), date: { $lte: result.date }})
       //       .exec();
-
       //     if (betterSinglesInThePast.length > 0) {
       //       console.log(`${result.eventId} single WR`, result, 'is worse than these results:', betterSinglesInThePast);
       //     }
       //   }
-
       //   // Average records
       //   const averageRecordResults = await this.resultModel
       //     .find({ eventId: event.eventId, regionalAverageRecord: 'WR' })
       //     .exec();
-
       //   for (const result of averageRecordResults) {
       //     const betterAvgsInThePast = await this.resultModel
       //       .find({...getBaseAvgsFilter(event, { average: { $lt: result.average, $gt: 0 }}), date: { $lte: result.date }})
       //       .exec();
-
       //     if (betterAvgsInThePast.length > 0) {
       //       console.log(`${result.eventId} average WR`, result, 'is worse than these results:', betterAvgsInThePast);
       //     }
       //   }
       // }
-
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
-      let knownDuplicates = [
-        'https://www.youtube.com/watch?v=3MfyECPWhms',
-        'https://www.youtube.com/watch?v=h4T55MftnRc',
-        'https://www.youtube.com/watch?v=YYKOlLgQigA',
-      ];
-      const repeatedVideoLinks = await this.resultModel.aggregate([
-        { $match: { videoLink: { $exists: true, $nin: knownDuplicates } } },
-        { $group: { _id: '$videoLink', count: { $sum: 1 } } },
-        { $match: { count: { $gt: 1 } } },
-      ]);
-      if (repeatedVideoLinks.length > 0) {
-        console.log('These video links have multiple results:', repeatedVideoLinks);
-      }
-
-      // Look for duplicate discussion links
-      knownDuplicates = [
-        'https://www.speedsolving.com/forum/threads/6x6-blindfolded-rankings-thread.41968/page-11#post-1212891',
-      ];
-      const repeatedDiscussionLinks = await this.resultModel.aggregate([
-        { $match: { discussionLink: { $exists: true, $nin: knownDuplicates } } },
-        { $group: { _id: '$discussionLink', count: { $sum: 1 } } },
-        { $match: { count: { $gt: 1 } } },
-      ]);
-
-      if (repeatedDiscussionLinks.length > 0) {
-        console.log('These discussion links have multiple results:', repeatedDiscussionLinks);
-      }
-
-      // Look for orphan rounds or ones that belong to multiple contests
-      const rounds = await this.roundModel.find().exec();
-
-      for (const round of rounds) {
-        const contests = await this.contestModel.find({ 'events.rounds': round }).exec();
-        if (contests.length === 0) console.error('Error: round has no contest:', round);
-        else if (contests.length > 1) console.error('Error: round', round, 'belongs to multiple contests:', contests);
-      }
-
+      // let knownDuplicates = [
+      //   'https://www.youtube.com/watch?v=3MfyECPWhms',
+      //   'https://www.youtube.com/watch?v=h4T55MftnRc',
+      //   'https://www.youtube.com/watch?v=YYKOlLgQigA',
+      // ];
+      // const repeatedVideoLinks = await this.resultModel.aggregate([
+      //   { $match: { videoLink: { $exists: true, $nin: knownDuplicates } } },
+      //   { $group: { _id: '$videoLink', count: { $sum: 1 } } },
+      //   { $match: { count: { $gt: 1 } } },
+      // ]);
+      // if (repeatedVideoLinks.length > 0) {
+      //   console.log('These video links have multiple results:', repeatedVideoLinks);
+      // }
+      // // Look for duplicate discussion links
+      // knownDuplicates = [
+      //   'https://www.speedsolving.com/forum/threads/6x6-blindfolded-rankings-thread.41968/page-11#post-1212891',
+      // ];
+      // const repeatedDiscussionLinks = await this.resultModel.aggregate([
+      //   { $match: { discussionLink: { $exists: true, $nin: knownDuplicates } } },
+      //   { $group: { _id: '$discussionLink', count: { $sum: 1 } } },
+      //   { $match: { count: { $gt: 1 } } },
+      // ]);
+      // if (repeatedDiscussionLinks.length > 0) {
+      //   console.log('These discussion links have multiple results:', repeatedDiscussionLinks);
+      // }
+      // // Look for orphan rounds or ones that belong to multiple contests
+      // const rounds = await this.roundModel.find().exec();
+      // for (const round of rounds) {
+      //   const contests = await this.contestModel.find({ 'events.rounds': round }).exec();
+      //   if (contests.length === 0) console.error('Error: round has no contest:', round);
+      //   else if (contests.length > 1) console.error('Error: round', round, 'belongs to multiple contests:', contests);
+      // }
       // const persons = await this.personsService.getPersons();
-
       // for (const p of persons) {
       //   const resultsCount = await this.resultModel.count({ personIds: p.personId }).exec();
       //   const contestsOrganizedCount = await this.contestModel.count({ organizers: p }).exec();
-
       //   if (resultsCount === 0 && contestsOrganizedCount === 0) {
       //     console.error(`${p.name} (personId: ${p.personId}) has no results and no contests that they organize`);
       //   }
@@ -349,15 +337,44 @@ export class ResultsService {
     const submissionBasedEvents = await this.eventsService.getSubmissionBasedEvents();
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-    return {
+    const resultsSubmissionInfo: IResultsSubmissionInfo = {
       events: submissionBasedEvents,
       recordPairsByEvent: await this.getRecordPairs(
         submissionBasedEvents,
         recordsUpTo, // getRecordPairs gets just the date from this
-        activeRecordTypes,
+        { activeRecordTypes },
       ),
       activeRecordTypes,
     };
+
+    return resultsSubmissionInfo;
+  }
+
+  async getEditingInfo(resultId: string): Promise<IResultsSubmissionInfo> {
+    let result: ResultDocument;
+
+    try {
+      result = await this.resultModel.findOne({ _id: resultId }).exec();
+      if (!result) throw new NotFoundException();
+    } catch (err) {
+      throw new NotFoundException('Result not found');
+    }
+
+    const event = await this.eventsService.getEventById(result.eventId);
+    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+
+    const resultEditingInfo: IResultsSubmissionInfo = {
+      events: [event],
+      recordPairsByEvent: await this.getRecordPairs([event], result.date, {
+        activeRecordTypes,
+        excludeResultId: resultId,
+      }),
+      activeRecordTypes,
+      result,
+      persons: await this.personsService.getPersonsById(result.personIds),
+    };
+
+    return resultEditingInfo;
   }
 
   async getTotalResults(queryFilter: any = {}): Promise<number> {
@@ -365,6 +382,23 @@ export class ResultsService {
       return await this.resultModel.countDocuments(queryFilter).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  async getSubmissionBasedResults(): Promise<IFrontendResult[]> {
+    try {
+      return await this.resultModel
+        .aggregate([
+          { $match: { competitionId: { $exists: false } } },
+          { $lookup: { from: 'people', localField: 'personIds', foreignField: 'personId', as: 'persons' } },
+          { $lookup: { from: 'events', localField: 'eventId', foreignField: 'eventId', as: 'event' } },
+          { $unwind: '$event' }, // $lookup makes the event field an array, so this undoes that
+          { $sort: { createdAt: -1 } },
+          { $project: excl },
+        ])
+        .exec();
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while getting submission-based results: ${err.message}`);
     }
   }
 
@@ -378,11 +412,9 @@ export class ResultsService {
     // anyways, so the roles don't need to be checked here.
     if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
 
-    // The date is passed in as an ISO date string and it may also include time, if the frontend has a bug
-    createResultDto.date = getDateOnly(new Date(createResultDto.date));
-    fixTimesOverTenMinutes(createResultDto, event);
+    createResultDto.date = new Date(createResultDto.date);
 
-    const recordPairs = await this.getEventRecordPairs(event, createResultDto.date);
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
     let round: RoundDocument;
     let newResult: ResultDocument;
     let oldResults: ResultDocument[];
@@ -485,49 +517,70 @@ export class ResultsService {
     }
   }
 
-  async submitResult(createResultDto: CreateResultDto, user: IPartialUser) {
+  async submitResult(submitResultDto: SubmitResultDto, user: IPartialUser) {
     const isAdmin = user.roles.includes(Role.Admin);
 
     // Disallow admin-only features
     if (!isAdmin) {
-      if (!createResultDto.videoLink) throw new UnauthorizedException('Please enter a video link');
-      if (createResultDto.attempts.some((a) => a.result === C.maxTime))
+      if (!submitResultDto.videoLink) throw new UnauthorizedException('Please enter a video link');
+      if (submitResultDto.attempts.some((a) => a.result === C.maxTime))
         throw new UnauthorizedException('You are not authorized to set unknown time');
     }
 
-    // SAME MESSAGE AS IN THE EQUIVALENT CHECK ON THE FRONTEND
-    if (!createResultDto.attempts.some((a) => a.result > 0))
-      throw new BadRequestException('You cannot submit only DNF/DNS results');
+    if (!isAdmin) submitResultDto.unapproved = true;
+    submitResultDto.date = new Date(submitResultDto.date);
 
-    if (createResultDto.videoLink) {
-      let duplicateResult: ResultDocument;
-
-      try {
-        duplicateResult = await this.resultModel.findOne({ videoLink: createResultDto.videoLink }).exec();
-      } catch (err) {
-        throw new InternalServerErrorException(`Error while searching for duplicate result: ${err.message}`);
-      }
-
-      if (duplicateResult) throw new BadRequestException('A result with the same video link already exists');
-    }
-
-    const event = await this.eventsService.getEventById(createResultDto.eventId);
-
-    if (!isAdmin) createResultDto.unapproved = true;
-
-    // The date is passed in as an ISO date string and may include time too, so the time must be removed
-    createResultDto.date = getDateOnly(new Date(createResultDto.date));
-    fixTimesOverTenMinutes(createResultDto, event);
-
-    const recordPairs = await this.getEventRecordPairs(event, createResultDto.date);
+    const event = await this.eventsService.getEventById(submitResultDto.eventId);
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
 
     try {
-      await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
+      await this.resultModel.create(setResultRecords(submitResultDto, event, recordPairs, !isAdmin));
     } catch (err) {
       throw new InternalServerErrorException(`Error while submitting result: ${err.message}`);
     }
 
-    if (isAdmin) await this.resetCancelledRecords(createResultDto, event);
+    if (isAdmin) await this.resetCancelledRecords(submitResultDto, event);
+  }
+
+  async editResult(resultId: string, updateResultDto: SubmitResultDto) {
+    let result: ResultDocument;
+
+    try {
+      result = await this.resultModel.findOne({ _id: resultId }).exec();
+      if (!result) throw new NotFoundException();
+    } catch (err) {
+      throw new NotFoundException('Result not found');
+    }
+
+    const event = await this.eventsService.getEventById(updateResultDto.eventId);
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: updateResultDto.date });
+
+    try {
+      result.date = new Date(updateResultDto.date);
+      result.personIds = updateResultDto.personIds;
+      result.attempts = updateResultDto.attempts;
+      result.best = updateResultDto.best;
+      result.average = updateResultDto.average;
+      result.videoLink = updateResultDto.videoLink;
+      result.discussionLink = updateResultDto.discussionLink;
+
+      setResultRecords(updateResultDto, event, recordPairs);
+    } catch (err) {
+      throw new InternalServerErrorException('Error while editing result');
+    }
+
+    if (result.unapproved && !updateResultDto.unapproved) {
+      result.unapproved = undefined;
+      await this.resetCancelledRecords(updateResultDto, event);
+    } else if (!result.unapproved && updateResultDto.unapproved) {
+      throw new ForbiddenException('Setting a result as unapproved is forbidden');
+    }
+
+    try {
+      await result.save();
+    } catch (err) {
+      throw new InternalServerErrorException('Error while saving result during update');
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////////////
@@ -538,17 +591,17 @@ export class ResultsService {
   async getRecordPairs(
     events: IEvent[],
     recordsUpTo: Date,
-    activeRecordTypes: IRecordType[],
+    { activeRecordTypes, excludeResultId }: { activeRecordTypes?: IRecordType[]; excludeResultId?: string } = {},
   ): Promise<IEventRecordPairs[]> {
+    if (!activeRecordTypes) activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     recordsUpTo = getDateOnly(recordsUpTo);
-
     const recordPairsByEvent: IEventRecordPairs[] = [];
 
     // Get current records for this contest's events
     for (const event of events) {
       recordPairsByEvent.push({
         eventId: event.eventId,
-        recordPairs: await this.getEventRecordPairs(event, recordsUpTo, activeRecordTypes),
+        recordPairs: await this.getEventRecordPairs(event, { recordsUpTo, activeRecordTypes, excludeResultId }),
       });
     }
 
@@ -557,8 +610,15 @@ export class ResultsService {
 
   public async getEventRecordPairs(
     event: IEvent,
-    recordsUpTo = new Date(8640000000000000), // this shouldn't include time (so the time should be midnight)
-    activeRecordTypes?: IRecordType[],
+    {
+      recordsUpTo = new Date(8640000000000000),
+      activeRecordTypes,
+      excludeResultId,
+    }: {
+      recordsUpTo?: Date; // this shouldn't include time (so the time should be midnight)
+      activeRecordTypes?: IRecordType[];
+      excludeResultId?: string;
+    } = {},
   ): Promise<IRecordPair[]> {
     if (!activeRecordTypes) activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
@@ -568,9 +628,11 @@ export class ResultsService {
     for (const rt of activeRecordTypes) {
       try {
         const recordPair: IRecordPair = { wcaEquivalent: rt.wcaEquivalent, best: -1, average: -1 };
+        const queryBase: any = { date: { $lte: recordsUpTo } };
+        if (excludeResultId) queryBase._id = { $ne: excludeResultId };
 
         const [singleRecord] = await this.resultModel
-          .find({ ...getBaseSinglesFilter(event, { best: { $gt: 0 } }), date: { $lte: recordsUpTo } })
+          .find({ ...queryBase, ...getBaseSinglesFilter(event, { best: { $gt: 0 } }) })
           .sort({ best: 1 })
           .limit(1)
           .exec();
@@ -578,7 +640,7 @@ export class ResultsService {
         if (singleRecord) recordPair.best = singleRecord.best;
 
         const [avgRecord] = await this.resultModel
-          .find({ ...getBaseAvgsFilter(event, { average: { $gt: 0 } }), date: { $lte: recordsUpTo } })
+          .find({ ...queryBase, ...getBaseAvgsFilter(event, { average: { $gt: 0 } }) })
           .sort({ average: 1 })
           .limit(1)
           .exec();
@@ -659,6 +721,8 @@ export class ResultsService {
     if (result.best <= 0 && result.average <= 0) return;
     if (!event) event = await this.eventsService.getEventById(result.eventId);
 
+    console.log(`Resetting ${event.eventId} records cancelled by result`);
+
     // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
     // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
     const queryBase: any = { date: { $gte: result.date } };
@@ -707,7 +771,7 @@ export class ResultsService {
 
     // This is done so that we get records BEFORE the date of the deleted result
     const recordsUpTo = new Date(result.date.getTime() - 1);
-    const recordPairs = await this.getEventRecordPairs(event, recordsUpTo);
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo });
 
     // TO-DO: DIFFERENT RECORD TYPES NEED TO BE PROPERLY SUPPORTED
     for (const rp of recordPairs) {

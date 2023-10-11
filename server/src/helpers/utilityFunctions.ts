@@ -1,7 +1,6 @@
-import { compareAvgs, compareSingles, getAlwaysShowDecimals, getDefaultAverageAttempts } from '@sh/sharedFunctions';
+import { compareAvgs, compareSingles, getDefaultAverageAttempts } from '@sh/sharedFunctions';
 import { ResultDocument } from '../models/result.model';
-import { EventFormat } from '@sh/enums';
-import { IEvent, IResult } from '@sh/interfaces';
+import { IEvent } from '@sh/interfaces';
 
 export const setRankings = async (
   results: ResultDocument[],
@@ -42,16 +41,6 @@ export const setRankings = async (
   }
 
   return sortedResults;
-};
-
-export const fixTimesOverTenMinutes = (result: IResult, event: IEvent) => {
-  if (event.format === EventFormat.Time && !getAlwaysShowDecimals(event)) {
-    if (result.best > 60000) result.best -= result.best % 100;
-
-    result.attempts = result.attempts.map((att) =>
-      att.result > 60000 ? { ...att, result: att.result - (att.result % 100) } : att,
-    );
-  }
 };
 
 export const getBaseSinglesFilter = (

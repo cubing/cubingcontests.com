@@ -6,12 +6,14 @@ const Button = ({
   onClick,
   disabled = false,
   loading = false,
+  className = '',
 }: {
   text: string;
   id?: string;
   onClick: () => void;
   disabled?: boolean;
   loading?: boolean;
+  className?: string;
 }) => {
   return (
     <button
@@ -19,7 +21,7 @@ const Button = ({
       id={id || `${text}_button`}
       onClick={onClick}
       disabled={loading || disabled}
-      className="btn btn-primary"
+      className={`btn btn-primary ${className}`}
     >
       {!loading ? (
         text

@@ -69,11 +69,14 @@ const ModeratorDashboardPage = () => {
           </Link>
           {userInfo.isAdmin && (
             <>
-              <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
-                Import/Export
+              <Link href="/admin/results" className="btn btn-warning btn-sm btn-lg-md">
+                Manage results
               </Link>
               <Link href="/admin/users" className="btn btn-warning btn-sm btn-lg-md">
                 Manage users
+              </Link>
+              <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
+                Import/Export
               </Link>
               <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure events

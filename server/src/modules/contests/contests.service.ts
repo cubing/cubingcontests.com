@@ -93,7 +93,7 @@ export class ContestsService {
         output.recordPairsByEvent = await this.resultsService.getRecordPairs(
           contest.events.map((el) => el.event),
           contest.startDate,
-          activeRecordTypes,
+          { activeRecordTypes },
         );
       }
 

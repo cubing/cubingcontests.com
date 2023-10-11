@@ -47,7 +47,7 @@ export const setResultRecords = (
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
-      if (result.attempts.length === roundFormats[event.defaultRoundFormat].attempts) {
+      if (result.attempts.length === roundFormats.find((rf) => rf.value === event.defaultRoundFormat).attempts) {
         const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
 
         if (result.average > 0 && comparisonToRecordAvg <= 0) {
@@ -75,7 +75,7 @@ export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean => {
 };
 
 export const getDefaultAverageAttempts = (event: IEvent) =>
-  roundFormats[event.defaultRoundFormat].attempts === 5 ? 5 : 3;
+  roundFormats.find((rf) => rf.value === event.defaultRoundFormat).attempts === 5 ? 5 : 3;
 
 export const getAlwaysShowDecimals = (event: IEvent): boolean => {
   return event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;

@@ -1,6 +1,5 @@
-import React from 'react';
+import { IEvent, IRecordType, IResult } from '@sh/interfaces';
 import { getBSClassFromColor, getFormattedTime } from '~/helpers/utilityFunctions';
-import { IEvent, IRecordType, IResult } from '~/shared_helpers/interfaces';
 
 const Time = ({
   result,

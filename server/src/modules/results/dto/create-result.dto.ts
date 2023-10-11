@@ -62,7 +62,7 @@ export class CreateResultDto implements IResult {
   discussionLink?: string;
 }
 
-class AttemptDto implements IAttempt {
+export class AttemptDto implements IAttempt {
   @IsInt()
   result: number;
 

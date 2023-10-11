@@ -4,6 +4,7 @@ import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import { IContest } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
+import C from '@sh/constants';
 import { getBSClassFromColor, getFormattedDate } from '~/helpers/utilityFunctions';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
@@ -126,6 +127,7 @@ const ContestsTable = async ({
                         type="button"
                         onClick={() => onEditCompetition(contest.competitionId)}
                         className="btn btn-primary btn-sm"
+                        style={{ padding: C.smallButtonPadding }}
                       >
                         Edit
                       </button>
@@ -133,6 +135,7 @@ const ContestsTable = async ({
                         type="button"
                         onClick={() => onCopyCompetition(contest.competitionId)}
                         className="btn btn-primary btn-sm"
+                        style={{ padding: C.smallButtonPadding }}
                       >
                         Clone
                       </button>
@@ -141,6 +144,7 @@ const ContestsTable = async ({
                           type="button"
                           onClick={() => onChangeCompState(contest.competitionId, ContestState.Approved)}
                           className="btn btn-warning btn-sm"
+                          style={{ padding: C.smallButtonPadding }}
                         >
                           Approve
                         </button>
@@ -150,6 +154,7 @@ const ContestsTable = async ({
                           type="button"
                           onClick={() => onPostCompResults(contest.competitionId)}
                           className="btn btn-sm btn-success"
+                          style={{ padding: C.smallButtonPadding }}
                         >
                           Results
                         </button>
@@ -159,6 +164,7 @@ const ContestsTable = async ({
                           type="button"
                           onClick={() => onPostCompResults(contest.competitionId)}
                           className="btn btn-sm btn-secondary"
+                          style={{ padding: C.smallButtonPadding }}
                         >
                           Edit Results
                         </button>
@@ -168,6 +174,7 @@ const ContestsTable = async ({
                           type="button"
                           onClick={() => onChangeCompState(contest.competitionId, ContestState.Finished)}
                           className="btn btn-warning btn-sm"
+                          style={{ padding: C.smallButtonPadding }}
                         >
                           Finish
                         </button>
@@ -177,6 +184,7 @@ const ContestsTable = async ({
                           type="button"
                           onClick={() => onChangeCompState(contest.competitionId, ContestState.Published)}
                           className="btn btn-warning btn-sm"
+                          style={{ padding: C.smallButtonPadding }}
                         >
                           Publish
                         </button>

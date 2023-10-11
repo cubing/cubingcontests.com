@@ -1,5 +1,5 @@
-import { WcaRecordType } from '../enums';
-import { IContest, IEvent, IPerson, IRecordType } from '../interfaces';
+import { WcaRecordType } from '@sh/enums';
+import { IContest, IEvent, IPerson, IRecordType } from '@sh/interfaces';
 
 export interface IAttempt {
   /**
@@ -43,7 +43,7 @@ export interface IRanking {
   date: Date;
   contest?: IContest; // optional, because some results are submitted, so they have no contest
   attempts?: IAttempt[]; // only set for the average and mean rankings
-  videoLink?: string;
+  videoLink?: string; // only admins are not required to fill this out
   discussionLink?: string;
 }
 
@@ -66,7 +66,10 @@ export interface IEventRecordPairs {
 }
 
 export interface IResultsSubmissionInfo {
-  events: IEvent[]; // these must only be submission-based events
+  events: IEvent[];
   recordPairsByEvent: IEventRecordPairs[];
   activeRecordTypes: IRecordType[];
+  // These are only used for the edit result page
+  result?: IResult;
+  persons?: IPerson[];
 }

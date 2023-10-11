@@ -24,7 +24,7 @@ const RoundResultsTable = ({
   onDeleteResult?: (resultId: string) => void;
   disableEditAndDelete?: boolean;
 }) => {
-  const roundCanHaveAverage = roundFormats[round.format].attempts >= 3;
+  const roundCanHaveAverage = roundFormats.find((rf) => rf.value === round.format).attempts >= 3;
   const roundRanksWithAverage = getRoundRanksWithAverage(round.format);
   let lastRanking = 0;
 
