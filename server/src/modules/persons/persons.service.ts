@@ -36,9 +36,16 @@ export class PersonsService {
     }
   }
 
-  async getPersonsById(personIds: number[]): Promise<PersonDocument[]> {
+  async getPersonsById(
+    personIds: number[],
+    { preserveOrder }: { preserveOrder?: boolean } = {},
+  ): Promise<PersonDocument[]> {
     try {
-      return await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
+      let persons: PersonDocument[] = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
+
+      if (preserveOrder) persons = personIds.map((pid) => persons.find((p) => p.personId === pid));
+
+      return persons;
     } catch (err) {
       throw new InternalServerErrorException(`Error while getting persons by person ID: ${err.message}`);
     }

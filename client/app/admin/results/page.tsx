@@ -78,7 +78,7 @@ const ManageResultsPage = () => {
                     <Solves event={result.event} attempts={result.attempts} />
                   </td>
                   <td>{getFormattedDate(result.date)}</td>
-                  <td className="text-center">
+                  <td>
                     {result.unapproved ? (
                       <span className="badge bg-danger">No</span>
                     ) : (

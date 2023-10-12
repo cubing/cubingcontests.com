@@ -77,6 +77,10 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         } else {
           setResultsSubmissionInfo(payload);
           const { result, persons, events } = payload as IResultsSubmissionInfo;
+          console.log(
+            result.personIds,
+            persons.map((el) => el.personId),
+          );
 
           setEvent(events[0]);
           setRoundFormat(
@@ -276,6 +280,11 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               setSelected={setVideoUnavailable}
             />
           )}
+          {resultId && videoLink && (
+            <a href={videoLink} target="_blank" className="d-block mb-3">
+              Video link
+            </a>
+          )}
           <FormTextInput
             id="discussion_link"
             title="Link to discussion (optional)"
@@ -284,11 +293,17 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             setValue={setDiscussionLink}
             nextFocusTargetId="submit_button"
           />
+          {resultId && discussionLink && (
+            <a href={discussionLink} target="_blank" className="d-block">
+              Discussion link
+            </a>
+          )}
           <Button
             id="submit_button"
             text="Submit"
             onClick={() => submitResult()}
             loading={loadingDuringSubmit || fetchRecordPairsTimer !== null}
+            className="mt-4"
           />
           {resultId && resultsSubmissionInfo.result.unapproved && (
             <Button

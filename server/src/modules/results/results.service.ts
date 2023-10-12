@@ -191,7 +191,9 @@ export class ResultsService {
           videoLink: result.videoLink,
           discussionLink: result.discussionLink,
         };
-        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds);
+        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds, {
+          preserveOrder: true,
+        });
 
         // This is done so that the persons array stays in the same order
         for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
@@ -250,7 +252,9 @@ export class ResultsService {
           videoLink: result.videoLink,
           discussionLink: result.discussionLink,
         };
-        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds);
+        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds, {
+          preserveOrder: true,
+        });
 
         // This is done so that the persons array stays in the same order
         for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
@@ -296,7 +300,7 @@ export class ResultsService {
         for (const result of singleResults) {
           eventRecords.rankings.push({
             type: 'single',
-            persons: await this.personsService.getPersonsById(result.personIds),
+            persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
             resultId: result._id.toString(),
             result: result.best,
             date: result.date,
@@ -311,7 +315,7 @@ export class ResultsService {
         for (const result of averageResults) {
           eventRecords.rankings.push({
             type: result.attempts.length === 3 ? 'mean' : 'average',
-            persons: await this.personsService.getPersonsById(result.personIds),
+            persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
             resultId: result._id.toString(),
             result: result.average,
             date: result.date,
@@ -371,7 +375,7 @@ export class ResultsService {
       }),
       activeRecordTypes,
       result,
-      persons: await this.personsService.getPersonsById(result.personIds),
+      persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
     };
 
     return resultEditingInfo;
@@ -387,16 +391,24 @@ export class ResultsService {
 
   async getSubmissionBasedResults(): Promise<IFrontendResult[]> {
     try {
-      return await this.resultModel
+      let frontendResults: IFrontendResult[] = await this.resultModel
         .aggregate([
           { $match: { competitionId: { $exists: false } } },
           { $lookup: { from: 'people', localField: 'personIds', foreignField: 'personId', as: 'persons' } },
           { $lookup: { from: 'events', localField: 'eventId', foreignField: 'eventId', as: 'event' } },
-          { $unwind: '$event' }, // $lookup makes the event field an array, so this undoes that
+          { $set: { event: { $arrayElemAt: ['$event', 0] } } }, // $lookup makes the event field an array, so this undoes that
           { $sort: { createdAt: -1 } },
           { $project: excl },
         ])
         .exec();
+
+      // Fixes the lookup stage breaking the order of the competitors
+      frontendResults = frontendResults.map((res) => ({
+        ...res,
+        persons: res.personIds.map((pid) => res.persons.find((p) => p.personId === pid)),
+      }));
+
+      return frontendResults;
     } catch (err) {
       throw new InternalServerErrorException(`Error while getting submission-based results: ${err.message}`);
     }
