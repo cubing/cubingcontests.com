@@ -652,7 +652,7 @@ const ContestForm = ({
   };
 
   const changeActivityEndTime = (newTime: Date) => {
-    if (newTime.getTime() < activityStartTime.getTime()) {
+    if (newTime.getTime() > activityStartTime.getTime()) {
       setActivityEndTime(newTime);
     } else {
       setErrorMessages(['The activity end time cannot be before the start time']);
