@@ -2,7 +2,7 @@
 // import C from '@sh/constants';
 
 const C = {
-  contactEmail: 'cube327@tuta.io',
+  contactEmail: 'cubing-contests-admin@googlegroups.com',
   fetchThrottleTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
   // Timeouts before revalidating a request
   rankingsRev: 300, //  5 minutes
