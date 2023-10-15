@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { addHours, differenceInDays, format, parseISO } from 'date-fns';
+import { addHours, differenceInDays } from 'date-fns';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
@@ -220,8 +220,8 @@ const ContestForm = ({
             setVenueTimeZone(venue.timezone);
             setDefaultActivityTimes(venue.timezone);
           } else {
-            fetchTimezone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then(
-              (timezone) => setDefaultActivityTimes(timezone),
+            fetchTimeZone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then(
+              (timeZone) => setDefaultActivityTimes(timeZone),
             );
           }
           break;
@@ -437,7 +437,7 @@ const ContestForm = ({
       setDescription(newContest.description);
       setCompetitorLimit(newContest.competitorLimit);
 
-      await fetchTimezone(latitude, longitude);
+      await changeCoordinates(latitude, longitude, newContest.startDate);
     } catch (err: any) {
       if (err.message.includes('Not found')) setErrorMessages([`Competition with ID ${competitionId} not found`]);
       else setErrorMessages([err.message]);
@@ -446,7 +446,7 @@ const ContestForm = ({
     setLoadingDuringSubmit(false);
   };
 
-  const fetchTimezone = async (lat: number, long: number): Promise<string> => {
+  const fetchTimeZone = async (lat: number, long: number): Promise<string> => {
     const { errors, payload } = await myFetch.get(`/timezone?latitude=${lat}&longitude=${long}`, { authorize: true });
 
     if (errors) {
@@ -458,33 +458,35 @@ const ContestForm = ({
     }
   };
 
-  const changeCoordinates = async (newLat: number, newLong: number) => {
+  const changeCoordinates = async (newLat: number, newLong: number, resetActTimesToDate?: Date) => {
     if ([null, undefined].includes(newLat) || [null, undefined].includes(newLong)) {
       setLatitude(newLat);
       setLongitude(newLong);
     } else {
-      const processedLatitude = Math.min(Math.max(Number(newLat), -90), 90);
-      const processedLongitude = Math.min(Math.max(Number(newLong), -180), 180);
+      const processedLatitude = Math.min(Math.max(newLat, -90), 90);
+      const processedLongitude = Math.min(Math.max(newLong, -180), 180);
 
       setLatitude(processedLatitude);
       setLongitude(processedLongitude);
 
       limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
-        fetchTimezone(processedLatitude, processedLongitude).then((timezone: string) => {
+        fetchTimeZone(processedLatitude, processedLongitude).then((timeZone: string) => {
           // Adjust all times to the new time zone
-          setActivityStartTime(zonedTimeToUtc(utcToZonedTime(activityStartTime, venueTimeZone), timezone));
-          setActivityEndTime(zonedTimeToUtc(utcToZonedTime(activityEndTime, venueTimeZone), timezone));
+          const startTime = resetActTimesToDate ? addHours(new Date(resetActTimesToDate), 12) : activityStartTime;
+          setActivityStartTime(zonedTimeToUtc(utcToZonedTime(startTime, venueTimeZone), timeZone));
+          const endTime = resetActTimesToDate ? addHours(new Date(resetActTimesToDate), 13) : activityEndTime;
+          setActivityEndTime(zonedTimeToUtc(utcToZonedTime(endTime, venueTimeZone), timeZone));
 
           if (type === ContestType.Meetup) {
-            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimeZone), timezone));
+            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimeZone), timeZone));
           } else if (type === ContestType.Competition) {
             setRooms(
               rooms.map((r) => ({
                 ...r,
                 activities: r.activities.map((a) => ({
                   ...a,
-                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimeZone), timezone),
-                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimeZone), timezone),
+                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimeZone), timeZone),
+                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimeZone), timeZone),
                 })),
               })),
             );
@@ -640,28 +642,20 @@ const ContestForm = ({
   };
 
   const changeActivityStartTime = (newTime: Date) => {
-    if (newTime) {
-      setActivityStartTime(newTime);
+    setActivityStartTime(newTime);
 
+    if (newTime) {
       // Change the activity end time too
       const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
       setActivityEndTime(new Date(newTime.getTime() + activityLength));
-    } else {
-      setActivityStartTime(null);
     }
   };
 
-  // Get the same date as the start time and use the new end time (the end time input is for time only)
   const changeActivityEndTime = (newTime: Date) => {
-    if (newTime) {
-      const zonedStartTime = utcToZonedTime(activityStartTime, venueTimeZone);
-      const newActivityEndTime = zonedTimeToUtc(
-        parseISO(`${format(zonedStartTime, 'yyyy-MM-dd')}T${format(newTime, 'HH:mm:00')}`),
-        venueTimeZone,
-      );
-      setActivityEndTime(newActivityEndTime);
+    if (newTime.getTime() < activityStartTime.getTime()) {
+      setActivityEndTime(newTime);
     } else {
-      setActivityEndTime(null);
+      setErrorMessages(['The activity end time cannot be before the start time']);
     }
   };
 
@@ -1061,7 +1055,7 @@ const ContestForm = ({
                   value={activityEndTime}
                   setValue={changeActivityEndTime}
                   timeZone={venueTimeZone}
-                  dateFormat="HH:mm"
+                  dateFormat="Pp"
                   timeIntervals={5}
                   disabled={disableIfCompFinished}
                   showUTCTime
