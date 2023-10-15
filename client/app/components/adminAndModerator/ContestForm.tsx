@@ -739,12 +739,14 @@ const ContestForm = ({
               setSelected={setType}
               disabled={mode !== 'new'}
             />
-            <Button
-              text="Get WCA competition details"
-              onClick={fetchWcaCompDetails}
-              loading={loadingDuringSubmit}
-              className="mb-3"
-            />
+            {type === ContestType.Competition && (
+              <Button
+                text="Get WCA competition details"
+                onClick={fetchWcaCompDetails}
+                loading={loadingDuringSubmit}
+                className="mb-3"
+              />
+            )}
             {type !== ContestType.Online && (
               <>
                 <div className="row">
@@ -805,7 +807,7 @@ const ContestForm = ({
                   timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
                   dateFormat={type === ContestType.Competition ? 'P' : 'Pp'}
                   disabled={disableIfCompApprovedEvenForAdmin}
-                  showUTCTime
+                  showUTCTime={type !== ContestType.Competition}
                 />
               </div>
               {type === ContestType.Competition && (
