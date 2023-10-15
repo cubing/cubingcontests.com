@@ -28,10 +28,11 @@ import {
   roundProceedOptions,
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { getContestIdFromName, getUserInfo, getWcaCompetitionDetails, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import Loading from '../Loading';
+import Button from '../Button';
 
 const isAdmin = getUserInfo()?.isAdmin;
 
@@ -47,12 +48,13 @@ const ContestForm = ({
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
+  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
   const [type, setType] = useState(ContestType.Meetup);
   const [city, setCity] = useState('');
-  const [countryIso2, setCountryId] = useState('NOT_SELECTED');
+  const [countryIso2, setCountryIso2] = useState('NOT_SELECTED');
   const [venue, setVenue] = useState('');
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState(0); // vertical coordinate (Y); ranges from -90 to 90
@@ -179,7 +181,7 @@ const ContestForm = ({
       setName(contest.name);
       setType(contest.type);
       if (contest.city) setCity(contest.city);
-      setCountryId(contest.countryIso2);
+      setCountryIso2(contest.countryIso2);
       if (contest.venue) setVenue(contest.venue);
       if (contest.address) setAddress(contest.address);
       if (contest.latitudeMicrodegrees && contest.longitudeMicrodegrees) {
@@ -407,8 +409,41 @@ const ContestForm = ({
     setName(value);
   };
 
-  const changeType = (newType: ContestType) => {
-    setType(newType);
+  const fetchWcaCompDetails = async () => {
+    if (!competitionId) {
+      setErrorMessages(['Please enter a competition ID']);
+      return;
+    }
+
+    try {
+      setLoadingDuringSubmit(true);
+      setErrorMessages([]);
+
+      const newContest = await getWcaCompetitionDetails(competitionId);
+      const latitude = Number((newContest.latitudeMicrodegrees / 1000000).toFixed(6));
+      const longitude = Number((newContest.longitudeMicrodegrees / 1000000).toFixed(6));
+
+      setName(newContest.name);
+      setCity(newContest.city);
+      setCountryIso2(newContest.countryIso2);
+      setAddress(newContest.address);
+      setVenue(newContest.venue);
+      setLatitude(latitude);
+      setLongitude(longitude);
+      setStartDate(newContest.startDate);
+      setEndDate(newContest.endDate);
+      setOrganizers(newContest.organizers);
+      setOrganizerNames(newContest.organizers.map((o) => o.name));
+      setDescription(newContest.description);
+      setCompetitorLimit(newContest.competitorLimit);
+
+      await fetchTimezone(latitude, longitude);
+    } catch (err: any) {
+      if (err.message.includes('Not found')) setErrorMessages([`Competition with ID ${competitionId} not found`]);
+      else setErrorMessages([err.message]);
+    }
+
+    setLoadingDuringSubmit(false);
   };
 
   const fetchTimezone = async (lat: number, long: number): Promise<string> => {
@@ -678,7 +713,7 @@ const ContestForm = ({
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
         onSubmit={handleSubmit}
-        disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
+        disableButton={disableIfCompFinished || loadingDuringSubmit || fetchTimezoneTimer !== null}
       >
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
@@ -701,8 +736,14 @@ const ContestForm = ({
               title="Type"
               options={contestTypeOptions}
               selected={type}
-              setSelected={changeType}
+              setSelected={setType}
               disabled={mode !== 'new'}
+            />
+            <Button
+              text="Get WCA competition details"
+              onClick={fetchWcaCompDetails}
+              loading={loadingDuringSubmit}
+              className="mb-3"
             />
             {type !== ContestType.Online && (
               <>
@@ -713,7 +754,7 @@ const ContestForm = ({
                   <div className="col">
                     <FormCountrySelect
                       countryIso2={countryIso2}
-                      setCountryId={setCountryId}
+                      setCountryIso2={setCountryIso2}
                       disabled={mode === 'edit'}
                     />
                   </div>

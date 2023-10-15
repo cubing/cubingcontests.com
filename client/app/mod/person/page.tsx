@@ -205,7 +205,7 @@ const CreatePersonPage = () => {
         />
         <FormCountrySelect
           countryIso2={countryIso2}
-          setCountryId={setCountryIso2}
+          setCountryIso2={setCountryIso2}
           nextFocusTargetId="form_submit_button"
           disabled={!noWcaId}
         />

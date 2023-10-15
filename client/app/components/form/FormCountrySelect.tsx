@@ -8,12 +8,12 @@ const countries = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countrie
 
 const FormCountrySelect = ({
   countryIso2,
-  setCountryId,
+  setCountryIso2,
   nextFocusTargetId,
   disabled = false,
 }: {
   countryIso2: string;
-  setCountryId: any;
+  setCountryIso2: any;
   nextFocusTargetId?: string;
   disabled?: boolean;
 }) => {
@@ -26,7 +26,7 @@ const FormCountrySelect = ({
         id="country_iso_2"
         className="form-select"
         value={countryIso2}
-        onChange={(e) => setCountryId(e.target.value)}
+        onChange={(e) => setCountryIso2(e.target.value)}
         onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId })}
         disabled={disabled}
       >

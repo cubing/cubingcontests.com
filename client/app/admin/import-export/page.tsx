@@ -6,10 +6,15 @@ import Button from '@c/Button';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import ContestResults from '~/app/components/ContestResults';
-import { ContestType, RoundFormat, RoundProceed, RoundType, WcaRecordType } from '@sh/enums';
+import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from '@sh/enums';
 import { IContest, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
-import C from '@sh/constants';
-import { getBestAndAverage, getCentiseconds, getContestIdFromName } from '~/helpers/utilityFunctions';
+import {
+  fetchPerson,
+  getBestAndAverage,
+  getCentiseconds,
+  getContestIdFromName,
+  getWcaCompetitionDetails,
+} from '~/helpers/utilityFunctions';
 import { compareAvgs, compareSingles, getDefaultAverageAttempts, getRoundRanksWithAverage } from '@sh/sharedFunctions';
 import { roundFormats } from '~/shared_helpers/roundFormats';
 
@@ -68,6 +73,8 @@ const convertRoundFormat = (value: string): RoundFormat => {
   switch (value) {
     case 'avg5':
       return RoundFormat.Average;
+    case 'mo3':
+      return RoundFormat.Mean;
     case 'bo3':
       return RoundFormat.BestOf3;
     case 'bo2':
@@ -107,9 +114,9 @@ const ImportExportPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [events, setEvents] = useState<IEvent[]>();
   const [activeRecordTypes, setActiveRecordTypes] = useState<IRecordType[]>();
+  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
   const [competitionIdText, setCompetitionIdText] = useState('');
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [contest, setContest] = useState<IContest>();
   const [persons, setPersons] = useState<IPerson[]>([]);
   const [contestJSON, setContestJSON] = useState('');
@@ -158,76 +165,6 @@ const ImportExportPage = () => {
     }
   };
 
-  // null means person not found, undefined means there was an errorr
-  const fetchPerson = async (name: string): Promise<IPerson | null | undefined> => {
-    const newPerson = { personId: 0, name: '', wcaId: '', countryIso2: '', createdBy: '' };
-    // If the WCA ID is available, use that
-    const parts = name.split('|');
-
-    if (parts[1]) {
-      // Create new person using WCA person info
-      const { payload: wcaPerson, errors } = await myFetch.get(`${C.wcaApiBase}/persons/${parts[1]}.json`);
-
-      if (errors) {
-        setErrorMessages(errors);
-        return undefined;
-      } else if (wcaPerson) {
-        newPerson.name = wcaPerson.name;
-        newPerson.wcaId = parts[1];
-        newPerson.countryIso2 = wcaPerson.country;
-
-        const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
-
-        if (errors) {
-          setErrorMessages(errors);
-          return undefined;
-        } else {
-          return person;
-        }
-      }
-    }
-
-    // If not, first try looking in the CC database
-    const englishNameOnly = name.split('(')[0].trim(); // get rid of the ( and everything after it
-    const { payload, errors: e1 } = await myFetch.get(`/persons?searchParam=${englishNameOnly}&exactMatch=true`);
-
-    if (e1) {
-      setErrorMessages([`Error while fetching person with the name ${name}`]);
-      return undefined;
-    } else if (payload) {
-      return payload;
-    }
-
-    // If not found, try searching for exact name matches in the WCA database
-    const {
-      payload: { result: wcaPersonMatches },
-      errors,
-    } = await myFetch.get(
-      `https://www.worldcubeassociation.org/api/v0/search/users?q=${englishNameOnly}&persons_table=true`,
-    );
-
-    if (errors) {
-      setErrorMessages(errors);
-      return undefined;
-    } else if (wcaPersonMatches.length === 1) {
-      // Same code as above in the WCA ID search section
-      newPerson.name = wcaPersonMatches[0].name;
-      newPerson.wcaId = wcaPersonMatches[0].wca_id;
-      newPerson.countryIso2 = wcaPersonMatches[0].country_iso2 || wcaPersonMatches[0].country.iso2;
-
-      const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
-
-      if (errors) {
-        setErrorMessages(errors);
-        return undefined;
-      } else {
-        return person;
-      }
-    }
-
-    return null;
-  };
-
   const previewContest = async () => {
     if (competitionIdText.trim() === '') return;
 
@@ -239,66 +176,36 @@ const ImportExportPage = () => {
     const competitionId = getContestIdFromName(competitionIdText.trim());
     const persons: IPerson[] = []; // used for results preview
     const notFoundPersonNames: string[] = [];
+    let newContest: IContest;
 
-    const { payload: unofficialCompData, errors: e1 } = await myFetch.get(
-      `https://raw.githubusercontent.com/cubing/unofficial.cubing.net/main/data/competitions/${competitionId}/competition-info.json`,
-    );
-    const { payload: wcaCompData, errors: e2 } = await myFetch.get(
-      `${C.wcaApiBase}/competitions/${competitionId}.json`,
-    );
-    // The WCIF data from the endpoint above doesn't include the competitor limit
-    const { payload, errors: e3 } = await myFetch.get(
-      `https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}`,
-    );
-
-    if (e1 || e2 || e3) {
-      const errors = [...(e1 ? e1 : []), ...(e2 ? e2 : []), ...(e3 ? e3 : [])];
-      setErrorMessages(['There was an error while fetching the data', ...errors]);
+    try {
+      newContest = await getWcaCompetitionDetails(competitionId);
+    } catch (err: any) {
+      setErrorMessages([err.message]);
       return;
     }
 
-    const competitorLimit = payload.competitor_limit;
-    const startDate = new Date(wcaCompData.date.from);
-    const endDate = new Date(wcaCompData.date.till);
+    const { payload: unofficialCompData, errors } = await myFetch.get(
+      `https://raw.githubusercontent.com/cubing/unofficial.cubing.net/main/data/competitions/${competitionId}/competition-info.json`,
+    );
 
-    const newContest: IContest = {
-      competitionId,
-      name: wcaCompData.name,
-      type: ContestType.Competition, // THIS IS HARDCODED!!!
-      city: wcaCompData.city,
-      countryIso2: wcaCompData.country,
-      venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
-      address: wcaCompData.venue.address,
-      latitudeMicrodegrees: wcaCompData.venue.coordinates.latitude * 1000000,
-      longitudeMicrodegrees: wcaCompData.venue.coordinates.longitude * 1000000,
-      startDate,
-      endDate,
-      organizers: [], // this is set below
-      description: `Unofficial events from ${wcaCompData.name}. For official events see the official [WCA competition page](https://worldcubeassociation.org/competitions/${competitionId}).`,
-      competitorLimit,
-      mainEventId: Object.keys(unofficialCompData.roundsByEvent)[0],
-      events: [],
-      // compDetails.schedule needs to be set by an admin manually after the competition has been imported
-    };
-
-    newContest.mainEventId = convertEventId(newContest.mainEventId);
-
-    // Set organizer objects
-    for (const org of [...wcaCompData.organisers, ...wcaCompData.wcaDelegates]) {
-      const person = await fetchPerson(org.name);
-
-      if (person === undefined) return;
-      if (person !== null) {
-        if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
-      } else if (!notFoundPersonNames.includes(org.name)) {
-        notFoundPersonNames.push(org.name);
-      }
+    if (errors) {
+      setErrorMessages(errors);
+      return;
     }
+
+    newContest.mainEventId = convertEventId(Object.keys(unofficialCompData.roundsByEvent)[0]);
 
     // Set contest events
     for (const key of Object.keys(unofficialCompData.roundsByEvent)) {
       const ccEventId = convertEventId(key);
       const event = events.find((el) => el.eventId === ccEventId);
+
+      if (!event) {
+        setErrorMessages([`Event with ID ${ccEventId} not found`]);
+        return;
+      }
+
       const roundsInfo = unofficialCompData.roundsByEvent[key];
       const rounds: IRound[] = [];
 
@@ -307,9 +214,7 @@ const ImportExportPage = () => {
         const format = convertRoundFormat(roundsInfo[i].roundFormatID);
         const { payload: recordPairsByEvent, errors: e1 } = await myFetch.get(
           `/results/record-pairs/${date}/${ccEventId}`,
-          {
-            authorize: true,
-          },
+          { authorize: true },
         );
 
         if (e1) {
@@ -317,7 +222,7 @@ const ImportExportPage = () => {
           return;
         }
 
-        if (date.getTime() > endDate.getTime() || date.getTime() < startDate.getTime()) {
+        if (date.getTime() > newContest.endDate.getTime() || date.getTime() < newContest.startDate.getTime()) {
           const message = `Round time is outside the date range for competition ${competitionId}`;
           setErrorMessages([message]);
           throw new Error(message);
@@ -385,9 +290,15 @@ const ImportExportPage = () => {
         for (const result of results) {
           for (let j = 0; j < result.personIds.length; j++) {
             const name = result.personIds[j] as any;
-            const person = await fetchPerson(name);
+            let person: IPerson;
 
-            if (person === undefined) return;
+            try {
+              person = await fetchPerson(name);
+            } catch (err: any) {
+              setErrorMessages(err.message);
+              return;
+            }
+
             if (person !== null) {
               if (!persons.some((p) => p.personId === person.personId)) {
                 result.personIds[j] = person.personId;
@@ -479,7 +390,7 @@ const ImportExportPage = () => {
       </Form>
 
       {contestJSON && (
-        <div className="w-100 mx-auto mb-3" style={{ maxWidth: '900px' }}>
+        <div className="w-100 mx-auto mb-5" style={{ maxWidth: '900px' }}>
           <h3 className="mb-4 text-center">JSON</h3>
           <p
             className="mx-2 p-4 border rounded-4 bg-black text-white font-monospace overflow-y-auto"

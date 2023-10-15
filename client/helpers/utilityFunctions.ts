@@ -1,11 +1,12 @@
 import jwtDecode from 'jwt-decode';
 import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
-import { Color, EventFormat, Role } from '@sh/enums';
+import { Color, ContestType, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { IUserInfo } from './interfaces/UserInfo';
+import myFetch from './myFetch';
 
 export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
@@ -408,14 +409,16 @@ export const splitNameAndLocalizedName = (value: string): [string, string | unde
 
 export const shortenEventName = (name: string): string => {
   return name
-    .replaceAll(/2x2x2/g, '2x2')
-    .replaceAll(/3x3x3/g, '3x3')
-    .replaceAll(/4x4x4/g, '4x4')
-    .replaceAll(/5x5x5/g, '5x5')
-    .replaceAll(/6x6x6/g, '6x6')
-    .replaceAll(/7x7x7/g, '7x7')
-    .replaceAll(/8x8x8/g, '8x8')
-    .replaceAll(/9x9x9/g, '9x9')
+    .replaceAll('2x2x2', '2x2')
+    .replaceAll('3x3x3', '3x3')
+    .replaceAll('4x4x4', '4x4')
+    .replaceAll('5x5x5', '5x5')
+    .replaceAll('6x6x6', '6x6')
+    .replaceAll('7x7x7', '7x7')
+    .replaceAll('8x8x8', '8x8')
+    .replaceAll('9x9x9', '9x9')
+    .replaceAll('10x10x10', '10x10')
+    .replaceAll('11x11x11', '11x11')
     .replace('Blindfolded', 'BLD')
     .replace('Multi-Blind', 'MBLD')
     .replace('One-Handed', 'OH')
@@ -423,4 +426,130 @@ export const shortenEventName = (name: string): string => {
     .replace('Face-turning Octahedron', 'FTO')
     .replace(' Cuboid', '')
     .replace(' Challenge', '');
+};
+
+export const getWcaCompetitionDetails = async (competitionId: string): Promise<IContest> => {
+  const { payload: wcaCompData, errors: e1 } = await myFetch.get(`${C.wcaApiBase}/competitions/${competitionId}.json`);
+
+  if (e1) throw new Error(e1[0]);
+
+  // This is for getting the competitor limit, organizer WCA IDs, and delegate WCA IDs
+  const { payload: wcaV0CompData, errors: e2 } = await myFetch.get(
+    `https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}`,
+  );
+
+  const competitorLimit = wcaV0CompData.competitor_limit;
+  const startDate = new Date(wcaCompData.date.from);
+  const endDate = new Date(wcaCompData.date.till);
+
+  const newContest: IContest = {
+    competitionId,
+    name: wcaCompData.name,
+    type: ContestType.Competition,
+    city: wcaCompData.city,
+    countryIso2: wcaCompData.country,
+    venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
+    address: wcaCompData.venue.address,
+    latitudeMicrodegrees: wcaCompData.venue.coordinates.latitude * 1000000,
+    longitudeMicrodegrees: wcaCompData.venue.coordinates.longitude * 1000000,
+    startDate,
+    endDate,
+    organizers: [], // this is set below
+    description: `Unofficial events from ${wcaCompData.name}. For official events see the official [WCA competition page](https://worldcubeassociation.org/competitions/${competitionId}).`,
+    competitorLimit,
+    mainEventId: '', // this is set elsewhere
+    events: [],
+    // compDetails.schedule needs to be set by an admin manually
+  };
+
+  if (e2) throw new Error(e2[0]);
+
+  const notFoundPersonNames: string[] = [];
+
+  // Set organizer objects
+  for (const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]) {
+    let name = org.name;
+    if (org.wca_id) name += '|' + org.wca_id;
+    const person = await fetchPerson(name);
+
+    if (person !== null) {
+      if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
+    } else if (!notFoundPersonNames.includes(org.name)) {
+      notFoundPersonNames.push(org.name);
+    }
+  }
+
+  if (notFoundPersonNames.length > 0)
+    throw new Error(`Organizers with these names were not found: ${notFoundPersonNames.join(', ')}`);
+
+  return newContest;
+};
+
+// null means person not found
+export const fetchPerson = async (name: string): Promise<IPerson | null> => {
+  const newPerson: IPerson = { personId: 0, name: '', wcaId: '', countryIso2: '', createdBy: '' };
+  // If the WCA ID is available, use that
+  const parts = name.split('|');
+
+  if (parts[1]) {
+    // Create new person using WCA person info
+    const { payload: wcaPerson, errors } = await myFetch.get(`${C.wcaApiBase}/persons/${parts[1]}.json`);
+
+    if (errors) {
+      throw new Error(errors[0]);
+    } else if (wcaPerson) {
+      const [name, localizedName] = splitNameAndLocalizedName(wcaPerson.name);
+
+      newPerson.name = name;
+      newPerson.localizedName = localizedName;
+      newPerson.wcaId = parts[1];
+      newPerson.countryIso2 = wcaPerson.country;
+
+      const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
+
+      if (errors) {
+        throw new Error(errors[0]);
+      } else {
+        return person;
+      }
+    }
+  }
+
+  // If not, first try looking in the CC database
+  const englishNameOnly = name.split('(')[0].trim(); // get rid of the ( and everything after it
+  const { payload, errors: e1 } = await myFetch.get(`/persons?searchParam=${englishNameOnly}&exactMatch=true`);
+
+  if (e1) {
+    throw new Error(`Error while fetching person with the name ${name}`);
+  } else if (payload) {
+    return payload;
+  }
+
+  // If not found, try searching for exact name matches in the WCA database
+  const {
+    payload: { result: wcaPersonMatches },
+    errors,
+  } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/search/users?q=${name}&persons_table=true`);
+
+  if (errors) {
+    throw new Error(errors[0]);
+  } else if (wcaPersonMatches.length === 1) {
+    // Same code as above in the WCA ID search section
+    const [name, localizedName] = splitNameAndLocalizedName(wcaPersonMatches[0].name);
+
+    newPerson.name = name;
+    newPerson.localizedName = localizedName;
+    newPerson.wcaId = wcaPersonMatches[0].wca_id;
+    newPerson.countryIso2 = wcaPersonMatches[0].country_iso2 || wcaPersonMatches[0].country.iso2;
+
+    const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
+
+    if (errors) {
+      throw new Error(errors[0]);
+    } else {
+      return person;
+    }
+  }
+
+  return null;
 };

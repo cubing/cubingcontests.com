@@ -11,7 +11,7 @@ export class CreatePersonDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(3, getMinLengthOpts('localized name', 3))
+  @MinLength(2, getMinLengthOpts('localized name', 2))
   localizedName?: string;
 
   @IsOptional()

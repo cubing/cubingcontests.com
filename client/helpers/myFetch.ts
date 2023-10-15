@@ -57,8 +57,9 @@ const doFetch = async (
     return { errors: [err?.message || `Unknown error while fetching from ${url}`] };
   }
 
-  // Get JSON, if it was returned
+  // Get JSON, if it was returned. KEEP IN MIND THAT THE .json ENDPOINTS RETURN TEXT AND DON'T SET 400 STATUSES.
   let json;
+  let is404 = false;
 
   if (res.headers.get('content-type')?.includes('application/json')) {
     try {
@@ -68,11 +69,15 @@ const doFetch = async (
       return { errors: [err?.message || 'Unknown error while parsing JSON'] };
     }
   } else if (url.slice(url.length - 5) === '.json') {
-    json = JSON.parse(await res.text());
+    try {
+      json = JSON.parse(await res.text());
+    } catch (err) {
+      is404 = true;
+    }
   }
 
   // Handle bad requests/server errors
-  if (res.status >= 400) {
+  if (res.status >= 400 || is404) {
     // If unauthorized, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
       localStorage.removeItem('jwtToken');
@@ -88,8 +93,8 @@ const doFetch = async (
         else errors = json.message;
 
         errors = errors.filter((err) => err !== '');
-      } else if (res.status === 404) {
-        errors = ['Not found'];
+      } else if (res.status === 404 || is404) {
+        errors = [`Not found: ${url}`];
       } else {
         errors = ['Unknown error'];
       }
