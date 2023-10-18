@@ -109,10 +109,6 @@ export class CreateContestDto implements IContest {
   @Min(C.minCompetitorLimit, { message: `The competitor limit cannot be less than ${C.minCompetitorLimit}` })
   competitorLimit?: number;
 
-  @IsString()
-  @MinLength(3)
-  mainEventId: string;
-
   @ArrayMinSize(1, { message: 'Please select at least one event' })
   @ValidateNested({ each: true })
   @Type(() => ContestEventDto)

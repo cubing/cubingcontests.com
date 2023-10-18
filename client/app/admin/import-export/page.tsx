@@ -194,8 +194,6 @@ const ImportExportPage = () => {
       return;
     }
 
-    newContest.mainEventId = convertEventId(Object.keys(unofficialCompData.roundsByEvent)[0]);
-
     // Set contest events
     for (const key of Object.keys(unofficialCompData.roundsByEvent)) {
       const ccEventId = convertEventId(key);

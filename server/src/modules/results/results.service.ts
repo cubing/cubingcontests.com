@@ -53,81 +53,86 @@ export class ResultsService {
     // DB consistency checks (done only in development)
     if (process.env.NODE_ENV !== 'production') {
       // Look for orphan contest results or ones that somehow belong to multiple rounds
-      // const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
-      // for (const res of contestResults) {
-      //   const rounds = await this.roundModel.find({ results: res }).exec();
-      //   if (rounds.length === 0) console.error('Error: contest result has no round:', res);
-      //   else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
-      // }
+      const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
+      for (const res of contestResults) {
+        const rounds = await this.roundModel.find({ results: res }).exec();
+        if (rounds.length === 0) console.error('Error: contest result has no round:', res);
+        else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
+      }
+
       // Look for records that are worse than a previous result (DISABLED TO AVOID SLOWING DOWN THE DEV ENVIRONMENT)
-      // const events = await this.eventsService.getEvents({ includeHidden: true });
-      // for (const event of events) {
-      //   // Single records
-      //   const singleRecordResults = await this.resultModel
-      //     .find({ eventId: event.eventId, regionalSingleRecord: 'WR' })
-      //     .exec();
-      //   for (const result of singleRecordResults) {
-      //     const betterSinglesInThePast = await this.resultModel
-      //       .find({ ...getBaseSinglesFilter(event, { best: { $lt: result.best, $gt: 0 } }), date: { $lte: result.date }})
-      //       .exec();
-      //     if (betterSinglesInThePast.length > 0) {
-      //       console.log(`${result.eventId} single WR`, result, 'is worse than these results:', betterSinglesInThePast);
-      //     }
-      //   }
-      //   // Average records
-      //   const averageRecordResults = await this.resultModel
-      //     .find({ eventId: event.eventId, regionalAverageRecord: 'WR' })
-      //     .exec();
-      //   for (const result of averageRecordResults) {
-      //     const betterAvgsInThePast = await this.resultModel
-      //       .find({...getBaseAvgsFilter(event, { average: { $lt: result.average, $gt: 0 }}), date: { $lte: result.date }})
-      //       .exec();
-      //     if (betterAvgsInThePast.length > 0) {
-      //       console.log(`${result.eventId} average WR`, result, 'is worse than these results:', betterAvgsInThePast);
-      //     }
-      //   }
-      // }
+      const events = await this.eventsService.getEvents({ includeHidden: true });
+      for (const event of events) {
+        // Single records
+        const singleRecordResults = await this.resultModel
+          .find({ eventId: event.eventId, regionalSingleRecord: 'WR' })
+          .exec();
+        for (const result of singleRecordResults) {
+          const betterSinglesInThePast = await this.resultModel
+            .find({
+              ...getBaseSinglesFilter(event, { best: { $lt: result.best, $gt: 0 } }),
+              date: { $lte: result.date },
+            })
+            .exec();
+          if (betterSinglesInThePast.length > 0) {
+            console.log(`${result.eventId} single WR`, result, 'is worse than these results:', betterSinglesInThePast);
+          }
+        }
+
+        // Average records
+        const averageRecordResults = await this.resultModel
+          .find({ eventId: event.eventId, regionalAverageRecord: 'WR' })
+          .exec();
+        for (const result of averageRecordResults) {
+          const betterAvgsInThePast = await this.resultModel
+            .find({
+              ...getBaseAvgsFilter(event, { average: { $lt: result.average, $gt: 0 } }),
+              date: { $lte: result.date },
+            })
+            .exec();
+          if (betterAvgsInThePast.length > 0) {
+            console.log(`${result.eventId} average WR`, result, 'is worse than these results:', betterAvgsInThePast);
+          }
+        }
+      }
+
+      // Look for orphan rounds or ones that belong to multiple contests
+      const rounds = await this.roundModel.find().exec();
+      for (const round of rounds) {
+        const contests = await this.contestModel.find({ 'events.rounds': round }).exec();
+        if (contests.length === 0) console.error('Error: round has no contest:', round);
+        else if (contests.length > 1) console.error('Error: round', round, 'belongs to multiple contests:', contests);
+      }
+
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
-      // let knownDuplicates = [
-      //   'https://www.youtube.com/watch?v=3MfyECPWhms',
-      //   'https://www.youtube.com/watch?v=h4T55MftnRc',
-      //   'https://www.youtube.com/watch?v=YYKOlLgQigA',
-      // ];
-      // const repeatedVideoLinks = await this.resultModel.aggregate([
-      //   { $match: { videoLink: { $exists: true, $nin: knownDuplicates } } },
-      //   { $group: { _id: '$videoLink', count: { $sum: 1 } } },
-      //   { $match: { count: { $gt: 1 } } },
-      // ]);
-      // if (repeatedVideoLinks.length > 0) {
-      //   console.log('These video links have multiple results:', repeatedVideoLinks);
-      // }
-      // // Look for duplicate discussion links
-      // knownDuplicates = [
-      //   'https://www.speedsolving.com/forum/threads/6x6-blindfolded-rankings-thread.41968/page-11#post-1212891',
-      // ];
-      // const repeatedDiscussionLinks = await this.resultModel.aggregate([
-      //   { $match: { discussionLink: { $exists: true, $nin: knownDuplicates } } },
-      //   { $group: { _id: '$discussionLink', count: { $sum: 1 } } },
-      //   { $match: { count: { $gt: 1 } } },
-      // ]);
-      // if (repeatedDiscussionLinks.length > 0) {
-      //   console.log('These discussion links have multiple results:', repeatedDiscussionLinks);
-      // }
-      // // Look for orphan rounds or ones that belong to multiple contests
-      // const rounds = await this.roundModel.find().exec();
-      // for (const round of rounds) {
-      //   const contests = await this.contestModel.find({ 'events.rounds': round }).exec();
-      //   if (contests.length === 0) console.error('Error: round has no contest:', round);
-      //   else if (contests.length > 1) console.error('Error: round', round, 'belongs to multiple contests:', contests);
-      // }
-      // const persons = await this.personsService.getPersons();
-      // for (const p of persons) {
-      //   const resultsCount = await this.resultModel.count({ personIds: p.personId }).exec();
-      //   const contestsOrganizedCount = await this.contestModel.count({ organizers: p }).exec();
-      //   if (resultsCount === 0 && contestsOrganizedCount === 0) {
-      //     console.error(`${p.name} (personId: ${p.personId}) has no results and no contests that they organize`);
-      //   }
-      // }
+      let knownDuplicates = [
+        'https://www.youtube.com/watch?v=3MfyECPWhms',
+        'https://www.youtube.com/watch?v=h4T55MftnRc',
+        'https://www.youtube.com/watch?v=YYKOlLgQigA',
+      ];
+      const repeatedVideoLinks = await this.resultModel.aggregate([
+        { $match: { videoLink: { $exists: true, $nin: knownDuplicates } } },
+        { $group: { _id: '$videoLink', count: { $sum: 1 } } },
+        { $match: { count: { $gt: 1 } } },
+      ]);
+      if (repeatedVideoLinks.length > 0) console.log('These video links have multiple results:', repeatedVideoLinks);
+
+      // Look for duplicate discussion links
+      knownDuplicates = [
+        'https://www.speedsolving.com/forum/threads/6x6-blindfolded-rankings-thread.41968/page-11#post-1212891',
+        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1345821',
+        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-31#post-1426321',
+        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1384930',
+        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-34#post-1512606',
+        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-31#post-1424699',
+      ];
+      const repeatedDiscussionLinks = await this.resultModel.aggregate([
+        { $match: { discussionLink: { $exists: true, $nin: knownDuplicates } } },
+        { $group: { _id: '$discussionLink', count: { $sum: 1 } } },
+        { $match: { count: { $gt: 1 } } },
+      ]);
+      if (repeatedDiscussionLinks.length > 0)
+        console.log('These discussion links have multiple results:', repeatedDiscussionLinks);
     }
   }
 

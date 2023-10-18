@@ -33,7 +33,6 @@ export interface IContest {
   contact?: string;
   description?: string;
   competitorLimit?: number; // required for competitions
-  mainEventId: string;
   events: IContestEvent[];
   participants?: number; // optional, because it's not needed on creation
   // IMPORTANT: this is not set when importing a competition and must be set manually by an admin

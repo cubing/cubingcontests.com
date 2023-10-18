@@ -457,7 +457,6 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
     organizers: [], // this is set below
     description: `Unofficial events from ${wcaCompData.name}. For official events see the official [WCA competition page](https://worldcubeassociation.org/competitions/${competitionId}).`,
     competitorLimit,
-    mainEventId: '', // this is set elsewhere
     events: [],
     // compDetails.schedule needs to be set by an admin manually
   };

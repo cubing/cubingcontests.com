@@ -204,7 +204,6 @@ export class ContestsService {
         contest.longitudeMicrodegrees = updateContestDto.longitudeMicrodegrees;
       }
       contest.competitorLimit = updateContestDto.competitorLimit;
-      contest.mainEventId = updateContestDto.mainEventId;
     }
 
     // Even an admin is not allowed to edit these after a comp has been approved

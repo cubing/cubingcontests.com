@@ -70,7 +70,6 @@ const ContestForm = ({
   // Event stuff
   const [newEventId, setNewEventId] = useState('333');
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>([]);
-  const [mainEventId, setMainEventId] = useState('333');
 
   // Schedule stuff
   const [venueTimeZone, setVenueTimeZone] = useState('GMT'); // e.g. Europe/Berlin
@@ -101,14 +100,12 @@ const ContestForm = ({
       (ev) => isAdmin || !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)),
     );
 
-    // Reset new event ID and main event ID if new filtered events don't include them
-    if (newFiltEv.length > 0) {
-      if (!newFiltEv.some((ev) => ev.eventId === newEventId)) setNewEventId(newFiltEv[0]?.eventId);
-      if (!newFiltEv.some((ev) => ev.eventId === mainEventId)) setMainEventId(newFiltEv[0]?.eventId);
-    }
+    // Reset new event ID if new filtered events don't include it
+    if (newFiltEv.length > 0 && !newFiltEv.some((ev) => ev.eventId === newEventId))
+      setNewEventId(newFiltEv[0]?.eventId);
 
     return newFiltEv;
-  }, [events, type, mainEventId, newEventId]);
+  }, [events, type, newEventId]);
   const remainingEvents = useMemo(
     () => filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId)),
     [filteredEvents, contestEvents],
@@ -175,6 +172,8 @@ const ContestForm = ({
   // Use effect
   //////////////////////////////////////////////////////////////////////////////
 
+  useEffect(() => console.log(latitude), [latitude]);
+
   useEffect(() => {
     if (mode !== 'new') {
       setCompetitionId(contest.competitionId);
@@ -196,7 +195,6 @@ const ContestForm = ({
       setNewEventId(
         events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
       );
-      setMainEventId(contest.mainEventId);
 
       switch (contest.type) {
         case ContestType.Meetup: {
@@ -271,8 +269,8 @@ const ContestForm = ({
     const selectedOrganizers = organizers.filter((el) => el !== null);
     let latitudeMicrodegrees: number, longitudeMicrodegrees: number;
     if (type !== ContestType.Online) {
-      if (latitude) latitudeMicrodegrees = Math.round(latitude * 1000000);
-      if (longitude) longitudeMicrodegrees = Math.round(longitude * 1000000);
+      if (typeof latitude === 'number') latitudeMicrodegrees = Math.round(latitude * 1000000);
+      if (typeof longitude === 'number') longitudeMicrodegrees = Math.round(longitude * 1000000);
     }
 
     const getRoundDate = (round: IRound): Date => {
@@ -349,7 +347,6 @@ const ContestForm = ({
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
       competitorLimit: competitorLimit || undefined,
-      mainEventId,
       events: processedCompEvents,
       compDetails,
     };
@@ -366,9 +363,6 @@ const ContestForm = ({
 
     if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
       tempErrors.push('Please enter all organizers');
-
-    if (contestEvents.length > 0 && !contestEvents.some((el) => el.event.eventId === mainEventId))
-      tempErrors.push('The selected main event is not on the list of events');
 
     if (type === ContestType.Competition) {
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
@@ -393,7 +387,7 @@ const ContestForm = ({
   };
 
   const changeActiveTab = (newTab: string) => {
-    if (newTab === 'schedule' && (latitude === null || longitude === null)) {
+    if (newTab === 'schedule' && (typeof latitude !== 'number' || typeof longitude !== 'number')) {
       setErrorMessages(['Please enter valid coordinates first']);
     } else {
       setActiveTab(newTab);
@@ -961,13 +955,6 @@ const ContestForm = ({
                 </div>
               </div>
             ))}
-            <FormEventSelect
-              title="Main Event"
-              events={filteredEvents}
-              eventId={mainEventId}
-              setEventId={setMainEventId}
-              disabled={disableIfCompApproved}
-            />
           </>
         )}
 

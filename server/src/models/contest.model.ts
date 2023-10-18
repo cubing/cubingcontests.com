@@ -82,9 +82,6 @@ class Competition implements IContest {
   @Prop()
   competitorLimit?: number;
 
-  @Prop({ required: true })
-  mainEventId: string;
-
   @Prop({ type: [ContestEventSchema] })
   events: ContestEvent[];
 
