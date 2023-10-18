@@ -510,13 +510,14 @@ export class ResultsService {
 
       await this.updateRecordsAfterDeletion(result, contest, event);
 
-      contest.participants = (
-        await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
-      ).length;
-      await contest.save();
-
       // Delete the result
       await this.resultModel.deleteOne({ _id: resultId }).exec();
+
+      const contestParticipants = await this.personsService.getContestParticipants({
+        competitionId: contest.competitionId,
+      });
+      contest.participants = contestParticipants.length;
+      await contest.save();
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId, roundId: round.roundId }, excl)
