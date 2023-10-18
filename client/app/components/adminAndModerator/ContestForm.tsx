@@ -49,6 +49,7 @@ const ContestForm = ({
   const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const [detailsImported, setDetailsImported] = useState(false);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -127,6 +128,7 @@ const ContestForm = ({
     () => mode === 'edit' && contest.state >= ContestState.Approved,
     [contest, mode],
   );
+  const disableIfDetailsImported = useMemo(() => !isAdmin && detailsImported, [isAdmin, detailsImported]);
   const roomOptions = useMemo(
     () =>
       rooms.map((room) => ({
@@ -171,8 +173,6 @@ const ContestForm = ({
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
   //////////////////////////////////////////////////////////////////////////////
-
-  useEffect(() => console.log(latitude), [latitude]);
 
   useEffect(() => {
     if (mode !== 'new') {
@@ -426,12 +426,14 @@ const ContestForm = ({
       setLongitude(longitude);
       setStartDate(newContest.startDate);
       setEndDate(newContest.endDate);
-      setOrganizers(newContest.organizers);
-      setOrganizerNames(newContest.organizers.map((o) => o.name));
+      setOrganizers([...newContest.organizers, null]);
+      setOrganizerNames([...newContest.organizers.map((o) => o.name), '']);
       setDescription(newContest.description);
       setCompetitorLimit(newContest.competitorLimit);
 
       await changeCoordinates(latitude, longitude, newContest.startDate);
+
+      setDetailsImported(true);
     } catch (err: any) {
       if (err.message.includes('Not found')) setErrorMessages([`Competition with ID ${competitionId} not found`]);
       else setErrorMessages([err.message]);
@@ -712,20 +714,20 @@ const ContestForm = ({
               value={name}
               setValue={changeName}
               autoFocus
-              disabled={disableIfCompApproved}
+              disabled={disableIfCompApproved || disableIfDetailsImported}
             />
             <FormTextInput
               title="Contest ID"
               value={competitionId}
               setValue={setCompetitionId}
-              disabled={mode === 'edit'}
+              disabled={mode === 'edit' || disableIfDetailsImported}
             />
             <FormRadio
               title="Type"
               options={contestTypeOptions}
               selected={type}
               setSelected={setType}
-              disabled={mode !== 'new'}
+              disabled={mode !== 'new' || disableIfDetailsImported}
             />
             {type === ContestType.Competition && (
               <Button
@@ -733,19 +735,25 @@ const ContestForm = ({
                 onClick={fetchWcaCompDetails}
                 loading={loadingDuringSubmit}
                 className="mb-3"
+                disabled={disableIfDetailsImported}
               />
             )}
             {type !== ContestType.Online && (
               <>
                 <div className="row">
                   <div className="col">
-                    <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfCompApproved} />
+                    <FormTextInput
+                      title="City"
+                      value={city}
+                      setValue={setCity}
+                      disabled={disableIfCompApproved || disableIfDetailsImported}
+                    />
                   </div>
                   <div className="col">
                     <FormCountrySelect
                       countryIso2={countryIso2}
                       setCountryIso2={setCountryIso2}
-                      disabled={mode === 'edit'}
+                      disabled={mode === 'edit' || disableIfDetailsImported}
                     />
                   </div>
                 </div>
@@ -759,7 +767,7 @@ const ContestForm = ({
                       title="Latitude"
                       value={latitude}
                       setValue={(val) => changeCoordinates(val, longitude)}
-                      disabled={disableIfCompApprovedEvenForAdmin}
+                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
                       min={-90}
                       max={90}
                     />
@@ -769,7 +777,7 @@ const ContestForm = ({
                       title="Longitude"
                       value={longitude}
                       setValue={(val) => changeCoordinates(latitude, val)}
-                      disabled={disableIfCompApprovedEvenForAdmin}
+                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
                       min={-180}
                       max={180}
                     />
@@ -794,7 +802,7 @@ const ContestForm = ({
                   setValue={setStartDate}
                   timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
                   dateFormat={type === ContestType.Competition ? 'P' : 'Pp'}
-                  disabled={disableIfCompApprovedEvenForAdmin}
+                  disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
                   showUTCTime={type !== ContestType.Competition}
                 />
               </div>
@@ -805,7 +813,7 @@ const ContestForm = ({
                     title="End date"
                     value={endDate}
                     setValue={setEndDate}
-                    disabled={disableIfCompApprovedEvenForAdmin}
+                    disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
                   />
                 </div>
               )}
@@ -843,7 +851,7 @@ const ContestForm = ({
               title={'Competitor limit' + (type !== ContestType.Competition ? ' (optional)' : '')}
               value={competitorLimit}
               setValue={setCompetitorLimit}
-              disabled={disableIfCompApproved}
+              disabled={disableIfCompApproved || disableIfDetailsImported}
               integer
               min={C.minCompetitorLimit}
             />

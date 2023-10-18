@@ -142,7 +142,7 @@ class ScheduleDto implements ISchedule {
   @Min(1)
   numberOfDays: number;
 
-  @ArrayMinSize(1)
+  @ArrayMinSize(1, { message: 'Please enter at least one venue' })
   @ValidateNested({ each: true })
   @Type(() => VenueDto)
   venues: IVenue[];
@@ -174,7 +174,7 @@ class VenueDto implements IVenue {
   @IsNotEmpty()
   timezone: string;
 
-  @ArrayMinSize(1)
+  @ArrayMinSize(1, { message: 'Please enter at least one room' })
   @ValidateNested({ each: true })
   @Type(() => RoomDto)
   rooms: IRoom[];
