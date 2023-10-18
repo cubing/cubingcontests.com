@@ -10,8 +10,8 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-@ValidatorConstraint({ name: 'HasNonDNFDNSResult', async: false })
-class HasNonDNFDNSResult implements ValidatorConstraintInterface {
+@ValidatorConstraint({ name: 'HasNonDnfDnsResult', async: false })
+class HasNonDnfDnsResult implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
     return attempts.some((a) => a.result > 0);
   }
@@ -24,7 +24,7 @@ class HasNonDNFDNSResult implements ValidatorConstraintInterface {
 export class SubmitResultDto extends CreateResultDto {
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(HasNonDNFDNSResult)
+  @Validate(HasNonDnfDnsResult)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];

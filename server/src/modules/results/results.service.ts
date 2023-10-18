@@ -52,6 +52,8 @@ export class ResultsService {
   async onModuleInit() {
     // DB consistency checks (done only in development)
     if (process.env.NODE_ENV !== 'production') {
+      return;
+
       // Look for orphan contest results or ones that somehow belong to multiple rounds
       const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
       for (const res of contestResults) {

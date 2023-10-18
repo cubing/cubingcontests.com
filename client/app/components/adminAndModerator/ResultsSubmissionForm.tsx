@@ -222,8 +222,9 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
                     Having the time always visible is preferable.
                   </p>
                   <p>
-                    3. For team events, every participant must use a different scramble, must be in the same place, and
-                    should be visible at the same time, if possible.
+                    3. For team events, every participant must use a different scramble, be in the same place, not touch
+                    the puzzle while waiting for other participants, and be visible on video at the same time (an
+                    exception can be made for team events with 5+ participants). Penalty for an early start: +2.
                   </p>
                   <p>4. If you&apos;re submitting a Mean of 3, there must be no cuts between the solves.</p>
                   <p>*. Bonus points if it&apos;s visible that a new scramble was generated and applied.</p>
