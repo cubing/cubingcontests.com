@@ -44,6 +44,10 @@ const ManageUsersPage = () => {
       setErrorMessages(['The competitor has not been entered. Either enter them or clear the input.']);
       return;
     }
+    if (!persons[0] && (isMod || isAdmin)) {
+      setErrorMessages(['Admins and moderators must have a competitor tied to the user']);
+      return;
+    }
 
     setLoadingDuringSubmit(true);
     setErrorMessages([]);
@@ -51,7 +55,7 @@ const ManageUsersPage = () => {
     const newUser: IFrontendUser = {
       username,
       email,
-      person: persons[0],
+      person: persons[0] ?? undefined,
       roles: [],
     };
 
@@ -59,7 +63,6 @@ const ManageUsersPage = () => {
     if (isMod) newUser.roles.push(Role.Moderator);
     if (isAdmin) newUser.roles.push(Role.Admin);
 
-    console.log('New user:', newUser);
     const { payload, errors } = await myFetch.patch('/users', newUser);
 
     if (errors) {

@@ -107,7 +107,8 @@ export class UsersService {
     if (updateUserDto.email !== user.email) throw new BadRequestException('Changing the email is not allowed');
 
     user.roles = updateUserDto.roles;
-    user.personId = updateUserDto.person.personId;
+    if (updateUserDto.person) user.personId = updateUserDto.person.personId;
+    else user.personId = undefined;
 
     try {
       await user.save();

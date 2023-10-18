@@ -88,15 +88,17 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
                 </span>
               ))}
             </p>
-            {contest.state < ContestState.Published && contest.competitorLimit && (
-              <p className="mb-2">
-                Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
-              </p>
-            )}
-            {contest.participants > 0 && (
+            {contest.participants > 0 ? (
               <p className="mb-2">
                 Number of participants:&#8194;<b>{contest.participants}</b>
               </p>
+            ) : (
+              contest.competitorLimit &&
+              contest.state < ContestState.Finished && (
+                <p className="mb-2">
+                  Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
+                </p>
+              )
             )}
           </div>
         </div>
