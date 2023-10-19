@@ -5,6 +5,7 @@ import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { AuthService } from '@m/auth/auth.service';
+import { UsersService } from '@m/users/users.service';
 import { Role, WcaRecordType } from '@sh/enums';
 import { IEventRankings } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -48,6 +49,10 @@ describe('ResultsService', () => {
         {
           provide: AuthService,
           useFactory: AuthServiceMock,
+        },
+        {
+          provide: UsersService,
+          useValue: {},
         },
         {
           provide: getModelToken('Result'),

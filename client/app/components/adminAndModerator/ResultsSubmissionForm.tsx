@@ -77,10 +77,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         } else {
           setResultsSubmissionInfo(payload);
           const { result, persons, events } = payload as IResultsSubmissionInfo;
-          console.log(
-            result.personIds,
-            persons.map((el) => el.personId),
-          );
 
           setEvent(events[0]);
           setRoundFormat(
@@ -299,12 +295,13 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               Discussion link
             </a>
           )}
+          {resultId && <p className="mt-4">Created by: {resultsSubmissionInfo.createdByUsername}</p>}
           <Button
             id="submit_button"
             text="Submit"
             onClick={() => submitResult()}
             loading={loadingDuringSubmit || fetchRecordPairsTimer !== null}
-            className="mt-4"
+            className="mt-3"
           />
           {resultId && resultsSubmissionInfo.result.unapproved && (
             <Button
@@ -312,7 +309,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               text="Submit and approve"
               onClick={() => submitResult(true)}
               loading={loadingDuringSubmit || fetchRecordPairsTimer !== null}
-              className="btn-success ms-3"
+              className="btn-success mt-3 ms-3"
             />
           )}
         </Form>

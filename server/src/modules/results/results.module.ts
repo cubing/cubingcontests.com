@@ -9,6 +9,7 @@ import { RecordTypesModule } from '@m/record-types/record-types.module';
 import { EventsModule } from '@m/events/events.module';
 import { PersonsModule } from '@m/persons/persons.module';
 import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from '../auth/auth.module';
     RecordTypesModule,
     PersonsModule,
     AuthModule,
+    UsersModule,
     MongooseModule.forFeature([
       { name: 'Result', schema: ResultSchema },
       { name: 'Round', schema: RoundSchema },

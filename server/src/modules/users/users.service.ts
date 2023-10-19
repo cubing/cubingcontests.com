@@ -128,6 +128,15 @@ export class UsersService {
     }
   }
 
+  async getUserEmail(id: string): Promise<string> {
+    try {
+      const user: UserDocument = await this.userModel.findById(id).exec();
+      return user.email;
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   async getUsersTotal(): Promise<number> {
     try {
       return await this.userModel.countDocuments().exec();

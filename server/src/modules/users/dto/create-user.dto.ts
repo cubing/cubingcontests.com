@@ -14,7 +14,7 @@ export class UserDto {
   @IsString()
   @MinLength(3, getMinLengthOpts('username', 3))
   @Matches(/^[a-z0-9_-]*$/, {
-    message: 'The username can only contain alphanumeric characters, underscores and dashes',
+    message: 'The username can only contain lowercase letters, numbers, underscores and dashes',
   })
   username: string;
 

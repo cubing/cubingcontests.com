@@ -1,6 +1,6 @@
 export type { IContest, IContestEvent, IContestData, ICompetitionDetails } from './interfaces/Contest';
 export type { IEvent } from './interfaces/Event';
-export type { IPerson } from './interfaces/Person';
+export type { IPerson, IDtoPerson } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
 export type {
   IResult,

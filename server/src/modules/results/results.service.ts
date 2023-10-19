@@ -7,11 +7,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
+import { ContestDocument } from '~/src/models/contest.model';
+import { RoundDocument } from '~/src/models/round.model';
+import { PersonDocument } from '~/src/models/person.model';
+import { EventDocument } from '~/src/models/event.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
+import { AuthService } from '@m/auth/auth.service';
+import { UsersService } from '@m/users/users.service';
+import { CreateResultDto } from './dto/create-result.dto';
+import { SubmitResultDto } from './dto/submit-result.dto';
+import { excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
+import C from '@sh/constants';
 import { ContestState, Role, WcaRecordType } from '@sh/enums';
 import {
   IEventRankings,
@@ -24,18 +34,9 @@ import {
   IEvent,
   IFrontendResult,
 } from '@sh/interfaces';
-import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
-import C from '@sh/constants';
-import { excl, orgPopulateOptions } from '~/src/helpers/dbHelpers';
-import { CreateResultDto } from './dto/create-result.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { ContestDocument } from '~/src/models/contest.model';
-import { RoundDocument } from '~/src/models/round.model';
+import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
-import { AuthService } from '../auth/auth.service';
-import { PersonDocument } from '~/src/models/person.model';
-import { EventDocument } from '~/src/models/event.model';
-import { SubmitResultDto } from './dto/submit-result.dto';
 
 @Injectable()
 export class ResultsService {
@@ -44,6 +45,7 @@ export class ResultsService {
     private recordTypesService: RecordTypesService,
     private personsService: PersonsService,
     private authService: AuthService,
+    private usersService: UsersService,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
@@ -365,7 +367,7 @@ export class ResultsService {
     let result: ResultDocument;
 
     try {
-      result = await this.resultModel.findOne({ _id: resultId }).exec();
+      result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec();
       if (!result) throw new NotFoundException();
     } catch (err) {
       throw new NotFoundException('Result not found');
@@ -373,6 +375,8 @@ export class ResultsService {
 
     const event = await this.eventsService.getEventById(result.eventId);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+    const createdBy = result.createdBy;
+    result.createdBy = undefined;
 
     const resultEditingInfo: IResultsSubmissionInfo = {
       events: [event],
@@ -383,6 +387,7 @@ export class ResultsService {
       activeRecordTypes,
       result,
       persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
+      createdByUsername: await this.usersService.getUserEmail(createdBy.toString()),
     };
 
     return resultEditingInfo;
@@ -554,7 +559,17 @@ export class ResultsService {
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
 
     try {
-      await this.resultModel.create(setResultRecords(submitResultDto, event, recordPairs, !isAdmin));
+      await this.resultModel.create(
+        setResultRecords(
+          {
+            ...submitResultDto,
+            createdBy: new mongoose.Types.ObjectId(user._id as string),
+          },
+          event,
+          recordPairs,
+          !isAdmin,
+        ),
+      );
     } catch (err) {
       throw new InternalServerErrorException(`Error while submitting result: ${err.message}`);
     }

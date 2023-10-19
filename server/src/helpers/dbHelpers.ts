@@ -6,7 +6,8 @@ export const exclSysButKeepCreatedBy = {
 
 export const excl = {
   ...exclSysButKeepCreatedBy,
-  // THIS IS NOT A MONGO DB FIELD. It's a field used purely by the CC backend, so it must be excluded for all requests.
+  // THIS IS NOT A MONGO DB FIELD. It's a field used mostly by the CC backend, so it must be excluded for all requests,
+  // unless explicitly needed on the frontend to be displayed to an authorized user.
   createdBy: 0,
 };
 

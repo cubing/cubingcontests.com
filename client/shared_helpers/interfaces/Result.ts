@@ -28,8 +28,9 @@ export interface IResult {
   average: number; // for FMC it's 100 times the mean (to avoid decimals)
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
-  videoLink?: string; // only used for submission-based events
-  discussionLink?: string; // only used for submission-based events
+  videoLink?: string; // only used for submitted results
+  discussionLink?: string; // only used for submitted results
+  createdBy?: unknown; // user ID of the user who created the result (only used for submitted results)
 }
 
 export interface IRanking {
@@ -72,4 +73,5 @@ export interface IResultsSubmissionInfo {
   // These are only used for the edit result page
   result?: IResult;
   persons?: IPerson[];
+  createdByUsername?: string;
 }

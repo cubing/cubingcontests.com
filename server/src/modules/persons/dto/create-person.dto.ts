@@ -2,8 +2,9 @@ import { IsIn, IsOptional, IsString, Matches, MinLength } from 'class-validator'
 import Countries from '@sh/Countries';
 import { getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
+import { IDtoPerson } from '@sh/interfaces';
 
-export class CreatePersonDto {
+export class CreatePersonDto implements IDtoPerson {
   @IsString()
   @MinLength(3, getMinLengthOpts('person name', 3))
   @Matches(/^[^()]*$/, { message: 'Parentheses are not allowed in names' })

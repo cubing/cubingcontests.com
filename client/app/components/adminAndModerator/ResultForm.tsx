@@ -109,8 +109,8 @@ const ResultForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const focusFirstAttempt = () => {
-    if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved').focus();
-    else document.getElementById('attempt_1').focus();
+    if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved')?.focus();
+    else document.getElementById('attempt_1')?.focus();
   };
 
   const updateTempResult = () => {

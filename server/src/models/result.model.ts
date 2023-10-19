@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { IAttempt, IResult } from '@sh/interfaces';
+import { UserDocument } from './user.model';
 
 @Schema({ _id: false })
 export class Attempt implements IAttempt {
@@ -53,6 +54,9 @@ export class Result implements IResult {
 
   @Prop()
   discussionLink?: string;
+
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
+  createdBy: UserDocument;
 }
 
 export type ResultDocument = HydratedDocument<Result>;
