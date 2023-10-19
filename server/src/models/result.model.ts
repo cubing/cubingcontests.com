@@ -55,7 +55,7 @@ export class Result implements IResult {
   @Prop()
   discussionLink?: string;
 
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'User' })
   createdBy: UserDocument;
 }
 
