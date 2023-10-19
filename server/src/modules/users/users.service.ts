@@ -128,10 +128,10 @@ export class UsersService {
     }
   }
 
-  async getUserEmail(id: string): Promise<string> {
+  async getUsername(id: string): Promise<string> {
     try {
       const user: UserDocument = await this.userModel.findById(id).exec();
-      return user.email;
+      return user.username;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

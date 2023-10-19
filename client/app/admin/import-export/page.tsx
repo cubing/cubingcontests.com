@@ -11,7 +11,6 @@ import { IContest, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } 
 import {
   fetchPerson,
   getBestAndAverage,
-  getCentiseconds,
   getContestIdFromName,
   getWcaCompetitionDetails,
 } from '~/helpers/utilityFunctions';
@@ -106,7 +105,7 @@ const getRoundType = (index: number, totalRounds: number): RoundType => {
 const convertTime = (value: string): number => {
   if (value === 'DNF') return -1;
   if (value === 'DNS') return -2;
-  return getCentiseconds(value.replaceAll(/[:.]/g, ''), { round: false });
+  return Number(value) * 100;
 };
 
 const ImportExportPage = () => {
@@ -239,7 +238,7 @@ const ImportExportPage = () => {
 
         const lines = roundData.split(/\n/);
 
-        const results: IResult[] = setRankingsAndRecords(
+        const roundResults: IResult[] = setRankingsAndRecords(
           lines
             .slice(1)
             .map((line: string) => line.trim())
@@ -284,8 +283,10 @@ const ImportExportPage = () => {
           recordPairsByEvent[0].recordPairs,
         );
 
-        // Set the personIds
-        for (const result of results) {
+        // Set the personIds and make sure there are no competitors in the round who have multiple results
+        const roundPersonIds: number[] = [];
+
+        for (const result of roundResults) {
           for (let j = 0; j < result.personIds.length; j++) {
             const name = result.personIds[j] as any;
             let person: IPerson;
@@ -298,8 +299,9 @@ const ImportExportPage = () => {
             }
 
             if (person !== null) {
-              if (!persons.some((p) => p.personId === person.personId)) {
+              if (!roundPersonIds.some((pId) => pId === person.personId)) {
                 result.personIds[j] = person.personId;
+                roundPersonIds.push(person.personId);
                 persons.push(person);
               } else {
                 setErrorMessages([`${person.name} is included in the results twice`]);
@@ -315,7 +317,7 @@ const ImportExportPage = () => {
         if (i > 0) {
           rounds[i - 1].proceed = {
             type: RoundProceed.Number,
-            value: results.length,
+            value: roundResults.length,
           };
         }
 
@@ -325,7 +327,7 @@ const ImportExportPage = () => {
           date,
           roundTypeId: getRoundType(i, roundsInfo.length),
           format,
-          results,
+          results: roundResults,
         });
       }
 

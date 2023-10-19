@@ -204,23 +204,27 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             <>
               <p>
                 Here you can submit results for events that allow submissions. They will be included in the rankings
-                after an admin approves them. A result can only be accepted if it has video evidence of the entire solve
-                (including memorization, if applicable).
+                after an admin approves them. A result can only be accepted if it has video evidence of the{' '}
+                <b>ENTIRE</b> solve (including memorization, if applicable).
               </p>
               <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? 'Hide rules' : 'Show rules'}
               </button>
               {showRules && (
                 <div className="mt-4">
-                  <p>1. For blindfolded events, it must be visible that your mask is on during the solving phase.</p>
+                  <p>
+                    1. For blindfolded events, your face must be visible during the entire solve (it must be visible
+                    that your mask is on during the solving phase).
+                  </p>
                   <p>
                     2. The final time must be visible at the end of the video with no cuts after the end of the solve.
                     Having the time always visible is preferable.
                   </p>
                   <p>
                     3. For team events, every participant must use a different scramble, be in the same place, not touch
-                    the puzzle while waiting for other participants, and be visible on video at the same time (an
-                    exception can be made for team events with 5+ participants). Penalty for an early start: +2.
+                    the puzzle while waiting for other participants (penalty: +2), and be visible on video at the same
+                    time (an exception can be made for team events with 5+ participants). Penalty for an early start:
+                    +2.
                   </p>
                   <p>4. If you&apos;re submitting a Mean of 3, there must be no cuts between the solves.</p>
                   <p>*. Bonus points if it&apos;s visible that a new scramble was generated and applied.</p>

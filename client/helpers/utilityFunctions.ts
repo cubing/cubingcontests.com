@@ -134,7 +134,7 @@ export const getFormattedTime = (
 
 // Returns null if the time is invalid
 export const getCentiseconds = (
-  time: string,
+  time: string, // the time string without formatting (e.g. 1:35.97 should be "13597")
   { round = true, throwErrorWhenInvalidTime = false }: { round?: boolean; throwErrorWhenInvalidTime?: boolean } = {
     round: true,
     throwErrorWhenInvalidTime: false,
@@ -157,7 +157,10 @@ export const getCentiseconds = (
 
   // Disallow >60 minutes, >60 seconds, and times more than 24 hours long
   if (minutes >= 60 || centiseconds >= 6000 || hours > 24 || (hours === 24 && minutes > 0 && centiseconds > 0)) {
-    if (throwErrorWhenInvalidTime) throw new Error(`Invalid time: ${time}`);
+    if (throwErrorWhenInvalidTime)
+      throw new Error(
+        `Invalid time: ${time}. Debug info: hours = ${hours}, minutes = ${minutes}, centiseconds = ${centiseconds}, time = ${time}, round = ${round}`,
+      );
     return null;
   }
 
