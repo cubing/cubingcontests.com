@@ -337,6 +337,7 @@ const AttemptInput = ({
           <FormTextInput
             id={`attempt_${number}_memo`}
             title={number === 1 ? 'Memo' : ''}
+            tooltip="If unknown, leave as 0"
             value={formattedMemoText}
             onChange={(e) => onTimeChange(e, true)}
             onKeyDown={(e: any) => onTimeKeyDown(e, true)}
