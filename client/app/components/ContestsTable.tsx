@@ -149,10 +149,11 @@ const ContestsTable = async ({
                           Approve
                         </button>
                       )}
-                      {[ContestState.Approved, ContestState.Ongoing].includes(contest.state) && (
+                      {contest.state < ContestState.Finished && (
                         <button
                           type="button"
                           onClick={() => onPostCompResults(contest.competitionId)}
+                          disabled={contest.state < ContestState.Approved}
                           className="btn btn-sm btn-success"
                           style={{ padding: C.smallButtonPadding }}
                         >
