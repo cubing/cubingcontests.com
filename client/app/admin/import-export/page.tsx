@@ -105,7 +105,7 @@ const getRoundType = (index: number, totalRounds: number): RoundType => {
 const convertTime = (value: string): number => {
   if (value === 'DNF') return -1;
   if (value === 'DNS') return -2;
-  return Number(value.replace('.', ''));
+  return Number(value.slice(0, value.indexOf('.') + 3).replace('.', ''));
 };
 
 const ImportExportPage = () => {
@@ -237,6 +237,7 @@ const ImportExportPage = () => {
         }
 
         const lines = roundData.split(/\n/);
+        const fields = lines[0].split(',');
 
         const roundResults: IResult[] = setRankingsAndRecords(
           lines
@@ -244,20 +245,21 @@ const ImportExportPage = () => {
             .map((line: string) => line.trim())
             .filter((line: string) => line !== '')
             .map((line: string): IResult => {
-              const fields = lines[0].split(',');
               const parts = line.split(',');
-              const personNames = [];
+              const personNames: string[] = []; // can also hold the WCA ID
               let attempts = [];
 
               for (let i = 1; i < fields.length; i++) {
                 if (['name', 'name1'].includes(fields[i])) {
-                  personNames.push(parts[i]);
-                } else if (fields[i] === 'wcaID1') {
-                  personNames[0] += `|${parts[i]}`;
+                  if (personNames[0]) personNames[0] = parts[i] + personNames[0];
+                  else personNames.push(parts[i]);
+                } else if (['wcaID', 'wcaID1'].includes(fields[i])) {
+                  personNames.push(`|${parts[i]}`);
                 } else if (fields[i] === 'name2') {
-                  personNames.push(parts[i]);
+                  if (personNames[1]) personNames[1] = parts[i] + personNames[1];
+                  else personNames.push(parts[i]);
                 } else if (fields[i] === 'wcaID2') {
-                  personNames[1] += `|${parts[i]}`;
+                  personNames.push(`|${parts[i]}`);
                 } else if (fields[i].includes('attempt')) {
                   attempts.push({ result: convertTime(parts[i]) });
                 }
@@ -304,6 +306,7 @@ const ImportExportPage = () => {
                 roundPersonIds.push(person.personId);
                 persons.push(person);
               } else {
+                console.error('Round results:', roundResults);
                 setErrorMessages([`${person.name} is included in the results twice`]);
                 return;
               }

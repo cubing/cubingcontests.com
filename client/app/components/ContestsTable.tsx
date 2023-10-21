@@ -149,7 +149,8 @@ const ContestsTable = async ({
                           Approve
                         </button>
                       )}
-                      {!showApproveButton && contest.state < ContestState.Finished && (
+                      {/* Mods should be able to see this button even before approval, it should just be disabled */}
+                      {(contest.state > ContestState.Approved || !isAdmin) && contest.state < ContestState.Finished && (
                         <button
                           type="button"
                           onClick={() => onPostCompResults(contest.competitionId)}
