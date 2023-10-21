@@ -441,7 +441,8 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
     `https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}`,
   );
 
-  const competitorLimit = wcaV0CompData.competitor_limit;
+  // Sometimes the competitor limit does not exist
+  const competitorLimit = wcaV0CompData.competitor_limit || 10;
   const startDate = new Date(wcaCompData.date.from);
   const endDate = new Date(wcaCompData.date.till);
 

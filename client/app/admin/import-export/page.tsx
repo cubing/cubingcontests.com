@@ -105,7 +105,7 @@ const getRoundType = (index: number, totalRounds: number): RoundType => {
 const convertTime = (value: string): number => {
   if (value === 'DNF') return -1;
   if (value === 'DNS') return -2;
-  return Number(value) * 100;
+  return Number(value.replace('.', ''));
 };
 
 const ImportExportPage = () => {
