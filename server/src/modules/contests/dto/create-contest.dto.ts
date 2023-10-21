@@ -43,7 +43,7 @@ const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
 export class CreateContestDto implements IContest {
   @IsString()
-  @MinLength(10, getMinLengthOpts('contest ID', 10))
+  @MinLength(5, getMinLengthOpts('contest ID', 5))
   @Matches(/^[a-zA-Z0-9]*$/, { message: 'The contest ID must only contain alphanumeric characters' })
   competitionId: string;
 

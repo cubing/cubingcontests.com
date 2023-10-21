@@ -296,7 +296,7 @@ const ImportExportPage = () => {
             try {
               person = await fetchPerson(name);
             } catch (err: any) {
-              setErrorMessages(err.message);
+              setErrorMessages([err.message]);
               return;
             }
 
@@ -337,27 +337,35 @@ const ImportExportPage = () => {
       newContest.events.push({ event, rounds });
     }
 
+    const tempErrors: string[] = [];
+
+    if (!newContest.address) {
+      newContest.address = 'ADDRESS MISSING';
+      tempErrors.push('The address is missing. Make SURE to enter it before approving the imported contest.');
+    }
+
     console.log('New contest:', newContest);
     setContestJSON(JSON.stringify(newContest, null, 2));
 
     if (notFoundPersonNames.length > 0) {
       if (!notFoundPersonNames.some((el) => el.includes('|'))) {
-        setErrorMessages([`Persons with these names were not found: ${notFoundPersonNames.join(', ')}`]);
+        tempErrors.push(`Persons with these names were not found: ${notFoundPersonNames.join(', ')}`);
       } else {
-        setErrorMessages([
+        tempErrors.push(
           `Persons with these names / WCA IDs were not found: ${notFoundPersonNames
             .map((el) => {
               const parts = el.split('|');
               return parts[1] || parts[0];
             })
             .join(', ')}`,
-        ]);
+        );
       }
     } else {
       setContest(newContest);
       setPersons(persons);
     }
 
+    setErrorMessages(tempErrors);
     setLoadingDuringSubmit(false);
   };
 
