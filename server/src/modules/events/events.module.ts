@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
-import { EventsService } from './events.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { EventsController } from './events.controller';
 import { EventSchema } from '~/src/models/event.model';
 import { ResultSchema } from '~/src/models/result.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { ScheduleSchema } from '~/src/models/schedule.model';
+import { EventsService } from './events.service';
+import { EventsController } from './events.controller';
+import { LoggerModule } from '../my-logger/my-logger.module';
 
 @Module({
   imports: [
+    LoggerModule,
     MongooseModule.forFeature([
       { name: 'Event', schema: EventSchema },
       { name: 'Round', schema: RoundSchema },

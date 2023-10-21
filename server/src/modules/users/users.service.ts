@@ -1,17 +1,20 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { UserDocument } from '~/src/models/user.model';
 import { PersonsService } from '@m/persons/persons.service';
 import { Role } from '@sh/enums';
 import { IFrontendUser } from '@sh/interfaces';
 import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LogType } from '~/src/helpers/enums';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private personsService: PersonsService,
+    private readonly logger: MyLogger,
+    private readonly personsService: PersonsService,
     @InjectModel('User') private readonly userModel: Model<UserDocument>,
   ) {}
 
@@ -77,6 +80,8 @@ export class UsersService {
 
   // WARNING: this expects that the password is ALREADY encrypted! That is done in the auth module.
   async createUser(newUser: IUser) {
+    this.logger.logAndSave(`Creating new user with username ${newUser.username}`, LogType.CreateUser);
+
     try {
       const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: newUser.username }).exec();
       if (sameUsernameUser) {
@@ -95,6 +100,8 @@ export class UsersService {
   }
 
   async updateUser(updateUserDto: UpdateUserDto): Promise<IFrontendUser[]> {
+    this.logger.logAndSave(`Updating user with username ${updateUserDto.username}`, LogType.UpdateUser);
+
     let user: UserDocument;
 
     try {

@@ -8,11 +8,13 @@ import { ContestSchema } from '~/src/models/contest.model';
 import { RecordTypesModule } from '@m/record-types/record-types.module';
 import { EventsModule } from '@m/events/events.module';
 import { PersonsModule } from '@m/persons/persons.module';
-import { AuthModule } from '../auth/auth.module';
-import { UsersModule } from '../users/users.module';
+import { AuthModule } from '@m/auth/auth.module';
+import { UsersModule } from '@m/users/users.module';
+import { LoggerModule } from '@m/my-logger/my-logger.module';
 
 @Module({
   imports: [
+    LoggerModule,
     EventsModule,
     RecordTypesModule,
     PersonsModule,

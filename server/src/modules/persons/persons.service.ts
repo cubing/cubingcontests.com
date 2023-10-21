@@ -8,10 +8,13 @@ import { CreatePersonDto } from './dto/create-person.dto';
 import { IPerson } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestEvent } from '~/src/models/contest.model';
+import { MyLogger } from '@m/my-logger/my-logger.service';
+import { LogType } from '~/src/helpers/enums';
 
 @Injectable()
 export class PersonsService {
   constructor(
+    private readonly logger: MyLogger,
     @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
   ) {}
@@ -107,6 +110,9 @@ export class PersonsService {
   }
 
   async createPerson(createPersonDto: CreatePersonDto, user: IPartialUser): Promise<PersonDocument> {
+    const wcaId = createPersonDto.wcaId ? `WCA ID ${createPersonDto.wcaId}` : 'no WCA ID';
+    this.logger.logAndSave(`Creating person with name ${createPersonDto.name} and ${wcaId}`, LogType.CreatePerson);
+
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 

@@ -1,4 +1,6 @@
 import { Controller, Get, Post, Patch, Param, Request, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
+import { MyLogger } from '@m/my-logger/my-logger.service';
+import { LogType } from '~/src/helpers/enums';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { ContestsService } from './contests.service';
 import { UpdateContestDto } from './dto/update-contest.dto';
@@ -9,12 +11,13 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 
 @Controller('competitions')
 export class ContestsController {
-  constructor(private readonly service: ContestsService) {}
+  constructor(private readonly logger: MyLogger, private readonly service: ContestsService) {}
 
   // GET /competitions?region=...
   @Get()
   async getContests(@Query('region') region: string) {
-    console.log('Getting contests');
+    this.logger.logAndSave('Getting contests', LogType.GetContests);
+
     return await this.service.getContests(region);
   }
 
@@ -23,14 +26,16 @@ export class ContestsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getModContests(@Request() req: any) {
-    console.log('Getting contests with moderator info');
+    this.logger.logAndSave('Getting contests with moderator info', LogType.GetModContests);
+
     return await this.service.getModContests(req.user);
   }
 
   // GET /competitions/:competitionId
   @Get(':competitionId')
   async getContest(@Param('competitionId') competitionId: string) {
-    console.log(`Getting contest with id ${competitionId}`);
+    this.logger.logAndSave(`Getting contest with ID ${competitionId}`, LogType.GetContest);
+
     return await this.service.getContest(competitionId);
   }
 
@@ -39,7 +44,8 @@ export class ContestsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getModCompetition(@Param('competitionId') competitionId: string, @Request() req: any) {
-    console.log(`Getting contest with id ${competitionId} with moderator info`);
+    this.logger.logAndSave(`Getting contest with ID ${competitionId} with moderator info`, LogType.GetModContest);
+
     return await this.service.getContest(competitionId, req.user);
   }
 
@@ -52,7 +58,7 @@ export class ContestsController {
     @Body(new ValidationPipe()) createContestDto: CreateContestDto,
     @Query('saveResults') saveResults = false,
   ) {
-    console.log(`Creating contest ${createContestDto.competitionId}`);
+    this.logger.logAndSave(`Creating contest ${createContestDto.competitionId}`, LogType.CreateContest);
 
     return await this.service.createContest(
       createContestDto,
@@ -70,7 +76,8 @@ export class ContestsController {
     @Body(new ValidationPipe()) updateContestDto: UpdateContestDto,
     @Request() req: any, // this is passed in by the guards
   ) {
-    console.log(`Updating contest ${competitionId}`);
+    this.logger.logAndSave(`Updating contest ${competitionId}`, LogType.UpdateContest);
+
     return await this.service.updateContest(competitionId, updateContestDto, req.user);
   }
 
@@ -83,7 +90,8 @@ export class ContestsController {
     @Param('newState') newState: string,
     @Request() req: any, // this is passed in by the guards
   ) {
-    console.log(`Setting state ${newState} for contest ${competitionId}`);
+    this.logger.logAndSave(`Setting state ${newState} for contest ${competitionId}`, LogType.UpdateContestState);
+
     return await this.service.updateState(competitionId, parseInt(newState) as ContestState, req.user);
   }
 }

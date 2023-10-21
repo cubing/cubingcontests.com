@@ -5,16 +5,16 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
 import { AppService } from './app.service';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly logger: MyLogger, private readonly appService: AppService) {}
 
   @Get('admin-stats')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async getAdminStats() {
-    console.log('Getting admin stats');
     return await this.appService.getAdminStats();
   }
 
@@ -23,7 +23,7 @@ export class AppController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getTimezone(@Query('latitude') latitude: number, @Query('longitude') longitude: number) {
-    console.log(`Getting time zone for coordinates ${latitude}, ${longitude}`);
+    this.logger.log(`Getting time zone for coordinates ${latitude}, ${longitude}`);
 
     if (latitude > 90 || latitude < -90) throw new BadRequestException(`Invalid latitude: ${latitude}`);
     if (longitude > 180 || longitude < -180) throw new BadRequestException(`Invalid longitude: ${longitude}`);

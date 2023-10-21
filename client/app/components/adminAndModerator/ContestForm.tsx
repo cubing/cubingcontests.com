@@ -97,9 +97,9 @@ const ContestForm = ({
     [type],
   );
   const filteredEvents = useMemo(() => {
-    const newFiltEv = events.filter(
-      (ev) => isAdmin || !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)),
-    );
+    const newFiltEv = isAdmin
+      ? events
+      : events.filter((ev) => !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)));
 
     // Reset new event ID if new filtered events don't include it
     if (newFiltEv.length > 0 && !newFiltEv.some((ev) => ev.eventId === newEventId))

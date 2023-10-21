@@ -11,6 +11,7 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { ResultsService } from './results.service';
 import { EventsService } from '@m/events/events.service';
 import { CreateResultDto } from './dto/create-result.dto';
@@ -19,10 +20,15 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
 import { SubmitResultDto } from './dto/submit-result.dto';
+import { LogType } from '~/src/helpers/enums';
 
 @Controller('results')
 export class ResultsController {
-  constructor(private readonly service: ResultsService, private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly logger: MyLogger,
+    private readonly service: ResultsService,
+    private readonly eventsService: EventsService,
+  ) {}
 
   // GET /results/rankings/:eventId/:singleOrAvg(?show=results)
   @Get('rankings/:eventId/:singleOrAvg')
@@ -31,14 +37,16 @@ export class ResultsController {
     @Param('singleOrAvg') singleOrAvg: 'single' | 'average',
     @Query('show') show?: 'results',
   ) {
-    console.log(`Getting ${singleOrAvg} rankings for ${eventId}`);
+    this.logger.logAndSave(`Getting ${singleOrAvg} rankings for ${eventId}`, LogType.GetRankings);
+
     return await this.service.getRankings(eventId, singleOrAvg === 'average', show);
   }
 
   // GET /results/records/:wcaEquivalent
   @Get('records/:wcaEquivalent')
   async getRecords(@Param('wcaEquivalent') wcaEquivalent: string) {
-    console.log(`Getting ${wcaEquivalent} records`);
+    this.logger.logAndSave(`Getting ${wcaEquivalent} records`, LogType.GetRecords);
+
     return await this.service.getRecords(wcaEquivalent);
   }
 
@@ -48,7 +56,8 @@ export class ResultsController {
   @Roles(Role.User)
   async getSubmissionInfo(@Param('recordsUpTo') recordsUpTo: string) {
     const recordsUpToDate = new Date(recordsUpTo);
-    console.log(`Getting results submission info with records up to ${recordsUpToDate.toUTCString()}`);
+    this.logger.log(`Getting results submission info with records up to ${recordsUpToDate.toUTCString()}`);
+
     return await this.service.getSubmissionInfo(recordsUpToDate);
   }
 
@@ -57,7 +66,8 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async getEditingInfo(@Param('resultId') resultId: string) {
-    console.log(`Getting results editing info for result with ID ${resultId}`);
+    this.logger.log(`Getting results editing info for result with ID ${resultId}`);
+
     return await this.service.getEditingInfo(resultId);
   }
 
@@ -71,7 +81,7 @@ export class ResultsController {
     @Query('excludeResultId') excludeResultId: string,
   ) {
     const recordsUpToDate = new Date(recordsUpTo);
-    console.log(`Getting record pair with records up to ${recordsUpToDate.toUTCString()}`);
+    this.logger.log(`Getting record pair with records up to ${recordsUpToDate.toUTCString()}`);
 
     const events = await this.eventsService.getEvents({ eventIds: eventIds.split(',') });
     return await this.service.getRecordPairs(events, recordsUpToDate, { excludeResultId });
@@ -82,7 +92,6 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async getSubmissionBasedResults() {
-    console.log('Getting submission-based results');
     return await this.service.getSubmissionBasedResults();
   }
 
@@ -95,7 +104,11 @@ export class ResultsController {
     @Body(new ValidationPipe()) createResultDto: CreateResultDto,
     @Request() req: any,
   ) {
-    console.log(`Creating new result for contest ${createResultDto.competitionId}, round ${roundId}`);
+    this.logger.logAndSave(
+      `Creating new result for contest ${createResultDto.competitionId}, round ${roundId}`,
+      LogType.CreateResult,
+    );
+
     return await this.service.createResult(createResultDto, roundId, req.user);
   }
 
@@ -108,7 +121,8 @@ export class ResultsController {
     @Param('resultId') resultId: string,
     @Request() req: any,
   ) {
-    console.log(`Deleting result with id ${resultId} from contest ${competitionId}`);
+    this.logger.logAndSave(`Deleting result with id ${resultId} from contest ${competitionId}`, LogType.DeleteResult);
+
     return await this.service.deleteContestResult(resultId, competitionId, req.user);
   }
 
@@ -117,7 +131,8 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
   async submitResult(@Body(new ValidationPipe()) submitResultDto: SubmitResultDto, @Request() req: any) {
-    console.log(`Submitting new result for event ${submitResultDto.eventId}`);
+    this.logger.logAndSave(`Submitting new result for event ${submitResultDto.eventId}`, LogType.SubmitResult);
+
     return await this.service.submitResult(submitResultDto, req.user);
   }
 
@@ -126,7 +141,8 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async editResult(@Param('resultId') resultId: string, @Body(new ValidationPipe()) updateResultDto: SubmitResultDto) {
-    console.log(`Updating result with ID ${resultId}`);
+    this.logger.logAndSave(`Updating result with ID ${resultId}`, LogType.UpdateResult);
+
     return await this.service.editResult(resultId, updateResultDto);
   }
 }

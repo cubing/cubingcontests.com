@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { MongooseModule } from '@nestjs/mongoose';
+import { LoggerModule } from '@m/my-logger/my-logger.module';
 import { ContestsModule } from './modules/contests/contests.module';
 import { PersonsModule } from './modules/persons/persons.module';
 import { EventsModule } from './modules/events/events.module';
@@ -24,6 +25,7 @@ import { AppService } from './app.service';
       serveRoot: '/api',
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
+    LoggerModule,
     ContestsModule,
     PersonsModule,
     EventsModule,

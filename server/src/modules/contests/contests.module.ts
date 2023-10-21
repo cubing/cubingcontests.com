@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { LoggerModule } from '@m/my-logger/my-logger.module';
 import { ContestsService } from './contests.service';
 import { ContestsController } from './contests.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -14,6 +15,7 @@ import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
+    LoggerModule,
     EventsModule,
     ResultsModule,
     RecordTypesModule,
