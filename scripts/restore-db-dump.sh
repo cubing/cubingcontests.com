@@ -1,8 +1,8 @@
 #!/bin/bash
 
-###############################################################################
-# Script for restoring all collections in the DB, except the users collection #
-###############################################################################
+#########################################################################################
+# Script for restoring all collections in the DB, except the users and logs collections #
+#########################################################################################
 
 # $1 - directory, from which the dump should be restored
 # $2 - (optional) --overwrite - OVERWRITES the collections (deletes them first, then restores)

@@ -1,5 +1,7 @@
 export enum LogType {
   Generic = 'generic',
+  Error = 'error',
+  Warning = 'warn',
 
   GetContests = 'get_contests',
   GetModContests = 'get_mod_contests',

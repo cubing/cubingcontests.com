@@ -13,10 +13,19 @@ export class MyLogger extends ConsoleLogger {
     this.logModel = logModel;
   }
 
-  logAndSave(message: string, type = LogType.Generic) {
-    // This is not awaited on purpose
-    this.logModel.create({ message, type });
+  error(message: any, ...optionalParams: [...any, string?, string?]) {
+    this.logModel.create({ message, type: LogType.Error });
+    super.error(message, ...optionalParams);
+  }
 
+  warn(message: any, ...optionalParams: [...any, string?]) {
+    this.logModel.create({ message, type: LogType.Warning });
+    super.warn(message, ...optionalParams);
+  }
+
+  // Allows logging with a specific log type
+  logAndSave(message: string, type: LogType) {
+    this.logModel.create({ message, type });
     super.log(message);
   }
 }
