@@ -392,6 +392,11 @@ const ContestForm = ({
     } else {
       setActiveTab(newTab);
     }
+
+    if (newTab === 'schedule') {
+      setActivityStartTime(zonedTimeToUtc(addHours(new Date(startDate), 12), venueTimeZone));
+      setActivityEndTime(zonedTimeToUtc(addHours(new Date(startDate), 13), venueTimeZone));
+    }
   };
 
   const changeName = (value: string) => {
@@ -454,7 +459,7 @@ const ContestForm = ({
     }
   };
 
-  const changeCoordinates = async (newLat: number, newLong: number, resetActTimesToDate?: Date) => {
+  const changeCoordinates = async (newLat: number, newLong: number, newActivityTimesDate?: Date) => {
     if ([null, undefined].includes(newLat) || [null, undefined].includes(newLong)) {
       setLatitude(newLat);
       setLongitude(newLong);
@@ -466,11 +471,11 @@ const ContestForm = ({
       setLongitude(processedLongitude);
 
       limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
+        // Adjust all times to the new time zone
         fetchTimeZone(processedLatitude, processedLongitude).then((timeZone: string) => {
-          // Adjust all times to the new time zone
-          const startTime = resetActTimesToDate ? addHours(new Date(resetActTimesToDate), 12) : activityStartTime;
+          const startTime = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 12) : activityStartTime;
           setActivityStartTime(zonedTimeToUtc(utcToZonedTime(startTime, venueTimeZone), timeZone));
-          const endTime = resetActTimesToDate ? addHours(new Date(resetActTimesToDate), 13) : activityEndTime;
+          const endTime = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 13) : activityEndTime;
           setActivityEndTime(zonedTimeToUtc(utcToZonedTime(endTime, venueTimeZone), timeZone));
 
           if (type === ContestType.Meetup) {
@@ -490,6 +495,11 @@ const ContestForm = ({
         });
       });
     }
+  };
+
+  const changeStartDate = (newDate: Date) => {
+    setStartDate(newDate);
+    if (type === ContestType.Competition && newDate.getTime() > endDate.getTime()) setEndDate(newDate);
   };
 
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
@@ -799,7 +809,7 @@ const ContestForm = ({
                   id="start_date"
                   title={startDateTitle}
                   value={startDate}
-                  setValue={setStartDate}
+                  setValue={changeStartDate}
                   timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
                   dateFormat={type === ContestType.Competition ? 'P' : 'Pp'}
                   disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
