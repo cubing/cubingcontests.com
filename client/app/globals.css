@@ -32,13 +32,6 @@
   visibility: visible;
 }
 
-/* 992px corresponds to Bootstrap's lg size */
-@media (min-width: 992px) {
-  .cc-vh-100-desktop-only {
-    height: 100vh;
-  }
-}
-
 /* Override Bootstrap's styling for the outline of a focused invalid input to make it easier to distinguish from
    other invalid inputs near it that are NOT focused (this only increases the alpha number in the rgba function) */
 .form-control.is-invalid:focus {

@@ -170,14 +170,14 @@ const PostResultsScreen = ({
   };
 
   return (
-    <div className="cc-vh-100-desktop-only">
+    <div>
       {errorMessages.length > 0 ? (
         <ErrorMessages errorMessages={errorMessages} />
       ) : (
         successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
       )}
 
-      <div className="row h-100 py-4">
+      <div className="row py-4">
         <div className="col-lg-3 mb-4">
           <div className="px-2">
             <ResultForm
@@ -206,7 +206,8 @@ const PostResultsScreen = ({
             />
           </div>
         </div>
-        <div className="col-lg-9 h-100 overflow-y-auto">
+
+        <div className="col-lg-9">
           <h2 className="my-2 mb-4 text-center">Enter results for {contest.name}</h2>
 
           <RoundResultsTable

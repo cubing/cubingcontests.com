@@ -43,7 +43,7 @@ export class ContestsController {
   @Get('mod/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModCompetition(@Param('competitionId') competitionId: string, @Request() req: any) {
+  async getModContest(@Param('competitionId') competitionId: string, @Request() req: any) {
     this.logger.logAndSave(`Getting contest with ID ${competitionId} with moderator info`, LogType.GetModContest);
 
     return await this.service.getContest(competitionId, req.user);

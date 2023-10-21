@@ -34,7 +34,6 @@ const ResultForm = ({
   resetTrigger,
   setErrorMessages,
   setSuccessMessage,
-  forSubmitResultsPage = false,
   round,
   setRound,
   rounds,
@@ -46,6 +45,7 @@ const ResultForm = ({
   disableMainSelects = false,
   showOptionToKeepCompetitors = false,
   isAdmin = false,
+  forResultsSubmissionForm = false,
 }: {
   event: IEvent;
   persons: IPerson[];
@@ -59,7 +59,6 @@ const ResultForm = ({
   resetTrigger: boolean; // if this is undefined, that means we're editing a result
   setErrorMessages: (val: string[]) => void;
   setSuccessMessage: (val: string) => void;
-  forSubmitResultsPage?: boolean;
   // These props are for PostResultsScreen
   round?: IRound;
   setRound?: (val: IRound) => void;
@@ -73,6 +72,7 @@ const ResultForm = ({
   disableMainSelects?: boolean;
   showOptionToKeepCompetitors?: boolean;
   isAdmin?: boolean;
+  forResultsSubmissionForm?: boolean;
 }) => {
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
@@ -81,7 +81,7 @@ const ResultForm = ({
   const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
   const [attemptsResetTrigger, setAttemptsResetTrigger] = useState<boolean>();
 
-  if (!forSubmitResultsPage) roundFormat = round.format;
+  if (!forResultsSubmissionForm) roundFormat = round.format;
 
   const roundCanHaveAverage = roundFormats.find((rf) => rf.value === roundFormat).attempts >= 3;
 
@@ -100,8 +100,9 @@ const ResultForm = ({
     }
   }, [resetTrigger]);
 
+  // This sets record previews when the record pairs are updated on the submit results page or the edit result page
   useEffect(() => {
-    updateTempResult();
+    if (forResultsSubmissionForm) updateTempResult();
   }, [recordPairs]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -122,7 +123,7 @@ const ResultForm = ({
     let newEvent: IEvent;
     let newRoundFormat = roundFormat;
 
-    if (forSubmitResultsPage) {
+    if (forResultsSubmissionForm) {
       newEvent = events.find((el) => el.eventId === newEventId);
       setEvent(newEvent);
     } else {
@@ -196,7 +197,7 @@ const ResultForm = ({
       resetCompetitors: !keepCompetitors,
     },
   ) => {
-    if (forSubmitResultsPage) {
+    if (forResultsSubmissionForm) {
       const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((el) => el.value);
 
       if (!allowedRoundFormats.includes(newRoundFormat)) setRoundFormat(RoundFormat.BestOf1);
@@ -218,13 +219,13 @@ const ResultForm = ({
   return (
     <>
       <FormEventSelect
-        events={forSubmitResultsPage ? events : contestEvents.map((el) => el.event)}
+        events={forResultsSubmissionForm ? events : contestEvents.map((el) => el.event)}
         eventId={event.eventId}
         setEventId={(val) => changeEvent(val)}
         disabled={disableMainSelects}
       />
       <div className="mb-3 fs-5">
-        {forSubmitResultsPage ? (
+        {forResultsSubmissionForm ? (
           <FormSelect
             title="Format"
             options={getAllowedRoundFormatOptions(event)}
@@ -253,7 +254,7 @@ const ResultForm = ({
           setErrorMessages={setErrorMessages}
           setSuccessMessage={setSuccessMessage}
           redirectToOnAddPerson={window.location.pathname}
-          noGrid={!forSubmitResultsPage}
+          noGrid={!forResultsSubmissionForm}
         />
         {keepCompetitors !== null && (
           <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
@@ -267,7 +268,7 @@ const ResultForm = ({
           setAttempt={(val: IAttempt) => changeAttempt(i, val)}
           event={event}
           focusNext={() => focusNext(i)}
-          memoInputForBld={forSubmitResultsPage}
+          memoInputForBld={forResultsSubmissionForm}
           resetTrigger={attemptsResetTrigger}
           allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
         />
@@ -276,7 +277,7 @@ const ResultForm = ({
         {loadingRecordPairs ? (
           <Loading small dontCenter />
         ) : (
-          <>
+          <div>
             <div>
               Best:&nbsp;
               <Time result={tempResult} event={event} recordTypes={recordTypes} />
@@ -287,7 +288,7 @@ const ResultForm = ({
                 <Time result={tempResult} event={event} recordTypes={recordTypes} average />
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </>

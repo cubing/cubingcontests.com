@@ -9,6 +9,8 @@ const horizontalPadding = 10;
 const Tooltip = ({ id, text }: { id: string; text: string }) => {
   useEffect(() => {
     window.addEventListener('resize', limitTooltipPosition);
+
+    return () => window.removeEventListener('resize', limitTooltipPosition);
   }, []);
 
   useEffect(() => {

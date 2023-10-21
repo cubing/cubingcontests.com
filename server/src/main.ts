@@ -8,9 +8,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
-  app.useLogger(new MyLogger()); // use custom logger
-
+  const logger = new MyLogger();
   let corsOptions;
+
+  app.useLogger(logger); // use custom logger
 
   if (!process.env.JWT_SECRET) throw new Error('JWT SECRET NOT SET!');
   if (!process.env.MONGODB_URI) throw new Error('MONGO DB URI NOT SET!');
@@ -26,7 +27,7 @@ async function bootstrap() {
   app.enableCors(corsOptions);
   app.setGlobalPrefix('api'); // add global /api prefix to all routes
 
-  await app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
+  await app.listen(PORT, () => logger.log(`Server is listening on port ${PORT}`));
 }
 
 bootstrap();

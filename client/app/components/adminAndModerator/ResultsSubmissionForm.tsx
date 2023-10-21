@@ -248,7 +248,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             resetTrigger={resultFormResetTrigger}
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
-            forSubmitResultsPage
             setEvent={setEvent}
             events={resultsSubmissionInfo.events}
             roundFormat={roundFormat}
@@ -256,6 +255,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             disableMainSelects={!!resultId}
             showOptionToKeepCompetitors
             isAdmin={userInfo.isAdmin}
+            forResultsSubmissionForm
           />
           <FormDateInput
             id="date"

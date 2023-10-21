@@ -149,7 +149,7 @@ const ContestsTable = async ({
                           Approve
                         </button>
                       )}
-                      {contest.state < ContestState.Finished && (
+                      {!showApproveButton && contest.state < ContestState.Finished && (
                         <button
                           type="button"
                           onClick={() => onPostCompResults(contest.competitionId)}
