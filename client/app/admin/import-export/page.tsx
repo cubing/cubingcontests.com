@@ -91,6 +91,10 @@ const convertEventId = (value: string): string => {
       return '333_team_bld_old';
     case '333_match_the_scramble':
       return '333mts';
+    case 'square1_bld':
+      return 'sq1_bld';
+    case '333_no_inspection':
+      return '333_inspectionless';
     default:
       return value;
   }
