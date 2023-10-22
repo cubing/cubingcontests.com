@@ -17,6 +17,7 @@ const ContestsTable = async ({
   onPostCompResults,
   onChangeCompState,
   isAdmin = false,
+  disableActions = false,
 }: {
   contests: IContest[];
   modView?: boolean;
@@ -25,6 +26,7 @@ const ContestsTable = async ({
   onPostCompResults?: (competitionId: string) => void;
   onChangeCompState?: (competitionId: string, newState: ContestState) => void;
   isAdmin?: boolean; // used on the admin dashboard
+  disableActions?: boolean;
 }) => {
   return (
     <>
@@ -126,6 +128,7 @@ const ContestsTable = async ({
                       <button
                         type="button"
                         onClick={() => onEditCompetition(contest.competitionId)}
+                        disabled={disableActions}
                         className="btn btn-primary btn-sm"
                         style={{ padding: C.smallButtonPadding }}
                       >
@@ -134,6 +137,7 @@ const ContestsTable = async ({
                       <button
                         type="button"
                         onClick={() => onCopyCompetition(contest.competitionId)}
+                        disabled={disableActions}
                         className="btn btn-primary btn-sm"
                         style={{ padding: C.smallButtonPadding }}
                       >
@@ -143,6 +147,7 @@ const ContestsTable = async ({
                         <button
                           type="button"
                           onClick={() => onChangeCompState(contest.competitionId, ContestState.Approved)}
+                          disabled={disableActions}
                           className="btn btn-warning btn-sm"
                           style={{ padding: C.smallButtonPadding }}
                         >
@@ -155,7 +160,7 @@ const ContestsTable = async ({
                           <button
                             type="button"
                             onClick={() => onPostCompResults(contest.competitionId)}
-                            disabled={contest.state < ContestState.Approved}
+                            disabled={disableActions || contest.state < ContestState.Approved}
                             className="btn btn-sm btn-success"
                             style={{ padding: C.smallButtonPadding }}
                           >
@@ -166,6 +171,7 @@ const ContestsTable = async ({
                         <button
                           type="button"
                           onClick={() => onPostCompResults(contest.competitionId)}
+                          disabled={disableActions}
                           className="btn btn-sm btn-secondary"
                           style={{ padding: C.smallButtonPadding }}
                         >
@@ -176,6 +182,7 @@ const ContestsTable = async ({
                         <button
                           type="button"
                           onClick={() => onChangeCompState(contest.competitionId, ContestState.Finished)}
+                          disabled={disableActions}
                           className="btn btn-warning btn-sm"
                           style={{ padding: C.smallButtonPadding }}
                         >
@@ -186,6 +193,7 @@ const ContestsTable = async ({
                         <button
                           type="button"
                           onClick={() => onChangeCompState(contest.competitionId, ContestState.Published)}
+                          disabled={disableActions}
                           className="btn btn-warning btn-sm"
                           style={{ padding: C.smallButtonPadding }}
                         >

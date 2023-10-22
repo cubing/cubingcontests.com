@@ -16,6 +16,7 @@ const ModeratorDashboardPage = () => {
   const [contests, setContests] = useState<IContest[]>();
   const [adminStats, setAdminStats] = useState<IAdminStats>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     myFetch.get('/competitions/mod', { authorize: true }).then(({ payload: contests, errors }) => {
@@ -33,21 +34,26 @@ const ModeratorDashboardPage = () => {
 
   const editCompetition = (competitionId: string) => {
     window.location.href = `/mod/competition?edit_id=${competitionId}`;
+    setLoading(true);
   };
 
   const copyCompetition = (competitionId: string) => {
     window.location.href = `/mod/competition?copy_id=${competitionId}`;
+    setLoading(true);
   };
 
   const postCompResults = (competitionId: string) => {
     window.location.href = `/mod/competition/${competitionId}`;
+    setLoading(true);
   };
 
   const changeCompState = async (competitionId: string, newState: ContestState) => {
+    setLoading(true);
     const { errors } = await myFetch.patch(`/competitions/${competitionId}/${newState}`);
 
     if (errors) {
       setErrorMessages(errors);
+      setLoading(false);
     } else {
       window.location.reload();
     }
@@ -117,6 +123,7 @@ const ModeratorDashboardPage = () => {
           onChangeCompState={changeCompState}
           modView
           isAdmin={userInfo.isAdmin}
+          disableActions={loading}
         />
       ) : (
         <p className="px-2 fs-5">You haven&apos;t created any contests yet</p>
