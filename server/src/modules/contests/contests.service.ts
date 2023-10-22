@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
+import { utcToZonedTime } from 'date-fns-tz';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -18,15 +19,18 @@ import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { AuthService } from '../auth/auth.service';
+import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
+import { addDays } from 'date-fns';
 
 @Injectable()
 export class ContestsService {
   constructor(
-    private eventsService: EventsService,
-    private resultsService: ResultsService,
-    private recordTypesService: RecordTypesService,
-    private personsService: PersonsService,
-    private authService: AuthService,
+    private readonly logger: MyLogger,
+    private readonly eventsService: EventsService,
+    private readonly resultsService: ResultsService,
+    private readonly recordTypesService: RecordTypesService,
+    private readonly personsService: PersonsService,
+    private readonly authService: AuthService,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
@@ -39,8 +43,33 @@ export class ContestsService {
 
       for (const s of schedules) {
         const contests = await this.contestModel.find({ 'compDetails.schedule': s._id }).exec();
-        if (contests.length === 0) console.error('Error: schedule has no contest:', s);
-        else if (contests.length > 1) console.error('Error: schedule', s, 'belongs to multiple contests:', contests);
+
+        if (contests.length === 0) {
+          this.logger.error(`Error: schedule has no contest: ${JSON.stringify(s)}`);
+        } else if (contests.length > 1) {
+          this.logger.error(
+            `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${contests
+              .map((c) => c.competitionId)
+              .join(', ')}`,
+          );
+        } else {
+          for (const venue of s.venues) {
+            for (const room of venue.rooms) {
+              for (const activity of room.activities) {
+                const startTime = utcToZonedTime(activity.startTime, venue.timezone);
+                const endTime = utcToZonedTime(activity.endTime, venue.timezone);
+
+                if (startTime < contests[0].startDate || endTime >= addDays(contests[0].endDate, 1)) {
+                  this.logger.error(
+                    `Error: activity ${JSON.stringify(activity)} is outside of the date range of the contest ${
+                      contests[0].competitionId
+                    }`,
+                  );
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
