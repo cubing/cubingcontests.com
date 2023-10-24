@@ -51,6 +51,7 @@ export const contestTypeOptions: MultiChoiceOption[] = [
   },
   {
     label: 'Competition',
+    shortLabel: 'Comp',
     value: ContestType.Competition,
     color: Color.Red,
   },

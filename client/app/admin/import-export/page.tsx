@@ -45,14 +45,16 @@ const setRankingsAndRecords = (
     sortedResults[i].ranking = ranking;
     prevResult = sortedResults[i];
 
-    if (compareSingles(sortedResults[i], mockRecordResult) === 0) {
-      bestSingleResults.push(sortedResults[i]);
-    } else if (compareSingles(sortedResults[i], mockRecordResult) < 0) {
-      bestSingleResults = [sortedResults[i]];
-      mockRecordResult.best = sortedResults[i].best; // update the record
+    if (sortedResults[i].best > 0) {
+      if (compareSingles(sortedResults[i], mockRecordResult) === 0) {
+        bestSingleResults.push(sortedResults[i]);
+      } else if (compareSingles(sortedResults[i], mockRecordResult) < 0) {
+        bestSingleResults = [sortedResults[i]];
+        mockRecordResult.best = sortedResults[i].best; // update the record
+      }
     }
 
-    if (sortedResults[i].attempts.length === getDefaultAverageAttempts(event)) {
+    if (sortedResults[i].average > 0 && sortedResults[i].attempts.length === getDefaultAverageAttempts(event)) {
       if (compareAvgs(sortedResults[i], mockRecordResult, true) === 0) {
         bestAvgResults.push(sortedResults[i]);
       } else if (compareAvgs(sortedResults[i], mockRecordResult, true) < 0) {
@@ -95,6 +97,12 @@ const convertEventId = (value: string): string => {
       return 'sq1_bld';
     case '333_no_inspection':
       return '333_inspectionless';
+    case '222_bld':
+      return '222bf';
+    case 'relay_222_333_444':
+      return '234relay';
+    case '222_oh':
+      return '222oh';
     default:
       return value;
   }
