@@ -85,7 +85,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
                                 &#8194;{getRecordType(r.type)}
                               </span>
                               {r.contest ? (
-                                <Link href={`/competitions/${r.contest.competitionId}`}>
+                                <Link href={`/competitions/${r.contest.competitionId}`} prefetch={false}>
                                   {getFormattedDate(r.date)}
                                 </Link>
                               ) : (

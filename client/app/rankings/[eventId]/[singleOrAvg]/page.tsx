@@ -49,12 +49,14 @@ const RankingsPage = async ({
               <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
                 <Link
                   href={`/rankings/${eventId}/single${searchParams.show ? '?show=results' : ''}`}
+                  prefetch={false}
                   className={'btn btn-primary' + (singleOrAvg === 'single' ? ' active' : '')}
                 >
                   Single
                 </Link>
                 <Link
                   href={`/rankings/${eventId}/average${searchParams.show ? '?show=results' : ''}`}
+                  prefetch={false}
                   className={'btn btn-primary' + (singleOrAvg === 'average' ? ' active' : '')}
                 >
                   {currEvent.defaultRoundFormat === RoundFormat.Average ? 'Average' : 'Mean'}
@@ -67,12 +69,14 @@ const RankingsPage = async ({
               <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
                 <Link
                   href={`/rankings/${eventId}/${singleOrAvg}`}
+                  prefetch={false}
                   className={'btn btn-primary' + (!searchParams.show ? ' active' : '')}
                 >
                   Top Persons
                 </Link>
                 <Link
                   href={`/rankings/${eventId}/${singleOrAvg}?show=results`}
+                  prefetch={false}
                   className={'btn btn-primary' + (searchParams.show ? ' active' : '')}
                 >
                   Top Results

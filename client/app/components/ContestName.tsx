@@ -6,7 +6,10 @@ const ContestName = ({ contest }: { contest: IContest }) => {
   return (
     <span className="d-flex align-items-center gap-2">
       {contest.countryIso2 !== 'ONLINE' && <Country countryIso2={contest.countryIso2} noText />}
-      <Link href={`/competitions/${contest.competitionId}`}>{contest.name}</Link>
+
+      <Link href={`/competitions/${contest.competitionId}`} prefetch={false}>
+        {contest.name}
+      </Link>
     </span>
   );
 };
