@@ -16,12 +16,18 @@ const ModeratorDashboardPage = () => {
   const [contests, setContests] = useState<IContest[]>();
   const [adminStats, setAdminStats] = useState<IAdminStats>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
+
     myFetch.get('/competitions/mod', { authorize: true }).then(({ payload: contests, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setContests(contests);
+      if (errors) {
+        setErrorMessages(errors);
+      } else {
+        setContests(contests);
+        setLoading(false);
+      }
     });
 
     if (userInfo.isAdmin) {
