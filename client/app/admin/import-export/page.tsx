@@ -220,6 +220,12 @@ const ImportExportPage = () => {
 
       for (let i = 0; i < roundsInfo.length; i++) {
         const date = new Date(roundsInfo[i].roundEndDate);
+
+        if (date.toString() === 'Invalid Date') {
+          setErrorMessages([`The date for ${ccEventId} round ${i + 1} is invalid`]);
+          return;
+        }
+
         const format = convertRoundFormat(roundsInfo[i].roundFormatID);
         const { payload: recordPairsByEvent, errors: e1 } = await myFetch.get(
           `/results/record-pairs/${date}/${ccEventId}`,
@@ -232,7 +238,7 @@ const ImportExportPage = () => {
         }
 
         if (date.getTime() > newContest.endDate.getTime() || date.getTime() < newContest.startDate.getTime()) {
-          const message = `Round time is outside the date range for competition ${competitionId}`;
+          const message = `Round date is outside the date range for competition ${competitionId}`;
           setErrorMessages([message]);
           throw new Error(message);
         }

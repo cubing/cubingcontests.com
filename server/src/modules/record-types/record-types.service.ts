@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { RecordTypeDocument } from '~/src/models/record-type.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { EventDocument } from '~/src/models/event.model';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { WcaRecordType } from '@sh/enums';
 import { UpdateRecordTypeDto } from './dto/update-record-type.dto';
 import { recordTypesSeed } from '~/src/seeds/record-types.seed';
@@ -14,6 +15,7 @@ import { getBaseAvgsFilter, getBaseSinglesFilter } from '~/src/helpers/utilityFu
 @Injectable()
 export class RecordTypesService {
   constructor(
+    private readonly logger: MyLogger,
     @InjectModel('RecordType') private readonly recordTypeModel: Model<RecordTypeDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
@@ -25,13 +27,13 @@ export class RecordTypesService {
       const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find().exec();
 
       if (recordTypes.length === 0) {
-        console.log('Seeding the record types collection...');
+        this.logger.log('Seeding the record types collection...');
 
         await this.recordTypeModel.insertMany(recordTypesSeed);
 
-        console.log('Record types collection successfully seeded');
+        this.logger.log('Record types collection successfully seeded');
       } else {
-        console.log('Record types collection already seeded');
+        this.logger.log('Record types collection already seeded');
       }
     } catch (err) {
       throw new InternalServerErrorException(`Error while seeding records types collection: ${err.message}`);
@@ -75,7 +77,7 @@ export class RecordTypesService {
       if (wcaEquiv === WcaRecordType.WR) {
         // Remove records if set to inactive but was active before, or set the records for the opposite case
         if (!updateRTsDtoS[i].active && recordTypes[i].active) {
-          console.log(`Unsetting ${wcaEquiv} records`);
+          this.logger.log(`Unsetting ${wcaEquiv} records`);
 
           // Remove single records
           await this.resultModel
@@ -121,7 +123,7 @@ export class RecordTypesService {
         currentSingleRecord = result.best;
 
         // _id is the date from the group stage
-        console.log(
+        this.logger.log(
           `New single ${wcaEquiv} for ${event.eventId}: ${result.best} (${format(result._id, 'd MMM yyyy')})`,
         );
 
@@ -153,7 +155,7 @@ export class RecordTypesService {
         currentAvgRecord = result.average;
 
         // _id is the date from the group stage
-        console.log(
+        this.logger.log(
           `New average ${wcaEquiv} for ${event.eventId}: ${result.average} (${format(result._id, 'd MMM yyyy')})`,
         );
 

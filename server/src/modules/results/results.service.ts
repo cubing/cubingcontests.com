@@ -37,15 +37,17 @@ import {
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
+import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 
 @Injectable()
 export class ResultsService {
   constructor(
-    private eventsService: EventsService,
-    private recordTypesService: RecordTypesService,
-    private personsService: PersonsService,
-    private authService: AuthService,
-    private usersService: UsersService,
+    private readonly logger: MyLogger,
+    private readonly eventsService: EventsService,
+    private readonly recordTypesService: RecordTypesService,
+    private readonly personsService: PersonsService,
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
@@ -55,6 +57,8 @@ export class ResultsService {
     // DB consistency checks (done only in development)
     if (process.env.NODE_ENV !== 'production') {
       return;
+
+      this.logger.log('Checking results inconsistencies in the DB...');
 
       // Look for orphan contest results or ones that somehow belong to multiple rounds
       const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
@@ -113,6 +117,13 @@ export class ResultsService {
         'https://www.youtube.com/watch?v=3MfyECPWhms',
         'https://www.youtube.com/watch?v=h4T55MftnRc',
         'https://www.youtube.com/watch?v=YYKOlLgQigA',
+        'https://youtu.be/kD7HLIMAy0Y',
+        'https://youtu.be/Z-NczuQ-7Og',
+        'https://youtu.be/6SZZ5GFJEqc',
+        'https://youtu.be/5yHJEphVmGw',
+        'https://youtu.be/kJe39nKlNZE',
+        'https://www.youtube.com/watch?v=DEfccjzzpbM',
+        'https://youtu.be/5cWf4jnik4A',
       ];
       const repeatedVideoLinks = await this.resultModel.aggregate([
         { $match: { videoLink: { $exists: true, $nin: knownDuplicates } } },

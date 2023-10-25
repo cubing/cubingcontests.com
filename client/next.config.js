@@ -4,12 +4,12 @@ const nextConfig = {
     return [
       {
         source: '/records',
-        destination: '/records/wca',
+        destination: '/records/unofficial',
         permanent: true,
       },
       {
         source: '/rankings',
-        destination: '/rankings/333/single',
+        destination: '/rankings/fto/single',
         permanent: true,
       },
     ];

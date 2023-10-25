@@ -69,7 +69,7 @@ const ContestForm = ({
   const [competitorLimit, setCompetitorLimit] = useState<number>(undefined);
 
   // Event stuff
-  const [newEventId, setNewEventId] = useState('333');
+  const [newEventId, setNewEventId] = useState(events[0].eventId);
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>([]);
 
   // Schedule stuff
@@ -193,7 +193,8 @@ const ContestForm = ({
       if (contest.description) setDescription(contest.description);
       if (contest.competitorLimit) setCompetitorLimit(contest.competitorLimit);
       setNewEventId(
-        events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId || '333',
+        events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId ||
+          events[0].eventId,
       );
 
       switch (contest.type) {
