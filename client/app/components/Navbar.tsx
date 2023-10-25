@@ -81,6 +81,7 @@ const NavbarItems = () => {
           <li className="nav-item">
             <Link
               className={`nav-link ${pathname === '/competitions' ? ' active' : ''}`}
+              prefetch={false}
               href="/competitions"
               onClick={collapseAll}
             >
@@ -104,6 +105,7 @@ const NavbarItems = () => {
                 <Link
                   className={`nav-link ${/^\/records\//.test(pathname) ? ' active' : ''}`}
                   href="/records"
+                  prefetch={false}
                   onClick={collapseAll}
                 >
                   Records
@@ -113,6 +115,7 @@ const NavbarItems = () => {
                 <Link
                   className={`nav-link ${/^\/rankings\//.test(pathname) ? ' active' : ''}`}
                   href="/rankings"
+                  prefetch={false}
                   onClick={collapseAll}
                 >
                   Rankings

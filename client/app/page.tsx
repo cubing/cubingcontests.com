@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import C from '~/shared_helpers/constants';
+import C from '@sh/constants';
 
 export default function Home() {
   return (
@@ -15,17 +15,17 @@ export default function Home() {
         with video evidence. Some other events also allow submitted results.
       </p>
       <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
-        <Link href="/competitions" className="cc-homepage-link">
+        <Link href="/competitions" prefetch={false} className="cc-homepage-link">
           <button type="button" className="w-100 btn btn-primary">
             See all contests
           </button>
         </Link>
-        <Link href="/records" className="cc-homepage-link">
+        <Link href="/records" prefetch={false} className="cc-homepage-link">
           <button type="button" className="w-100 btn btn-primary">
             See current records
           </button>
         </Link>
-        <Link href="/rankings" className="cc-homepage-link">
+        <Link href="/rankings" prefetch={false} className="cc-homepage-link">
           <button type="button" className="w-100 btn btn-primary">
             See rankings
           </button>

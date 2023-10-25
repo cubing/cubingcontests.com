@@ -88,6 +88,7 @@ const ManageResultsPage = () => {
                   <td>
                     <Link
                       href={`/admin/results/${(result as any)._id}`}
+                      prefetch={false}
                       className="btn btn-primary btn-sm"
                       style={{ padding: C.smallButtonPadding }}
                     >

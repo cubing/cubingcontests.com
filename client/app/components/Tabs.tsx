@@ -27,7 +27,11 @@ const Tabs = ({
                 {tab.title}
               </button>
             ) : (
-              <Link href={tab.route} className={'nav-link' + (activeTab === tab.value ? ' active' : '')}>
+              <Link
+                href={tab.route}
+                prefetch={false}
+                className={'nav-link' + (activeTab === tab.value ? ' active' : '')}
+              >
                 {tab.title}
               </Link>
             )}
