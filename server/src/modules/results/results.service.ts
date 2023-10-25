@@ -398,7 +398,7 @@ export class ResultsService {
       activeRecordTypes,
       result,
       persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
-      createdByUsername: await this.usersService.getUsername(createdBy.toString()),
+      createdByUsername: (await this.usersService.getUsername(createdBy.toString())) || 'Unknown user',
     };
 
     return resultEditingInfo;

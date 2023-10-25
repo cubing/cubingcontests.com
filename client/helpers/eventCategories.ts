@@ -5,7 +5,7 @@ export const eventCategories = [
     title: 'Unofficial',
     value: 'unofficial',
     group: EventGroup.Unofficial,
-    description: 'These events can be held at WCA competitions (unofficially) and at speedcuber meetups.',
+    description: 'These events can be held at WCA competitions (unofficially) and at speedcuber meetups',
   },
   {
     title: 'WCA',
@@ -19,15 +19,14 @@ export const eventCategories = [
     shortTitle: 'BLD',
     value: 'extremebld',
     group: EventGroup.ExtremeBLD,
-    description: 'These events are submission-only and require video evidence.',
+    description: 'These events are submission-only and require video evidence',
   },
   {
     title: 'Miscellaneous',
     shortTitle: 'Misc.',
     value: 'miscellaneous',
     group: EventGroup.Miscellaneous,
-    description:
-      'These events can be held at WCA competitions (unofficially) and at speedcuber meetups. Most of the blindfolded events also allow submitted results with video evidence.',
+    description: 'These events can be held at WCA competitions (unofficially) and at speedcuber meetups',
   },
   {
     title: 'Removed',

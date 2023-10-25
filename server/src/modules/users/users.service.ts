@@ -138,7 +138,7 @@ export class UsersService {
   async getUsername(id: string): Promise<string> {
     try {
       const user: UserDocument = await this.userModel.findById(id).exec();
-      return user.username;
+      return user?.username;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }

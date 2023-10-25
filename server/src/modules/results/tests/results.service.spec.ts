@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { EventsService } from '@m/events/events.service';
 import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
@@ -12,6 +13,7 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ResultDocument } from '~/src/models/result.model';
 
 // Mocks and stubs
+import { MyLoggerMock } from '~/src/modules/my-logger/tests/my-logger.service';
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
 import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
@@ -34,6 +36,10 @@ describe('ResultsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResultsService,
+        {
+          provide: MyLogger,
+          useFactory: MyLoggerMock,
+        },
         {
           provide: EventsService,
           useFactory: EventsServiceMock,

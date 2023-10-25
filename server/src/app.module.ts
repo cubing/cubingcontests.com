@@ -13,6 +13,7 @@ import { RecordTypesModule } from './modules/record-types/record-types.module';
 import { ResultsModule } from './modules/results/results.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { LogSchema } from '~/src/models/log.model';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AppService } from './app.service';
       serveRoot: '/api',
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forFeature([{ name: 'Log', schema: LogSchema }]),
     LoggerModule,
     ContestsModule,
     PersonsModule,

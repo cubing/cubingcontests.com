@@ -10,7 +10,7 @@ export default function Home() {
         competitions, speedcuber meetups, and other unofficial events.
       </p>
       <p>
-        The events are split up into multiple categories: WCA, Unofficial, Extreme BLD, and Miscellaneous. Extreme BLD
+        The events are split up into multiple categories: Unofficial, WCA, Extreme BLD, and Miscellaneous. Extreme BLD
         events are not meant to be done in a competition-like setting, but instead need to be submitted individually
         with video evidence. Some other events also allow submitted results.
       </p>

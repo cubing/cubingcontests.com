@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { mockEventModel } from '@m/events/tests/mocks/event.model';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { RecordTypesService } from '../record-types.service';
-import { ResultModelMock } from '@m/results/tests/mocks/result.model';
+import { MyLoggerMock } from '@m/my-logger/tests/my-logger.service';
 import { RecordTypeModelMock } from './mocks/record-type.model';
+import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 import { recordTypesStub } from './stubs/record-types.stub';
-import { mockEventModel } from '../../events/tests/mocks/event.model';
 
 describe('RecordTypesService', () => {
   let recordTypesService: RecordTypesService;
@@ -15,6 +17,10 @@ describe('RecordTypesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RecordTypesService,
+        {
+          provide: MyLogger,
+          useFactory: MyLoggerMock,
+        },
         {
           provide: getModelToken('Result'),
           useFactory: ResultModelMock,
