@@ -272,12 +272,12 @@ const ImportExportPage = () => {
                   if (personNames[0]) personNames[0] = parts[i] + personNames[0];
                   else personNames.push(parts[i]);
                 } else if (['wcaID', 'wcaID1'].includes(fields[i])) {
-                  personNames.push(`|${parts[i]}`);
+                  if (parts[i]) personNames.push(`|${parts[i]}`);
                 } else if (fields[i] === 'name2') {
                   if (personNames[1]) personNames[1] = parts[i] + personNames[1];
                   else personNames.push(parts[i]);
                 } else if (fields[i] === 'wcaID2') {
-                  personNames.push(`|${parts[i]}`);
+                  if (parts[i]) personNames.push(`|${parts[i]}`);
                 } else if (fields[i].includes('attempt')) {
                   attempts.push({ result: convertTime(parts[i]) });
                 }

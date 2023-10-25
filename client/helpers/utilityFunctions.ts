@@ -454,8 +454,8 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
     countryIso2: wcaCompData.country,
     venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
     address: wcaCompData.venue.address,
-    latitudeMicrodegrees: wcaCompData.venue.coordinates.latitude * 1000000,
-    longitudeMicrodegrees: wcaCompData.venue.coordinates.longitude * 1000000,
+    latitudeMicrodegrees: Math.round(wcaCompData.venue.coordinates.latitude * 1000000),
+    longitudeMicrodegrees: Math.round(wcaCompData.venue.coordinates.longitude * 1000000),
     startDate,
     endDate,
     organizers: [], // this is set below
