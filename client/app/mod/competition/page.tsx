@@ -40,11 +40,11 @@ const CreateEditContestPage = () => {
 
   if (events && (mode === 'new' || contest)) {
     return (
-      <>
+      <div>
         <h2 className="mb-4 text-center">{mode === 'edit' ? 'Edit Competition' : 'Create Competition'}</h2>
 
         <ContestForm events={events} contest={contest} mode={mode} />
-      </>
+      </div>
     );
   }
 

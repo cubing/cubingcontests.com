@@ -21,6 +21,8 @@ export interface IContest {
   type: ContestType;
   city?: string; // not needed for online comps
   countryIso2: string; // for online comps there is a special value
+  // These two fields can be left as an empty string by an admin
+  // (necessary for some old comps that have the venue or address missing on the WCA)
   venue?: string; // not needed for online comps
   address?: string; // not needed for online comps
   latitudeMicrodegrees?: number; // vertical coordinate (Y); ranges from -90 to 90; not needed for online comps

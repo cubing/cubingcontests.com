@@ -64,12 +64,10 @@ export class CreateContestDto implements IContest {
 
   @ValidateIf((obj) => obj.type !== ContestType.Online)
   @IsString()
-  @IsNotEmpty({ message: 'Please enter the venue name' })
   venue?: string;
 
-  @ValidateIf((obj) => obj.type === ContestType.Competition || obj.address)
+  @ValidateIf((obj) => obj.type !== ContestType.Online)
   @IsString()
-  @IsNotEmpty({ message: 'Please enter the address' })
   address?: string;
 
   @ValidateIf((obj) => obj.type !== ContestType.Online)
@@ -153,7 +151,7 @@ class VenueDto implements IVenue {
   @Min(1)
   id: number;
 
-  // Is validated above in the venue field, ASSUMING that the frontend sets them as the same thing
+  // This is required, even though the venue name above is not (this is intentional)
   @IsString()
   name: string;
 

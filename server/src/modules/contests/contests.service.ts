@@ -22,6 +22,9 @@ import { AuthService } from '../auth/auth.service';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { addDays } from 'date-fns';
 
+const PLEASE_ENTER_ADDRESS_MSG = 'Please enter an address';
+const PLEASE_ENTER_VENUE_MSG = 'Please enter the venue name';
+
 @Injectable()
 export class ContestsService {
   constructor(
@@ -133,7 +136,20 @@ export class ContestsService {
   }
 
   // Create new contest, if one with that id doesn't already exist (no results yet)
-  async createContest(createContestDto: CreateContestDto, creatorPersonId: number, saveResults = false) {
+  async createContest(
+    createContestDto: CreateContestDto,
+    creatorPersonId: number,
+    { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
+  ) {
+    const isAdmin = user.roles.includes(Role.Admin);
+
+    if (!isAdmin) {
+      saveResults = false;
+
+      if (!createContestDto.address) throw new BadRequestException(PLEASE_ENTER_ADDRESS_MSG);
+      if (!createContestDto.venue) throw new BadRequestException(PLEASE_ENTER_VENUE_MSG);
+    }
+
     let comp;
     try {
       comp = await this.contestModel.findOne({ competitionId: createContestDto.competitionId }).exec();
@@ -187,6 +203,9 @@ export class ContestsService {
 
       await this.contestModel.create(newCompetition);
     } catch (err) {
+      // Remove created schedule
+      await this.scheduleModel.deleteMany({ competitionId: createContestDto.competitionId }).exec();
+
       throw new InternalServerErrorException(err.message);
     }
   }
@@ -197,6 +216,11 @@ export class ContestsService {
     // Do not exclude internal fields so that the contest can be saved.
     const contest = await this.getFullContest(competitionId, user, { ignoreState: false, exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
+
+    if (!isAdmin) {
+      if (!updateContestDto.address) throw new BadRequestException(PLEASE_ENTER_ADDRESS_MSG);
+      if (!updateContestDto.venue) throw new BadRequestException(PLEASE_ENTER_VENUE_MSG);
+    }
 
     contest.organizers = await this.personsService.getPersonsById(
       updateContestDto.organizers.map((org) => org.personId),

@@ -318,7 +318,7 @@ const ContestForm = ({
           venues: [
             {
               id: 1,
-              name: venue,
+              name: venue || 'Unknown venue',
               latitudeMicrodegrees,
               longitudeMicrodegrees,
               countryIso2,

@@ -452,6 +452,7 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
     type: ContestType.Competition,
     city: wcaCompData.city,
     countryIso2: wcaCompData.country,
+    // Gets rid of the link and just takes the venue name
     venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
     address: wcaCompData.venue.address,
     latitudeMicrodegrees: Math.round(wcaCompData.venue.coordinates.latitude * 1000000),

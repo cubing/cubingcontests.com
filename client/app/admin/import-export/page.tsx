@@ -357,10 +357,10 @@ const ImportExportPage = () => {
 
     const tempErrors: string[] = [];
 
-    if (!newContest.address) {
-      newContest.address = 'ADDRESS MISSING';
+    if (!newContest.venue)
+      tempErrors.push('The venue is missing. Make SURE to enter it before approving the imported contest.');
+    if (!newContest.address)
       tempErrors.push('The address is missing. Make SURE to enter it before approving the imported contest.');
-    }
 
     console.log('New contest:', newContest);
     setContestJSON(JSON.stringify(newContest, null, 2));

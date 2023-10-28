@@ -14,18 +14,18 @@ export class MyLogger extends ConsoleLogger {
   }
 
   error(message: any) {
-    this.logModel.create({ message, type: LogType.Error });
+    this.logModel?.create({ message, type: LogType.Error });
     super.error(message);
   }
 
   warn(message: any) {
-    this.logModel.create({ message, type: LogType.Warning });
+    this.logModel?.create({ message, type: LogType.Warning });
     super.warn(message);
   }
 
   // Allows logging with a specific log type
   logAndSave(message: string, type: LogType) {
-    this.logModel.create({ message, type });
+    this.logModel?.create({ message, type });
     super.log(message);
   }
 }

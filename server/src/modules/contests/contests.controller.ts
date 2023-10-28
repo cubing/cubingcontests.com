@@ -60,11 +60,7 @@ export class ContestsController {
   ) {
     this.logger.logAndSave(`Creating contest ${createContestDto.competitionId}`, LogType.CreateContest);
 
-    return await this.service.createContest(
-      createContestDto,
-      req.user.personId,
-      saveResults && req.user.roles.includes(Role.Admin),
-    );
+    return await this.service.createContest(createContestDto, req.user.personId, { user: req.user, saveResults });
   }
 
   // PATCH /competitions/:competitionId
