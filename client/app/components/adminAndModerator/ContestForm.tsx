@@ -740,7 +740,7 @@ const ContestForm = ({
               setSelected={setType}
               disabled={mode !== 'new' || disableIfDetailsImported}
             />
-            {type === ContestType.Competition && (
+            {type === ContestType.Competition && (mode === 'new' || isAdmin) && (
               <Button
                 text="Get WCA competition details"
                 onClick={fetchWcaCompDetails}
