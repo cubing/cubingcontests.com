@@ -47,7 +47,6 @@ const FormDateInput = ({
   useEffect(() => {
     if (value) {
       setDateText(format(value, 'ddMMyyyy'));
-      setPosition(10);
     } else if (value === undefined && dateText !== '') {
       setDateText('');
     }
@@ -55,24 +54,25 @@ const FormDateInput = ({
 
   useEffect(() => {
     changeCursorPosition();
-  }, [position]);
+  }, [dateText, position]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
   const onChange = (e: any) => {
+    const offset = position >= 6 ? 2 : position >= 3 ? 1 : 0;
+
     // Backspace detection
     if (e.target.value.length < prettyDate.length) {
       if (position > 0) {
-        if (![3, 6].includes(position)) setPosition(position - 1);
-        else setPosition(position - 2);
-
-        const newDateText = dateText.slice(0, -1);
+        const newDateText = dateText.slice(0, position - offset - 1) + dateText.slice(position - offset);
         setDateText(newDateText);
 
         if (newDateText) setValue(null);
         else setValue(undefined);
+
+        changePosition({ change: -1, dateTextLength: newDateText.length });
       }
     }
     // New digit detection
@@ -81,7 +81,7 @@ const FormDateInput = ({
         const newCharacter = e.target.value[e.target.selectionStart - 1];
 
         if (/[0-9]/.test(newCharacter)) {
-          const newDateText = dateText + newCharacter;
+          const newDateText = dateText.slice(0, position - offset) + newCharacter + dateText.slice(position - offset);
           setDateText(newDateText);
 
           if (newDateText.length < 8) {
@@ -92,8 +92,7 @@ const FormDateInput = ({
             setValue(isValid(parsed) ? zonedTimeToUtc(parsed, 'UTC') : null);
           }
 
-          if (position === 1 || position === 4) setPosition(position + 2); // skip a dot
-          else setPosition(position + 1);
+          changePosition({ change: 1, dateTextLength: newDateText.length });
         }
       }
     }
@@ -102,14 +101,49 @@ const FormDateInput = ({
   const onKeyDown = (e: any) => {
     if (e.key === 'Enter') {
       genericOnKeyDown(e, { nextFocusTargetId });
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      changePosition({ change: -1 });
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      changePosition({ change: 1 });
     } else if (C.navigationKeys.includes(e.key)) {
       e.preventDefault();
     }
   };
 
-  const changeCursorPosition = () => {
-    (document.getElementById(inputId) as HTMLInputElement).selectionStart = position;
-    (document.getElementById(inputId) as HTMLInputElement).selectionEnd = position;
+  const changePosition = ({
+    change,
+    newPosition,
+    dateTextLength = dateText.length,
+  }: {
+    change?: number;
+    newPosition?: number;
+    dateTextLength?: number;
+  } = {}) => {
+    if (newPosition === undefined) {
+      const offset = dateTextLength >= 4 ? 2 : dateTextLength >= 2 ? 1 : 0;
+
+      if (change !== undefined) {
+        newPosition = Math.min(Math.max(position + change, 0), dateTextLength + offset);
+
+        // Skip over dots
+        if (change > 0 && [2, 5].includes(newPosition)) newPosition++;
+        if (change < 0 && [2, 5].includes(newPosition)) newPosition--;
+      } else {
+        newPosition = dateTextLength + offset;
+      }
+    }
+
+    setPosition(newPosition);
+    changeCursorPosition(newPosition);
+  };
+
+  const changeCursorPosition = (newPosition = position) => {
+    const inputElem = document.getElementById(inputId) as HTMLInputElement;
+
+    inputElem.selectionStart = newPosition;
+    inputElem.selectionEnd = newPosition;
   };
 
   return (
@@ -125,8 +159,8 @@ const FormDateInput = ({
         value={prettyDate}
         onChange={(e) => onChange(e)}
         onKeyDown={(e) => onKeyDown(e)}
-        onClick={() => changeCursorPosition()}
-        onFocus={() => changeCursorPosition()}
+        onFocus={() => changePosition()}
+        onClick={(e: any) => setPosition(e.target.selectionStart)}
         className={'form-control' + (value === null && dateText.length === 8 ? ' is-invalid' : '')}
       />
     </div>
