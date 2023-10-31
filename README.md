@@ -21,39 +21,33 @@ This is a place for hosting unofficial Rubik's cube competitions, unofficial eve
   <img src="https://cubingcontests.com/api/cubing_contests_8.jpg" width="300"/>
 </div>
 
-## Admin features
-
-In order to enable records tracking, the admin has to go to the `Configure record types` page, which can be found on the moderator dashboard (`/mod`), and set the wanted records as active. They can also be given custom labels in order to differentiate them from official WCA records. In order to change a label, the admin must first deactivate the record type, which removes all records from the database, and then change the label and reactivate it, which will set all of the records again. Keep in mind that activating/deactivating a record type is a resource-intensive operation.
-
-In order to post the results for a competition, all new participants must first be entered into the database, which can be done on the `Create new competitor` page.
-
 ## Deployment
 
 Please do **NOT** try to deploy your own instance until this project is ready for that (you will find instructions in this section).
 
 ## Development
 
-This project uses Next JS for the front-end and Nest JS (confusing, I know) with Mongo DB for the back-end. To set up the development environment, install Node, NPM and Docker, clone this repository and then run the following commands:
+This project uses Next JS for the frontend and Nest JS (confusing, I know) with Mongo DB for the backend. To set up the development environment, install Node, NPM, the Nest JS CLI, and Docker, clone this repository, and then run the following commands:
 
-```
-.githooks/init
+```sh
+.githooks/init # sets up Git hooks
 
 cd client
-npm install
+npm install # installs frontend packages
 
 cd ../server
-npm install
+npm install # installs backend packages
 ```
 
-The pre-commit hook runs all tests and ESLint. If there are tests that don't pass or any linting errors, the commit will **not** be successful.
+The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing.
 
 To start just the backend and the DB in development, run this command in the `server` directory:
 
-```
+```sh
 npm run fulldev
 ```
 
-To start **both** the frontend and the backend, run **the same command** in the `client` directory. That version of the command starts the frontend, the backend and the DB.
+To start **both** the frontend and the backend, run **the same command** in the `client` directory. That version of the command starts the frontend, the backend, and the DB.
 
 Go to `localhost:3000` to see the website. Go to `localhost:8080` to see Mongo Express (makes it much easier to work with the database). `localhost:5000` is used by the backend.
 
@@ -61,11 +55,11 @@ There is an important `shared_helpers` directory in the `client` directory that 
 
 ### Environment
 
-DB environment variables are specified in the `.env.dev` file in the root directory and are sourced by Docker Compose (the `fulldev` script in `server/package.json` specifies this file). Note that for production the `.env` file must be used instead, and secure secrets must be used. Set them all to randomly-generated secure passwords; just go with 100 alphanumeric characters as a rule of thumb.
+Environment variables are specified in the `.env` file in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
 
-Backend environment variables are specified in the `server/.env.dev` file. This file is automatically read by Nest JS, but only in development; in production that file is ignored.
+Some backend environment variables are specified in the `server/.env.dev` file. This file is automatically read by Nest JS in development. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 
-Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS.
+Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS. See that file for more details. The values are taken from the frontend container's environment variables. These must be set during the container's build process when deploying, because that is when Next JS sets the variables in `.env.local`.
 
 ### Data structure
 
