@@ -17,11 +17,13 @@ async function bootstrap() {
   if (!process.env.MONGODB_URI) throw new Error('MONGO DB URI NOT SET!');
 
   if (process.env.NODE_ENV === 'production') {
-    corsOptions = {
-      origin: ['https://cubingcontests.com'],
-    };
+    if (!process.env.API_BASE_URL) {
+      throw new Error('API BASE URL NOT SET!');
+    }
 
-    console.log('Setting CORS origin policy for', corsOptions.origin);
+    corsOptions = { origin: [process.env.API_BASE_URL] };
+
+    logger.log(`Setting CORS origin policy for ${corsOptions.origin[0]}`);
   }
 
   app.enableCors(corsOptions);

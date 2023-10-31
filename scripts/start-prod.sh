@@ -83,8 +83,8 @@ else #### DEVELOPMENT ####
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
 
   if [ "$2" != "--cleanup" ]; then
-    docker build --build-arg BASE_URL=http://localhost:5000 -t cubingcontests-client --file client.Dockerfile . &&
-    # Build API container
+    # Build frontend and API containers
+    docker build --build-arg API_BASE_URL=http://localhost:5000 -t cubingcontests-client --file client.Dockerfile . &&
     docker build -t cubingcontests-api --file server.Dockerfile . &&
 
     docker compose -f docker-compose-prod-dev.yml up

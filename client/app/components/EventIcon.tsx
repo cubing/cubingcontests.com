@@ -5,12 +5,14 @@ import { shortenEventName } from '~/helpers/utilityFunctions';
 
 const unofficialEventIcons = [
   '222bf',
+  '222oh',
   '234relay',
   '2345relay',
   '23456relay',
   '234567relay',
   '333mts',
   '333_mirror_blocks',
+  '333_mirror_blocks_bld',
   '333_oh_bld_relay',
   '333_oh_bld_team_relay',
   '333_team_bld',
@@ -19,6 +21,7 @@ const unofficialEventIcons = [
   '333bf_3_person_relay',
   '333bf_4_person_relay',
   '333bf_8_person_relay',
+  '444ft',
   '666bf',
   '777bf',
   'curvycopter',

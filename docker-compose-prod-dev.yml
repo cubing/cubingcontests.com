@@ -42,6 +42,7 @@ services:
       - NODE_ENV=$NODE_ENV
       - MONGODB_URI=mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@cc-mongo:27017/cubingcontests
       - JWT_SECRET=$JWT_SECRET
+      - API_BASE_URL=$API_BASE_URL
     depends_on:
       - mongo
     restart: unless-stopped
