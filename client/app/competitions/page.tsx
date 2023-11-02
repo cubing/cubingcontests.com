@@ -1,6 +1,6 @@
 import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
-import C from '~/shared_helpers/constants';
+import C from '@sh/constants';
 
 // SEO
 export const metadata = {

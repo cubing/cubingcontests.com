@@ -84,7 +84,7 @@ else #### DEVELOPMENT ####
 
   if [ "$2" != "--cleanup" ]; then
     # Build frontend and API containers
-    docker build --build-arg API_BASE_URL=http://localhost:5000 -t cubingcontests-client --file client.Dockerfile . &&
+    docker build --build-arg API_BASE_URL=http://localhost:5000/api -t cubingcontests-client --file client.Dockerfile . &&
     docker build -t cubingcontests-api --file server.Dockerfile . &&
 
     docker compose -f docker-compose-prod-dev.yml up

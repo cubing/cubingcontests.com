@@ -17,13 +17,11 @@ async function bootstrap() {
   if (!process.env.MONGODB_URI) throw new Error('MONGO DB URI NOT SET!');
 
   if (process.env.NODE_ENV === 'production') {
-    if (!process.env.API_BASE_URL) {
-      throw new Error('API BASE URL NOT SET!');
-    }
+    if (!process.env.BASE_URL) throw new Error('BASE URL NOT SET!');
 
-    corsOptions = { origin: [process.env.API_BASE_URL] };
+    corsOptions = { origin: [process.env.BASE_URL] };
 
-    logger.log(`Setting CORS origin policy for ${corsOptions.origin[0]}`);
+    logger.log(`Setting CORS origin policy for ${corsOptions.origin.join(', ')}`);
   }
 
   app.enableCors(corsOptions);

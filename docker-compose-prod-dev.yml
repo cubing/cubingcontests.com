@@ -1,3 +1,7 @@
+###################################################################################################
+# This is a version of the docker-compose-prod.yml file for testing the production set-up locally #
+###################################################################################################
+
 version: '3'
 services:
   mongo:
@@ -37,12 +41,13 @@ services:
     networks:
       - cubingcontests
     ports:
-      - 127.0.0.1:5000:5000
+      - 5000:5000
     environment:
       - NODE_ENV=$NODE_ENV
+      - PORT=$BACKEND_PORT
       - MONGODB_URI=mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@cc-mongo:27017/cubingcontests
       - JWT_SECRET=$JWT_SECRET
-      - API_BASE_URL=$API_BASE_URL
+      - BASE_URL=$BASE_URL
     depends_on:
       - mongo
     restart: unless-stopped
@@ -52,10 +57,9 @@ services:
     networks:
       - cubingcontests
     ports:
-      - 127.0.0.1:3000:3000
+      - 3000:3000
     environment:
       - ENVIRONMENT=$NODE_ENV
-      - API_BASE_URL=$API_BASE_URL
     depends_on:
       - mongo
       - cc-api
