@@ -4,11 +4,11 @@
 # Script for (re)starting production environment #
 ##################################################
 
-# $1 - (optional) --revert - revert to previous version
+# $1 - (optional) --use-version - use specific version
 # $1 - (optional) --dev/-d - run in development
 # $1 - (optional) --restart - skip apt update and DB dump
 
-# $2 - (optional, required if $1 = --revert) version
+# $2 - (optional, required if $1 = --use-version) version
 # $2 - (optional) --cleanup - only used when $1 = --dev/-d
 
 restart_containers() {
@@ -19,18 +19,16 @@ restart_containers() {
   sudo docker compose -f docker-compose-prod.yml up -d
 }
 
-if [ "$1" == "--revert" ]; then
-  echo "THIS IS UNSUPPORTED"
-  exit
+if [ "$1" == "--use-version" ]; then
 
-  #### REVERT TO PREVIOUS VERSION ####
+  #### USE OLDER VERSION ####
 
   # Check that a version argument was passed
   if [ -z "$2" ]; then
     echo "Please provide a version as the first argument"
     exit
   else
-    # If it was, make sure a tag like this exists
+    # If it was, make sure a tag for that version exists
     VERSION=$(git tag | grep -x "^$2$")
     
     if [ -z "$VERSION" ]; then
@@ -47,8 +45,9 @@ if [ "$1" == "--revert" ]; then
   # Stop Docker containers
   sudo docker compose -f docker-compose-prod.yml down &&
 
-  # Revert to previous version tag
+  # Revert to previous version
   git reset --hard $VERSION &&
+  sed -E "s/export VERSION=[^ #]*/export VERSION=$VERSION/" .env
 
   restart_containers
 
@@ -69,6 +68,9 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   # Pull from Github
   echo -e "Pulling from Github...\n"
   git pull
+
+  # Set the VERSION variable back to latest, in case it was set to an older version
+  sed -E "s/export VERSION=[^ #]*/export VERSION=latest/" .env
 
   restart_containers
 

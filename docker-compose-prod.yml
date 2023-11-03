@@ -19,7 +19,7 @@ services:
     restart: always
   cc-api:
     container_name: cc-api
-    image: denimint/cubingcontests-api
+    image: denimint/cubingcontests-api:$VERSION
     networks:
       - cubingcontests
     ports:
@@ -35,7 +35,7 @@ services:
     restart: always
   cc-client:
     container_name: cc-client
-    image: denimint/cubingcontests-client
+    image: denimint/cubingcontests-client:$VERSION
     networks:
       - cubingcontests
     ports:
