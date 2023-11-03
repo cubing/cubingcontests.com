@@ -19,7 +19,7 @@ async function bootstrap() {
   if (process.env.NODE_ENV === 'production') {
     if (!process.env.BASE_URL) throw new Error('BASE URL NOT SET!');
 
-    corsOptions = { origin: [process.env.BASE_URL] };
+    corsOptions = { origin: [process.env.BASE_URL, 'http://cc-client:3000'] };
 
     logger.log(`Setting CORS origin policy for ${corsOptions.origin.join(', ')}`);
   }
