@@ -47,7 +47,7 @@ if [ "$1" == "--use-version" ]; then
 
   # Revert to previous version
   git reset --hard $VERSION &&
-  sed -E "s/export VERSION=[^ #]*/export VERSION=$VERSION/" .env
+  sed -E "s/export VERSION=[^ #]*/export VERSION=$VERSION/" .env > .env
 
   restart_containers
 
@@ -70,7 +70,7 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   git pull
 
   # Set the VERSION variable back to latest, in case it was set to an older version
-  sed -E "s/export VERSION=[^ #]*/export VERSION=latest/" .env
+  sed -E "s/export VERSION=[^ #]*/export VERSION=latest/" .env > .env
 
   restart_containers
 
