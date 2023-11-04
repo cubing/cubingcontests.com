@@ -4,7 +4,7 @@
 # Script for (re)starting production environment #
 ##################################################
 
-# $1 - (optional) --use-version - use specific version
+# $1 - (optional) --use-version - use specific version (only supported for versions >=0.8.13.6)
 # $1 - (optional) --dev/-d - run in development
 # $1 - (optional) --restart - skip apt update and DB dump
 
