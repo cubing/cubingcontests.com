@@ -11,6 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@babel/traverse": "^7.23.2",
     "@cubing/icons": "^1.1.1",
     "@types/node": "20.3.1",
     "@types/react": "18.2.12",
