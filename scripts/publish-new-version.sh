@@ -1,6 +1,6 @@
 #!/bin/bash
 
-git tag | sort -t "." -k1,1n -k2,2n -k3,3n | tail
+git tag | sort -t "." -k1,1n -k2,2n -k3,3n -k4,4n | tail
 echo "Please give the new version tag:"
 read NEW_VERSION
 

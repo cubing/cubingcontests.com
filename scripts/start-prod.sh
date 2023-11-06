@@ -19,6 +19,12 @@ restart_containers() {
   sudo docker compose -f docker-compose-prod.yml up -d
 }
 
+set_version_in_env() {
+  mv .env .env.bak
+  sudo bash -c "sed -E \"s/export VERSION=[^ #]*/export VERSION=$1/\" .env.bak > .env"
+  sudo rm .env.bak
+}
+
 if [ "$1" == "--use-version" ]; then
 
   #### USE OLDER VERSION ####
@@ -47,7 +53,7 @@ if [ "$1" == "--use-version" ]; then
 
   # Revert to previous version
   git reset --hard $VERSION &&
-  sudo sed -E "s/export VERSION=[^ #]*/export VERSION=$VERSION/" .env > .env
+  set_version_in_env $VERSION
 
   restart_containers
 
@@ -70,7 +76,7 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   git pull
 
   # Set the VERSION variable back to latest, in case it was set to an older version
-  sudo sed -E "s/export VERSION=[^ #]*/export VERSION=latest/" .env > .env
+  set_version_in_env latest
 
   restart_containers
 
