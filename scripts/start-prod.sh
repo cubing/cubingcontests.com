@@ -4,7 +4,7 @@
 # Script for (re)starting production environment #
 ##################################################
 
-# $1 - (optional) --use-version - use specific version (only supported for versions >=0.8.13.6)
+# $1 - (optional) --use-version - use specific version (only supported for versions >=0.8.13.10)
 # $1 - (optional) --dev/-d - run in development
 # $1 - (optional) --restart - skip apt update and DB dump
 
@@ -47,7 +47,7 @@ if [ "$1" == "--use-version" ]; then
 
   # Revert to previous version
   git reset --hard $VERSION &&
-  sed -E "s/export VERSION=[^ #]*/export VERSION=$VERSION/" .env > .env
+  sudo sed -E "s/export VERSION=[^ #]*/export VERSION=$VERSION/" .env > .env
 
   restart_containers
 
@@ -70,7 +70,7 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   git pull
 
   # Set the VERSION variable back to latest, in case it was set to an older version
-  sed -E "s/export VERSION=[^ #]*/export VERSION=latest/" .env > .env
+  sudo sed -E "s/export VERSION=[^ #]*/export VERSION=latest/" .env > .env
 
   restart_containers
 
