@@ -49,7 +49,7 @@ const ContestForm = ({
   const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
-  const [detailsImported, setDetailsImported] = useState(false);
+  const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.Competition);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');

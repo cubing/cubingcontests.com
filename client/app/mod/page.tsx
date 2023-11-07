@@ -185,7 +185,7 @@ const ModeratorDashboardPage = () => {
           disableActions={loading}
         />
       ) : (
-        <p className="px-2 fs-5">You haven&apos;t created any contests yet</p>
+        <p className="px-2 fs-5">You haven't created any contests yet</p>
       )}
     </div>
   );

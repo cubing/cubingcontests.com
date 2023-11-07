@@ -226,8 +226,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
                     time (an exception can be made for team events with 5+ participants). Penalty for an early start:
                     +2.
                   </p>
-                  <p>4. If you&apos;re submitting a Mean of 3, there must be no cuts between the solves.</p>
-                  <p>*. Bonus points if it&apos;s visible that a new scramble was generated and applied.</p>
+                  <p>4. If you're submitting a Mean of 3, there must be no cuts between the solves.</p>
+                  <p>*. Bonus points if it's visible that a new scramble was generated and applied.</p>
                 </div>
               )}
             </>
