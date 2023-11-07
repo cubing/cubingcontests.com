@@ -3,26 +3,32 @@ import C from '@sh/constants';
 
 const ModeratorInstructions = () => {
   return (
-    <div className="pb-4">
-      <h3 className="mb-5 text-center">How to hold a contest</h3>
+    <div className="px-2 pb-4">
+      <h3 className="mb-4 text-center">How to hold a contest</h3>
 
-      <p className="mb-5">
-        If you would like to host unofficial events for a WCA competition (A) or create an unofficial competition (B) or
+      <p>
+        If you would like to hold unofficial events at a WCA competition (A) or create an unofficial competition (B) or
         meetup (C), follow these steps:
       </p>
+      <div style={{ height: '1rem' }} />
       <p>
-        1. <Link href="/register">Create an account</Link> and send an email to {C.contactEmail} with your username and
-        WCA ID.
+        1. <Link href="/register">Create an account</Link> and send an email to {C.contactEmail} with this information:
       </p>
-      <p className="mb-5">
+      <p>1.1. Username</p>
+      <p>1.2. WCA ID</p>
+      <p>
+        1.3. Name of the competition you are organizing (<b>only applies to A</b>)
+      </p>
+      <p>
         2. Once an admin grants you moderator privileges and ties your competitor profile to your account, log out and
         log back in. You will now be able to find the "Mod Dashboard" button in the user section in the navbar. Go to
         that page.
       </p>
+      <div style={{ height: '1rem' }} />
       <p>
-        A1. If you are hosting unofficial events for a WCA competition, first you must wait until it's approved on the
+        A1. If you are holding unofficial events at a WCA competition, first you must wait until it's approved on the
         WCA website. Then you can click on "Create new contest", enter the ID of the competition from the WCA website,
-        select the competition contest type, and click "Get WCA competition details".
+        select the "Competition" contest type, and click "Get WCA competition details".
       </p>
       <p>
         A2. Edit the editable fields, if necessary. You can also add additional organizers (e.g. those who are
@@ -52,16 +58,24 @@ const ModeratorInstructions = () => {
         person) when searching for a competitor in the competitor input. Data entry can be fully done using just the
         keyboard.
       </p>
-      <p className="mb-5">
+      <p>
         A8. Once you have entered all results and finished double-checking, click "Finish" on the moderator dashboard.
         Once an admin publishes the competition, the results will be included in the rankings.
       </p>
-      <p className="mb-5">
-        B1. If you are hosting an unofficial competition, this works almost the same way as hosting unofficial events
+      <div style={{ height: '1rem' }} />
+      <p>
+        B1. If you are holding an unofficial competition, this works almost the same way as hosting unofficial events
         for a WCA competition, except you don't need to use the "Get WCA competition details" button. Instead, you must
         fill out the details manually.
       </p>
-      <p>C1. This is a work in progress...</p>
+      <div style={{ height: '1rem' }} />
+      <p>
+        C1. If you are holding a speedcuber meetup, select the "Meetup" contest type and fill out the meetup details.
+      </p>
+      <p>
+        C2. Instead of a schedule, meetups require a start time, and there is no end date, since meetups can only be one
+        day long.
+      </p>
     </div>
   );
 };

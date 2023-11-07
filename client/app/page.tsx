@@ -32,7 +32,7 @@ export default function Home() {
         </Link>
       </div>
       <p>
-        If you would like to host unofficial events for a WCA competition or create an unofficial competition or meetup,
+        If you would like to hold unofficial events at a WCA competition or create an unofficial competition or meetup,
         click <Link href="/moderator-instructions">here</Link>.
       </p>
       <p>For general inquiries, send an email to {C.contactEmail}.</p>
