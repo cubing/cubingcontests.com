@@ -30,13 +30,13 @@ Please do **NOT** try to deploy your own instance until this project is ready fo
 This project uses Next JS for the frontend and Nest JS (confusing, I know) with Mongo DB for the backend. To set up the development environment, install Node, NPM, the Nest JS CLI, and Docker, clone this repository, and then run the following commands:
 
 ```sh
-.githooks/init # sets up Git hooks
+./scripts/init.sh # set up Git hooks and copy .env.example to .env
 
 cd client
-npm install # installs frontend packages
+npm install # install frontend packages
 
 cd ../server
-npm install # installs backend packages
+npm install # install backend packages
 ```
 
 The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing.

@@ -1,2 +1,0 @@
-git config core.hooksPath ./.githooks
-echo "New hooks path: $(git config core.hooksPath)"
