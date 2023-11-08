@@ -24,7 +24,8 @@ const Tabs = ({
                 className={'nav-link' + (activeTab === tab.value ? ' active' : '')}
                 onClick={() => setActiveTab(tab.value)}
               >
-                {tab.title}
+                <span className="d-none d-md-block">{tab.title}</span>
+                <span className="d-block d-md-none">{tab.shortTitle || tab.title}</span>
               </button>
             ) : (
               <Link
@@ -32,7 +33,8 @@ const Tabs = ({
                 prefetch={false}
                 className={'nav-link' + (activeTab === tab.value ? ' active' : '')}
               >
-                {tab.title}
+                <span className="d-none d-md-block">{tab.title}</span>
+                <span className="d-block d-md-none">{tab.shortTitle || tab.title}</span>
               </Link>
             )}
           </li>

@@ -88,6 +88,8 @@ const ManageUsersPage = () => {
       setPersons([user.person]);
       setPersonNames([user.person.name]);
     }
+
+    window.scrollTo(0, 0);
   };
 
   const getRoles = (user: IFrontendUser): string => {

@@ -42,16 +42,15 @@ export class EventsService {
     {
       eventIds,
       includeHidden,
-      excludeRemovedMiscAndHidden,
-    }: { eventIds?: string[]; includeHidden?: boolean; excludeRemovedMiscAndHidden?: boolean } = {
+      excludeRemovedAndHidden,
+    }: { eventIds?: string[]; includeHidden?: boolean; excludeRemovedAndHidden?: boolean } = {
       includeHidden: false,
-      excludeRemovedMiscAndHidden: false,
+      excludeRemovedAndHidden: false,
     },
   ): Promise<EventDocument[]> {
     const queryFilter: any = {};
 
-    if (excludeRemovedMiscAndHidden)
-      queryFilter.groups = { $nin: [EventGroup.Removed, EventGroup.Miscellaneous, EventGroup.Hidden] };
+    if (excludeRemovedAndHidden) queryFilter.groups = { $nin: [EventGroup.Removed, EventGroup.Hidden] };
     else if (!includeHidden) queryFilter.groups = { $ne: EventGroup.Hidden };
     if (eventIds) queryFilter.eventId = { $in: eventIds };
 

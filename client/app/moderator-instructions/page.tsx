@@ -3,7 +3,7 @@ import C from '@sh/constants';
 
 const ModeratorInstructions = () => {
   return (
-    <div className="px-2 pb-4">
+    <div className="px-3 pb-4">
       <h3 className="mb-4 text-center">How to hold a contest</h3>
 
       <p>

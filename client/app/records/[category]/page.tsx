@@ -37,6 +37,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
   const selectedCat = eventCategories.find((el) => el.value === params.category);
   const tabs = eventCategories.map((cat) => ({
     title: cat.title,
+    shortTitle: cat.shortTitle,
     value: cat.value,
     route: `/records/${cat.value}`,
     hidden: !recordsByEvent?.some((el) => el.event.groups.includes(cat.group)),

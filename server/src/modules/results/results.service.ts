@@ -309,7 +309,7 @@ export class ResultsService {
     }
 
     const recordsByEvent: IEventRankings[] = [];
-    const events = await this.eventsService.getEvents({ excludeRemovedMiscAndHidden: true });
+    const events = await this.eventsService.getEvents({ excludeRemovedAndHidden: true });
 
     for (const rt of activeRecordTypes) {
       for (const event of events) {

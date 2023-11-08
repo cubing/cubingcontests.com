@@ -5,7 +5,7 @@ export enum EventFormat {
 }
 
 export enum EventGroup {
-  // The first four are used for grouping events on the rankings pages. An event MUST include ONE of these main groups.
+  // The first five are used for grouping events on the rankings pages. An event MUST include ONE of these main groups.
   WCA = 1, // event ranks are the same as on the WCA
   Unofficial = 2, // event ranks start from 1000
   ExtremeBLD = 3, // ...from 2000

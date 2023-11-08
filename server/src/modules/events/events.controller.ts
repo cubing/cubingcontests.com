@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { EventsService } from './events.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
@@ -23,9 +23,8 @@ export class EventsController {
   @Get('mod')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModEvents(@Request() req: any) {
-    if (req.user.roles.includes(Role.Admin)) return await this.eventsService.getEvents({ includeHidden: true });
-    else return await this.eventsService.getEvents();
+  async getModEvents() {
+    return await this.eventsService.getEvents({ includeHidden: true });
   }
 
   // POST /events
