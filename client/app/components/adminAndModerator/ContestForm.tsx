@@ -122,6 +122,10 @@ const ContestForm = ({
     () => filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId)),
     [filteredEvents, contestEvents],
   );
+  const totalRounds: number = useMemo(
+    () => contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0),
+    [contestEvents],
+  );
   const roomOptions = useMemo(
     () =>
       rooms.map((room) => ({
@@ -877,6 +881,9 @@ const ContestForm = ({
 
         {activeTab === 'events' && (
           <>
+            <p className="my-4">
+              Total events: {contestEvents.length} | Total rounds: {totalRounds}
+            </p>
             <div className="my-4 d-flex align-items-center gap-3">
               <button
                 type="button"
