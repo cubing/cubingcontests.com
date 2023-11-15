@@ -122,24 +122,6 @@ const ContestForm = ({
     () => filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId)),
     [filteredEvents, contestEvents],
   );
-  const disableIfCompFinished = useMemo(
-    () => !isAdmin && mode === 'edit' && contest.state >= ContestState.Finished,
-    [contest, mode, isAdmin],
-  );
-  // This has been nominated for the best variable name award!
-  const disableIfCompFinishedEvenForAdmin = useMemo(
-    () => mode === 'edit' && contest.state >= ContestState.Finished,
-    [contest, mode, isAdmin],
-  );
-  const disableIfCompApproved = useMemo(
-    () => !isAdmin && mode === 'edit' && contest.state >= ContestState.Approved,
-    [contest, mode, isAdmin],
-  );
-  const disableIfCompApprovedEvenForAdmin = useMemo(
-    () => mode === 'edit' && contest.state >= ContestState.Approved,
-    [contest, mode],
-  );
-  const disableIfDetailsImported = useMemo(() => !isAdmin && detailsImported, [isAdmin, detailsImported]);
   const roomOptions = useMemo(
     () =>
       rooms.map((room) => ({
@@ -174,6 +156,15 @@ const ContestForm = ({
       roomOptions.some((el) => el.value === selectedRoom),
     [activityCode, customActivity, roomOptions, selectedRoom],
   );
+
+  const disableIfCompFinished = !isAdmin && mode === 'edit' && contest.state >= ContestState.Finished;
+  const disableIfCompDone =
+    mode === 'edit' &&
+    (contest.state >= ContestState.Published || (!isAdmin && contest.state >= ContestState.Finished));
+  const disableIfCompApproved = !isAdmin && mode === 'edit' && contest.state >= ContestState.Approved;
+  // This has been nominated for the best variable name award!
+  const disableIfCompApprovedEvenForAdmin = mode === 'edit' && contest.state >= ContestState.Approved;
+  const disableIfDetailsImported = !isAdmin && detailsImported;
 
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
@@ -891,7 +882,7 @@ const ContestForm = ({
                 type="button"
                 className="btn btn-success"
                 onClick={addContestEvent}
-                disabled={disableIfCompFinishedEvenForAdmin || contestEvents.length === filteredEvents.length}
+                disabled={disableIfCompDone || contestEvents.length === filteredEvents.length}
               >
                 Add Event
               </button>
@@ -902,7 +893,7 @@ const ContestForm = ({
                   events={remainingEvents}
                   eventId={newEventId}
                   setEventId={setNewEventId}
-                  disabled={disableIfCompFinishedEvenForAdmin}
+                  disabled={disableIfCompDone}
                 />
               </div>
             </div>
@@ -915,7 +906,7 @@ const ContestForm = ({
                     type="button"
                     className="ms-3 btn btn-danger btn-sm"
                     onClick={() => removeContestEvent(ce.event.eventId)}
-                    disabled={disableIfCompFinishedEvenForAdmin || ce.rounds.some((r) => r.results.length > 0)}
+                    disabled={disableIfCompDone || ce.rounds.some((r) => r.results.length > 0)}
                   >
                     Remove Event
                   </button>
@@ -930,7 +921,7 @@ const ContestForm = ({
                           options={roundFormatOptions}
                           selected={round.format}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
-                          disabled={disableIfCompFinishedEvenForAdmin || round.results.length > 0}
+                          disabled={disableIfCompDone || round.results.length > 0}
                           noMargin
                         />
                       </div>
@@ -943,7 +934,7 @@ const ContestForm = ({
                           options={roundProceedOptions}
                           selected={round.proceed.type}
                           setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                          disabled={disableIfCompFinishedEvenForAdmin}
+                          disabled={disableIfCompDone}
                           oneLine
                         />
                         <div style={{ width: '5rem' }}>
@@ -951,7 +942,7 @@ const ContestForm = ({
                             id="round_proceed_value"
                             value={round.proceed.value}
                             setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
-                            disabled={disableIfCompFinishedEvenForAdmin}
+                            disabled={disableIfCompDone}
                             integer
                             min={round.proceed.type === RoundProceed.Percentage ? 1 : 2}
                             max={round.proceed.type === RoundProceed.Percentage ? 99 : Infinity}
@@ -968,7 +959,7 @@ const ContestForm = ({
                       type="button"
                       className="btn btn-success btn-sm"
                       onClick={() => addRound(ce.event.eventId)}
-                      disabled={disableIfCompFinishedEvenForAdmin}
+                      disabled={disableIfCompDone}
                     >
                       Add Round {ce.rounds.length + 1}
                     </button>
@@ -979,8 +970,7 @@ const ContestForm = ({
                       className="btn btn-danger btn-sm"
                       onClick={() => removeEventRound(ce.event.eventId)}
                       disabled={
-                        disableIfCompFinishedEvenForAdmin ||
-                        ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
+                        disableIfCompDone || ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
                       }
                     >
                       Remove Round
