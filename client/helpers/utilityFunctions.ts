@@ -1,38 +1,35 @@
 import jwtDecode from 'jwt-decode';
-import { format, isSameDay, isSameMonth, isSameYear } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { isSameDay, isSameMonth, isSameYear } from 'date-fns';
+import { format } from 'date-fns-tz';
+import myFetch from './myFetch';
 import { Color, ContestType, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
 import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
 import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';
 import { IUserInfo } from './interfaces/UserInfo';
-import myFetch from './myFetch';
 
 export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
 };
 
-export const getFormattedDate = (startDate: Date | string, endDate?: Date | string, timezone = 'UTC'): string => {
+export const getFormattedDate = (startDate: Date | string, endDate?: Date | string, timeZone = 'UTC'): string => {
   if (!startDate) throw new Error('Start date missing!');
 
   if (typeof startDate === 'string') startDate = new Date(startDate);
   if (typeof endDate === 'string') endDate = new Date(endDate);
 
   const fullFormat = 'd MMM yyyy';
-  // If we don't do this, format adjusts the date according to the user's local time zone
-  const adjustedStartDate = utcToZonedTime(startDate, timezone);
 
   if (!endDate || isSameDay(startDate, endDate)) {
-    return format(adjustedStartDate, fullFormat);
+    return format(startDate, fullFormat, { timeZone });
   } else {
     let startFormat: string;
-    const adjustedEndDate = utcToZonedTime(endDate, 'UTC');
 
     if (!isSameYear(startDate, endDate)) startFormat = fullFormat;
     else if (!isSameMonth(startDate, endDate)) startFormat = 'd MMM';
     else startFormat = 'd';
 
-    return `${format(adjustedStartDate, startFormat)} - ${format(adjustedEndDate, fullFormat)}`;
+    return `${format(startDate, startFormat, { timeZone })} - ${format(endDate, fullFormat, { timeZone })}`;
   }
 };
 

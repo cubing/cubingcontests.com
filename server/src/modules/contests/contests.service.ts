@@ -21,6 +21,7 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { AuthService } from '../auth/auth.service';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { addDays } from 'date-fns';
+import { getDateOnly } from '@sh/sharedFunctions';
 
 const PLEASE_ENTER_ADDRESS_MSG = 'Please enter an address';
 const PLEASE_ENTER_VENUE_MSG = 'Please enter the venue name';
@@ -73,6 +74,17 @@ export class ContestsService {
             }
           }
         }
+      }
+    }
+
+    // TEMPORARY
+    const contests = await this.contestModel.find({ type: { $ne: ContestType.Competition } }).exec();
+
+    if (!contests[0]?.meetupDetails) {
+      for (const c of contests) {
+        c.meetupDetails = { startTime: c.startDate };
+        c.startDate = getDateOnly(utcToZonedTime(c.startDate, c.timezone));
+        await c.save();
       }
     }
   }
@@ -217,6 +229,7 @@ export class ContestsService {
     const contest = await this.getFullContest(competitionId, user, { ignoreState: false, exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
+    // This is checked, because admins are allowed to set the address and venue as empty, but mods aren't
     if (!isAdmin) {
       if (!updateContestDto.address) throw new BadRequestException(PLEASE_ENTER_ADDRESS_MSG);
       if (!updateContestDto.venue) throw new BadRequestException(PLEASE_ENTER_VENUE_MSG);
@@ -243,6 +256,8 @@ export class ContestsService {
           schedule: await this.scheduleModel.create(updateContestDto.compDetails.schedule),
         };
       }
+    } else if (updateContestDto.meetupDetails) {
+      contest.meetupDetails = updateContestDto.meetupDetails;
     }
 
     if (isAdmin || contest.state < ContestState.Approved) {

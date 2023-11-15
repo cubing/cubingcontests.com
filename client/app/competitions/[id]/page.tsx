@@ -1,13 +1,14 @@
-import { areIntervalsOverlapping, endOfToday, format, startOfToday } from 'date-fns';
+import { addDays, areIntervalsOverlapping, format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
-import ContestLayout from '~/app/components/ContestLayout';
+import ContestLayout from '@c/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import Competitor from '@c/Competitor';
 import { IContest, IContestData } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
 import C from '@sh/constants';
+import { getDateOnly } from '@sh/sharedFunctions';
 import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
@@ -16,19 +17,18 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = payload as IContestData;
 
-  const formattedDate = getFormattedDate(contest.startDate, contest.endDate ? contest.endDate : null, contest.timezone);
+  const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null, contest.timezone);
   // Not used for competition type contests
-  const formattedTime =
-    contest.type === ContestType.Competition
-      ? null
-      : format(utcToZonedTime(contest.startDate, contest.timezone || 'UTC'), 'H:mm');
-
+  const formattedTime = contest.meetupDetails
+    ? format(utcToZonedTime(contest.meetupDetails.startTime, contest.timezone || 'UTC'), 'H:mm')
+    : null;
   const contestType = contestTypeOptions.find((el) => el.value === contest.type)?.label || 'ERROR';
+  const start = getDateOnly(utcToZonedTime(new Date(), contest.timezone || 'UTC'));
   const isOngoing =
     contest.state < ContestState.Finished &&
     areIntervalsOverlapping(
       { start: new Date(contest.startDate), end: new Date(contest.endDate || contest.startDate) },
-      { start: startOfToday(), end: endOfToday() },
+      { start, end: addDays(start, 1) },
       { inclusive: true },
     );
 

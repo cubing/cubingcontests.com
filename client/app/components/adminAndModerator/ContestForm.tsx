@@ -18,7 +18,16 @@ import EventTitle from '@c/EventTitle';
 import Tabs from '@c/Tabs';
 import Schedule from '@c/Schedule';
 import ColorSquare from '@c/ColorSquare';
-import { IContest, ICompetitionDetails, IContestEvent, IEvent, IPerson, IRoom, IRound } from '@sh/interfaces';
+import {
+  IContest,
+  ICompetitionDetails,
+  IContestEvent,
+  IEvent,
+  IPerson,
+  IRoom,
+  IRound,
+  IMeetupDetails,
+} from '@sh/interfaces';
 import { Color, ContestState, ContestType, EventGroup, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
 import {
@@ -60,7 +69,9 @@ const ContestForm = ({
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState(0); // vertical coordinate (Y); ranges from -90 to 90
   const [longitude, setLongitude] = useState(0); // horizontal coordinate (X); ranges from -180 to 180
-  const [startDate, setStartDate] = useState(addHours(getDateOnly(new Date()), 12)); // use 12:00 as default start time
+  const [startDate, setStartDate] = useState(getDateOnly(new Date()));
+  // Meetup-only
+  const [startTime, setStartTime] = useState(addHours(getDateOnly(new Date()), 12)); // use 12:00 as default start time
   const [endDate, setEndDate] = useState(new Date());
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
@@ -163,12 +174,6 @@ const ContestForm = ({
       roomOptions.some((el) => el.value === selectedRoom),
     [activityCode, customActivity, roomOptions, selectedRoom],
   );
-  const startDateTitle = useMemo(() => {
-    if (type === ContestType.Competition) return 'Start date';
-    if (type === ContestType.Online) return 'Start date and time (UTC)';
-    if (fetchTimezoneTimer === null) return `Start date and time (${venueTimeZone})`;
-    return 'Start date and time (...)';
-  }, [type, venueTimeZone, fetchTimezoneTimer]);
 
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
@@ -197,40 +202,31 @@ const ContestForm = ({
           events[0].eventId,
       );
 
-      switch (contest.type) {
-        case ContestType.Meetup: {
-          setStartDate(new Date(contest.startDate));
-          setVenueTimeZone(contest.timezone);
-          break;
-        }
-        case ContestType.Competition: {
-          // Convert the dates from string to Date
-          setStartDate(new Date(contest.startDate));
-          setEndDate(new Date(contest.endDate));
+      // Convert the dates from string to Date
+      setStartDate(new Date(contest.startDate));
 
-          const setDefaultActivityTimes = (timezone: string) => {
-            setActivityStartTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 12), timezone));
-            setActivityEndTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 13), timezone));
-          };
+      if (contest.type !== ContestType.Competition) {
+        setStartTime(new Date(contest.meetupDetails.startTime));
 
-          if (contest.compDetails) {
-            const venue = contest.compDetails.schedule.venues[0];
-            setRooms(venue.rooms);
-            setVenueTimeZone(venue.timezone);
-            setDefaultActivityTimes(venue.timezone);
-          } else {
-            fetchTimeZone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then(
-              (timeZone) => setDefaultActivityTimes(timeZone),
-            );
-          }
-          break;
+        if (contest.type === ContestType.Meetup) setVenueTimeZone(contest.timezone);
+      } else {
+        setEndDate(new Date(contest.endDate));
+
+        const setDefaultActivityTimes = (timezone: string) => {
+          setActivityStartTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 12), timezone));
+          setActivityEndTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 13), timezone));
+        };
+
+        if (contest.compDetails) {
+          const venue = contest.compDetails.schedule.venues[0];
+          setRooms(venue.rooms);
+          setVenueTimeZone(venue.timezone);
+          setDefaultActivityTimes(venue.timezone);
+        } else {
+          fetchTimeZone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then(
+            (timeZone) => setDefaultActivityTimes(timeZone),
+          );
         }
-        case ContestType.Online: {
-          setStartDate(new Date(contest.startDate));
-          break;
-        }
-        default:
-          throw new Error(`Unknown contest type: ${contest.type}`);
       }
 
       if (mode === 'copy') {
@@ -262,7 +258,11 @@ const ContestForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
-    if (!startDate || (type === ContestType.Competition && !endDate)) {
+    if (
+      !startDate ||
+      (type === ContestType.Competition && !endDate) ||
+      (type !== ContestType.Competition && !startTime)
+    ) {
       setErrorMessages(['Please enter valid dates']);
       return;
     }
@@ -275,28 +275,20 @@ const ContestForm = ({
     }
 
     const getRoundDate = (round: IRound): Date => {
-      switch (type) {
-        // If it's a meetup, get the real date using the time zone (it could be different from the UTC date)
-        case ContestType.Meetup: {
-          return getDateOnly(utcToZonedTime(startDate, venueTimeZone));
-        }
+      if (type !== ContestType.Competition) {
+        return startDate;
+      } else {
         // If it's a competition, find the start time of the round using the schedule and get
         // the date using the time zone. Again, the date could be different from the UTC date.
-        case ContestType.Competition: {
-          let roundStartTime: Date;
-          for (const room of rooms) {
-            const activity = room.activities.find((a) => a.activityCode === round.roundId);
-            if (activity) {
-              roundStartTime = activity.startTime;
-              break;
-            }
+        let roundStartTime: Date;
+        for (const room of rooms) {
+          const activity = room.activities.find((a) => a.activityCode === round.roundId);
+          if (activity) {
+            roundStartTime = activity.startTime;
+            break;
           }
-          return getDateOnly(utcToZonedTime(roundStartTime, venueTimeZone));
         }
-        // If it's an online comp, just get the date, since the time is already in UTC
-        case ContestType.Online: {
-          return getDateOnly(startDate);
-        }
+        return getDateOnly(utcToZonedTime(roundStartTime, venueTimeZone));
       }
     };
 
@@ -308,6 +300,7 @@ const ContestForm = ({
     }));
 
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
+    let meetupDetails: IMeetupDetails; // this is left undefined if the type is competition
 
     if (type === ContestType.Competition) {
       compDetails = {
@@ -329,6 +322,8 @@ const ContestForm = ({
           ],
         },
       };
+    } else {
+      meetupDetails = { startTime };
     }
 
     const newComp: IContest = {
@@ -350,6 +345,7 @@ const ContestForm = ({
       competitorLimit: competitorLimit || undefined,
       events: processedCompEvents,
       compDetails,
+      meetupDetails,
     };
 
     if (mode === 'edit') {
@@ -474,13 +470,13 @@ const ContestForm = ({
       limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
         // Adjust all times to the new time zone
         fetchTimeZone(processedLatitude, processedLongitude).then((timeZone: string) => {
-          const startTime = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 12) : activityStartTime;
-          setActivityStartTime(zonedTimeToUtc(utcToZonedTime(startTime, venueTimeZone), timeZone));
-          const endTime = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 13) : activityEndTime;
-          setActivityEndTime(zonedTimeToUtc(utcToZonedTime(endTime, venueTimeZone), timeZone));
+          const start = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 12) : activityStartTime;
+          setActivityStartTime(zonedTimeToUtc(utcToZonedTime(start, venueTimeZone), timeZone));
+          const end = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 13) : activityEndTime;
+          setActivityEndTime(zonedTimeToUtc(utcToZonedTime(end, venueTimeZone), timeZone));
 
           if (type === ContestType.Meetup) {
-            setStartDate(zonedTimeToUtc(utcToZonedTime(startDate, venueTimeZone), timeZone));
+            setStartTime(zonedTimeToUtc(utcToZonedTime(startTime, venueTimeZone), timeZone));
           } else if (type === ContestType.Competition) {
             setRooms(
               rooms.map((r) => ({
@@ -499,8 +495,14 @@ const ContestForm = ({
   };
 
   const changeStartDate = (newDate: Date) => {
-    setStartDate(newDate);
-    if (type === ContestType.Competition && newDate.getTime() > endDate.getTime()) setEndDate(newDate);
+    if (type !== ContestType.Competition) {
+      setStartTime(newDate);
+      setStartDate(getDateOnly(utcToZonedTime(newDate, venueTimeZone)));
+    } else {
+      setStartDate(newDate);
+
+      if (newDate.getTime() > endDate.getTime()) setEndDate(newDate);
+    }
   };
 
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
@@ -536,7 +538,7 @@ const ContestForm = ({
     return {
       roundId: `${eventId}-r${roundNumber}`,
       competitionId: 'temp', // this gets replaced for all rounds on submit
-      date: startDate, // this also gets set on submit
+      date: startDate, // this also gets reset on submit
       roundTypeId: RoundType.Final,
       format: events.find((el) => el.eventId === eventId).defaultRoundFormat,
       results: [],
@@ -806,16 +808,29 @@ const ContestForm = ({
             )}
             <div className="my-3 row">
               <div className="col">
-                <FormDatePicker
-                  id="start_date"
-                  title={startDateTitle}
-                  value={startDate}
-                  setValue={changeStartDate}
-                  timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
-                  dateFormat={type === ContestType.Competition ? 'P' : 'Pp'}
-                  disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
-                  showUTCTime={type !== ContestType.Competition}
-                />
+                {type !== ContestType.Competition ? (
+                  <FormDatePicker
+                    id="start_date"
+                    title={`Start date and time (${
+                      type === ContestType.Meetup ? (fetchTimezoneTimer === null ? venueTimeZone : '...') : 'UTC'
+                    })`}
+                    value={startTime}
+                    setValue={changeStartDate}
+                    timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
+                    dateFormat="Pp"
+                    disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                    showUTCTime
+                  />
+                ) : (
+                  <FormDatePicker
+                    id="start_date"
+                    title="Start date"
+                    value={startDate}
+                    setValue={changeStartDate}
+                    dateFormat="P"
+                    disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                  />
+                )}
               </div>
               {type === ContestType.Competition && (
                 <div className="col">

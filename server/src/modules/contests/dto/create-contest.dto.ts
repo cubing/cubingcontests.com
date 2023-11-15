@@ -32,6 +32,7 @@ import {
   IVenue,
   IRoom,
   IActivity,
+  IMeetupDetails,
 } from '@sh/interfaces';
 import { CreateEventDto } from '@m/events/dto/create-event.dto';
 import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
@@ -116,6 +117,11 @@ export class CreateContestDto implements IContest {
   @ValidateNested()
   @Type(() => CompetitionDetailsDto)
   compDetails?: ICompetitionDetails;
+
+  @ValidateIf((obj) => obj.type !== ContestType.Competition)
+  @ValidateNested()
+  @Type(() => MeetupDetailsDto)
+  meetupDetails?: IMeetupDetails;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,6 +132,11 @@ class CompetitionDetailsDto implements ICompetitionDetails {
   @ValidateNested()
   @Type(() => ScheduleDto)
   schedule: ISchedule;
+}
+
+class MeetupDetailsDto implements IMeetupDetails {
+  @IsDateString({}, { message: 'Please enter a valid start time' })
+  startTime: Date;
 }
 
 class ScheduleDto implements ISchedule {

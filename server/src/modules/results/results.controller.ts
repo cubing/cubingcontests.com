@@ -21,6 +21,7 @@ import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
 import { SubmitResultDto } from './dto/submit-result.dto';
 import { LogType } from '~/src/helpers/enums';
+import { getDateOnly } from '@sh/sharedFunctions';
 
 @Controller('results')
 export class ResultsController {
@@ -55,7 +56,7 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
   async getSubmissionInfo(@Param('recordsUpTo') recordsUpTo: string) {
-    const recordsUpToDate = new Date(recordsUpTo);
+    const recordsUpToDate = getDateOnly(new Date(recordsUpTo));
     this.logger.log(`Getting results submission info with records up to ${recordsUpToDate.toUTCString()}`);
 
     return await this.service.getSubmissionInfo(recordsUpToDate);
@@ -80,7 +81,7 @@ export class ResultsController {
     @Param('eventIds') eventIds: string,
     @Query('excludeResultId') excludeResultId: string,
   ) {
-    const recordsUpToDate = new Date(recordsUpTo);
+    const recordsUpToDate = getDateOnly(new Date(recordsUpTo));
     this.logger.log(`Getting record pair with records up to ${recordsUpToDate.toUTCString()}`);
 
     const events = await this.eventsService.getEvents({ eventIds: eventIds.split(',') });

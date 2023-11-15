@@ -12,9 +12,9 @@ import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/Button';
 import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
 import { RoundFormat } from '@sh/enums';
+import { roundFormats } from '@sh/roundFormats';
 import { checkErrorsBeforeResultSubmission, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import { roundFormats } from '~/shared_helpers/roundFormats';
 
 const userInfo: IUserInfo = getUserInfo();
 

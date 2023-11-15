@@ -35,7 +35,7 @@ import {
   IFrontendResult,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 
@@ -363,11 +363,7 @@ export class ResultsService {
 
     const resultsSubmissionInfo: IResultsSubmissionInfo = {
       events: submissionBasedEvents,
-      recordPairsByEvent: await this.getRecordPairs(
-        submissionBasedEvents,
-        recordsUpTo, // getRecordPairs gets just the date from this
-        { activeRecordTypes },
-      ),
+      recordPairsByEvent: await this.getRecordPairs(submissionBasedEvents, recordsUpTo, { activeRecordTypes }),
       activeRecordTypes,
     };
 
@@ -640,7 +636,6 @@ export class ResultsService {
     { activeRecordTypes, excludeResultId }: { activeRecordTypes?: IRecordType[]; excludeResultId?: string } = {},
   ): Promise<IEventRecordPairs[]> {
     if (!activeRecordTypes) activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-    recordsUpTo = getDateOnly(recordsUpTo);
     const recordPairsByEvent: IEventRecordPairs[] = [];
 
     // Get current records for this contest's events

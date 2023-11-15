@@ -28,7 +28,7 @@ export interface IContest {
   latitudeMicrodegrees?: number; // vertical coordinate (Y); ranges from -90 to 90; not needed for online comps
   longitudeMicrodegrees?: number; // horizontal coordinate (X); ranges from -180 to 180; not needed for online comps
   // These are stored as ISO date strings in the DB, but are date objects everywhere else
-  startDate: Date; // includes the time if it's not a competition type (always stored as UTC for online comps)
+  startDate: Date;
   endDate?: Date; // competition-only
   timezone?: string; // meetup-only; not needed on creation
   organizers: IPerson[]; // stored as references
@@ -39,6 +39,7 @@ export interface IContest {
   participants?: number; // optional, because it's not needed on creation
   // IMPORTANT: this is not set when importing a competition and must be set manually by an admin
   compDetails?: ICompetitionDetails; // competition-only
+  meetupDetails?: IMeetupDetails; // meetup/online-comp-only
 }
 
 export interface IContestEvent {
@@ -48,6 +49,10 @@ export interface IContestEvent {
 
 export interface ICompetitionDetails {
   schedule: ISchedule; // stored as a reference
+}
+
+export interface IMeetupDetails {
+  startTime: Date; // start time in UTC
 }
 
 // CONTEST DATA (just used for sending full contest information to the frontend)
