@@ -57,18 +57,55 @@ export class ContestsService {
               .join(', ')}`,
           );
         } else {
+          const contest = contests[0];
+
           for (const venue of s.venues) {
             for (const room of venue.rooms) {
               for (const activity of room.activities) {
                 const startTime = utcToZonedTime(activity.startTime, venue.timezone);
                 const endTime = utcToZonedTime(activity.endTime, venue.timezone);
 
-                if (startTime < contests[0].startDate || endTime >= addDays(contests[0].endDate, 1)) {
+                // Check that no activity is outside of the date range of the contest
+                if (startTime < contest.startDate || endTime >= addDays(contest.endDate, 1)) {
                   this.logger.error(
                     `Error: activity ${JSON.stringify(activity)} is outside of the date range of the contest ${
-                      contests[0].competitionId
+                      contest.competitionId
                     }`,
                   );
+                }
+
+                if (activity.activityCode !== 'other-misc') {
+                  // Check that all results for this schedule activity have the right date
+                  const round = await this.roundModel
+                    .findOne({ competitionId: contest.competitionId, roundId: activity.activityCode })
+                    .populate({ path: 'results', model: 'Result' })
+                    .exec();
+
+                  if (!round) {
+                    this.logger.error(
+                      `Round for activity ${activity.activityCode} at contest ${contest.competitionId} not found`,
+                    );
+                  } else {
+                    const activityDate = getDateOnly(startTime);
+
+                    if (round.date.getTime() !== activityDate.getTime())
+                      this.logger.error(
+                        `Round ${round.roundId} at ${
+                          contest.competitionId
+                        } has a date different from the schedule activity, which is ${activityDate.toUTCString()}`,
+                      );
+
+                    for (const result of round.results) {
+                      //console.log(round, result, result.date);
+
+                      if (result.date?.getTime() !== activityDate.getTime())
+                        this.logger.error(
+                          `Result ${result} from round ${round.roundId} at ${
+                            contest.competitionId
+                          } has a date different from the schedule activity, which is ${activityDate.toUTCString()}`,
+                        );
+                    }
+                  }
                 }
               }
             }
@@ -85,6 +122,42 @@ export class ContestsService {
         c.meetupDetails = { startTime: c.startDate };
         c.startDate = getDateOnly(utcToZonedTime(c.startDate, c.timezone));
         await c.save();
+      }
+    }
+
+    const schedules = await this.scheduleModel.find().exec();
+
+    for (const s of schedules) {
+      const contest = await this.contestModel.findOne({ 'compDetails.schedule': s._id }).exec();
+
+      for (const venue of s.venues) {
+        for (const room of venue.rooms) {
+          for (const activity of room.activities) {
+            if (activity.activityCode !== 'other-misc') {
+              // Check that all results for this schedule activity have the right date
+              const round = await this.roundModel
+                .findOne({ competitionId: contest.competitionId, roundId: activity.activityCode })
+                .populate({ path: 'results', model: 'Result' })
+                .exec();
+
+              if (round) {
+                const activityDate = getDateOnly(utcToZonedTime(activity.startTime, venue.timezone));
+
+                if (round.date.getTime() !== activityDate.getTime()) {
+                  round.date = activityDate;
+                  await round.save();
+                }
+
+                for (const result of round.results) {
+                  if (result.date?.getTime() !== activityDate.getTime()) {
+                    result.date = activityDate;
+                    await result.save();
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
