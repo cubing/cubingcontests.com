@@ -36,7 +36,7 @@ import {
   IFrontendResult,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
@@ -195,22 +195,6 @@ export class ResultsService {
       }
 
       this.logger.log('All inconsistencies checked!');
-    }
-
-    // TEMPORARY
-    const results2 = await this.resultModel.find().exec();
-
-    for (const result of results2) {
-      if (
-        result.date.getUTCHours() !== 0 ||
-        result.date.getUTCMinutes() !== 0 ||
-        result.date.getUTCSeconds() !== 0 ||
-        result.date.getUTCMilliseconds() !== 0
-      ) {
-        this.logger.log(`Fixing result ${result._id}`);
-        result.date = getDateOnly(result.date);
-        await result.save();
-      }
     }
   }
 
