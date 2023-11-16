@@ -36,7 +36,7 @@ import {
   IFrontendResult,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
@@ -54,6 +54,8 @@ export class ResultsService {
   ) {}
 
   async onModuleInit() {
+    console.log('test', process.env.NODE_ENV);
+
     // DB consistency checks (done only in development)
     if (process.env.NODE_ENV !== 'production') {
       this.logger.log('Checking results inconsistencies in the DB...');
@@ -195,6 +197,26 @@ export class ResultsService {
       }
 
       this.logger.log('All inconsistencies checked!');
+    }
+
+    // TEMPORARY
+    console.log('test2');
+    const results2 = await this.resultModel.find().exec();
+    console.log('test3');
+
+    for (const result of results2) {
+      console.log('test4', result.date.toUTCString());
+
+      if (
+        result.date.getUTCHours() !== 0 ||
+        result.date.getUTCMinutes() !== 0 ||
+        result.date.getUTCSeconds() !== 0 ||
+        result.date.getUTCMilliseconds() !== 0
+      ) {
+        this.logger.log(`Fixing result ${result._id}`);
+        result.date = getDateOnly(result.date);
+        await result.save();
+      }
     }
   }
 
