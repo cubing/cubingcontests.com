@@ -1,4 +1,4 @@
-import { addDays, areIntervalsOverlapping, format } from 'date-fns';
+import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
 import ContestLayout from '@c/ContestLayout';
@@ -23,14 +23,12 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
     ? format(utcToZonedTime(contest.meetupDetails.startTime, contest.timezone || 'UTC'), 'H:mm')
     : null;
   const contestType = contestTypeOptions.find((el) => el.value === contest.type)?.label || 'ERROR';
-  const start = getDateOnly(utcToZonedTime(new Date(), contest.timezone || 'UTC'));
+  const startOfDayInLocalTZ = getDateOnly(utcToZonedTime(new Date(), contest.timezone || 'UTC'));
+  const start = new Date(contest.startDate);
   const isOngoing =
     contest.state < ContestState.Finished &&
-    areIntervalsOverlapping(
-      { start: new Date(contest.startDate), end: new Date(contest.endDate || contest.startDate) },
-      { start, end: addDays(start, 1) },
-      { inclusive: true },
-    );
+    ((!contest.endDate && start.getTime() === startOfDayInLocalTZ.getTime()) ||
+      (contest.endDate && start <= startOfDayInLocalTZ && new Date(contest.endDate) >= startOfDayInLocalTZ));
 
   const getFormattedDescription = () => {
     // This parses links using markdown link syntax
