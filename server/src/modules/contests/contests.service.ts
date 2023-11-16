@@ -113,53 +113,6 @@ export class ContestsService {
         }
       }
     }
-
-    // TEMPORARY
-    const contests = await this.contestModel.find({ type: { $ne: ContestType.Competition } }).exec();
-
-    if (!contests[0]?.meetupDetails) {
-      for (const c of contests) {
-        c.meetupDetails = { startTime: c.startDate };
-        c.startDate = getDateOnly(utcToZonedTime(c.startDate, c.timezone));
-        await c.save();
-      }
-    }
-
-    const schedules = await this.scheduleModel.find().exec();
-
-    for (const s of schedules) {
-      const contest = await this.contestModel.findOne({ 'compDetails.schedule': s._id }).exec();
-
-      for (const venue of s.venues) {
-        for (const room of venue.rooms) {
-          for (const activity of room.activities) {
-            if (activity.activityCode !== 'other-misc') {
-              // Check that all results for this schedule activity have the right date
-              const round = await this.roundModel
-                .findOne({ competitionId: contest.competitionId, roundId: activity.activityCode })
-                .populate({ path: 'results', model: 'Result' })
-                .exec();
-
-              if (round) {
-                const activityDate = getDateOnly(utcToZonedTime(activity.startTime, venue.timezone));
-
-                if (round.date.getTime() !== activityDate.getTime()) {
-                  round.date = activityDate;
-                  await round.save();
-                }
-
-                for (const result of round.results) {
-                  if (result.date?.getTime() !== activityDate.getTime()) {
-                    result.date = activityDate;
-                    await result.save();
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
   }
 
   async getContests(region?: string): Promise<ContestDocument[]> {

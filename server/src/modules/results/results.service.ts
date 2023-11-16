@@ -18,6 +18,7 @@ import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { AuthService } from '@m/auth/auth.service';
 import { UsersService } from '@m/users/users.service';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
 import { excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
@@ -35,9 +36,8 @@ import {
   IFrontendResult,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
-import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 
 @Injectable()
 export class ResultsService {
@@ -56,16 +56,15 @@ export class ResultsService {
   async onModuleInit() {
     // DB consistency checks (done only in development)
     if (process.env.NODE_ENV !== 'production') {
-      return;
-
       this.logger.log('Checking results inconsistencies in the DB...');
 
       // Look for orphan contest results or ones that somehow belong to multiple rounds
       const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
       for (const res of contestResults) {
         const rounds = await this.roundModel.find({ results: res }).exec();
-        if (rounds.length === 0) console.error('Error: contest result has no round:', res);
-        else if (rounds.length > 1) console.error('Error: result', res, 'belongs to multiple rounds:', rounds);
+
+        if (rounds.length === 0) this.logger.error(`Error: contest result has no round: ${res}`);
+        else if (rounds.length > 1) this.logger.error(`Error: result ${res} belongs to multiple rounds: ${rounds}`);
       }
 
       // Look for records that are worse than a previous result (DISABLED TO AVOID SLOWING DOWN THE DEV ENVIRONMENT)
@@ -75,6 +74,7 @@ export class ResultsService {
         const singleRecordResults = await this.resultModel
           .find({ eventId: event.eventId, regionalSingleRecord: 'WR' })
           .exec();
+
         for (const result of singleRecordResults) {
           const betterSinglesInThePast = await this.resultModel
             .find({
@@ -83,7 +83,9 @@ export class ResultsService {
             })
             .exec();
           if (betterSinglesInThePast.length > 0) {
-            console.log(`${result.eventId} single WR`, result, 'is worse than these results:', betterSinglesInThePast);
+            this.logger.error(
+              `${result.eventId} single WR ${result} is worse than these results: ${betterSinglesInThePast}`,
+            );
           }
         }
 
@@ -91,6 +93,7 @@ export class ResultsService {
         const averageRecordResults = await this.resultModel
           .find({ eventId: event.eventId, regionalAverageRecord: 'WR' })
           .exec();
+
         for (const result of averageRecordResults) {
           const betterAvgsInThePast = await this.resultModel
             .find({
@@ -99,17 +102,30 @@ export class ResultsService {
             })
             .exec();
           if (betterAvgsInThePast.length > 0) {
-            console.log(`${result.eventId} average WR`, result, 'is worse than these results:', betterAvgsInThePast);
+            this.logger.error(
+              `${result.eventId} average WR ${result} is worse than these results: ${betterAvgsInThePast}`,
+            );
           }
         }
       }
 
-      // Look for orphan rounds or ones that belong to multiple contests
+      // Look for orphan rounds or ones that belong to multiple contests or ones that have an invalid date
       const rounds = await this.roundModel.find().exec();
       for (const round of rounds) {
         const contests = await this.contestModel.find({ 'events.rounds': round }).exec();
-        if (contests.length === 0) console.error('Error: round has no contest:', round);
-        else if (contests.length > 1) console.error('Error: round', round, 'belongs to multiple contests:', contests);
+
+        if (contests.length === 0) this.logger.error(`Error: round has no contest: ${round}`);
+        else if (contests.length > 1)
+          this.logger.error(`Error: round ${round} belongs to multiple contests: ${contests}`);
+        else if (
+          round.date.getUTCHours() !== 0 ||
+          round.date.getUTCMinutes() !== 0 ||
+          round.date.getUTCSeconds() !== 0 ||
+          round.date.getUTCMilliseconds() !== 0
+        )
+          this.logger.error(
+            `Round ${round.roundId} at ${round.competitionId} has invalid date: ${round.date.toUTCString()}`,
+          );
       }
 
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
@@ -130,7 +146,13 @@ export class ResultsService {
         { $group: { _id: '$videoLink', count: { $sum: 1 } } },
         { $match: { count: { $gt: 1 } } },
       ]);
-      if (repeatedVideoLinks.length > 0) console.log('These video links have multiple results:', repeatedVideoLinks);
+      if (repeatedVideoLinks.length > 0) {
+        this.logger.log(
+          `These video links have multiple results: ${repeatedVideoLinks
+            .map((x) => `${x._id} (${x.count})`)
+            .join(', ')}`,
+        );
+      }
 
       // Look for duplicate discussion links
       knownDuplicates = [
@@ -140,14 +162,55 @@ export class ResultsService {
         'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1384930',
         'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-34#post-1512606',
         'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-31#post-1424699',
+        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1563025',
       ];
       const repeatedDiscussionLinks = await this.resultModel.aggregate([
         { $match: { discussionLink: { $exists: true, $nin: knownDuplicates } } },
         { $group: { _id: '$discussionLink', count: { $sum: 1 } } },
         { $match: { count: { $gt: 1 } } },
       ]);
-      if (repeatedDiscussionLinks.length > 0)
-        console.log('These discussion links have multiple results:', repeatedDiscussionLinks);
+      if (repeatedDiscussionLinks.length > 0) {
+        this.logger.error(
+          `These discussion links have multiple results: ${repeatedDiscussionLinks
+            .map((x) => `${x._id} (${x.count})`)
+            .join(', ')}`,
+        );
+      }
+
+      // Look for results with invalid date
+      const results = await this.resultModel.find().exec();
+
+      for (const result of results) {
+        if (
+          result.date.getUTCHours() !== 0 ||
+          result.date.getUTCMinutes() !== 0 ||
+          result.date.getUTCSeconds() !== 0 ||
+          result.date.getUTCMilliseconds() !== 0
+        )
+          this.logger.error(
+            `Result ${result._id} from competition ${
+              result.competitionId
+            } has invalid date: ${result.date.toUTCString()}`,
+          );
+      }
+
+      this.logger.log('All inconsistencies checked!');
+    }
+
+    // TEMPORARY
+    const results2 = await this.resultModel.find().exec();
+
+    for (const result of results2) {
+      if (
+        result.date.getUTCHours() !== 0 ||
+        result.date.getUTCMinutes() !== 0 ||
+        result.date.getUTCSeconds() !== 0 ||
+        result.date.getUTCMilliseconds() !== 0
+      ) {
+        this.logger.log(`Fixing result ${result._id}`);
+        result.date = getDateOnly(result.date);
+        await result.save();
+      }
     }
   }
 
