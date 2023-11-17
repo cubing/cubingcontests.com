@@ -345,7 +345,6 @@ const ImportExportPage = () => {
         rounds.push({
           roundId: `${ccEventId}-r${i + 1}`,
           competitionId,
-          date,
           roundTypeId: getRoundType(i, roundsInfo.length),
           format,
           results: roundResults,

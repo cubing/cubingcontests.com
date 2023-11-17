@@ -88,17 +88,8 @@ export class ContestsService {
                   } else {
                     const activityDate = getDateOnly(startTime);
 
-                    if (round.date.getTime() !== activityDate.getTime())
-                      this.logger.error(
-                        `Round ${round.roundId} at ${
-                          contest.competitionId
-                        } has a date different from the schedule activity, which is ${activityDate.toUTCString()}`,
-                      );
-
                     for (const result of round.results) {
-                      //console.log(round, result, result.date);
-
-                      if (result.date?.getTime() !== activityDate.getTime())
+                      if (result.date.getTime() !== activityDate.getTime())
                         this.logger.error(
                           `Result ${result} from round ${round.roundId} at ${
                             contest.competitionId
@@ -269,7 +260,7 @@ export class ContestsService {
     contest.events = await this.updateContestEvents(contest, updateContestDto.events);
     if (updateContestDto.compDetails) {
       if (contest.compDetails) {
-        if (isAdmin || contest.state < ContestState.Finished) {
+        if (contest.state < ContestState.Ongoing) {
           await this.scheduleModel.updateOne(
             { _id: contest.compDetails.schedule._id },
             updateContestDto.compDetails.schedule,
@@ -468,7 +459,6 @@ export class ContestsService {
 
               if (sameRoundInContest.results.length === 0) {
                 sameRoundInContest.format = round.format;
-                if (contest.state < ContestState.Approved) sameRoundInContest.date = round.date;
               }
 
               // Update proceed object if the updated round has it, or unset proceed if it doesn't,

@@ -10,7 +10,6 @@ export const newContestEventsStub = (): IContestEvent[] => {
         {
           roundId: '333-r1',
           competitionId: 'Munich30062023',
-          date: new Date('2023-06-30T00:00:00Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Average,
           results: [
@@ -65,7 +64,6 @@ export const newContestEventsStub = (): IContestEvent[] => {
         {
           roundId: '333fm-r1',
           competitionId: 'Munich30062023',
-          date: new Date('2023-06-30T00:00:00Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Mean,
           results: [
@@ -114,7 +112,6 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: '222-r1',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.Average,
           results: [
@@ -154,7 +151,6 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: '222-r2',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Average,
           results: [
@@ -184,7 +180,6 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: '222-r3',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.Final,
           format: RoundFormat.Mean,
           results: [
@@ -209,7 +204,6 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: '333fm-r1',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.Mean,
           results: [
@@ -256,10 +250,10 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
             },
           ],
         },
+        // DIFFERENT DAY
         {
           roundId: '333fm-r2',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-02T00:00:00Z'), // DIFFERENT DAY
           roundTypeId: RoundType.Second,
           format: RoundFormat.Mean,
           results: [
@@ -296,10 +290,10 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
             },
           ],
         },
+        // Same day (earlier time, which should be irrelevant)
         {
           roundId: '333fm-r3',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-02T00:00:00Z'), // same day (earlier time, which should be irrelevant)
           roundTypeId: RoundType.Semi,
           format: RoundFormat.Mean,
           results: [
@@ -336,10 +330,10 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
             },
           ],
         },
+        // DIFFERENT DAY (no records)
         {
           roundId: '333fm-r4',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-03T00:00:00Z'), // DIFFERENT DAY (no records)
           roundTypeId: RoundType.Final,
           format: RoundFormat.Mean,
           results: [
@@ -373,7 +367,6 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: '333bf-r1',
           competitionId: 'TestComp2023',
-          date: new Date('2023-07-01T00:00:00Z'),
           roundTypeId: RoundType.First,
           format: RoundFormat.BestOf3,
           results: [

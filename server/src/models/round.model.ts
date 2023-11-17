@@ -18,16 +18,11 @@ const ProceedSchema = SchemaFactory.createForClass(Proceed);
 
 @Schema({ timestamps: true })
 export class Round implements IRound {
-  // THIS IS TEMPORARY
-  // @Prop({ required: true, immutable: true })
-  @Prop({ required: true })
+  @Prop({ required: true, immutable: true })
   roundId: string;
 
   @Prop({ required: true, immutable: true })
   competitionId: string;
-
-  @Prop({ required: true })
-  date: Date;
 
   @Prop({ enum: RoundType, required: true })
   roundTypeId: RoundType;

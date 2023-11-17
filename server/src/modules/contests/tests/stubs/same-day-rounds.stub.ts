@@ -46,7 +46,6 @@ export const sameDayBLDRoundsStub = (): RoundDocument[] => {
     {
       roundId: '333bf-r1',
       competitionId: 'BLDTestComp2023',
-      date: new Date('2023-07-01T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
@@ -81,7 +80,6 @@ export const sameDayFMRoundsStub = (): RoundDocument[] => {
     {
       roundId: '333fm-r1',
       competitionId: 'FMTestComp2023',
-      date: new Date('2023-07-01T00:00:00Z'),
       roundTypeId: RoundType.First,
       format: RoundFormat.Mean,
       results: [
@@ -121,7 +119,6 @@ export const sameDayFMRoundsStub = (): RoundDocument[] => {
     {
       roundId: '333fm-r1',
       competitionId: 'FMTestComp2023',
-      date: new Date('2023-07-01T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [

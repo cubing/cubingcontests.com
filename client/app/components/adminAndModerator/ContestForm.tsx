@@ -269,29 +269,11 @@ const ContestForm = ({
       if (typeof longitude === 'number') longitudeMicrodegrees = Math.round(longitude * 1000000);
     }
 
-    const getRoundDate = (round: IRound): Date => {
-      if (type !== ContestType.Competition) {
-        return startDate;
-      } else {
-        // If it's a competition, find the start time of the round using the schedule and get
-        // the date using the time zone. Again, the date could be different from the UTC date.
-        let roundStartTime: Date;
-        for (const room of rooms) {
-          const activity = room.activities.find((a) => a.activityCode === round.roundId);
-          if (activity) {
-            roundStartTime = activity.startTime;
-            break;
-          }
-        }
-        return getDateOnly(utcToZonedTime(roundStartTime, venueTimeZone));
-      }
-    };
-
-    // Set the competition ID and date for every round and empty results if there were any from
-    // editing the contest, in order to avoid sending too much data to the backend
+    // Set the competition ID for every round and empty results if there were any
+    // in order to avoid sending too much data to the backend
     const processedCompEvents = contestEvents.map((ce) => ({
       ...ce,
-      rounds: ce.rounds.map((round) => ({ ...round, competitionId, date: getRoundDate(round), results: [] })),
+      rounds: ce.rounds.map((round) => ({ ...round, competitionId, results: [] })),
     }));
 
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
@@ -533,7 +515,6 @@ const ContestForm = ({
     return {
       roundId: `${eventId}-r${roundNumber}`,
       competitionId: 'temp', // this gets replaced for all rounds on submit
-      date: startDate, // this also gets reset on submit
       roundTypeId: RoundType.Final,
       format: events.find((el) => el.eventId === eventId).defaultRoundFormat,
       results: [],

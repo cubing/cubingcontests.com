@@ -257,9 +257,6 @@ class RoundDto implements IRound {
   @IsNotEmpty()
   competitionId: string;
 
-  @IsDateString()
-  date: Date;
-
   @IsEnum(RoundType)
   roundTypeId: RoundType;
 

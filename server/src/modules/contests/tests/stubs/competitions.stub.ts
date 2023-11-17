@@ -28,7 +28,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333_team_bld-r1',
               competitionId: 'Munich19022023',
-              date: new Date('2023-02-19T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -72,7 +71,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333oh-r1',
               competitionId: 'Munich19022023',
-              date: new Date('2023-02-19T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -109,7 +107,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333-r1',
               competitionId: 'Munich19022023',
-              date: new Date('2023-02-19T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -168,7 +165,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333bf-r1',
               competitionId: 'Munich19022023',
-              date: new Date('2023-02-19T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.BestOf3,
               results: [
@@ -234,7 +230,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '444-r1',
               competitionId: 'Munich14062023',
-              date: new Date('2023-06-14T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -304,7 +299,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '555-r1',
               competitionId: 'Munich14062023',
-              date: new Date('2023-06-14T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -358,7 +352,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333bf-r1',
               competitionId: 'Munich14062023',
-              date: new Date('2023-06-14T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.BestOf3,
               results: [
@@ -417,7 +410,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333fm-r1',
               competitionId: 'Munich14062023',
-              date: new Date('2023-06-14T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Mean,
               results: [
@@ -465,7 +457,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333oh-r1',
               competitionId: 'Munich14062023',
-              date: new Date('2023-06-14T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -524,7 +515,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '222-r1',
               competitionId: 'Munich14062023',
-              date: new Date('2023-06-14T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -594,7 +584,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333-r1',
               competitionId: 'Munich14062023',
-              date: new Date('2023-06-14T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -682,7 +671,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '666-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Mean,
               results: [
@@ -742,7 +730,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333_team_bld-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -780,7 +767,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -861,7 +847,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333oh-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -943,7 +928,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '222-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -1014,7 +998,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '444-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -1073,7 +1056,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333bf-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.BestOf3,
               results: [
@@ -1121,7 +1103,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333-team-factory-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -1159,7 +1140,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '555-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [
@@ -1230,7 +1210,6 @@ export const competitionsStub = (): ContestDocument[] => {
             {
               roundId: '333fm-r1',
               competitionId: 'Munich27062023',
-              date: new Date('2023-06-27T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Mean,
               results: [
@@ -1308,7 +1287,6 @@ export const competitionsStub = (): ContestDocument[] => {
               roundId: '333-r1',
               competitionId: 'Munich30062023',
               eventId: '333',
-              date: new Date('2023-06-30T00:00:00Z'),
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
               results: [],

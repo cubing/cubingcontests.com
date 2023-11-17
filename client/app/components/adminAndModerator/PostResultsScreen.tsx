@@ -72,7 +72,7 @@ const PostResultsScreen = ({
       const newResult: IResult = {
         competitionId: contest.competitionId,
         eventId: currEvent.eventId,
-        date: round.date,
+        date: new Date(), // real date assigned on the backend
         personIds: currentPersons.map((el) => el?.personId || null),
         ranking: 0, // real rankings assigned on the backend
         attempts,

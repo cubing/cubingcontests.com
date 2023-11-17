@@ -13,6 +13,7 @@ import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { PersonDocument } from '~/src/models/person.model';
 import { EventDocument } from '~/src/models/event.model';
+import { ScheduleDocument } from '~/src/models/schedule.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { EventsService } from '@m/events/events.service';
 import { PersonsService } from '@m/persons/persons.service';
@@ -23,7 +24,7 @@ import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
 import { excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
-import { ContestState, Role, WcaRecordType } from '@sh/enums';
+import { ContestState, ContestType, Role, WcaRecordType } from '@sh/enums';
 import {
   IEventRankings,
   IRecordType,
@@ -34,10 +35,12 @@ import {
   IRanking,
   IEvent,
   IFrontendResult,
+  IActivity,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
+import { utcToZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class ResultsService {
@@ -51,6 +54,7 @@ export class ResultsService {
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
+    @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
   async onModuleInit() {
@@ -119,15 +123,6 @@ export class ResultsService {
         if (contests.length === 0) this.logger.error(`Error: round has no contest: ${round}`);
         else if (contests.length > 1)
           this.logger.error(`Error: round ${round} belongs to multiple contests: ${contests}`);
-        else if (
-          round.date.getUTCHours() !== 0 ||
-          round.date.getUTCMinutes() !== 0 ||
-          round.date.getUTCSeconds() !== 0 ||
-          round.date.getUTCMilliseconds() !== 0
-        )
-          this.logger.error(
-            `Round ${round.roundId} at ${round.competitionId} has invalid date: ${round.date.toUTCString()}`,
-          );
       }
 
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
@@ -492,7 +487,33 @@ export class ResultsService {
     // anyways, so the roles don't need to be checked here.
     if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
 
-    createResultDto.date = new Date(createResultDto.date);
+    // Set result date
+    if (contest.type !== ContestType.Competition) {
+      createResultDto.date = contest.startDate;
+    } else {
+      const schedule = await this.scheduleModel.findOne({ competitionId: createResultDto.competitionId }).exec();
+
+      if (!schedule)
+        throw new BadRequestException(`No schedule found for contest with ID ${createResultDto.competitionId}`);
+
+      let activity: IActivity;
+
+      scheduleLoop: {
+        for (const venue of schedule.venues) {
+          for (const room of venue.rooms) {
+            for (const act of room.activities) {
+              if (act.activityCode === roundId) {
+                activity = act;
+                createResultDto.date = getDateOnly(utcToZonedTime(activity.startTime, venue.timezone));
+                break scheduleLoop;
+              }
+            }
+          }
+        }
+      }
+
+      if (!activity) throw new BadRequestException(`No schedule activity found for round with ID ${roundId}`);
+    }
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
     let round: RoundDocument;
@@ -796,7 +817,7 @@ export class ResultsService {
       .exec();
 
     for (const res of recordResults) {
-      console.log(`Resetting records for ${res.eventId} from result: ${JSON.stringify(res, null, 2)}`);
+      this.logger.log(`Resetting records for ${res.eventId} from result: ${JSON.stringify(res, null, 2)}`);
       await this.resetCancelledRecords(res);
     }
   }
@@ -811,7 +832,7 @@ export class ResultsService {
     if (result.best <= 0 && result.average <= 0) return;
     if (!event) event = await this.eventsService.getEventById(result.eventId);
 
-    console.log(`Resetting ${event.eventId} records cancelled by result`);
+    this.logger.log(`Resetting ${event.eventId} records cancelled by result`);
 
     // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
     // reset ALL results that are no longer records. If contest is undefined, also do it for all results.

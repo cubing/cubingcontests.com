@@ -6,7 +6,6 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
     {
       roundId: '333-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
@@ -59,7 +58,6 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
     {
       roundId: '333fm-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
@@ -116,7 +114,6 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
     {
       roundId: '333bf-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
@@ -195,7 +192,6 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
     {
       roundId: '222-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3, // ATYPICAL FORMAT
       results: [
@@ -237,7 +233,6 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
     {
       roundId: '555-r1',
       competitionId: 'Munich19022023',
-      date: new Date('2023-02-19T00:00:00Z'),
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [

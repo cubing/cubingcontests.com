@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ResultSchema } from '~/src/models/result.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { ContestSchema } from '~/src/models/contest.model';
+import { ScheduleSchema } from '~/src/models/schedule.model';
 import { RecordTypesModule } from '@m/record-types/record-types.module';
 import { EventsModule } from '@m/events/events.module';
 import { PersonsModule } from '@m/persons/persons.module';
@@ -24,6 +25,7 @@ import { LoggerModule } from '@m/my-logger/my-logger.module';
       { name: 'Result', schema: ResultSchema },
       { name: 'Round', schema: RoundSchema },
       { name: 'Competition', schema: ContestSchema },
+      { name: 'Schedule', schema: ScheduleSchema },
     ]),
   ],
   controllers: [ResultsController],

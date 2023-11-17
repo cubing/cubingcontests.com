@@ -72,6 +72,10 @@ describe('ResultsService', () => {
           provide: getModelToken('Competition'),
           useFactory: CompetitionModelMock,
         },
+        {
+          provide: getModelToken('Schedule'),
+          useValue: {},
+        },
       ],
     }).compile();
 
