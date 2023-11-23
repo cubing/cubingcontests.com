@@ -1,0 +1,15 @@
+{
+  "name": "scorecards",
+  "version": "1.0.0",
+  "description": "Scorecards generator for Speedcubing competitions",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Deni Mintsaev",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@foliojs-fork/fontkit": "^1.9.1",
+    "pdfmake": "^0.2.8"
+  }
+}

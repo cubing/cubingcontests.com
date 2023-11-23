@@ -14,6 +14,7 @@ import { ResultsModule } from './modules/results/results.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LogSchema } from '~/src/models/log.model';
+import { ContestSchema } from '~/src/models/contest.model';
 
 @Module({
   imports: [
@@ -26,7 +27,10 @@ import { LogSchema } from '~/src/models/log.model';
       serveRoot: '/api',
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
-    MongooseModule.forFeature([{ name: 'Log', schema: LogSchema }]),
+    MongooseModule.forFeature([
+      { name: 'Log', schema: LogSchema },
+      { name: 'Competition', schema: ContestSchema },
+    ]),
     LoggerModule,
     ContestsModule,
     PersonsModule,
