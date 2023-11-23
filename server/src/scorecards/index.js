@@ -13,9 +13,9 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
-export const getScorecards = async (contestName, event, round, timeLimit) => {
+export const getScorecards = async (contestName, event, round, timeLimit, cutoff) => {
   const getSingleScorecard = () => [
-    { text: contestName, fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 20] },
+    { text: contestName, fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
     {
       layout: 'noBorders',
       table: {
@@ -23,8 +23,8 @@ export const getScorecards = async (contestName, event, round, timeLimit) => {
         widths: ['75%', '25%'],
         body: [
           [
-            { text: event, fontSize: 12 },
-            { text: `Round ${round}`, fontSize: 12 },
+            { text: event, fontSize: 10 },
+            { text: `Round ${round}`, fontSize: 10 },
           ],
         ],
       },
@@ -33,9 +33,9 @@ export const getScorecards = async (contestName, event, round, timeLimit) => {
     {
       table: {
         widths: ['100%'],
-        body: [[{ text: '', margin: [0, 0, 0, 26] }]],
+        body: [[{ text: '', margin: [0, 0, 0, 22] }], [{ text: '', margin: [0, 0, 0, 22] }]],
       },
-      margin: [6, 0, 0, 16],
+      margin: [6, 0, 0, 8],
     },
     {
       table: {
@@ -59,8 +59,18 @@ export const getScorecards = async (contestName, event, round, timeLimit) => {
       },
     },
     {
-      text: `Time limit: ${timeLimit}`,
-      margin: [22, 10, 0, 35],
+      layout: 'noBorders',
+      table: {
+        headerRows: 0,
+        widths: ['50%', '50%'],
+        body: [
+          [
+            { text: `Time limit: ${timeLimit}`, fontSize: 12 },
+            { text: cutoff ? `Cutoff: ${cutoff}` : '', fontSize: 12, alignment: 'right' },
+          ],
+        ],
+      },
+      margin: [22, 8, 0, 30],
     },
   ];
 
@@ -88,9 +98,9 @@ export const getScorecards = async (contestName, event, round, timeLimit) => {
         lineHeight: 1.2,
       },
       colHeader: {
-        margin: [0, 0, 0, 4],
+        margin: [0, 0, 0, 3],
         alignment: 'center',
-        fontSize: 10,
+        fontSize: 8,
       },
     },
   };

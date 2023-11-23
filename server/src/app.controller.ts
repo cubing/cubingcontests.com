@@ -51,7 +51,7 @@ export class AppController {
     if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
 
     // To-Do: REMOVE HARD-CODING
-    const buffer = await getScorecards(contest.name, contest.events[0].event.name, 1, '3:00');
+    const buffer = await getScorecards(contest.name, contest.events[0].event.name, 1, '4:00', '2:00');
 
     res.set({
       'Content-Type': 'application/pdf',
