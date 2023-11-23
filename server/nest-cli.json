@@ -5,6 +5,7 @@
   "entryFile": "server/src/main.js",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": ["public"]
+    "assets": ["public", "scorecards/fonts/*"],
+    "watchAssets": true
   }
 }

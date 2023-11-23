@@ -686,6 +686,18 @@ const ContestForm = ({
     });
   };
 
+  const downloadScorecards = async () => {
+    setLoadingDuringSubmit(true);
+
+    const { errors } = await myFetch.get(`/scorecards/${contest.competitionId}`, {
+      authorize: true,
+      fileName: `${contest.competitionId}_Scorecards.pdf`,
+    });
+
+    setErrorMessages(errors || []);
+    setLoadingDuringSubmit(false);
+  };
+
   return (
     <div>
       <Form
@@ -698,6 +710,16 @@ const ContestForm = ({
 
         {activeTab === 'details' && (
           <>
+            {mode === 'edit' && isAdmin && (
+              <div className="d-flex mt-3 mb-4">
+                <Button
+                  text="Scorecards"
+                  onClick={downloadScorecards}
+                  loading={loadingDuringSubmit}
+                  className="btn-success"
+                />
+              </div>
+            )}
             <FormTextInput
               title="Contest name"
               value={name}

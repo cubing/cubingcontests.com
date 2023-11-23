@@ -19,6 +19,7 @@ const doFetch = async (
   body: unknown = null,
   authorize = true,
   redirect?: string,
+  fileName?: string,
 ): Promise<IFetchObj> => {
   const options: any = { method, headers: {} };
 
@@ -60,21 +61,26 @@ const doFetch = async (
 
   // Get JSON, if it was returned. KEEP IN MIND THAT THE .json ENDPOINTS RETURN TEXT AND DON'T SET 400 STATUSES.
   let json;
+  let blobby; // if dlFile = true, the file will be saved here
   let is404 = false;
 
-  if (res.headers.get('content-type')?.includes('application/json')) {
-    try {
-      json = await res.json();
-    } catch (err: any) {
-      console.error(err);
-      return { errors: [err?.message || 'Unknown error while parsing JSON'] };
+  if (!fileName) {
+    if (res.headers.get('content-type')?.includes('application/json')) {
+      try {
+        json = await res.json();
+      } catch (err: any) {
+        console.error(err);
+        return { errors: [err?.message || 'Unknown error while parsing JSON'] };
+      }
+    } else if (url.slice(url.length - 5) === '.json') {
+      try {
+        json = JSON.parse(await res.text());
+      } catch (err) {
+        is404 = true;
+      }
     }
-  } else if (url.slice(url.length - 5) === '.json') {
-    try {
-      json = JSON.parse(await res.text());
-    } catch (err) {
-      is404 = true;
-    }
+  } else {
+    blobby = await res.blob();
   }
 
   // Handle bad requests/server errors
@@ -102,8 +108,19 @@ const doFetch = async (
 
       return { errors };
     }
-  } else if (json) {
+  } else if (!fileName && json) {
     return { payload: json };
+  } else if (fileName) {
+    const anchor = document.createElement('a');
+    document.body.appendChild(anchor);
+    const objectUrl = window.URL.createObjectURL(blobby);
+
+    anchor.href = objectUrl;
+    anchor.download = fileName;
+    anchor.click();
+
+    window.URL.revokeObjectURL(objectUrl);
+    return {};
   }
 
   // If no JSON payload or error was returned, just get the response text
@@ -117,17 +134,19 @@ const myFetch = {
       authorize = false,
       redirect = '',
       revalidate = false,
+      fileName,
     }: {
       authorize?: boolean;
       redirect?: string; // this can only be set if authorize is set too
       revalidate?: number | false;
+      fileName?: string;
     } = {
       authorize: false,
       redirect: '',
       revalidate: false,
     },
   ): Promise<IFetchObj> {
-    return await doFetch(url, 'GET', revalidate, null, authorize, redirect);
+    return await doFetch(url, 'GET', revalidate, null, authorize, redirect, fileName);
   },
   async post(
     url: string,
