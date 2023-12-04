@@ -2,7 +2,7 @@ import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitor from '@c/Competitor';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
-import { RoundProceed, RoundType } from '@sh/enums';
+import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
 import { roundFormats } from '@sh/roundFormats';
 
@@ -57,7 +57,7 @@ const RoundResultsTable = ({
             <th scope="col">#</th>
             <th scope="col">Name</th>
             <th scope="col">Best</th>
-            {roundCanHaveAverage && <th scope="col">Average</th>}
+            {roundCanHaveAverage && <th scope="col">{round.format === RoundFormat.Average ? 'Average' : 'Mean'}</th>}
             <th scope="col">Solves</th>
             {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
