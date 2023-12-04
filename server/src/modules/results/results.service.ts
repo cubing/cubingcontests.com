@@ -24,7 +24,7 @@ import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
 import { excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
-import { ContestState, ContestType, Role, WcaRecordType } from '@sh/enums';
+import { ContestState, Role, WcaRecordType } from '@sh/enums';
 import {
   IEventRankings,
   IRecordType,
@@ -38,7 +38,7 @@ import {
   IActivity,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { getDateOnly, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getDateOnly, getIsCompType, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 import { utcToZonedTime } from 'date-fns-tz';
 
@@ -487,8 +487,8 @@ export class ResultsService {
     // anyways, so the roles don't need to be checked here.
     if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
 
-    // Set result date
-    if (contest.type !== ContestType.Competition) {
+    // Set result date. For contests with a schedule, the schedule must be used to set the date.
+    if (!getIsCompType(contest.type)) {
       createResultDto.date = contest.startDate;
     } else {
       const schedule = await this.scheduleModel.findOne({ competitionId: createResultDto.competitionId }).exec();

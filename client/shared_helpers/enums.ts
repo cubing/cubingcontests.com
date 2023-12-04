@@ -48,8 +48,9 @@ export enum RoundProceed {
 
 export enum ContestType {
   Meetup = 1,
-  Competition = 2,
+  WcaComp = 2,
   Online = 3,
+  Competition = 4,
 }
 
 // The order is important here

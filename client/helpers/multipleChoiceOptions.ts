@@ -50,10 +50,16 @@ export const contestTypeOptions: MultiChoiceOption[] = [
     color: Color.Blue,
   },
   {
+    label: 'WCA Competition',
+    shortLabel: 'WCA',
+    value: ContestType.WcaComp,
+    color: Color.Red,
+  },
+  {
     label: 'Competition',
     shortLabel: 'Comp',
     value: ContestType.Competition,
-    color: Color.Red,
+    color: Color.Yellow,
   },
 ];
 

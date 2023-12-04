@@ -1,6 +1,6 @@
 import Tabs from './Tabs';
-import { ContestType } from '@sh/enums';
 import { IContest } from '@sh/interfaces';
+import { getIsCompType } from '@sh/sharedFunctions';
 
 const ContestLayout = ({
   contest,
@@ -24,7 +24,7 @@ const ContestLayout = ({
       title: 'Schedule',
       value: 'schedule',
       route: `/competitions/${contest.competitionId}/schedule`,
-      hidden: contest.type !== ContestType.Competition,
+      hidden: !getIsCompType(contest.type),
     },
   ];
 

@@ -21,7 +21,7 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { AuthService } from '../auth/auth.service';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { addDays } from 'date-fns';
-import { getDateOnly } from '@sh/sharedFunctions';
+import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
 
 const PLEASE_ENTER_ADDRESS_MSG = 'Please enter an address';
 const PLEASE_ENTER_VENUE_MSG = 'Please enter the venue name';
@@ -294,7 +294,7 @@ export class ContestsService {
     // Even an admin is not allowed to edit these after a comp has been approved
     if (contest.state < ContestState.Approved) {
       contest.startDate = updateContestDto.startDate;
-      if (contest.type === ContestType.Competition) contest.endDate = updateContestDto.endDate;
+      if (getIsCompType(contest.type)) contest.endDate = updateContestDto.endDate;
     }
 
     await this.saveContest(contest);
@@ -309,7 +309,7 @@ export class ContestsService {
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (contest.type === ContestType.Competition && !contest.compDetails)
+    if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
 
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.

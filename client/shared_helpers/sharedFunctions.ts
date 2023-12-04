@@ -1,4 +1,4 @@
-import { EventFormat, EventGroup, RoundFormat, WcaRecordType } from './enums';
+import { ContestType, EventFormat, EventGroup, RoundFormat, WcaRecordType } from './enums';
 import { IResult, IRecordPair, IEvent } from './interfaces';
 import { roundFormats } from './roundFormats';
 
@@ -79,4 +79,8 @@ export const getDefaultAverageAttempts = (event: IEvent) =>
 
 export const getAlwaysShowDecimals = (event: IEvent): boolean => {
   return event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
+};
+
+export const getIsCompType = (contestType: ContestType): boolean => {
+  return [ContestType.WcaComp, ContestType.Competition].includes(contestType);
 };

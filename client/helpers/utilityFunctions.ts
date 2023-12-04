@@ -445,7 +445,7 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
   const newContest: IContest = {
     competitionId,
     name: wcaCompData.name,
-    type: ContestType.Competition,
+    type: ContestType.WcaComp,
     city: wcaCompData.city,
     countryIso2: wcaCompData.country,
     // Gets rid of the link and just takes the venue name

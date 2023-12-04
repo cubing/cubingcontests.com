@@ -39,6 +39,7 @@ import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
 import { getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
+import { getIsCompType } from '~~/client/shared_helpers/sharedFunctions';
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
@@ -86,7 +87,7 @@ export class CreateContestDto implements IContest {
   @IsDateString({}, { message: 'Please enter a valid start date' })
   startDate: Date;
 
-  @ValidateIf((obj) => obj.type === ContestType.Competition)
+  @ValidateIf((obj) => getIsCompType(obj.type))
   @IsDateString({}, { message: 'Please enter a valid end date' })
   endDate?: Date;
 
@@ -103,7 +104,7 @@ export class CreateContestDto implements IContest {
   @IsString()
   description?: string;
 
-  @ValidateIf((obj) => obj.type === ContestType.Competition || obj.competitorLimit)
+  @ValidateIf((obj) => getIsCompType(obj.type) || obj.competitorLimit)
   @IsInt({ message: 'Please enter a valid competitor limit' })
   @Min(C.minCompetitorLimit, { message: `The competitor limit cannot be less than ${C.minCompetitorLimit}` })
   competitorLimit?: number;
@@ -113,12 +114,12 @@ export class CreateContestDto implements IContest {
   @Type(() => ContestEventDto)
   events: IContestEvent[];
 
-  @ValidateIf((obj) => obj.type === ContestType.Competition)
+  @ValidateIf((obj) => getIsCompType(obj.type))
   @ValidateNested()
   @Type(() => CompetitionDetailsDto)
   compDetails?: ICompetitionDetails;
 
-  @ValidateIf((obj) => obj.type !== ContestType.Competition)
+  @ValidateIf((obj) => !getIsCompType(obj.type))
   @ValidateNested()
   @Type(() => MeetupDetailsDto)
   meetupDetails?: IMeetupDetails;

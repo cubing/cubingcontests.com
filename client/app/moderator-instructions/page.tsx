@@ -16,9 +16,7 @@ const ModeratorInstructions = () => {
       </p>
       <p>1.1. Username</p>
       <p>1.2. WCA ID</p>
-      <p>
-        1.3. Name of the competition you are organizing (<b>only applies to A</b>)
-      </p>
+      <p>1.3. Name of the competition/meetup you are organizing</p>
       <p>
         2. Once an admin grants you moderator privileges and ties your competitor profile to your account, log out and
         log back in. You will now be able to find the "Mod Dashboard" button in the user section in the navbar. Go to
@@ -28,7 +26,7 @@ const ModeratorInstructions = () => {
       <p>
         A1. If you are holding unofficial events at a WCA competition, first you must wait until it's approved on the
         WCA website. Then you can click on "Create new contest", enter the ID of the competition from the WCA website,
-        select the "Competition" contest type, and click "Get WCA competition details".
+        select the "WCA Competition" contest type, and click "Get WCA competition details".
       </p>
       <p>
         A2. Edit the editable fields, if necessary. You can also add additional organizers (e.g. those who are
@@ -64,9 +62,8 @@ const ModeratorInstructions = () => {
       </p>
       <div style={{ height: '1rem' }} />
       <p>
-        B1. If you are holding an unofficial competition, this works almost the same way as hosting unofficial events
-        for a WCA competition, except you don't need to use the "Get WCA competition details" button. Instead, you must
-        fill out the details manually.
+        B1. If you are holding an unofficial competition, this works almost the same way as hosting unofficial events at
+        a WCA competition, except you must use the "Competition" contest type and fill out the contest details manually.
       </p>
       <div style={{ height: '1rem' }} />
       <p>

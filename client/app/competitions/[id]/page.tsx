@@ -69,7 +69,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             )}
             {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
             {contest.address && <p className="mb-2">Address:&#8194;{contest.address}</p>}
-            {contest.latitudeMicrodegrees && contest.longitudeMicrodegrees && (
+            {contest.latitudeMicrodegrees !== undefined && contest.longitudeMicrodegrees !== undefined && (
               <p className="mb-2">Coordinates:&#8194;{getFormattedCoords(contest)}</p>
             )}
             {contest.contact && (

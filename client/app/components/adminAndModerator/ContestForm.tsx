@@ -29,7 +29,7 @@ import {
   IMeetupDetails,
 } from '@sh/interfaces';
 import { Color, ContestState, ContestType, EventGroup, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { getDateOnly } from '@sh/sharedFunctions';
+import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
 import {
   colorOptions,
   contestTypeOptions,
@@ -58,7 +58,7 @@ const ContestForm = ({
   const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
-  const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.Competition);
+  const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -103,7 +103,7 @@ const ContestForm = ({
     () => [
       { title: 'Details', value: 'details' },
       { title: 'Events', value: 'events' },
-      { title: 'Schedule', value: 'schedule', hidden: type !== ContestType.Competition },
+      { title: 'Schedule', value: 'schedule', hidden: !getIsCompType(type) },
     ],
     [type],
   );
@@ -200,7 +200,7 @@ const ContestForm = ({
       // Convert the dates from string to Date
       setStartDate(new Date(contest.startDate));
 
-      if (contest.type !== ContestType.Competition) {
+      if (!getIsCompType(contest.type)) {
         setStartTime(new Date(contest.meetupDetails.startTime));
 
         if (contest.type === ContestType.Meetup) setVenueTimeZone(contest.timezone);
@@ -253,11 +253,7 @@ const ContestForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
-    if (
-      !startDate ||
-      (type === ContestType.Competition && !endDate) ||
-      (type !== ContestType.Competition && !startTime)
-    ) {
+    if (!startDate || (getIsCompType(type) && !endDate) || (!getIsCompType(type) && !startTime)) {
       setErrorMessages(['Please enter valid dates']);
       return;
     }
@@ -279,7 +275,7 @@ const ContestForm = ({
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
     let meetupDetails: IMeetupDetails; // this is left undefined if the type is competition
 
-    if (type === ContestType.Competition) {
+    if (getIsCompType(type)) {
       compDetails = {
         schedule: {
           competitionId,
@@ -315,7 +311,7 @@ const ContestForm = ({
       latitudeMicrodegrees,
       longitudeMicrodegrees,
       startDate,
-      endDate: type === ContestType.Competition ? endDate : undefined,
+      endDate: getIsCompType(type) ? endDate : undefined,
       organizers: selectedOrganizers,
       contact: contact.trim() || undefined,
       description: description.trim() || undefined,
@@ -338,7 +334,7 @@ const ContestForm = ({
     if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
       tempErrors.push('Please enter all organizers');
 
-    if (type === ContestType.Competition) {
+    if (getIsCompType(type)) {
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
       if (activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
     }
@@ -454,7 +450,7 @@ const ContestForm = ({
 
           if (type === ContestType.Meetup) {
             setStartTime(zonedTimeToUtc(utcToZonedTime(startTime, venueTimeZone), timeZone));
-          } else if (type === ContestType.Competition) {
+          } else if (getIsCompType(type)) {
             setRooms(
               rooms.map((r) => ({
                 ...r,
@@ -472,7 +468,7 @@ const ContestForm = ({
   };
 
   const changeStartDate = (newDate: Date) => {
-    if (type !== ContestType.Competition) {
+    if (!getIsCompType(type)) {
       setStartTime(newDate);
       setStartDate(getDateOnly(utcToZonedTime(newDate, venueTimeZone)));
     } else {
@@ -740,7 +736,7 @@ const ContestForm = ({
               setSelected={setType}
               disabled={mode !== 'new' || disableIfDetailsImported}
             />
-            {type === ContestType.Competition && (mode === 'new' || isAdmin) && (
+            {type === ContestType.WcaComp && (mode === 'new' || isAdmin) && (
               <Button
                 text="Get WCA competition details"
                 onClick={fetchWcaCompDetails}
@@ -806,7 +802,7 @@ const ContestForm = ({
             )}
             <div className="my-3 row">
               <div className="col">
-                {type !== ContestType.Competition ? (
+                {!getIsCompType(type) ? (
                   <FormDatePicker
                     id="start_date"
                     title={`Start date and time (${
@@ -830,7 +826,7 @@ const ContestForm = ({
                   />
                 )}
               </div>
-              {type === ContestType.Competition && (
+              {getIsCompType(type) && (
                 <div className="col">
                   <FormDatePicker
                     id="end_date"
@@ -872,7 +868,7 @@ const ContestForm = ({
               disabled={disableIfCompFinished}
             />
             <FormNumberInput
-              title={'Competitor limit' + (type !== ContestType.Competition ? ' (optional)' : '')}
+              title={'Competitor limit' + (!getIsCompType(type) ? ' (optional)' : '')}
               value={competitorLimit}
               setValue={setCompetitorLimit}
               disabled={disableIfCompApproved || disableIfDetailsImported}
