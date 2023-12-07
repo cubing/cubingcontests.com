@@ -24,7 +24,7 @@
     "eslint-config-next": "13.4.6",
     "geo-tz": "^7.0.7",
     "jwt-decode": "^3.1.2",
-    "next": "^13.4.6",
+    "next": "^14.0.3",
     "react": "18.2.0",
     "react-datepicker": "^4.14.1",
     "react-dom": "18.2.0",
