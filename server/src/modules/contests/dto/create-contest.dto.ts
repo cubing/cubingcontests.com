@@ -15,10 +15,13 @@ import {
   IsNotEmpty,
   ArrayMaxSize,
   IsInt,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  Validate,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { nonOnlineCountryCodes } from '@sh/Countries';
-import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import { Color, ContestType, EventFormat, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import {
   IPerson,
   ICompetitionDetails,
@@ -33,15 +36,39 @@ import {
   IRoom,
   IActivity,
   IMeetupDetails,
+  ITimeLimit,
+  ICutoff,
 } from '@sh/interfaces';
 import { CreateEventDto } from '@m/events/dto/create-event.dto';
 import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
 import { getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
-import { getIsCompType } from '~~/client/shared_helpers/sharedFunctions';
+import { getIsCompType } from '@sh/sharedFunctions';
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
+
+@ValidatorConstraint({ name: 'EventWithTimeFormatHasTimeLimits', async: false })
+class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInterface {
+  validate(events: IContestEvent[]) {
+    return !events.some((ce) => ce.event.format === EventFormat.Time && ce.rounds.some((r) => !r.timeLimit));
+  }
+
+  defaultMessage() {
+    return 'An event with the format Time must have a time limit';
+  }
+}
+
+@ValidatorConstraint({ name: 'EventWithoutTimeFormatHasNoLimitsOrCutoffs', async: false })
+class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintInterface {
+  validate(events: IContestEvent[]) {
+    return !events.some((ce) => ce.event.format !== EventFormat.Time && ce.rounds.some((r) => r.timeLimit || r.cutoff));
+  }
+
+  defaultMessage() {
+    return 'An event with a format other than Time cannot have a time limit or cut-off';
+  }
+}
 
 export class CreateContestDto implements IContest {
   @IsString()
@@ -51,6 +78,7 @@ export class CreateContestDto implements IContest {
 
   @IsString()
   @MinLength(10, getMinLengthOpts('contest name', 10))
+  @Matches(/.* [0-9]{4}$/, { message: 'The contest name must have the year at the end, separated by a space' })
   name: string;
 
   @IsEnum(ContestType)
@@ -110,6 +138,8 @@ export class CreateContestDto implements IContest {
   competitorLimit?: number;
 
   @ArrayMinSize(1, { message: 'Please select at least one event' })
+  @Validate(EventWithTimeFormatHasTimeLimits)
+  @Validate(EventWithoutTimeFormatHasNoLimitsOrCutoffs)
   @ValidateNested({ each: true })
   @Type(() => ContestEventDto)
   events: IContestEvent[];
@@ -237,6 +267,17 @@ class ActivityDto implements IActivity {
 // COMPETITION EVENT
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+@ValidatorConstraint({ name: 'HasValidTimeLimitAndCutoff', async: false })
+class HasValidTimeLimitAndCutoff implements ValidatorConstraintInterface {
+  validate(rounds: IRound[]) {
+    return !rounds.some((r) => r.timeLimit && r.cutoff && r.cutoff.attemptResult >= r.timeLimit.centiseconds);
+  }
+
+  defaultMessage() {
+    return 'The cut-off cannot be higher than or equal to the time limit';
+  }
+}
+
 class ContestEventDto implements IContestEvent {
   @ValidateNested()
   @Type(() => CreateEventDto)
@@ -244,6 +285,7 @@ class ContestEventDto implements IContestEvent {
 
   @ArrayMinSize(1, { message: 'Please enter at least one round for each event' })
   @ArrayMaxSize(C.maxRounds, { message: `You cannot hold more than ${C.maxRounds} rounds for one event` })
+  @Validate(HasValidTimeLimitAndCutoff)
   @ValidateNested({ each: true })
   @Type(() => RoundDto)
   rounds: IRound[];
@@ -264,6 +306,18 @@ class RoundDto implements IRound {
   @IsEnum(RoundFormat)
   format: RoundFormat;
 
+  // Actually required for events with the format Time. This is validated inside of CreateContestDto.
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => TimeLimitDto)
+  timeLimit?: ITimeLimit;
+
+  // Only allowed for events with the format Time. This is also validated inside of CreateContestDto.
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CutoffDto)
+  cutoff?: ICutoff;
+
   @ValidateIf((obj) => obj.roundTypeId !== RoundType.Final)
   @ValidateNested()
   @Type(() => ProceedDto)
@@ -272,6 +326,29 @@ class RoundDto implements IRound {
   @ValidateNested({ each: true })
   @Type(() => CreateResultDto)
   results: IResult[];
+}
+
+class TimeLimitDto implements ITimeLimit {
+  @IsInt()
+  @Min(1, { message: 'Please enter a valid time limit' })
+  @Max(C.maxTimeLimit, { message: 'Please enter a valid time limit' })
+  centiseconds: number;
+
+  @IsString({ each: true })
+  @Matches(activityCodeRegex, { each: true })
+  cumulativeRoundIds: string[];
+}
+
+class CutoffDto implements ICutoff {
+  @IsInt()
+  @Min(1, { message: 'Please enter a valid cut-off time' })
+  @Max(C.maxTimeLimit, { message: 'Please enter a valid cut-off time' })
+  attemptResult: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(2)
+  numberOfAttempts: number;
 }
 
 class ProceedDto implements IProceed {

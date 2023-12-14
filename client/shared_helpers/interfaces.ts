@@ -11,7 +11,7 @@ export type {
   IEventRecordPairs,
   IResultsSubmissionInfo,
 } from './interfaces/Result';
-export type { IRound, IProceed } from './interfaces/Round';
+export type { IRound, ITimeLimit, ICutoff, IProceed } from './interfaces/Round';
 export type { ISchedule, IVenue, IRoom, IActivity } from './interfaces/Schedule';
 export type { IAdminStats } from './interfaces/AdminStats';
 

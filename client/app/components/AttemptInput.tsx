@@ -40,23 +40,27 @@ const getFormattedText = (text: string, { forMemo = false, isNumberFormat = fals
 };
 
 const AttemptInput = ({
-  number,
+  attNumber,
   attempt,
   setAttempt,
   event,
-  focusNext,
+  focusNext = () => {},
   memoInputForBld = false,
   resetTrigger,
   allowUnknownTime = false,
+  maxTime,
+  disabled = false,
 }: {
-  number: number;
+  attNumber: number; // number of the attempt (use 0 if the input is used for a time limit or cutoff)
   attempt: IAttempt;
   setAttempt: (val: IAttempt) => void;
   event: IEvent;
-  focusNext: () => void;
+  focusNext?: () => void;
   memoInputForBld?: boolean;
-  resetTrigger: boolean;
+  resetTrigger?: boolean;
   allowUnknownTime?: boolean;
+  maxTime?: number; // maximum allowed time in centiseconds (can be used for time limit/cutoff inputs)
+  disabled?: boolean;
 }) => {
   const [solved, setSolved] = useState<number>(undefined);
   const [attempted, setAttempted] = useState<number>(undefined);
@@ -73,7 +77,7 @@ const AttemptInput = ({
     [memoText, event],
   );
 
-  const isInvalidAttempt = attempt.result === null || attempt.memo === null;
+  const isInvalidAttempt = attempt.result === null || attempt.memo === null || (maxTime && attempt.result > maxTime);
   const includeMemo = memoInputForBld && event.groups.includes(EventGroup.HasMemo);
 
   useEffect(() => {
@@ -138,7 +142,7 @@ const AttemptInput = ({
     if (attemptText)
       setAttempt(getAttempt(attempt, event, attemptText, { solved: newSolved, attempted, memo: memoText }));
 
-    if (getIsEnteredCubesValue(newSolved)) document.getElementById(`attempt_${number}_attempted`).focus();
+    if (getIsEnteredCubesValue(newSolved)) document.getElementById(`attempt_${attNumber}_attempted`).focus();
   };
 
   const changeAttempted = (newAttempted: number | null | undefined) => {
@@ -146,7 +150,7 @@ const AttemptInput = ({
     if (attemptText)
       setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted: newAttempted, memo: memoText }));
 
-    if (getIsEnteredCubesValue(newAttempted)) document.getElementById(`attempt_${number}`).focus();
+    if (getIsEnteredCubesValue(newAttempted)) document.getElementById(`attempt_${attNumber}`).focus();
   };
 
   const onCubesKeyDown = (e: any) => {
@@ -165,7 +169,7 @@ const AttemptInput = ({
         (event.format === EventFormat.Multi && attempt.result === -2)
       ) {
         setAttempt({ ...attempt, result: 0 });
-        if (event.format === EventFormat.Multi) document.getElementById(`attempt_${number}_solved`).focus();
+        if (event.format === EventFormat.Multi) document.getElementById(`attempt_${attNumber}_solved`).focus();
       } else {
         if (!forMemo && attemptText !== '') {
           const newAttText = attemptText.slice(0, -1);
@@ -241,7 +245,7 @@ const AttemptInput = ({
     if (e.key === 'Enter') {
       e.preventDefault();
 
-      if (includeMemo && !forMemo) document.getElementById(`attempt_${number}_memo`).focus();
+      if (includeMemo && !forMemo) document.getElementById(`attempt_${attNumber}_memo`).focus();
       else focusNext();
     } else if (C.navigationKeys.includes(e.key)) {
       e.preventDefault();
@@ -273,27 +277,27 @@ const AttemptInput = ({
 
   let timeInputTooltip: string;
 
-  if (number === 1) {
+  if (attNumber === 1) {
     if (event.format !== EventFormat.Multi) {
       timeInputTooltip = 'Use D, F, or / for DNF\nUse S or * for DNS';
     } else {
       timeInputTooltip =
-        "Enter the result even for DNF attempts (the're treated as DNF, but the result is still shown).\nUse S or * for DNS.";
+        "Enter the result even for DNF attempts (they're treated as DNF, but the result is still shown).\nUse S or * for DNS.";
     }
   }
 
   return (
-    <div className="row px-3 gap-2 gap-md-3">
+    <div className={`${attNumber !== 0 ? 'row px-3' : ''} gap-2 gap-md-3`}>
       {event.format === EventFormat.Multi && (
         <>
           <div className={cubesInputClasses}>
             <FormNumberInput
-              id={`attempt_${number}_solved`}
-              title={number === 1 ? 'Solved' : ''}
+              id={`attempt_${attNumber}_solved`}
+              title={attNumber === 1 ? 'Solved' : ''}
               value={solved}
               setValue={changeSolved}
               onKeyDown={(e: any) => onCubesKeyDown(e)}
-              nextFocusTargetId={`attempt_${number}_attempted`}
+              nextFocusTargetId={`attempt_${attNumber}_attempted`}
               disabled={attempt.result === -2}
               integer
               min={0}
@@ -303,12 +307,12 @@ const AttemptInput = ({
           </div>
           <div className={cubesInputClasses}>
             <FormNumberInput
-              id={`attempt_${number}_attempted`}
-              title={number === 1 ? 'Total' : ''}
+              id={`attempt_${attNumber}_attempted`}
+              title={attNumber === 1 ? 'Total' : ''}
               value={attempted}
               setValue={changeAttempted}
               onKeyDown={(e: any) => onCubesKeyDown(e)}
-              nextFocusTargetId={`attempt_${number}`}
+              nextFocusTargetId={`attempt_${attNumber}`}
               disabled={attempt.result === -2}
               integer
               min={2}
@@ -320,8 +324,8 @@ const AttemptInput = ({
       )}
       <div className="col px-0">
         <FormTextInput
-          id={`attempt_${number}`}
-          title={number === 1 ? (event.format !== EventFormat.Number ? 'Time' : 'Moves') : ''}
+          id={`attempt_${attNumber}`}
+          title={attNumber === 1 ? (event.format !== EventFormat.Number ? 'Time' : 'Moves') : ''}
           tooltip={timeInputTooltip}
           value={formattedAttemptText}
           onChange={(e) => onTimeChange(e)}
@@ -330,13 +334,15 @@ const AttemptInput = ({
           onFocus={resetCursorPosition}
           onBlur={() => onTimeFocusOut()}
           invalid={isInvalidAttempt}
+          noMargin={attNumber === 0}
+          disabled={disabled}
         />
       </div>
       {includeMemo && (
         <div className="col px-0">
           <FormTextInput
-            id={`attempt_${number}_memo`}
-            title={number === 1 ? 'Memo' : ''}
+            id={`attempt_${attNumber}_memo`}
+            title={attNumber === 1 ? 'Memo' : ''}
             tooltip="If unknown, leave as 0"
             value={formattedMemoText}
             onChange={(e) => onTimeChange(e, true)}

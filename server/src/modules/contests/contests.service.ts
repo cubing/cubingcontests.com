@@ -459,6 +459,8 @@ export class ContestsService {
 
               if (sameRoundInContest.results.length === 0) {
                 sameRoundInContest.format = round.format;
+                sameRoundInContest.timeLimit = round.timeLimit;
+                sameRoundInContest.cutoff = round.cutoff;
               }
 
               // Update proceed object if the updated round has it, or unset proceed if it doesn't,

@@ -70,17 +70,14 @@ export const getDateOnly = (date: Date): Date => {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
 
-export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean => {
-  return [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
-};
+export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean =>
+  [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
 
 export const getDefaultAverageAttempts = (event: IEvent) =>
   roundFormats.find((rf) => rf.value === event.defaultRoundFormat).attempts === 5 ? 5 : 3;
 
-export const getAlwaysShowDecimals = (event: IEvent): boolean => {
-  return event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
-};
+export const getAlwaysShowDecimals = (event: IEvent): boolean =>
+  event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
 
-export const getIsCompType = (contestType: ContestType): boolean => {
-  return [ContestType.WcaComp, ContestType.Competition].includes(contestType);
-};
+export const getIsCompType = (contestType: ContestType): boolean =>
+  [ContestType.WcaComp, ContestType.Competition].includes(contestType);

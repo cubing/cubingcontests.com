@@ -71,7 +71,7 @@ export const roundProceedOptions: MultiChoiceOption[] = [
     value: RoundProceed.Number,
   },
   {
-    label: '%',
+    label: 'Percentage',
     value: RoundProceed.Percentage,
   },
 ];
@@ -95,3 +95,14 @@ export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((el
   label: el.title,
   value: el.group,
 }));
+
+export const cutoffAttemptsOptions: MultiChoiceOption[] = [
+  {
+    label: '1',
+    value: 1,
+  },
+  {
+    label: '2',
+    value: 2,
+  },
+];
