@@ -1,9 +1,31 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { ResultDocument } from './result.model';
-import { IRound } from '@sh/interfaces';
+import { ICutoff, IRound, ITimeLimit } from '@sh/interfaces';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { IProceed } from '@sh/interfaces';
+
+@Schema({ _id: false })
+export class TimeLimit implements ITimeLimit {
+  @Prop({ required: true })
+  centiseconds: number;
+
+  @Prop({ required: true })
+  cumulativeRoundIds: string[];
+}
+
+const TimeLimitSchema = SchemaFactory.createForClass(TimeLimit);
+
+@Schema({ _id: false })
+export class Cutoff implements ICutoff {
+  @Prop({ required: true })
+  attemptResult: number;
+
+  @Prop({ required: true })
+  numberOfAttempts: number;
+}
+
+const CutoffSchema = SchemaFactory.createForClass(Cutoff);
 
 @Schema({ _id: false })
 export class Proceed implements IProceed {
@@ -29,6 +51,12 @@ export class Round implements IRound {
 
   @Prop({ enum: RoundFormat, required: true })
   format: RoundFormat;
+
+  @Prop({ type: TimeLimitSchema })
+  timeLimit?: TimeLimit;
+
+  @Prop({ type: CutoffSchema })
+  cutoff?: Cutoff;
 
   @Prop({ type: ProceedSchema })
   proceed?: Proceed;

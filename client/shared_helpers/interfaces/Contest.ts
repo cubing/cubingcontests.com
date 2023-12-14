@@ -42,6 +42,7 @@ export interface IContest {
   meetupDetails?: IMeetupDetails; // meetup/online-comp-only
 }
 
+// IMPORTANT: if this is ever to be changed, pay attention to the updateContestEvents function in the contests service
 export interface IContestEvent {
   event: IEvent; // stored as a reference
   rounds: IRound[]; // stored as references

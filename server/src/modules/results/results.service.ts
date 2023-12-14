@@ -6,6 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { utcToZonedTime } from 'date-fns-tz';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
@@ -40,7 +41,6 @@ import {
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { getDateOnly, getIsCompType, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
-import { utcToZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class ResultsService {

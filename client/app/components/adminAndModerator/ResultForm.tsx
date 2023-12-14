@@ -263,7 +263,7 @@ const ResultForm = ({
       {attempts.map((attempt, i) => (
         <AttemptInput
           key={i}
-          number={i + 1}
+          attNumber={i + 1}
           attempt={attempt}
           setAttempt={(val: IAttempt) => changeAttempt(i, val)}
           event={event}

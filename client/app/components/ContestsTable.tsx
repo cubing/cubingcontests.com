@@ -8,7 +8,7 @@ import C from '@sh/constants';
 import { getBSClassFromColor, getFormattedDate } from '~/helpers/utilityFunctions';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
-const ContestsTable = async ({
+const ContestsTable = ({
   contests,
   modView = false,
   // If one of these is defined, the other must be defined too
