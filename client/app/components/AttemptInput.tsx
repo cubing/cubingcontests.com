@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import FormTextInput from './form/FormTextInput';
 import FormNumberInput from './form/FormNumberInput';
-import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
+import { getAttempt } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
-import { IAttempt, IEvent } from '@sh/interfaces';
-import { getAlwaysShowDecimals } from '@sh/sharedFunctions';
+import { IAttempt, IEvent, ITimeLimit } from '@sh/interfaces';
+import { getAlwaysShowDecimals, getFormattedTime } from '@sh/sharedFunctions';
 import C from '@sh/constants';
 
 const DNFKeys = ['f', 'F', 'd', 'D', '/'];
@@ -45,6 +45,7 @@ const AttemptInput = ({
   setAttempt,
   event,
   focusNext = () => {},
+  timeLimit,
   memoInputForBld = false,
   resetTrigger,
   allowUnknownTime = false,
@@ -56,6 +57,7 @@ const AttemptInput = ({
   setAttempt: (val: IAttempt) => void;
   event: IEvent;
   focusNext?: () => void;
+  timeLimit?: ITimeLimit;
   memoInputForBld?: boolean;
   resetTrigger?: boolean;
   allowUnknownTime?: boolean;
@@ -185,21 +187,19 @@ const AttemptInput = ({
         }
       }
     }
-    // Enter character
+    // Add character
     else if (e.target.value.length > prevValue.length) {
       const newCharacter = e.target.value[e.target.selectionStart - 1];
 
       if (!forMemo && DNFKeys.includes(newCharacter)) {
         if (event.format !== EventFormat.Multi) {
-          setAttempt({ result: -1 }); // set DNF
-          setAttemptText('DNF');
-          setMemoText(undefined);
+          dnfTheAttempt();
           focusNext();
         }
       } else if (!forMemo && DNSKeys.includes(newCharacter)) {
         handleSetDNS(e);
       } else if (!forMemo && unknownTimeKeys.includes(newCharacter)) {
-        // Multi-Blind doesn't allow unknown time (but Multi-Blind Old Style does)
+        // Multi-Blind doesn't allow unknown time, but Multi-Blind Old Style does
         if (allowUnknownTime && event.eventId !== '333mbf') {
           if (event.format !== EventFormat.Multi) {
             setAttempt({ result: C.maxTime });
@@ -245,8 +245,14 @@ const AttemptInput = ({
     if (e.key === 'Enter') {
       e.preventDefault();
 
-      if (includeMemo && !forMemo) document.getElementById(`attempt_${attNumber}_memo`).focus();
-      else focusNext();
+      if (!forMemo && timeLimit && attempt.result >= timeLimit.centiseconds) {
+        dnfTheAttempt();
+        focusNext();
+      } else if (!forMemo && includeMemo) {
+        document.getElementById(`attempt_${attNumber}_memo`).focus();
+      } else {
+        focusNext();
+      }
     } else if (C.navigationKeys.includes(e.key)) {
       e.preventDefault();
     }
@@ -266,6 +272,12 @@ const AttemptInput = ({
 
       if (newAttempt.result !== attempt.result || newAttempt.memo !== attempt.memo) setAttempt(newAttempt);
     }
+  };
+
+  const dnfTheAttempt = () => {
+    setAttempt({ result: -1 }); // set DNF
+    setAttemptText('DNF');
+    setMemoText(undefined);
   };
 
   const resetCursorPosition = (e: any) => {

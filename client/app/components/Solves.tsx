@@ -1,5 +1,5 @@
 import { IAttempt, IEvent } from '@sh/interfaces';
-import { getFormattedTime } from '~/helpers/utilityFunctions';
+import { getFormattedTime } from '@sh/sharedFunctions';
 
 const Solves = ({
   event,

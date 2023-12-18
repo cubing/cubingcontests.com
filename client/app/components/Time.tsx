@@ -1,5 +1,6 @@
 import { IEvent, IRecordType, IResult } from '@sh/interfaces';
-import { getBSClassFromColor, getFormattedTime } from '~/helpers/utilityFunctions';
+import { getBSClassFromColor } from '~/helpers/utilityFunctions';
+import { getFormattedTime } from '@sh/sharedFunctions';
 
 const Time = ({
   result,

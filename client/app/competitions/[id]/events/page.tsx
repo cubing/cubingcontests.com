@@ -6,7 +6,7 @@ import { RoundProceed, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import C from '@sh/constants';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getFormattedTime } from '~/helpers/utilityFunctions';
+import { getFormattedTime } from '@sh/sharedFunctions';
 
 const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
