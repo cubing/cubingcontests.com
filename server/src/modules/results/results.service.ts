@@ -43,9 +43,11 @@ import {
   getDateOnly,
   getFormattedTime,
   getIsCompType,
+  getMakesCutoff,
   getRoundRanksWithAverage,
   setResultRecords,
 } from '@sh/sharedFunctions';
+import { roundFormats } from '@sh/roundFormats';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
@@ -524,24 +526,39 @@ export class ResultsService {
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
     let round: RoundDocument;
     let newResult: ResultDocument;
-    let oldResults: ResultDocument[];
 
     try {
       round = await this.roundModel
         .findOne({ competitionId: createResultDto.competitionId, roundId })
         .populate('results')
         .exec();
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while fetching round: ${err.message}`);
+    }
 
-      // Time limit validation
-      if (round.timeLimit && createResultDto.attempts.some((a) => a.result > round.timeLimit.centiseconds))
-        throw new BadRequestException(
-          `This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`,
-        );
+    // Time limit validation
+    if (round.timeLimit && createResultDto.attempts.some((a) => a.result > round.timeLimit.centiseconds))
+      throw new BadRequestException(`This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`);
 
-      //if (round.cutoff && )
+    // Remove empty attempts
+    createResultDto.attempts = createResultDto.attempts.filter((a) => a.result !== 0);
+    const expectedAttempts = roundFormats.find((rf) => rf.value === round.format).attempts;
 
-      oldResults = [...round.results];
+    // Cutoff validation
+    if (round.cutoff) {
+      const passes = getMakesCutoff(createResultDto.attempts, round.cutoff);
 
+      if (!passes && createResultDto.attempts.length !== round.cutoff.numberOfAttempts)
+        throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
+      else if (passes && createResultDto.attempts.length !== expectedAttempts)
+        throw new BadRequestException('This round made cutoff, but has too few attempts');
+    } else if (createResultDto.attempts.length !== expectedAttempts) {
+      throw new BadRequestException('Please enter all attempts');
+    }
+
+    const oldResults = [...round.results];
+
+    try {
       // Create new result and update the round's results
       const newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
       round.results.push(newResult);

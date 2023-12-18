@@ -75,7 +75,7 @@ const PostResultsScreen = ({
         date: new Date(), // real date assigned on the backend
         personIds: currentPersons.map((el) => el?.personId || null),
         ranking: 0, // real rankings assigned on the backend
-        attempts,
+        attempts, // attempts that got cancelled due to not making cutoff are removed on the backend
         best: -1,
         average: -1,
       };

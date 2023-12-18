@@ -13,7 +13,7 @@ import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { getBestAndAverage } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { setResultRecords } from '~/shared_helpers/sharedFunctions';
+import { getMakesCutoff, setResultRecords } from '~/shared_helpers/sharedFunctions';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 
 /**
@@ -84,6 +84,8 @@ const ResultForm = ({
   if (!forResultsSubmissionForm) roundFormat = round.format;
 
   const roundCanHaveAverage = roundFormats.find((rf) => rf.value === roundFormat).attempts >= 3;
+  // round.cutoff doesn't need a ?, because getMakesCutoff can only return false if the cutoff is set
+  const lastActiveAttempt = getMakesCutoff(attempts, round.cutoff) ? attempts.length : round.cutoff.numberOfAttempts;
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
@@ -166,7 +168,7 @@ const ResultForm = ({
 
   const focusNext = (index: number) => {
     // Focus next time input or the submit button if it's the last input
-    if (index + 1 < attempts.length) {
+    if (index + 1 < lastActiveAttempt) {
       // If Multi format and the next attempt is not DNS, focus the solved input, therwise focus the time input
       if (event.format === EventFormat.Multi && attempts[index + 1].result !== -2) {
         document.getElementById(`attempt_${index + 2}_solved`).focus();
@@ -272,6 +274,7 @@ const ResultForm = ({
           memoInputForBld={forResultsSubmissionForm}
           resetTrigger={attemptsResetTrigger}
           allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
+          disabled={round.cutoff && i + 1 > lastActiveAttempt}
         />
       ))}
       <div className="mb-3">
