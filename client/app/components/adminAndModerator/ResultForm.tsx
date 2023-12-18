@@ -268,6 +268,7 @@ const ResultForm = ({
           setAttempt={(val: IAttempt) => changeAttempt(i, val)}
           event={event}
           focusNext={() => focusNext(i)}
+          timeLimit={round.timeLimit}
           memoInputForBld={forResultsSubmissionForm}
           resetTrigger={attemptsResetTrigger}
           allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}

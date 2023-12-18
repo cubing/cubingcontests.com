@@ -39,7 +39,13 @@ import {
   IActivity,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { getDateOnly, getIsCompType, getRoundRanksWithAverage, setResultRecords } from '@sh/sharedFunctions';
+import {
+  getDateOnly,
+  getFormattedTime,
+  getIsCompType,
+  getRoundRanksWithAverage,
+  setResultRecords,
+} from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
@@ -525,6 +531,14 @@ export class ResultsService {
         .findOne({ competitionId: createResultDto.competitionId, roundId })
         .populate('results')
         .exec();
+
+      // Time limit validation
+      if (round.timeLimit && createResultDto.attempts.some((a) => a.result > round.timeLimit.centiseconds))
+        throw new BadRequestException(
+          `This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`,
+        );
+
+      //if (round.cutoff && )
 
       oldResults = [...round.results];
 

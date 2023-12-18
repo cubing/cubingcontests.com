@@ -1,7 +1,8 @@
-import { getAttempt, getFormattedTime } from '~/helpers/utilityFunctions';
+import { getAttempt } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
-import C from '~/shared_helpers/constants';
+import C from '@sh/constants';
+import { getFormattedTime } from '@sh/sharedFunctions';
 
 const roundOpts = {
   roundTime: true,

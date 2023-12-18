@@ -5,11 +5,12 @@ import RankingsTable from '@c/RankingsTable';
 import RankingLinks from '@c/RankingLinks';
 import EventTitle from '@c/EventTitle';
 import Solves from '@c/Solves';
-import Competitors from '~/app/components/Competitors';
-import { IEventRankings } from '@sh/interfaces';
-import { getFormattedTime, getFormattedDate } from '~/helpers/utilityFunctions';
-import { eventCategories } from '~/helpers/eventCategories';
+import Competitors from '@c/Competitors';
 import C from '@sh/constants';
+import { IEventRankings } from '@sh/interfaces';
+import { getFormattedTime } from '@sh/sharedFunctions';
+import { getFormattedDate } from '~/helpers/utilityFunctions';
+import { eventCategories } from '~/helpers/eventCategories';
 
 // SEO
 export const metadata = {

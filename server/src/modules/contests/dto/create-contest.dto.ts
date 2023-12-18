@@ -44,7 +44,7 @@ import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
 import { getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
-import { getIsCompType } from '@sh/sharedFunctions';
+import { getFormattedTime, getIsCompType } from '@sh/sharedFunctions';
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
@@ -331,7 +331,7 @@ class RoundDto implements IRound {
 class TimeLimitDto implements ITimeLimit {
   @IsInt()
   @Min(1, { message: 'Please enter a valid time limit' })
-  @Max(C.maxTimeLimit, { message: 'Please enter a valid time limit' })
+  @Max(C.maxTimeLimit, { message: `The time limit cannot be higher than ${getFormattedTime(C.maxTimeLimit)}` })
   centiseconds: number;
 
   @IsString({ each: true })
@@ -341,8 +341,8 @@ class TimeLimitDto implements ITimeLimit {
 
 class CutoffDto implements ICutoff {
   @IsInt()
-  @Min(1, { message: 'Please enter a valid cut-off time' })
-  @Max(C.maxTimeLimit, { message: 'Please enter a valid cut-off time' })
+  @Min(1, { message: 'Please enter a valid cut-off' })
+  @Max(C.maxTimeLimit, { message: 'Please enter a valid cut-off' })
   attemptResult: number;
 
   @IsInt()
