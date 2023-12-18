@@ -66,7 +66,7 @@ class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintI
   }
 
   defaultMessage() {
-    return 'An event with a format other than Time cannot have a time limit or cut-off';
+    return 'An event with a format other than Time cannot have a time limit or cutoff';
   }
 }
 
@@ -274,7 +274,7 @@ class HasValidTimeLimitAndCutoff implements ValidatorConstraintInterface {
   }
 
   defaultMessage() {
-    return 'The cut-off cannot be higher than or equal to the time limit';
+    return 'The cutoff cannot be higher than or equal to the time limit';
   }
 }
 
@@ -341,8 +341,8 @@ class TimeLimitDto implements ITimeLimit {
 
 class CutoffDto implements ICutoff {
   @IsInt()
-  @Min(1, { message: 'Please enter a valid cut-off' })
-  @Max(C.maxTimeLimit, { message: 'Please enter a valid cut-off' })
+  @Min(1, { message: 'Please enter a valid cutoff' })
+  @Max(C.maxTimeLimit, { message: 'Please enter a valid cutoff' })
   attemptResult: number;
 
   @IsInt()

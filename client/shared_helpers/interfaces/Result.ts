@@ -3,7 +3,7 @@ import { IContest, IEvent, IPerson, IRecordType } from '@sh/interfaces';
 
 export interface IAttempt {
   /**
-   * Number of centiseconds; 0 is a skipped attempt (e.g. when cut-off was not met) -1 is DNF, -2 is DNS,
+   * Number of centiseconds; 0 is a skipped attempt (e.g. when cutoff was not met) -1 is DNF, -2 is DNS,
    * C.maxTime is unknown time. For FMC it's the number of moves. For MBLD it works completely differently:
    * https://www.worldcubeassociation.org/export/results
    *

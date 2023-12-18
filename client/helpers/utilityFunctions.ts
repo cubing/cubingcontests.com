@@ -209,7 +209,6 @@ export const checkErrorsBeforeResultSubmission = (
   for (let i = 0; i < result.attempts.length; i++) {
     if (result.attempts[i].result === null || result.attempts[i].memo === null)
       errorMessages.push(`Attempt ${i + 1} is invalid`);
-    else if (result.attempts[i].result === 0) errorMessages.push(`Please enter attempt ${i + 1}`);
   }
 
   if (errorMessages.length > 0) {

@@ -1,6 +1,6 @@
 import C from '@sh/constants';
 import { ContestType, EventFormat, EventGroup, RoundFormat, WcaRecordType } from './enums';
-import { IResult, IRecordPair, IEvent } from './interfaces';
+import { IResult, IRecordPair, IEvent, IAttempt, ICutoff } from './interfaces';
 import { roundFormats } from './roundFormats';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
@@ -178,3 +178,7 @@ export const getAlwaysShowDecimals = (event: IEvent): boolean =>
 
 export const getIsCompType = (contestType: ContestType): boolean =>
   [ContestType.WcaComp, ContestType.Competition].includes(contestType);
+
+// If the round has no cutoff (undefined), return true
+export const getMakesCutoff = (attempts: IAttempt[], cutoff: ICutoff | undefined): boolean =>
+  !cutoff || attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result > 0 && a.result < cutoff.attemptResult);
