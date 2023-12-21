@@ -4,8 +4,9 @@ import { format } from 'date-fns-tz';
 import myFetch from './myFetch';
 import { Color, ContestType, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
-import { IAttempt, IContest, IEvent, IPerson, IResult } from '@sh/interfaces';
+import { IAttempt, IContest, ICutoff, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import { IUserInfo } from './interfaces/UserInfo';
+import { getMakesCutoff } from '~/shared_helpers/sharedFunctions';
 
 export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
@@ -134,10 +135,15 @@ export const getAttempt = (
 };
 
 // Returns the best and average times
-export const getBestAndAverage = (attempts: IAttempt[], event: IEvent): { best: number; average: number } => {
+export const getBestAndAverage = (
+  attempts: IAttempt[],
+  event: IEvent,
+  cutoff?: ICutoff,
+): { best: number; average: number } => {
   let best: number, average: number;
   let sum = 0;
   let DNFDNScount = 0;
+  const makesCutoff = getMakesCutoff(attempts, cutoff);
 
   // This actually follows the rule that the lower the attempt value is - the better
   const convertedAttempts = attempts.map(({ result }) => {
@@ -152,7 +158,9 @@ export const getBestAndAverage = (attempts: IAttempt[], event: IEvent): { best: 
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (attempts.length < 3 || DNFDNScount > 1 || (DNFDNScount > 0 && attempts.length === 3)) {
+  if ([3, 5].includes(attempts.length) && !makesCutoff) {
+    average = 0;
+  } else if (attempts.length < 3 || DNFDNScount > 1 || (DNFDNScount > 0 && attempts.length === 3)) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
@@ -197,6 +205,7 @@ export const checkErrorsBeforeResultSubmission = (
   setErrorMessages: (val: string[]) => void,
   setSuccessMessage: (val: string) => void,
   callback: (result: IResult) => void,
+  round?: IRound,
 ) => {
   const errorMessages: string[] = [];
 
@@ -217,7 +226,7 @@ export const checkErrorsBeforeResultSubmission = (
     setErrorMessages([]);
     setSuccessMessage('');
 
-    const { best, average } = getBestAndAverage(result.attempts, event);
+    const { best, average } = getBestAndAverage(result.attempts, event, round?.cutoff);
     result.best = best;
     result.average = average;
 

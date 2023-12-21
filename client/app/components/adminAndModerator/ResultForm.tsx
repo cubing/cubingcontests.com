@@ -11,9 +11,9 @@ import Time from '@c/Time';
 import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
+import { getMakesCutoff, setResultRecords } from '@sh/sharedFunctions';
 import { getBestAndAverage } from '~/helpers/utilityFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getMakesCutoff, setResultRecords } from '~/shared_helpers/sharedFunctions';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 
 /**
@@ -117,7 +117,7 @@ const ResultForm = ({
   };
 
   const updateTempResult = () => {
-    const { best, average } = getBestAndAverage(attempts, event);
+    const { best, average } = getBestAndAverage(attempts, event, round?.cutoff);
     setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
   };
 
@@ -162,7 +162,7 @@ const ResultForm = ({
     setAttempts(newAttempts);
 
     // Update temporary best and average
-    const { best, average } = getBestAndAverage(newAttempts, event);
+    const { best, average } = getBestAndAverage(newAttempts, event, round?.cutoff);
     setTempResult(setResultRecords({ best, average, attempts: newAttempts } as IResult, event, recordPairs, true));
   };
 
