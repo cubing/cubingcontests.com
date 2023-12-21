@@ -1,7 +1,24 @@
 import C from '@sh/constants';
 import { ContestType, EventFormat, EventGroup, RoundFormat, WcaRecordType } from './enums';
-import { IResult, IRecordPair, IEvent, IAttempt, ICutoff } from './interfaces';
+import {
+  IResult,
+  IRecordPair,
+  IEvent,
+  IAttempt,
+  ICutoff,
+  IContest,
+  IWcifCompetition,
+  IWcifSchedule,
+  ISchedule,
+  IContestEvent,
+  IWcifEvent,
+  IActivity,
+  IWcifActivity,
+  IRound,
+  IWcifRound,
+} from './interfaces';
 import { roundFormats } from './roundFormats';
+import { format } from 'date-fns';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
@@ -182,3 +199,65 @@ export const getIsCompType = (contestType: ContestType): boolean =>
 // If the round has no cutoff (undefined), return true
 export const getMakesCutoff = (attempts: IAttempt[], cutoff: ICutoff | undefined): boolean =>
   !cutoff || attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result > 0 && a.result < cutoff.attemptResult);
+
+const convertDateToWcifDate = (date: Date): string => format(date, 'YYYY-MM-DD');
+
+export const getWcifCompetition = (contest: IContest, schedule?: ISchedule): IWcifCompetition => ({
+  formatVersion: '1.0',
+  id: contest.competitionId,
+  name: contest.name,
+  shortName: contest.name,
+  persons: [],
+  events: contest.events.map((ce) => getWcifCompEvent(ce)),
+  schedule: schedule ? getWcifSchedule(schedule) : ({} as IWcifSchedule),
+  competitorLimit: contest.competitorLimit,
+  extensions: [],
+});
+
+export const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
+  id: contestEvent.event.eventId as any,
+  rounds: contestEvent.rounds.map((r) => getWcifRound(r)),
+  extensions: [
+    {
+      id: 'TEMPORARY',
+      specUrl: '',
+      data: {
+        name: contestEvent.event.name,
+        participants: contestEvent.event.participants || 1,
+      },
+    },
+  ],
+});
+
+export const getWcifRound = (round: IRound): IWcifRound => ({
+  id: round.roundId,
+  format: round.format,
+  timeLimit: round.timeLimit ?? null,
+  cutoff: round.cutoff ?? null,
+  advancementCondition: null, // TO-DO: IMPLEMENT THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  results: [], // TO-DO: ADD CONVERSION FROM IRESULT TO IWCIFRESULT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  extensions: [],
+});
+
+export const getWcifSchedule = (schedule: ISchedule): IWcifSchedule => ({
+  startDate: convertDateToWcifDate(schedule.startDate),
+  numberOfDays: schedule.numberOfDays,
+  venues: schedule.venues.map((v) => ({
+    ...v,
+    rooms: v.rooms.map((r) => ({
+      ...r,
+      activities: r.activities.map((a) => getWcifActivity(a)),
+      extensions: [],
+    })),
+    extensions: [],
+  })),
+});
+
+export const getWcifActivity = (activity: IActivity): IWcifActivity => ({
+  ...activity,
+  name: activity.name || '',
+  startTime: convertDateToWcifDate(activity.startTime),
+  endTime: convertDateToWcifDate(activity.endTime),
+  childActivities: activity.childActivities.map((ca) => getWcifActivity(ca)),
+  extensions: [],
+});

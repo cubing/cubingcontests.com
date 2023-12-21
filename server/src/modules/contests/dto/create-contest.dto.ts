@@ -257,10 +257,9 @@ class ActivityDto implements IActivity {
   @IsDateString({}, { message: 'Please enter valid activity end times' })
   endTime: Date;
 
-  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ActivityDto)
-  childActivity?: IActivity[];
+  childActivities: IActivity[];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

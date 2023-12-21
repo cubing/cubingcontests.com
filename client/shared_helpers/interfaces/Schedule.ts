@@ -26,9 +26,9 @@ export interface IRoom {
 
 export interface IActivity {
   id: number;
-  activityCode: string;
   name?: string; // only set when activityCode = other-misc
+  activityCode: string;
   startTime: Date;
   endTime: Date;
-  childActivity?: IActivity[];
+  childActivities: IActivity[];
 }

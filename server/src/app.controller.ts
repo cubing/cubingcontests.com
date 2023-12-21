@@ -2,13 +2,15 @@ import { BadRequestException, Controller, Get, Param, Query, Res, UseGuards } fr
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { find } from 'geo-tz';
+import { AppService } from './app.service';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { getScorecards } from '~/src/scorecards/index.js';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
-import { AppService } from './app.service';
-import { MyLogger } from '@m/my-logger/my-logger.service';
+import { eventPopulateOptions } from '~/src/helpers/dbHelpers';
+import { getWcifCompetition } from '@sh/sharedFunctions';
 import { ContestDocument } from '~/src/models/contest.model';
 
 @Controller()
@@ -41,17 +43,17 @@ export class AppController {
 
   @Get('scorecards/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.Moderator)
   async getContestScorecards(@Param('competitionId') competitionId: string, @Res() res: any) {
     const contest = await this.contestModel
       .findOne({ competitionId })
-      .populate({ path: 'events.event', model: 'Event' })
+      .populate(eventPopulateOptions.event)
+      .populate({ ...eventPopulateOptions.rounds, populate: undefined }) // we don't need the results to be populated
       .exec();
 
     if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
 
-    // To-Do: REMOVE HARD-CODING
-    const buffer = await getScorecards(contest.name, contest.events[0].event.name, 1, '4:00', '2:00');
+    const buffer = await getScorecards(getWcifCompetition(contest));
 
     res.set({
       'Content-Type': 'application/pdf',
