@@ -723,6 +723,7 @@ const ContestForm = ({
                 name: activityCode === 'other-misc' ? customActivity : undefined,
                 startTime: activityStartTime,
                 endTime: activityEndTime,
+                childActivities: [],
               },
             ],
           },
@@ -771,7 +772,7 @@ const ContestForm = ({
 
         {activeTab === 'details' && (
           <>
-            {mode === 'edit' && isAdmin && (
+            {mode === 'edit' && (
               <div className="d-flex mt-3 mb-4">
                 <Button
                   text="Scorecards"

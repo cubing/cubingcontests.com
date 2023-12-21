@@ -1,5 +1,6 @@
 const path = require('path');
 const PdfPrinter = require('pdfmake');
+const Helpers = require('@wca/helpers');
 
 const fonts = {
   Roboto: {
@@ -13,89 +14,132 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
-export const getScorecards = async (contestName, event, round, timeLimit, cutoff) => {
-  const getSingleScorecard = () => [
-    { text: contestName, fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
-    {
-      layout: 'noBorders',
-      table: {
-        headerRows: 0,
-        widths: ['75%', '25%'],
-        body: [
-          [
-            { text: event, fontSize: 10 },
-            { text: `Round ${round}`, fontSize: 10 },
-          ],
-        ],
-      },
-      margin: [15, 0, 0, 8],
-    },
-    {
-      table: {
-        widths: ['100%'],
-        body: [[{ text: '', margin: [0, 0, 0, 22] }], [{ text: '', margin: [0, 0, 0, 22] }]],
-      },
-      margin: [6, 0, 0, 8],
-    },
-    {
-      table: {
-        headerRows: 1,
-        widths: ['7%', '16%', '45%', '16%', '16%'],
-        body: [
-          [
-            { text: '', border: [false, false, false, false] },
-            { text: 'Scr', style: 'colHeader', border: [false, false, false, false] },
-            { text: 'Result', style: 'colHeader', border: [false, false, false, false] },
-            { text: 'Judge', style: 'colHeader', border: [false, false, false, false] },
-            { text: 'Comp', style: 'colHeader', border: [false, false, false, false] },
-          ],
-          [{ text: '1', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-          [{ text: '2', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-          [{ text: '3', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-          [{ text: '4', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-          [{ text: '5', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-          [{ text: 'E', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-        ],
-      },
-    },
-    {
-      layout: 'noBorders',
-      table: {
-        headerRows: 0,
-        widths: ['50%', '50%'],
-        body: [
-          [
-            { text: `Time limit: ${timeLimit}`, fontSize: 12 },
-            { text: cutoff ? `Cutoff: ${cutoff}` : '', fontSize: 12, alignment: 'right' },
-          ],
-        ],
-      },
-      margin: [22, 8, 0, 30],
-    },
-  ];
+/**
+ * Gets a PDF with all scorecards for a competition
+ *
+ * @param {*} wcifCompetition Competition object in WCIF format (see https://github.com/thewca/wcif/blob/master/specification.md)
+ */
+const getScorecards = async (wcifCompetition) => {
+  const getSingleScorecard = ({ round, roundNumber, event }) => {
+    const eventExt = event.extensions.find((e) => e.id === 'TEMPORARY')?.data;
 
-  const docDefinition = {
-    content: [
+    return [
+      { text: wcifCompetition.name, fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
       {
         layout: 'noBorders',
         table: {
           headerRows: 0,
-          widths: ['48%', '4%', '48%'],
+          widths: ['75%', '25%'],
           body: [
-            [getSingleScorecard(), '', getSingleScorecard()],
-            [getSingleScorecard(), '', getSingleScorecard()],
+            [
+              { text: eventExt?.name, fontSize: 10 },
+              { text: `Round ${roundNumber}`, fontSize: 10 },
+            ],
+          ],
+        },
+        margin: [15, 0, 0, 7],
+      },
+      eventExt.participants < 3
+        ? {
+            text: eventExt.participants === 1 ? 'Full Name' : 'Full Names',
+            bold: true,
+            fontSize: 12,
+            margin: [4, eventExt.participants === 1 ? 6 : 3, 0, 0],
+          }
+        : undefined,
+      {
+        table: {
+          widths: ['100%'],
+          // Use as many name fields as there are participants in this event
+          body: new Array(eventExt.participants).fill([
+            { text: '', margin: [0, 0, 0, eventExt.participants === 1 ? 30 : eventExt.participants === 2 ? 24 : 22] },
+          ]),
+        },
+        margin: [
+          4,
+          eventExt.participants < 3 ? 8 : 4,
+          0,
+          eventExt.participants === 1 ? 20 : eventExt.participants === 2 ? 10 : 8,
+        ],
+      },
+      {
+        table: {
+          headerRows: 1,
+          widths: ['7%', '16%', '45%', '16%', '16%'],
+          body: [
+            [
+              { text: '', border: [false, false, false, false] },
+              { text: 'Scr', style: 'colHeader', border: [false, false, false, false] },
+              { text: 'Result', style: 'colHeader', border: [false, false, false, false] },
+              { text: 'Judge', style: 'colHeader', border: [false, false, false, false] },
+              { text: 'Comp', style: 'colHeader', border: [false, false, false, false] },
+            ],
+            [{ text: '1', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
+            [{ text: '2', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
+            [{ text: '3', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
+            [{ text: '4', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
+            [{ text: '5', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
+            [{ text: 'E', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
           ],
         },
       },
-    ],
+      {
+        layout: 'noBorders',
+        table: {
+          headerRows: 0,
+          widths: ['55%', '45%'],
+          body: [
+            [
+              {
+                text: round.timeLimit ? `Time limit: ${Helpers.formatCentiseconds(round.timeLimit.centiseconds)}` : '',
+                fontSize: 11,
+              },
+              {
+                text: round.cutoff ? `Cutoff: ${Helpers.formatCentiseconds(round.cutoff.attemptResult)}` : '',
+                fontSize: 11,
+                alignment: 'right',
+              },
+            ],
+          ],
+        },
+        margin: [22, eventExt.participants === 1 ? 14 : 8, 0, 30],
+      },
+    ];
+  };
+
+  const roundObjects = [];
+
+  for (const event of wcifCompetition.events) {
+    for (let i = 0; i < event.rounds.length; i++) {
+      roundObjects.push({
+        roundNumber: i + 1,
+        round: event.rounds[i],
+        event,
+      });
+    }
+  }
+
+  const docDefinition = {
+    content: roundObjects.map((roundObj, index) => ({
+      layout: 'noBorders',
+      table: {
+        headerRows: 0,
+        widths: ['48%', '4%', '48%'],
+        body: [
+          [getSingleScorecard(roundObj), '', getSingleScorecard(roundObj)],
+          [getSingleScorecard(roundObj), '', getSingleScorecard(roundObj)],
+        ],
+      },
+      pageBreak: index + 1 === roundObjects.length ? '' : 'after',
+    })),
     defaultStyle: {
       font: 'Roboto',
     },
     styles: {
       rowNumber: {
-        fontSize: 20,
+        fontSize: 18,
         bold: true,
-        lineHeight: 1.2,
+        lineHeight: 1.1,
       },
       colHeader: {
         margin: [0, 0, 0, 3],
@@ -121,4 +165,8 @@ export const getScorecards = async (contestName, event, round, timeLimit, cutoff
   });
 
   return pdfBuffer;
+};
+
+module.exports = {
+  getScorecards,
 };

@@ -10,6 +10,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@foliojs-fork/fontkit": "^1.9.1",
+    "@wca/helpers": "^1.1.5",
     "pdfmake": "^0.2.8"
   }
 }
