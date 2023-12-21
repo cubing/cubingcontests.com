@@ -639,10 +639,10 @@ const ContestForm = ({
   };
 
   const addContestEvent = () => {
-    const event = events.find((el) => el.eventId === newEventId);
+    const contestEvent = events.find((el) => el.eventId === newEventId);
 
     setContestEvents(
-      [...contestEvents, { event, rounds: [getNewRound(event, 1)] }].sort(
+      [...contestEvents, { event: contestEvent, rounds: [getNewRound(contestEvent, 1)] }].sort(
         (a: IContestEvent, b: IContestEvent) => a.event.rank - b.event.rank,
       ),
     );

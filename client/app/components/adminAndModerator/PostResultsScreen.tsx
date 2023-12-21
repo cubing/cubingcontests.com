@@ -148,6 +148,7 @@ const PostResultsScreen = ({
     // Delete result and then set the inputs if the deletion was successful
     deleteResult((result as any)._id, () => {
       const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
+      // If the competitor did not make cutoff, fill the missing attempts with empty results
       const newAttempts = [
         ...result.attempts,
         ...new Array(expectedAttempts - result.attempts.length).fill({ result: 0 }),
