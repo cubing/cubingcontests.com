@@ -27,7 +27,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
               <th scope="col">Round</th>
               <th scope="col">Format</th>
               <th scope="col">Time Limit</th>
-              <th scope="col">Cut-off</th>
+              <th scope="col">Cutoff</th>
               {hasNonFinalRound && <th scope="col">Proceed</th>}
             </tr>
           </thead>

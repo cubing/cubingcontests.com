@@ -772,7 +772,7 @@ const ContestForm = ({
 
         {activeTab === 'details' && (
           <>
-            {mode === 'edit' && (
+            {mode === 'edit' && contest.state > ContestState.Approved && (
               <div className="d-flex mt-3 mb-4">
                 <Button
                   text="Scorecards"
@@ -1018,7 +1018,7 @@ const ContestForm = ({
                       )}
                     </div>
                     <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 gap-md-5 mt-3">
-                      <h6 className="flex-shrink-0 m-0">Cut-off:</h6>
+                      <h6 className="flex-shrink-0 m-0">Cutoff:</h6>
 
                       <FormCheckbox
                         title="Enabled"
