@@ -89,7 +89,7 @@ const RoundResultsTable = ({
                 </td>
                 {roundCanHaveAverage && (
                   <td>
-                    <Time result={result} event={event} recordTypes={recordTypes} average />
+                    {result.average !== 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}
                   </td>
                 )}
                 <td>

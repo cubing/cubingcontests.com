@@ -10,6 +10,7 @@ import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt, IEvent
 import { ContestState } from '@sh/enums';
 import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+import { roundFormats } from '~/shared_helpers/roundFormats';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -76,8 +77,8 @@ const PostResultsScreen = ({
         personIds: currentPersons.map((el) => el?.personId || null),
         ranking: 0, // real rankings assigned on the backend
         attempts, // attempts that got cancelled due to not making cutoff are removed on the backend
-        best: -1,
-        average: -1,
+        best: -1, // this gets set below
+        average: -1, // this gets set below
       };
 
       checkErrorsBeforeResultSubmission(
@@ -123,6 +124,7 @@ const PostResultsScreen = ({
             updateRoundAndCompEvents(payload);
           }
         },
+        round,
       );
     }
   };
@@ -145,8 +147,14 @@ const PostResultsScreen = ({
   const editResult = (result: IResult) => {
     // Delete result and then set the inputs if the deletion was successful
     deleteResult((result as any)._id, () => {
+      const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
+      const newAttempts = [
+        ...result.attempts,
+        ...new Array(expectedAttempts - result.attempts.length).fill({ result: 0 }),
+      ];
+
+      setAttempts(newAttempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
-      setAttempts(result.attempts);
       setResultFormResetTrigger(undefined);
     });
   };
