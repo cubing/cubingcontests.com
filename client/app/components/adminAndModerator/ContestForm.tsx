@@ -29,6 +29,7 @@ import {
   IMeetupDetails,
   IAttempt,
   ICutoff,
+  ITimeLimit,
 } from '@sh/interfaces';
 import {
   Color,
@@ -375,11 +376,23 @@ const ContestForm = ({
       setErrorMessages(['Please enter valid coordinates first']);
     } else {
       setActiveTab(newTab);
-    }
 
-    if (newTab === 'schedule') {
-      setActivityStartTime(zonedTimeToUtc(addHours(new Date(startDate), 12), venueTimeZone));
-      setActivityEndTime(zonedTimeToUtc(addHours(new Date(startDate), 13), venueTimeZone));
+      if (newTab === 'events') {
+        // If the rounds that are supposed to have time limits don't have them
+        // (this can be true for old contests), set them to empty time limits
+        setContestEvents(
+          contestEvents.map((ce) => ({
+            ...ce,
+            rounds: ce.rounds.map((r) => ({
+              ...r,
+              timeLimit: r.timeLimit ?? getTimeLimit(ce.event.format),
+            })),
+          })),
+        );
+      } else if (newTab === 'schedule') {
+        setActivityStartTime(zonedTimeToUtc(addHours(new Date(startDate), 12), venueTimeZone));
+        setActivityEndTime(zonedTimeToUtc(addHours(new Date(startDate), 13), venueTimeZone));
+      }
     }
   };
 
@@ -573,13 +586,16 @@ const ContestForm = ({
     setContestEvents(newContestEvents);
   };
 
+  const getTimeLimit = (eventFormat: EventFormat): ITimeLimit =>
+    eventFormat === EventFormat.Time ? { centiseconds: 0, cumulativeRoundIds: [] } : undefined;
+
   const getNewRound = (event: IEvent, roundNumber: number): IRound => {
     return {
       roundId: `${event.eventId}-r${roundNumber}`,
       competitionId: 'temp', // this gets replaced for all rounds on submit
       roundTypeId: RoundType.Final,
       format: events.find((el) => el.eventId === event.eventId).defaultRoundFormat,
-      timeLimit: event.format === EventFormat.Time ? { centiseconds: 0, cumulativeRoundIds: [] } : undefined,
+      timeLimit: getTimeLimit(event.format),
       results: [],
     };
   };
