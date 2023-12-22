@@ -45,7 +45,11 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                     <td>{roundIndex === 0 && <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />}</td>
                     <td>{roundTypes[round.roundTypeId].label}</td>
                     <td>{roundFormats.find((rf) => rf.value === round.format).label}</td>
-                    <td>{getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event })}</td>
+                    <td>
+                      {round.timeLimit
+                        ? getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event })
+                        : ''}
+                    </td>
                     <td>{cutoffText}</td>
                     {hasNonFinalRound && (
                       <td>
