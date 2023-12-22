@@ -4,6 +4,8 @@ RUN apk update && apk upgrade
 
 COPY server /home/app/server
 COPY client/shared_helpers /home/app/client/shared_helpers
+# This is needed, because some shared_helpers files import NPM modules
+COPY client/node_modules /home/app/client/node_modules
 
 WORKDIR /home/app/server
 
