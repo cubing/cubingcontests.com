@@ -245,6 +245,7 @@ const AttemptInput = ({
     if (e.key === 'Enter') {
       e.preventDefault();
 
+      // If it's not the memo input and there is a time limit that wasn't met, DNF the attempt
       if (!forMemo && timeLimit && attempt.result >= timeLimit.centiseconds) {
         dnfTheAttempt();
         focusNext();

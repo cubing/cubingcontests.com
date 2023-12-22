@@ -84,8 +84,8 @@ const ResultForm = ({
   if (!forResultsSubmissionForm) roundFormat = round.format;
 
   const roundCanHaveAverage = roundFormats.find((rf) => rf.value === roundFormat).attempts >= 3;
-  // round.cutoff doesn't need a ?, because getMakesCutoff can only return false if the cutoff is set
-  const lastActiveAttempt = getMakesCutoff(attempts, round.cutoff) ? attempts.length : round.cutoff.numberOfAttempts;
+  // The second round.cutoff doesn't need a ?, because getMakesCutoff returns true if the cutoff is undefined
+  const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff) ? attempts.length : round.cutoff.numberOfAttempts;
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
@@ -270,11 +270,11 @@ const ResultForm = ({
           setAttempt={(val: IAttempt) => changeAttempt(i, val)}
           event={event}
           focusNext={() => focusNext(i)}
-          timeLimit={round.timeLimit}
+          timeLimit={round?.timeLimit}
           memoInputForBld={forResultsSubmissionForm}
           resetTrigger={attemptsResetTrigger}
           allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
-          disabled={round.cutoff && i + 1 > lastActiveAttempt}
+          disabled={round?.cutoff && i + 1 > lastActiveAttempt}
         />
       ))}
       <div className="mb-3">
