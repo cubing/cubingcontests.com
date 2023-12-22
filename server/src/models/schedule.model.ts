@@ -20,10 +20,6 @@ class Activity implements IActivity {
   @Prop({ required: true })
   endTime: Date;
 
-  // TEMPORARY
-  @Prop({ type: [SchemaFactory.createForClass(Activity)] })
-  childActivity?: Activity[];
-
   @Prop({ type: [SchemaFactory.createForClass(Activity)], required: true })
   childActivities: Activity[];
 }

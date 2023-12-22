@@ -42,24 +42,6 @@ export class ContestsService {
   ) {}
 
   async onModuleInit() {
-    // TEMPORARY
-    const schedules = await this.scheduleModel.find().exec();
-
-    for (const schedule of schedules) {
-      for (let i = 0; i < schedule.venues.length; i++) {
-        for (let j = 0; j < schedule.venues[i].rooms.length; j++) {
-          for (let k = 0; k < schedule.venues[i].rooms[j].activities.length; k++) {
-            schedule.venues[i].rooms[j].activities[k].childActivities = [];
-            schedule.venues[i].rooms[j].activities[k].childActivity = undefined;
-            console.log(schedule.venues[i].rooms[j].activities[k]);
-          }
-        }
-      }
-
-      await schedule.save();
-    }
-    ///
-
     if (process.env.NODE_ENV !== 'production') {
       const schedules = await this.scheduleModel.find().exec();
 
