@@ -42,22 +42,22 @@ const ModeratorInstructions = () => {
       </p>
       <p>
         A5. Click "Create Contest", open the competition page and make sure everything looks right. After you have done
-        that, You will need to add a link to the newly-created competition to the WCA competition page. It is
-        recommended to add the link to a dedicated "Unofficial Events" tab. Then wait for an admin to approve the
-        competition, at which point it will become visible on the "Contests" page on the website. You may still edit
-        some of the details after creation.
+        that, you will need to add a link to the newly-created competition to the WCA competition page. It is
+        recommended to add that link and any relevant information to a dedicated "Unofficial Events" tab. Then wait for
+        an admin to approve the competition, at which point it will become visible on the "Contests" page on the
+        website. You may still edit some of the details after creation, if necessary.
       </p>
       <p>
         A6. You can use the{' '}
         <a href="https://experiments.cubing.net/cubing.js/mark3/" target="_blank">
           Cubing JS scramble generator
         </a>
-        to generate the scrambles, even for some unofficial events. To generate the scorecards, you can click "Edit" on
-        the needed contest and click "Scorecards" (this button becomes available once the contest gets approved). Since
-        there is no registration through Cubing Contests yet, the names won't be filled in and there are no groups, but
-        there is one page for each round for each event. You can print as many copies of each page as you need for the
-        corresponding rounds and ask the competitors to fill their names in when submitting their puzzles. Keep in mind
-        that all names must be filled in for team events, but a signature from just one of the competitors on a team is
+        to generate the scrambles (some non-WCA puzzles are also supported). To generate the scorecards, you can click
+        "Edit" and click "Scorecards" (this button becomes available after the contest gets approved). Since there is no
+        registration through Cubing Contests yet, the names won't be filled in and there are no groups, but there is one
+        page for each round of each event. You can print as many copies of each page as you need for the corresponding
+        rounds, and ask the competitors to fill their names in by hand when submitting their puzzles. Keep in mind that
+        all names must be filled in for team events, but a signature from just one of the competitors on a team is
         enough.
       </p>
       <p>
