@@ -37,6 +37,7 @@ import {
   IEvent,
   IFrontendResult,
   IActivity,
+  IResult,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import {
@@ -490,6 +491,10 @@ export class ResultsService {
     const contest = await this.getContest(createResultDto.competitionId, user);
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
+    // Same as in submitResult
+    if (createResultDto.personIds.length !== (event.participants ?? 1))
+      throw new BadRequestException(`This event must have ${event.participants ?? 1} participants`);
+
     // Admins are allowed to edit finished contests too, so this check is necessary.
     // If it's a finished contest and the user is not an admin, they won't have access rights
     // anyways, so the roles don't need to be checked here.
@@ -537,8 +542,47 @@ export class ResultsService {
     }
 
     // Time limit validation
-    if (round.timeLimit && createResultDto.attempts.some((a) => a.result > round.timeLimit.centiseconds))
-      throw new BadRequestException(`This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`);
+    if (round.timeLimit) {
+      if (createResultDto.attempts.some((a) => a.result > round.timeLimit.centiseconds))
+        throw new BadRequestException(
+          `This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`,
+        );
+
+      if (round.timeLimit.cumulativeRoundIds.length > 0) {
+        let total = 0;
+
+        // Add the attempt times from the new result
+        for (const attempt of createResultDto.attempts) total += attempt.result;
+
+        // Add all attempt times from the other rounds included in the cumulative time limit
+        const rounds = await this.roundModel
+          .find({
+            competitionId: createResultDto.competitionId,
+            roundId: { $in: round.timeLimit.cumulativeRoundIds, $ne: roundId },
+          })
+          .populate('results')
+          .exec();
+
+        for (const r of rounds) {
+          const samePeoplesResult: IResult = r.results.find(
+            (res) => !res.personIds.some((pid) => !createResultDto.personIds.includes(pid)),
+          );
+
+          if (samePeoplesResult) {
+            for (const attempt of samePeoplesResult.attempts) total += attempt.result;
+          }
+        }
+
+        if (total >= round.timeLimit.centiseconds)
+          throw new BadRequestException(
+            `This round has a cumulative time limit of ${getFormattedTime(round.timeLimit.centiseconds)}${
+              round.timeLimit.cumulativeRoundIds.length === 1
+                ? ''
+                : ` for these rounds: ${round.timeLimit.cumulativeRoundIds.join(', ')}`
+            }`,
+          );
+      }
+    }
 
     // Remove empty attempts
     createResultDto.attempts = createResultDto.attempts.filter((a) => a.result !== 0);
@@ -664,6 +708,11 @@ export class ResultsService {
     submitResultDto.date = new Date(submitResultDto.date);
 
     const event = await this.eventsService.getEventById(submitResultDto.eventId);
+
+    // Same as in createResult
+    if (submitResultDto.personIds.length !== (event.participants ?? 1))
+      throw new BadRequestException(`This event must have ${event.participants ?? 1} participants`);
+
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
 
     try {

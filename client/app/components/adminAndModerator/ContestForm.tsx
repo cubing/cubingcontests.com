@@ -18,6 +18,10 @@ import EventTitle from '@c/EventTitle';
 import Tabs from '@c/Tabs';
 import Schedule from '@c/Schedule';
 import ColorSquare from '@c/ColorSquare';
+import Loading from '@c/Loading';
+import Button from '@c/Button';
+import AttemptInput from '@c/AttemptInput';
+import FormCheckbox from '@c/form/FormCheckbox';
 import {
   IContest,
   ICompetitionDetails,
@@ -53,10 +57,6 @@ import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, getWcaCompetitionDetails, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
-import Loading from '../Loading';
-import Button from '../Button';
-import AttemptInput from '~/app/components/AttemptInput';
-import FormCheckbox from '~/app/components/form/FormCheckbox';
 
 const isAdmin = getUserInfo()?.isAdmin;
 
@@ -528,11 +528,35 @@ const ContestForm = ({
                 ? round
                 : {
                     ...round,
-                    timeLimit: { centiseconds: value.result, cumulativeRoundIds: round.timeLimit.cumulativeRoundIds },
+                    timeLimit: { ...round.timeLimit, centiseconds: value.result },
                   },
             ),
           },
     );
+
+    setContestEvents(newContestEvents);
+  };
+
+  const changeRoundTimeLimitCumulative = (eventIndex: number, roundIndex: number) => {
+    const newContestEvents = contestEvents.map((ce, i) =>
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : {
+                    ...round,
+                    timeLimit: {
+                      ...round.timeLimit,
+                      cumulativeRoundIds: round.timeLimit.cumulativeRoundIds.length > 0 ? [] : [round.roundId],
+                    },
+                  },
+            ),
+          },
+    );
+
     setContestEvents(newContestEvents);
   };
 
@@ -587,7 +611,7 @@ const ContestForm = ({
   };
 
   const getTimeLimit = (eventFormat: EventFormat): ITimeLimit =>
-    eventFormat === EventFormat.Time ? { centiseconds: 0, cumulativeRoundIds: [] } : undefined;
+    eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
 
   const getNewRound = (event: IEvent, roundNumber: number): IRound => {
     return {
@@ -1001,22 +1025,22 @@ const ContestForm = ({
                 </div>
                 {ce.rounds.map((round, roundIndex) => (
                   <div key={round.roundId} className="mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary">
-                    <div className="d-flex flex-wrap flex-column flex-sm-row justify-content-sm-between align-items-sm-center gap-3 gap-md-5 w-100">
-                      <div className="flex-grow-1 d-flex align-items-center gap-3 gap-md-5">
-                        <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
+                    <div className="flex-grow-1 d-flex align-items-center gap-3 gap-md-5">
+                      <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
 
-                        <div className="flex-grow-1">
-                          <FormSelect
-                            title=""
-                            options={roundFormatOptions}
-                            selected={round.format}
-                            setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
-                            disabled={disableIfCompDone || round.results.length > 0}
-                            noMargin
-                          />
-                        </div>
+                      <div className="flex-grow-1">
+                        <FormSelect
+                          title=""
+                          options={roundFormatOptions}
+                          selected={round.format}
+                          setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
+                          disabled={disableIfCompDone || round.results.length > 0}
+                          noMargin
+                        />
                       </div>
-                      {ce.event.format === EventFormat.Time && (
+                    </div>
+                    {ce.event.format === EventFormat.Time && (
+                      <div className="d-flex flex-wrap align-items-center gap-3 gap-md-5 w-100 mt-3">
                         <div className="d-flex justify-content-between align-items-center gap-3">
                           <h6 className="flex-shrink-0 m-0">Time limit:</h6>
 
@@ -1031,8 +1055,20 @@ const ContestForm = ({
                             />
                           </div>
                         </div>
-                      )}
-                    </div>
+
+                        <div className="d-flex justify-content-between align-items-center gap-3">
+                          <h6 className="flex-shrink-0 m-0">Cumulative limit:</h6>
+
+                          <FormCheckbox
+                            title=""
+                            id={`cumulative_limit_${ce.event.eventId}_${roundIndex + 1}`}
+                            selected={round.timeLimit.cumulativeRoundIds.length > 0}
+                            setSelected={() => changeRoundTimeLimitCumulative(eventIndex, roundIndex)}
+                            noMargin
+                          />
+                        </div>
+                      </div>
+                    )}
                     <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 gap-md-5 mt-3">
                       <h6 className="flex-shrink-0 m-0">Cutoff:</h6>
 
