@@ -51,7 +51,7 @@ const ModeratorInstructions = () => {
         A6. You can use the{' '}
         <a href="https://experiments.cubing.net/cubing.js/mark3/" target="_blank">
           Cubing JS scramble generator
-        </a>
+        </a>{' '}
         to generate the scrambles (some non-WCA puzzles are also supported). To generate the scorecards, you can click
         "Edit" and click "Scorecards" (this button becomes available after the contest gets approved). Since there is no
         registration through Cubing Contests yet, the names won't be filled in and there are no groups, but there is one

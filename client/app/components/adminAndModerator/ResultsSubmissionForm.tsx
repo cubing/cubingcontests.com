@@ -205,9 +205,10 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               <p>
                 Here you can submit results for events that allow submissions. They will be included in the rankings
                 after an admin approves them. A result can only be accepted if it has video evidence of the{' '}
-                <b>ENTIRE</b> solve (including memorization, if applicable). Make sure that you can be identified from
-                the provided video; if your channel name is not your real name, please include your full name or WCA ID
-                in the description of the video.
+                <b>ENTIRE</b> solve (including memorization, if applicable). The video date is used as proof of when the
+                solve was done, an earlier date cannot be used. Make sure that you can be identified from the provided
+                video; if your channel name is not your real name, please include your full name or WCA ID in the
+                description of the video.
               </p>
               <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? 'Hide rules' : 'Show rules'}

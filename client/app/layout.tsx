@@ -5,8 +5,9 @@ import Navbar from '@c/Navbar';
 // SEO
 export const metadata = {
   title: 'Cubing Contests',
-  description: 'The best place for hosting unofficial Rubik\'s cube competitions and speedcuber meetups.',
-  keywords: 'rubik\'s rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle',
+  description: "The best place for hosting unofficial Rubik's cube competitions and speedcuber meetups.",
+  keywords:
+    "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: '/favicon.png' },
   metadataBase: new URL('https://cubingcontests.com'),
   openGraph: {
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Deni Mintsaev
           </a>
           <a
-            href="https://github.com/dmint789/cubing-contests"
+            href="https://github.com/cubing/cubingcontests.com"
             target="_blank"
             className="d-inline-flex justify-content-center align-items-center"
             style={{ width: '1.75rem', height: '1.75rem' }}

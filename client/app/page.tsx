@@ -7,7 +7,8 @@ export default function Home() {
       <h1 className="mb-3 mb-lg-4 text-center">Cubing Contests</h1>
       <p>
         This is a place for hosting unofficial Rubik's cube competitions, unofficial events held at WCA competitions,
-        speedcuber meetups, and other unofficial events.
+        speedcuber meetups, and other unofficial events. Please note that an unofficial competition can only be hosted
+        on Cubing Contests if it's unrealistic for it to be held as an official WCA competition.
       </p>
       <p>
         The events are split up into multiple categories: Unofficial, WCA, Extreme BLD, and Miscellaneous. Extreme BLD
