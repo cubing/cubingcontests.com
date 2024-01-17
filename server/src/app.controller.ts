@@ -1,4 +1,15 @@
-import { BadRequestException, Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { find } from 'geo-tz';
@@ -12,6 +23,8 @@ import { Role } from '@sh/enums';
 import { eventPopulateOptions } from '~/src/helpers/dbHelpers';
 import { getWcifCompetition } from '@sh/sharedFunctions';
 import { ContestDocument } from '~/src/models/contest.model';
+import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
+import { LogType } from '~/src/helpers/enums';
 
 @Controller()
 export class AppController {
@@ -63,5 +76,15 @@ export class AppController {
     });
 
     res.end(buffer);
+  }
+
+  @Post('enter-attempt')
+  async enterAttemptFromExternalDevice(@Body(new ValidationPipe()) enterAttemptDto: EnterAttemptDto) {
+    this.logger.logAndSave(
+      `Entering attempt ${enterAttemptDto.attemptResult} for event ${enterAttemptDto.eventId} from external device`,
+      LogType.UpdateResult,
+    );
+
+    return await this.appService.enterAttemptFromExternalDevice(enterAttemptDto);
   }
 }

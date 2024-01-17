@@ -260,7 +260,7 @@ export class ContestsService {
     contest.events = await this.updateContestEvents(contest, updateContestDto.events);
     if (updateContestDto.compDetails) {
       if (contest.compDetails) {
-        if (contest.state < ContestState.Ongoing) {
+        if (contest.state < ContestState.Finished) {
           await this.scheduleModel.updateOne(
             { _id: contest.compDetails.schedule._id },
             updateContestDto.compDetails.schedule,

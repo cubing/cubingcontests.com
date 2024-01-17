@@ -27,4 +27,6 @@ export enum LogType {
 
   CreateUser = 'create_user',
   UpdateUser = 'update_user',
+
+  EnterAttempt = 'enter_attempt',
 }

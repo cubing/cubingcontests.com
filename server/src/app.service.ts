@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { addMonths } from 'date-fns';
@@ -6,7 +6,10 @@ import { LogDocument } from '~/src/models/log.model';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
-import { IAdminStats } from '@sh/interfaces';
+import { IAdminStats, IAttempt } from '@sh/interfaces';
+import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
+import { getBestAndAverage, getMakesCutoff } from '~~/client/shared_helpers/sharedFunctions';
+import { roundFormats } from '~~/client/shared_helpers/roundFormats';
 
 @Injectable()
 export class AppService {
@@ -90,5 +93,66 @@ export class AppService {
     };
 
     return adminStats;
+  }
+
+  async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
+    const { result, contestEvent } = await this.resultsService.getContestResultAndEvent(
+      enterAttemptDto.competitionWcaId,
+      enterAttemptDto.eventId,
+      enterAttemptDto.roundNumber,
+      enterAttemptDto.registrantId,
+    );
+    const round = contestEvent.rounds[enterAttemptDto.roundNumber - 1];
+    const format = roundFormats.find((rf) => rf.value === round.format);
+
+    if (result) {
+      const existingAttempt = result.attempts[enterAttemptDto.attemptNumber - 1];
+      if (!existingAttempt)
+        throw new BadRequestException(`Attempt number ${enterAttemptDto.attemptNumber} does not exist`);
+      if (existingAttempt.result !== -2) throw new BadRequestException('This attempt has already been entered');
+
+      existingAttempt.result = enterAttemptDto.attemptResult;
+
+      // If the cutoff is met now, but wasn't before, fill in the rest of the attempts with DNS
+      if (result.attempts.length < format.attempts && getMakesCutoff(result.attempts, round.cutoff)) {
+        result.attempts = [
+          ...result.attempts,
+          ...new Array(format.attempts - result.attempts.length).fill({ result: -2 }),
+        ];
+      }
+
+      await result.save();
+    } else if (enterAttemptDto.attemptNumber === 1) {
+      const person = await this.personsService.getPersonById(enterAttemptDto.registrantId);
+
+      if (!person) throw new NotFoundException(`Person with ID ${enterAttemptDto.registrantId} not found`);
+
+      let attempts: IAttempt[] = [
+        { result: enterAttemptDto.attemptResult },
+        ...new Array(format.attempts - 1).fill({ result: -2 }), // fill the rest of the attempts with DNS
+      ];
+      if (!getMakesCutoff(attempts, round.cutoff)) attempts = attempts.slice(0, round.cutoff.numberOfAttempts);
+      const { best, average } = getBestAndAverage(
+        attempts,
+        contestEvent.event,
+        contestEvent.rounds[enterAttemptDto.roundNumber - 1].cutoff,
+      );
+
+      await this.resultsService.createResult(
+        {
+          competitionId: enterAttemptDto.competitionWcaId,
+          eventId: enterAttemptDto.eventId,
+          date: new Date(), // real date assigned in createResult
+          unapproved: true,
+          personIds: [enterAttemptDto.registrantId],
+          attempts,
+          best,
+          average,
+        },
+        `${enterAttemptDto.eventId}-r${enterAttemptDto.roundNumber}`,
+      );
+    } else {
+      throw new BadRequestException('You must first enter the first attempt');
+    }
   }
 }

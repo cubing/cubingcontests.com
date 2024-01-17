@@ -11,8 +11,7 @@ import Time from '@c/Time';
 import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
-import { getMakesCutoff, setResultRecords } from '@sh/sharedFunctions';
-import { getBestAndAverage } from '~/helpers/utilityFunctions';
+import { getMakesCutoff, getBestAndAverage, setResultRecords } from '@sh/sharedFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 

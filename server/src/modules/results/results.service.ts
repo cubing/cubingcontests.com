@@ -23,7 +23,7 @@ import { UsersService } from '@m/users/users.service';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
-import { excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
+import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
 import { ContestState, Role, WcaRecordType } from '@sh/enums';
 import {
@@ -38,6 +38,7 @@ import {
   IFrontendResult,
   IActivity,
   IResult,
+  IContestEvent,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import {
@@ -486,7 +487,36 @@ export class ResultsService {
     }
   }
 
-  async createResult(createResultDto: CreateResultDto, roundId: string, user: IPartialUser): Promise<RoundDocument> {
+  // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
+  async getContestResultAndEvent(
+    competitionId: string,
+    eventId: string,
+    roundNumber: number,
+    personId: number,
+  ): Promise<{ result: ResultDocument; contestEvent: IContestEvent }> {
+    const contest = await this.contestModel
+      .findOne({ competitionId })
+      .populate(eventPopulateOptions.event)
+      .populate(eventPopulateOptions.rounds)
+      .exec();
+
+    if (!contest) throw new NotFoundException(`Competition with ID ${competitionId} not found`);
+
+    const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
+
+    if (!contestEvent) throw new NotFoundException(`Event with ID ${eventId} not found for the given competition`);
+    if (contestEvent.rounds.length < roundNumber)
+      throw new BadRequestException(`The specified competition event only has ${contestEvent.rounds.length} rounds`);
+
+    const result = contestEvent.rounds[roundNumber - 1].results.find(
+      (r) => r.personIds.length === 1 && r.personIds[0] === personId,
+    );
+
+    return { result, contestEvent };
+  }
+
+  // The user can be left undefined when this is called by app.service.ts, which has its own authorization check
+  async createResult(createResultDto: CreateResultDto, roundId: string, user?: IPartialUser): Promise<RoundDocument> {
     // getContest is put here deliberately, because this function also checks access rights!
     const contest = await this.getContest(createResultDto.competitionId, user);
     const event = await this.eventsService.getEventById(createResultDto.eventId);
@@ -507,7 +537,7 @@ export class ResultsService {
       const schedule = await this.scheduleModel.findOne({ competitionId: createResultDto.competitionId }).exec();
 
       if (!schedule)
-        throw new BadRequestException(`No schedule found for contest with ID ${createResultDto.competitionId}`);
+        throw new BadRequestException(`Nof schedule found for contest with ID ${createResultDto.competitionId}`);
 
       let activity: IActivity;
 
@@ -998,7 +1028,7 @@ export class ResultsService {
     }
   }
 
-  private async getContest(competitionId: string, user: IPartialUser): Promise<ContestDocument> {
+  private async getContest(competitionId: string, user?: IPartialUser): Promise<ContestDocument> {
     let contest: ContestDocument;
 
     try {
@@ -1014,7 +1044,7 @@ export class ResultsService {
     }
 
     if (!contest) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
-    else this.authService.checkAccessRightsToContest(user, contest);
+    else if (user) this.authService.checkAccessRightsToContest(user, contest);
 
     return contest;
   }

@@ -4,9 +4,9 @@ import { format } from 'date-fns-tz';
 import myFetch from './myFetch';
 import { Color, ContestType, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
-import { IAttempt, IContest, ICutoff, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
+import { IAttempt, IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import { IUserInfo } from './interfaces/UserInfo';
-import { getMakesCutoff } from '~/shared_helpers/sharedFunctions';
+import { getBestAndAverage } from '@sh/sharedFunctions';
 
 export const getFormattedCoords = (comp: IContest): string => {
   return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
@@ -132,47 +132,6 @@ export const getAttempt = (
   }
 
   return newAttempt;
-};
-
-// Returns the best and average times
-export const getBestAndAverage = (
-  attempts: IAttempt[],
-  event: IEvent,
-  cutoff?: ICutoff,
-): { best: number; average: number } => {
-  let best: number, average: number;
-  let sum = 0;
-  let DNFDNScount = 0;
-  const makesCutoff = getMakesCutoff(attempts, cutoff);
-
-  // This actually follows the rule that the lower the attempt value is - the better
-  const convertedAttempts = attempts.map(({ result }) => {
-    if (result > 0) {
-      sum += result;
-      return result;
-    }
-    DNFDNScount++;
-    return Infinity;
-  });
-
-  best = Math.min(...convertedAttempts);
-  if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
-
-  if ([3, 5].includes(attempts.length) && !makesCutoff) {
-    average = 0;
-  } else if (attempts.length < 3 || DNFDNScount > 1 || (DNFDNScount > 0 && attempts.length === 3)) {
-    average = -1;
-  } else {
-    // Subtract best and worst results, if it's an Ao5 round
-    if (attempts.length === 5) {
-      sum -= best;
-      if (DNFDNScount === 0) sum -= Math.max(...convertedAttempts);
-    }
-
-    average = Math.round((sum / 3) * (event.format === EventFormat.Number ? 100 : 1));
-  }
-
-  return { best, average };
 };
 
 // Returns the authenticated user's info

@@ -8,14 +8,15 @@ import FormTextInput from '@c/form/FormTextInput';
 import ContestResults from '~/app/components/ContestResults';
 import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from '@sh/enums';
 import { IContest, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
+import { fetchPerson, getContestIdFromName, getWcaCompetitionDetails } from '~/helpers/utilityFunctions';
 import {
-  fetchPerson,
+  compareAvgs,
+  compareSingles,
+  getDefaultAverageAttempts,
+  getRoundRanksWithAverage,
   getBestAndAverage,
-  getContestIdFromName,
-  getWcaCompetitionDetails,
-} from '~/helpers/utilityFunctions';
-import { compareAvgs, compareSingles, getDefaultAverageAttempts, getRoundRanksWithAverage } from '@sh/sharedFunctions';
-import { roundFormats } from '~/shared_helpers/roundFormats';
+} from '@sh/sharedFunctions';
+import { roundFormats } from '@sh/roundFormats';
 
 const setRankingsAndRecords = (
   results: IResult[],
