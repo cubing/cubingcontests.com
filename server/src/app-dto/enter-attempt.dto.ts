@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumberString, IsString, Min } from 'class-validator';
 
 export class EnterAttemptDto {
   @IsString()
@@ -9,9 +9,8 @@ export class EnterAttemptDto {
   @IsNotEmpty()
   eventId: string;
 
-  @IsInt()
-  @Min(1)
-  roundNumber: number;
+  @IsNumberString()
+  roundNumber: string;
 
   @IsInt()
   @Min(1)

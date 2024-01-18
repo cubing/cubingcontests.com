@@ -509,9 +509,11 @@ export class ResultsService {
     if (contestEvent.rounds.length < roundNumber)
       throw new BadRequestException(`The specified competition event only has ${contestEvent.rounds.length} rounds`);
 
-    const result = contestEvent.rounds[roundNumber - 1].results.find(
-      (r) => r.personIds.length === 1 && r.personIds[0] === personId,
-    );
+    const round = contestEvent.rounds[roundNumber - 1];
+
+    if (!round) throw new BadRequestException(`Round number ${roundNumber} not found`);
+
+    const result = round.results.find((r) => r.personIds.length === 1 && r.personIds[0] === personId);
 
     return { result, contestEvent };
   }

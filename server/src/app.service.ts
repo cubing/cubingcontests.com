@@ -97,13 +97,14 @@ export class AppService {
   }
 
   async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
+    const roundNumber = parseInt(enterAttemptDto.roundNumber);
     const { result, contestEvent } = await this.resultsService.getContestResultAndEvent(
       enterAttemptDto.competitionWcaId,
       enterAttemptDto.eventId,
-      enterAttemptDto.roundNumber,
+      roundNumber,
       enterAttemptDto.registrantId,
     );
-    const round = contestEvent.rounds[enterAttemptDto.roundNumber - 1];
+    const round = contestEvent.rounds[roundNumber - 1];
     const attempts: IAttempt[] = [];
 
     // If the result already exists, delete it first
