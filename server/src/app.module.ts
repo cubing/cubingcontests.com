@@ -15,6 +15,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LogSchema } from '~/src/models/log.model';
 import { ContestSchema } from '~/src/models/contest.model';
+import { RoundSchema } from '~/src/models/round.model';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ContestSchema } from '~/src/models/contest.model';
     MongooseModule.forFeature([
       { name: 'Log', schema: LogSchema },
       { name: 'Competition', schema: ContestSchema },
+      { name: 'Round', schema: RoundSchema },
     ]),
     LoggerModule,
     ContestsModule,

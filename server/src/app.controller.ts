@@ -6,7 +6,9 @@ import {
   Param,
   Post,
   Query,
+  Request,
   Res,
+  UnauthorizedException,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,22 +17,28 @@ import { Model } from 'mongoose';
 import { find } from 'geo-tz';
 import { AppService } from './app.service';
 import { MyLogger } from '@m/my-logger/my-logger.service';
+import { AuthService } from '@m/auth/auth.service';
 import { getScorecards } from '~/src/scorecards/index.js';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
+import { AuthTokenGuard } from '~/src/guards/auth-token.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
-import { eventPopulateOptions } from '~/src/helpers/dbHelpers';
+import { eventPopulateOptions, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { getWcifCompetition } from '@sh/sharedFunctions';
 import { ContestDocument } from '~/src/models/contest.model';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { LogType } from '~/src/helpers/enums';
+import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
+import { IPartialUser } from '~/src/helpers/interfaces/User';
+import { IContest } from '@sh/interfaces';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly logger: MyLogger,
     private readonly appService: AppService,
+    private readonly authService: AuthService,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
   ) {}
 
@@ -57,14 +65,17 @@ export class AppController {
   @Get('scorecards/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getContestScorecards(@Param('competitionId') competitionId: string, @Res() res: any) {
+  async getContestScorecards(@Param('competitionId') competitionId: string, @Request() req: any, @Res() res: any) {
     const contest = await this.contestModel
       .findOne({ competitionId })
       .populate(eventPopulateOptions.event)
       .populate({ ...eventPopulateOptions.rounds, populate: undefined }) // we don't need the results to be populated
+      .populate(orgPopulateOptions)
       .exec();
 
     if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
+
+    await this.checkAccessRights(contest, req.user);
 
     const buffer = await getScorecards(getWcifCompetition(contest));
 
@@ -78,7 +89,21 @@ export class AppController {
     res.end(buffer);
   }
 
+  @Get('create-auth-token/:competitionId')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async createAuthToken(@Param('competitionId') competitionId: string, @Request() req: any) {
+    const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
+
+    if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
+
+    await this.checkAccessRights(contest, req.user);
+
+    return await this.authService.createAuthToken(competitionId);
+  }
+
   @Post('enter-attempt')
+  @UseGuards(AuthTokenGuard)
   async enterAttemptFromExternalDevice(@Body(new ValidationPipe()) enterAttemptDto: EnterAttemptDto) {
     this.logger.logAndSave(
       `Entering attempt ${enterAttemptDto.attemptResult} for event ${enterAttemptDto.eventId} from external device`,
@@ -86,5 +111,11 @@ export class AppController {
     );
 
     return await this.appService.enterAttemptFromExternalDevice(enterAttemptDto);
+  }
+
+  private async checkAccessRights(contest: IContest, user: IPartialUser) {
+    // Check that user is admin or has access for the contest
+    if (!user.roles.includes(Role.Admin) && !contest.organizers.some((o) => o.personId === user.personId))
+      throw new UnauthorizedException(NO_ACCESS_RIGHTS_MSG);
   }
 }

@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '@m/users/users.module';
@@ -6,10 +7,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
+import { AuthTokenSchema } from '~/src/models/auth-token.model';
 
 @Global()
 @Module({
   imports: [
+    MongooseModule.forFeature([{ name: 'AuthToken', schema: AuthTokenSchema }]),
     UsersModule,
     PassportModule,
     JwtModule.register({

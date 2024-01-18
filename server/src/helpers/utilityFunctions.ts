@@ -1,5 +1,5 @@
+import { ResultDocument } from '~/src/models/result.model';
 import { compareAvgs, compareSingles, getDefaultAverageAttempts } from '@sh/sharedFunctions';
-import { ResultDocument } from '../models/result.model';
 import { IEvent } from '@sh/interfaces';
 
 export const setRankings = async (

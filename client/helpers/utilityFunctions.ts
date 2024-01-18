@@ -185,7 +185,7 @@ export const checkErrorsBeforeResultSubmission = (
     setErrorMessages([]);
     setSuccessMessage('');
 
-    const { best, average } = getBestAndAverage(result.attempts, event, round?.cutoff);
+    const { best, average } = getBestAndAverage(result.attempts, event, round);
     result.best = best;
     result.average = average;
 

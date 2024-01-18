@@ -39,6 +39,7 @@ import {
   IActivity,
   IResult,
   IContestEvent,
+  IRound,
 } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import {
@@ -49,7 +50,6 @@ import {
   getRoundRanksWithAverage,
   setResultRecords,
 } from '@sh/sharedFunctions';
-import { roundFormats } from '@sh/roundFormats';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
@@ -501,6 +501,7 @@ export class ResultsService {
       .exec();
 
     if (!contest) throw new NotFoundException(`Competition with ID ${competitionId} not found`);
+    if (contest.state > ContestState.Ongoing) throw new BadRequestException('The contest is finished');
 
     const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
 
@@ -520,10 +521,6 @@ export class ResultsService {
     // getContest is put here deliberately, because this function also checks access rights!
     const contest = await this.getContest(createResultDto.competitionId, user);
     const event = await this.eventsService.getEventById(createResultDto.eventId);
-
-    // Same as in submitResult
-    if (createResultDto.personIds.length !== (event.participants ?? 1))
-      throw new BadRequestException(`This event must have ${event.participants ?? 1} participants`);
 
     // Admins are allowed to edit finished contests too, so this check is necessary.
     // If it's a finished contest and the user is not an admin, they won't have access rights
@@ -571,64 +568,7 @@ export class ResultsService {
       throw new InternalServerErrorException(`Error while fetching round: ${err.message}`);
     }
 
-    // Time limit validation
-    if (round.timeLimit) {
-      if (createResultDto.attempts.some((a) => a.result > round.timeLimit.centiseconds))
-        throw new BadRequestException(
-          `This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`,
-        );
-
-      if (round.timeLimit.cumulativeRoundIds.length > 0) {
-        let total = 0;
-
-        // Add the attempt times from the new result
-        for (const attempt of createResultDto.attempts) total += attempt.result;
-
-        // Add all attempt times from the other rounds included in the cumulative time limit
-        const rounds = await this.roundModel
-          .find({
-            competitionId: createResultDto.competitionId,
-            roundId: { $in: round.timeLimit.cumulativeRoundIds, $ne: roundId },
-          })
-          .populate('results')
-          .exec();
-
-        for (const r of rounds) {
-          const samePeoplesResult: IResult = r.results.find(
-            (res) => !res.personIds.some((pid) => !createResultDto.personIds.includes(pid)),
-          );
-
-          if (samePeoplesResult) {
-            for (const attempt of samePeoplesResult.attempts) total += attempt.result;
-          }
-        }
-
-        if (total >= round.timeLimit.centiseconds)
-          throw new BadRequestException(
-            `This round has a cumulative time limit of ${getFormattedTime(round.timeLimit.centiseconds)}${
-              round.timeLimit.cumulativeRoundIds.length === 1
-                ? ''
-                : ` for these rounds: ${round.timeLimit.cumulativeRoundIds.join(', ')}`
-            }`,
-          );
-      }
-    }
-
-    // Remove empty attempts
-    createResultDto.attempts = createResultDto.attempts.filter((a) => a.result !== 0);
-    const expectedAttempts = roundFormats.find((rf) => rf.value === round.format).attempts;
-
-    // Cutoff validation
-    if (round.cutoff) {
-      const passes = getMakesCutoff(createResultDto.attempts, round.cutoff);
-
-      if (!passes && createResultDto.attempts.length !== round.cutoff.numberOfAttempts)
-        throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
-      else if (passes && createResultDto.attempts.length !== expectedAttempts)
-        throw new BadRequestException('This round made cutoff, but has too few attempts');
-    } else if (createResultDto.attempts.length !== expectedAttempts) {
-      throw new BadRequestException('Please enter all attempts');
-    }
+    await this.validateResult(createResultDto, event, round);
 
     const oldResults = [...round.results];
 
@@ -665,7 +605,8 @@ export class ResultsService {
     }
   }
 
-  async deleteContestResult(resultId: string, competitionId: string, user: IPartialUser): Promise<RoundDocument> {
+  // The user can be left undefined when this is called by app.service.ts, which has its own authorization check
+  async deleteContestResult(resultId: string, competitionId: string, user?: IPartialUser): Promise<RoundDocument> {
     // getContest is put here deliberately, because this function also checks access rights!
     const contest = await this.getContest(competitionId, user);
     let result: ResultDocument;
@@ -739,9 +680,7 @@ export class ResultsService {
 
     const event = await this.eventsService.getEventById(submitResultDto.eventId);
 
-    // Same as in createResult
-    if (submitResultDto.personIds.length !== (event.participants ?? 1))
-      throw new BadRequestException(`This event must have ${event.participants ?? 1} participants`);
+    await this.validateResult(submitResultDto, event);
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
 
@@ -1054,6 +993,65 @@ export class ResultsService {
     if (personIds.length > 1) {
       // Sort the person IDs in the result, so that the person, whose PR this result is, is first
       personIds.sort((a) => (a === personId ? -1 : 0));
+    }
+  }
+
+  private async validateResult(result: IResult, event: IEvent, round?: IRound) {
+    if (result.personIds.length !== (event.participants ?? 1))
+      throw new BadRequestException(`This event must have ${event.participants ?? 1} participants`);
+
+    // Time limit validation
+    if (round?.timeLimit) {
+      if (result.attempts.some((a) => a.result > round.timeLimit.centiseconds))
+        throw new BadRequestException(
+          `This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`,
+        );
+
+      if (round.timeLimit.cumulativeRoundIds.length > 0) {
+        let total = 0;
+
+        // Add the attempt times from the new result
+        for (const attempt of result.attempts) total += attempt.result;
+
+        // Add all attempt times from the other rounds included in the cumulative time limit
+        const rounds = await this.roundModel
+          .find({
+            competitionId: result.competitionId,
+            roundId: { $in: round.timeLimit.cumulativeRoundIds, $ne: round.roundId },
+          })
+          .populate('results')
+          .exec();
+
+        for (const r of rounds) {
+          const samePeoplesResult: IResult = r.results.find(
+            (res) => !res.personIds.some((pid) => !result.personIds.includes(pid)),
+          );
+
+          if (samePeoplesResult) {
+            for (const attempt of samePeoplesResult.attempts) total += attempt.result;
+          }
+        }
+
+        if (total >= round.timeLimit.centiseconds)
+          throw new BadRequestException(
+            `This round has a cumulative time limit of ${getFormattedTime(round.timeLimit.centiseconds)}${
+              round.timeLimit.cumulativeRoundIds.length === 1
+                ? ''
+                : ` for these rounds: ${round.timeLimit.cumulativeRoundIds.join(', ')}`
+            }`,
+          );
+      }
+    }
+
+    // Remove empty attempts
+    result.attempts = result.attempts.filter((a) => a.result !== 0);
+
+    // Cutoff validation
+    if (round?.cutoff) {
+      const passes = getMakesCutoff(result.attempts, round.cutoff);
+
+      if (!passes && result.attempts.length > round.cutoff.numberOfAttempts)
+        throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
     }
   }
 }

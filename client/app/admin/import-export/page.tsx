@@ -255,10 +255,17 @@ const ImportExportPage = () => {
           return;
         }
 
+        const newRound = {
+          roundId: `${ccEventId}-r${i + 1}`,
+          competitionId,
+          roundTypeId: getRoundType(i, roundsInfo.length),
+          format,
+          results: [] as IResult[],
+        };
         const lines = roundData.split(/\n/);
         const fields = lines[0].split(',');
 
-        const roundResults: IResult[] = setRankingsAndRecords(
+        newRound.results = setRankingsAndRecords(
           lines
             .slice(1)
             .map((line: string) => line.trim())
@@ -286,7 +293,7 @@ const ImportExportPage = () => {
 
               // Sometimes there are inconsistencies, where 5 attempts are filled in despite the round format
               attempts = attempts.slice(0, roundFormats.find((rf) => rf.value === format).attempts);
-              const { best, average } = getBestAndAverage(attempts, event);
+              const { best, average } = getBestAndAverage(attempts, event, newRound);
 
               return {
                 competitionId,
@@ -307,7 +314,7 @@ const ImportExportPage = () => {
         // Set the personIds and make sure there are no competitors in the round who have multiple results
         const roundPersonIds: number[] = [];
 
-        for (const result of roundResults) {
+        for (const result of newRound.results) {
           for (let j = 0; j < result.personIds.length; j++) {
             const name = result.personIds[j] as any;
             let person: IPerson;
@@ -325,7 +332,7 @@ const ImportExportPage = () => {
                 roundPersonIds.push(person.personId);
                 persons.push(person);
               } else {
-                console.error('Round results:', roundResults);
+                console.error('Round results:', newRound.results);
                 setErrorMessages([`${person.name} is included in the results twice`]);
                 return;
               }
@@ -339,17 +346,11 @@ const ImportExportPage = () => {
         if (i > 0) {
           rounds[i - 1].proceed = {
             type: RoundProceed.Number,
-            value: roundResults.length,
+            value: newRound.results.length,
           };
         }
 
-        rounds.push({
-          roundId: `${ccEventId}-r${i + 1}`,
-          competitionId,
-          roundTypeId: getRoundType(i, roundsInfo.length),
-          format,
-          results: roundResults,
-        });
+        rounds.push(newRound);
       }
 
       newContest.events.push({ event, rounds });

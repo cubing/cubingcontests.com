@@ -47,7 +47,8 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                     <td>{roundFormats.find((rf) => rf.value === round.format).label}</td>
                     <td>
                       {round.timeLimit
-                        ? getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event })
+                        ? getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event }) +
+                          (round.timeLimit.cumulativeRoundIds.length > 0 ? ' cumulative' : '')
                         : ''}
                     </td>
                     <td>{cutoffText}</td>

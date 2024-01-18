@@ -1,4 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
@@ -7,10 +9,17 @@ import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { ContestState, Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
+import { AuthTokenDocument } from '~/src/models/auth-token.model';
+import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
+import { addWeeks } from 'date-fns';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService, private jwtService: JwtService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    @InjectModel('AuthToken') private readonly authTokenModel: Model<AuthTokenDocument>,
+  ) {}
 
   async register(createUserDto: CreateUserDto) {
     try {
@@ -81,6 +90,39 @@ export class AuthService {
     return await this.usersService.getUserRoles(id);
   }
 
+  // Assumes the user's access rights have already been checked
+  async createAuthToken(competitionId: string): Promise<string> {
+    // Generate 36-bit random token, removing "0." from the beginning
+    const genRand = () => Math.random().toString(36).slice(2);
+
+    const token = genRand() + genRand(); // make it double the length
+    const hash = await bcrypt.hash(token, 0); // there's no need to salt the tokens
+
+    try {
+      // Delete existing valid auth token
+      await this.authTokenModel.deleteOne({ competitionId, createdAt: { $gt: addWeeks(new Date(), -1) } }).exec();
+      await this.authTokenModel.create({ token: hash, competitionId });
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while saving token: ${err.message}`);
+    }
+
+    return token;
+  }
+
+  async validateAuthToken(token: string, competitionId: string): Promise<boolean> {
+    let authToken: AuthTokenDocument;
+
+    try {
+      authToken = await this.authTokenModel
+        .findOne({ competitionId, createdAt: { $gt: addWeeks(new Date(), -1) } })
+        .exec();
+    } catch (err) {
+      throw new InternalServerErrorException(`Error while validating token: ${err.message}`);
+    }
+
+    return authToken && (await bcrypt.compare(token, authToken.token));
+  }
+
   checkAccessRightsToContest(
     user: IPartialUser,
     contest: ContestDocument, // this must be populated
@@ -93,7 +135,7 @@ export class AuthService {
         (contest.state >= ContestState.Finished && !ignoreState))
     ) {
       console.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);
-      throw new UnauthorizedException('User does not have access rights for this contest');
+      throw new UnauthorizedException(NO_ACCESS_RIGHTS_MSG);
     }
   }
 }

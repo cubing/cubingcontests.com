@@ -70,6 +70,7 @@ const ContestForm = ({
   mode: 'new' | 'edit' | 'copy';
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [successMessage, setSuccessMessage] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
@@ -800,11 +801,22 @@ const ContestForm = ({
     setLoadingDuringSubmit(false);
   };
 
+  const createAuthToken = async () => {
+    setLoadingDuringSubmit(true);
+
+    const { payload, errors } = await myFetch.get(`/create-auth-token/${contest.competitionId}`, { authorize: true });
+
+    setErrorMessages(errors || []);
+    setSuccessMessage(`Your new access token is ${payload}`);
+    setLoadingDuringSubmit(false);
+  };
+
   return (
     <div>
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         errorMessages={errorMessages}
+        successMessage={successMessage}
         onSubmit={handleSubmit}
         disableButton={disableIfCompFinished || loadingDuringSubmit || fetchTimezoneTimer !== null}
       >
@@ -812,13 +824,19 @@ const ContestForm = ({
 
         {activeTab === 'details' && (
           <>
-            {mode === 'edit' && contest.state > ContestState.Approved && (
-              <div className="d-flex mt-3 mb-4">
+            {mode === 'edit' && contest.state >= ContestState.Approved && (
+              <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
                 <Button
                   text="Scorecards"
                   onClick={downloadScorecards}
                   loading={loadingDuringSubmit}
                   className="btn-success"
+                />
+                <Button
+                  text="Get Access Token"
+                  onClick={createAuthToken}
+                  loading={loadingDuringSubmit}
+                  className="btn-secondary"
                 />
               </div>
             )}

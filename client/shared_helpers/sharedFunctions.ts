@@ -188,12 +188,13 @@ export const getFormattedTime = (
 export const getBestAndAverage = (
   attempts: IAttempt[],
   event: IEvent,
-  cutoff?: ICutoff,
+  round: IRound,
 ): { best: number; average: number } => {
   let best: number, average: number;
   let sum = 0;
-  let DNFDNScount = 0;
-  const makesCutoff = getMakesCutoff(attempts, cutoff);
+  let dnfDnsCount = 0;
+  const makesCutoff = getMakesCutoff(attempts, round.cutoff);
+  const expectedAttempts = roundFormats.find((rf) => rf.value === round.format).attempts;
 
   // This actually follows the rule that the lower the attempt value is - the better
   const convertedAttempts: number[] = attempts.map(({ result }) => {
@@ -201,22 +202,22 @@ export const getBestAndAverage = (
       sum += result;
       return result;
     }
-    DNFDNScount++;
+    dnfDnsCount++;
     return Infinity;
   });
 
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if ([3, 5].includes(attempts.length) && !makesCutoff) {
+  if (!makesCutoff || attempts.length < expectedAttempts) {
     average = 0;
-  } else if (attempts.length < 3 || DNFDNScount > 1 || (DNFDNScount > 0 && attempts.length === 3)) {
+  } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && round.format !== RoundFormat.Average)) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
     if (attempts.length === 5) {
       sum -= best;
-      if (DNFDNScount === 0) sum -= Math.max(...convertedAttempts);
+      if (dnfDnsCount === 0) sum -= Math.max(...convertedAttempts);
     }
 
     average = Math.round((sum / 3) * (event.format === EventFormat.Number ? 100 : 1));
