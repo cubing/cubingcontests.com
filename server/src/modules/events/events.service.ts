@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { EventDocument } from '~/src/models/event.model';
 import { CreateEventDto } from './dto/create-event.dto';
 import { eventsSeed } from '~/src/seeds/events.seed';
@@ -14,6 +15,7 @@ import { ScheduleDocument } from '~/src/models/schedule.model';
 @Injectable()
 export class EventsService {
   constructor(
+    private readonly logger: MyLogger,
     @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
@@ -25,11 +27,11 @@ export class EventsService {
       const events: EventDocument[] = await this.eventModel.find().exec();
 
       if (events.length === 0) {
-        console.log('Seeding the events collection...');
+        this.logger.log('Seeding the events collection...');
 
         // Add new events from events seed
         for (const event of eventsSeed) {
-          console.log(`Adding event: ${event.eventId}`);
+          this.logger.log(`Adding event: ${event.eventId}`);
           await this.eventModel.create(event);
         }
       }
@@ -105,7 +107,7 @@ export class EventsService {
     if (eventWithSameRank) throw new BadRequestException(`Event with rank ${updateEventDto.rank} already exists`);
 
     const event = await this.eventModel.findOne({ eventId }).exec();
-    if (!event) throw new BadRequestException(`Event with id ${eventId} does not exist`);
+    if (!event) throw new BadRequestException(`Event with ID ${eventId} does not exist`);
 
     event.name = updateEventDto.name;
     event.rank = updateEventDto.rank;
@@ -116,13 +118,13 @@ export class EventsService {
 
     if (newId !== eventId) {
       const eventWithNewId = await this.eventModel.findOne({ eventId: updateEventDto.eventId }).exec();
-      if (eventWithNewId) throw new BadRequestException(`Event with id ${updateEventDto.eventId} already exists`);
+      if (eventWithNewId) throw new BadRequestException(`Event with ID ${updateEventDto.eventId} already exists`);
 
       event.eventId = newId;
 
       try {
         // Update rounds and schedules
-        console.log(`Updating rounds and schedules, changing event id ${eventId} to ${newId}`);
+        this.logger.log(`Updating rounds and schedules, changing event ID ${eventId} to ${newId}`);
 
         for (let i = 1; i <= 10; i++) {
           const roundId = `${eventId}-r${i}`;
@@ -151,12 +153,12 @@ export class EventsService {
         }
 
         // Update results
-        console.log(`Updating results, changing event id ${eventId} to ${newId}`);
+        this.logger.log(`Updating results, changing event ID ${eventId} to ${newId}`);
 
         await this.resultModel.updateMany({ eventId }, { $set: { eventId: newId } }).exec();
       } catch (err) {
         throw new InternalServerErrorException(
-          `Error while updating other collections when changing event id ${eventId} to ${newId}:`,
+          `Error while updating other collections when changing event ID ${eventId} to ${newId}:`,
           err.message,
         );
       }

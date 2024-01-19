@@ -42,6 +42,7 @@ export class ContestsService {
   ) {}
 
   async onModuleInit() {
+    // Consistency checks
     if (process.env.NODE_ENV !== 'production') {
       const schedules = await this.scheduleModel.find().exec();
 
@@ -99,6 +100,24 @@ export class ContestsService {
                   }
                 }
               }
+            }
+          }
+        }
+      }
+
+      const contests = await this.contestModel
+        .find()
+        .populate(eventPopulateOptions.event)
+        .populate(eventPopulateOptions.rounds)
+        .exec();
+
+      for (const contest of contests) {
+        for (const contestEvent of contest.events) {
+          for (const round of contestEvent.rounds) {
+            if (round.roundId.split('-')[0] !== contestEvent.event.eventId) {
+              this.logger.error(
+                `Round ${round.roundId} is inconsistent with event ${contestEvent.event.eventId} in contest ${contest.competitionId}`,
+              );
             }
           }
         }
