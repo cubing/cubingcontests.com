@@ -116,7 +116,7 @@ const ResultForm = ({
   };
 
   const updateTempResult = () => {
-    const { best, average } = getBestAndAverage(attempts, event, round);
+    const { best, average } = getBestAndAverage(attempts, event, { round, roundFormat });
     setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
   };
 
@@ -161,7 +161,7 @@ const ResultForm = ({
     setAttempts(newAttempts);
 
     // Update temporary best and average
-    const { best, average } = getBestAndAverage(newAttempts, event, round);
+    const { best, average } = getBestAndAverage(newAttempts, event, { round, roundFormat });
     setTempResult(setResultRecords({ best, average, attempts: newAttempts } as IResult, event, recordPairs, true));
   };
 

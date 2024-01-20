@@ -124,7 +124,7 @@ const PostResultsScreen = ({
             updateRoundAndCompEvents(payload);
           }
         },
-        round,
+        { round },
       );
     }
   };

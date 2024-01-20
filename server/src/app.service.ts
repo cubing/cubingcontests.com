@@ -124,7 +124,7 @@ export class AppService {
 
     attempts.push({ result: enterAttemptDto.attemptResult });
 
-    const { best, average } = getBestAndAverage(attempts, contestEvent.event, round);
+    const { best, average } = getBestAndAverage(attempts, contestEvent.event, { round });
     const newResult = {
       competitionId: enterAttemptDto.competitionWcaId,
       eventId: enterAttemptDto.eventId,

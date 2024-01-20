@@ -2,7 +2,7 @@ import jwtDecode from 'jwt-decode';
 import { isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { format } from 'date-fns-tz';
 import myFetch from './myFetch';
-import { Color, ContestType, EventFormat, Role } from '@sh/enums';
+import { Color, ContestType, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 import { IAttempt, IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
 import { IUserInfo } from './interfaces/UserInfo';
@@ -164,7 +164,7 @@ export const checkErrorsBeforeResultSubmission = (
   setErrorMessages: (val: string[]) => void,
   setSuccessMessage: (val: string) => void,
   callback: (result: IResult) => void,
-  round?: IRound,
+  { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
 ) => {
   const errorMessages: string[] = [];
 
@@ -185,7 +185,7 @@ export const checkErrorsBeforeResultSubmission = (
     setErrorMessages([]);
     setSuccessMessage('');
 
-    const { best, average } = getBestAndAverage(result.attempts, event, round);
+    const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat });
     result.best = best;
     result.average = average;
 

@@ -293,7 +293,7 @@ const ImportExportPage = () => {
 
               // Sometimes there are inconsistencies, where 5 attempts are filled in despite the round format
               attempts = attempts.slice(0, roundFormats.find((rf) => rf.value === format).attempts);
-              const { best, average } = getBestAndAverage(attempts, event, newRound);
+              const { best, average } = getBestAndAverage(attempts, event, { round: newRound });
 
               return {
                 competitionId,

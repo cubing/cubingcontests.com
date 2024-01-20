@@ -150,6 +150,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           }
         }
       },
+      { roundFormat },
     );
   };
 

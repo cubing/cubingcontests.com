@@ -188,13 +188,16 @@ export const getFormattedTime = (
 export const getBestAndAverage = (
   attempts: IAttempt[],
   event: IEvent,
-  round: IRound,
+  { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
 ): { best: number; average: number } => {
+  if (!round && !roundFormat) throw new Error('round and roundFormat cannot both be undefined');
+
   let best: number, average: number;
   let sum = 0;
   let dnfDnsCount = 0;
-  const makesCutoff = getMakesCutoff(attempts, round.cutoff);
-  const expectedAttempts = roundFormats.find((rf) => rf.value === round.format).attempts;
+  const makesCutoff = getMakesCutoff(attempts, round?.cutoff);
+  const format = round?.format || roundFormat;
+  const expectedAttempts = roundFormats.find((rf) => rf.value === format).attempts;
 
   // This actually follows the rule that the lower the attempt value is - the better
   const convertedAttempts: number[] = attempts.map(({ result }) => {
@@ -209,9 +212,11 @@ export const getBestAndAverage = (
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
+  console.log(makesCutoff, round, roundFormat);
+
   if (!makesCutoff || attempts.length < expectedAttempts) {
     average = 0;
-  } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && round.format !== RoundFormat.Average)) {
+  } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && format !== RoundFormat.Average)) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
