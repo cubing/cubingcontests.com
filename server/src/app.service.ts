@@ -10,7 +10,7 @@ import { ResultsService } from '@m/results/results.service';
 import { IAdminStats, IAttempt } from '@sh/interfaces';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { getBestAndAverage } from '@sh/sharedFunctions';
-import { roundFormats } from '~~/client/shared_helpers/roundFormats';
+import { roundFormats } from '@sh/roundFormats';
 
 @Injectable()
 export class AppService {

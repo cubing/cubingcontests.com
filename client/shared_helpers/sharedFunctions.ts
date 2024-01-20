@@ -207,14 +207,14 @@ export const getBestAndAverage = (
       sum += result;
       return result;
     }
-    dnfDnsCount++;
+    if (result !== 0) dnfDnsCount++;
     return Infinity;
   });
 
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (!makesCutoff || attempts.length < expectedAttempts) {
+  if (!makesCutoff || attempts.filter((a) => a.result !== 0).length < expectedAttempts) {
     average = 0;
   } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && format !== RoundFormat.Average)) {
     average = -1;
