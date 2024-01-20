@@ -13,6 +13,7 @@ import Button from '@c/Button';
 import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
 import { RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
+import C from '@sh/constants';
 import { checkErrorsBeforeResultSubmission, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
@@ -208,7 +209,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
                 <b>ENTIRE</b> solve (including memorization, if applicable). The video date is used as proof of when the
                 solve was done, an earlier date cannot be used. Make sure that you can be identified from the provided
                 video; if your channel name is not your real name, please include your full name or WCA ID in the
-                description of the video.
+                description of the video. If you have any questions or suggestions, feel free to send an email to{' '}
+                {C.contactEmail}.
               </p>
               <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? 'Hide rules' : 'Show rules'}
