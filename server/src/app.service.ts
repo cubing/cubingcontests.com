@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { addMonths } from 'date-fns';
@@ -10,6 +10,7 @@ import { ResultsService } from '@m/results/results.service';
 import { IAdminStats, IAttempt } from '@sh/interfaces';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { getBestAndAverage } from '@sh/sharedFunctions';
+import { roundFormats } from '~~/client/shared_helpers/roundFormats';
 
 @Injectable()
 export class AppService {
@@ -97,6 +98,10 @@ export class AppService {
   }
 
   async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
+    const person = await this.personsService.getPersonById(enterAttemptDto.registrantId);
+
+    if (!person) throw new NotFoundException(`Person with ID ${enterAttemptDto.registrantId} not found`);
+
     const roundNumber = parseInt(enterAttemptDto.roundNumber);
     const { result, contestEvent } = await this.resultsService.getContestResultAndEvent(
       enterAttemptDto.competitionWcaId,
@@ -105,24 +110,14 @@ export class AppService {
       enterAttemptDto.registrantId,
     );
     const round = contestEvent.rounds[roundNumber - 1];
+    const roundFormat = roundFormats.find((rf) => rf.value === round.format);
     const attempts: IAttempt[] = [];
 
-    // If the result already exists, delete it first
-    if (result) {
-      if (result.attempts[enterAttemptDto.attemptNumber - 1])
-        throw new BadRequestException('This attempt has already been entered');
-
-      await this.resultsService.deleteContestResult(result._id.toString(), result.competitionId);
-
-      attempts.push(...result.attempts);
-    } else {
-      if (!(await this.personsService.getPersonById(enterAttemptDto.registrantId)))
-        throw new NotFoundException(`Person with ID ${enterAttemptDto.registrantId} not found`);
-
-      if (enterAttemptDto.attemptNumber !== 1) throw new BadRequestException('You must first enter the first attempt');
+    for (let i = 0; i < roundFormat.attempts; i++) {
+      if (i === enterAttemptDto.attemptNumber - 1) attempts.push({ result: enterAttemptDto.attemptResult });
+      else if (result?.attempts[i]) attempts.push(result.attempts[i]);
+      else attempts.push({ result: 0 });
     }
-
-    attempts.push({ result: enterAttemptDto.attemptResult });
 
     const { best, average } = getBestAndAverage(attempts, contestEvent.event, { round });
     const newResult = {
@@ -136,6 +131,11 @@ export class AppService {
       average,
     };
 
-    await this.resultsService.createResult(newResult, round.roundId);
+    await this.resultsService.validateAndCleanUpResult(newResult, contestEvent.event, { round });
+
+    // If the result already exists, delete it first
+    if (result) await this.resultsService.deleteContestResult(result._id.toString(), result.competitionId);
+
+    await this.resultsService.createResult(newResult, round.roundId, { skipValidation: true });
   }
 }

@@ -113,7 +113,7 @@ describe('ResultsService', () => {
           average: 1056,
         };
 
-        await resultsService.createResult(newResult, '333-r1', mockUser);
+        await resultsService.createResult(newResult, '333-r1', { user: mockUser });
         const createdResult = newResult as unknown as ResultDocument;
 
         expect(createdResult.regionalSingleRecord).toBe('WR');

@@ -109,7 +109,9 @@ export const getFormattedTime = (
     alwaysShowMinutes: false,
   },
 ): string => {
-  if (time === -1) {
+  if (time === 0) {
+    return '?';
+  } else if (time === -1) {
     return 'DNF';
   } else if (time === -2) {
     return 'DNS';
@@ -211,8 +213,6 @@ export const getBestAndAverage = (
 
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
-
-  console.log(makesCutoff, round, roundFormat);
 
   if (!makesCutoff || attempts.length < expectedAttempts) {
     average = 0;

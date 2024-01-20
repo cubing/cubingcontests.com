@@ -9,6 +9,7 @@ import FormCheckbox from '@c/form/FormCheckbox';
 import { Role } from '@sh/enums';
 import { IFrontendUser } from '@sh/interfaces';
 import C from '@sh/constants';
+import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
 
 const ManageUsersPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -30,10 +31,7 @@ const ManageUsersPage = () => {
     });
   }, []);
 
-  // Scroll to the top of the page when a new error message is shown
-  useEffect(() => {
-    if (errorMessages.find((el) => el !== '')) window.scrollTo(0, 0);
-  }, [errorMessages]);
+  useScrollToTopForNewMessage({ errorMessages });
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS

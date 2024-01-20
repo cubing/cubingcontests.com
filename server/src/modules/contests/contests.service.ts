@@ -339,10 +339,17 @@ export class ContestsService {
     // Allow mods only to finish an ongoing contest
     else if (isAdmin || (contest.state === ContestState.Ongoing && newState === ContestState.Finished)) {
       contest.state = newState;
+
+      if (newState === ContestState.Finished) {
+        const incompleteResult = await this.resultModel.findOne({ 'attempts.result': 0 }).exec();
+
+        if (incompleteResult)
+          throw new BadRequestException(`This contest has an unentered attempt in event ${incompleteResult.eventId}`);
+      }
     }
 
     if (isAdmin && newState === ContestState.Published) {
-      console.log(`Publishing contest ${contest.competitionId}...`);
+      this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
       try {
         // Unset unapproved from the results so that they can be included in the rankings

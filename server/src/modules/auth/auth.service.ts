@@ -95,7 +95,7 @@ export class AuthService {
     // Generate 36-bit random token, removing "0." from the beginning
     const genRand = () => Math.random().toString(36).slice(2);
 
-    const token = genRand() + genRand(); // make it double the length
+    const token = genRand() + genRand() + genRand(); // make it 3 times the length
     const hash = await bcrypt.hash(token, 0); // there's no need to salt the tokens
 
     try {

@@ -55,6 +55,7 @@ import {
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, getWcaCompetitionDetails, limitRequests } from '~/helpers/utilityFunctions';
+import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 
@@ -254,15 +255,12 @@ const ContestForm = ({
     }
   }, [contest, events]);
 
-  // Scroll to the top of the page when a new error message is shown
-  useEffect(() => {
-    if (errorMessages.find((el) => el !== '')) window.scrollTo(0, 0);
-  }, [errorMessages]);
-
   useEffect(() => {
     if (organizers.length !== 1 && organizers.filter((el) => el === null).length === 1)
       document.getElementById(`Organizer_${organizerNames.length}`)?.focus();
   }, [organizers]);
+
+  useScrollToTopForNewMessage({ errorMessages });
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS

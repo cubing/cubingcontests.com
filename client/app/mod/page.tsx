@@ -9,6 +9,7 @@ import { ContestState } from '@sh/enums';
 import { IAdminStats, IContest } from '@sh/interfaces';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { getUserInfo } from '~/helpers/utilityFunctions';
+import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -40,6 +41,12 @@ const ModeratorDashboardPage = () => {
       });
     }
   }, []);
+
+  useScrollToTopForNewMessage({ errorMessages });
+
+  //////////////////////////////////////////////////////////////////////////////
+  // FUNCTIONS
+  //////////////////////////////////////////////////////////////////////////////
 
   const editCompetition = (competitionId: string) => {
     window.location.href = `/mod/competition?edit_id=${competitionId}`;

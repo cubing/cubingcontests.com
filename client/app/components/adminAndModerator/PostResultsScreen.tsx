@@ -10,7 +10,8 @@ import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt, IEvent
 import { ContestState } from '@sh/enums';
 import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import { roundFormats } from '~/shared_helpers/roundFormats';
+import { roundFormats } from '@sh/roundFormats';
+import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -59,10 +60,7 @@ const PostResultsScreen = ({
     document.getElementById('Competitor_1').focus();
   }, [round.roundId]);
 
-  // Scroll to the top of the page when a new error message is shown
-  useEffect(() => {
-    if (successMessage || errorMessages.some((el) => el !== '')) window.scrollTo(0, 0);
-  }, [errorMessages, successMessage]);
+  useScrollToTopForNewMessage({ errorMessages, successMessage });
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS

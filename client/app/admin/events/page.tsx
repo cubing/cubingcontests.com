@@ -14,6 +14,7 @@ import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { eventCategories } from '~/helpers/eventCategories';
 import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/helpers/multipleChoiceOptions';
+import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
 
 type Mode = 'view' | 'add' | 'edit';
 
@@ -49,10 +50,7 @@ const CreateEditEventPage = () => {
     if (mode !== 'view') document.getElementById('event_name').focus();
   }, [mode]);
 
-  // Scroll to the top of the page when a new error message is shown
-  useEffect(() => {
-    if (errorMessages.find((el) => el !== '')) window.scrollTo(0, 0);
-  }, [errorMessages]);
+  useScrollToTopForNewMessage({ errorMessages });
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
