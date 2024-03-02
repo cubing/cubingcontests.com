@@ -79,18 +79,13 @@ services:
       - .env
       - mailserver.env
     ports:
-      - '25:25'
-      - '143:143'
       - '465:465'
-      - '587:587'
-      - '993:993'
     # ONLY USE THESE IN A REAL PRODUCTION ENVIRONMENT
     #environment:
-    #- POSTMASTER_ADDRESS=$ADMIN_EMAIL
-    #- SSL_TYPE=letsencrypt
-    #- LETSENCRYPT_HOST=$MAIL_URL
-
-    #- VIRTUAL_HOST=$MAIL_URL # THIS WAS SOMETHING ELSE, REMOVE IF NOT NEEDED
+    #  - SMTP_ONLY=1
+    #  - POSTMASTER_ADDRESS=$ADMIN_EMAIL
+    #  - SSL_TYPE=letsencrypt
+    #  - LETSENCRYPT_HOST=$MAIL_URL
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./docker-data/dms/mail-data/:/var/mail/
@@ -99,7 +94,6 @@ services:
       - ./docker-data/dms/config/:/tmp/docker-mailserver/
       # ONLY USE THIS IN A REAL PRODUCTION ENVIRONMENT
       #- /etc/letsencrypt/live/:/etc/letsencrypt/live/:ro
-      #- ./docker-data/acme-companion/certs/:/etc/letsencrypt/live/:ro
     restart: unless-stopped
     stop_grace_period: 1m
     cap_add:

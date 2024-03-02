@@ -61,6 +61,7 @@ Environment variables for Docker Mailserver are specified in `mailserver.env` in
 
 ```sh
 docker exec -ti cc-dms setup email add no-reply@localhost.localdomain
+# Use "docker exec -ti cc-dms setup help" to see other DMS commands that can be executed this way
 ```
 
 Some backend environment variables are specified in the `server/.env.dev` file. This file is automatically read by Nest JS in development. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.

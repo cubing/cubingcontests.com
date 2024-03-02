@@ -60,12 +60,9 @@ services:
       - .env
       - mailserver.env
     ports:
-      - '25:25'
-      - '143:143'
       - '465:465'
-      - '587:587'
-      - '993:993'
     environment:
+      - SMTP_ONLY=1
       - POSTMASTER_ADDRESS=$ADMIN_EMAIL
       - SSL_TYPE=letsencrypt
       - LETSENCRYPT_HOST=$MAIL_URL
