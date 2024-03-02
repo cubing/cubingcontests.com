@@ -57,10 +57,13 @@ There is an important `shared_helpers` directory in the `client` directory that 
 
 Environment variables are specified in `.env` in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
 
-Environment variables for Docker Mailserver are specified in `mailserver.env` in the root directory. You will also need to copy the `mailserver.env.example` file and rename it to `mailserver.env` (which is gitignored too). After you set this up and start the containers, including the DMS container, make sure you run this command to create a user that will be used to send emails (in production replace localhost.localdomain with your actual domain name):
+Environment variables for Docker Mailserver are specified in `mailserver.env` in the root directory. You will also need to copy the `mailserver.env.example` file and rename it to `mailserver.env` (which is gitignored too). After you set this up and start the containers, including the DMS container, make sure you run these commands to create a user that will be used to send emails (in production replace localhost.localdomain with your actual domain name) and to set up DKIMe:
 
 ```sh
 docker exec -ti cc-dms setup email add no-reply@localhost.localdomain
+
+docker exec -it cc-dms setup config dkim
+
 # Use "docker exec -ti cc-dms setup help" to see other DMS commands that can be executed this way
 ```
 

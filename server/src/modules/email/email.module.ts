@@ -16,7 +16,7 @@ const getEmail = (baseUrl: string) => `no-reply@${baseUrl.split('://')[1]}`;
     MailerModule.forRoot({
       transport: {
         host: process.env.MAIL_URL,
-        port: process.env.NODE_ENV === 'production' ? 465 : 587,
+        port: 587,
         secure: process.env.NODE_ENV === 'production',
         auth: {
           user: getEmail(process.env.BASE_URL),
