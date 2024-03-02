@@ -17,7 +17,7 @@ const getEmail = (baseUrl: string) => `no-reply@${baseUrl.split('://')[1]}`;
       transport: {
         host: process.env.MAIL_URL,
         port: 587,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
         auth: {
           user: getEmail(process.env.BASE_URL),
           pass: process.env.EMAIL_PASSWORD,
