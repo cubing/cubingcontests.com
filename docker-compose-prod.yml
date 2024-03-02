@@ -75,7 +75,7 @@ services:
       - ./docker-data/dms/mail-state/:/var/mail-state/
       - ./docker-data/dms/mail-logs/:/var/log/mail/
       - ./docker-data/dms/config/:/tmp/docker-mailserver/
-      - /etc/letsencrypt/live/:/etc/letsencrypt/live/:ro
+      - /etc/letsencrypt/:/etc/letsencrypt/:ro
     restart: unless-stopped
     stop_grace_period: 1m
     cap_add:
