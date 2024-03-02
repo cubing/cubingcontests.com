@@ -79,6 +79,7 @@ services:
       - .env
       - mailserver.env
     ports:
+      - '25:25'
       - '465:465'
     # ONLY USE THESE IN A REAL PRODUCTION ENVIRONMENT
     #environment:

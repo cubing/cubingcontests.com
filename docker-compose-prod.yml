@@ -60,6 +60,7 @@ services:
       - .env
       - mailserver.env
     ports:
+      - '25:25'
       - '465:465'
     environment:
       - SMTP_ONLY=1
