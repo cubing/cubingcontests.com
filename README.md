@@ -55,7 +55,9 @@ There is an important `shared_helpers` directory in the `client` directory that 
 
 ### Environment
 
-Environment variables are specified in the `.env` file in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
+Environment variables are specified in `.env` in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
+
+Environment variables for Docker Mailserver are specified in `mailserver.env` in the root directory. You will also need to copy the `mailserver.env.example` file and rename it to `mailserver.env` (which is gitignored too).
 
 Some backend environment variables are specified in the `server/.env.dev` file. This file is automatically read by Nest JS in development. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 

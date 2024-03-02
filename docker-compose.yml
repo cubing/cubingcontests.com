@@ -16,6 +16,7 @@ services:
       - MONGO_DEV_USERNAME=$MONGO_DEV_USERNAME
       - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
     restart: unless-stopped
+
   mongo-express:
     container_name: cc-mongo-express
     image: mongo-express
@@ -30,6 +31,41 @@ services:
     depends_on:
       - mongo
     restart: unless-stopped
+
+  dms:
+    container_name: cc-dms
+    image: mailserver/docker-mailserver
+    networks:
+      - cubingcontests-dev
+    hostname: $MAIL_URL
+    env_file:
+      - .env
+      - mailserver.env
+    # More information about the mail-server ports:
+    # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
+    # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
+    ports:
+      - '25:25' # SMTP  (explicit TLS => STARTTLS, Authentication is DISABLED => use port 465/587 instead)
+      - '143:143' # IMAP4 (explicit TLS => STARTTLS)
+      - '465:465' # ESMTP (implicit TLS)
+      - '587:587' # ESMTP (explicit TLS => STARTTLS)
+      - '993:993' # IMAP4 (implicit TLS)
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./docker-data/dms/mail-data/:/var/mail/
+      - ./docker-data/dms/mail-state/:/var/mail-state/
+      - ./docker-data/dms/mail-logs/:/var/log/mail/
+      - ./docker-data/dms/config/:/tmp/docker-mailserver/
+    restart: unless-stopped
+    stop_grace_period: 1m
+    # Uncomment if using `ENABLE_FAIL2BAN=1`:
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
+      timeout: 3s
+      retries: 0
+
 networks:
   cubingcontests-dev:
 volumes:

@@ -2,8 +2,11 @@ import { Injectable, InternalServerErrorException, NotFoundException, Unauthoriz
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
+import { addWeeks } from 'date-fns';
 import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
+import { EmailService } from '@m/email/email.service';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { ContestState, Role } from '@sh/enums';
@@ -11,12 +14,12 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
 import { AuthTokenDocument } from '~/src/models/auth-token.model';
 import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
-import { addWeeks } from 'date-fns';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private emailService: EmailService,
     private jwtService: JwtService,
     @InjectModel('AuthToken') private readonly authTokenModel: Model<AuthTokenDocument>,
   ) {}
@@ -92,10 +95,7 @@ export class AuthService {
 
   // Assumes the user's access rights have already been checked
   async createAuthToken(competitionId: string): Promise<string> {
-    // Generate 36-bit random token, removing "0." from the beginning
-    const genRand = () => Math.random().toString(36).slice(2);
-
-    const token = genRand() + genRand() + genRand(); // make it 3 times the length
+    const token = uuidv4();
     const hash = await bcrypt.hash(token, 0); // there's no need to salt the tokens
 
     try {

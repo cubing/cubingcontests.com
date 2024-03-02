@@ -578,9 +578,6 @@ export class ResultsService {
       // Create new result and update the round's results
       newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
 
-      // TEMPORARY
-      console.log(newResult);
-
       round.results.push(newResult);
       round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
       await round.save(); // save the round for resetCancelledRecords

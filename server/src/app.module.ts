@@ -16,6 +16,7 @@ import { AppService } from './app.service';
 import { LogSchema } from '~/src/models/log.model';
 import { ContestSchema } from '~/src/models/contest.model';
 import { RoundSchema } from '~/src/models/round.model';
+import { EmailModule } from '~/src/modules/email/email.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { RoundSchema } from '~/src/models/round.model';
     AuthModule,
     RecordTypesModule,
     ResultsModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

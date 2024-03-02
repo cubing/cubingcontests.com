@@ -17,11 +17,13 @@ services:
       - MONGO_DEV_USERNAME=$MONGO_DEV_USERNAME
       - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
     restart: always
-  cc-api:
+
+  api:
     container_name: cc-api
     image: denimint/cubingcontests-api:$VERSION
     networks:
       - cubingcontests
+    env_file: .env
     ports:
       - 127.0.0.1:5000:5000
     environment:
@@ -33,7 +35,8 @@ services:
     depends_on:
       - mongo
     restart: always
-  cc-client:
+
+  client:
     container_name: cc-client
     image: denimint/cubingcontests-client:$VERSION
     networks:
@@ -44,8 +47,44 @@ services:
       - ENVIRONMENT=$NODE_ENV
     depends_on:
       - mongo
-      - cc-api
+      - api
     restart: always
+
+  dms:
+    container_name: cc-dms
+    image: mailserver/docker-mailserver
+    networks:
+      - cubingcontests
+    hostname: $MAIL_URL
+    env_file:
+      - .env
+      - mailserver.env
+    ports:
+      - '25:25'
+      - '143:143'
+      - '465:465'
+      - '587:587'
+      - '993:993'
+    environment:
+      - POSTMASTER_ADDRESS=$ADMIN_EMAIL
+      - SSL_TYPE=letsencrypt
+      - LETSENCRYPT_HOST=$MAIL_URL
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./docker-data/dms/mail-data/:/var/mail/
+      - ./docker-data/dms/mail-state/:/var/mail-state/
+      - ./docker-data/dms/mail-logs/:/var/log/mail/
+      - ./docker-data/dms/config/:/tmp/docker-mailserver/
+      - /etc/letsencrypt/live/:/etc/letsencrypt/live/:ro
+    restart: unless-stopped
+    stop_grace_period: 1m
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
+      timeout: 3s
+      retries: 0
+
 networks:
   cubingcontests:
 volumes:

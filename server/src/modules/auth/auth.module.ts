@@ -3,6 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '@m/users/users.module';
+import { EmailModule } from '~/src/modules/email/email.module';
+import { LoggerModule } from '~/src/modules/my-logger/my-logger.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from './local.strategy';
@@ -14,6 +16,8 @@ import { AuthTokenSchema } from '~/src/models/auth-token.model';
   imports: [
     MongooseModule.forFeature([{ name: 'AuthToken', schema: AuthTokenSchema }]),
     UsersModule,
+    LoggerModule,
+    EmailModule,
     PassportModule,
     JwtModule.register({
       // global: true,

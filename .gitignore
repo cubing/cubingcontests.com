@@ -18,15 +18,16 @@ server/dist
 # misc
 .DS_Store
 *.pem
+docker-data/
 
 # debug & logs
 npm-debug.log*
 *.log
 
 # local env files
-.env*
+*.env*
 !.env.dev
-!.env.example
+!*.env.example
 !client/.env.local
 
 # vercel

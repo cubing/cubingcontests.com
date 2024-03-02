@@ -32,6 +32,7 @@ import { LogType } from '~/src/helpers/enums';
 import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { IContest } from '@sh/interfaces';
+import { EmailService } from '~/src/modules/email/email.service';
 
 @Controller()
 export class AppController {
@@ -39,6 +40,7 @@ export class AppController {
     private readonly logger: MyLogger,
     private readonly appService: AppService,
     private readonly authService: AuthService,
+    private readonly emailService: EmailService,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
   ) {}
 
@@ -111,6 +113,15 @@ export class AppController {
     );
 
     return await this.appService.enterAttemptFromExternalDevice(enterAttemptDto);
+  }
+
+  @Post('debug-sending-email')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async debugSendingEmail(@Body() { email }: { email: string }) {
+    this.logger.logAndSave(`Sending debug email to ${email}`, LogType.DebugEmail);
+
+    await this.emailService.sendEmail(email, 'This is a debug email.', { subject: 'DEBUG' });
   }
 
   private async checkAccessRights(contest: IContest, user: IPartialUser) {

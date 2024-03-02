@@ -25,8 +25,10 @@ export enum LogType {
 
   UpdateRecordTypes = 'update_record_types',
 
+  Register = 'register',
   CreateUser = 'create_user',
   UpdateUser = 'update_user',
 
   EnterAttempt = 'enter_attempt',
+  DebugEmail = 'debug_email',
 }

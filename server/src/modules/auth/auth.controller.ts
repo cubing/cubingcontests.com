@@ -12,21 +12,23 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { LocalAuthGuard } from '~/src/guards/local-auth.guard';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
+import { LogType } from '~/src/helpers/enums';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly logger: MyLogger, private authService: AuthService) {}
 
   // POST /auth/register
   @Post('register')
   async register(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
-    console.log('Registering new user');
+    this.logger.logAndSave('Registering new user', LogType.Register);
     return await this.authService.register(createUserDto);
   }
 
