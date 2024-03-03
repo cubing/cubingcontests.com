@@ -80,16 +80,13 @@ services:
       - mailserver.env
     ports:
       - '25:25'
-      - '143:143'
       - '465:465'
       - '587:587'
-      - '993:993'
     # ONLY USE THESE IN A REAL PRODUCTION ENVIRONMENT
     #environment:
     #  - POSTMASTER_ADDRESS=$ADMIN_EMAIL
     #  - SSL_TYPE=letsencrypt
     #  - LETSENCRYPT_HOST=$MAIL_URL
-    #  - PERMIT_DOCKER=host
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./docker-data/dms/mail-data/:/var/mail/
