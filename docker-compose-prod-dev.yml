@@ -87,6 +87,7 @@ services:
     #  - POSTMASTER_ADDRESS=$ADMIN_EMAIL
     #  - SSL_TYPE=letsencrypt
     #  - LETSENCRYPT_HOST=$MAIL_URL
+    #  - ENABLE_MTA_STS=1
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./docker-data/dms/mail-data/:/var/mail/
