@@ -18,6 +18,9 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV === 'production') {
     if (!process.env.BASE_URL) throw new Error('BASE URL NOT SET!');
+    if (!process.env.MAIL_URL) throw new Error('MAIL URL NOT SET!');
+    if (!process.env.EMAIL_USERNAME) throw new Error('EMAIL USERNAME NOT SET!');
+    if (!process.env.EMAIL_PASSWORD) throw new Error('EMAIL PASSWORD NOT SET!');
 
     corsOptions = { origin: [process.env.BASE_URL, 'http://cc-client:3000'] };
 

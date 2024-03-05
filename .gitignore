@@ -18,7 +18,6 @@ server/dist
 # misc
 .DS_Store
 *.pem
-docker-data/
 
 # debug & logs
 npm-debug.log*
