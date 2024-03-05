@@ -7,6 +7,7 @@ import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { AuthService } from '@m/auth/auth.service';
 import { UsersService } from '@m/users/users.service';
+import { EmailService } from '@m/email/email.service';
 import { Role, WcaRecordType } from '@sh/enums';
 import { IEventRankings } from '@sh/interfaces';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -58,6 +59,10 @@ describe('ResultsService', () => {
         },
         {
           provide: UsersService,
+          useValue: {},
+        },
+        {
+          provide: EmailService,
           useValue: {},
         },
         {

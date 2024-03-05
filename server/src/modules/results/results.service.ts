@@ -51,6 +51,7 @@ import {
   setResultRecords,
 } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
+import { EmailService } from '~/src/modules/email/email.service';
 
 @Injectable()
 export class ResultsService {
@@ -61,6 +62,7 @@ export class ResultsService {
     private readonly personsService: PersonsService,
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly emailService: EmailService,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
@@ -704,6 +706,12 @@ export class ResultsService {
     }
 
     if (isAdmin) await this.resetCancelledRecords(submitResultDto, event);
+    else
+      await this.emailService.sendEmail(
+        C.contactEmail,
+        `A new ${submitResultDto.eventId} result has been submitted by user ${user.username}.`,
+        { subject: 'New Result Submission' },
+      );
   }
 
   async editResult(resultId: string, updateResultDto: SubmitResultDto) {
