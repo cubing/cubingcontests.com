@@ -5,8 +5,6 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { EmailService } from '@m/email/email.service';
 import { ConfigModule } from '@nestjs/config';
 
-const getEmail = (baseUrl: string) => `no-reply@${baseUrl.split('://')[1]}`;
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -16,15 +14,15 @@ const getEmail = (baseUrl: string) => `no-reply@${baseUrl.split('://')[1]}`;
     MailerModule.forRoot({
       transport: {
         host: process.env.MAIL_URL,
-        port: process.env.NODE_ENV === 'production' ? 465 : 587,
-        secure: process.env.NODE_ENV === 'production',
+        port: 587,
+        secure: false, // true for 465, false for other ports
         auth: {
-          user: getEmail(process.env.BASE_URL),
+          user: process.env.EMAIL_USERNAME,
           pass: process.env.EMAIL_PASSWORD,
         },
       },
       defaults: {
-        from: `"No Reply" ${getEmail(process.env.BASE_URL)}`,
+        from: `"No Reply" no-reply@${process.env.BASE_URL.split('://')[1]}`,
       },
       template: {
         // The path is like this cause of the dist structure after the Nest build step

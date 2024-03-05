@@ -69,42 +69,6 @@ services:
       - api
     restart: unless-stopped
 
-  dms:
-    container_name: cc-dms
-    image: mailserver/docker-mailserver
-    networks:
-      - cubingcontests
-    hostname: $MAIL_URL
-    env_file:
-      - .env
-      - mailserver.env
-    ports:
-      - '25:25'
-      - '465:465'
-      - '587:587'
-    # ONLY USE THESE IN A REAL PRODUCTION ENVIRONMENT
-    #environment:
-    #  - POSTMASTER_ADDRESS=$ADMIN_EMAIL
-    #  - SSL_TYPE=letsencrypt
-    #  - LETSENCRYPT_HOST=$MAIL_URL
-    #  - ENABLE_MTA_STS=1
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./docker-data/dms/mail-data/:/var/mail/
-      - ./docker-data/dms/mail-state/:/var/mail-state/
-      - ./docker-data/dms/mail-logs/:/var/log/mail/
-      - ./docker-data/dms/config/:/tmp/docker-mailserver/
-      # ONLY USE THIS IN A REAL PRODUCTION ENVIRONMENT
-      #- /etc/letsencrypt/live/:/etc/letsencrypt/live/:ro
-    restart: unless-stopped
-    stop_grace_period: 1m
-    cap_add:
-      - NET_ADMIN
-    healthcheck:
-      test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
-      timeout: 3s
-      retries: 0
-
 networks:
   cubingcontests:
 volumes:
