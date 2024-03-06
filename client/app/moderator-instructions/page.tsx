@@ -35,7 +35,11 @@ const ModeratorInstructions = () => {
         additional details, if necessary. The description supports Markdown links, so you can add them using this
         syntax: [text](link).
       </p>
-      <p>A3. Go to the "Events" tab and select all events and rounds you would like to hold.</p>
+      <p>
+        A3. Go to the "Events" tab and select all events and rounds you would like to hold. Please think this part
+        through carefully, because it will not be possible to change the format for a round after the competition is
+        approved without direct admin intervention. As such, changing formats is <b>highly</b> discouraged.
+      </p>
       <p>
         A4. Go to the "Schedule" tab and add all rounds to the schedule. You must first enter the rooms and then add the
         schedule activities with the correct room selected for each round. Custom activities can also be added.
