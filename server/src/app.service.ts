@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { addMonths } from 'date-fns';
 import { LogDocument } from '~/src/models/log.model';
-import { RoundDocument } from '~/src/models/round.model';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
@@ -19,7 +18,6 @@ export class AppService {
     private personsService: PersonsService,
     private usersService: UsersService,
     @InjectModel('Log') private readonly logModel: Model<LogDocument>,
-    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
   ) {}
 
   async getAdminStats(): Promise<IAdminStats> {
@@ -93,6 +91,8 @@ export class AppService {
           .exec(),
       },
     };
+
+    await this.logModel.deleteMany({ createdAt: { $lt: addMonths(new Date(), -1) } });
 
     return adminStats;
   }
