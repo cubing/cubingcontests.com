@@ -350,6 +350,14 @@ export class ContestsService {
 
         if (incompleteResult)
           throw new BadRequestException(`This contest has an unentered attempt in event ${incompleteResult.eventId}`);
+
+        if (!isAdmin) {
+          await this.emailService.sendEmail(
+            C.contactEmail,
+            `Contest ${contest.name} has been finished. Review the results and publish them to have them included in the rankings.`,
+            { subject: 'Contest Finished' },
+          );
+        }
       }
     }
 
