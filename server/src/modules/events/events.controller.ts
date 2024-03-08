@@ -16,7 +16,7 @@ export class EventsController {
   // GET /events
   @Get()
   async getEvents() {
-    return await this.eventsService.getEvents();
+    return await this.eventsService.getFrontendEvents();
   }
 
   // GET /events/mod
@@ -24,7 +24,7 @@ export class EventsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getModEvents() {
-    return await this.eventsService.getEvents({ includeHidden: true });
+    return await this.eventsService.getFrontendEvents({ includeHidden: true, populateRules: true });
   }
 
   // POST /events

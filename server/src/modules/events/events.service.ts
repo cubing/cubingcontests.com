@@ -7,16 +7,26 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { eventsSeed } from '~/src/seeds/events.seed';
 import { excl } from '~/src/helpers/dbHelpers';
 import { EventGroup } from '@sh/enums';
+import { IFrontendEvent } from '@sh/interfaces';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { RoundDocument } from '~/src/models/round.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { ScheduleDocument } from '~/src/models/schedule.model';
+import { EventRuleDocument } from '~/src/models/event-rule.model';
+
+interface IGetEventsOptions {
+  eventIds?: string[];
+  includeHidden?: boolean;
+  excludeRemovedAndHidden?: boolean;
+  populateRules?: boolean;
+}
 
 @Injectable()
 export class EventsService {
   constructor(
     private readonly logger: MyLogger,
     @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
+    @InjectModel('EventRule') private readonly eventRuleModel: Model<EventRuleDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
     @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
@@ -41,13 +51,10 @@ export class EventsService {
   }
 
   async getEvents(
-    {
-      eventIds,
-      includeHidden,
-      excludeRemovedAndHidden,
-    }: { eventIds?: string[]; includeHidden?: boolean; excludeRemovedAndHidden?: boolean } = {
+    { eventIds, includeHidden, excludeRemovedAndHidden, populateRules = false }: IGetEventsOptions = {
       includeHidden: false,
       excludeRemovedAndHidden: false,
+      populateRules: false,
     },
   ): Promise<EventDocument[]> {
     const queryFilter: any = {};
@@ -57,10 +64,28 @@ export class EventsService {
     if (eventIds) queryFilter.eventId = { $in: eventIds };
 
     try {
-      return await this.eventModel.find(queryFilter, excl).sort({ rank: 1 }).exec();
+      let func = this.eventModel.find(queryFilter, excl);
+
+      if (populateRules) func = func.populate({ path: 'rule', model: 'EventRule' });
+
+      return await func.sort({ rank: 1 }).exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
+  }
+
+  async getFrontendEvents(
+    options: IGetEventsOptions = { includeHidden: false, populateRules: false },
+  ): Promise<IFrontendEvent[]> {
+    const events = await this.getEvents(options);
+
+    const frontendEvents = events.map((event) => {
+      const { rule: eventRule, ...rest } = event.toObject();
+      if (!eventRule) return rest;
+      return { ...rest, ruleText: eventRule.rule };
+    });
+
+    return frontendEvents;
   }
 
   async getSubmissionBasedEvents(): Promise<EventDocument[]> {
@@ -88,19 +113,26 @@ export class EventsService {
     return event;
   }
 
-  async createEvent(createEventDto: CreateEventDto): Promise<EventDocument[]> {
+  async createEvent(createEventDto: CreateEventDto): Promise<IFrontendEvent[]> {
     const event = await this.eventModel.findOne({ eventId: createEventDto.eventId }).exec();
     if (event) throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
 
     const eventWithSameRank = await this.eventModel.findOne({ rank: createEventDto.rank }).exec();
     if (eventWithSameRank) throw new BadRequestException(`Event with rank ${createEventDto.rank} already exists`);
 
-    await this.eventModel.create(createEventDto);
+    const { ruleText, ...newEvent }: IFrontendEvent = createEventDto;
+    let eventRule: EventRuleDocument;
 
-    return await this.getEvents({ includeHidden: true });
+    if (ruleText) {
+      eventRule = await this.eventRuleModel.create({ eventId: newEvent.eventId, rule: ruleText });
+    }
+
+    await this.eventModel.create({ ...newEvent, rule: eventRule });
+
+    return await this.getFrontendEvents({ includeHidden: true, populateRules: true });
   }
 
-  async updateEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<EventDocument[]> {
+  async updateEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<IFrontendEvent[]> {
     const eventWithSameRank = await this.eventModel
       .findOne({ eventId: { $ne: eventId }, rank: updateEventDto.rank })
       .exec();
@@ -113,6 +145,20 @@ export class EventsService {
     event.rank = updateEventDto.rank;
     event.groups = updateEventDto.groups;
     event.description = updateEventDto.description;
+
+    if (!updateEventDto.ruleText && event?.rule) {
+      event.rule = undefined;
+      await this.eventRuleModel.deleteOne({ eventId: updateEventDto.eventId }).exec();
+    } else if (updateEventDto.ruleText && !event?.rule) {
+      event.rule = await this.eventRuleModel.create({ eventId: updateEventDto.eventId, rule: updateEventDto.ruleText });
+    } else if (updateEventDto.ruleText && event.rule) {
+      await this.eventRuleModel
+        .updateOne(
+          { eventId: updateEventDto.eventId },
+          { eventId: updateEventDto.eventId, rule: updateEventDto.ruleText },
+        )
+        .exec();
+    }
 
     const newId = updateEventDto.eventId;
 
@@ -170,6 +216,6 @@ export class EventsService {
       throw new InternalServerErrorException(`Error while saving event ${eventId}: ${err.message}`);
     }
 
-    return await this.getEvents({ includeHidden: true });
+    return await this.getFrontendEvents({ includeHidden: true, populateRules: true });
   }
 }

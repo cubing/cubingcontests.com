@@ -9,7 +9,7 @@ import FormRadio from '@c/form/FormRadio';
 import FormNumberInput from '@c/form/FormNumberInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormTextArea from '@c/form/FormTextArea';
-import { IEvent } from '@sh/interfaces';
+import { IFrontendEvent } from '@sh/interfaces';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { eventCategories } from '~/helpers/eventCategories';
@@ -20,7 +20,7 @@ type Mode = 'view' | 'add' | 'edit';
 
 const CreateEditEventPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [events, setEvents] = useState<IEvent[]>([]);
+  const [events, setEvents] = useState<IFrontendEvent[]>([]);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [mode, setMode] = useState<Mode>('view');
   const [eventIdUnlocked, setEventIdUnlocked] = useState(false);
@@ -38,6 +38,7 @@ const CreateEditEventPage = () => {
   const [hasMemo, setHasMemo] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [description, setDescription] = useState('');
+  const [rule, setRule] = useState('');
 
   useEffect(() => {
     myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
@@ -69,7 +70,7 @@ const CreateEditEventPage = () => {
     setLoadingDuringSubmit(true);
     setErrorMessages([]);
 
-    const newEvent: IEvent = {
+    const newEvent: IFrontendEvent = {
       eventId: newEventId,
       name,
       rank,
@@ -78,6 +79,7 @@ const CreateEditEventPage = () => {
       groups: [category],
       participants: participants > 1 ? participants : undefined,
       description: description || undefined,
+      ruleText: rule || undefined,
     };
 
     if (submissionsAllowed) newEvent.groups.push(EventGroup.SubmissionsAllowed);
@@ -105,7 +107,7 @@ const CreateEditEventPage = () => {
     reset('add');
   };
 
-  const onEditEvent = (event: IEvent) => {
+  const onEditEvent = (event: IFrontendEvent) => {
     reset('edit');
 
     setEventId(event.eventId);
@@ -121,6 +123,7 @@ const CreateEditEventPage = () => {
     setHasMemo(event.groups.includes(EventGroup.HasMemo));
     setHidden(event.groups.includes(EventGroup.Hidden));
     setDescription(event.description);
+    setRule(event.ruleText);
 
     window.scrollTo(0, 0);
   };
@@ -249,6 +252,13 @@ const CreateEditEventPage = () => {
             rows={4}
             disabled={loadingDuringSubmit}
           />
+          <FormTextArea
+            title="Rules (optional)"
+            value={rule}
+            setValue={setRule}
+            rows={5}
+            disabled={loadingDuringSubmit}
+          />
         </Form>
       )}
 
@@ -267,7 +277,7 @@ const CreateEditEventPage = () => {
             </tr>
           </thead>
           <tbody>
-            {events.map((event: IEvent, index) => (
+            {events.map((event: IFrontendEvent, index) => (
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>{event.name}</td>

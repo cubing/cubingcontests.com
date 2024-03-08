@@ -1,9 +1,9 @@
 import { ArrayMinSize, IsEnum, IsInt, IsOptional, IsString, Matches, Max, Min, MinLength } from 'class-validator';
-import { IEvent } from '@sh/interfaces';
+import { IFrontendEvent } from '@sh/interfaces';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { getMinLengthOpts } from '~/src/helpers/validation';
 
-export class CreateEventDto implements IEvent {
+export class CreateEventDto implements IFrontendEvent {
   @IsString()
   @MinLength(3, getMinLengthOpts('event ID', 3))
   @Matches(/^[a-z0-9_]*$/)
@@ -36,4 +36,8 @@ export class CreateEventDto implements IEvent {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  ruleText?: string;
 }
