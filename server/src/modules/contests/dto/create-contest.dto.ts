@@ -330,7 +330,10 @@ class RoundDto implements IRound {
 class TimeLimitDto implements ITimeLimit {
   @IsInt()
   @Min(1, { message: 'Please enter a valid time limit' })
-  @Max(C.maxTimeLimit, { message: `The time limit cannot be higher than ${getFormattedTime(C.maxTimeLimit)}` })
+  // TO-DO: Make this dynamic, using maxTimeLimit or maxCumulativeTimeLimit, depending on whether or not a cumulative limit is enabled
+  @Max(C.maxCumulativeTimeLimit, {
+    message: `The time limit cannot be higher than ${getFormattedTime(C.maxCumulativeTimeLimit)}`,
+  })
   centiseconds: number;
 
   @IsString({ each: true })
