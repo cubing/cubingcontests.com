@@ -6,6 +6,7 @@ import { PersonDocument } from './person.model';
 import { ContestState, ContestType } from '@sh/enums';
 import { EventDocument } from './event.model';
 import { ScheduleDocument } from './schedule.model';
+import { UserDocument } from './user.model';
 
 @Schema({ _id: false })
 export class ContestEvent implements IContestEvent {
@@ -39,8 +40,8 @@ class Competition implements IContest {
   @Prop({ required: true, unique: true })
   competitionId: string;
 
-  @Prop({ required: true })
-  createdBy: number;
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
+  createdBy: UserDocument;
 
   @Prop({ enum: ContestState, required: true })
   state: ContestState;

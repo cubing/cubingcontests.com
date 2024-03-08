@@ -9,7 +9,7 @@ export const competitionsStub = (): ContestDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649d2a23675dfd951d5ff308'),
       competitionId: 'Munich19022023',
-      createdBy: 1,
+      createdBy: new mongoose.Types.ObjectId('649d27c1675dfd951d5ff2b0'),
       state: ContestState.Published,
       name: 'Meetup in Munich on February 19, 2023',
       type: ContestType.Meetup,
@@ -211,7 +211,7 @@ export const competitionsStub = (): ContestDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649d2a4f675dfd951d5ff319'),
       competitionId: 'Munich14062023',
-      createdBy: 1,
+      createdBy: new mongoose.Types.ObjectId('649d27c1675dfd951d5ff2b0'),
       state: ContestState.Published,
       name: 'Meetup in Munich on June 14, 2023',
       type: ContestType.Meetup,
@@ -652,7 +652,7 @@ export const competitionsStub = (): ContestDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649d2a85675dfd951d5ff32a'),
       competitionId: 'Munich27062023',
-      createdBy: 1,
+      createdBy: new mongoose.Types.ObjectId('649d27c1675dfd951d5ff2b0'),
       state: ContestState.Ongoing,
       name: 'Meetup in Munich on June 27, 2023',
       type: ContestType.Meetup,
@@ -1267,7 +1267,7 @@ export const competitionsStub = (): ContestDocument[] => {
     {
       _id: new mongoose.Types.ObjectId('649d4ff8a91cfa4672e186fe'),
       competitionId: 'Munich30062023',
-      createdBy: 1,
+      createdBy: new mongoose.Types.ObjectId('649d27c1675dfd951d5ff2b0'),
       state: ContestState.Approved,
       name: 'Meetup in Munich on June 30, 2023',
       type: ContestType.Meetup,
@@ -1294,6 +1294,6 @@ export const competitionsStub = (): ContestDocument[] => {
           ],
         },
       ],
-    },
+    } as any as ContestDocument,
   ] as ContestDocument[];
 };

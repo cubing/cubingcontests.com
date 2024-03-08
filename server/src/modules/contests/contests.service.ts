@@ -4,7 +4,7 @@ import { utcToZonedTime } from 'date-fns-tz';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { ContestEvent, ContestDocument } from '~/src/models/contest.model';
 import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { RoundDocument } from '~/src/models/round.model';
@@ -22,6 +22,7 @@ import { AuthService } from '../auth/auth.service';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { addDays } from 'date-fns';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
+import { UsersService } from '~/src/modules/users/users.service';
 
 const PLEASE_ENTER_ADDRESS_MSG = 'Please enter an address';
 const PLEASE_ENTER_VENUE_MSG = 'Please enter the venue name';
@@ -35,6 +36,7 @@ export class ContestsService {
     private readonly recordTypesService: RecordTypesService,
     private readonly personsService: PersonsService,
     private readonly authService: AuthService,
+    private readonly usersService: UsersService, // TEMPORARY
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
@@ -42,6 +44,21 @@ export class ContestsService {
   ) {}
 
   async onModuleInit() {
+    const contests = await this.contestModel.find().exec();
+
+    for (const contest of contests) {
+      if (typeof contest.createdBy === 'number') {
+        const user = await this.usersService.getUserWithQuery({ personId: contest.createdBy });
+
+        if (user) {
+          contest.createdBy = user;
+          await contest.save();
+        } else {
+          this.logger.error(`User with personId ${contest.createdBy} not found!`);
+        }
+      }
+    }
+
     // Consistency checks
     if (process.env.NODE_ENV !== 'production') {
       const schedules = await this.scheduleModel.find().exec();
@@ -143,7 +160,7 @@ export class ContestsService {
     // Check access rights
     if (!user.roles.includes(Role.Admin)) {
       const person = await this.personsService.getPersonById(user.personId);
-      queryFilter = { $or: [{ organizers: person._id }, { createdBy: user.personId }] };
+      queryFilter = { organizers: person._id };
     }
 
     try {
@@ -186,7 +203,6 @@ export class ContestsService {
   // Create new contest, if one with that id doesn't already exist (no results yet)
   async createContest(
     createContestDto: CreateContestDto,
-    creatorPersonId: number,
     { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
   ) {
     const isAdmin = user.roles.includes(Role.Admin);
@@ -227,7 +243,7 @@ export class ContestsService {
       const newCompetition: IContest = {
         ...createContestDto,
         events: contestEvents,
-        createdBy: creatorPersonId,
+        createdBy: new mongoose.Types.ObjectId(user._id as string),
         state: ContestState.Created,
         participants: !saveResults
           ? 0

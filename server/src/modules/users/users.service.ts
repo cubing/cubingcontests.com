@@ -6,7 +6,7 @@ import { UserDocument } from '~/src/models/user.model';
 import { PersonsService } from '@m/persons/persons.service';
 import { Role } from '@sh/enums';
 import { IFrontendUser } from '@sh/interfaces';
-import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
+import { IUser } from '~/src/helpers/interfaces/User';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LogType } from '~/src/helpers/enums';
 
@@ -19,22 +19,16 @@ export class UsersService {
   ) {}
 
   // WARNING: this method returns the hashed password too. It is ONLY to be used in the auth module.
-  async getUser(username: string) {
+  async getUserWithQuery(
+    query: { _id?: string; username?: string; personId?: number },
+    { includeHash }: { includeHash?: boolean } = {},
+  ): Promise<UserDocument> {
     try {
-      const user: UserDocument = await this.userModel.findOne({ username }).exec();
+      const user = await this.userModel.findOne(query, includeHash ? {} : { password: 0 }).exec();
 
-      if (user) {
-        return {
-          _id: user._id,
-          personId: user.personId,
-          username: user.username,
-          email: user.email,
-          password: user.password,
-          roles: user.roles,
-        };
-      }
+      return user || undefined;
     } catch (err) {
-      throw new InternalServerErrorException(`Error while getting user ${username}: ${err.message}`);
+      throw new InternalServerErrorException(`Error while reading user data: ${err.message}`);
     }
   }
 
@@ -59,23 +53,6 @@ export class UsersService {
     }
 
     return usersForFrontend;
-  }
-
-  async getPartialUserById(id: string): Promise<IPartialUser> {
-    try {
-      const user: UserDocument = await this.userModel.findOne({ _id: id }).exec();
-
-      if (user) {
-        return {
-          _id: user._id.toString(),
-          personId: user.personId,
-          username: user.username,
-          roles: user.roles,
-        };
-      }
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
   }
 
   // WARNING: this expects that the password is ALREADY encrypted! That is done in the auth module.

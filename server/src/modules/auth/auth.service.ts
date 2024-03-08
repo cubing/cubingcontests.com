@@ -56,7 +56,7 @@ export class AuthService {
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {
-    const user = await this.usersService.getUser(username);
+    const user = await this.usersService.getUserWithQuery({ username }, { includeHash: true });
 
     if (user) {
       const passwordsMatch = await bcrypt.compare(password, user.password);
@@ -75,7 +75,7 @@ export class AuthService {
   }
 
   async revalidate(jwtUser: any) {
-    const user: IPartialUser = await this.usersService.getPartialUserById(jwtUser._id);
+    const user: IPartialUser = await this.usersService.getUserWithQuery({ _id: jwtUser._id });
 
     const payload: IJwtPayload = {
       sub: user._id as string,
@@ -131,7 +131,7 @@ export class AuthService {
     if (
       !user.roles.includes(Role.Admin) &&
       (!user.roles.includes(Role.Moderator) ||
-        (!contest.organizers.some((el) => el.personId === user.personId) && contest.createdBy !== user.personId) ||
+        !contest.organizers.some((el) => el.personId === user.personId) ||
         (contest.state >= ContestState.Finished && !ignoreState))
     ) {
       console.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);

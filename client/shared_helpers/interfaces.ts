@@ -1,7 +1,7 @@
 export type { IContest, IContestEvent, IContestData, ICompetitionDetails, IMeetupDetails } from './interfaces/Contest';
 export type { IEvent } from './interfaces/Event';
 export type { IEventRule } from './interfaces/EventRule';
-export type { IPerson, IDtoPerson } from './interfaces/Person';
+export type { IPerson } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
 export type {
   IResult,
@@ -27,3 +27,5 @@ export type {
 export type { IFrontendUser } from './interfaces/frontend/User';
 export type { IFrontendResult } from './interfaces/frontend/Result';
 export type { IFrontendEvent } from './interfaces/frontend/Event';
+
+export type { IProtoPerson } from './interfaces/proto/Person';

@@ -7,6 +7,7 @@ import { ResultsService } from '@m/results/results.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { AuthService } from '@m/auth/auth.service';
+import { EmailService } from '@m/email/email.service';
 
 // Mocks and stubs
 import { MyLoggerMock } from '@m/my-logger/tests/my-logger.service';
@@ -18,6 +19,9 @@ import { AuthServiceMock } from '@m/auth/tests/mocks/auth.service';
 import { CompetitionModelMock } from './mocks/contest.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
+
+// TEMPORARY
+import { UsersService } from '~/src/modules/users/users.service';
 
 describe('ContestsService', () => {
   let competitionsService: ContestsService;
@@ -52,6 +56,14 @@ describe('ContestsService', () => {
         {
           provide: AuthService,
           useFactory: AuthServiceMock,
+        },
+        {
+          provide: EmailService,
+          useValue: {},
+        },
+        {
+          provide: UsersService,
+          useValue: {},
         },
         {
           provide: getModelToken('Competition'),

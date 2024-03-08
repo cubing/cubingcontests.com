@@ -13,8 +13,8 @@ import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } fr
  */
 export interface IContest {
   competitionId: string;
-  // This is optional, because it's not set on creation and only returned to the frontend for authorized users
-  createdBy?: number; // peson ID of the moderator/admin, who created the contest
+  // These are optional, because they're not set on creation and only returned to the frontend for authorized users
+  createdBy?: unknown; // user ID of the moderator/admin who created the contest
   state?: ContestState; // optional, because it's not needed on creation
 
   name: string;
