@@ -20,9 +20,6 @@ import { CompetitionModelMock } from './mocks/contest.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 
-// TEMPORARY
-import { UsersService } from '~/src/modules/users/users.service';
-
 describe('ContestsService', () => {
   let competitionsService: ContestsService;
   // let contestModel: Model<ContestDocument>;
@@ -59,10 +56,6 @@ describe('ContestsService', () => {
         },
         {
           provide: EmailService,
-          useValue: {},
-        },
-        {
-          provide: UsersService,
           useValue: {},
         },
         {

@@ -1,18 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { MyLogger } from '@m/my-logger/my-logger.service';
+import { LogType } from '~/src/helpers/enums';
 
 @Injectable()
 export class EmailService {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(private readonly logger: MyLogger, private readonly mailerService: MailerService) {}
 
   async sendEmail(to: string, text: string, { subject = '' }: { subject?: string }) {
-    await this.mailerService.sendMail({
-      to, // list of receivers
-      subject: subject,
-      template: './default', // refers to templates/default.hbs
-      context: {
-        text,
-      },
-    });
+    try {
+      await this.mailerService.sendMail({
+        to, // list of receivers
+        subject: subject,
+        template: './default', // refers to templates/default.hbs
+        context: {
+          text,
+        },
+      });
+    } catch (err) {
+      this.logger.logAndSave(`Error while sending email:, ${err}`, LogType.Error);
+    }
   }
 }

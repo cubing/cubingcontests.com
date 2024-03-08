@@ -14,9 +14,6 @@ import { AuthModule } from '@m/auth/auth.module';
 import { EmailModule } from '@m/email/email.module';
 import { ScheduleSchema } from '~/src/models/schedule.model';
 
-// TEMPORARY
-import { UsersModule } from '~/src/modules/users/users.module';
-
 @Module({
   imports: [
     LoggerModule,
@@ -26,7 +23,6 @@ import { UsersModule } from '~/src/modules/users/users.module';
     PersonsModule,
     AuthModule,
     EmailModule,
-    UsersModule, // TEMPORARY
     MongooseModule.forFeature([
       { name: 'Competition', schema: ContestSchema },
       { name: 'Round', schema: RoundSchema },

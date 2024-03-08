@@ -13,19 +13,17 @@ import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
+import C from '@sh/constants';
 import { IContestEvent, IContestData, IContest } from '@sh/interfaces';
 import { ContestState, ContestType } from '@sh/enums';
 import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { AuthService } from '../auth/auth.service';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
+import { AuthService } from '../auth/auth.service';
+import { EmailService } from '@m/email/email.service';
 import { addDays } from 'date-fns';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
-import { UsersService } from '~/src/modules/users/users.service';
-
-const PLEASE_ENTER_ADDRESS_MSG = 'Please enter an address';
-const PLEASE_ENTER_VENUE_MSG = 'Please enter the venue name';
 
 @Injectable()
 export class ContestsService {
@@ -36,7 +34,7 @@ export class ContestsService {
     private readonly recordTypesService: RecordTypesService,
     private readonly personsService: PersonsService,
     private readonly authService: AuthService,
-    private readonly usersService: UsersService, // TEMPORARY
+    private readonly emailService: EmailService,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
@@ -44,21 +42,6 @@ export class ContestsService {
   ) {}
 
   async onModuleInit() {
-    const contests = await this.contestModel.find().exec();
-
-    for (const contest of contests) {
-      if (typeof contest.createdBy === 'number') {
-        const user = await this.usersService.getUserWithQuery({ personId: contest.createdBy });
-
-        if (user) {
-          contest.createdBy = user;
-          await contest.save();
-        } else {
-          this.logger.error(`User with personId ${contest.createdBy} not found!`);
-        }
-      }
-    }
-
     // Consistency checks
     if (process.env.NODE_ENV !== 'production') {
       const schedules = await this.scheduleModel.find().exec();
@@ -160,6 +143,7 @@ export class ContestsService {
     // Check access rights
     if (!user.roles.includes(Role.Admin)) {
       const person = await this.personsService.getPersonById(user.personId);
+      console.log(person, user);
       queryFilter = { organizers: person._id };
     }
 
@@ -208,10 +192,8 @@ export class ContestsService {
     const isAdmin = user.roles.includes(Role.Admin);
 
     if (!isAdmin) {
+      this.validateContest(createContestDto, user);
       saveResults = false;
-
-      if (!createContestDto.address) throw new BadRequestException(PLEASE_ENTER_ADDRESS_MSG);
-      if (!createContestDto.venue) throw new BadRequestException(PLEASE_ENTER_VENUE_MSG);
     }
 
     let comp;
@@ -266,6 +248,14 @@ export class ContestsService {
       }
 
       await this.contestModel.create(newCompetition);
+
+      if (!isAdmin) {
+        await this.emailService.sendEmail(
+          C.contactEmail,
+          `A new contest has been submitted by user ${user.username}: ${createContestDto.name}.`,
+          { subject: 'New Contest Submission' },
+        );
+      }
     } catch (err) {
       // Remove created schedule
       await this.scheduleModel.deleteMany({ competitionId: createContestDto.competitionId }).exec();
@@ -283,8 +273,7 @@ export class ContestsService {
 
     // This is checked, because admins are allowed to set the address and venue as empty, but mods aren't
     if (!isAdmin) {
-      if (!updateContestDto.address) throw new BadRequestException(PLEASE_ENTER_ADDRESS_MSG);
-      if (!updateContestDto.venue) throw new BadRequestException(PLEASE_ENTER_VENUE_MSG);
+      this.validateContest(updateContestDto, user);
     }
 
     contest.organizers = await this.personsService.getPersonsById(
@@ -528,5 +517,13 @@ export class ContestsService {
     } catch (err) {
       throw new InternalServerErrorException(`Error while updating contest events: ${err.message}`);
     }
+  }
+
+  private validateContest(contest: IContest, user: IPartialUser) {
+    console.log(contest, user);
+    if (!contest.address) throw new BadRequestException('Please enter an address');
+    if (!contest.venue) throw new BadRequestException('Please enter the venue name');
+    if (!contest.organizers.some((o) => o.personId === user.personId))
+      throw new BadRequestException('You cannot create a contest which you are not organizing');
   }
 }

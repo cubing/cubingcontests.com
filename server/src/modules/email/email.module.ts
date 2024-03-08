@@ -2,8 +2,9 @@ import * as path from 'path';
 import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { EmailService } from '@m/email/email.service';
 import { ConfigModule } from '@nestjs/config';
+import { EmailService } from '@m/email/email.service';
+import { LoggerModule } from '@m/my-logger/my-logger.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ConfigModule } from '@nestjs/config';
         },
       },
     }),
+    LoggerModule,
   ],
   providers: [EmailService],
   exports: [EmailService],

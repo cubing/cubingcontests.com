@@ -42,6 +42,10 @@ const ManageUsersPage = () => {
       setErrorMessages(['The competitor has not been entered. Either enter them or clear the input.']);
       return;
     }
+    if (!persons[0] && (isMod || isAdmin)) {
+      setErrorMessages(['Admins and moderators must have a competitor tied to the user']);
+      return;
+    }
 
     setLoadingDuringSubmit(true);
     setErrorMessages([]);
