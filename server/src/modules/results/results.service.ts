@@ -688,9 +688,10 @@ export class ResultsService {
     await this.validateAndCleanUpResult(submitResultDto, event);
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
+    let createdResult: ResultDocument;
 
     try {
-      await this.resultModel.create(
+      createdResult = await this.resultModel.create(
         setResultRecords(
           {
             ...submitResultDto,
@@ -706,12 +707,17 @@ export class ResultsService {
     }
 
     if (isAdmin) await this.resetCancelledRecords(submitResultDto, event);
-    else
-      await this.emailService.sendEmail(
-        C.contactEmail,
-        `A new ${submitResultDto.eventId} result has been submitted by user ${user.username}.`,
-        { subject: 'New Result Submission' },
-      );
+    else {
+      let text = `A new ${submitResultDto.eventId} result has been submitted by user ${user.username}: ${getFormattedTime(createdResult.best)}`;
+      if (createdResult.regionalSingleRecord) text += ` (${createdResult.regionalSingleRecord})`;
+      if (createdResult.average > 0) {
+        text += `, average: ${getFormattedTime(createdResult.average)}`;
+        if (createdResult.regionalAverageRecord) text += ` (${createdResult.regionalAverageRecord})`;
+      }
+      text += '.';
+
+      await this.emailService.sendEmail(C.contactEmail, text, { subject: 'New Result Submission' });
+    }
   }
 
   async editResult(resultId: string, updateResultDto: SubmitResultDto) {

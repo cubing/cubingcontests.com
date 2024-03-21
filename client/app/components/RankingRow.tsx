@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { FaCaretRight, FaCaretDown } from 'react-icons/fa';
-import Country from './Country';
-import Competitor from './Competitor';
+import Country from '@c/Country';
+import Competitor from '@c/Competitor';
 import ContestName from '@c/ContestName';
-import Solves from './Solves';
+import Solves from '@c/Solves';
+import RankingLinks from '@c/RankingLinks';
+import Competitors from '@c/Competitors';
 import { IEvent, IPerson, IRanking } from '@sh/interfaces';
-import { getFormattedDate } from '~/helpers/utilityFunctions';
 import { getFormattedTime } from '@sh/sharedFunctions';
-import RankingLinks from './RankingLinks';
-import Competitors from './Competitors';
+import { getFormattedDate } from '~/helpers/utilityFunctions';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
 const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
