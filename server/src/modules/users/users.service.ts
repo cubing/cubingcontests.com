@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MyLogger } from '@m/my-logger/my-logger.service';
@@ -59,36 +65,24 @@ export class UsersService {
   async createUser(newUser: IUser) {
     this.logger.logAndSave(`Creating new user with username ${newUser.username}`, LogType.CreateUser);
 
-    try {
-      const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: newUser.username }).exec();
-      if (sameUsernameUser) {
-        throw new BadRequestException(`User with username ${newUser.username} already exists`);
-      }
-
-      const sameEmailUser: UserDocument = await this.userModel.findOne({ email: newUser.email }).exec();
-      if (sameEmailUser) {
-        throw new BadRequestException(`User with email ${newUser.email} already exists`);
-      }
-
-      await this.userModel.create(newUser);
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
+    const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: newUser.username }).exec();
+    if (sameUsernameUser) {
+      throw new BadRequestException(`User with username ${newUser.username} already exists`);
     }
+
+    await this.validateUser(newUser);
+
+    await this.userModel.create(newUser);
   }
 
   async updateUser(updateUserDto: UpdateUserDto): Promise<IFrontendUser[]> {
     this.logger.logAndSave(`Updating user with username ${updateUserDto.username}`, LogType.UpdateUser);
 
-    let user: UserDocument;
-
-    try {
-      user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while getting user during update: ${err.message}`);
-    }
+    const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
 
     if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
     if (updateUserDto.email !== user.email) throw new BadRequestException('Changing the email is not allowed');
+    await this.validateUser(updateUserDto);
 
     user.roles = updateUserDto.roles;
     if (updateUserDto.person) user.personId = updateUserDto.person.personId;
@@ -126,6 +120,23 @@ export class UsersService {
       return await this.userModel.countDocuments().exec();
     } catch (err) {
       throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  private async validateUser(user: IUser | IFrontendUser) {
+    const sameEmailUser: UserDocument = await this.userModel
+      .findOne({ username: { $ne: user.username }, email: user.email })
+      .exec();
+
+    if (sameEmailUser) {
+      throw new BadRequestException(`User with email ${user.email} already exists`);
+    }
+
+    const personId = (user as any).personId ?? (user as any).person?.personId;
+    const samePersonUser = await this.userModel.findOne({ username: { $ne: user.username }, personId }).exec();
+
+    if (samePersonUser) {
+      throw new ConflictException('The selected competitor is already tied to another user');
     }
   }
 }

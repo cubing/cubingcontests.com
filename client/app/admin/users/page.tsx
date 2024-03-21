@@ -85,6 +85,9 @@ const ManageUsersPage = () => {
     if (user.person) {
       setPersons([user.person]);
       setPersonNames([user.person.name]);
+    } else {
+      setPersons([null]);
+      setPersonNames(['']);
     }
 
     window.scrollTo(0, 0);
