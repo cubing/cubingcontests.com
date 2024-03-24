@@ -363,7 +363,6 @@ const ImportExportPage = () => {
     if (!newContest.address)
       tempErrors.push('The address is missing. Make SURE to enter it before approving the imported contest.');
 
-    console.log('New contest:', newContest);
     setContestJSON(JSON.stringify(newContest, null, 2));
 
     if (notFoundPersonNames.length > 0) {

@@ -7,12 +7,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { UserDocument } from '~/src/models/user.model';
 import { PersonsService } from '@m/persons/persons.service';
+import { EmailService } from '@m/email/email.service';
 import { Role } from '@sh/enums';
 import { IFrontendUser } from '@sh/interfaces';
-import { IUser } from '~/src/helpers/interfaces/User';
+import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LogType } from '~/src/helpers/enums';
 
@@ -21,21 +24,17 @@ export class UsersService {
   constructor(
     private readonly logger: MyLogger,
     private readonly personsService: PersonsService,
+    private readonly emailService: EmailService,
     @InjectModel('User') private readonly userModel: Model<UserDocument>,
   ) {}
 
   // WARNING: this method returns the hashed password too. It is ONLY to be used in the auth module.
-  async getUserWithQuery(
-    query: { _id?: string; username?: string; personId?: number },
-    { includeHash }: { includeHash?: boolean } = {},
-  ): Promise<UserDocument> {
-    try {
-      const user = await this.userModel.findOne(query, includeHash ? {} : { password: 0 }).exec();
+  async getUserWithQuery(query: any): Promise<IUser> {
+    return await this.userModel.findOne(query).exec();
+  }
 
-      return user || undefined;
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while reading user data: ${err.message}`);
-    }
+  async getPartialUserWithQuery(query: any): Promise<IPartialUser> {
+    return await this.userModel.findOne(query, { password: 0, email: 0, confirmationCodeHash: 0 }).exec();
   }
 
   async getUsers(): Promise<IFrontendUser[]> {
@@ -70,9 +69,35 @@ export class UsersService {
       throw new BadRequestException(`User with username ${newUser.username} already exists`);
     }
 
-    await this.validateUser(newUser);
+    await this.validateUserObject(newUser);
+
+    const code = uuidv4().replaceAll('-', '').slice(0, 8); // generates an 8 character alphanumeric code
+    newUser.confirmationCodeHash = await bcrypt.hash(code, 10);
 
     await this.userModel.create(newUser);
+
+    await this.emailService.sendEmailConfirmationCode(newUser.email, code);
+  }
+
+  async verifyEmail(username: string, code: string) {
+    const user = await this.userModel.findOne({ username }).exec();
+
+    if (user) {
+      // Using .toLowerCase(), because the code doesn't need to be case-sensitive
+      const codeMatches = await bcrypt.compare(code.toLowerCase(), user.confirmationCodeHash);
+
+      if (codeMatches) {
+        user.confirmationCodeHash = undefined;
+
+        await user.save();
+
+        return;
+      }
+
+      throw new BadRequestException('The entered code is incorrect. Please try again.');
+    }
+
+    throw new NotFoundException('User not found');
   }
 
   async updateUser(updateUserDto: UpdateUserDto): Promise<IFrontendUser[]> {
@@ -82,7 +107,7 @@ export class UsersService {
 
     if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
     if (updateUserDto.email !== user.email) throw new BadRequestException('Changing the email is not allowed');
-    await this.validateUser(updateUserDto);
+    await this.validateUserObject(updateUserDto);
 
     user.roles = updateUserDto.roles;
     if (updateUserDto.person) user.personId = updateUserDto.person.personId;
@@ -98,21 +123,15 @@ export class UsersService {
   }
 
   async getUserRoles(id: string): Promise<Role[]> {
-    try {
-      const user: UserDocument = await this.userModel.findById(id).exec();
-      return user.roles;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    const user = await this.userModel.findById(id).exec();
+
+    return user?.roles;
   }
 
   async getUsername(id: string): Promise<string> {
-    try {
-      const user: UserDocument = await this.userModel.findById(id).exec();
-      return user?.username;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    const user = await this.userModel.findById(id).exec();
+
+    return user?.username;
   }
 
   async getUsersTotal(): Promise<number> {
@@ -123,7 +142,7 @@ export class UsersService {
     }
   }
 
-  private async validateUser(user: IUser | IFrontendUser) {
+  private async validateUserObject(user: IUser | IFrontendUser) {
     const sameEmailUser: UserDocument = await this.userModel
       .findOne({ username: { $ne: user.username }, email: user.email })
       .exec();
@@ -133,10 +152,13 @@ export class UsersService {
     }
 
     const personId = (user as any).personId ?? (user as any).person?.personId;
-    const samePersonUser = await this.userModel.findOne({ username: { $ne: user.username }, personId }).exec();
 
-    if (samePersonUser) {
-      throw new ConflictException('The selected competitor is already tied to another user');
+    if (personId) {
+      const samePersonUser = await this.userModel.findOne({ username: { $ne: user.username }, personId }).exec();
+
+      if (samePersonUser) {
+        throw new ConflictException('The selected competitor is already tied to another user');
+      }
     }
   }
 }

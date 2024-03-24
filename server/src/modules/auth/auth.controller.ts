@@ -12,7 +12,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
+import { UsersService } from '@m/users/users.service';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { LocalAuthGuard } from '~/src/guards/local-auth.guard';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
@@ -23,13 +24,26 @@ import { LogType } from '~/src/helpers/enums';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly logger: MyLogger, private authService: AuthService) {}
+  constructor(
+    private readonly logger: MyLogger,
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   // POST /auth/register
   @Post('register')
   async register(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
     this.logger.logAndSave('Registering new user', LogType.Register);
+
     return await this.authService.register(createUserDto);
+  }
+
+  // POST /auth/confirm-email
+  @Post('confirm-email')
+  async confirmEmail(@Body(new ValidationPipe()) { username, code }: { username: string; code: string }) {
+    this.logger.logAndSave('Confirming user email', LogType.ConfirmEmail);
+
+    return await this.usersService.verifyEmail(username, code);
   }
 
   // POST /auth/login

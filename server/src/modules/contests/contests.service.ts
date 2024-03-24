@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
+import { addDays } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
@@ -22,7 +23,6 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { AuthService } from '../auth/auth.service';
 import { EmailService } from '@m/email/email.service';
-import { addDays } from 'date-fns';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
 
 @Injectable()
@@ -143,7 +143,6 @@ export class ContestsService {
     // Check access rights
     if (!user.roles.includes(Role.Admin)) {
       const person = await this.personsService.getPersonById(user.personId);
-      console.log(person, user);
       queryFilter = { organizers: person._id };
     }
 
@@ -528,7 +527,6 @@ export class ContestsService {
   }
 
   private validateContest(contest: IContest, user: IPartialUser) {
-    console.log(contest, user);
     if (!contest.address) throw new BadRequestException('Please enter an address');
     if (!contest.venue) throw new BadRequestException('Please enter the venue name');
     if (!contest.organizers.some((o) => o.personId === user.personId))

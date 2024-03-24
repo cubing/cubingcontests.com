@@ -10,4 +10,5 @@ export interface IPartialUser {
 export interface IUser extends IPartialUser {
   email: string;
   password: string;
+  confirmationCodeHash?: string;
 }

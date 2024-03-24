@@ -535,11 +535,13 @@ export class ResultsService {
       .populate('results')
       .exec();
 
-    if (!skipValidation) await this.validateAndCleanUpResult(createResultDto, event, { round });
+    if (!skipValidation) {
+      await this.validateAndCleanUpResult(createResultDto, event, { round });
+    }
 
     // Admins are allowed to edit finished contests too, so this check is necessary.
     // If it's a finished contest and the user is not an admin, they won't have access rights
-    // anyways, so the roles don't need to be checked here.
+    // anyways (since getContest() is used above), so the roles don't need to be checked here.
     if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
 
     // Set result date. For contests with a schedule, the schedule must be used to set the date.
@@ -708,7 +710,9 @@ export class ResultsService {
 
     if (isAdmin) await this.resetCancelledRecords(submitResultDto, event);
     else {
-      let text = `A new ${submitResultDto.eventId} result has been submitted by user ${user.username}: ${getFormattedTime(createdResult.best)}`;
+      let text = `A new ${submitResultDto.eventId} result has been submitted by user ${
+        user.username
+      }: ${getFormattedTime(createdResult.best)}`;
       if (createdResult.regionalSingleRecord) text += ` (${createdResult.regionalSingleRecord})`;
       if (createdResult.average > 0) {
         text += `, average: ${getFormattedTime(createdResult.average)}`;

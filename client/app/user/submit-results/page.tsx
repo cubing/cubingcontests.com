@@ -1,4 +1,4 @@
-import ResultsSubmissionForm from '~/app/components/adminAndModerator/ResultsSubmissionForm';
+import ResultsSubmissionForm from '@c/adminAndModerator/ResultsSubmissionForm';
 
 const SubmitResultsPage = () => <ResultsSubmissionForm />;
 

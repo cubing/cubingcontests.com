@@ -44,8 +44,6 @@ const PostResultsScreen = ({
   const isEditable = userInfo.isAdmin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
 
   useEffect(() => {
-    console.log('Records:', recordPairsByEvent);
-
     if (!isEditable) {
       if (contest.state < ContestState.Approved) {
         setErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);

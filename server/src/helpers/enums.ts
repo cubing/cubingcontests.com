@@ -26,6 +26,7 @@ export enum LogType {
   UpdateRecordTypes = 'update_record_types',
 
   Register = 'register',
+  ConfirmEmail = 'confirm_email',
   CreateUser = 'create_user',
   UpdateUser = 'update_user',
 

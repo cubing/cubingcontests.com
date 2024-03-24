@@ -19,6 +19,9 @@ class User implements IUser {
 
   @Prop({ type: [{ type: String, enum: Role }] })
   roles: Role[];
+
+  @Prop()
+  confirmationCodeHash?: string;
 }
 
 export type UserDocument = HydratedDocument<User>;

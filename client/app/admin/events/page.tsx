@@ -87,7 +87,6 @@ const CreateEditEventPage = () => {
     if (hasMemo) newEvent.groups.push(EventGroup.HasMemo);
     if (hidden) newEvent.groups.push(EventGroup.Hidden);
 
-    console.log('New event:', newEvent);
     const requestFunction = mode === 'add' ? myFetch.post : myFetch.patch;
     const requestURL = mode === 'add' ? '/events' : `/events/${eventId}`;
 

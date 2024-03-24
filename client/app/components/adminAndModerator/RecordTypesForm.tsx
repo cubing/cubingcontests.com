@@ -15,7 +15,6 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [tRecordTypes, setTRecordTypes] = useState<IRecordType[]>(recordTypes);
 
   const handleSubmit = async () => {
-    console.log('New record types:', tRecordTypes);
     const { errors } = await myFetch.post('/record-types', tRecordTypes);
 
     if (errors) {

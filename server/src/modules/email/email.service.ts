@@ -21,4 +21,19 @@ export class EmailService {
       this.logger.logAndSave(`Error while sending email:, ${err}`, LogType.Error);
     }
   }
+
+  async sendEmailConfirmationCode(to: string, code: string) {
+    try {
+      await this.mailerService.sendMail({
+        to,
+        subject: 'Email Confirmation',
+        template: './email-confirmation',
+        context: {
+          code,
+        },
+      });
+    } catch (err) {
+      this.logger.logAndSave(`Error while sending email confirmation code:, ${err}`, LogType.Error);
+    }
+  }
 }

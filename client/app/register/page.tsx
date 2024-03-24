@@ -8,12 +8,14 @@ import myFetch from '~/helpers/myFetch';
 
 const RegisterPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-
+  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async () => {
+    setLoadingDuringSubmit(true);
+
     const tempErrors: string[] = [];
 
     if (!username) tempErrors.push('Please enter a username');
@@ -28,18 +30,24 @@ const RegisterPage = () => {
       if (errors) {
         tempErrors.push(...errors);
       } else {
-        window.location.href = '/login';
+        window.location.href = `/register/confirm-email?username=${username}`;
       }
     }
 
     setErrorMessages(tempErrors);
+    setLoadingDuringSubmit(false);
   };
 
   return (
     <div>
       <h2 className="mb-4 text-center">Register</h2>
 
-      <Form buttonText="Register" errorMessages={errorMessages} onSubmit={handleSubmit}>
+      <Form
+        buttonText="Register"
+        errorMessages={errorMessages}
+        onSubmit={handleSubmit}
+        disableButton={loadingDuringSubmit}
+      >
         <FormTextInput title="Username" value={username} setValue={setUsername} nextFocusTargetId="email" autoFocus />
         <FormTextInput id="email" title="Email" value={email} setValue={setEmail} nextFocusTargetId="password" />
         <FormTextInput

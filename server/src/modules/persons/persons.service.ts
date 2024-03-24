@@ -148,7 +148,6 @@ export class PersonsService {
     newPerson.createdBy = new mongoose.Types.ObjectId(user._id as string);
 
     try {
-      console.log(`Creating new person with name ${newPerson.name}`);
       return await this.personModel.create(newPerson);
     } catch (err) {
       throw new InternalServerErrorException(

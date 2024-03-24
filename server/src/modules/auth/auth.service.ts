@@ -1,4 +1,10 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -6,7 +12,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { addWeeks } from 'date-fns';
 import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
-import { EmailService } from '@m/email/email.service';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { ContestState, Role } from '@sh/enums';
@@ -18,19 +23,14 @@ import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private emailService: EmailService,
-    private jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
     @InjectModel('AuthToken') private readonly authTokenModel: Model<AuthTokenDocument>,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
-    try {
-      // 10 is the number  of salt rounds
-      createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while creating password hash: ${err.message}`);
-    }
+    // 10 is the number  of salt rounds
+    createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
 
     // Give the user the user role by default
     await this.usersService.createUser({ ...createUserDto, roles: [Role.User] });
@@ -38,10 +38,10 @@ export class AuthService {
 
   // The user comes from the passport local auth guard (local strategy), which uses the validateUser
   // method below; the user is then saved in the request and passed in from the controller
-  async login(user: any) {
+  async login(user: IPartialUser) {
     const payload: IJwtPayload = {
-      sub: user._id,
-      personId: user.persondId,
+      sub: user._id as any,
+      personId: user.personId,
       username: user.username,
       roles: user.roles,
     };
@@ -56,12 +56,16 @@ export class AuthService {
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {
-    const user = await this.usersService.getUserWithQuery({ username }, { includeHash: true });
+    const user = await this.usersService.getUserWithQuery({ username });
 
     if (user) {
       const passwordsMatch = await bcrypt.compare(password, user.password);
 
       if (passwordsMatch) {
+        if (user.confirmationCodeHash) {
+          throw new BadRequestException('UNCONFIRMED');
+        }
+
         return {
           _id: user._id,
           personId: user.personId,
@@ -75,7 +79,7 @@ export class AuthService {
   }
 
   async revalidate(jwtUser: any) {
-    const user: IPartialUser = await this.usersService.getUserWithQuery({ _id: jwtUser._id });
+    const user: IPartialUser = await this.usersService.getPartialUserWithQuery({ _id: jwtUser._id });
 
     const payload: IJwtPayload = {
       sub: user._id as string,

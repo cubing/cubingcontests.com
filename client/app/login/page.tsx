@@ -9,13 +9,15 @@ import Form from '@c/form/Form';
 
 const LoginPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-
+  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const searchParams = useSearchParams();
 
   const handleSubmit = async () => {
+    setLoadingDuringSubmit(true);
+
     const tempErrors: string[] = [];
 
     if (!password) {
@@ -33,7 +35,11 @@ const LoginPage = () => {
       const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
 
       if (errors) {
-        tempErrors.push(...errors);
+        if (errors[0] === 'UNCONFIRMED') {
+          window.location.href = `/register/confirm-email?username=${username}`;
+        } else {
+          tempErrors.push(...errors);
+        }
       } else if (payload) {
         if (!payload.accessToken) {
           tempErrors.push('Access token not received');
@@ -47,9 +53,11 @@ const LoginPage = () => {
           else window.location.href = '/';
         }
       }
+
+      if (tempErrors.length > 0) setErrorMessages(tempErrors);
     }
 
-    setErrorMessages(tempErrors);
+    setLoadingDuringSubmit(false);
   };
 
   const changeUsername = (newValue: string) => {
@@ -66,7 +74,12 @@ const LoginPage = () => {
     <div>
       <h2 className="mb-4 text-center">Login</h2>
 
-      <Form buttonText="Log in" errorMessages={errorMessages} onSubmit={handleSubmit}>
+      <Form
+        buttonText="Log in"
+        errorMessages={errorMessages}
+        onSubmit={handleSubmit}
+        disableButton={loadingDuringSubmit}
+      >
         <FormTextInput
           id="username"
           title="Username"
