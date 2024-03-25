@@ -18,6 +18,7 @@ import { IFrontendUser } from '@sh/interfaces';
 import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LogType } from '~/src/helpers/enums';
+import { ALREADY_VERIFIED_MSG, USER_NOT_FOUND_MSG } from '~/src/helpers/messages';
 
 @Injectable()
 export class UsersService {
@@ -58,13 +59,11 @@ export class UsersService {
     this.logger.logAndSave(`Creating new user with username ${newUser.username}`, LogType.CreateUser);
 
     const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: newUser.username }).exec();
-    if (sameUsernameUser) {
-      throw new BadRequestException(`User with username ${newUser.username} already exists`);
-    }
+    if (sameUsernameUser) throw new BadRequestException(`User with username ${newUser.username} already exists`);
 
     await this.validateUserObject(newUser);
 
-    const code = uuidv4().replaceAll('-', '').slice(0, 8); // generates an 8 character alphanumeric code
+    const code = this.generateVerificationCode();
     newUser.confirmationCodeHash = await bcrypt.hash(code, 10);
 
     await this.userModel.create(newUser);
@@ -76,6 +75,8 @@ export class UsersService {
     const user = await this.userModel.findOne({ username }).exec();
 
     if (user) {
+      if (!user.confirmationCodeHash) throw new BadRequestException(ALREADY_VERIFIED_MSG);
+
       // Using .toLowerCase(), because the code doesn't need to be case-sensitive
       const codeMatches = await bcrypt.compare(code.toLowerCase(), user.confirmationCodeHash);
 
@@ -90,7 +91,25 @@ export class UsersService {
       throw new BadRequestException('The entered code is incorrect. Please try again.');
     }
 
-    throw new NotFoundException('User not found');
+    throw new NotFoundException(USER_NOT_FOUND_MSG);
+  }
+
+  async resendConfirmationCode(username: string) {
+    const user = await this.userModel.findOne({ username }).exec();
+
+    if (user) {
+      if (!user.confirmationCodeHash) throw new BadRequestException(ALREADY_VERIFIED_MSG);
+
+      const code = this.generateVerificationCode();
+      user.confirmationCodeHash = await bcrypt.hash(code, 10);
+
+      await user.save();
+
+      await this.emailService.sendEmailConfirmationCode(user.email, code);
+      return;
+    }
+
+    throw new NotFoundException(USER_NOT_FOUND_MSG);
   }
 
   async updateUser(updateUserDto: UpdateUserDto): Promise<IFrontendUser[]> {
@@ -151,5 +170,9 @@ export class UsersService {
         throw new ConflictException('The selected competitor is already tied to another user');
       }
     }
+  }
+
+  private generateVerificationCode(): string {
+    return uuidv4().replaceAll('-', '').slice(0, 8); // generates an 8 character alphanumeric code
   }
 }

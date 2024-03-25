@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
-import myFetch from '~/helpers/myFetch';
+import Button from '@c/Button';
 
 const ConfirmEmailPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
@@ -33,9 +34,25 @@ const ConfirmEmailPage = () => {
     }
   };
 
-  // const resendCode = () => {
-  //   setLoadingDuringSubmit(true);
-  // };
+  const resendCode = async () => {
+    setLoadingDuringSubmit(true);
+    setErrorMessages([]);
+    setCode('');
+
+    const { errors } = await myFetch.post(
+      '/auth/resend-confirmation-code',
+      { username: searchParams.get('username') },
+      { authorize: false },
+    );
+
+    if (errors) {
+      setErrorMessages(errors);
+    } else {
+      setSuccessMessage('A new confirmation code has been sent');
+    }
+
+    setLoadingDuringSubmit(false);
+  };
 
   return (
     <div>
@@ -55,12 +72,12 @@ const ConfirmEmailPage = () => {
           nextFocusTargetId="form_submit_button"
           autoFocus
         />
-        {/* <Button
-            text="Resend code"
-            onClick={resendCode}
-            loading={loadingDuringSubmit}
-            className="btn-secondary btn-sm p-1"
-          /> */}
+        <Button
+          text="Resend code"
+          onClick={resendCode}
+          loading={loadingDuringSubmit}
+          className="btn-secondary btn-sm"
+        />
       </Form>
     </div>
   );

@@ -46,6 +46,14 @@ export class AuthController {
     return await this.usersService.verifyEmail(username, code);
   }
 
+  // POST /auth/resend-confirmation-code
+  @Post('resend-confirmation-code')
+  async resendConfirmationCode(@Body(new ValidationPipe()) { username }: { username: string }) {
+    this.logger.log(`Resending confirmation code for user ${username}`);
+
+    return await this.usersService.resendConfirmationCode(username);
+  }
+
   // POST /auth/login
   @HttpCode(HttpStatus.OK)
   @Post('login')
