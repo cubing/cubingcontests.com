@@ -25,7 +25,7 @@ const ConfirmEmailPage = () => {
       setErrorMessages(errors);
       setLoadingDuringSubmit(false);
     } else {
-      setSuccessMessage('Your account has been confirmed');
+      setSuccessMessage('Your account has been verified');
 
       setTimeout(() => {
         window.location.href = '/login';

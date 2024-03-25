@@ -112,15 +112,16 @@ const ModeratorDashboardPage = () => {
         {adminStats && (
           <>
             <p>
-              Total competitors: <b>{adminStats.totalPersons}</b>&#8194;|&#8194;Total users:&nbsp;
-              <b>{adminStats.totalUsers}</b>
+              Total contests: <b>{contests?.length || 0}</b>&#8194;|&#8194;Total competitors:{' '}
+              <b>{adminStats.totalPersons}</b>
+            </p>
+            <p>
+              Total users:&nbsp;
+              <b>{adminStats.totalUsers}</b>&#8194;|&#8194;Unconfirmed:&nbsp;<b>{adminStats.unconfirmedUsers}</b>
             </p>
             <p>
               Total results:&nbsp;<b>{adminStats.totalResults}</b>&#8194;|&#8194;Unapproved:&nbsp;
               <b>{adminStats.totalUnapprovedSubmittedResults}</b>
-            </p>
-            <p>
-              Total contests: <b>{contests?.length || 0}</b>
             </p>
             <button
               type="button"

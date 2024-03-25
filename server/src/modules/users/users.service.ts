@@ -38,14 +38,7 @@ export class UsersService {
   }
 
   async getUsers(): Promise<IFrontendUser[]> {
-    let users: UserDocument[];
-
-    try {
-      users = await this.userModel.find().exec();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while getting users: ${err.message}`);
-    }
-
+    const users = await this.userModel.find({ confirmationCodeHash: { $exists: false } }).exec();
     const usersForFrontend: IFrontendUser[] = [];
 
     for (const user of users) {
@@ -134,12 +127,10 @@ export class UsersService {
     return user?.username;
   }
 
-  async getUsersTotal(): Promise<number> {
-    try {
-      return await this.userModel.countDocuments().exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+  async getUsersTotal({ unconfirmedOnly }: { unconfirmedOnly: boolean } = { unconfirmedOnly: false }): Promise<number> {
+    return await this.userModel
+      .countDocuments(unconfirmedOnly ? { confirmationCodeHash: { $exists: true } } : undefined)
+      .exec();
   }
 
   private async validateUserObject(user: IUser | IFrontendUser) {

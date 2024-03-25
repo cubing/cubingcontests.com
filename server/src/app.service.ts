@@ -26,6 +26,7 @@ export class AppService {
     const adminStats: IAdminStats = {
       totalPersons: await this.personsService.getPersonsTotal(),
       totalUsers: await this.usersService.getUsersTotal(),
+      unconfirmedUsers: await this.usersService.getUsersTotal({ unconfirmedOnly: true }),
       totalResults: await this.resultsService.getTotalResults(),
       totalUnapprovedSubmittedResults: await this.resultsService.getTotalResults({
         competitionId: { $exists: false },
