@@ -339,8 +339,14 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
   // Set organizer objects
   for (const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]) {
     let name = org.name;
-    if (org.wca_id) name += '|' + org.wca_id;
-    const person = await fetchPerson(name);
+    let person: IPerson;
+
+    if (org.wca_id) {
+      name += '|' + org.wca_id;
+      person = await fetchPerson(name);
+    } else {
+      person = await fetchPerson(name, org.country_iso2);
+    }
 
     if (person !== null) {
       if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
@@ -356,7 +362,7 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
 };
 
 // null means person not found
-export const fetchPerson = async (name: string): Promise<IPerson | null> => {
+export const fetchPerson = async (name: string, countryIso2?: string): Promise<IPerson | null> => {
   const newPerson: IPerson = { personId: 0, name: '', wcaId: '', countryIso2: '', createdBy: '' };
   // If the WCA ID is available, use that
   const parts = name.split('|');
@@ -377,11 +383,8 @@ export const fetchPerson = async (name: string): Promise<IPerson | null> => {
 
       const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
 
-      if (errors) {
-        throw new Error(errors[0]);
-      } else {
-        return person;
-      }
+      if (errors) throw new Error(errors[0]);
+      else return person;
     }
   }
 
@@ -414,11 +417,20 @@ export const fetchPerson = async (name: string): Promise<IPerson | null> => {
 
     const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
 
-    if (errors) {
-      throw new Error(errors[0]);
-    } else {
-      return person;
-    }
+    if (errors) throw new Error(errors[0]);
+    else return person;
+  }
+
+  // If still not found and the country iso was passed, use that to create a new person with no WCA ID (licely an organization)
+  if (countryIso2) {
+    newPerson.name = name;
+    newPerson.wcaId = undefined;
+    newPerson.countryIso2 = countryIso2;
+
+    const { payload: person, errors } = await myFetch.post('/persons', newPerson);
+
+    if (errors) throw new Error(errors[0]);
+    else return person;
   }
 
   return null;

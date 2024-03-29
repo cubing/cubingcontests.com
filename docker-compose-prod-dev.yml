@@ -2,7 +2,6 @@
 # This is a version of the docker-compose-prod.yml file for testing the production set-up locally #
 ###################################################################################################
 
-version: '3'
 services:
   mongo:
     container_name: cc-mongo
