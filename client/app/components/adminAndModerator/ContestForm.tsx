@@ -15,11 +15,11 @@ import FormNumberInput from '@c/form/FormNumberInput';
 import FormTextArea from '@c/form/FormTextArea';
 import FormDatePicker from '@c/form/FormDatePicker';
 import EventTitle from '@c/EventTitle';
-import Tabs from '@c/Tabs';
+import Tabs from '@c/UI/Tabs';
 import Schedule from '@c/Schedule';
-import ColorSquare from '@c/ColorSquare';
-import Loading from '@c/Loading';
-import Button from '@c/Button';
+import ColorSquare from '@c/UI/ColorSquare';
+import Loading from '@c/UI/Loading';
+import Button from '@c/UI/Button';
 import AttemptInput from '@c/AttemptInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import {

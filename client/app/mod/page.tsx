@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
-import ErrorMessages from '@c/ErrorMessages';
+import ErrorMessages from '@c/UI/ErrorMessages';
 import { ContestState } from '@sh/enums';
 import { IAdminStats, IContest } from '@sh/interfaces';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';

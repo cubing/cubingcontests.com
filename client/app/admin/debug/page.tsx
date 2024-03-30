@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import FormTextInput from '@c/form/FormTextInput';
-import Button from '~/app/components/Button';
+import Button from '@c/UI/Button';
+import ErrorMessages from '@c/UI/ErrorMessages';
 import myFetch from '~/helpers/myFetch';
-import ErrorMessages from '~/app/components/ErrorMessages';
 
 const DebugPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);

@@ -16,10 +16,7 @@ const NavbarItems = () => {
   const [resultsExpanded, setResultsExpanded] = useState(false);
   const [userExpanded, setUserExpanded] = useState(false);
   // const [searchTerm, setSearchTerm] = useState<string>('');
-  // const [searchResults, setSearchResults] = useState<ISearchResult[]>([
-  //   { title: 'Meetup in Munich on June 14, 2023', url: 'http://localhost:3000/contests/Munich14062023' },
-  //   { title: 'Meetup in Munich on February 19, 2023', url: 'http://localhost:3000/contests/Munich19022023' },
-  // ]);
+  // const [searchResults, setSearchResults] = useState<ISearchResult[]>([...]);
 
   // This is done to avoid the hydration error on SSR pages
   useEffect(() => setUserInfo(getUserInfo()), [getUserInfo]);

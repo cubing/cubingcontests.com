@@ -1,4 +1,4 @@
-import ErrorMessages from '../ErrorMessages';
+import ErrorMessages from '@c/UI/ErrorMessages';
 
 const Form = ({
   children,

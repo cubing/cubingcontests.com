@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Loading from '@c/Loading';
+import Loading from '@c/UI/Loading';
 import { Role } from '@sh/enums';
 
 const AuthorizedLayout = ({ role, children }: { role: Role; children: React.ReactNode }) => {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
 import RecordTypesForm from '@c/adminAndModerator/RecordTypesForm';
 import { IRecordType } from '~/shared_helpers/interfaces';
-import Loading from '@c/Loading';
+import Loading from '@c/UI/Loading';
 
 const ConfigureRecordTypesPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);

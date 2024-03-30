@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
-import Tabs from '@c/Tabs';
+import Tabs from '@c/UI/Tabs';
 import RankingsTable from '@c/RankingsTable';
 import RankingLinks from '@c/RankingLinks';
 import EventTitle from '@c/EventTitle';
@@ -11,6 +11,7 @@ import { IEventRankings } from '@sh/interfaces';
 import { getFormattedTime } from '@sh/sharedFunctions';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
+import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
 
 // SEO
 export const metadata = {
@@ -36,7 +37,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
     er.event.groups.includes(eventCategories.find((rc) => rc.value === params.category).group),
   );
   const selectedCat = eventCategories.find((el) => el.value === params.category);
-  const tabs = eventCategories.map((cat) => ({
+  const tabs: INavigationItem[] = eventCategories.map((cat) => ({
     title: cat.title,
     shortTitle: cat.shortTitle,
     value: cat.value,

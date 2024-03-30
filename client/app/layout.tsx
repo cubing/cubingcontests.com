@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import '@/globals.css';
-import Navbar from '@c/Navbar';
+import Navbar from '@c/UI/Navbar';
 
 // SEO
 export const metadata = {
@@ -34,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             className="d-inline-flex justify-content-center align-items-center"
             style={{ width: '1.75rem', height: '1.75rem' }}
           >
+            {/* Github logo */}
             <svg
               width="98"
               height="96"

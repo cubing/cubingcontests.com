@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Button from '@c/Button';
+import Button from '@c/UI/Button';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import ContestResults from '~/app/components/ContestResults';

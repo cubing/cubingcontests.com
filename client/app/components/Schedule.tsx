@@ -1,7 +1,7 @@
 import { format, isSameDay } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import EventTitle from './EventTitle';
-import ColorSquare from './ColorSquare';
+import ColorSquare from '@c/UI/ColorSquare';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/interfaces';
 import { roundTypes } from '~/helpers/roundTypes';

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
-import Loading from '@c/Loading';
+import Loading from '@c/UI/Loading';
 import ContestForm from '@c/adminAndModerator/ContestForm';
 import { IContest, IEvent } from '@sh/interfaces';
 

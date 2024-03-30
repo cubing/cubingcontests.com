@@ -5,13 +5,18 @@ const Tabs = ({
   tabs,
   activeTab,
   setActiveTab,
-  forServerSidePage = false,
+  prefetch,
+  forServerSidePage,
 }: {
   tabs: INavigationItem[];
   activeTab: string; // the value of the currently active tab
   setActiveTab?: (val: string) => void; // not needed on a client-side-rendered page
+  prefetch?: boolean;
   forServerSidePage?: boolean;
 }) => {
+  if (prefetch && !forServerSidePage)
+    throw new Error('The Tabs component only supports prefetch when forServerSidePage is set');
+
   return (
     <ul className="mb-3 nav nav-tabs">
       {tabs
@@ -30,7 +35,7 @@ const Tabs = ({
             ) : (
               <Link
                 href={tab.route}
-                prefetch={false}
+                prefetch={prefetch}
                 className={'nav-link' + (activeTab === tab.value ? ' active' : '')}
               >
                 <span className="d-none d-md-block">{tab.title}</span>

@@ -1,4 +1,4 @@
-import Tooltip from '@c/Tooltip';
+import Tooltip from '@c/UI/Tooltip';
 
 const FormInputLabel = ({ text, inputId, tooltip }: { text: string; inputId: string; tooltip?: string }) => {
   if (text) {

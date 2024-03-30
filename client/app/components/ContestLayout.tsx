@@ -1,4 +1,4 @@
-import Tabs from './Tabs';
+import Tabs from '@c/UI/Tabs';
 import { IContest } from '@sh/interfaces';
 import { getIsCompType } from '@sh/sharedFunctions';
 
@@ -30,7 +30,7 @@ const ContestLayout = ({
 
   return (
     <div>
-      <h2 className="text-center lh-base">{contest.name}</h2>
+      <h2 className="px-2 text-center lh-base">{contest.name}</h2>
       <Tabs tabs={tabs} activeTab={activeTab} forServerSidePage />
 
       {children}

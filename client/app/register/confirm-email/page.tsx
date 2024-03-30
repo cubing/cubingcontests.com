@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
-import Button from '@c/Button';
+import Button from '@c/UI/Button';
 
 const ConfirmEmailPage = () => {
   const [successMessage, setSuccessMessage] = useState('');

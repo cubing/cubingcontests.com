@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Loading from '@c/Loading';
+import Loading from '@c/UI/Loading';
 import FormEventSelect from '@c/form/FormEventSelect';
 import FormSelect from '@c/form/FormSelect';
 import FormPersonInputs from '@c/form/FormPersonInputs';

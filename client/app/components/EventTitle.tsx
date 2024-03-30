@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import EventIcon from './EventIcon';
 import { IEvent } from '@sh/interfaces';
-import Tooltip from './Tooltip';
+import Tooltip from '@c/UI/Tooltip';
 
 const EventTitle = ({
   event,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Loading from '@c/Loading';
+import Loading from '@c/UI/Loading';
 import PostResultsScreen from '@c/adminAndModerator/PostResultsScreen';
 import { IContestData } from '@sh/interfaces';
 

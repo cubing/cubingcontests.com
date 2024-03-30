@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
-import Loading from '../Loading';
+import Loading from '@c/UI/Loading';
 import FormTextInput from './FormTextInput';
 import Competitor from '@c/Competitor';
 import { IPerson } from '@sh/interfaces';

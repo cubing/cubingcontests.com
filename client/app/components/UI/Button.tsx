@@ -1,4 +1,4 @@
-import Loading from './Loading';
+import Loading from '@c/UI/Loading';
 
 const Button = ({
   text,

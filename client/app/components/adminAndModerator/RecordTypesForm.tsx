@@ -7,7 +7,7 @@ import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
 import FormCheckbox from '@c/form/FormCheckbox';
-import ColorSquare from '../ColorSquare';
+import ColorSquare from '@c/UI/ColorSquare';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);

@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import myFetch from '~/helpers/myFetch';
 import ResultForm from './ResultForm';
-import ErrorMessages from '@c/ErrorMessages';
-import Button from '@c/Button';
+import ErrorMessages from '@c/UI/ErrorMessages';
+import Button from '@c/UI/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
 import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt, IEventRecordPairs } from '@sh/interfaces';
 import { ContestState } from '@sh/enums';

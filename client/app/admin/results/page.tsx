@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
-import ErrorMessages from '@c/ErrorMessages';
+import ErrorMessages from '@c/UI/ErrorMessages';
 import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitors from '@c/Competitors';

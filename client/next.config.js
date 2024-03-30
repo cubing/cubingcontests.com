@@ -12,6 +12,11 @@ const nextConfig = {
         destination: '/rankings/fto/single',
         permanent: true,
       },
+      {
+        source: '/moderator-instructions',
+        destination: '/moderator-instructions/wca',
+        permanent: true,
+      },
     ];
   },
 };
