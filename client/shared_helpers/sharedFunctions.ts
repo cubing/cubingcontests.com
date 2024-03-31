@@ -118,8 +118,8 @@ export const getFormattedTime = (
   } else if (time === C.maxTime) {
     return 'Unknown';
   } else if (event?.format === EventFormat.Number) {
-    // FMC singles are limited to 99 moves, so if it's more than that, it must be the mean. Format it accordingly.
-    if (time >= 100 && !noFormatting) return (time / 100).toFixed(2);
+    // FM singles are limited to 999 moves, so if it's more than that, it must be the mean. Format it accordingly.
+    if (time > C.maxFmMoves && !noFormatting) return (time / 100).toFixed(2);
     else return time.toString();
   } else {
     let centiseconds: number;

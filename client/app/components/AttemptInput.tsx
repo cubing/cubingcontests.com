@@ -134,7 +134,6 @@ const AttemptInput = ({
     setAttempted(undefined);
     setAttemptText('DNS');
     setMemoText(undefined);
-    focusNext();
   };
 
   const getIsEnteredCubesValue = (val: number) => val >= 100 || (event.eventId !== '333mbo' && val >= 10);
@@ -194,7 +193,6 @@ const AttemptInput = ({
       if (!forMemo && DNFKeys.includes(newCharacter)) {
         if (event.format !== EventFormat.Multi) {
           dnfTheAttempt();
-          focusNext();
         }
       } else if (!forMemo && DNSKeys.includes(newCharacter)) {
         handleSetDNS(e);
@@ -221,7 +219,10 @@ const AttemptInput = ({
 
         const newText = !forMemo ? text + newCharacter : text.slice(0, -2) + newCharacter + '00';
 
-        if (newText.length <= 2 || (newText.length <= 8 && event.format !== EventFormat.Number)) {
+        if (
+          newText.length <= C.maxFmMoves.toString().length ||
+          (newText.length <= 8 && event.format !== EventFormat.Number)
+        ) {
           const newAttempt = getAttempt(attempt, event, forMemo ? attemptText : newText, {
             solved,
             attempted,
@@ -233,8 +234,6 @@ const AttemptInput = ({
           if (newAttempt.result === null || newAttempt.memo === null) {
             if (forMemo) setMemoText(newText);
             else setAttemptText(newText);
-          } else if (event.format === EventFormat.Number && newText.length === 2) {
-            focusNext();
           }
         }
       }
