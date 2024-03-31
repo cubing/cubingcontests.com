@@ -92,9 +92,11 @@ export const getAttempt = (
     roundMemo: false,
   },
 ): IAttempt => {
-  if (time.length > 8 || memo?.length > 8) throw new Error('times longer than 8 digits are not supported');
-  if (time.length > 2 && event.format === EventFormat.Number)
-    throw new Error('Fewest Moves solutions longer than 2 digits are not supported');
+  if (time.length > 8 || memo?.length > 8) throw new Error('Times longer than 8 digits are not supported');
+
+  const maxFmResultDigits = C.maxFmMoves.toString().length;
+  if (time.length > maxFmResultDigits && event.format === EventFormat.Number)
+    throw new Error(`Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`);
 
   if (event.format === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
 

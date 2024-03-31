@@ -11,6 +11,7 @@ const C = {
   contestResultsRev: 30, // 30 seconds
   maxRounds: 10, // maximum number of rounds allowed
   maxTime: 8640000, // 24 hours (IF THIS IS EVER UPDATED, ALSO CONSIDER THE LINES WITH 24000000 IN AttemptInput)
+  maxFmMoves: 999,
   maxTimeLimit: 60000, // 10 minutes
   maxCumulativeTimeLimit: 360000, // 1 hour
   minCompetitorLimit: 5,
@@ -19,6 +20,8 @@ const C = {
   wcaIdRegexLoose: /[0-9]{4}[a-zA-Z]{4}[0-9]{2}/, // allows lowercase letters too
   navigationKeys: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'],
   smallButtonPadding: '0.1rem 0.45rem',
+  moneroDonationAddress:
+    '8AaML2et9RQKmZp4NYm9STKbjhfFB4h81ZxeGV166oapNzPFUTneaRmakwE61cyHr1ZUYreEU7eHF8XmMBykG8TpAwM6SVq',
 };
 
 export default C;
