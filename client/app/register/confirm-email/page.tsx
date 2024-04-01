@@ -18,6 +18,7 @@ const ConfirmEmailPage = () => {
   const handleSubmit = async () => {
     setLoadingDuringSubmit(true);
     setErrorMessages([]);
+    setSuccessMessage('');
 
     const username = searchParams.get('username');
     const { errors } = await myFetch.post('/auth/confirm-email', { username, code }, { authorize: false });
@@ -25,6 +26,7 @@ const ConfirmEmailPage = () => {
     if (errors) {
       setErrorMessages(errors);
       setLoadingDuringSubmit(false);
+      document.getElementById('confirmation_code')?.focus();
     } else {
       setSuccessMessage('Your account has been verified');
 
@@ -37,7 +39,7 @@ const ConfirmEmailPage = () => {
   const resendCode = async () => {
     setLoadingDuringSubmit(true);
     setErrorMessages([]);
-    setCode('');
+    setSuccessMessage('');
 
     const { errors } = await myFetch.post(
       '/auth/resend-confirmation-code',
@@ -49,9 +51,11 @@ const ConfirmEmailPage = () => {
       setErrorMessages(errors);
     } else {
       setSuccessMessage('A new confirmation code has been sent');
+      setCode('');
     }
 
     setLoadingDuringSubmit(false);
+    document.getElementById('confirmation_code')?.focus();
   };
 
   return (
@@ -59,13 +63,14 @@ const ConfirmEmailPage = () => {
       <h2 className="mb-4 text-center">Confirm Email</h2>
 
       <Form
-        buttonText="Continue"
+        buttonText="Confirm"
         successMessage={successMessage}
         errorMessages={errorMessages}
         onSubmit={handleSubmit}
         disableButton={loadingDuringSubmit}
       >
         <FormTextInput
+          id="confirmation_code"
           title="Confirmation code"
           value={code}
           setValue={setCode}

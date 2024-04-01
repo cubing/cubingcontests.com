@@ -22,6 +22,12 @@ class User implements IUser {
 
   @Prop()
   confirmationCodeHash?: string;
+
+  @Prop()
+  confirmationCodeAttempts?: number;
+
+  @Prop()
+  cooldownStarted?: Date;
 }
 
 export type UserDocument = HydratedDocument<User>;

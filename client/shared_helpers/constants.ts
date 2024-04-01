@@ -4,17 +4,19 @@
 const C = {
   contactEmail: 'cubing-contests-admin@googlegroups.com',
   fetchThrottleTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
-  // Timeouts before revalidating a request
+  // Timeouts before revalidating a request in seconds
   rankingsRev: 300, //  5 minutes
   contestsRev: 60, // 1 minute
   contestInfoRev: 120, // 2 minutes
   contestResultsRev: 30, // 30 seconds
   maxRounds: 10, // maximum number of rounds allowed
-  maxTime: 8640000, // 24 hours (IF THIS IS EVER UPDATED, ALSO CONSIDER THE LINES WITH 24000000 IN AttemptInput)
+  maxTime: 24 * 60 * 60 * 100, // 24 hours (IF THIS IS EVER UPDATED, ALSO CONSIDER THE LINES WITH 24000000 IN AttemptInput)
   maxFmMoves: 999,
-  maxTimeLimit: 60000, // 10 minutes
-  maxCumulativeTimeLimit: 360000, // 1 hour
+  maxTimeLimit: 10 * 60 * 100, // 10 minutes
+  maxCumulativeTimeLimit: 60 * 60 * 100, // 1 hour
   minCompetitorLimit: 5,
+  maxConfirmationCodeAttempts: 3,
+  confirmationCodeCooldown: 5 * 60 * 1000, // in milliseconds (5 minutes)
   wcaApiBase: 'https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api',
   wcaIdRegex: /[0-9]{4}[A-Z]{4}[0-9]{2}/,
   wcaIdRegexLoose: /[0-9]{4}[a-zA-Z]{4}[0-9]{2}/, // allows lowercase letters too

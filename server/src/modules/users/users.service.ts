@@ -15,10 +15,13 @@ import { PersonsService } from '@m/persons/persons.service';
 import { EmailService } from '@m/email/email.service';
 import { Role } from '@sh/enums';
 import { IFrontendUser } from '@sh/interfaces';
+import C from '@sh/constants';
+import { getFormattedTime } from '@sh/sharedFunctions';
 import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LogType } from '~/src/helpers/enums';
 import { ALREADY_VERIFIED_MSG, USER_NOT_FOUND_MSG } from '~/src/helpers/messages';
+import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
 export class UsersService {
@@ -65,6 +68,7 @@ export class UsersService {
 
     const code = this.generateVerificationCode();
     newUser.confirmationCodeHash = await bcrypt.hash(code, 10);
+    newUser.confirmationCodeAttempts = 0;
 
     await this.userModel.create(newUser);
 
@@ -75,20 +79,50 @@ export class UsersService {
     const user = await this.userModel.findOne({ username }).exec();
 
     if (user) {
-      if (!user.confirmationCodeHash) throw new BadRequestException(ALREADY_VERIFIED_MSG);
+      if (getUserEmailVerified(user)) throw new BadRequestException(ALREADY_VERIFIED_MSG);
+      // It's possible that the user is in cooldown from resending the confirmation code, but still has attempts left
+      if (user.confirmationCodeAttempts >= C.maxConfirmationCodeAttempts) {
+        this.checkUserCooldown(user);
+
+        if (!user.confirmationCodeHash)
+          throw new BadRequestException('Please resend the confirmation code before trying again');
+      }
 
       // Using .toLowerCase(), because the code doesn't need to be case-sensitive
       const codeMatches = await bcrypt.compare(code.toLowerCase(), user.confirmationCodeHash);
 
       if (codeMatches) {
         user.confirmationCodeHash = undefined;
-
+        user.confirmationCodeAttempts = undefined;
+        user.cooldownStarted = undefined;
         await user.save();
 
         return;
       }
 
-      throw new BadRequestException('The entered code is incorrect. Please try again.');
+      user.confirmationCodeAttempts++;
+
+      if (user.confirmationCodeAttempts < C.maxConfirmationCodeAttempts) {
+        user.cooldownStarted = undefined;
+        await user.save();
+
+        const remainingAttempts = C.maxConfirmationCodeAttempts - user.confirmationCodeAttempts;
+        throw new BadRequestException(
+          `The entered code is incorrect. Please try again (${remainingAttempts} attempt${
+            remainingAttempts > 1 ? 's' : ''
+          } left).`,
+        );
+      } else {
+        user.confirmationCodeHash = undefined;
+        user.cooldownStarted = new Date();
+        await user.save();
+
+        throw new BadRequestException(
+          `The entered code is incorrect and you have no more attempts left. Please request a new code after the ${Math.round(
+            C.confirmationCodeCooldown / 60000,
+          )} minute cooldown is over.`,
+        );
+      }
     }
 
     throw new NotFoundException(USER_NOT_FOUND_MSG);
@@ -98,10 +132,13 @@ export class UsersService {
     const user = await this.userModel.findOne({ username }).exec();
 
     if (user) {
-      if (!user.confirmationCodeHash) throw new BadRequestException(ALREADY_VERIFIED_MSG);
+      if (getUserEmailVerified(user)) throw new BadRequestException(ALREADY_VERIFIED_MSG);
+      this.checkUserCooldown(user);
 
       const code = this.generateVerificationCode();
       user.confirmationCodeHash = await bcrypt.hash(code, 10);
+      user.confirmationCodeAttempts = 0;
+      user.cooldownStarted = new Date();
 
       await user.save();
 
@@ -174,5 +211,20 @@ export class UsersService {
 
   private generateVerificationCode(): string {
     return uuidv4().replaceAll('-', '').slice(0, 8); // generates an 8 character alphanumeric code
+  }
+
+  private checkUserCooldown(user: UserDocument) {
+    if (user.cooldownStarted) {
+      const remainingCooldownTime = C.confirmationCodeCooldown - (Date.now() - user.cooldownStarted.getTime());
+      console.log(remainingCooldownTime);
+
+      if (remainingCooldownTime > 0) {
+        throw new BadRequestException(
+          `You have an active cooldown, please try again later. Remaining time: ${getFormattedTime(
+            Math.round(remainingCooldownTime / 10),
+          )}`,
+        );
+      }
+    }
   }
 }

@@ -11,4 +11,6 @@ export interface IUser extends IPartialUser {
   email: string;
   password: string;
   confirmationCodeHash?: string;
+  confirmationCodeAttempts?: number; // the number of times the user has attempted to enter the code
+  cooldownStarted?: Date;
 }

@@ -19,6 +19,7 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
 import { AuthTokenDocument } from '~/src/models/auth-token.model';
 import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
+import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
 export class AuthService {
@@ -62,9 +63,7 @@ export class AuthService {
       const passwordsMatch = await bcrypt.compare(password, user.password);
 
       if (passwordsMatch) {
-        if (user.confirmationCodeHash) {
-          throw new BadRequestException('UNCONFIRMED');
-        }
+        if (!getUserEmailVerified(user)) throw new BadRequestException('UNCONFIRMED');
 
         return {
           _id: user._id,
