@@ -70,10 +70,7 @@ export class ResultsService {
   ) {}
 
   async onModuleInit() {
-    // DB consistency checks (done only in development)
-    if (process.env.NODE_ENV !== 'production') {
-      return; // comment this out to enable consistency checks in development
-
+    if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
       this.logger.log('Checking results inconsistencies in the DB...');
 
       // Look for orphan contest results or ones that somehow belong to multiple rounds
@@ -85,7 +82,7 @@ export class ResultsService {
         else if (rounds.length > 1) this.logger.error(`Error: result ${res} belongs to multiple rounds: ${rounds}`);
       }
 
-      // Look for records that are worse than a previous result (DISABLED TO AVOID SLOWING DOWN THE DEV ENVIRONMENT)
+      // Look for records that are worse than a previous result
       const events = await this.eventsService.getEvents({ includeHidden: true });
       for (const event of events) {
         // Single records
@@ -203,7 +200,18 @@ export class ResultsService {
           );
       }
 
-      this.logger.log('All inconsistencies checked!');
+      // Look for results with average when they shouldn't have one
+      const falseAverageResults1 = await this.resultModel.find({ attempts: { $size: 1 }, average: { $ne: 0 } }).exec();
+
+      for (const result of falseAverageResults1)
+        this.logger.error(`Result ${result._id} has an average despite having one attempt`);
+
+      const falseAverageResults2 = await this.resultModel.find({ attempts: { $size: 2 }, average: { $ne: 0 } }).exec();
+
+      for (const result of falseAverageResults2)
+        this.logger.error(`Result ${result._id} has an average despite having two attempts`);
+
+      this.logger.log('All results inconsistencies checked!');
     }
   }
 

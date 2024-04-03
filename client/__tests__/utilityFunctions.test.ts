@@ -3,17 +3,12 @@ import { EventFormat, EventGroup } from '@sh/enums';
 import { IEvent } from '@sh/interfaces';
 import C from '@sh/constants';
 import { getFormattedTime } from '@sh/sharedFunctions';
+import { mockTimeEvent } from '~/__mocks__/events.stub';
 
 const roundOpts = {
   roundTime: true,
   roundMemo: true,
 };
-
-const mockTimeEvent = {
-  eventId: '333',
-  format: EventFormat.Time,
-  groups: [EventGroup.WCA],
-} as IEvent;
 
 const timeExamples = [
   {

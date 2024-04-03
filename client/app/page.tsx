@@ -10,7 +10,7 @@ const Home = () => {
         This is a place for hosting unofficial Rubik's cube competitions, unofficial events held at WCA competitions,
         speedcuber meetups, and other unofficial events.
       </p>
-      <div className="m-3 p-3 border rounded-3 fw-bold">
+      <div className="my-4 mx-3 p-3 border rounded-3 fw-bold">
         <FaExclamationTriangle className="me-2" />
         Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
         held as an official WCA competition.

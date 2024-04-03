@@ -42,8 +42,9 @@ export class ContestsService {
   ) {}
 
   async onModuleInit() {
-    // Consistency checks
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
+      this.logger.log('Checking contests inconsistencies in the DB...');
+
       const schedules = await this.scheduleModel.find().exec();
 
       for (const s of schedules) {
@@ -123,6 +124,8 @@ export class ContestsService {
         }
       }
     }
+
+    this.logger.log('All contests inconsistencies checked!');
   }
 
   async getContests(region?: string): Promise<ContestDocument[]> {
