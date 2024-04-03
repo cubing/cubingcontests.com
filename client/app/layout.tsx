@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <nav className="navbar navbar-expand-lg bg-body-tertiary">
           <Navbar />
         </nav>
-        <main className="container-md d-flex flex-column pt-4 px-0 flex-grow-1">{children}</main>
+        <main className="container-md d-flex flex-column pt-4 px-0 pb-3 flex-grow-1">{children}</main>
         <footer className="container d-flex gap-2 justify-content-center align-items-center min-vw-100 py-3 bg-body-tertiary text-center fs-5">
           <p className="m-0">Made by</p>
           <a href="https://denimintsaev.com/" className="text-white">
