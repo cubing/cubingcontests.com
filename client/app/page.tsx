@@ -10,11 +10,6 @@ const Home = () => {
         This is a place for hosting unofficial Rubik's cube competitions, unofficial events held at WCA competitions,
         speedcuber meetups, and other unofficial events.
       </p>
-      <div className="my-4 mx-3 p-3 border rounded-3 fw-bold">
-        <FaExclamationTriangle className="me-2" />
-        Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
-        held as an official WCA competition.
-      </div>
       <p>
         The events are split up into multiple categories: Unofficial, WCA, Extreme BLD, and Miscellaneous. Extreme BLD
         events are not meant to be done in a competition-like setting, but instead need to be submitted individually
@@ -41,13 +36,18 @@ const Home = () => {
 
       <h3 className="cc-basic-heading">Holding a contest</h3>
       <p>
-        Cubing contests is an open platform where anyone can hold their competitions and meetups. However, you must
+        Cubing Contests is an open platform where anyone can hold their competitions and meetups. However, you must
         first be granted moderator access to be able to create new contests. If you would like to hold unofficial events
         at a WCA competition or create an unofficial competition or meetup, you must first read the moderator
         instructions.
       </p>
+      <div className="mt-4 mx-3 p-3 border rounded-3 fw-bold">
+        <FaExclamationTriangle className="me-2" />
+        Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
+        held as an official WCA competition.
+      </div>
       <Link href="/moderator-instructions">
-        <button type="button" className="btn btn-secondary mt-2">
+        <button type="button" className="btn btn-secondary mt-4">
           Moderator instructions
         </button>
       </Link>

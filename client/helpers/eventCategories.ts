@@ -5,7 +5,8 @@ export const eventCategories = [
     title: 'Unofficial',
     value: 'unofficial',
     group: EventGroup.Unofficial,
-    description: 'These events can be held at WCA competitions (unofficially) and at speedcuber meetups.',
+    description:
+      'These events can be held at WCA competitions (unofficially), unofficial competitions, and speedcuber meetups.',
   },
   {
     title: 'WCA',
@@ -27,7 +28,7 @@ export const eventCategories = [
     value: 'miscellaneous',
     group: EventGroup.Miscellaneous,
     description:
-      'These events can be held at WCA competitions (unofficially) and at speedcuber meetups. They tend to be less competitive than the events in the Unofficial category.',
+      'These events can be held at WCA competitions (unofficially), unofficial competitions, and speedcuber meetups. They tend to be less competitive than the events in the Unofficial category.',
   },
   {
     title: 'Removed',

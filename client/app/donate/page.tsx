@@ -20,7 +20,7 @@ const DonatePage = () => {
 
       <h3 className="cc-basic-heading">Monero</h3>
       <p>You can send a Monero (cryptocurrency) donation to the following address:</p>
-      <p className="mt-4 p-3 border rounded-3 fw-bold text-break">{C.moneroDonationAddress}</p>
+      <p className="mt-4 p-3 border rounded-3 fw-bold">{C.moneroDonationAddress}</p>
     </div>
   );
 };
