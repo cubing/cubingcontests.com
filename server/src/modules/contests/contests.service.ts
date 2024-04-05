@@ -337,6 +337,7 @@ export class ContestsService {
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
+    const contestUrl = `${process.env.BASE_URL}/competitions/${contest.competitionId}`;
 
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
@@ -353,7 +354,7 @@ export class ContestsService {
       if (newState === ContestState.Approved) {
         await this.emailService.sendEmail(
           contestCreatorEmail,
-          `Your contest ${contest.name} has been approved and is now public on the website.`,
+          `Your contest <a href="${contestUrl}">${contest.name}</a> has been approved and is now public on the website.`,
           { subject: `Contest approved: ${contest.name}` },
         );
       } else if (newState === ContestState.Finished) {
@@ -365,8 +366,8 @@ export class ContestsService {
         if (!isAdmin) {
           await this.emailService.sendEmail(
             C.contactEmail,
-            `Contest ${contest.name} has been finished. Review the results and publish them to have them included in the rankings.`,
-            { subject: 'Contest Finished' },
+            `Contest <a href="${contestUrl}">${contest.name}</a> has been finished. Review the results and publish them to have them included in the rankings.`,
+            { subject: `Contest finished: ${contest.name}` },
           );
         }
       }
@@ -383,7 +384,7 @@ export class ContestsService {
 
         await this.emailService.sendEmail(
           contestCreatorEmail,
-          `The results of ${contest.name} have been published and will now enter the rankings.`,
+          `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
           { subject: `Contest published: ${contest.name}` },
         );
       } catch (err) {

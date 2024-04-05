@@ -42,9 +42,8 @@ export class UsersService {
   }
 
   async getUserEmail(query: { username?: string; _id?: unknown }): Promise<string> {
-    const test = await this.userModel.findOne(query, { email: 1 }).exec();
-    console.log(test);
-    return test?.email;
+    const user = await this.userModel.findOne(query, { email: 1 }).exec();
+    return user?.email;
   }
 
   async getUsers(): Promise<IFrontendUser[]> {
