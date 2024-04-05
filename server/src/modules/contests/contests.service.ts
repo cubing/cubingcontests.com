@@ -188,38 +188,29 @@ export class ContestsService {
     }
   }
 
-  // Create new contest, if one with that id doesn't already exist (no results yet)
+  // Create new contest, if one with that ID doesn't already exist
   async createContest(
     createContestDto: CreateContestDto,
     { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
   ) {
     const isAdmin = user.roles.includes(Role.Admin);
+    const contestUrl = this.getContestUrl(createContestDto.competitionId);
 
     if (!isAdmin) {
       this.validateContest(createContestDto, user);
       saveResults = false;
     }
 
-    let comp;
-    try {
-      comp = await this.contestModel.findOne({ competitionId: createContestDto.competitionId }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    const comp1 = await this.contestModel.findOne({ competitionId: createContestDto.competitionId }).exec();
+    if (comp1) throw new BadRequestException(`A contest with the ID ${createContestDto.competitionId} already exists`);
 
-    if (comp) throw new BadRequestException(`A contest with the ID ${createContestDto.competitionId} already exists`);
-
-    try {
-      comp = await this.contestModel.findOne({ name: createContestDto.name }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
-
-    if (comp) throw new BadRequestException(`A contest with the name ${createContestDto.name} already exists`);
+    const comp2 = await this.contestModel.findOne({ name: createContestDto.name }).exec();
+    if (comp2) throw new BadRequestException(`A contest with the name ${createContestDto.name} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
       const contestEvents: ContestEvent[] = [];
+      const contestCreatorEmail = await this.usersService.getUserEmail({ _id: user._id });
 
       for (const contestEvent of createContestDto.events) {
         contestEvents.push(await this.getNewContestEvent(contestEvent, saveResults));
@@ -253,11 +244,13 @@ export class ContestsService {
 
       await this.contestModel.create(newCompetition);
 
+      await this.emailService.sendContestSubmittedEmail(contestCreatorEmail, newCompetition, contestUrl);
+
       if (!isAdmin) {
         await this.emailService.sendEmail(
           C.contactEmail,
-          `A new contest has been submitted by user ${user.username}: ${createContestDto.name}.`,
-          { subject: 'New Contest Submission' },
+          `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newCompetition.name}</a>.`,
+          { subject: `New contest: ${newCompetition.name}` },
         );
       }
     } catch (err) {
@@ -337,7 +330,7 @@ export class ContestsService {
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
-    const contestUrl = `${process.env.BASE_URL}/competitions/${contest.competitionId}`;
+    const contestUrl = this.getContestUrl(contest.competitionId);
 
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
@@ -550,5 +543,9 @@ export class ContestsService {
     if (!contest.venue) throw new BadRequestException('Please enter the venue name');
     if (!contest.organizers.some((o) => o.personId === user.personId))
       throw new BadRequestException('You cannot create a contest which you are not organizing');
+  }
+
+  private getContestUrl(competitionId: string): string {
+    return `${process.env.BASE_URL}/competitions/${competitionId}`;
   }
 }

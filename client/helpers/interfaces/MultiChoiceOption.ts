@@ -1,4 +1,4 @@
-import { Color } from '~/shared_helpers/enums';
+import { Color } from '@sh/enums';
 
 export interface MultiChoiceOption {
   label: string;

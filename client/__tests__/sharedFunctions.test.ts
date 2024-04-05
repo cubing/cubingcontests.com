@@ -1,5 +1,5 @@
-import { IAttempt } from '~/shared_helpers/interfaces';
-import { getBestAndAverage } from '~/shared_helpers/sharedFunctions';
+import { IAttempt } from '@sh/interfaces';
+import { getBestAndAverage } from '@sh/sharedFunctions';
 import { mockTimeEvent } from '~/__mocks__/events.stub';
 import { RoundFormat } from '@sh/enums';
 

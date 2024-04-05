@@ -1,6 +1,6 @@
 import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
-import { Color, ContestType, EventFormat, RoundProceed } from '~/shared_helpers/enums';
-import { roundFormats } from '../shared_helpers/roundFormats';
+import { Color, ContestType, EventFormat, RoundProceed } from '@sh/enums';
+import { roundFormats } from '@sh/roundFormats';
 import { eventCategories } from './eventCategories';
 
 export const colorOptions: MultiChoiceOption[] = [
