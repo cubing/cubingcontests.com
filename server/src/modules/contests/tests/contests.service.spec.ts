@@ -8,6 +8,7 @@ import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { AuthService } from '@m/auth/auth.service';
 import { EmailService } from '@m/email/email.service';
+import { UsersService } from '@m/users/users.service';
 
 // Mocks and stubs
 import { MyLoggerMock } from '@m/my-logger/tests/my-logger.service';
@@ -56,6 +57,10 @@ describe('ContestsService', () => {
         },
         {
           provide: EmailService,
+          useValue: {},
+        },
+        {
+          provide: UsersService,
           useValue: {},
         },
         {

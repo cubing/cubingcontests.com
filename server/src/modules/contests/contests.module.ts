@@ -12,6 +12,7 @@ import { ResultsModule } from '@m/results/results.module';
 import { PersonsModule } from '@m/persons/persons.module';
 import { AuthModule } from '@m/auth/auth.module';
 import { EmailModule } from '@m/email/email.module';
+import { UsersModule } from '@m/users/users.module';
 import { ScheduleSchema } from '~/src/models/schedule.model';
 
 @Module({
@@ -23,6 +24,7 @@ import { ScheduleSchema } from '~/src/models/schedule.model';
     PersonsModule,
     AuthModule,
     EmailModule,
+    UsersModule,
     MongooseModule.forFeature([
       { name: 'Competition', schema: ContestSchema },
       { name: 'Round', schema: RoundSchema },

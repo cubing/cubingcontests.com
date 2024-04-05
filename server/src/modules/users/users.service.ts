@@ -41,6 +41,12 @@ export class UsersService {
     return await this.userModel.findOne(query, { password: 0, email: 0, confirmationCodeHash: 0 }).exec();
   }
 
+  async getUserEmail(query: { username?: string; _id?: unknown }): Promise<string> {
+    const test = await this.userModel.findOne(query, { email: 1 }).exec();
+    console.log(test);
+    return test?.email;
+  }
+
   async getUsers(): Promise<IFrontendUser[]> {
     const users = await this.userModel.find({ confirmationCodeHash: { $exists: false } }).exec();
     const usersForFrontend: IFrontendUser[] = [];

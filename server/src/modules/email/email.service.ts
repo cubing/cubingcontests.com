@@ -7,11 +7,12 @@ import { LogType } from '~/src/helpers/enums';
 export class EmailService {
   constructor(private readonly logger: MyLogger, private readonly mailerService: MailerService) {}
 
+  // The recipient can either be specified with the email or the username
   async sendEmail(to: string, text: string, { subject = '' }: { subject?: string }) {
     try {
       await this.mailerService.sendMail({
         to, // list of receivers
-        subject: subject,
+        subject,
         template: './default', // refers to templates/default.hbs
         context: {
           text,

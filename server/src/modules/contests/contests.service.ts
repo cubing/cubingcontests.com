@@ -23,6 +23,7 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
 import { AuthService } from '../auth/auth.service';
 import { EmailService } from '@m/email/email.service';
+import { UsersService } from '@m/users/users.service';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
 
 @Injectable()
@@ -34,6 +35,7 @@ export class ContestsService {
     private readonly recordTypesService: RecordTypesService,
     private readonly personsService: PersonsService,
     private readonly authService: AuthService,
+    private readonly usersService: UsersService,
     private readonly emailService: EmailService,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
@@ -334,6 +336,7 @@ export class ContestsService {
 
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
+    const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
 
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
@@ -347,7 +350,13 @@ export class ContestsService {
     else if (isAdmin || (contest.state === ContestState.Ongoing && newState === ContestState.Finished)) {
       contest.state = newState;
 
-      if (newState === ContestState.Finished) {
+      if (newState === ContestState.Approved) {
+        await this.emailService.sendEmail(
+          contestCreatorEmail,
+          `Your contest ${contest.name} has been approved and is now public on the website.`,
+          { subject: `Contest approved: ${contest.name}` },
+        );
+      } else if (newState === ContestState.Finished) {
         const incompleteResult = await this.resultModel.findOne({ 'attempts.result': 0 }).exec();
 
         if (incompleteResult)
@@ -371,6 +380,12 @@ export class ContestsService {
         await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
 
         await this.resultsService.resetRecordsCancelledByPublishedContest(contest.competitionId);
+
+        await this.emailService.sendEmail(
+          contestCreatorEmail,
+          `The results of ${contest.name} have been published and will now enter the rankings.`,
+          { subject: `Contest published: ${contest.name}` },
+        );
       } catch (err) {
         throw new InternalServerErrorException(`Error while publishing contest: ${err.message}`);
       }
