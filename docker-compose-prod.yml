@@ -28,7 +28,8 @@ services:
     environment:
       - NODE_ENV=$NODE_ENV
       - PORT=$BACKEND_PORT
-      - MONGODB_URI=mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@cc-mongo:27017/cubingcontests
+      - MONGO_DEV_USERNAME=$MONGO_DEV_USERNAME
+      - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
       - JWT_SECRET=$JWT_SECRET
       - BASE_URL=$BASE_URL
     depends_on:

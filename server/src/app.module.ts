@@ -18,6 +18,11 @@ import { ContestSchema } from '~/src/models/contest.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { EmailModule } from '~/src/modules/email/email.module';
 
+const mongoUri =
+  process.env.NODE_ENV === 'production'
+    ? `mongodb://${process.env.MONGO_DEV_USERNAME}:${process.env.MONGO_DEV_PASSWORD}@cc-mongo:27017/cubingcontests`
+    : `mongodb://${process.env.MONGO_DEV_USERNAME}:${process.env.MONGO_DEV_PASSWORD}@127.0.0.1:27017/cubingcontests`;
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,7 +33,7 @@ import { EmailModule } from '~/src/modules/email/email.module';
       rootPath: join(__dirname, '..', '..', 'public'),
       serveRoot: '/api',
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forRoot(mongoUri),
     MongooseModule.forFeature([
       { name: 'Log', schema: LogSchema },
       { name: 'Competition', schema: ContestSchema },

@@ -51,13 +51,13 @@ To start **both** the frontend and the backend, run **the same command** in the 
 
 Go to `localhost:3000` to see the website. Go to `localhost:8080` to see Mongo Express (makes it much easier to work with the database). `localhost:5000` is used by the backend.
 
-There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
+There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory, but Nest JS does. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
 
 ### Environment
 
 Environment variables are specified in `.env` in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
 
-Some backend environment variables are specified in the `server/.env.dev` file. This file is automatically read by Nest JS in development. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
+In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `.env` file must be copied into the `server` directory, renamed, and have the `NODE_ENV` variable set to something besides `production` for the backend to work in development (the `npm run fulldev` commands do this automatically). In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 
 Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS. See that file for more details. The values are taken from the frontend container's environment variables. These must be set during the container's build process when deploying, because that is when Next JS sets the variables in `.env.local`.
 

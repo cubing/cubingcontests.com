@@ -25,7 +25,6 @@ npm-debug.log*
 
 # local env files
 *.env*
-!.env.dev
 !*.env.example
 !client/.env.local
 
