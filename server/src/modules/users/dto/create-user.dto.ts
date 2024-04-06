@@ -24,7 +24,7 @@ export class UserDto {
 
 export class CreateUserDto extends UserDto implements IUser {
   @IsString()
-  @MaxLength(100, getMaxLengthOpts('password', 100))
+  @MaxLength(60, getMaxLengthOpts('password', 60))
   @IsStrongPassword({ minLength: 10 }, { message: passwordValidationMessage })
   password: string;
 }
