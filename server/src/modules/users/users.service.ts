@@ -8,7 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+import { randomBytes } from 'crypto';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { UserDocument } from '~/src/models/user.model';
 import { PersonsService } from '@m/persons/persons.service';
@@ -22,6 +22,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { LogType } from '~/src/helpers/enums';
 import { ALREADY_VERIFIED_MSG, USER_NOT_FOUND_MSG } from '~/src/helpers/messages';
 import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
+
+const verificationCodeSaltRounds = 10; // useful, because it's short, so a rainbow table could theoretically match it
 
 @Injectable()
 export class UsersService {
@@ -72,7 +74,7 @@ export class UsersService {
     await this.validateUserObject(newUser);
 
     const code = this.generateVerificationCode();
-    newUser.confirmationCodeHash = await bcrypt.hash(code, 10);
+    newUser.confirmationCodeHash = await bcrypt.hash(code, verificationCodeSaltRounds);
     newUser.confirmationCodeAttempts = 0;
 
     await this.userModel.create(newUser);
@@ -141,7 +143,7 @@ export class UsersService {
       this.checkUserCooldown(user);
 
       const code = this.generateVerificationCode();
-      user.confirmationCodeHash = await bcrypt.hash(code, 10);
+      user.confirmationCodeHash = await bcrypt.hash(code, verificationCodeSaltRounds);
       user.confirmationCodeAttempts = 0;
       user.cooldownStarted = new Date();
 
@@ -214,8 +216,9 @@ export class UsersService {
     }
   }
 
+  // Generates an 8 character alphanumeric code
   private generateVerificationCode(): string {
-    return uuidv4().replaceAll('-', '').slice(0, 8); // generates an 8 character alphanumeric code
+    return randomBytes(4).toString('hex');
   }
 
   private checkUserCooldown(user: UserDocument) {

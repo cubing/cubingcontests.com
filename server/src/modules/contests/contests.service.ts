@@ -125,9 +125,9 @@ export class ContestsService {
           }
         }
       }
-    }
 
-    this.logger.log('All contests inconsistencies checked!');
+      this.logger.log('All contests inconsistencies checked!');
+    }
   }
 
   async getContests(region?: string): Promise<ContestDocument[]> {

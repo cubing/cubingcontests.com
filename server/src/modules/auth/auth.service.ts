@@ -8,7 +8,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 import { addWeeks } from 'date-fns';
 import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
@@ -20,6 +19,7 @@ import { ContestDocument } from '~/src/models/contest.model';
 import { AuthTokenDocument } from '~/src/models/auth-token.model';
 import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
 import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -98,7 +98,7 @@ export class AuthService {
 
   // Assumes the user's access rights have already been checked
   async createAuthToken(competitionId: string): Promise<string> {
-    const token = uuidv4();
+    const token = randomBytes(32).toString('hex');
     const hash = await bcrypt.hash(token, 0); // there's no need to salt the tokens
 
     try {

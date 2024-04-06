@@ -12,6 +12,7 @@ const RegisterPage = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordRepeat, setPasswordRepeat] = useState('');
 
   const handleSubmit = async () => {
     setLoadingDuringSubmit(true);
@@ -21,6 +22,8 @@ const RegisterPage = () => {
     if (!username) tempErrors.push('Please enter a username');
     if (!email) tempErrors.push('Please enter an email address');
     if (!password) tempErrors.push('Please enter a password');
+    else if (!passwordRepeat) tempErrors.push('Please confirm your password');
+    else if (passwordRepeat !== password) tempErrors.push('The entered passwords do not match');
 
     if (tempErrors.length === 0) {
       setErrorMessages([]);
@@ -55,6 +58,14 @@ const RegisterPage = () => {
           title="Password"
           value={password}
           setValue={setPassword}
+          nextFocusTargetId="password_repeat"
+          password
+        />
+        <FormTextInput
+          id="password_repeat"
+          title="Repeat password"
+          value={passwordRepeat}
+          setValue={setPasswordRepeat}
           nextFocusTargetId="form_submit_button"
           password
         />

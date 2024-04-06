@@ -16,14 +16,14 @@ const FormTextInput = ({
   onBlur,
   onKeyDown,
   nextFocusTargetId,
-  autoFocus = false,
-  required = false,
-  disabled = false,
-  submitOnEnter = false,
-  password = false,
-  monospace = false,
-  invalid = false,
-  noMargin = false,
+  autoFocus,
+  required,
+  disabled,
+  submitOnEnter,
+  password,
+  monospace,
+  invalid,
+  noMargin,
 }: {
   id?: string;
   title?: string;
@@ -59,6 +59,16 @@ const FormTextInput = ({
     if (onFocus) onFocus(e);
   };
 
+  const handleKeyDown = (e: any) => {
+    if (password && e.key === 'Enter') setHidePassword(true);
+    genericOnKeyDown(e, { nextFocusTargetId, onKeyDown, submitOnEnter });
+  };
+
+  const handleBlur = (e: any) => {
+    if (password) setHidePassword(true);
+    if (onBlur) onBlur(e);
+  };
+
   return (
     <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
       <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
@@ -73,10 +83,10 @@ const FormTextInput = ({
           disabled={disabled}
           required={required}
           onChange={setValue ? (e) => setValue(e.target.value) : onChange}
-          onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId, onKeyDown, submitOnEnter })}
+          onKeyDown={handleKeyDown}
           onClick={onClick}
-          onFocus={(e: any) => handleFocus(e)}
-          onBlur={onBlur}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           className={'form-control flex-grow-1' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
         />
         {password && (

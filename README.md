@@ -47,7 +47,7 @@ To start just the backend and the DB in development, run this command in the `se
 npm run fulldev
 ```
 
-To start **both** the frontend and the backend, run **the same command** in the `client` directory. That version of the command starts the frontend, the backend, and the DB.
+To start **both** the frontend and the backend, run **the same command** in the `client` directory. That version of the command starts the frontend, the backend, and the DB. Keep in mind that when Handlebars files (`.hbs`) are edited, the dev environment has to be restarted for those changes to take effect.
 
 Go to `localhost:3000` to see the website. Go to `localhost:8080` to see Mongo Express (makes it much easier to work with the database). `localhost:5000` is used by the backend.
 
