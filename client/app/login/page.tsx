@@ -25,7 +25,7 @@ const LoginPage = () => {
       document.getElementById('password').focus();
     }
     if (!username) {
-      tempErrors.push('Please enter a username');
+      tempErrors.push('Please enter a username or email address');
       document.getElementById('username').focus();
     }
 
@@ -82,7 +82,7 @@ const LoginPage = () => {
       >
         <FormTextInput
           id="username"
-          title="Username"
+          title="Username or email"
           value={username}
           setValue={changeUsername}
           nextFocusTargetId="password"

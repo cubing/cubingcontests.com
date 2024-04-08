@@ -57,7 +57,7 @@ export class AuthService {
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {
-    const user = await this.usersService.getUserWithQuery({ username });
+    const user = await this.usersService.getUserWithQuery(username.includes('@') ? { email: username } : { username });
 
     if (user) {
       const passwordsMatch = await bcrypt.compare(password, user.password);
