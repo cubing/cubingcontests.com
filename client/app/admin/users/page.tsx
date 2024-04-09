@@ -10,6 +10,7 @@ import { Role } from '@sh/enums';
 import { IFrontendUser } from '@sh/interfaces';
 import C from '@sh/constants';
 import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
+import { getRoleLabel } from '@sh/sharedFunctions';
 
 const ManageUsersPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -93,14 +94,6 @@ const ManageUsersPage = () => {
     window.scrollTo(0, 0);
   };
 
-  const getRoles = (user: IFrontendUser): string => {
-    const roles: string[] = [];
-    if (user.roles.includes(Role.User)) roles.push('User');
-    if (user.roles.includes(Role.Moderator)) roles.push('Moderator');
-    if (user.roles.includes(Role.Admin)) roles.push('Admin');
-    return roles.join(', ');
-  };
-
   return (
     <div>
       <h2 className="mb-4 text-center">Users</h2>
@@ -156,7 +149,7 @@ const ManageUsersPage = () => {
                 <td>{user.username}</td>
                 <td>{user.email}</td>
                 <td>{user.person?.name}</td>
-                <td>{getRoles(user)}</td>
+                <td>{user.roles.map((r) => getRoleLabel(r, true)).join(', ')}</td>
                 <td>
                   <button
                     type="button"

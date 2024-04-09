@@ -3,7 +3,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
 import { IContest } from '@sh/interfaces';
-import { ContestType } from '@sh/enums';
+import { getRoleLabel } from '@sh/sharedFunctions';
+import { ContestType, Role } from '@sh/enums';
 
 @Injectable()
 export class EmailService {
@@ -91,6 +92,22 @@ export class EmailService {
         `Error while sending contest submitted notification for contest ${contest.name}:, ${err}`,
         LogType.Error,
       );
+    }
+  }
+
+  async sendPrivilegesGrantedNotification(to: string, role: Role) {
+    try {
+      await this.mailerService.sendMail({
+        to,
+        subject: 'Privileges granted',
+        template: './privileges-granted',
+        context: {
+          role: getRoleLabel(role),
+          ccUrl: process.env.BASE_URL,
+        },
+      });
+    } catch (err) {
+      this.logger.logAndSave(`Error while sending contest submitted notification for contest:, ${err}`, LogType.Error);
     }
   }
 }

@@ -1,5 +1,5 @@
 import C from '@sh/constants';
-import { ContestType, EventFormat, EventGroup, RoundFormat, WcaRecordType } from './enums';
+import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums';
 import {
   IResult,
   IRecordPair,
@@ -308,3 +308,19 @@ export const getWcifActivity = (activity: IActivity): IWcifActivity => ({
   childActivities: activity.childActivities.map((ca) => getWcifActivity(ca)),
   extensions: [],
 });
+
+export const getRoleLabel = (role: Role, capitalize = false): string => {
+  switch (role) {
+    case Role.User:
+      if (capitalize) return 'User';
+      return 'user';
+    case Role.Moderator:
+      if (capitalize) return 'Moderator';
+      return 'moderator';
+    case Role.Admin:
+      if (capitalize) return 'Admin';
+      return 'admin';
+    default:
+      throw new Error(`Unknown role: ${role}`);
+  }
+};

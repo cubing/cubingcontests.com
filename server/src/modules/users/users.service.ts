@@ -234,15 +234,18 @@ export class UsersService {
     if (updateUserDto.email !== user.email) throw new BadRequestException('Changing the email is not allowed');
     await this.validateUserObject(updateUserDto);
 
+    let newRole: Role;
+    if (!user.roles.includes(Role.Admin) && updateUserDto.roles.includes(Role.Admin)) newRole = Role.Admin;
+    else if (!user.roles.includes(Role.Moderator) && updateUserDto.roles.includes(Role.Moderator))
+      newRole = Role.Moderator;
+
     user.roles = updateUserDto.roles;
     if (updateUserDto.person) user.personId = updateUserDto.person.personId;
     else user.personId = undefined;
 
-    try {
-      await user.save();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while saving user: ${err.message}`);
-    }
+    await user.save();
+
+    if (newRole) await this.emailService.sendPrivilegesGrantedNotification(user.email, newRole);
 
     return await this.getUsers();
   }
