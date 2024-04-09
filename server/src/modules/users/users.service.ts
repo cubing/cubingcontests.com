@@ -1,3 +1,4 @@
+import { setTimeout as nodeSetTimeout } from 'timers/promises';
 import {
   BadRequestException,
   ConflictException,
@@ -9,6 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+import { addDays } from 'date-fns';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { UserDocument } from '~/src/models/user.model';
 import { PersonsService } from '@m/persons/persons.service';
@@ -40,7 +42,15 @@ export class UsersService {
   }
 
   async getPartialUserWithQuery(query: any): Promise<IPartialUser> {
-    return await this.userModel.findOne(query, { password: 0, email: 0, confirmationCodeHash: 0 }).exec();
+    return await this.userModel
+      .findOne(query, {
+        password: 0,
+        email: 0,
+        confirmationCodeHash: 0,
+        confirmationCodeAttempts: 0,
+        cooldownStarted: 0,
+      })
+      .exec();
   }
 
   async getUserEmail(query: { username?: string; _id?: unknown }): Promise<string> {
@@ -49,7 +59,10 @@ export class UsersService {
   }
 
   async getUsers(): Promise<IFrontendUser[]> {
-    const users = await this.userModel.find({ confirmationCodeHash: { $exists: false } }).exec();
+    // Make sure this query matches the logic in getUserEmailVerified
+    const users = await this.userModel
+      .find({ confirmationCodeHash: { $exists: false }, cooldownStarted: { $exists: false } })
+      .exec();
     const usersForFrontend: IFrontendUser[] = [];
 
     for (const user of users) {
@@ -146,7 +159,6 @@ export class UsersService {
       user.confirmationCodeHash = await bcrypt.hash(code, verificationCodeSaltRounds);
       user.confirmationCodeAttempts = 0;
       user.cooldownStarted = new Date();
-
       await user.save();
 
       await this.emailService.sendEmailConfirmationCode(user.email, code);
@@ -154,6 +166,63 @@ export class UsersService {
     }
 
     throw new NotFoundException(USER_NOT_FOUND_MSG);
+  }
+
+  async requestPasswordReset(email: string) {
+    const user = await this.userModel.findOne({ email }).exec();
+
+    if (user) {
+      const code = randomBytes(32).toString('hex');
+      user.passwordResetCodeHash = await bcrypt.hash(code, 0);
+      user.passwordResetStarted = new Date();
+      await user.save();
+
+      await this.emailService.sendPasswordResetCode(user.email, code);
+    } else {
+      this.logger.log(`User with email ${email} not found when requesting password reset`);
+
+      // Wait random amount of time from 1500 to 2500 ms to make it harder to detect if the email was found or not
+      const randomTimeout = 1500 + Math.round(Math.random() * 1000);
+      await nodeSetTimeout(randomTimeout);
+      return;
+    }
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    const user = await this.userModel.findOne({ email, passwordResetCodeHash: { $exists: true } }).exec();
+
+    if (user) {
+      const sessionExpired = addDays(user.passwordResetStarted, C.passwordResetSessionLength).getTime() < Date.now();
+
+      if (sessionExpired) {
+        await this.closePasswordResetSession({ user });
+
+        throw new BadRequestException(
+          'The password reset session has expired. Please make a new password reset request on the login page.',
+        );
+      }
+
+      const codeMatches = await bcrypt.compare(code, user.passwordResetCodeHash);
+
+      if (codeMatches) {
+        user.password = await bcrypt.hash(newPassword, C.passwordSaltRounds);
+        await this.closePasswordResetSession({ user });
+
+        await this.emailService.sendPasswordChangedNotification(email);
+        return;
+      }
+    }
+
+    throw new BadRequestException('No password reset session found for the given email address');
+  }
+
+  async closePasswordResetSession({ user, id }: { user?: UserDocument; id?: string }) {
+    if (!user) user = await this.userModel.findById(id).exec();
+    if (!user) throw new InternalServerErrorException('User not found');
+
+    user.passwordResetCodeHash = undefined;
+    user.passwordResetStarted = undefined;
+    await user.save();
   }
 
   async updateUser(updateUserDto: UpdateUserDto): Promise<IFrontendUser[]> {
@@ -224,7 +293,6 @@ export class UsersService {
   private checkUserCooldown(user: UserDocument) {
     if (user.cooldownStarted) {
       const remainingCooldownTime = C.confirmationCodeCooldown - (Date.now() - user.cooldownStarted.getTime());
-      console.log(remainingCooldownTime);
 
       if (remainingCooldownTime > 0) {
         throw new BadRequestException(

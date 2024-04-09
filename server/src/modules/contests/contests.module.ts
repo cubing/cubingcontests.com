@@ -10,7 +10,6 @@ import { RecordTypesModule } from '@m/record-types/record-types.module';
 import { EventsModule } from '@m/events/events.module';
 import { ResultsModule } from '@m/results/results.module';
 import { PersonsModule } from '@m/persons/persons.module';
-import { AuthModule } from '@m/auth/auth.module';
 import { EmailModule } from '@m/email/email.module';
 import { UsersModule } from '@m/users/users.module';
 import { ScheduleSchema } from '~/src/models/schedule.model';
@@ -22,7 +21,6 @@ import { ScheduleSchema } from '~/src/models/schedule.model';
     ResultsModule,
     RecordTypesModule,
     PersonsModule,
-    AuthModule,
     EmailModule,
     UsersModule,
     MongooseModule.forFeature([

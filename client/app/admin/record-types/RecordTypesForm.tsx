@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
+import FormCheckbox from '@c/form/FormCheckbox';
+import ColorSquare from '@c/UI/ColorSquare';
 import { IRecordType } from '@sh/interfaces';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
-import FormCheckbox from '@c/form/FormCheckbox';
-import ColorSquare from '@c/UI/ColorSquare';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -46,9 +46,9 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
     >
       <>
         {tRecordTypes.map((rt) => (
-          <div key={rt.wcaEquivalent} className="row align-items-center mb-3 mb-md-4">
+          <div key={rt.wcaEquivalent} className="row align-items-center mb-3 text-nowrap">
             <div className="d-none d-md-block col-2">
-              <label htmlFor={rt.wcaEquivalent + '_label_input'} className="form-label">
+              <label htmlFor={rt.wcaEquivalent + '_label_input'} className="form-label mb-0">
                 {rt.wcaEquivalent}&#8194;label
               </label>
             </div>
@@ -70,13 +70,12 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                 noMargin
               />
             </div>
-            <div className="d-none d-md-block col-1">
-              <label htmlFor="color_select" className="form-label">
-                Color
-              </label>
-            </div>
-            <div className="col-6 col-md-4">
-              <span className="d-flex gap-2 gap-md-3">
+            <div className="col-6 col-md-5">
+              <span className="d-flex align-items-center gap-2 gap-md-3">
+                <label htmlFor="color_select" className="form-label mb-0">
+                  Color
+                </label>
+
                 <select
                   id="color_select"
                   className="form-select"

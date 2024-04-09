@@ -28,6 +28,12 @@ class User implements IUser {
 
   @Prop()
   cooldownStarted?: Date;
+
+  @Prop()
+  passwordResetCodeHash?: string;
+
+  @Prop()
+  passwordResetStarted?: Date;
 }
 
 export type UserDocument = HydratedDocument<User>;

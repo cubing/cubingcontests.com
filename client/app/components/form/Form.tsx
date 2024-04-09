@@ -2,10 +2,10 @@ import ErrorMessages from '@c/UI/ErrorMessages';
 
 const Form = ({
   children,
-  buttonText,
-  hideButton = false,
-  disableButton = false,
-  showCancelButton = false,
+  buttonText = 'Submit',
+  hideButton,
+  disableButton,
+  showCancelButton,
   errorMessages,
   successMessage,
   onSubmit,
@@ -29,7 +29,7 @@ const Form = ({
     <form
       className="container my-4 mx-auto px-3 fs-5"
       style={{ maxWidth: '768px' }}
-      onSubmit={(e: any) => e.preventDefault()}
+      onSubmit={(e) => e.preventDefault()}
     >
       {errorMessages.length > 0 ? (
         <ErrorMessages errorMessages={errorMessages} />

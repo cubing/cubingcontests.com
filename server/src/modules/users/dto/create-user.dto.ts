@@ -1,14 +1,7 @@
 import { IsEmail, IsString, IsStrongPassword, Matches, MaxLength, MinLength } from 'class-validator';
 import { IUser } from '~/src/helpers/interfaces/User';
+import { INVALID_EMAIL_MSG, PASSWORD_VALIDATION_MSG } from '~/src/helpers/messages';
 import { getMaxLengthOpts, getMinLengthOpts } from '~/src/helpers/validation';
-
-const passwordValidationMessage = `The password must satisfy the following requirements:
-
-Minimum length of 10
-At least one lowercase letter
-At least one uppercase letter
-At least one number
-At least one special character`;
 
 export class UserDto {
   @IsString()
@@ -18,13 +11,14 @@ export class UserDto {
   })
   username: string;
 
-  @IsEmail({}, { message: 'Please enter a valid email address' })
+  @IsEmail({}, { message: INVALID_EMAIL_MSG })
   email: string;
 }
 
 export class CreateUserDto extends UserDto implements IUser {
+  // SAME AS IN reset-user-password.dto.ts
   @IsString()
   @MaxLength(60, getMaxLengthOpts('password', 60))
-  @IsStrongPassword({ minLength: 10 }, { message: passwordValidationMessage })
+  @IsStrongPassword({ minLength: 10 }, { message: PASSWORD_VALIDATION_MSG })
   password: string;
 }

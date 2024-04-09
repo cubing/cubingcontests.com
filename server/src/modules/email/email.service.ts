@@ -33,6 +33,7 @@ export class EmailService {
         template: './email-confirmation',
         context: {
           code,
+          ccUrl: process.env.BASE_URL,
         },
       });
     } catch (err) {
@@ -40,7 +41,38 @@ export class EmailService {
     }
   }
 
-  async sendContestSubmittedEmail(to: string, contest: IContest, contestUrl: string) {
+  async sendPasswordResetCode(to: string, code: string) {
+    try {
+      await this.mailerService.sendMail({
+        to,
+        subject: 'Password reset request',
+        template: './password-reset-request',
+        context: {
+          code,
+          ccUrl: process.env.BASE_URL,
+        },
+      });
+    } catch (err) {
+      this.logger.logAndSave(`Error while sending password reset link:, ${err}`, LogType.Error);
+    }
+  }
+
+  async sendPasswordChangedNotification(to: string) {
+    try {
+      await this.mailerService.sendMail({
+        to,
+        subject: 'Password changed',
+        template: './password-changed',
+        context: {
+          ccUrl: process.env.BASE_URL,
+        },
+      });
+    } catch (err) {
+      this.logger.logAndSave(`Error while sending password changed notification:, ${err}`, LogType.Error);
+    }
+  }
+
+  async sendContestSubmittedNotification(to: string, contest: IContest, contestUrl: string) {
     try {
       await this.mailerService.sendMail({
         to,
@@ -56,7 +88,7 @@ export class EmailService {
       });
     } catch (err) {
       this.logger.logAndSave(
-        `Error while sending contest submitted email for contest ${contest.name}:, ${err}`,
+        `Error while sending contest submitted notification for contest ${contest.name}:, ${err}`,
         LogType.Error,
       );
     }

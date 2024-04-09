@@ -12,11 +12,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // GET /users
   @Get()
   async getUsers() {
     return await this.usersService.getUsers();
   }
 
+  // PATCH /users
   @Patch()
   async updateUser(@Body(new ValidationPipe()) user: UpdateUserDto) {
     return await this.usersService.updateUser(user);

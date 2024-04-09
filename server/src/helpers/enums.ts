@@ -29,6 +29,8 @@ export enum LogType {
   ConfirmEmail = 'confirm_email',
   CreateUser = 'create_user',
   UpdateUser = 'update_user',
+  RequestPasswordReset = 'request_password_reset',
+  ResetPassword = 'reset_password',
 
   EnterAttempt = 'enter_attempt',
   DebugEmail = 'debug_email',

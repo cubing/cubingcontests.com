@@ -10,7 +10,6 @@ import { LoggerModule } from '@m/my-logger/my-logger.module';
 import { RecordTypesModule } from '@m/record-types/record-types.module';
 import { EventsModule } from '@m/events/events.module';
 import { PersonsModule } from '@m/persons/persons.module';
-import { AuthModule } from '@m/auth/auth.module';
 import { UsersModule } from '@m/users/users.module';
 import { EmailModule } from '@m/email/email.module';
 
@@ -20,7 +19,6 @@ import { EmailModule } from '@m/email/email.module';
     EventsModule,
     RecordTypesModule,
     PersonsModule,
-    AuthModule,
     UsersModule,
     EmailModule,
     MongooseModule.forFeature([

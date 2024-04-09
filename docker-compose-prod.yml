@@ -18,7 +18,7 @@ services:
     restart: always
 
   api:
-    container_name: cc-api
+    container_name: cc-api # if this is ever changed, make sure to update all references to the old container name in the code
     image: denimint/cubingcontests-api:$VERSION
     networks:
       - cubingcontests

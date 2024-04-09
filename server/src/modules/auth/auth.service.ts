@@ -8,30 +8,32 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { addWeeks } from 'date-fns';
 import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { UsersService } from '@m/users/users.service';
 import { CreateUserDto } from '@m/users/dto/create-user.dto';
 import { ContestState, Role } from '@sh/enums';
+import C from '@sh/constants';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
 import { AuthTokenDocument } from '~/src/models/auth-token.model';
 import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
 import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
-import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly logger: MyLogger,
     private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
     @InjectModel('AuthToken') private readonly authTokenModel: Model<AuthTokenDocument>,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
-    // 10 is the number  of salt rounds
-    createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+    createUserDto.password = await bcrypt.hash(createUserDto.password, C.passwordSaltRounds);
 
     // Give the user the user role by default
     await this.usersService.createUser({ ...createUserDto, roles: [Role.User] });
@@ -40,6 +42,8 @@ export class AuthService {
   // The user comes from the passport local auth guard (local strategy), which uses the validateUser
   // method below; the user is then saved in the request and passed in from the controller
   async login(user: IPartialUser) {
+    await this.usersService.closePasswordResetSession({ id: user._id.toString() });
+
     const payload: IJwtPayload = {
       sub: user._id as any,
       personId: user.personId,
@@ -137,7 +141,7 @@ export class AuthService {
         !contest.organizers.some((el) => el.personId === user.personId) ||
         (contest.state >= ContestState.Finished && !ignoreState))
     ) {
-      console.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);
+      this.logger.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);
       throw new UnauthorizedException(NO_ACCESS_RIGHTS_MSG);
     }
   }

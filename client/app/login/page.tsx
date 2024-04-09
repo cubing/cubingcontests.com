@@ -16,8 +16,6 @@ const LoginPage = () => {
   const searchParams = useSearchParams();
 
   const handleSubmit = async () => {
-    setLoadingDuringSubmit(true);
-
     const tempErrors: string[] = [];
 
     if (!password) {
@@ -29,7 +27,10 @@ const LoginPage = () => {
       document.getElementById('username').focus();
     }
 
-    if (tempErrors.length === 0) {
+    if (tempErrors.length > 0) {
+      setErrorMessages(tempErrors);
+    } else {
+      setLoadingDuringSubmit(true);
       setErrorMessages([]);
 
       const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
@@ -37,27 +38,26 @@ const LoginPage = () => {
       if (errors) {
         if (errors[0] === 'UNCONFIRMED') {
           window.location.href = `/register/confirm-email?username=${username}`;
+          return;
         } else {
-          tempErrors.push(...errors);
+          setErrorMessages(errors);
         }
       } else if (payload) {
         if (!payload.accessToken) {
-          tempErrors.push('Access token not received');
+          setErrorMessages(['Access token not received']);
         } else {
           localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
 
-          // Redirect if there is a redirect parameter in the URL
-          const redirect = searchParams.get('redirect');
+          const redirectUrl = searchParams.get('redirect');
 
-          if (redirect) window.location.replace(redirect);
+          if (redirectUrl) window.location.replace(redirectUrl);
           else window.location.href = '/';
+          return;
         }
       }
 
-      if (tempErrors.length > 0) setErrorMessages(tempErrors);
+      setLoadingDuringSubmit(false);
     }
-
-    setLoadingDuringSubmit(false);
   };
 
   const changeUsername = (newValue: string) => {
@@ -96,10 +96,16 @@ const LoginPage = () => {
           password
           submitOnEnter
         />
-        <Link href="/register" className="d-block mt-4 fs-5">
-          Create account
+        <Link href="/reset-password" className="d-block mt-4">
+          Forgot password?
         </Link>
       </Form>
+
+      <div className="container mt-5 mx-auto px-3" style={{ maxWidth: '768px' }}>
+        <Link href="/register" className="fs-5">
+          Create account
+        </Link>
+      </div>
     </div>
   );
 };

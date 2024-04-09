@@ -80,7 +80,7 @@ const ConfirmEmailPage = () => {
         <Button
           text="Resend code"
           onClick={resendCode}
-          loading={loadingDuringSubmit}
+          disabled={loadingDuringSubmit}
           className="btn-secondary btn-sm"
         />
       </Form>

@@ -35,7 +35,7 @@ const doFetch = async (
   }
 
   // Add API base URL if the passed URL is not a full link
-  if (!/https?:\/\//.test(url)) url = API_BASE_URL + url;
+  if (!/^https?:\/\//.test(url)) url = API_BASE_URL + url;
 
   if (authorize) {
     const jwtToken = localStorage.getItem('jwtToken');

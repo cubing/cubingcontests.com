@@ -106,7 +106,6 @@ const PostResultsScreen = ({
                 setErrorMessages(errors);
                 return;
               } else {
-                console.log('New records:', payload.recordPairsByEvent);
                 setRecordPairsByEvent(payload.recordPairsByEvent);
               }
             }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
-import RecordTypesForm from '@c/adminAndModerator/RecordTypesForm';
+import RecordTypesForm from './RecordTypesForm';
 import { IRecordType } from '@sh/interfaces';
 import Loading from '@c/UI/Loading';
 

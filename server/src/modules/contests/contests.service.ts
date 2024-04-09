@@ -244,7 +244,7 @@ export class ContestsService {
 
       await this.contestModel.create(newCompetition);
 
-      await this.emailService.sendContestSubmittedEmail(contestCreatorEmail, newCompetition, contestUrl);
+      await this.emailService.sendContestSubmittedNotification(contestCreatorEmail, newCompetition, contestUrl);
 
       if (!isAdmin) {
         await this.emailService.sendEmail(

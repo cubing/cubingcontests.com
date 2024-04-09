@@ -21,6 +21,7 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
 import { LogType } from '~/src/helpers/enums';
+import { ResetUserPasswordDto } from '~/src/modules/users/dto/reset-user-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -52,6 +53,22 @@ export class AuthController {
     this.logger.log(`Resending confirmation code for user ${username}`);
 
     return await this.usersService.resendConfirmationCode(username);
+  }
+
+  // POST /users/request-password-reset
+  @Post('request-password-reset')
+  async requestPasswordReset(@Body(new ValidationPipe()) { email }: { email: string }) {
+    this.logger.logAndSave(`Requesting password reset for user with email ${email}`, LogType.RequestPasswordReset);
+
+    return await this.usersService.requestPasswordReset(email);
+  }
+
+  // POST /users/reset-password
+  @Post('reset-password')
+  async resetPassword(@Body(new ValidationPipe()) { email, code, newPassword }: ResetUserPasswordDto) {
+    this.logger.logAndSave(`Resetting password for user with email ${email}`, LogType.ResetPassword);
+
+    return await this.usersService.resetPassword(email, code, newPassword);
   }
 
   // POST /auth/login
