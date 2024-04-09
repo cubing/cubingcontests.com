@@ -17,20 +17,14 @@ const Home = () => {
       </p>
 
       <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
-        <Link href="/competitions" prefetch={false} className="cc-homepage-link">
-          <button type="button" className="w-100 btn btn-primary">
-            See all contests
-          </button>
+        <Link href="/competitions" prefetch={false} className="cc-homepage-link btn btn-primary">
+          See all contests
         </Link>
-        <Link href="/records" prefetch={false} className="cc-homepage-link">
-          <button type="button" className="w-100 btn btn-primary">
-            See current records
-          </button>
+        <Link href="/records" prefetch={false} className="cc-homepage-link btn btn-primary">
+          See current records
         </Link>
-        <Link href="/rankings" prefetch={false} className="cc-homepage-link">
-          <button type="button" className="w-100 btn btn-primary">
-            See rankings
-          </button>
+        <Link href="/rankings" prefetch={false} className="cc-homepage-link btn btn-primary">
+          See rankings
         </Link>
       </div>
 
@@ -46,10 +40,8 @@ const Home = () => {
         Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
         held as an official WCA competition.
       </div>
-      <Link href="/moderator-instructions">
-        <button type="button" className="btn btn-secondary mt-4">
-          Moderator instructions
-        </button>
+      <Link href="/moderator-instructions" className="btn btn-secondary mt-4">
+        Moderator instructions
       </Link>
 
       <h3 className="cc-basic-heading">Supporting the project</h3>
@@ -57,10 +49,8 @@ const Home = () => {
         Cubing Contests is fully free to use, open source, and has no ads. Community donations help with the ongoing
         development and maintenance of the project.
       </p>
-      <Link href="/donate">
-        <button type="button" className="btn btn-success mt-2">
-          Donate
-        </button>
+      <Link href="/donate" className="btn btn-success mt-2">
+        Donate
       </Link>
 
       <h3 className="cc-basic-heading">Contact</h3>

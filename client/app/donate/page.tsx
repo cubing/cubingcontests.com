@@ -12,10 +12,8 @@ const DonatePage = () => {
 
       <h3 className="cc-basic-heading">GitHub Sponsorship</h3>
       <p>You can become a one-time or recurring sponsor of Deni Mintsaev on GitHub.</p>
-      <a href="https://github.com/sponsors/dmint789">
-        <button type="button" className="btn btn-success mt-2">
-          Support on GitHub
-        </button>
+      <a href="https://github.com/sponsors/dmint789" target="_blank" className="btn btn-success mt-2">
+        Support on GitHub
       </a>
 
       <h3 className="cc-basic-heading">Monero</h3>
