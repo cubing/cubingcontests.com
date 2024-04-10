@@ -192,19 +192,19 @@ export class UsersService {
     const user = await this.userModel.findOne({ email, passwordResetCodeHash: { $exists: true } }).exec();
 
     if (user) {
-      const sessionExpired = addDays(user.passwordResetStarted, C.passwordResetSessionLength).getTime() < Date.now();
-
-      if (sessionExpired) {
-        await this.closePasswordResetSession({ user });
-
-        throw new BadRequestException(
-          'The password reset session has expired. Please make a new password reset request on the login page.',
-        );
-      }
-
       const codeMatches = await bcrypt.compare(code, user.passwordResetCodeHash);
 
       if (codeMatches) {
+        const sessionExpired = addDays(user.passwordResetStarted, C.passwordResetSessionLength).getTime() < Date.now();
+
+        if (sessionExpired) {
+          await this.closePasswordResetSession({ user });
+
+          throw new BadRequestException(
+            'The password reset session has expired. Please make a new password reset request on the login page.',
+          );
+        }
+
         user.password = await bcrypt.hash(newPassword, C.passwordSaltRounds);
         await this.closePasswordResetSession({ user });
 
