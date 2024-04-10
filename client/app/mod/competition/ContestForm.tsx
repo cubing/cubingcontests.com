@@ -1084,8 +1084,8 @@ const ContestForm = ({
                             id={`cumulative_limit_${ce.event.eventId}_${roundIndex + 1}`}
                             selected={round.timeLimit.cumulativeRoundIds.length > 0}
                             setSelected={() => changeRoundTimeLimitCumulative(eventIndex, roundIndex)}
-                            noMargin
                             disabled={disableIfCompDone || round.results.length > 0}
+                            noMargin
                           />
                         </div>
                       </div>
@@ -1098,9 +1098,9 @@ const ContestForm = ({
                         id={`cutoff_${ce.event.eventId}_${roundIndex + 1}`}
                         selected={round.cutoff !== undefined}
                         setSelected={() => changeRoundCutoffEnabled(eventIndex, roundIndex)}
+                        disabled={disableIfCompDone || round.results.length > 0}
                         noMargin
                         small
-                        disabled={disableIfCompDone || round.results.length > 0}
                       />
 
                       <div style={{ maxWidth: '8rem' }}>

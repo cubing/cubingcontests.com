@@ -39,7 +39,7 @@ const RequestPasswordResetPage = () => {
 
   return (
     <div>
-      <h2 className="mb-4 text-center">Request Password Reset</h2>
+      <h2 className="mb-4 text-center">Request password reset</h2>
 
       <Form
         errorMessages={errorMessages}

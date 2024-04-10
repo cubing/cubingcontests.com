@@ -213,7 +213,7 @@ export class UsersService {
       }
     }
 
-    throw new BadRequestException('No password reset session found for the given email address');
+    throw new BadRequestException('Password reset failed. Please try again.');
   }
 
   async closePasswordResetSession({ user, id }: { user?: UserDocument; id?: string }) {
