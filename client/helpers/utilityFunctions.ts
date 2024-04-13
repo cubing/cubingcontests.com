@@ -146,6 +146,7 @@ export const getUserInfo = (): IUserInfo => {
       const authorizedUser: any = jwtDecode(token.split(' ')[1]);
 
       const userInfo: IUserInfo = {
+        id: authorizedUser.sub,
         username: authorizedUser.username,
         roles: authorizedUser.roles,
         isAdmin: authorizedUser.roles.includes(Role.Admin),

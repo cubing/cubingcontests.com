@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { addDays } from 'date-fns';
@@ -26,6 +26,7 @@ import { ALREADY_VERIFIED_MSG, USER_NOT_FOUND_MSG } from '~/src/helpers/messages
 import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
 
 const verificationCodeSaltRounds = 10; // useful, because it's short, so a rainbow table could theoretically match it
+const frontendUserSelect = { username: 1, email: 1, personId: 1, roles: 1 };
 
 @Injectable()
 export class UsersService {
@@ -61,20 +62,21 @@ export class UsersService {
   async getUsers(): Promise<IFrontendUser[]> {
     // Make sure this query matches the logic in getUserEmailVerified
     const users = await this.userModel
-      .find({ confirmationCodeHash: { $exists: false }, cooldownStarted: { $exists: false } })
+      .find({ confirmationCodeHash: { $exists: false }, cooldownStarted: { $exists: false } }, frontendUserSelect)
       .exec();
     const usersForFrontend: IFrontendUser[] = [];
 
-    for (const user of users) {
-      usersForFrontend.push({
-        username: user.username,
-        email: user.email,
-        person: user.personId ? await this.personsService.getPersonById(user.personId) : undefined,
-        roles: user.roles,
-      });
-    }
+    for (const user of users) usersForFrontend.push(await this.getFrontendUser(user));
 
     return usersForFrontend;
+  }
+
+  async getUserDetails(id: string): Promise<IFrontendUser> {
+    const user = await this.userModel.findOne({ _id: new mongoose.Types.ObjectId(id) }, frontendUserSelect).exec();
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return await this.getFrontendUser(user);
   }
 
   // WARNING: this expects that the password is ALREADY encrypted! That is done in the auth module.
@@ -305,5 +307,14 @@ export class UsersService {
         );
       }
     }
+  }
+
+  private async getFrontendUser(user: UserDocument): Promise<IFrontendUser> {
+    return {
+      username: user.username,
+      email: user.email,
+      person: user.personId ? await this.personsService.getPersonById(user.personId) : undefined,
+      roles: user.roles,
+    };
   }
 }

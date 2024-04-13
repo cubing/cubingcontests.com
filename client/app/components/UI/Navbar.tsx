@@ -149,6 +149,11 @@ const NavbarItems = () => {
                   </Link>
                 </li>
                 <li>
+                  <Link className="nav-link" href="/user/settings" onClick={collapseAll}>
+                    Settings
+                  </Link>
+                </li>
+                <li>
                   <button type="button" className="nav-link" onClick={logOut}>
                     Log Out
                   </button>
