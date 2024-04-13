@@ -196,6 +196,7 @@ export class ContestsService {
     const isAdmin = user.roles.includes(Role.Admin);
     const contestUrl = this.getContestUrl(createContestDto.competitionId);
 
+    // Validation
     if (!isAdmin) {
       this.validateContest(createContestDto, user);
       saveResults = false;
@@ -203,7 +204,6 @@ export class ContestsService {
 
     const comp1 = await this.contestModel.findOne({ competitionId: createContestDto.competitionId }).exec();
     if (comp1) throw new BadRequestException(`A contest with the ID ${createContestDto.competitionId} already exists`);
-
     const comp2 = await this.contestModel.findOne({ name: createContestDto.name }).exec();
     if (comp2) throw new BadRequestException(`A contest with the name ${createContestDto.name} already exists`);
 
@@ -279,6 +279,7 @@ export class ContestsService {
     contest.contact = updateContestDto.contact;
     contest.description = updateContestDto.description;
     contest.events = await this.updateContestEvents(contest, updateContestDto.events);
+
     if (updateContestDto.compDetails) {
       if (contest.compDetails) {
         if (contest.state < ContestState.Finished) {

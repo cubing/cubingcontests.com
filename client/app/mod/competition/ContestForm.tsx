@@ -127,7 +127,11 @@ const ContestForm = ({
   const filteredEvents = useMemo(() => {
     const newFiltEv = isAdmin
       ? events
-      : events.filter((ev) => !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)));
+      : events.filter(
+        (ev) =>
+          !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)) &&
+            (type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA)),
+      );
 
     // Reset new event ID if new filtered events don't include it
     if (newFiltEv.length > 0 && !newFiltEv.some((ev) => ev.eventId === newEventId))
@@ -347,6 +351,13 @@ const ContestForm = ({
 
     if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
       tempErrors.push('Please enter all organizers');
+
+    if (type === ContestType.WcaComp) {
+      if (newComp.events.some((ce) => ce.event.groups.includes(EventGroup.WCA)))
+        tempErrors.push(
+          'WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.',
+        );
+    }
 
     if (getIsCompType(type)) {
       if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
