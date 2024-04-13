@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { FaBars } from 'react-icons/fa';
-import { getUserInfo } from '~/helpers/utilityFunctions';
+import { getUserInfo, logOutUser } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 // import { ISearchResult } from '~/helpers/interfaces';
 
@@ -40,8 +40,7 @@ const NavbarItems = () => {
 
   const logOut = () => {
     collapseAll();
-    localStorage.removeItem('jwtToken');
-    window.location.href = '/';
+    logOutUser();
   };
 
   const toggleDropdown = (dropdown: 'results' | 'user', newValue = !resultsExpanded) => {

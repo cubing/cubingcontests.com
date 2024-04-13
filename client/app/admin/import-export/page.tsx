@@ -126,7 +126,7 @@ const ImportExportPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [events, setEvents] = useState<IEvent[]>();
   const [activeRecordTypes, setActiveRecordTypes] = useState<IRecordType[]>();
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const [loadingId, setLoadingId] = useState('');
 
   const [competitionIdText, setCompetitionIdText] = useState('');
   const [contest, setContest] = useState<IContest>();
@@ -147,7 +147,7 @@ const ImportExportPage = () => {
 
   useEffect(() => {
     if (errorMessages.length > 0) {
-      setLoadingDuringSubmit(false);
+      setLoadingId('');
     }
   }, [errorMessages]);
 
@@ -157,7 +157,7 @@ const ImportExportPage = () => {
 
   const importContest = async () => {
     if (contest) {
-      setLoadingDuringSubmit(true);
+      setLoadingId('import_button');
       setErrorMessages([]);
       setSuccessMessage('');
 
@@ -173,7 +173,7 @@ const ImportExportPage = () => {
         setSuccessMessage('Contest successfully imported');
       }
 
-      setLoadingDuringSubmit(false);
+      setLoadingId('');
     }
   };
 
@@ -183,7 +183,7 @@ const ImportExportPage = () => {
     setErrorMessages([]);
     setSuccessMessage('');
     setContestJSON('');
-    setLoadingDuringSubmit(true);
+    setLoadingId('preview_button');
 
     const competitionId = getContestIdFromName(competitionIdText.trim());
     const persons: IPerson[] = []; // used for results preview
@@ -384,7 +384,7 @@ const ImportExportPage = () => {
     }
 
     setErrorMessages(tempErrors);
-    setLoadingDuringSubmit(false);
+    setLoadingId('');
   };
 
   const cancelImport = () => {
@@ -408,13 +408,17 @@ const ImportExportPage = () => {
         />
         {contest ? (
           <div className="d-flex gap-3">
-            <Button text="Import Contest" onClick={importContest} loading={loadingDuringSubmit} />
-            <button type="button" className="btn btn-danger" onClick={cancelImport} disabled={loadingDuringSubmit}>
-              Cancel
-            </button>
+            <Button
+              id="import_button"
+              text="Import Contest"
+              onClick={importContest}
+              disabled={!!loadingId}
+              loadingId={loadingId}
+            />
+            <Button text="Cancel" onClick={cancelImport} disabled={!!loadingId} className="btn btn-danger" />
           </div>
         ) : (
-          <Button text="Preview" onClick={previewContest} loading={loadingDuringSubmit} />
+          <Button id="preview_button" text="Preview" onClick={previewContest} loadingId={loadingId} />
         )}
       </Form>
 

@@ -1,32 +1,35 @@
 import Loading from '@c/UI/Loading';
 
 const Button = ({
-  text,
   id,
+  text,
+  type = 'button',
   onClick,
-  disabled = false,
-  loading = false,
+  loadingId,
+  disabled,
   className = '',
 }: {
-  text: string;
   id?: string;
+  text: string;
+  type?: 'button' | 'submit';
   onClick: () => void;
+  loadingId?: string;
   disabled?: boolean;
-  loading?: boolean;
   className?: string;
 }) => {
   return (
     <button
-      type="button"
+      type={type}
       id={id || `${text}_button`}
       onClick={onClick}
-      disabled={loading || disabled}
+      onSubmit={(e) => e.preventDefault()}
+      disabled={disabled || !!loadingId}
       className={`btn btn-primary ${className}`}
     >
-      {!loading ? (
+      {loadingId !== id ? (
         text
       ) : (
-        <div style={{ width: '3.3rem' }}>
+        <div style={{ width: `${(text.length / 2).toFixed(1)}rem` }}>
           <Loading small />
         </div>
       )}

@@ -74,7 +74,7 @@ const ContestForm = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const [loadingId, setLoadingId] = useState('');
   const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
 
   const [competitionId, setCompetitionId] = useState('');
@@ -276,6 +276,8 @@ const ContestForm = ({
       return;
     }
 
+    setLoadingId('form_submit_button');
+
     const selectedOrganizers = organizers.filter((el) => el !== null);
     let latitudeMicrodegrees: number, longitudeMicrodegrees: number;
     if (type !== ContestType.Online) {
@@ -374,6 +376,7 @@ const ContestForm = ({
 
       if (errors) {
         setErrorMessages(errors);
+        setLoadingId('');
       } else {
         setErrorMessages([]);
         window.location.href = '/mod';
@@ -422,7 +425,7 @@ const ContestForm = ({
     }
 
     try {
-      setLoadingDuringSubmit(true);
+      setLoadingId('get_wca_comp_details_button');
       setErrorMessages([]);
 
       const newContest = await getWcaCompetitionDetails(competitionId);
@@ -451,7 +454,7 @@ const ContestForm = ({
       else setErrorMessages([err.message]);
     }
 
-    setLoadingDuringSubmit(false);
+    setLoadingId('');
   };
 
   const fetchTimeZone = async (lat: number, long: number): Promise<string> => {
@@ -799,7 +802,7 @@ const ContestForm = ({
   };
 
   const downloadScorecards = async () => {
-    setLoadingDuringSubmit(true);
+    setLoadingId('download_scorecards_button');
 
     const { errors } = await myFetch.get(`/scorecards/${contest.competitionId}`, {
       authorize: true,
@@ -807,17 +810,17 @@ const ContestForm = ({
     });
 
     setErrorMessages(errors || []);
-    setLoadingDuringSubmit(false);
+    setLoadingId('');
   };
 
   const createAuthToken = async () => {
-    setLoadingDuringSubmit(true);
+    setLoadingId('get_access_token_button');
 
     const { payload, errors } = await myFetch.get(`/create-auth-token/${contest.competitionId}`, { authorize: true });
 
     setErrorMessages(errors || []);
     setSuccessMessage(`Your new access token is ${payload}`);
-    setLoadingDuringSubmit(false);
+    setLoadingId('');
   };
 
   return (
@@ -827,7 +830,8 @@ const ContestForm = ({
         errorMessages={errorMessages}
         successMessage={successMessage}
         onSubmit={handleSubmit}
-        disableButton={disableIfCompFinished || loadingDuringSubmit || fetchTimezoneTimer !== null}
+        disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
+        loadingId={loadingId}
       >
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
@@ -836,15 +840,17 @@ const ContestForm = ({
             {mode === 'edit' && contest.state >= ContestState.Approved && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
                 <Button
+                  id="download_scorecards_button"
                   text="Scorecards"
                   onClick={downloadScorecards}
-                  loading={loadingDuringSubmit}
+                  loadingId={loadingId}
                   className="btn-success"
                 />
                 <Button
+                  id="get_access_token_button"
                   text="Get Access Token"
                   onClick={createAuthToken}
-                  loading={loadingDuringSubmit}
+                  loadingId={loadingId}
                   className="btn-secondary"
                 />
               </div>
@@ -871,9 +877,10 @@ const ContestForm = ({
             />
             {type === ContestType.WcaComp && (mode === 'new' || isAdmin) && (
               <Button
+                id="get_wca_comp_details_button"
                 text="Get WCA competition details"
                 onClick={fetchWcaCompDetails}
-                loading={loadingDuringSubmit}
+                loadingId={loadingId}
                 className="mb-3"
                 disabled={disableIfDetailsImported}
               />

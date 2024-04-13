@@ -46,7 +46,7 @@ const EventIcon = ({
   isActive = false,
 }: {
   event: IEvent;
-  onClick?: (eventId: string) => void;
+  onClick?: () => void;
   isActive?: boolean;
 }) => {
   const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) || event.groups.includes(EventGroup.RemovedWCA);
@@ -56,11 +56,7 @@ const EventIcon = ({
     if (!onClick) return <></>;
 
     return (
-      <button
-        type="button"
-        className={'btn btn-light btn-sm m-1' + (isActive ? ' active' : '')}
-        onClick={() => onClick(event.eventId)}
-      >
+      <button type="button" onClick={onClick} className={'btn btn-light btn-sm m-1' + (isActive ? ' active' : '')}>
         {shortenEventName(event.name)}
       </button>
     );
@@ -69,10 +65,7 @@ const EventIcon = ({
   if (!onClick) return <span className={`cubing-icon ${isOrWasWCAEvent ? 'event' : 'unofficial'}-${event.eventId}`} />;
 
   return (
-    <div
-      className={'cc-icon-button' + (isActive ? ' cc-icon-button_active' : '')}
-      onClick={() => onClick(event.eventId)}
-    >
+    <div onClick={onClick} className={'cc-icon-button' + (isActive ? ' cc-icon-button_active' : '')}>
       <span className={`cubing-icon ${isOrWasWCAEvent ? 'event' : 'unofficial'}-${event.eventId}`} />
     </div>
   );

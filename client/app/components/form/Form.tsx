@@ -1,8 +1,10 @@
 import ErrorMessages from '@c/UI/ErrorMessages';
+import Button from '@c/UI/Button';
 
 const Form = ({
   children,
   buttonText = 'Submit',
+  loadingId,
   hideButton,
   disableButton,
   showCancelButton,
@@ -13,6 +15,7 @@ const Form = ({
 }: {
   children: React.ReactNode;
   buttonText?: string;
+  loadingId?: string;
   hideButton?: boolean;
   disableButton?: boolean;
   showCancelButton?: boolean;
@@ -42,21 +45,25 @@ const Form = ({
       {(showSubmitButton || showCancelButton) && (
         <div className="d-flex gap-3 mt-4">
           {showSubmitButton && (
-            <button
-              type="submit"
+            <Button
               id="form_submit_button"
-              className="btn btn-primary"
-              disabled={disableButton}
+              text={buttonText}
+              type="submit"
               onClick={onSubmit}
-              onSubmit={(e) => e.preventDefault()}
-            >
-              {buttonText}
-            </button>
+              loadingId={loadingId}
+              disabled={disableButton}
+              className="btn btn-primary"
+            />
           )}
           {showCancelButton && (
-            <button type="button" className="btn btn-danger" disabled={disableButton} onClick={onCancel}>
-              Cancel
-            </button>
+            <Button
+              id="form_cancel_button"
+              text="Cancel"
+              onClick={onCancel}
+              loadingId={loadingId}
+              disabled={disableButton}
+              className="btn btn-danger"
+            />
           )}
         </div>
       )}

@@ -228,8 +228,6 @@ export class UsersService {
   }
 
   async updateUser(updateUserDto: UpdateUserDto): Promise<IFrontendUser[]> {
-    this.logger.logAndSave(`Updating user with username ${updateUserDto.username}`, LogType.UpdateUser);
-
     const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
 
     if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
@@ -250,6 +248,10 @@ export class UsersService {
     if (newRole) await this.emailService.sendPrivilegesGrantedNotification(user.email, newRole);
 
     return await this.getUsers();
+  }
+
+  async deleteUser(id: string) {
+    await this.userModel.deleteOne({ _id: new mongoose.Types.ObjectId(id) }).exec();
   }
 
   async getUserRoles(id: string): Promise<Role[]> {

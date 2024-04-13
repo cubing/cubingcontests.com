@@ -438,3 +438,8 @@ export const fetchPerson = async (name: string, countryIso2?: string): Promise<I
 
   return null;
 };
+
+export const logOutUser = () => {
+  localStorage.removeItem('jwtToken');
+  window.location.href = '/';
+};

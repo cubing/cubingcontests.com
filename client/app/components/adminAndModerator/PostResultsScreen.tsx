@@ -23,7 +23,7 @@ const PostResultsScreen = ({
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const [loadingId, setLoadingId] = useState('');
   const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
 
   const [round, setRound] = useState<IRound>(contest.events[0].rounds[0]);
@@ -84,11 +84,11 @@ const PostResultsScreen = ({
         setErrorMessages,
         setSuccessMessage,
         async (newResultWithBestAndAvg) => {
-          setLoadingDuringSubmit(true);
+          setLoadingId('submit_attempt_button');
 
           const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
 
-          setLoadingDuringSubmit(false);
+          setLoadingId('');
 
           if (errors) {
             setErrorMessages(errors);
@@ -157,14 +157,14 @@ const PostResultsScreen = ({
 
   const deleteResult = async (resultId: string, editCallback?: () => void) => {
     if (isEditable) {
-      setLoadingDuringSubmit(true);
+      setLoadingId((editCallback ? 'edit' : 'delete') + `_result_${resultId}_button`);
 
       const { payload, errors } = await myFetch.delete(`/results/${contest.competitionId}/${resultId}`);
 
       if (errors) {
         setErrorMessages(errors);
       } else {
-        setLoadingDuringSubmit(false);
+        setLoadingId('');
         setErrorMessages([]);
         updateRoundAndCompEvents(payload);
 
@@ -206,7 +206,7 @@ const PostResultsScreen = ({
               text="Submit"
               onClick={submitResult}
               disabled={!isEditable}
-              loading={loadingDuringSubmit}
+              loadingId={loadingId}
             />
           </div>
         </div>
@@ -222,6 +222,7 @@ const PostResultsScreen = ({
             onEditResult={editResult}
             onDeleteResult={deleteResult}
             disableEditAndDelete={!isEditable}
+            loadingId={loadingId}
           />
         </div>
       </div>

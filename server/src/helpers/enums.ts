@@ -31,6 +31,7 @@ export enum LogType {
   UpdateUser = 'update_user',
   RequestPasswordReset = 'request_password_reset',
   ResetPassword = 'reset_password',
+  DeleteUser = 'delete_user',
 
   EnterAttempt = 'enter_attempt',
   DebugEmail = 'debug_email',

@@ -1,6 +1,7 @@
 import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitor from '@c/Competitor';
+import Button from '@c/UI/Button';
 import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
@@ -14,7 +15,8 @@ const RoundResultsTable = ({
   // If one of these is defined, the other must be defined too
   onEditResult,
   onDeleteResult,
-  disableEditAndDelete = false,
+  loadingId,
+  disableEditAndDelete,
 }: {
   round: IRound;
   event: IEvent;
@@ -22,6 +24,7 @@ const RoundResultsTable = ({
   recordTypes: IRecordType[];
   onEditResult?: (result: IResult) => void;
   onDeleteResult?: (resultId: string) => void;
+  loadingId?: string;
   disableEditAndDelete?: boolean;
 }) => {
   const roundCanHaveAverage = roundFormats.find((rf) => rf.value === round.format).attempts >= 3;
@@ -97,22 +100,22 @@ const RoundResultsTable = ({
                 </td>
                 {onEditResult && (
                   <td className="py-1">
-                    <button
-                      type="button"
+                    <Button
+                      id={`edit_result_${(result as any)._id}_button`}
+                      text="Edit"
                       onClick={() => onEditResult(result)}
+                      loadingId={loadingId}
                       disabled={disableEditAndDelete}
                       className="me-2 btn btn-primary btn-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
+                    />
+                    <Button
+                      id={`delete_result_${(result as any)._id}_button`}
+                      text="Delete"
                       onClick={() => onDeleteResult((result as any)._id)}
+                      loadingId={loadingId}
                       disabled={disableEditAndDelete}
                       className="btn btn-danger btn-sm"
-                    >
-                      Delete
-                    </button>
+                    />
                   </td>
                 )}
               </tr>

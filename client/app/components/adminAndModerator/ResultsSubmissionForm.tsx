@@ -34,7 +34,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   // Only trigger reset on page load on the submit results page
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState<boolean>(resultId ? undefined : true);
   const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const [loadingId, setLoadingId] = useState('');
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState(RoundFormat.BestOf1);
@@ -123,30 +123,34 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       setErrorMessages,
       setSuccessMessage,
       async (newResultWithBestAndAverage) => {
-        setLoadingDuringSubmit(true);
+        setLoadingId(approve ? 'approve_button' : 'submit_button');
 
         if (!resultId) {
           const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
 
-          setLoadingDuringSubmit(false);
-
           if (errors) {
             setErrorMessages(errors);
           } else {
-            setSuccessMessage('Successfully submitted');
+            setSuccessMessage('Result successfully submitted');
             setDate(undefined);
             setVideoLink('');
             setDiscussionLink('');
             setResultFormResetTrigger(!resultFormResetTrigger);
           }
+
+          setLoadingId('');
         } else {
           const { errors } = await myFetch.patch(`/results/${resultId}`, newResultWithBestAndAverage);
 
           if (errors) {
             setErrorMessages(errors);
+            setLoadingId('');
           } else {
-            setSuccessMessage('Successfully updated');
-            window.location.href = '/admin/results';
+            setSuccessMessage(approve ? 'Result approved' : 'Result updated');
+
+            setTimeout(() => {
+              window.location.href = '/admin/results';
+            }, 1000);
           }
         }
       },
@@ -310,7 +314,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             id="submit_button"
             text="Submit"
             onClick={() => submitResult()}
-            loading={loadingDuringSubmit || fetchRecordPairsTimer !== null}
+            loadingId={loadingId}
+            disabled={fetchRecordPairsTimer !== null}
             className="mt-3"
           />
           {resultId && resultsSubmissionInfo.result.unapproved && (
@@ -318,7 +323,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               id="approve_button"
               text="Submit and approve"
               onClick={() => submitResult(true)}
-              loading={loadingDuringSubmit || fetchRecordPairsTimer !== null}
+              loadingId={loadingId}
+              disabled={fetchRecordPairsTimer !== null}
               className="btn-success mt-3 ms-3"
             />
           )}

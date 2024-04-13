@@ -69,7 +69,7 @@ const EventButtons = ({
           <EventIcon
             key={event.eventId}
             event={event}
-            onClick={handleEventClick}
+            onClick={() => handleEventClick(event.eventId)}
             isActive={events.length > 1 && activeEvent.eventId === event.eventId}
           />
         ))}

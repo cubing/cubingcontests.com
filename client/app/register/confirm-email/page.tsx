@@ -11,12 +11,12 @@ const ConfirmEmailPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [code, setCode] = useState('');
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const [loadingId, setLoadingId] = useState('');
 
   const searchParams = useSearchParams();
 
   const handleSubmit = async () => {
-    setLoadingDuringSubmit(true);
+    setLoadingId('form_submit_button');
     setErrorMessages([]);
     setSuccessMessage('');
 
@@ -25,7 +25,7 @@ const ConfirmEmailPage = () => {
 
     if (errors) {
       setErrorMessages(errors);
-      setLoadingDuringSubmit(false);
+      setLoadingId('');
       document.getElementById('confirmation_code')?.focus();
     } else {
       setSuccessMessage('Your account has been verified');
@@ -37,7 +37,7 @@ const ConfirmEmailPage = () => {
   };
 
   const resendCode = async () => {
-    setLoadingDuringSubmit(true);
+    setLoadingId('resend_code_button');
     setErrorMessages([]);
     setSuccessMessage('');
 
@@ -54,7 +54,7 @@ const ConfirmEmailPage = () => {
       setCode('');
     }
 
-    setLoadingDuringSubmit(false);
+    setLoadingId('');
     document.getElementById('confirmation_code')?.focus();
   };
 
@@ -67,7 +67,7 @@ const ConfirmEmailPage = () => {
         successMessage={successMessage}
         errorMessages={errorMessages}
         onSubmit={handleSubmit}
-        disableButton={loadingDuringSubmit}
+        loadingId={loadingId}
       >
         <FormTextInput
           id="confirmation_code"
@@ -78,9 +78,10 @@ const ConfirmEmailPage = () => {
           autoFocus
         />
         <Button
+          id="resend_code_button"
           text="Resend code"
           onClick={resendCode}
-          disabled={loadingDuringSubmit}
+          loadingId={loadingId}
           className="btn-secondary btn-sm"
         />
       </Form>
