@@ -3,17 +3,27 @@ import Countries from '@sh/Countries';
 
 const Country = ({
   countryIso2,
-  swapPositions = false,
-  noText = false,
+  swapPositions,
+  noText,
+  shorten,
 }: {
   countryIso2: string;
   swapPositions?: boolean;
   noText?: boolean;
+  shorten?: boolean;
 }) => {
+  if (noText && shorten) throw new Error('Country does not support the noText and shorten arguments at the same time');
+
   const FlagComponent = (Flags as any)[countryIso2];
 
   const getCountry = (countryIso2: string): string => {
-    return Countries.find((el) => el.code === countryIso2)?.name || 'ERROR';
+    const country = Countries.find((el) => el.code === countryIso2);
+
+    if (!country) return 'NOT FOUND';
+
+    if (shorten && country.shortName) return country.shortName;
+
+    return country.name;
   };
 
   return (

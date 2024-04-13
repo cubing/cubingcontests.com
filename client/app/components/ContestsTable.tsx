@@ -62,16 +62,16 @@ const ContestsTable = ({
                   <div className="ms-2">
                     {contest.type !== ContestType.Online ? (
                       <span>
-                        {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
+                        {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
                       </span>
                     ) : (
                       'Online'
                     )}
                   </div>
-                  <div className="text-end">
+                  <div className="flex-shrink-0 text-end">
                     {contest.participants > 0 && (
                       <span>
-                        Participants:&nbsp;<b>{contest.participants}</b>
+                        Participants: <b>{contest.participants}</b>
                       </span>
                     )}
                   </div>
