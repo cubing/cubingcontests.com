@@ -10,6 +10,7 @@ import FormCheckbox from '@c/form/FormCheckbox';
 import FormDateInput from '@c/form/FormDateInput';
 import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
+import CreatorDetails from '@c/CreatorDetails';
 import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
 import { RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
@@ -30,7 +31,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [showRules, setShowRules] = useState(false);
-  const [resultsSubmissionInfo, setResultsSubmissionInfo] = useState<IResultsSubmissionInfo>();
+  const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo>();
   // Only trigger reset on page load on the submit results page
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState<boolean>(resultId ? undefined : true);
   const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
@@ -49,8 +50,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   const searchParams = useSearchParams();
 
   const recordPairs = useMemo(
-    () => resultsSubmissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
-    [resultsSubmissionInfo, event],
+    () => submissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
+    [submissionInfo, event],
   );
 
   useEffect(() => {
@@ -62,7 +63,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           if (errors) {
             setErrorMessages(errors);
           } else {
-            setResultsSubmissionInfo(payload);
+            setSubmissionInfo(payload);
 
             const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get('eventId'));
             if (event) setEvent(event);
@@ -76,7 +77,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         if (errors) {
           setErrorMessages(errors);
         } else {
-          setResultsSubmissionInfo(payload);
+          setSubmissionInfo(payload);
           const { result, persons, events } = payload as IResultsSubmissionInfo;
 
           setEvent(events[0]);
@@ -114,7 +115,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       discussionLink: discussionLink || undefined,
     };
 
-    if (resultsSubmissionInfo.result?.unapproved && !approve) newResult.unapproved = true;
+    if (submissionInfo.result?.unapproved && !approve) newResult.unapproved = true;
 
     checkErrorsBeforeResultSubmission(
       newResult,
@@ -166,7 +167,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     // Update the record pairs with the new date
     if (newDate) {
       limitRequests(fetchRecordPairsTimer, setFetchRecordPairsTimer, async () => {
-        const eventsStr = resultsSubmissionInfo.events.map((e) => e.eventId).join(',');
+        const eventsStr = submissionInfo.events.map((e) => e.eventId).join(',');
         const queryParams = resultId ? `?excludeResultId=${resultId}` : '';
 
         const { payload, errors } = await myFetch.get(`/results/record-pairs/${newDate}/${eventsStr}${queryParams}`, {
@@ -174,7 +175,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         });
 
         if (errors) setErrorMessages(errors);
-        else setResultsSubmissionInfo({ ...resultsSubmissionInfo, recordPairsByEvent: payload });
+        else setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
       });
     }
   };
@@ -194,7 +195,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     setVideoLink(newVideoLink);
   };
 
-  if (resultsSubmissionInfo) {
+  if (submissionInfo) {
     return (
       <div>
         <h2 className="text-center">{resultId ? 'Edit Result' : 'Submit Result'}</h2>
@@ -253,13 +254,13 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             setAttempts={setAttempts}
             recordPairs={recordPairs}
             loadingRecordPairs={fetchRecordPairsTimer !== null}
-            recordTypes={resultsSubmissionInfo.activeRecordTypes}
+            recordTypes={submissionInfo.activeRecordTypes}
             nextFocusTargetId="date"
             resetTrigger={resultFormResetTrigger}
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
             setEvent={setEvent}
-            events={resultsSubmissionInfo.events}
+            events={submissionInfo.events}
             roundFormat={roundFormat}
             setRoundFormat={setRoundFormat}
             disableMainSelects={!!resultId}
@@ -309,7 +310,12 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               Discussion link
             </a>
           )}
-          {resultId && <p className="mt-4">Created by: {resultsSubmissionInfo.createdByUsername}</p>}
+          {resultId && (
+            <div className="d-flex flex-wrap gap-3 mt-4">
+              <span>Created by:</span>
+              <CreatorDetails creator={submissionInfo.creator} />
+            </div>
+          )}
           <Button
             id="submit_button"
             text="Submit"
@@ -318,7 +324,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             disabled={fetchRecordPairsTimer !== null}
             className="mt-3"
           />
-          {resultId && resultsSubmissionInfo.result.unapproved && (
+          {resultId && submissionInfo.result.unapproved && (
             <Button
               id="approve_button"
               text="Submit and approve"

@@ -1,5 +1,5 @@
 import { ContestType, ContestState } from '../enums';
-import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs } from '../interfaces';
+import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs, IFrontendUser } from '../interfaces';
 
 /**
  * IMPORTANT: when updating this interface, also update:
@@ -62,4 +62,5 @@ export interface IContestData {
   persons: IPerson[]; // info about competitors who competed in this contest
   activeRecordTypes: IRecordType[];
   recordPairsByEvent?: IEventRecordPairs[]; // only set if contest data is requested by a moderator
+  creator?: IFrontendUser; // THIS IS ADMIN-ONLY!
 }

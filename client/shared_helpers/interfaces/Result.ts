@@ -1,5 +1,5 @@
 import { WcaRecordType } from '@sh/enums';
-import { IContest, IEvent, IPerson, IRecordType } from '@sh/interfaces';
+import { IContest, IEvent, IFrontendUser, IPerson, IRecordType } from '@sh/interfaces';
 
 export interface IAttempt {
   /**
@@ -70,8 +70,8 @@ export interface IResultsSubmissionInfo {
   events: IEvent[];
   recordPairsByEvent: IEventRecordPairs[];
   activeRecordTypes: IRecordType[];
-  // These are only used for the edit result page
+  // These are only used for the edit result page, so this information is admin-only
   result?: IResult;
   persons?: IPerson[];
-  createdByUsername?: string;
+  creator?: IFrontendUser;
 }

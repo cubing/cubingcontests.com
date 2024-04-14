@@ -21,15 +21,15 @@ const FormPersonInputs = ({
   setPersonNames,
   persons,
   setPersons,
-  infiniteInputs = false,
+  infiniteInputs,
   nextFocusTargetId,
-  disabled = false,
-  addNewPersonFromNewTab = false,
+  disabled,
+  addNewPersonFromNewTab,
   checkCustomErrors,
   setErrorMessages,
   setSuccessMessage,
   redirectToOnAddPerson = '',
-  noGrid = false,
+  noGrid,
 }: {
   title: string;
   personNames: string[];

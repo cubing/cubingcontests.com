@@ -439,15 +439,13 @@ export class ResultsService {
 
     try {
       result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec();
-      if (!result) throw new NotFoundException();
-    } catch (err) {
+      if (!result) throw new Error();
+    } catch {
       throw new NotFoundException('Result not found');
     }
 
     const event = await this.eventsService.getEventById(result.eventId);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-    const createdBy = result.createdBy;
-    result.createdBy = undefined;
 
     const resultEditingInfo: IResultsSubmissionInfo = {
       events: [event],
@@ -458,7 +456,7 @@ export class ResultsService {
       activeRecordTypes,
       result,
       persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
-      createdByUsername: (await this.usersService.getUsername(createdBy.toString())) || '(unknown user)',
+      creator: await this.usersService.getUserDetails(result.createdBy.toString(), false),
     };
 
     return resultEditingInfo;
@@ -491,7 +489,7 @@ export class ResultsService {
         persons: res.personIds.map((pid) => res.persons.find((p) => p.personId === pid)),
       }));
 
-      return frontendResults;
+      return frontendResults.slice(0, 100); // TEMPORARY: only returns 100 results. TO-DO: add pagination!
     } catch (err) {
       throw new InternalServerErrorException(`Error while getting submission-based results: ${err.message}`);
     }

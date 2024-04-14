@@ -99,6 +99,7 @@ const ManageResultsPage = () => {
               ))}
           </tbody>
         </table>
+        <p>Only showing the first 100 results.</p>
       </div>
     </div>
   );

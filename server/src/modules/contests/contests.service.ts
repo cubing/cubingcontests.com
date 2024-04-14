@@ -163,29 +163,27 @@ export class ContestsService {
     // This also checks access rights to the contest if it's a request for a mod contest (user is defined)
     const contest = await this.getFullContest(competitionId, user);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+    const output: IContestData = {
+      contest,
+      persons: await this.personsService.getContestParticipants({ contestEvents: contest.events }),
+      activeRecordTypes,
+    };
 
-    try {
-      // TEMPORARILY DISABLED until mod-only protection is added
-      // if (contest?.state > ContestState.Created) {
+    // Get mod contest
+    if (user) {
+      output.recordPairsByEvent = await this.resultsService.getRecordPairs(
+        contest.events.map((el) => el.event),
+        contest.startDate,
+        { activeRecordTypes },
+      );
 
-      const output: IContestData = {
-        contest,
-        persons: await this.personsService.getContestParticipants({ contestEvents: contest.events }),
-        activeRecordTypes,
-      };
-
-      if (user) {
-        output.recordPairsByEvent = await this.resultsService.getRecordPairs(
-          contest.events.map((el) => el.event),
-          contest.startDate,
-          { activeRecordTypes },
-        );
+      // Show admins the info about the creator of the contest
+      if (user.roles.includes(Role.Admin)) {
+        output.creator = await this.usersService.getUserDetails(contest.createdBy.toString(), false);
       }
-
-      return output;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
     }
+
+    return output;
   }
 
   // Create new contest, if one with that ID doesn't already exist
@@ -420,7 +418,6 @@ export class ContestsService {
 
     try {
       contest = await this.contestModel
-        // createdBy is used to check access rights below (along with organizers list), and then excluded
         .findOne({ competitionId }, exclude ? exclSysButKeepCreatedBy : {})
         .populate(eventPopulateOptions.event)
         .populate(eventPopulateOptions.rounds)
@@ -433,7 +430,6 @@ export class ContestsService {
     if (!contest) throw new NotFoundException(`Contest with id ${competitionId} not found`);
 
     if (user) this.authService.checkAccessRightsToContest(user, contest, { ignoreState });
-    if (exclude) contest.createdBy = undefined;
 
     if (contest.compDetails) {
       try {

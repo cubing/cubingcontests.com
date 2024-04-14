@@ -71,10 +71,13 @@ export class UsersService {
     return usersForFrontend;
   }
 
-  async getUserDetails(id: string): Promise<IFrontendUser> {
+  async getUserDetails(id: string, userMustExist = true): Promise<IFrontendUser> {
     const user = await this.userModel.findOne({ _id: new mongoose.Types.ObjectId(id) }, frontendUserSelect).exec();
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      if (userMustExist) throw new NotFoundException('User not found');
+      return undefined;
+    }
 
     return await this.getFrontendUser(user);
   }

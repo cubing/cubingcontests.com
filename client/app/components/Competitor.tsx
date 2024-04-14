@@ -3,9 +3,9 @@ import { IPerson } from '@sh/interfaces';
 
 const Competitor = ({
   person,
-  showLocalizedName = false,
-  noFlag = false,
-  noLink = false,
+  showLocalizedName,
+  noFlag,
+  noLink,
 }: {
   person: IPerson;
   showLocalizedName?: boolean;

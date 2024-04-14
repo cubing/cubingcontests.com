@@ -22,6 +22,7 @@ import Loading from '@c/UI/Loading';
 import Button from '@c/UI/Button';
 import AttemptInput from '@c/AttemptInput';
 import FormCheckbox from '@c/form/FormCheckbox';
+import CreatorDetails from '@c/CreatorDetails';
 import {
   IContest,
   ICompetitionDetails,
@@ -34,6 +35,7 @@ import {
   IAttempt,
   ICutoff,
   ITimeLimit,
+  IContestData,
 } from '@sh/interfaces';
 import {
   Color,
@@ -63,11 +65,11 @@ const isAdmin = getUserInfo()?.isAdmin;
 
 const ContestForm = ({
   events,
-  contest,
+  contestData: { contest, creator },
   mode,
 }: {
   events: IEvent[];
-  contest?: IContest;
+  contestData?: IContestData;
   mode: 'new' | 'edit' | 'copy';
 }) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -342,7 +344,6 @@ const ContestForm = ({
     };
 
     if (mode === 'edit') {
-      newComp.createdBy = contest.createdBy;
       newComp.state = contest.state;
       newComp.participants = contest.participants;
       if (type === ContestType.Meetup) newComp.timezone = contest.timezone;
@@ -833,6 +834,13 @@ const ContestForm = ({
         disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
         loadingId={loadingId}
       >
+        {isAdmin && (
+          <div className="d-flex flex-wrap gap-3 my-4">
+            <span>Created by:</span>
+            <CreatorDetails creator={creator} />
+          </div>
+        )}
+
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
         {activeTab === 'details' && (
@@ -989,7 +997,7 @@ const ContestForm = ({
                 setErrorMessages={setErrorMessages}
                 infiniteInputs
                 nextFocusTargetId="contact"
-                disabled={disableIfCompFinished}
+                disabled={disableIfCompApproved}
                 addNewPersonFromNewTab
               />
             </div>
