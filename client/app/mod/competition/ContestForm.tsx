@@ -65,7 +65,7 @@ const isAdmin = getUserInfo()?.isAdmin;
 
 const ContestForm = ({
   events,
-  contestData: { contest, creator },
+  contestData: { contest, creator } = { contest: undefined, creator: undefined } as IContestData,
   mode,
 }: {
   events: IEvent[];
@@ -834,7 +834,7 @@ const ContestForm = ({
         disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
         loadingId={loadingId}
       >
-        {isAdmin && (
+        {isAdmin && mode === 'edit' && (
           <div className="d-flex flex-wrap gap-3 my-4">
             <span>Created by:</span>
             <CreatorDetails creator={creator} />

@@ -32,7 +32,7 @@ const CreateEditContestPage = () => {
     const { payload: eventsData, errors: errors1 } = await myFetch.get('/events/mod', { authorize: true });
     const { payload: contestData, errors: errors2 } = competitionId
       ? await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true })
-      : undefined;
+      : { payload: undefined, errors: undefined };
 
     if (errors1 ?? errors2) {
       setErrorMessages(['Error while fetching contest data']);
