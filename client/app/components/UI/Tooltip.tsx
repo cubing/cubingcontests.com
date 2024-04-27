@@ -55,7 +55,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
         </div>
       </div>
 
-      <FaQuestionCircle className="m-1 fs-6" style={{ color: 'var(--bs-gray-500)' }} />
+      <FaQuestionCircle className="m-1 fs-6 text-secondary-emphasis" />
     </div>
   );
 };

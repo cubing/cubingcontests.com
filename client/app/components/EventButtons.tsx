@@ -70,7 +70,7 @@ const EventButtons = ({
             key={event.eventId}
             event={event}
             onClick={() => handleEventClick(event.eventId)}
-            isActive={events.length > 1 && activeEvent.eventId === event.eventId}
+            isActive={activeEvent.eventId === event.eventId}
           />
         ))}
       </div>

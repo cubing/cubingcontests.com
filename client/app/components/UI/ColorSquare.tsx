@@ -4,12 +4,12 @@ const ColorSquare = ({ color, style }: { color: Color; style?: React.CSSProperti
   if (color !== Color.White)
     return (
       <span
+        className="cc-color-square"
         style={{
           margin: '3px',
           width: '2.1rem',
           height: '2.1rem',
           border: '1px solid',
-          borderColor: 'white',
           borderRadius: '5px',
           backgroundColor: `#${color}`,
           ...style,
