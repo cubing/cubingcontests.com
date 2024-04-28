@@ -9,7 +9,7 @@ import FormRadio from '@c/form/FormRadio';
 import FormNumberInput from '@c/form/FormNumberInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormTextArea from '@c/form/FormTextArea';
-import { IFrontendEvent } from '@sh/interfaces';
+import { IFeEvent } from '@sh/types';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { eventCategories } from '~/helpers/eventCategories';
@@ -20,7 +20,7 @@ type Mode = 'view' | 'add' | 'edit';
 
 const CreateEditEventPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [events, setEvents] = useState<IFrontendEvent[]>([]);
+  const [events, setEvents] = useState<IFeEvent[]>([]);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
   const [mode, setMode] = useState<Mode>('view');
   const [eventIdUnlocked, setEventIdUnlocked] = useState(false);
@@ -70,7 +70,7 @@ const CreateEditEventPage = () => {
     setLoadingDuringSubmit(true);
     setErrorMessages([]);
 
-    const newEvent: IFrontendEvent = {
+    const newEvent: IFeEvent = {
       eventId: newEventId,
       name,
       rank,
@@ -106,7 +106,7 @@ const CreateEditEventPage = () => {
     reset('add');
   };
 
-  const onEditEvent = (event: IFrontendEvent) => {
+  const onEditEvent = (event: IFeEvent) => {
     reset('edit');
 
     setEventId(event.eventId);
@@ -276,7 +276,7 @@ const CreateEditEventPage = () => {
             </tr>
           </thead>
           <tbody>
-            {events.map((event: IFrontendEvent, index) => (
+            {events.map((event: IFeEvent, index) => (
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>{event.name}</td>

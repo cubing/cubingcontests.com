@@ -1,4 +1,4 @@
-import { IRecordPair } from '@sh/interfaces';
+import { IRecordPair } from '@sh/types';
 import { WcaRecordType } from '@sh/enums';
 
 export const ResultsServiceMock = () => ({

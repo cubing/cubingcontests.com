@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { IContest, IContestEvent, ICompetitionDetails, IMeetupDetails } from '@sh/interfaces';
+import { IContest, IContestEvent, ICompetitionDetails, IMeetupDetails } from '@sh/types';
 import { RoundDocument } from './round.model';
 import { PersonDocument } from './person.model';
 import { ContestState, ContestType } from '@sh/enums';

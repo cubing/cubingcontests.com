@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import C from '@sh/constants';
 import { FaExclamationTriangle } from 'react-icons/fa';
+import C from '@sh/constants';
+import CollectiveCubing from '~/app/components/CollectiveCubing';
 
 const Home = () => {
   return (
@@ -55,6 +56,9 @@ const Home = () => {
 
       <h3 className="cc-basic-heading">Contact</h3>
       <p>For general inquiries, send an email to {C.contactEmail}.</p>
+
+      <h3 className="cc-basic-heading">Collective Cubing</h3>
+      <CollectiveCubing />
     </div>
   );
 };

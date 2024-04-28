@@ -1,5 +1,5 @@
 import { RoundDocument } from '~/src/models/round.model';
-import { IRound } from '@sh/interfaces';
+import { IRound } from '@sh/types';
 import { competitionsStub } from '../stubs/competitions.stub';
 
 export const RoundModelMock = (): any => ({

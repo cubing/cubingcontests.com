@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { FaCircle } from 'react-icons/fa';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
-import { IContest } from '@sh/interfaces';
+import { IContest } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
 import C from '@sh/constants';
 import { getBSClassFromColor, getFormattedDate } from '~/helpers/utilityFunctions';
@@ -155,16 +155,16 @@ const ContestsTable = ({
                       {/* Mods should be able to see this button even before approval, it should just be disabled */}
                       {(contest.state >= ContestState.Approved || !isAdmin) &&
                         contest.state < ContestState.Finished && (
-                        <button
-                          type="button"
-                          onClick={() => onPostCompResults(contest.competitionId)}
-                          disabled={disableActions || contest.state < ContestState.Approved}
-                          className="btn btn-sm btn-success"
-                          style={{ padding: C.smallButtonPadding }}
-                        >
+                          <button
+                            type="button"
+                            onClick={() => onPostCompResults(contest.competitionId)}
+                            disabled={disableActions || contest.state < ContestState.Approved}
+                            className="btn btn-sm btn-success"
+                            style={{ padding: C.smallButtonPadding }}
+                          >
                             Results
-                        </button>
-                      )}
+                          </button>
+                        )}
                       {contest.state >= ContestState.Finished && isAdmin && (
                         <button
                           type="button"

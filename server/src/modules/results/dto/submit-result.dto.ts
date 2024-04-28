@@ -1,4 +1,4 @@
-import { IAttempt } from '@sh/interfaces';
+import { IAttempt } from '@sh/types';
 import { AttemptDto, CreateResultDto } from './create-result.dto';
 import {
   ArrayMaxSize,

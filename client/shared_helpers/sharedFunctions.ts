@@ -16,7 +16,7 @@ import {
   IWcifActivity,
   IRound,
   IWcifRound,
-} from './interfaces';
+} from './types';
 import { roundFormats } from './roundFormats';
 import { format } from 'date-fns';
 

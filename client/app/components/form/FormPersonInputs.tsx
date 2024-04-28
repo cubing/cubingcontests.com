@@ -5,7 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import Loading from '@c/UI/Loading';
 import FormTextInput from './FormTextInput';
 import Competitor from '@c/Competitor';
-import { IPerson } from '@sh/interfaces';
+import { IPerson } from '@sh/types';
 import C from '@sh/constants';
 import { getUserInfo, limitRequests, splitNameAndLocalizedName } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';

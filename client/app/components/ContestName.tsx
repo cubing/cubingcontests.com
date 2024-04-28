@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Country from './Country';
-import { IContest } from '@sh/interfaces';
+import { IContest } from '@sh/types';
 
 const ContestName = ({ contest }: { contest: IContest }) => {
   return (

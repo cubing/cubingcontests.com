@@ -15,7 +15,7 @@ import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import C from '@sh/constants';
-import { IContestEvent, IContestData, IContest } from '@sh/interfaces';
+import { IContestEvent, IContestData, IContest, IContestDto } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
 import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
@@ -194,11 +194,10 @@ export class ContestsService {
     const isAdmin = user.roles.includes(Role.Admin);
     const contestUrl = this.getContestUrl(createContestDto.competitionId);
 
-    // Validation
-    if (!isAdmin) {
-      this.validateContest(createContestDto, user);
-      saveResults = false;
-    }
+    // Only admins are allowed to import contests and have the results immediately saved
+    if (!isAdmin) saveResults = false;
+
+    this.validateContest(createContestDto, user);
 
     const comp1 = await this.contestModel.findOne({ competitionId: createContestDto.competitionId }).exec();
     if (comp1) throw new BadRequestException(`A contest with the ID ${createContestDto.competitionId} already exists`);
@@ -266,10 +265,7 @@ export class ContestsService {
     const contest = await this.getFullContest(competitionId, user, { ignoreState: false, exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
-    // This is checked, because admins are allowed to set the address and venue as empty, but mods aren't
-    if (!isAdmin) {
-      this.validateContest(updateContestDto, user);
-    }
+    this.validateContest(updateContestDto, user);
 
     contest.organizers = await this.personsService.getPersonsById(
       updateContestDto.organizers.map((org) => org.personId),
@@ -535,11 +531,16 @@ export class ContestsService {
     }
   }
 
-  private validateContest(contest: IContest, user: IPartialUser) {
-    if (!contest.address) throw new BadRequestException('Please enter an address');
-    if (!contest.venue) throw new BadRequestException('Please enter the venue name');
-    if (!contest.organizers.some((o) => o.personId === user.personId))
-      throw new BadRequestException('You cannot create a contest which you are not organizing');
+  private validateContest(contest: IContestDto, user: IPartialUser) {
+    if (contest.startDate > contest.endDate)
+      throw new BadRequestException('The start date must be before the end date');
+
+    if (!user.roles.includes(Role.Admin)) {
+      if (!contest.address) throw new BadRequestException('Please enter an address');
+      if (!contest.venue) throw new BadRequestException('Please enter the venue name');
+      if (!contest.organizers.some((o) => o.personId === user.personId))
+        throw new BadRequestException('You cannot create a contest which you are not organizing');
+    }
   }
 
   private getContestUrl(competitionId: string): string {

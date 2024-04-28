@@ -1,5 +1,5 @@
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
-import { IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/types';
 
 ///////////////////////////////////////////////////////////////////
 // The event IDs are the same as the official WCA event IDs, or

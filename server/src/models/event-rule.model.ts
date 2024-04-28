@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { IEventRule } from '@sh/interfaces';
+import { IEventRule } from '@sh/types';
 
 @Schema({ timestamps: true })
 export class EventRule implements IEventRule {

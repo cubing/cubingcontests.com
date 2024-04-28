@@ -5,7 +5,7 @@
     "body": [
       "import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';",
       "import { HydratedDocument } from 'mongoose';",
-      "import { I${1:Object} } from '@sh/interfaces';",
+      "import { I${1:Object} } from '@sh/types';",
       "",
       "@Schema({ timestamps: true })",
       "export class ${1:Object} implements I${1:Object} {",
@@ -42,7 +42,7 @@
     "prefix": "createdto",
     "body": [
       "import { IsString } from 'class-validator';",
-      "import { I${1:Object} } from '@sh/interfaces';",
+      "import { I${1:Object} } from '@sh/types';",
       "",
       "export class Create${1:Object}Dto implements I${1:Object} {",
       "\t$0",

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/types';
 import { eventCategories } from '~/helpers/eventCategories';
 import EventIcon from '@c/EventIcon';
 

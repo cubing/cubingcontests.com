@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
-import { IContest } from '@sh/interfaces';
+import { IContest } from '@sh/types';
 import { getRoleLabel } from '@sh/sharedFunctions';
 import { ContestType, Role } from '@sh/enums';
 

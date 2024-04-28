@@ -35,12 +35,12 @@ import {
   IContest,
   IRanking,
   IEvent,
-  IFrontendResult,
+  IFeResult,
   IActivity,
   IResult,
   IContestEvent,
   IRound,
-} from '@sh/interfaces';
+} from '@sh/types';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import {
   getDateOnly,
@@ -470,9 +470,9 @@ export class ResultsService {
     }
   }
 
-  async getSubmissionBasedResults(): Promise<IFrontendResult[]> {
+  async getSubmissionBasedResults(): Promise<IFeResult[]> {
     try {
-      let frontendResults: IFrontendResult[] = await this.resultModel
+      let frontendResults: IFeResult[] = await this.resultModel
         .aggregate([
           { $match: { competitionId: { $exists: false } } },
           { $lookup: { from: 'people', localField: 'personIds', foreignField: 'personId', as: 'persons' } },

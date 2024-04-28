@@ -7,7 +7,7 @@ import FormTextInput from '@c/form/FormTextInput';
 import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormCheckbox from '@c/form/FormCheckbox';
 import { Role } from '@sh/enums';
-import { IFrontendUser } from '@sh/interfaces';
+import { IFeUser } from '@sh/types';
 import C from '@sh/constants';
 import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
 import { getRoleLabel } from '@sh/sharedFunctions';
@@ -16,7 +16,7 @@ const ManageUsersPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
 
-  const [users, setUsers] = useState<IFrontendUser[]>([]);
+  const [users, setUsers] = useState<IFeUser[]>([]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [personNames, setPersonNames] = useState(['']);
@@ -51,7 +51,7 @@ const ManageUsersPage = () => {
     setLoadingDuringSubmit(true);
     setErrorMessages([]);
 
-    const newUser: IFrontendUser = {
+    const newUser: IFeUser = {
       username,
       email,
       person: persons[0] ?? undefined,
@@ -74,7 +74,7 @@ const ManageUsersPage = () => {
     setLoadingDuringSubmit(false);
   };
 
-  const onEditUser = async (user: IFrontendUser) => {
+  const onEditUser = async (user: IFeUser) => {
     setErrorMessages([]);
 
     setUsername(user.username);
@@ -143,7 +143,7 @@ const ManageUsersPage = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user: IFrontendUser, index) => (
+            {users.map((user: IFeUser, index) => (
               <tr key={user.username}>
                 <td>{index + 1}</td>
                 <td>{user.username}</td>

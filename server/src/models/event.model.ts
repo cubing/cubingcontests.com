@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/types';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { EventRuleDocument } from '~/src/models/event-rule.model';
 

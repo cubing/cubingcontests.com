@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { ResultDocument } from './result.model';
-import { ICutoff, IRound, ITimeLimit } from '@sh/interfaces';
+import { ICutoff, IRound, ITimeLimit } from '@sh/types';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { IProceed } from '@sh/interfaces';
+import { IProceed } from '@sh/types';
 
 @Schema({ _id: false })
 export class TimeLimit implements ITimeLimit {

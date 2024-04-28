@@ -7,14 +7,14 @@ import ErrorMessages from '@c/UI/ErrorMessages';
 import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitors from '@c/Competitors';
-import { IFrontendResult, IRecordType } from '@sh/interfaces';
+import { IFeResult, IRecordType } from '@sh/types';
 import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions';
 import C from '@sh/constants';
 
 const ManageResultsPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
-  const [results, setResults] = useState<IFrontendResult[]>([]);
+  const [results, setResults] = useState<IFeResult[]>([]);
 
   useEffect(() => {
     myFetch.get('/results/submission-based', { authorize: true }).then(({ payload, errors }) => {
@@ -56,7 +56,7 @@ const ManageResultsPage = () => {
           <tbody>
             {results &&
               recordTypes &&
-              results.map((result: IFrontendResult) => (
+              results.map((result: IFeResult) => (
                 <tr key={(result as any)._id}>
                   <td>{result.event ? shortenEventName(result.event.name) : 'EVENT NOT FOUND'}</td>
                   <td>

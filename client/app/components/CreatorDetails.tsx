@@ -1,7 +1,7 @@
 import Competitor from '@c/Competitor';
-import { IFrontendUser } from '@sh/interfaces';
+import { IFeUser } from '@sh/types';
 
-const CreatorDetails = ({ creator }: { creator: IFrontendUser }) => {
+const CreatorDetails = ({ creator }: { creator: IFeUser }) => {
   if (creator) {
     return creator.person ? (
       <>

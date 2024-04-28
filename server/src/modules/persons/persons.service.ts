@@ -5,7 +5,7 @@ import { excl } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { CreatePersonDto } from './dto/create-person.dto';
-import { IPerson } from '@sh/interfaces';
+import { IPerson } from '@sh/types';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestEvent } from '~/src/models/contest.model';
 import { MyLogger } from '@m/my-logger/my-logger.service';

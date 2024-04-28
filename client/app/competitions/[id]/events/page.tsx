@@ -1,7 +1,7 @@
 import myFetch from '~/helpers/myFetch';
 import ContestLayout from '@c/ContestLayout';
 import EventTitle from '@c/EventTitle';
-import { IContest } from '@sh/interfaces';
+import { IContest } from '@sh/types';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import C from '@sh/constants';
@@ -36,8 +36,8 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
               compEvent.rounds.map((round, roundIndex) => {
                 const cutoffText = round.cutoff
                   ? `${round.cutoff.numberOfAttempts} ${
-                    round.cutoff.numberOfAttempts === 1 ? 'attempt' : 'attempts'
-                  } to get < ${getFormattedTime(round.cutoff.attemptResult, { event: compEvent.event })}`
+                      round.cutoff.numberOfAttempts === 1 ? 'attempt' : 'attempts'
+                    } to get < ${getFormattedTime(round.cutoff.attemptResult, { event: compEvent.event })}`
                   : '';
 
                 return (

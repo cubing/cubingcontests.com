@@ -1,5 +1,5 @@
 import { compareAvgs, compareSingles, setResultRecords } from '@sh/sharedFunctions';
-import { IRecordPair, IResult } from '@sh/interfaces';
+import { IRecordPair, IResult } from '@sh/types';
 import { WcaRecordType } from '@sh/enums';
 import {
   newContestEventsStub,

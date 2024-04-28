@@ -17,10 +17,12 @@ const Button = ({
   disabled?: boolean;
   className?: string;
 }) => {
+  id = id ?? `${text}_button`;
+
   return (
     <button
       type={type}
-      id={id || `${text}_button`}
+      id={id}
       onClick={onClick}
       onSubmit={(e) => e.preventDefault()}
       disabled={disabled || !!loadingId}
@@ -29,7 +31,7 @@ const Button = ({
       {loadingId !== id ? (
         text
       ) : (
-        <div style={{ width: `${(text.length / 2).toFixed(1)}rem` }}>
+        <div className="mx-auto" style={{ width: `${(text.length / 2).toFixed(1)}rem` }}>
           <Loading small />
         </div>
       )}

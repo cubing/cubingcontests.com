@@ -17,6 +17,7 @@ import { LogSchema } from '~/src/models/log.model';
 import { ContestSchema } from '~/src/models/contest.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { EmailModule } from '~/src/modules/email/email.module';
+import { CollectiveSolutionModule } from './modules/collective-solution/collective-solution.module';
 
 const mongoUri =
   process.env.NODE_ENV === 'production'
@@ -48,6 +49,7 @@ const mongoUri =
     RecordTypesModule,
     ResultsModule,
     EmailModule,
+    CollectiveSolutionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

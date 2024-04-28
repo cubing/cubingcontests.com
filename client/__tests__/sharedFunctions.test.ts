@@ -1,4 +1,4 @@
-import { IAttempt } from '@sh/interfaces';
+import { IAttempt } from '@sh/types';
 import { getBestAndAverage } from '@sh/sharedFunctions';
 import { mockTimeEvent } from '~/__mocks__/events.stub';
 import { RoundFormat } from '@sh/enums';

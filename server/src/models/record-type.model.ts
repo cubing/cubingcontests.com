@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { IRecordType } from '@sh/interfaces';
+import { IRecordType } from '@sh/types';
 import { Color, WcaRecordType } from '@sh/enums';
 
 @Schema({ timestamps: true })

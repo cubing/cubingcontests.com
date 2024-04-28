@@ -6,7 +6,7 @@ import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import { ContestState } from '@sh/enums';
-import { IAdminStats, IContest } from '@sh/interfaces';
+import { IAdminStats, IContest } from '@sh/types';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { getUserInfo } from '~/helpers/utilityFunctions';
 import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';

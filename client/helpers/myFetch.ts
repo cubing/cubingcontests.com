@@ -1,8 +1,9 @@
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
-interface IFetchObj {
-  payload?: any;
+
+export type FetchObj<T = any> = {
+  payload?: T;
   errors?: string[];
-}
+};
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_ENVIRONMENT === 'production'
@@ -20,7 +21,7 @@ const doFetch = async (
   authorize = true,
   redirect?: string,
   fileName?: string,
-): Promise<IFetchObj> => {
+): Promise<FetchObj> => {
   const options: any = { method, headers: {} };
 
   if (method === 'GET') {
@@ -145,21 +146,21 @@ const myFetch = {
       redirect: '',
       revalidate: false,
     },
-  ): Promise<IFetchObj> {
+  ): Promise<FetchObj> {
     return await doFetch(url, 'GET', revalidate, null, authorize, redirect, fileName);
   },
   async post(
     url: string,
     body: unknown,
     { authorize = true }: { authorize?: boolean } = { authorize: true },
-  ): Promise<IFetchObj> {
+  ): Promise<FetchObj> {
     return await doFetch(url, 'POST', false, body, authorize);
   },
   // PATCH requests can be made without a body if necessary
-  async patch(url: string, body?: unknown): Promise<IFetchObj> {
+  async patch(url: string, body?: unknown): Promise<FetchObj> {
     return await doFetch(url, 'PATCH', false, body);
   },
-  async delete(url: string): Promise<IFetchObj> {
+  async delete(url: string): Promise<FetchObj> {
     return await doFetch(url, 'DELETE');
   },
 };

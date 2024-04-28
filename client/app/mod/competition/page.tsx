@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import Loading from '@c/UI/Loading';
 import ContestForm from './ContestForm';
-import { IContestData, IEvent } from '@sh/interfaces';
+import { IContestData, IEvent } from '@sh/types';
 
 const CreateEditContestPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);

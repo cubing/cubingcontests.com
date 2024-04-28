@@ -5,7 +5,7 @@ import ContestLayout from '@c/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import Competitor from '@c/Competitor';
-import { IContest, IContestData } from '@sh/interfaces';
+import { IContest, IContestData } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
 import C from '@sh/constants';
 import { getDateOnly } from '@sh/sharedFunctions';

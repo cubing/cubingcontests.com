@@ -1,5 +1,5 @@
 import { ContestType, ContestState } from '../enums';
-import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs, IFrontendUser } from '../interfaces';
+import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs, IFeUser } from '../types';
 
 /**
  * IMPORTANT: when updating this interface, also update:
@@ -13,9 +13,9 @@ import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs, IFr
  */
 export interface IContest {
   competitionId: string;
-  // These are optional, because they're not set on creation and only returned to the frontend for authorized users
-  createdBy?: unknown; // user ID of the moderator/admin who created the contest
-  state?: ContestState; // optional, because it's not needed on creation
+  // This is optional, because it's only returned to the frontend for mods
+  createdBy?: unknown; // user ID of the mod/admin who created the contest
+  state: ContestState;
 
   name: string;
   type: ContestType;
@@ -36,11 +36,13 @@ export interface IContest {
   description?: string;
   competitorLimit?: number; // required for competitions
   events: IContestEvent[];
-  participants?: number; // optional, because it's not needed on creation
+  participants: number;
   // IMPORTANT: this is not set when importing a competition and must be set manually by an admin
   compDetails?: ICompetitionDetails; // competition-only
   meetupDetails?: IMeetupDetails; // meetup/online-comp-only
 }
+
+export type IContestDto = Omit<IContest, 'createdBy' | 'state' | 'participants'>;
 
 // IMPORTANT: if this is ever to be changed, pay attention to the updateContestEvents function in the contests service
 export interface IContestEvent {
@@ -62,5 +64,5 @@ export interface IContestData {
   persons: IPerson[]; // info about competitors who competed in this contest
   activeRecordTypes: IRecordType[];
   recordPairsByEvent?: IEventRecordPairs[]; // only set if contest data is requested by a moderator
-  creator?: IFrontendUser; // THIS IS ADMIN-ONLY!
+  creator?: IFeUser; // THIS IS ADMIN-ONLY!
 }
