@@ -1,5 +1,5 @@
 import Country from './Country';
-import { IPerson } from '@sh/interfaces';
+import { IPerson } from '@sh/types';
 
 const Competitor = ({
   person,

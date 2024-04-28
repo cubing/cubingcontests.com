@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
 import RecordTypesForm from './RecordTypesForm';
-import { IRecordType } from '@sh/interfaces';
+import { IRecordType } from '@sh/types';
 import Loading from '@c/UI/Loading';
 
 const ConfigureRecordTypesPage = () => {

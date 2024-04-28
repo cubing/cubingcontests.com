@@ -24,7 +24,7 @@ import AttemptInput from '@c/AttemptInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import CreatorDetails from '@c/CreatorDetails';
 import {
-  IContest,
+  IContestDto,
   ICompetitionDetails,
   IContestEvent,
   IEvent,
@@ -36,7 +36,8 @@ import {
   ICutoff,
   ITimeLimit,
   IContestData,
-} from '@sh/interfaces';
+  IContest,
+} from '@sh/types';
 import {
   Color,
   ContestState,
@@ -130,10 +131,10 @@ const ContestForm = ({
     const newFiltEv = isAdmin
       ? events
       : events.filter(
-        (ev) =>
-          !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)) &&
+          (ev) =>
+            !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)) &&
             (type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA)),
-      );
+        );
 
     // Reset new event ID if new filtered events don't include it
     if (newFiltEv.length > 0 && !newFiltEv.some((ev) => ev.eventId === newEventId))
@@ -321,7 +322,7 @@ const ContestForm = ({
       meetupDetails = { startTime };
     }
 
-    const newComp: IContest = {
+    const newComp: IContestDto = {
       competitionId,
       name: name.trim(),
       type,
@@ -343,12 +344,6 @@ const ContestForm = ({
       meetupDetails,
     };
 
-    if (mode === 'edit') {
-      newComp.state = contest.state;
-      newComp.participants = contest.participants;
-      if (type === ContestType.Meetup) newComp.timezone = contest.timezone;
-    }
-
     // Validation
     const tempErrors: string[] = [];
 
@@ -356,16 +351,14 @@ const ContestForm = ({
       tempErrors.push('Please enter all organizers');
 
     if (type === ContestType.WcaComp) {
-      if (newComp.events.some((ce) => ce.event.groups.includes(EventGroup.WCA)))
+      if (newComp.events.some((ce: IContestEvent) => ce.event.groups.includes(EventGroup.WCA)))
         tempErrors.push(
           'WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.',
         );
     }
 
-    if (getIsCompType(type)) {
-      if (newComp.startDate > newComp.endDate) tempErrors.push('The start date must be before the end date');
-      if (activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
-    }
+    // To-do: move this to the backend
+    if (getIsCompType(type) && activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
 
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);

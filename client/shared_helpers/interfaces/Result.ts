@@ -1,5 +1,5 @@
 import { WcaRecordType } from '@sh/enums';
-import { IContest, IEvent, IFrontendUser, IPerson, IRecordType } from '@sh/interfaces';
+import { IContest, IEvent, IFeUser, IPerson, IRecordType } from '@sh/types';
 
 export interface IAttempt {
   /**
@@ -31,6 +31,11 @@ export interface IResult {
   videoLink?: string; // only used for submitted results
   discussionLink?: string; // only used for submitted results
   createdBy?: unknown; // user ID of the user who created the result (only used for submitted results)
+}
+
+export interface IFeResult extends IResult {
+  event: IEvent;
+  persons: IPerson[];
 }
 
 export interface IRanking {
@@ -73,5 +78,5 @@ export interface IResultsSubmissionInfo {
   // These are only used for the edit result page, so this information is admin-only
   result?: IResult;
   persons?: IPerson[];
-  creator?: IFrontendUser;
+  creator?: IFeUser;
 }

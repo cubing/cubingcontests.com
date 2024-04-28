@@ -6,7 +6,7 @@ import { LogDocument } from '~/src/models/log.model';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
-import { IAdminStats, IAttempt } from '@sh/interfaces';
+import { IAdminStats, IAttempt } from '@sh/types';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { getBestAndAverage } from '@sh/sharedFunctions';
 import { roundFormats } from '@sh/roundFormats';

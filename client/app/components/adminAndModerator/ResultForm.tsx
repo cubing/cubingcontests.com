@@ -8,7 +8,7 @@ import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormCheckbox from '@c/form/FormCheckbox';
 import AttemptInput from '@c/AttemptInput';
 import Time from '@c/Time';
-import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
+import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/types';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { getMakesCutoff, getBestAndAverage, setResultRecords } from '@sh/sharedFunctions';

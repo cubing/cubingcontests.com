@@ -7,7 +7,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { eventsSeed } from '~/src/seeds/events.seed';
 import { excl } from '~/src/helpers/dbHelpers';
 import { EventGroup } from '@sh/enums';
-import { IFrontendEvent } from '@sh/interfaces';
+import { IFeEvent } from '@sh/types';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { RoundDocument } from '~/src/models/round.model';
 import { ResultDocument } from '~/src/models/result.model';
@@ -76,7 +76,7 @@ export class EventsService {
 
   async getFrontendEvents(
     options: IGetEventsOptions = { includeHidden: false, populateRules: false },
-  ): Promise<IFrontendEvent[]> {
+  ): Promise<IFeEvent[]> {
     const events = await this.getEvents(options);
 
     const frontendEvents = events.map((event) => {
@@ -113,14 +113,14 @@ export class EventsService {
     return event;
   }
 
-  async createEvent(createEventDto: CreateEventDto): Promise<IFrontendEvent[]> {
+  async createEvent(createEventDto: CreateEventDto): Promise<IFeEvent[]> {
     const event = await this.eventModel.findOne({ eventId: createEventDto.eventId }).exec();
     if (event) throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
 
     const eventWithSameRank = await this.eventModel.findOne({ rank: createEventDto.rank }).exec();
     if (eventWithSameRank) throw new BadRequestException(`Event with rank ${createEventDto.rank} already exists`);
 
-    const { ruleText, ...newEvent }: IFrontendEvent = createEventDto;
+    const { ruleText, ...newEvent }: IFeEvent = createEventDto;
     let eventRule: EventRuleDocument;
 
     if (ruleText) {
@@ -132,7 +132,7 @@ export class EventsService {
     return await this.getFrontendEvents({ includeHidden: true, populateRules: true });
   }
 
-  async updateEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<IFrontendEvent[]> {
+  async updateEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<IFeEvent[]> {
     const eventWithSameRank = await this.eventModel
       .findOne({ eventId: { $ne: eventId }, rank: updateEventDto.rank })
       .exec();

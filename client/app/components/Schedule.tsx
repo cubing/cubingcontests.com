@@ -3,7 +3,7 @@ import { utcToZonedTime } from 'date-fns-tz';
 import EventTitle from './EventTitle';
 import ColorSquare from '@c/UI/ColorSquare';
 import { roundFormats } from '@sh/roundFormats';
-import { IActivity, IContestEvent, IRoom, IRound } from '@sh/interfaces';
+import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { roundTypes } from '~/helpers/roundTypes';
 
 const Schedule = ({

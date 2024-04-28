@@ -7,7 +7,7 @@ import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import ContestResults from '~/app/components/ContestResults';
 import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from '@sh/enums';
-import { IContest, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/interfaces';
+import { IContestDto, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/types';
 import { fetchPerson, getContestIdFromName, getWcaCompetitionDetails } from '~/helpers/utilityFunctions';
 import {
   compareAvgs,
@@ -129,7 +129,7 @@ const ImportExportPage = () => {
   const [loadingId, setLoadingId] = useState('');
 
   const [competitionIdText, setCompetitionIdText] = useState('');
-  const [contest, setContest] = useState<IContest>();
+  const [contest, setContest] = useState<IContestDto>();
   const [persons, setPersons] = useState<IPerson[]>([]);
   const [contestJSON, setContestJSON] = useState('');
 
@@ -188,7 +188,7 @@ const ImportExportPage = () => {
     const competitionId = getContestIdFromName(competitionIdText.trim());
     const persons: IPerson[] = []; // used for results preview
     const notFoundPersonNames: string[] = [];
-    let newContest: IContest;
+    let newContest: IContestDto;
 
     try {
       newContest = await getWcaCompetitionDetails(competitionId);

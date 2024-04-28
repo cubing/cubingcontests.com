@@ -1,4 +1,4 @@
-import { IEvent, IRecordType, IResult } from '@sh/interfaces';
+import { IEvent, IRecordType, IResult } from '@sh/types';
 import { getBSClassFromColor } from '~/helpers/utilityFunctions';
 import { getFormattedTime } from '@sh/sharedFunctions';
 

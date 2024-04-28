@@ -1,5 +1,5 @@
 import Tabs from '@c/UI/Tabs';
-import { IContest } from '@sh/interfaces';
+import { IContest } from '@sh/types';
 import { getIsCompType } from '@sh/sharedFunctions';
 
 const ContestLayout = ({

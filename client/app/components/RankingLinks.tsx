@@ -1,4 +1,4 @@
-import { IRanking } from '@sh/interfaces';
+import { IRanking } from '@sh/types';
 
 const RankingLinks = ({ ranking }: { ranking: IRanking }) => {
   return (

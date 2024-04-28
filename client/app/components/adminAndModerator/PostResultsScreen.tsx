@@ -6,7 +6,7 @@ import ResultForm from './ResultForm';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import Button from '@c/UI/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
-import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt, IEventRecordPairs } from '@sh/interfaces';
+import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt, IEventRecordPairs } from '@sh/types';
 import { ContestState } from '@sh/enums';
 import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';

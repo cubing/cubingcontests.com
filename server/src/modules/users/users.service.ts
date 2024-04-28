@@ -16,7 +16,7 @@ import { UserDocument } from '~/src/models/user.model';
 import { PersonsService } from '@m/persons/persons.service';
 import { EmailService } from '@m/email/email.service';
 import { Role } from '@sh/enums';
-import { IFrontendUser } from '@sh/interfaces';
+import { IFeUser } from '@sh/types';
 import C from '@sh/constants';
 import { getFormattedTime } from '@sh/sharedFunctions';
 import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
@@ -59,19 +59,19 @@ export class UsersService {
     return user?.email;
   }
 
-  async getUsers(): Promise<IFrontendUser[]> {
+  async getUsers(): Promise<IFeUser[]> {
     // Make sure this query matches the logic in getUserEmailVerified
     const users = await this.userModel
       .find({ confirmationCodeHash: { $exists: false }, cooldownStarted: { $exists: false } }, frontendUserSelect)
       .exec();
-    const usersForFrontend: IFrontendUser[] = [];
+    const usersForFrontend: IFeUser[] = [];
 
     for (const user of users) usersForFrontend.push(await this.getFrontendUser(user));
 
     return usersForFrontend;
   }
 
-  async getUserDetails(id: string, userMustExist = true): Promise<IFrontendUser> {
+  async getUserDetails(id: string, userMustExist = true): Promise<IFeUser> {
     const user = await this.userModel.findOne({ _id: new mongoose.Types.ObjectId(id) }, frontendUserSelect).exec();
 
     if (!user) {
@@ -230,7 +230,7 @@ export class UsersService {
     await user.save();
   }
 
-  async updateUser(updateUserDto: UpdateUserDto): Promise<IFrontendUser[]> {
+  async updateUser(updateUserDto: UpdateUserDto): Promise<IFeUser[]> {
     const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
 
     if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
@@ -275,7 +275,7 @@ export class UsersService {
       .exec();
   }
 
-  private async validateUserObject(user: IUser | IFrontendUser) {
+  private async validateUserObject(user: IUser | IFeUser) {
     const sameEmailUser: UserDocument = await this.userModel
       .findOne({ username: { $ne: user.username }, email: user.email })
       .exec();
@@ -314,7 +314,7 @@ export class UsersService {
     }
   }
 
-  private async getFrontendUser(user: UserDocument): Promise<IFrontendUser> {
+  private async getFrontendUser(user: UserDocument): Promise<IFeUser> {
     return {
       username: user.username,
       email: user.email,

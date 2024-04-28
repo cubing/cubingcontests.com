@@ -1,5 +1,5 @@
 import { RoundFormat, RoundType } from '@sh/enums';
-import { IContestEvent } from '@sh/interfaces';
+import { IContestEvent } from '@sh/types';
 import { eventsSeed } from '~/src/seeds/events.seed';
 
 export const newContestEventsStub = (): IContestEvent[] => {

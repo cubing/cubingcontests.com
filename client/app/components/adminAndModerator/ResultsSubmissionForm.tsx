@@ -11,7 +11,7 @@ import FormDateInput from '@c/form/FormDateInput';
 import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
 import CreatorDetails from '@c/CreatorDetails';
-import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/interfaces';
+import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/types';
 import { RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import C from '@sh/constants';

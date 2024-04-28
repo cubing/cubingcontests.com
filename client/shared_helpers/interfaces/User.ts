@@ -1,7 +1,7 @@
 import { Role } from '@sh/enums';
-import { IPerson } from '@sh/interfaces';
+import { IPerson } from '@sh/types';
 
-export interface IFrontendUser {
+export interface IFeUser {
   username: string;
   email: string;
   roles?: Role[];

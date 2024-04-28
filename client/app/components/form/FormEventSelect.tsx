@@ -1,6 +1,6 @@
 'use client';
 
-import { IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/types';
 
 const FormEventSelect = ({
   title = 'Event',

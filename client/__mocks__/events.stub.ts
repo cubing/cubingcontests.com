@@ -1,4 +1,4 @@
-import { IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/types';
 import { EventFormat, EventGroup } from '@sh/enums';
 
 export const mockTimeEvent = {

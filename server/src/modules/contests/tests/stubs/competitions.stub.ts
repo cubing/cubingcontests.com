@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { ContestDocument } from '~/src/models/contest.model';
 import { ContestState, ContestType, RoundFormat, RoundType, WcaRecordType } from '@sh/enums';
-import { IRound } from '@sh/interfaces';
+import { IRound } from '@sh/types';
 import { eventsSeed } from '~/src/seeds/events.seed';
 
 export const competitionsStub = (): ContestDocument[] => {

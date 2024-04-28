@@ -5,7 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormCheckbox from '@c/form/FormCheckbox';
 import ColorSquare from '@c/UI/ColorSquare';
-import { IRecordType } from '@sh/interfaces';
+import { IRecordType } from '@sh/types';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
 

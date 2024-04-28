@@ -1,6 +1,6 @@
 import { getAttempt } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
-import { IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/types';
 import C from '@sh/constants';
 import { getFormattedTime } from '@sh/sharedFunctions';
 import { mockTimeEvent } from '~/__mocks__/events.stub';

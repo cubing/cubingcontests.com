@@ -26,7 +26,7 @@ import {
   IPerson,
   ICompetitionDetails,
   IContestEvent,
-  IContest,
+  IContestDto,
   IEvent,
   IRound,
   IProceed,
@@ -38,7 +38,7 @@ import {
   IMeetupDetails,
   ITimeLimit,
   ICutoff,
-} from '@sh/interfaces';
+} from '@sh/types';
 import { CreateEventDto } from '@m/events/dto/create-event.dto';
 import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
@@ -70,7 +70,7 @@ class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintI
   }
 }
 
-export class CreateContestDto implements IContest {
+export class CreateContestDto implements IContestDto {
   @IsString()
   @MinLength(5, getMinLengthOpts('contest ID', 5))
   @Matches(/^[a-zA-Z0-9]*$/, { message: 'The contest ID must only contain alphanumeric characters' })

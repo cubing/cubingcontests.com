@@ -4,7 +4,7 @@ import { format } from 'date-fns-tz';
 import myFetch from './myFetch';
 import { Color, ContestType, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
-import { IAttempt, IContest, IEvent, IPerson, IResult, IRound } from '@sh/interfaces';
+import { IAttempt, IContest, IContestDto, IEvent, IPerson, IResult, IRound } from '@sh/types';
 import { IUserInfo } from './interfaces/UserInfo';
 import { getBestAndAverage } from '@sh/sharedFunctions';
 
@@ -300,7 +300,7 @@ export const shortenEventName = (name: string): string => {
     .replace(' Challenge', '');
 };
 
-export const getWcaCompetitionDetails = async (competitionId: string): Promise<IContest> => {
+export const getWcaCompetitionDetails = async (competitionId: string): Promise<IContestDto> => {
   const { payload: wcaCompData, errors: e1 } = await myFetch.get(`${C.wcaApiBase}/competitions/${competitionId}.json`);
 
   if (e1) throw new Error(e1[0]);
@@ -315,7 +315,7 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
   const startDate = new Date(wcaCompData.date.from);
   const endDate = new Date(wcaCompData.date.till);
 
-  const newContest: IContest = {
+  const newContest: IContestDto = {
     competitionId,
     name: wcaCompData.name,
     type: ContestType.WcaComp,

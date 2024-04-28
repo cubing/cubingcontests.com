@@ -5,7 +5,7 @@ import FormTextInput from './form/FormTextInput';
 import FormNumberInput from './form/FormNumberInput';
 import { getAttempt } from '~/helpers/utilityFunctions';
 import { EventFormat, EventGroup } from '@sh/enums';
-import { IAttempt, IEvent, ITimeLimit } from '@sh/interfaces';
+import { IAttempt, IEvent, ITimeLimit } from '@sh/types';
 import { getAlwaysShowDecimals, getFormattedTime } from '@sh/sharedFunctions';
 import C from '@sh/constants';
 

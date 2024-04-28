@@ -9,7 +9,7 @@ import { AuthService } from '@m/auth/auth.service';
 import { UsersService } from '@m/users/users.service';
 import { EmailService } from '@m/email/email.service';
 import { Role, WcaRecordType } from '@sh/enums';
-import { IEventRankings } from '@sh/interfaces';
+import { IEventRankings } from '@sh/types';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ResultDocument } from '~/src/models/result.model';
 

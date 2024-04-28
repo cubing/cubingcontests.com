@@ -1,5 +1,5 @@
 import '@cubing/icons';
-import { IEvent } from '@sh/interfaces';
+import { IEvent } from '@sh/types';
 import { EventGroup } from '@sh/enums';
 import { shortenEventName } from '~/helpers/utilityFunctions';
 

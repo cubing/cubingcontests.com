@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RankingsTable from '~/app/components/RankingsTable';
 import EventButtons from '~/app/components/EventButtons';
 import EventTitle from '~/app/components/EventTitle';
-import { IEvent, IEventRankings } from '@sh/interfaces';
+import { IEvent, IEventRankings } from '@sh/types';
 import { EventGroup, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
 

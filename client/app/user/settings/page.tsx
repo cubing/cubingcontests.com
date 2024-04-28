@@ -5,14 +5,14 @@ import myFetch from '~/helpers/myFetch';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import Button from '@c/UI/Button';
 import Competitor from '@c/Competitor';
-import { IFrontendUser } from '@sh/interfaces';
+import { IFeUser } from '@sh/types';
 import { getRoleLabel } from '@sh/sharedFunctions';
 import { Role } from '@sh/enums';
 import { logOutUser } from '~/helpers/utilityFunctions';
 
 const UserSettingsPage = () => {
   const [errorMessages, setErrorMessages] = useState([]);
-  const [user, setUser] = useState<IFrontendUser>();
+  const [user, setUser] = useState<IFeUser>();
 
   const filteredRoles = user?.roles?.filter((r) => r !== Role.User) ?? [];
 

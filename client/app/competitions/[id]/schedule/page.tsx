@@ -1,7 +1,7 @@
 import myFetch from '~/helpers/myFetch';
 import ContestLayout from '@c/ContestLayout';
 import Schedule from '@c/Schedule';
-import { IContest } from '@sh/interfaces';
+import { IContest } from '@sh/types';
 import C from '@sh/constants';
 
 const CompetitionSchedulePage = async ({ params }: { params: { id: string } }) => {

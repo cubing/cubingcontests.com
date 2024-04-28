@@ -84,7 +84,7 @@ export class ContestsController {
   async updateState(
     @Param('competitionId') competitionId: string,
     @Param('newState') newState: string,
-    @Request() req: any, // this is passed in by the guards
+    @Request() req: any,
   ) {
     this.logger.logAndSave(`Setting state ${newState} for contest ${competitionId}`, LogType.UpdateContestState);
 

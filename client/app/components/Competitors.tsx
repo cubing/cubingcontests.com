@@ -1,5 +1,5 @@
 import Competitor from '@c/Competitor';
-import { IPerson } from '@sh/interfaces';
+import { IPerson } from '@sh/types';
 
 const Competitors = ({
   persons,

@@ -33,6 +33,8 @@ export enum LogType {
   ResetPassword = 'reset_password',
   DeleteUser = 'delete_user',
 
+  StartNewSolution = 'start_new_solution',
+
   EnterAttempt = 'enter_attempt',
   DebugEmail = 'debug_email',
 }

@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import EventResultsTable from '@c/EventResultsTable';
 import EventButtons from '@c/EventButtons';
-import { IContest, IContestEvent, IPerson, IRecordType } from '@sh/interfaces';
+import { IContest, IContestDto, IContestEvent, IPerson, IRecordType } from '@sh/types';
 
 const ContestResults = ({
   contest,
   persons,
   activeRecordTypes,
 }: {
-  contest: IContest;
+  contest: IContest | IContestDto;
   persons: IPerson[];
   activeRecordTypes: IRecordType[];
 }) => {

@@ -1,5 +1,5 @@
 import RankingRow from './RankingRow';
-import { IEvent, IRanking } from '@sh/interfaces';
+import { IEvent, IRanking } from '@sh/types';
 
 const RankingsTable = ({
   rankings,

@@ -2,7 +2,7 @@ import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitor from '@c/Competitor';
 import Button from '@c/UI/Button';
-import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/interfaces';
+import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/types';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
 import { roundFormats } from '@sh/roundFormats';

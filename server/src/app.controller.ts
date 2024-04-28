@@ -31,7 +31,7 @@ import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { LogType } from '~/src/helpers/enums';
 import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { IContest } from '@sh/interfaces';
+import { IContest } from '@sh/types';
 import { EmailService } from '~/src/modules/email/email.service';
 
 @Controller()

@@ -7,7 +7,7 @@ import EventTitle from '@c/EventTitle';
 import Solves from '@c/Solves';
 import Competitors from '@c/Competitors';
 import C from '@sh/constants';
-import { IEventRankings } from '@sh/interfaces';
+import { IEventRankings } from '@sh/types';
 import { getFormattedTime } from '@sh/sharedFunctions';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';

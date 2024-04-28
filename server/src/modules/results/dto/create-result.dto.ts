@@ -15,7 +15,7 @@ import {
   ValidatorConstraintInterface,
   Validate,
 } from 'class-validator';
-import { IAttempt, IResult } from '@sh/interfaces';
+import { IAttempt, IResult } from '@sh/types';
 import { Type } from 'class-transformer';
 import C from '@sh/constants';
 

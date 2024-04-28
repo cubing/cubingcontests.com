@@ -1,4 +1,4 @@
-import { IRecordType } from '@sh/interfaces';
+import { IRecordType } from '@sh/types';
 import { recordTypesSeed } from '~/src/seeds/record-types.seed';
 
 export const recordTypesStub = (): IRecordType[] => {

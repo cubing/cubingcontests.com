@@ -1,7 +1,7 @@
 'use client';
 
 import RoundResultsTable from './RoundResultsTable';
-import { IContestEvent, IPerson, IRecordType } from '@sh/interfaces';
+import { IContestEvent, IPerson, IRecordType } from '@sh/types';
 import { useEffect, useState } from 'react';
 import { roundTypes } from '~/helpers/roundTypes';
 import EventTitle from './EventTitle';

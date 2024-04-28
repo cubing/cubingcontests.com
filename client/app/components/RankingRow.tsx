@@ -8,7 +8,7 @@ import ContestName from '@c/ContestName';
 import Solves from '@c/Solves';
 import RankingLinks from '@c/RankingLinks';
 import Competitors from '@c/Competitors';
-import { IEvent, IPerson, IRanking } from '@sh/interfaces';
+import { IEvent, IPerson, IRanking } from '@sh/types';
 import { getFormattedTime } from '@sh/sharedFunctions';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
 
