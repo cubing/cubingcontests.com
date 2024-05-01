@@ -53,8 +53,12 @@ export class CollectiveSolutionService {
     const newSolution = await this.collectiveSolutionModel.create(newCollectiveSolution);
 
     const oldSolution = await this.collectiveSolutionModel.findOne({ state: 20 }).exec();
-    oldSolution.state = 30; // archive old solution
-    oldSolution.save();
+
+    // Archive old solution
+    if (oldSolution) {
+      oldSolution.state = 30;
+      oldSolution.save();
+    }
 
     return this.mapCollectiveSolution(newSolution);
   }
