@@ -81,3 +81,6 @@ export const getBaseAvgsFilter = (
 };
 
 export const getUserEmailVerified = (user: IUser) => user.confirmationCodeHash === undefined && !user.cooldownStarted;
+
+export const importEsmModule = async <T = any>(moduleName: string): Promise<T> =>
+  await (eval(`import('${moduleName}')`) as Promise<T>);

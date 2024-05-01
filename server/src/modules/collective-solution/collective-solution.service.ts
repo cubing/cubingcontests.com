@@ -1,15 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { Alg } from 'cubing/alg';
-import { cube3x3x3 } from 'cubing/puzzles';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CollectiveSolutionDocument } from '~/src/models/collective-solution.model';
 import { ICollectiveSolution, IFeCollectiveSolution } from '@sh/types';
-import { CreateCollectiveSolutionDto } from '@m/collective-solution/dto/create-collective-solution.dto';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { LogType } from '~/src/helpers/enums';
 import { MakeMoveDto } from '~/src/modules/collective-solution/dto/make-move.dto';
+import { importEsmModule } from '~/src/helpers/utilityFunctions';
 
 @Injectable()
 export class CollectiveSolutionService {
@@ -26,24 +24,31 @@ export class CollectiveSolutionService {
     return this.mapCollectiveSolution(currentSolution);
   }
 
-  public async startNewSolution(
-    createCollectiveSolutionDto: CreateCollectiveSolutionDto,
-    user: IPartialUser,
-  ): Promise<IFeCollectiveSolution> {
+  public async startNewSolution(user: IPartialUser): Promise<IFeCollectiveSolution> {
     this.logger.logAndSave('Generating new Collective Cubing scramble.', LogType.StartNewSolution);
 
-    const currentSolution = await this.getCurrentSolution();
+    const { randomScrambleForEvent } = await importEsmModule('cubing/scramble');
 
+    const currentSolution = await this.getCurrentSolution();
+    const eventId = '333';
+    const scramble = await randomScrambleForEvent(eventId);
     const newCollectiveSolution: ICollectiveSolution = {
-      ...createCollectiveSolutionDto,
+      eventId,
       attemptNumber: (currentSolution?.attemptNumber ?? 0) + 1,
+      scramble,
       solution: '',
       lastUserWhoInteracted: new mongoose.Types.ObjectId(user._id as string),
       usersWhoMadeMoves: [],
       state: 10,
     };
 
-    return this.mapCollectiveSolution(await this.collectiveSolutionModel.create(newCollectiveSolution));
+    const newSolution = await this.collectiveSolutionModel.create(newCollectiveSolution);
+
+    const oldSolution = await this.collectiveSolutionModel.findOne({ state: 20 }).exec();
+    oldSolution.state = 30; // archive old solution
+    oldSolution.save();
+
+    return this.mapCollectiveSolution(newSolution);
   }
 
   public async makeMove(makeMoveDto: MakeMoveDto, user: IPartialUser): Promise<IFeCollectiveSolution> {
@@ -52,8 +57,12 @@ export class CollectiveSolutionService {
     if (!currentSolution)
       throw new BadRequestException("A solve hasn't been started yet. Please generate a scramble first.");
 
-    if (user._id === currentSolution.lastUserWhoInteracted.toString())
-      throw new BadRequestException('You may not make two moves in a row');
+    if (user._id === currentSolution.lastUserWhoInteracted.toString()) {
+      const message = currentSolution.solution
+        ? 'You may not make two moves in a row'
+        : 'You scrambled the cube, so you may not make the first move';
+      throw new BadRequestException(message);
+    }
 
     if (currentSolution.solution !== makeMoveDto.lastSeenSolution)
       throw new BadRequestException('The state of the cube has changed before your move. Please reload and try again.');
@@ -91,11 +100,16 @@ export class CollectiveSolutionService {
   }
 
   async getIsSolved(collectiveSolution: CollectiveSolutionDocument): Promise<boolean> {
+    const { cube3x3x3 } = await importEsmModule('cubing/puzzles');
+    const { Alg } = await importEsmModule('cubing/alg');
+
     const kpuzzle = await cube3x3x3.kpuzzle();
-    const originalScramble = new Alg(`${collectiveSolution.scramble} z ${collectiveSolution.solution}`);
-    return kpuzzle
+    const scramble = new Alg(`${collectiveSolution.scramble} z2 ${collectiveSolution.solution}`);
+    const isSolved = kpuzzle
       .defaultPattern()
-      .applyAlg(originalScramble)
+      .applyAlg(scramble)
       .experimentalIsSolved({ ignorePuzzleOrientation: true, ignoreCenterOrientation: true });
+
+    return isSolved;
   }
 }

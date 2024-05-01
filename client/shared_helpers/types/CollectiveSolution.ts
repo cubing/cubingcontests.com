@@ -1,3 +1,5 @@
+import { NxNMove } from '@sh/types';
+
 export type ICollectiveSolution = {
   eventId: string;
   attemptNumber: number;
@@ -11,4 +13,9 @@ export type ICollectiveSolution = {
 export type IFeCollectiveSolution = Omit<ICollectiveSolution, 'usersWhoMadeMoves' | 'lastUserWhoInteracted'> & {
   lastUserWhoInteractedId: string;
   totalUsersWhoMadeMoves: number;
+};
+
+export type IMakeMoveDto = {
+  move: NxNMove;
+  lastSeenSolution: string;
 };

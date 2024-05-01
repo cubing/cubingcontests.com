@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { TwistyPlayer } from 'cubing/twisty';
-import { randomScrambleForEvent } from 'cubing/scramble';
 import myFetch, { FetchObj } from '~/helpers/myFetch';
 import Button from '@c/UI/Button';
-import { IFeCollectiveSolution, NxNMove } from '@sh/types';
+import { IFeCollectiveSolution, IMakeMoveDto, NxNMove } from '@sh/types';
 
 const cubeMoves: [NxNMove[], NxNMove[], NxNMove[]] = [
-  ['Z' as NxNMove, 'L', 'F', 'R', 'B', 'D'],
+  ['U', 'L', 'F', 'R', 'B', 'D'],
   ["U'", "L'", "F'", "R'", "B'", "D'"],
   ['U2', 'L2', 'F2', 'R2', 'B2', 'D2'],
 ];
@@ -35,9 +34,12 @@ const CollectiveCubing = () => {
   const [loadingId, setLoadingId] = useState('');
   const [collectiveSolutionError, setCollectiveSolutionError] = useState('');
   const [collectiveSolution, setCollectiveSolution] = useState<IFeCollectiveSolution>();
-  const [selectedMove, setSelectedMove] = useState<NxNMove>();
+  const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
   const isSolved = !collectiveSolution || collectiveSolution.state === 20;
+  const numberOfSolves = collectiveSolution
+    ? collectiveSolution.attemptNumber - (collectiveSolution.state < 20 ? 1 : 0)
+    : 0;
 
   useEffect(() => {
     myFetch.get('/collective-solution').then(({ payload, errors }: FetchObj<IFeCollectiveSolution>) => {
@@ -55,13 +57,7 @@ const CollectiveCubing = () => {
   const scrambleCube = async () => {
     setLoadingId('scramble_button');
 
-    const eventId = '333';
-    const scramble = (await randomScrambleForEvent(eventId)).toString();
-
-    const { payload, errors }: FetchObj<IFeCollectiveSolution> = await myFetch.post('/collective-solution', {
-      eventId,
-      scramble,
-    });
+    const { payload, errors }: FetchObj<IFeCollectiveSolution> = await myFetch.post('/collective-solution', {});
 
     if (errors) {
       setCollectiveSolutionError(errors[0]);
@@ -77,7 +73,8 @@ const CollectiveCubing = () => {
   const confirmMove = async () => {
     setLoadingId('confirm_button');
 
-    const { payload, errors } = await myFetch.post(`/collective-solution/${selectedMove}`, {});
+    const makeMoveDto: IMakeMoveDto = { move: selectedMove, lastSeenSolution: collectiveSolution.solution };
+    const { payload, errors } = await myFetch.post('/collective-solution/make-move', makeMoveDto);
 
     if (errors) {
       setCollectiveSolutionError(errors[0]);
@@ -88,6 +85,8 @@ const CollectiveCubing = () => {
       setCollectiveSolutionError('');
       setLoadingId('');
     }
+
+    setSelectedMove(null);
   };
 
   return (
@@ -115,7 +114,7 @@ const CollectiveCubing = () => {
               className="btn-success w-100 mt-2 mb-4"
             />
           )}
-          <p>Total solves: {collectiveSolution ? collectiveSolution.attemptNumber - 1 : 0}</p>
+          <p>All-time number of solves: {numberOfSolves}</p>
         </div>
         <div className="col-8" style={{ maxWidth: '500px' }}>
           {!isSolved && (
@@ -146,7 +145,8 @@ const CollectiveCubing = () => {
                 />
               </div>
               <div className="row p-3">
-                Moves used: {collectiveSolution?.solution ? collectiveSolution.solution.match(/ /g).length + 1 : 0}
+                Moves used:{' '}
+                {collectiveSolution?.solution ? (collectiveSolution.solution.match(/ /g)?.length ?? 0) + 1 : 0}
               </div>
             </>
           )}

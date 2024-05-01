@@ -27,7 +27,7 @@ export type { IAdminStats } from './interfaces/AdminStats';
 
 // Types
 export type { IEvent, IFeEvent } from './types/Event';
-export type { ICollectiveSolution, IFeCollectiveSolution } from './types/CollectiveSolution';
+export type { ICollectiveSolution, IFeCollectiveSolution, IMakeMoveDto } from './types/CollectiveSolution';
 export type { NxNMove } from './types/NxNMove';
 
 // WCIF types

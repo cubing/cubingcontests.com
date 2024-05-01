@@ -6,6 +6,7 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": ["public", "scorecards/fonts/*", "**/email/templates/*"],
-    "watchAssets": true
+    "watchAssets": true,
+    "typeCheck": true
   }
 }
