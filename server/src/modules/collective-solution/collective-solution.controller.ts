@@ -1,11 +1,9 @@
-import { Body, Request, Controller, Get, Post, UseGuards, ValidationPipe, Param } from '@nestjs/common';
+import { Body, Request, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { CollectiveSolutionService } from '@m/collective-solution/collective-solution.service';
 import { Role } from '@sh/enums';
-import { NxNMove } from '@sh/types';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
-import { CreateCollectiveSolutionDto } from '@m/collective-solution/dto/create-collective-solution.dto';
 import { MakeMoveDto } from '@m/collective-solution/dto/make-move.dto';
 
 @Controller('collective-solution')
@@ -22,11 +20,8 @@ export class CollectiveSolutionController {
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
-  async startNewSolution(
-    @Body(new ValidationPipe()) createCollectiveSolutionDto: CreateCollectiveSolutionDto,
-    @Request() req: any,
-  ) {
-    return await this.service.startNewSolution(createCollectiveSolutionDto, req.user);
+  async startNewSolution(@Request() req: any) {
+    return await this.service.startNewSolution(req.user);
   }
 
   // POST /collective-solution/make-move
