@@ -36,7 +36,6 @@ import {
   ICutoff,
   ITimeLimit,
   IContestData,
-  IContest,
 } from '@sh/types';
 import {
   Color,
@@ -131,10 +130,10 @@ const ContestForm = ({
     const newFiltEv = isAdmin
       ? events
       : events.filter(
-          (ev) =>
-            !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)) &&
+        (ev) =>
+          !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)) &&
             (type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA)),
-        );
+      );
 
     // Reset new event ID if new filtered events don't include it
     if (newFiltEv.length > 0 && !newFiltEv.some((ev) => ev.eventId === newEventId))
