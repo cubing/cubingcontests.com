@@ -25,6 +25,14 @@ export class CollectiveSolutionService {
   }
 
   public async startNewSolution(user: IPartialUser): Promise<IFeCollectiveSolution> {
+    const alreadyScrambledSolution = await this.collectiveSolutionModel.findOne({ state: 10 }).exec();
+    if (alreadyScrambledSolution) {
+      throw new BadRequestException({
+        message: 'The cube has already been scrambled',
+        data: { collectiveSolution: this.mapCollectiveSolution(alreadyScrambledSolution) },
+      });
+    }
+
     this.logger.logAndSave('Generating new Collective Cubing scramble.', LogType.StartNewSolution);
 
     const { randomScrambleForEvent } = await importEsmModule('cubing/scramble');
@@ -64,17 +72,19 @@ export class CollectiveSolutionService {
       throw new BadRequestException(message);
     }
 
-    if (currentSolution.solution !== makeMoveDto.lastSeenSolution)
-      throw new BadRequestException('The state of the cube has changed before your move. Please reload and try again.');
+    if (currentSolution.solution !== makeMoveDto.lastSeenSolution) {
+      throw new BadRequestException({
+        message: 'The state of the cube has changed before your move',
+        data: { collectiveSolution: this.mapCollectiveSolution(currentSolution) },
+      });
+    }
 
     currentSolution.solution = `${currentSolution.solution} ${makeMoveDto.move}`.trim();
     currentSolution.lastUserWhoInteracted = new mongoose.Types.ObjectId(user._id as string);
     if (!currentSolution.usersWhoMadeMoves.some((usr) => usr.toString() === user._id))
       currentSolution.usersWhoMadeMoves.push(currentSolution.lastUserWhoInteracted);
 
-    if (await this.getIsSolved(currentSolution)) {
-      currentSolution.state = 20;
-    }
+    if (await this.getIsSolved(currentSolution)) currentSolution.state = 20;
 
     await currentSolution.save();
 

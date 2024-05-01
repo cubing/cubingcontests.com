@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { TwistyPlayer } from 'cubing/twisty';
+import { keyToMove } from 'cubing/alg';
 import myFetch, { FetchObj } from '~/helpers/myFetch';
 import Button from '@c/UI/Button';
 import { IFeCollectiveSolution, IMakeMoveDto, NxNMove } from '@sh/types';
-
-const cubeMoves: [NxNMove[], NxNMove[], NxNMove[]] = [
-  ['U', 'L', 'F', 'R', 'B', 'D'],
-  ["U'", "L'", "F'", "R'", "B'", "D'"],
-  ['U2', 'L2', 'F2', 'R2', 'B2', 'D2'],
-];
+import { nxnMoves } from '@sh/types/NxNMove';
+import { getIsWebglUnsupported } from '~/helpers/utilityFunctions';
 
 const addTwistyPlayerElement = async (alg = '') => {
   const twistyPlayerElements = document.getElementsByTagName('twisty-player');
@@ -31,8 +28,12 @@ const addTwistyPlayerElement = async (alg = '') => {
 const getCubeState = (colSol: IFeCollectiveSolution): string => `${colSol.scramble} z2 ${colSol.solution}`.trim();
 
 const CollectiveCubing = () => {
+  const isWebglUnsupported = getIsWebglUnsupported();
+
   const [loadingId, setLoadingId] = useState('');
-  const [collectiveSolutionError, setCollectiveSolutionError] = useState('');
+  const [collectiveSolutionError, setCollectiveSolutionError] = useState(
+    isWebglUnsupported ? 'Please enable WebGL to render the cube' : '',
+  );
   const [collectiveSolution, setCollectiveSolution] = useState<IFeCollectiveSolution>();
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
@@ -42,116 +43,139 @@ const CollectiveCubing = () => {
     : 0;
 
   useEffect(() => {
+    if (isWebglUnsupported) return;
+
+    const doMoveWithKeyboard = (e: KeyboardEvent) => {
+      const move = keyToMove(e)?.toString();
+      console.log(move);
+      // selectMoveWithKeyboard(move as NxNMove);
+    };
+
     myFetch.get('/collective-solution').then(({ payload, errors }: FetchObj<IFeCollectiveSolution>) => {
       if (errors) {
         setCollectiveSolutionError(errors[0]);
-      } else if (payload) {
-        setCollectiveSolution(payload);
-        addTwistyPlayerElement(getCubeState(payload));
       } else {
-        addTwistyPlayerElement();
+        if (payload) {
+          setCollectiveSolution(payload);
+          addTwistyPlayerElement(getCubeState(payload));
+        } else {
+          addTwistyPlayerElement();
+        }
+
+        addEventListener('keypress', doMoveWithKeyboard);
       }
     });
+
+    return () => removeEventListener('keypress', doMoveWithKeyboard);
   }, []);
+
+  const update = ({ payload, errors, errorData }: FetchObj<IFeCollectiveSolution>) => {
+    const newCollectiveSolution = payload ?? errorData?.collectiveSolution;
+
+    if (errors) setCollectiveSolutionError(errors[0]);
+    else setCollectiveSolutionError('');
+
+    if (newCollectiveSolution) {
+      setCollectiveSolution(newCollectiveSolution);
+      addTwistyPlayerElement(getCubeState(newCollectiveSolution));
+    }
+
+    setSelectedMove(null);
+    setLoadingId('');
+  };
 
   const scrambleCube = async () => {
     setLoadingId('scramble_button');
 
-    const { payload, errors }: FetchObj<IFeCollectiveSolution> = await myFetch.post('/collective-solution', {});
+    const fetchData = await myFetch.post('/collective-solution', {});
+    update(fetchData);
+  };
 
-    if (errors) {
-      setCollectiveSolutionError(errors[0]);
-      setLoadingId('');
-    } else if (payload) {
-      setCollectiveSolution(payload);
-      addTwistyPlayerElement(getCubeState(payload));
-      setCollectiveSolutionError('');
-      setLoadingId('');
-    }
+  const selectMove = (move: NxNMove) => {
+    setSelectedMove(move);
+    document.getElementById('confirm_button')?.focus();
   };
 
   const confirmMove = async () => {
     setLoadingId('confirm_button');
 
     const makeMoveDto: IMakeMoveDto = { move: selectedMove, lastSeenSolution: collectiveSolution.solution };
-    const { payload, errors } = await myFetch.post('/collective-solution/make-move', makeMoveDto);
-
-    if (errors) {
-      setCollectiveSolutionError(errors[0]);
-      setLoadingId('');
-    } else if (payload) {
-      setCollectiveSolution(payload);
-      addTwistyPlayerElement(getCubeState(payload));
-      setCollectiveSolutionError('');
-      setLoadingId('');
-    }
-
-    setSelectedMove(null);
+    const fetchData = await myFetch.post('/collective-solution/make-move', makeMoveDto);
+    update(fetchData);
   };
 
   return (
     <>
       <p>
-        Let's solve Rubik's Cubes together! Simply log in and make a turn. U is the yellow face, F is the green face.
-        You may not make two turns in a row.
+        Let's solve Rubik's Cubes together! Simply log in and make a turn. U is the yellow face and F is green. You may
+        not make two turns in a row.
       </p>
 
-      {collectiveSolutionError ? (
-        <p className="text-danger">{collectiveSolutionError}</p>
-      ) : (
-        collectiveSolution && <p>Scramble: {collectiveSolution.scramble}</p>
-      )}
+      {collectiveSolutionError && <p className="text-danger fw-bold">{collectiveSolutionError}</p>}
 
-      <div className="row">
-        <div className="col-4">
-          <div id="twisty_player_container"></div>
-          {isSolved && (
-            <Button
-              id="scramble_button"
-              text="Scramble"
-              onClick={scrambleCube}
-              loadingId={loadingId}
-              className="btn-success w-100 mt-2 mb-4"
-            />
-          )}
-          <p>All-time number of solves: {numberOfSolves}</p>
-        </div>
-        <div className="col-8" style={{ maxWidth: '500px' }}>
-          {!isSolved && (
-            <>
-              {cubeMoves.map((row, index) => (
-                <div key={index} className="row my-3">
-                  {row.map((move) => (
-                    <div key={move} className="col">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedMove(move)}
-                        className={`btn btn-primary ${selectedMove === move ? 'active' : ''} w-100`}
-                      >
-                        {move}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ))}
-              <div className="row p-2">
-                <Button
-                  id="confirm_button"
-                  text="Confirm"
-                  onClick={confirmMove}
-                  disabled={!selectedMove}
-                  loadingId={loadingId}
-                  className="btn-success"
-                />
+      {!isWebglUnsupported && (
+        <>
+          {collectiveSolution && <p>Scramble: {collectiveSolution.scramble}</p>}
+
+          <div className="row gap-3">
+            <div className="col-md-4">
+              <div className="d-flex flex-column align-items-center">
+                <div id="twisty_player_container" style={{ maxWidth: '100%' }}></div>
+                {isSolved && (
+                  <Button
+                    id="scramble_button"
+                    text="Scramble"
+                    onClick={scrambleCube}
+                    loadingId={loadingId}
+                    className="btn-success w-100 mt-2 mb-4"
+                  />
+                )}
+                <p>
+                  All-time number of solves: <b>{numberOfSolves}</b>
+                </p>
               </div>
-              <div className="row p-3">
-                Moves used:{' '}
-                {collectiveSolution?.solution ? (collectiveSolution.solution.match(/ /g)?.length ?? 0) + 1 : 0}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+            <div className="col-md-8 " style={{ maxWidth: '500px' }}>
+              {!isSolved && (
+                <>
+                  <div
+                    className="gap-1 gap-md-3 mt-1 mt-md-4"
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)' }}
+                  >
+                    {nxnMoves.map((move) => (
+                      <div key={move} className="p-0">
+                        <button
+                          type="button"
+                          onClick={() => selectMove(move)}
+                          className={`btn btn-primary ${selectedMove === move ? 'active' : ''} w-100`}
+                        >
+                          {move}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="my-3 my--md-4">
+                    <Button
+                      id="confirm_button"
+                      text="Confirm"
+                      onClick={confirmMove}
+                      disabled={!selectedMove}
+                      loadingId={loadingId}
+                      className="btn-success w-100"
+                    />
+                  </div>
+                  <p className="my-2">
+                    Moves used:{' '}
+                    <b>
+                      {collectiveSolution?.solution ? (collectiveSolution.solution.match(/ /g)?.length ?? 0) + 1 : 0}
+                    </b>
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 };

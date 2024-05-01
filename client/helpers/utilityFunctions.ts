@@ -443,3 +443,15 @@ export const logOutUser = () => {
   localStorage.removeItem('jwtToken');
   window.location.href = '/';
 };
+
+export const getIsWebglUnsupported = (): boolean => {
+  try {
+    const canvas = document.createElement('canvas');
+    const webglContext = canvas.getContext('webgl');
+    const webglExperimentalContext = canvas.getContext('experimental-webgl');
+
+    return !window.WebGLRenderingContext || !webglContext || !webglExperimentalContext;
+  } catch (e) {
+    return true;
+  }
+};

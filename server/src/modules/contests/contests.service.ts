@@ -148,6 +148,13 @@ export class ContestsService {
     // Check access rights
     if (!user.roles.includes(Role.Admin)) {
       const person = await this.personsService.getPersonById(user.personId);
+
+      if (!person) {
+        throw new BadRequestException(
+          'Your profile must be tied to your account before you can use moderator features',
+        );
+      }
+
       queryFilter = { organizers: person._id };
     }
 

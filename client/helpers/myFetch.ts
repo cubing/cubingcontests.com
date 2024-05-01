@@ -3,6 +3,7 @@ type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 export type FetchObj<T = any> = {
   payload?: T;
   errors?: string[];
+  errorData?: any;
 };
 
 const API_BASE_URL =
@@ -94,20 +95,22 @@ const doFetch = async (
       return {};
     } else {
       let errors: string[];
+      let errorData: any;
 
       if (json?.message) {
         // Sometimes the server returns the message as a single string and sometimes as an array of messages
         if (typeof json.message === 'string') errors = [json.message];
         else errors = json.message;
 
-        errors = errors.filter((err) => err !== '');
+        errors = errors.filter((err) => err.trim() !== '');
+        errorData = json.data;
       } else if (res.status === 404 || is404) {
         errors = [`Not found: ${url}`];
       } else {
         errors = ['Unknown error'];
       }
 
-      return { errors };
+      return { errors, errorData };
     }
   } else if (!fileName && json) {
     return { payload: json };
