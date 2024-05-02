@@ -27,7 +27,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
     let newPosition = -tooltipWidth / 2;
 
     if (optimalLeftEdge < 0) newPosition += -optimalLeftEdge;
-    else if (optimalRightEdge > window.screen.width) newPosition -= optimalRightEdge - window.screen.width;
+    else if (optimalRightEdge > window.innerWidth) newPosition -= optimalRightEdge - window.innerWidth;
 
     tooltipDiv.style.left = newPosition + 'px';
   };
@@ -43,7 +43,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
           className="position-absolute z-2 bg-black"
           style={{ height: '1.5rem', width: '1.5rem', rotate: '45deg' }}
         />
-        <div className="position-relative start-0 z-3 overflow-visible mt-2" style={{ width: '0' }}>
+        <div className="position-relative z-3 overflow-visible mt-2" style={{ width: '0' }}>
           {/* Tooltip */}
           <div
             id={id}

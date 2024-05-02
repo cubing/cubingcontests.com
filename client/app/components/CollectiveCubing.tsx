@@ -8,6 +8,7 @@ import Button from '@c/UI/Button';
 import { IFeCollectiveSolution, IMakeMoveDto, NxNMove } from '@sh/types';
 import { nxnMoves } from '@sh/types/NxNMove';
 import { getIsWebglUnsupported } from '~/helpers/utilityFunctions';
+import { Color } from '~/shared_helpers/enums';
 
 const addTwistyPlayerElement = async (alg = '') => {
   const twistyPlayerElements = document.getElementsByTagName('twisty-player');
@@ -104,11 +105,28 @@ const CollectiveCubing = () => {
     update(fetchData);
   };
 
+  const coloredTextStyles = 'px-1 bg-dark rounded';
+
   return (
     <>
       <p>
-        Let's solve Rubik's Cubes together! Simply log in and make a turn. U is the yellow face and F is green. You may
-        not make two turns in a row.
+        Let's solve Rubik's Cubes together! Simply log in and make a turn.{' '}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
+          U
+        </b>{' '}
+        is the{' '}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
+          yellow
+        </b>{' '}
+        face and{' '}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>
+          F
+        </b>{' '}
+        is{' '}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>
+          green
+        </b>
+        . You may not make two turns in a row.
       </p>
 
       {collectiveSolutionError && <p className="text-danger fw-bold">{collectiveSolutionError}</p>}
