@@ -20,6 +20,7 @@ const addTwistyPlayerElement = async (alg = '') => {
     hintFacelets: 'none',
     controlPanel: 'none',
     background: 'none',
+    visualization: 'PG3D', // makes the puzzle black
   });
 
   const containerDiv = document.getElementById('twisty_player_container');
