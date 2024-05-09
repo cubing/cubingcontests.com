@@ -2,8 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { find } from 'geo-tz';
 import { addDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { CreateContestDto } from './dto/create-contest.dto';
-import { UpdateContestDto } from './dto/update-contest.dto';
+import { ContestDto } from './dto/contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { ContestEvent, ContestDocument } from '~/src/models/contest.model';
@@ -195,34 +194,34 @@ export class ContestsService {
 
   // Create new contest, if one with that ID doesn't already exist
   async createContest(
-    createContestDto: CreateContestDto,
+    contestDto: ContestDto,
     { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
   ) {
     const isAdmin = user.roles.includes(Role.Admin);
-    const contestUrl = this.getContestUrl(createContestDto.competitionId);
+    const contestUrl = this.getContestUrl(contestDto.competitionId);
 
     // Only admins are allowed to import contests and have the results immediately saved
     if (!isAdmin) saveResults = false;
 
-    this.validateContest(createContestDto, user);
+    this.validateContest(contestDto, user);
 
-    const comp1 = await this.contestModel.findOne({ competitionId: createContestDto.competitionId }).exec();
-    if (comp1) throw new BadRequestException(`A contest with the ID ${createContestDto.competitionId} already exists`);
-    const comp2 = await this.contestModel.findOne({ name: createContestDto.name }).exec();
-    if (comp2) throw new BadRequestException(`A contest with the name ${createContestDto.name} already exists`);
+    const comp1 = await this.contestModel.findOne({ competitionId: contestDto.competitionId }).exec();
+    if (comp1) throw new BadRequestException(`A contest with the ID ${contestDto.competitionId} already exists`);
+    const comp2 = await this.contestModel.findOne({ name: contestDto.name }).exec();
+    if (comp2) throw new BadRequestException(`A contest with the name ${contestDto.name} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
       const contestEvents: ContestEvent[] = [];
       const contestCreatorEmail = await this.usersService.getUserEmail({ _id: user._id });
 
-      for (const contestEvent of createContestDto.events) {
+      for (const contestEvent of contestDto.events) {
         contestEvents.push(await this.getNewContestEvent(contestEvent, saveResults));
       }
 
       // Create new contest
       const newCompetition: IContest = {
-        ...createContestDto,
+        ...contestDto,
         events: contestEvents,
         createdBy: new mongoose.Types.ObjectId(user._id as string),
         state: ContestState.Created,
@@ -232,18 +231,18 @@ export class ContestsService {
       };
 
       newCompetition.organizers = await this.personsService.getPersonsById(
-        createContestDto.organizers.map((org) => org.personId),
+        contestDto.organizers.map((org) => org.personId),
       );
 
-      if (createContestDto.type === ContestType.Meetup) {
+      if (contestDto.type === ContestType.Meetup) {
         newCompetition.timezone = find(
-          createContestDto.latitudeMicrodegrees / 1000000,
-          createContestDto.longitudeMicrodegrees / 1000000,
+          contestDto.latitudeMicrodegrees / 1000000,
+          contestDto.longitudeMicrodegrees / 1000000,
         )[0];
       }
 
-      if (createContestDto.compDetails?.schedule) {
-        newCompetition.compDetails.schedule = await this.scheduleModel.create(createContestDto.compDetails.schedule);
+      if (contestDto.compDetails?.schedule) {
+        newCompetition.compDetails.schedule = await this.scheduleModel.create(contestDto.compDetails.schedule);
       }
 
       await this.contestModel.create(newCompetition);
@@ -259,65 +258,63 @@ export class ContestsService {
       }
     } catch (err) {
       // Remove created schedule
-      await this.scheduleModel.deleteMany({ competitionId: createContestDto.competitionId }).exec();
+      await this.scheduleModel.deleteMany({ competitionId: contestDto.competitionId }).exec();
 
       throw new InternalServerErrorException(err.message);
     }
   }
 
-  async updateContest(competitionId: string, updateContestDto: UpdateContestDto, user: IPartialUser) {
+  async updateContest(competitionId: string, contestDto: ContestDto, user: IPartialUser) {
     // Makes sure the user is an admin or a moderator who has access rights to the UNFINISHED contest.
     // If the contest is finished and the user is not an admin, an unauthorized exception is thrown.
     // Do not exclude internal fields so that the contest can be saved.
     const contest = await this.getFullContest(competitionId, user, { ignoreState: false, exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
-    this.validateContest(updateContestDto, user);
+    this.validateContest(contestDto, user);
 
-    contest.organizers = await this.personsService.getPersonsById(
-      updateContestDto.organizers.map((org) => org.personId),
-    );
-    contest.contact = updateContestDto.contact;
-    contest.description = updateContestDto.description;
-    contest.events = await this.updateContestEvents(contest, updateContestDto.events);
+    contest.organizers = await this.personsService.getPersonsById(contestDto.organizers.map((org) => org.personId));
+    contest.contact = contestDto.contact;
+    contest.description = contestDto.description;
+    contest.events = await this.updateContestEvents(contest, contestDto.events);
 
-    if (updateContestDto.compDetails) {
+    if (contestDto.compDetails) {
       if (contest.compDetails) {
         if (contest.state < ContestState.Finished) {
           await this.scheduleModel.updateOne(
             { _id: contest.compDetails.schedule._id },
-            updateContestDto.compDetails.schedule,
+            contestDto.compDetails.schedule,
           );
         }
       }
       // compDetails might be undefined if the contest was imported
       else {
         contest.compDetails = {
-          schedule: await this.scheduleModel.create(updateContestDto.compDetails.schedule),
+          schedule: await this.scheduleModel.create(contestDto.compDetails.schedule),
         };
       }
-    } else if (updateContestDto.meetupDetails) {
-      contest.meetupDetails = updateContestDto.meetupDetails;
+    } else if (contestDto.meetupDetails) {
+      contest.meetupDetails = contestDto.meetupDetails;
     }
 
     if (isAdmin || contest.state < ContestState.Approved) {
-      contest.name = updateContestDto.name;
+      contest.name = contestDto.name;
       if (contest.type !== ContestType.Online) {
-        contest.city = updateContestDto.city;
-        contest.venue = updateContestDto.venue;
-        contest.address = updateContestDto.address;
+        contest.city = contestDto.city;
+        contest.venue = contestDto.venue;
+        contest.address = contestDto.address;
       }
-      if (updateContestDto.latitudeMicrodegrees && updateContestDto.longitudeMicrodegrees) {
-        contest.latitudeMicrodegrees = updateContestDto.latitudeMicrodegrees;
-        contest.longitudeMicrodegrees = updateContestDto.longitudeMicrodegrees;
+      if (contestDto.latitudeMicrodegrees && contestDto.longitudeMicrodegrees) {
+        contest.latitudeMicrodegrees = contestDto.latitudeMicrodegrees;
+        contest.longitudeMicrodegrees = contestDto.longitudeMicrodegrees;
       }
-      contest.competitorLimit = updateContestDto.competitorLimit;
+      contest.competitorLimit = contestDto.competitorLimit;
     }
 
     // Even an admin is not allowed to edit these after a comp has been approved
     if (contest.state < ContestState.Approved) {
-      contest.startDate = updateContestDto.startDate;
-      if (getIsCompType(contest.type)) contest.endDate = updateContestDto.endDate;
+      contest.startDate = contestDto.startDate;
+      if (getIsCompType(contest.type)) contest.endDate = contestDto.endDate;
     }
 
     await this.saveContest(contest);

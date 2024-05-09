@@ -70,7 +70,7 @@ class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintI
   }
 }
 
-export class CreateContestDto implements IContestDto {
+export class ContestDto implements IContestDto {
   @IsString()
   @MinLength(5, getMinLengthOpts('contest ID', 5))
   @Matches(/^[a-zA-Z0-9]*$/, { message: 'The contest ID must only contain alphanumeric characters' })
@@ -305,13 +305,13 @@ class RoundDto implements IRound {
   @IsEnum(RoundFormat)
   format: RoundFormat;
 
-  // Actually required for events with the format Time. This is validated inside of CreateContestDto.
+  // Actually required for events with the format Time. This is validated inside of ContestDto.
   @IsOptional()
   @ValidateNested()
   @Type(() => TimeLimitDto)
   timeLimit?: ITimeLimit;
 
-  // Only allowed for events with the format Time. This is also validated inside of CreateContestDto.
+  // Only allowed for events with the format Time. This is also validated inside of ContestDto.
   @IsOptional()
   @ValidateNested()
   @Type(() => CutoffDto)

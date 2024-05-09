@@ -1,4 +1,4 @@
-import { IAttempt } from '@sh/types';
+import { IAttempt, IResult } from '@sh/types';
 import { AttemptDto, CreateResultDto } from './create-result.dto';
 import {
   ArrayMaxSize,
@@ -21,7 +21,7 @@ class HasNonDnfDnsResult implements ValidatorConstraintInterface {
   }
 }
 
-export class SubmitResultDto extends CreateResultDto {
+export class SubmitResultDto extends CreateResultDto implements IResult {
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
   @Validate(HasNonDnfDnsResult)

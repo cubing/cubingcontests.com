@@ -3,13 +3,13 @@ import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs, IFe
 
 /**
  * IMPORTANT: when updating this interface, also update:
- *    (1) the create contest DTO (and update DTO, if needed)
+ *    (1) the contest DTO
  *    (2) the contest model
  * And also consider the following:
  *    (3) CompetitionForm component
  *    (4) ContestResults component
  *    (5) createContest method in the contest service
- *    (6) updateCompetition method in the contest service
+ *    (6) updateContest method in the contest service
  */
 export interface IContest {
   competitionId: string;

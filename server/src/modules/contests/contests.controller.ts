@@ -1,9 +1,8 @@
 import { Controller, Get, Post, Patch, Param, Request, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
-import { CreateContestDto } from './dto/create-contest.dto';
+import { ContestDto } from './dto/contest.dto';
 import { ContestsService } from './contests.service';
-import { UpdateContestDto } from './dto/update-contest.dto';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { ContestState, Role } from '@sh/enums';
@@ -55,12 +54,12 @@ export class ContestsController {
   @Roles(Role.Admin, Role.Moderator)
   async createContest(
     @Request() req: any, // this is passed in by the guards
-    @Body(new ValidationPipe()) createContestDto: CreateContestDto,
+    @Body(new ValidationPipe()) contestDto: ContestDto,
     @Query('saveResults') saveResults = false,
   ) {
-    this.logger.logAndSave(`Creating contest ${createContestDto.competitionId}`, LogType.CreateContest);
+    this.logger.logAndSave(`Creating contest ${contestDto.competitionId}`, LogType.CreateContest);
 
-    return await this.service.createContest(createContestDto, { user: req.user, saveResults });
+    return await this.service.createContest(contestDto, { user: req.user, saveResults });
   }
 
   // PATCH /competitions/:competitionId
@@ -69,12 +68,12 @@ export class ContestsController {
   @Roles(Role.Admin, Role.Moderator)
   async updateContest(
     @Param('competitionId') competitionId: string,
-    @Body(new ValidationPipe()) updateContestDto: UpdateContestDto,
+    @Body(new ValidationPipe()) contestDto: ContestDto,
     @Request() req: any, // this is passed in by the guards
   ) {
     this.logger.logAndSave(`Updating contest ${competitionId}`, LogType.UpdateContest);
 
-    return await this.service.updateContest(competitionId, updateContestDto, req.user);
+    return await this.service.updateContest(competitionId, contestDto, req.user);
   }
 
   // PATCH /competitions/:competitionId/:newState
