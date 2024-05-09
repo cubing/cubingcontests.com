@@ -27,7 +27,7 @@ set_version_in_env() {
 
 if [ "$1" == "--use-version" ]; then
 
-  #### USE OLDER VERSION ####
+  ######  USE OLDER VERSION  ######
 
   # Check that a version argument was passed
   if [ -z "$2" ]; then
@@ -59,7 +59,7 @@ if [ "$1" == "--use-version" ]; then
 
 elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
 
-  #### PRODUCTION ####
+  ######  PRODUCTION  ######
 
   if [ "$1" != "--restart" ]; then  
     sudo apt update &&
@@ -80,10 +80,12 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
 
   restart_containers
 
-else #### DEVELOPMENT ####
+else
+  
+  ######  DEVELOPMENT  ######
 
   # Stop Docker containers
-  docker compose -f docker-compose-prod-dev.yml down &&
+  docker compose -f docker-compose-prod.yml down &&
   docker compose down &&
 
   # Remove all images that contain "denimint"
@@ -95,7 +97,7 @@ else #### DEVELOPMENT ####
     docker build --build-arg API_BASE_URL=http://localhost:5000/api -t cubingcontests-client --file client.Dockerfile . &&
     docker build -t cubingcontests-api --file server.Dockerfile . &&
 
-    docker compose -f docker-compose-prod-dev.yml up
+    docker compose -f docker-compose-prod.yml up
   fi
 
 fi

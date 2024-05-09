@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
 import ContestLayout from '@c/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
@@ -20,10 +20,10 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null, contest.timezone);
   // Not used for competition type contests
   const formattedTime = contest.meetupDetails
-    ? format(utcToZonedTime(contest.meetupDetails.startTime, contest.timezone || 'UTC'), 'H:mm')
+    ? format(toZonedTime(contest.meetupDetails.startTime, contest.timezone || 'UTC'), 'H:mm')
     : null;
   const contestType = contestTypeOptions.find((el) => el.value === contest.type)?.label || 'ERROR';
-  const startOfDayInLocalTZ = getDateOnly(utcToZonedTime(new Date(), contest.timezone || 'UTC'));
+  const startOfDayInLocalTZ = getDateOnly(toZonedTime(new Date(), contest.timezone || 'UTC'));
   const start = new Date(contest.startDate);
   const isOngoing =
     contest.state < ContestState.Finished &&

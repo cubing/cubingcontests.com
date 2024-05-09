@@ -19,14 +19,14 @@ services:
 
   api:
     container_name: cc-api # if this is ever changed, make sure to update all references to the old container name in the code
-    image: denimint/cubingcontests-api:$VERSION
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-api:${VERSION}'
     networks:
       - cubingcontests
     env_file: .env
     ports:
       - 127.0.0.1:5000:5000
     environment:
-      - NODE_ENV=$NODE_ENV
+      - NODE_ENV=production
       - PORT=$BACKEND_PORT
       - MONGO_DEV_USERNAME=$MONGO_DEV_USERNAME
       - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
@@ -38,13 +38,13 @@ services:
 
   client:
     container_name: cc-client
-    image: denimint/cubingcontests-client:$VERSION
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-client:${VERSION}'
     networks:
       - cubingcontests
     ports:
       - 127.0.0.1:3000:3000
     environment:
-      - ENVIRONMENT=$NODE_ENV
+      - ENVIRONMENT=production
     depends_on:
       - mongo
       - api

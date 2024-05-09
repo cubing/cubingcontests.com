@@ -1,12 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import enGB from 'date-fns/locale/en-GB';
-import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import FormInputLabel from './FormInputLabel';
 import { getDateOnly } from '@sh/sharedFunctions';
-import { useEffect } from 'react';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -45,8 +45,8 @@ const FormDatePicker = ({
 
   const onChange = (newDate: Date) => {
     // The time zone conversion is necessary, because otherwise JS uses the user's local time zone
-    if (!showTimeSelect) setValue(getDateOnly(zonedTimeToUtc(newDate, timeZone)));
-    else setValue(zonedTimeToUtc(newDate, timeZone));
+    if (!showTimeSelect) setValue(getDateOnly(fromZonedTime(newDate, timeZone)));
+    else setValue(fromZonedTime(newDate, timeZone));
   };
 
   return (
@@ -55,7 +55,7 @@ const FormDatePicker = ({
 
       <DatePicker
         id={inputId}
-        selected={value && utcToZonedTime(value, timeZone)}
+        selected={value && toZonedTime(value, timeZone)}
         onChange={onChange}
         dateFormat={dateFormat}
         timeFormat={timeFormat}

@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import parseISO from 'date-fns/parseISO';
-import isValid from 'date-fns/isValid';
-import { format } from 'date-fns-tz';
+import { parseISO, isValid } from 'date-fns';
+import { format, fromZonedTime } from 'date-fns-tz';
 import C from '@sh/constants';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
-import { zonedTimeToUtc } from 'date-fns-tz';
 
 const FormDateInput = ({
   id,
@@ -89,7 +87,7 @@ const FormDateInput = ({
           } else {
             const parsed = parseISO(`${newDateText.slice(4)}-${newDateText.slice(2, 4)}-${newDateText.slice(0, 2)}`);
             // The conversion is necessary, because otherwise JS uses the user's local time zone
-            setValue(isValid(parsed) ? zonedTimeToUtc(parsed, 'UTC') : null);
+            setValue(isValid(parsed) ? fromZonedTime(parsed, 'UTC') : null);
           }
 
           changePosition({ change: 1, dateTextLength: newDateText.length });

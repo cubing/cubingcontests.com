@@ -41,7 +41,7 @@ npm install # install backend packages
 
 The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing.
 
-To start just the backend and the DB in development, run this command in the `server` directory:
+To start just the backend and the DB in development, run this command in the `server` directory (runs the backend and the Mongo DB Docker container):
 
 ```sh
 npm run fulldev
@@ -57,9 +57,17 @@ There is an important `shared_helpers` directory in the `client` directory that 
 
 Environment variables are specified in `.env` in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
 
-In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `.env` file must be copied into the `server` directory, renamed, and have the `NODE_ENV` variable set to something besides `production` for the backend to work in development (the `npm run fulldev` commands do this automatically). In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
+In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `npm run fulldev` commands copy `.env` to `server/.env.dev` automatically. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 
 Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS. See that file for more details. The values are taken from the frontend container's environment variables. These must be set during the container's build process when deploying, because that is when Next JS sets the variables in `.env.local`.
+
+### Starting all containers
+
+To start all containers locally, including the frontend, the backend and the database, run this command:
+
+```sh
+./script/start-prod.sh --dev
+```
 
 ### Data structure
 

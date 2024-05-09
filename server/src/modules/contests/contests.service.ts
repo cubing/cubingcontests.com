@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { find } from 'geo-tz';
 import { addDays } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -66,8 +66,8 @@ export class ContestsService {
           for (const venue of s.venues) {
             for (const room of venue.rooms) {
               for (const activity of room.activities) {
-                const startTime = utcToZonedTime(activity.startTime, venue.timezone);
-                const endTime = utcToZonedTime(activity.endTime, venue.timezone);
+                const startTime = toZonedTime(activity.startTime, venue.timezone);
+                const endTime = toZonedTime(activity.endTime, venue.timezone);
 
                 // Check that no activity is outside of the date range of the contest
                 if (startTime < contest.startDate || endTime >= addDays(contest.endDate, 1)) {

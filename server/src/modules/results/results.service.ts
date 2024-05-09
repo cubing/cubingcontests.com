@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
@@ -569,7 +569,7 @@ export class ResultsService {
             for (const act of room.activities) {
               if (act.activityCode === round.roundId) {
                 activity = act;
-                createResultDto.date = getDateOnly(utcToZonedTime(activity.startTime, venue.timezone));
+                createResultDto.date = getDateOnly(toZonedTime(activity.startTime, venue.timezone));
                 break scheduleLoop;
               }
             }

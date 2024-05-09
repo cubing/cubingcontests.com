@@ -151,21 +151,21 @@ export const eventsSeed: IEvent[] = [
   // Unofficial
   ///////////////////////////////////////////////////////////////////
   {
-    eventId: '333_team_bld',
-    name: '3x3x3 Team-Blind',
+    eventId: 'fto',
+    name: 'Face-Turning Octahedron',
     rank: 1000,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial],
-    participants: 2,
   },
   {
-    eventId: 'fto',
-    name: 'Face-turning Octahedron',
+    eventId: '333_team_bld',
+    name: '3x3x3 Team-Blind',
     rank: 1010,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial],
+    participants: 2,
   },
   {
     eventId: 'magic',
@@ -206,15 +206,6 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
-  },
-  {
-    eventId: '333_oh_bld_team_relay',
-    name: '3x3x3 + OH + BLD Team Relay',
-    rank: 1900,
-    format: EventFormat.Time,
-    defaultRoundFormat: RoundFormat.BestOf1,
-    groups: [EventGroup.Unofficial, EventGroup.SubmissionsAllowed],
-    participants: 3,
   },
   ///////////////////////////////////////////////////////////////////
   // Extreme BLD

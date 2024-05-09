@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { addHours, differenceInDays } from 'date-fns';
-import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
@@ -127,13 +127,7 @@ const ContestForm = ({
     [type],
   );
   const filteredEvents = useMemo(() => {
-    const newFiltEv = isAdmin
-      ? events
-      : events.filter(
-        (ev) =>
-          !ev.groups.some((g) => [EventGroup.ExtremeBLD, EventGroup.Removed].includes(g)) &&
-            (type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA)),
-      );
+    const newFiltEv = events.filter((ev) => type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA));
 
     // Reset new event ID if new filtered events don't include it
     if (newFiltEv.length > 0 && !newFiltEv.some((ev) => ev.eventId === newEventId))
@@ -231,8 +225,8 @@ const ContestForm = ({
         setEndDate(new Date(contest.endDate));
 
         const setDefaultActivityTimes = (timezone: string) => {
-          setActivityStartTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 12), timezone));
-          setActivityEndTime(zonedTimeToUtc(addHours(new Date(contest.startDate), 13), timezone));
+          setActivityStartTime(fromZonedTime(addHours(new Date(contest.startDate), 12), timezone));
+          setActivityEndTime(fromZonedTime(addHours(new Date(contest.startDate), 13), timezone));
         };
 
         if (contest.compDetails) {
@@ -361,7 +355,10 @@ const ContestForm = ({
 
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
+      setLoadingId('');
     } else {
+      setErrorMessages([]);
+
       const { errors } =
         mode === 'edit'
           ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp)
@@ -371,7 +368,6 @@ const ContestForm = ({
         setErrorMessages(errors);
         setLoadingId('');
       } else {
-        setErrorMessages([]);
         window.location.href = '/mod';
       }
     }
@@ -396,8 +392,8 @@ const ContestForm = ({
           })),
         );
       } else if (newTab === 'schedule') {
-        setActivityStartTime(zonedTimeToUtc(addHours(new Date(startDate), 12), venueTimeZone));
-        setActivityEndTime(zonedTimeToUtc(addHours(new Date(startDate), 13), venueTimeZone));
+        setActivityStartTime(fromZonedTime(addHours(new Date(startDate), 12), venueTimeZone));
+        setActivityEndTime(fromZonedTime(addHours(new Date(startDate), 13), venueTimeZone));
       }
     }
   };
@@ -477,20 +473,20 @@ const ContestForm = ({
         // Adjust all times to the new time zone
         fetchTimeZone(processedLatitude, processedLongitude).then((timeZone: string) => {
           const start = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 12) : activityStartTime;
-          setActivityStartTime(zonedTimeToUtc(utcToZonedTime(start, venueTimeZone), timeZone));
+          setActivityStartTime(fromZonedTime(toZonedTime(start, venueTimeZone), timeZone));
           const end = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 13) : activityEndTime;
-          setActivityEndTime(zonedTimeToUtc(utcToZonedTime(end, venueTimeZone), timeZone));
+          setActivityEndTime(fromZonedTime(toZonedTime(end, venueTimeZone), timeZone));
 
           if (type === ContestType.Meetup) {
-            setStartTime(zonedTimeToUtc(utcToZonedTime(startTime, venueTimeZone), timeZone));
+            setStartTime(fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone));
           } else if (getIsCompType(type)) {
             setRooms(
               rooms.map((r) => ({
                 ...r,
                 activities: r.activities.map((a) => ({
                   ...a,
-                  startTime: zonedTimeToUtc(utcToZonedTime(a.startTime, venueTimeZone), timeZone),
-                  endTime: zonedTimeToUtc(utcToZonedTime(a.endTime, venueTimeZone), timeZone),
+                  startTime: fromZonedTime(toZonedTime(a.startTime, venueTimeZone), timeZone),
+                  endTime: fromZonedTime(toZonedTime(a.endTime, venueTimeZone), timeZone),
                 })),
               })),
             );
@@ -503,7 +499,7 @@ const ContestForm = ({
   const changeStartDate = (newDate: Date) => {
     if (!getIsCompType(type)) {
       setStartTime(newDate);
-      setStartDate(getDateOnly(utcToZonedTime(newDate, venueTimeZone)));
+      setStartDate(getDateOnly(toZonedTime(newDate, venueTimeZone)));
     } else {
       setStartDate(newDate);
 

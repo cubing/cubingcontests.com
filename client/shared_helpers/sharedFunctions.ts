@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import C from '@sh/constants';
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums';
 import {
@@ -18,7 +19,6 @@ import {
   IWcifRound,
 } from './types';
 import { roundFormats } from './roundFormats';
-import { format } from 'date-fns';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.

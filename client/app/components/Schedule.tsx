@@ -1,5 +1,5 @@
 import { format, isSameDay } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import EventTitle from './EventTitle';
 import ColorSquare from '@c/UI/ColorSquare';
 import { roundFormats } from '@sh/roundFormats';
@@ -38,16 +38,16 @@ const Schedule = ({
   }[] = [];
 
   for (const activity of allActivities) {
-    const zonedStartTime = utcToZonedTime(activity.startTime, timezone);
+    const zonedStartTime = toZonedTime(activity.startTime, timezone);
 
-    if (!days.some((el) => isSameDay(utcToZonedTime(el.date, timezone), zonedStartTime))) {
+    if (!days.some((el) => isSameDay(toZonedTime(el.date, timezone), zonedStartTime))) {
       days.push({ date: zonedStartTime, activities: [] });
     }
 
     days[days.length - 1].activities.push({
       ...activity,
       startTime: zonedStartTime,
-      endTime: utcToZonedTime(activity.endTime, timezone),
+      endTime: toZonedTime(activity.endTime, timezone),
     });
   }
 
