@@ -569,7 +569,7 @@ export class ResultsService {
             for (const act of room.activities) {
               if (act.activityCode === round.roundId) {
                 activity = act;
-                createResultDto.date = getDateOnly(toZonedTime(activity.startTime, venue.timezone));
+                createResultDto.date = getDateOnly(toZonedTime(activity.endTime, venue.timezone));
                 break scheduleLoop;
               }
             }
