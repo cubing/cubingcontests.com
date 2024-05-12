@@ -16,6 +16,7 @@ const unofficialEventIcons = [
   '333_oh_bld_relay',
   '333_oh_bld_team_relay',
   '333_speed_bld',
+  '333_linear_fm',
   '333_team_bld',
   '333_team_factory',
   '333bf_2_person_relay',
