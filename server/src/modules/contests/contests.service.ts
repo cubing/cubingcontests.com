@@ -368,6 +368,11 @@ export class ContestsService {
     if (isAdmin && newState === ContestState.Published) {
       this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
+      if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups)
+        throw new BadRequestException(
+          `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForUnofficialCompsAndMeetups} competitors`,
+        );
+
       try {
         // Unset unapproved from the results so that they can be included in the rankings
         await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });

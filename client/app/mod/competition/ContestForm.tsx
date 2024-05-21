@@ -344,6 +344,8 @@ const ContestForm = ({
       tempErrors.push('Please enter all organizers');
 
     if (type === ContestType.WcaComp) {
+      if (!detailsImported) tempErrors.push('You must use the "Get WCA competition details" feature');
+
       if (newComp.events.some((ce: IContestEvent) => ce.event.groups.includes(EventGroup.WCA)))
         tempErrors.push(
           'WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.',

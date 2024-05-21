@@ -77,7 +77,7 @@ const ModeratorDashboardPage = () => {
 
   return (
     <div>
-      <h2 className="text-center">Moderator Dashboard</h2>
+      <h2 className="mb-4 text-center">Moderator Dashboard</h2>
 
       <ErrorMessages errorMessages={errorMessages} />
 
