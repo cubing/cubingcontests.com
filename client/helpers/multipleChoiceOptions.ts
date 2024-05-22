@@ -48,6 +48,7 @@ export const contestTypeOptions: MultiChoiceOption[] = [
     label: 'Online',
     value: ContestType.Online,
     color: Color.Blue,
+    disabled: true,
   },
   {
     label: 'WCA Competition',

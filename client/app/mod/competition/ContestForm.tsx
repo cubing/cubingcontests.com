@@ -868,7 +868,7 @@ const ContestForm = ({
             />
             <FormRadio
               title="Type"
-              options={contestTypeOptions}
+              options={contestTypeOptions.filter((ct) => !ct.disabled)}
               selected={type}
               setSelected={setType}
               disabled={mode !== 'new' || disableIfDetailsImported}
