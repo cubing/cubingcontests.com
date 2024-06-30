@@ -7,13 +7,11 @@ import Country from '@c/Country';
 import Competitor from '@c/Competitor';
 import { IContest, IContestData } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
-import C from '@sh/constants';
 import { getDateOnly } from '@sh/sharedFunctions';
 import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
-import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload } = await myFetch.get(`/competitions/${params.id}`, { revalidate: C.contestInfoRev });
+  const { payload } = await myFetch.get(`/competitions/${params.id}`);
   if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = payload as IContestData;
 
@@ -22,7 +20,6 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const formattedTime = contest.meetupDetails
     ? format(toZonedTime(contest.meetupDetails.startTime, contest.timezone || 'UTC'), 'H:mm')
     : null;
-  const contestType = contestTypeOptions.find((el) => el.value === contest.type)?.label || 'ERROR';
   const startOfDayInLocalTZ = getDateOnly(toZonedTime(new Date(), contest.timezone || 'UTC'));
   const start = new Date(contest.startDate);
   const isOngoing =
@@ -105,10 +102,13 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
 
         <div className="col-md-7 px-0">
           <div className="px-2">
-            {isOngoing && <p className="mb-4">This contest is currently ongoing</p>}
-            {contest.state === ContestState.Finished && (
-              <p className="mb-4">The results for this {contestType.toLowerCase()} are currently being checked</p>
-            )}
+            {contest.state === ContestState.Created ? (
+              <p className="mb-4">This contest is currently awaiting approval</p>
+            ) : isOngoing ? (
+              <p className="mb-4">This contest is currently ongoing</p>
+            ) : contest.state === ContestState.Finished ? (
+              <p className="mb-4">The results for this contest are currently being checked</p>
+            ) : undefined}
             {contest.description && (
               <p className="lh-base" style={{ whiteSpace: 'pre-wrap' }}>
                 <b>Description:</b>&#8194;{getFormattedDescription()}

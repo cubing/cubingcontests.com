@@ -5,6 +5,7 @@ import ColorSquare from '@c/UI/ColorSquare';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { roundTypes } from '~/helpers/roundTypes';
+import { getDateOnly } from '~/shared_helpers/sharedFunctions';
 
 const Schedule = ({
   rooms,
@@ -51,6 +52,9 @@ const Schedule = ({
     });
   }
 
+  const getIsMultiDayActivity = (activity: IActivity) =>
+    getDateOnly(activity.startTime).getTime() !== getDateOnly(activity.endTime).getTime();
+
   return (
     <>
       <h1 className="mb-4 text-center">Schedule</h1>
@@ -87,7 +91,10 @@ const Schedule = ({
                   return (
                     <tr key={activity.id}>
                       <td>{format(activity.startTime, 'HH:mm')}</td>
-                      <td>{format(activity.endTime, 'HH:mm')}</td>
+                      <td>
+                        {(getIsMultiDayActivity(activity) ? `${format(activity.endTime, 'dd MMM')} ` : '') +
+                          format(activity.endTime, 'HH:mm')}
+                      </td>
                       <td>
                         {activity.activityCode !== 'other-misc' ? (
                           <span className="d-flex gap-1">

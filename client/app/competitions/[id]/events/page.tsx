@@ -4,14 +4,11 @@ import EventTitle from '@c/EventTitle';
 import { IContest } from '@sh/types';
 import { RoundProceed, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
-import C from '@sh/constants';
 import { roundTypes } from '~/helpers/roundTypes';
 import { getFormattedTime } from '@sh/sharedFunctions';
 
 const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, {
-    revalidate: C.contestInfoRev,
-  });
+  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`);
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
 
@@ -36,8 +33,8 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
               compEvent.rounds.map((round, roundIndex) => {
                 const cutoffText = round.cutoff
                   ? `${round.cutoff.numberOfAttempts} ${
-                      round.cutoff.numberOfAttempts === 1 ? 'attempt' : 'attempts'
-                    } to get < ${getFormattedTime(round.cutoff.attemptResult, { event: compEvent.event })}`
+                    round.cutoff.numberOfAttempts === 1 ? 'attempt' : 'attempts'
+                  } to get < ${getFormattedTime(round.cutoff.attemptResult, { event: compEvent.event })}`
                   : '';
 
                 return (
