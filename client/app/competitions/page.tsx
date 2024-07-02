@@ -1,6 +1,5 @@
 import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
-import C from '@sh/constants';
 
 // SEO
 export const metadata = {
@@ -16,7 +15,7 @@ export const metadata = {
 };
 
 const ContestsPage = async () => {
-  const { payload: contests } = await myFetch.get('/competitions', { revalidate: C.contestsRev });
+  const { payload: contests } = await myFetch.get('/competitions', { revalidate: 0 });
 
   return (
     <div>

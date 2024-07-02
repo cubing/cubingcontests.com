@@ -11,7 +11,7 @@ import { getDateOnly } from '@sh/sharedFunctions';
 import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload } = await myFetch.get(`/competitions/${params.id}`);
+  const { payload } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 0 });
   if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = payload as IContestData;
 

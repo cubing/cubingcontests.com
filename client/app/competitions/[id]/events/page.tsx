@@ -8,7 +8,7 @@ import { roundTypes } from '~/helpers/roundTypes';
 import { getFormattedTime } from '@sh/sharedFunctions';
 
 const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`);
+  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 0 });
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
 
