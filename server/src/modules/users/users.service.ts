@@ -234,7 +234,8 @@ export class UsersService {
     const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
 
     if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
-    if (updateUserDto.email !== user.email) throw new BadRequestException('Changing the email is not allowed');
+    if (updateUserDto.email !== user.email)
+      throw new BadRequestException('Changing the email address is currently not supported');
     await this.validateUserObject(updateUserDto);
 
     let newRole: Role;
@@ -280,9 +281,7 @@ export class UsersService {
       .findOne({ username: { $ne: user.username }, email: user.email })
       .exec();
 
-    if (sameEmailUser) {
-      throw new BadRequestException(`User with email ${user.email} already exists`);
-    }
+    if (sameEmailUser) throw new BadRequestException(`User with email ${user.email} already exists`);
 
     const personId = (user as any).personId ?? (user as any).person?.personId;
 

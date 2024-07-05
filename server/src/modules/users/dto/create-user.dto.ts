@@ -12,6 +12,7 @@ export class UserDto {
   username: string;
 
   @IsEmail({}, { message: INVALID_EMAIL_MSG })
+  @Matches(/^[^+]*$/, { message: 'Sub-addresses are not permitted (you cannot use + in the email address)' })
   email: string;
 }
 

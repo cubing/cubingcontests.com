@@ -5,6 +5,7 @@ import myFetch from '~/helpers/myFetch';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import Button from '@c/UI/Button';
 import Competitor from '@c/Competitor';
+import C from '@sh/constants';
 import { IFeUser } from '@sh/types';
 import { getRoleLabel } from '@sh/sharedFunctions';
 import { Role } from '@sh/enums';
@@ -42,8 +43,12 @@ const UserSettingsPage = () => {
 
       {user && (
         <>
-          <p>
+          <p className="mb-2">
             Email address: <b>{user.email}</b>
+          </p>
+          <p className="mb-4" style={{ fontSize: '0.85rem' }}>
+            Changing your email address is currently not supported. Please send an email to {C.contactEmail} if you
+            would like to change your email.
           </p>
           {user.person ? (
             <p className="d-flex gap-2">

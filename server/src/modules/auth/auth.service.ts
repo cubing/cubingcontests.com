@@ -33,6 +33,7 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto) {
+    createUserDto.email = createUserDto.email.toLowerCase();
     createUserDto.password = await bcrypt.hash(createUserDto.password, C.passwordSaltRounds);
 
     // Give the user the user role by default
@@ -42,6 +43,7 @@ export class AuthService {
   // The user comes from the passport local auth guard (local strategy), which uses the validateUser
   // method below; the user is then saved in the request and passed in from the controller
   async login(user: IPartialUser) {
+    // Close the password reset session, cause it's no longer needed if the user was able to log in anyway
     await this.usersService.closePasswordResetSession({ id: user._id.toString() });
 
     const payload: IJwtPayload = {
@@ -52,16 +54,15 @@ export class AuthService {
     };
 
     try {
-      return {
-        accessToken: this.jwtService.sign(payload),
-      };
+      return { accessToken: this.jwtService.sign(payload) };
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {
-    const user = await this.usersService.getUserWithQuery(username.includes('@') ? { email: username } : { username });
+    const email = username.includes('@') ? username.toLowerCase() : undefined;
+    const user = await this.usersService.getUserWithQuery(email ? { email } : { username });
 
     if (user) {
       const passwordsMatch = await bcrypt.compare(password, user.password);
