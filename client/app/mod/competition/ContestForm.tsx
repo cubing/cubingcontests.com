@@ -81,6 +81,7 @@ const ContestForm = ({
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
+  const [shortName, setShortName] = useState('');
   const [type, setType] = useState(ContestType.Meetup);
   const [city, setCity] = useState('');
   const [countryIso2, setCountryIso2] = useState('NOT_SELECTED');
@@ -195,6 +196,7 @@ const ContestForm = ({
     if (mode !== 'new') {
       setCompetitionId(contest.competitionId);
       setName(contest.name);
+      setShortName(contest.shortName);
       setType(contest.type);
       if (contest.city) setCity(contest.city);
       setCountryIso2(contest.countryIso2);
@@ -318,6 +320,7 @@ const ContestForm = ({
     const newComp: IContestDto = {
       competitionId,
       name: name.trim(),
+      shortName: shortName.trim(),
       type,
       city: type !== ContestType.Online ? city.trim() : undefined,
       // If it's an online competition, set country ISO to online
@@ -402,11 +405,16 @@ const ContestForm = ({
 
   const changeName = (value: string) => {
     // If not editing a competition, update Competition ID accordingly, unless it deviates from the name
-    if (mode !== 'edit' && competitionId === getContestIdFromName(name)) {
-      setCompetitionId(getContestIdFromName(value));
+    if (mode !== 'edit') {
+      if (competitionId === getContestIdFromName(name)) setCompetitionId(getContestIdFromName(value));
+      if (shortName === name && value.length <= 32) setShortName(value);
     }
 
     setName(value);
+  };
+
+  const changeShortName = (value: string) => {
+    if (value.length <= 32) setShortName(value);
   };
 
   const fetchWcaCompDetails = async () => {
@@ -424,6 +432,7 @@ const ContestForm = ({
       const longitude = Number((newContest.longitudeMicrodegrees / 1000000).toFixed(6));
 
       setName(newContest.name);
+      setShortName(newContest.shortName);
       setCity(newContest.city);
       setCountryIso2(newContest.countryIso2);
       setAddress(newContest.address);
@@ -858,6 +867,12 @@ const ContestForm = ({
               value={name}
               setValue={changeName}
               autoFocus
+              disabled={disableIfCompApproved || disableIfDetailsImported}
+            />
+            <FormTextInput
+              title="Short name"
+              value={shortName}
+              setValue={changeShortName}
               disabled={disableIfCompApproved || disableIfDetailsImported}
             />
             <FormTextInput

@@ -318,6 +318,7 @@ export const getWcaCompetitionDetails = async (competitionId: string): Promise<I
   const newContest: IContestDto = {
     competitionId,
     name: wcaCompData.name,
+    shortName: wcaV0CompData.short_name,
     type: ContestType.WcaComp,
     city: wcaCompData.city,
     countryIso2: wcaCompData.country,

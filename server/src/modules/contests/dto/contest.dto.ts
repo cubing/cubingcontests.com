@@ -18,6 +18,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
   Validate,
+  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { nonOnlineCountryCodes } from '@sh/Countries';
@@ -42,7 +43,7 @@ import {
 import { CreateEventDto } from '@m/events/dto/create-event.dto';
 import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
-import { getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
+import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
 import { getFormattedTime, getIsCompType } from '@sh/sharedFunctions';
 
@@ -80,6 +81,12 @@ export class ContestDto implements IContestDto {
   @MinLength(10, getMinLengthOpts('contest name', 10))
   @Matches(/.* [0-9]{4}$/, { message: 'The contest name must have the year at the end, separated by a space' })
   name: string;
+
+  @IsString()
+  @MinLength(10, getMinLengthOpts('short name', 10))
+  @MaxLength(32, getMaxLengthOpts('short name', 32))
+  @Matches(/.* [0-9]{4}$/, { message: 'The short name must have the year at the end, separated by a space' })
+  shortName: string;
 
   @IsEnum(ContestType)
   type: ContestType;

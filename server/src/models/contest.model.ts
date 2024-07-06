@@ -49,6 +49,9 @@ class Competition implements IContest {
   @Prop({ required: true })
   name: string;
 
+  @Prop({ required: true })
+  shortName: string;
+
   @Prop({ enum: ContestType, required: true, immutable: true })
   type: ContestType;
 

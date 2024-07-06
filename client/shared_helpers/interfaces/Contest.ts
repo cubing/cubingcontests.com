@@ -6,10 +6,9 @@ import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs, IFe
  *    (1) the contest DTO
  *    (2) the contest model
  * And also consider the following:
- *    (3) CompetitionForm component
- *    (4) ContestResults component
- *    (5) createContest method in the contest service
- *    (6) updateContest method in the contest service
+ *    (3) ContestForm component
+ *    (4) createContest method in the contests service
+ *    (5) updateContest method in the contests service
  */
 export interface IContest {
   competitionId: string;
@@ -18,6 +17,7 @@ export interface IContest {
   state: ContestState;
 
   name: string;
+  shortName: string;
   type: ContestType;
   city?: string; // not needed for online comps
   countryIso2: string; // for online comps there is a special value

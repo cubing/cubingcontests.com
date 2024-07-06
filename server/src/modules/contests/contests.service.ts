@@ -43,6 +43,16 @@ export class ContestsService {
   ) {}
 
   async onModuleInit() {
+    // TEMPORARY CODE {
+    const contests2 = await this.contestModel.find();
+    if (!contests2[0].shortName) {
+      for (const con of contests2) {
+        con.shortName = con.name;
+        await con.save();
+      }
+    }
+    //}
+
     if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
       this.logger.log('Checking contests inconsistencies in the DB...');
 
@@ -299,6 +309,7 @@ export class ContestsService {
 
     if (isAdmin || contest.state < ContestState.Approved) {
       contest.name = contestDto.name;
+      contest.shortName = contestDto.shortName;
       if (contest.type !== ContestType.Online) {
         contest.city = contestDto.city;
         contest.venue = contestDto.venue;

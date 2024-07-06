@@ -106,7 +106,7 @@ const ContestsTable = ({
                   <td>{getFormattedDate(contest.startDate, contest.endDate, contest.timezone)}</td>
                   <td>
                     <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
-                      {contest.name}
+                      {contest.shortName}
                     </Link>
                   </td>
                   <td>
@@ -155,16 +155,16 @@ const ContestsTable = ({
                       {/* Mods should be able to see this button even before approval, it should just be disabled */}
                       {(contest.state >= ContestState.Approved || !isAdmin) &&
                         contest.state < ContestState.Finished && (
-                          <button
-                            type="button"
-                            onClick={() => onPostCompResults(contest.competitionId)}
-                            disabled={disableActions || contest.state < ContestState.Approved}
-                            className="btn btn-sm btn-success"
-                            style={{ padding: C.smallButtonPadding }}
-                          >
+                        <button
+                          type="button"
+                          onClick={() => onPostCompResults(contest.competitionId)}
+                          disabled={disableActions || contest.state < ContestState.Approved}
+                          className="btn btn-sm btn-success"
+                          style={{ padding: C.smallButtonPadding }}
+                        >
                             Results
-                          </button>
-                        )}
+                        </button>
+                      )}
                       {contest.state >= ContestState.Finished && isAdmin && (
                         <button
                           type="button"
