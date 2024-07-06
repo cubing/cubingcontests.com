@@ -253,7 +253,7 @@ export const getWcifCompetition = (contest: IContest, schedule?: ISchedule): IWc
   formatVersion: '1.0',
   id: contest.competitionId,
   name: contest.name,
-  shortName: contest.name,
+  shortName: contest.shortName,
   persons: [],
   events: contest.events.map((ce) => getWcifCompEvent(ce)),
   schedule: schedule ? getWcifSchedule(schedule) : ({} as IWcifSchedule),

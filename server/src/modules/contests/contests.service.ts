@@ -219,6 +219,8 @@ export class ContestsService {
     if (comp1) throw new BadRequestException(`A contest with the ID ${contestDto.competitionId} already exists`);
     const comp2 = await this.contestModel.findOne({ name: contestDto.name }).exec();
     if (comp2) throw new BadRequestException(`A contest with the name ${contestDto.name} already exists`);
+    const comp3 = await this.contestModel.findOne({ shortName: contestDto.shortName }).exec();
+    if (comp3) throw new BadRequestException(`A contest with the short name ${contestDto.shortName} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
@@ -263,7 +265,7 @@ export class ContestsService {
         await this.emailService.sendEmail(
           C.contactEmail,
           `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newCompetition.name}</a>.`,
-          { subject: `New contest: ${newCompetition.name}` },
+          { subject: `New contest: ${newCompetition.shortName}` },
         );
       }
     } catch (err) {
@@ -358,7 +360,7 @@ export class ContestsService {
         await this.emailService.sendEmail(
           contestCreatorEmail,
           `Your contest <a href="${contestUrl}">${contest.name}</a> has been approved and is now public on the website.`,
-          { subject: `Contest approved: ${contest.name}` },
+          { subject: `Contest approved: ${contest.shortName}` },
         );
       } else if (newState === ContestState.Finished) {
         const incompleteResult = await this.resultModel.findOne({ 'attempts.result': 0 }).exec();
@@ -370,7 +372,7 @@ export class ContestsService {
           await this.emailService.sendEmail(
             C.contactEmail,
             `Contest <a href="${contestUrl}">${contest.name}</a> has been finished. Review the results and publish them to have them included in the rankings.`,
-            { subject: `Contest finished: ${contest.name}` },
+            { subject: `Contest finished: ${contest.shortName}` },
           );
         }
       }
@@ -393,7 +395,7 @@ export class ContestsService {
         await this.emailService.sendEmail(
           contestCreatorEmail,
           `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
-          { subject: `Contest published: ${contest.name}` },
+          { subject: `Contest published: ${contest.shortName}` },
         );
       } catch (err) {
         throw new InternalServerErrorException(`Error while publishing contest: ${err.message}`);

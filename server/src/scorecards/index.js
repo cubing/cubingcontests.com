@@ -24,7 +24,7 @@ const getScorecards = async (wcifCompetition) => {
     const eventExt = event.extensions.find((e) => e.id === 'TEMPORARY')?.data;
 
     return [
-      { text: wcifCompetition.name, fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+      { text: wcifCompetition.shortName, fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
       {
         layout: 'noBorders',
         table: {

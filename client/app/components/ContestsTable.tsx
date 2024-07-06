@@ -50,7 +50,7 @@ const ContestsTable = ({
                     />
 
                     <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
-                      {contest.name}
+                      {contest.shortName}
                     </Link>
                   </div>
 
