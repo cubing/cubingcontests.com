@@ -598,7 +598,7 @@ export class ResultsService {
       contest.participants = (
         await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
       ).length;
-      contest.save();
+      await contest.save();
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
