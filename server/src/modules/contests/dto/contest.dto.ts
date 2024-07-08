@@ -83,7 +83,7 @@ export class ContestDto implements IContestDto {
   name: string;
 
   @IsString()
-  @MinLength(10, getMinLengthOpts('short name', 10))
+  @MinLength(8, getMinLengthOpts('short name', 8))
   @MaxLength(32, getMaxLengthOpts('short name', 32))
   @Matches(/.* [0-9]{4}$/, { message: 'The short name must have the year at the end, separated by a space' })
   shortName: string;
