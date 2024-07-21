@@ -1,4 +1,5 @@
 import Tabs from '@c/UI/Tabs';
+import Link from 'next/link';
 import { tabs } from '~/app/moderator-instructions/tabs';
 
 const page = () => {
@@ -11,7 +12,9 @@ const page = () => {
           A1. If you are holding unofficial events at a WCA competition, first you must wait until it's approved on the
           WCA website. Then you can click on <b className="hl">Create new contest</b>, enter the ID of the competition
           from the WCA website, select the <b className="hl">WCA Competition</b> contest type, and click{' '}
-          <b className="hl">Get WCA competition details</b>.
+          <b className="hl">Get WCA competition details</b>. The website may return an error, saying that the
+          competition is not found, if not enough time has passed after it got published on the WCA website. In that
+          case, simply try again the following day.
         </p>
         <p>
           A2. Edit the editable fields, if necessary. All users with moderator privileges who are listed as organizers
@@ -39,21 +42,14 @@ const page = () => {
           Contests page on the website. You may still edit some of the details after creation, if necessary.
         </p>
         <p>
-          A6. You can use the{' '}
-          <a href="https://experiments.cubing.net/cubing.js/mark3/" target="_blank">
-            Cubing JS scramble generator
-          </a>{' '}
-          or{' '}
-          <a href="https://cstimer.net/" target="_blank">
-            csTimer
-          </a>{' '}
-          to generate the scrambles (many non-WCA puzzles are also supported). To generate the scorecards, you can click{' '}
-          <b className="hl">Edit</b> and click <b className="hl">Scorecards</b> (this button becomes available after the
-          contest gets approved). Since there is no registration through Cubing Contests yet, the names won't be filled
-          in and there are no groups, but there is one page for each round of each event. You can print as many copies
-          of each page as you need for the corresponding rounds, and ask the competitors to fill their names in by hand
-          when submitting their puzzles. Keep in mind that all names must be filled in for team events, but a signature
-          from just one of the competitors on a team is enough.
+          A6. Make sure your contests follow the <Link href="/rules">rules</Link> (while the results on Cubing Contests
+          are considered unofficial, we still strive to ensure consistency and fairness). To generate the scorecards,
+          you can click <b className="hl">Edit</b> and click <b className="hl">Scorecards</b> (this button becomes
+          available after the contest gets approved). Since there is no registration through Cubing Contests yet, the
+          names won't be filled in and there are no groups, but there is one page for each round of each event. You can
+          print as many copies of each page as you need for the corresponding rounds, and ask the competitors to fill
+          their names in by hand when submitting their puzzles. Keep in mind that all names must be filled in for team
+          events, but a signature from just one of the competitors on a team is enough.
         </p>
         <p>
           A7. To do data entry, click <b className="hl">Results</b> on the moderator dashboard, select the event and

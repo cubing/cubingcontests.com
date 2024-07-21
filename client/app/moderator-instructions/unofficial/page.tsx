@@ -21,10 +21,6 @@ const page = () => {
           competitions. Please <b>DO NOT</b> attempt to use Cubing Contests as a substitute for the WCA. Your
           competition may be rejected if it is deemed that it could be held as a WCA competition instead.
         </p>
-        <p>
-          B4. An unofficial competition may not have fewer than three competitors in total. Such competitions will be
-          removed from Cubing Contests without being published.
-        </p>
       </div>
     </div>
   );

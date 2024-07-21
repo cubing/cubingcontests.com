@@ -258,6 +258,7 @@ const CreateEditEventPage = () => {
             rows={5}
             disabled={loadingDuringSubmit}
           />
+          <p className="fs-6">You can use the bullet character (•) in the rules to mark each point.</p>
         </Form>
       )}
 

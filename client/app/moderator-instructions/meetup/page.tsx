@@ -19,10 +19,6 @@ const page = () => {
         <p>
           C3. The rest of the process is the same as <Link href="wca">{tabs[0].title}</Link>.
         </p>
-        <p>
-          C4. A meetup may not have fewer than three competitors in total. Such meetups will be removed from Cubing
-          Contests without being published.
-        </p>
       </div>
     </div>
   );

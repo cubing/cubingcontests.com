@@ -46,4 +46,10 @@ export class EventsController {
 
     return await this.eventsService.updateEvent(eventId, updateEventDto);
   }
+
+  // GET /events/with-rules
+  @Get('with-rules')
+  async getEventsWithRules() {
+    return await this.eventsService.getEventsWithRules();
+  }
 }

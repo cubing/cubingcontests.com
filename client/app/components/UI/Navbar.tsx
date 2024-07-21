@@ -120,6 +120,15 @@ const NavbarItems = () => {
                 </li>
               </ul>
             </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link ${pathname === '/rules' ? ' active' : ''}`}
+                href="/rules"
+                onClick={collapseAll}
+              >
+                Rules
+              </Link>
+            </li>
             {!userInfo ? (
               <li className="nav-item">
                 <Link className="nav-link" href="/login" onClick={collapseAll}>

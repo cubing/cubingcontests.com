@@ -218,4 +218,14 @@ export class EventsService {
 
     return await this.getFrontendEvents({ includeHidden: true, populateRules: true });
   }
+
+  async getEventsWithRules(): Promise<IFeEvent[]> {
+    const eventRules = await this.eventRuleModel.find();
+
+    return await this.getFrontendEvents({
+      eventIds: eventRules.map((er) => er.eventId),
+      includeHidden: false,
+      populateRules: true,
+    });
+  }
 }

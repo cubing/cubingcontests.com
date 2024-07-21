@@ -5,6 +5,7 @@ import ContestLayout from '@c/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import Competitor from '@c/Competitor';
+import MarkdownDescription from '@c/MarkdownDescription';
 import { IContest, IContestData } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
@@ -26,23 +27,6 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
     contest.state < ContestState.Finished &&
     ((!contest.endDate && start.getTime() === startOfDayInLocalTZ.getTime()) ||
       (contest.endDate && start <= startOfDayInLocalTZ && new Date(contest.endDate) >= startOfDayInLocalTZ));
-
-  const getFormattedDescription = () => {
-    // This parses links using markdown link syntax
-    const markdownLinkRegex = /(\[[^\]]*\]\(https?:\/\/[^)]*\))/g;
-    const tempString = contest.description.replace(markdownLinkRegex, ':::::$1:::::');
-    const output = tempString.split(':::::').map((part, index) =>
-      markdownLinkRegex.test(part) ? (
-        <a key={index} href={/\((https?:\/\/[^)]*)\)/.exec(part)[1]} target="_blank">
-          {/\[([^\]]*)\]/.exec(part)[1]}
-        </a>
-      ) : (
-        part
-      ),
-    );
-
-    return output;
-  };
 
   return (
     <ContestLayout contest={contest} activeTab="details">
@@ -110,9 +94,10 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
               <p className="mb-4">The results for this contest are currently being checked</p>
             ) : undefined}
             {contest.description && (
-              <p className="lh-base" style={{ whiteSpace: 'pre-wrap' }}>
-                <b>Description:</b>&#8194;{getFormattedDescription()}
-              </p>
+              <>
+                <p className="fw-bold">Description:</p>
+                <MarkdownDescription>{contest.description}</MarkdownDescription>
+              </>
             )}
           </div>
         </div>
