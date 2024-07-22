@@ -8,6 +8,7 @@ import Tabs from '@c/UI/Tabs';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import MarkdownDescription from '@c/MarkdownDescription';
 import { roundFormats } from '~/shared_helpers/roundFormats';
+import { RoundFormat } from '~/shared_helpers/enums';
 
 const RulesPage = () => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -55,7 +56,7 @@ const RulesPage = () => {
               </li>
               <li>Only organizers and Delegates of WCA competitions are allowed to hold unofficial events at them.</li>
               <li>
-                Every event has a standard average format (i.e. Average of 5, Mean of 3). If a round uses a different
+                Every event has a ranked average format (i.e. Average of 5, Mean of 3). If a round uses a different
                 average format, average results from that round will not be included in the rankings (but single results
                 will).
               </li>
@@ -148,8 +149,13 @@ const RulesPage = () => {
                 <h4 className="mt-4 mb-3">{event.name}</h4>
                 <MarkdownDescription>{event.ruleText}</MarkdownDescription>
                 <p>
-                  The standard average format is{' '}
-                  {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.label ?? 'ERROR'}.
+                  The ranked average format is{' '}
+                  <b>
+                    {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.value === RoundFormat.Average
+                      ? roundFormats[4].label
+                      : roundFormats[3].label}
+                  </b>
+                  .
                 </p>
               </div>
             ))}
