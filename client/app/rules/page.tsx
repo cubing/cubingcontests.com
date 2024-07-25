@@ -75,6 +75,8 @@ const RulesPage = () => {
             <ul className="list-inline lh-lg">
               <li>T1. There must be no physical contact between any members of a team during an attempt.</li>
               <li>T2. All members of a team may communicate with each other and with the judge.</li>
+              <li>T3. A team must consist of the same members for all attempts across all rounds of an event. Exception: Some events may have specific allowances for this.</li>
+              <li>T4. A competitor who has participated in an event as part of one team must not compete as part of any other team for that event.</li>
             </ul>
 
             <h4 className="my-4">Fully blindfolded events</h4>
