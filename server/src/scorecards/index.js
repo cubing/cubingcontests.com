@@ -24,7 +24,7 @@ const getScorecards = async (wcifCompetition) => {
     const eventExt = event.extensions.find((e) => e.id === 'TEMPORARY')?.data;
 
     return [
-      { text: wcifCompetition.shortName, fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+      { text: wcifCompetition.shortName, fontSize: 15, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
       {
         layout: 'noBorders',
         table: {
@@ -37,30 +37,30 @@ const getScorecards = async (wcifCompetition) => {
             ],
           ],
         },
-        margin: [15, 0, 0, 7],
+        margin: [9, 0, 0, 7],
       },
-      eventExt.participants < 3
-        ? {
-            text: eventExt.participants === 1 ? 'Full Name' : 'Full Names',
-            bold: true,
-            fontSize: 12,
-            margin: [4, eventExt.participants === 1 ? 6 : 3, 0, 0],
-          }
-        : undefined,
       {
         table: {
-          widths: ['100%'],
-          // Use as many name fields as there are participants in this event
-          body: new Array(eventExt.participants).fill([
-            { text: '', margin: [0, 0, 0, eventExt.participants === 1 ? 30 : eventExt.participants === 2 ? 24 : 22] },
-          ]),
+          headerRows: 1,
+          widths: ['30%', '70%'],
+          body: [
+            [
+              {
+                text: 'WCA ID',
+                fontSize: 10,
+                border: [false, false, false, false],
+                margin: [0, 0, 0, 5],
+              },
+              {
+                text: 'Full Name',
+                fontSize: 10,
+                border: [false, false, false, false],
+              },
+            ],
+            ...new Array(eventExt.participants).fill([{ text: '', margin: [0, 0, 0, 20] }, { text: '' }]),
+          ],
         },
-        margin: [
-          4,
-          eventExt.participants < 3 ? 8 : 4,
-          0,
-          eventExt.participants === 1 ? 20 : eventExt.participants === 2 ? 10 : 8,
-        ],
+        margin: [4, 3, 0, 16],
       },
       {
         table: {
@@ -102,7 +102,7 @@ const getScorecards = async (wcifCompetition) => {
             ],
           ],
         },
-        margin: [22, eventExt.participants === 1 ? 14 : 8, 0, 30],
+        margin: [22, eventExt.participants === 1 ? 20 : 8, 0, 40],
       },
     ];
   };
