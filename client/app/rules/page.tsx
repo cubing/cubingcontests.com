@@ -92,11 +92,11 @@ const RulesPage = () => {
               <li>F3. The competitor must be blindfolded before the start of the attempt.</li>
               <li>
                 F4. After the competitor dons the blindfold, the judge holds up the sight blocker between the
-                competitor's face and the puzzle, lifts the cover, and tells the competitor they may start the attempt.
+                competitor's face and the puzzle, and tells the competitor they may start the attempt.
               </li>
               <li>
                 F5. The competitor starts the attempt by starting the timer. This is the same as other events, except
-                the timer is started while blindfolded, entirely by feel.
+                the competitor starts the timer and lifts the puzzle cover while blindfolded, entirely by feel.
               </li>
             </ul>
           </>
