@@ -65,7 +65,7 @@ const ModeratorDashboardPage = () => {
 
   const changeCompState = async (competitionId: string, newState: ContestState) => {
     setLoading(true);
-    const { errors } = await myFetch.patch(`/competitions/${competitionId}/${newState}`);
+    const { errors } = await myFetch.patch(`/competitions/set-state/${competitionId}/${newState}`);
 
     if (errors) {
       setErrorMessages(errors);

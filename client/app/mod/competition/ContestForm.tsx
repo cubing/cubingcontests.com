@@ -78,6 +78,7 @@ const ContestForm = ({
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
   const [loadingId, setLoadingId] = useState('');
   const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
+  const [queueEnabled, setQueueEnabled] = useState(false);
 
   const [competitionId, setCompetitionId] = useState('');
   const [name, setName] = useState('');
@@ -253,6 +254,7 @@ const ContestForm = ({
         );
       } else if (mode === 'edit') {
         setContestEvents(contest.events);
+        if (contest.queuePosition) setQueueEnabled(true);
       }
     }
   }, [contest, events]);
@@ -813,6 +815,17 @@ const ContestForm = ({
     setLoadingId('');
   };
 
+  const enableQueue = async () => {
+    setLoadingId('enable_queue_button');
+
+    const { errors } = await myFetch.patch(`/competitions/enable-queue/${contest.competitionId}`);
+
+    if (!errors) setQueueEnabled(true);
+
+    setErrorMessages(errors || []);
+    setLoadingId('');
+  };
+
   const createAuthToken = async () => {
     setLoadingId('get_access_token_button');
 
@@ -852,6 +865,13 @@ const ContestForm = ({
                   onClick={downloadScorecards}
                   loadingId={loadingId}
                   className="btn-success"
+                />
+                <Button
+                  id="enable_queue_button"
+                  text={queueEnabled ? 'Queue Enabled' : 'Enable Queue'}
+                  onClick={enableQueue}
+                  loadingId={loadingId}
+                  disabled={queueEnabled}
                 />
                 <Button
                   id="get_access_token_button"

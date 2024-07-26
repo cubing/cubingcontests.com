@@ -37,6 +37,7 @@ export interface IContest {
   competitorLimit?: number; // required for competitions
   events: IContestEvent[];
   participants: number;
+  queuePosition?: number; // optional, used for the queue feature
   // IMPORTANT: this is not set when importing a competition and must be set manually by an admin
   compDetails?: ICompetitionDetails; // competition-only
   meetupDetails?: IMeetupDetails; // meetup/online-comp-only

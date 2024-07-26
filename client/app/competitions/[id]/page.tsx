@@ -97,6 +97,11 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
               <>
                 <p className="fw-bold">Description:</p>
                 <MarkdownDescription>{contest.description}</MarkdownDescription>
+                {contest.queuePosition && (
+                  <p className="mt-5">
+                    Current position in queue: <b>{contest.queuePosition}</b>
+                  </p>
+                )}
               </>
             )}
           </div>

@@ -31,6 +31,7 @@ const PostResultsScreen = ({
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
+  const [queuePosition, setQueuePosition] = useState(contest.queuePosition);
 
   const currEvent = useMemo(
     () => contest.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
@@ -173,6 +174,28 @@ const PostResultsScreen = ({
     }
   };
 
+  const decrementQueuePosition = async () => {
+    setLoadingId('queue_decrement_button');
+
+    const { payload, errors } = await myFetch.patch(`/competitions/queue-decrement/${contest.competitionId}`);
+
+    if (!errors) setQueuePosition(payload);
+    setErrorMessages(errors || []);
+
+    setLoadingId('');
+  };
+
+  const incrementQueuePosition = async () => {
+    setLoadingId('queue_increment_button');
+
+    const { payload, errors } = await myFetch.patch(`/competitions/queue-increment/${contest.competitionId}`);
+
+    if (!errors) setQueuePosition(payload);
+    setErrorMessages(errors || []);
+
+    setLoadingId('');
+  };
+
   return (
     <div>
       {errorMessages.length > 0 ? (
@@ -208,6 +231,28 @@ const PostResultsScreen = ({
               disabled={!isEditable}
               loadingId={loadingId}
             />
+            {contest.queuePosition && (
+              <>
+                <p className="mt-4 mb-3">Current position in queue:</p>
+                <div className="d-flex align-items-center gap-3">
+                  <Button
+                    id="queue_decrement_button"
+                    text="–"
+                    onClick={decrementQueuePosition}
+                    loadingId={loadingId}
+                    className="btn-success"
+                  />
+                  <p className="mb-0 fs-5 fw-bold">{queuePosition}</p>
+                  <Button
+                    id="queue_increment_button"
+                    text="+"
+                    onClick={incrementQueuePosition}
+                    loadingId={loadingId}
+                    className="btn-success"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 

@@ -395,6 +395,24 @@ export class ContestsService {
     await this.saveContest(contest);
   }
 
+  async enableQueue(competitionId: string) {
+    const contest = await this.contestModel.findOne({ competitionId }).exec();
+
+    if (!contest.queuePosition) throw new BadRequestException('The queue must be enabled first');
+  }
+
+  async changeQueuePosition(competitionId: string, difference: 1 | -1) {
+    const contest = await this.contestModel.findOne({ competitionId }).exec();
+
+    contest.queuePosition += difference;
+
+    if (contest.queuePosition < 0) throw new BadRequestException('Queue position may not be lower than 0');
+
+    await contest.save();
+
+    return contest.queuePosition;
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////

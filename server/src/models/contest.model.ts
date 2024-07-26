@@ -100,6 +100,9 @@ class Competition implements IContest {
   @Prop({ default: 0 })
   participants: number;
 
+  @Prop()
+  queuePosition?: number;
+
   @Prop({ type: CompetitionDetailsSchema })
   compDetails?: CompetitionDetails;
 
