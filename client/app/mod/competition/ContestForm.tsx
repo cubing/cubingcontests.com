@@ -818,7 +818,7 @@ const ContestForm = ({
   const enableQueue = async () => {
     setLoadingId('enable_queue_button');
 
-    const { errors } = await myFetch.patch(`/competitions/enable-queue/${contest.competitionId}`);
+    const { errors } = await myFetch.post(`/competitions/enable-queue/${contest.competitionId}`, {});
 
     if (!errors) setQueueEnabled(true);
 
