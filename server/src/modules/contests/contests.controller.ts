@@ -90,8 +90,8 @@ export class ContestsController {
     return await this.service.updateState(competitionId, parseInt(newState) as ContestState, req.user);
   }
 
-  // POST /competitions/queue-increment/:competitionId
-  @Post('enable-queue/:competitionId')
+  // PATCH /competitions/enable-queue/:competitionId
+  @Patch('enable-queue/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async enableQueue(@Param('competitionId') competitionId: string) {
@@ -103,7 +103,7 @@ export class ContestsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async incrementQueuePosition(@Param('competitionId') competitionId: string) {
-    return await this.service.changeQueuePosition(competitionId, 1);
+    return await this.service.changeQueuePosition(competitionId, { difference: 1 });
   }
 
   // PATCH /competitions/queue-decrement/:competitionId
@@ -111,6 +111,14 @@ export class ContestsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async decrementQueuePosition(@Param('competitionId') competitionId: string) {
-    return await this.service.changeQueuePosition(competitionId, -1);
+    return await this.service.changeQueuePosition(competitionId, { difference: -1 });
+  }
+
+  // PATCH /competitions/queue-reset/:competitionId
+  @Patch('queue-reset/:competitionId')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async resetQueue(@Param('competitionId') competitionId: string) {
+    return await this.service.changeQueuePosition(competitionId, { newPosition: 1 });
   }
 }

@@ -174,25 +174,14 @@ const PostResultsScreen = ({
     }
   };
 
-  const decrementQueuePosition = async () => {
-    setLoadingId('queue_decrement_button');
+  const updateQueuePosition = async (mode: 'decrement' | 'increment' | 'reset') => {
+    setLoadingId(`queue_${mode}_button`);
 
-    const { payload, errors } = await myFetch.patch(`/competitions/queue-decrement/${contest.competitionId}`);
-
-    if (!errors) setQueuePosition(payload);
-    setErrorMessages(errors || []);
-
-    setLoadingId('');
-  };
-
-  const incrementQueuePosition = async () => {
-    setLoadingId('queue_increment_button');
-
-    const { payload, errors } = await myFetch.patch(`/competitions/queue-increment/${contest.competitionId}`);
+    const { payload, errors } = await myFetch.patch(`/competitions/queue-${mode}/${contest.competitionId}`);
 
     if (!errors) setQueuePosition(payload);
-    setErrorMessages(errors || []);
 
+    setErrorMessages(errors || []);
     setLoadingId('');
   };
 
@@ -231,14 +220,14 @@ const PostResultsScreen = ({
               disabled={!isEditable}
               loadingId={loadingId}
             />
-            {contest.queuePosition && (
+            {contest.queuePosition !== undefined && (
               <>
                 <p className="mt-4 mb-3">Current position in queue:</p>
                 <div className="d-flex align-items-center gap-3">
                   <Button
                     id="queue_decrement_button"
                     text="–"
-                    onClick={decrementQueuePosition}
+                    onClick={() => updateQueuePosition('decrement')}
                     loadingId={loadingId}
                     className="btn-success"
                   />
@@ -246,9 +235,15 @@ const PostResultsScreen = ({
                   <Button
                     id="queue_increment_button"
                     text="+"
-                    onClick={incrementQueuePosition}
+                    onClick={() => updateQueuePosition('increment')}
                     loadingId={loadingId}
                     className="btn-success"
+                  />
+                  <Button
+                    id="queue_reset_button"
+                    text="Reset"
+                    onClick={() => updateQueuePosition('reset')}
+                    loadingId={loadingId}
                   />
                 </div>
               </>

@@ -358,6 +358,8 @@ export class ContestsService {
         if (incompleteResult)
           throw new BadRequestException(`This contest has an unentered attempt in event ${incompleteResult.eventId}`);
 
+        contest.queuePosition = undefined;
+
         if (!isAdmin) {
           await this.emailService.sendEmail(
             C.contactEmail,
@@ -401,10 +403,14 @@ export class ContestsService {
     await contest.save();
   }
 
-  async changeQueuePosition(competitionId: string, difference: 1 | -1) {
+  async changeQueuePosition(
+    competitionId: string,
+    { newPosition, difference }: { newPosition?: number; difference?: 1 | -1 },
+  ) {
     const contest = await this.contestModel.findOne({ competitionId }).exec();
 
-    contest.queuePosition += difference;
+    if (newPosition !== undefined) contest.queuePosition = newPosition;
+    else contest.queuePosition += difference;
 
     if (contest.queuePosition < 0) throw new BadRequestException('Queue position may not be lower than 0');
 
