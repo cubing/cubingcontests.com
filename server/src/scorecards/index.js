@@ -14,6 +14,12 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
+const getRoundAttempts = (format) => {
+  if (format === 'a') return 5;
+  if (format === 'm') return 3;
+  return parseInt(format); // handles '1', '2', and '3'
+};
+
 /**
  * Gets a PDF with all scorecards for a competition
  *
@@ -74,11 +80,15 @@ const getScorecards = async (wcifCompetition) => {
               { text: 'Judge', style: 'colHeader', border: [false, false, false, false] },
               { text: 'Comp', style: 'colHeader', border: [false, false, false, false] },
             ],
-            [{ text: '1', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-            [{ text: '2', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-            [{ text: '3', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-            [{ text: '4', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
-            [{ text: '5', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
+            ...new Array(getRoundAttempts(round.format))
+              .fill('')
+              .map((_, index) => [
+                { text: (index + 1).toString(), style: 'rowNumber', border: [false, false, false, false] },
+                '',
+                '',
+                '',
+                '',
+              ]),
             [{ text: 'E', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
           ],
         },
@@ -102,7 +112,7 @@ const getScorecards = async (wcifCompetition) => {
             ],
           ],
         },
-        margin: [22, eventExt.participants === 1 ? 20 : 8, 0, 40],
+        margin: [22, eventExt.participants === 1 ? 20 : 8, 0, round.format === 'a' ? 40 : 80],
       },
     ];
   };
