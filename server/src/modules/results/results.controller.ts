@@ -106,7 +106,11 @@ export class ResultsController {
     @Request() req: any,
   ) {
     this.logger.logAndSave(
-      `Creating new result for contest ${createResultDto.competitionId}, round ${roundId}`,
+      `Creating new result for contest ${createResultDto.competitionId}, round ${roundId}: ${JSON.stringify(
+        createResultDto,
+        null,
+        2,
+      )}`,
       LogType.CreateResult,
     );
 
@@ -132,7 +136,10 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
   async submitResult(@Body(new ValidationPipe()) submitResultDto: SubmitResultDto, @Request() req: any) {
-    this.logger.logAndSave(`Submitting new result for event ${submitResultDto.eventId}`, LogType.SubmitResult);
+    this.logger.logAndSave(
+      `Submitting new result for event ${submitResultDto.eventId}: ${JSON.stringify(submitResultDto, null, 2)}`,
+      LogType.SubmitResult,
+    );
 
     return await this.service.submitResult(submitResultDto, req.user);
   }

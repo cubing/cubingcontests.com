@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { TwistyPlayer } from 'cubing/twisty';
-import { keyToMove } from 'cubing/alg';
+// import { keyToMove } from 'cubing/alg';
 import myFetch, { FetchObj } from '~/helpers/myFetch';
 import Button from '@c/UI/Button';
 import { IFeCollectiveSolution, IMakeMoveDto, NxNMove } from '@sh/types';
@@ -47,11 +47,11 @@ const CollectiveCubing = () => {
   useEffect(() => {
     if (isWebglUnsupported) return;
 
-    const doMoveWithKeyboard = (e: KeyboardEvent) => {
-      const move = keyToMove(e)?.toString();
-      console.log(move);
-      // selectMoveWithKeyboard(move as NxNMove);
-    };
+    // const doMoveWithKeyboard = (e: KeyboardEvent) => {
+    //   const move = keyToMove(e)?.toString();
+    //   console.log(move);
+    // selectMoveWithKeyboard(move as NxNMove);
+    // };
 
     myFetch.get('/collective-solution').then(({ payload, errors }: FetchObj<IFeCollectiveSolution>) => {
       if (errors) {
@@ -64,11 +64,11 @@ const CollectiveCubing = () => {
           addTwistyPlayerElement();
         }
 
-        addEventListener('keypress', doMoveWithKeyboard);
+        // addEventListener('keypress', doMoveWithKeyboard);
       }
     });
 
-    return () => removeEventListener('keypress', doMoveWithKeyboard);
+    // return () => removeEventListener('keypress', doMoveWithKeyboard);
   }, []);
 
   const update = ({ payload, errors, errorData }: FetchObj<IFeCollectiveSolution>) => {
