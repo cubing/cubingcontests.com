@@ -939,35 +939,36 @@ const ContestForm = ({
                 </div>
                 <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompApproved} />
                 <div className="row">
-                  <div className="col-6">
+                  <div className="col-12 col-md-6">
                     <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompApproved} />
                   </div>
-                  <div className="col-3">
-                    <FormNumberInput
-                      title="Latitude"
-                      value={latitude}
-                      setValue={(val) => changeCoordinates(val, longitude)}
-                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
-                      min={-90}
-                      max={90}
-                    />
-                  </div>
-                  <div className="col-3">
-                    <FormNumberInput
-                      title="Longitude"
-                      value={longitude}
-                      setValue={(val) => changeCoordinates(latitude, val)}
-                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
-                      min={-180}
-                      max={180}
-                    />
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="col-6"></div>
-                  <div className="col-6">
-                    <div className="text-secondary fs-6">
-                      Time zone: {fetchTimezoneTimer === null ? venueTimeZone : <Loading small dontCenter />}
+                  <div className="col-12 col-md-6">
+                    <div className="row">
+                      <div className="col-6">
+                        <FormNumberInput
+                          title="Latitude"
+                          value={latitude}
+                          setValue={(val) => changeCoordinates(val, longitude)}
+                          disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                          min={-90}
+                          max={90}
+                        />
+                      </div>
+                      <div className="col-6">
+                        <FormNumberInput
+                          title="Longitude"
+                          value={longitude}
+                          setValue={(val) => changeCoordinates(latitude, val)}
+                          disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                          min={-180}
+                          max={180}
+                        />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="text-secondary fs-6">
+                        Time zone: {fetchTimezoneTimer === null ? venueTimeZone : <Loading small dontCenter />}
+                      </div>
                     </div>
                   </div>
                 </div>
