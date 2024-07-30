@@ -1153,7 +1153,9 @@ const ContestForm = ({
                       <div style={{ maxWidth: '8rem' }}>
                         <AttemptInput
                           attNumber={0}
-                          attempt={{ result: round.cutoff?.attemptResult || 0 }}
+                          attempt={{
+                            result: round.cutoff?.attemptResult === undefined ? 0 : round.cutoff.attemptResult,
+                          }}
                           setAttempt={(val: IAttempt) =>
                             changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, attemptResult: val.result })
                           }
