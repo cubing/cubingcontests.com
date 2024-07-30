@@ -1117,11 +1117,7 @@ const ContestForm = ({
                               attempt={{ result: round.timeLimit.centiseconds }}
                               setAttempt={(val) => changeRoundTimeLimit(eventIndex, roundIndex, val)}
                               event={ce.event}
-                              maxTime={
-                                round.timeLimit.cumulativeRoundIds.length > 0
-                                  ? C.maxCumulativeTimeLimit
-                                  : C.maxTimeLimit
-                              }
+                              maxTime={C.maxTimeLimit}
                               disabled={disableIfCompDone || round.results.length > 0}
                             />
                           </div>

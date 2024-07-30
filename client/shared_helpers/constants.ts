@@ -11,8 +11,7 @@ const C = {
   maxRounds: 10, // maximum number of rounds allowed
   maxTime: 24 * 60 * 60 * 100, // 24 hours (IF THIS IS EVER UPDATED, ALSO CONSIDER THE LINES WITH 24000000 IN AttemptInput)
   maxFmMoves: 999,
-  maxTimeLimit: 10 * 60 * 100, // 10 minutes
-  maxCumulativeTimeLimit: 60 * 60 * 100, // 1 hour
+  maxTimeLimit: 60 * 60 * 100, // 1 hour
   minCompetitorLimit: 5,
   minCompetitorsForUnofficialCompsAndMeetups: 3,
   maxConfirmationCodeAttempts: 3,

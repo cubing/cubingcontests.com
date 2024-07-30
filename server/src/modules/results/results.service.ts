@@ -893,7 +893,7 @@ export class ResultsService {
       .exec();
 
     for (const res of recordResults) {
-      this.logger.log(`Resetting records for ${res.eventId} from result: ${JSON.stringify(res, null, 2)}`);
+      this.logger.log(`Resetting records for ${res.eventId} from result: ${JSON.stringify(res)}`);
       await this.resetCancelledRecords(res);
     }
   }
