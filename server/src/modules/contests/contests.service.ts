@@ -25,6 +25,8 @@ import { EmailService } from '@m/email/email.service';
 import { UsersService } from '@m/users/users.service';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
 
+const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
+
 @Injectable()
 export class ContestsService {
   constructor(
@@ -198,7 +200,7 @@ export class ContestsService {
     { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
   ) {
     const isAdmin = user.roles.includes(Role.Admin);
-    const contestUrl = this.getContestUrl(contestDto.competitionId);
+    const contestUrl = getContestUrl(contestDto.competitionId);
 
     // Only admins are allowed to import contests and have the results immediately saved
     if (!isAdmin) saveResults = false;
@@ -332,7 +334,7 @@ export class ContestsService {
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
-    const contestUrl = this.getContestUrl(contest.competitionId);
+    const contestUrl = getContestUrl(contest.competitionId);
 
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
@@ -576,9 +578,5 @@ export class ContestsService {
       if (!contest.organizers.some((o) => o.personId === user.personId))
         throw new BadRequestException('You cannot create a contest which you are not organizing');
     }
-  }
-
-  private getContestUrl(competitionId: string): string {
-    return `${process.env.BASE_URL}/competitions/${competitionId}`;
   }
 }

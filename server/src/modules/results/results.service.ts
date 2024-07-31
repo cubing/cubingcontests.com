@@ -592,7 +592,7 @@ export class ResultsService {
       round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
       await round.save(); // save the round for resetCancelledRecords
 
-      await this.resetCancelledRecords(createResultDto, event, contest);
+      await this.resetCancelledRecords(createResultDto, event, contest.state);
 
       if (contest.state < ContestState.Ongoing) contest.state = ContestState.Ongoing;
       contest.participants = (
@@ -672,7 +672,7 @@ export class ResultsService {
         await round.save();
       }
 
-      await this.resetCancelledRecords(result, event, contest);
+      await this.resetCancelledRecords(result, event, contest.state);
 
       throw new InternalServerErrorException(`Error while updating round during result deletion: ${err.message}`);
     }
@@ -714,8 +714,9 @@ export class ResultsService {
       throw new InternalServerErrorException(`Error while submitting result: ${err.message}`);
     }
 
-    if (isAdmin) await this.resetCancelledRecords(submitResultDto, event);
-    else {
+    if (isAdmin) {
+      await this.resetCancelledRecords(submitResultDto, event);
+    } else {
       let text = `A new ${submitResultDto.eventId} result has been submitted by user ${
         user.username
       }: ${getFormattedTime(createdResult.best)}`;
@@ -903,7 +904,7 @@ export class ResultsService {
   private async resetCancelledRecords(
     result: CreateResultDto | ResultDocument,
     event?: EventDocument,
-    contest?: IContest,
+    state?: ContestState,
   ) {
     if (result.best <= 0 && result.average <= 0) return;
     if (!event) event = await this.eventsService.getEventById(result.eventId);
@@ -913,7 +914,7 @@ export class ResultsService {
     // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
     // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
     const queryBase: any = { date: { $gte: result.date } };
-    if (contest && contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
+    if (state && state < ContestState.Finished) queryBase.competitionId = result.competitionId;
 
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
     try {
