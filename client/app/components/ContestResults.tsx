@@ -17,8 +17,8 @@ const ContestResults = ({
   const searchParams = useSearchParams();
 
   const events = contest.events.map((el) => el.event);
-  const eventId = searchParams.get('eventId');
-  const contestEvent = eventId ? contest.events.find((ce) => ce.event.eventId === eventId) : contest.events[0];
+  const eventId = searchParams.get('eventId') ?? contest.events[0].event.eventId;
+  const contestEvent = contest.events.find((ce) => ce.event.eventId === eventId);
 
   return (
     <div>
