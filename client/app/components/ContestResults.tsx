@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import EventResultsTable from '@c/EventResultsTable';
 import EventButtons from '@c/EventButtons';
-import { IContest, IContestDto, IContestEvent, IPerson, IRecordType } from '@sh/types';
+import { IContest, IContestDto, IPerson, IRecordType } from '@sh/types';
 
 const ContestResults = ({
   contest,
@@ -14,20 +14,18 @@ const ContestResults = ({
   persons: IPerson[];
   activeRecordTypes: IRecordType[];
 }) => {
-  const [selectedEvent, setSelectedEvent] = useState<IContestEvent>(contest.events[0]);
+  const searchParams = useSearchParams();
 
   const events = contest.events.map((el) => el.event);
-
-  const selectEvent = (eventId: string) => {
-    setSelectedEvent(contest.events.find((el) => el.event.eventId === eventId));
-  };
+  const eventId = searchParams.get('eventId');
+  const contestEvent = eventId ? contest.events.find((ce) => ce.event.eventId === eventId) : contest.events[0];
 
   return (
     <div>
       <div className="px-1">
-        <EventButtons events={events} activeEvent={selectedEvent.event} onEventSelect={selectEvent} />
+        <EventButtons eventId={eventId} events={events} forPage="results" />
       </div>
-      <EventResultsTable contestEvent={selectedEvent} persons={persons} recordTypes={activeRecordTypes} />
+      <EventResultsTable contestEvent={contestEvent} persons={persons} recordTypes={activeRecordTypes} />
     </div>
   );
 };

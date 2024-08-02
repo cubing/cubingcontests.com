@@ -73,10 +73,18 @@ const RulesPage = () => {
 
             <h4 className="my-4">Team events</h4>
             <ul className="list-inline lh-lg">
-              <li>T1. There must be no physical contact between any members of a team during an attempt.</li>
+              <li>
+                T1. There must be no physical contact between any members of a team during an attempt. Penalty: DNF.
+              </li>
               <li>T2. All members of a team may communicate with each other and with the judge.</li>
-              <li>T3. A team must consist of the same members for all attempts across all rounds of an event. Exception: Some events may have specific allowances for this.</li>
-              <li>T4. A competitor who has participated in an event as part of one team must not compete as part of any other team for that event.</li>
+              <li>
+                T3. A team must consist of the same members for all attempts across all rounds of an event. Exception:
+                Some events may have specific allowances for this.
+              </li>
+              <li>
+                T4. A competitor who has participated in an event as part of one team must not compete as part of any
+                other team for that event.
+              </li>
             </ul>
 
             <h4 className="my-4">Fully blindfolded events</h4>
@@ -91,8 +99,9 @@ const RulesPage = () => {
               <li>F2. There is no memorization phase.</li>
               <li>F3. The competitor must be blindfolded before the start of the attempt.</li>
               <li>
-                F4. After the competitor dons the blindfold, the judge holds up the sight blocker between the
-                competitor's face and the puzzle, and tells the competitor they may start the attempt.
+                F4. After the competitor dons the blindfold and tells the judge they are ready, the judge holds up the
+                sight blocker between the competitor's face and the puzzle, and tells the competitor they may start the
+                attempt.
               </li>
               <li>
                 F5. The competitor starts the attempt by starting the timer. This is the same as other events, except
@@ -113,6 +122,7 @@ const RulesPage = () => {
                 be removed without the results being published.
               </li>
               <li>U2. An unofficial competition may not be held at a private residence.</li>
+              <li>U3. Mats are optional.</li>
             </ul>
           </>
         )}

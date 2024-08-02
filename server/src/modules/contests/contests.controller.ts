@@ -30,22 +30,26 @@ export class ContestsController {
     return await this.service.getModContests(req.user);
   }
 
-  // GET /competitions/:competitionId
+  // GET /competitions/:competitionId(?eventId=...)
   @Get(':competitionId')
-  async getContest(@Param('competitionId') competitionId: string) {
+  async getContest(@Param('competitionId') competitionId: string, @Query('eventId') eventId: string) {
     this.logger.logAndSave(`Getting contest with ID ${competitionId}`, LogType.GetContest);
 
-    return await this.service.getContest(competitionId);
+    return await this.service.getContest(competitionId, { eventId });
   }
 
-  // GET /competitions/mod/:competitionId
+  // GET /competitions/mod/:competitionId(?eventId=...)
   @Get('mod/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModContest(@Param('competitionId') competitionId: string, @Request() req: any) {
+  async getModContest(
+    @Param('competitionId') competitionId: string,
+    @Query('eventId') eventId: string,
+    @Request() req: any,
+  ) {
     this.logger.logAndSave(`Getting contest with ID ${competitionId} with moderator info`, LogType.GetModContest);
 
-    return await this.service.getContest(competitionId, req.user);
+    return await this.service.getContest(competitionId, { eventId, user: req.user });
   }
 
   // POST /competitions(?saveResults=true)

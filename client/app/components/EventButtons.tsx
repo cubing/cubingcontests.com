@@ -1,50 +1,47 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { IEvent } from '@sh/types';
 import { eventCategories } from '~/helpers/eventCategories';
 import EventIcon from '@c/EventIcon';
 
 const EventButtons = ({
+  eventId,
   events,
-  singleOrAvg,
-  activeEvent,
-  onEventSelect,
-  showCategories = false,
+  forPage,
 }: {
+  eventId: string;
   events: IEvent[];
-  singleOrAvg?: 'single' | 'average'; // mutually exclusive with onEventSelect
-  activeEvent?: IEvent;
-  onEventSelect?: (eventId: string) => void; // mutually exclusive with singleOrAvg
-  showCategories?: boolean;
+  forPage: 'results' | 'rankings';
 }) => {
-  if (!!onEventSelect === !!singleOrAvg) {
-    throw new Error('Error: onEventSelect and singleOrAvg are mutually exclusive props in EventButtons');
-  }
-
-  const [selectedCat, setSelectedCat] = useState(eventCategories.find((el) => activeEvent.groups.includes(el.group)));
-
+  const router = useRouter();
+  const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
+
+  const [selectedCat, setSelectedCat] = useState(
+    eventCategories.find((el) => events.find((e) => e.eventId === eventId).groups.includes(el.group)),
+  );
 
   // If hideCategories = true, just show all events that were passed in
   const filteredEvents = useMemo(
-    () => (!showCategories ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
+    () => (forPage !== 'rankings' ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
     [events, selectedCat],
   );
 
   const handleEventClick = (eventId: string) => {
-    if (onEventSelect) {
-      onEventSelect(eventId);
+    if (forPage === 'results') {
+      router.push(`/competitions/${id}/results?eventId=${eventId}`);
     } else {
       const show = searchParams.get('show');
-      window.location.href = `/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`;
+      router.push(`/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
     }
   };
 
   return (
     <div>
-      {showCategories && (
+      {/* Event categories */}
+      {forPage === 'rankings' && (
         <>
           <div className="btn-group btn-group-sm mt-2 mb-3" role="group">
             {eventCategories.map((cat) => (
@@ -70,7 +67,7 @@ const EventButtons = ({
             key={event.eventId}
             event={event}
             onClick={() => handleEventClick(event.eventId)}
-            isActive={activeEvent.eventId === event.eventId}
+            isActive={event.eventId === eventId}
           />
         ))}
       </div>

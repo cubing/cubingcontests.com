@@ -112,7 +112,7 @@ export class ContestsService {
       const contests = await this.contestModel
         .find()
         .populate(eventPopulateOptions.event)
-        .populate(eventPopulateOptions.rounds)
+        .populate(eventPopulateOptions.roundsAndResults)
         .exec();
 
       for (const contest of contests) {
@@ -167,15 +167,33 @@ export class ContestsService {
     }
   }
 
-  async getContest(competitionId: string, user?: IPartialUser): Promise<IContestData> {
-    // This also checks access rights to the contest if it's a request for a mod contest (user is defined)
-    const contest = await this.getFullContest(competitionId, user);
+  // If eventId is defined, this will include the results for that event in the response
+  async getContest(
+    competitionId: string,
+    { user, eventId }: { user?: IPartialUser; eventId?: string },
+  ): Promise<IContestData> {
+    // This also checks access rights to the contest if it's a request for a mod contest (user is defined).
+    // This needs to be a plain object for the manual results population below.
+    const contest = (await this.getFullContest(competitionId, user)).toObject();
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     const output: IContestData = {
       contest,
-      persons: await this.personsService.getContestParticipants({ contestEvents: contest.events }),
+      persons: await this.personsService.getContestParticipants({ competitionId }),
       activeRecordTypes,
     };
+
+    if (eventId) {
+      const contestEvent =
+        eventId === 'FIRST_EVENT' ? contest.events[0] : contest.events.find((ce) => ce.event.eventId === eventId);
+
+      if (!contestEvent) throw new BadRequestException('Event not found');
+
+      for (const round of contestEvent.rounds) {
+        for (let i = 0; i < round.results.length; i++) {
+          round.results[i] = await this.resultModel.findById(round.results[i].toString());
+        }
+      }
+    }
 
     // Get mod contest
     if (user) {
@@ -186,9 +204,8 @@ export class ContestsService {
       );
 
       // Show admins the info about the creator of the contest
-      if (user.roles.includes(Role.Admin)) {
+      if (user.roles.includes(Role.Admin))
         output.creator = await this.usersService.getUserDetails(contest.createdBy.toString(), false);
-      }
     }
 
     return output;
@@ -229,9 +246,7 @@ export class ContestsService {
         events: contestEvents,
         createdBy: new mongoose.Types.ObjectId(user._id as string),
         state: ContestState.Created,
-        participants: !saveResults
-          ? 0
-          : (await this.personsService.getContestParticipants({ contestEvents: contestEvents })).length,
+        participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents })).length,
       };
 
       newCompetition.organizers = await this.personsService.getPersonsById(

@@ -71,7 +71,7 @@ export class AppController {
     const contest = await this.contestModel
       .findOne({ competitionId })
       .populate(eventPopulateOptions.event)
-      .populate({ ...eventPopulateOptions.rounds, populate: undefined }) // we don't need the results to be populated
+      .populate(eventPopulateOptions.rounds) // we don't need the results to be populated
       .populate(orgPopulateOptions)
       .exec();
 

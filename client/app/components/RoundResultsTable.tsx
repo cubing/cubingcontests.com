@@ -61,7 +61,7 @@ const RoundResultsTable = ({
             <th scope="col">Name</th>
             <th scope="col">Best</th>
             {roundCanHaveAverage && <th scope="col">{round.format === RoundFormat.Average ? 'Average' : 'Mean'}</th>}
-            <th scope="col">Solves</th>
+            <th scope="col">Attempts</th>
             {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
         </thead>

@@ -1,8 +1,8 @@
-import myFetch from '~/helpers/myFetch';
 import Link from 'next/link';
-import RankingsTable from '~/app/components/RankingsTable';
-import EventButtons from '~/app/components/EventButtons';
-import EventTitle from '~/app/components/EventTitle';
+import myFetch from '~/helpers/myFetch';
+import RankingsTable from '@c/RankingsTable';
+import EventButtons from '@c/EventButtons';
+import EventTitle from '@c/EventTitle';
 import { IEvent, IEventRankings } from '@sh/types';
 import { EventGroup, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
@@ -20,14 +20,14 @@ export const metadata = {
 
 const RankingsPage = async ({
   params: { eventId, singleOrAvg },
-  searchParams,
+  searchParams: { show },
 }: {
   params: { eventId: string; singleOrAvg: 'single' | 'average' };
   searchParams: { show: 'results' };
 }) => {
   // Refreshes rankings every 5 minutes
   const { payload: eventRankings }: { payload?: IEventRankings } = await myFetch.get(
-    `/results/rankings/${eventId}/${singleOrAvg}${searchParams.show ? '?show=results' : ''}`,
+    `/results/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`,
     { revalidate: C.rankingsRev },
   );
   const { payload: events }: { payload?: IEvent[] } = await myFetch.get('/events', { revalidate: C.rankingsRev });
@@ -41,21 +41,21 @@ const RankingsPage = async ({
 
         <div className="mb-3 px-2">
           <h4>Event</h4>
-          <EventButtons events={events} activeEvent={currEvent} singleOrAvg={singleOrAvg} showCategories />
+          <EventButtons eventId={eventId} events={events} forPage="rankings" />
 
           <div className="d-flex flex-wrap gap-3 mb-4">
             <div>
               <h4>Type</h4>
               <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
                 <Link
-                  href={`/rankings/${eventId}/single${searchParams.show ? '?show=results' : ''}`}
+                  href={`/rankings/${eventId}/single${show ? '?show=results' : ''}`}
                   prefetch={false}
                   className={'btn btn-primary' + (singleOrAvg === 'single' ? ' active' : '')}
                 >
                   Single
                 </Link>
                 <Link
-                  href={`/rankings/${eventId}/average${searchParams.show ? '?show=results' : ''}`}
+                  href={`/rankings/${eventId}/average${show ? '?show=results' : ''}`}
                   prefetch={false}
                   className={'btn btn-primary' + (singleOrAvg === 'average' ? ' active' : '')}
                 >
@@ -70,14 +70,14 @@ const RankingsPage = async ({
                 <Link
                   href={`/rankings/${eventId}/${singleOrAvg}`}
                   prefetch={false}
-                  className={'btn btn-primary' + (!searchParams.show ? ' active' : '')}
+                  className={'btn btn-primary' + (!show ? ' active' : '')}
                 >
                   Top Persons
                 </Link>
                 <Link
                   href={`/rankings/${eventId}/${singleOrAvg}?show=results`}
                   prefetch={false}
-                  className={'btn btn-primary' + (searchParams.show ? ' active' : '')}
+                  className={'btn btn-primary' + (show ? ' active' : '')}
                 >
                   Top Results
                 </Link>
@@ -98,7 +98,7 @@ const RankingsPage = async ({
           rankings={eventRankings.rankings}
           event={eventRankings.event}
           forAverage={singleOrAvg === 'average'}
-          topResultsRankings={!!searchParams.show}
+          topResultsRankings={show === 'results'}
         />
       </div>
     );

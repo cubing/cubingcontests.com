@@ -4,13 +4,18 @@ import ContestResults from '@c/ContestResults';
 import C from '@sh/constants';
 import { IContestData } from '@sh/types';
 
-const ContestResultsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData }: { payload?: IContestData } = await myFetch.get(`/competitions/${params.id}`, {
-    revalidate: C.contestResultsRev,
-  });
+const ContestResultsPage = async ({
+  params: { id },
+  searchParams: { eventId },
+}: {
+  params: { id: string };
+  searchParams: { eventId?: string };
+}) => {
+  const { payload: contestData }: { payload?: IContestData } = await myFetch.get(
+    `/competitions/${id}?eventId=${eventId ?? 'FIRST_EVENT'}`,
+    { revalidate: C.contestResultsRev },
+  );
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
-
-  console.log(contestData.contest.events[0].rounds[0].results);
 
   return (
     <ContestLayout contest={contestData.contest} activeTab="results">

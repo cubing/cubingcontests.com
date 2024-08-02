@@ -47,7 +47,7 @@ const ManageResultsPage = () => {
               <th scope="col">Competitors</th>
               <th scope="col">Best</th>
               <th scope="col">Average</th>
-              <th scope="col">Solves</th>
+              <th scope="col">Attempts</th>
               <th scope="col">Date</th>
               <th scope="col">Approved</th>
               <th scope="col">Actions</th>

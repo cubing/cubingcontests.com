@@ -41,15 +41,7 @@ const unofficialEventIcons = [
   'redi',
 ];
 
-const EventIcon = ({
-  event,
-  onClick,
-  isActive = false,
-}: {
-  event: IEvent;
-  onClick?: () => void;
-  isActive?: boolean;
-}) => {
+const EventIcon = ({ event, onClick, isActive }: { event: IEvent; onClick?: () => void; isActive?: boolean }) => {
   const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) || event.groups.includes(EventGroup.RemovedWCA);
   const iconExists = isOrWasWCAEvent || unofficialEventIcons.includes(event.eventId);
 

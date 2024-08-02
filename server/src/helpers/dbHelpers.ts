@@ -13,11 +13,16 @@ export const excl = {
 
 export const orgPopulateOptions = { path: 'organizers', model: 'Person' };
 
+const rounds = {
+  path: 'events.rounds',
+  model: 'Round',
+};
+
 export const eventPopulateOptions = {
   event: { path: 'events.event', model: 'Event' },
-  rounds: {
-    path: 'events.rounds',
-    model: 'Round',
+  rounds,
+  roundsAndResults: {
+    ...rounds,
     populate: [
       {
         path: 'results',
