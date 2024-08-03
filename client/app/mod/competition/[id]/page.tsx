@@ -3,23 +3,29 @@
 import { useState, useEffect } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Loading from '@c/UI/Loading';
-import PostResultsScreen from '@c/adminAndModerator/PostResultsScreen';
+import DataEntryScreen from '@c/adminAndModerator/DataEntryScreen';
 import { IContestData } from '@sh/types';
 
-const PostResultsPage = ({ params }: { params: { id: string } }) => {
+const PostResultsPage = ({
+  params: { id },
+  searchParams: { eventId },
+}: {
+  params: { id: string };
+  searchParams: { eventId: string };
+}) => {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [contestData, setContestData] = useState<IContestData>();
 
   useEffect(() => {
-    myFetch.get(`/competitions/mod/${params.id}`, { authorize: true }).then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setContestData(payload as IContestData);
-    });
-  }, [params.id]);
+    myFetch
+      .get(`/competitions/mod/${id}?eventId=${eventId ?? 'FIRST_EVENT'}`, { authorize: true })
+      .then(({ payload, errors }) => {
+        if (errors) setErrorMessages(errors);
+        else setContestData(payload as IContestData);
+      });
+  }, [id]);
 
-  if (contestData) {
-    return <PostResultsScreen compData={contestData} />;
-  }
+  if (contestData) return <DataEntryScreen compData={contestData} />;
 
   return <Loading errorMessages={errorMessages} />;
 };

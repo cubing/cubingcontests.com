@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import ResultForm from './ResultForm';
 import ErrorMessages from '@c/UI/ErrorMessages';
@@ -15,18 +16,22 @@ import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
-const PostResultsScreen = ({
+const DataEntryScreen = ({
   compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent: initialRecordPairs },
 }: {
   compData: IContestData;
 }) => {
+  const searchParams = useSearchParams();
+
+  const eventId = searchParams.get('eventId') ?? contest.events[0].event.eventId;
+
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
   const [loadingId, setLoadingId] = useState('');
   const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
 
-  const [round, setRound] = useState<IRound>(contest.events[0].rounds[0]);
+  const [round, setRound] = useState<IRound>(contest.events.find((ce) => ce.event.eventId === eventId).rounds[0]);
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
@@ -252,7 +257,7 @@ const PostResultsScreen = ({
         </div>
 
         <div className="col-lg-9">
-          <h2 className="my-2 mb-4 text-center">Enter results for {contest.name}</h2>
+          <h2 className="my-2 mb-4 text-center">Enter results for {contest.shortName}</h2>
 
           <RoundResultsTable
             round={round}
@@ -270,4 +275,4 @@ const PostResultsScreen = ({
   );
 };
 
-export default PostResultsScreen;
+export default DataEntryScreen;

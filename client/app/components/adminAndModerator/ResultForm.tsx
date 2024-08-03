@@ -8,6 +8,7 @@ import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormCheckbox from '@c/form/FormCheckbox';
 import AttemptInput from '@c/AttemptInput';
 import Time from '@c/Time';
+import EventButtons from '@c/EventButtons';
 import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/types';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
@@ -27,7 +28,7 @@ const ResultForm = ({
   attempts,
   setAttempts,
   recordPairs,
-  loadingRecordPairs = false,
+  loadingRecordPairs,
   recordTypes,
   nextFocusTargetId,
   resetTrigger,
@@ -41,10 +42,10 @@ const ResultForm = ({
   events,
   roundFormat,
   setRoundFormat,
-  disableMainSelects = false,
-  showOptionToKeepCompetitors = false,
-  isAdmin = false,
-  forResultsSubmissionForm = false,
+  disableMainSelects,
+  showOptionToKeepCompetitors,
+  isAdmin,
+  forResultsSubmissionForm,
 }: {
   event: IEvent;
   persons: IPerson[];
@@ -80,7 +81,10 @@ const ResultForm = ({
   const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
   const [attemptsResetTrigger, setAttemptsResetTrigger] = useState<boolean>();
 
-  if (!forResultsSubmissionForm) roundFormat = round.format;
+  if (!forResultsSubmissionForm) {
+    roundFormat = round.format;
+    events = contestEvents.map((el) => el.event);
+  }
 
   const roundCanHaveAverage = roundFormats.find((rf) => rf.value === roundFormat).attempts >= 3;
   // The second round.cutoff doesn't need a ?, because getMakesCutoff returns true if the cutoff is undefined
@@ -219,12 +223,16 @@ const ResultForm = ({
 
   return (
     <>
-      <FormEventSelect
-        events={forResultsSubmissionForm ? events : contestEvents.map((el) => el.event)}
-        eventId={event.eventId}
-        setEventId={(val) => changeEvent(val)}
-        disabled={disableMainSelects}
-      />
+      {forResultsSubmissionForm ? (
+        <FormEventSelect
+          events={events}
+          eventId={event.eventId}
+          setEventId={(val) => changeEvent(val)}
+          disabled={disableMainSelects}
+        />
+      ) : (
+        <EventButtons eventId={event.eventId} events={events} forPage="data-entry" />
+      )}
       <div className="mb-3 fs-5">
         {forResultsSubmissionForm ? (
           <FormSelect

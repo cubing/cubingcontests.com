@@ -13,7 +13,7 @@ const EventButtons = ({
 }: {
   eventId: string;
   events: IEvent[];
-  forPage: 'results' | 'rankings';
+  forPage: 'results' | 'rankings' | 'data-entry';
 }) => {
   const router = useRouter();
   const { id, singleOrAvg } = useParams();
@@ -32,9 +32,11 @@ const EventButtons = ({
   const handleEventClick = (eventId: string) => {
     if (forPage === 'results') {
       router.push(`/competitions/${id}/results?eventId=${eventId}`);
-    } else {
+    } else if (forPage === 'rankings') {
       const show = searchParams.get('show');
       router.push(`/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
+    } else {
+      window.location.href = `/mod/competition/${id}?eventId=${eventId}`;
     }
   };
 
