@@ -9,7 +9,7 @@ import MarkdownDescription from '@c/MarkdownDescription';
 import { IContest, IContestData } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
-import { getFormattedDate, getFormattedCoords } from '~/helpers/utilityFunctions';
+import { getFormattedDate } from '~/helpers/utilityFunctions';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const { payload } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 0 });
@@ -27,6 +27,17 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
     contest.state < ContestState.Finished &&
     ((!contest.endDate && start.getTime() === startOfDayInLocalTZ.getTime()) ||
       (contest.endDate && start <= startOfDayInLocalTZ && new Date(contest.endDate) >= startOfDayInLocalTZ));
+
+  const getFormattedCoords = () => {
+    const latitude = (contest.latitudeMicrodegrees / 1000000).toFixed(6);
+    const longitude = (contest.longitudeMicrodegrees / 1000000).toFixed(6);
+
+    return (
+      <a href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`} target="_blank">
+        {latitude}, {longitude}
+      </a>
+    );
+  };
 
   return (
     <ContestLayout contest={contest} activeTab="details">
@@ -51,7 +62,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
             {contest.address && <p className="mb-2">Address:&#8194;{contest.address}</p>}
             {contest.latitudeMicrodegrees !== undefined && contest.longitudeMicrodegrees !== undefined && (
-              <p className="mb-2">Coordinates:&#8194;{getFormattedCoords(contest)}</p>
+              <p className="mb-2">Coordinates:&#8194;{getFormattedCoords()}</p>
             )}
             {contest.contact && (
               <p className="mb-2">

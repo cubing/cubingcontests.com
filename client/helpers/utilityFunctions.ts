@@ -4,13 +4,9 @@ import { format } from 'date-fns-tz';
 import myFetch from './myFetch';
 import { Color, ContestType, EventFormat, Role, RoundFormat } from '@sh/enums';
 import C from '@sh/constants';
-import { IAttempt, IContest, IContestDto, IEvent, IPerson, IResult, IRound } from '@sh/types';
+import { IAttempt, IContestDto, IEvent, IPerson, IResult, IRound } from '@sh/types';
 import { IUserInfo } from './interfaces/UserInfo';
 import { getBestAndAverage } from '@sh/sharedFunctions';
-
-export const getFormattedCoords = (comp: IContest): string => {
-  return `${(comp.latitudeMicrodegrees / 1000000).toFixed(6)}, ${(comp.longitudeMicrodegrees / 1000000).toFixed(6)}`;
-};
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string, timeZone = 'UTC'): string => {
   if (!startDate) throw new Error('Start date missing!');
