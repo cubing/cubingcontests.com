@@ -20,6 +20,7 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
 import { SubmitResultDto } from './dto/submit-result.dto';
+import { UpdateResultDto } from './dto/update-result.dto';
 import { LogType } from '~/src/helpers/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
 
@@ -146,8 +147,11 @@ export class ResultsController {
   @Patch(':resultId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async editResult(@Param('resultId') resultId: string, @Body(new ValidationPipe()) updateResultDto: SubmitResultDto) {
-    this.logger.logAndSave(`Updating result with ID ${resultId}`, LogType.UpdateResult);
+  async editResult(@Param('resultId') resultId: string, @Body(new ValidationPipe()) updateResultDto: UpdateResultDto) {
+    this.logger.logAndSave(
+      `Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
+      LogType.UpdateResult,
+    );
 
     return await this.service.editResult(resultId, updateResultDto);
   }

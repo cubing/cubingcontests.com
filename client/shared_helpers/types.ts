@@ -12,6 +12,7 @@ export type { IPerson, IPersonDto } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
 export type {
   IResult,
+  IUpdateResultDto,
   IFeResult,
   IAttempt,
   IRanking,

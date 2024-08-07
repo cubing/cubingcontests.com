@@ -28,14 +28,23 @@ export interface IResult {
   average: number; // for FMC it's 100 times the mean (to avoid decimals)
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
-  videoLink?: string; // only used for submitted results
-  discussionLink?: string; // only used for submitted results
+  videoLink?: string; // required for submitted results (but admins may leave this empty)
+  discussionLink?: string; // only used for submitted results (still optional though)
   createdBy?: unknown; // user ID of the user who created the result (only used for submitted results)
 }
 
 export interface IFeResult extends IResult {
   event: IEvent;
   persons: IPerson[];
+}
+
+export interface IUpdateResultDto {
+  date: Date;
+  unapproved?: boolean;
+  personIds: number[];
+  attempts: IAttempt[];
+  videoLink?: string; // required for submitted results
+  discussionLink?: string; // only used for submitted results
 }
 
 export interface IRanking {
@@ -49,7 +58,7 @@ export interface IRanking {
   date: Date;
   contest?: IContest; // optional, because some results are submitted, so they have no contest
   attempts?: IAttempt[]; // only set for the average and mean rankings
-  videoLink?: string; // only admins are not required to fill this out
+  videoLink?: string;
   discussionLink?: string;
 }
 

@@ -7,7 +7,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
   ValidateNested,
   Max,
@@ -18,10 +17,11 @@ import {
 import { IAttempt, IResult } from '@sh/types';
 import { Type } from 'class-transformer';
 import C from '@sh/constants';
+import { DATE_VALIDATION_MSG } from '~/src/helpers/messages';
 
 // This is almost the same as HasNonDnfDnsResult in SubmitResultDto
 @ValidatorConstraint({ name: 'HasNonDnsResult', async: false })
-class HasNonDnsResult implements ValidatorConstraintInterface {
+export class HasNonDnsResult implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
     return attempts.some((a) => a.result !== -2);
   }
@@ -41,12 +41,12 @@ export class CreateResultDto implements IResult {
   @IsNotEmpty()
   eventId: string;
 
-  @IsDateString({}, { message: 'Please enter a valid date' })
+  @IsDateString({}, { message: DATE_VALIDATION_MSG })
   date: Date;
 
   @IsOptional()
   @IsBoolean()
-  unapproved: boolean;
+  unapproved?: boolean;
 
   @ArrayMinSize(1)
   @IsInt({ each: true })
@@ -68,14 +68,6 @@ export class CreateResultDto implements IResult {
 
   @IsInt()
   average: number;
-
-  @IsOptional()
-  @IsUrl({}, { message: 'Please enter a valid video link' })
-  videoLink?: string;
-
-  @IsOptional()
-  @IsUrl({}, { message: 'Please enter a valid discussion link' })
-  discussionLink?: string;
 }
 
 export class AttemptDto implements IAttempt {

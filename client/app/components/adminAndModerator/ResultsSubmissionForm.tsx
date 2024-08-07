@@ -11,7 +11,7 @@ import FormDateInput from '@c/form/FormDateInput';
 import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
 import CreatorDetails from '@c/CreatorDetails';
-import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo } from '@sh/types';
+import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo, IUpdateResultDto } from '@sh/types';
 import { RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import C from '@sh/constants';
@@ -87,7 +87,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           setAttempts(result.attempts);
           setDate(new Date(result.date));
           setCompetitors(persons);
-          if (result.videoLink) setVideoLink(result.videoLink);
+          setVideoLink(result.videoLink);
           if (result.discussionLink) setDiscussionLink(result.discussionLink);
         }
       });
@@ -111,7 +111,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       attempts,
       best: -1,
       average: -1,
-      videoLink: videoUnavailable ? undefined : videoLink,
+      videoLink: videoUnavailable ? '' : videoLink,
       discussionLink: discussionLink || undefined,
     };
 
@@ -141,7 +141,15 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
 
           setLoadingId('');
         } else {
-          const { errors } = await myFetch.patch(`/results/${resultId}`, newResultWithBestAndAverage);
+          const updateResultDto: IUpdateResultDto = {
+            date: newResultWithBestAndAverage.date,
+            unapproved: newResultWithBestAndAverage.unapproved,
+            personIds: newResultWithBestAndAverage.personIds,
+            attempts: newResultWithBestAndAverage.attempts,
+            videoLink: newResultWithBestAndAverage.videoLink,
+            discussionLink: newResultWithBestAndAverage.discussionLink,
+          };
+          const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto);
 
           if (errors) {
             setErrorMessages(errors);
@@ -203,9 +211,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: '900px' }}>
           {resultId ? (
             <p>
-              Once you approve the attempt, the backend will remove future records that would have been cancelled by it.
-              If you are editing a result that has already been approved, the backend <b>WILL NOT</b> recalculate any
-              records.
+              Once you submit the attempt, the backend will remove future records that would have been cancelled by it.
             </p>
           ) : (
             <>
@@ -273,6 +279,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             title="Date (dd.mm.yyyy)"
             value={date}
             setValue={changeDate}
+            disabled={!submissionInfo.result.unapproved}
             nextFocusTargetId={videoUnavailable ? 'discussion_link' : 'video_link'}
           />
           <FormTextInput
