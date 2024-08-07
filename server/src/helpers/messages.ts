@@ -9,3 +9,6 @@ At least one lowercase letter
 At least one uppercase letter
 At least one number
 At least one special character`;
+export const DATE_VALIDATION_MSG = 'Please enter a valid date';
+export const VIDEO_LINK_VALIDATION_MSG = 'Please enter a valid video link';
+export const DISCUSSION_LINK_VALIDATION_MSG = 'Please enter a valid discussion link';

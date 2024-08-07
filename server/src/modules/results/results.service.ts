@@ -23,6 +23,7 @@ import { UsersService } from '@m/users/users.service';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
+import { UpdateResultDto } from './dto/update-result.dto';
 import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
 import { ContestState, Role, WcaRecordType } from '@sh/enums';
@@ -43,6 +44,7 @@ import {
 } from '@sh/types';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import {
+  getBestAndAverage,
   getDateOnly,
   getFormattedTime,
   getIsCompType,
@@ -731,32 +733,36 @@ export class ResultsService {
     }
   }
 
-  async editResult(resultId: string, updateResultDto: SubmitResultDto) {
-    let result: ResultDocument;
+  async editResult(resultId: string, updateResultDto: UpdateResultDto) {
+    const result = await this.resultModel.findOne({ _id: resultId }).exec();
+    if (!result) throw new NotFoundException();
 
-    try {
-      result = await this.resultModel.findOne({ _id: resultId }).exec();
-      if (!result) throw new NotFoundException();
-    } catch (err) {
-      throw new NotFoundException('Result not found');
+    if (!result.unapproved) {
+      if (result.date.getTime() !== new Date(updateResultDto.date).getTime())
+        throw new BadRequestException('The date may not be changed after a result has been approved');
     }
 
-    const event = await this.eventsService.getEventById(updateResultDto.eventId);
+    const event = await this.eventsService.getEventById(result.eventId);
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: updateResultDto.date });
+    const {best, average} = getBestAndAverage(updateResultDto.attempts, event, {roundFormat: ???})
 
     try {
       result.date = new Date(updateResultDto.date);
       result.personIds = updateResultDto.personIds;
       result.attempts = updateResultDto.attempts;
-      result.best = updateResultDto.best;
-      result.average = updateResultDto.average;
+      result.best = best;
+      result.average = average;
       result.videoLink = updateResultDto.videoLink;
       result.discussionLink = updateResultDto.discussionLink;
 
-      setResultRecords(updateResultDto, event, recordPairs);
+      setResultRecords(result, event, recordPairs);
     } catch (err) {
       throw new InternalServerErrorException('Error while editing result');
     }
+
+    ////////////////////////////////
+    // ADD THIS SOMEWHERE: this.validateAndCleanUpResult(result, event)
+    ////////////////////////////////
 
     if (result.unapproved && !updateResultDto.unapproved) {
       result.unapproved = undefined;
@@ -942,7 +948,7 @@ export class ResultsService {
     }
   }
 
-  // Sets records that are now recognized after a contest result deletion. Does if for all days from the result's
+  // Sets records that are now recognized after a contest result deletion. Does it for all days from the result's
   // date onward. If contest is set, only sets records for that contest, otherwise does it for ALL results.
   private async updateRecordsAfterDeletion(
     result: ResultDocument | CreateResultDto,
@@ -1080,14 +1086,14 @@ export class ResultsService {
               }`,
             );
         }
-      }
 
-      // Cutoff validation
-      if (round.cutoff) {
-        const passes = getMakesCutoff(result.attempts, round.cutoff);
+        // Cutoff validation
+        if (round.cutoff) {
+          const passes = getMakesCutoff(result.attempts, round.cutoff);
 
-        if (!passes && result.attempts.length > round.cutoff.numberOfAttempts)
-          throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
+          if (!passes && result.attempts.length > round.cutoff.numberOfAttempts)
+            throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
+        }
       }
     }
   }

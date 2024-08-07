@@ -1,14 +1,17 @@
-import { IAttempt, IResult } from '@sh/types';
+import { Type } from 'class-transformer';
 import { AttemptDto, CreateResultDto } from './create-result.dto';
 import {
   ArrayMaxSize,
   ArrayMinSize,
+  IsOptional,
+  IsUrl,
   Validate,
   ValidateNested,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IAttempt, IResult } from '@sh/types';
+import { DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from '~/src/helpers/messages';
 
 @ValidatorConstraint({ name: 'HasNonDnfDnsResult', async: false })
 class HasNonDnfDnsResult implements ValidatorConstraintInterface {
@@ -28,4 +31,11 @@ export class SubmitResultDto extends CreateResultDto implements IResult {
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];
+
+  @IsUrl({}, { message: VIDEO_LINK_VALIDATION_MSG })
+  videoLink: string;
+
+  @IsOptional()
+  @IsUrl({}, { message: DISCUSSION_LINK_VALIDATION_MSG })
+  discussionLink?: string;
 }

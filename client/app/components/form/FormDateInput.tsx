@@ -11,12 +11,14 @@ const FormDateInput = ({
   title,
   value,
   setValue,
+  disabled,
   nextFocusTargetId,
 }: {
   id?: string;
   title: string;
   value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
   setValue: (val: Date | null | undefined) => void;
+  disabled?: boolean;
   nextFocusTargetId?: string;
 }) => {
   const [dateText, setDateText] = useState('');
@@ -159,6 +161,7 @@ const FormDateInput = ({
         onKeyDown={(e) => onKeyDown(e)}
         onFocus={() => changePosition()}
         onClick={(e: any) => setPosition(e.target.selectionStart)}
+        disabled={disabled}
         className={'form-control' + (value === null && dateText.length === 8 ? ' is-invalid' : '')}
       />
     </div>
