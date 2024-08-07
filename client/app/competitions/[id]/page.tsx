@@ -93,6 +93,17 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             ) : contest.state === ContestState.Finished ? (
               <p className="mb-4">The results for this contest are currently being checked</p>
             ) : undefined}
+
+            {contest.type === ContestType.WcaComp && (
+              <p className="mb-4">
+                Unofficial events from {contest.name}. For official events see the official{' '}
+                <a href={`https://worldcubeassociation.org/competitions/${contest.competitionId}`}>
+                  WCA competition page
+                </a>
+                .
+              </p>
+            )}
+
             {contest.description && (
               <>
                 <p className="fw-bold">Description:</p>
