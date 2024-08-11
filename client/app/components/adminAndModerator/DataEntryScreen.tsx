@@ -7,7 +7,16 @@ import ResultForm from './ResultForm';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import Button from '@c/UI/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
-import { IContestEvent, IContestData, IResult, IPerson, IRound, IAttempt, IEventRecordPairs } from '@sh/types';
+import {
+  IContestEvent,
+  IContestData,
+  IResult,
+  IPerson,
+  IRound,
+  IAttempt,
+  IEventRecordPairs,
+  IUpdateResultDto,
+} from '@sh/types';
 import { ContestState } from '@sh/enums';
 import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
@@ -29,6 +38,7 @@ const DataEntryScreen = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
   const [loadingId, setLoadingId] = useState('');
+  const [editId, setEditId] = useState<string | null>(null);
   const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
 
   const [round, setRound] = useState<IRound>(contest.events.find((ce) => ce.event.eventId === eventId).rounds[0]);
@@ -90,39 +100,39 @@ const DataEntryScreen = ({
         setErrorMessages,
         setSuccessMessage,
         async (newResultWithBestAndAvg) => {
+          let updatedRound: IRound, errors: string[];
           setLoadingId('submit_attempt_button');
 
-          const { payload, errors } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
+          if (editId === null) {
+            const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
+            updatedRound = payload;
+            errors = err;
+          } else {
+            const updateResultDto: IUpdateResultDto = {
+              date: newResultWithBestAndAvg.date,
+              unapproved: newResultWithBestAndAvg.unapproved,
+              personIds: newResultWithBestAndAvg.personIds,
+              attempts: newResultWithBestAndAvg.attempts,
+            };
+            const { payload, errors: err } = await myFetch.patch(`/results/${editId}`, updateResultDto);
+            updatedRound = payload;
+            errors = err;
+            setEditId(null);
+          }
 
           setLoadingId('');
 
           if (errors) {
             setErrorMessages(errors);
           } else {
-            const eventRecordPair = recordPairsByEvent.find((el) => el.eventId === newResult.eventId);
-            if (
-              newResultWithBestAndAvg.best < eventRecordPair.recordPairs[0].best ||
-              newResultWithBestAndAvg.average < eventRecordPair.recordPairs[0].average
-            ) {
-              const { payload, errors } = await myFetch.get(`/competitions/mod/${contest.competitionId}`, {
-                authorize: true,
-              });
-
-              if (errors) {
-                setErrorMessages(errors);
-                return;
-              } else {
-                setRecordPairsByEvent(payload.recordPairsByEvent);
-              }
-            }
-
             // Add new persons to list of persons
             setPersons([
               ...persons,
               ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId)),
             ]);
             setResultFormResetTrigger(!resultFormResetTrigger);
-            updateRoundAndCompEvents(payload);
+            updateRoundAndCompEvents(updatedRound);
+            updateRecordPairs(newResultWithBestAndAvg);
           }
         },
         { round },
@@ -136,18 +146,32 @@ const DataEntryScreen = ({
     const newContestEvents = contestEvents.map((ce) =>
       ce.event.eventId !== currEvent.eventId
         ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((r) => (r.roundId !== updatedRound.roundId ? r : updatedRound)),
-          },
+        : { ...ce, rounds: ce.rounds.map((r) => (r.roundId !== updatedRound.roundId ? r : updatedRound)) },
     );
 
     setContestEvents(newContestEvents);
   };
 
+  const updateRecordPairs = async (newResult: IResult) => {
+    const eventRecordPair = recordPairsByEvent.find((el) => el.eventId === newResult.eventId);
+
+    // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if (
+      newResult.best < eventRecordPair.recordPairs[0].best ||
+      newResult.average < eventRecordPair.recordPairs[0].average
+    ) {
+      const { payload, errors } = await myFetch.get(
+        `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(',')}`,
+        { authorize: true },
+      );
+
+      if (errors) setErrorMessages(errors);
+      else setRecordPairsByEvent(payload);
+    }
+  };
+
   const editResult = (result: IResult) => {
-    // Delete result and then set the inputs if the deletion was successful
-    deleteResult((result as any)._id, () => {
+    if (isEditable) {
       const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
       // If the competitor did not make cutoff, fill the missing attempts with empty results
       const newAttempts = [
@@ -155,26 +179,30 @@ const DataEntryScreen = ({
         ...new Array(expectedAttempts - result.attempts.length).fill({ result: 0 }),
       ];
 
+      setEditId((result as any)._id);
       setAttempts(newAttempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setResultFormResetTrigger(undefined);
-    });
+      setErrorMessages([]);
+    }
   };
 
-  const deleteResult = async (resultId: string, editCallback?: () => void) => {
+  const deleteResult = async (resultId: string) => {
     if (isEditable) {
-      setLoadingId((editCallback ? 'edit' : 'delete') + `_result_${resultId}_button`);
+      const answer = confirm('Are you sure you want to delete this result?');
 
-      const { payload, errors } = await myFetch.delete(`/results/${contest.competitionId}/${resultId}`);
+      if (answer) {
+        setLoadingId(`delete_result_${resultId}_button`);
 
-      if (errors) {
-        setErrorMessages(errors);
-      } else {
-        setLoadingId('');
-        setErrorMessages([]);
-        updateRoundAndCompEvents(payload);
+        const { payload, errors } = await myFetch.delete(`/results/${resultId}`);
 
-        if (editCallback) editCallback();
+        if (errors) {
+          setErrorMessages(errors);
+        } else {
+          setLoadingId('');
+          setErrorMessages([]);
+          updateRoundAndCompEvents(payload);
+        }
       }
     }
   };
@@ -217,6 +245,7 @@ const DataEntryScreen = ({
               setRound={setRound}
               rounds={contestEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
               contestEvents={contestEvents}
+              disableMainSelects={editId !== null}
             />
             <Button
               id="submit_attempt_button"

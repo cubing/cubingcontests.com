@@ -6,7 +6,7 @@ import { LogDocument } from '~/src/models/log.model';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
-import { IAdminStats, IAttempt } from '@sh/types';
+import { IAdminStats, IAttempt, IResult } from '@sh/types';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { getBestAndAverage } from '@sh/sharedFunctions';
 import { roundFormats } from '@sh/roundFormats';
@@ -100,7 +100,6 @@ export class AppService {
 
   async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
     const person = await this.personsService.getPersonById(enterAttemptDto.registrantId);
-
     if (!person) throw new NotFoundException(`Person with ID ${enterAttemptDto.registrantId} not found`);
 
     const roundNumber = parseInt(enterAttemptDto.roundNumber);
@@ -121,10 +120,10 @@ export class AppService {
     }
 
     const { best, average } = getBestAndAverage(attempts, contestEvent.event, { round });
-    const newResult = {
+    const newResult: IResult = {
       competitionId: enterAttemptDto.competitionWcaId,
       eventId: enterAttemptDto.eventId,
-      date: new Date(), // real date assigned in createResult
+      date: null, // real date assigned in createResult or editResult
       unapproved: true,
       personIds: [enterAttemptDto.registrantId], // TO-DO: ADD SUPPORT FOR TEAM EVENTS!!!!!!!!!!!!!!!!!!!!!!!!!!
       attempts,
@@ -132,11 +131,7 @@ export class AppService {
       average,
     };
 
-    await this.resultsService.validateAndCleanUpResult(newResult, contestEvent.event, { round });
-
-    // If the result already exists, delete it first
-    if (result) await this.resultsService.deleteContestResult(result._id.toString(), result.competitionId);
-
-    await this.resultsService.createResult(newResult, round.roundId, { skipValidation: true });
+    if (result) await this.resultsService.editResult(result._id.toString(), newResult);
+    else await this.resultsService.createResult(newResult, round.roundId);
   }
 }

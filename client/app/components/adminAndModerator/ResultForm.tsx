@@ -248,6 +248,7 @@ const ResultForm = ({
             options={rounds.map((el) => ({ label: roundTypes[el.roundTypeId].label, value: el.roundTypeId }))}
             selected={round.roundTypeId}
             setSelected={changeRound}
+            disabled={disableMainSelects}
           />
         )}
       </div>

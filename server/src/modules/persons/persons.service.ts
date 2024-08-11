@@ -83,11 +83,7 @@ export class PersonsService {
     if (contestEvents) {
       for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
     } else {
-      try {
-        compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
-      } catch (err) {
-        throw new InternalServerErrorException('Error while searching for contest rounds');
-      }
+      compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
     }
 
     for (const round of compRounds) {
@@ -102,11 +98,7 @@ export class PersonsService {
   }
 
   async getPersonsTotal(): Promise<number> {
-    try {
-      return await this.personModel.countDocuments().exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    return await this.personModel.countDocuments().exec();
   }
 
   async createPerson(createPersonDto: CreatePersonDto, user: IPartialUser): Promise<PersonDocument> {

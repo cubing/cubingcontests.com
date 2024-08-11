@@ -108,7 +108,7 @@ export class EventsService {
       throw new InternalServerErrorException(err.message);
     }
 
-    if (!event) throw new NotFoundException(`Event with id ${eventId} not found`);
+    if (!event) throw new NotFoundException(`Event with ID ${eventId} not found`);
 
     return event;
   }

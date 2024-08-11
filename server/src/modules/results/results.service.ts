@@ -26,14 +26,14 @@ import { SubmitResultDto } from './dto/submit-result.dto';
 import { UpdateResultDto } from './dto/update-result.dto';
 import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
-import { ContestState, Role, WcaRecordType } from '@sh/enums';
+import { ContestState, Role, RoundFormat, WcaRecordType } from '@sh/enums';
+import { roundFormats } from '@sh/roundFormats';
 import {
   IEventRankings,
   IRecordType,
   IRecordPair,
   IEventRecordPairs,
   IResultsSubmissionInfo,
-  IContest,
   IRanking,
   IEvent,
   IFeResult,
@@ -44,6 +44,8 @@ import {
 } from '@sh/types';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import {
+  compareAvgs,
+  compareSingles,
   getBestAndAverage,
   getDateOnly,
   getFormattedTime,
@@ -54,6 +56,7 @@ import {
 } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 import { EmailService } from '~/src/modules/email/email.service';
+import { LogType } from '~/src/helpers/enums';
 
 @Injectable()
 export class ResultsService {
@@ -95,7 +98,7 @@ export class ResultsService {
         for (const result of singleRecordResults) {
           const betterSinglesInThePast = await this.resultModel
             .find({
-              ...getBaseSinglesFilter(event, { best: { $lt: result.best, $gt: 0 } }),
+              ...getBaseSinglesFilter(event, { $lt: result.best, $gt: 0 }),
               date: { $lte: result.date },
             })
             .exec();
@@ -114,7 +117,7 @@ export class ResultsService {
         for (const result of averageRecordResults) {
           const betterAvgsInThePast = await this.resultModel
             .find({
-              ...getBaseAvgsFilter(event, { average: { $lt: result.average, $gt: 0 } }),
+              ...getBaseAvgsFilter(event, { $lt: result.average, $gt: 0 }),
               date: { $lte: result.date },
             })
             .exec();
@@ -220,8 +223,6 @@ export class ResultsService {
   async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
-    if (!event) throw new BadRequestException(`Event with ID ${eventId} not found`);
-
     const eventRankings: IEventRankings = {
       event,
       rankings: [],
@@ -229,12 +230,13 @@ export class ResultsService {
     let eventResults: ResultDocument[] = [];
 
     if (!forAverage) {
+      const $match = { ...getBaseSinglesFilter(event), unapproved: { $exists: false } };
+
       if (show === 'results') {
         // Get all top single results
-
         eventResults = await this.resultModel
           .aggregate([
-            { $match: getBaseSinglesFilter(event) },
+            { $match },
             { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
             { $project: excl },
             { $match: { 'attempts.result': { $gt: 0, $ne: C.maxTime } } },
@@ -246,10 +248,9 @@ export class ResultsService {
         for (const res of eventResults) res.best = (res.attempts as any).result;
       } else {
         // Get top singles by person
-
         const prSingles = await this.resultModel
           .aggregate([
-            { $match: getBaseSinglesFilter(event) },
+            { $match },
             { $unwind: '$personIds' },
             { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
             { $sort: { best: 1 } },
@@ -299,15 +300,17 @@ export class ResultsService {
         eventRankings.rankings.push(ranking);
       }
     } else {
+      const $match = { ...getBaseAvgsFilter(event), unapproved: { $exists: false } };
+
       if (show === 'results') {
         // Get all top average results
-        eventResults = await this.resultModel.find(getBaseAvgsFilter(event)).sort({ average: 1 }).exec();
+        eventResults = await this.resultModel.find($match).sort({ average: 1 }).exec();
       } else {
         // Get top averages by person
 
         const prAverages = await this.resultModel
           .aggregate([
-            { $match: getBaseAvgsFilter(event) },
+            { $match },
             { $unwind: '$personIds' },
             { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
             { $sort: { average: 1 } },
@@ -369,10 +372,8 @@ export class ResultsService {
     }
 
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-
-    if (!activeRecordTypes.some((el) => el.wcaEquivalent === wcaEquivalent)) {
+    if (!activeRecordTypes.some((el) => el.wcaEquivalent === wcaEquivalent))
       throw new BadRequestException(`The record type ${wcaEquivalent} is inactive`);
-    }
 
     const recordsByEvent: IEventRankings[] = [];
     const events = await this.eventsService.getEvents({ excludeRemovedAndHidden: true });
@@ -520,7 +521,6 @@ export class ResultsService {
       throw new BadRequestException(`The specified competition event only has ${contestEvent.rounds.length} rounds`);
 
     const round = contestEvent.rounds[roundNumber - 1];
-
     if (!round) throw new BadRequestException(`Round number ${roundNumber} not found`);
 
     const result = round.results.find((r) => r.personIds.length === 1 && r.personIds[0] === personId);
@@ -532,25 +532,22 @@ export class ResultsService {
   async createResult(
     createResultDto: CreateResultDto,
     roundId: string,
-    { user, skipValidation = false }: { user?: IPartialUser; skipValidation?: boolean },
+    { user }: { user?: IPartialUser } = {},
   ): Promise<RoundDocument> {
-    // getContest is put here deliberately, because this function also checks access rights!
-    const contest = await this.getContest(createResultDto.competitionId, user);
-    const event = await this.eventsService.getEventById(createResultDto.eventId);
-    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
+    const contest = await this.getContestAndCheckAccessRights(createResultDto.competitionId, { user });
+
+    // Admins are allowed to edit finished contests too, so this check is necessary. If it's a finished contest and
+    // the user is not an admin, they won't have access rights anyways, so the roles don't need to be checked here.
+    if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
+
     const round = await this.roundModel
       .findOne({ competitionId: createResultDto.competitionId, roundId })
       .populate('results')
       .exec();
+    if (!round) throw new BadRequestException('Round not found');
+    const event = await this.eventsService.getEventById(createResultDto.eventId);
 
-    if (!skipValidation) {
-      await this.validateAndCleanUpResult(createResultDto, event, { round });
-    }
-
-    // Admins are allowed to edit finished contests too, so this check is necessary.
-    // If it's a finished contest and the user is not an admin, they won't have access rights
-    // anyways (since getContest() is used above), so the roles don't need to be checked here.
-    if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
+    await this.validateAndCleanUpResult(createResultDto, event, { round });
 
     // Set result date. For contests with a schedule, the schedule must be used to set the date.
     if (!getIsCompType(contest.type)) {
@@ -579,105 +576,25 @@ export class ResultsService {
         }
       }
 
-      if (!activity)
-        throw new InternalServerErrorException(`No schedule activity found for round with ID ${round.roundId}`);
+      if (!activity) throw new InternalServerErrorException(`No schedule activity found for round ${round.roundId}`);
     }
 
-    const oldResults = [...round.results];
-    let newResult: ResultDocument;
+    // Create new result and update the round's results
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
+    const newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
+    await this.updateFutureRecords(newResult, event, recordPairs, { mode: 'new' });
 
-    try {
-      // Create new result and update the round's results
-      newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
+    round.results.push(newResult);
+    round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
+    await round.save();
+    await this.updateContestParticipants(contest);
 
-      round.results.push(newResult);
-      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
-      await round.save(); // save the round for resetCancelledRecords
+    const updatedRound = await this.roundModel
+      .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
+      .populate('results')
+      .exec();
 
-      await this.resetCancelledRecords(createResultDto, event, contest.state);
-
-      if (contest.state < ContestState.Ongoing) contest.state = ContestState.Ongoing;
-      contest.participants = (
-        await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
-      ).length;
-      await contest.save();
-
-      const updatedRound = await this.roundModel
-        .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
-        .populate('results')
-        .exec();
-
-      return updatedRound;
-    } catch (err) {
-      if (newResult) await newResult.deleteOne();
-      if (oldResults) {
-        round.results = oldResults;
-        await round.save();
-      }
-      await this.updateRecordsAfterDeletion(createResultDto, contest, event);
-
-      throw new InternalServerErrorException(`Error while creating result: ${err.message}`);
-    }
-  }
-
-  // The user can be left undefined when this is called by app.service.ts, which has its own authorization check
-  async deleteContestResult(resultId: string, competitionId: string, user?: IPartialUser): Promise<RoundDocument> {
-    // getContest is put here deliberately, because this function also checks access rights!
-    const contest = await this.getContest(competitionId, user);
-    let result: ResultDocument;
-
-    // Find result first
-    try {
-      result = await this.resultModel.findOne({ _id: resultId }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while deleting result: ${err.message}`);
-    }
-
-    if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);
-    if (result.competitionId !== competitionId)
-      throw new BadRequestException("The result's competition ID doesn't match the URL parameter");
-
-    // Update round
-    let round: RoundDocument;
-    let oldResults: ResultDocument[];
-    const event = await this.eventsService.getEventById(result.eventId);
-
-    try {
-      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
-
-      oldResults = [...round.results];
-
-      round.results = round.results.filter((el) => el._id.toString() !== resultId);
-      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
-      round.save(); // save the round for updateRecordsAfterDeletion
-
-      await this.updateRecordsAfterDeletion(result, contest, event);
-
-      // Delete the result
-      await this.resultModel.deleteOne({ _id: resultId }).exec();
-
-      const contestParticipants = await this.personsService.getContestParticipants({
-        competitionId: contest.competitionId,
-      });
-      contest.participants = contestParticipants.length;
-      await contest.save();
-
-      const updatedRound = await this.roundModel
-        .findOne({ competitionId, roundId: round.roundId }, excl)
-        .populate('results')
-        .exec();
-
-      return updatedRound;
-    } catch (err) {
-      if (oldResults) {
-        round.results = oldResults;
-        await round.save();
-      }
-
-      await this.resetCancelledRecords(result, event, contest.state);
-
-      throw new InternalServerErrorException(`Error while updating round during result deletion: ${err.message}`);
-    }
+    return updatedRound;
   }
 
   async submitResult(submitResultDto: SubmitResultDto, user: IPartialUser) {
@@ -685,7 +602,7 @@ export class ResultsService {
 
     // Disallow admin-only features
     if (!isAdmin) {
-      if (!submitResultDto.videoLink) throw new UnauthorizedException('Please enter a video link');
+      if (submitResultDto.videoLink === '') throw new UnauthorizedException('Please enter a video link');
       if (submitResultDto.attempts.some((a) => a.result === C.maxTime))
         throw new UnauthorizedException('You are not authorized to set unknown time');
     }
@@ -698,26 +615,17 @@ export class ResultsService {
     await this.validateAndCleanUpResult(submitResultDto, event);
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
-    let createdResult: ResultDocument;
-
-    try {
-      createdResult = await this.resultModel.create(
-        setResultRecords(
-          {
-            ...submitResultDto,
-            createdBy: new mongoose.Types.ObjectId(user._id as string),
-          },
-          event,
-          recordPairs,
-          !isAdmin,
-        ),
-      );
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while submitting result: ${err.message}`);
-    }
+    const createdResult = await this.resultModel.create(
+      setResultRecords(
+        { ...submitResultDto, createdBy: new mongoose.Types.ObjectId(user._id as string) },
+        event,
+        recordPairs,
+        !isAdmin,
+      ),
+    );
 
     if (isAdmin) {
-      await this.resetCancelledRecords(submitResultDto, event);
+      await this.updateFutureRecords(submitResultDto, event, recordPairs, { mode: 'new' });
     } else {
       let text = `A new ${submitResultDto.eventId} result has been submitted by user ${
         user.username
@@ -731,51 +639,111 @@ export class ResultsService {
 
       await this.emailService.sendEmail(C.contactEmail, text, { subject: 'New Result Submission' });
     }
+
+    return createdResult;
   }
 
-  async editResult(resultId: string, updateResultDto: UpdateResultDto) {
+  // The user can be left undefined when this is called from enterAttemptFromExternalDevice() or when editing a submitted result
+  async editResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
-    if (!result) throw new NotFoundException();
+    if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
+    const event = await this.eventsService.getEventById(result.eventId);
 
-    if (!result.unapproved) {
-      if (result.date.getTime() !== new Date(updateResultDto.date).getTime())
-        throw new BadRequestException('The date may not be changed after a result has been approved');
+    let contest: ContestDocument, round: RoundDocument;
+    if (result.competitionId) {
+      contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
+      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
+      if (!round) throw new BadRequestException('Round not found');
     }
 
-    const event = await this.eventsService.getEventById(result.eventId);
-    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: updateResultDto.date });
-    const {best, average} = getBestAndAverage(updateResultDto.attempts, event, {roundFormat: ???})
+    this.validateAndCleanUpResult(result, event);
 
-    try {
-      result.date = new Date(updateResultDto.date);
-      result.personIds = updateResultDto.personIds;
-      result.attempts = updateResultDto.attempts;
-      result.best = best;
-      result.average = average;
+    const roundFormat = roundFormats.find(
+      (rf) => rf.attempts === updateResultDto.attempts.length && rf.value !== RoundFormat.BestOf3,
+    ).value;
+    const { best, average } = getBestAndAverage(updateResultDto.attempts, event, { roundFormat });
+    const previousBest = result.best;
+    const previousAvg = result.average;
+
+    if (!result.competitionId) {
+      if (updateResultDto.date && result.unapproved) result.date = new Date(updateResultDto.date);
       result.videoLink = updateResultDto.videoLink;
       result.discussionLink = updateResultDto.discussionLink;
-
-      setResultRecords(result, event, recordPairs);
-    } catch (err) {
-      throw new InternalServerErrorException('Error while editing result');
     }
 
-    ////////////////////////////////
-    // ADD THIS SOMEWHERE: this.validateAndCleanUpResult(result, event)
-    ////////////////////////////////
+    result.personIds = updateResultDto.personIds;
+    result.attempts = updateResultDto.attempts;
+    result.best = best;
+    result.average = average;
+    result.regionalSingleRecord = undefined;
+    result.regionalAverageRecord = undefined;
+
+    const recordPairs = await this.getEventRecordPairs(event, {
+      recordsUpTo: result.date,
+      excludeResultId: result._id.toString(),
+    });
+    setResultRecords(result, event, recordPairs);
 
     if (result.unapproved && !updateResultDto.unapproved) {
       result.unapproved = undefined;
-      await this.resetCancelledRecords(updateResultDto, event);
-    } else if (!result.unapproved && updateResultDto.unapproved) {
-      throw new ForbiddenException('Setting a result as unapproved is forbidden');
+      await result.save();
+      await this.updateFutureRecords(result, event, recordPairs, { mode: 'new' });
+      await this.emailService.sendEmail(
+        await this.usersService.getUserEmail({ _id: user._id }),
+        `Your ${event.name} result has been approved. You can see it in the rankings <a href="${process.env.BASE_URL}/rankings/${event.eventId}/single">here</a>.`,
+        { subject: 'Result approved' },
+      );
+    } else if (!result.unapproved) {
+      await result.save();
+      await this.updateFutureRecords(result, event, recordPairs, { mode: 'edit', previousBest, previousAvg });
     }
 
-    try {
-      await result.save();
-    } catch (err) {
-      throw new InternalServerErrorException('Error while saving result during update');
+    // Update round rankings, if it's a contest result
+    if (contest) {
+      round.results = round.results.map((r) => (r._id.toString() === resultId ? result : r));
+      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
+      round.save();
+      await this.updateContestParticipants(contest);
+
+      const updatedRound = await this.roundModel
+        .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
+        .populate('results')
+        .exec();
+      return updatedRound;
     }
+    return undefined;
+  }
+
+  // The user can be left undefined when deleting a submitted result
+  async deleteResult(resultId: string, user: IPartialUser): Promise<RoundDocument> {
+    const result = await this.resultModel.findOne({ _id: resultId }).exec();
+    if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);
+    const event = await this.eventsService.getEventById(result.eventId);
+
+    let contest: ContestDocument, round: RoundDocument;
+    if (result.competitionId) {
+      contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
+      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
+      if (!round) throw new BadRequestException('Round not found');
+    }
+
+    await this.resultModel.deleteOne({ _id: resultId }).exec();
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: result.date, excludeResultId: resultId });
+    await this.updateFutureRecords(result, event, recordPairs, { mode: 'delete' });
+
+    if (contest) {
+      round.results = round.results.filter((el) => el._id.toString() !== resultId);
+      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
+      round.save();
+      await this.updateContestParticipants(contest);
+
+      const updatedRound = await this.roundModel
+        .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
+        .populate('results')
+        .exec();
+      return updatedRound;
+    }
+    return undefined;
   }
 
   /////////////////////////////////////////////////////////////////////////////////////
@@ -802,7 +770,7 @@ export class ResultsService {
     return recordPairsByEvent;
   }
 
-  public async getEventRecordPairs(
+  async getEventRecordPairs(
     event: IEvent,
     {
       recordsUpTo = new Date(8640000000000000),
@@ -826,7 +794,7 @@ export class ResultsService {
         if (excludeResultId) queryBase._id = { $ne: excludeResultId };
 
         const [singleRecord] = await this.resultModel
-          .find({ ...queryBase, ...getBaseSinglesFilter(event, { best: { $gt: 0 } }) })
+          .find({ ...queryBase, ...getBaseSinglesFilter(event) })
           .sort({ best: 1 })
           .limit(1)
           .exec();
@@ -834,7 +802,7 @@ export class ResultsService {
         if (singleRecord) recordPair.best = singleRecord.best;
 
         const [avgRecord] = await this.resultModel
-          .find({ ...queryBase, ...getBaseAvgsFilter(event, { average: { $gt: 0 } }) })
+          .find({ ...queryBase, ...getBaseAvgsFilter(event) })
           .sort({ average: 1 })
           .limit(1)
           .exec();
@@ -891,135 +859,110 @@ export class ResultsService {
     }
   }
 
-  async resetRecordsCancelledByPublishedContest(competitionId: string) {
-    const recordResults = await this.resultModel
-      .find({
-        competitionId,
-        $or: [{ regionalSingleRecord: { $exists: true } }, { regionalAverageRecord: { $exists: true } }],
-      })
-      .exec();
-
-    for (const res of recordResults) {
-      this.logger.log(`Resetting records for ${res.eventId} from result: ${JSON.stringify(res)}`);
-      await this.resetCancelledRecords(res);
-    }
-  }
-
-  // Resets records set on the same day as the given result or after that day. If contest is set,
-  // only resets the records for that contest (used only when creating contest result, not for submitting).
-  private async resetCancelledRecords(
+  // Updates records set on the same day or in the future
+  private async updateFutureRecords(
     result: CreateResultDto | ResultDocument,
-    event?: EventDocument,
-    state?: ContestState,
+    event: EventDocument,
+    recordPairs: IRecordPair[],
+    {
+      mode,
+      previousBest,
+      previousAvg,
+    }: {
+      mode: 'new' | 'edit' | 'delete';
+      previousBest?: number; // only used for result edit
+      previousAvg?: number; // only used for result edit
+    },
   ) {
-    if (result.best <= 0 && result.average <= 0) return;
-    if (!event) event = await this.eventsService.getEventById(result.eventId);
-
-    this.logger.log(`Resetting ${event.eventId} records cancelled by result`);
-
-    // If the contest isn't finished, only reset its own records. If it is, meaning the deletion is done by the admin,
-    // reset ALL results that are no longer records. If contest is undefined, also do it for all results.
-    const queryBase: any = { date: { $gte: result.date } };
-    if (state && state < ContestState.Finished) queryBase.competitionId = result.competitionId;
+    if (mode === 'edit' && (previousBest === undefined || previousAvg === undefined))
+      throw new InternalServerErrorException('Previous single and average are not defined');
 
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
-    try {
-      // Remove cancelled single records
-      if (result.best > 0) {
-        await this.resultModel
-          .updateMany(
-            { ...queryBase, ...getBaseSinglesFilter(event, { best: { $gt: result.best } }) },
-            { $unset: { regionalSingleRecord: '' } },
-          )
-          .exec();
-      }
-
-      // Remove cancelled average records
-      if (result.average > 0) {
-        await this.resultModel
-          .updateMany(
-            { ...queryBase, ...getBaseAvgsFilter(event, { average: { $gt: result.average } }) },
-            { $unset: { regionalAverageRecord: '' } },
-          )
-          .exec();
-      }
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while resetting cancelled WRs: ${err.message}`);
-    }
-  }
-
-  // Sets records that are now recognized after a contest result deletion. Does it for all days from the result's
-  // date onward. If contest is set, only sets records for that contest, otherwise does it for ALL results.
-  private async updateRecordsAfterDeletion(
-    result: ResultDocument | CreateResultDto,
-    contest: IContest,
-    event?: EventDocument,
-  ) {
-    if (result.best <= 0 && result.average <= 0) return;
-    if (!event) event = await this.eventsService.getEventById(result.eventId);
-
-    // If the contest isn't finished, only update its own records. If it is, meaning the deletion is done by the admin,
-    // update ALL results that are now records.
-    const queryBase: any = { _id: { $ne: (result as any)._id }, date: { $gte: result.date } };
-    if (contest.state < ContestState.Finished) queryBase.competitionId = result.competitionId;
-
-    // This is done so that we get records BEFORE the date of the deleted result
-    const recordsUpTo = new Date(result.date.getTime() - 1);
-    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo });
-
-    // TO-DO: DIFFERENT RECORD TYPES NEED TO BE PROPERLY SUPPORTED
     for (const rp of recordPairs) {
       try {
-        // Set single records
-        if (result.best > 0) {
-          const bestFilter: any = { $gt: 0 };
-          // Make sure it's better than the record at the time, if there was a record at all
-          if (rp.best > 0) bestFilter.$lte = rp.best;
+        const singlesComparison = mode === 'edit' ? compareSingles(result, { best: previousBest } as IResult) : 0;
+        const singleGotWorse = singlesComparison > 0 || (mode === 'delete' && result.best > 0);
+        const singleGotBetter = singlesComparison < 0 || (mode === 'new' && result.best > 0);
 
-          await this.recordTypesService.setEventSingleRecords(event, rp.wcaEquivalent, {
-            ...queryBase,
-            ...getBaseSinglesFilter(event, { best: bestFilter }),
-          });
+        if (singleGotWorse || singleGotBetter) {
+          const singleQuery = {
+            ...getBaseSinglesFilter(event),
+            _id: { $ne: (result as any)._id },
+            date: { $gte: result.date },
+          };
 
-          // Set average records
-          if (result.average > 0) {
-            const averageFilter: any = { $gt: 0 };
-            // Make sure it's better than the record at the time, if there was a record at all
-            if (rp.average > 0) averageFilter.$lte = rp.average;
+          if (singleGotWorse) {
+            const best: any = { $gt: mode === 'edit' ? previousBest : result.best };
 
-            await this.recordTypesService.setEventAvgRecords(event, rp.wcaEquivalent, {
-              ...queryBase,
-              ...getBaseAvgsFilter(event, { average: averageFilter }),
-            });
+            // Make sure it's better than the record at the time, if there was one, and better than the new best, if it's an edit
+            if (rp.best > 0) best.$lte = rp.best;
+            if (mode === 'edit' && compareSingles(result, { best: rp.best } as IResult) < 0) best.$lte = result.best;
+
+            await this.recordTypesService.setEventSingleRecords(event, rp.wcaEquivalent, { ...singleQuery, best });
+          } else {
+            // Remove single records cancelled by the new result or by the improved edited result
+            await this.resultModel
+              .updateMany({ ...singleQuery, best: { $gt: result.best } }, { $unset: { regionalSingleRecord: '' } })
+              .exec();
+          }
+        }
+
+        const avgsComparison = mode === 'edit' ? compareAvgs(result, { average: previousAvg } as IResult, true) : 0;
+        const avgGotWorse = avgsComparison > 0 || (mode === 'delete' && result.average > 0);
+        const avgGotBetter = avgsComparison < 0 || (mode === 'new' && result.average > 0);
+
+        if (avgGotWorse || avgGotBetter) {
+          const avgQuery = {
+            ...getBaseAvgsFilter(event),
+            _id: { $ne: (result as any)._id },
+            date: { $gte: result.date },
+          };
+
+          if (avgGotWorse) {
+            const average: any = { $gt: mode === 'edit' ? previousAvg : result.average };
+
+            // Make sure it's better than the record at the time, if there was one, and better than the new average, if it's an edit
+            if (rp.average > 0) average.$lte = rp.average;
+            if (mode === 'edit' && compareAvgs(result, { average: rp.average } as IResult, true))
+              average.$lte = result.average;
+
+            await this.recordTypesService.setEventAvgRecords(event, rp.wcaEquivalent, { ...avgQuery, average });
+          } else {
+            // Remove average records cancelled by the new result or by the improved edited result
+            await this.resultModel
+              .updateMany({ ...avgQuery, average: { $gt: result.average } }, { $unset: { regionalAverageRecord: '' } })
+              .exec();
           }
         }
       } catch (err) {
         throw new InternalServerErrorException(
-          `Error while updating ${rp.wcaEquivalent} records after result deletion: ${err.message}`,
+          `Error while updating ${rp.wcaEquivalent} records after result update: ${err.message}`,
         );
       }
     }
   }
 
-  private async getContest(competitionId: string, user?: IPartialUser): Promise<ContestDocument> {
-    let contest: ContestDocument;
-
-    try {
-      contest = await this.contestModel
-        .findOne({ competitionId })
-        .populate(orgPopulateOptions) // needed for access rights checking
-        .exec();
-    } catch (err) {
-      throw new InternalServerErrorException(
-        `Error while searching for competition with ID ${competitionId}:`,
-        err.message,
-      );
-    }
+  private async getContestAndCheckAccessRights(
+    competitionId: string,
+    { user }: { user?: IPartialUser },
+  ): Promise<ContestDocument> {
+    const contest = await this.contestModel
+      .findOne({ competitionId })
+      .populate(orgPopulateOptions) // needed for access rights checking
+      .exec();
 
     if (!contest) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
-    else if (user) this.authService.checkAccessRightsToContest(user, contest);
+    if (user) this.authService.checkAccessRightsToContest(user, contest);
 
     return contest;
+  }
+
+  private async updateContestParticipants(contest: ContestDocument) {
+    if (contest.state < ContestState.Ongoing) contest.state = ContestState.Ongoing;
+    contest.participants = (
+      await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
+    ).length;
+    await contest.save();
   }
 
   // Sets the person being ranked as the first person in the list, if it's a team event
@@ -1036,12 +979,20 @@ export class ResultsService {
     { round }: { round?: IRound } = {}, // if round is defined, that means it's a contest result, not a submitted one
   ) {
     if (result.personIds.length !== (event.participants ?? 1))
-      throw new BadRequestException(`This event must have ${event.participants ?? 1} participants`);
+      throw new BadRequestException(
+        `This event must have ${event.participants ?? 1} participant${event.participants ? 's' : ''}`,
+      );
 
     // Remove empty attempts from the end
     for (let i = result.attempts.length - 1; i >= 0; i--) {
       if (result.attempts[i].result === 0) result.attempts = result.attempts.slice(0, -1);
       else break;
+    }
+    if (result.attempts.length === 0) throw new BadRequestException('Please enter at least one attempt');
+
+    // Video-based results validation
+    if (!result.competitionId) {
+      if (result.videoLink === undefined) throw new BadRequestException('Please enter a video link');
     }
 
     if (round) {

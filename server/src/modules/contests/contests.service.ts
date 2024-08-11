@@ -390,25 +390,20 @@ export class ContestsService {
     if (isAdmin && newState === ContestState.Published) {
       this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
-      if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups)
+      if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
         throw new BadRequestException(
           `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForUnofficialCompsAndMeetups} competitors`,
         );
-
-      try {
-        // Unset unapproved from the results so that they can be included in the rankings
-        await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
-
-        await this.resultsService.resetRecordsCancelledByPublishedContest(contest.competitionId);
-
-        await this.emailService.sendEmail(
-          contestCreatorEmail,
-          `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
-          { subject: `Contest published: ${contest.shortName}` },
-        );
-      } catch (err) {
-        throw new InternalServerErrorException(`Error while publishing contest: ${err.message}`);
       }
+
+      // Unset unapproved from the results so that they can be included in the rankings
+      await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
+
+      await this.emailService.sendEmail(
+        contestCreatorEmail,
+        `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
+        { subject: `Contest published: ${contest.shortName}` },
+      );
     }
 
     await this.saveContest(contest);

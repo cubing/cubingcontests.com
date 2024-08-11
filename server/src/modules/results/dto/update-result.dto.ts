@@ -33,8 +33,9 @@ export class UpdateResultDto implements IUpdateResultDto {
   @Type(() => AttemptDto)
   attempts: IAttempt[];
 
+  @IsOptional()
   @IsUrl({}, { message: VIDEO_LINK_VALIDATION_MSG })
-  videoLink: string;
+  videoLink?: string;
 
   @IsOptional()
   @IsUrl({}, { message: DISCUSSION_LINK_VALIDATION_MSG })

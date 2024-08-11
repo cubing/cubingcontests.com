@@ -44,39 +44,13 @@ export const setRankings = async (
   return sortedResults;
 };
 
-export const getBaseSinglesFilter = (
-  event: IEvent,
-  {
-    best,
-    unapproved,
-  }: {
-    best: any;
-    unapproved?: any;
-  } = {
-    best: { $gt: 0 },
-    unapproved: { $exists: false },
-  },
-) => {
+export const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => {
   const output: any = { eventId: event.eventId, best };
-  if (unapproved !== undefined) output.unapproved = unapproved;
   return output;
 };
 
-export const getBaseAvgsFilter = (
-  event: IEvent,
-  {
-    average,
-    unapproved,
-  }: {
-    average: any;
-    unapproved?: any;
-  } = {
-    average: { $gt: 0 },
-    unapproved: { $exists: false },
-  },
-) => {
+export const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => {
   const output: any = { eventId: event.eventId, average, attempts: { $size: getDefaultAverageAttempts(event) } };
-  if (unapproved !== undefined) output.unapproved = unapproved;
   return output;
 };
 

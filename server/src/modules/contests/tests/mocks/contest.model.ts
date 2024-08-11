@@ -1,10 +1,10 @@
 import { ContestDocument } from '~/src/models/contest.model';
-import { competitionsStub } from '../stubs/competitions.stub';
+import { contestsStub } from '../stubs/competitions.stub';
 
-export const CompetitionModelMock = (): any => ({
+export const ContestModelMock = (): any => ({
   tempOutput: undefined,
   find(query: any, selectObj: any) {
-    this.tempOutput = competitionsStub();
+    this.tempOutput = contestsStub();
 
     if (query?.countryIso2) {
       this.tempOutput = this.tempOutput.filter((el: ContestDocument) => el.countryIso2 === query.countryIso2);
@@ -33,7 +33,7 @@ export const CompetitionModelMock = (): any => ({
   },
   findOne(query: any) {
     if (query?.competitionId) {
-      this.tempOutput = competitionsStub().find((el: ContestDocument) => el.competitionId === query.competitionId);
+      this.tempOutput = contestsStub().find((el: ContestDocument) => el.competitionId === query.competitionId);
     }
 
     return this;

@@ -120,27 +120,6 @@ const ContestForm = ({
   // Use memo
   //////////////////////////////////////////////////////////////////////////////
 
-  const tabs = useMemo(
-    () => [
-      { title: 'Details', value: 'details' },
-      { title: 'Events', value: 'events' },
-      { title: 'Schedule', value: 'schedule', hidden: !getIsCompType(type) },
-    ],
-    [type],
-  );
-  const filteredEvents = useMemo(() => {
-    const newFiltEv = events.filter((ev) => type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA));
-
-    // Reset new event ID if new filtered events don't include it
-    if (newFiltEv.length > 0 && !newFiltEv.some((ev) => ev.eventId === newEventId))
-      setNewEventId(newFiltEv[0]?.eventId);
-
-    return newFiltEv;
-  }, [events, type, newEventId]);
-  const remainingEvents = useMemo(
-    () => filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId)),
-    [filteredEvents, contestEvents],
-  );
   const totalRounds: number = useMemo(
     () => contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0),
     [contestEvents],
@@ -180,6 +159,15 @@ const ContestForm = ({
     [activityCode, customActivity, roomOptions, selectedRoom],
   );
 
+  const tabs = [
+    { title: 'Details', value: 'details' },
+    { title: 'Events', value: 'events' },
+    { title: 'Schedule', value: 'schedule', hidden: !getIsCompType(type) },
+  ];
+  const filteredEvents = events.filter((ev) => type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA));
+  const remainingEvents = filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId));
+  // Fix new event ID, if it's not in the list of remaining events
+  if (!remainingEvents.some((e) => e.eventId === newEventId)) setNewEventId(remainingEvents[0].eventId);
   const disableIfCompFinished = !isAdmin && mode === 'edit' && contest.state >= ContestState.Finished;
   const disableIfCompDone =
     mode === 'edit' &&
@@ -212,11 +200,6 @@ const ContestForm = ({
       if (contest.contact) setContact(contest.contact);
       if (contest.description) setDescription(contest.description);
       if (contest.competitorLimit) setCompetitorLimit(contest.competitorLimit);
-      setNewEventId(
-        events.find((ev) => !contest.events.some((ce) => ce.event.eventId === ev.eventId))?.eventId ||
-          events[0].eventId,
-      );
-
       // Convert the dates from string to Date
       setStartDate(new Date(contest.startDate));
 
