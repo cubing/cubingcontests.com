@@ -52,7 +52,11 @@ export const ResultModelMock = (): any => ({
       }
     }
     if (query?.best) {
-      this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best === query.best);
+      if (query.best.$gt !== undefined)
+        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best > query.best.$gt);
+      else if (query.best.$lte !== undefined)
+        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best <= query.best.$lte);
+      else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best === query.best);
     }
     if (query?.average) {
       this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average === query.average);

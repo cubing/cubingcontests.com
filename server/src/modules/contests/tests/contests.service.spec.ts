@@ -17,7 +17,7 @@ import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types
 import { ResultsServiceMock } from '@m/results/tests/mocks/results.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
 import { AuthServiceMock } from '@m/auth/tests/mocks/auth.service';
-import { CompetitionModelMock } from './mocks/contest.model';
+import { ContestModelMock } from './mocks/contest.model';
 import { RoundModelMock } from './mocks/round.model';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 
@@ -65,7 +65,7 @@ describe('ContestsService', () => {
         },
         {
           provide: getModelToken('Competition'),
-          useFactory: CompetitionModelMock,
+          useFactory: ContestModelMock,
         },
         {
           provide: getModelToken('Round'),

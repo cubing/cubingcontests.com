@@ -954,5 +954,16 @@ export const resultsStub = (): ResultDocument[] => {
       best: 2769,
       average: 3022,
     },
+    {
+      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7d'),
+      eventId: '444bf',
+      date: new Date('2023-06-27T00:00:00Z'),
+      personIds: [1],
+      attempts: [{ result: 9514 }],
+      best: 9514,
+      average: 0,
+      videoLink: 'link.com',
+      discussionLink: 'link.net',
+    },
   ] as ResultDocument[];
 };

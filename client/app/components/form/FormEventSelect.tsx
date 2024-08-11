@@ -29,7 +29,7 @@ const FormEventSelect = ({
         className="form-select"
         value={eventId}
         onChange={(e) => setEventId(e.target.value)}
-        disabled={events.length === 0 || disabled}
+        disabled={disabled || !events.some((e) => e.eventId === eventId)}
       >
         {events.map((el: IEvent) => (
           <option key={el.eventId} value={el.eventId}>

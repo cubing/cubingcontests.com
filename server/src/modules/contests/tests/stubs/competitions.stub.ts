@@ -4,7 +4,7 @@ import { ContestState, ContestType, RoundFormat, RoundType, WcaRecordType } from
 import { IRound } from '@sh/types';
 import { eventsSeed } from '~/src/seeds/events.seed';
 
-export const competitionsStub = (): ContestDocument[] => {
+export const contestsStub = (): ContestDocument[] => {
   return [
     {
       _id: new mongoose.Types.ObjectId('649d2a23675dfd951d5ff308'),

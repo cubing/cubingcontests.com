@@ -35,7 +35,8 @@ const ManageResultsPage = () => {
       <ErrorMessages errorMessages={errorMessages} />
 
       <p className="px-3">
-        Total submitted results:&nbsp;<b>{results.length}</b>&#8194;|&#8194;Unapproved:&nbsp;
+        Total submitted results:&nbsp;<b>{results.length === 100 ? '100+' : results.length}</b>
+        &#8194;|&#8194;Unapproved:&nbsp;
         <b>{results.filter((r) => r.unapproved).length}</b>
       </p>
 

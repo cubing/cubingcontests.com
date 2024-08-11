@@ -49,6 +49,7 @@ export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): numbe
 };
 
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
+// and includes unapproved results
 export const setResultRecords = (
   result: IResult,
   event: IEvent,
@@ -214,7 +215,7 @@ export const getBestAndAverage = (
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (!makesCutoff || attempts.filter((a) => a.result !== 0).length < expectedAttempts || expectedAttempts < 3) {
+  if (!makesCutoff || expectedAttempts < 3 || attempts.filter((a) => a.result !== 0).length < expectedAttempts) {
     average = 0;
   } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && format !== RoundFormat.Average)) {
     average = -1;

@@ -123,11 +123,11 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       competitors,
       setErrorMessages,
       setSuccessMessage,
-      async (newResultWithBestAndAverage) => {
+      async (newResultWithBestAndAvg) => {
         setLoadingId(approve ? 'approve_button' : 'submit_button');
 
         if (!resultId) {
-          const { errors } = await myFetch.post('/results', newResultWithBestAndAverage);
+          const { errors } = await myFetch.post('/results', newResultWithBestAndAvg);
 
           if (errors) {
             setErrorMessages(errors);
@@ -142,12 +142,12 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           setLoadingId('');
         } else {
           const updateResultDto: IUpdateResultDto = {
-            date: newResultWithBestAndAverage.date,
-            unapproved: newResultWithBestAndAverage.unapproved,
-            personIds: newResultWithBestAndAverage.personIds,
-            attempts: newResultWithBestAndAverage.attempts,
-            videoLink: newResultWithBestAndAverage.videoLink,
-            discussionLink: newResultWithBestAndAverage.discussionLink,
+            date: newResultWithBestAndAvg.date,
+            unapproved: newResultWithBestAndAvg.unapproved,
+            personIds: newResultWithBestAndAvg.personIds,
+            attempts: newResultWithBestAndAvg.attempts,
+            videoLink: newResultWithBestAndAvg.videoLink,
+            discussionLink: newResultWithBestAndAvg.discussionLink,
           };
           const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto);
 
@@ -221,7 +221,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
                 <b>ENTIRE</b> solve (including memorization, if applicable). The video date is used as proof of when the
                 solve was done, an earlier date cannot be used. Make sure that you can be identified from the provided
                 video; if your channel name is not your real name, please include your full name or WCA ID in the
-                description of the video. If you have any questions or suggestions, feel free to send an email to{' '}
+                description of the video. If you do not have a WCA ID, please contact the admins to have a competitor
+                profile created for you. If you have any questions or suggestions, feel free to send an email to{' '}
                 {C.contactEmail}.
               </p>
               <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
@@ -261,7 +262,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             recordPairs={recordPairs}
             loadingRecordPairs={fetchRecordPairsTimer !== null}
             recordTypes={submissionInfo.activeRecordTypes}
-            nextFocusTargetId="date"
+            nextFocusTargetId={!submissionInfo.result || submissionInfo.result.unapproved ? 'date' : 'video_link'}
             resetTrigger={resultFormResetTrigger}
             setErrorMessages={setErrorMessages}
             setSuccessMessage={setSuccessMessage}
@@ -279,7 +280,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             title="Date (dd.mm.yyyy)"
             value={date}
             setValue={changeDate}
-            disabled={!submissionInfo.result.unapproved}
+            disabled={submissionInfo.result ? !submissionInfo.result.unapproved : false}
             nextFocusTargetId={videoUnavailable ? 'discussion_link' : 'video_link'}
           />
           <FormTextInput
