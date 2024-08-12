@@ -683,6 +683,8 @@ export class ResultsService {
     });
     setResultRecords(result, event, recordPairs);
 
+    console.log(result, updateResultDto);
+    // This is only relevant for video-based results
     if (result.unapproved && !updateResultDto.unapproved) {
       result.unapproved = undefined;
       await result.save();
@@ -690,7 +692,7 @@ export class ResultsService {
       await this.emailService.sendEmail(
         await this.usersService.getUserEmail({ _id: user._id }),
         `Your ${event.name} result has been approved. You can see it in the rankings <a href="${process.env.BASE_URL}/rankings/${event.eventId}/single">here</a>.`,
-        { subject: 'Result approved' },
+        { subject: 'Result Approved' },
       );
     } else {
       await result.save();

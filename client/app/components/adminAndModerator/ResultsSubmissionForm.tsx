@@ -143,19 +143,20 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         } else {
           const updateResultDto: IUpdateResultDto = {
             date: newResultWithBestAndAvg.date,
-            unapproved: submissionInfo.result.unapproved,
             personIds: newResultWithBestAndAvg.personIds,
             attempts: newResultWithBestAndAvg.attempts,
             videoLink: newResultWithBestAndAvg.videoLink,
             discussionLink: newResultWithBestAndAvg.discussionLink,
           };
+          if (!approve) updateResultDto.unapproved = submissionInfo.result.unapproved;
+
           const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto);
 
           if (errors) {
             setErrorMessages(errors);
             setLoadingId('');
           } else {
-            setSuccessMessage(approve ? 'Result approved' : 'Result updated');
+            setSuccessMessage(approve ? 'Result successfully approved' : 'Result successfully updated');
 
             setTimeout(() => {
               window.location.href = '/admin/results';
