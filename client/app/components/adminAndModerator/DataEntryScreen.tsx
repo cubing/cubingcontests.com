@@ -38,7 +38,7 @@ const DataEntryScreen = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
   const [loadingId, setLoadingId] = useState('');
-  const [editId, setEditId] = useState<string | null>(null);
+  const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
   const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
 
   const [round, setRound] = useState<IRound>(contest.events.find((ce) => ce.event.eventId === eventId).rounds[0]);
@@ -103,21 +103,24 @@ const DataEntryScreen = ({
           let updatedRound: IRound, errors: string[];
           setLoadingId('submit_attempt_button');
 
-          if (editId === null) {
+          if (resultUnderEdit === null) {
             const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
             updatedRound = payload;
             errors = err;
           } else {
             const updateResultDto: IUpdateResultDto = {
               date: newResultWithBestAndAvg.date,
-              unapproved: newResultWithBestAndAvg.unapproved,
+              unapproved: resultUnderEdit.unapproved,
               personIds: newResultWithBestAndAvg.personIds,
               attempts: newResultWithBestAndAvg.attempts,
             };
-            const { payload, errors: err } = await myFetch.patch(`/results/${editId}`, updateResultDto);
+            const { payload, errors: err } = await myFetch.patch(
+              `/results/${(resultUnderEdit as any)._id}`,
+              updateResultDto,
+            );
             updatedRound = payload;
             errors = err;
-            setEditId(null);
+            setResultUnderEdit(null);
           }
 
           setLoadingId('');
@@ -179,7 +182,7 @@ const DataEntryScreen = ({
         ...new Array(expectedAttempts - result.attempts.length).fill({ result: 0 }),
       ];
 
-      setEditId((result as any)._id);
+      setResultUnderEdit(result);
       setAttempts(newAttempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setResultFormResetTrigger(undefined);
@@ -245,7 +248,7 @@ const DataEntryScreen = ({
               setRound={setRound}
               rounds={contestEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
               contestEvents={contestEvents}
-              disableMainSelects={editId !== null}
+              disableMainSelects={resultUnderEdit !== null}
             />
             <Button
               id="submit_attempt_button"
@@ -295,7 +298,7 @@ const DataEntryScreen = ({
             recordTypes={activeRecordTypes}
             onEditResult={editResult}
             onDeleteResult={deleteResult}
-            disableEditAndDelete={!isEditable}
+            disableEditAndDelete={!isEditable || resultUnderEdit !== null}
             loadingId={loadingId}
           />
         </div>

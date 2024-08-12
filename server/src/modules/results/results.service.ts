@@ -534,7 +534,6 @@ export class ResultsService {
     { user }: { user?: IPartialUser } = {},
   ): Promise<RoundDocument> {
     const contest = await this.getContestAndCheckAccessRights(createResultDto.competitionId, { user });
-
     // Admins are allowed to edit finished contests too, so this check is necessary. If it's a finished contest and
     // the user is not an admin, they won't have access rights anyways, so the roles don't need to be checked here.
     if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
@@ -581,7 +580,7 @@ export class ResultsService {
     // Create new result and update the round's results
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
     const newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
-    await this.updateFutureRecords(newResult, event, recordPairs, { mode: 'new' });
+    await this.updateFutureRecords(newResult, event, recordPairs, { mode: 'create' });
 
     round.results.push(newResult);
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
@@ -624,7 +623,7 @@ export class ResultsService {
     );
 
     if (isAdmin) {
-      await this.updateFutureRecords(submitResultDto, event, recordPairs, { mode: 'new' });
+      await this.updateFutureRecords(submitResultDto, event, recordPairs, { mode: 'create' });
     } else {
       let text = `A new ${submitResultDto.eventId} result has been submitted by user ${
         user.username
@@ -655,12 +654,13 @@ export class ResultsService {
       if (!round) throw new BadRequestException('Round not found');
     }
 
-    this.validateAndCleanUpResult(result, event);
+    this.validateAndCleanUpResult(updateResultDto as IResult, event, { round });
 
-    const roundFormat = roundFormats.find(
-      (rf) => rf.attempts === updateResultDto.attempts.length && rf.value !== RoundFormat.BestOf3,
-    ).value;
-    const { best, average } = getBestAndAverage(updateResultDto.attempts, event, { roundFormat });
+    const roundFormat = result.competitionId
+      ? undefined
+      : roundFormats.find((rf) => rf.attempts === updateResultDto.attempts.length && rf.value !== RoundFormat.BestOf3)
+        .value;
+    const { best, average } = getBestAndAverage(updateResultDto.attempts, event, { round, roundFormat });
     const previousBest = result.best;
     const previousAvg = result.average;
 
@@ -686,13 +686,13 @@ export class ResultsService {
     if (result.unapproved && !updateResultDto.unapproved) {
       result.unapproved = undefined;
       await result.save();
-      await this.updateFutureRecords(result, event, recordPairs, { mode: 'new' });
+      await this.updateFutureRecords(result, event, recordPairs, { mode: 'create' });
       await this.emailService.sendEmail(
         await this.usersService.getUserEmail({ _id: user._id }),
         `Your ${event.name} result has been approved. You can see it in the rankings <a href="${process.env.BASE_URL}/rankings/${event.eventId}/single">here</a>.`,
         { subject: 'Result approved' },
       );
-    } else if (!result.unapproved) {
+    } else {
       await result.save();
       await this.updateFutureRecords(result, event, recordPairs, { mode: 'edit', previousBest, previousAvg });
     }
@@ -792,21 +792,21 @@ export class ResultsService {
         const queryBase: any = { date: { $lte: recordsUpTo } };
         if (excludeResultId) queryBase._id = { $ne: excludeResultId };
 
-        const [singleRecord] = await this.resultModel
+        const [singleRecordResult] = await this.resultModel
           .find({ ...queryBase, ...getBaseSinglesFilter(event) })
           .sort({ best: 1 })
           .limit(1)
           .exec();
 
-        if (singleRecord) recordPair.best = singleRecord.best;
+        if (singleRecordResult) recordPair.best = singleRecordResult.best;
 
-        const [avgRecord] = await this.resultModel
+        const [avgRecordResult] = await this.resultModel
           .find({ ...queryBase, ...getBaseAvgsFilter(event) })
           .sort({ average: 1 })
           .limit(1)
           .exec();
 
-        if (avgRecord) recordPair.average = avgRecord.average;
+        if (avgRecordResult) recordPair.average = avgRecordResult.average;
 
         recordPairs.push(recordPair);
       } catch (err) {
@@ -829,37 +829,33 @@ export class ResultsService {
       unapproved: { $exists: false },
     };
 
-    try {
-      // Get fastest single record result
-      const [singleRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ best: 1 }).limit(1).exec();
+    // Get fastest single record result
+    const [singleRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ best: 1 }).limit(1).exec();
 
-      // If found, get all tied record results, with the oldest at the top
-      if (singleRecordResult) {
-        queryFilter.best = singleRecordResult.best;
-        output[0] = await this.resultModel.find(queryFilter, excl).sort({ date: 1 }).exec();
-      }
-
-      delete queryFilter.regionalSingleRecord;
-      delete queryFilter.best;
-      queryFilter.regionalAverageRecord = wcaEquivalent;
-
-      // Get fastest average record result
-      const [avgRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ average: 1 }).limit(1).exec();
-
-      // If found, get all tied record results, with the oldest at the top
-      if (avgRecordResult) {
-        queryFilter.average = avgRecordResult.average;
-        output[1] = await this.resultModel.find(queryFilter, excl).sort({ date: 1 }).exec();
-      }
-
-      return output;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
+    // If found, get all tied record results, with the oldest at the top
+    if (singleRecordResult) {
+      queryFilter.best = singleRecordResult.best;
+      output[0] = await this.resultModel.find(queryFilter, excl).sort({ date: 1 }).exec();
     }
+
+    delete queryFilter.regionalSingleRecord;
+    delete queryFilter.best;
+    queryFilter.regionalAverageRecord = wcaEquivalent;
+
+    // Get fastest average record result
+    const [avgRecordResult] = await this.resultModel.find(queryFilter, excl).sort({ average: 1 }).limit(1).exec();
+
+    // If found, get all tied record results, with the oldest at the top
+    if (avgRecordResult) {
+      queryFilter.average = avgRecordResult.average;
+      output[1] = await this.resultModel.find(queryFilter, excl).sort({ date: 1 }).exec();
+    }
+
+    return output;
   }
 
   // Updates records set on the same day or in the future
-  private async updateFutureRecords(
+  async updateFutureRecords(
     result: CreateResultDto | ResultDocument,
     event: EventDocument,
     recordPairs: IRecordPair[],
@@ -868,7 +864,7 @@ export class ResultsService {
       previousBest,
       previousAvg,
     }: {
-      mode: 'new' | 'edit' | 'delete';
+      mode: 'create' | 'edit' | 'delete';
       previousBest?: number; // only used for result edit
       previousAvg?: number; // only used for result edit
     },
@@ -881,7 +877,7 @@ export class ResultsService {
       try {
         const singlesComparison = mode === 'edit' ? compareSingles(result, { best: previousBest } as IResult) : 0;
         const singleGotWorse = singlesComparison > 0 || (mode === 'delete' && result.best > 0);
-        const singleGotBetter = singlesComparison < 0 || (mode === 'new' && result.best > 0);
+        const singleGotBetter = singlesComparison < 0 || (mode === 'create' && result.best > 0);
 
         if (singleGotWorse || singleGotBetter) {
           const singleQuery = {
@@ -908,7 +904,7 @@ export class ResultsService {
 
         const avgsComparison = mode === 'edit' ? compareAvgs(result, { average: previousAvg } as IResult, true) : 0;
         const avgGotWorse = avgsComparison > 0 || (mode === 'delete' && result.average > 0);
-        const avgGotBetter = avgsComparison < 0 || (mode === 'new' && result.average > 0);
+        const avgGotBetter = avgsComparison < 0 || (mode === 'create' && result.average > 0);
 
         if (avgGotWorse || avgGotBetter) {
           const avgQuery = {
@@ -989,11 +985,6 @@ export class ResultsService {
     }
     if (result.attempts.length === 0) throw new BadRequestException('Please enter at least one attempt');
 
-    // Video-based results validation
-    if (!result.competitionId) {
-      if (result.videoLink === undefined) throw new BadRequestException('Please enter a video link');
-    }
-
     if (round) {
       // Time limit validation
       if (round.timeLimit) {
@@ -1045,6 +1036,10 @@ export class ResultsService {
             throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
         }
       }
+    }
+    // Video-based results validation
+    else {
+      if (result.videoLink === undefined) throw new BadRequestException('Please enter a video link');
     }
   }
 }

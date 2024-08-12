@@ -143,7 +143,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         } else {
           const updateResultDto: IUpdateResultDto = {
             date: newResultWithBestAndAvg.date,
-            unapproved: newResultWithBestAndAvg.unapproved,
+            unapproved: submissionInfo.result.unapproved,
             personIds: newResultWithBestAndAvg.personIds,
             attempts: newResultWithBestAndAvg.attempts,
             videoLink: newResultWithBestAndAvg.videoLink,

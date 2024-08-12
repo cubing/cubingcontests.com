@@ -14,20 +14,20 @@ import { IAttempt, IResult } from '@sh/types';
 import { DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from '~/src/helpers/messages';
 
 @ValidatorConstraint({ name: 'HasNonDnfDnsResult', async: false })
-class HasNonDnfDnsResult implements ValidatorConstraintInterface {
+class VideoBasedAttempt implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
-    return attempts.some((a) => a.result > 0);
+    return attempts.some((a) => a.result > 0) && !attempts.some((a) => a.result === 0);
   }
 
   defaultMessage() {
-    return 'You cannot submit only DNF/DNS results';
+    return 'You cannot submit only DNF/DNS results, and you cannot submit empty attempts';
   }
 }
 
 export class SubmitResultDto extends CreateResultDto implements IResult {
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(HasNonDnfDnsResult)
+  @Validate(VideoBasedAttempt)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];
