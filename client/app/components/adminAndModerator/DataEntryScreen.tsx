@@ -175,6 +175,8 @@ const DataEntryScreen = ({
 
   const editResult = (result: IResult) => {
     if (isEditable) {
+      window.scrollTo(0, 0);
+
       const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
       // If the competitor did not make cutoff, fill the missing attempts with empty results
       const newAttempts = [

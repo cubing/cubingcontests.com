@@ -21,6 +21,12 @@ This is a place for hosting unofficial Rubik's cube competitions, unofficial eve
   <img src="https://cubingcontests.com/api/cubing_contests_8.jpg" width="300"/>
 </div>
 
+## API for entering attempts
+
+Cubing Contests supports entering attempts using an external device or service. The API is mostly the same as the [WCA Live API](https://github.com/thewca/wca-live/wiki/Entering-attempts-with-external-devices), but the selection of the competitor is different. You can either use `registrantId`, which is the unique numerical ID of the competitor in the CC database, or `wcaId`, which, naturally, is a string representation of the number of pickles the competitor has eaten in the current year (non-case-sensitive).
+
+To get the API key, go to the edit page of the contest and click "Get Access Token". Keep in mind that you will not be able to retrieve the key again after leaving that screen. You will only be able to generate a new one, which will invalidate the old key.
+
 ## Deployment
 
 Please do **NOT** try to deploy your own instance until this project is ready for that (you will find instructions in this section).

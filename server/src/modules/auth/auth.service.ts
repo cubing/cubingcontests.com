@@ -136,12 +136,13 @@ export class AuthService {
     contest: ContestDocument, // this must be populated
     { ignoreState = false }: { ignoreState: boolean } = { ignoreState: false },
   ) {
-    if (
-      !user.roles.includes(Role.Admin) &&
-      (!user.roles.includes(Role.Moderator) ||
-        !contest.organizers.some((el) => el.personId === user.personId) ||
-        (contest.state >= ContestState.Finished && !ignoreState))
-    ) {
+    const hasAccessRights =
+      user.roles.includes(Role.Admin) ||
+      (user.roles.includes(Role.Moderator) &&
+        contest.organizers.some((el) => el.personId === user.personId) &&
+        (contest.state < ContestState.Finished || ignoreState));
+
+    if (!hasAccessRights) {
       this.logger.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);
       throw new UnauthorizedException(NO_ACCESS_RIGHTS_MSG);
     }
