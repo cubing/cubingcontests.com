@@ -887,7 +887,7 @@ export class ResultsService {
           };
 
           if (singleGotWorse) {
-            const best: any = { $gt: mode === 'edit' ? previousBest : result.best };
+            const best: any = { $gt: 0 };
 
             // Make sure it's better than the record at the time, if there was one, and better than the new best, if it's an edit
             if (rp.best > 0) best.$lte = rp.best;
@@ -914,7 +914,7 @@ export class ResultsService {
           };
 
           if (avgGotWorse) {
-            const average: any = { $gt: mode === 'edit' ? previousAvg : result.average };
+            const average: any = { $gt: 0 };
 
             // Make sure it's better than the record at the time, if there was one, and better than the new average, if it's an edit
             if (rp.average > 0) average.$lte = rp.average;
