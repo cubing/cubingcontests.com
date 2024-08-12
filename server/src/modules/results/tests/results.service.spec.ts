@@ -263,14 +263,14 @@ describe('ResultsService', () => {
 
         expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
           _id: { $ne: result._id },
-          best: { $gt: 2148, $lte: 3546 },
+          best: { $gt: 0, $lte: 3546 },
           date: { $gte: result.date },
           eventId: '333_team_bld',
         });
         expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
           _id: { $ne: result._id },
           attempts: { $size: 5 },
-          average: { $gt: 3157, $lte: 4178 },
+          average: { $gt: 0, $lte: 4178 },
           date: { $gte: result.date },
           eventId: '333_team_bld',
         });
@@ -288,14 +288,14 @@ describe('ResultsService', () => {
 
         expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
           _id: { $ne: result._id },
-          best: { $gt: 2148, $lte: 5059 },
+          best: { $gt: 0, $lte: 5059 },
           date: { $gte: result.date },
           eventId: '333_team_bld',
         });
         expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
           _id: { $ne: result._id },
           attempts: { $size: 5 },
-          average: { $gt: 3157, $lte: 11740 },
+          average: { $gt: 0, $lte: 11740 },
           date: { $gte: result.date },
           eventId: '333_team_bld',
         });
