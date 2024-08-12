@@ -654,13 +654,6 @@ export class ResultsService {
       if (!round) throw new BadRequestException('Round not found');
     }
 
-    this.validateAndCleanUpResult(updateResultDto as IResult, event, { round });
-
-    const roundFormat = result.competitionId
-      ? undefined
-      : roundFormats.find((rf) => rf.attempts === updateResultDto.attempts.length && rf.value !== RoundFormat.BestOf3)
-        .value;
-    const { best, average } = getBestAndAverage(updateResultDto.attempts, event, { round, roundFormat });
     const previousBest = result.best;
     const previousAvg = result.average;
 
@@ -671,9 +664,9 @@ export class ResultsService {
     }
 
     result.personIds = updateResultDto.personIds;
-    result.attempts = updateResultDto.attempts;
-    result.best = best;
-    result.average = average;
+    result.attempts = updateResultDto.attempts; // the best and average get updated in validateAndCleanUpResult
+    result.best = null;
+    result.average = null;
     result.regionalSingleRecord = undefined;
     result.regionalAverageRecord = undefined;
 
@@ -683,7 +676,8 @@ export class ResultsService {
     });
     setResultRecords(result, event, recordPairs);
 
-    console.log(result, updateResultDto);
+    this.validateAndCleanUpResult(result, event, { round });
+
     // This is only relevant for video-based results
     if (result.unapproved && !updateResultDto.unapproved) {
       result.unapproved = undefined;
@@ -986,6 +980,19 @@ export class ResultsService {
       else break;
     }
     if (result.attempts.length === 0) throw new BadRequestException('Please enter at least one attempt');
+
+    // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
+    // and this is only used for those results, because a competition result would have a round
+    const roundFormat = round
+      ? undefined
+      : roundFormats.find((rf) => rf.attempts === result.attempts.length && rf.value !== RoundFormat.BestOf3).value;
+
+    // Validate the best single and the average
+    const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat });
+    if (result.best === null) result.best = best;
+    else if (result.best !== best) throw new BadRequestException('The best single is incorrect. Please try again.');
+    if (result.average === null) result.average = average;
+    else if (result.average !== average) throw new BadRequestException('The average is incorrect. Please try again.');
 
     if (round) {
       // Time limit validation

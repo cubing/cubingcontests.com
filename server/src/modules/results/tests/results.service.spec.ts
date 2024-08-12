@@ -139,6 +139,26 @@ describe('ResultsService', () => {
         expect(createdResult.regionalAverageRecord).toBe('WR');
       });
 
+      it('creates new 3x3x3 result from an external device', async () => {
+        const newResult: CreateResultDto = {
+          eventId: '333',
+          competitionId: 'Munich19022023',
+          date: new Date('2023-02-19T00:00:00Z'),
+          unapproved: true,
+          personIds: [99],
+          ranking: 0,
+          attempts: [{ result: 4085 }, { result: 5942 }, { result: 3309 }, { result: 3820 }, { result: 4255 }],
+          best: null,
+          average: null,
+        };
+
+        await resultsService.createResult(newResult, '333-r1', { user: adminUser });
+        const createdResult = newResult as ResultDocument; // createResult directly edits newResult
+
+        expect(createdResult.best).toBe(3309);
+        expect(createdResult.average).toBe(4053);
+      });
+
       it('throws an error when the round is not found', async () => {
         await expect(
           resultsService.createResult(
@@ -179,7 +199,6 @@ describe('ResultsService', () => {
       it('submits new 4x4x4 Blindfolded result', async () => {
         const newResult: SubmitResultDto = {
           eventId: '444bf',
-          competitionId: 'Munich19022023',
           date: new Date('2024-08-11T00:00:00Z'),
           unapproved: true,
           personIds: [99],
@@ -196,15 +215,52 @@ describe('ResultsService', () => {
         expect(createdResult.regionalAverageRecord).toBeUndefined();
       });
 
+      it('throws an error when the best single is incorrect', async () => {
+        await expect(
+          resultsService.submitResult(
+            {
+              eventId: '444bf',
+              date: new Date(),
+              personIds: [1],
+              attempts: [{ result: 10000 }],
+              best: 9999,
+              average: 0,
+              videoLink: undefined,
+            },
+            adminUser,
+          ),
+        ).rejects.toThrowError(new BadRequestException('The best single is incorrect. Please try again.'));
+      });
+
+      it('throws an error when the average is incorrect', async () => {
+        await expect(
+          resultsService.submitResult(
+            {
+              eventId: '444bf',
+              date: new Date(),
+              personIds: [1],
+              attempts: [{ result: 10000 }],
+              best: 10000,
+              average: -1,
+              videoLink: undefined,
+            },
+            adminUser,
+          ),
+        ).rejects.toThrowError(new BadRequestException('The average is incorrect. Please try again.'));
+      });
+
       it('throws an error when there is no video link', async () => {
         await expect(
           resultsService.submitResult(
             {
               eventId: '444bf',
+              date: new Date(),
               personIds: [1],
               attempts: [{ result: 10000 }],
+              best: 10000,
+              average: 0,
               videoLink: undefined,
-            } as SubmitResultDto,
+            },
             adminUser,
           ),
         ).rejects.toThrowError(new BadRequestException('Please enter a video link'));
@@ -215,10 +271,13 @@ describe('ResultsService', () => {
           resultsService.submitResult(
             {
               eventId: '444bf',
+              date: new Date(),
               personIds: [1],
               attempts: [{ result: 10000 }],
+              best: 10000,
+              average: 0,
               videoLink: '',
-            } as SubmitResultDto,
+            },
             modUser,
           ),
         ).rejects.toThrowError(new BadRequestException('Please enter a video link'));
@@ -229,10 +288,13 @@ describe('ResultsService', () => {
           resultsService.submitResult(
             {
               eventId: '444bf',
+              date: new Date(),
               personIds: [1],
               attempts: [{ result: C.maxTime }],
+              best: 10000,
+              average: 0,
               videoLink: 'link.com',
-            } as SubmitResultDto,
+            },
             modUser,
           ),
         ).rejects.toThrowError(new BadRequestException('You are not authorized to set unknown time'));
