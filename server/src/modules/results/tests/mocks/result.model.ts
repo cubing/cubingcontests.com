@@ -30,6 +30,11 @@ export const ResultModelMock = (): any => ({
   find(query: any) {
     this.tempOutput = resultsStub();
 
+    if (query?._id) {
+      if (query._id.$ne)
+        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el._id.toString() !== query._id.$ne);
+      else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el._id.toString() === query._id.toString());
+    }
     if (query?.eventId) this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.eventId === query.eventId);
     if (query?.regionalSingleRecord) {
       this.tempOutput = this.tempOutput.filter(
@@ -51,6 +56,10 @@ export const ResultModelMock = (): any => ({
         );
       }
     }
+    if (query?.attempts) {
+      if (query.attempts.$size !== undefined)
+        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.attempts.length === query.attempts.$size);
+    }
     if (query?.best) {
       if (query.best.$gt !== undefined)
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best > query.best.$gt);
@@ -59,7 +68,11 @@ export const ResultModelMock = (): any => ({
       else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best === query.best);
     }
     if (query?.average) {
-      this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average === query.average);
+      if (query.average.$gt !== undefined)
+        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average > query.average.$gt);
+      else if (query.average.$lte !== undefined)
+        this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average <= query.average.$lte);
+      else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average === query.average);
     }
 
     return this;

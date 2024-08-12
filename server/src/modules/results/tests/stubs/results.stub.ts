@@ -4,9 +4,9 @@ import { WcaRecordType } from '@sh/enums';
 
 export const resultsStub = (): ResultDocument[] => {
   return [
-    // Fake result
+    // Fake results
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c44'),
+      _id: new mongoose.Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
       competitionId: 'FMTestComp2023',
       eventId: '333fm',
       date: new Date('2023-07-01T00:00:00Z'),
@@ -16,18 +16,29 @@ export const resultsStub = (): ResultDocument[] => {
       best: 39,
       average: 48,
     },
-    // Real results
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c44'),
-      competitionId: 'Munich19022023',
-      eventId: '333_team_bld',
-      date: new Date('2023-02-19T00:00:00Z'),
-      personIds: [2, 4],
-      ranking: 2,
-      attempts: [{ result: 14186 }, { result: 10247 }, { result: 10787 }, { result: 17962 }, { result: 5059 }],
-      best: 5059,
-      average: 11740,
+      _id: new mongoose.Types.ObjectId('bbbbbbbbbbbbbbbbbbbbbbbb'),
+      eventId: '444bf',
+      date: new Date('2023-06-27T00:00:00Z'),
+      personIds: [1],
+      attempts: [{ result: 9514 }],
+      best: 9514,
+      average: 0,
+      videoLink: 'link.com',
+      discussionLink: 'link.net',
     },
+    {
+      _id: new mongoose.Types.ObjectId('cccccccccccccccccccccccc'),
+      competitionId: 'Pretend Comp 2024',
+      eventId: '333_team_bld',
+      date: new Date('2024-08-11T00:00:00Z'),
+      personIds: [3, 1],
+      ranking: 1,
+      attempts: [{ result: 3391 }, { result: 4489 }, { result: 3542 }, { result: -1 }, { result: 3722 }],
+      best: 3391,
+      average: 3918,
+    },
+    // Real results
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c45'),
       competitionId: 'Munich19022023',
@@ -236,17 +247,6 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [{ result: 9296 }, { result: -2 }, { result: -2 }, { result: -2 }, { result: -2 }],
       best: 9296,
       average: -1,
-    },
-    {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c43'),
-      competitionId: 'Munich19022023',
-      eventId: '333_team_bld',
-      date: new Date('2023-02-19T00:00:00Z'),
-      personIds: [3, 1],
-      ranking: 1,
-      attempts: [{ result: 2148 }, { result: 2866 }, { result: 3614 }, { result: -1 }, { result: 2990 }],
-      best: 2148,
-      average: 3157,
     },
     {
       _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c59'),
@@ -953,17 +953,6 @@ export const resultsStub = (): ResultDocument[] => {
       attempts: [{ result: 2832 }, { result: 3159 }, { result: 2769 }, { result: 3473 }, { result: 3076 }],
       best: 2769,
       average: 3022,
-    },
-    {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7d'),
-      eventId: '444bf',
-      date: new Date('2023-06-27T00:00:00Z'),
-      personIds: [1],
-      attempts: [{ result: 9514 }],
-      best: 9514,
-      average: 0,
-      videoLink: 'link.com',
-      discussionLink: 'link.net',
     },
   ] as ResultDocument[];
 };

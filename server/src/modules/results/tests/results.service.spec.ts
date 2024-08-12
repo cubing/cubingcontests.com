@@ -18,7 +18,11 @@ import { ResultDocument } from '~/src/models/result.model';
 // Mocks and stubs
 import { MyLoggerMock } from '~/src/modules/my-logger/tests/my-logger.service';
 import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
-import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
+import {
+  RecordTypesServiceMock,
+  setEventAvgRecordsMock,
+  setEventSingleRecordsMock,
+} from '@m/record-types/tests/mocks/record-types.service';
 import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
 import { ResultModelMock } from '@m/results/tests/mocks/result.model';
 import { RoundModelMock } from '~/src/modules/contests/tests/mocks/round.model';
@@ -26,6 +30,8 @@ import { ContestModelMock } from '~/src/modules/contests/tests/mocks/contest.mod
 import { AuthServiceMock } from '@m/auth/tests/mocks/auth.service';
 import { CreateResultDto } from '../dto/create-result.dto';
 import { SubmitResultDto } from '~/src/modules/results/dto/submit-result.dto';
+import { resultsStub } from '~/src/modules/results/tests/stubs/results.stub';
+import { eventsStub } from '~/src/modules/events/tests/stubs/events.stub';
 
 const adminUser: IPartialUser = {
   personId: 1,
@@ -236,5 +242,64 @@ describe('ResultsService', () => {
     // describe('editResult', () => {});
 
     // describe('deleteResult', () => {});
+
+    describe('updateFutureRecords', () => {
+      it('sets future records after editing a Team-Blind result with records to be worse than a future result', async () => {
+        const result = resultsStub().find((r) => r._id.toString() === '649fe9c3ecadd98a79f99c45');
+        const event = eventsStub().find((e) => e.eventId === result.eventId);
+        const recordPairs = await resultsService.getEventRecordPairs(event, {
+          recordsUpTo: result.date,
+          excludeResultId: result._id.toString(),
+        });
+
+        result.best = 3546;
+        result.average = 4178;
+
+        await resultsService.updateFutureRecords(result, event, recordPairs, {
+          mode: 'edit',
+          previousBest: 2148,
+          previousAvg: 3157,
+        });
+
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          _id: { $ne: result._id },
+          best: { $gt: 2148, $lte: 3546 },
+          date: { $gte: result.date },
+          eventId: '333_team_bld',
+        });
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          _id: { $ne: result._id },
+          attempts: { $size: 5 },
+          average: { $gt: 3157, $lte: 4178 },
+          date: { $gte: result.date },
+          eventId: '333_team_bld',
+        });
+      });
+
+      it('sets future records after deletion of a Team-Blind result with records', async () => {
+        const result = resultsStub().find((r) => r._id.toString() === '649fe9c3ecadd98a79f99c45');
+        const event = eventsStub().find((e) => e.eventId === result.eventId);
+        const recordPairs = await resultsService.getEventRecordPairs(event, {
+          recordsUpTo: result.date,
+          excludeResultId: result._id.toString(),
+        });
+
+        await resultsService.updateFutureRecords(result, event, recordPairs, { mode: 'delete' });
+
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          _id: { $ne: result._id },
+          best: { $gt: 2148, $lte: 5059 },
+          date: { $gte: result.date },
+          eventId: '333_team_bld',
+        });
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          _id: { $ne: result._id },
+          attempts: { $size: 5 },
+          average: { $gt: 3157, $lte: 11740 },
+          date: { $gte: result.date },
+          eventId: '333_team_bld',
+        });
+      });
+    });
   });
 });
