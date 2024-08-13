@@ -6,9 +6,9 @@ import { LogDocument } from '~/src/models/log.model';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
-import { IAdminStats, IAttempt } from '@sh/types';
-import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
+import { IAdminStats, IAttempt, IResult } from '@sh/types';
 import { roundFormats } from '@sh/roundFormats';
+import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 
 @Injectable()
 export class AppService {
@@ -99,18 +99,19 @@ export class AppService {
 
   async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
     const person = enterAttemptDto.wcaId
-      ? await this.personsService.getPersonByWcaId(enterAttemptDto.wcaId)
+      ? await this.personsService.getPersonByWcaId(enterAttemptDto.wcaId.toUpperCase())
       : await this.personsService.getPersonById(enterAttemptDto.registrantId);
-    if (!person) throw new NotFoundException(`Person with ID ${enterAttemptDto.registrantId} not found`);
+    if (!person) throw new NotFoundException('Competitor not found');
 
-    const roundNumber = parseInt(enterAttemptDto.roundNumber);
-    const { result, contestEvent } = await this.resultsService.getContestResultAndEvent(
+    const round = await this.resultsService.getContestRound(
       enterAttemptDto.competitionWcaId,
       enterAttemptDto.eventId,
-      roundNumber,
-      enterAttemptDto.registrantId,
+      parseInt(enterAttemptDto.roundNumber),
     );
-    const round = contestEvent.rounds[roundNumber - 1];
+    console.log(round, person.personId);
+    const result: IResult | undefined = round.results.find(
+      (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
+    );
     const roundFormat = roundFormats.find((rf) => rf.value === round.format);
     const attempts: IAttempt[] = [];
 
@@ -123,18 +124,19 @@ export class AppService {
     const newResultPartial = {
       date: null as Date, // real date assigned below
       unapproved: true, // it's not allowed to enter a new attempt for a finished contest anyways
-      personIds: result.personIds, // TO-DO: ADD SUPPORT FOR TEAM EVENTS!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // TO-DO: ADD PROPER SUPPORT FOR TEAM EVENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      personIds: [person.personId],
       attempts,
     };
 
     if (result) {
-      await this.resultsService.editResult(result._id.toString(), newResultPartial);
+      await this.resultsService.editResult((result as any)._id.toString(), newResultPartial);
     } else {
       await this.resultsService.createResult(
         {
           ...newResultPartial,
-          eventId: result.eventId,
-          competitionId: result.competitionId,
+          eventId: enterAttemptDto.eventId,
+          competitionId: enterAttemptDto.competitionWcaId,
           best: null,
           average: null,
         },

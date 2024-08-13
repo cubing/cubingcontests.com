@@ -38,7 +38,6 @@ import {
   IFeResult,
   IActivity,
   IResult,
-  IContestEvent,
   IRound,
 } from '@sh/types';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -497,33 +496,21 @@ export class ResultsService {
   }
 
   // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
-  async getContestResultAndEvent(
-    competitionId: string,
-    eventId: string,
-    roundNumber: number,
-    personId: number,
-  ): Promise<{ result: ResultDocument; contestEvent: IContestEvent }> {
+  async getContestRound(competitionId: string, eventId: string, roundNumber: number): Promise<IRound> {
     const contest = await this.contestModel
       .findOne({ competitionId })
       .populate(eventPopulateOptions.event)
-      .populate(eventPopulateOptions.rounds)
+      .populate(eventPopulateOptions.roundsAndResults)
       .exec();
 
     if (!contest) throw new NotFoundException(`Competition with ID ${competitionId} not found`);
     if (contest.state > ContestState.Ongoing) throw new BadRequestException('The contest is finished');
-
     const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
-
     if (!contestEvent) throw new NotFoundException(`Event with ID ${eventId} not found for the given competition`);
-    if (contestEvent.rounds.length < roundNumber)
-      throw new BadRequestException(`The specified competition event only has ${contestEvent.rounds.length} rounds`);
-
     const round = contestEvent.rounds[roundNumber - 1];
     if (!round) throw new BadRequestException(`Round number ${roundNumber} not found`);
 
-    const result = round.results.find((r) => r.personIds.length === 1 && r.personIds[0] === personId);
-
-    return { result, contestEvent };
+    return round;
   }
 
   // The user can be left undefined when this is called by app.service.ts, which has its own authorization check

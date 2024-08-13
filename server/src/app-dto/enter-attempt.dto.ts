@@ -10,7 +10,6 @@ export class EnterAttemptDto {
   eventId: string;
 
   @IsNumberString()
-  @Min(1)
   roundNumber: string;
 
   @IsOptional()
