@@ -74,6 +74,10 @@ const DataEntryScreen = ({
     document.getElementById('Competitor_1').focus();
   }, [round.roundId]);
 
+  useEffect(() => {
+    console.log(resultUnderEdit);
+  }, [resultUnderEdit]);
+
   useScrollToTopForNewMessage({ errorMessages, successMessage });
 
   //////////////////////////////////////////////////////////////////////////////
@@ -100,9 +104,10 @@ const DataEntryScreen = ({
         setErrorMessages,
         setSuccessMessage,
         async (newResultWithBestAndAvg) => {
-          let updatedRound: IRound, errors: string[];
           setLoadingId('submit_attempt_button');
+          let updatedRound: IRound, errors: string[];
 
+          console.log('test', resultUnderEdit);
           if (resultUnderEdit === null) {
             const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
             updatedRound = payload;
