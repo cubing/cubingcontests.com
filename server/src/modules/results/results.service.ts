@@ -55,7 +55,6 @@ import {
 } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 import { EmailService } from '~/src/modules/email/email.service';
-import { LogType } from '~/src/helpers/enums';
 
 @Injectable()
 export class ResultsService {
@@ -545,7 +544,7 @@ export class ResultsService {
     if (!round) throw new BadRequestException('Round not found');
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
-    await this.validateAndCleanUpResult(createResultDto, event, { round });
+    await this.validateAndCleanUpResult(createResultDto, event, { mode: 'create', round });
 
     // Set result date. For contests with a schedule, the schedule must be used to set the date.
     if (!getIsCompType(contest.type)) {
@@ -610,7 +609,7 @@ export class ResultsService {
 
     const event = await this.eventsService.getEventById(submitResultDto.eventId);
 
-    await this.validateAndCleanUpResult(submitResultDto, event);
+    await this.validateAndCleanUpResult(submitResultDto, event, { mode: 'submit' });
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
     const createdResult = await this.resultModel.create(
@@ -665,18 +664,19 @@ export class ResultsService {
 
     result.personIds = updateResultDto.personIds;
     result.attempts = updateResultDto.attempts; // the best and average get updated in validateAndCleanUpResult
+    // The best and average are set in validateAndCleanUpResult
     result.best = null;
     result.average = null;
     result.regionalSingleRecord = undefined;
     result.regionalAverageRecord = undefined;
+
+    this.validateAndCleanUpResult(result, event, { mode: 'edit', round });
 
     const recordPairs = await this.getEventRecordPairs(event, {
       recordsUpTo: result.date,
       excludeResultId: result._id.toString(),
     });
     setResultRecords(result, event, recordPairs);
-
-    this.validateAndCleanUpResult(result, event, { round });
 
     // This is only relevant for video-based results
     if (result.unapproved && !updateResultDto.unapproved) {
@@ -967,12 +967,19 @@ export class ResultsService {
   async validateAndCleanUpResult(
     result: IResult,
     event: IEvent,
-    { round }: { round?: IRound } = {}, // if round is defined, that means it's a contest result, not a submitted one
+    {
+      round,
+      mode,
+    }: {
+      round?: IRound; // if round is defined, that means it's a contest result, not a submitted one
+      mode: 'create' | 'submit' | 'edit';
+    },
   ) {
-    if (result.personIds.length !== (event.participants ?? 1))
+    if (result.personIds.length !== (event.participants ?? 1)) {
       throw new BadRequestException(
         `This event must have ${event.participants ?? 1} participant${event.participants ? 's' : ''}`,
       );
+    }
 
     // Remove empty attempts from the end
     for (let i = result.attempts.length - 1; i >= 0; i--) {
@@ -995,6 +1002,20 @@ export class ResultsService {
     else if (result.average !== average) throw new BadRequestException('The average is incorrect. Please try again.');
 
     if (round) {
+      // Make sure there is no result for any of the same people
+      const resultFromSamePerson = round.results.find(
+        (r) =>
+          (mode !== 'edit' || (r as any)._id.toString() !== (result as any)._id.toString()) &&
+          r.personIds.some((p) => result.personIds.includes(p)),
+      );
+      if (resultFromSamePerson) {
+        throw new BadRequestException(
+          result.personIds.length === 1
+            ? 'That competitor already has a result in this round'
+            : 'One of the competitors already has a result in this round',
+        );
+      }
+
       // Time limit validation
       if (round.timeLimit) {
         if (result.attempts.some((a) => a.result > round.timeLimit.centiseconds))

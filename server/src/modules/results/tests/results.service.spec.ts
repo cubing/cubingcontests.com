@@ -159,6 +159,40 @@ describe('ResultsService', () => {
         expect(createdResult.average).toBe(4053);
       });
 
+      it('throws an error when one of the competitors already has a result in the round', async () => {
+        const new333Result: CreateResultDto = {
+          eventId: '333',
+          competitionId: 'Munich19022023',
+          date: new Date('2023-02-19T00:00:00Z'),
+          unapproved: true,
+          personIds: [1],
+          ranking: 0,
+          attempts: [{ result: 1568 }, { result: 2054 }, { result: 1911 }, { result: 1723 }, { result: 1489 }],
+          best: null,
+          average: null,
+        };
+
+        await expect(resultsService.createResult(new333Result, '333-r1', { user: adminUser })).rejects.toThrowError(
+          new BadRequestException('That competitor already has a result in this round'),
+        );
+
+        const newTeamBldResult: CreateResultDto = {
+          eventId: '333_team_bld',
+          competitionId: 'Munich19022023',
+          date: new Date('2023-02-19T00:00:00Z'),
+          unapproved: true,
+          personIds: [99, 2],
+          ranking: 0,
+          attempts: [{ result: 4085 }, { result: 5942 }, { result: 3309 }, { result: 3820 }, { result: 4255 }],
+          best: null,
+          average: null,
+        };
+
+        await expect(
+          resultsService.createResult(newTeamBldResult, '333_team_bld-r1', { user: adminUser }),
+        ).rejects.toThrowError(new BadRequestException('One of the competitors already has a result in this round'));
+      });
+
       it('throws an error when the round is not found', async () => {
         await expect(
           resultsService.createResult(
