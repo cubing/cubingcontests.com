@@ -357,18 +357,88 @@ describe('ResultsService', () => {
           previousAvg: 3157,
         });
 
-        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+        const baseQuery = {
           _id: { $ne: result._id },
-          best: { $gt: 0, $lte: 3546 },
           date: { $gte: result.date },
           eventId: '333_team_bld',
+        };
+
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          ...baseQuery,
+          best: { $gt: 0, $lte: 3546 },
         });
         expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          _id: { $ne: result._id },
+          ...baseQuery,
           attempts: { $size: 5 },
           average: { $gt: 0, $lte: 4178 },
+        });
+      });
+
+      it('sets future records after editing a Team-Blind result with records to be worse', async () => {
+        const result = resultsStub().find((r) => r._id.toString() === '649fe9c3ecadd98a79f99c71');
+        const event = eventsStub().find((e) => e.eventId === result.eventId);
+        const recordPairs = await resultsService.getEventRecordPairs(event, {
+          recordsUpTo: result.date,
+          excludeResultId: result._id.toString(),
+        });
+
+        result.best = 2271;
+        result.average = 3418;
+
+        await resultsService.updateFutureRecords(result, event, recordPairs, {
+          mode: 'edit',
+          previousBest: 2044,
+          previousAvg: 2531,
+        });
+
+        const baseQuery = {
+          _id: { $ne: result._id },
           date: { $gte: result.date },
           eventId: '333_team_bld',
+        };
+
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          ...baseQuery,
+          best: { $gt: 0, $lte: 2148 }, // 21.48 was the single record at the time
+        });
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          ...baseQuery,
+          attempts: { $size: 5 },
+          average: { $gt: 0, $lte: 3157 }, // 31.57 was the average record at the time
+        });
+      });
+
+      it('sets future records after editing a Team-Blind result with records to be worse, but still better than the old records', async () => {
+        const result = resultsStub().find((r) => r._id.toString() === '649fe9c3ecadd98a79f99c71');
+        const event = eventsStub().find((e) => e.eventId === result.eventId);
+        const recordPairs = await resultsService.getEventRecordPairs(event, {
+          recordsUpTo: result.date,
+          excludeResultId: result._id.toString(),
+        });
+
+        result.best = 2130;
+        result.average = 2697;
+
+        await resultsService.updateFutureRecords(result, event, recordPairs, {
+          mode: 'edit',
+          previousBest: 2044,
+          previousAvg: 2531,
+        });
+
+        const baseQuery = {
+          _id: { $ne: result._id },
+          date: { $gte: result.date },
+          eventId: '333_team_bld',
+        };
+
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          ...baseQuery,
+          best: { $gt: 0, $lte: 2130 },
+        });
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          ...baseQuery,
+          attempts: { $size: 5 },
+          average: { $gt: 0, $lte: 2697 },
         });
       });
 
@@ -382,18 +452,20 @@ describe('ResultsService', () => {
 
         await resultsService.updateFutureRecords(result, event, recordPairs, { mode: 'delete' });
 
-        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+        const baseQuery = {
           _id: { $ne: result._id },
-          best: { $gt: 0, $lte: 5059 },
           date: { $gte: result.date },
           eventId: '333_team_bld',
+        };
+
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
+          ...baseQuery,
+          best: { $gt: 0, $lte: 5059 },
         });
         expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          _id: { $ne: result._id },
+          ...baseQuery,
           attempts: { $size: 5 },
           average: { $gt: 0, $lte: 11740 },
-          date: { $gte: result.date },
-          eventId: '333_team_bld',
         });
       });
     });

@@ -888,8 +888,9 @@ export class ResultsService {
             // Make sure it's better than the record at the time, if there was one, and better than the new best, if it's an edit
             if (rp.best > 0) best.$lte = rp.best;
             if (mode === 'edit' && compareSingles(result, { best: rp.best } as IResult) < 0) best.$lte = result.best;
+            singleQuery.best = best;
 
-            await this.recordTypesService.setEventSingleRecords(event, rp.wcaEquivalent, { ...singleQuery, best });
+            await this.recordTypesService.setEventSingleRecords(event, rp.wcaEquivalent, singleQuery);
           } else {
             // Remove single records cancelled by the new result or by the improved edited result
             await this.resultModel
@@ -914,10 +915,11 @@ export class ResultsService {
 
             // Make sure it's better than the record at the time, if there was one, and better than the new average, if it's an edit
             if (rp.average > 0) average.$lte = rp.average;
-            if (mode === 'edit' && compareAvgs(result, { average: rp.average } as IResult, true))
+            if (mode === 'edit' && compareAvgs(result, { average: rp.average } as IResult, true) < 0)
               average.$lte = result.average;
+            avgQuery.average = average;
 
-            await this.recordTypesService.setEventAvgRecords(event, rp.wcaEquivalent, { ...avgQuery, average });
+            await this.recordTypesService.setEventAvgRecords(event, rp.wcaEquivalent, avgQuery);
           } else {
             // Remove average records cancelled by the new result or by the improved edited result
             await this.resultModel

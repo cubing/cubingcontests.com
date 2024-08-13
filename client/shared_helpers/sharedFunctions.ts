@@ -56,7 +56,6 @@ export const setResultRecords = (
   recordPairs: IRecordPair[],
   noConsoleLog = false,
 ): IResult => {
-  console.log(recordPairs);
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
