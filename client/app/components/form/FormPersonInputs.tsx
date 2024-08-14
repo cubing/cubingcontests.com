@@ -161,10 +161,10 @@ const FormPersonInputs = ({
         setFocusedInput(null);
 
         if (addNewPersonFromNewTab) {
-          open('/mod/person', '_blank');
+          open('/mod/competitors', '_blank');
         } else {
-          if (!redirectToOnAddPerson) window.location.href = '/mod/person';
-          else window.location.replace(`/mod/person?redirect=${redirectToOnAddPerson}`);
+          if (!redirectToOnAddPerson) window.location.href = '/mod/competitors';
+          else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
         }
       }
     } else {

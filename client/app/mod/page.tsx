@@ -86,8 +86,8 @@ const ModeratorDashboardPage = () => {
           <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
             Create new contest
           </Link>
-          <Link href="/mod/person" className="btn btn-success btn-sm btn-lg-md">
-            Add competitors
+          <Link href="/mod/competitors" className="btn btn-warning btn-sm btn-lg-md">
+            Manage competitors
           </Link>
           {userInfo.isAdmin && (
             <>
@@ -97,9 +97,9 @@ const ModeratorDashboardPage = () => {
               <Link href="/admin/users" className="btn btn-warning btn-sm btn-lg-md">
                 Manage users
               </Link>
-              <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
+              {/* <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
                 Import/Export
-              </Link>
+              </Link> */}
               <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure events
               </Link>
