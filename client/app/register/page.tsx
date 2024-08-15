@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import Link from 'next/link';
+import myFetch from '~/helpers/myFetch';
 import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
-import myFetch from '~/helpers/myFetch';
+import { MainContext } from '~/helpers/contexts';
 
 const RegisterPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const { setErrorMessages, setLoadingId } = useContext(MainContext);
+
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +27,7 @@ const RegisterPage = () => {
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
     } else {
-      setLoadingDuringSubmit(true);
+      setLoadingId('form_submit_button');
       setErrorMessages([]);
 
       const { errors } = await myFetch.post('/auth/register', { username, email, password }, { authorize: false });
@@ -37,7 +38,7 @@ const RegisterPage = () => {
         window.location.href = `/register/confirm-email?username=${username}`;
       }
 
-      setLoadingDuringSubmit(false);
+      setLoadingId('');
     }
   };
 
@@ -45,12 +46,7 @@ const RegisterPage = () => {
     <div>
       <h2 className="mb-4 text-center">Register</h2>
 
-      <Form
-        buttonText="Register"
-        errorMessages={errorMessages}
-        onSubmit={handleSubmit}
-        disableButton={loadingDuringSubmit}
-      >
+      <Form buttonText="Register" onSubmit={handleSubmit}>
         <FormTextInput title="Username" value={username} setValue={setUsername} nextFocusTargetId="email" autoFocus />
         <FormTextInput id="email" title="Email" value={email} setValue={setEmail} nextFocusTargetId="password" />
         <FormTextInput

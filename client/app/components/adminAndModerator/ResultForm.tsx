@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Loading from '@c/UI/Loading';
 import FormEventSelect from '@c/form/FormEventSelect';
 import FormSelect from '@c/form/FormSelect';
@@ -15,6 +15,7 @@ import { roundFormats } from '@sh/roundFormats';
 import { getMakesCutoff, getBestAndAverage, setResultRecords } from '@sh/sharedFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
+import { MainContext } from '~/helpers/contexts';
 
 /**
  * This component has 3 uses: for entering results on PostResultsScreen,
@@ -32,8 +33,6 @@ const ResultForm = ({
   recordTypes,
   nextFocusTargetId,
   resetTrigger,
-  setErrorMessages,
-  setSuccessMessage,
   round,
   setRound,
   rounds,
@@ -57,8 +56,6 @@ const ResultForm = ({
   recordTypes: IRecordType[];
   nextFocusTargetId?: string;
   resetTrigger: boolean; // if this is undefined, that means we're editing a result
-  setErrorMessages: (val: string[]) => void;
-  setSuccessMessage: (val: string) => void;
   // These props are for PostResultsScreen
   round?: IRound;
   setRound?: (val: IRound) => void;
@@ -74,6 +71,8 @@ const ResultForm = ({
   isAdmin?: boolean;
   forResultsSubmissionForm?: boolean;
 }) => {
+  const { setErrorMessages } = useContext(MainContext);
+
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
   const [personNames, setPersonNames] = useState(['']);
@@ -261,8 +260,6 @@ const ResultForm = ({
           setPersons={setPersons}
           checkCustomErrors={checkPersonSelectionErrors}
           nextFocusTargetId={event.format !== EventFormat.Multi ? 'attempt_1' : 'attempt_1_solved'}
-          setErrorMessages={setErrorMessages}
-          setSuccessMessage={setSuccessMessage}
           redirectToOnAddPerson={window.location.pathname}
           noGrid={!forResultsSubmissionForm}
         />

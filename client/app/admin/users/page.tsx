@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
@@ -9,12 +9,12 @@ import FormCheckbox from '@c/form/FormCheckbox';
 import { Role } from '@sh/enums';
 import { IFeUser } from '@sh/types';
 import C from '@sh/constants';
-import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
+import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
 import { getRoleLabel } from '@sh/sharedFunctions';
+import { MainContext } from '~/helpers/contexts';
 
 const ManageUsersPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const { setErrorMessages, loadingId, setLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [users, setUsers] = useState<IFeUser[]>([]);
   const [username, setUsername] = useState('');
@@ -32,7 +32,7 @@ const ManageUsersPage = () => {
     });
   }, []);
 
-  useScrollToTopForNewMessage({ errorMessages });
+  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -43,13 +43,8 @@ const ManageUsersPage = () => {
       setErrorMessages(['The competitor has not been entered. Either enter them or clear the input.']);
       return;
     }
-    if (!persons[0] && (isMod || isAdmin)) {
-      setErrorMessages(['Admins and moderators must have a competitor tied to the user']);
-      return;
-    }
 
-    setLoadingDuringSubmit(true);
-    setErrorMessages([]);
+    resetMessagesAndLoadingId();
 
     const newUser: IFeUser = {
       username,
@@ -62,6 +57,7 @@ const ManageUsersPage = () => {
     if (isMod) newUser.roles.push(Role.Moderator);
     if (isAdmin) newUser.roles.push(Role.Admin);
 
+    setLoadingId('form_submit_button');
     const { payload, errors } = await myFetch.patch('/users', newUser);
 
     if (errors) {
@@ -71,11 +67,11 @@ const ManageUsersPage = () => {
       setUsers(payload);
     }
 
-    setLoadingDuringSubmit(false);
+    setLoadingId('');
   };
 
   const onEditUser = async (user: IFeUser) => {
-    setErrorMessages([]);
+    resetMessagesAndLoadingId();
 
     setUsername(user.username);
     setEmail(user.email);
@@ -99,14 +95,7 @@ const ManageUsersPage = () => {
       <h2 className="mb-4 text-center">Users</h2>
 
       {username && (
-        <Form
-          buttonText="Submit"
-          errorMessages={errorMessages}
-          onSubmit={handleSubmit}
-          showCancelButton
-          onCancel={() => setUsername('')}
-          disableButton={loadingDuringSubmit}
-        >
+        <Form buttonText="Submit" onSubmit={handleSubmit} showCancelButton onCancel={() => setUsername('')}>
           <div className="row">
             <div className="col">
               <FormTextInput title="Username" value={username} disabled />
@@ -121,11 +110,11 @@ const ManageUsersPage = () => {
             setPersons={setPersons}
             personNames={personNames}
             setPersonNames={setPersonNames}
-            setErrorMessages={setErrorMessages}
+            disabled={loadingId !== ''}
           />
           <h5 className="mb-4">Roles</h5>
-          <FormCheckbox title="User" selected={isUser} setSelected={setIsUser} disabled={loadingDuringSubmit} />
-          <FormCheckbox title="Moderator" selected={isMod} setSelected={setIsMod} disabled={loadingDuringSubmit} />
+          <FormCheckbox title="User" selected={isUser} setSelected={setIsUser} disabled={loadingId !== ''} />
+          <FormCheckbox title="Moderator" selected={isMod} setSelected={setIsMod} disabled={loadingId !== ''} />
           <FormCheckbox title="Admin" selected={isAdmin} setSelected={setIsAdmin} disabled />
         </Form>
       )}

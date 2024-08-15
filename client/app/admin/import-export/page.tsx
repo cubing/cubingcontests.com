@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Button from '@c/UI/Button';
 import Form from '@c/form/Form';
@@ -17,6 +17,7 @@ import {
   getBestAndAverage,
 } from '@sh/sharedFunctions';
 import { roundFormats } from '@sh/roundFormats';
+import { MainContext } from '~/helpers/contexts';
 
 const setRankingsAndRecords = (
   results: IResult[],
@@ -122,11 +123,10 @@ const convertTime = (value: string): number => {
 };
 
 const ImportExportPage = () => {
-  const [errorMessages, setErrorMessages] = useState([]);
-  const [successMessage, setSuccessMessage] = useState('');
+  const { errorMessages, setErrorMessages, setSuccessMessage, loadingId, setLoadingId } = useContext(MainContext);
+
   const [events, setEvents] = useState<IEvent[]>();
   const [activeRecordTypes, setActiveRecordTypes] = useState<IRecordType[]>();
-  const [loadingId, setLoadingId] = useState('');
 
   const [competitionIdText, setCompetitionIdText] = useState('');
   const [contest, setContest] = useState<IContestDto>();
@@ -146,9 +146,7 @@ const ImportExportPage = () => {
   }, []);
 
   useEffect(() => {
-    if (errorMessages.length > 0) {
-      setLoadingId('');
-    }
+    if (errorMessages.length > 0) setLoadingId('');
   }, [errorMessages]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -399,7 +397,7 @@ const ImportExportPage = () => {
     <div>
       <h2 className="mb-3 text-center">Import and export contests</h2>
 
-      <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
+      <Form hideButton>
         <FormTextInput
           title="Contest name / ID"
           value={competitionIdText}

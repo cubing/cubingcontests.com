@@ -1,12 +1,11 @@
-const Loading = ({
-  errorMessages,
-  small = false,
-  dontCenter = false,
-}: {
-  errorMessages?: string[];
-  small?: boolean;
-  dontCenter?: boolean;
-}) => {
+'use client';
+
+import { useContext } from 'react';
+import { MainContext } from '~/helpers/contexts';
+
+const Loading = ({ small = false, dontCenter = false }: { small?: boolean; dontCenter?: boolean }) => {
+  const { errorMessages } = useContext(MainContext);
+
   if (errorMessages?.length > 0) {
     return <p className="mt-5 text-center fs-4">{errorMessages[0]}</p>;
   }

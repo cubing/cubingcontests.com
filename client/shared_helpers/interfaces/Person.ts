@@ -1,3 +1,5 @@
+import { IFeUser } from '@sh/types';
+
 export type IPerson = {
   name: string;
   localizedName?: string; // name in the local language
@@ -8,3 +10,7 @@ export type IPerson = {
 };
 
 export type IPersonDto = Omit<IPerson, 'personId' | 'createdBy'>;
+
+export type IFePerson = Omit<IPerson, 'createdBy'> & {
+  creator?: IFeUser;
+};

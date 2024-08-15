@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Loading from '@c/UI/Loading';
 import FormTextInput from './FormTextInput';
@@ -9,6 +9,7 @@ import { IPerson } from '@sh/types';
 import C from '@sh/constants';
 import { getUserInfo, limitRequests, splitNameAndLocalizedName } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+import { MainContext } from '~/helpers/contexts';
 
 const userInfo: IUserInfo = getUserInfo();
 const MAX_MATCHES = 6;
@@ -26,8 +27,6 @@ const FormPersonInputs = ({
   disabled,
   addNewPersonFromNewTab,
   checkCustomErrors,
-  setErrorMessages,
-  setSuccessMessage,
   redirectToOnAddPerson = '',
   noGrid,
 }: {
@@ -41,11 +40,11 @@ const FormPersonInputs = ({
   disabled?: boolean;
   addNewPersonFromNewTab?: boolean;
   checkCustomErrors?: (newSelectedPerson: IPerson) => boolean;
-  setErrorMessages: (val: string[]) => void;
-  setSuccessMessage?: (val: string) => void;
   redirectToOnAddPerson?: string;
   noGrid?: boolean;
 }) => {
+  const { setErrorMessages, resetMessagesAndLoadingId } = useContext(MainContext);
+
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
   const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
 
@@ -63,7 +62,7 @@ const FormPersonInputs = ({
     if (value) {
       limitRequests(fetchMatchedPersonsTimer, setFetchMatchedPersonsTimer, async () => {
         if (!C.wcaIdRegexLoose.test(value)) {
-          const { payload, errors } = await myFetch.get(`/persons?searchParam=${value}`);
+          const { payload, errors } = await myFetch.get(`/persons?name=${value}`);
 
           if (errors) {
             setErrorMessages(errors);
@@ -132,9 +131,7 @@ const FormPersonInputs = ({
 
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
-    setErrorMessages([]);
-    if (setSuccessMessage) setSuccessMessage('');
-
+    resetMessagesAndLoadingId();
     queryMatchedPersons(value);
   };
 
@@ -142,7 +139,7 @@ const FormPersonInputs = ({
     setFocusedInput(null);
     setMatchedPersons(defaultMatchedPersons);
     setPersonSelection(0);
-    setErrorMessages([]);
+    resetMessagesAndLoadingId();
 
     // Focus on the first attempt input, if all names have been entered, or the next person input,
     // if all names haven't been entered and the last person input is not currently focused
@@ -211,11 +208,8 @@ const FormPersonInputs = ({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
 
-      if (personSelection - 1 >= 0) {
-        setPersonSelection(personSelection - 1);
-      } else {
-        setPersonSelection(matchedPersons.length - defaultMatchedPersons.length);
-      }
+      if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
+      else setPersonSelection(matchedPersons.length - defaultMatchedPersons.length);
     }
     // Disallow entering certain characters
     else if (/[()_/\\[\]]/.test(e.key)) {

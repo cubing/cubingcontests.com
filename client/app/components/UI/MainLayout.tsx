@@ -7,6 +7,9 @@ import { MainContext, Theme } from '~/helpers/contexts';
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [theme, setTheme] = useState<Theme>();
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [loadingId, setLoadingId] = useState('');
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme');
@@ -24,13 +27,30 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('theme', newTheme);
   };
 
+  const resetMessagesAndLoadingId = () => {
+    setErrorMessages([]);
+    setSuccessMessage('');
+  };
+
   return (
     <body
       data-bs-theme={theme}
       className={`cc-${theme}-layout min-vh-100 d-flex flex-column`}
       style={{ overflowX: 'hidden' }}
     >
-      <MainContext.Provider value={{ theme, setTheme: changeTheme }}>
+      <MainContext.Provider
+        value={{
+          theme,
+          setTheme: changeTheme,
+          errorMessages,
+          setErrorMessages,
+          successMessage,
+          setSuccessMessage,
+          loadingId,
+          setLoadingId,
+          resetMessagesAndLoadingId,
+        }}
+      >
         {theme && (
           <>
             <Navbar />

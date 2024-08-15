@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import { IFeEvent } from '@sh/types';
+import { roundFormats } from '@sh/roundFormats';
+import { RoundFormat } from '@sh/enums';
+import { MainContext } from '~/helpers/contexts';
 import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
 import Tabs from '@c/UI/Tabs';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import MarkdownDescription from '@c/MarkdownDescription';
-import { roundFormats } from '~/shared_helpers/roundFormats';
-import { RoundFormat } from '~/shared_helpers/enums';
 
 const RulesPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { setErrorMessages } = useContext(MainContext);
+
   const [activeTab, setActiveTab] = useState('general');
   const [events, setEvents] = useState<IFeEvent[]>([]);
 
@@ -31,9 +33,7 @@ const RulesPage = () => {
   return (
     <div>
       <h2 className="mb-4 text-center">Rules</h2>
-
-      <ErrorMessages errorMessages={errorMessages} />
-
+      <ErrorMessages />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
 
       <div className="px-2">

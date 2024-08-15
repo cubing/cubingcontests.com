@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import Button from '@c/UI/Button';
@@ -10,9 +10,11 @@ import { IFeUser } from '@sh/types';
 import { getRoleLabel } from '@sh/sharedFunctions';
 import { Role } from '@sh/enums';
 import { logOutUser } from '~/helpers/utilityFunctions';
+import { MainContext } from '~/helpers/contexts';
 
 const UserSettingsPage = () => {
-  const [errorMessages, setErrorMessages] = useState([]);
+  const { setErrorMessages } = useContext(MainContext);
+
   const [user, setUser] = useState<IFeUser>();
 
   const filteredRoles = user?.roles?.filter((r) => r !== Role.User) ?? [];
@@ -39,7 +41,7 @@ const UserSettingsPage = () => {
     <div>
       <h2 className="mb-4 text-center">Settings</h2>
 
-      <ErrorMessages errorMessages={errorMessages} />
+      <ErrorMessages />
 
       {user && (
         <>

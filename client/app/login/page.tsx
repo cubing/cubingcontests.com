@@ -1,19 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
+import { MainContext } from '~/helpers/contexts';
 
 const LoginPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const searchParams = useSearchParams();
+  const { setErrorMessages, setLoadingId } = useContext(MainContext);
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
-  const searchParams = useSearchParams();
 
   const handleSubmit = async () => {
     const tempErrors: string[] = [];
@@ -30,7 +30,7 @@ const LoginPage = () => {
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
     } else {
-      setLoadingDuringSubmit(true);
+      setLoadingId('form_submit_button');
       setErrorMessages([]);
 
       const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
@@ -56,7 +56,7 @@ const LoginPage = () => {
         }
       }
 
-      setLoadingDuringSubmit(false);
+      setLoadingId('');
     }
   };
 
@@ -74,12 +74,7 @@ const LoginPage = () => {
     <div>
       <h2 className="mb-4 text-center">Login</h2>
 
-      <Form
-        buttonText="Log in"
-        errorMessages={errorMessages}
-        onSubmit={handleSubmit}
-        disableButton={loadingDuringSubmit}
-      >
+      <Form buttonText="Log in" onSubmit={handleSubmit}>
         <FormTextInput
           id="username"
           title="Username or email"

@@ -1,32 +1,32 @@
+'use client';
+
 import ErrorMessages from '@c/UI/ErrorMessages';
 import Button from '@c/UI/Button';
+import { useContext } from 'react';
+import { MainContext } from '~/helpers/contexts';
 
 const Form = ({
   children,
   buttonText = 'Submit',
-  loadingId,
   hideButton,
   disableButton,
   showCancelButton,
-  errorMessages,
-  successMessage,
   onSubmit,
   onCancel,
 }: {
   children: React.ReactNode;
   buttonText?: string;
-  loadingId?: string;
   hideButton?: boolean;
   disableButton?: boolean;
   showCancelButton?: boolean;
-  errorMessages: string[];
-  successMessage?: string;
   onSubmit?: () => void;
   onCancel?: () => void;
 }) => {
   const showSubmitButton = !hideButton && buttonText;
   if (showSubmitButton && !onSubmit) throw new Error('onSubmit cannot be undefined unless the submit button is hidden');
   if (showCancelButton && !onCancel) throw new Error('onCancel cannot be undefined unless the cancel button is hidden');
+
+  const { errorMessages, successMessage, loadingId } = useContext(MainContext);
 
   return (
     <form
@@ -35,7 +35,7 @@ const Form = ({
       onSubmit={(e) => e.preventDefault()}
     >
       {errorMessages.length > 0 ? (
-        <ErrorMessages errorMessages={errorMessages} />
+        <ErrorMessages />
       ) : (
         successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
       )}

@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import myFetch from '~/helpers/myFetch';
 import RecordTypesForm from './RecordTypesForm';
 import { IRecordType } from '@sh/types';
 import Loading from '@c/UI/Loading';
+import { MainContext } from '~/helpers/contexts';
 
 const ConfigureRecordTypesPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { setErrorMessages } = useContext(MainContext);
+
   const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
 
   useEffect(() => {
@@ -27,7 +29,7 @@ const ConfigureRecordTypesPage = () => {
     );
   }
 
-  return <Loading errorMessages={errorMessages} />;
+  return <Loading />;
 };
 
 export default ConfigureRecordTypesPage;

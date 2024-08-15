@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import Loading from '@c/UI/Loading';
 import ContestForm from './ContestForm';
 import { IContestData, IEvent } from '@sh/types';
+import { MainContext } from '~/helpers/contexts';
 
 const CreateEditContestPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { setErrorMessages } = useContext(MainContext);
+
   const [events, setEvents] = useState<IEvent[]>();
   const [contestData, setContestData] = useState<IContestData>();
 
@@ -52,7 +54,7 @@ const CreateEditContestPage = () => {
     );
   }
 
-  return <Loading errorMessages={errorMessages} />;
+  return <Loading />;
 };
 
 export default CreateEditContestPage;

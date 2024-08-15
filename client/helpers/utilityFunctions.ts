@@ -390,7 +390,7 @@ export const fetchPerson = async (name: string, countryIso2?: string): Promise<I
 
   // If not, first try looking in the CC database
   const englishNameOnly = name.split('(')[0].trim(); // get rid of the ( and everything after it
-  const { payload, errors: e1 } = await myFetch.get(`/persons?searchParam=${englishNameOnly}&exactMatch=true`);
+  const { payload, errors: e1 } = await myFetch.get(`/persons?name=${englishNameOnly}&exactMatch=true`);
 
   if (e1) {
     throw new Error(`Error while fetching person with the name ${name}`);

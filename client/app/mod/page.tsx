@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import ContestsTable from '@c/ContestsTable';
@@ -9,28 +9,29 @@ import { ContestState } from '@sh/enums';
 import { IAdminStats, IContest } from '@sh/types';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { getUserInfo } from '~/helpers/utilityFunctions';
-import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
+import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
+import { MainContext } from '~/helpers/contexts';
 
 const userInfo: IUserInfo = getUserInfo();
 
 const ModeratorDashboardPage = () => {
+  const { setErrorMessages, loadingId, setLoadingId } = useContext(MainContext);
+
   const [contests, setContests] = useState<IContest[]>();
   const [adminStats, setAdminStats] = useState<IAdminStats>();
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   const anl = adminStats?.analytics;
 
   useEffect(() => {
-    setLoading(true);
+    setLoadingId('...');
 
     myFetch.get('/competitions/mod', { authorize: true }).then(({ payload: contests, errors }) => {
       if (errors) {
         setErrorMessages(errors);
       } else {
         setContests(contests);
-        setLoading(false);
+        setLoadingId('');
       }
     });
 
@@ -42,7 +43,7 @@ const ModeratorDashboardPage = () => {
     }
   }, []);
 
-  useScrollToTopForNewMessage({ errorMessages });
+  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -50,26 +51,26 @@ const ModeratorDashboardPage = () => {
 
   const editCompetition = (competitionId: string) => {
     window.location.href = `/mod/competition?edit_id=${competitionId}`;
-    setLoading(true);
+    setLoadingId('...');
   };
 
   const copyCompetition = (competitionId: string) => {
     window.location.href = `/mod/competition?copy_id=${competitionId}`;
-    setLoading(true);
+    setLoadingId('...');
   };
 
   const postCompResults = (competitionId: string) => {
     window.location.href = `/mod/competition/${competitionId}`;
-    setLoading(true);
+    setLoadingId('...');
   };
 
   const changeCompState = async (competitionId: string, newState: ContestState) => {
-    setLoading(true);
+    setLoadingId('...');
     const { errors } = await myFetch.patch(`/competitions/set-state/${competitionId}/${newState}`);
 
     if (errors) {
       setErrorMessages(errors);
-      setLoading(false);
+      setLoadingId('');
     } else {
       window.location.reload();
     }
@@ -79,7 +80,7 @@ const ModeratorDashboardPage = () => {
     <div>
       <h2 className="mb-4 text-center">Moderator Dashboard</h2>
 
-      <ErrorMessages errorMessages={errorMessages} />
+      <ErrorMessages />
 
       <div className="px-2">
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">
@@ -190,7 +191,7 @@ const ModeratorDashboardPage = () => {
           onChangeCompState={changeCompState}
           modView
           isAdmin={userInfo.isAdmin}
-          disableActions={loading}
+          disableActions={loadingId !== ''}
         />
       ) : (
         <p className="px-2 fs-5">You haven't created any contests yet</p>

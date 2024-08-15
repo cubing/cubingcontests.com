@@ -100,6 +100,35 @@ export class UsersService {
     await this.emailService.sendEmailConfirmationCode(newUser.email, code);
   }
 
+  async updateUser(updateUserDto: UpdateUserDto): Promise<IFeUser[]> {
+    const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
+
+    if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
+    if (updateUserDto.email !== user.email)
+      throw new BadRequestException('Changing the email address is currently not supported');
+
+    await this.validateUserObject(updateUserDto);
+
+    let newRole: Role;
+    if (!user.roles.includes(Role.Admin) && updateUserDto.roles.includes(Role.Admin)) newRole = Role.Admin;
+    else if (!user.roles.includes(Role.Moderator) && updateUserDto.roles.includes(Role.Moderator))
+      newRole = Role.Moderator;
+
+    user.roles = updateUserDto.roles;
+    if (updateUserDto.person) user.personId = updateUserDto.person.personId;
+    else user.personId = undefined;
+
+    await user.save();
+
+    if (newRole) await this.emailService.sendPrivilegesGrantedNotification(user.email, newRole);
+
+    return await this.getUsers();
+  }
+
+  async deleteUser(id: string) {
+    await this.userModel.deleteOne({ _id: new mongoose.Types.ObjectId(id) }).exec();
+  }
+
   async verifyEmail(username: string, code: string) {
     const user = await this.userModel.findOne({ username }).exec();
 
@@ -230,34 +259,6 @@ export class UsersService {
     await user.save();
   }
 
-  async updateUser(updateUserDto: UpdateUserDto): Promise<IFeUser[]> {
-    const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
-
-    if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
-    if (updateUserDto.email !== user.email)
-      throw new BadRequestException('Changing the email address is currently not supported');
-    await this.validateUserObject(updateUserDto);
-
-    let newRole: Role;
-    if (!user.roles.includes(Role.Admin) && updateUserDto.roles.includes(Role.Admin)) newRole = Role.Admin;
-    else if (!user.roles.includes(Role.Moderator) && updateUserDto.roles.includes(Role.Moderator))
-      newRole = Role.Moderator;
-
-    user.roles = updateUserDto.roles;
-    if (updateUserDto.person) user.personId = updateUserDto.person.personId;
-    else user.personId = undefined;
-
-    await user.save();
-
-    if (newRole) await this.emailService.sendPrivilegesGrantedNotification(user.email, newRole);
-
-    return await this.getUsers();
-  }
-
-  async deleteUser(id: string) {
-    await this.userModel.deleteOne({ _id: new mongoose.Types.ObjectId(id) }).exec();
-  }
-
   async getUserRoles(id: string): Promise<Role[]> {
     const user = await this.userModel.findById(id).exec();
 
@@ -288,9 +289,9 @@ export class UsersService {
     if (personId) {
       const samePersonUser = await this.userModel.findOne({ username: { $ne: user.username }, personId }).exec();
 
-      if (samePersonUser) {
-        throw new ConflictException('The selected competitor is already tied to another user');
-      }
+      if (samePersonUser) throw new ConflictException('The selected competitor is already tied to another user');
+    } else if (user.roles.some((r) => [Role.Moderator, Role.Admin].includes(r))) {
+      throw new BadRequestException('Admins and moderators must have a competitor tied to the user');
     }
   }
 

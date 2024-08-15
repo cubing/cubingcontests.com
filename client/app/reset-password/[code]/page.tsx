@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
+import { MainContext } from '~/helpers/contexts';
 
 const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
+  const { setErrorMessages, setSuccessMessage, setLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordRepeat, setPasswordRepeat] = useState('');
@@ -23,9 +23,8 @@ const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) =
     if (tempErrors.length > 0) {
       setErrorMessages(tempErrors);
     } else {
-      setLoadingDuringSubmit(true);
-      setErrorMessages([]);
-      setSuccessMessage('');
+      resetMessagesAndLoadingId();
+      setLoadingId('form_submit_button');
 
       const { errors } = await myFetch.post(
         '/auth/reset-password',
@@ -43,7 +42,7 @@ const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) =
         }, 1000);
       }
 
-      setLoadingDuringSubmit(false);
+      setLoadingId('');
     }
   };
 
@@ -51,12 +50,7 @@ const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) =
     <div>
       <h2 className="mb-4 text-center">Reset Password</h2>
 
-      <Form
-        errorMessages={errorMessages}
-        successMessage={successMessage}
-        onSubmit={handleSubmit}
-        disableButton={loadingDuringSubmit}
-      >
+      <Form onSubmit={handleSubmit}>
         <FormTextInput
           id="email"
           title="Email"

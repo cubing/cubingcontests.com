@@ -1,24 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
+import { MainContext } from '~/helpers/contexts';
 
 const ConfirmEmailPage = () => {
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [code, setCode] = useState('');
-  const [loadingId, setLoadingId] = useState('');
-
   const searchParams = useSearchParams();
+  const { setErrorMessages, setSuccessMessage, loadingId, setLoadingId, resetMessagesAndLoadingId } =
+    useContext(MainContext);
+
+  const [code, setCode] = useState('');
 
   const handleSubmit = async () => {
+    resetMessagesAndLoadingId();
     setLoadingId('form_submit_button');
-    setErrorMessages([]);
-    setSuccessMessage('');
 
     const username = searchParams.get('username');
     const { errors } = await myFetch.post('/auth/confirm-email', { username, code }, { authorize: false });
@@ -37,9 +36,8 @@ const ConfirmEmailPage = () => {
   };
 
   const resendCode = async () => {
+    resetMessagesAndLoadingId();
     setLoadingId('resend_code_button');
-    setErrorMessages([]);
-    setSuccessMessage('');
 
     const { errors } = await myFetch.post(
       '/auth/resend-confirmation-code',
@@ -62,13 +60,7 @@ const ConfirmEmailPage = () => {
     <div>
       <h2 className="mb-4 text-center">Confirm Email</h2>
 
-      <Form
-        buttonText="Confirm"
-        successMessage={successMessage}
-        errorMessages={errorMessages}
-        onSubmit={handleSubmit}
-        loadingId={loadingId}
-      >
+      <Form buttonText="Confirm" onSubmit={handleSubmit}>
         <FormTextInput
           id="confirmation_code"
           title="Confirmation code"

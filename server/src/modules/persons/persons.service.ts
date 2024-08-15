@@ -1,11 +1,12 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { excl } from '~/src/helpers/dbHelpers';
+import { excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { CreatePersonDto } from './dto/create-person.dto';
-import { IPerson } from '@sh/types';
+import { IFePerson, IPerson } from '@sh/types';
+import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestEvent } from '~/src/models/contest.model';
 import { MyLogger } from '@m/my-logger/my-logger.service';
@@ -18,18 +19,6 @@ export class PersonsService {
     @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
   ) {}
-
-  async getPersons(searchParam?: string): Promise<PersonDocument[]> {
-    try {
-      if (!searchParam) {
-        return await this.personModel.find({}, excl).exec();
-      } else {
-        return await this.personModel.find({ name: { $regex: searchParam, $options: 'i' } }, excl).exec();
-      }
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while getting persons: ${err.message}`);
-    }
-  }
 
   async getPersonById(personId: number): Promise<PersonDocument> {
     try {
@@ -52,6 +41,39 @@ export class PersonsService {
     } catch (err) {
       throw new InternalServerErrorException(`Error while getting persons by person ID: ${err.message}`);
     }
+  }
+
+  async getModPersons(user: IPartialUser) {
+    if (user.roles.includes(Role.Admin)) {
+      // BE VERY CAREFUL HERE SO AS NOT TO EVER LEAK PASSWORD HASHES!!!
+      const persons = await this.personModel
+        .find({}, exclSysButKeepCreatedBy)
+        .populate({ path: 'createdBy', model: 'User' })
+        .exec();
+
+      const fePersons: IFePerson[] = [];
+
+      for (const person of persons) {
+        const newFePerson: IFePerson = person.toObject();
+        if (person.createdBy) {
+          newFePerson.creator = {
+            username: person.createdBy.username,
+            email: person.createdBy.email,
+            person: await this.getPersonById(person.createdBy.personId),
+          };
+        }
+        (newFePerson as any).createdBy = undefined;
+        fePersons.push(newFePerson);
+      }
+
+      return fePersons;
+    } else {
+      throw new NotImplementedException('NOT IMPLEMENTED');
+    }
+  }
+
+  async getPersonsByName(name: string): Promise<PersonDocument[]> {
+    return await this.personModel.find({ name: { $regex: name, $options: 'i' } }, excl).exec();
   }
 
   async getPersonByName(name: string): Promise<PersonDocument> {

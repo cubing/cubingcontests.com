@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import ResultForm from '@c/adminAndModerator/ResultForm';
@@ -17,6 +17,8 @@ import { roundFormats } from '@sh/roundFormats';
 import C from '@sh/constants';
 import { checkErrorsBeforeResultSubmission, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+import { MainContext } from '~/helpers/contexts';
+import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -28,14 +30,14 @@ const userInfo: IUserInfo = getUserInfo();
 const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   if (resultId && !userInfo.isAdmin) throw new Error('Only an admin can edit results');
 
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState('');
+  const { setErrorMessages, setSuccessMessage, loadingId, setLoadingId, resetMessagesAndLoadingId } =
+    useContext(MainContext);
+
   const [showRules, setShowRules] = useState(false);
   const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo>();
   // Only trigger reset on page load on the submit results page
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState<boolean>(resultId ? undefined : true);
   const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
-  const [loadingId, setLoadingId] = useState('');
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState(RoundFormat.BestOf1);
@@ -94,10 +96,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     }
   }, []);
 
-  // Scroll to the top of the page when a new error message is shown
-  useEffect(() => {
-    if (successMessage || errorMessages.length > 0) window.scrollTo(0, 0);
-  }, [errorMessages, successMessage]);
+  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -169,8 +168,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   };
 
   const changeDate = (newDate: Date) => {
-    setErrorMessages([]);
-    setSuccessMessage('');
+    resetMessagesAndLoadingId();
     setDate(newDate);
 
     // Update the record pairs with the new date
@@ -253,7 +251,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           )}
         </div>
 
-        <Form errorMessages={errorMessages} successMessage={successMessage} hideButton>
+        <Form hideButton>
           <ResultForm
             event={event}
             persons={competitors}
@@ -265,8 +263,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             recordTypes={submissionInfo.activeRecordTypes}
             nextFocusTargetId={!submissionInfo.result || submissionInfo.result.unapproved ? 'date' : 'video_link'}
             resetTrigger={resultFormResetTrigger}
-            setErrorMessages={setErrorMessages}
-            setSuccessMessage={setSuccessMessage}
             setEvent={setEvent}
             events={submissionInfo.events}
             roundFormat={roundFormat}
@@ -348,7 +344,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     );
   }
 
-  return <Loading errorMessages={errorMessages} />;
+  return <Loading />;
 };
 
 export default ResultsSubmissionForm;

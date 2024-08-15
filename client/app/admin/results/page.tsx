@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import myFetch from '~/helpers/myFetch';
 import ErrorMessages from '@c/UI/ErrorMessages';
@@ -10,9 +10,11 @@ import Competitors from '@c/Competitors';
 import { IFeResult, IRecordType } from '@sh/types';
 import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions';
 import C from '@sh/constants';
+import { MainContext } from '~/helpers/contexts';
 
 const ManageResultsPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { setErrorMessages } = useContext(MainContext);
+
   const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
   const [results, setResults] = useState<IFeResult[]>([]);
 
@@ -32,7 +34,7 @@ const ManageResultsPage = () => {
     <div>
       <h2 className="mb-4 text-center">Results</h2>
 
-      <ErrorMessages errorMessages={errorMessages} />
+      <ErrorMessages />
 
       <p className="px-3">
         Total submitted results:&nbsp;<b>{results.length === 100 ? '100+' : results.length}</b>

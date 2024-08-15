@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { TwistyPlayer } from 'cubing/twisty';
 // import { keyToMove } from 'cubing/alg';
 import myFetch, { FetchObj } from '~/helpers/myFetch';
+import { getIsWebglUnsupported } from '~/helpers/utilityFunctions';
 import Button from '@c/UI/Button';
 import { IFeCollectiveSolution, IMakeMoveDto, NxNMove } from '@sh/types';
 import { nxnMoves } from '@sh/types/NxNMove';
-import { getIsWebglUnsupported } from '~/helpers/utilityFunctions';
-import { Color } from '~/shared_helpers/enums';
+import { Color } from '@sh/enums';
+import { MainContext } from '~/helpers/contexts';
 
 const addTwistyPlayerElement = async (alg = '') => {
   const twistyPlayerElements = document.getElementsByTagName('twisty-player');
@@ -29,10 +30,11 @@ const addTwistyPlayerElement = async (alg = '') => {
 
 const getCubeState = (colSol: IFeCollectiveSolution): string => `${colSol.scramble} z2 ${colSol.solution}`.trim();
 
-const CollectiveCubing = () => {
-  const isWebglUnsupported = getIsWebglUnsupported();
+const isWebglUnsupported = getIsWebglUnsupported();
 
-  const [loadingId, setLoadingId] = useState('');
+const CollectiveCubing = () => {
+  const { loadingId, setLoadingId } = useContext(MainContext);
+
   const [collectiveSolutionError, setCollectiveSolutionError] = useState(
     isWebglUnsupported ? 'Please enable WebGL to render the cube' : '',
   );

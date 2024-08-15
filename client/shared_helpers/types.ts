@@ -8,7 +8,7 @@ export type {
   IMeetupDetails,
 } from './interfaces/Contest';
 export type { IEventRule } from './interfaces/EventRule';
-export type { IPerson, IPersonDto } from './interfaces/Person';
+export type { IPerson, IPersonDto, IFePerson } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
 export type {
   IResult,
@@ -30,6 +30,7 @@ export type { IAdminStats } from './interfaces/AdminStats';
 export type { IEvent, IFeEvent } from './types/Event';
 export type { ICollectiveSolution, IFeCollectiveSolution, IMakeMoveDto } from './types/CollectiveSolution';
 export type { NxNMove } from './types/NxNMove';
+export type { ListPageMode } from './types/ListPageMode';
 
 // WCIF types
 export type {

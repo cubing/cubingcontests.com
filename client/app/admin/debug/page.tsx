@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
 import ErrorMessages from '@c/UI/ErrorMessages';
 import myFetch from '~/helpers/myFetch';
+import { MainContext } from '~/helpers/contexts';
 
 const DebugPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { setErrorMessages } = useContext(MainContext);
+
   const [debugInputValue, setDebugInputValue] = useState('');
   const [debugOutput, setDebugOutput] = useState('');
   const [email, setEmail] = useState('');
@@ -47,7 +49,7 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
     <div>
       <div className="mx-auto px-3" style={{ maxWidth: '768px' }}>
         <h2 className="mb-5 text-center">Page for debugging</h2>
-        <ErrorMessages errorMessages={errorMessages} />
+        <ErrorMessages />
 
         <p className="mt-3 mb-4 fs-5" style={{ whiteSpace: 'pre-wrap' }}>
           {debugOutput}

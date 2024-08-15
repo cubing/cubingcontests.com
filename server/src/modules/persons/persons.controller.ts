@@ -1,4 +1,14 @@
-import { Body, Request, Controller, Get, Post, Query, UseGuards, ValidationPipe, Param } from '@nestjs/common';
+import {
+  Body,
+  Request,
+  Controller,
+  Get,
+  Post,
+  Query,
+  UseGuards,
+  ValidationPipe,
+  BadRequestException,
+} from '@nestjs/common';
 import { PersonsService } from './persons.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
@@ -10,19 +20,29 @@ import { CreatePersonDto } from './dto/create-person.dto';
 export class PersonsController {
   constructor(private readonly personsService: PersonsService) {}
 
-  @Get(':personId')
-  async getPerson(@Param('personId') personId: number) {
-    return await this.personsService.getPersonById(personId);
+  // GET /persons?(name=...)(&exactMatch=true)(&personId=...)
+  @Get()
+  async getPersons(
+    @Query('name') name = '',
+    @Query('exactMatch') exactMatch = false,
+    @Query('personId') personId: number | null = null,
+  ) {
+    if (name) {
+      if (exactMatch) return await this.personsService.getPersonByName(name);
+      else return await this.personsService.getPersonsByName(name);
+    } else if (personId !== null) {
+      return await this.personsService.getPersonById(personId);
+    }
+
+    throw new BadRequestException('Please provide a full name, part of a name, or a person ID.');
   }
 
-  // GET /persons?searchParam=...(&exactMatch=true)
-  @Get()
-  async getPersons(@Query('searchParam') searchParam: string, @Query('exactMatch') exactMatch = false) {
-    if (exactMatch) {
-      return await this.personsService.getPersonByName(searchParam);
-    } else {
-      return await this.personsService.getPersons(searchParam);
-    }
+  // GET /persons/mod
+  @Get('mod')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async getModPersons(@Request() req: any) {
+    return await this.personsService.getModPersons(req.user);
   }
 
   // POST /persons

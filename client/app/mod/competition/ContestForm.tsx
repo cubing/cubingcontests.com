@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { addHours, differenceInDays } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import myFetch from '~/helpers/myFetch';
@@ -57,9 +57,10 @@ import {
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { getContestIdFromName, getUserInfo, getWcaCompetitionDetails, limitRequests } from '~/helpers/utilityFunctions';
-import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
+import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
+import { MainContext } from '~/helpers/contexts';
 
 const isAdmin = getUserInfo()?.isAdmin;
 
@@ -72,11 +73,10 @@ const ContestForm = ({
   contestData?: IContestData;
   mode: 'new' | 'edit' | 'copy';
 }) => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState('');
+  const { setErrorMessages, setSuccessMessage, loadingId, setLoadingId } = useContext(MainContext);
+
   const [activeTab, setActiveTab] = useState('details');
   const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
-  const [loadingId, setLoadingId] = useState('');
   const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
   const [queueEnabled, setQueueEnabled] = useState(false);
 
@@ -247,7 +247,7 @@ const ContestForm = ({
       document.getElementById(`Organizer_${organizerNames.length}`)?.focus();
   }, [organizers]);
 
-  useScrollToTopForNewMessage({ errorMessages });
+  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -823,11 +823,8 @@ const ContestForm = ({
     <div>
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
-        errorMessages={errorMessages}
-        successMessage={successMessage}
         onSubmit={handleSubmit}
         disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
-        loadingId={loadingId}
       >
         {isAdmin && mode === 'edit' && (
           <div className="d-flex flex-wrap gap-3 my-4">
@@ -1003,7 +1000,6 @@ const ContestForm = ({
                 setPersonNames={setOrganizerNames}
                 persons={organizers}
                 setPersons={setOrganizers}
-                setErrorMessages={setErrorMessages}
                 infiniteInputs
                 nextFocusTargetId="contact"
                 disabled={disableIfCompApproved}

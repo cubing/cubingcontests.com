@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
@@ -9,26 +9,25 @@ import FormRadio from '@c/form/FormRadio';
 import FormNumberInput from '@c/form/FormNumberInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormTextArea from '@c/form/FormTextArea';
-import { IFeEvent } from '@sh/types';
+import { IFeEvent, ListPageMode } from '@sh/types';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { eventCategories } from '~/helpers/eventCategories';
 import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/helpers/multipleChoiceOptions';
-import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
-
-type Mode = 'view' | 'add' | 'edit';
+import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
+import { MainContext } from '~/helpers/contexts';
 
 const CreateEditEventPage = () => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { setErrorMessages, loadingId, setLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+
   const [events, setEvents] = useState<IFeEvent[]>([]);
-  const [loadingDuringSubmit, setLoadingDuringSubmit] = useState(false);
-  const [mode, setMode] = useState<Mode>('view');
+  const [mode, setMode] = useState<ListPageMode>('view');
   const [eventIdUnlocked, setEventIdUnlocked] = useState(false);
 
   const [eventId, setEventId] = useState('');
   const [name, setName] = useState('');
   const [newEventId, setNewEventId] = useState('');
-  const [rank, setRank] = useState(0);
+  const [rank, setRank] = useState<number | null | undefined>();
   const [format, setFormat] = useState(EventFormat.Time);
   const [defaultRoundFormat, setDefaultRoundFormat] = useState(RoundFormat.Average);
   const [participants, setParticipants] = useState(1);
@@ -51,24 +50,14 @@ const CreateEditEventPage = () => {
     if (mode !== 'view') document.getElementById('event_name').focus();
   }, [mode]);
 
-  useScrollToTopForNewMessage({ errorMessages });
+  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
-    if (!participants) {
-      setErrorMessages(['Please enter a valid number of participants']);
-      return;
-    }
-    if (!rank) {
-      setErrorMessages(['Please enter a valid rank']);
-      return;
-    }
-
-    setLoadingDuringSubmit(true);
-    setErrorMessages([]);
+    resetMessagesAndLoadingId();
 
     const newEvent: IFeEvent = {
       eventId: newEventId,
@@ -90,6 +79,7 @@ const CreateEditEventPage = () => {
     const requestFunction = mode === 'add' ? myFetch.post : myFetch.patch;
     const requestURL = mode === 'add' ? '/events' : `/events/${eventId}`;
 
+    setLoadingId('form_submit_button');
     const { payload, errors } = await requestFunction(requestURL, newEvent);
 
     if (errors) {
@@ -99,7 +89,7 @@ const CreateEditEventPage = () => {
       setEvents(payload);
     }
 
-    setLoadingDuringSubmit(false);
+    setLoadingId('');
   };
 
   const onAddEvent = () => {
@@ -127,10 +117,10 @@ const CreateEditEventPage = () => {
     window.scrollTo(0, 0);
   };
 
-  const reset = (newMode: Mode) => {
-    setErrorMessages([]);
+  const reset = (newMode: ListPageMode) => {
     setEventIdUnlocked(false);
     setMode(newMode);
+    resetMessagesAndLoadingId();
   };
 
   return (
@@ -142,21 +132,14 @@ const CreateEditEventPage = () => {
           Add event
         </button>
       ) : (
-        <Form
-          buttonText="Submit"
-          errorMessages={errorMessages}
-          onSubmit={handleSubmit}
-          showCancelButton
-          onCancel={() => reset('view')}
-          disableButton={loadingDuringSubmit}
-        >
+        <Form buttonText="Submit" onSubmit={handleSubmit} showCancelButton onCancel={() => reset('view')}>
           <FormTextInput
             id="event_name"
             title="Event name"
             value={name}
             setValue={setName}
             nextFocusTargetId="event_id"
-            disabled={loadingDuringSubmit}
+            disabled={loadingId !== ''}
           />
           <div className="row">
             <div className="col">
@@ -166,7 +149,7 @@ const CreateEditEventPage = () => {
                 value={newEventId}
                 setValue={setNewEventId}
                 nextFocusTargetId="rank"
-                disabled={(mode === 'edit' && !eventIdUnlocked) || loadingDuringSubmit}
+                disabled={(mode === 'edit' && !eventIdUnlocked) || loadingId !== ''}
               />
             </div>
             <div className="col">
@@ -177,7 +160,7 @@ const CreateEditEventPage = () => {
                 value={rank}
                 setValue={setRank}
                 nextFocusTargetId="default_format"
-                disabled={loadingDuringSubmit}
+                disabled={loadingId !== ''}
                 integer
                 min={1}
               />
@@ -194,7 +177,7 @@ const CreateEditEventPage = () => {
                 options={roundFormatOptions}
                 selected={defaultRoundFormat}
                 setSelected={setDefaultRoundFormat}
-                disabled={mode === 'edit' || loadingDuringSubmit}
+                disabled={mode === 'edit' || loadingId !== ''}
               />
             </div>
             <div className="col">
@@ -202,7 +185,7 @@ const CreateEditEventPage = () => {
                 title="Participants"
                 value={participants}
                 setValue={setParticipants}
-                disabled={mode === 'edit' || loadingDuringSubmit}
+                disabled={mode === 'edit' || loadingId !== ''}
                 integer
                 min={1}
               />
@@ -213,7 +196,7 @@ const CreateEditEventPage = () => {
             options={eventFormatOptions}
             selected={format}
             setSelected={setFormat}
-            disabled={mode === 'edit' || loadingDuringSubmit}
+            disabled={mode === 'edit' || loadingId !== ''}
           />
           <div className="mb-4">
             <FormRadio
@@ -221,7 +204,7 @@ const CreateEditEventPage = () => {
               options={eventCategoryOptions}
               selected={category}
               setSelected={setCategory}
-              disabled={loadingDuringSubmit}
+              disabled={loadingId !== ''}
             />
           </div>
           <h5 className="mb-4">Options</h5>
@@ -229,35 +212,29 @@ const CreateEditEventPage = () => {
             title="Allow submissions"
             selected={submissionsAllowed}
             setSelected={setSubmissionsAllowed}
-            disabled={loadingDuringSubmit}
+            disabled={loadingId !== ''}
           />
           <FormCheckbox
             title="Formerly WCA event"
             selected={removedWCA}
             setSelected={setRemovedWCA}
-            disabled={loadingDuringSubmit}
+            disabled={loadingId !== ''}
           />
           <FormCheckbox
             title="Has memorization"
             selected={hasMemo}
             setSelected={setHasMemo}
-            disabled={loadingDuringSubmit}
+            disabled={loadingId !== ''}
           />
-          <FormCheckbox title="Hidden" selected={hidden} setSelected={setHidden} disabled={loadingDuringSubmit} />
+          <FormCheckbox title="Hidden" selected={hidden} setSelected={setHidden} disabled={loadingId !== ''} />
           <FormTextArea
             title="Description (optional)"
             value={description}
             setValue={setDescription}
             rows={4}
-            disabled={loadingDuringSubmit}
+            disabled={loadingId !== ''}
           />
-          <FormTextArea
-            title="Rules (optional)"
-            value={rule}
-            setValue={setRule}
-            rows={5}
-            disabled={loadingDuringSubmit}
-          />
+          <FormTextArea title="Rules (optional)" value={rule} setValue={setRule} rows={5} disabled={loadingId !== ''} />
           <p className="fs-6" style={{ whiteSpace: 'pre-wrap' }}>
             You can use bullet characters (•, ◦, ▪), in the rules to mark each point, along with the tab character (
             {'\t'}) for indentation in sub-points.

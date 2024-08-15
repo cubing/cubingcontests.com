@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import myFetch from '~/helpers/myFetch';
 import ResultForm from './ResultForm';
@@ -21,7 +21,8 @@ import { ContestState } from '@sh/enums';
 import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { roundFormats } from '@sh/roundFormats';
-import { useScrollToTopForNewMessage } from '~/helpers/clientSideFunctions';
+import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
+import { MainContext } from '~/helpers/contexts';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -31,13 +32,19 @@ const DataEntryScreen = ({
   compData: IContestData;
 }) => {
   const searchParams = useSearchParams();
+  const {
+    errorMessages,
+    setErrorMessages,
+    successMessage,
+    setSuccessMessage,
+    loadingId,
+    setLoadingId,
+    resetMessagesAndLoadingId,
+  } = useContext(MainContext);
 
   const eventId = searchParams.get('eventId') ?? contest.events[0].event.eventId;
 
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState('');
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
-  const [loadingId, setLoadingId] = useState('');
   const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
   const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
 
@@ -74,11 +81,7 @@ const DataEntryScreen = ({
     document.getElementById('Competitor_1').focus();
   }, [round.roundId]);
 
-  useEffect(() => {
-    console.log(resultUnderEdit);
-  }, [resultUnderEdit]);
-
-  useScrollToTopForNewMessage({ errorMessages, successMessage });
+  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -107,7 +110,6 @@ const DataEntryScreen = ({
           setLoadingId('submit_attempt_button');
           let updatedRound: IRound, errors: string[];
 
-          console.log('test', resultUnderEdit);
           if (resultUnderEdit === null) {
             const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
             updatedRound = payload;
@@ -193,7 +195,7 @@ const DataEntryScreen = ({
       setAttempts(newAttempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setResultFormResetTrigger(undefined);
-      setErrorMessages([]);
+      resetMessagesAndLoadingId();
     }
   };
 
@@ -209,9 +211,8 @@ const DataEntryScreen = ({
         if (errors) {
           setErrorMessages(errors);
         } else {
-          setLoadingId('');
-          setErrorMessages([]);
           updateRoundAndCompEvents(payload);
+          resetMessagesAndLoadingId();
         }
       }
     }
@@ -224,14 +225,14 @@ const DataEntryScreen = ({
 
     if (!errors) setQueuePosition(payload);
 
+    resetMessagesAndLoadingId();
     setErrorMessages(errors || []);
-    setLoadingId('');
   };
 
   return (
     <div>
       {errorMessages.length > 0 ? (
-        <ErrorMessages errorMessages={errorMessages} />
+        <ErrorMessages />
       ) : (
         successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
       )}
@@ -249,8 +250,6 @@ const DataEntryScreen = ({
               recordTypes={activeRecordTypes}
               nextFocusTargetId="submit_attempt_button"
               resetTrigger={resultFormResetTrigger}
-              setErrorMessages={setErrorMessages}
-              setSuccessMessage={setSuccessMessage}
               round={round}
               setRound={setRound}
               rounds={contestEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}

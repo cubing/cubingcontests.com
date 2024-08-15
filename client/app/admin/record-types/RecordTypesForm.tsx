@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import myFetch from '~/helpers/myFetch';
 import Form from '@c/form/Form';
 import FormCheckbox from '@c/form/FormCheckbox';
@@ -8,9 +8,11 @@ import ColorSquare from '@c/UI/ColorSquare';
 import { IRecordType } from '@sh/types';
 import { Color, WcaRecordType } from '@sh/enums';
 import { colorOptions } from '~/helpers/multipleChoiceOptions';
+import { MainContext } from '~/helpers/contexts';
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { setErrorMessages } = useContext(MainContext);
+
   // Temporary record types
   const [tRecordTypes, setTRecordTypes] = useState<IRecordType[]>(recordTypes);
 
@@ -39,11 +41,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   };
 
   return (
-    <Form
-      buttonText={recordTypes?.length > 0 ? 'Edit' : 'Create'}
-      errorMessages={errorMessages}
-      onSubmit={handleSubmit}
-    >
+    <Form buttonText={recordTypes?.length > 0 ? 'Edit' : 'Create'} onSubmit={handleSubmit}>
       <>
         {tRecordTypes.map((rt) => (
           <div key={rt.wcaEquivalent} className="row align-items-center mb-3 text-nowrap">
