@@ -9,6 +9,7 @@ import { ResultsService } from '@m/results/results.service';
 import { IAdminStats, IAttempt, IResult } from '@sh/types';
 import { roundFormats } from '@sh/roundFormats';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
+import { EnterResultsDto } from './app-dto/enter-results.dto';
 
 @Injectable()
 export class AppService {
@@ -142,6 +143,60 @@ export class AppService {
         },
         round.roundId,
       );
+    }
+
+  }
+  async enterResultsFromExternalDevice(enterResultsDto: EnterResultsDto) {
+    const round = await this.resultsService.getContestRound(
+      enterResultsDto.competitionWcaId,
+      enterResultsDto.eventId,
+      parseInt(enterResultsDto.roundNumber),
+    );
+
+    for (const externalResultDto of enterResultsDto.results) {
+      const person = externalResultDto.wcaId
+        ? await this.personsService.getPersonByWcaId(externalResultDto.wcaId.toUpperCase())
+        : await this.personsService.getPersonById(externalResultDto.registrantId);
+
+      if (!person) throw new NotFoundException('Competitor not found');
+
+      const result: IResult | undefined = round.results.find(
+        (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
+      );
+      const roundFormat = roundFormats.find((rf) => rf.value === round.format);
+      const attempts: IAttempt[] = [];
+
+      for (let i = 0; i < roundFormat.attempts; i++) {
+        if (i < externalResultDto.attempts.length) {
+          attempts.push({ result: externalResultDto.attempts[i].result });
+        } else if (result?.attempts[i]) {
+          attempts.push(result.attempts[i]);
+        } else {
+          attempts.push({ result: 0 });
+        }
+      }
+
+      const newResultPartial = {
+        date: null as Date,
+        unapproved: true, 
+        personIds: [person.personId],
+        attempts,
+      };
+
+      if (result) {
+        await this.resultsService.editResult((result as any)._id.toString(), newResultPartial);
+      } else {
+        await this.resultsService.createResult(
+          {
+            ...newResultPartial,
+            eventId: enterResultsDto.eventId,
+            competitionId: enterResultsDto.competitionWcaId,
+            best: null,
+            average: null,
+          },
+          round.roundId,
+        );
+      }
     }
   }
 }

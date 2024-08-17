@@ -115,6 +115,17 @@ export class AppController {
     return await this.appService.enterAttemptFromExternalDevice(enterAttemptDto);
   }
 
+  @Post('enter-results')
+  @UseGuards(AuthTokenGuard)
+  async enterResultsFromExternalDevice(@Body(new ValidationPipe()) enterResultsDto: any) {
+    this.logger.logAndSave(
+      `Entering multiple results for competition ${enterResultsDto.competitionWcaId} for event ${enterResultsDto.eventId} from external device`,
+      LogType.UpdateResult,
+    );
+
+    return await this.appService.enterResultsFromExternalDevice(enterResultsDto);
+  }
+
   @Post('debug-sending-email')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
