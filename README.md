@@ -35,7 +35,7 @@ POST https://cubingcontests.com/api/enter-attempt
 {
   "competitionWcaId": "MyCompetition2023",
   "eventId": "fto",
-  "roundNumber": "1",
+  "roundNumber": 1,
   "registrantId": 5, // or "wcaId": "2005DEMO01"
   "attemptNumber": 1,
   "attemptResult": 1025
@@ -50,7 +50,7 @@ POST https://cubingcontests.com/api/enter-results
 {
   "competitionWcaId": "MyCompetition2023",
   "eventId": "fto",
-  "roundNumber": "1",
+  "roundNumber": 1,
   "results": [{
     "registrantId": 5,
     "attempts": [
