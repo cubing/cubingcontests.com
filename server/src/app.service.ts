@@ -107,7 +107,7 @@ export class AppService {
     const round = await this.resultsService.getContestRound(
       enterAttemptDto.competitionWcaId,
       enterAttemptDto.eventId,
-      parseInt(enterAttemptDto.roundNumber),
+      enterAttemptDto.roundNumber,
     );
     console.log(round, person.personId);
     const result: IResult | undefined = round.results.find(
@@ -150,7 +150,7 @@ export class AppService {
     const round = await this.resultsService.getContestRound(
       enterResultsDto.competitionWcaId,
       enterResultsDto.eventId,
-      parseInt(enterResultsDto.roundNumber),
+      enterResultsDto.roundNumber,
     );
 
     for (const externalResultDto of enterResultsDto.results) {

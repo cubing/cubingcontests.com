@@ -1,4 +1,15 @@
-import { ArrayMaxSize, ArrayMinSize, IsInt, IsNotEmpty, IsNumberString, IsOptional, IsString, Min, Validate, ValidateNested } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  Validate,
+  ValidateNested,
+} from 'class-validator';
 import { AttemptDto, HasNonDnsResult } from '../modules/results/dto/create-result.dto';
 import { Type } from 'class-transformer';
 import { IAttempt } from '~~/client/shared_helpers/types';
@@ -12,8 +23,8 @@ export class EnterResultsDto {
   @IsNotEmpty()
   eventId: string;
 
-  @IsNumberString()
-  roundNumber: string;
+  @IsNumber()
+  roundNumber: number;
 
   @ValidateNested({ each: true })
   results: ExternalResultDto[];
