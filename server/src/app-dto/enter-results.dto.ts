@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Min,
   Validate,
   ValidateNested,
@@ -13,6 +14,7 @@ import {
 import { AttemptDto, HasNonDnsResult } from '../modules/results/dto/create-result.dto';
 import { Type } from 'class-transformer';
 import { IAttempt } from '~~/client/shared_helpers/types';
+import C from '~~/client/shared_helpers/constants';
 
 export class EnterResultsDto {
   @IsString()
@@ -27,6 +29,7 @@ export class EnterResultsDto {
   roundNumber: number;
 
   @ValidateNested({ each: true })
+  @Type(() => ExternalResultDto)
   results: ExternalResultDto[];
 }
 
@@ -37,6 +40,9 @@ class ExternalResultDto {
   registrantId?: number;
 
   @IsOptional()
+  @Matches((C.wcaIdRegexLoose), {
+    message: '$value is not a valid WCA ID.',
+  })
   @IsString()
   wcaId?: string;
 

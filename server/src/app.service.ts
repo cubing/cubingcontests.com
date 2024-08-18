@@ -158,7 +158,7 @@ export class AppService {
         ? await this.personsService.getPersonByWcaId(externalResultDto.wcaId.toUpperCase())
         : await this.personsService.getPersonById(externalResultDto.registrantId);
 
-      if (!person) throw new NotFoundException('Competitor not found');
+      if (!person) throw new NotFoundException(`Competitor ${externalResultDto.registrantId ? externalResultDto.registrantId : externalResultDto.wcaId} not found`);
 
       const result: IResult | undefined = round.results.find(
         (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
@@ -171,8 +171,6 @@ export class AppService {
           attempts.push({ result: externalResultDto.attempts[i].result });
         } else if (result?.attempts[i]) {
           attempts.push(result.attempts[i]);
-        } else {
-          attempts.push({ result: 0 });
         }
       }
 
