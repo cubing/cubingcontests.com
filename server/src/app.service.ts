@@ -163,22 +163,12 @@ export class AppService {
       const result: IResult | undefined = round.results.find(
         (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
       );
-      const roundFormat = roundFormats.find((rf) => rf.value === round.format);
-      const attempts: IAttempt[] = [];
-
-      for (let i = 0; i < roundFormat.attempts; i++) {
-        if (i < externalResultDto.attempts.length) {
-          attempts.push({ result: externalResultDto.attempts[i].result });
-        } else if (result?.attempts[i]) {
-          attempts.push(result.attempts[i]);
-        }
-      }
 
       const newResultPartial = {
         date: null as Date,
         unapproved: true, 
         personIds: [person.personId],
-        attempts,
+        attempts: externalResultDto.attempts,
       };
 
       if (result) {
