@@ -31,6 +31,8 @@ export type { IEvent, IFeEvent } from './types/Event';
 export type { ICollectiveSolution, IFeCollectiveSolution, IMakeMoveDto } from './types/CollectiveSolution';
 export type { NxNMove } from './types/NxNMove';
 export type { ListPageMode } from './types/ListPageMode';
+export type { HttpMethod } from './types/HttpMethod';
+export type { FetchObj } from './types/FetchObj';
 
 // WCIF types
 export type {

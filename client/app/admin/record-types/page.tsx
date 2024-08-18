@@ -1,21 +1,19 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import myFetch from '~/helpers/myFetch';
+import { useState, useEffect } from 'react';
+import { useMyFetch } from '~/helpers/customHooks';
 import RecordTypesForm from './RecordTypesForm';
 import { IRecordType } from '@sh/types';
 import Loading from '@c/UI/Loading';
-import { MainContext } from '~/helpers/contexts';
 
 const ConfigureRecordTypesPage = () => {
-  const { setErrorMessages } = useContext(MainContext);
+  const myFetch = useMyFetch();
 
   const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
 
   useEffect(() => {
     myFetch.get('/record-types', { authorize: true }).then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setRecordTypes(payload as IRecordType[]);
+      if (!errors) setRecordTypes(payload as IRecordType[]);
     });
   }, []);
 

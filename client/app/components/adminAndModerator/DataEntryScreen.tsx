@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useMemo, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import ResultForm from './ResultForm';
-import ErrorMessages from '@c/UI/ErrorMessages';
+import ToastMessages from '@c/UI/ToastMessages';
 import Button from '@c/UI/Button';
 import RoundResultsTable from '@c/RoundResultsTable';
 import {
@@ -18,10 +18,10 @@ import {
   IUpdateResultDto,
 } from '@sh/types';
 import { ContestState } from '@sh/enums';
-import { checkErrorsBeforeResultSubmission, getUserInfo } from '~/helpers/utilityFunctions';
+import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { roundFormats } from '@sh/roundFormats';
-import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
+import { useCheckErrorsThenSubmit } from '~/helpers/customHooks';
 import { MainContext } from '~/helpers/contexts';
 
 const userInfo: IUserInfo = getUserInfo();
@@ -32,15 +32,9 @@ const DataEntryScreen = ({
   compData: IContestData;
 }) => {
   const searchParams = useSearchParams();
-  const {
-    errorMessages,
-    setErrorMessages,
-    successMessage,
-    setSuccessMessage,
-    loadingId,
-    setLoadingId,
-    resetMessagesAndLoadingId,
-  } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const checkErrorsThenSubmit = useCheckErrorsThenSubmit();
 
   const eventId = searchParams.get('eventId') ?? contest.events[0].event.eventId;
 
@@ -68,11 +62,10 @@ const DataEntryScreen = ({
 
   useEffect(() => {
     if (!isEditable) {
-      if (contest.state < ContestState.Approved) {
-        setErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
-      } else if (contest.state >= ContestState.Finished) {
-        setErrorMessages(['This contest is over. Submitting results is disabled.']);
-      }
+      if (contest.state < ContestState.Approved)
+        changeErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
+      else if (contest.state >= ContestState.Finished)
+        changeErrorMessages(['This contest is over. Submitting results is disabled.']);
     }
   }, [contest, recordPairsByEvent, isEditable]);
 
@@ -80,8 +73,6 @@ const DataEntryScreen = ({
   useEffect(() => {
     document.getElementById('Competitor_1').focus();
   }, [round.roundId]);
-
-  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -100,18 +91,17 @@ const DataEntryScreen = ({
         average: -1, // this gets set below
       };
 
-      checkErrorsBeforeResultSubmission(
+      checkErrorsThenSubmit(
         newResult,
         currEvent,
         currentPersons,
-        setErrorMessages,
-        setSuccessMessage,
         async (newResultWithBestAndAvg) => {
-          setLoadingId('submit_attempt_button');
           let updatedRound: IRound, errors: string[];
 
           if (resultUnderEdit === null) {
-            const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg);
+            const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg, {
+              loadingId: 'submit_attempt_button',
+            });
             updatedRound = payload;
             errors = err;
           } else {
@@ -124,17 +114,14 @@ const DataEntryScreen = ({
             const { payload, errors: err } = await myFetch.patch(
               `/results/${(resultUnderEdit as any)._id}`,
               updateResultDto,
+              { loadingId: 'submit_attempt_button' },
             );
             updatedRound = payload;
             errors = err;
             setResultUnderEdit(null);
           }
 
-          setLoadingId('');
-
-          if (errors) {
-            setErrorMessages(errors);
-          } else {
+          if (!errors) {
             // Add new persons to list of persons
             setPersons([
               ...persons,
@@ -172,10 +159,10 @@ const DataEntryScreen = ({
     ) {
       const { payload, errors } = await myFetch.get(
         `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(',')}`,
-        { authorize: true },
+        { authorize: true, loadingId: null },
       );
 
-      if (errors) setErrorMessages(errors);
+      if (errors) changeErrorMessages(errors);
       else setRecordPairsByEvent(payload);
     }
   };
@@ -183,6 +170,7 @@ const DataEntryScreen = ({
   const editResult = (result: IResult) => {
     if (isEditable) {
       window.scrollTo(0, 0);
+      resetMessagesAndLoadingId();
 
       const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
       // If the competitor did not make cutoff, fill the missing attempts with empty results
@@ -195,7 +183,6 @@ const DataEntryScreen = ({
       setAttempts(newAttempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setResultFormResetTrigger(undefined);
-      resetMessagesAndLoadingId();
     }
   };
 
@@ -204,38 +191,28 @@ const DataEntryScreen = ({
       const answer = confirm('Are you sure you want to delete this result?');
 
       if (answer) {
-        setLoadingId(`delete_result_${resultId}_button`);
+        const { payload, errors } = await myFetch.delete(`/results/${resultId}`, {
+          loadingId: `delete_result_${resultId}_button`,
+        });
 
-        const { payload, errors } = await myFetch.delete(`/results/${resultId}`);
-
-        if (errors) {
-          setErrorMessages(errors);
-        } else {
-          updateRoundAndCompEvents(payload);
-          resetMessagesAndLoadingId();
-        }
+        if (!errors) updateRoundAndCompEvents(payload);
       }
     }
   };
 
   const updateQueuePosition = async (mode: 'decrement' | 'increment' | 'reset') => {
-    setLoadingId(`queue_${mode}_button`);
-
-    const { payload, errors } = await myFetch.patch(`/competitions/queue-${mode}/${contest.competitionId}`);
+    const { payload, errors } = await myFetch.patch(
+      `/competitions/queue-${mode}/${contest.competitionId}`,
+      {},
+      { loadingId: `queue_${mode}_button` },
+    );
 
     if (!errors) setQueuePosition(payload);
-
-    resetMessagesAndLoadingId();
-    setErrorMessages(errors || []);
   };
 
   return (
     <div>
-      {errorMessages.length > 0 ? (
-        <ErrorMessages />
-      ) : (
-        successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
-      )}
+      <ToastMessages />
 
       <div className="row py-4">
         <div className="col-lg-3 mb-4">

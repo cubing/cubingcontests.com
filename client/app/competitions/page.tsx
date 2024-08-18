@@ -1,4 +1,4 @@
-import myFetch from '~/helpers/myFetch';
+import { ssrFetch } from '~/helpers/fetchUtils';
 import ContestsTable from '@c/ContestsTable';
 
 // SEO
@@ -15,7 +15,7 @@ export const metadata = {
 };
 
 const ContestsPage = async () => {
-  const { payload: contests } = await myFetch.get('/competitions', { revalidate: 0 });
+  const { payload: contests } = await ssrFetch('/competitions');
 
   return (
     <div>

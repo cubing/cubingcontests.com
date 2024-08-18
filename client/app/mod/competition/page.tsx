@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import Loading from '@c/UI/Loading';
 import ContestForm from './ContestForm';
 import { IContestData, IEvent } from '@sh/types';
 import { MainContext } from '~/helpers/contexts';
 
 const CreateEditContestPage = () => {
-  const { setErrorMessages } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages } = useContext(MainContext);
 
   const [events, setEvents] = useState<IEvent[]>();
   const [contestData, setContestData] = useState<IContestData>();
@@ -31,13 +32,16 @@ const CreateEditContestPage = () => {
   }, []);
 
   const fetchData = async () => {
-    const { payload: eventsData, errors: errors1 } = await myFetch.get('/events/mod', { authorize: true });
+    const { payload: eventsData, errors: errors1 } = await myFetch.get('/events/mod', {
+      authorize: true,
+      loadingId: null,
+    });
     const { payload: contestData, errors: errors2 } = competitionId
-      ? await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true })
+      ? await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true, loadingId: null })
       : { payload: undefined, errors: undefined };
 
     if (errors1 ?? errors2) {
-      setErrorMessages(['Error while fetching contest data']);
+      changeErrorMessages(['Error while fetching contest data']);
     } else {
       setEvents(eventsData);
       if (contestData) setContestData(contestData);

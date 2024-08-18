@@ -1,8 +1,8 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
-import myFetch from '~/helpers/myFetch';
-import ErrorMessages from '@c/UI/ErrorMessages';
+import { useEffect, useState } from 'react';
+import { useMyFetch } from '~/helpers/customHooks';
+import ToastMessages from '@c/UI/ToastMessages';
 import Button from '@c/UI/Button';
 import Competitor from '@c/Competitor';
 import C from '@sh/constants';
@@ -10,10 +10,9 @@ import { IFeUser } from '@sh/types';
 import { getRoleLabel } from '@sh/sharedFunctions';
 import { Role } from '@sh/enums';
 import { logOutUser } from '~/helpers/utilityFunctions';
-import { MainContext } from '~/helpers/contexts';
 
 const UserSettingsPage = () => {
-  const { setErrorMessages } = useContext(MainContext);
+  const myFetch = useMyFetch();
 
   const [user, setUser] = useState<IFeUser>();
 
@@ -21,19 +20,20 @@ const UserSettingsPage = () => {
 
   useEffect(() => {
     myFetch.get('/users/details', { authorize: true }).then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setUser(payload);
+      if (!errors) setUser(payload);
     });
   }, []);
 
-  const deleteUser = () => {
+  const deleteUser = async () => {
     const answer = confirm('Are you CERTAIN you would like to delete your account? This action is permanent!');
 
     if (answer) {
-      myFetch.delete('/users').then(({ errors }) => {
-        if (errors) setErrorMessages(errors);
-        else logOutUser();
+      const { errors } = await myFetch.delete('/users', {
+        loadingId: 'delete_account_button',
+        keepLoadingAfterSuccess: true,
       });
+
+      if (!errors) logOutUser();
     }
   };
 
@@ -41,7 +41,7 @@ const UserSettingsPage = () => {
     <div>
       <h2 className="mb-4 text-center">Settings</h2>
 
-      <ErrorMessages />
+      <ToastMessages />
 
       {user && (
         <>

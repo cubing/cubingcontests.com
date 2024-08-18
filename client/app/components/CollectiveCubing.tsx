@@ -3,13 +3,14 @@
 import { useContext, useEffect, useState } from 'react';
 import { TwistyPlayer } from 'cubing/twisty';
 // import { keyToMove } from 'cubing/alg';
-import myFetch, { FetchObj } from '~/helpers/myFetch';
-import { getIsWebglUnsupported } from '~/helpers/utilityFunctions';
-import Button from '@c/UI/Button';
-import { IFeCollectiveSolution, IMakeMoveDto, NxNMove } from '@sh/types';
+import { useMyFetch } from '~/helpers/customHooks';
+import { IFeCollectiveSolution, IMakeMoveDto, NxNMove, FetchObj } from '@sh/types';
 import { nxnMoves } from '@sh/types/NxNMove';
 import { Color } from '@sh/enums';
 import { MainContext } from '~/helpers/contexts';
+import { getIsWebglUnsupported } from '~/helpers/utilityFunctions';
+import Button from '@c/UI/Button';
+import ToastMessages from '@c/UI/ToastMessages';
 
 const addTwistyPlayerElement = async (alg = '') => {
   const twistyPlayerElements = document.getElementsByTagName('twisty-player');
@@ -33,11 +34,9 @@ const getCubeState = (colSol: IFeCollectiveSolution): string => `${colSol.scramb
 const isWebglUnsupported = getIsWebglUnsupported();
 
 const CollectiveCubing = () => {
-  const { loadingId, setLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages, loadingId, changeLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
-  const [collectiveSolutionError, setCollectiveSolutionError] = useState(
-    isWebglUnsupported ? 'Please enable WebGL to render the cube' : '',
-  );
   const [collectiveSolution, setCollectiveSolution] = useState<IFeCollectiveSolution>();
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
@@ -47,7 +46,10 @@ const CollectiveCubing = () => {
     : 0;
 
   useEffect(() => {
-    if (isWebglUnsupported) return;
+    if (isWebglUnsupported) {
+      changeErrorMessages(['Please enable WebGL to render the cube']);
+      return;
+    }
 
     // const doMoveWithKeyboard = (e: KeyboardEvent) => {
     //   const move = keyToMove(e)?.toString();
@@ -56,9 +58,7 @@ const CollectiveCubing = () => {
     // };
 
     myFetch.get('/collective-solution').then(({ payload, errors }: FetchObj<IFeCollectiveSolution>) => {
-      if (errors) {
-        setCollectiveSolutionError(errors[0]);
-      } else {
+      if (!errors) {
         if (payload) {
           setCollectiveSolution(payload);
           addTwistyPlayerElement(getCubeState(payload));
@@ -76,22 +76,20 @@ const CollectiveCubing = () => {
   const update = ({ payload, errors, errorData }: FetchObj<IFeCollectiveSolution>) => {
     const newCollectiveSolution = payload ?? errorData?.collectiveSolution;
 
-    if (errors) setCollectiveSolutionError(errors[0]);
-    else setCollectiveSolutionError('');
-
-    if (newCollectiveSolution) {
+    if (errors) {
+      changeErrorMessages(errors);
+    } else if (newCollectiveSolution) {
+      resetMessagesAndLoadingId();
       setCollectiveSolution(newCollectiveSolution);
       addTwistyPlayerElement(getCubeState(newCollectiveSolution));
     }
 
     setSelectedMove(null);
-    setLoadingId('');
   };
 
   const scrambleCube = async () => {
-    setLoadingId('scramble_button');
-
-    const fetchData = await myFetch.post('/collective-solution', {});
+    changeLoadingId('scramble_button');
+    const fetchData = await myFetch.post('/collective-solution', {}, { loadingId: null });
     update(fetchData);
   };
 
@@ -101,10 +99,9 @@ const CollectiveCubing = () => {
   };
 
   const confirmMove = async () => {
-    setLoadingId('confirm_button');
-
+    changeLoadingId('confirm_button');
     const makeMoveDto: IMakeMoveDto = { move: selectedMove, lastSeenSolution: collectiveSolution.solution };
-    const fetchData = await myFetch.post('/collective-solution/make-move', makeMoveDto);
+    const fetchData = await myFetch.post('/collective-solution/make-move', makeMoveDto, { loadingId: null });
     update(fetchData);
   };
 
@@ -132,7 +129,7 @@ const CollectiveCubing = () => {
         . You may not make two turns in a row.
       </p>
 
-      {collectiveSolutionError && <p className="text-danger fw-bold">{collectiveSolutionError}</p>}
+      <ToastMessages />
 
       {!isWebglUnsupported && (
         <>

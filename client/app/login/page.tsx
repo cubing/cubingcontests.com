@@ -3,14 +3,15 @@
 import { useContext, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
 import { MainContext } from '~/helpers/contexts';
 
 const LoginPage = () => {
   const searchParams = useSearchParams();
-  const { setErrorMessages, setLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -28,23 +29,20 @@ const LoginPage = () => {
     }
 
     if (tempErrors.length > 0) {
-      setErrorMessages(tempErrors);
+      changeErrorMessages(tempErrors);
     } else {
-      setLoadingId('form_submit_button');
-      setErrorMessages([]);
+      const { payload, errors } = await myFetch.post(
+        '/auth/login',
+        { username, password },
+        { authorize: false, loadingId: 'form_submit_button' },
+      );
 
-      const { payload, errors } = await myFetch.post('/auth/login', { username, password }, { authorize: false });
-
-      if (errors) {
-        if (errors[0] === 'UNCONFIRMED') {
-          window.location.href = `/register/confirm-email?username=${username}`;
-          return;
-        } else {
-          setErrorMessages(errors);
-        }
+      if (errors && errors[0] === 'UNCONFIRMED') {
+        window.location.href = `/register/confirm-email?username=${username}`;
+        return;
       } else if (payload) {
         if (!payload.accessToken) {
-          setErrorMessages(['Access token not received']);
+          changeErrorMessages(['Access token not received']);
         } else {
           localStorage.setItem('jwtToken', `Bearer ${payload.accessToken}`);
 
@@ -52,22 +50,19 @@ const LoginPage = () => {
 
           if (redirectUrl) window.location.replace(redirectUrl);
           else window.location.href = '/';
-          return;
         }
       }
-
-      setLoadingId('');
     }
   };
 
   const changeUsername = (newValue: string) => {
+    resetMessagesAndLoadingId();
     setUsername(newValue);
-    setErrorMessages([]);
   };
 
   const changePassword = (newValue: string) => {
+    resetMessagesAndLoadingId();
     setPassword(newValue);
-    setErrorMessages([]);
   };
 
   return (

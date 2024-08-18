@@ -1,9 +1,9 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { addHours, differenceInDays } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import myFetch from '~/helpers/myFetch';
+import { useFetchWcaCompDetails, useMyFetch } from '~/helpers/customHooks';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCountrySelect from '@c/form/FormCountrySelect';
@@ -56,8 +56,7 @@ import {
   roundProceedOptions,
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getContestIdFromName, getUserInfo, getWcaCompetitionDetails, limitRequests } from '~/helpers/utilityFunctions';
-import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
+import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
@@ -73,10 +72,13 @@ const ContestForm = ({
   contestData?: IContestData;
   mode: 'new' | 'edit' | 'copy';
 }) => {
-  const { setErrorMessages, setSuccessMessage, loadingId, setLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const fetchWcaCompDetails = useFetchWcaCompDetails();
+  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
+    useContext(MainContext);
+  const fetchTimezoneTimer = useRef<NodeJS.Timeout>(null);
 
   const [activeTab, setActiveTab] = useState('details');
-  const [fetchTimezoneTimer, setFetchTimezoneTimer] = useState<NodeJS.Timeout>(null);
   const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
   const [queueEnabled, setQueueEnabled] = useState(false);
 
@@ -242,24 +244,17 @@ const ContestForm = ({
     }
   }, [contest, events]);
 
-  useEffect(() => {
-    if (organizers.length !== 1 && organizers.filter((el) => el === null).length === 1)
-      document.getElementById(`Organizer_${organizerNames.length}`)?.focus();
-  }, [organizers]);
-
-  useScrollToTopForNewMessage();
-
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
     if (!startDate || (getIsCompType(type) && !endDate) || (!getIsCompType(type) && !startTime)) {
-      setErrorMessages(['Please enter valid dates']);
+      changeErrorMessages(['Please enter valid dates']);
       return;
     }
 
-    setLoadingId('form_submit_button');
+    changeLoadingId('form_submit_button');
 
     const selectedOrganizers = organizers.filter((el) => el !== null);
     let latitudeMicrodegrees: number, longitudeMicrodegrees: number;
@@ -344,20 +339,17 @@ const ContestForm = ({
     if (getIsCompType(type) && activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
 
     if (tempErrors.length > 0) {
-      setErrorMessages(tempErrors);
-      setLoadingId('');
+      changeErrorMessages(tempErrors);
     } else {
-      setErrorMessages([]);
-
       const { errors } =
         mode === 'edit'
-          ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp)
-          : await myFetch.post('/competitions', newComp);
+          ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp, { loadingId: null })
+          : await myFetch.post('/competitions', newComp, { loadingId: null });
 
       if (errors) {
-        setErrorMessages(errors);
-        setLoadingId('');
+        changeErrorMessages(errors);
       } else {
+        resetMessagesAndLoadingId();
         window.location.href = '/mod';
       }
     }
@@ -365,7 +357,7 @@ const ContestForm = ({
 
   const changeActiveTab = (newTab: string) => {
     if (newTab === 'schedule' && (typeof latitude !== 'number' || typeof longitude !== 'number')) {
-      setErrorMessages(['Please enter valid coordinates first']);
+      changeErrorMessages(['Please enter valid coordinates first']);
     } else {
       setActiveTab(newTab);
 
@@ -402,17 +394,16 @@ const ContestForm = ({
     if (value.length <= 32) setShortName(value);
   };
 
-  const fetchWcaCompDetails = async () => {
+  const getWcaCompDetails = async () => {
     if (!competitionId) {
-      setErrorMessages(['Please enter a competition ID']);
+      changeErrorMessages(['Please enter a competition ID']);
       return;
     }
 
     try {
-      setLoadingId('get_wca_comp_details_button');
-      setErrorMessages([]);
+      changeLoadingId('get_wca_comp_details_button');
+      const newContest = await fetchWcaCompDetails(competitionId);
 
-      const newContest = await getWcaCompetitionDetails(competitionId);
       const latitude = Number((newContest.latitudeMicrodegrees / 1000000).toFixed(6));
       const longitude = Number((newContest.longitudeMicrodegrees / 1000000).toFixed(6));
 
@@ -434,19 +425,21 @@ const ContestForm = ({
       await changeCoordinates(latitude, longitude, newContest.startDate);
 
       setDetailsImported(true);
+      resetMessagesAndLoadingId();
     } catch (err: any) {
-      if (err.message.includes('Not found')) setErrorMessages([`Competition with ID ${competitionId} not found`]);
-      else setErrorMessages([err.message]);
+      if (err.message.includes('Not found')) changeErrorMessages([`Competition with ID ${competitionId} not found`]);
+      else changeErrorMessages([err.message]);
     }
-
-    setLoadingId('');
   };
 
   const fetchTimeZone = async (lat: number, long: number): Promise<string> => {
-    const { errors, payload } = await myFetch.get(`/timezone?latitude=${lat}&longitude=${long}`, { authorize: true });
+    const { errors, payload } = await myFetch.get(`/timezone?latitude=${lat}&longitude=${long}`, {
+      authorize: true,
+      loadingId: null,
+    });
 
     if (errors) {
-      setErrorMessages(errors);
+      changeErrorMessages(errors);
       Promise.reject();
     } else {
       setVenueTimeZone(payload.timezone);
@@ -465,29 +458,29 @@ const ContestForm = ({
       setLatitude(processedLatitude);
       setLongitude(processedLongitude);
 
-      limitRequests(fetchTimezoneTimer, setFetchTimezoneTimer, async () => {
+      limitRequests(fetchTimezoneTimer, async () => {
         // Adjust all times to the new time zone
-        fetchTimeZone(processedLatitude, processedLongitude).then((timeZone: string) => {
-          const start = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 12) : activityStartTime;
-          setActivityStartTime(fromZonedTime(toZonedTime(start, venueTimeZone), timeZone));
-          const end = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 13) : activityEndTime;
-          setActivityEndTime(fromZonedTime(toZonedTime(end, venueTimeZone), timeZone));
+        const timeZone: string = await fetchTimeZone(processedLatitude, processedLongitude);
 
-          if (type === ContestType.Meetup) {
-            setStartTime(fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone));
-          } else if (getIsCompType(type)) {
-            setRooms(
-              rooms.map((r) => ({
-                ...r,
-                activities: r.activities.map((a) => ({
-                  ...a,
-                  startTime: fromZonedTime(toZonedTime(a.startTime, venueTimeZone), timeZone),
-                  endTime: fromZonedTime(toZonedTime(a.endTime, venueTimeZone), timeZone),
-                })),
+        const start = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 12) : activityStartTime;
+        setActivityStartTime(fromZonedTime(toZonedTime(start, venueTimeZone), timeZone));
+        const end = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 13) : activityEndTime;
+        setActivityEndTime(fromZonedTime(toZonedTime(end, venueTimeZone), timeZone));
+
+        if (type === ContestType.Meetup) {
+          setStartTime(fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone));
+        } else if (getIsCompType(type)) {
+          setRooms(
+            rooms.map((r) => ({
+              ...r,
+              activities: r.activities.map((a) => ({
+                ...a,
+                startTime: fromZonedTime(toZonedTime(a.startTime, venueTimeZone), timeZone),
+                endTime: fromZonedTime(toZonedTime(a.endTime, venueTimeZone), timeZone),
               })),
-            );
-          }
-        });
+            })),
+          );
+        }
       });
     }
   };
@@ -739,7 +732,7 @@ const ContestForm = ({
     if (newTime.getTime() > activityStartTime.getTime()) {
       setActivityEndTime(newTime);
     } else {
-      setErrorMessages(['The activity end time cannot be before the start time']);
+      changeErrorMessages(['The activity end time cannot be before the start time']);
     }
   };
 
@@ -787,36 +780,30 @@ const ContestForm = ({
   };
 
   const downloadScorecards = async () => {
-    setLoadingId('download_scorecards_button');
-
-    const { errors } = await myFetch.get(`/scorecards/${contest.competitionId}`, {
+    await myFetch.get(`/scorecards/${contest.competitionId}`, {
       authorize: true,
       fileName: `${contest.competitionId}_Scorecards.pdf`,
+      loadingId: 'download_scorecards_button',
     });
-
-    setErrorMessages(errors || []);
-    setLoadingId('');
   };
 
   const enableQueue = async () => {
-    setLoadingId('enable_queue_button');
-
-    const { errors } = await myFetch.patch(`/competitions/enable-queue/${contest.competitionId}`, {});
+    const { errors } = await myFetch.patch(
+      `/competitions/enable-queue/${contest.competitionId}`,
+      {},
+      { loadingId: 'enable_queue_button' },
+    );
 
     if (!errors) setQueueEnabled(true);
-
-    setErrorMessages(errors || []);
-    setLoadingId('');
   };
 
   const createAuthToken = async () => {
-    setLoadingId('get_access_token_button');
+    const { payload, errors } = await myFetch.get(`/create-auth-token/${contest.competitionId}`, {
+      authorize: true,
+      loadingId: 'get_access_token_button',
+    });
 
-    const { payload, errors } = await myFetch.get(`/create-auth-token/${contest.competitionId}`, { authorize: true });
-
-    setErrorMessages(errors || []);
-    setSuccessMessage(`Your new access token is ${payload}`);
-    setLoadingId('');
+    if (!errors) changeSuccessMessage(`Your new access token is ${payload}`);
   };
 
   return (
@@ -824,26 +811,22 @@ const ContestForm = ({
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         onSubmit={handleSubmit}
-        disableButton={disableIfCompFinished || fetchTimezoneTimer !== null}
+        disableButton={disableIfCompFinished || fetchTimezoneTimer.current !== null}
       >
-        {isAdmin && mode === 'edit' && (
-          <div className="d-flex flex-wrap gap-3 my-4">
-            <span>Created by:</span>
-            <CreatorDetails creator={creator} />
-          </div>
-        )}
+        {isAdmin && mode === 'edit' && <CreatorDetails creator={creator} />}
 
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
         {activeTab === 'details' && (
           <>
-            {mode === 'edit' && contest.state >= ContestState.Approved && (
+            {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
                 <Button
                   id="download_scorecards_button"
                   text="Scorecards"
                   onClick={downloadScorecards}
                   loadingId={loadingId}
+                  disabled={contest.state < ContestState.Approved}
                   className="btn-success"
                 />
                 <Button
@@ -851,13 +834,16 @@ const ContestForm = ({
                   text={queueEnabled ? 'Queue Enabled' : 'Enable Queue'}
                   onClick={enableQueue}
                   loadingId={loadingId}
-                  disabled={contest.state >= ContestState.Finished || queueEnabled}
+                  disabled={
+                    contest.state < ContestState.Approved || contest.state >= ContestState.Finished || queueEnabled
+                  }
                 />
                 <Button
                   id="get_access_token_button"
                   text="Get Access Token"
                   onClick={createAuthToken}
                   loadingId={loadingId}
+                  disabled={contest.state < ContestState.Approved}
                   className="btn-secondary"
                 />
               </div>
@@ -892,7 +878,7 @@ const ContestForm = ({
               <Button
                 id="get_wca_comp_details_button"
                 text="Get WCA competition details"
-                onClick={fetchWcaCompDetails}
+                onClick={getWcaCompDetails}
                 loadingId={loadingId}
                 className="mb-3"
                 disabled={disableIfDetailsImported}
@@ -947,7 +933,7 @@ const ContestForm = ({
                     </div>
                     <div className="row">
                       <div className="text-secondary fs-6">
-                        Time zone: {fetchTimezoneTimer === null ? venueTimeZone : <Loading small dontCenter />}
+                        Time zone: {fetchTimezoneTimer.current === null ? venueTimeZone : <Loading small dontCenter />}
                       </div>
                     </div>
                   </div>
@@ -960,7 +946,11 @@ const ContestForm = ({
                   <FormDatePicker
                     id="start_date"
                     title={`Start date and time (${
-                      type === ContestType.Meetup ? (fetchTimezoneTimer === null ? venueTimeZone : '...') : 'UTC'
+                      type === ContestType.Meetup
+                        ? fetchTimezoneTimer.current === null
+                          ? venueTimeZone
+                          : '...'
+                        : 'UTC'
                     })`}
                     value={startTime}
                     setValue={changeStartDate}

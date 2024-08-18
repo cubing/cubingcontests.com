@@ -8,13 +8,15 @@ import {
   UseGuards,
   ValidationPipe,
   BadRequestException,
+  Param,
+  Patch,
 } from '@nestjs/common';
 import { PersonsService } from './persons.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
-import { CreatePersonDto } from './dto/create-person.dto';
+import { PersonDto } from './dto/person.dto';
 
 @Controller('persons')
 export class PersonsController {
@@ -31,7 +33,7 @@ export class PersonsController {
       if (exactMatch) return await this.personsService.getPersonByName(name);
       else return await this.personsService.getPersonsByName(name);
     } else if (personId !== null) {
-      return await this.personsService.getPersonById(personId);
+      return await this.personsService.getPersonByPersonId(personId);
     }
 
     throw new BadRequestException('Please provide a full name, part of a name, or a person ID.');
@@ -45,22 +47,35 @@ export class PersonsController {
     return await this.personsService.getModPersons(req.user);
   }
 
+  // GET /persons/:wcaId
+  @Get(':wcaId')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.User)
+  async getOrCreatePersonByWcaId(@Param('wcaId') wcaId: string, @Request() req: any) {
+    return await this.personsService.getOrCreatePersonByWcaId(wcaId, { user: req.user });
+  }
+
   // POST /persons
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async createPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto, @Request() req: any) {
-    return await this.personsService.createPerson(createPersonDto, req.user);
+  async createPerson(@Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
+    return await this.personsService.createPerson(personDto, { user: req.user });
   }
 
   // POST /persons/create-or-get
-  @Post('create-or-get')
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.User)
-  async createOrGetPerson(@Body(new ValidationPipe()) createPersonDto: CreatePersonDto, @Request() req: any) {
-    const person = await this.personsService.getPersonByWcaId(createPersonDto.wcaId);
+  // @Post('create-or-get')
+  // @UseGuards(AuthenticatedGuard, RolesGuard)
+  // @Roles(Role.User)
+  // async createOrGetPerson(@Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
+  //   return await this.personsService.createPerson(personDto, { user: req.user });
+  // }
 
-    if (person) return person;
-    else return await this.personsService.createPerson(createPersonDto, req.user);
+  // PATCH /persons/:id
+  @Patch(':id')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async updatePerson(@Param('id') id: string, @Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
+    return await this.personsService.updatePerson(id, personDto, req.user);
   }
 }

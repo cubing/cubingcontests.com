@@ -1,10 +1,10 @@
-import myFetch from '~/helpers/myFetch';
+import { ssrFetch } from '~/helpers/fetchUtils';
 import ContestLayout from '@c/ContestLayout';
 import Schedule from '@c/Schedule';
 import { IContest } from '@sh/types';
 
 const CompetitionSchedulePage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 0 });
+  const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
 

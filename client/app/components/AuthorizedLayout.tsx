@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import Loading from '@c/UI/Loading';
 import { Role } from '@sh/enums';
 
 const AuthorizedLayout = ({ role, children }: { role: Role; children: React.ReactNode }) => {
+  const myFetch = useMyFetch();
+
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {

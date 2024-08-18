@@ -1,4 +1,4 @@
-import myFetch from '~/helpers/myFetch';
+import { ssrFetch } from '~/helpers/fetchUtils';
 import ContestLayout from '@c/ContestLayout';
 import ContestResults from '@c/ContestResults';
 import C from '@sh/constants';
@@ -11,7 +11,7 @@ const ContestResultsPage = async ({
   params: { id: string };
   searchParams: { eventId?: string };
 }) => {
-  const { payload: contestData }: { payload?: IContestData } = await myFetch.get(
+  const { payload: contestData }: { payload?: IContestData } = await ssrFetch(
     `/competitions/${id}?eventId=${eventId ?? 'FIRST_EVENT'}`,
     { revalidate: C.contestResultsRev },
   );

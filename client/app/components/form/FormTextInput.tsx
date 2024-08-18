@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import FormInputLabel from './FormInputLabel';
@@ -31,13 +33,7 @@ const FormTextInput = ({
   tooltip?: string;
   value: string;
   setValue?: (val: any) => void;
-  onChange?: (e: any) => void;
-  onClick?: (e: any) => void;
-  onFocus?: (e: any) => void;
-  onBlur?: (e: any) => void;
-  onKeyDown?: (e: any) => void;
   nextFocusTargetId?: string;
-  autoFocus?: boolean;
   required?: boolean;
   disabled?: boolean;
   password?: boolean;
@@ -45,7 +41,7 @@ const FormTextInput = ({
   submitOnEnter?: boolean;
   invalid?: boolean;
   noMargin?: boolean;
-}) => {
+} & React.HTMLAttributes<HTMLInputElement>) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput');
   if (setValue && onChange) throw new Error('setValue and onChange cannot be used at the same time in FormTextInput');
 

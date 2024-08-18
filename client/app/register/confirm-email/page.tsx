@@ -2,7 +2,7 @@
 
 import { useContext, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
@@ -10,24 +10,23 @@ import { MainContext } from '~/helpers/contexts';
 
 const ConfirmEmailPage = () => {
   const searchParams = useSearchParams();
-  const { setErrorMessages, setSuccessMessage, loadingId, setLoadingId, resetMessagesAndLoadingId } =
-    useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeSuccessMessage, loadingId } = useContext(MainContext);
 
   const [code, setCode] = useState('');
 
   const handleSubmit = async () => {
-    resetMessagesAndLoadingId();
-    setLoadingId('form_submit_button');
-
     const username = searchParams.get('username');
-    const { errors } = await myFetch.post('/auth/confirm-email', { username, code }, { authorize: false });
+    const { errors } = await myFetch.post(
+      '/auth/confirm-email',
+      { username, code },
+      { authorize: false, loadingId: 'form_submit_button' },
+    );
 
     if (errors) {
-      setErrorMessages(errors);
-      setLoadingId('');
       document.getElementById('confirmation_code')?.focus();
     } else {
-      setSuccessMessage('Your account has been verified');
+      changeSuccessMessage('Your account has been verified');
 
       setTimeout(() => {
         window.location.href = '/login';
@@ -36,23 +35,17 @@ const ConfirmEmailPage = () => {
   };
 
   const resendCode = async () => {
-    resetMessagesAndLoadingId();
-    setLoadingId('resend_code_button');
-
     const { errors } = await myFetch.post(
       '/auth/resend-confirmation-code',
       { username: searchParams.get('username') },
-      { authorize: false },
+      { authorize: false, loadingId: 'resend_code_button' },
     );
 
-    if (errors) {
-      setErrorMessages(errors);
-    } else {
-      setSuccessMessage('A new confirmation code has been sent');
+    if (!errors) {
+      changeSuccessMessage('A new confirmation code has been sent');
       setCode('');
     }
 
-    setLoadingId('');
     document.getElementById('confirmation_code')?.focus();
   };
 

@@ -41,7 +41,7 @@ import {
   ICutoff,
 } from '@sh/types';
 import { CreateEventDto } from '@m/events/dto/create-event.dto';
-import { CreatePersonDto } from '@m/persons/dto/create-person.dto';
+import { PersonDto } from '@m/persons/dto/person.dto';
 import { CreateResultDto } from '@m/results/dto/create-result.dto';
 import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
@@ -128,7 +128,7 @@ export class ContestDto implements IContestDto {
 
   @ArrayMinSize(1, { message: 'Please enter at least one organizer' })
   @ValidateNested({ each: true })
-  @Type(() => CreatePersonDto)
+  @Type(() => PersonDto)
   organizers: IPerson[];
 
   @IsOptional()

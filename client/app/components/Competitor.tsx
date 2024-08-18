@@ -1,5 +1,5 @@
 import Country from './Country';
-import { IPerson } from '@sh/types';
+import { IFePerson, IPerson } from '@sh/types';
 
 const Competitor = ({
   person,
@@ -7,7 +7,7 @@ const Competitor = ({
   noFlag,
   noLink,
 }: {
-  person: IPerson;
+  person: IPerson | IFePerson;
   showLocalizedName?: boolean;
   noFlag?: boolean;
   noLink?: boolean;

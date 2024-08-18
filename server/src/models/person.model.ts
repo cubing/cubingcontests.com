@@ -20,8 +20,8 @@ export class Person implements IPerson {
   @Prop({ required: true })
   countryIso2: string;
 
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
-  createdBy: UserDocument;
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'User' })
+  createdBy?: UserDocument;
 }
 
 export type PersonDocument = HydratedDocument<Person>;

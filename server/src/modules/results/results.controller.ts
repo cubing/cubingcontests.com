@@ -129,30 +129,27 @@ export class ResultsController {
     return await this.service.submitResult(submitResultDto, req.user);
   }
 
-  // PATCH /results/:resultId
-  @Patch(':resultId')
+  // PATCH /results/:id
+  @Patch(':id')
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin)
-  async editResult(
-    @Param('resultId') resultId: string,
+  @Roles(Role.Admin, Role.Moderator)
+  async updateResult(
+    @Param('id') id: string,
     @Body(new ValidationPipe()) updateResultDto: UpdateResultDto,
     @Request() req: any,
   ) {
-    this.logger.logAndSave(
-      `Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
-      LogType.UpdateResult,
-    );
+    this.logger.logAndSave(`Updating result with ID ${id}: ${JSON.stringify(updateResultDto)}`, LogType.UpdateResult);
 
-    return await this.service.editResult(resultId, updateResultDto, { user: req.user });
+    return await this.service.updateResult(id, updateResultDto, { user: req.user });
   }
 
-  // DELETE /results/:resultId
-  @Delete(':resultId')
+  // DELETE /results/:id
+  @Delete(':id')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async deleteContestResult(@Param('resultId') resultId: string, @Request() req: any) {
-    this.logger.logAndSave(`Deleting result with ID ${resultId}`, LogType.DeleteResult);
+  async deleteContestResult(@Param('id') id: string, @Request() req: any) {
+    this.logger.logAndSave(`Deleting result with ID ${id}`, LogType.DeleteResult);
 
-    return await this.service.deleteResult(resultId, req.user);
+    return await this.service.deleteResult(id, req.user);
   }
 }

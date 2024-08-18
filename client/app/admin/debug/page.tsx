@@ -1,21 +1,23 @@
 'use client';
 
 import { useContext, useState } from 'react';
+import { useMyFetch } from '~/helpers/customHooks';
+import { MainContext } from '~/helpers/contexts';
 import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
-import ErrorMessages from '@c/UI/ErrorMessages';
-import myFetch from '~/helpers/myFetch';
-import { MainContext } from '~/helpers/contexts';
+import ToastMessages from '@c/UI/ToastMessages';
 
 const DebugPage = () => {
-  const { setErrorMessages } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [debugInputValue, setDebugInputValue] = useState('');
   const [debugOutput, setDebugOutput] = useState('');
   const [email, setEmail] = useState('');
 
   const onDebugInputKeyDown = (e: any) => {
-    resetOutput();
+    resetMessagesAndLoadingId();
+    setDebugOutput('');
 
     console.log('Event:', e);
 
@@ -29,27 +31,18 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
   };
 
   const sendEmail = async () => {
-    resetOutput();
-
-    const { errors } = await myFetch.post('/debug-sending-email', { email });
-
-    if (errors) {
-      setErrorMessages(errors);
-    } else {
-      setDebugOutput('Successfully sent email!');
-    }
-  };
-
-  const resetOutput = () => {
-    setErrorMessages([]);
     setDebugOutput('');
+
+    const { errors } = await myFetch.post('/debug-sending-email', { email }, { loadingId: 'send_email_button' });
+
+    if (!errors) setDebugOutput('Successfully sent email!');
   };
 
   return (
     <div>
       <div className="mx-auto px-3" style={{ maxWidth: '768px' }}>
         <h2 className="mb-5 text-center">Page for debugging</h2>
-        <ErrorMessages />
+        <ToastMessages />
 
         <p className="mt-3 mb-4 fs-5" style={{ whiteSpace: 'pre-wrap' }}>
           {debugOutput}
@@ -66,7 +59,7 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
 
         <FormTextInput title="Email address" value={email} setValue={setEmail} />
 
-        <Button text="Send" onClick={sendEmail} />
+        <Button id="send_email_button" text="Send" onClick={sendEmail} loadingId={loadingId} />
       </div>
     </div>
   );

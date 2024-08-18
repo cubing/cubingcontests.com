@@ -1,40 +1,35 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import myFetch from '~/helpers/myFetch';
-import ErrorMessages from '@c/UI/ErrorMessages';
+import { useMyFetch } from '~/helpers/customHooks';
+import ToastMessages from '@c/UI/ToastMessages';
 import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitors from '@c/Competitors';
 import { IFeResult, IRecordType } from '@sh/types';
 import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions';
-import C from '@sh/constants';
-import { MainContext } from '~/helpers/contexts';
 
 const ManageResultsPage = () => {
-  const { setErrorMessages } = useContext(MainContext);
+  const myFetch = useMyFetch();
 
   const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
   const [results, setResults] = useState<IFeResult[]>([]);
 
   useEffect(() => {
     myFetch.get('/results/submission-based', { authorize: true }).then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setResults(payload);
+      if (!errors) setResults(payload);
     });
 
     myFetch.get('/record-types', { authorize: true }).then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setRecordTypes(payload as IRecordType[]);
+      if (!errors) setRecordTypes(payload as IRecordType[]);
     });
   }, []);
 
   return (
     <div>
       <h2 className="mb-4 text-center">Results</h2>
-
-      <ErrorMessages />
+      <ToastMessages />
 
       <p className="px-3">
         Total submitted results:&nbsp;<b>{results.length === 100 ? '100+' : results.length}</b>
@@ -92,8 +87,7 @@ const ManageResultsPage = () => {
                     <Link
                       href={`/admin/results/${(result as any)._id}`}
                       prefetch={false}
-                      className="btn btn-primary btn-sm"
-                      style={{ padding: C.smallButtonPadding }}
+                      className="btn btn-primary btn-xs"
                     >
                       Edit
                     </Link>

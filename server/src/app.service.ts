@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { addMonths } from 'date-fns';
@@ -6,7 +6,7 @@ import { LogDocument } from '~/src/models/log.model';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
-import { IAdminStats, IAttempt, IResult } from '@sh/types';
+import { IAdminStats, IAttempt, IFePerson, IResult } from '@sh/types';
 import { roundFormats } from '@sh/roundFormats';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { EnterResultsDto } from './app-dto/enter-results.dto';
@@ -99,22 +99,29 @@ export class AppService {
   }
 
   async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
-    const person = enterAttemptDto.wcaId
-      ? await this.personsService.getPersonByWcaId(enterAttemptDto.wcaId.toUpperCase())
-      : await this.personsService.getPersonById(enterAttemptDto.registrantId);
-    if (!person) throw new NotFoundException('Competitor not found');
+    let person: IFePerson;
+
+    if (enterAttemptDto.wcaId) {
+      person = await this.personsService.getOrCreatePersonByWcaId(enterAttemptDto.wcaId.toUpperCase(), {
+        user: 'EXT_DEVICE',
+      });
+    } else {
+      person = await this.personsService.getPersonByPersonId(enterAttemptDto.registrantId);
+    }
 
     const round = await this.resultsService.getContestRound(
       enterAttemptDto.competitionWcaId,
       enterAttemptDto.eventId,
       enterAttemptDto.roundNumber,
     );
-    console.log(round, person.personId);
     const result: IResult | undefined = round.results.find(
       (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
     );
     const roundFormat = roundFormats.find((rf) => rf.value === round.format);
     const attempts: IAttempt[] = [];
+
+    if (result && result.personIds.length > 1)
+      throw new NotImplementedException('External data entry for team events is not supported yet');
 
     for (let i = 0; i < roundFormat.attempts; i++) {
       if (i === enterAttemptDto.attemptNumber - 1) attempts.push({ result: enterAttemptDto.attemptResult });
@@ -131,7 +138,7 @@ export class AppService {
     };
 
     if (result) {
-      await this.resultsService.editResult((result as any)._id.toString(), newResultPartial);
+      await this.resultsService.updateResult((result as any)._id.toString(), newResultPartial);
     } else {
       await this.resultsService.createResult(
         {
