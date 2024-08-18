@@ -1,8 +1,8 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import ResultForm from '@c/adminAndModerator/ResultForm';
 import Loading from '@c/UI/Loading';
 import Form from '@c/form/Form';
@@ -15,10 +15,10 @@ import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo, IUpdateResu
 import { RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import C from '@sh/constants';
-import { checkErrorsBeforeResultSubmission, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { MainContext } from '~/helpers/contexts';
-import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
+import { useCheckErrorsThenSubmit } from '~/helpers/customHooks';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -30,14 +30,16 @@ const userInfo: IUserInfo = getUserInfo();
 const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   if (resultId && !userInfo.isAdmin) throw new Error('Only an admin can edit results');
 
-  const { setErrorMessages, setSuccessMessage, loadingId, setLoadingId, resetMessagesAndLoadingId } =
-    useContext(MainContext);
+  const searchParams = useSearchParams();
+  const myFetch = useMyFetch();
+  const { changeSuccessMessage, loadingId } = useContext(MainContext);
+  const checkErrorsThenSubmit = useCheckErrorsThenSubmit();
+  const fetchRecordPairsTimer = useRef<NodeJS.Timeout>(null);
 
   const [showRules, setShowRules] = useState(false);
   const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo>();
   // Only trigger reset on page load on the submit results page
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState<boolean>(resultId ? undefined : true);
-  const [fetchRecordPairsTimer, setFetchRecordPairsTimer] = useState<NodeJS.Timeout>(null);
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState(RoundFormat.BestOf1);
@@ -48,8 +50,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   const [videoLink, setVideoLink] = useState('');
   const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [discussionLink, setDiscussionLink] = useState('');
-
-  const searchParams = useSearchParams();
 
   const recordPairs = useMemo(
     () => submissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
@@ -62,9 +62,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       myFetch
         .get(`/results/submission-info/${new Date()}`, { authorize: true })
         .then(({ payload, errors }: { payload?: IResultsSubmissionInfo; errors?: string[] }) => {
-          if (errors) {
-            setErrorMessages(errors);
-          } else {
+          if (!errors) {
             setSubmissionInfo(payload);
 
             const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get('eventId'));
@@ -76,9 +74,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     // If editing a result
     else {
       myFetch.get(`/results/editing-info/${resultId}`, { authorize: true }).then(({ payload, errors }) => {
-        if (errors) {
-          setErrorMessages(errors);
-        } else {
+        if (!errors) {
           setSubmissionInfo(payload);
           const { result, persons, events } = payload as IResultsSubmissionInfo;
 
@@ -95,8 +91,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       });
     }
   }, []);
-
-  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -116,29 +110,23 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
 
     if (submissionInfo.result?.unapproved && !approve) newResult.unapproved = true;
 
-    checkErrorsBeforeResultSubmission(
+    checkErrorsThenSubmit(
       newResult,
       event,
       competitors,
-      setErrorMessages,
-      setSuccessMessage,
       async (newResultWithBestAndAvg) => {
-        setLoadingId(approve ? 'approve_button' : 'submit_button');
-
         if (!resultId) {
-          const { errors } = await myFetch.post('/results', newResultWithBestAndAvg);
+          const { errors } = await myFetch.post('/results', newResultWithBestAndAvg, {
+            loadingId: approve ? 'approve_button' : 'submit_button',
+          });
 
-          if (errors) {
-            setErrorMessages(errors);
-          } else {
-            setSuccessMessage('Result successfully submitted');
+          if (!errors) {
+            changeSuccessMessage('Result successfully submitted');
             setDate(undefined);
             setVideoLink('');
             setDiscussionLink('');
             setResultFormResetTrigger(!resultFormResetTrigger);
           }
-
-          setLoadingId('');
         } else {
           const updateResultDto: IUpdateResultDto = {
             date: newResultWithBestAndAvg.date,
@@ -149,13 +137,13 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           };
           if (!approve) updateResultDto.unapproved = submissionInfo.result.unapproved;
 
-          const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto);
+          const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto, {
+            loadingId: approve ? 'approve_button' : 'submit_button',
+            keepLoadingAfterSuccess: true,
+          });
 
-          if (errors) {
-            setErrorMessages(errors);
-            setLoadingId('');
-          } else {
-            setSuccessMessage(approve ? 'Result successfully approved' : 'Result successfully updated');
+          if (!errors) {
+            changeSuccessMessage(approve ? 'Result successfully approved' : 'Result successfully updated');
 
             setTimeout(() => {
               window.location.href = '/admin/results';
@@ -168,21 +156,20 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   };
 
   const changeDate = (newDate: Date) => {
-    resetMessagesAndLoadingId();
     setDate(newDate);
 
     // Update the record pairs with the new date
     if (newDate) {
-      limitRequests(fetchRecordPairsTimer, setFetchRecordPairsTimer, async () => {
+      limitRequests(fetchRecordPairsTimer, async () => {
         const eventsStr = submissionInfo.events.map((e) => e.eventId).join(',');
         const queryParams = resultId ? `?excludeResultId=${resultId}` : '';
 
         const { payload, errors } = await myFetch.get(`/results/record-pairs/${newDate}/${eventsStr}${queryParams}`, {
           authorize: true,
+          loadingId: 'RECORD_PAIRS',
         });
 
-        if (errors) setErrorMessages(errors);
-        else setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
+        if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
       });
     }
   };
@@ -252,6 +239,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         </div>
 
         <Form hideButton>
+          {resultId && <CreatorDetails creator={submissionInfo.creator} />}
           <ResultForm
             event={event}
             persons={competitors}
@@ -259,7 +247,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             attempts={attempts}
             setAttempts={setAttempts}
             recordPairs={recordPairs}
-            loadingRecordPairs={fetchRecordPairsTimer !== null}
             recordTypes={submissionInfo.activeRecordTypes}
             nextFocusTargetId={!submissionInfo.result || submissionInfo.result.unapproved ? 'date' : 'video_link'}
             resetTrigger={resultFormResetTrigger}
@@ -315,18 +302,12 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               Discussion link
             </a>
           )}
-          {resultId && (
-            <div className="d-flex flex-wrap gap-3 mt-4">
-              <span>Created by:</span>
-              <CreatorDetails creator={submissionInfo.creator} />
-            </div>
-          )}
           <Button
             id="submit_button"
             text="Submit"
             onClick={() => submitResult()}
             loadingId={loadingId}
-            disabled={fetchRecordPairsTimer !== null}
+            disabled={fetchRecordPairsTimer.current !== null}
             className="mt-3"
           />
           {resultId && submissionInfo.result.unapproved && (
@@ -335,7 +316,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               text="Submit and approve"
               onClick={() => submitResult(true)}
               loadingId={loadingId}
-              disabled={fetchRecordPairsTimer !== null}
+              disabled={fetchRecordPairsTimer.current !== null}
               className="btn-success mt-3 ms-3"
             />
           )}

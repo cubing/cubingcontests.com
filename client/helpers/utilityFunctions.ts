@@ -1,12 +1,11 @@
 import jwtDecode from 'jwt-decode';
 import { isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { format } from 'date-fns-tz';
-import myFetch from './myFetch';
-import { Color, ContestType, EventFormat, Role, RoundFormat } from '@sh/enums';
+import { Color, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
-import { IAttempt, IContestDto, IEvent, IPerson, IResult, IRound } from '@sh/types';
+import { IAttempt, IEvent } from '@sh/types';
 import { IUserInfo } from './interfaces/UserInfo';
-import { getBestAndAverage } from '@sh/sharedFunctions';
+import { MutableRefObject } from 'react';
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string, timeZone = 'UTC'): string => {
   if (!startDate) throw new Error('Start date missing!');
@@ -154,59 +153,14 @@ export const getUserInfo = (): IUserInfo => {
   }
 };
 
-// Checks if there are any errors, and if not, calls the callback function,
-// passing it the result with the best single and average set
-export const checkErrorsBeforeResultSubmission = (
-  result: IResult,
-  event: IEvent,
-  persons: IPerson[],
-  setErrorMessages: (val: string[]) => void,
-  setSuccessMessage: (val: string) => void,
-  callback: (result: IResult) => void,
-  { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
-) => {
-  const errorMessages: string[] = [];
+export const limitRequests = (fetchTimer: MutableRefObject<NodeJS.Timeout>, callback: () => void) => {
+  if (fetchTimer !== null) clearTimeout(fetchTimer.current);
 
-  if (persons.includes(null)) {
-    errorMessages.push('Invalid person(s)');
-  } else if (persons.some((p1, i1) => persons.some((p2, i2) => i1 !== i2 && p1.personId === p2.personId))) {
-    errorMessages.push('You cannot enter the same person twice');
-  }
-
-  for (let i = 0; i < result.attempts.length; i++) {
-    if (result.attempts[i].result === null || result.attempts[i].memo === null)
-      errorMessages.push(`Attempt ${i + 1} is invalid`);
-  }
-
-  if (errorMessages.length > 0) {
-    setErrorMessages(errorMessages);
-  } else {
-    setErrorMessages([]);
-    setSuccessMessage('');
-
-    const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat });
-    result.best = best;
-    result.average = average;
-
-    callback(result);
-  }
-};
-
-export const limitRequests = (
-  fetchTimer: NodeJS.Timeout,
-  setFetchTimer: (val: NodeJS.Timeout) => void,
-  callback: () => void,
-) => {
-  if (fetchTimer !== null) clearTimeout(fetchTimer);
-
-  setFetchTimer(
-    setTimeout(async () => {
-      await callback();
-
-      // Resetting this AFTER the callback, so that the fetch request can complete first
-      setFetchTimer(null);
-    }, C.fetchThrottleTimeout),
-  );
+  fetchTimer.current = setTimeout(async () => {
+    await callback();
+    // Resetting this AFTER the callback, so that the fetch request can complete first
+    fetchTimer.current = null;
+  }, C.fetchThrottleTimeout);
 };
 
 export const getBSClassFromColor = (color: Color): string => {
@@ -268,14 +222,6 @@ export const genericOnKeyDown = (
   if (onKeyDown) onKeyDown(e);
 };
 
-export const splitNameAndLocalizedName = (value: string): [string, string | undefined] => {
-  const stringParts = value.split(' (');
-  const name = stringParts[0];
-  const localizedName = stringParts.length > 1 ? stringParts[1].slice(0, -1) : undefined;
-
-  return [name, localizedName];
-};
-
 export const shortenEventName = (name: string): string => {
   return name
     .replaceAll('2x2x2', '2x2')
@@ -291,149 +237,9 @@ export const shortenEventName = (name: string): string => {
     .replace('Blindfolded', 'BLD')
     .replace('Multi-Blind', 'MBLD')
     .replace('One-Handed', 'OH')
-    .replace('Face-turning Octahedron', 'FTO')
+    .replace('Face-Turning Octahedron', 'FTO')
     .replace(' Cuboid', '')
     .replace(' Challenge', '');
-};
-
-export const getWcaCompetitionDetails = async (competitionId: string): Promise<IContestDto> => {
-  const { payload: wcaCompData, errors: e1 } = await myFetch.get(`${C.wcaApiBase}/competitions/${competitionId}.json`);
-
-  if (e1) throw new Error(e1[0]);
-
-  // This is for getting the competitor limit, organizer WCA IDs, and delegate WCA IDs
-  const { payload: wcaV0CompData, errors: e2 } = await myFetch.get(
-    `https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}`,
-  );
-
-  // Sometimes the competitor limit does not exist
-  const competitorLimit = wcaV0CompData.competitor_limit || 10;
-  const startDate = new Date(wcaCompData.date.from);
-  const endDate = new Date(wcaCompData.date.till);
-
-  const newContest: IContestDto = {
-    competitionId,
-    name: wcaCompData.name,
-    shortName: wcaV0CompData.short_name,
-    type: ContestType.WcaComp,
-    city: wcaCompData.city,
-    countryIso2: wcaCompData.country,
-    // Gets rid of the link and just takes the venue name
-    venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
-    address: wcaCompData.venue.address,
-    latitudeMicrodegrees: Math.round(wcaCompData.venue.coordinates.latitude * 1000000),
-    longitudeMicrodegrees: Math.round(wcaCompData.venue.coordinates.longitude * 1000000),
-    startDate,
-    endDate,
-    organizers: [], // this is set below
-    description: '',
-    competitorLimit,
-    events: [],
-    // compDetails.schedule needs to be set by an admin manually
-  };
-
-  if (e2) throw new Error(e2[0]);
-
-  const notFoundPersonNames: string[] = [];
-
-  // Set organizer objects
-  for (const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]) {
-    let name = org.name;
-    let person: IPerson;
-
-    if (org.wca_id) {
-      name += '|' + org.wca_id;
-      person = await fetchPerson(name);
-    } else {
-      person = await fetchPerson(name, org.country_iso2);
-    }
-
-    if (person !== null) {
-      if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
-    } else if (!notFoundPersonNames.includes(org.name)) {
-      notFoundPersonNames.push(org.name);
-    }
-  }
-
-  if (notFoundPersonNames.length > 0)
-    throw new Error(`Organizers with these names were not found: ${notFoundPersonNames.join(', ')}`);
-
-  return newContest;
-};
-
-// null means person not found
-export const fetchPerson = async (name: string, countryIso2?: string): Promise<IPerson | null> => {
-  const newPerson: IPerson = { personId: 0, name: '', wcaId: '', countryIso2: '', createdBy: '' };
-  // If the WCA ID is available, use that
-  const parts = name.split('|');
-
-  if (parts[1]) {
-    // Create new person using WCA person info
-    const { payload: wcaPerson, errors } = await myFetch.get(`${C.wcaApiBase}/persons/${parts[1]}.json`);
-
-    if (errors) {
-      throw new Error(errors[0]);
-    } else if (wcaPerson) {
-      const [name, localizedName] = splitNameAndLocalizedName(wcaPerson.name);
-
-      newPerson.name = name;
-      newPerson.localizedName = localizedName;
-      newPerson.wcaId = parts[1];
-      newPerson.countryIso2 = wcaPerson.country;
-
-      const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
-
-      if (errors) throw new Error(errors[0]);
-      else return person;
-    }
-  }
-
-  // If not, first try looking in the CC database
-  const englishNameOnly = name.split('(')[0].trim(); // get rid of the ( and everything after it
-  const { payload, errors: e1 } = await myFetch.get(`/persons?name=${englishNameOnly}&exactMatch=true`);
-
-  if (e1) {
-    throw new Error(`Error while fetching person with the name ${name}`);
-  } else if (payload) {
-    return payload;
-  }
-
-  // If not found, try searching for exact name matches in the WCA database
-  const {
-    payload: { result: wcaPersonMatches },
-    errors,
-  } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/search/users?q=${name}&persons_table=true`);
-
-  if (errors) {
-    throw new Error(errors[0]);
-  } else if (wcaPersonMatches.length === 1) {
-    // Same code as above in the WCA ID search section
-    const [name, localizedName] = splitNameAndLocalizedName(wcaPersonMatches[0].name);
-
-    newPerson.name = name;
-    newPerson.localizedName = localizedName;
-    newPerson.wcaId = wcaPersonMatches[0].wca_id;
-    newPerson.countryIso2 = wcaPersonMatches[0].country_iso2 || wcaPersonMatches[0].country.iso2;
-
-    const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson);
-
-    if (errors) throw new Error(errors[0]);
-    else return person;
-  }
-
-  // If still not found and the country iso was passed, use that to create a new person with no WCA ID (licely an organization)
-  if (countryIso2) {
-    newPerson.name = name;
-    newPerson.wcaId = undefined;
-    newPerson.countryIso2 = countryIso2;
-
-    const { payload: person, errors } = await myFetch.post('/persons', newPerson);
-
-    if (errors) throw new Error(errors[0]);
-    else return person;
-  }
-
-  return null;
 };
 
 export const logOutUser = () => {

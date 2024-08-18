@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import myFetch from '~/helpers/myFetch';
+import { ssrFetch } from '~/helpers/fetchUtils';
 import RankingsTable from '@c/RankingsTable';
 import EventButtons from '@c/EventButtons';
 import EventTitle from '@c/EventTitle';
@@ -26,11 +26,11 @@ const RankingsPage = async ({
   searchParams: { show: 'results' };
 }) => {
   // Refreshes rankings every 5 minutes
-  const { payload: eventRankings }: { payload?: IEventRankings } = await myFetch.get(
+  const { payload: eventRankings }: { payload?: IEventRankings } = await ssrFetch(
     `/results/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`,
     { revalidate: C.rankingsRev },
   );
-  const { payload: events }: { payload?: IEvent[] } = await myFetch.get('/events', { revalidate: C.rankingsRev });
+  const { payload: events }: { payload?: IEvent[] } = await ssrFetch('/events', { revalidate: C.rankingsRev });
 
   const currEvent = events?.find((el) => el.eventId === eventId);
 

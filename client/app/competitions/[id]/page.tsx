@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import myFetch from '~/helpers/myFetch';
+import { ssrFetch } from '~/helpers/fetchUtils';
 import ContestLayout from '@c/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
@@ -12,7 +12,7 @@ import { getDateOnly } from '@sh/sharedFunctions';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload } = await myFetch.get(`/competitions/${params.id}`, { revalidate: 0 });
+  const { payload } = await ssrFetch(`/competitions/${params.id}`);
   if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = payload as IContestData;
 

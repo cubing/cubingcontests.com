@@ -11,7 +11,6 @@ import mongoose, { Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
 import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
-import { PersonDocument } from '~/src/models/person.model';
 import { EventDocument } from '~/src/models/event.model';
 import { ScheduleDocument } from '~/src/models/schedule.model';
 import { RecordTypesService } from '@m/record-types/record-types.service';
@@ -266,7 +265,7 @@ export class ResultsService {
       for (const result of rankedResults) {
         const ranking: IRanking = {
           ranking: result.ranking,
-          persons: [],
+          persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
           resultId: result._id.toString(),
           result: show ? (result.attempts as any).result : result.best,
           // Will be left undefined if the request wasn't for top single results
@@ -275,12 +274,6 @@ export class ResultsService {
           videoLink: result.videoLink,
           discussionLink: result.discussionLink,
         };
-        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds, {
-          preserveOrder: true,
-        });
-
-        // This is done so that the persons array stays in the same order
-        for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
 
         // Set memo, if the result has it
         if (show === 'results') {
@@ -330,7 +323,7 @@ export class ResultsService {
       for (const result of rankedResults) {
         const ranking: IRanking = {
           ranking: result.ranking,
-          persons: [],
+          persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
           resultId: result._id.toString(),
           result: result.average,
           attempts: result.attempts,
@@ -338,12 +331,6 @@ export class ResultsService {
           videoLink: result.videoLink,
           discussionLink: result.discussionLink,
         };
-        const persons: PersonDocument[] = await this.personsService.getPersonsById(result.personIds, {
-          preserveOrder: true,
-        });
-
-        // This is done so that the persons array stays in the same order
-        for (const personId of result.personIds) ranking.persons.push(persons.find((el) => el.personId === personId));
 
         if (result.competitionId) {
           ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec();
@@ -384,7 +371,7 @@ export class ResultsService {
         for (const result of singleResults) {
           eventRecords.rankings.push({
             type: 'single',
-            persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
+            persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
             resultId: result._id.toString(),
             result: result.best,
             date: result.date,
@@ -399,7 +386,7 @@ export class ResultsService {
         for (const result of averageResults) {
           eventRecords.rankings.push({
             type: result.attempts.length === 3 ? 'mean' : 'average',
-            persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
+            persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
             resultId: result._id.toString(),
             result: result.average,
             date: result.date,
@@ -455,7 +442,7 @@ export class ResultsService {
       }),
       activeRecordTypes,
       result,
-      persons: await this.personsService.getPersonsById(result.personIds, { preserveOrder: true }),
+      persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
       creator: await this.usersService.getUserDetails(result.createdBy.toString(), false),
     };
 
@@ -463,11 +450,7 @@ export class ResultsService {
   }
 
   async getTotalResults(queryFilter: any = {}): Promise<number> {
-    try {
-      return await this.resultModel.countDocuments(queryFilter).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    return await this.resultModel.countDocuments(queryFilter).exec();
   }
 
   async getSubmissionBasedResults(): Promise<IFeResult[]> {
@@ -628,7 +611,7 @@ export class ResultsService {
   }
 
   // The user can be left undefined when this is called from enterAttemptFromExternalDevice() or when editing a submitted result
-  async editResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
+  async updateResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
     const event = await this.eventsService.getEventById(result.eventId);
@@ -671,7 +654,7 @@ export class ResultsService {
       await result.save();
       await this.updateFutureRecords(result, event, recordPairs, { mode: 'create' });
       await this.emailService.sendEmail(
-        await this.usersService.getUserEmail({ _id: user._id }),
+        await this.usersService.getUserEmail({ _id: result.createdBy }),
         `Your ${event.name} result has been approved. You can see it in the rankings <a href="${process.env.BASE_URL}/rankings/${event.eventId}/single">here</a>.`,
         { subject: 'Result Approved' },
       );
@@ -1037,7 +1020,7 @@ export class ResultsService {
             }
           }
 
-          if (total >= round.timeLimit.centiseconds)
+          if (total >= round.timeLimit.centiseconds) {
             throw new BadRequestException(
               `This round has a cumulative time limit of ${getFormattedTime(round.timeLimit.centiseconds)}${
                 round.timeLimit.cumulativeRoundIds.length === 1
@@ -1045,6 +1028,7 @@ export class ResultsService {
                   : ` for these rounds: ${round.timeLimit.cumulativeRoundIds.join(', ')}`
               }`,
             );
+          }
         }
 
         // Cutoff validation

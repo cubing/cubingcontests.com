@@ -1,20 +1,20 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
+import { Role } from '@sh/enums';
+import { IFeUser } from '@sh/types';
+import { getRoleLabel } from '@sh/sharedFunctions';
+import { MainContext } from '~/helpers/contexts';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormCheckbox from '@c/form/FormCheckbox';
-import { Role } from '@sh/enums';
-import { IFeUser } from '@sh/types';
-import C from '@sh/constants';
-import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
-import { getRoleLabel } from '@sh/sharedFunctions';
-import { MainContext } from '~/helpers/contexts';
+import Button from '@c/UI/Button';
 
 const ManageUsersPage = () => {
-  const { setErrorMessages, loadingId, setLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [users, setUsers] = useState<IFeUser[]>([]);
   const [username, setUsername] = useState('');
@@ -27,12 +27,9 @@ const ManageUsersPage = () => {
 
   useEffect(() => {
     myFetch.get('/users', { authorize: true }).then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setUsers(payload);
+      if (!errors) setUsers(payload);
     });
   }, []);
-
-  useScrollToTopForNewMessage();
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -40,11 +37,9 @@ const ManageUsersPage = () => {
 
   const handleSubmit = async () => {
     if (persons[0] === null && personNames[0].trim() !== '') {
-      setErrorMessages(['The competitor has not been entered. Either enter them or clear the input.']);
+      changeErrorMessages(['The competitor has not been entered. Either enter them or clear the input.']);
       return;
     }
-
-    resetMessagesAndLoadingId();
 
     const newUser: IFeUser = {
       username,
@@ -57,20 +52,16 @@ const ManageUsersPage = () => {
     if (isMod) newUser.roles.push(Role.Moderator);
     if (isAdmin) newUser.roles.push(Role.Admin);
 
-    setLoadingId('form_submit_button');
-    const { payload, errors } = await myFetch.patch('/users', newUser);
+    const { payload, errors } = await myFetch.patch('/users', newUser, { loadingId: 'form_submit_button' });
 
-    if (errors) {
-      setErrorMessages(errors);
-    } else {
+    if (!errors) {
       setUsername('');
-      setUsers(payload);
+      setUsers(users.map((u) => (u.username === newUser.username ? payload : u)));
     }
-
-    setLoadingId('');
   };
 
   const onEditUser = async (user: IFeUser) => {
+    window.scrollTo(0, 0);
     resetMessagesAndLoadingId();
 
     setUsername(user.username);
@@ -86,8 +77,6 @@ const ManageUsersPage = () => {
       setPersons([null]);
       setPersonNames(['']);
     }
-
-    window.scrollTo(0, 0);
   };
 
   return (
@@ -140,14 +129,13 @@ const ManageUsersPage = () => {
                 <td>{user.person?.name}</td>
                 <td>{user.roles.map((r) => getRoleLabel(r, true)).join(', ')}</td>
                 <td>
-                  <button
+                  <Button
+                    id={`edit_${user.username}_button`}
                     type="button"
+                    text="Edit"
                     onClick={() => onEditUser(user)}
-                    className="btn btn-primary btn-sm"
-                    style={{ padding: C.smallButtonPadding }}
-                  >
-                    Edit
-                  </button>
+                    className="btn btn-primary btn-xs"
+                  />
                 </td>
               </tr>
             ))}

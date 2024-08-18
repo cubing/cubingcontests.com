@@ -23,12 +23,39 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const changeTheme = (newTheme: Theme) => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
+    if (newTheme !== theme) {
+      setTheme(newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+  };
+
+  const changeErrorMessages = (newErrorMessages: string[]) => {
+    // Don't change error messages from [] to [], cause that would trigger an unnecessary rerender
+    if (errorMessages.length > 0 || newErrorMessages.length > 0) setErrorMessages(newErrorMessages);
+    setSuccessMessage('');
+    setLoadingId('');
+  };
+
+  const changeSuccessMessage = (newSuccessMessage: string) => {
+    setSuccessMessage(newSuccessMessage);
+    if (errorMessages.length > 0) setErrorMessages([]);
+    setLoadingId('');
+  };
+
+  const changeLoadingId = (newLoadingId: string) => {
+    setLoadingId(newLoadingId);
+    if (errorMessages.length > 0) setErrorMessages([]);
+    setSuccessMessage('');
   };
 
   const resetMessagesAndLoadingId = () => {
-    setErrorMessages([]);
+    if (errorMessages.length > 0) setErrorMessages([]);
+    setSuccessMessage('');
+    setLoadingId('');
+  };
+
+  const resetMessages = () => {
+    if (errorMessages.length > 0) setErrorMessages([]);
     setSuccessMessage('');
   };
 
@@ -43,12 +70,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           theme,
           setTheme: changeTheme,
           errorMessages,
-          setErrorMessages,
+          changeErrorMessages,
           successMessage,
-          setSuccessMessage,
+          changeSuccessMessage,
           loadingId,
-          setLoadingId,
+          changeLoadingId,
           resetMessagesAndLoadingId,
+          resetMessages,
         }}
       >
         {theme && (

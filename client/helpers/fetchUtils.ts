@@ -1,10 +1,4 @@
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
-
-export type FetchObj<T = any> = {
-  payload?: T;
-  errors?: string[];
-  errorData?: any;
-};
+import { FetchObj, HttpMethod } from '@sh/types';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_ENVIRONMENT === 'production'
@@ -14,14 +8,22 @@ const API_BASE_URL =
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,
 // { errors } if there were errors, or {}.
-const doFetch = async (
+export const doFetch = async (
   url: string,
   method: HttpMethod,
-  revalidate: number | false = false,
-  body: unknown = null,
-  authorize = true,
-  redirect?: string,
-  fileName?: string,
+  {
+    body,
+    revalidate = 0,
+    authorize = true,
+    redirect,
+    fileName,
+  }: {
+    body?: unknown;
+    revalidate?: number | false;
+    authorize?: boolean;
+    redirect?: string;
+    fileName?: string;
+  } = { body: null, revalidate: 0, authorize: true },
 ): Promise<FetchObj> => {
   const options: any = { method, headers: {} };
 
@@ -29,11 +31,16 @@ const doFetch = async (
     // If authorize is true, that overrides the revalidate timeout
     if (authorize) options.next = { revalidate: 0 };
     else options.next = { revalidate };
-  } else if (['POST', 'PATCH'].includes(method)) {
+  } else if (['POST', 'PUT', 'PATCH'].includes(method)) {
     options.headers['Content-type'] = 'application/json';
-    if (body) options.body = JSON.stringify(body);
+    if (body) {
+      options.body = JSON.stringify(body);
+    } else {
+      console.error('Body cannot be empty');
+      return { errors: ['Body cannot be empty'] };
+    }
   } else if (method !== 'DELETE') {
-    throw new Error(`Unsupported HTTP method: ${method}`);
+    throw new Error(`Not implemented HTTP method: ${method}`);
   }
 
   // Add API base URL if the passed URL is not a full link
@@ -131,41 +138,9 @@ const doFetch = async (
   return { payload: await res.text() };
 };
 
-const myFetch = {
-  async get(
-    url: string,
-    {
-      authorize = false,
-      redirect = '',
-      revalidate = false,
-      fileName,
-    }: {
-      authorize?: boolean;
-      redirect?: string; // this can only be set if authorize is set too
-      revalidate?: number | false;
-      fileName?: string;
-    } = {
-      authorize: false,
-      redirect: '',
-      revalidate: false,
-    },
-  ): Promise<FetchObj> {
-    return await doFetch(url, 'GET', revalidate, null, authorize, redirect, fileName);
-  },
-  async post(
-    url: string,
-    body: unknown,
-    { authorize = true }: { authorize?: boolean } = { authorize: true },
-  ): Promise<FetchObj> {
-    return await doFetch(url, 'POST', false, body, authorize);
-  },
-  // PATCH requests can be made without a body if necessary
-  async patch(url: string, body?: unknown): Promise<FetchObj> {
-    return await doFetch(url, 'PATCH', false, body);
-  },
-  async delete(url: string): Promise<FetchObj> {
-    return await doFetch(url, 'DELETE');
-  },
+export const ssrFetch = async (
+  url: string,
+  { revalidate = 0 }: { revalidate?: number | false } = { revalidate: 0 },
+): Promise<FetchObj> => {
+  return await doFetch(url, 'GET', { revalidate, authorize: false });
 };
-
-export default myFetch;

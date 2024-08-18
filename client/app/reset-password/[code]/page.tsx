@@ -1,13 +1,14 @@
 'use client';
 
 import { useContext, useState } from 'react';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import { MainContext } from '~/helpers/contexts';
 
 const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) => {
-  const { setErrorMessages, setSuccessMessage, setLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,28 +22,21 @@ const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) =
     else if (passwordRepeat !== password) tempErrors.push('The entered passwords do not match');
 
     if (tempErrors.length > 0) {
-      setErrorMessages(tempErrors);
+      changeErrorMessages(tempErrors);
     } else {
-      resetMessagesAndLoadingId();
-      setLoadingId('form_submit_button');
-
       const { errors } = await myFetch.post(
         '/auth/reset-password',
         { email, code, newPassword: password },
-        { authorize: false },
+        { authorize: false, loadingId: 'form_submit_button' },
       );
 
-      if (errors) {
-        setErrorMessages(errors);
-      } else {
-        setSuccessMessage('Your password has been successfully reset');
+      if (!errors) {
+        changeSuccessMessage('Your password has been successfully reset');
 
         setTimeout(() => {
           window.location.href = '/login';
         }, 1000);
       }
-
-      setLoadingId('');
     }
   };
 

@@ -100,7 +100,7 @@ export class UsersService {
     await this.emailService.sendEmailConfirmationCode(newUser.email, code);
   }
 
-  async updateUser(updateUserDto: UpdateUserDto): Promise<IFeUser[]> {
+  async updateUser(updateUserDto: UpdateUserDto): Promise<IFeUser> {
     const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
 
     if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
@@ -122,7 +122,7 @@ export class UsersService {
 
     if (newRole) await this.emailService.sendPrivilegesGrantedNotification(user.email, newRole);
 
-    return await this.getUsers();
+    return await this.getFrontendUser(user);
   }
 
   async deleteUser(id: string) {
@@ -318,7 +318,7 @@ export class UsersService {
     return {
       username: user.username,
       email: user.email,
-      person: user.personId ? await this.personsService.getPersonById(user.personId) : undefined,
+      person: user.personId ? await this.personsService.getPersonByPersonId(user.personId) : undefined,
       roles: user.roles,
     };
   }

@@ -4,7 +4,7 @@ import { getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
 import { IPersonDto } from '@sh/types';
 
-export class CreatePersonDto implements IPersonDto {
+export class PersonDto implements IPersonDto {
   @IsString()
   @MinLength(3, getMinLengthOpts('person name', 3))
   @Matches(/^[^()]*$/, { message: 'Parentheses are not allowed in names' })

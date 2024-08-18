@@ -2,13 +2,14 @@
 
 import { useContext, useState } from 'react';
 import Link from 'next/link';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import FormTextInput from '@c/form/FormTextInput';
 import Form from '@c/form/Form';
 import { MainContext } from '~/helpers/contexts';
 
 const RegisterPage = () => {
-  const { setErrorMessages, setLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages } = useContext(MainContext);
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -25,20 +26,15 @@ const RegisterPage = () => {
     else if (passwordRepeat !== password) tempErrors.push('The entered passwords do not match');
 
     if (tempErrors.length > 0) {
-      setErrorMessages(tempErrors);
+      changeErrorMessages(tempErrors);
     } else {
-      setLoadingId('form_submit_button');
-      setErrorMessages([]);
+      const { errors } = await myFetch.post(
+        '/auth/register',
+        { username, email, password },
+        { authorize: false, loadingId: 'form_submit_button' },
+      );
 
-      const { errors } = await myFetch.post('/auth/register', { username, email, password }, { authorize: false });
-
-      if (errors) {
-        setErrorMessages(errors);
-      } else {
-        window.location.href = `/register/confirm-email?username=${username}`;
-      }
-
-      setLoadingId('');
+      if (!errors) window.location.href = `/register/confirm-email?username=${username}`;
     }
   };
 

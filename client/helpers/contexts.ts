@@ -6,22 +6,26 @@ export interface IMainContext {
   theme: Theme;
   setTheme: (value: Theme) => void;
   errorMessages: string[];
-  setErrorMessages: (value: string[]) => void;
+  changeErrorMessages: (value: string[]) => void;
   successMessage: string;
-  setSuccessMessage: (value: string) => void;
+  changeSuccessMessage: (value: string) => void;
+  // The ID of the element that triggered the loading (used to display a spinner).
+  // Use UPPER_CASE_SNAKE_CASE to indicate what is loading, if it isn't the actual ID of an element.
   loadingId: string;
-  setLoadingId: (value: string) => void;
+  changeLoadingId: (value: string) => void;
   resetMessagesAndLoadingId: () => void;
+  resetMessages: () => void;
 }
 
 export const MainContext = createContext<IMainContext>({
   theme: 'dark',
   setTheme: () => {},
   errorMessages: [],
-  setErrorMessages: () => {},
+  changeErrorMessages: () => {},
   successMessage: '',
-  setSuccessMessage: () => {},
+  changeSuccessMessage: () => {},
   loadingId: '',
-  setLoadingId: () => {},
+  changeLoadingId: () => {},
   resetMessagesAndLoadingId: () => {},
+  resetMessages: () => {},
 });

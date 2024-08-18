@@ -22,7 +22,6 @@ const C = {
   wcaIdRegex: /[0-9]{4}[A-Z]{4}[0-9]{2}/,
   wcaIdRegexLoose: /[0-9]{4}[a-zA-Z]{4}[0-9]{2}/, // allows lowercase letters too
   navigationKeys: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'],
-  smallButtonPadding: '0.1rem 0.45rem',
   moneroDonationAddress:
     '8AaML2et9RQKmZp4NYm9STKbjhfFB4h81ZxeGV166oapNzPFUTneaRmakwE61cyHr1ZUYreEU7eHF8XmMBykG8TpAwM6SVq',
 };

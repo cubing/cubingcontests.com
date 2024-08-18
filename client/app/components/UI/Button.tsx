@@ -21,20 +21,21 @@ const Button = ({
 
   return (
     <button
-      type={type}
       id={id}
+      type={type}
       onClick={onClick}
       onSubmit={(e) => e.preventDefault()}
       disabled={disabled || !!loadingId}
-      className={`btn btn-primary ${className}`}
+      className={`position-relative btn btn-primary ${className}`}
     >
-      {loadingId !== id ? (
-        text
-      ) : (
-        <div className="mx-auto" style={{ width: `${(text.length / 2).toFixed(1)}rem` }}>
-          <Loading small />
-        </div>
-      )}
+      <span style={loadingId !== id ? {} : { opacity: 0 }}>{text}</span>
+      <div
+        className={`${
+          loadingId !== id ? 'd-none' : ''
+        } position-absolute top-0 start-0 h-100 w-100 d-flex justify-content-center align-items-center`}
+      >
+        <Loading small />
+      </div>
     </button>
   );
 };

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import myFetch from '~/helpers/myFetch';
 import Tabs from '@c/UI/Tabs';
 import RankingsTable from '@c/RankingsTable';
 import RankingLinks from '@c/RankingLinks';
@@ -12,6 +11,7 @@ import { getFormattedTime } from '@sh/sharedFunctions';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
 import { eventCategories } from '~/helpers/eventCategories';
 import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
+import { ssrFetch } from '~/helpers/fetchUtils';
 
 // SEO
 export const metadata = {
@@ -28,7 +28,7 @@ export const metadata = {
 
 const RecordsPage = async ({ params }: { params: { category: string } }) => {
   // Refreshes records every 5 minutes
-  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await myFetch.get('/results/records/WR', {
+  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await ssrFetch('/results/records/WR', {
     revalidate: C.rankingsRev,
   });
 

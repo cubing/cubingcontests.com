@@ -27,6 +27,8 @@ Cubing Contests supports entering attempts using an external device or service. 
 
 To get the API key, go to the edit page of the contest and click "Get Access Token". Keep in mind that you will not be able to retrieve the key again after leaving that screen. You will only be able to generate a new one, which will invalidate the old key.
 
+**Please note** that external data entry for team events is not supported yet. Also, keep in mind that even if you submit a result that doesn't fit the cutoff or is higher than the time limit, it will be changed to DNF or ignored if the competitor did not make cutoff.
+
 ## Deployment
 
 Please do **NOT** try to deploy your own instance until this project is ready for that (you will find instructions in this section).

@@ -1,13 +1,13 @@
 'use client';
 
-import { useContext, useState } from 'react';
-import myFetch from '~/helpers/myFetch';
+import { useContext, useRef, useState } from 'react';
+import { useMyFetch } from '~/helpers/customHooks';
 import Loading from '@c/UI/Loading';
 import FormTextInput from './FormTextInput';
 import Competitor from '@c/Competitor';
 import { IPerson } from '@sh/types';
 import C from '@sh/constants';
-import { getUserInfo, limitRequests, splitNameAndLocalizedName } from '~/helpers/utilityFunctions';
+import { getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { MainContext } from '~/helpers/contexts';
 
@@ -43,7 +43,9 @@ const FormPersonInputs = ({
   redirectToOnAddPerson?: string;
   noGrid?: boolean;
 }) => {
-  const { setErrorMessages, resetMessagesAndLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { changeErrorMessages, resetMessagesAndLoadingId } = useContext(MainContext);
+  const fetchMatchedPersonsTimer = useRef<NodeJS.Timeout>(null);
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
   const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
@@ -51,7 +53,6 @@ const FormPersonInputs = ({
   const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(defaultMatchedPersons);
   const [personSelection, setPersonSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number>(null);
-  const [fetchMatchedPersonsTimer, setFetchMatchedPersonsTimer] = useState<NodeJS.Timeout>(null);
 
   const queryMatchedPersons = (value: string) => {
     setMatchedPersons(defaultMatchedPersons);
@@ -60,33 +61,22 @@ const FormPersonInputs = ({
     value = value.trim();
 
     if (value) {
-      limitRequests(fetchMatchedPersonsTimer, setFetchMatchedPersonsTimer, async () => {
+      limitRequests(fetchMatchedPersonsTimer, async () => {
         if (!C.wcaIdRegexLoose.test(value)) {
-          const { payload, errors } = await myFetch.get(`/persons?name=${value}`);
+          const { payload, errors } = await myFetch.get(`/persons?name=${value}`, { loadingId: null });
 
           if (errors) {
-            setErrorMessages(errors);
+            changeErrorMessages(errors);
           } else if (payload.length > 0) {
             const newMatchedPersons = [...payload.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
-
             setMatchedPersons(newMatchedPersons);
-
-            // Update current person selection
             if (newMatchedPersons.length < personSelection) setPersonSelection(0);
           }
         } else {
-          value = value.toUpperCase();
-          const { payload, errors } = await myFetch.get(`${C.wcaApiBase}/persons/${value}.json`);
+          const { payload, errors } = await myFetch.get(`/persons/${value}`, { authorize: true, loadingId: null });
 
-          if (errors) {
-            setErrorMessages(errors);
-          } else {
-            const [name, localizedName] = splitNameAndLocalizedName(payload.name);
-            // personId and createdBy are set later
-            setMatchedPersons([
-              { personId: 0, name, localizedName, countryIso2: payload.country, wcaId: value, createdBy: '' },
-            ]);
-          }
+          if (errors) changeErrorMessages(errors);
+          else setMatchedPersons([payload]);
         }
       });
     }
@@ -112,6 +102,8 @@ const FormPersonInputs = ({
   };
 
   const changePersonName = (index: number, value: string) => {
+    resetMessagesAndLoadingId();
+
     if (value) setFocusedInput(index);
     else setFocusedInput(null);
 
@@ -131,15 +123,14 @@ const FormPersonInputs = ({
 
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
-    resetMessagesAndLoadingId();
     queryMatchedPersons(value);
   };
 
   const focusNext = (newPersons: IPerson[]) => {
+    resetMessagesAndLoadingId();
     setFocusedInput(null);
     setMatchedPersons(defaultMatchedPersons);
     setPersonSelection(0);
-    resetMessagesAndLoadingId();
 
     // Focus on the first attempt input, if all names have been entered, or the next person input,
     // if all names haven't been entered and the last person input is not currently focused
@@ -165,23 +156,11 @@ const FormPersonInputs = ({
         }
       }
     } else {
-      let newSelectedPerson = matchedPersons[selectionIndex];
-      const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
-
-      // If selection was done using the WCA ID, personId would be 0 here
-      if (newSelectedPerson.personId === 0) {
-        const { payload, errors } = await myFetch.post('/persons/create-or-get', newSelectedPerson);
-
-        if (errors) {
-          setErrorMessages(errors);
-          return;
-        } else {
-          newSelectedPerson = payload;
-        }
-      }
+      const newSelectedPerson = matchedPersons[selectionIndex];
 
       if (!checkCustomErrors || !checkCustomErrors(newSelectedPerson)) {
         const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
+        const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
         setPersons(newPersons);
         setPersonNames(newPersonNames);
         addEmptyInputIfRequired(newPersonNames, newPersons);
@@ -234,7 +213,7 @@ const FormPersonInputs = ({
           />
           {inputIndex === focusedInput && personName && (
             <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
-              {fetchMatchedPersonsTimer !== null ? (
+              {fetchMatchedPersonsTimer.current !== null ? (
                 <li className="list-group-item">
                   <div style={{ width: '200px' }}>
                     <Loading small />

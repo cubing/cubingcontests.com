@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Patch, Param, Request, Body, Query, ValidationPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Request,
+  Body,
+  Query,
+  ValidationPipe,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
 import { ContestDto } from './dto/contest.dto';
@@ -80,15 +92,19 @@ export class ContestsController {
     return await this.service.updateContest(competitionId, contestDto, req.user);
   }
 
-  // PATCH /competitions/set-state/:competitionId/:newState
-  @Patch('set-state/:competitionId/:newState')
+  // PATCH /competitions/set-state/:competitionId
+  @Patch('set-state/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async updateState(
     @Param('competitionId') competitionId: string,
-    @Param('newState') newState: string,
+    @Body() { newState }: { newState: string },
     @Request() req: any,
   ) {
+    const parsedState = parseInt(newState);
+    if (isNaN(parsedState) || !Object.values(ContestState).includes(parsedState))
+      throw new BadRequestException('Please provide a valid state');
+
     this.logger.logAndSave(`Setting state ${newState} for contest ${competitionId}`, LogType.UpdateContestState);
 
     return await this.service.updateState(competitionId, parseInt(newState) as ContestState, req.user);

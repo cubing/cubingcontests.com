@@ -148,23 +148,14 @@ export class ContestsService {
 
     // Check access rights
     if (!user.roles.includes(Role.Admin)) {
-      const person = await this.personsService.getPersonById(user.personId);
-
-      if (!person) {
-        throw new BadRequestException(
-          'Your profile must be tied to your account before you can use moderator features',
-        );
-      }
-
-      queryFilter = { organizers: person._id };
+      const person = await this.personsService.getPersonByPersonId(user.personId, {
+        customError: 'Your profile must be tied to your account before you can use moderator features',
+      });
+      queryFilter = { organizers: (person as any)._id };
     }
 
-    try {
-      const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
-      return contests;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+    return contests;
   }
 
   // If eventId is defined, this will include the results for that event in the response
@@ -249,7 +240,7 @@ export class ContestsService {
         participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents })).length,
       };
 
-      newCompetition.organizers = await this.personsService.getPersonsById(
+      newCompetition.organizers = await this.personsService.getPersonsByPersonIds(
         contestDto.organizers.map((org) => org.personId),
       );
 
@@ -292,7 +283,9 @@ export class ContestsService {
 
     this.validateContest(contestDto, user);
 
-    contest.organizers = await this.personsService.getPersonsById(contestDto.organizers.map((org) => org.personId));
+    contest.organizers = await this.personsService.getPersonsByPersonIds(
+      contestDto.organizers.map((org) => org.personId),
+    );
     contest.contact = contestDto.contact;
     contest.description = contestDto.description;
     contest.events = await this.updateContestEvents(contest, contestDto.events);
@@ -337,7 +330,7 @@ export class ContestsService {
       if (getIsCompType(contest.type)) contest.endDate = contestDto.endDate;
     }
 
-    await this.saveContest(contest);
+    await contest.save();
   }
 
   async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
@@ -406,7 +399,10 @@ export class ContestsService {
       );
     }
 
-    await this.saveContest(contest);
+    await contest.save();
+
+    // Return the updated contest without system fields
+    return await this.contestModel.findOne({ competitionId }, excl).exec();
   }
 
   async enableQueue(competitionId: string) {
@@ -433,14 +429,6 @@ export class ContestsService {
   /////////////////////////////////////////////////////////////////////////////////////
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
-
-  private async saveContest(contest: ContestDocument) {
-    try {
-      await contest.save();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while saving contest ${contest.competitionId}: ${err.message}`);
-    }
-  }
 
   // Finds the contest with the given competition ID with the rounds and results populated
   private async getFullContest(

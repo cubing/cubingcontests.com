@@ -335,7 +335,7 @@ describe('ResultsService', () => {
       });
     });
 
-    // describe('editResult', () => {});
+    // describe('updateResult', () => {});
 
     // describe('deleteResult', () => {});
 

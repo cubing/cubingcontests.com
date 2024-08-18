@@ -1,18 +1,17 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
-import myFetch from '~/helpers/myFetch';
+import { useEffect, useState } from 'react';
+import { useMyFetch } from '~/helpers/customHooks';
 import { IFeEvent } from '@sh/types';
 import { roundFormats } from '@sh/roundFormats';
 import { RoundFormat } from '@sh/enums';
-import { MainContext } from '~/helpers/contexts';
 import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
 import Tabs from '@c/UI/Tabs';
-import ErrorMessages from '@c/UI/ErrorMessages';
+import ToastMessages from '@c/UI/ToastMessages';
 import MarkdownDescription from '@c/MarkdownDescription';
 
 const RulesPage = () => {
-  const { setErrorMessages } = useContext(MainContext);
+  const myFetch = useMyFetch();
 
   const [activeTab, setActiveTab] = useState('general');
   const [events, setEvents] = useState<IFeEvent[]>([]);
@@ -25,15 +24,14 @@ const RulesPage = () => {
 
   useEffect(() => {
     myFetch.get('/events/with-rules').then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setEvents(payload);
+      if (!errors) setEvents(payload);
     });
   }, []);
 
   return (
     <div>
       <h2 className="mb-4 text-center">Rules</h2>
-      <ErrorMessages />
+      <ToastMessages />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
 
       <div className="px-2">

@@ -29,7 +29,6 @@ const ResultForm = ({
   attempts,
   setAttempts,
   recordPairs,
-  loadingRecordPairs,
   recordTypes,
   nextFocusTargetId,
   resetTrigger,
@@ -52,7 +51,6 @@ const ResultForm = ({
   attempts: IAttempt[];
   setAttempts: (val: IAttempt[]) => void;
   recordPairs: IRecordPair[];
-  loadingRecordPairs?: boolean;
   recordTypes: IRecordType[];
   nextFocusTargetId?: string;
   resetTrigger: boolean; // if this is undefined, that means we're editing a result
@@ -71,7 +69,7 @@ const ResultForm = ({
   isAdmin?: boolean;
   forResultsSubmissionForm?: boolean;
 }) => {
-  const { setErrorMessages } = useContext(MainContext);
+  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
@@ -152,7 +150,7 @@ const ResultForm = ({
   // Returns true if there are errors
   const checkPersonSelectionErrors = (newSelectedPerson: IPerson): boolean => {
     if (round?.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))) {
-      setErrorMessages(["That competitor's results have already been entered"]);
+      changeErrorMessages(["That competitor's results have already been entered"]);
       return true;
     }
 
@@ -201,6 +199,8 @@ const ResultForm = ({
       resetCompetitors: !keepCompetitors,
     },
   ) => {
+    resetMessagesAndLoadingId();
+
     if (forResultsSubmissionForm) {
       const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((el) => el.value);
 
@@ -208,7 +208,6 @@ const ResultForm = ({
       else setRoundFormat(newRoundFormat);
     }
 
-    setErrorMessages([]);
     const newAttempts = new Array(roundFormats.find((rf) => rf.value === newRoundFormat).attempts).fill({ result: 0 });
     setAttempts(newAttempts);
     setAttemptsResetTrigger(!attemptsResetTrigger);
@@ -283,7 +282,7 @@ const ResultForm = ({
         />
       ))}
       <div className="mb-3">
-        {loadingRecordPairs ? (
+        {loadingId === 'RECORD_PAIRS' ? (
           <Loading small dontCenter />
         ) : (
           <div>

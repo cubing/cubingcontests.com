@@ -1,16 +1,24 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotImplementedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  NotImplementedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
-import { CreatePersonDto } from './dto/create-person.dto';
-import { IFePerson, IPerson } from '@sh/types';
+import { ContestEvent } from '~/src/models/contest.model';
+import { ResultDocument } from '~/src/models/result.model';
+import { PersonDto } from './dto/person.dto';
+import { IFePerson, IPersonDto } from '@sh/types';
 import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { ContestEvent } from '~/src/models/contest.model';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
+import C from '@sh/constants';
 
 @Injectable()
 export class PersonsService {
@@ -18,37 +26,34 @@ export class PersonsService {
     private readonly logger: MyLogger,
     @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
+    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
   ) {}
 
-  async getPersonById(personId: number): Promise<PersonDocument> {
-    try {
-      return await this.personModel.findOne({ personId }, excl).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while getting person with ID ${personId}: ${err.message}`);
-    }
+  async getPersonByPersonId(personId: number, { customError }: { customError?: string } = {}): Promise<IFePerson> {
+    const person = await this.personModel.findOne({ personId }, excl).exec();
+    if (!person) throw new NotFoundException(customError);
+    return person;
   }
 
-  async getPersonsById(
+  async getPersonsByPersonIds(
     personIds: number[],
     { preserveOrder }: { preserveOrder?: boolean } = {},
   ): Promise<PersonDocument[]> {
-    try {
-      let persons: PersonDocument[] = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
+    let persons: PersonDocument[] = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
 
-      if (preserveOrder) persons = personIds.map((pid) => persons.find((p) => p.personId === pid));
+    if (preserveOrder) persons = personIds.map((pid) => persons.find((p) => p.personId === pid));
 
-      return persons;
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while getting persons by person ID: ${err.message}`);
-    }
+    return persons;
   }
 
-  async getModPersons(user: IPartialUser) {
+  async getModPersons(user: IPartialUser): Promise<IFePerson[]> {
     if (user.roles.includes(Role.Admin)) {
       // BE VERY CAREFUL HERE SO AS NOT TO EVER LEAK PASSWORD HASHES!!!
       const persons = await this.personModel
         .find({}, exclSysButKeepCreatedBy)
         .populate({ path: 'createdBy', model: 'User' })
+        .sort({ personId: -1 })
+        .limit(500)
         .exec();
 
       const fePersons: IFePerson[] = [];
@@ -59,8 +64,12 @@ export class PersonsService {
           newFePerson.creator = {
             username: person.createdBy.username,
             email: person.createdBy.email,
-            person: await this.getPersonById(person.createdBy.personId),
+            person: await this.getPersonByPersonId(person.createdBy.personId),
           };
+        }
+        // createdBy = null, when there was a creator, but it's a deleted user
+        else if (person.createdBy !== null) {
+          newFePerson.creator = 'EXT_DEVICE';
         }
         (newFePerson as any).createdBy = undefined;
         fePersons.push(newFePerson);
@@ -68,28 +77,50 @@ export class PersonsService {
 
       return fePersons;
     } else {
-      throw new NotImplementedException('NOT IMPLEMENTED');
+      const persons = await this.personModel
+        .find({ createdBy: new mongoose.Types.ObjectId(user._id as string) }, excl)
+        .sort({ personId: -1 })
+        .limit(500)
+        .exec();
+      return persons;
     }
   }
 
-  async getPersonsByName(name: string): Promise<PersonDocument[]> {
+  async getPersonsByName(name: string): Promise<IFePerson[]> {
     return await this.personModel.find({ name: { $regex: name, $options: 'i' } }, excl).exec();
   }
 
-  async getPersonByName(name: string): Promise<PersonDocument> {
-    try {
-      return await this.personModel.findOne({ name }, excl).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while getting person with name ${name}: ${err.message}`);
-    }
+  async getPersonByName(name: string): Promise<IFePerson> {
+    return await this.personModel.findOne({ name }, excl).exec();
   }
 
-  async getPersonByWcaId(wcaId: string): Promise<PersonDocument> {
-    try {
-      return await this.personModel.findOne({ wcaId }, excl).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
+  async getOrCreatePersonByWcaId(wcaId: string, { user }: { user: IPartialUser | 'EXT_DEVICE' }): Promise<IFePerson> {
+    wcaId = wcaId.toUpperCase();
+
+    // Try to find existing person with the given WCA ID
+    const person = await this.personModel.findOne({ wcaId }, excl).exec();
+    if (person) return this.getFrontendPerson(person);
+
+    // Create new person by fetching the person data from the WCA API
+    const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
+
+    if (response.ok) {
+      const payload = await response.json();
+
+      console.log(payload);
+
+      const parts = payload.name.split(' (');
+      const newPerson: IPersonDto = {
+        name: parts[0],
+        localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,
+        wcaId,
+        countryIso2: payload.country,
+      };
+
+      return await this.createPerson(newPerson, { user });
     }
+
+    throw new NotFoundException(`Person with WCA ID ${wcaId} not found`);
   }
 
   async getContestParticipants({
@@ -98,7 +129,7 @@ export class PersonsService {
   }: {
     competitionId?: string;
     contestEvents?: ContestEvent[];
-  }): Promise<PersonDocument[]> {
+  }): Promise<IFePerson[]> {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
@@ -116,57 +147,99 @@ export class PersonsService {
       }
     }
 
-    return await this.getPersonsById(personIds);
+    return await this.getPersonsByPersonIds(personIds);
   }
 
   async getPersonsTotal(): Promise<number> {
     return await this.personModel.countDocuments().exec();
   }
 
-  async createPerson(createPersonDto: CreatePersonDto, user: IPartialUser): Promise<PersonDocument> {
-    const wcaId = createPersonDto.wcaId ? `WCA ID ${createPersonDto.wcaId}` : 'no WCA ID';
-    this.logger.logAndSave(`Creating person with name ${createPersonDto.name} and ${wcaId}`, LogType.CreatePerson);
+  async createPerson(
+    personDto: PersonDto,
+    { user }: { user: IPartialUser | 'EXT_DEVICE' },
+  ): Promise<PersonDocument | IFePerson> {
+    this.logger.logAndSave(
+      `Creating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : 'no WCA ID'}`,
+      LogType.CreatePerson,
+    );
 
+    if (personDto.wcaId) personDto.wcaId = personDto.wcaId.trim().toUpperCase();
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 
-    try {
-      if (createPersonDto.wcaId) {
-        duplicatePerson = await this.personModel.findOne({ wcaId: createPersonDto.wcaId }).exec();
-      } else {
-        duplicatePerson = await this.personModel
-          .findOne({ name: createPersonDto.name, countryIso2: createPersonDto.countryIso2 })
-          .exec();
-      }
-    } catch (err: any) {
-      throw new InternalServerErrorException(`Error while searching for person with the same name: ${err.message}`);
+    if (personDto.wcaId) {
+      duplicatePerson = await this.personModel.findOne({ wcaId: personDto.wcaId }).exec();
+    } else {
+      duplicatePerson = await this.personModel
+        .findOne({ name: personDto.name, countryIso2: personDto.countryIso2 })
+        .exec();
     }
 
     if (duplicatePerson) {
-      if (createPersonDto.wcaId) throw new BadRequestException('A person with the same WCA ID already exists');
+      if (personDto.wcaId) throw new BadRequestException('A person with the same WCA ID already exists');
       throw new BadRequestException('A person with the same name and country already exists');
     }
 
-    let newestPerson: PersonDocument[];
-    const newPerson = createPersonDto as IPerson;
+    const [newestPerson] = await this.personModel.find({}, { personId: 1 }).sort({ personId: -1 }).limit(1).exec();
 
-    try {
-      newestPerson = await this.personModel.find().sort({ personId: -1 }).limit(1).exec();
-    } catch (err: any) {
-      throw new InternalServerErrorException(err.message);
+    const createdPerson = await this.personModel.create({
+      ...personDto,
+      personId: newestPerson ? newestPerson.personId + 1 : 1,
+      createdBy: user !== 'EXT_DEVICE' ? new mongoose.Types.ObjectId(user._id as string) : undefined,
+    });
+
+    return this.getFrontendPerson(createdPerson, { user });
+  }
+
+  async updatePerson(id: string, personDto: PersonDto, user: IPartialUser): Promise<IFePerson> {
+    const person = await this.personModel.findById(id).exec();
+    if (!person) throw new NotFoundException('Person not found');
+
+    if (personDto.wcaId) {
+      personDto.wcaId = personDto.wcaId.toUpperCase();
+      const sameWcaIdPerson = await this.personModel.findOne({ _id: { $ne: id }, wcaId: personDto.wcaId });
+      if (sameWcaIdPerson) throw new ConflictException('Another competitor already has that WCA ID');
     }
 
-    // If it's not the first person to be created, get the highest person id in the DB and increment it
-    if (newestPerson.length === 1) newPerson.personId = newestPerson[0].personId + 1;
-    if (createPersonDto.wcaId) newPerson.wcaId = createPersonDto.wcaId.trim().toUpperCase();
-    newPerson.createdBy = new mongoose.Types.ObjectId(user._id as string);
+    const approvedResult = await this.resultModel
+      .findOne({ competitionId: { $exists: true }, personIds: person.personId })
+      .exec();
+    const isAdmin = user.roles.includes(Role.Admin);
 
-    try {
-      return await this.personModel.create(newPerson);
-    } catch (err) {
-      throw new InternalServerErrorException(
-        `Error while creating new person with name ${createPersonDto.name}: ${err.message}`,
+    if (!isAdmin && approvedResult)
+      throw new BadRequestException(
+        'You may not edit a person who has competetd in a published contest. Please contact the admins.',
       );
+
+    if (personDto.wcaId) {
+      throw new NotImplementedException("Editing a person with a WCA ID hasn't been implemented yet");
+
+      // person.wcaId = personDto.wcaId;
+
+      // if (!person.wcaId) {
+      // } else if (personDto.wcaId !== person.wcaId) {
+      // } else {
+      // }
+    } else {
+      if (person.wcaId) person.wcaId = undefined;
+      person.name = personDto.name;
+      person.localizedName = personDto.localizedName;
+      person.countryIso2 = personDto.countryIso2;
     }
+
+    await person.save();
+
+    return this.getFrontendPerson(person, { user });
+  }
+
+  private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {
+    const fePerson: IFePerson = person.toObject();
+
+    // Remove system fields
+    Object.keys(excl).forEach((key) => delete (fePerson as any)[key]);
+
+    if (user && user !== 'EXT_DEVICE') fePerson.creator = { username: user.username, email: '' };
+
+    return fePerson;
   }
 }

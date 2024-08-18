@@ -1,6 +1,6 @@
 'use client';
 
-import ErrorMessages from '@c/UI/ErrorMessages';
+import ToastMessages from '@c/UI/ToastMessages';
 import Button from '@c/UI/Button';
 import { useContext } from 'react';
 import { MainContext } from '~/helpers/contexts';
@@ -26,7 +26,7 @@ const Form = ({
   if (showSubmitButton && !onSubmit) throw new Error('onSubmit cannot be undefined unless the submit button is hidden');
   if (showCancelButton && !onCancel) throw new Error('onCancel cannot be undefined unless the cancel button is hidden');
 
-  const { errorMessages, successMessage, loadingId } = useContext(MainContext);
+  const { loadingId } = useContext(MainContext);
 
   return (
     <form
@@ -34,11 +34,7 @@ const Form = ({
       style={{ maxWidth: '768px' }}
       onSubmit={(e) => e.preventDefault()}
     >
-      {errorMessages.length > 0 ? (
-        <ErrorMessages />
-      ) : (
-        successMessage && <div className="mb-3 alert alert-success fs-5">{successMessage}</div>
-      )}
+      <ToastMessages />
 
       {children}
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
-import myFetch from '~/helpers/myFetch';
+import { useMyFetch } from '~/helpers/customHooks';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormSelect from '@c/form/FormSelect';
@@ -14,11 +14,11 @@ import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import { eventCategories } from '~/helpers/eventCategories';
 import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/helpers/multipleChoiceOptions';
-import { useScrollToTopForNewMessage } from '~/helpers/customHooks';
 import { MainContext } from '~/helpers/contexts';
 
 const CreateEditEventPage = () => {
-  const { setErrorMessages, loadingId, setLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const myFetch = useMyFetch();
+  const { loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [events, setEvents] = useState<IFeEvent[]>([]);
   const [mode, setMode] = useState<ListPageMode>('view');
@@ -41,8 +41,7 @@ const CreateEditEventPage = () => {
 
   useEffect(() => {
     myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
-      if (errors) setErrorMessages(errors);
-      else setEvents(payload);
+      if (!errors) setEvents(payload);
     });
   }, []);
 
@@ -50,15 +49,11 @@ const CreateEditEventPage = () => {
     if (mode !== 'view') document.getElementById('event_name').focus();
   }, [mode]);
 
-  useScrollToTopForNewMessage();
-
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
-    resetMessagesAndLoadingId();
-
     const newEvent: IFeEvent = {
       eventId: newEventId,
       name,
@@ -76,28 +71,22 @@ const CreateEditEventPage = () => {
     if (hasMemo) newEvent.groups.push(EventGroup.HasMemo);
     if (hidden) newEvent.groups.push(EventGroup.Hidden);
 
-    const requestFunction = mode === 'add' ? myFetch.post : myFetch.patch;
-    const requestURL = mode === 'add' ? '/events' : `/events/${eventId}`;
+    const { payload, errors } =
+      mode === 'add'
+        ? await myFetch.post('/events', newEvent, { loadingId: 'form_submit_button' })
+        : await myFetch.patch(`/events/${eventId}`, newEvent, { loadingId: 'form_submit_button' });
 
-    setLoadingId('form_submit_button');
-    const { payload, errors } = await requestFunction(requestURL, newEvent);
-
-    if (errors) {
-      setErrorMessages(errors);
-    } else {
-      reset('view');
+    if (!errors) {
       setEvents(payload);
+      setMode('view');
     }
-
-    setLoadingId('');
-  };
-
-  const onAddEvent = () => {
-    reset('add');
   };
 
   const onEditEvent = (event: IFeEvent) => {
-    reset('edit');
+    window.scrollTo(0, 0);
+    resetMessagesAndLoadingId();
+    setMode('edit');
+    setEventIdUnlocked(false);
 
     setEventId(event.eventId);
     setNewEventId(event.eventId);
@@ -113,14 +102,6 @@ const CreateEditEventPage = () => {
     setHidden(event.groups.includes(EventGroup.Hidden));
     setDescription(event.description);
     setRule(event.ruleText);
-
-    window.scrollTo(0, 0);
-  };
-
-  const reset = (newMode: ListPageMode) => {
-    setEventIdUnlocked(false);
-    setMode(newMode);
-    resetMessagesAndLoadingId();
   };
 
   return (
@@ -128,11 +109,11 @@ const CreateEditEventPage = () => {
       <h2 className="mb-4 text-center">Events</h2>
 
       {mode === 'view' ? (
-        <button type="button" className="btn btn-success ms-3" onClick={onAddEvent}>
+        <button type="button" className="btn btn-success ms-3" onClick={() => setMode('add')}>
           Add event
         </button>
       ) : (
-        <Form buttonText="Submit" onSubmit={handleSubmit} showCancelButton onCancel={() => reset('view')}>
+        <Form buttonText="Submit" onSubmit={handleSubmit} showCancelButton onCancel={() => setMode('view')}>
           <FormTextInput
             id="event_name"
             title="Event name"
