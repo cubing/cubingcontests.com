@@ -55,6 +55,8 @@ export class PersonsService {
       for (const person of persons) {
         const newFePerson: IFePerson = person.toObject();
         if (person.createdBy) {
+          if (!person.createdBy.personId) console.log('TEST', JSON.stringify(person));
+
           newFePerson.creator = {
             username: person.createdBy.username,
             email: person.createdBy.email,
