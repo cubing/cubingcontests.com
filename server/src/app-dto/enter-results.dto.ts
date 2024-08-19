@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 import { AttemptDto, HasNonDnsResult } from '../modules/results/dto/create-result.dto';
 import { Type } from 'class-transformer';
-import { IAttempt } from '~~/client/shared_helpers/types';
+import { IAttempt } from '@sh/types';
 import C from '@sh/constants';
 
 export class EnterResultsDto {
@@ -32,16 +32,14 @@ export class EnterResultsDto {
   results: ExternalResultDto[];
 }
 
-class ExternalResultDto {
+export class ExternalResultDto {
   @IsOptional()
   @IsInt()
   @Min(1)
   registrantId?: number;
 
   @IsOptional()
-  @Matches(C.wcaIdRegexLoose, {
-    message: '$value is not a valid WCA ID.',
-  })
+  @Matches(C.wcaIdRegexLoose, { message: '$value is not a valid WCA ID.' })
   @IsString()
   wcaId?: string;
 

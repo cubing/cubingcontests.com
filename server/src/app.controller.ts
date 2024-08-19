@@ -109,8 +109,8 @@ export class AppController {
   @UseGuards(AuthTokenGuard)
   async enterAttemptFromExternalDevice(@Body(new ValidationPipe()) enterAttemptDto: EnterAttemptDto) {
     this.logger.logAndSave(
-      `Entering attempt ${enterAttemptDto.attemptResult} for event ${enterAttemptDto.eventId} from external device`,
-      LogType.UpdateResult,
+      `Entering attempt from external device: ${JSON.stringify(enterAttemptDto)}`,
+      LogType.EnterAttemptFromExtDevice,
     );
 
     return await this.appService.enterAttemptFromExternalDevice(enterAttemptDto);
@@ -120,8 +120,8 @@ export class AppController {
   @UseGuards(AuthTokenGuard)
   async enterResultsFromExternalDevice(@Body(new ValidationPipe()) enterResultsDto: EnterResultsDto) {
     this.logger.logAndSave(
-      `Entering multiple results for competition ${enterResultsDto.competitionWcaId} for event ${enterResultsDto.eventId} from external device`,
-      LogType.UpdateResult,
+      `Entering multiple results from external device: ${JSON.stringify(enterResultsDto)}`,
+      LogType.EnterResultsFromExtDevice,
     );
 
     return await this.appService.enterResultsFromExternalDevice(enterResultsDto);

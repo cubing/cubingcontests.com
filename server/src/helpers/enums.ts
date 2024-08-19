@@ -37,6 +37,7 @@ export enum LogType {
 
   StartNewSolution = 'start_new_solution',
 
-  EnterAttempt = 'enter_attempt',
+  EnterAttemptFromExtDevice = 'enter_ext_attempt',
+  EnterResultsFromExtDevice = 'enter_ext_results',
   DebugEmail = 'debug_email',
 }

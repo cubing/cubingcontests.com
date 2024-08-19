@@ -6,10 +6,10 @@ import { LogDocument } from '~/src/models/log.model';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
-import { IAdminStats, IAttempt, IFePerson, IResult } from '@sh/types';
+import { IAdminStats, IAttempt, IResult } from '@sh/types';
 import { roundFormats } from '@sh/roundFormats';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
-import { EnterResultsDto } from './app-dto/enter-results.dto';
+import { EnterResultsDto, ExternalResultDto } from './app-dto/enter-results.dto';
 
 @Injectable()
 export class AppService {
@@ -99,16 +99,7 @@ export class AppService {
   }
 
   async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
-    let person: IFePerson;
-
-    if (enterAttemptDto.wcaId) {
-      person = await this.personsService.getOrCreatePersonByWcaId(enterAttemptDto.wcaId.toUpperCase(), {
-        user: 'EXT_DEVICE',
-      });
-    } else {
-      person = await this.personsService.getPersonByPersonId(enterAttemptDto.registrantId);
-    }
-
+    const person = await this.getPersonForExtDeviceDataEntry(enterAttemptDto);
     const round = await this.resultsService.getContestRound(
       enterAttemptDto.competitionWcaId,
       enterAttemptDto.eventId,
@@ -151,7 +142,6 @@ export class AppService {
         round.roundId,
       );
     }
-
   }
   async enterResultsFromExternalDevice(enterResultsDto: EnterResultsDto) {
     const round = await this.resultsService.getContestRound(
@@ -161,25 +151,20 @@ export class AppService {
     );
 
     for (const externalResultDto of enterResultsDto.results) {
-      const person = externalResultDto.wcaId
-        ? await this.personsService.getPersonByWcaId(externalResultDto.wcaId.toUpperCase())
-        : await this.personsService.getPersonById(externalResultDto.registrantId);
-
-      if (!person) throw new NotFoundException(`Competitor ${externalResultDto.registrantId ? externalResultDto.registrantId : externalResultDto.wcaId} not found`);
-
+      const person = await this.getPersonForExtDeviceDataEntry(externalResultDto);
       const result: IResult | undefined = round.results.find(
         (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
       );
 
       const newResultPartial = {
         date: null as Date,
-        unapproved: true, 
+        unapproved: true,
         personIds: [person.personId],
         attempts: externalResultDto.attempts,
       };
 
       if (result) {
-        await this.resultsService.editResult((result as any)._id.toString(), newResultPartial);
+        await this.resultsService.updateResult((result as any)._id.toString(), newResultPartial);
       } else {
         await this.resultsService.createResult(
           {
@@ -192,6 +177,14 @@ export class AppService {
           round.roundId,
         );
       }
+    }
+  }
+
+  private async getPersonForExtDeviceDataEntry({ wcaId, registrantId }: EnterAttemptDto | ExternalResultDto) {
+    if (wcaId) {
+      return await this.personsService.getOrCreatePersonByWcaId(wcaId.toUpperCase(), { user: 'EXT_DEVICE' });
+    } else {
+      return await this.personsService.getPersonByPersonId(registrantId);
     }
   }
 }

@@ -19,9 +19,7 @@ export class EnterAttemptDto {
   registrantId?: number;
 
   @IsOptional()
-  @Matches(C.wcaIdRegexLoose, {
-    message: '$value is not a valid WCA ID.',
-  })
+  @Matches(C.wcaIdRegexLoose, { message: '$value is not a valid WCA ID.' })
   @IsString()
   wcaId?: string;
 

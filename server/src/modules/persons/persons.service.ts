@@ -25,7 +25,7 @@ export class PersonsService {
 
   async getPersonByPersonId(personId: number, { customError }: { customError?: string } = {}): Promise<IFePerson> {
     const person = await this.personModel.findOne({ personId }, excl).exec();
-    if (!person) throw new NotFoundException(customError);
+    if (!person) throw new NotFoundException(customError ?? `Person with ID ${personId} not found`);
     return person;
   }
 
