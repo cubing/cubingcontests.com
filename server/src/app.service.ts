@@ -182,7 +182,8 @@ export class AppService {
 
   private async getPersonForExtDeviceDataEntry({ wcaId, registrantId }: EnterAttemptDto | ExternalResultDto) {
     if (wcaId) {
-      return await this.personsService.getOrCreatePersonByWcaId(wcaId.toUpperCase(), { user: 'EXT_DEVICE' });
+      const res = await this.personsService.getOrCreatePersonByWcaId(wcaId.toUpperCase(), { user: 'EXT_DEVICE' });
+      return res.person;
     } else {
       return await this.personsService.getPersonByPersonId(registrantId);
     }

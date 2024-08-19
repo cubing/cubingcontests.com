@@ -1,9 +1,9 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { addHours, differenceInDays } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { useFetchWcaCompDetails, useMyFetch } from '~/helpers/customHooks';
+import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from '~/helpers/customHooks';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCountrySelect from '@c/form/FormCountrySelect';
@@ -56,7 +56,7 @@ import {
   roundProceedOptions,
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { getContestIdFromName, getUserInfo } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
@@ -73,10 +73,10 @@ const ContestForm = ({
   mode: 'new' | 'edit' | 'copy';
 }) => {
   const myFetch = useMyFetch();
+  const [limitTimezoneRequests, isLoadingTimezone] = useLimitRequests();
   const fetchWcaCompDetails = useFetchWcaCompDetails();
   const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
     useContext(MainContext);
-  const fetchTimezoneTimer = useRef<NodeJS.Timeout>(null);
 
   const [activeTab, setActiveTab] = useState('details');
   const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
@@ -458,7 +458,7 @@ const ContestForm = ({
       setLatitude(processedLatitude);
       setLongitude(processedLongitude);
 
-      limitRequests(fetchTimezoneTimer, async () => {
+      limitTimezoneRequests(async () => {
         // Adjust all times to the new time zone
         const timeZone: string = await fetchTimeZone(processedLatitude, processedLongitude);
 
@@ -811,7 +811,7 @@ const ContestForm = ({
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         onSubmit={handleSubmit}
-        disableButton={disableIfCompFinished || fetchTimezoneTimer.current !== null}
+        disableButton={disableIfCompFinished}
       >
         {isAdmin && mode === 'edit' && <CreatorDetails creator={creator} />}
 
@@ -933,7 +933,7 @@ const ContestForm = ({
                     </div>
                     <div className="row">
                       <div className="text-secondary fs-6">
-                        Time zone: {fetchTimezoneTimer.current === null ? venueTimeZone : <Loading small dontCenter />}
+                        Time zone: {isLoadingTimezone ? <Loading small dontCenter /> : venueTimeZone}
                       </div>
                     </div>
                   </div>
@@ -946,11 +946,7 @@ const ContestForm = ({
                   <FormDatePicker
                     id="start_date"
                     title={`Start date and time (${
-                      type === ContestType.Meetup
-                        ? fetchTimezoneTimer.current === null
-                          ? venueTimeZone
-                          : '...'
-                        : 'UTC'
+                      type === ContestType.Meetup ? (isLoadingTimezone ? '...' : venueTimeZone) : 'UTC'
                     })`}
                     value={startTime}
                     setValue={changeStartDate}

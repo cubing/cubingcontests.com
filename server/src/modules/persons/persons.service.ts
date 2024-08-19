@@ -7,7 +7,7 @@ import { RoundDocument } from '~/src/models/round.model';
 import { ContestEvent } from '~/src/models/contest.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { PersonDto } from './dto/person.dto';
-import { IFePerson, IPersonDto } from '@sh/types';
+import { IFePerson, IWcaPersonDto, IPersonDto } from '@sh/types';
 import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '@m/my-logger/my-logger.service';
@@ -88,16 +88,19 @@ export class PersonsService {
     return await this.personModel.findOne({ name }, excl).exec();
   }
 
-  async getOrCreatePersonByWcaId(wcaId: string, { user }: { user: IPartialUser | 'EXT_DEVICE' }): Promise<IFePerson> {
+  async getOrCreatePersonByWcaId(
+    wcaId: string,
+    { user }: { user: IPartialUser | 'EXT_DEVICE' },
+  ): Promise<IWcaPersonDto> {
     wcaId = wcaId.toUpperCase();
 
     // Try to find existing person with the given WCA ID
     const person = await this.personModel.findOne({ wcaId }, excl).exec();
-    if (person) return this.getFrontendPerson(person);
+    if (person) return { person: this.getFrontendPerson(person), isNew: false };
 
     // Create new person by fetching the person data from the WCA API
     const wcaPerson = await this.getWcaPersonData(wcaId);
-    return await this.createPerson(wcaPerson, { user });
+    return { person: await this.createPerson(wcaPerson, { user }), isNew: true };
   }
 
   async getContestParticipants({
@@ -110,11 +113,8 @@ export class PersonsService {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
-    if (contestEvents) {
-      for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
-    } else {
-      compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
-    }
+    if (contestEvents) for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
+    else compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
 
     for (const round of compRounds) {
       for (const result of round.results) {
@@ -140,11 +140,11 @@ export class PersonsService {
       LogType.CreatePerson,
     );
 
-    if (personDto.wcaId) personDto.wcaId = personDto.wcaId.trim().toUpperCase();
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 
     if (personDto.wcaId) {
+      personDto.wcaId = personDto.wcaId.trim().toUpperCase();
       duplicatePerson = await this.personModel.findOne({ wcaId: personDto.wcaId }).exec();
     } else {
       duplicatePerson = await this.personModel

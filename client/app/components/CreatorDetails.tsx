@@ -21,12 +21,7 @@ const CreatorDetails = ({
 
   creator = creator as IFeUser;
   const username = <a href={`mailto:${creator.email}`}>{creator.username}</a>;
-  const competitor =
-    creator.person !== null ? (
-      <Competitor person={creator.person} noFlag />
-    ) : (
-      <span className="text-danger fw-bold">NOT FOUND</span>
-    );
+  const competitor = creator.person !== null ? <Competitor person={creator.person} noFlag /> : 'Not found';
 
   if (small) {
     return (

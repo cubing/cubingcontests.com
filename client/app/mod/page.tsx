@@ -77,9 +77,9 @@ const ModeratorDashboardPage = () => {
           <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
             Create new contest
           </Link>
-          {/* <Link href="/mod/competitors" className="btn btn-warning btn-sm btn-lg-md">
+          <Link href="/mod/competitors" className="btn btn-warning btn-sm btn-lg-md">
             Manage competitors
-          </Link> */}
+          </Link>
           {userInfo.isAdmin && (
             <>
               <Link href="/admin/results" className="btn btn-warning btn-sm btn-lg-md">

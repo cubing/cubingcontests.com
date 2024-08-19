@@ -5,7 +5,6 @@ import { Color, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
 import { IAttempt, IEvent } from '@sh/types';
 import { IUserInfo } from './interfaces/UserInfo';
-import { MutableRefObject } from 'react';
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string, timeZone = 'UTC'): string => {
   if (!startDate) throw new Error('Start date missing!');
@@ -151,16 +150,6 @@ export const getUserInfo = (): IUserInfo => {
       return userInfo;
     }
   }
-};
-
-export const limitRequests = (fetchTimer: MutableRefObject<NodeJS.Timeout>, callback: () => void) => {
-  if (fetchTimer !== null) clearTimeout(fetchTimer.current);
-
-  fetchTimer.current = setTimeout(async () => {
-    await callback();
-    // Resetting this AFTER the callback, so that the fetch request can complete first
-    fetchTimer.current = null;
-  }, C.fetchThrottleTimeout);
 };
 
 export const getBSClassFromColor = (color: Color): string => {

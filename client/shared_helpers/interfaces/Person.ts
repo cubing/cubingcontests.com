@@ -15,3 +15,8 @@ export type IPersonDto = Omit<IPerson, 'personId' | 'createdBy'>;
 export type IFePerson = Omit<IPerson, 'createdBy'> & {
   creator?: IFeUser | 'EXT_DEVICE';
 };
+
+export type IWcaPersonDto = {
+  person: IFePerson;
+  isNew: boolean;
+};
