@@ -97,7 +97,7 @@ const ManageResultsPage = () => {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 mb-5">Only showing the first 100 results.</p>
+      <p className="mt-2 mb-5">Only showing the last 100 results.</p>
     </div>
   );
 };
