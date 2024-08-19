@@ -27,6 +27,54 @@ Cubing Contests supports entering attempts using an external device or service. 
 
 To get the API key, go to the edit page of the contest and click "Get Access Token". Keep in mind that you will not be able to retrieve the key again after leaving that screen. You will only be able to generate a new one, which will invalidate the old key.
 
+
+### Entering a single attempt
+
+```
+POST https://cubingcontests.com/api/enter-attempt
+
+{
+  "competitionWcaId": "MyCompetition2023",
+  "eventId": "fto",
+  "roundNumber": 1,
+  "registrantId": 5, // or "wcaId": "2005DEMO01"
+  "attemptNumber": 1,
+  "attemptResult": 1025
+}
+```
+
+### Entering multiple attempts
+
+```
+POST https://cubingcontests.com/api/enter-results
+
+{
+  "competitionWcaId": "MyCompetition2023",
+  "eventId": "fto",
+  "roundNumber": 1,
+  "results": [{
+    "registrantId": 5,
+    "attempts": [
+      { "result": 1025 },
+      { "result": 1100 },
+      { "result": 1265 },
+      { "result": 1010 },
+      { "result": 905 }
+    ]
+  }, {
+    "wcaId": "2005DEMO01",
+    "attempts": [
+      { "result": 1305 },
+      { "result": 1170 },
+      { "result": 1250 },
+      { "result": 1120 },
+      { "result": 1400 }
+    ]
+  }]
+}
+
+```
+
 **Please note** that external data entry for team events is not supported yet. Also, keep in mind that even if you submit a result that doesn't fit the cutoff or is higher than the time limit, it will be changed to DNF or ignored if the competitor did not make cutoff.
 
 ## Deployment

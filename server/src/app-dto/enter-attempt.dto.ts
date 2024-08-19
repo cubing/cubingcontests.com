@@ -1,4 +1,5 @@
-import { IsInt, IsNotEmpty, IsNumberString, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Min } from 'class-validator';
+import C from '@sh/constants';
 
 export class EnterAttemptDto {
   @IsString()
@@ -9,8 +10,8 @@ export class EnterAttemptDto {
   @IsNotEmpty()
   eventId: string;
 
-  @IsNumberString()
-  roundNumber: string;
+  @IsNumber()
+  roundNumber: number;
 
   @IsOptional()
   @IsInt()
@@ -18,6 +19,9 @@ export class EnterAttemptDto {
   registrantId?: number;
 
   @IsOptional()
+  @Matches(C.wcaIdRegexLoose, {
+    message: '$value is not a valid WCA ID.',
+  })
   @IsString()
   wcaId?: string;
 

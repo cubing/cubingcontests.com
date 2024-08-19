@@ -33,6 +33,7 @@ import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { IContest } from '@sh/types';
 import { EmailService } from '~/src/modules/email/email.service';
+import { EnterResultsDto } from './app-dto/enter-results.dto';
 
 @Controller()
 export class AppController {
@@ -113,6 +114,17 @@ export class AppController {
     );
 
     return await this.appService.enterAttemptFromExternalDevice(enterAttemptDto);
+  }
+
+  @Post('enter-results')
+  @UseGuards(AuthTokenGuard)
+  async enterResultsFromExternalDevice(@Body(new ValidationPipe()) enterResultsDto: EnterResultsDto) {
+    this.logger.logAndSave(
+      `Entering multiple results for competition ${enterResultsDto.competitionWcaId} for event ${enterResultsDto.eventId} from external device`,
+      LogType.UpdateResult,
+    );
+
+    return await this.appService.enterResultsFromExternalDevice(enterResultsDto);
   }
 
   @Post('debug-sending-email')
