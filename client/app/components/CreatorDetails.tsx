@@ -21,25 +21,29 @@ const CreatorDetails = ({
 
   creator = creator as IFeUser;
   const username = <a href={`mailto:${creator.email}`}>{creator.username}</a>;
+  const competitor =
+    creator.person !== null ? (
+      <Competitor person={creator.person} noFlag />
+    ) : (
+      <span className="text-danger fw-bold">NOT FOUND</span>
+    );
 
   if (small) {
     return (
-      <span className="d-flex flex-wrap column-gap-2">
-        <Competitor person={creator.person} noFlag />
-
+      <span className="d-flex flex-wrap align-items-center column-gap-2">
+        {competitor}
         <span>({username})</span>
       </span>
     );
   }
 
   return (
-    <div className="d-flex flex-wrap column-gap-2 mb-3">
+    <div className="d-flex flex-wrap align-items-center column-gap-2 mb-3">
       <span>Created by:</span>
 
       {creator.person ? (
         <>
-          <Competitor person={creator.person} />
-
+          {competitor}
           <span>(user: {username})</span>
         </>
       ) : (
