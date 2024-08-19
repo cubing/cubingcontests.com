@@ -11,7 +11,9 @@ export enum LogType {
   UpdateContest = 'update_contest',
   UpdateContestState = 'update_contest_state',
 
+  GetModPersons = 'get_mod_persons',
   CreatePerson = 'create_person',
+  UpdatePerson = 'update_person',
 
   CreateEvent = 'create_event',
   UpdateEvent = 'update_event',

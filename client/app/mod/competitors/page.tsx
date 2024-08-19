@@ -74,7 +74,7 @@ const CreatePersonPage = () => {
             </p>
           )}
 
-          <div className="container mt-3 mb-5 table-responsive">
+          <div className="container mt-3 table-responsive">
             <table className="table table-hover text-nowrap">
               <thead>
                 <tr>
@@ -118,6 +118,7 @@ const CreatePersonPage = () => {
               </tbody>
             </table>
           </div>
+          <p className="mt-2 mb-5">Only showing the first 500 competitors.</p>
         </>
       )}
     </div>

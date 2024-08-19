@@ -12,15 +12,17 @@ import {
   Patch,
 } from '@nestjs/common';
 import { PersonsService } from './persons.service';
+import { MyLogger } from '@m/my-logger/my-logger.service';
 import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
 import { PersonDto } from './dto/person.dto';
+import { LogType } from '~/src/helpers/enums';
 
 @Controller('persons')
 export class PersonsController {
-  constructor(private readonly personsService: PersonsService) {}
+  constructor(private readonly logger: MyLogger, private readonly personsService: PersonsService) {}
 
   // GET /persons?(name=...)(&exactMatch=true)(&personId=...)
   @Get()
@@ -44,6 +46,8 @@ export class PersonsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getModPersons(@Request() req: any) {
+    this.logger.logAndSave('Getting mod persons', LogType.GetModPersons);
+
     return await this.personsService.getModPersons(req.user);
   }
 
@@ -52,6 +56,8 @@ export class PersonsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
   async getOrCreatePersonByWcaId(@Param('wcaId') wcaId: string, @Request() req: any) {
+    this.logger.log(`Getting or creating person with WCA ID ${wcaId}`);
+
     return await this.personsService.getOrCreatePersonByWcaId(wcaId, { user: req.user });
   }
 

@@ -37,7 +37,7 @@ export class ContestsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getModContests(@Request() req: any) {
-    this.logger.logAndSave('Getting contests with moderator info', LogType.GetModContests);
+    this.logger.logAndSave('Getting mod contests', LogType.GetModContests);
 
     return await this.service.getModContests(req.user);
   }

@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-  NotImplementedException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
@@ -102,25 +96,8 @@ export class PersonsService {
     if (person) return this.getFrontendPerson(person);
 
     // Create new person by fetching the person data from the WCA API
-    const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
-
-    if (response.ok) {
-      const payload = await response.json();
-
-      console.log(payload);
-
-      const parts = payload.name.split(' (');
-      const newPerson: IPersonDto = {
-        name: parts[0],
-        localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,
-        wcaId,
-        countryIso2: payload.country,
-      };
-
-      return await this.createPerson(newPerson, { user });
-    }
-
-    throw new NotFoundException(`Person with WCA ID ${wcaId} not found`);
+    const wcaPerson = await this.getWcaPersonData(wcaId);
+    return await this.createPerson(wcaPerson, { user });
   }
 
   async getContestParticipants({
@@ -192,6 +169,11 @@ export class PersonsService {
   }
 
   async updatePerson(id: string, personDto: PersonDto, user: IPartialUser): Promise<IFePerson> {
+    this.logger.logAndSave(
+      `Updating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : 'no WCA ID'}`,
+      LogType.UpdatePerson,
+    );
+
     const person = await this.personModel.findById(id).exec();
     if (!person) throw new NotFoundException('Person not found');
 
@@ -212,14 +194,12 @@ export class PersonsService {
       );
 
     if (personDto.wcaId) {
-      throw new NotImplementedException("Editing a person with a WCA ID hasn't been implemented yet");
+      const wcaPerson = await this.getWcaPersonData(personDto.wcaId);
 
-      // person.wcaId = personDto.wcaId;
-
-      // if (!person.wcaId) {
-      // } else if (personDto.wcaId !== person.wcaId) {
-      // } else {
-      // }
+      person.wcaId = personDto.wcaId;
+      person.name = wcaPerson.name;
+      person.localizedName = wcaPerson.localizedName;
+      person.countryIso2 = wcaPerson.countryIso2;
     } else {
       if (person.wcaId) person.wcaId = undefined;
       person.name = personDto.name;
@@ -230,6 +210,26 @@ export class PersonsService {
     await person.save();
 
     return this.getFrontendPerson(person, { user });
+  }
+
+  private async getWcaPersonData(wcaId: string) {
+    const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
+
+    if (response.ok) {
+      const payload = await response.json();
+
+      const parts = payload.name.split(' (');
+      const newPerson: IPersonDto = {
+        name: parts[0],
+        localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,
+        wcaId,
+        countryIso2: payload.country,
+      };
+
+      return newPerson;
+    }
+
+    throw new NotFoundException(`Person with WCA ID ${wcaId} not found`);
   }
 
   private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {

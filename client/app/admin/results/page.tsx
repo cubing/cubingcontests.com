@@ -37,7 +37,7 @@ const ManageResultsPage = () => {
         <b>{results.filter((r) => r.unapproved).length}</b>
       </p>
 
-      <div className="my-5 table-responsive">
+      <div className="mt-3 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>
@@ -96,8 +96,8 @@ const ManageResultsPage = () => {
               ))}
           </tbody>
         </table>
-        <p>Only showing the first 100 results.</p>
       </div>
+      <p className="mt-2 mb-5">Only showing the first 100 results.</p>
     </div>
   );
 };
