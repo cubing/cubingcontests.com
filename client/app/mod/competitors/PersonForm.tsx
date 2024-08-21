@@ -10,6 +10,7 @@ import CreatorDetails from '@c/CreatorDetails';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormCountrySelect from '@c/form/FormCountrySelect';
+import { fetchWcaPerson } from '~/shared_helpers/sharedFunctions';
 
 const PersonForm = ({
   personUnderEdit,
@@ -22,7 +23,8 @@ const PersonForm = ({
 }) => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeErrorMessages, changeSuccessMessage, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
+    useContext(MainContext);
 
   const [nextFocusTarget, setNextFocusTarget] = useState('');
   const [name, setName] = useState(personUnderEdit?.name ?? '');
@@ -60,7 +62,7 @@ const PersonForm = ({
 
     reset();
     changeSuccessMessage(
-      `${name} successfully ${personUnderEdit ? 'updated' : 'added'}${redirect ? '. Going back...' : ''}`,
+      `${newPerson.name} successfully ${personUnderEdit ? 'updated' : 'added'}${redirect ? '. Going back...' : ''}`,
     );
 
     // Redirect if there is a redirect parameter in the URL, otherwise focus the first input
@@ -82,26 +84,39 @@ const PersonForm = ({
     } else if (newWcaId.length <= 10) {
       setWcaId(newWcaId);
 
-      if (newWcaId.length < 10) {
-        reset(true);
-        return;
-      }
+      if (!personUnderEdit) reset(true);
 
-      setName('');
-      setLocalizedName('');
-      setCountryIso2('NOT_SELECTED');
+      if (newWcaId.length === 10) {
+        if (!personUnderEdit) {
+          const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, { authorize: true });
 
-      const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, { authorize: true });
+          if (!errors) {
+            if (payload.isNew) {
+              afterSubmit(payload.person);
+            } else {
+              changeErrorMessages(['A competitor with this WCA ID already exists']);
+              setName(payload.person.name);
+              setLocalizedName(payload.person.localizedName ?? '');
+              setCountryIso2(payload.person.countryIso2);
+            }
+          }
 
-      if (errors) {
-        setNextFocusTarget('wca_id');
-      } else if (payload.isNew) {
-        afterSubmit(payload.person);
-      } else {
-        changeErrorMessages(['A competitor with this WCA ID already exists']);
-        setName(payload.person.name);
-        setLocalizedName(payload.person.localizedName ?? '');
-        setCountryIso2(payload.person.countryIso2);
+          setNextFocusTarget('wca_id');
+        } else {
+          changeLoadingId('...');
+          const wcaPerson = await fetchWcaPerson(newWcaId);
+
+          if (!wcaPerson) {
+            changeErrorMessages([`Person with WCA ID ${newWcaId} not found`]);
+            setNextFocusTarget('wca_id');
+          } else {
+            resetMessagesAndLoadingId();
+            setName(wcaPerson.name);
+            setLocalizedName(wcaPerson.localizedName ?? '');
+            setCountryIso2(wcaPerson.countryIso2);
+            setNextFocusTarget('form_submit_button');
+          }
+        }
       }
     }
   };
@@ -114,7 +129,7 @@ const PersonForm = ({
       setWcaId('');
       setNextFocusTarget('full_name');
     } else {
-      reset();
+      if (!personUnderEdit) reset();
       setNextFocusTarget('wca_id');
     }
   };
@@ -130,7 +145,7 @@ const PersonForm = ({
     <Form
       buttonText="Submit"
       onSubmit={handleSubmit}
-      hideButton={hasWcaId}
+      hideButton={hasWcaId && !personUnderEdit}
       showCancelButton={onCancel !== undefined}
       onCancel={onCancel}
     >

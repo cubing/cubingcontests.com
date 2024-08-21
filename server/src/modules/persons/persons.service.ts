@@ -7,12 +7,12 @@ import { RoundDocument } from '~/src/models/round.model';
 import { ContestEvent } from '~/src/models/contest.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { PersonDto } from './dto/person.dto';
-import { IFePerson, IWcaPersonDto, IPersonDto } from '@sh/types';
+import { IFePerson, IPersonDto, IWcaPersonDto } from '@sh/types';
+import { fetchWcaPerson } from '@sh/sharedFunctions';
 import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
-import C from '@sh/constants';
 
 @Injectable()
 export class PersonsService {
@@ -99,7 +99,9 @@ export class PersonsService {
     if (person) return { person: this.getFrontendPerson(person), isNew: false };
 
     // Create new person by fetching the person data from the WCA API
-    const wcaPerson = await this.getWcaPersonData(wcaId);
+    const wcaPerson = await fetchWcaPerson(wcaId);
+    if (!wcaPerson) throw new NotFoundException(`Person with WCA ID ${wcaId} not found`);
+
     return { person: await this.createPerson(wcaPerson, { user }), isNew: true };
   }
 
@@ -194,7 +196,8 @@ export class PersonsService {
       );
 
     if (personDto.wcaId) {
-      const wcaPerson = await this.getWcaPersonData(personDto.wcaId);
+      const wcaPerson: IPersonDto = await fetchWcaPerson(personDto.wcaId);
+      if (!wcaPerson) throw new NotFoundException(`Person with WCA ID ${personDto.wcaId} not found`);
 
       person.wcaId = personDto.wcaId;
       person.name = wcaPerson.name;
@@ -210,26 +213,6 @@ export class PersonsService {
     await person.save();
 
     return this.getFrontendPerson(person, { user });
-  }
-
-  private async getWcaPersonData(wcaId: string) {
-    const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
-
-    if (response.ok) {
-      const payload = await response.json();
-
-      const parts = payload.name.split(' (');
-      const newPerson: IPersonDto = {
-        name: parts[0],
-        localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,
-        wcaId,
-        countryIso2: payload.country,
-      };
-
-      return newPerson;
-    }
-
-    throw new NotFoundException(`Person with WCA ID ${wcaId} not found`);
   }
 
   private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {

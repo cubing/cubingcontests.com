@@ -17,6 +17,7 @@ import {
   IWcifActivity,
   IRound,
   IWcifRound,
+  IPersonDto,
 } from './types';
 import { roundFormats } from './roundFormats';
 
@@ -324,4 +325,24 @@ export const getRoleLabel = (role: Role, capitalize = false): string => {
     default:
       throw new Error(`Unknown role: ${role}`);
   }
+};
+
+export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefined> => {
+  const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
+
+  if (response.ok) {
+    const payload = await response.json();
+
+    const parts = payload.name.split(' (');
+    const newPerson: IPersonDto = {
+      name: parts[0],
+      localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,
+      wcaId,
+      countryIso2: payload.country,
+    };
+
+    return newPerson;
+  }
+
+  return undefined;
 };
