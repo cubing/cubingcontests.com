@@ -7,12 +7,18 @@ import { RoundDocument } from '~/src/models/round.model';
 import { ContestEvent } from '~/src/models/contest.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { PersonDto } from './dto/person.dto';
-import { IFePerson, IPersonDto } from '@sh/types';
+import { IFePerson, IPersonDto, IWcaPersonDto } from '@sh/types';
+import { fetchWcaPerson } from '@sh/sharedFunctions';
 import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
-import C from '@sh/constants';
+
+const getApprovedContestResultQuery = (personId: number) => ({
+  competitionId: { $exists: true },
+  unapproved: { $exists: false },
+  personIds: personId,
+});
 
 @Injectable()
 export class PersonsService {
@@ -53,7 +59,8 @@ export class PersonsService {
       const fePersons: IFePerson[] = [];
 
       for (const person of persons) {
-        const newFePerson: IFePerson = person.toObject();
+        const newFePerson: IFePerson = { ...person.toObject(), isEditable: true };
+
         if (person.createdBy) {
           newFePerson.creator = {
             username: person.createdBy.username,
@@ -61,11 +68,12 @@ export class PersonsService {
             person: person.createdBy.personId ? await this.getPersonByPersonId(person.createdBy.personId) : null,
           };
         }
-        // createdBy = null, when there was a creator, but it's a deleted user
-        else if (person.createdBy !== null) {
+        // createdBy = null, when there was a creator, but it's a deleted user; external devices just leave it undefined
+        else if (person.createdBy === undefined) {
           newFePerson.creator = 'EXT_DEVICE';
         }
-        (newFePerson as any).createdBy = undefined;
+
+        (newFePerson as any).createdBy = undefined; // THIS IS CRUCIAL, BECAUSE IT REMOVES ALL UNNEEDED USER DATA, INCLUDING THE PASSWORD HASH
         fePersons.push(newFePerson);
       }
 
@@ -76,7 +84,17 @@ export class PersonsService {
         .sort({ personId: -1 })
         .limit(1000)
         .exec();
-      return persons;
+
+      const fePersons: IFePerson[] = [];
+
+      for (const person of persons) {
+        const newFePerson: IFePerson = person.toObject();
+        const approvedResult = await this.resultModel.findOne(getApprovedContestResultQuery(person.personId)).exec();
+        if (!approvedResult) newFePerson.isEditable = true;
+        fePersons.push(newFePerson);
+      }
+
+      return fePersons;
     }
   }
 
@@ -88,16 +106,21 @@ export class PersonsService {
     return await this.personModel.findOne({ name }, excl).exec();
   }
 
-  async getOrCreatePersonByWcaId(wcaId: string, { user }: { user: IPartialUser | 'EXT_DEVICE' }): Promise<IFePerson> {
+  async getOrCreatePersonByWcaId(
+    wcaId: string,
+    { user }: { user: IPartialUser | 'EXT_DEVICE' },
+  ): Promise<IWcaPersonDto> {
     wcaId = wcaId.toUpperCase();
 
     // Try to find existing person with the given WCA ID
     const person = await this.personModel.findOne({ wcaId }, excl).exec();
-    if (person) return this.getFrontendPerson(person);
+    if (person) return { person: this.getFrontendPerson(person), isNew: false };
 
     // Create new person by fetching the person data from the WCA API
-    const wcaPerson = await this.getWcaPersonData(wcaId);
-    return await this.createPerson(wcaPerson, { user });
+    const wcaPerson = await fetchWcaPerson(wcaId);
+    if (!wcaPerson) throw new NotFoundException(`Person with WCA ID ${wcaId} not found`);
+
+    return { person: await this.createPerson(wcaPerson, { user }), isNew: true };
   }
 
   async getContestParticipants({
@@ -110,11 +133,8 @@ export class PersonsService {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
-    if (contestEvents) {
-      for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
-    } else {
-      compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
-    }
+    if (contestEvents) for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
+    else compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
 
     for (const round of compRounds) {
       for (const result of round.results) {
@@ -140,11 +160,11 @@ export class PersonsService {
       LogType.CreatePerson,
     );
 
-    if (personDto.wcaId) personDto.wcaId = personDto.wcaId.trim().toUpperCase();
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 
     if (personDto.wcaId) {
+      personDto.wcaId = personDto.wcaId.trim().toUpperCase();
       duplicatePerson = await this.personModel.findOne({ wcaId: personDto.wcaId }).exec();
     } else {
       duplicatePerson = await this.personModel
@@ -183,18 +203,18 @@ export class PersonsService {
       if (sameWcaIdPerson) throw new ConflictException('Another competitor already has that WCA ID');
     }
 
-    const approvedResult = await this.resultModel
-      .findOne({ competitionId: { $exists: true }, personIds: person.personId })
-      .exec();
+    const approvedResult = await this.resultModel.findOne(getApprovedContestResultQuery(person.personId)).exec();
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (!isAdmin && approvedResult)
+    if (!isAdmin && approvedResult) {
       throw new BadRequestException(
         'You may not edit a person who has competetd in a published contest. Please contact the admins.',
       );
+    }
 
     if (personDto.wcaId) {
-      const wcaPerson = await this.getWcaPersonData(personDto.wcaId);
+      const wcaPerson: IPersonDto = await fetchWcaPerson(personDto.wcaId);
+      if (!wcaPerson) throw new NotFoundException(`Person with WCA ID ${personDto.wcaId} not found`);
 
       person.wcaId = personDto.wcaId;
       person.name = wcaPerson.name;
@@ -209,31 +229,15 @@ export class PersonsService {
 
     await person.save();
 
-    return this.getFrontendPerson(person, { user });
+    return this.getFrontendPerson(person, { isEditable: !approvedResult, user });
   }
 
-  private async getWcaPersonData(wcaId: string) {
-    const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
-
-    if (response.ok) {
-      const payload = await response.json();
-
-      const parts = payload.name.split(' (');
-      const newPerson: IPersonDto = {
-        name: parts[0],
-        localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,
-        wcaId,
-        countryIso2: payload.country,
-      };
-
-      return newPerson;
-    }
-
-    throw new NotFoundException(`Person with WCA ID ${wcaId} not found`);
-  }
-
-  private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {
+  private getFrontendPerson(
+    person: PersonDocument,
+    { isEditable, user }: { isEditable?: boolean; user?: IPartialUser | 'EXT_DEVICE' } = {},
+  ): IFePerson {
     const fePerson: IFePerson = person.toObject();
+    if (isEditable) fePerson.isEditable = true;
 
     // Remove system fields
     Object.keys(excl).forEach((key) => delete (fePerson as any)[key]);

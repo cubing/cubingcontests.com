@@ -52,5 +52,9 @@
   "Pretty JSON output": {
     "prefix": "jsonstringify",
     "body": "console.log(JSON.stringify($0, null, 2))"
+  },
+  "Use limit requests hook": {
+    "prefix": "uselimitrequests",
+    "body": "const [ limit$1Requests, isLoading$1 ] = useLimitRequests();$0"
   }
 }

@@ -61,21 +61,15 @@ export class PersonsController {
     return await this.personsService.getOrCreatePersonByWcaId(wcaId, { user: req.user });
   }
 
-  // POST /persons
-  @Post()
+  // POST /persons/no-wcaid
+  @Post('no-wcaid')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async createPerson(@Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
+  async createNoWcaIdPerson(@Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
+    if (personDto.wcaId) throw new BadRequestException('This endpoint is only for creating persons without a WCA ID');
+
     return await this.personsService.createPerson(personDto, { user: req.user });
   }
-
-  // POST /persons/create-or-get
-  // @Post('create-or-get')
-  // @UseGuards(AuthenticatedGuard, RolesGuard)
-  // @Roles(Role.User)
-  // async createOrGetPerson(@Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
-  //   return await this.personsService.createPerson(personDto, { user: req.user });
-  // }
 
   // PATCH /persons/:id
   @Patch(':id')

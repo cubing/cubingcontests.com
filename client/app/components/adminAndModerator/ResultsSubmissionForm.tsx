@@ -1,8 +1,8 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMyFetch } from '~/helpers/customHooks';
+import { useLimitRequests, useMyFetch } from '~/helpers/customHooks';
 import ResultForm from '@c/adminAndModerator/ResultForm';
 import Loading from '@c/UI/Loading';
 import Form from '@c/form/Form';
@@ -15,7 +15,7 @@ import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo, IUpdateResu
 import { RoundFormat } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import C from '@sh/constants';
-import { getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { MainContext } from '~/helpers/contexts';
 import { useCheckErrorsThenSubmit } from '~/helpers/customHooks';
@@ -32,9 +32,9 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
 
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
+  const [limitRecordPairsRequests, isLoadingRecordPairs] = useLimitRequests();
   const { changeSuccessMessage, loadingId } = useContext(MainContext);
   const checkErrorsThenSubmit = useCheckErrorsThenSubmit();
-  const fetchRecordPairsTimer = useRef<NodeJS.Timeout>(null);
 
   const [showRules, setShowRules] = useState(false);
   const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -160,7 +160,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
 
     // Update the record pairs with the new date
     if (newDate) {
-      limitRequests(fetchRecordPairsTimer, async () => {
+      limitRecordPairsRequests(async () => {
         const eventsStr = submissionInfo.events.map((e) => e.eventId).join(',');
         const queryParams = resultId ? `?excludeResultId=${resultId}` : '';
 
@@ -307,7 +307,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             text="Submit"
             onClick={() => submitResult()}
             loadingId={loadingId}
-            disabled={fetchRecordPairsTimer.current !== null}
+            disabled={isLoadingRecordPairs}
             className="mt-3"
           />
           {resultId && submissionInfo.result.unapproved && (
@@ -316,7 +316,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               text="Submit and approve"
               onClick={() => submitResult(true)}
               loadingId={loadingId}
-              disabled={fetchRecordPairsTimer.current !== null}
+              disabled={isLoadingRecordPairs}
               className="btn-success mt-3 ms-3"
             />
           )}

@@ -8,7 +8,7 @@ export type {
   IMeetupDetails,
 } from './interfaces/Contest';
 export type { IEventRule } from './interfaces/EventRule';
-export type { IPerson, IPersonDto, IFePerson } from './interfaces/Person';
+export type { IPerson, IPersonDto, IFePerson, IWcaPersonDto } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
 export type {
   IResult,
