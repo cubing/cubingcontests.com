@@ -36,9 +36,10 @@ const CreatePersonPage = () => {
   };
 
   const onEditCompetitor = (person: IFePerson) => {
+    resetMessagesAndLoadingId();
     setMode('edit');
     setPersonUnderEdit(person);
-    resetMessagesAndLoadingId();
+    window.scrollTo(0, 0);
   };
 
   const updateCompetitors = (person: IFePerson, isNew = false) => {

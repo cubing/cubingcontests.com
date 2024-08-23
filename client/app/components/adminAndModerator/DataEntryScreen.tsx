@@ -169,7 +169,6 @@ const DataEntryScreen = ({
 
   const editResult = (result: IResult) => {
     if (isEditable) {
-      window.scrollTo(0, 0);
       resetMessagesAndLoadingId();
 
       const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
@@ -183,6 +182,7 @@ const DataEntryScreen = ({
       setAttempts(newAttempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setResultFormResetTrigger(undefined);
+      window.scrollTo(0, 0);
     }
   };
 
