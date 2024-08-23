@@ -14,6 +14,12 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
 
+const getApprovedContestResultQuery = (personId: number) => ({
+  competitionId: { $exists: true },
+  unapproved: { $exists: false },
+  personIds: personId,
+});
+
 @Injectable()
 export class PersonsService {
   constructor(
@@ -53,7 +59,8 @@ export class PersonsService {
       const fePersons: IFePerson[] = [];
 
       for (const person of persons) {
-        const newFePerson: IFePerson = person.toObject();
+        const newFePerson: IFePerson = { ...person.toObject(), isEditable: true };
+
         if (person.createdBy) {
           newFePerson.creator = {
             username: person.createdBy.username,
@@ -61,11 +68,12 @@ export class PersonsService {
             person: person.createdBy.personId ? await this.getPersonByPersonId(person.createdBy.personId) : null,
           };
         }
-        // createdBy = null, when there was a creator, but it's a deleted user
-        else if (person.createdBy !== null) {
+        // createdBy = null, when there was a creator, but it's a deleted user; external devices just leave it undefined
+        else if (person.createdBy === undefined) {
           newFePerson.creator = 'EXT_DEVICE';
         }
-        (newFePerson as any).createdBy = undefined;
+
+        (newFePerson as any).createdBy = undefined; // THIS IS CRUCIAL, BECAUSE IT REMOVES ALL UNNEEDED USER DATA, INCLUDING THE PASSWORD HASH
         fePersons.push(newFePerson);
       }
 
@@ -76,7 +84,17 @@ export class PersonsService {
         .sort({ personId: -1 })
         .limit(1000)
         .exec();
-      return persons;
+
+      const fePersons: IFePerson[] = [];
+
+      for (const person of persons) {
+        const newFePerson: IFePerson = person.toObject();
+        const approvedResult = await this.resultModel.findOne(getApprovedContestResultQuery(person.personId)).exec();
+        if (!approvedResult) newFePerson.isEditable = true;
+        fePersons.push(newFePerson);
+      }
+
+      return fePersons;
     }
   }
 
@@ -185,15 +203,14 @@ export class PersonsService {
       if (sameWcaIdPerson) throw new ConflictException('Another competitor already has that WCA ID');
     }
 
-    const approvedResult = await this.resultModel
-      .findOne({ competitionId: { $exists: true }, personIds: person.personId })
-      .exec();
+    const approvedResult = await this.resultModel.findOne(getApprovedContestResultQuery(person.personId)).exec();
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (!isAdmin && approvedResult)
+    if (!isAdmin && approvedResult) {
       throw new BadRequestException(
         'You may not edit a person who has competetd in a published contest. Please contact the admins.',
       );
+    }
 
     if (personDto.wcaId) {
       const wcaPerson: IPersonDto = await fetchWcaPerson(personDto.wcaId);
@@ -212,11 +229,15 @@ export class PersonsService {
 
     await person.save();
 
-    return this.getFrontendPerson(person, { user });
+    return this.getFrontendPerson(person, { isEditable: !approvedResult, user });
   }
 
-  private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {
+  private getFrontendPerson(
+    person: PersonDocument,
+    { isEditable, user }: { isEditable?: boolean; user?: IPartialUser | 'EXT_DEVICE' } = {},
+  ): IFePerson {
     const fePerson: IFePerson = person.toObject();
+    if (isEditable) fePerson.isEditable = true;
 
     // Remove system fields
     Object.keys(excl).forEach((key) => delete (fePerson as any)[key]);

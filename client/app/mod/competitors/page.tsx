@@ -105,13 +105,15 @@ const CreatePersonPage = () => {
                       </td>
                     )}
                     <td>
-                      <Button
-                        type="button"
-                        text="Edit"
-                        onClick={() => onEditCompetitor(person)}
-                        disabled={mode !== 'view'}
-                        className="btn btn-primary btn-xs"
-                      />
+                      {person.isEditable && (
+                        <Button
+                          type="button"
+                          text="Edit"
+                          onClick={() => onEditCompetitor(person)}
+                          disabled={mode !== 'view'}
+                          className="btn btn-primary btn-xs"
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}

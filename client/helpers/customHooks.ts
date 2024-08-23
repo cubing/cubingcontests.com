@@ -184,22 +184,22 @@ export const useFetchPerson = () => {
     if (payload) return payload;
 
     // If not found, try searching for exact name matches in the WCA database
-    const {
-      payload: { result: wcaPersonMatches },
-      errors,
-    } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/search/users?q=${name}&persons_table=true`, {
-      loadingId: null,
-    });
-    if (errors) throw new Error(errors[0]);
+    // const {
+    //   payload: { result: wcaPersonMatches },
+    //   errors,
+    // } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/search/users?q=${name}&persons_table=true`, {
+    //   loadingId: null,
+    // });
+    // if (errors) throw new Error(errors[0]);
 
-    if (wcaPersonMatches.length === 1) {
-      const { payload: person, errors } = await myFetch.get(`/persons/${wcaPersonMatches[0].wca_id}`, {
-        authorize: true,
-        loadingId: null,
-      });
-      if (errors) throw new Error(errors[0]);
-      if (person) return person.person;
-    }
+    // if (wcaPersonMatches.length === 1) {
+    //   const { payload: person, errors } = await myFetch.get(`/persons/${wcaPersonMatches[0].wca_id}`, {
+    //     authorize: true,
+    //     loadingId: null,
+    //   });
+    //   if (errors) throw new Error(errors[0]);
+    //   if (person) return person.person;
+    // }
 
     // If still not found and the country was provided, use that to create a new person with no WCA ID (likely an organization)
     if (countryIso2) {
