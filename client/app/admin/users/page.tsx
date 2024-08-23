@@ -99,7 +99,6 @@ const ManageUsersPage = () => {
             setPersons={setPersons}
             personNames={personNames}
             setPersonNames={setPersonNames}
-            disabled={loadingId !== ''}
           />
           <h5 className="mb-4">Roles</h5>
           <FormCheckbox title="User" selected={isUser} setSelected={setIsUser} disabled={loadingId !== ''} />

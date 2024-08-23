@@ -99,7 +99,10 @@ export class PersonsService {
   }
 
   async getPersonsByName(name: string): Promise<IFePerson[]> {
-    return await this.personModel.find({ name: { $regex: name, $options: 'i' } }, excl).exec();
+    return await this.personModel
+      .find({ name: { $regex: name, $options: 'i' } }, excl)
+      .limit(10)
+      .exec();
   }
 
   async getPersonByName(name: string): Promise<IFePerson> {
