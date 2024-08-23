@@ -292,7 +292,7 @@ export class ContestsService {
 
     if (contestDto.compDetails) {
       if (contest.compDetails) {
-        if (contest.state < ContestState.Finished) {
+        if (isAdmin || contest.state < ContestState.Finished) {
           await this.scheduleModel.updateOne(
             { _id: contest.compDetails.schedule._id },
             contestDto.compDetails.schedule,
@@ -570,6 +570,21 @@ export class ContestsService {
     if (contest.startDate > contest.endDate)
       throw new BadRequestException('The start date must be before the end date');
 
+    // Validation for WCA competitions and unofficial competitions
+    if (contest.compDetails) {
+      for (const contestEvent of contest.events) {
+        for (const round of contestEvent.rounds) {
+          let isRoundActivityFound = false;
+          for (const venue of contest.compDetails.schedule.venues) {
+            isRoundActivityFound = venue.rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId));
+            if (isRoundActivityFound) break;
+          }
+          if (!isRoundActivityFound) throw new BadRequestException('Please add all rounds to the schedule');
+        }
+      }
+    }
+
+    // Disallow mods to make admin-only edits
     if (!user.roles.includes(Role.Admin)) {
       if (!contest.address) throw new BadRequestException('Please enter an address');
       if (!contest.venue) throw new BadRequestException('Please enter the venue name');

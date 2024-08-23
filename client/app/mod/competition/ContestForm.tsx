@@ -335,9 +335,6 @@ const ContestForm = ({
         );
     }
 
-    // To-do: move this to the backend
-    if (getIsCompType(type) && activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
-
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
     } else {

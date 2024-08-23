@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Navbar from '@c/UI/Navbar';
 import Footer from '@c/UI/Footer';
 import { MainContext, Theme } from '~/helpers/contexts';
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
+  const pathname = usePathname();
+
   const [theme, setTheme] = useState<Theme>();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
@@ -21,6 +24,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       setTheme('dark');
     }
   }, []);
+
+  useEffect(() => {
+    resetMessagesAndLoadingId();
+  }, [pathname]);
 
   const changeTheme = (newTheme: Theme) => {
     if (newTheme !== theme) {
