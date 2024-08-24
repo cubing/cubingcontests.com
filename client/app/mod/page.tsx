@@ -12,6 +12,7 @@ import { MainContext } from '~/helpers/contexts';
 import Country from '@c/Country';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Button from '@c/UI/Button';
+import Loading from '~/app/components/UI/Loading';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -127,7 +128,11 @@ const ModeratorDashboardPage = () => {
           </>
         )}
       </div>
-      {contests?.length > 0 ? (
+      {!contests ? (
+        <Loading />
+      ) : contests.length === 0 ? (
+        <p className="px-2 fs-5">You haven't created any contests yet</p>
+      ) : (
         <div className="mb-5 table-responsive">
           <table className="table table-hover text-nowrap">
             <thead>
@@ -230,8 +235,6 @@ const ModeratorDashboardPage = () => {
             </tbody>
           </table>
         </div>
-      ) : (
-        <p className="px-2 fs-5">You haven't created any contests yet</p>
       )}
     </div>
   );

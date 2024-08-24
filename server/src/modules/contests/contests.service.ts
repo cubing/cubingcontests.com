@@ -176,12 +176,20 @@ export class ContestsService {
     };
 
     if (eventId) {
+      output.contest = contest.toObject(); // TEMP SOLUTION! (figure out the results population below instead of doing this workaround)
       const contestEvent =
-        eventId === 'FIRST_EVENT' ? contest.events[0] : contest.events.find((ce) => ce.event.eventId === eventId);
+        eventId === 'FIRST_EVENT'
+          ? output.contest.events[0]
+          : output.contest.events.find((ce) => ce.event.eventId === eventId);
       if (!contestEvent) throw new BadRequestException('Event not found');
 
       // Populate the results of all rounds for this event
-      for (const round of contestEvent.rounds) round.populate(eventPopulateOptions.roundsAndResults.populate);
+      for (const round of contestEvent.rounds) {
+        // round.populate(eventPopulateOptions.roundsAndResults.populate);
+
+        for (let i = 0; i < round.results.length; i++)
+          round.results[i] = await this.resultModel.findById(round.results[i].toString());
+      }
     }
 
     // Get mod contest
