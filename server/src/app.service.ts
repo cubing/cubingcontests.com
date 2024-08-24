@@ -2,18 +2,20 @@ import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { addMonths } from 'date-fns';
+import { IAdminStats, IAttempt, IResult } from '@sh/types';
+import { roundFormats } from '@sh/roundFormats';
 import { LogDocument } from '~/src/models/log.model';
+import { ContestsService } from '@m/contests/contests.service';
 import { UsersService } from '@m/users/users.service';
 import { PersonsService } from '@m/persons/persons.service';
 import { ResultsService } from '@m/results/results.service';
-import { IAdminStats, IAttempt, IResult } from '@sh/types';
-import { roundFormats } from '@sh/roundFormats';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { EnterResultsDto, ExternalResultDto } from './app-dto/enter-results.dto';
 
 @Injectable()
 export class AppService {
   constructor(
+    private contestsService: ContestsService,
     private resultsService: ResultsService,
     private personsService: PersonsService,
     private usersService: UsersService,
@@ -32,66 +34,71 @@ export class AppService {
         competitionId: { $exists: false },
         unapproved: true,
       }),
-      analytics: {
-        getContests: await this.logModel
-          .countDocuments({ type: 'get_contests', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        getModContests: await this.logModel
-          .countDocuments({ type: 'get_mod_contests', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        getContest: await this.logModel
-          .countDocuments({ type: 'get_contest', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        getModContest: await this.logModel
-          .countDocuments({ type: 'get_mod_contest', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        createContest: await this.logModel
-          .countDocuments({ type: 'create_contest', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        updateContest: await this.logModel
-          .countDocuments({ type: 'update_contest', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        updateContestState: await this.logModel
-          .countDocuments({ type: 'update_contest_state', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        createPerson: await this.logModel
-          .countDocuments({ type: 'create_person', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        createEvent: await this.logModel
-          .countDocuments({ type: 'create_event', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        updateEvent: await this.logModel
-          .countDocuments({ type: 'update_event', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        getRankings: await this.logModel
-          .countDocuments({ type: 'get_rankings', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        getRecords: await this.logModel
-          .countDocuments({ type: 'get_records', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        createResult: await this.logModel
-          .countDocuments({ type: 'create_result', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        deleteResult: await this.logModel
-          .countDocuments({ type: 'delete_result', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        submitResult: await this.logModel
-          .countDocuments({ type: 'submit_result', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        updateResult: await this.logModel
-          .countDocuments({ type: 'update_result', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        updateRecordTypes: await this.logModel
-          .countDocuments({ type: 'update_record_types', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        createUser: await this.logModel
-          .countDocuments({ type: 'create_user', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-        updateUser: await this.logModel
-          .countDocuments({ type: 'update_user', createdAt: { $gte: oneMonthAgo } })
-          .exec(),
-      },
+      analytics: [],
     };
+
+    adminStats.analytics.push({
+      label: 'Contests list views',
+      value: await this.logModel.countDocuments({ type: 'get_contests', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Contest page views',
+      value: await this.logModel.countDocuments({ type: 'get_contest', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Rankings views',
+      value: await this.logModel.countDocuments({ type: 'get_rankings', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Records views',
+      value: await this.logModel.countDocuments({ type: 'get_records', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Users registered',
+      value: await this.logModel.countDocuments({ type: 'create_user', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Mod dashboard views',
+      value: await this.logModel.countDocuments({ type: 'get_mod_contests', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Edit contest / data entry page views',
+      value: await this.logModel.countDocuments({ type: 'get_mod_contest', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Contests created',
+      value: await this.logModel.countDocuments({ type: 'create_contest', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Persons created',
+      value: await this.logModel.countDocuments({ type: 'create_person', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Events created',
+      value: await this.logModel.countDocuments({ type: 'create_event', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Event updates',
+      value: await this.logModel.countDocuments({ type: 'update_event', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Results created',
+      value: await this.logModel.countDocuments({ type: 'create_result', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Results submitted',
+      value: await this.logModel.countDocuments({ type: 'submit_result', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Results deleted',
+      value: await this.logModel.countDocuments({ type: 'delete_result', createdAt: { $gte: oneMonthAgo } }).exec(),
+    });
+    adminStats.analytics.push({
+      label: 'Record types updates',
+      value: await this.logModel
+        .countDocuments({ type: 'update_record_types', createdAt: { $gte: oneMonthAgo } })
+        .exec(),
+    });
 
     await this.logModel.deleteMany({ createdAt: { $lt: addMonths(new Date(), -1) } });
 
@@ -100,7 +107,7 @@ export class AppService {
 
   async enterAttemptFromExternalDevice(enterAttemptDto: EnterAttemptDto) {
     const person = await this.getPersonForExtDeviceDataEntry(enterAttemptDto);
-    const round = await this.resultsService.getContestRound(
+    const round = await this.contestsService.getContestRound(
       enterAttemptDto.competitionWcaId,
       enterAttemptDto.eventId,
       enterAttemptDto.roundNumber,
@@ -144,7 +151,7 @@ export class AppService {
     }
   }
   async enterResultsFromExternalDevice(enterResultsDto: EnterResultsDto) {
-    const round = await this.resultsService.getContestRound(
+    const round = await this.contestsService.getContestRound(
       enterResultsDto.competitionWcaId,
       enterResultsDto.eventId,
       enterResultsDto.roundNumber,

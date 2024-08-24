@@ -83,8 +83,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
                 Number of participants:&#8194;<b>{contest.participants}</b>
               </p>
             ) : (
-              contest.competitorLimit &&
-              contest.state < ContestState.Finished && (
+              contest.competitorLimit && (
                 <p className="mb-2">
                   Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
                 </p>
@@ -103,6 +102,8 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
               <p className="mb-4">This contest is currently ongoing</p>
             ) : contest.state === ContestState.Finished ? (
               <p className="mb-4">The results for this contest are currently being checked</p>
+            ) : contest.state === ContestState.Removed ? (
+              <p className="mb-4 text-danger">This contest has been removed</p>
             ) : undefined}
 
             {contest.type === ContestType.WcaComp && (

@@ -10,6 +10,7 @@ export enum LogType {
   CreateContest = 'create_contest',
   UpdateContest = 'update_contest',
   UpdateContestState = 'update_contest_state',
+  RemoveContest = 'remove_contest',
 
   GetModPersons = 'get_mod_persons',
   CreatePerson = 'create_person',
@@ -40,4 +41,5 @@ export enum LogType {
   EnterAttemptFromExtDevice = 'enter_ext_attempt',
   EnterResultsFromExtDevice = 'enter_ext_results',
   DebugEmail = 'debug_email',
+  AccessDenied = 'access_denied',
 }

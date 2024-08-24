@@ -22,7 +22,7 @@ import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
 import { UpdateResultDto } from './dto/update-result.dto';
-import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
+import { excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
 import { ContestState, Role, RoundFormat, WcaRecordType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
@@ -478,24 +478,6 @@ export class ResultsService {
     }
   }
 
-  // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
-  async getContestRound(competitionId: string, eventId: string, roundNumber: number): Promise<IRound> {
-    const contest = await this.contestModel
-      .findOne({ competitionId })
-      .populate(eventPopulateOptions.event)
-      .populate(eventPopulateOptions.roundsAndResults)
-      .exec();
-
-    if (!contest) throw new NotFoundException(`Competition with ID ${competitionId} not found`);
-    if (contest.state > ContestState.Ongoing) throw new BadRequestException('The contest is finished');
-    const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
-    if (!contestEvent) throw new NotFoundException(`Event with ID ${eventId} not found for the given competition`);
-    const round = contestEvent.rounds[roundNumber - 1];
-    if (!round) throw new BadRequestException(`Round number ${roundNumber} not found`);
-
-    return round;
-  }
-
   // The user can be left undefined when this is called by app.service.ts, which has its own authorization check
   async createResult(
     createResultDto: CreateResultDto,
@@ -679,7 +661,6 @@ export class ResultsService {
     return undefined;
   }
 
-  // The user can be left undefined when deleting a submitted result
   async deleteResult(resultId: string, user: IPartialUser): Promise<RoundDocument> {
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);

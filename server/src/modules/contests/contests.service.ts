@@ -14,7 +14,7 @@ import { EventsService } from '@m/events/events.service';
 import { RecordTypesService } from '@m/record-types/record-types.service';
 import { PersonsService } from '@m/persons/persons.service';
 import C from '@sh/constants';
-import { IContestEvent, IContestData, IContest, IContestDto } from '@sh/types';
+import { IContestEvent, IContestData, IContest, IContestDto, IRound } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
 import { Role } from '@sh/enums';
 import { ScheduleDocument } from '~/src/models/schedule.model';
@@ -132,7 +132,7 @@ export class ContestsService {
   }
 
   async getContests(region?: string): Promise<ContestDocument[]> {
-    const queryFilter: any = { state: { $gt: ContestState.Created } };
+    const queryFilter: any = { state: { $gt: ContestState.Created, $lt: ContestState.Removed } };
     if (region) queryFilter.countryIso2 = region;
 
     try {
@@ -163,9 +163,11 @@ export class ContestsService {
     competitionId: string,
     { user, eventId }: { user?: IPartialUser; eventId?: string },
   ): Promise<IContestData> {
-    // This also checks access rights to the contest if it's a request for a mod contest (user is defined).
-    // This needs to be a plain object for the manual results population below.
-    const contest = (await this.getFullContest(competitionId, user)).toObject();
+    // This needs to be a plain object for the manual results population below
+    const contest = await this.getFullContest(competitionId);
+
+    if (user) this.authService.checkAccessRightsToContest(user, contest);
+
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     const output: IContestData = {
       contest,
@@ -176,14 +178,10 @@ export class ContestsService {
     if (eventId) {
       const contestEvent =
         eventId === 'FIRST_EVENT' ? contest.events[0] : contest.events.find((ce) => ce.event.eventId === eventId);
-
       if (!contestEvent) throw new BadRequestException('Event not found');
 
-      for (const round of contestEvent.rounds) {
-        for (let i = 0; i < round.results.length; i++) {
-          round.results[i] = await this.resultModel.findById(round.results[i].toString());
-        }
-      }
+      // Populate the results of all rounds for this event
+      for (const round of contestEvent.rounds) round.populate(eventPopulateOptions.roundsAndResults.populate);
     }
 
     // Get mod contest
@@ -275,12 +273,10 @@ export class ContestsService {
   }
 
   async updateContest(competitionId: string, contestDto: ContestDto, user: IPartialUser) {
-    // Makes sure the user is an admin or a moderator who has access rights to the UNFINISHED contest.
-    // If the contest is finished and the user is not an admin, an unauthorized exception is thrown.
-    // Do not exclude internal fields so that the contest can be saved.
-    const contest = await this.getFullContest(competitionId, user, { ignoreState: false, exclude: false });
-    const isAdmin = user.roles.includes(Role.Admin);
+    // Do not exclude internal fields so that the contest can be saved below
+    const contest = await this.getFullContest(competitionId, { exclude: false });
 
+    this.authService.checkAccessRightsToContest(user, contest);
     this.validateContest(contestDto, user);
 
     contest.organizers = await this.personsService.getPersonsByPersonIds(
@@ -289,6 +285,8 @@ export class ContestsService {
     contest.contact = contestDto.contact;
     contest.description = contestDto.description;
     contest.events = await this.updateContestEvents(contest, contestDto.events);
+
+    const isAdmin = user.roles.includes(Role.Admin);
 
     if (contestDto.compDetails) {
       if (contest.compDetails) {
@@ -336,8 +334,9 @@ export class ContestsService {
   async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
     // The organizers are needed for access rights checking below
     const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions);
+    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
-    await this.authService.checkAccessRightsToContest(user, contest, { ignoreState: true });
+    await this.authService.checkAccessRightsToContest(user, contest);
 
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
@@ -405,17 +404,28 @@ export class ContestsService {
     return await this.contestModel.findOne({ competitionId }, excl).exec();
   }
 
-  async enableQueue(competitionId: string) {
-    const contest = await this.contestModel.findOne({ competitionId }).exec();
+  async deleteContest(competitionId: string, user: IPartialUser) {
+    const contest = await this.getPartialContestAndCheckAccessRights(competitionId, user);
+
+    if (contest.participants > 0) throw new BadRequestException('You may not remove a contest that has results');
+
+    contest.state = ContestState.Removed;
+
+    await contest.save();
+  }
+
+  async enableQueue(competitionId: string, user: IPartialUser) {
+    const contest = await this.getPartialContestAndCheckAccessRights(competitionId, user);
     contest.queuePosition = 1;
     await contest.save();
   }
 
   async changeQueuePosition(
     competitionId: string,
+    user: IPartialUser,
     { newPosition, difference }: { newPosition?: number; difference?: 1 | -1 },
   ) {
-    const contest = await this.contestModel.findOne({ competitionId }).exec();
+    const contest = await this.getPartialContestAndCheckAccessRights(competitionId, user);
 
     if (newPosition !== undefined) contest.queuePosition = newPosition;
     else contest.queuePosition += difference;
@@ -426,49 +436,55 @@ export class ContestsService {
     return contest.queuePosition;
   }
 
+  // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
+  async getContestRound(competitionId: string, eventId: string, roundNumber: number): Promise<IRound> {
+    const contest = await this.getFullContest(competitionId, { populateResults: true });
+    if (contest.state === ContestState.Removed) throw new BadRequestException('This contest has been removed');
+    if (contest.state > ContestState.Ongoing) throw new BadRequestException('The contest is finished');
+
+    const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
+    if (!contestEvent) throw new NotFoundException(`Event with ID ${eventId} not found for the given competition`);
+
+    const round = contestEvent.rounds[roundNumber - 1];
+    if (!round) throw new BadRequestException(`Round number ${roundNumber} not found`);
+
+    return round;
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
+  private async getPartialContestAndCheckAccessRights(competitionId: string, user: IPartialUser) {
+    const contest = await this.contestModel.findOne({ competitionId }).exec();
+
+    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    this.authService.checkAccessRightsToContest(user, contest);
+
+    return contest;
+  }
+
   // Finds the contest with the given competition ID with the rounds and results populated
   private async getFullContest(
     competitionId: string,
-    user?: IPartialUser,
     {
-      ignoreState = true,
       exclude = true,
+      populateResults,
     }: {
-      ignoreState?: boolean;
       exclude?: boolean; // whether or not to exclude internal fields
-    } = {
-      ignoreState: true,
-      exclude: true,
-    },
+      populateResults?: boolean;
+    } = { exclude: true },
   ): Promise<ContestDocument> {
-    let contest: ContestDocument;
+    const contest = await this.contestModel
+      .findOne({ competitionId }, exclude ? exclSysButKeepCreatedBy : {})
+      .populate(eventPopulateOptions.event)
+      .populate(populateResults ? eventPopulateOptions.roundsAndResults : eventPopulateOptions.rounds)
+      .populate(orgPopulateOptions)
+      .exec();
 
-    try {
-      contest = await this.contestModel
-        .findOne({ competitionId }, exclude ? exclSysButKeepCreatedBy : {})
-        .populate(eventPopulateOptions.event)
-        .populate(eventPopulateOptions.rounds)
-        .populate(orgPopulateOptions)
-        .exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
-    if (!contest) throw new NotFoundException(`Contest with id ${competitionId} not found`);
-
-    if (user) this.authService.checkAccessRightsToContest(user, contest, { ignoreState });
-
-    if (contest.compDetails) {
-      try {
-        await contest.populate({ path: 'compDetails.schedule', model: 'Schedule' });
-      } catch (err) {
-        throw new InternalServerErrorException(err.message);
-      }
-    }
+    if (contest.compDetails) await contest.populate({ path: 'compDetails.schedule', model: 'Schedule' });
 
     return contest;
   }
