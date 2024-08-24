@@ -94,7 +94,7 @@ export const doFetch = async <T = any>(
 
   // Handle bad requests/server errors
   if (res.status >= 400 || is404) {
-    // If unauthorized, delete jwt token from localstorage and go to login page
+    // If unauthorized or forbidden, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
       localStorage.removeItem('jwtToken');
       if (!redirect) window.location.href = '/login';

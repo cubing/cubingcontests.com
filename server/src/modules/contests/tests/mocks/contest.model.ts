@@ -10,14 +10,17 @@ export const ContestModelMock = (): any => ({
       this.tempOutput = this.tempOutput.filter((el: ContestDocument) => el.countryIso2 === query.countryIso2);
     }
     if (query?.state) {
-      this.tempOutput = this.tempOutput.filter((el: ContestDocument) => el.state > query.state.$gt);
+      if (query.state.$gt !== undefined)
+        this.tempOutput = this.tempOutput.filter((el: ContestDocument) => el.state > query.state.$gt);
+      if (query.state.$lt !== undefined)
+        this.tempOutput = this.tempOutput.filter((el: ContestDocument) => el.state < query.state.$lt);
     }
 
     // Exclude createdBy, if requested
     if (selectObj?.createdBy === 0) {
       this.tempOutput = this.tempOutput.map((el: ContestDocument) => {
-        const { createdBy, ...rest } = el;
-        return rest;
+        delete el.createdBy;
+        return el;
       });
     }
 

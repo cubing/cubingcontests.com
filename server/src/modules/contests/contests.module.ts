@@ -32,5 +32,6 @@ import { ScheduleSchema } from '~/src/models/schedule.model';
   ],
   controllers: [ContestsController],
   providers: [ContestsService],
+  exports: [ContestsService],
 })
 export class ContestsModule {}

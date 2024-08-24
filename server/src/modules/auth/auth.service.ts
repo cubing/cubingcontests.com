@@ -20,8 +20,8 @@ import C from '@sh/constants';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { ContestDocument } from '~/src/models/contest.model';
 import { AuthTokenDocument } from '~/src/models/auth-token.model';
-import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
 import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
+import { LogType } from '~/src/helpers/enums';
 
 @Injectable()
 export class AuthService {
@@ -101,15 +101,22 @@ export class AuthService {
     return await this.usersService.getUserRoles(id);
   }
 
-  // Assumes the user's access rights have already been checked
-  async createAuthToken(competitionId: string): Promise<string> {
+  // ASSUMES THE USER'S ACCESS RIGHTS HAVE ALREADY BEEN CHECKED!
+  async createAuthToken(contest: ContestDocument): Promise<string> {
+    if (contest.state < ContestState.Approved)
+      throw new BadRequestException("You may not create an access token for a contest that hasn't been approved yet");
+    if (contest.state >= ContestState.Finished)
+      throw new BadRequestException('You may not create an access token for a finished contest');
+
     const token = randomBytes(32).toString('hex');
     const hash = await bcrypt.hash(token, 0); // there's no need to salt the tokens
 
     try {
       // Delete existing valid auth token
-      await this.authTokenModel.deleteOne({ competitionId, createdAt: { $gt: addWeeks(new Date(), -1) } }).exec();
-      await this.authTokenModel.create({ token: hash, competitionId });
+      await this.authTokenModel
+        .deleteOne({ competitionId: contest.competitionId, createdAt: { $gt: addWeeks(new Date(), -1) } })
+        .exec();
+      await this.authTokenModel.create({ token: hash, competitionId: contest.competitionId });
     } catch (err) {
       throw new InternalServerErrorException(`Error while saving token: ${err.message}`);
     }
@@ -131,20 +138,23 @@ export class AuthService {
     return authToken && (await bcrypt.compare(token, authToken.token));
   }
 
-  checkAccessRightsToContest(
-    user: IPartialUser,
-    contest: ContestDocument, // this must be populated
-    { ignoreState = false }: { ignoreState: boolean } = { ignoreState: false },
-  ) {
+  // THE CONTEST MUST ALREADY BE POPULATED!
+  checkAccessRightsToContest(user: IPartialUser, contest: ContestDocument) {
+    if (contest.state === ContestState.Removed) throw new BadRequestException('This contest has been removed');
+
     const hasAccessRights =
       user.roles.includes(Role.Admin) ||
       (user.roles.includes(Role.Moderator) &&
         contest.organizers.some((el) => el.personId === user.personId) &&
-        (contest.state < ContestState.Finished || ignoreState));
+        contest.state < ContestState.Finished);
 
     if (!hasAccessRights) {
-      this.logger.log(`User ${user.username} denied access rights to contest ${contest.competitionId}`);
-      throw new UnauthorizedException(NO_ACCESS_RIGHTS_MSG);
+      this.logger.logAndSave(
+        `User ${user.username} denied access rights to contest ${contest.competitionId}`,
+        LogType.AccessDenied,
+      );
+
+      throw new UnauthorizedException('You do not have access rights for this contest');
     }
   }
 }

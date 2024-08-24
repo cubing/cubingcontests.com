@@ -60,6 +60,7 @@ export enum ContestState {
   Ongoing = 30,
   Finished = 40,
   Published = 50,
+  Removed = 100,
 }
 
 export enum WcaRecordType {

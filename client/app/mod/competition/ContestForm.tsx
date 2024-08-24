@@ -60,6 +60,7 @@ import { getContestIdFromName, getUserInfo } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
+import Link from 'next/link';
 
 const isAdmin = getUserInfo()?.isAdmin;
 
@@ -776,6 +777,19 @@ const ContestForm = ({
     });
   };
 
+  const removeContest = async () => {
+    const answer = confirm(`Are you sure you would like to remove ${contest.name}?`);
+
+    if (answer) {
+      const { errors } = await myFetch.delete(`/competitions/${competitionId}`, {
+        loadingId: 'delete_contest_button',
+        keepLoadingAfterSuccess: true,
+      });
+
+      if (!errors) window.location.href = '/mod';
+    }
+  };
+
   const downloadScorecards = async () => {
     await myFetch.get(`/scorecards/${contest.competitionId}`, {
       authorize: true,
@@ -818,6 +832,25 @@ const ContestForm = ({
           <>
             {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
+                {contest.type !== ContestType.WcaComp && (
+                  <Link
+                    href={`/mod/competition?copy_id=${contest.competitionId}`}
+                    prefetch={false}
+                    className="btn btn-primary"
+                  >
+                    Clone
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Button
+                    id="delete_contest_button"
+                    text="Remove Contest"
+                    onClick={removeContest}
+                    loadingId={loadingId}
+                    disabled={contest.participants > 0}
+                    className="btn-danger"
+                  />
+                )}
                 <Button
                   id="download_scorecards_button"
                   text="Scorecards"
@@ -834,13 +867,14 @@ const ContestForm = ({
                   disabled={
                     contest.state < ContestState.Approved || contest.state >= ContestState.Finished || queueEnabled
                   }
+                  className="btn-secondary"
                 />
                 <Button
                   id="get_access_token_button"
                   text="Get Access Token"
                   onClick={createAuthToken}
                   loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved}
+                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
                   className="btn-secondary"
                 />
               </div>
