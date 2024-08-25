@@ -246,11 +246,8 @@ export class PersonsService {
       person.localizedName = personDto.localizedName;
       person.countryIso2 = personDto.countryIso2;
     }
-    console.log(person, personDto);
 
     await person.save();
-
-    console.log(person);
 
     return this.getFrontendPerson(person, { isEditable: !approvedResult, user });
   }
