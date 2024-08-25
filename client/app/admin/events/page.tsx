@@ -40,7 +40,7 @@ const CreateEditEventPage = () => {
   const [rule, setRule] = useState('');
 
   useEffect(() => {
-    myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
+    myFetch.get('/events/mod?withRules=true', { authorize: true }).then(({ payload, errors }) => {
       if (!errors) setEvents(payload);
     });
   }, []);

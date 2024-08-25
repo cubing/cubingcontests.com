@@ -138,6 +138,10 @@ export class AuthService {
     return authToken && (await bcrypt.compare(token, authToken.token));
   }
 
+  async deleteAuthToken(competitionId: string) {
+    await this.authTokenModel.deleteMany({ competitionId }).exec();
+  }
+
   // THE CONTEST MUST ALREADY BE POPULATED!
   checkAccessRightsToContest(user: IPartialUser, contest: ContestDocument) {
     if (contest.state === ContestState.Removed) throw new BadRequestException('This contest has been removed');

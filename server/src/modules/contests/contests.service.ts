@@ -135,12 +135,8 @@ export class ContestsService {
     const queryFilter: any = { state: { $gt: ContestState.Created, $lt: ContestState.Removed } };
     if (region) queryFilter.countryIso2 = region;
 
-    try {
-      const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
-      return contests;
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+    return contests;
   }
 
   async getModContests(user: IPartialUser): Promise<IContest[]> {
@@ -213,6 +209,9 @@ export class ContestsService {
     contestDto: ContestDto,
     { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
   ) {
+    // TEMPORARY FOR DEBUGGING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    console.log(JSON.stringify(contestDto, null, 2));
+
     const isAdmin = user.roles.includes(Role.Admin);
     const contestUrl = getContestUrl(contestDto.competitionId);
 
@@ -221,12 +220,18 @@ export class ContestsService {
 
     this.validateContest(contestDto, user);
 
-    const comp1 = await this.contestModel.findOne({ competitionId: contestDto.competitionId }).exec();
-    if (comp1) throw new BadRequestException(`A contest with the ID ${contestDto.competitionId} already exists`);
-    const comp2 = await this.contestModel.findOne({ name: contestDto.name }).exec();
-    if (comp2) throw new BadRequestException(`A contest with the name ${contestDto.name} already exists`);
-    const comp3 = await this.contestModel.findOne({ shortName: contestDto.shortName }).exec();
-    if (comp3) throw new BadRequestException(`A contest with the short name ${contestDto.shortName} already exists`);
+    // No need to check that the state is not removed, because removed contests have _REMOVED at the end anyways
+    const sameIdC = await this.contestModel.findOne({ competitionId: contestDto.competitionId }).exec();
+    if (sameIdC) throw new BadRequestException(`A contest with the ID ${contestDto.competitionId} already exists`);
+    const sameNameC = await this.contestModel
+      .findOne({ name: contestDto.name, state: { $ne: ContestState.Removed } })
+      .exec();
+    if (sameNameC) throw new BadRequestException(`A contest with the name ${contestDto.name} already exists`);
+    const sameShortC = await this.contestModel
+      .findOne({ shortName: contestDto.shortName, state: { $ne: ContestState.Removed } })
+      .exec();
+    if (sameShortC)
+      throw new BadRequestException(`A contest with the short name ${contestDto.shortName} already exists`);
 
     try {
       // First save all of the rounds in the DB (without any results until they get posted)
@@ -418,8 +423,13 @@ export class ContestsService {
     if (contest.participants > 0) throw new BadRequestException('You may not remove a contest that has results');
 
     contest.state = ContestState.Removed;
+    contest.competitionId += '_REMOVED';
 
     await contest.save();
+
+    await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
+    await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
+    await this.authService.deleteAuthToken(competitionId);
   }
 
   async enableQueue(competitionId: string, user: IPartialUser) {
