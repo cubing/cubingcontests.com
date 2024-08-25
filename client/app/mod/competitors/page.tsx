@@ -11,6 +11,7 @@ import Button from '@c/UI/Button';
 import Country from '@c/Country';
 import CreatorDetails from '@c/CreatorDetails';
 import Competitor from '@c/Competitor';
+import ToastMessages from '@c/UI/ToastMessages';
 import PersonForm from './PersonForm';
 
 const userInfo: IUserInfo = getUserInfo();
@@ -54,6 +55,7 @@ const CreatePersonPage = () => {
   return (
     <div>
       <h2 className="mb-4 text-center">Competitors</h2>
+      <ToastMessages />
 
       {mode === 'view' ? (
         <button type="button" className="btn btn-success ms-3" onClick={onAddCompetitor}>

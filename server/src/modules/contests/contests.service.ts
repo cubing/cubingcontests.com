@@ -266,7 +266,8 @@ export class ContestsService {
         newCompetition.compDetails.schedule = await this.scheduleModel.create(contestDto.compDetails.schedule);
       }
 
-      await this.contestModel.create(newCompetition);
+      console.log(JSON.stringify(newCompetition, null, 2));
+      console.log(JSON.stringify(await this.contestModel.create(newCompetition), null, 2));
 
       await this.emailService.sendContestSubmittedNotification(contestCreatorEmail, newCompetition, contestUrl);
 
@@ -279,7 +280,7 @@ export class ContestsService {
       }
     } catch (err) {
       // Remove created schedule
-      await this.scheduleModel.deleteMany({ competitionId: contestDto.competitionId }).exec();
+      await this.scheduleModel.deleteOne({ competitionId: contestDto.competitionId }).exec();
 
       throw new InternalServerErrorException(err.message);
     }

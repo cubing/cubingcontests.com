@@ -145,6 +145,7 @@ const PersonForm = ({
     <Form
       buttonText="Submit"
       onSubmit={handleSubmit}
+      hideToasts
       hideButton={hasWcaId && !personUnderEdit}
       showCancelButton={onCancel !== undefined}
       onCancel={onCancel}

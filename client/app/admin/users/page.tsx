@@ -11,6 +11,7 @@ import FormTextInput from '@c/form/FormTextInput';
 import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormCheckbox from '@c/form/FormCheckbox';
 import Button from '@c/UI/Button';
+import ToastMessages from '@c/UI/ToastMessages';
 
 const ManageUsersPage = () => {
   const myFetch = useMyFetch();
@@ -82,9 +83,10 @@ const ManageUsersPage = () => {
   return (
     <div>
       <h2 className="mb-4 text-center">Users</h2>
+      <ToastMessages />
 
       {username && (
-        <Form buttonText="Submit" onSubmit={handleSubmit} showCancelButton onCancel={() => setUsername('')}>
+        <Form buttonText="Submit" onSubmit={handleSubmit} hideToasts showCancelButton onCancel={() => setUsername('')}>
           <div className="row">
             <div className="col">
               <FormTextInput title="Username" value={username} disabled />
