@@ -60,7 +60,6 @@ import { getContestIdFromName, getUserInfo } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
-import Link from 'next/link';
 
 const isAdmin = getUserInfo()?.isAdmin;
 
@@ -231,13 +230,11 @@ const ContestForm = ({
       }
 
       if (mode === 'copy') {
-        // Remove the round IDs and all results
-        setContestEvents(
-          contest.events.map((ce) => ({
-            ...ce,
-            rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
-          })),
-        );
+        const contestEventsWithoutRoundIdsOrResults = contest.events.map((ce) => ({
+          ...ce,
+          rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
+        }));
+        setContestEvents(contestEventsWithoutRoundIdsOrResults);
       } else if (mode === 'edit') {
         setContestEvents(contest.events);
         if (contest.queuePosition) setQueueEnabled(true);
@@ -777,6 +774,11 @@ const ContestForm = ({
     });
   };
 
+  const cloneContest = () => {
+    changeLoadingId('clone_contest_button');
+    window.location.href = `/mod/competition?copy_id=${contest.competitionId}`;
+  };
+
   const removeContest = async () => {
     const answer = confirm(`Are you sure you would like to remove ${contest.name}?`);
 
@@ -833,13 +835,8 @@ const ContestForm = ({
             {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
                 {contest.type !== ContestType.WcaComp && (
-                  <Link
-                    href={`/mod/competition?copy_id=${contest.competitionId}`}
-                    prefetch={false}
-                    className="btn btn-primary"
-                  >
-                    Clone
-                  </Link>
+                  // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
+                  <Button id="clone_contest_button" text="Clone" onClick={cloneContest} loadingId={loadingId} />
                 )}
                 {isAdmin && (
                   <Button
