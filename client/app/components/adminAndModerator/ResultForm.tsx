@@ -69,7 +69,7 @@ const ResultForm = ({
   isAdmin?: boolean;
   forResultsSubmissionForm?: boolean;
 }) => {
-  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const { changeErrorMessages, loadingId } = useContext(MainContext);
 
   // This is only needed for displaying the temporary best single and average, as well as any record badges
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
@@ -93,7 +93,7 @@ const ResultForm = ({
       if (keepCompetitors) focusFirstAttempt();
       else document.getElementById('Competitor_1').focus();
     }
-    // If resetTrigger is undefined, that means we're editing a result and
+    // If resetTrigger is undefined, that means we're editing a result
     else {
       // Set person names if there are no null persons (needed when editing results)
       if (!persons.some((el) => el === null)) setPersonNames(persons.map((el) => el.name));
@@ -199,8 +199,6 @@ const ResultForm = ({
       resetCompetitors: !keepCompetitors,
     },
   ) => {
-    resetMessagesAndLoadingId();
-
     if (forResultsSubmissionForm) {
       const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((el) => el.value);
 

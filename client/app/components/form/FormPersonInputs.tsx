@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { useLimitRequests, useMyFetch } from '~/helpers/customHooks';
 import Loading from '@c/UI/Loading';
 import FormTextInput from './FormTextInput';
@@ -9,7 +9,6 @@ import { IWcaPersonDto, IPerson } from '@sh/types';
 import C from '@sh/constants';
 import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import { MainContext } from '~/helpers/contexts';
 
 const userInfo: IUserInfo = getUserInfo();
 const MAX_MATCHES = 6;
@@ -45,7 +44,6 @@ const FormPersonInputs = ({
 }) => {
   const myFetch = useMyFetch();
   const [limitMatchedPersonsRequests, isLoadingMatchedPersons] = useLimitRequests();
-  const { resetMessagesAndLoadingId } = useContext(MainContext);
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
   const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
@@ -101,8 +99,6 @@ const FormPersonInputs = ({
   };
 
   const changePersonName = (index: number, value: string) => {
-    resetMessagesAndLoadingId();
-
     if (value) setFocusedInput(index);
     else setFocusedInput(null);
 
@@ -126,7 +122,6 @@ const FormPersonInputs = ({
   };
 
   const focusNext = (newPersons: IPerson[]) => {
-    resetMessagesAndLoadingId();
     setFocusedInput(null);
     setMatchedPersons(defaultMatchedPersons);
     setPersonSelection(0);
