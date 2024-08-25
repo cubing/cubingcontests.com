@@ -159,7 +159,6 @@ export class ContestsService {
     competitionId: string,
     { user, eventId }: { user?: IPartialUser; eventId?: string },
   ): Promise<IContestData> {
-    // This needs to be a plain object for the manual results population below
     const contest = await this.getFullContest(competitionId);
 
     if (user) this.authService.checkAccessRightsToContest(user, contest);

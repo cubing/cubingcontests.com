@@ -1,7 +1,13 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
+import { eventPopulateOptions, excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { ContestEvent } from '~/src/models/contest.model';
@@ -136,11 +142,22 @@ export class PersonsService {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
-    if (contestEvents) for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
-    else compRounds = await this.roundModel.find({ competitionId }).populate('results').exec();
+    if (contestEvents) {
+      for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
+    } else {
+      compRounds = await this.roundModel
+        .find({ competitionId })
+        .populate(eventPopulateOptions.roundsAndResults.populate)
+        .exec();
+    }
 
     for (const round of compRounds) {
       for (const result of round.results) {
+        if (!result.personIds) {
+          this.logger.error('Round results are not populated');
+          throw new InternalServerErrorException();
+        }
+
         for (const personId of result.personIds) {
           if (!personIds.includes(personId)) personIds.push(personId);
         }
@@ -229,8 +246,11 @@ export class PersonsService {
       person.localizedName = personDto.localizedName;
       person.countryIso2 = personDto.countryIso2;
     }
+    console.log(person, personDto);
 
     await person.save();
+
+    console.log(person);
 
     return this.getFrontendPerson(person, { isEditable: !approvedResult, user });
   }
