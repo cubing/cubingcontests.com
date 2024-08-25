@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import { mongo } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
 import { WcaRecordType } from '@sh/enums';
 
@@ -6,7 +6,7 @@ export const resultsStub = (): ResultDocument[] => {
   return [
     // Fake results
     {
-      _id: new mongoose.Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+      _id: new mongo.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
       competitionId: 'FMTestComp2023',
       eventId: '333fm',
       date: new Date('2023-07-01T00:00:00Z'),
@@ -17,7 +17,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 48,
     },
     {
-      _id: new mongoose.Types.ObjectId('bbbbbbbbbbbbbbbbbbbbbbbb'),
+      _id: new mongo.ObjectId('bbbbbbbbbbbbbbbbbbbbbbbb'),
       eventId: '444bf',
       date: new Date('2023-06-27T00:00:00Z'),
       personIds: [1],
@@ -28,7 +28,7 @@ export const resultsStub = (): ResultDocument[] => {
       discussionLink: 'link.net',
     },
     {
-      _id: new mongoose.Types.ObjectId('cccccccccccccccccccccccc'),
+      _id: new mongo.ObjectId('cccccccccccccccccccccccc'),
       competitionId: 'Pretend Comp 2024',
       eventId: '333_team_bld',
       date: new Date('2024-08-11T00:00:00Z'),
@@ -40,7 +40,7 @@ export const resultsStub = (): ResultDocument[] => {
     },
     // Real results
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c45'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c45'),
       competitionId: 'Munich19022023',
       eventId: '333_team_bld',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -53,7 +53,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c46'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c46'),
       competitionId: 'Munich19022023',
       eventId: '333_team_bld',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -64,7 +64,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 11740,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c47'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c47'),
       competitionId: 'Munich19022023',
       eventId: '333oh',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -77,7 +77,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c48'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c48'),
       competitionId: 'Munich19022023',
       eventId: '333oh',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -88,7 +88,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2398,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c49'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c49'),
       competitionId: 'Munich19022023',
       eventId: '333',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -101,7 +101,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4a'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c4a'),
       competitionId: 'Munich19022023',
       eventId: '333',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -112,7 +112,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1307,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4b'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c4b'),
       competitionId: 'Munich19022023',
       eventId: '333',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -123,7 +123,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1351,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4c'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c4c'),
       competitionId: 'Munich19022023',
       eventId: '333',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -134,7 +134,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1624,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4d'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c4d'),
       competitionId: 'Munich19022023',
       eventId: '333bf',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -146,7 +146,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalSingleRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4e'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c4e'),
       competitionId: 'Munich19022023',
       eventId: '333bf',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -157,7 +157,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c4f'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c4f'),
       competitionId: 'Munich19022023',
       eventId: '333bf',
       date: new Date('2023-02-19T00:00:00Z'),
@@ -168,7 +168,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c50'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c50'),
       competitionId: 'Munich14062023',
       eventId: '444',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -181,7 +181,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c51'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c51'),
       competitionId: 'Munich14062023',
       eventId: '444',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -192,7 +192,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 4852,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c52'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c52'),
       competitionId: 'Munich14062023',
       eventId: '444',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -203,7 +203,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 5372,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c54'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c54'),
       competitionId: 'Munich14062023',
       eventId: '444',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -214,7 +214,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 8717,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c55'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c55'),
       competitionId: 'Munich14062023',
       eventId: '555',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -227,7 +227,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c56'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c56'),
       competitionId: 'Munich14062023',
       eventId: '555',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -238,7 +238,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 13797,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c57'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c57'),
       competitionId: 'Munich14062023',
       eventId: '555',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -249,7 +249,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c59'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c59'),
       competitionId: 'Munich14062023',
       eventId: '333bf',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -260,7 +260,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5a'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c5a'),
       competitionId: 'Munich14062023',
       eventId: '333bf',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -272,7 +272,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5b'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c5b'),
       competitionId: 'Munich14062023',
       eventId: '333bf',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -283,7 +283,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5c'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c5c'),
       competitionId: 'Munich14062023',
       eventId: '333fm',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -296,7 +296,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5d'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c5d'),
       competitionId: 'Munich14062023',
       eventId: '333fm',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -307,7 +307,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 4800,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5e'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c5e'),
       competitionId: 'Munich14062023',
       eventId: '333fm',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -318,7 +318,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 5667,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c5f'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c5f'),
       competitionId: 'Munich14062023',
       eventId: '333oh',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -331,7 +331,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c60'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c60'),
       competitionId: 'Munich14062023',
       eventId: '333oh',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -342,7 +342,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2243,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c61'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c61'),
       competitionId: 'Munich14062023',
       eventId: '333oh',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -353,7 +353,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2289,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c62'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c62'),
       competitionId: 'Munich14062023',
       eventId: '333oh',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -364,7 +364,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2913,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c63'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c63'),
       competitionId: 'Munich14062023',
       eventId: '222',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -376,7 +376,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c64'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c64'),
       competitionId: 'Munich14062023',
       eventId: '222',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -387,7 +387,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 514,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c65'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c65'),
       competitionId: 'Munich14062023',
       eventId: '222',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -399,7 +399,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalSingleRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c66'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c66'),
       competitionId: 'Munich14062023',
       eventId: '222',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -410,7 +410,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 701,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c67'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c67'),
       competitionId: 'Munich14062023',
       eventId: '222',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -421,7 +421,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c68'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c68'),
       competitionId: 'Munich14062023',
       eventId: '333',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -433,7 +433,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c69'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c69'),
       competitionId: 'Munich14062023',
       eventId: '333',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -444,7 +444,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1235,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c6a'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c6a'),
       competitionId: 'Munich14062023',
       eventId: '333',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -455,7 +455,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1237,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c6b'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c6b'),
       competitionId: 'Munich14062023',
       eventId: '333',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -466,7 +466,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1306,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c6c'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c6c'),
       competitionId: 'Munich14062023',
       eventId: '333',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -477,7 +477,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1460,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c6d'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c6d'),
       competitionId: 'Munich27062023',
       eventId: '666',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -490,7 +490,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c6e'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c6e'),
       competitionId: 'Munich27062023',
       eventId: '666',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -501,7 +501,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 20393,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c6f'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c6f'),
       competitionId: 'Munich27062023',
       eventId: '666',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -512,7 +512,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 22811,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c70'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c70'),
       competitionId: 'Munich27062023',
       eventId: '666',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -523,7 +523,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c71'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c71'),
       competitionId: 'Munich27062023',
       eventId: '333_team_bld',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -536,7 +536,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c72'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c72'),
       competitionId: 'Munich27062023',
       eventId: '333_team_bld',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -547,7 +547,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 6742,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c73'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c73'),
       competitionId: 'Munich27062023',
       eventId: '333',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -559,7 +559,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalSingleRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c74'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c74'),
       competitionId: 'Munich27062023',
       eventId: '333',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -570,7 +570,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1216,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c75'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c75'),
       competitionId: 'Munich27062023',
       eventId: '333',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -581,7 +581,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1257,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c76'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c76'),
       competitionId: 'Munich27062023',
       eventId: '333',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -592,7 +592,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1270,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c53'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c53'),
       competitionId: 'Munich14062023',
       eventId: '444',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -603,7 +603,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 6996,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c78'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c78'),
       competitionId: 'Munich27062023',
       eventId: '333',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -614,7 +614,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2007,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c79'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c79'),
       competitionId: 'Munich27062023',
       eventId: '333oh',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -627,7 +627,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7a'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c7a'),
       competitionId: 'Munich27062023',
       eventId: '333oh',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -638,7 +638,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2225,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7b'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c7b'),
       competitionId: 'Munich27062023',
       eventId: '333oh',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -649,7 +649,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2647,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7c'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c7c'),
       competitionId: 'Munich27062023',
       eventId: '333oh',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -660,7 +660,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2666,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c58'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c58'),
       competitionId: 'Munich14062023',
       eventId: '333bf',
       date: new Date('2023-06-14T00:00:00Z'),
@@ -671,7 +671,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7e'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c7e'),
       competitionId: 'Munich27062023',
       eventId: '333oh',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -682,7 +682,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 4006,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7f'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c7f'),
       competitionId: 'Munich27062023',
       eventId: '222',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -695,7 +695,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c80'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c80'),
       competitionId: 'Munich27062023',
       eventId: '222',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -706,7 +706,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 363,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c81'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c81'),
       competitionId: 'Munich27062023',
       eventId: '222',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -717,7 +717,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 365,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c82'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c82'),
       competitionId: 'Munich27062023',
       eventId: '222',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -728,7 +728,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 391,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c83'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c83'),
       competitionId: 'Munich27062023',
       eventId: '222',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -739,7 +739,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 779,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c84'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c84'),
       competitionId: 'Munich27062023',
       eventId: '444',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -751,7 +751,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalSingleRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c85'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c85'),
       competitionId: 'Munich27062023',
       eventId: '444',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -762,7 +762,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 5451,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c86'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c86'),
       competitionId: 'Munich27062023',
       eventId: '444',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -773,7 +773,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 6153,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c87'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c87'),
       competitionId: 'Munich27062023',
       eventId: '444',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -784,7 +784,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 6723,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c88'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c88'),
       competitionId: 'Munich27062023',
       eventId: '333bf',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -796,7 +796,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c89'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c89'),
       competitionId: 'Munich27062023',
       eventId: '333bf',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -807,7 +807,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8a'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c8a'),
       competitionId: 'Munich27062023',
       eventId: '333bf',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -818,7 +818,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: -1,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8b'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c8b'),
       competitionId: 'Munich27062023',
       eventId: '333-team-factory',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -831,7 +831,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8c'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c8c'),
       competitionId: 'Munich27062023',
       eventId: '333-team-factory',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -842,7 +842,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 2116,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8d'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c8d'),
       competitionId: 'Munich27062023',
       eventId: '555',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -854,7 +854,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8e'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c8e'),
       competitionId: 'Munich27062023',
       eventId: '555',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -865,7 +865,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 9287,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c8f'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c8f'),
       competitionId: 'Munich27062023',
       eventId: '555',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -876,7 +876,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 10170,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c90'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c90'),
       competitionId: 'Munich27062023',
       eventId: '555',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -887,7 +887,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 11212,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c91'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c91'),
       competitionId: 'Munich27062023',
       eventId: '333fm',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -899,7 +899,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalAverageRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c92'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c92'),
       competitionId: 'Munich27062023',
       eventId: '333fm',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -911,7 +911,7 @@ export const resultsStub = (): ResultDocument[] => {
       regionalSingleRecord: WcaRecordType.WR,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c93'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c93'),
       competitionId: 'Munich27062023',
       eventId: '333fm',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -922,7 +922,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 5267,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c4ecadd98a79f99c94'),
+      _id: new mongo.ObjectId('649fe9c4ecadd98a79f99c94'),
       competitionId: 'Munich27062023',
       eventId: '333fm',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -933,7 +933,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 5800,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c77'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c77'),
       competitionId: 'Munich27062023',
       eventId: '333',
       date: new Date('2023-06-27T00:00:00Z'),
@@ -944,7 +944,7 @@ export const resultsStub = (): ResultDocument[] => {
       average: 1290,
     },
     {
-      _id: new mongoose.Types.ObjectId('649fe9c3ecadd98a79f99c7d'),
+      _id: new mongo.ObjectId('649fe9c3ecadd98a79f99c7d'),
       competitionId: 'Munich27062023',
       eventId: '333oh',
       date: new Date('2023-06-27T00:00:00Z'),

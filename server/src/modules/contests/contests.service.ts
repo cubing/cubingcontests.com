@@ -4,7 +4,7 @@ import { addDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { ContestDto } from './dto/contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { mongo, Model } from 'mongoose';
 import { ContestEvent, ContestDocument } from '~/src/models/contest.model';
 import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { RoundDocument } from '~/src/models/round.model';
@@ -242,7 +242,7 @@ export class ContestsService {
       const newCompetition: IContest = {
         ...contestDto,
         events: contestEvents,
-        createdBy: new mongoose.Types.ObjectId(user._id as string),
+        createdBy: new mongo.ObjectId(user._id as string),
         state: ContestState.Created,
         participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents })).length,
       };

@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { mongo, Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { addDays } from 'date-fns';
@@ -72,7 +72,7 @@ export class UsersService {
   }
 
   async getUserDetails(id: string, userMustExist = true): Promise<IFeUser> {
-    const user = await this.userModel.findOne({ _id: new mongoose.Types.ObjectId(id) }, frontendUserSelect).exec();
+    const user = await this.userModel.findOne({ _id: new mongo.ObjectId(id) }, frontendUserSelect).exec();
 
     if (!user) {
       if (userMustExist) throw new NotFoundException('User not found');
@@ -126,7 +126,7 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
-    await this.userModel.deleteOne({ _id: new mongoose.Types.ObjectId(id) }).exec();
+    await this.userModel.deleteOne({ _id: new mongo.ObjectId(id) }).exec();
   }
 
   async verifyEmail(username: string, code: string) {

@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { mongo, Model } from 'mongoose';
 import { eventPopulateOptions, excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
@@ -86,7 +86,7 @@ export class PersonsService {
       return fePersons;
     } else {
       const persons = await this.personModel
-        .find({ createdBy: new mongoose.Types.ObjectId(user._id as string) }, excl)
+        .find({ createdBy: new mongo.ObjectId(user._id as string) }, excl)
         .sort({ personId: -1 })
         .limit(1000)
         .exec();
@@ -202,7 +202,7 @@ export class PersonsService {
     const createdPerson = await this.personModel.create({
       ...personDto,
       personId: newestPerson ? newestPerson.personId + 1 : 1,
-      createdBy: user !== 'EXT_DEVICE' ? new mongoose.Types.ObjectId(user._id as string) : undefined,
+      createdBy: user !== 'EXT_DEVICE' ? new mongo.ObjectId(user._id as string) : undefined,
     });
 
     return this.getFrontendPerson(createdPerson, { user });

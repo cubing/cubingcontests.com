@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { toZonedTime } from 'date-fns-tz';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { mongo, Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
 import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
@@ -564,14 +564,8 @@ export class ResultsService {
     await this.validateAndCleanUpResult(submitResultDto, event, { mode: 'submit' });
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
-    const createdResult = await this.resultModel.create(
-      setResultRecords(
-        { ...submitResultDto, createdBy: new mongoose.Types.ObjectId(user._id as string) },
-        event,
-        recordPairs,
-        !isAdmin,
-      ),
-    );
+    const newResult = { ...submitResultDto, createdBy: new mongo.ObjectId(user._id as string) };
+    const createdResult = await this.resultModel.create(setResultRecords(newResult, event, recordPairs, !isAdmin));
 
     if (isAdmin) {
       await this.updateFutureRecords(submitResultDto, event, recordPairs, { mode: 'create' });
