@@ -209,9 +209,6 @@ export class ContestsService {
     contestDto: ContestDto,
     { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
   ) {
-    // TEMPORARY FOR DEBUGGING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    console.log(JSON.stringify(contestDto, null, 2));
-
     const isAdmin = user.roles.includes(Role.Admin);
     const contestUrl = getContestUrl(contestDto.competitionId);
 
@@ -266,8 +263,7 @@ export class ContestsService {
         newCompetition.compDetails.schedule = await this.scheduleModel.create(contestDto.compDetails.schedule);
       }
 
-      console.log(JSON.stringify(newCompetition, null, 2));
-      console.log(JSON.stringify(await this.contestModel.create(newCompetition), null, 2));
+      await this.contestModel.create(newCompetition);
 
       await this.emailService.sendContestSubmittedNotification(contestCreatorEmail, newCompetition, contestUrl);
 
