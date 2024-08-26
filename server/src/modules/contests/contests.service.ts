@@ -6,7 +6,13 @@ import { ContestDto } from './dto/contest.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo, Model } from 'mongoose';
 import { ContestEvent, ContestDocument } from '~/src/models/contest.model';
-import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
+import {
+  eventPopulateOptions,
+  excl,
+  exclSysButKeepCreatedBy,
+  orgPopulateOptions,
+  resultPopulateOptions,
+} from '~/src/helpers/dbHelpers';
 import { RoundDocument } from '~/src/models/round.model';
 import { ResultDocument } from '~/src/models/result.model';
 import { ResultsService } from '@m/results/results.service';
@@ -83,7 +89,7 @@ export class ContestsService {
                   // Check that all results for this schedule activity have the right date
                   const round = await this.roundModel
                     .findOne({ competitionId: contest.competitionId, roundId: activity.activityCode })
-                    .populate({ path: 'results', model: 'Result' })
+                    .populate(resultPopulateOptions)
                     .exec();
 
                   if (!round) {
@@ -180,7 +186,7 @@ export class ContestsService {
 
       // Populate the results of all rounds for this event
       for (const round of contestEvent.rounds) {
-        // round.populate(eventPopulateOptions.roundsAndResults.populate);
+        // round.populate(resultPopulateOptions);
 
         for (let i = 0; i < round.results.length; i++)
           round.results[i] = await this.resultModel.findById(round.results[i].toString());

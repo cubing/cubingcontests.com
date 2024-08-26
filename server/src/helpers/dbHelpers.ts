@@ -18,16 +18,16 @@ const rounds = {
   model: 'Round',
 };
 
+export const resultPopulateOptions = {
+  path: 'results',
+  model: 'Result',
+};
+
 export const eventPopulateOptions = {
   event: { path: 'events.event', model: 'Event' },
   rounds,
   roundsAndResults: {
     ...rounds,
-    populate: [
-      {
-        path: 'results',
-        model: 'Result',
-      },
-    ],
+    populate: [resultPopulateOptions],
   },
 };

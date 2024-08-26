@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo, Model } from 'mongoose';
-import { eventPopulateOptions, excl, exclSysButKeepCreatedBy } from '~/src/helpers/dbHelpers';
+import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { ContestEvent } from '~/src/models/contest.model';
@@ -145,10 +145,7 @@ export class PersonsService {
     if (contestEvents) {
       for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
     } else {
-      compRounds = await this.roundModel
-        .find({ competitionId })
-        .populate(eventPopulateOptions.roundsAndResults.populate)
-        .exec();
+      compRounds = await this.roundModel.find({ competitionId }).populate(resultPopulateOptions).exec();
     }
 
     for (const round of compRounds) {

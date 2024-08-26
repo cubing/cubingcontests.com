@@ -22,7 +22,7 @@ import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
 import { UpdateResultDto } from './dto/update-result.dto';
-import { excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
+import { excl, exclSysButKeepCreatedBy, orgPopulateOptions, resultPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
 import { ContestState, Role, RoundFormat, WcaRecordType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
@@ -491,7 +491,7 @@ export class ResultsService {
 
     const round = await this.roundModel
       .findOne({ competitionId: createResultDto.competitionId, roundId })
-      .populate('results')
+      .populate(resultPopulateOptions)
       .exec();
     if (!round) throw new BadRequestException('Round not found');
     const event = await this.eventsService.getEventById(createResultDto.eventId);
@@ -540,7 +540,7 @@ export class ResultsService {
 
     const updatedRound = await this.roundModel
       .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
-      .populate('results')
+      .populate(resultPopulateOptions)
       .exec();
 
     return updatedRound;
@@ -595,7 +595,7 @@ export class ResultsService {
     let contest: ContestDocument, round: RoundDocument;
     if (result.competitionId) {
       contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
-      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
+      round = await this.roundModel.findOne({ results: resultId }).populate(resultPopulateOptions).exec();
       if (!round) throw new BadRequestException('Round not found');
     }
 
@@ -648,7 +648,7 @@ export class ResultsService {
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
-        .populate('results')
+        .populate(resultPopulateOptions)
         .exec();
       return updatedRound;
     }
@@ -663,7 +663,7 @@ export class ResultsService {
     let contest: ContestDocument, round: RoundDocument;
     if (result.competitionId) {
       contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
-      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
+      round = await this.roundModel.findOne({ results: resultId }).populate(resultPopulateOptions).exec();
       if (!round) throw new BadRequestException('Round not found');
     }
 
@@ -679,7 +679,7 @@ export class ResultsService {
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
-        .populate('results')
+        .populate(resultPopulateOptions)
         .exec();
       return updatedRound;
     }
@@ -982,7 +982,7 @@ export class ResultsService {
               competitionId: result.competitionId,
               roundId: { $in: round.timeLimit.cumulativeRoundIds, $ne: round.roundId },
             })
-            .populate('results')
+            .populate(resultPopulateOptions)
             .exec();
 
           for (const r of rounds) {
