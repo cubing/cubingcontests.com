@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { Model, mongo } from 'mongoose';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CollectiveSolutionDocument } from '~/src/models/collective-solution.model';
 import { ICollectiveSolution, IFeCollectiveSolution } from '@sh/types';
@@ -45,7 +45,7 @@ export class CollectiveSolutionService {
       attemptNumber: (currentSolution?.attemptNumber ?? 0) + 1,
       scramble,
       solution: '',
-      lastUserWhoInteracted: new mongoose.Types.ObjectId(user._id as string),
+      lastUserWhoInteracted: new mongo.ObjectId(user._id as string),
       usersWhoMadeMoves: [],
       state: 10,
     };
@@ -84,7 +84,7 @@ export class CollectiveSolutionService {
     }
 
     currentSolution.solution = `${currentSolution.solution} ${makeMoveDto.move}`.trim();
-    currentSolution.lastUserWhoInteracted = new mongoose.Types.ObjectId(user._id as string);
+    currentSolution.lastUserWhoInteracted = new mongo.ObjectId(user._id as string);
     if (!currentSolution.usersWhoMadeMoves.some((usr) => usr.toString() === user._id))
       currentSolution.usersWhoMadeMoves.push(currentSolution.lastUserWhoInteracted);
 

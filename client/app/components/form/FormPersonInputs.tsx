@@ -1,15 +1,14 @@
 'use client';
 
-import { useContext, useRef, useState } from 'react';
-import { useMyFetch } from '~/helpers/customHooks';
+import { useState } from 'react';
+import { useLimitRequests, useMyFetch } from '~/helpers/customHooks';
 import Loading from '@c/UI/Loading';
 import FormTextInput from './FormTextInput';
 import Competitor from '@c/Competitor';
-import { IPerson } from '@sh/types';
+import { IWcaPersonDto, IPerson } from '@sh/types';
 import C from '@sh/constants';
-import { getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import { MainContext } from '~/helpers/contexts';
 
 const userInfo: IUserInfo = getUserInfo();
 const MAX_MATCHES = 6;
@@ -44,8 +43,7 @@ const FormPersonInputs = ({
   noGrid?: boolean;
 }) => {
   const myFetch = useMyFetch();
-  const { changeErrorMessages, resetMessagesAndLoadingId } = useContext(MainContext);
-  const fetchMatchedPersonsTimer = useRef<NodeJS.Timeout>(null);
+  const [limitMatchedPersonsRequests, isLoadingMatchedPersons] = useLimitRequests();
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
   const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
@@ -61,22 +59,21 @@ const FormPersonInputs = ({
     value = value.trim();
 
     if (value) {
-      limitRequests(fetchMatchedPersonsTimer, async () => {
+      limitMatchedPersonsRequests(async () => {
         if (!C.wcaIdRegexLoose.test(value)) {
-          const { payload, errors } = await myFetch.get(`/persons?name=${value}`, { loadingId: null });
+          const { payload, errors } = await myFetch.get(`/persons?name=${value}`);
 
-          if (errors) {
-            changeErrorMessages(errors);
-          } else if (payload.length > 0) {
+          if (!errors && payload.length > 0) {
             const newMatchedPersons = [...payload.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
             setMatchedPersons(newMatchedPersons);
             if (newMatchedPersons.length < personSelection) setPersonSelection(0);
           }
         } else {
-          const { payload, errors } = await myFetch.get(`/persons/${value}`, { authorize: true, loadingId: null });
+          const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, {
+            authorize: true,
+          });
 
-          if (errors) changeErrorMessages(errors);
-          else setMatchedPersons([payload]);
+          if (!errors) setMatchedPersons([payload.person]);
         }
       });
     }
@@ -102,8 +99,6 @@ const FormPersonInputs = ({
   };
 
   const changePersonName = (index: number, value: string) => {
-    resetMessagesAndLoadingId();
-
     if (value) setFocusedInput(index);
     else setFocusedInput(null);
 
@@ -127,7 +122,6 @@ const FormPersonInputs = ({
   };
 
   const focusNext = (newPersons: IPerson[]) => {
-    resetMessagesAndLoadingId();
     setFocusedInput(null);
     setMatchedPersons(defaultMatchedPersons);
     setPersonSelection(0);
@@ -213,7 +207,7 @@ const FormPersonInputs = ({
           />
           {inputIndex === focusedInput && personName && (
             <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
-              {fetchMatchedPersonsTimer.current !== null ? (
+              {isLoadingMatchedPersons ? (
                 <li className="list-group-item">
                   <div style={{ width: '200px' }}>
                     <Loading small />

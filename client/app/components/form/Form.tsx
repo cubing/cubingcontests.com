@@ -8,6 +8,7 @@ import { MainContext } from '~/helpers/contexts';
 const Form = ({
   children,
   buttonText = 'Submit',
+  hideToasts,
   hideButton,
   disableButton,
   showCancelButton,
@@ -16,6 +17,7 @@ const Form = ({
 }: {
   children: React.ReactNode;
   buttonText?: string;
+  hideToasts?: boolean;
   hideButton?: boolean;
   disableButton?: boolean;
   showCancelButton?: boolean;
@@ -34,7 +36,7 @@ const Form = ({
       style={{ maxWidth: '768px' }}
       onSubmit={(e) => e.preventDefault()}
     >
-      <ToastMessages />
+      {!hideToasts && <ToastMessages />}
 
       {children}
 

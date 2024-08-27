@@ -65,21 +65,17 @@ const RankingRow = ({
       </td>
       {showTeamColumn && (
         <td>
-          {ranking.persons.length === 2 ? (
-            <Competitor person={ranking.persons[1]} />
-          ) : (
-            <div className="d-flex flex-column align-items-start gap-2">
-              {/* The style is necessary, because the icon is too tall, so it makes the whole row taller */}
-              <span className="mb-2 text-white" style={{ height: '1.5rem', marginTop: '-4px' }}>
-                <u style={{ cursor: 'pointer' }} onClick={() => setTeamExpanded(!teamExpanded)}>
-                  {teamExpanded ? 'Collapse' : 'Expand'}
-                </u>
-                <span className="ms-1 fs-5">{teamExpanded ? <FaCaretDown /> : <FaCaretRight />}</span>
-              </span>
+          <div className="d-flex flex-column align-items-start gap-2">
+            {/* The style is necessary, because the icon is too tall, so it makes the whole row taller */}
+            <span className="mb-2 text-white" style={{ height: '1.5rem', marginTop: '-4px' }}>
+              <u style={{ cursor: 'pointer' }} onClick={() => setTeamExpanded(!teamExpanded)}>
+                {teamExpanded ? 'Close' : 'Open'}
+              </u>
+              <span className="ms-1 fs-5">{teamExpanded ? <FaCaretDown /> : <FaCaretRight />}</span>
+            </span>
 
-              {teamExpanded && ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
-            </div>
-          )}
+            {teamExpanded && ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
+          </div>
         </td>
       )}
       {showDetailsColumn && (

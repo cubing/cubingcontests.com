@@ -1,9 +1,9 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { addHours, differenceInDays } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { useFetchWcaCompDetails, useMyFetch } from '~/helpers/customHooks';
+import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from '~/helpers/customHooks';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCountrySelect from '@c/form/FormCountrySelect';
@@ -56,7 +56,7 @@ import {
   roundProceedOptions,
 } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getContestIdFromName, getUserInfo, limitRequests } from '~/helpers/utilityFunctions';
+import { getContestIdFromName, getUserInfo } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
@@ -73,10 +73,10 @@ const ContestForm = ({
   mode: 'new' | 'edit' | 'copy';
 }) => {
   const myFetch = useMyFetch();
+  const [limitTimezoneRequests, isLoadingTimezone] = useLimitRequests();
   const fetchWcaCompDetails = useFetchWcaCompDetails();
   const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
     useContext(MainContext);
-  const fetchTimezoneTimer = useRef<NodeJS.Timeout>(null);
 
   const [activeTab, setActiveTab] = useState('details');
   const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
@@ -230,13 +230,11 @@ const ContestForm = ({
       }
 
       if (mode === 'copy') {
-        // Remove the round IDs and all results
-        setContestEvents(
-          contest.events.map((ce) => ({
-            ...ce,
-            rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
-          })),
-        );
+        const contestEventsWithoutRoundIdsOrResults = contest.events.map((ce) => ({
+          ...ce,
+          rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
+        }));
+        setContestEvents(contestEventsWithoutRoundIdsOrResults);
       } else if (mode === 'edit') {
         setContestEvents(contest.events);
         if (contest.queuePosition) setQueueEnabled(true);
@@ -334,9 +332,6 @@ const ContestForm = ({
           'WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.',
         );
     }
-
-    // To-do: move this to the backend
-    if (getIsCompType(type) && activityOptions.length > 1) tempErrors.push('Please add all rounds to the schedule');
 
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
@@ -458,7 +453,7 @@ const ContestForm = ({
       setLatitude(processedLatitude);
       setLongitude(processedLongitude);
 
-      limitRequests(fetchTimezoneTimer, async () => {
+      limitTimezoneRequests(async () => {
         // Adjust all times to the new time zone
         const timeZone: string = await fetchTimeZone(processedLatitude, processedLongitude);
 
@@ -779,6 +774,24 @@ const ContestForm = ({
     });
   };
 
+  const cloneContest = () => {
+    changeLoadingId('clone_contest_button');
+    window.location.href = `/mod/competition?copy_id=${contest.competitionId}`;
+  };
+
+  const removeContest = async () => {
+    const answer = confirm(`Are you sure you would like to remove ${contest.name}?`);
+
+    if (answer) {
+      const { errors } = await myFetch.delete(`/competitions/${competitionId}`, {
+        loadingId: 'delete_contest_button',
+        keepLoadingAfterSuccess: true,
+      });
+
+      if (!errors) window.location.href = '/mod';
+    }
+  };
+
   const downloadScorecards = async () => {
     await myFetch.get(`/scorecards/${contest.competitionId}`, {
       authorize: true,
@@ -811,7 +824,7 @@ const ContestForm = ({
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         onSubmit={handleSubmit}
-        disableButton={disableIfCompFinished || fetchTimezoneTimer.current !== null}
+        disableButton={disableIfCompFinished}
       >
         {isAdmin && mode === 'edit' && <CreatorDetails creator={creator} />}
 
@@ -821,6 +834,20 @@ const ContestForm = ({
           <>
             {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
+                {contest.type !== ContestType.WcaComp && (
+                  // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
+                  <Button id="clone_contest_button" text="Clone" onClick={cloneContest} loadingId={loadingId} />
+                )}
+                {isAdmin && (
+                  <Button
+                    id="delete_contest_button"
+                    text="Remove Contest"
+                    onClick={removeContest}
+                    loadingId={loadingId}
+                    disabled={contest.participants > 0}
+                    className="btn-danger"
+                  />
+                )}
                 <Button
                   id="download_scorecards_button"
                   text="Scorecards"
@@ -837,13 +864,14 @@ const ContestForm = ({
                   disabled={
                     contest.state < ContestState.Approved || contest.state >= ContestState.Finished || queueEnabled
                   }
+                  className="btn-secondary"
                 />
                 <Button
                   id="get_access_token_button"
                   text="Get Access Token"
                   onClick={createAuthToken}
                   loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved}
+                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
                   className="btn-secondary"
                 />
               </div>
@@ -933,7 +961,7 @@ const ContestForm = ({
                     </div>
                     <div className="row">
                       <div className="text-secondary fs-6">
-                        Time zone: {fetchTimezoneTimer.current === null ? venueTimeZone : <Loading small dontCenter />}
+                        Time zone: {isLoadingTimezone ? <Loading small dontCenter /> : venueTimeZone}
                       </div>
                     </div>
                   </div>
@@ -946,11 +974,7 @@ const ContestForm = ({
                   <FormDatePicker
                     id="start_date"
                     title={`Start date and time (${
-                      type === ContestType.Meetup
-                        ? fetchTimezoneTimer.current === null
-                          ? venueTimeZone
-                          : '...'
-                        : 'UTC'
+                      type === ContestType.Meetup ? (isLoadingTimezone ? '...' : venueTimeZone) : 'UTC'
                     })`}
                     value={startTime}
                     setValue={changeStartDate}

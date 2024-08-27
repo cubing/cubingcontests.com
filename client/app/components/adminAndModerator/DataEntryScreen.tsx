@@ -18,7 +18,7 @@ import {
   IUpdateResultDto,
 } from '@sh/types';
 import { ContestState } from '@sh/enums';
-import { getUserInfo } from '~/helpers/utilityFunctions';
+import { getUserInfo, shortenEventName } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { roundFormats } from '@sh/roundFormats';
 import { useCheckErrorsThenSubmit } from '~/helpers/customHooks';
@@ -169,7 +169,6 @@ const DataEntryScreen = ({
 
   const editResult = (result: IResult) => {
     if (isEditable) {
-      window.scrollTo(0, 0);
       resetMessagesAndLoadingId();
 
       const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
@@ -183,6 +182,7 @@ const DataEntryScreen = ({
       setAttempts(newAttempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setResultFormResetTrigger(undefined);
+      window.scrollTo(0, 0);
     }
   };
 
@@ -272,7 +272,9 @@ const DataEntryScreen = ({
         </div>
 
         <div className="col-lg-9">
-          <h2 className="my-2 mb-4 text-center">Enter results for {contest.shortName}</h2>
+          <h3 className="mt-2 mb-4 text-center">
+            {contest.shortName} &ndash; {shortenEventName(currEvent.name)}
+          </h3>
 
           <RoundResultsTable
             round={round}

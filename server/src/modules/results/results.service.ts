@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { toZonedTime } from 'date-fns-tz';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { mongo, Model } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
 import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
@@ -22,7 +22,7 @@ import { MyLogger } from '@m/my-logger/my-logger.service';
 import { CreateResultDto } from './dto/create-result.dto';
 import { SubmitResultDto } from './dto/submit-result.dto';
 import { UpdateResultDto } from './dto/update-result.dto';
-import { eventPopulateOptions, excl, exclSysButKeepCreatedBy, orgPopulateOptions } from '~/src/helpers/dbHelpers';
+import { excl, exclSysButKeepCreatedBy, orgPopulateOptions, resultPopulateOptions } from '~/src/helpers/dbHelpers';
 import C from '@sh/constants';
 import { ContestState, Role, RoundFormat, WcaRecordType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
@@ -478,24 +478,6 @@ export class ResultsService {
     }
   }
 
-  // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
-  async getContestRound(competitionId: string, eventId: string, roundNumber: number): Promise<IRound> {
-    const contest = await this.contestModel
-      .findOne({ competitionId })
-      .populate(eventPopulateOptions.event)
-      .populate(eventPopulateOptions.roundsAndResults)
-      .exec();
-
-    if (!contest) throw new NotFoundException(`Competition with ID ${competitionId} not found`);
-    if (contest.state > ContestState.Ongoing) throw new BadRequestException('The contest is finished');
-    const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
-    if (!contestEvent) throw new NotFoundException(`Event with ID ${eventId} not found for the given competition`);
-    const round = contestEvent.rounds[roundNumber - 1];
-    if (!round) throw new BadRequestException(`Round number ${roundNumber} not found`);
-
-    return round;
-  }
-
   // The user can be left undefined when this is called by app.service.ts, which has its own authorization check
   async createResult(
     createResultDto: CreateResultDto,
@@ -509,7 +491,7 @@ export class ResultsService {
 
     const round = await this.roundModel
       .findOne({ competitionId: createResultDto.competitionId, roundId })
-      .populate('results')
+      .populate(resultPopulateOptions)
       .exec();
     if (!round) throw new BadRequestException('Round not found');
     const event = await this.eventsService.getEventById(createResultDto.eventId);
@@ -558,7 +540,7 @@ export class ResultsService {
 
     const updatedRound = await this.roundModel
       .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
-      .populate('results')
+      .populate(resultPopulateOptions)
       .exec();
 
     return updatedRound;
@@ -582,14 +564,8 @@ export class ResultsService {
     await this.validateAndCleanUpResult(submitResultDto, event, { mode: 'submit' });
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
-    const createdResult = await this.resultModel.create(
-      setResultRecords(
-        { ...submitResultDto, createdBy: new mongoose.Types.ObjectId(user._id as string) },
-        event,
-        recordPairs,
-        !isAdmin,
-      ),
-    );
+    const newResult = { ...submitResultDto, createdBy: new mongo.ObjectId(user._id as string) };
+    const createdResult = await this.resultModel.create(setResultRecords(newResult, event, recordPairs, !isAdmin));
 
     if (isAdmin) {
       await this.updateFutureRecords(submitResultDto, event, recordPairs, { mode: 'create' });
@@ -619,7 +595,7 @@ export class ResultsService {
     let contest: ContestDocument, round: RoundDocument;
     if (result.competitionId) {
       contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
-      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
+      round = await this.roundModel.findOne({ results: resultId }).populate(resultPopulateOptions).exec();
       if (!round) throw new BadRequestException('Round not found');
     }
 
@@ -672,14 +648,13 @@ export class ResultsService {
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
-        .populate('results')
+        .populate(resultPopulateOptions)
         .exec();
       return updatedRound;
     }
     return undefined;
   }
 
-  // The user can be left undefined when deleting a submitted result
   async deleteResult(resultId: string, user: IPartialUser): Promise<RoundDocument> {
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);
@@ -688,7 +663,7 @@ export class ResultsService {
     let contest: ContestDocument, round: RoundDocument;
     if (result.competitionId) {
       contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
-      round = await this.roundModel.findOne({ results: resultId }).populate('results').exec();
+      round = await this.roundModel.findOne({ results: resultId }).populate(resultPopulateOptions).exec();
       if (!round) throw new BadRequestException('Round not found');
     }
 
@@ -704,7 +679,7 @@ export class ResultsService {
 
       const updatedRound = await this.roundModel
         .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
-        .populate('results')
+        .populate(resultPopulateOptions)
         .exec();
       return updatedRound;
     }
@@ -1007,7 +982,7 @@ export class ResultsService {
               competitionId: result.competitionId,
               roundId: { $in: round.timeLimit.cumulativeRoundIds, $ne: round.roundId },
             })
-            .populate('results')
+            .populate(resultPopulateOptions)
             .exec();
 
           for (const r of rounds) {

@@ -43,7 +43,7 @@ export class Round implements IRound {
   @Prop({ required: true })
   roundId: string;
 
-  @Prop({ required: true, immutable: true })
+  @Prop({ required: true })
   competitionId: string;
 
   @Prop({ enum: RoundType, required: true })

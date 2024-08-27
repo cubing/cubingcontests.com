@@ -8,7 +8,7 @@ const ContestName = ({ contest }: { contest: IContest }) => {
       {contest.countryIso2 !== 'ONLINE' && <Country countryIso2={contest.countryIso2} noText />}
 
       <Link href={`/competitions/${contest.competitionId}`} prefetch={false}>
-        {contest.name}
+        {contest.shortName}
       </Link>
     </span>
   );

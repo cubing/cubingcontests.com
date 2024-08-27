@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useMyFetch } from '~/helpers/customHooks';
-import RecordTypesForm from './RecordTypesForm';
+// import RecordTypesForm from './RecordTypesForm';
 import { IRecordType } from '@sh/types';
 import Loading from '@c/UI/Loading';
 
@@ -21,8 +21,8 @@ const ConfigureRecordTypesPage = () => {
     return (
       <div>
         <h2 className="mb-4 text-center">Record Types</h2>
-
-        <RecordTypesForm recordTypes={recordTypes} />
+        TEMPORARILY REMOVED
+        {/* <RecordTypesForm recordTypes={recordTypes} /> */}
       </div>
     );
   }

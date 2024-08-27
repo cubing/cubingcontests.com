@@ -8,7 +8,7 @@ const API_BASE_URL =
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,
 // { errors } if there were errors, or {}.
-export const doFetch = async (
+export const doFetch = async <T = any>(
   url: string,
   method: HttpMethod,
   {
@@ -24,7 +24,7 @@ export const doFetch = async (
     redirect?: string;
     fileName?: string;
   } = { body: null, revalidate: 0, authorize: true },
-): Promise<FetchObj> => {
+): Promise<FetchObj<T>> => {
   const options: any = { method, headers: {} };
 
   if (method === 'GET') {
@@ -94,7 +94,7 @@ export const doFetch = async (
 
   // Handle bad requests/server errors
   if (res.status >= 400 || is404) {
-    // If unauthorized, delete jwt token from localstorage and go to login page
+    // If unauthorized or forbidden, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
       localStorage.removeItem('jwtToken');
       if (!redirect) window.location.href = '/login';
@@ -135,12 +135,12 @@ export const doFetch = async (
   }
 
   // If no JSON payload or error was returned, just get the response text
-  return { payload: await res.text() };
+  return { payload: await res.text() } as FetchObj;
 };
 
-export const ssrFetch = async (
+export const ssrFetch = async <T = any>(
   url: string,
   { revalidate = 0 }: { revalidate?: number | false } = { revalidate: 0 },
-): Promise<FetchObj> => {
-  return await doFetch(url, 'GET', { revalidate, authorize: false });
+): Promise<FetchObj<T>> => {
+  return await doFetch<T>(url, 'GET', { revalidate, authorize: false });
 };

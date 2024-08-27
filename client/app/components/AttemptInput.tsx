@@ -290,11 +290,14 @@ const AttemptInput = ({
   let timeInputTooltip: string;
 
   if (attNumber === 1) {
+    const extraTip = allowUnknownTime ? '\nUse U for Unknown time.' : '';
+
     if (event.format !== EventFormat.Multi) {
-      timeInputTooltip = 'Use D, F, or / for DNF\nUse S or * for DNS';
+      timeInputTooltip = 'Use D, F, or / for DNF.\nUse S or * for DNS.' + extraTip;
     } else {
       timeInputTooltip =
-        "Enter the result even for DNF attempts (they're treated as DNF, but the result is still shown).\nUse S or * for DNS.";
+        "Enter the result even for DNF attempts (they're treated as DNF, but the result is still shown).\nUse S or * for DNS." +
+        extraTip;
     }
   }
 
