@@ -13,14 +13,14 @@ const EventButtons = ({
 }: {
   eventId: string;
   events: IEvent[];
-  forPage: 'results' | 'rankings' | 'data-entry';
+  forPage: 'results' | 'rankings' | 'competitions' | 'data-entry';
 }) => {
   const router = useRouter();
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
   const [selectedCat, setSelectedCat] = useState(
-    eventCategories.find((el) => events.find((e) => e.eventId === eventId).groups.includes(el.group)),
+    eventCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)),
   );
 
   // If hideCategories = true, just show all events that were passed in
@@ -35,6 +35,12 @@ const EventButtons = ({
     } else if (forPage === 'rankings') {
       const show = searchParams.get('show');
       router.push(`/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
+    } else if (forPage === 'competitions') {
+      if (searchParams.get('eventId') === eventId) {
+        router.push('/competitions');
+      } else {
+        router.push(`/competitions?eventId=${eventId}`);
+      }
     } else {
       window.location.href = `/mod/competition/${id}?eventId=${eventId}`;
     }

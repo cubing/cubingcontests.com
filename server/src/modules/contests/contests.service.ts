@@ -131,9 +131,13 @@ export class ContestsService {
     }
   }
 
-  async getContests(region?: string): Promise<ContestDocument[]> {
+  async getContests(region?: string, eventId?: string): Promise<ContestDocument[]> {
     const queryFilter: any = { state: { $gt: ContestState.Created } };
     if (region) queryFilter.countryIso2 = region;
+    if (eventId) {
+      const event = await this.eventsService.getEventById(eventId);
+      queryFilter['events.event'] = event._id;
+    }
 
     try {
       const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();

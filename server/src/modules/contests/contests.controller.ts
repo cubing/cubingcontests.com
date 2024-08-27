@@ -26,10 +26,10 @@ export class ContestsController {
 
   // GET /competitions?region=...
   @Get()
-  async getContests(@Query('region') region: string) {
+  async getContests(@Query('region') region: string, @Query('eventId') eventId: string) {
     this.logger.logAndSave('Getting contests', LogType.GetContests);
 
-    return await this.service.getContests(region);
+    return await this.service.getContests(region, eventId);
   }
 
   // GET /competitions/mod
