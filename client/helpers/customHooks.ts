@@ -1,9 +1,9 @@
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { doFetch } from '~/helpers/fetchUtils';
 import { getBestAndAverage } from '@sh/sharedFunctions';
-import { FetchObj, IContestDto, IEvent, IPerson, IResult, IRound } from '@sh/types';
+import { FetchObj, IContestDto, IEvent, IWcaPersonDto, IPerson, IPersonDto, IResult, IRound } from '@sh/types';
 import { RoundFormat } from '@sh/enums';
 import { ContestType } from '@sh/enums';
 import C from '@sh/constants';
@@ -27,7 +27,7 @@ export const useMyFetch = () => {
   };
 
   return {
-    async get(
+    async get<T = any>(
       url: string,
       {
         authorize = false,
@@ -39,47 +39,50 @@ export const useMyFetch = () => {
         redirect?: string; // this can only be set if authorize is set too
         fileName?: string;
       } = { authorize: false },
-    ): Promise<FetchObj> {
+    ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch(url, 'GET', { authorize, redirect, fileName });
+      const response = await doFetch<T>(url, 'GET', { authorize, redirect, fileName });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
-    async post(
+    async post<T = any>(
       url: string,
       body: unknown,
       { authorize = true, loadingId, keepLoadingAfterSuccess }: FetchOptions = {
         authorize: true,
       },
-    ): Promise<FetchObj> {
+    ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch(url, 'POST', { body, authorize });
+      const response = await doFetch<T>(url, 'POST', { body, authorize });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
-    async put(
+    async put<T = any>(
       url: string,
       body: unknown,
       { loadingId, keepLoadingAfterSuccess }: FetchOptions = {},
-    ): Promise<FetchObj> {
+    ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch(url, 'PUT', { body });
+      const response = await doFetch<T>(url, 'PUT', { body });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
-    async patch(
+    async patch<T = any>(
       url: string,
       body: unknown,
       { loadingId, keepLoadingAfterSuccess }: FetchOptions = {},
-    ): Promise<FetchObj> {
+    ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch(url, 'PATCH', { body });
+      const response = await doFetch<T>(url, 'PATCH', { body });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
-    async delete(url: string, { loadingId, keepLoadingAfterSuccess }: FetchOptions = {}): Promise<FetchObj> {
+    async delete<T = any>(
+      url: string,
+      { loadingId, keepLoadingAfterSuccess }: FetchOptions = {},
+    ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch(url, 'DELETE');
+      const response = await doFetch<T>(url, 'DELETE');
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
@@ -108,7 +111,6 @@ export const useFetchWcaCompDetails = () => {
     const competitorLimit = wcaV0CompData.competitor_limit || 10;
     const startDate = new Date(wcaCompData.date.from);
     const endDate = new Date(wcaCompData.date.till);
-
     const newContest: IContestDto = {
       competitionId,
       name: wcaCompData.name,
@@ -158,20 +160,19 @@ export const useFetchWcaCompDetails = () => {
 
 export const useFetchPerson = () => {
   const myFetch = useMyFetch();
-  const { changeErrorMessages } = useContext(MainContext);
 
   // null means person not found
-  // return async (name: string, { wcaId, countryIso2 }: { wcaId?: string; countryIso2?: string }): Promise<IPerson | null> => {
-  return async (name: string, { wcaId }: { wcaId?: string; countryIso2?: string }): Promise<IPerson | null> => {
+  return async (
+    name: string,
+    { wcaId, countryIso2 }: { wcaId?: string; countryIso2?: string },
+  ): Promise<IPerson | null> => {
     if (wcaId) {
-      const { payload, errors } = await myFetch.get(`/persons/${wcaId}`, { authorize: true, loadingId: null });
-
-      if (errors) {
-        changeErrorMessages(errors);
-        throw new Error(errors[0]);
-      } else {
-        return payload;
-      }
+      const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${wcaId}`, {
+        authorize: true,
+        loadingId: null,
+      });
+      if (errors) throw new Error(errors[0]);
+      return payload.person;
     }
 
     // If a WCA ID wasn't provided, first try looking in the CC database
@@ -179,13 +180,8 @@ export const useFetchPerson = () => {
     const { payload, errors: e1 } = await myFetch.get(`/persons?name=${englishNameOnly}&exactMatch=true`, {
       loadingId: null,
     });
-
-    if (e1) {
-      changeErrorMessages(e1);
-      throw new Error(`Error while fetching person with the name ${name}`);
-    } else if (payload) {
-      return payload;
-    }
+    if (e1) throw new Error(`Error while fetching person with the name ${name}`);
+    if (payload) return payload;
 
     // If not found, try searching for exact name matches in the WCA database
     // const {
@@ -194,46 +190,24 @@ export const useFetchPerson = () => {
     // } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/search/users?q=${name}&persons_table=true`, {
     //   loadingId: null,
     // });
-
-    // if (errors) {
-    //   changeErrorMessages(errors);
-    //   throw new Error(errors[0]);
-    // }
+    // if (errors) throw new Error(errors[0]);
 
     // if (wcaPersonMatches.length === 1) {
-    //   // Same code as above in the WCA ID search section
-    //   const [name, localizedName] = splitNameAndLocalizedName(wcaPersonMatches[0].name);
-
-    //   newPerson.name = name;
-    //   newPerson.localizedName = localizedName;
-    //   newPerson.wcaId = wcaPersonMatches[0].wca_id;
-    //   newPerson.countryIso2 = wcaPersonMatches[0].country_iso2 || wcaPersonMatches[0].country.iso2;
-
-    //   const { payload: person, errors } = await myFetch.post('/persons/create-or-get', newPerson, { loadingId: null });
-
-    //   if (errors) {
-    //     changeErrorMessages(errors);
-    //     throw new Error(errors[0]);
-    //   } else {
-    //     return person;
-    //   }
+    //   const { payload: person, errors } = await myFetch.get(`/persons/${wcaPersonMatches[0].wca_id}`, {
+    //     authorize: true,
+    //     loadingId: null,
+    //   });
+    //   if (errors) throw new Error(errors[0]);
+    //   if (person) return person.person;
     // }
 
-    // // If still not found and the country was provided, use that to create a new person with no WCA ID (likely an organization)
-    // if (countryIso2) {
-    //   newPerson.name = name;
-    //   newPerson.wcaId = undefined;
-    //   newPerson.countryIso2 = countryIso2;
-
-    //   const { payload: person, errors } = await myFetch.post('/persons', newPerson, { loadingId: null });
-
-    //   if (errors) {
-    //     changeErrorMessages(errors);
-    //     throw new Error(errors[0]);
-    //   } else {
-    //     return person;
-    //   }
-    // }
+    // If still not found and the country was provided, use that to create a new person with no WCA ID (likely an organization)
+    if (countryIso2) {
+      const newPerson: IPersonDto = { name, countryIso2 };
+      const { payload: person, errors } = await myFetch.post('/persons/no-wcaid', newPerson, { loadingId: null });
+      if (errors) throw new Error(errors[0]);
+      if (person) return person;
+    }
 
     return null;
   };
@@ -273,4 +247,23 @@ export const useCheckErrorsThenSubmit = () => {
       submitResultCallback(result);
     }
   };
+};
+
+export const useLimitRequests = (): [(callback: () => void) => void, boolean] => {
+  const [fetchTimer, setFetchTimer] = useState<NodeJS.Timeout | null>(null);
+
+  return [
+    (callback: () => void) => {
+      if (fetchTimer !== null) clearTimeout(fetchTimer);
+
+      setFetchTimer(
+        setTimeout(async () => {
+          await callback();
+          // Resetting this AFTER the callback, so that the fetch request can complete first
+          setFetchTimer(null);
+        }, C.fetchThrottleTimeout),
+      );
+    },
+    fetchTimer !== null,
+  ];
 };

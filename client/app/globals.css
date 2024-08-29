@@ -15,7 +15,7 @@ body[data-bs-theme='dark'] {
     --bs-btn-hover-border-color: #c6c7c8;
     --bs-btn-focus-shadow-rgb: 211, 212, 213;
     --bs-btn-active-color: #000;
-    --bs-btn-active-bg: #c6c7c8;
+    --bs-btn-active-bg: #b1b1b1;
     --bs-btn-active-border-color: #babbbc;
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
     --bs-btn-disabled-color: #000;
@@ -40,7 +40,7 @@ body[data-bs-theme='light'] {
     --bs-btn-hover-border-color: #373b3e;
     --bs-btn-focus-shadow-rgb: 66, 70, 73;
     --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: #4d5154;
+    --bs-btn-active-bg: #595d61;
     --bs-btn-active-border-color: #373b3e;
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
     --bs-btn-disabled-color: #fff;

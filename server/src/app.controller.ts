@@ -8,7 +8,6 @@ import {
   Query,
   Request,
   Res,
-  UnauthorizedException,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -29,17 +28,14 @@ import { getWcifCompetition } from '@sh/sharedFunctions';
 import { ContestDocument } from '~/src/models/contest.model';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { LogType } from '~/src/helpers/enums';
-import { NO_ACCESS_RIGHTS_MSG } from '~/src/helpers/messages';
-import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { IContest } from '@sh/types';
-import { EmailService } from '~/src/modules/email/email.service';
+import { EmailService } from '@m/email/email.service';
 import { EnterResultsDto } from './app-dto/enter-results.dto';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly logger: MyLogger,
-    private readonly appService: AppService,
+    private readonly service: AppService,
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
@@ -49,7 +45,7 @@ export class AppController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async getAdminStats() {
-    return await this.appService.getAdminStats();
+    return await this.service.getAdminStats();
   }
 
   // GET /timezone?latitude=...&longitude=...
@@ -75,10 +71,9 @@ export class AppController {
       .populate(eventPopulateOptions.rounds) // we don't need the results to be populated
       .populate(orgPopulateOptions)
       .exec();
-
     if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
 
-    await this.checkAccessRights(contest, req.user);
+    await this.authService.checkAccessRightsToContest(req.user, contest);
 
     const buffer = await getScorecards(getWcifCompetition(contest));
 
@@ -97,12 +92,11 @@ export class AppController {
   @Roles(Role.Admin, Role.Moderator)
   async createAuthToken(@Param('competitionId') competitionId: string, @Request() req: any) {
     const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
-
     if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
 
-    await this.checkAccessRights(contest, req.user);
+    this.authService.checkAccessRightsToContest(req.user, contest);
 
-    return await this.authService.createAuthToken(competitionId);
+    return await this.authService.createAuthToken(contest);
   }
 
   @Post('enter-attempt')
@@ -113,7 +107,7 @@ export class AppController {
       LogType.EnterAttemptFromExtDevice,
     );
 
-    return await this.appService.enterAttemptFromExternalDevice(enterAttemptDto);
+    return await this.service.enterAttemptFromExternalDevice(enterAttemptDto);
   }
 
   @Post('enter-results')
@@ -124,7 +118,7 @@ export class AppController {
       LogType.EnterResultsFromExtDevice,
     );
 
-    return await this.appService.enterResultsFromExternalDevice(enterResultsDto);
+    return await this.service.enterResultsFromExternalDevice(enterResultsDto);
   }
 
   @Post('debug-sending-email')
@@ -134,11 +128,5 @@ export class AppController {
     this.logger.logAndSave(`Sending debug email to ${email}`, LogType.DebugEmail);
 
     await this.emailService.sendEmail(email, 'This is a debug email.', { subject: 'DEBUG' });
-  }
-
-  private async checkAccessRights(contest: IContest, user: IPartialUser) {
-    // Check that user is admin or has access for the contest
-    if (!user.roles.includes(Role.Admin) && !contest.organizers.some((o) => o.personId === user.personId))
-      throw new UnauthorizedException(NO_ACCESS_RIGHTS_MSG);
   }
 }

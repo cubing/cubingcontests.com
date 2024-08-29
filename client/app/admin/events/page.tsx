@@ -2,6 +2,13 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { useMyFetch } from '~/helpers/customHooks';
+import { IFeEvent, ListPageMode } from '@sh/types';
+import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
+import { roundFormats } from '@sh/roundFormats';
+import { eventCategories } from '~/helpers/eventCategories';
+import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/helpers/multipleChoiceOptions';
+import { MainContext } from '~/helpers/contexts';
+import ToastMessages from '@c/UI/ToastMessages';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormSelect from '@c/form/FormSelect';
@@ -9,12 +16,6 @@ import FormRadio from '@c/form/FormRadio';
 import FormNumberInput from '@c/form/FormNumberInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormTextArea from '@c/form/FormTextArea';
-import { IFeEvent, ListPageMode } from '@sh/types';
-import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
-import { roundFormats } from '@sh/roundFormats';
-import { eventCategories } from '~/helpers/eventCategories';
-import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/helpers/multipleChoiceOptions';
-import { MainContext } from '~/helpers/contexts';
 
 const CreateEditEventPage = () => {
   const myFetch = useMyFetch();
@@ -40,7 +41,7 @@ const CreateEditEventPage = () => {
   const [rule, setRule] = useState('');
 
   useEffect(() => {
-    myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
+    myFetch.get('/events/mod?withRules=true', { authorize: true }).then(({ payload, errors }) => {
       if (!errors) setEvents(payload);
     });
   }, []);
@@ -107,13 +108,14 @@ const CreateEditEventPage = () => {
   return (
     <div>
       <h2 className="mb-4 text-center">Events</h2>
+      <ToastMessages />
 
       {mode === 'view' ? (
         <button type="button" className="btn btn-success ms-3" onClick={() => setMode('add')}>
           Add event
         </button>
       ) : (
-        <Form buttonText="Submit" onSubmit={handleSubmit} showCancelButton onCancel={() => setMode('view')}>
+        <Form buttonText="Submit" onSubmit={handleSubmit} hideToasts showCancelButton onCancel={() => setMode('view')}>
           <FormTextInput
             id="event_name"
             title="Event name"

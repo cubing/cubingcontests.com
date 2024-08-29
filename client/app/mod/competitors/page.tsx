@@ -11,6 +11,7 @@ import Button from '@c/UI/Button';
 import Country from '@c/Country';
 import CreatorDetails from '@c/CreatorDetails';
 import Competitor from '@c/Competitor';
+import ToastMessages from '@c/UI/ToastMessages';
 import PersonForm from './PersonForm';
 
 const userInfo: IUserInfo = getUserInfo();
@@ -36,9 +37,10 @@ const CreatePersonPage = () => {
   };
 
   const onEditCompetitor = (person: IFePerson) => {
+    resetMessagesAndLoadingId();
     setMode('edit');
     setPersonUnderEdit(person);
-    resetMessagesAndLoadingId();
+    window.scrollTo(0, 0);
   };
 
   const updateCompetitors = (person: IFePerson, isNew = false) => {
@@ -53,6 +55,7 @@ const CreatePersonPage = () => {
   return (
     <div>
       <h2 className="mb-4 text-center">Competitors</h2>
+      <ToastMessages />
 
       {mode === 'view' ? (
         <button type="button" className="btn btn-success ms-3" onClick={onAddCompetitor}>
@@ -105,13 +108,15 @@ const CreatePersonPage = () => {
                       </td>
                     )}
                     <td>
-                      <Button
-                        type="button"
-                        text="Edit"
-                        onClick={() => onEditCompetitor(person)}
-                        disabled={mode !== 'view'}
-                        className="btn btn-primary btn-xs"
-                      />
+                      {person.isEditable && (
+                        <Button
+                          type="button"
+                          text="Edit"
+                          onClick={() => onEditCompetitor(person)}
+                          disabled={mode !== 'view'}
+                          className="btn btn-primary btn-xs"
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}

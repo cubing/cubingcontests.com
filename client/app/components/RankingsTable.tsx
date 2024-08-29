@@ -53,7 +53,7 @@ const RankingsTable = ({
               {hasComp && hasLink ? ' / ' : ''}
               {hasLink ? 'Links' : ''}
             </th>
-            {showTeamColumn && <th>{event.participants === 2 ? 'Teammate' : 'Team'}</th>}
+            {showTeamColumn && <th>Team</th>}
             {showDetailsColumn && <th>{hasSolves ? 'Solves' : 'Memorization time'}</th>}
           </tr>
         </thead>
