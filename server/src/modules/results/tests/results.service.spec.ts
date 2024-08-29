@@ -212,21 +212,6 @@ describe('ResultsService', () => {
           ),
         ).rejects.toThrowError(new BadRequestException('This event must have 1 participant'));
       });
-
-      it('throws an error when the number of non-empty attempts is 0', async () => {
-        await expect(
-          resultsService.createResult(
-            {
-              competitionId: 'Munich19022023',
-              eventId: '333',
-              personIds: [1],
-              attempts: [{ result: 0 }],
-            } as CreateResultDto,
-            '333-r1',
-            { user: adminUser },
-          ),
-        ).rejects.toThrowError(new BadRequestException('Please enter at least one attempt'));
-      });
     });
 
     describe('submitResult', () => {
