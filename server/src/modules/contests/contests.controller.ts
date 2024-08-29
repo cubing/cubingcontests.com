@@ -24,9 +24,9 @@ import { RolesGuard } from '~/src/guards/roles.guard';
 export class ContestsController {
   constructor(private readonly logger: MyLogger, private readonly service: ContestsService) {}
 
-  // GET /competitions?region=...
+  // GET /competitions?region=...&eventId=...
   @Get()
-  async getContests(@Query('region') region: string, @Query('eventId') eventId: string) {
+  async getContests(@Query('region') region?: string, @Query('eventId') eventId?: string) {
     this.logger.logAndSave('Getting contests', LogType.GetContests);
 
     return await this.service.getContests(region, eventId);

@@ -25,7 +25,7 @@ const EventButtons = ({
 
   // If hideCategories = true, just show all events that were passed in
   const filteredEvents = useMemo(
-    () => (forPage !== 'rankings' ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
+    () => (['rankings', 'competitions'].includes(forPage) ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
     [events, selectedCat],
   );
 
@@ -49,7 +49,7 @@ const EventButtons = ({
   return (
     <div>
       {/* Event categories */}
-      {forPage === 'rankings' && (
+      {['rankings', 'competitions'].includes(forPage) && (
         <>
           <div className="btn-group btn-group-sm mt-2 mb-3" role="group">
             {eventCategories.map((cat) => (
@@ -65,7 +65,7 @@ const EventButtons = ({
             ))}
           </div>
 
-          {selectedCat.description && <p>{selectedCat.description}</p>}
+          {selectedCat?.description && <p>{selectedCat.description}</p>}
         </>
       )}
 
