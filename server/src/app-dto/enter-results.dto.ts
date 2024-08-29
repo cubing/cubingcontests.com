@@ -11,7 +11,7 @@ import {
   Validate,
   ValidateNested,
 } from 'class-validator';
-import { AttemptDto, HasNonDnsResult } from '../modules/results/dto/create-result.dto';
+import { AttemptDto, NotAllDnsAndNotAllEmpty } from '../modules/results/dto/create-result.dto';
 import { Type } from 'class-transformer';
 import { IAttempt } from '@sh/types';
 import C from '@sh/constants';
@@ -29,6 +29,7 @@ export class EnterResultsDto {
   roundNumber: number;
 
   @ValidateNested({ each: true })
+  @Type(() => ExternalResultDto)
   results: ExternalResultDto[];
 }
 
@@ -45,7 +46,7 @@ export class ExternalResultDto {
 
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(HasNonDnsResult)
+  @Validate(NotAllDnsAndNotAllEmpty)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];

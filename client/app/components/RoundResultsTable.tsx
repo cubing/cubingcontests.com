@@ -2,7 +2,7 @@ import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitor from '@c/Competitor';
 import Button from '@c/UI/Button';
-import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/types';
+import { IResult, IRound, IPerson, IEvent, IRecordType, IAttempt } from '@sh/types';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
 import { roundFormats } from '@sh/roundFormats';
@@ -27,7 +27,8 @@ const RoundResultsTable = ({
   loadingId?: string;
   disableEditAndDelete?: boolean;
 }) => {
-  const roundCanHaveAverage = roundFormats.find((rf) => rf.value === round.format).attempts >= 3;
+  const roundFormat = roundFormats.find((rf) => rf.value === round.format);
+  const roundCanHaveAverage = roundFormat.attempts >= 3;
   const roundRanksWithAverage = getRoundRanksWithAverage(round.format);
   let lastRanking = 0;
 
@@ -51,6 +52,11 @@ const RoundResultsTable = ({
 
     return {};
   };
+
+  const getAttemptsIncludingEmptyAtTheEnd = (attempts: IAttempt[]): IAttempt[] => [
+    ...attempts,
+    ...Array(roundFormat.attempts - attempts.length).fill({ result: 0 }),
+  ];
 
   return (
     <div className="flex-grow-1 table-responsive">
@@ -96,7 +102,7 @@ const RoundResultsTable = ({
                   </td>
                 )}
                 <td>
-                  <Solves event={event} attempts={result.attempts} />
+                  <Solves event={event} attempts={getAttemptsIncludingEmptyAtTheEnd(result.attempts)} />
                 </td>
                 {onEditResult && (
                   <td className="py-1">
