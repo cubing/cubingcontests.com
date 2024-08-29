@@ -2,7 +2,7 @@ import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitor from '@c/Competitor';
 import Button from '@c/UI/Button';
-import { IResult, IRound, IPerson, IEvent, IRecordType, IAttempt } from '@sh/types';
+import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/types';
 import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
 import { roundFormats } from '@sh/roundFormats';
@@ -53,11 +53,6 @@ const RoundResultsTable = ({
     return {};
   };
 
-  const getAttemptsIncludingEmptyAtTheEnd = (attempts: IAttempt[]): IAttempt[] => [
-    ...attempts,
-    ...Array(roundFormat.attempts - attempts.length).fill({ result: 0 }),
-  ];
-
   return (
     <div className="flex-grow-1 table-responsive">
       <table className="table table-hover table-responsive text-nowrap">
@@ -102,7 +97,7 @@ const RoundResultsTable = ({
                   </td>
                 )}
                 <td>
-                  <Solves event={event} attempts={getAttemptsIncludingEmptyAtTheEnd(result.attempts)} />
+                  <Solves event={event} attempts={result.attempts} />
                 </td>
                 {onEditResult && (
                   <td className="py-1">
