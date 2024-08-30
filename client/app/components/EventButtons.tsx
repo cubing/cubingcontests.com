@@ -19,7 +19,6 @@ const EventButtons = ({
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
-  const [selectedEvent, setSelectedEvent] = useState<string>(eventId);
   const [selectedCat, setSelectedCat] = useState(
     eventCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ?? eventCategories[0],
   );
@@ -31,7 +30,6 @@ const EventButtons = ({
   );
 
   const handleEventClick = (newEventId: string) => {
-    setSelectedEvent(newEventId);
     if (forPage === 'results') {
       router.push(`/competitions/${id}/results?eventId=${newEventId}`);
     } else if (forPage === 'rankings') {
@@ -39,8 +37,7 @@ const EventButtons = ({
       router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
     } else if (forPage === 'competitions') {
       if (searchParams.get('eventId') === newEventId) {
-        router.push('/competitions');
-        setSelectedEvent('');
+        window.location.href = '/competitions';
       } else {
         router.push(`/competitions?eventId=${newEventId}`);
       }
@@ -78,7 +75,7 @@ const EventButtons = ({
             key={event.eventId}
             event={event}
             onClick={() => handleEventClick(event.eventId)}
-            isActive={event.eventId === selectedEvent}
+            isActive={event.eventId === eventId}
           />
         ))}
       </div>

@@ -19,7 +19,7 @@ const ContestsPage = async (
   {
     searchParams: { eventId },
   }: {
-    searchParams: { eventId: string };
+    searchParams: { eventId?: string };
   }
 ) => {
   const { payload: events } = await ssrFetch('/events');
@@ -28,7 +28,7 @@ const ContestsPage = async (
   return (
     <div>
       <h2 className="mb-4 text-center">All contests</h2>
-      {events && <EventButtons eventId={eventId} events={events} forPage="competitions" />}
+      {events && <EventButtons key={eventId} eventId={eventId} events={events} forPage="competitions" />}
       {contests?.length > 0 ? (
         <ContestsTable contests={contests} />
       ) : (
