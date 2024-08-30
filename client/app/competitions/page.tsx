@@ -1,5 +1,6 @@
 import { ssrFetch } from '~/helpers/fetchUtils';
 import ContestsTable from '@c/ContestsTable';
+import EventButtons from '../components/EventButtons';
 
 // SEO
 export const metadata = {
@@ -14,13 +15,20 @@ export const metadata = {
   },
 };
 
-const ContestsPage = async () => {
-  const { payload: contests } = await ssrFetch('/competitions');
+const ContestsPage = async (
+  {
+    searchParams: { eventId },
+  }: {
+    searchParams: { eventId?: string };
+  }
+) => {
+  const { payload: events } = await ssrFetch('/events');
+  const { payload: contests } = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ''}`);
 
   return (
     <div>
       <h2 className="mb-4 text-center">All contests</h2>
-
+      {events && <EventButtons key={eventId} eventId={eventId} events={events} forPage="competitions" />}
       {contests?.length > 0 ? (
         <ContestsTable contests={contests} />
       ) : (
