@@ -77,7 +77,7 @@ export class ResultsService {
       // Look for orphan contest results or ones that somehow belong to multiple rounds
       const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
       for (const res of contestResults) {
-        const rounds = await this.roundModel.find({ results: res }).exec();
+        const rounds = await this.roundModel.find({ results: res._id }).exec();
 
         if (rounds.length === 0) this.logger.error(`Error: contest result has no round: ${res}`);
         else if (rounds.length > 1) this.logger.error(`Error: result ${res} belongs to multiple rounds: ${rounds}`);
@@ -96,6 +96,7 @@ export class ResultsService {
             .find({
               ...getBaseSinglesFilter(event, { $lt: result.best, $gt: 0 }),
               date: { $lte: result.date },
+              unapproved: { $exists: false },
             })
             .exec();
           if (betterSinglesInThePast.length > 0) {
@@ -115,6 +116,7 @@ export class ResultsService {
             .find({
               ...getBaseAvgsFilter(event, { $lt: result.average, $gt: 0 }),
               date: { $lte: result.date },
+              unapproved: { $exists: false },
             })
             .exec();
           if (betterAvgsInThePast.length > 0) {
@@ -125,10 +127,16 @@ export class ResultsService {
         }
       }
 
+      // Look for empty attempts
+      const emptyAttemptResults = await this.resultModel.find({ 'attempts.result': 0 }).exec();
+      for (const result of emptyAttemptResults) {
+        this.logger.error(`Error: result has an empty attempt: ${result}`);
+      }
+
       // Look for orphan rounds or ones that belong to multiple contests or ones that have an invalid date
       const rounds = await this.roundModel.find().exec();
       for (const round of rounds) {
-        const contests = await this.contestModel.find({ 'events.rounds': round }).exec();
+        const contests = await this.contestModel.find({ 'events.rounds': round._id }).exec();
 
         if (contests.length === 0) this.logger.error(`Error: round has no contest: ${round}`);
         else if (contests.length > 1)
@@ -137,6 +145,7 @@ export class ResultsService {
 
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
       let knownDuplicates = [
+        '',
         'https://www.youtube.com/watch?v=3MfyECPWhms',
         'https://www.youtube.com/watch?v=h4T55MftnRc',
         'https://www.youtube.com/watch?v=YYKOlLgQigA',
@@ -154,9 +163,9 @@ export class ResultsService {
         { $match: { count: { $gt: 1 } } },
       ]);
       if (repeatedVideoLinks.length > 0) {
-        this.logger.log(
+        this.logger.error(
           `These video links have multiple results: ${repeatedVideoLinks
-            .map((x) => `${x._id} (${x.count})`)
+            .map((x) => `${x._id || '[blank]'} (${x.count})`)
             .join(', ')}`,
         );
       }
@@ -422,14 +431,8 @@ export class ResultsService {
   }
 
   async getEditingInfo(resultId: string): Promise<IResultsSubmissionInfo> {
-    let result: ResultDocument;
-
-    try {
-      result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec();
-      if (!result) throw new Error();
-    } catch {
-      throw new NotFoundException('Result not found');
-    }
+    const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec();
+    if (!result) throw new NotFoundException('Result not found');
 
     const event = await this.eventsService.getEventById(result.eventId);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
@@ -595,7 +598,10 @@ export class ResultsService {
     let contest: ContestDocument, round: RoundDocument;
     if (result.competitionId) {
       contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
-      round = await this.roundModel.findOne({ results: resultId }).populate(resultPopulateOptions).exec();
+      round = await this.roundModel
+        .findOne({ results: new mongo.ObjectId(resultId) })
+        .populate(resultPopulateOptions)
+        .exec();
       if (!round) throw new BadRequestException('Round not found');
     }
 
@@ -663,7 +669,10 @@ export class ResultsService {
     let contest: ContestDocument, round: RoundDocument;
     if (result.competitionId) {
       contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
-      round = await this.roundModel.findOne({ results: resultId }).populate(resultPopulateOptions).exec();
+      round = await this.roundModel
+        .findOne({ results: new mongo.ObjectId(resultId) })
+        .populate(resultPopulateOptions)
+        .exec();
       if (!round) throw new BadRequestException('Round not found');
     }
 
@@ -927,13 +936,6 @@ export class ResultsService {
         `This event must have ${event.participants ?? 1} participant${event.participants ? 's' : ''}`,
       );
     }
-
-    // Remove empty attempts from the end
-    for (let i = result.attempts.length - 1; i >= 0; i--) {
-      if (result.attempts[i].result === 0) result.attempts = result.attempts.slice(0, -1);
-      else break;
-    }
-    if (result.attempts.length === 0) throw new BadRequestException('Please enter at least one attempt');
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
     // and this is only used for those results, because a competition result would have a round

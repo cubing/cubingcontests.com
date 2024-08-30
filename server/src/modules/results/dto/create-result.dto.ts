@@ -10,26 +10,13 @@ import {
   Min,
   ValidateNested,
   Max,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
   Validate,
 } from 'class-validator';
 import { IAttempt, IResult } from '@sh/types';
 import { Type } from 'class-transformer';
 import C from '@sh/constants';
 import { DATE_VALIDATION_MSG } from '~/src/helpers/messages';
-
-// This is almost the same as HasNonDnfDnsResult in SubmitResultDto
-@ValidatorConstraint({ name: 'HasNonDnsResult', async: false })
-export class HasNonDnsResult implements ValidatorConstraintInterface {
-  validate(attempts: IAttempt[]) {
-    return attempts.some((a) => a.result !== -2);
-  }
-
-  defaultMessage() {
-    return 'You cannot submit only DNS results';
-  }
-}
+import { NotAllDnsAndNotAllEmpty } from '~/src/helpers/customValidators';
 
 export class CreateResultDto implements IResult {
   @IsOptional()
@@ -58,7 +45,7 @@ export class CreateResultDto implements IResult {
 
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(HasNonDnsResult)
+  @Validate(NotAllDnsAndNotAllEmpty)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];
@@ -80,3 +67,4 @@ export class AttemptDto implements IAttempt {
   @Max(C.maxTime - 1)
   memo?: number;
 }
+export { NotAllDnsAndNotAllEmpty };

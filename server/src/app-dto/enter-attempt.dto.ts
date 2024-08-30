@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Min, NotEquals } from 'class-validator';
 import C from '@sh/constants';
 
 export class EnterAttemptDto {
@@ -28,5 +28,6 @@ export class EnterAttemptDto {
   attemptNumber: number;
 
   @IsInt()
+  @NotEquals(0)
   attemptResult: number;
 }

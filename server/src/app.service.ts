@@ -150,6 +150,7 @@ export class AppService {
       );
     }
   }
+
   async enterResultsFromExternalDevice(enterResultsDto: EnterResultsDto) {
     const round = await this.contestsService.getContestRound(
       enterResultsDto.competitionWcaId,

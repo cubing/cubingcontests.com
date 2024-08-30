@@ -381,10 +381,17 @@ export class ContestsService {
           { subject: `Contest approved: ${contest.shortName}` },
         );
       } else if (newState === ContestState.Finished) {
-        const incompleteResult = await this.resultModel.findOne({ 'attempts.result': 0 }).exec();
-
+        const incompleteResult = await this.resultModel.findOne({ competitionId, 'attempts.result': 0 }).exec();
         if (incompleteResult)
           throw new BadRequestException(`This contest has an unentered attempt in event ${incompleteResult.eventId}`);
+
+        const dnsOnlyResult = await this.resultModel
+          .findOne({ competitionId, attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } } })
+          .exec();
+        if (dnsOnlyResult)
+          throw new BadRequestException(
+            `This contest has a result with only DNS attempts in event ${dnsOnlyResult.eventId}`,
+          );
 
         contest.queuePosition = undefined;
 
@@ -401,7 +408,7 @@ export class ContestsService {
     if (isAdmin && newState === ContestState.Published) {
       this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
-      if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
+      if (contest.type !== ContestType.WcaComp && contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
         throw new BadRequestException(
           `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForUnofficialCompsAndMeetups} competitors`,
         );
