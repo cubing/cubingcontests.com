@@ -97,7 +97,7 @@ export class ContestsService {
                       `Round for activity ${activity.activityCode} at contest ${contest.competitionId} not found`,
                     );
                   } else {
-                    const activityDate = getDateOnly(startTime);
+                    const activityDate = getDateOnly(endTime);
 
                     for (const result of round.results) {
                       if (result.date.getTime() !== activityDate.getTime())
@@ -309,18 +309,15 @@ export class ContestsService {
 
     if (contestDto.compDetails) {
       if (contest.compDetails) {
-        if (isAdmin || contest.state < ContestState.Finished) {
+        if (contest.state < ContestState.Ongoing) {
           await this.scheduleModel.updateOne(
             { _id: contest.compDetails.schedule._id },
             contestDto.compDetails.schedule,
           );
         }
-      }
-      // compDetails might be undefined if the contest was imported
-      else {
-        contest.compDetails = {
-          schedule: await this.scheduleModel.create(contestDto.compDetails.schedule),
-        };
+      } else {
+        // compDetails might be undefined if the contest was imported
+        contest.compDetails = { schedule: await this.scheduleModel.create(contestDto.compDetails.schedule) };
       }
     } else if (contestDto.meetupDetails) {
       contest.meetupDetails = contestDto.meetupDetails;

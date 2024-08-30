@@ -507,10 +507,11 @@ export class ResultsService {
     } else {
       const schedule = await this.scheduleModel.findOne({ competitionId: createResultDto.competitionId }).exec();
 
-      if (!schedule)
+      if (!schedule) {
         throw new InternalServerErrorException(
           `No schedule found for contest with ID ${createResultDto.competitionId}`,
         );
+      }
 
       let activity: IActivity;
 

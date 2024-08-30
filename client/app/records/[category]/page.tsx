@@ -75,7 +75,8 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
                   <div key={event.eventId} className="mb-3">
                     <EventTitle event={event} showIcon linkToRankings showDescription />
 
-                    <div className="d-block d-lg-none mt-2 mb-4 border-top border-bottom">
+                    {/* MOBILE VIEW */}
+                    <div className="d-lg-none mt-2 mb-4 border-top border-bottom">
                       <ul className="list-group list-group-flush">
                         {rankings.map((r) => (
                           <li
@@ -103,6 +104,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
                       </ul>
                     </div>
 
+                    {/* DESKTOP VIEW */}
                     <div className="d-none d-lg-block">
                       <RankingsTable rankings={rankings} event={event} recordsTable />
                     </div>
