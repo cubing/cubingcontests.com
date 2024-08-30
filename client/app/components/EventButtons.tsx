@@ -20,12 +20,16 @@ const EventButtons = ({
   const searchParams = useSearchParams();
 
   const [selectedCat, setSelectedCat] = useState(
-    eventCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ?? eventCategories[0],
+    eventCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ??
+      eventCategories[0],
   );
 
   // If hideCategories = true, just show all events that were passed in
   const filteredEvents = useMemo(
-    () => (!['rankings', 'competitions'].includes(forPage) ? events : events.filter((el) => el.groups.includes(selectedCat.group))),
+    () =>
+      !['rankings', 'competitions'].includes(forPage)
+        ? events
+        : events.filter((el) => el.groups.includes(selectedCat.group)),
     [events, selectedCat],
   );
 
@@ -36,11 +40,8 @@ const EventButtons = ({
       const show = searchParams.get('show');
       router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
     } else if (forPage === 'competitions') {
-      if (searchParams.get('eventId') === newEventId) {
-        window.location.href = '/competitions';
-      } else {
-        router.push(`/competitions?eventId=${newEventId}`);
-      }
+      if (searchParams.get('eventId') === newEventId) window.location.href = '/competitions';
+      else router.push(`/competitions?eventId=${newEventId}`);
     } else {
       window.location.href = `/mod/competition/${id}?eventId=${newEventId}`;
     }

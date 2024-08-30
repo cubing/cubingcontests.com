@@ -55,7 +55,7 @@ const RankingRow = ({
       <td>{!onlyKeepPerson && getFormattedTime(ranking.result, { event, showMultiPoints: !forRecordsTable })}</td>
       {!showAllTeammates && (
         <td>
-          <Country countryIso2={person.countryIso2} />
+          <Country countryIso2={person.countryIso2} shorten />
         </td>
       )}
       <td>{!onlyKeepPerson && getFormattedDate(ranking.date)}</td>
