@@ -14,7 +14,7 @@ const Home = () => {
       </div>
 
       <p>
-        This is a place for hosting unofficial Rubik's cube competitions, unofficial events held at{' '}
+        This is a place for hosting unofficial Rubik's Cube competitions, unofficial events held at{' '}
         <a href="https://worldcubeassociation.org/" target="_blank">
           WCA
         </a>{' '}
