@@ -19,7 +19,7 @@ const EventButtons = ({
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
-  const [selectedEvent, setSelectedEvent] = useState<string>('');
+  const [selectedEvent, setSelectedEvent] = useState<string>(eventId);
   const [selectedCat, setSelectedCat] = useState(
     eventCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ?? eventCategories[0],
   );

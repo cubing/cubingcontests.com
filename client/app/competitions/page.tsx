@@ -28,7 +28,7 @@ const ContestsPage = async (
   return (
     <div>
       <h2 className="mb-4 text-center">All contests</h2>
-      <EventButtons eventId={eventId} events={events} forPage="competitions" />
+      {events && <EventButtons eventId={eventId} events={events} forPage="competitions" />}
       {contests?.length > 0 ? (
         <ContestsTable contests={contests} />
       ) : (
