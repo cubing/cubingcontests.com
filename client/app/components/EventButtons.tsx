@@ -19,6 +19,7 @@ const EventButtons = ({
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
+  const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [selectedCat, setSelectedCat] = useState(
     eventCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ?? eventCategories[0],
   );
@@ -29,20 +30,22 @@ const EventButtons = ({
     [events, selectedCat],
   );
 
-  const handleEventClick = (eventId: string) => {
+  const handleEventClick = (newEventId: string) => {
+    setSelectedEvent(newEventId);
     if (forPage === 'results') {
-      router.push(`/competitions/${id}/results?eventId=${eventId}`);
+      router.push(`/competitions/${id}/results?eventId=${newEventId}`);
     } else if (forPage === 'rankings') {
       const show = searchParams.get('show');
-      router.push(`/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
+      router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
     } else if (forPage === 'competitions') {
-      if (searchParams.get('eventId') === eventId) {
+      if (searchParams.get('eventId') === newEventId) {
         router.push('/competitions');
+        setSelectedEvent('');
       } else {
-        router.push(`/competitions?eventId=${eventId}`);
+        router.push(`/competitions?eventId=${newEventId}`);
       }
     } else {
-      window.location.href = `/mod/competition/${id}?eventId=${eventId}`;
+      window.location.href = `/mod/competition/${id}?eventId=${newEventId}`;
     }
   };
 
@@ -75,7 +78,7 @@ const EventButtons = ({
             key={event.eventId}
             event={event}
             onClick={() => handleEventClick(event.eventId)}
-            isActive={event.eventId === eventId}
+            isActive={event.eventId === selectedEvent}
           />
         ))}
       </div>
