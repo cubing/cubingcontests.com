@@ -1026,8 +1026,6 @@ export class ResultsService {
           if (!passes && result.attempts.length > round.cutoff.numberOfAttempts)
             throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
         }
-
-        // Validate the number of attempts
       }
     }
     // Video-based results validation
