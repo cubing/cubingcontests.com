@@ -19,9 +19,11 @@ const EventButtons = ({
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
+  const filteredCategories = eventCategories.filter((ec) => !['extremebld', 'removed'].includes(ec.value));
+
   const [selectedCat, setSelectedCat] = useState(
-    eventCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ??
-      eventCategories[0],
+    filteredCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ??
+      filteredCategories[0],
   );
 
   // If hideCategories = true, just show all events that were passed in
@@ -53,7 +55,7 @@ const EventButtons = ({
       {['rankings', 'competitions'].includes(forPage) && (
         <>
           <div className="btn-group btn-group-sm mt-2 mb-3" role="group">
-            {eventCategories.map((cat) => (
+            {filteredCategories.map((cat) => (
               <button
                 key={cat.value}
                 type="button"

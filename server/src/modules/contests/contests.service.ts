@@ -380,14 +380,20 @@ export class ContestsService {
       } else if (newState === ContestState.Finished) {
         const incompleteResult = await this.resultModel.findOne({ competitionId, 'attempts.result': 0 }).exec();
         if (incompleteResult)
-          throw new BadRequestException(`This contest has an unentered attempt in event ${incompleteResult.eventId}`);
+          throw new BadRequestException(
+            `This contest has an unentered attempt in event ${
+              (await this.eventsService.getEventById(incompleteResult.eventId)).name
+            }`,
+          );
 
         const dnsOnlyResult = await this.resultModel
           .findOne({ competitionId, attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } } })
           .exec();
         if (dnsOnlyResult)
           throw new BadRequestException(
-            `This contest has a result with only DNS attempts in event ${dnsOnlyResult.eventId}`,
+            `This contest has a result with only DNS attempts in event ${
+              (await this.eventsService.getEventById(dnsOnlyResult.eventId)).name
+            }`,
           );
 
         contest.queuePosition = undefined;
