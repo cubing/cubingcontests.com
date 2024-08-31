@@ -1,12 +1,12 @@
 import jwtDecode from 'jwt-decode';
 import { isSameDay, isSameMonth, isSameYear } from 'date-fns';
-import { format } from 'date-fns-tz';
+import { formatInTimeZone } from 'date-fns-tz';
 import { Color, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
 import { IAttempt, IEvent } from '@sh/types';
 import { IUserInfo } from './interfaces/UserInfo';
 
-export const getFormattedDate = (startDate: Date | string, endDate?: Date | string, timeZone = 'UTC'): string => {
+export const getFormattedDate = (startDate: Date | string, endDate?: Date | string): string => {
   if (!startDate) throw new Error('Start date missing!');
 
   if (typeof startDate === 'string') startDate = new Date(startDate);
@@ -15,7 +15,7 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
   const fullFormat = 'd MMM yyyy';
 
   if (!endDate || isSameDay(startDate, endDate)) {
-    return format(startDate, fullFormat, { timeZone });
+    return formatInTimeZone(startDate, 'UTC', fullFormat);
   } else {
     let startFormat: string;
 
@@ -23,7 +23,7 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
     else if (!isSameMonth(startDate, endDate)) startFormat = 'd MMM';
     else startFormat = 'd';
 
-    return `${format(startDate, startFormat, { timeZone })} - ${format(endDate, fullFormat, { timeZone })}`;
+    return `${formatInTimeZone(startDate, 'UTC', startFormat)} - ${formatInTimeZone(endDate, 'UTC', fullFormat)}`;
   }
 };
 
@@ -229,7 +229,8 @@ export const shortenEventName = (name: string): string => {
     .replace('Match The Scramble', 'MTS')
     .replace('Face-Turning Octahedron', 'FTO')
     .replace(' Cuboid', '')
-    .replace(' Challenge', '');
+    .replace(' Challenge', '')
+    .replace('Three 3x3 Cubes', '3x 3x3');
 };
 
 export const logOutUser = () => {

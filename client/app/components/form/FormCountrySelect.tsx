@@ -3,8 +3,7 @@
 import Countries from '@sh/Countries';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
-// Add not selected option and remove online option
-const countries = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countries.slice(1)];
+const countryOptions = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countries];
 
 const FormCountrySelect = ({
   countryIso2,
@@ -30,7 +29,7 @@ const FormCountrySelect = ({
         onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId })}
         disabled={disabled}
       >
-        {countries.map((el) => (
+        {countryOptions.map((el) => (
           <option key={el.code} value={el.code}>
             {el.name}
           </option>

@@ -326,15 +326,11 @@ export class ContestsService {
     if (isAdmin || contest.state < ContestState.Approved) {
       contest.name = contestDto.name;
       contest.shortName = contestDto.shortName;
-      if (contest.type !== ContestType.Online) {
-        contest.city = contestDto.city;
-        contest.venue = contestDto.venue;
-        contest.address = contestDto.address;
-      }
-      if (contestDto.latitudeMicrodegrees && contestDto.longitudeMicrodegrees) {
-        contest.latitudeMicrodegrees = contestDto.latitudeMicrodegrees;
-        contest.longitudeMicrodegrees = contestDto.longitudeMicrodegrees;
-      }
+      contest.city = contestDto.city;
+      contest.venue = contestDto.venue;
+      contest.address = contestDto.address;
+      contest.latitudeMicrodegrees = contestDto.latitudeMicrodegrees;
+      contest.longitudeMicrodegrees = contestDto.longitudeMicrodegrees;
       contest.competitorLimit = contestDto.competitorLimit;
     }
 
