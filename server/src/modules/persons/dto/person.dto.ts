@@ -20,7 +20,6 @@ export class PersonDto implements IPersonDto {
   @Matches(C.wcaIdRegex, { message: 'Please enter a valid WCA ID' })
   wcaId?: string;
 
-  // Allow all countries except the online option
-  @IsIn(Countries.slice(1).map((el) => el.code), invalidCountryOpts)
+  @IsIn(Countries.map((el) => el.code), invalidCountryOpts)
   countryIso2: string;
 }

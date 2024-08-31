@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import C from '@sh/constants';
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums';
 import {
@@ -249,7 +249,7 @@ export const getIsCompType = (contestType: ContestType): boolean =>
 export const getMakesCutoff = (attempts: IAttempt[], cutoff: ICutoff | undefined): boolean =>
   !cutoff || attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result > 0 && a.result < cutoff.attemptResult);
 
-const convertDateToWcifDate = (date: Date): string => format(date, 'YYYY-MM-DD');
+const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, 'UTC', 'YYYY-MM-DD');
 
 export const getWcifCompetition = (contest: IContest, schedule?: ISchedule): IWcifCompetition => ({
   formatVersion: '1.0',

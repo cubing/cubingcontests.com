@@ -19,14 +19,12 @@ export interface IContest {
   name: string;
   shortName: string;
   type: ContestType;
-  city?: string; // not needed for online comps
-  countryIso2: string; // for online comps there is a special value
-  // These two fields can be left as an empty string by an admin
-  // (necessary for some old comps that have the venue or address missing on the WCA)
-  venue?: string; // not needed for online comps
-  address?: string; // not needed for online comps
-  latitudeMicrodegrees?: number; // vertical coordinate (Y); ranges from -90 to 90; not needed for online comps
-  longitudeMicrodegrees?: number; // horizontal coordinate (X); ranges from -180 to 180; not needed for online comps
+  city: string;
+  countryIso2: string;
+  venue: string;
+  address: string;
+  latitudeMicrodegrees: number; // vertical coordinate (Y); ranges from -90 to 90
+  longitudeMicrodegrees: number; // horizontal coordinate (X); ranges from -180 to 180
   // These are stored as ISO date strings in the DB, but are date objects everywhere else
   startDate: Date;
   endDate?: Date; // competition-only
@@ -40,7 +38,7 @@ export interface IContest {
   queuePosition?: number; // optional, used for the queue feature
   // IMPORTANT: this is not set when importing a competition and must be set manually by an admin
   compDetails?: ICompetitionDetails; // competition-only
-  meetupDetails?: IMeetupDetails; // meetup/online-comp-only
+  meetupDetails?: IMeetupDetails; // meetup-only
 }
 
 export type IContestDto = Omit<IContest, 'createdBy' | 'state' | 'participants'>;

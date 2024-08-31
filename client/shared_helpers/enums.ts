@@ -49,7 +49,7 @@ export enum RoundProceed {
 export enum ContestType {
   Meetup = 1,
   WcaComp = 2,
-  Online = 3,
+  // Online = 3, // this contest type has been removed
   Competition = 4,
 }
 

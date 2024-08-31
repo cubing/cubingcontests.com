@@ -4,7 +4,7 @@ import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useMyFetch } from '~/helpers/customHooks';
 import ToastMessages from '@c/UI/ToastMessages';
-import { ContestState, ContestType } from '@sh/enums';
+import { ContestState } from '@sh/enums';
 import { IAdminStats, IContest } from '@sh/types';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { getFormattedDate, getUserInfo } from '~/helpers/utilityFunctions';
@@ -12,7 +12,7 @@ import { MainContext } from '~/helpers/contexts';
 import Country from '@c/Country';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Button from '@c/UI/Button';
-import Loading from '~/app/components/UI/Loading';
+import Loading from '@c/UI/Loading';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -154,18 +154,14 @@ const ModeratorDashboardPage = () => {
 
                 return (
                   <tr key={contest.competitionId}>
-                    <td>{getFormattedDate(contest.startDate, contest.endDate, contest.timezone)}</td>
+                    <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                     <td>
                       <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
                         {contest.shortName}
                       </Link>
                     </td>
                     <td>
-                      {contest.type !== ContestType.Online && (
-                        <span>
-                          {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
-                        </span>
-                      )}
+                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
                     </td>
                     <td>
                       <ContestTypeBadge type={contest.type} brief />

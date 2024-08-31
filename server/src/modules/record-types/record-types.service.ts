@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { InjectModel } from '@nestjs/mongoose';
 import { excl } from '~/src/helpers/dbHelpers';
 import { Model } from 'mongoose';
@@ -122,10 +122,8 @@ export class RecordTypesService {
       if (result.best <= currentSingleRecord) {
         currentSingleRecord = result.best;
 
-        // _id is the date from the group stage
-        this.logger.log(
-          `New single ${wcaEquiv} for ${event.eventId}: ${result.best} (${format(result._id, 'd MMM yyyy')})`,
-        );
+        const date = formatInTimeZone(result._id, 'UTC', 'd MMM yyyy'); // _id is the date from the group stage
+        this.logger.log(`New single ${wcaEquiv} for ${event.eventId}: ${result.best} (${date})`);
 
         const sameDayTiedRecordsFilter: any = queryFilter;
         sameDayTiedRecordsFilter.date = result._id;
@@ -154,10 +152,8 @@ export class RecordTypesService {
       if (result.average <= currentAvgRecord) {
         currentAvgRecord = result.average;
 
-        // _id is the date from the group stage
-        this.logger.log(
-          `New average ${wcaEquiv} for ${event.eventId}: ${result.average} (${format(result._id, 'd MMM yyyy')})`,
-        );
+        const date = formatInTimeZone(result._id, 'UTC', 'd MMM yyyy'); // _id is the date from the group stage
+        this.logger.log(`New average ${wcaEquiv} for ${event.eventId}: ${result.average} (${date})`);
 
         const sameDayTiedRecordsFilter: any = queryFilter;
         sameDayTiedRecordsFilter.date = result._id;
