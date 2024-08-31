@@ -200,7 +200,7 @@ export const getBestAndAverage = (
   let sum = 0;
   let dnfDnsCount = 0;
   const makesCutoff = getMakesCutoff(attempts, round?.cutoff);
-  const format = round?.format || roundFormat;
+  const format = round?.format ?? roundFormat;
   const expectedAttempts = roundFormats.find((rf) => rf.value === format).attempts;
 
   // This actually follows the rule that the lower the attempt value is - the better

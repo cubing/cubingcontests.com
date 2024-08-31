@@ -127,20 +127,30 @@ export class ResultsService {
         }
       }
 
-      // Look for empty attempts
-      const emptyAttemptResults = await this.resultModel.find({ 'attempts.result': 0 }).exec();
-      for (const result of emptyAttemptResults) {
-        this.logger.error(`Error: result has an empty attempt: ${result}`);
-      }
-
       // Look for orphan rounds or ones that belong to multiple contests or ones that have an invalid date
-      const rounds = await this.roundModel.find().exec();
+      const rounds = await this.roundModel.find().populate(resultPopulateOptions).exec();
       for (const round of rounds) {
         const contests = await this.contestModel.find({ 'events.rounds': round._id }).exec();
 
-        if (contests.length === 0) this.logger.error(`Error: round has no contest: ${round}`);
-        else if (contests.length > 1)
+        if (contests.length === 0) {
+          this.logger.error(`Error: round has no contest: ${round}`);
+        } else if (contests.length > 1) {
           this.logger.error(`Error: round ${round} belongs to multiple contests: ${contests}`);
+        } else {
+          // Look for results with empty attempts
+          for (const result of round.results) {
+            if (result.attempts.some((a) => a.result === 0))
+              this.logger.error(`Error: result ${result._id} has an empty attempt`);
+
+            const roundFormat = roundFormats.find((rf) => rf.value === round.format);
+            const makesCutoff = getMakesCutoff(result.attempts, round.cutoff);
+            if (
+              (makesCutoff && result.attempts.length !== roundFormat.attempts) ||
+              (!makesCutoff && result.attempts.length !== round.cutoff.numberOfAttempts)
+            )
+              this.logger.error(`Error: result ${result} has the wrong number of attempts`);
+          }
+        }
       }
 
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
@@ -1016,6 +1026,8 @@ export class ResultsService {
           if (!passes && result.attempts.length > round.cutoff.numberOfAttempts)
             throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
         }
+
+        // Validate the number of attempts
       }
     }
     // Video-based results validation

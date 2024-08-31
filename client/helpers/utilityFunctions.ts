@@ -226,6 +226,7 @@ export const shortenEventName = (name: string): string => {
     .replace('Blindfolded', 'BLD')
     .replace('Multi-Blind', 'MBLD')
     .replace('One-Handed', 'OH')
+    .replace('Match The Scramble', 'MTS')
     .replace('Face-Turning Octahedron', 'FTO')
     .replace(' Cuboid', '')
     .replace(' Challenge', '');
