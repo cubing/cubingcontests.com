@@ -83,7 +83,7 @@ Please do **NOT** try to deploy your own instance until this project is ready fo
 
 ## Development
 
-This project uses Next JS for the frontend and Nest JS (confusing, I know) with Mongo DB for the backend. To set up the development environment, install Node, NPM, the Nest JS CLI, and Docker, clone this repository, and then run the following commands:
+This project uses Next JS for the frontend and Nest JS (confusing, I know) with MongoDB for the backend. To set up the development environment, install Node, NPM, the Nest JS CLI, and Docker, clone this repository, and then run the following commands:
 
 ```sh
 ./scripts/init.sh # set up Git hooks and copy .env.example to .env
@@ -97,7 +97,7 @@ npm install # install backend packages
 
 The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing.
 
-To start just the backend and the DB in development, run this command in the `server` directory (runs the backend and the Mongo DB Docker container):
+To start just the backend and the DB in development, run this command in the `server` directory (runs the backend and the MongoDB Docker container):
 
 ```sh
 npm run fulldev
@@ -105,7 +105,7 @@ npm run fulldev
 
 To start **both** the frontend and the backend, run **the same command** in the `client` directory. That version of the command starts the frontend, the backend, and the DB. Keep in mind that when Handlebars files (`.hbs`) are edited, the dev environment has to be restarted for those changes to take effect.
 
-Go to `localhost:3000` to see the website. Go to `localhost:8080` to see Mongo Express (makes it much easier to work with the database). `localhost:5000` is used by the backend.
+Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo Express (makes it much easier to work with the database). The username is `admin` and the password is `cc`. `localhost:5000` is used by the backend.
 
 There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory, but Nest JS does. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
 

@@ -18,7 +18,7 @@ import C from '@sh/constants';
 import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { MainContext } from '~/helpers/contexts';
-import { getBestAndAverage } from '~/shared_helpers/sharedFunctions';
+import { getBestAndAverage } from '@sh/sharedFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
