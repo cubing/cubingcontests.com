@@ -361,6 +361,8 @@ export class ContestsService {
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
 
+    if (contest.state === newState)
+      throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`); 
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
     // A contest can have results before being approved if it's an imported contest.
     if (isAdmin && resultFromContest && contest.state < ContestState.Ongoing && newState === ContestState.Approved) {
@@ -404,7 +406,14 @@ export class ContestsService {
     if (isAdmin && newState === ContestState.Published) {
       this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
-      if (contest.type !== ContestType.WcaComp && contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
+      if (contest.type === ContestType.WcaComp) {
+        const response = await fetch(`https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}/results`);
+        const data = await response.json();
+        if (data && data.length === 0) {
+          throw new BadRequestException('You must wait until  the results have been published on the WCA  website before publishing it');
+        }
+        //TODO: Implement this
+      } else if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
         throw new BadRequestException(
           `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForUnofficialCompsAndMeetups} competitors`,
         );
