@@ -11,8 +11,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { DATE_VALIDATION_MSG, DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from '~/src/helpers/messages';
-import { AttemptDto, NotAllDnsAndNotAllEmpty } from './create-result.dto';
+import { AttemptDto } from './create-result.dto';
 import { IAttempt, IUpdateResultDto } from '@sh/types';
+import { ContestAttempts } from '~/src/helpers/customValidators';
 
 export class UpdateResultDto implements IUpdateResultDto {
   @IsDateString({}, { message: DATE_VALIDATION_MSG })
@@ -28,7 +29,7 @@ export class UpdateResultDto implements IUpdateResultDto {
 
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(NotAllDnsAndNotAllEmpty)
+  @Validate(ContestAttempts)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];

@@ -2,9 +2,7 @@
 
 import { useContext, useState } from 'react';
 import { doFetch } from '~/helpers/fetchUtils';
-import { getBestAndAverage } from '@sh/sharedFunctions';
-import { FetchObj, IContestDto, IEvent, IWcaPersonDto, IPerson, IPersonDto, IResult, IRound } from '@sh/types';
-import { RoundFormat } from '@sh/enums';
+import { FetchObj, IContestDto, IWcaPersonDto, IPerson, IPersonDto } from '@sh/types';
 import { ContestType } from '@sh/enums';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
@@ -210,42 +208,6 @@ export const useFetchPerson = () => {
     }
 
     return null;
-  };
-};
-
-// Checks if there are any errors, and if not, calls the callback function,
-// passing it the result with the best single and average set
-export const useCheckErrorsThenSubmit = () => {
-  const { changeErrorMessages } = useContext(MainContext);
-
-  return (
-    result: IResult,
-    event: IEvent,
-    persons: IPerson[],
-    submitResultCallback: (result: IResult) => void,
-    { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
-  ) => {
-    const tempErrors: string[] = [];
-
-    if (persons.includes(null)) tempErrors.push('Invalid person(s)');
-    else if (persons.some((p1, i1) => persons.some((p2, i2) => i1 !== i2 && p1.personId === p2.personId)))
-      tempErrors.push('You cannot enter the same person twice');
-
-    for (let i = 0; i < result.attempts.length; i++) {
-      if (result.attempts[i].result === null || result.attempts[i].memo === null) {
-        tempErrors.push(`Attempt ${i + 1} is invalid`);
-      }
-    }
-
-    if (tempErrors.length > 0) {
-      changeErrorMessages(tempErrors);
-    } else {
-      const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat });
-      result.best = best;
-      result.average = average;
-
-      submitResultCallback(result);
-    }
   };
 };
 

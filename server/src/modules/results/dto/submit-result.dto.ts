@@ -3,12 +3,12 @@ import { AttemptDto, CreateResultDto } from './create-result.dto';
 import { ArrayMaxSize, ArrayMinSize, IsOptional, IsUrl, Validate, ValidateNested } from 'class-validator';
 import { IAttempt, IResult } from '@sh/types';
 import { DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from '~/src/helpers/messages';
-import { VideoBasedAttempt } from '~/src/helpers/customValidators';
+import { VideoBasedAttempts } from '~/src/helpers/customValidators';
 
 export class SubmitResultDto extends CreateResultDto implements IResult {
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(VideoBasedAttempt)
+  @Validate(VideoBasedAttempts)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];
