@@ -412,10 +412,9 @@ export class ContestsService {
       if (contest.type === ContestType.WcaComp) {
         const response = await fetch(`https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}/results`);
         const data = await response.json();
-        if (data && data.length === 0) {
-          throw new BadRequestException('You must wait until  the results have been published on the WCA  website before publishing it');
+        if (!data || data.length === 0) {
+          throw new BadRequestException('You must wait until the results have been published on the WCA website before publishing it');
         }
-        //TODO: Implement this
       } else if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
         throw new BadRequestException(
           `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForUnofficialCompsAndMeetups} competitors`,
