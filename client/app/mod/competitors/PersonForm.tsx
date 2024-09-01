@@ -10,7 +10,7 @@ import CreatorDetails from '@c/CreatorDetails';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormCountrySelect from '@c/form/FormCountrySelect';
-import { fetchWcaPerson } from '~/shared_helpers/sharedFunctions';
+import { fetchWcaPerson } from '@sh/sharedFunctions';
 
 const PersonForm = ({
   personUnderEdit,
