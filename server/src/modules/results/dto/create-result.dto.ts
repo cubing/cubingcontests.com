@@ -11,12 +11,13 @@ import {
   ValidateNested,
   Max,
   Validate,
+  ValidateIf,
 } from 'class-validator';
 import { IAttempt, IResult } from '@sh/types';
 import { Type } from 'class-transformer';
 import C from '@sh/constants';
 import { DATE_VALIDATION_MSG } from '~/src/helpers/messages';
-import { NotAllDnsAndNotAllEmpty } from '~/src/helpers/customValidators';
+import { ContestAttempts } from '~/src/helpers/customValidators';
 
 export class CreateResultDto implements IResult {
   @IsOptional()
@@ -45,7 +46,7 @@ export class CreateResultDto implements IResult {
 
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(NotAllDnsAndNotAllEmpty)
+  @Validate(ContestAttempts)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];
@@ -61,10 +62,9 @@ export class AttemptDto implements IAttempt {
   @IsInt()
   result: number;
 
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined) // this is different from @IsOptional(), because that also allows null
   @IsInt()
   @Min(1)
   @Max(C.maxTime - 1)
   memo?: number;
 }
-export { NotAllDnsAndNotAllEmpty };

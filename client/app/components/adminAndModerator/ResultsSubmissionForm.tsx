@@ -18,7 +18,7 @@ import C from '@sh/constants';
 import { getUserInfo } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { MainContext } from '~/helpers/contexts';
-import { useCheckErrorsThenSubmit } from '~/helpers/customHooks';
+import { getBestAndAverage } from '~/shared_helpers/sharedFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -33,8 +33,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
   const [limitRecordPairsRequests, isLoadingRecordPairs] = useLimitRequests();
-  const { changeSuccessMessage, loadingId } = useContext(MainContext);
-  const checkErrorsThenSubmit = useCheckErrorsThenSubmit();
+  const { changeErrorMessages, changeSuccessMessage, loadingId } = useContext(MainContext);
 
   const [showRules, setShowRules] = useState(false);
   const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo>();
@@ -97,62 +96,60 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   //////////////////////////////////////////////////////////////////////////////
 
   const submitResult = async (approve = false) => {
+    if (competitors.some((p) => !p)) {
+      changeErrorMessages(['Invalid person(s)']);
+      return;
+    }
+
+    const { best, average } = getBestAndAverage(attempts, event, { roundFormat });
     const newResult: IResult = {
       eventId: event.eventId,
       date,
-      personIds: competitors.map((el) => el?.personId || null),
+      personIds: competitors.map((p) => p.personId),
       attempts,
-      best: -1,
-      average: -1,
+      best,
+      average,
       videoLink: videoUnavailable ? '' : videoLink,
       discussionLink: discussionLink || undefined,
     };
 
     if (submissionInfo.result?.unapproved && !approve) newResult.unapproved = true;
 
-    checkErrorsThenSubmit(
-      newResult,
-      event,
-      competitors,
-      async (newResultWithBestAndAvg) => {
-        if (!resultId) {
-          const { errors } = await myFetch.post('/results', newResultWithBestAndAvg, {
-            loadingId: approve ? 'approve_button' : 'submit_button',
-          });
+    if (!resultId) {
+      const { errors } = await myFetch.post('/results', newResult, {
+        loadingId: approve ? 'approve_button' : 'submit_button',
+      });
 
-          if (!errors) {
-            changeSuccessMessage('Result successfully submitted');
-            setDate(undefined);
-            setVideoLink('');
-            setDiscussionLink('');
-            setResultFormResetTrigger(!resultFormResetTrigger);
-          }
-        } else {
-          const updateResultDto: IUpdateResultDto = {
-            date: newResultWithBestAndAvg.date,
-            personIds: newResultWithBestAndAvg.personIds,
-            attempts: newResultWithBestAndAvg.attempts,
-            videoLink: newResultWithBestAndAvg.videoLink,
-            discussionLink: newResultWithBestAndAvg.discussionLink,
-          };
-          if (!approve) updateResultDto.unapproved = submissionInfo.result.unapproved;
+      if (!errors) {
+        changeSuccessMessage('Result successfully submitted');
+        setDate(undefined);
+        setVideoLink('');
+        setDiscussionLink('');
+        setResultFormResetTrigger(!resultFormResetTrigger);
+      }
+    } else {
+      const updateResultDto: IUpdateResultDto = {
+        date: newResult.date,
+        personIds: newResult.personIds,
+        attempts: newResult.attempts,
+        videoLink: newResult.videoLink,
+        discussionLink: newResult.discussionLink,
+      };
+      if (!approve) updateResultDto.unapproved = submissionInfo.result.unapproved;
 
-          const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto, {
-            loadingId: approve ? 'approve_button' : 'submit_button',
-            keepLoadingAfterSuccess: true,
-          });
+      const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto, {
+        loadingId: approve ? 'approve_button' : 'submit_button',
+        keepLoadingAfterSuccess: true,
+      });
 
-          if (!errors) {
-            changeSuccessMessage(approve ? 'Result successfully approved' : 'Result successfully updated');
+      if (!errors) {
+        changeSuccessMessage(approve ? 'Result successfully approved' : 'Result successfully updated');
 
-            setTimeout(() => {
-              window.location.href = '/admin/results';
-            }, 1000);
-          }
-        }
-      },
-      { roundFormat },
-    );
+        setTimeout(() => {
+          window.location.href = '/admin/results';
+        }, 1000);
+      }
+    }
   };
 
   const changeDate = (newDate: Date) => {

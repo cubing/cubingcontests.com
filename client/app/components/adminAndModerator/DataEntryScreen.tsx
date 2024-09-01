@@ -20,9 +20,8 @@ import {
 import { ContestState } from '@sh/enums';
 import { getUserInfo, shortenEventName } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import { roundFormats } from '@sh/roundFormats';
-import { useCheckErrorsThenSubmit } from '~/helpers/customHooks';
 import { MainContext } from '~/helpers/contexts';
+import { getBestAndAverage } from '@sh/sharedFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -34,7 +33,6 @@ const DataEntryScreen = ({
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
   const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
-  const checkErrorsThenSubmit = useCheckErrorsThenSubmit();
 
   const eventId = searchParams.get('eventId') ?? contest.events[0].event.eventId;
 
@@ -78,62 +76,56 @@ const DataEntryScreen = ({
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
-  const submitResult = () => {
+  const submitResult = async () => {
     if (isEditable) {
+      if (currentPersons.some((p) => !p)) {
+        changeErrorMessages(['Invalid person(s)']);
+        return;
+      }
+
+      const { best, average } = getBestAndAverage(attempts, currEvent, { round });
       const newResult: IResult = {
         competitionId: contest.competitionId,
         eventId: currEvent.eventId,
         date: new Date(), // real date assigned on the backend
-        personIds: currentPersons.map((el) => el?.personId || null),
+        personIds: currentPersons.map((p) => p.personId),
         ranking: 0, // real rankings assigned on the backend
         attempts, // attempts that got cancelled due to not making cutoff are removed on the backend
-        best: -1, // this gets set below
-        average: -1, // this gets set below
+        best,
+        average,
       };
+      let updatedRound: IRound, errors: string[];
 
-      checkErrorsThenSubmit(
-        newResult,
-        currEvent,
-        currentPersons,
-        async (newResultWithBestAndAvg) => {
-          let updatedRound: IRound, errors: string[];
+      if (resultUnderEdit === null) {
+        const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResult, {
+          loadingId: 'submit_attempt_button',
+        });
+        updatedRound = payload;
+        errors = err;
+      } else {
+        const updateResultDto: IUpdateResultDto = {
+          date: newResult.date,
+          unapproved: resultUnderEdit.unapproved,
+          personIds: newResult.personIds,
+          attempts: newResult.attempts,
+        };
+        const { payload, errors: err } = await myFetch.patch(
+          `/results/${(resultUnderEdit as any)._id}`,
+          updateResultDto,
+          { loadingId: 'submit_attempt_button' },
+        );
+        updatedRound = payload;
+        errors = err;
+        setResultUnderEdit(null);
+      }
 
-          if (resultUnderEdit === null) {
-            const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResultWithBestAndAvg, {
-              loadingId: 'submit_attempt_button',
-            });
-            updatedRound = payload;
-            errors = err;
-          } else {
-            const updateResultDto: IUpdateResultDto = {
-              date: newResultWithBestAndAvg.date,
-              unapproved: resultUnderEdit.unapproved,
-              personIds: newResultWithBestAndAvg.personIds,
-              attempts: newResultWithBestAndAvg.attempts,
-            };
-            const { payload, errors: err } = await myFetch.patch(
-              `/results/${(resultUnderEdit as any)._id}`,
-              updateResultDto,
-              { loadingId: 'submit_attempt_button' },
-            );
-            updatedRound = payload;
-            errors = err;
-            setResultUnderEdit(null);
-          }
-
-          if (!errors) {
-            // Add new persons to list of persons
-            setPersons([
-              ...persons,
-              ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId)),
-            ]);
-            setResultFormResetTrigger(!resultFormResetTrigger);
-            updateRoundAndCompEvents(updatedRound);
-            updateRecordPairs(newResultWithBestAndAvg);
-          }
-        },
-        { round },
-      );
+      if (!errors) {
+        // Add new persons to list of persons
+        setPersons([...persons, ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId))]);
+        setResultFormResetTrigger(!resultFormResetTrigger);
+        updateRoundAndCompEvents(updatedRound);
+        updateRecordPairs(newResult);
+      }
     }
   };
 
@@ -170,16 +162,8 @@ const DataEntryScreen = ({
   const editResult = (result: IResult) => {
     if (isEditable) {
       resetMessagesAndLoadingId();
-
-      const expectedAttempts = roundFormats.find((rf) => rf.value === round.format)?.attempts;
-      // If the competitor did not make cutoff, fill the missing attempts with empty results
-      const newAttempts = [
-        ...result.attempts,
-        ...new Array(expectedAttempts - result.attempts.length).fill({ result: 0 }),
-      ];
-
       setResultUnderEdit(result);
-      setAttempts(newAttempts);
+      setAttempts(result.attempts);
       setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
       setResultFormResetTrigger(undefined);
       window.scrollTo(0, 0);

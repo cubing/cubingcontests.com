@@ -1,8 +1,8 @@
 import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
 import { IAttempt } from '@sh/types';
 
-@ValidatorConstraint({ name: 'VideoBasedAttempt', async: false })
-export class VideoBasedAttempt implements ValidatorConstraintInterface {
+@ValidatorConstraint({ name: 'VideoBasedAttempts', async: false })
+export class VideoBasedAttempts implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
     return attempts.some((a) => a.result > 0) && !attempts.some((a) => a.result === 0);
   }
@@ -12,8 +12,8 @@ export class VideoBasedAttempt implements ValidatorConstraintInterface {
   }
 }
 
-@ValidatorConstraint({ name: 'NotAllDnsAndNotAllEmpty', async: false })
-export class NotAllDnsAndNotAllEmpty implements ValidatorConstraintInterface {
+@ValidatorConstraint({ name: 'ContestAttempts', async: false })
+export class ContestAttempts implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
     return attempts.some((a) => a.result !== -2) && attempts.some((a) => a.result !== 0);
   }
