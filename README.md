@@ -1,6 +1,6 @@
 # Cubing Contests
 
-This is a place for hosting unofficial Rubik's cube competitions, unofficial events held at WCA competitions, speedcuber meetups, and other unofficial events.
+This is a place for hosting unofficial Rubik's Cube competitions, unofficial events held at WCA competitions, speedcuber meetups, and other unofficial events.
 
 ## Screenshots
 
