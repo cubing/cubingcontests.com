@@ -199,14 +199,14 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           ) : (
             <>
               <p>
-                Here you can submit results for events that allow submissions. They will be included in the rankings
-                after an admin approves them. A result can only be accepted if it has video evidence of the{' '}
-                <b>ENTIRE</b> solve (including memorization, if applicable). The video date is used as proof of when the
-                solve was done, an earlier date cannot be used. Make sure that you can be identified from the provided
-                video; if your channel name is not your real name, please include your full name or WCA ID in the
-                description of the video. If you do not have a WCA ID, please contact the admins to have a competitor
-                profile created for you. If you have any questions or suggestions, feel free to send an email to{' '}
-                {C.contactEmail}.
+                Here you can submit results for events that allow submissions. You may submit other people's results
+                too. New results will be included in the rankings after an admin approves them. A result can only be
+                accepted if it has video evidence of the <b>ENTIRE</b> solve (including memorization, if applicable).
+                The video date is used as proof of when the solve was done, an earlier date cannot be used. Make sure
+                that you can be identified from the provided video; if your channel name is not your real name, please
+                include your full name or WCA ID in the description of the video. If you do not have a WCA ID, please
+                contact the admins to have a competitor profile created for you. If you have any questions or
+                suggestions, feel free to send an email to {C.contactEmail}.
               </p>
               <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? 'Hide rules' : 'Show rules'}
