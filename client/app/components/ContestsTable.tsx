@@ -3,7 +3,6 @@ import { FaCircle } from 'react-icons/fa';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import { IContest } from '@sh/types';
-import { ContestType } from '@sh/enums';
 import { getBSClassFromColor, getFormattedDate } from '~/helpers/utilityFunctions';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 
@@ -39,13 +38,9 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
               </div>
               <div className="d-flex justify-content-between gap-3">
                 <div className="ms-2">
-                  {contest.type !== ContestType.Online ? (
-                    <span>
-                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
-                    </span>
-                  ) : (
-                    'Online'
-                  )}
+                  <span>
+                    {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
+                  </span>
                 </div>
                 <div className="flex-shrink-0 text-end">
                   {contest.participants > 0 && (
@@ -76,18 +71,14 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
           <tbody>
             {contests.map((contest: IContest) => (
               <tr key={contest.competitionId}>
-                <td>{getFormattedDate(contest.startDate, contest.endDate, contest.timezone)}</td>
+                <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                 <td>
                   <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
                     {contest.shortName}
                   </Link>
                 </td>
                 <td>
-                  {contest.type !== ContestType.Online && (
-                    <span>
-                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
-                    </span>
-                  )}
+                  {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
                 </td>
                 <td>
                   <ContestTypeBadge type={contest.type} />

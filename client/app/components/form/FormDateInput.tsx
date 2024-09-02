@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { parseISO, isValid } from 'date-fns';
-import { format, fromZonedTime } from 'date-fns-tz';
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import C from '@sh/constants';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
@@ -46,7 +46,7 @@ const FormDateInput = ({
 
   useEffect(() => {
     if (value) {
-      setDateText(format(value, 'ddMMyyyy', { timeZone: 'UTC' }));
+      setDateText(formatInTimeZone(value, 'UTC', 'ddMMyyyy'));
     } else if (value === undefined && dateText !== '') {
       setDateText('');
     }

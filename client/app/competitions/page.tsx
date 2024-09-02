@@ -15,13 +15,7 @@ export const metadata = {
   },
 };
 
-const ContestsPage = async (
-  {
-    searchParams: { eventId },
-  }: {
-    searchParams: { eventId?: string };
-  }
-) => {
+const ContestsPage = async ({ searchParams: { eventId } }: { searchParams: { eventId?: string } }) => {
   const { payload: events } = await ssrFetch('/events');
   const { payload: contests } = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ''}`);
 

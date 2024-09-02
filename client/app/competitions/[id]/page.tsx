@@ -1,5 +1,4 @@
-import { format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { ssrFetch } from '~/helpers/fetchUtils';
 import ContestLayout from '@c/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
@@ -16,12 +15,12 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = payload as IContestData;
 
-  const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null, contest.timezone);
+  const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests
   const formattedTime = contest.meetupDetails
-    ? format(toZonedTime(contest.meetupDetails.startTime, contest.timezone || 'UTC'), 'H:mm')
+    ? formatInTimeZone(contest.meetupDetails.startTime, contest.timezone, 'H:mm')
     : null;
-  const startOfDayInLocalTZ = getDateOnly(toZonedTime(new Date(), contest.timezone || 'UTC'));
+  const startOfDayInLocalTZ = getDateOnly(toZonedTime(new Date(), contest.timezone ?? 'UTC'));
   const start = new Date(contest.startDate);
   const isOngoing =
     contest.state < ContestState.Finished &&
@@ -48,22 +47,14 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
               <ContestTypeBadge type={contest.type} />
             </div>
             <p className="mb-2">Date:&#8194;{formattedDate}</p>
-            {formattedTime && (
-              <p className="mb-2">
-                Starts at:&#8194;{formattedTime}
-                {contest.type === ContestType.Online ? ' (UTC)' : ''}
-              </p>
-            )}
-            {contest.type !== ContestType.Online && (
-              <p className="mb-2">
-                City:&#8194;{contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
-              </p>
-            )}
+            {formattedTime && <p className="mb-2">Starts at:&#8194;{formattedTime}</p>}
+            <p className="mb-2">
+              City:&#8194;{contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
+            </p>
+            {/* Venue and address may be undefined for some old WCA competitions */}
             {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
             {contest.address && <p className="mb-2">Address:&#8194;{contest.address}</p>}
-            {contest.latitudeMicrodegrees !== undefined && contest.longitudeMicrodegrees !== undefined && (
-              <p className="mb-2">Coordinates:&#8194;{getFormattedCoords()}</p>
-            )}
+            <p className="mb-2">Coordinates:&#8194;{getFormattedCoords()}</p>
             {contest.contact && (
               <p className="mb-2">
                 Contact:&#8194;<span className="fs-6">{contest.contact}</span>

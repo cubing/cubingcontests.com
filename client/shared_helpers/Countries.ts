@@ -1,5 +1,4 @@
 const Countries = [
-  { name: 'Online', code: 'ONLINE' },
   { name: 'Afghanistan', code: 'AF' },
   { name: 'Albania', code: 'AL' },
   { name: 'Algeria', code: 'DZ' },
@@ -202,5 +201,3 @@ const Countries = [
 ];
 
 export default Countries;
-
-export const nonOnlineCountryCodes = Countries.slice(1).map((el) => el.code);

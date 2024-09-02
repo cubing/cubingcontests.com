@@ -127,20 +127,30 @@ export class ResultsService {
         }
       }
 
-      // Look for empty attempts
-      const emptyAttemptResults = await this.resultModel.find({ 'attempts.result': 0 }).exec();
-      for (const result of emptyAttemptResults) {
-        this.logger.error(`Error: result has an empty attempt: ${result}`);
-      }
-
       // Look for orphan rounds or ones that belong to multiple contests or ones that have an invalid date
-      const rounds = await this.roundModel.find().exec();
+      const rounds = await this.roundModel.find().populate(resultPopulateOptions).exec();
       for (const round of rounds) {
         const contests = await this.contestModel.find({ 'events.rounds': round._id }).exec();
 
-        if (contests.length === 0) this.logger.error(`Error: round has no contest: ${round}`);
-        else if (contests.length > 1)
+        if (contests.length === 0) {
+          this.logger.error(`Error: round has no contest: ${round}`);
+        } else if (contests.length > 1) {
           this.logger.error(`Error: round ${round} belongs to multiple contests: ${contests}`);
+        } else {
+          // Look for results with empty attempts
+          for (const result of round.results) {
+            if (result.attempts.some((a) => a.result === 0))
+              this.logger.error(`Error: result ${result._id} has an empty attempt`);
+
+            const roundFormat = roundFormats.find((rf) => rf.value === round.format);
+            const makesCutoff = getMakesCutoff(result.attempts, round.cutoff);
+            if (
+              (makesCutoff && result.attempts.length !== roundFormat.attempts) ||
+              (!makesCutoff && result.attempts.length !== round.cutoff.numberOfAttempts)
+            )
+              this.logger.error(`Error: result ${result} has the wrong number of attempts`);
+          }
+        }
       }
 
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
@@ -507,10 +517,11 @@ export class ResultsService {
     } else {
       const schedule = await this.scheduleModel.findOne({ competitionId: createResultDto.competitionId }).exec();
 
-      if (!schedule)
+      if (!schedule) {
         throw new InternalServerErrorException(
           `No schedule found for contest with ID ${createResultDto.competitionId}`,
         );
+      }
 
       let activity: IActivity;
 
@@ -622,7 +633,7 @@ export class ResultsService {
     result.regionalSingleRecord = undefined;
     result.regionalAverageRecord = undefined;
 
-    this.validateAndCleanUpResult(result, event, { mode: 'edit', round });
+    await this.validateAndCleanUpResult(result, event, { mode: 'edit', round });
 
     const recordPairs = await this.getEventRecordPairs(event, {
       recordsUpTo: result.date,
@@ -936,15 +947,17 @@ export class ResultsService {
         `This event must have ${event.participants ?? 1} participant${event.participants ? 's' : ''}`,
       );
     }
+    if (result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2)))
+      throw new BadRequestException('You cannot enter the same person twice in the same result');
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
     // and this is only used for those results, because a competition result would have a round
-    const roundFormat = round
-      ? undefined
-      : roundFormats.find((rf) => rf.attempts === result.attempts.length && rf.value !== RoundFormat.BestOf3).value;
+    const format = round
+      ? roundFormats.find((rf) => rf.value === round.format)
+      : roundFormats.find((rf) => rf.attempts === result.attempts.length && rf.value !== RoundFormat.BestOf3);
 
     // Validate the best single and the average
-    const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat });
+    const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat: format.value });
     if (result.best === null) result.best = best;
     else if (result.best !== best) throw new BadRequestException('The best single is incorrect. Please try again.');
     if (result.average === null) result.average = average;
@@ -1012,8 +1025,24 @@ export class ResultsService {
         if (round.cutoff) {
           const passes = getMakesCutoff(result.attempts, round.cutoff);
 
-          if (!passes && result.attempts.length > round.cutoff.numberOfAttempts)
-            throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
+          if (passes) {
+            if (result.attempts.length !== format.attempts)
+              throw new BadRequestException(
+                `The number of attempts should be ${format.attempts}; received: ${result.attempts.length}`,
+              );
+          } else if (result.attempts.length > round.cutoff.numberOfAttempts) {
+            if (result.attempts.slice(round.cutoff.numberOfAttempts).some((a) => a.result !== 0)) {
+              throw new BadRequestException(
+                `This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`,
+              );
+            } else {
+              result.attempts = result.attempts.slice(0, round.cutoff.numberOfAttempts);
+            }
+          } else if (result.attempts.length < round.cutoff.numberOfAttempts) {
+            throw new BadRequestException(
+              `The number of attempts should be ${round.cutoff.numberOfAttempts}; received: ${result.attempts.length}`,
+            );
+          }
         }
       }
     }

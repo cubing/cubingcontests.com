@@ -1,21 +1,20 @@
-import { format, isSameDay } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { isSameDay } from 'date-fns';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import EventTitle from './EventTitle';
 import ColorSquare from '@c/UI/ColorSquare';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getDateOnly } from '~/shared_helpers/sharedFunctions';
 
 const Schedule = ({
   rooms,
   contestEvents,
-  timezone,
+  timeZone,
   onDeleteActivity,
 }: {
   rooms: IRoom[];
   contestEvents: IContestEvent[];
-  timezone: string;
+  timeZone: string;
   onDeleteActivity?: (roomId: number, activityId: number) => void;
 }) => {
   const allActivities = [];
@@ -35,29 +34,35 @@ const Schedule = ({
 
   const days: {
     date: Date;
-    activities: IActivity[];
+    activities: (IActivity & {
+      formattedStartTime: string;
+      formattedEndTime: string;
+    })[];
   }[] = [];
 
   for (const activity of allActivities) {
-    const zonedStartTime = toZonedTime(activity.startTime, timezone);
+    const zonedStartTime = toZonedTime(activity.startTime, timeZone);
+    const zonedEndTime = toZonedTime(activity.endTime, timeZone);
 
-    if (!days.some((el) => isSameDay(toZonedTime(el.date, timezone), zonedStartTime))) {
+    // Add new day if the activity is on a new day or if the days array is empty
+    if (days.length === 0 || !isSameDay(days.at(-1).date, zonedStartTime))
       days.push({ date: zonedStartTime, activities: [] });
-    }
 
-    days[days.length - 1].activities.push({
+    const isMultiDayActivity = !isSameDay(zonedStartTime, zonedEndTime);
+
+    days.at(-1).activities.push({
       ...activity,
-      startTime: zonedStartTime,
-      endTime: toZonedTime(activity.endTime, timezone),
+      formattedStartTime: formatInTimeZone(activity.startTime, timeZone, 'HH:mm'),
+      formattedEndTime:
+        (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, 'dd MMM')} ` : '') +
+        formatInTimeZone(activity.endTime, timeZone, 'HH:mm'),
     });
   }
-
-  const getIsMultiDayActivity = (activity: IActivity) =>
-    getDateOnly(activity.startTime).getTime() !== getDateOnly(activity.endTime).getTime();
 
   return (
     <>
       <h1 className="mb-4 text-center">Schedule</h1>
+
       {days.map((day) => (
         <div key={day.date.toString()}>
           <h4 className="mx-2 mb-3 fw-bold">{day.date.toDateString()}</h4>
@@ -90,11 +95,8 @@ const Schedule = ({
 
                   return (
                     <tr key={activity.id}>
-                      <td>{format(activity.startTime, 'HH:mm')}</td>
-                      <td>
-                        {(getIsMultiDayActivity(activity) ? `${format(activity.endTime, 'dd MMM')} ` : '') +
-                          format(activity.endTime, 'HH:mm')}
-                      </td>
+                      <td>{activity.formattedStartTime}</td>
+                      <td>{activity.formattedEndTime}</td>
                       <td>
                         {activity.activityCode !== 'other-misc' ? (
                           <span className="d-flex gap-1">

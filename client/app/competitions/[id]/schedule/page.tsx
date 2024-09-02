@@ -13,7 +13,7 @@ const CompetitionSchedulePage = async ({ params }: { params: { id: string } }) =
       <Schedule
         rooms={contest.compDetails.schedule.venues[0].rooms}
         contestEvents={contest.events}
-        timezone={contest.compDetails.schedule.venues[0].timezone}
+        timeZone={contest.compDetails.schedule.venues[0].timezone}
       />
     </ContestLayout>
   );

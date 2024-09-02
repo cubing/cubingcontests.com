@@ -73,7 +73,7 @@ const CreatePersonPage = () => {
         <>
           {userInfo.isAdmin && (
             <p className="my-4 px-3">
-              Total competitors:&nbsp;<b>{persons.length === 1000 ? '1000+' : persons.length}</b>
+              Total competitors:&nbsp;<b>{persons.length}</b>
             </p>
           )}
 
@@ -123,7 +123,6 @@ const CreatePersonPage = () => {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 mb-5">Only showing the last 1000 competitors.</p>
         </>
       )}
     </div>

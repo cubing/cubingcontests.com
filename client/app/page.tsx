@@ -9,8 +9,8 @@ const Home = () => {
       <h1 className="mb-4 text-center">Cubing Contests</h1>
 
       <div className="alert alert-warning mb-4">
-        We're looking for Typescript deveopers to aid us in the development of Cubing Contests. Please reach out to this
-        email address if you're interested: {C.contactEmail}.
+        We're looking for Typescript developers to aid us in the development of Cubing Contests. Please reach out to
+        this email address if you're interested: {C.contactEmail}.
       </div>
 
       <p>

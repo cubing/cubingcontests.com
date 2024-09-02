@@ -256,10 +256,8 @@ const ContestForm = ({
 
     const selectedOrganizers = organizers.filter((el) => el !== null);
     let latitudeMicrodegrees: number, longitudeMicrodegrees: number;
-    if (type !== ContestType.Online) {
-      if (typeof latitude === 'number') latitudeMicrodegrees = Math.round(latitude * 1000000);
-      if (typeof longitude === 'number') longitudeMicrodegrees = Math.round(longitude * 1000000);
-    }
+    if (typeof latitude === 'number') latitudeMicrodegrees = Math.round(latitude * 1000000);
+    if (typeof longitude === 'number') longitudeMicrodegrees = Math.round(longitude * 1000000);
 
     // Set the competition ID for every round and empty results if there were any
     // in order to avoid sending too much data to the backend
@@ -300,11 +298,10 @@ const ContestForm = ({
       name: name.trim(),
       shortName: shortName.trim(),
       type,
-      city: type !== ContestType.Online ? city.trim() : undefined,
-      // If it's an online competition, set country ISO to online
-      countryIso2: type !== ContestType.Online ? countryIso2 : 'ONLINE',
-      venue: type !== ContestType.Online ? venue.trim() : undefined,
-      address: type !== ContestType.Online ? address.trim() : undefined,
+      city: city.trim(),
+      countryIso2,
+      venue: venue.trim(),
+      address: address.trim(),
       latitudeMicrodegrees,
       longitudeMicrodegrees,
       startDate,
@@ -912,62 +909,58 @@ const ContestForm = ({
                 disabled={disableIfDetailsImported}
               />
             )}
-            {type !== ContestType.Online && (
-              <>
+            <div className="row">
+              <div className="col">
+                <FormTextInput
+                  title="City"
+                  value={city}
+                  setValue={setCity}
+                  disabled={disableIfCompApproved || disableIfDetailsImported}
+                />
+              </div>
+              <div className="col">
+                <FormCountrySelect
+                  countryIso2={countryIso2}
+                  setCountryIso2={setCountryIso2}
+                  disabled={mode === 'edit' || disableIfDetailsImported}
+                />
+              </div>
+            </div>
+            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompApproved} />
+            <div className="row">
+              <div className="col-12 col-md-6">
+                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompApproved} />
+              </div>
+              <div className="col-12 col-md-6">
                 <div className="row">
-                  <div className="col">
-                    <FormTextInput
-                      title="City"
-                      value={city}
-                      setValue={setCity}
-                      disabled={disableIfCompApproved || disableIfDetailsImported}
+                  <div className="col-6">
+                    <FormNumberInput
+                      title="Latitude"
+                      value={latitude}
+                      setValue={(val) => changeCoordinates(val, longitude)}
+                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                      min={-90}
+                      max={90}
                     />
                   </div>
-                  <div className="col">
-                    <FormCountrySelect
-                      countryIso2={countryIso2}
-                      setCountryIso2={setCountryIso2}
-                      disabled={mode === 'edit' || disableIfDetailsImported}
+                  <div className="col-6">
+                    <FormNumberInput
+                      title="Longitude"
+                      value={longitude}
+                      setValue={(val) => changeCoordinates(latitude, val)}
+                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                      min={-180}
+                      max={180}
                     />
                   </div>
                 </div>
-                <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompApproved} />
                 <div className="row">
-                  <div className="col-12 col-md-6">
-                    <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompApproved} />
-                  </div>
-                  <div className="col-12 col-md-6">
-                    <div className="row">
-                      <div className="col-6">
-                        <FormNumberInput
-                          title="Latitude"
-                          value={latitude}
-                          setValue={(val) => changeCoordinates(val, longitude)}
-                          disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
-                          min={-90}
-                          max={90}
-                        />
-                      </div>
-                      <div className="col-6">
-                        <FormNumberInput
-                          title="Longitude"
-                          value={longitude}
-                          setValue={(val) => changeCoordinates(latitude, val)}
-                          disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
-                          min={-180}
-                          max={180}
-                        />
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="text-secondary fs-6">
-                        Time zone: {isLoadingTimezone ? <Loading small dontCenter /> : venueTimeZone}
-                      </div>
-                    </div>
+                  <div className="text-secondary fs-6">
+                    Time zone: {isLoadingTimezone ? <Loading small dontCenter /> : venueTimeZone}
                   </div>
                 </div>
-              </>
-            )}
+              </div>
+            </div>
             <div className="my-3 row">
               <div className="col">
                 {!getIsCompType(type) ? (
@@ -1338,7 +1331,7 @@ const ContestForm = ({
         <Schedule
           rooms={rooms}
           contestEvents={contestEvents}
-          timezone={venueTimeZone}
+          timeZone={venueTimeZone}
           onDeleteActivity={disableIfCompFinished ? undefined : deleteActivity}
         />
       )}

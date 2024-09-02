@@ -97,7 +97,7 @@ export class ContestsService {
                       `Round for activity ${activity.activityCode} at contest ${contest.competitionId} not found`,
                     );
                   } else {
-                    const activityDate = getDateOnly(startTime);
+                    const activityDate = getDateOnly(endTime);
 
                     for (const result of round.results) {
                       if (result.date.getTime() !== activityDate.getTime())
@@ -309,18 +309,15 @@ export class ContestsService {
 
     if (contestDto.compDetails) {
       if (contest.compDetails) {
-        if (isAdmin || contest.state < ContestState.Finished) {
+        if (contest.state < ContestState.Ongoing) {
           await this.scheduleModel.updateOne(
             { _id: contest.compDetails.schedule._id },
             contestDto.compDetails.schedule,
           );
         }
-      }
-      // compDetails might be undefined if the contest was imported
-      else {
-        contest.compDetails = {
-          schedule: await this.scheduleModel.create(contestDto.compDetails.schedule),
-        };
+      } else {
+        // compDetails might be undefined if the contest was imported
+        contest.compDetails = { schedule: await this.scheduleModel.create(contestDto.compDetails.schedule) };
       }
     } else if (contestDto.meetupDetails) {
       contest.meetupDetails = contestDto.meetupDetails;
@@ -329,15 +326,11 @@ export class ContestsService {
     if (isAdmin || contest.state < ContestState.Approved) {
       contest.name = contestDto.name;
       contest.shortName = contestDto.shortName;
-      if (contest.type !== ContestType.Online) {
-        contest.city = contestDto.city;
-        contest.venue = contestDto.venue;
-        contest.address = contestDto.address;
-      }
-      if (contestDto.latitudeMicrodegrees && contestDto.longitudeMicrodegrees) {
-        contest.latitudeMicrodegrees = contestDto.latitudeMicrodegrees;
-        contest.longitudeMicrodegrees = contestDto.longitudeMicrodegrees;
-      }
+      contest.city = contestDto.city;
+      contest.venue = contestDto.venue;
+      contest.address = contestDto.address;
+      contest.latitudeMicrodegrees = contestDto.latitudeMicrodegrees;
+      contest.longitudeMicrodegrees = contestDto.longitudeMicrodegrees;
       contest.competitorLimit = contestDto.competitorLimit;
     }
 
@@ -365,6 +358,8 @@ export class ContestsService {
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
 
+    if (contest.state === newState)
+      throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`); 
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
     // A contest can have results before being approved if it's an imported contest.
     if (isAdmin && resultFromContest && contest.state < ContestState.Ongoing && newState === ContestState.Approved) {
@@ -383,14 +378,20 @@ export class ContestsService {
       } else if (newState === ContestState.Finished) {
         const incompleteResult = await this.resultModel.findOne({ competitionId, 'attempts.result': 0 }).exec();
         if (incompleteResult)
-          throw new BadRequestException(`This contest has an unentered attempt in event ${incompleteResult.eventId}`);
+          throw new BadRequestException(
+            `This contest has an unentered attempt in event ${
+              (await this.eventsService.getEventById(incompleteResult.eventId)).name
+            }`,
+          );
 
         const dnsOnlyResult = await this.resultModel
           .findOne({ competitionId, attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } } })
           .exec();
         if (dnsOnlyResult)
           throw new BadRequestException(
-            `This contest has a result with only DNS attempts in event ${dnsOnlyResult.eventId}`,
+            `This contest has a result with only DNS attempts in event ${
+              (await this.eventsService.getEventById(dnsOnlyResult.eventId)).name
+            }`,
           );
 
         contest.queuePosition = undefined;
@@ -408,7 +409,13 @@ export class ContestsService {
     if (isAdmin && newState === ContestState.Published) {
       this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
-      if (contest.type !== ContestType.WcaComp && contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
+      if (contest.type === ContestType.WcaComp) {
+        const response = await fetch(`https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}/results`);
+        const data = await response.json();
+        if (!data || data.length === 0) {
+          throw new BadRequestException('You must wait until the results have been published on the WCA website before publishing it');
+        }
+      } else if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
         throw new BadRequestException(
           `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForUnofficialCompsAndMeetups} competitors`,
         );

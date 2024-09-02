@@ -55,23 +55,23 @@ class Competition implements IContest {
   @Prop({ enum: ContestType, required: true, immutable: true })
   type: ContestType;
 
-  @Prop()
-  city?: string;
+  @Prop({ required: true })
+  city: string;
 
   @Prop({ required: true })
   countryIso2: string;
 
-  @Prop()
-  venue?: string;
+  @Prop({ required: true })
+  venue: string;
 
-  @Prop()
-  address?: string;
+  @Prop({ required: true })
+  address: string;
 
-  @Prop()
-  latitudeMicrodegrees?: number;
+  @Prop({ required: true })
+  latitudeMicrodegrees: number;
 
-  @Prop()
-  longitudeMicrodegrees?: number;
+  @Prop({ required: true })
+  longitudeMicrodegrees: number;
 
   @Prop({ required: true })
   startDate: Date;

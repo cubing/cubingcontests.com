@@ -59,7 +59,6 @@ export class PersonsService {
         .find({}, exclSysButKeepCreatedBy)
         .populate({ path: 'createdBy', model: 'User' })
         .sort({ personId: -1 })
-        .limit(1000)
         .exec();
 
       const fePersons: IFePerson[] = [];
@@ -88,7 +87,6 @@ export class PersonsService {
       const persons = await this.personModel
         .find({ createdBy: new mongo.ObjectId(user._id as string) }, excl)
         .sort({ personId: -1 })
-        .limit(1000)
         .exec();
 
       const fePersons: IFePerson[] = [];

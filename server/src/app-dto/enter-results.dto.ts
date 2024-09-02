@@ -11,10 +11,11 @@ import {
   Validate,
   ValidateNested,
 } from 'class-validator';
-import { AttemptDto, NotAllDnsAndNotAllEmpty } from '../modules/results/dto/create-result.dto';
+import { AttemptDto } from '../modules/results/dto/create-result.dto';
 import { Type } from 'class-transformer';
 import { IAttempt } from '@sh/types';
 import C from '@sh/constants';
+import { ContestAttempts } from '~/src/helpers/customValidators';
 
 export class EnterResultsDto {
   @IsString()
@@ -46,7 +47,7 @@ export class ExternalResultDto {
 
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
-  @Validate(NotAllDnsAndNotAllEmpty)
+  @Validate(ContestAttempts)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];
