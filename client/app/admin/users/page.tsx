@@ -92,7 +92,7 @@ const ManageUsersPage = () => {
               <FormTextInput title="Username" value={username} disabled />
             </div>
             <div className="col">
-              <FormTextInput title="Email" value={email} disabled />
+              <FormTextInput title="Email" value={email} setValue={setEmail} />
             </div>
           </div>
           <FormPersonInputs

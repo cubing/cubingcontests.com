@@ -102,12 +102,11 @@ export class UsersService {
 
   async updateUser(updateUserDto: UpdateUserDto): Promise<IFeUser> {
     const user = await this.userModel.findOne({ username: updateUserDto.username }).exec();
-
     if (!user) throw new NotFoundException(`User with username ${updateUserDto.username} not found`);
-    if (updateUserDto.email !== user.email)
-      throw new BadRequestException('Changing the email address is currently not supported');
 
     await this.validateUserObject(updateUserDto);
+
+    user.email = updateUserDto.email;
 
     let newRole: Role;
     if (!user.roles.includes(Role.Admin) && updateUserDto.roles.includes(Role.Admin)) newRole = Role.Admin;
