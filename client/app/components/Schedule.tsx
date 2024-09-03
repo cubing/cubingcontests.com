@@ -6,24 +6,28 @@ import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { roundTypes } from '~/helpers/roundTypes';
 
+type RoomActivity = IActivity & { roomId: number };
+
 const Schedule = ({
   rooms,
   contestEvents,
   timeZone,
   onDeleteActivity,
+  onEditActivity,
 }: {
   rooms: IRoom[];
   contestEvents: IContestEvent[];
   timeZone: string;
   onDeleteActivity?: (roomId: number, activityId: number) => void;
+  onEditActivity?: (roomId: number, activity: IActivity) => void;
 }) => {
-  const allActivities = [];
+  const allActivities: RoomActivity[] = [];
 
   for (const room of rooms) {
     allActivities.push(
       ...room.activities.map((activity) => ({
         ...activity,
-        id: 1000 * room.id + activity.id, // this is necessary to give every activity a unique id
+        roomId: room.id,
         startTime: typeof activity.startTime === 'string' ? new Date(activity.startTime) : activity.startTime,
         endTime: typeof activity.endTime === 'string' ? new Date(activity.endTime) : activity.endTime,
       })),
@@ -34,7 +38,7 @@ const Schedule = ({
 
   const days: {
     date: Date;
-    activities: (IActivity & {
+    activities: (RoomActivity & {
       formattedStartTime: string;
       formattedEndTime: string;
     })[];
@@ -76,16 +80,13 @@ const Schedule = ({
                   <th scope="col">Activity</th>
                   <th scope="col">Room</th>
                   <th scope="col">Format</th>
-                  {onDeleteActivity && <th scope="col">Actions</th>}
+                  {(onEditActivity || onDeleteActivity) && <th scope="col">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {day.activities.map((activity) => {
                   let contestEvent: IContestEvent, round: IRound;
-                  // See where the activity IDs are set above to understand what's going on with the ID here
-                  const roomId = Math.floor(activity.id / 1000);
-                  const activityId = activity.id % 1000;
-                  const room = rooms.find((r) => r.id === roomId);
+                  const room = rooms.find((r) => r.id === activity.roomId);
 
                   if (activity.activityCode !== 'other-misc') {
                     contestEvent = contestEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
@@ -94,7 +95,7 @@ const Schedule = ({
                   }
 
                   return (
-                    <tr key={activity.id}>
+                    <tr key={`${activity.roomId}_${activity.id}`}>
                       <td>{activity.formattedStartTime}</td>
                       <td>{activity.formattedEndTime}</td>
                       <td>
@@ -118,15 +119,26 @@ const Schedule = ({
                           ? roundFormats.find((rf) => rf.value === round.format).label
                           : ''}
                       </td>
-                      {onDeleteActivity && (
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => onDeleteActivity(roomId, activityId)}
-                            className="btn btn-danger btn-sm"
-                          >
-                            Delete
-                          </button>
+                      {(onEditActivity || onDeleteActivity) && (
+                        <td className="d-flex gap-2">
+                          {onEditActivity && (
+                            <button
+                              type="button"
+                              onClick={() => onEditActivity(activity.roomId, activity)}
+                              className="btn btn-primary btn-sm"
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {onDeleteActivity && (
+                            <button
+                              type="button"
+                              onClick={() => onDeleteActivity(activity.roomId, activity.id)}
+                              className="btn btn-danger btn-sm"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </td>
                       )}
                     </tr>

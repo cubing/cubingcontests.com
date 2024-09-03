@@ -11,8 +11,6 @@ export const excl = {
   createdBy: 0,
 };
 
-export const orgPopulateOptions = { path: 'organizers', model: 'Person' };
-
 const rounds = {
   path: 'events.rounds',
   model: 'Round',
@@ -31,3 +29,7 @@ export const eventPopulateOptions = {
     populate: [resultPopulateOptions],
   },
 };
+
+export const orgPopulateOptions = { path: 'organizers', model: 'Person' };
+
+export const schedulePopulateOptions = { path: 'compDetails.schedule', model: 'Schedule' };

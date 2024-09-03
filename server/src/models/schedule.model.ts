@@ -52,13 +52,13 @@ class Venue implements IVenue {
   name: string;
 
   @Prop({ required: true })
+  countryIso2: string;
+
+  @Prop({ required: true })
   latitudeMicrodegrees: number;
 
   @Prop({ required: true })
   longitudeMicrodegrees: number;
-
-  @Prop({ required: true })
-  countryIso2: string;
 
   @Prop({ required: true })
   timezone: string;
@@ -73,12 +73,6 @@ const VenueSchema = SchemaFactory.createForClass(Venue);
 export class Schedule implements ISchedule {
   @Prop({ required: true, unique: true })
   competitionId: string;
-
-  @Prop({ required: true })
-  startDate: Date;
-
-  @Prop({ required: true })
-  numberOfDays: number;
 
   @Prop({ type: [VenueSchema], required: true })
   venues: Venue[];

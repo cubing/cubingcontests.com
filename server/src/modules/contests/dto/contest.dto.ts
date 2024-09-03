@@ -177,13 +177,6 @@ class ScheduleDto implements ISchedule {
   @IsNotEmpty()
   competitionId: string;
 
-  @IsDateString()
-  startDate: Date;
-
-  @IsInt()
-  @Min(1)
-  numberOfDays: number;
-
   @ArrayMinSize(1, { message: 'Please enter at least one venue' })
   @ValidateNested({ each: true })
   @Type(() => VenueDto)
@@ -251,6 +244,7 @@ class ActivityDto implements IActivity {
 
   @ValidateIf((obj) => obj.activityCode === 'other-misc')
   @IsString()
+  @IsNotEmpty()
   name?: string;
 
   @IsDateString({}, { message: 'Please enter valid activity start times' })

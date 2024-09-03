@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { addHours, differenceInDays } from 'date-fns';
+import { addHours } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from '~/helpers/customHooks';
 import Form from '@c/form/Form';
@@ -36,6 +36,7 @@ import {
   ICutoff,
   ITimeLimit,
   IContestData,
+  IActivity,
 } from '@sh/types';
 import {
   Color,
@@ -157,7 +158,7 @@ const ContestForm = ({
     () =>
       activityCode &&
       (activityCode !== 'other-misc' || customActivity) &&
-      roomOptions.some((el) => el.value === selectedRoom),
+      roomOptions.some((r) => r.value === selectedRoom),
     [activityCode, customActivity, roomOptions, selectedRoom],
   );
 
@@ -273,16 +274,14 @@ const ContestForm = ({
       compDetails = {
         schedule: {
           competitionId,
-          startDate,
-          numberOfDays: differenceInDays(endDate, startDate) + 1,
           venues: [
             {
               id: 1,
               name: venue || 'Unknown venue',
+              countryIso2,
               latitudeMicrodegrees,
               longitudeMicrodegrees,
-              countryIso2,
-              timezone: venueTimeZone,
+              timezone: 'TEMPORARY', // this is set on the backend
               // Only send the rooms that have at least one activity
               rooms: rooms.filter((el) => el.activities.length > 0),
             },
@@ -321,14 +320,8 @@ const ContestForm = ({
     if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
       tempErrors.push('Please enter all organizers');
 
-    if (type === ContestType.WcaComp) {
-      if (!detailsImported) tempErrors.push('You must use the "Get WCA competition details" feature');
-
-      if (newComp.events.some((ce: IContestEvent) => ce.event.groups.includes(EventGroup.WCA)))
-        tempErrors.push(
-          'WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.',
-        );
-    }
+    if (type === ContestType.WcaComp && !detailsImported)
+      tempErrors.push('You must use the "Get WCA competition details" feature');
 
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
@@ -341,8 +334,8 @@ const ContestForm = ({
       if (errors) {
         changeErrorMessages(errors);
       } else {
-        resetMessagesAndLoadingId();
-        window.location.href = '/mod';
+        // window.location.href = '/mod';
+        window.location.reload();
       }
     }
   };
@@ -721,11 +714,8 @@ const ContestForm = ({
   };
 
   const changeActivityEndTime = (newTime: Date) => {
-    if (newTime.getTime() > activityStartTime.getTime()) {
-      setActivityEndTime(newTime);
-    } else {
-      changeErrorMessages(['The activity end time cannot be before the start time']);
-    }
+    if (newTime.getTime() > activityStartTime.getTime()) setActivityEndTime(newTime);
+    else changeErrorMessages(['The activity end time cannot be before the start time']);
   };
 
   const addActivity = () => {
@@ -757,18 +747,34 @@ const ContestForm = ({
     setCustomActivity('');
   };
 
+  const editActivity = (roomId: number, activity: IActivity) => {
+    setRooms(
+      rooms.map((room) =>
+        room.id !== roomId
+          ? room
+          : {
+              ...room,
+              activities: room.activities.filter((a) => a.id !== activity.id),
+            },
+      ),
+    );
+    setActivityCode(activity.activityCode);
+    setActivityStartTime(activity.startTime);
+    setActivityEndTime(activity.endTime);
+    setCustomActivity(activity.name ?? '');
+  };
+
   const deleteActivity = (roomId: number, activityId: number) => {
-    setRooms((prevRooms) => {
-      const newRooms = prevRooms.map((room) =>
+    setRooms(
+      rooms.map((room) =>
         room.id !== roomId
           ? room
           : {
               ...room,
               activities: room.activities.filter((a) => a.id !== activityId),
             },
-      );
-      return newRooms;
-    });
+      ),
+    );
   };
 
   const cloneContest = () => {
@@ -1332,6 +1338,7 @@ const ContestForm = ({
           rooms={rooms}
           contestEvents={contestEvents}
           timeZone={venueTimeZone}
+          onEditActivity={disableIfCompFinished ? undefined : editActivity}
           onDeleteActivity={disableIfCompFinished ? undefined : deleteActivity}
         />
       )}
