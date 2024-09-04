@@ -171,13 +171,11 @@ const ContestForm = ({
   const remainingEvents = filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId));
   // Fix new event ID, if it's not in the list of remaining events
   if (!remainingEvents.some((e) => e.eventId === newEventId)) setNewEventId(remainingEvents[0].eventId);
-  const disableIfCompFinished = !isAdmin && mode === 'edit' && contest.state >= ContestState.Finished;
-  const disableIfCompDone =
-    mode === 'edit' &&
-    (contest.state >= ContestState.Published || (!isAdmin && contest.state >= ContestState.Finished));
   const disableIfCompApproved = !isAdmin && mode === 'edit' && contest.state >= ContestState.Approved;
   // This has been nominated for the best variable name award!
   const disableIfCompApprovedEvenForAdmin = mode === 'edit' && contest.state >= ContestState.Approved;
+  const disableIfCompFinished = mode === 'edit' && contest.state >= ContestState.Finished;
+  const disableIfCompPublished = mode === 'edit' && contest.state >= ContestState.Published;
   const disableIfDetailsImported = !isAdmin && detailsImported;
 
   //////////////////////////////////////////////////////////////////////////////
@@ -334,6 +332,23 @@ const ContestForm = ({
       if (errors) changeErrorMessages(errors);
       else window.location.href = '/mod';
     }
+  };
+
+  const fillWithMockData = () => {
+    setName('New Competition 2024');
+    setShortName('New Competition 2024');
+    setCompetitionId('NewCompetition2024');
+    setType(ContestType.Competition);
+    setCity('Singapore');
+    setCountryIso2('SG');
+    setAddress('Address');
+    setVenue('Venue');
+    setLatitude(1.314663);
+    setLongitude(103.845409);
+    setVenueTimeZone('Asia/Singapore');
+    addContestEvent();
+    setCompetitorLimit(100);
+    setRooms([{ id: 1, name: 'Main', color: Color.White, activities: [] }]);
   };
 
   const changeActiveTab = (newTab: string) => {
@@ -818,6 +833,9 @@ const ContestForm = ({
 
         {activeTab === 'details' && (
           <>
+            {process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' && mode === 'new' && (
+              <Button text="Fill with mock data" onClick={fillWithMockData} className="btn-secondary my-3" />
+            )}
             {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
                 {contest.type !== ContestType.WcaComp && (
@@ -1033,14 +1051,14 @@ const ContestForm = ({
               Total events: {contestEvents.length} | Total rounds: {totalRounds}
             </p>
             <div className="my-4 d-flex align-items-center gap-3">
-              <button
-                type="button"
-                className="btn btn-success"
+              <Button
+                text="Add Event"
                 onClick={addContestEvent}
-                disabled={disableIfCompDone || contestEvents.length === filteredEvents.length}
-              >
-                Add Event
-              </button>
+                disabled={
+                  disableIfCompApproved || disableIfCompPublished || contestEvents.length === filteredEvents.length
+                }
+                className="btn btn-success"
+              />
               <div className="flex-grow-1">
                 <FormEventSelect
                   title=""
@@ -1048,7 +1066,7 @@ const ContestForm = ({
                   events={remainingEvents}
                   eventId={newEventId}
                   setEventId={setNewEventId}
-                  disabled={disableIfCompDone}
+                  disabled={disableIfCompPublished}
                 />
               </div>
             </div>
@@ -1061,7 +1079,7 @@ const ContestForm = ({
                     type="button"
                     className="btn btn-danger btn-sm"
                     onClick={() => removeContestEvent(ce.event.eventId)}
-                    disabled={disableIfCompDone || ce.rounds.some((r) => r.results.length > 0)}
+                    disabled={disableIfCompPublished || ce.rounds.some((r) => r.results.length > 0)}
                   >
                     Remove Event
                   </button>
@@ -1077,7 +1095,7 @@ const ContestForm = ({
                           options={roundFormatOptions}
                           selected={round.format}
                           setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
-                          disabled={disableIfCompDone || round.results.length > 0}
+                          disabled={disableIfCompPublished || round.results.length > 0}
                           noMargin
                         />
                       </div>
@@ -1094,7 +1112,7 @@ const ContestForm = ({
                               setAttempt={(val) => changeRoundTimeLimit(eventIndex, roundIndex, val)}
                               event={ce.event}
                               maxTime={C.maxTimeLimit}
-                              disabled={disableIfCompDone || round.results.length > 0}
+                              disabled={disableIfCompPublished || round.results.length > 0}
                             />
                           </div>
                         </div>
@@ -1107,7 +1125,7 @@ const ContestForm = ({
                             id={`cumulative_limit_${ce.event.eventId}_${roundIndex + 1}`}
                             selected={round.timeLimit.cumulativeRoundIds.length > 0}
                             setSelected={() => changeRoundTimeLimitCumulative(eventIndex, roundIndex)}
-                            disabled={disableIfCompDone || round.results.length > 0}
+                            disabled={disableIfCompPublished || round.results.length > 0}
                             noMargin
                           />
                         </div>
@@ -1121,7 +1139,7 @@ const ContestForm = ({
                         id={`cutoff_${ce.event.eventId}_${roundIndex + 1}`}
                         selected={round.cutoff !== undefined}
                         setSelected={() => changeRoundCutoffEnabled(eventIndex, roundIndex)}
-                        disabled={disableIfCompDone || round.results.length > 0}
+                        disabled={disableIfCompPublished || round.results.length > 0}
                         noMargin
                         small
                       />
@@ -1137,7 +1155,7 @@ const ContestForm = ({
                           }
                           event={ce.event}
                           maxTime={C.maxTimeLimit}
-                          disabled={disableIfCompDone || !round.cutoff || round.results.length > 0}
+                          disabled={disableIfCompPublished || !round.cutoff || round.results.length > 0}
                         />
                       </div>
 
@@ -1151,7 +1169,7 @@ const ContestForm = ({
                           setSelected={(val: number) =>
                             changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, numberOfAttempts: val })
                           }
-                          disabled={disableIfCompDone || !round.cutoff || round.results.length > 0}
+                          disabled={disableIfCompPublished || !round.cutoff || round.results.length > 0}
                           noMargin
                         />
                       </div>
@@ -1164,7 +1182,7 @@ const ContestForm = ({
                           options={roundProceedOptions}
                           selected={round.proceed.type}
                           setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                          disabled={disableIfCompDone}
+                          disabled={disableIfCompPublished}
                           oneLine
                           small
                         />
@@ -1173,7 +1191,7 @@ const ContestForm = ({
                             id="round_proceed_value"
                             value={round.proceed.value}
                             setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
-                            disabled={disableIfCompDone}
+                            disabled={disableIfCompPublished}
                             integer
                             min={round.proceed.type === RoundProceed.Percentage ? 1 : 2}
                             max={round.proceed.type === RoundProceed.Percentage ? 99 : Infinity}
@@ -1186,26 +1204,23 @@ const ContestForm = ({
                 ))}
                 <div className="d-flex gap-3">
                   {ce.rounds.length < 10 && (
-                    <button
-                      type="button"
-                      className="btn btn-success btn-sm"
+                    <Button
+                      text={`Add Round ${ce.rounds.length + 1}`}
+                      className="btn-success btn-sm"
                       onClick={() => addRound(ce.event.eventId)}
-                      disabled={disableIfCompDone}
-                    >
-                      Add Round {ce.rounds.length + 1}
-                    </button>
+                      disabled={mode === 'edit'} // TEMPORARY
+                    />
                   )}
                   {ce.rounds.length > 1 && (
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-sm"
+                    <Button
+                      text="Remove Round"
                       onClick={() => removeEventRound(ce.event.eventId)}
                       disabled={
-                        disableIfCompDone || ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
+                        disableIfCompPublished ||
+                        ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
                       }
-                    >
-                      Remove Round
-                    </button>
+                      className="btn-danger btn-sm"
+                    />
                   )}
                 </div>
               </div>

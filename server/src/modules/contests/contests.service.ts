@@ -567,76 +567,86 @@ export class ContestsService {
 
   // Deletes/adds/updates contest events and rounds
   private async updateContestEvents(contest: ContestDocument, newEvents: IContestEvent[]): Promise<ContestEvent[]> {
-    try {
-      // Remove deleted rounds and events
-      for (const contestEvent of contest.events) {
-        const sameEventInNew = newEvents.find((el) => el.event.eventId === contestEvent.event.eventId);
+    // Remove deleted rounds and events
+    for (const contestEvent of contest.events) {
+      const sameEventInNew = newEvents.find((el) => el.event.eventId === contestEvent.event.eventId);
 
-        if (sameEventInNew) {
-          for (const round of contestEvent.rounds) {
-            // Delete round if it has no results
-            if (round.results.length === 0 && !sameEventInNew.rounds.some((el) => el.roundId === round.roundId)) {
+      if (sameEventInNew) {
+        for (const round of contestEvent.rounds) {
+          // Delete round if it has no results
+          if (!sameEventInNew.rounds.some((el) => el.roundId === round.roundId)) {
+            if (round.results.length === 0) {
               await round.deleteOne();
               contestEvent.rounds = contestEvent.rounds.filter((el) => el !== round);
-            }
-          }
-        }
-        // Delete event and all of its rounds if it has no results
-        else if (!contestEvent.rounds.some((el) => el.results.length > 0)) {
-          for (const round of contestEvent.rounds) await round.deleteOne();
-          contest.events = contest.events.filter((el) => el.event.eventId !== contestEvent.event.eventId);
-        }
-      }
-
-      // Update rounds and add new events
-      for (const newEvent of newEvents) {
-        const sameEventInContest = contest.events.find((el) => el.event.eventId === newEvent.event.eventId);
-
-        if (sameEventInContest) {
-          for (const round of newEvent.rounds) {
-            const sameRoundInContest = sameEventInContest.rounds.find((el) => el.roundId === round.roundId);
-
-            // If the contest already has this round, update the permitted fields
-            if (sameRoundInContest) {
-              sameRoundInContest.roundTypeId = round.roundTypeId;
-
-              if (sameRoundInContest.results.length === 0) {
-                sameRoundInContest.format = round.format;
-                sameRoundInContest.timeLimit = round.timeLimit;
-                sameRoundInContest.cutoff = round.cutoff;
-              }
-
-              // Update proceed object if the updated round has it, or unset proceed if it doesn't,
-              // meaning that the round became the final round due to a deletion
-              if (round.proceed) sameRoundInContest.proceed = round.proceed;
-              else sameRoundInContest.proceed = undefined;
-
-              await sameRoundInContest.save();
             } else {
-              // If it's a new round, add it
-              sameEventInContest.rounds.push(await this.roundModel.create(round));
+              throw new BadRequestException(
+                'You may not delete a round that has results. Please reload and try again.',
+              );
             }
           }
-        } else {
-          // If it's a new event, add it
-          contest.events.push(await this.getNewContestEvent(newEvent));
         }
       }
-
-      // Sort contest events by rank
-      contest.events.sort((a, b) => a.event.rank - b.event.rank);
-
-      return contest.events;
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while updating contest events: ${err.message}`);
+      // Delete event and all of its rounds if it has no results
+      else if (!contestEvent.rounds.some((el) => el.results.length > 0)) {
+        for (const round of contestEvent.rounds) await round.deleteOne();
+        contest.events = contest.events.filter((el) => el.event.eventId !== contestEvent.event.eventId);
+      } else {
+        throw new BadRequestException('You may not delete an event that has rounds with results');
+      }
     }
+
+    // Update rounds and add new events
+    for (const newEvent of newEvents) {
+      const sameEventInContest = contest.events.find((ce) => ce.event.eventId === newEvent.event.eventId);
+
+      if (sameEventInContest) {
+        for (const round of newEvent.rounds) {
+          const sameRoundInContest = sameEventInContest.rounds.find((el) => el.roundId === round.roundId);
+
+          // If the contest already has this round, update the permitted fields
+          if (sameRoundInContest) {
+            sameRoundInContest.roundTypeId = round.roundTypeId;
+
+            if (sameRoundInContest.results.length === 0) {
+              sameRoundInContest.format = round.format;
+              sameRoundInContest.timeLimit = round.timeLimit;
+              sameRoundInContest.cutoff = round.cutoff;
+            } else if (
+              round.format !== sameRoundInContest.format ||
+              JSON.stringify(round.timeLimit) !== JSON.stringify(sameRoundInContest.timeLimit) ||
+              JSON.stringify(round.cutoff) !== JSON.stringify(sameRoundInContest.cutoff)
+            ) {
+              throw new BadRequestException(
+                'You may not change the format, time limit or cutoff of a round that has results',
+              );
+            }
+
+            // Update proceed object if the updated round has it, or unset proceed if it doesn't,
+            // meaning that the round became the final round due to a deletion
+            if (round.proceed) sameRoundInContest.proceed = round.proceed;
+            else sameRoundInContest.proceed = undefined;
+
+            await sameRoundInContest.save();
+          }
+          // If it's a new round, add it
+          else {
+            const newRound = await this.roundModel.create(round);
+            sameEventInContest.rounds.push(newRound);
+          }
+        }
+      } else {
+        // If it's a new event, add it
+        contest.events.push(await this.getNewContestEvent(newEvent));
+      }
+    }
+
+    // Sort contest events by rank
+    contest.events.sort((a, b) => a.event.rank - b.event.rank);
+
+    return contest.events;
   }
 
   private async updateSchedule(contest: ContestDocument, newSchedule: ISchedule) {
-    // Only apply changes if the schedule was edited
-    console.log(JSON.stringify(contest.compDetails.schedule.toObject(), null, 2));
-    console.log(JSON.stringify(newSchedule, null, 2));
-
     for (const venue of newSchedule.venues) {
       const sameVenueInContest = contest.compDetails.schedule.venues.find((v) => v.id === venue.id);
       if (!sameVenueInContest) throw new BadRequestException(`Schedule venue with ID ${venue.id} not found`);

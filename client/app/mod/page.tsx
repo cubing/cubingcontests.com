@@ -173,13 +173,15 @@ const ModeratorDashboardPage = () => {
                         <span className="text-danger">Removed</span>
                       ) : (
                         <div className="d-flex gap-2">
-                          <Link
-                            href={`/mod/competition?edit_id=${contest.competitionId}`}
-                            prefetch={false}
-                            className="btn btn-primary btn-xs"
-                          >
-                            Edit
-                          </Link>
+                          {(contest.state < ContestState.Finished || userInfo.isAdmin) && (
+                            <Link
+                              href={`/mod/competition?edit_id=${contest.competitionId}`}
+                              prefetch={false}
+                              className="btn btn-primary btn-xs"
+                            >
+                              Edit
+                            </Link>
+                          )}
                           {(contest.state < ContestState.Finished || userInfo.isAdmin) && (
                             <Link
                               href={`/mod/competition/${contest.competitionId}`}
