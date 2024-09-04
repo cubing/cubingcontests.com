@@ -19,6 +19,7 @@ import {
   ValidatorConstraintInterface,
   Validate,
   MaxLength,
+  NotEquals,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import Countries from '@sh/Countries';
@@ -107,11 +108,13 @@ export class ContestDto implements IContestDto {
   @IsInt({ message: 'Please enter a valid latitude' })
   @Min(-90000000, { message: 'The latitude cannot be less than -90 degrees' })
   @Max(90000000, { message: 'The latitude cannot be more than 90 degrees' })
+  @NotEquals(0, { message: 'Please enter the venue latitude' })
   latitudeMicrodegrees: number;
 
   @IsInt({ message: 'Please enter a valid longitude' })
   @Min(-180000000, { message: 'The longitude cannot be less than -180 degrees' })
   @Max(180000000, { message: 'The longitude cannot be more than 180 degrees' })
+  @NotEquals(0, { message: 'Please enter the venue longitude' })
   longitudeMicrodegrees: number;
 
   @IsDateString({}, { message: 'Please enter a valid start date' })
@@ -209,7 +212,6 @@ class VenueDto implements IVenue {
   @IsNotEmpty()
   timezone: string;
 
-  @ArrayMinSize(1, { message: 'Please enter at least one room' })
   @ValidateNested({ each: true })
   @Type(() => RoomDto)
   rooms: IRoom[];

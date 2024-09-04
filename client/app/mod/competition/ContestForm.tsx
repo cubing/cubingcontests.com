@@ -331,12 +331,8 @@ const ContestForm = ({
           ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp, { loadingId: null })
           : await myFetch.post('/competitions', newComp, { loadingId: null });
 
-      if (errors) {
-        changeErrorMessages(errors);
-      } else {
-        // window.location.href = '/mod';
-        window.location.reload();
-      }
+      if (errors) changeErrorMessages(errors);
+      else window.location.href = '/mod';
     }
   };
 
@@ -713,11 +709,6 @@ const ContestForm = ({
     }
   };
 
-  const changeActivityEndTime = (newTime: Date) => {
-    if (newTime.getTime() > activityStartTime.getTime()) setActivityEndTime(newTime);
-    else changeErrorMessages(['The activity end time cannot be before the start time']);
-  };
-
   const addActivity = () => {
     const newRooms = rooms.map((room) =>
       room.id !== selectedRoom
@@ -747,17 +738,9 @@ const ContestForm = ({
     setCustomActivity('');
   };
 
+  // Simply deletes the activity and copies the values to the inputs
   const editActivity = (roomId: number, activity: IActivity) => {
-    setRooms(
-      rooms.map((room) =>
-        room.id !== roomId
-          ? room
-          : {
-              ...room,
-              activities: room.activities.filter((a) => a.id !== activity.id),
-            },
-      ),
-    );
+    deleteActivity(roomId, activity.id);
     setActivityCode(activity.activityCode);
     setActivityStartTime(activity.startTime);
     setActivityEndTime(activity.endTime);
@@ -1312,7 +1295,7 @@ const ContestForm = ({
                 <FormDatePicker
                   id="activity_end_time"
                   value={activityEndTime}
-                  setValue={changeActivityEndTime}
+                  setValue={setActivityEndTime}
                   timeZone={venueTimeZone}
                   dateFormat="Pp"
                   timeIntervals={5}

@@ -5,8 +5,9 @@ import ColorSquare from '@c/UI/ColorSquare';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { roundTypes } from '~/helpers/roundTypes';
+import Button from '~/app/components/UI/Button';
 
-type RoomActivity = IActivity & { roomId: number };
+type RoomActivity = IActivity & { room: IRoom };
 
 const Schedule = ({
   rooms,
@@ -27,7 +28,7 @@ const Schedule = ({
     allActivities.push(
       ...room.activities.map((activity) => ({
         ...activity,
-        roomId: room.id,
+        room,
         startTime: typeof activity.startTime === 'string' ? new Date(activity.startTime) : activity.startTime,
         endTime: typeof activity.endTime === 'string' ? new Date(activity.endTime) : activity.endTime,
       })),
@@ -63,6 +64,18 @@ const Schedule = ({
     });
   }
 
+  const getIsEditableActivity = (activityCode: string) => {
+    if (/^other-/.test(activityCode)) return true;
+
+    for (const contestEvent of contestEvents) {
+      if (contestEvent.event.eventId === activityCode.split('-')[0]) {
+        const round = contestEvent.rounds.find((r) => r.roundId === activityCode);
+        return round.results.length === 0;
+      }
+    }
+    throw new Error(`Round for activity ${activityCode} not found`);
+  };
+
   return (
     <>
       <h1 className="mb-4 text-center">Schedule</h1>
@@ -86,7 +99,6 @@ const Schedule = ({
               <tbody>
                 {day.activities.map((activity) => {
                   let contestEvent: IContestEvent, round: IRound;
-                  const room = rooms.find((r) => r.id === activity.roomId);
 
                   if (activity.activityCode !== 'other-misc') {
                     contestEvent = contestEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
@@ -95,7 +107,7 @@ const Schedule = ({
                   }
 
                   return (
-                    <tr key={`${activity.roomId}_${activity.id}`}>
+                    <tr key={`${activity.room.id}_${activity.id}`}>
                       <td>{activity.formattedStartTime}</td>
                       <td>{activity.formattedEndTime}</td>
                       <td>
@@ -110,8 +122,11 @@ const Schedule = ({
                       </td>
                       <td>
                         <span className="d-flex gap-3">
-                          <ColorSquare color={room.color} style={{ height: '1.5rem', width: '1.8rem', margin: 0 }} />
-                          {room.name}
+                          <ColorSquare
+                            color={activity.room.color}
+                            style={{ height: '1.5rem', width: '1.8rem', margin: 0 }}
+                          />
+                          {activity.room.name}
                         </span>
                       </td>
                       <td>
@@ -120,25 +135,25 @@ const Schedule = ({
                           : ''}
                       </td>
                       {(onEditActivity || onDeleteActivity) && (
-                        <td className="d-flex gap-2">
-                          {onEditActivity && (
-                            <button
-                              type="button"
-                              onClick={() => onEditActivity(activity.roomId, activity)}
-                              className="btn btn-primary btn-sm"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {onDeleteActivity && (
-                            <button
-                              type="button"
-                              onClick={() => onDeleteActivity(activity.roomId, activity.id)}
-                              className="btn btn-danger btn-sm"
-                            >
-                              Delete
-                            </button>
-                          )}
+                        <td>
+                          <div className="d-flex gap-2">
+                            {onEditActivity && (
+                              <Button
+                                text="Edit"
+                                onClick={() => onEditActivity(activity.room.id, activity)}
+                                disabled={!getIsEditableActivity(activity.activityCode)}
+                                className="btn-sm"
+                              />
+                            )}
+                            {onDeleteActivity && (
+                              <Button
+                                text="Delete"
+                                onClick={() => onDeleteActivity(activity.room.id, activity.id)}
+                                disabled={!getIsEditableActivity(activity.activityCode)}
+                                className="btn-danger btn-sm"
+                              />
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>

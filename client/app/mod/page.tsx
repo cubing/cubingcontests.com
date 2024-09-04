@@ -168,11 +168,11 @@ const ModeratorDashboardPage = () => {
                     </td>
                     <td>{contest.participants || ''}</td>
 
-                    <td className="d-flex gap-2">
+                    <td>
                       {contest.state === ContestState.Removed ? (
                         <span className="text-danger">Removed</span>
                       ) : (
-                        <>
+                        <div className="d-flex gap-2">
                           <Link
                             href={`/mod/competition?edit_id=${contest.competitionId}`}
                             prefetch={false}
@@ -222,7 +222,7 @@ const ModeratorDashboardPage = () => {
                               className="btn btn-warning btn-xs"
                             />
                           )}
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>

@@ -20,23 +20,23 @@ import {
   resultPopulateOptions,
   schedulePopulateOptions,
 } from '~/src/helpers/dbHelpers';
-import { RoundDocument } from '~/src/models/round.model';
-import { ResultDocument } from '~/src/models/result.model';
-import { ResultsService } from '@m/results/results.service';
-import { EventsService } from '@m/events/events.service';
-import { RecordTypesService } from '@m/record-types/record-types.service';
-import { PersonsService } from '@m/persons/persons.service';
 import C from '@sh/constants';
 import { IContestEvent, IContestData, IContest, IContestDto, IRound, ISchedule } from '@sh/types';
 import { ContestState, ContestType, EventGroup } from '@sh/enums';
 import { Role } from '@sh/enums';
-import { ScheduleDocument } from '~/src/models/schedule.model';
-import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { MyLogger } from '~/src/modules/my-logger/my-logger.service';
-import { AuthService } from '../auth/auth.service';
+import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
+import { MyLogger } from '@m/my-logger/my-logger.service';
+import { ResultsService } from '@m/results/results.service';
+import { EventsService } from '@m/events/events.service';
+import { RecordTypesService } from '@m/record-types/record-types.service';
+import { PersonsService } from '@m/persons/persons.service';
+import { AuthService } from '@m/auth/auth.service';
 import { EmailService } from '@m/email/email.service';
 import { UsersService } from '@m/users/users.service';
-import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
+import { RoundDocument } from '~/src/models/round.model';
+import { ResultDocument } from '~/src/models/result.model';
+import { ScheduleDocument } from '~/src/models/schedule.model';
+import { IPartialUser } from '~/src/helpers/interfaces/User';
 
 const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
 
@@ -743,7 +743,6 @@ export class ContestsService {
         for (const room of venue.rooms) {
           if (rooms.has(room.id)) throw new BadRequestException(`Duplicate room ID found: ${room.id}`);
           rooms.add(room.id);
-
           if (roomNames.has(room.name)) throw new BadRequestException(`Duplicate room name found: ${room.name}`);
           roomNames.add(room.name);
 
@@ -759,15 +758,19 @@ export class ContestsService {
               if (activityCodes.has(activity.activityCode))
                 throw new BadRequestException(`Duplicate activity code found: ${activity.activityCode}`);
             }
+
             activityCodes.add(activity.activityCode);
 
             const zonedStartTime = toZonedTime(activity.startTime, venue.timezone).getTime();
             if (zonedStartTime < new Date(contest.startDate).getTime())
               throw new BadRequestException('An activity may not start before the start date');
-
             const zonedEndTime = toZonedTime(activity.endTime, venue.timezone).getTime();
             if (zonedEndTime > endOfDay(new Date(contest.endDate)).getTime())
               throw new BadRequestException('An activity may not end after the end date');
+            if (zonedStartTime === zonedEndTime)
+              throw new BadRequestException('An activity may not start and end at the same time');
+            if (zonedStartTime > zonedEndTime)
+              throw new BadRequestException('An activity start time may not be after the end time');
           }
         }
       }
