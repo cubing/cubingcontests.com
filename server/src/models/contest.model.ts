@@ -58,7 +58,7 @@ class Competition implements IContest {
   @Prop({ required: true })
   city: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, immutable: true })
   countryIso2: string;
 
   @Prop({ required: true })

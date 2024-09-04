@@ -1,3 +1,4 @@
+import { differenceInDays } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import C from '@sh/constants';
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums';
@@ -10,7 +11,6 @@ import {
   IContest,
   IWcifCompetition,
   IWcifSchedule,
-  ISchedule,
   IContestEvent,
   IWcifEvent,
   IActivity,
@@ -249,16 +249,16 @@ export const getIsCompType = (contestType: ContestType): boolean =>
 export const getMakesCutoff = (attempts: IAttempt[], cutoff: ICutoff | undefined): boolean =>
   !cutoff || attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result > 0 && a.result < cutoff.attemptResult);
 
-const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, 'UTC', 'YYYY-MM-DD');
+const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
 
-export const getWcifCompetition = (contest: IContest, schedule?: ISchedule): IWcifCompetition => ({
+export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
   formatVersion: '1.0',
   id: contest.competitionId,
   name: contest.name,
   shortName: contest.shortName,
   persons: [],
   events: contest.events.map((ce) => getWcifCompEvent(ce)),
-  schedule: schedule ? getWcifSchedule(schedule) : ({} as IWcifSchedule),
+  schedule: contest.compDetails?.schedule ? getWcifSchedule(contest) : ({} as IWcifSchedule),
   competitorLimit: contest.competitorLimit,
   extensions: [],
 });
@@ -288,10 +288,10 @@ export const getWcifRound = (round: IRound): IWcifRound => ({
   extensions: [],
 });
 
-export const getWcifSchedule = (schedule: ISchedule): IWcifSchedule => ({
-  startDate: convertDateToWcifDate(schedule.startDate),
-  numberOfDays: schedule.numberOfDays,
-  venues: schedule.venues.map((v) => ({
+export const getWcifSchedule = (contest: IContest): IWcifSchedule => ({
+  startDate: convertDateToWcifDate(contest.startDate),
+  numberOfDays: differenceInDays(contest.endDate, contest.startDate) + 1,
+  venues: contest.compDetails.schedule.venues.map((v) => ({
     ...v,
     rooms: v.rooms.map((r) => ({
       ...r,

@@ -2,17 +2,15 @@ import { Color } from '../enums';
 
 export interface ISchedule {
   competitionId: string;
-  startDate: Date;
-  numberOfDays: number;
   venues: IVenue[];
 }
 
 export interface IVenue {
   id: number;
   name: string;
+  countryIso2: string;
   latitudeMicrodegrees: number;
   longitudeMicrodegrees: number;
-  countryIso2: string;
   timezone: string;
   rooms: IRoom[];
 }

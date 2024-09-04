@@ -76,17 +76,19 @@ const RoundResultsTable = ({
                 <td className="ps-2" style={getRankingHighlight(result)}>
                   <span className={isTie ? 'text-secondary' : ''}>{result.ranking}</span>
                 </td>
-                <td className="d-flex flex-wrap gap-2">
-                  {result.personIds.map((personId, i) => {
-                    const person = persons.find((p: IPerson) => p.personId === personId);
-                    if (!person) return <span key={personId}>(name not found)</span>;
-                    return (
-                      <span key={person.personId} className="d-flex gap-2">
-                        <Competitor person={person} />
-                        {i !== result.personIds.length - 1 && <span>&</span>}
-                      </span>
-                    );
-                  })}
+                <td>
+                  <div className="d-flex flex-wrap gap-2">
+                    {result.personIds.map((personId, i) => {
+                      const person = persons.find((p: IPerson) => p.personId === personId);
+                      if (!person) return <span key={personId}>(name not found)</span>;
+                      return (
+                        <span key={person.personId} className="d-flex gap-2">
+                          <Competitor person={person} />
+                          {i !== result.personIds.length - 1 && <span>&</span>}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </td>
                 <td>
                   <Time result={result} event={event} recordTypes={recordTypes} />

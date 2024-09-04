@@ -168,18 +168,20 @@ const ModeratorDashboardPage = () => {
                     </td>
                     <td>{contest.participants || ''}</td>
 
-                    <td className="d-flex gap-2">
+                    <td>
                       {contest.state === ContestState.Removed ? (
                         <span className="text-danger">Removed</span>
                       ) : (
-                        <>
-                          <Link
-                            href={`/mod/competition?edit_id=${contest.competitionId}`}
-                            prefetch={false}
-                            className="btn btn-primary btn-xs"
-                          >
-                            Edit
-                          </Link>
+                        <div className="d-flex gap-2">
+                          {(contest.state < ContestState.Finished || userInfo.isAdmin) && (
+                            <Link
+                              href={`/mod/competition?edit_id=${contest.competitionId}`}
+                              prefetch={false}
+                              className="btn btn-primary btn-xs"
+                            >
+                              Edit
+                            </Link>
+                          )}
                           {(contest.state < ContestState.Finished || userInfo.isAdmin) && (
                             <Link
                               href={`/mod/competition/${contest.competitionId}`}
@@ -222,7 +224,7 @@ const ModeratorDashboardPage = () => {
                               className="btn btn-warning btn-xs"
                             />
                           )}
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>

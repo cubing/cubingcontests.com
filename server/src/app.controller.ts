@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { find } from 'geo-tz';
+import { find as findTimezone } from 'geo-tz';
 import { AppService } from './app.service';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { AuthService } from '@m/auth/auth.service';
@@ -23,12 +23,13 @@ import { AuthTokenGuard } from '~/src/guards/auth-token.guard';
 import { RolesGuard } from '~/src/guards/roles.guard';
 import { Roles } from '~/src/helpers/roles.decorator';
 import { Role } from '@sh/enums';
-import { eventPopulateOptions, orgPopulateOptions } from '~/src/helpers/dbHelpers';
+import { orgPopulateOptions } from '~/src/helpers/dbHelpers';
 import { getWcifCompetition } from '@sh/sharedFunctions';
 import { ContestDocument } from '~/src/models/contest.model';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { LogType } from '~/src/helpers/enums';
 import { EmailService } from '@m/email/email.service';
+import { ContestsService } from '@m/contests/contests.service';
 import { EnterResultsDto } from './app-dto/enter-results.dto';
 
 @Controller()
@@ -38,6 +39,7 @@ export class AppController {
     private readonly service: AppService,
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
+    private readonly contestsService: ContestsService,
     @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
   ) {}
 
@@ -58,20 +60,14 @@ export class AppController {
     if (latitude > 90 || latitude < -90) throw new BadRequestException(`Invalid latitude: ${latitude}`);
     if (longitude > 180 || longitude < -180) throw new BadRequestException(`Invalid longitude: ${longitude}`);
 
-    return { timezone: find(latitude, longitude)[0] };
+    return { timezone: findTimezone(latitude, longitude)[0] };
   }
 
   @Get('scorecards/:competitionId')
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async getContestScorecards(@Param('competitionId') competitionId: string, @Request() req: any, @Res() res: any) {
-    const contest = await this.contestModel
-      .findOne({ competitionId })
-      .populate(eventPopulateOptions.event)
-      .populate(eventPopulateOptions.rounds) // we don't need the results to be populated
-      .populate(orgPopulateOptions)
-      .exec();
-    if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
+    const contest = await this.contestsService.getFullContest(competitionId);
 
     await this.authService.checkAccessRightsToContest(req.user, contest);
 
