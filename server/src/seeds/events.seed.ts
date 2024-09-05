@@ -153,7 +153,7 @@ export const eventsSeed: IEvent[] = [
   {
     eventId: 'fto',
     name: 'Face-Turning Octahedron',
-    rank: 1000,
+    rank: 1010,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial],
@@ -161,16 +161,24 @@ export const eventsSeed: IEvent[] = [
   {
     eventId: '333_team_bld',
     name: '3x3x3 Team-Blind',
-    rank: 1010,
+    rank: 1020,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial],
     participants: 2,
   },
   {
+    eventId: '333_mirror_blocks',
+    name: 'Mirror Blocks',
+    rank: 1030,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Unofficial],
+  },
+  {
     eventId: 'magic',
     name: 'Magic',
-    rank: 1020,
+    rank: 1040,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
@@ -178,31 +186,15 @@ export const eventsSeed: IEvent[] = [
   {
     eventId: 'mmagic',
     name: 'Master Magic',
-    rank: 1030,
+    rank: 1050,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
   },
   {
-    eventId: '333_mirror_blocks',
-    name: 'Mirror Cube',
-    rank: 1040,
-    format: EventFormat.Time,
-    defaultRoundFormat: RoundFormat.Average,
-    groups: [EventGroup.Unofficial],
-  },
-  {
-    eventId: '333mts',
-    name: '3x3x3 Match The Scramble',
-    rank: 1050,
-    format: EventFormat.Time,
-    defaultRoundFormat: RoundFormat.Mean,
-    groups: [EventGroup.Unofficial],
-  },
-  {
     eventId: '333ft',
     name: '3x3x3 With Feet',
-    rank: 1100,
+    rank: 1060,
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
@@ -213,7 +205,7 @@ export const eventsSeed: IEvent[] = [
   {
     eventId: '333mbo',
     name: '3x3x3 Multi-Blind Old Style',
-    rank: 2000,
+    rank: 2010,
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.RemovedWCA, EventGroup.HasMemo],
@@ -249,5 +241,24 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
+  },
+  ///////////////////////////////////////////////////////////////////
+  // Miscellaneous
+  ///////////////////////////////////////////////////////////////////
+  {
+    eventId: '234relay',
+    name: '2x2x2-4x4x4 Relay',
+    rank: 3010,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Miscellaneous],
+  },
+  {
+    eventId: 'gigaminx',
+    name: 'Gigaminx',
+    rank: 3020,
+    format: EventFormat.Time,
+    defaultRoundFormat: RoundFormat.Average,
+    groups: [EventGroup.Miscellaneous],
   },
 ];

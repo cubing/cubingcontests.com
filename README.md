@@ -109,6 +109,12 @@ Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo 
 
 There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory, but Nest JS does. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
 
+### Testing data
+
+If your DB is empty, the backend will fill the events collection with official WCA events, some unofficial events, including the removed WCA events, some Extreme BLD events, and some miscellaneous events.
+
+It will also create an admin user with the username `admin`, a moderator with the username `mod`, and a regular user with no additional privileges with the username `user`. The password for all of these is `cc`. One mock competitor each will also be created for the admin and moderator users and tied to their accounts.
+
 ### Environment
 
 Environment variables are specified in `.env` in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.

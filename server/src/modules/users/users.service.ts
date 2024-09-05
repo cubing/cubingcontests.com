@@ -37,6 +37,35 @@ export class UsersService {
     @InjectModel('User') private readonly userModel: Model<UserDocument>,
   ) {}
 
+  async onModuleInit() {
+    if (process.env.NODE_ENV !== 'production') {
+      const anyUser = await this.userModel.findOne().exec();
+
+      if (!anyUser) {
+        this.logger.log('Creating test users for development...');
+
+        // This is the hash for the password 'cc'
+        const password = '$2b$10$eW2KnkZtAoNv50pRCMazSeSXwhRB8bYksUcqMkxSGdOiW8OpTjdm.';
+
+        await this.userModel.create({
+          username: 'admin',
+          email: 'admin@cc.com',
+          password,
+          roles: ['user', 'mod', 'admin'],
+          personId: 1, // Test Admin person from the persons.service.ts onModuleInit()
+        });
+        await this.userModel.create({
+          username: 'mod',
+          email: 'mod@cc.com',
+          password,
+          roles: ['user', 'mod'],
+          personId: 2, // Test Moderator person from the persons.service.ts onModuleInit()
+        });
+        await this.userModel.create({ username: 'user', email: 'user@cc.com', password, roles: ['user'] });
+      }
+    }
+  }
+
   // WARNING: this method returns the hashed password too. It is ONLY to be used in the auth module.
   async getUserWithQuery(query: any): Promise<IUser> {
     return await this.userModel.findOne(query).exec();

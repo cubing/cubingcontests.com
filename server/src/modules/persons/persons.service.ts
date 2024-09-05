@@ -35,6 +35,19 @@ export class PersonsService {
     @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
   ) {}
 
+  async onModuleInit() {
+    if (process.env.NODE_ENV !== 'production') {
+      const anyPerson = await this.personModel.findOne().exec();
+
+      if (!anyPerson) {
+        this.logger.log('Creating test competitors for development...');
+
+        await this.personModel.create({ name: 'Test Admin', countryIso2: 'CH', personId: 1 });
+        await this.personModel.create({ name: 'Test Moderator', countryIso2: 'NR', personId: 2 });
+      }
+    }
+  }
+
   async getPersonByPersonId(personId: number, { customError }: { customError?: string } = {}): Promise<IFePerson> {
     const person = await this.personModel.findOne({ personId }, excl).exec();
     if (!person) throw new NotFoundException(customError ?? `Person with ID ${personId} not found`);

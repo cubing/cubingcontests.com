@@ -33,20 +33,16 @@ export class EventsService {
   ) {}
 
   async onModuleInit() {
-    try {
-      const events: EventDocument[] = await this.eventModel.find().exec();
+    const anyEvent = await this.eventModel.findOne().exec();
 
-      if (events.length === 0) {
-        this.logger.log('Seeding the events collection...');
+    if (!anyEvent) {
+      this.logger.log('Seeding the events collection...');
 
-        // Add new events from events seed
-        for (const event of eventsSeed) {
-          this.logger.log(`Adding event: ${event.eventId}`);
-          await this.eventModel.create(event);
-        }
+      // Add new events from events seed
+      for (const event of eventsSeed) {
+        this.logger.log(`Adding event: ${event.eventId}`);
+        await this.eventModel.create(event);
       }
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while seeding events collection: ${err.message}`);
     }
   }
 
