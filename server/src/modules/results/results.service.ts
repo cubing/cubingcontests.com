@@ -586,13 +586,13 @@ export class ResultsService {
     } else {
       let text = `A new ${submitResultDto.eventId} result has been submitted by user ${
         user.username
-      }: ${getFormattedTime(createdResult.best)}`;
+      }: ${getFormattedTime(createdResult.best, { event, showMultiPoints: true, showDecimals: true })}`;
       if (createdResult.regionalSingleRecord) text += ` (${createdResult.regionalSingleRecord})`;
       if (createdResult.average > 0) {
         text += `, average: ${getFormattedTime(createdResult.average)}`;
         if (createdResult.regionalAverageRecord) text += ` (${createdResult.regionalAverageRecord})`;
       }
-      text += '.';
+      text += `. Video link: ${newResult.videoLink}`;
 
       await this.emailService.sendEmail(C.contactEmail, text, { subject: 'New Result Submission' });
     }

@@ -461,6 +461,11 @@ export class ContestsService {
     await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     await this.authService.deleteAuthToken(competitionId);
+
+    const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
+    await this.emailService.sendEmail(contestCreatorEmail, `Your contest ${contest.name} has been removed.`, {
+      subject: 'Contest removed',
+    });
   }
 
   async enableQueue(competitionId: string, user: IPartialUser) {

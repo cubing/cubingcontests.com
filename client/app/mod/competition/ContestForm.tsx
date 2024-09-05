@@ -423,7 +423,10 @@ const ContestForm = ({
       setDetailsImported(true);
       resetMessagesAndLoadingId();
     } catch (err: any) {
-      if (err.message.includes('Not found')) changeErrorMessages([`Competition with ID ${competitionId} not found`]);
+      if (err.message.includes('Not found'))
+        changeErrorMessages([
+          `Competition with ID ${competitionId} not found. This may be because it's not been enough time since it was announced. If so, please try again in 24 hours.`,
+        ]);
       else changeErrorMessages([err.message]);
     }
   };
@@ -834,7 +837,12 @@ const ContestForm = ({
         {activeTab === 'details' && (
           <>
             {process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' && mode === 'new' && (
-              <Button text="Fill with mock data" onClick={fillWithMockData} className="btn-secondary my-3" />
+              <Button
+                text="Fill with mock data"
+                onClick={fillWithMockData}
+                disabled={detailsImported}
+                className="btn-secondary my-3"
+              />
             )}
             {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">

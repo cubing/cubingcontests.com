@@ -1,11 +1,11 @@
 import { isSameDay } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import EventTitle from './EventTitle';
-import ColorSquare from '@c/UI/ColorSquare';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { roundTypes } from '~/helpers/roundTypes';
-import Button from '~/app/components/UI/Button';
+import EventTitle from './EventTitle';
+import ColorSquare from '@c/UI/ColorSquare';
+import Button from '@c/UI/Button';
 
 type RoomActivity = IActivity & { room: IRoom };
 
