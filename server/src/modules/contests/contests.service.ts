@@ -383,24 +383,39 @@ export class ContestsService {
           { subject: `Contest approved: ${contest.shortName}` },
         );
       } else if (newState === ContestState.Finished) {
-        const incompleteResult = await this.resultModel.findOne({ competitionId, 'attempts.result': 0 }).exec();
-        if (incompleteResult)
+        if (contest.type !== ContestType.WcaComp && contest.participants < C.minCompetitorsForNonWca) {
           throw new BadRequestException(
-            `This contest has an unentered attempt in event ${
-              (await this.eventsService.getEventById(incompleteResult.eventId)).name
-            }`,
+            `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForNonWca} competitors`,
           );
+        }
+
+        // Check there are no rounds with no results
+        const zeroResultsRound = await this.roundModel.findOne({ competitionId, results: { $size: 0 } }).exec();
+        if (zeroResultsRound) {
+          const [eventId, roundNumber] = zeroResultsRound.roundId.split('-');
+          const event = await this.eventsService.getEventById(eventId);
+          throw new BadRequestException(`${event.name} round ${roundNumber.slice(1)} has no results`);
+        }
+
+        // Check there are no incomplete results
+        const incompleteResult = await this.resultModel.findOne({ competitionId, 'attempts.result': 0 }).exec();
+        if (incompleteResult) {
+          const event = await this.eventsService.getEventById(incompleteResult.eventId);
+          throw new BadRequestException(`This contest has an unentered attempt in ${event.name}`);
+        }
 
         const dnsOnlyResult = await this.resultModel
           .findOne({ competitionId, attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } } })
           .exec();
-        if (dnsOnlyResult)
+        if (dnsOnlyResult) {
           throw new BadRequestException(
             `This contest has a result with only DNS attempts in event ${
               (await this.eventsService.getEventById(dnsOnlyResult.eventId)).name
             }`,
           );
+        }
 
+        // If there are no issues, finish the contest and send the admins an email
         contest.queuePosition = undefined;
 
         if (!isAdmin) {
@@ -426,10 +441,6 @@ export class ContestsService {
             'You must wait until the results have been published on the WCA website before publishing it',
           );
         }
-      } else if (contest.participants < C.minCompetitorsForUnofficialCompsAndMeetups) {
-        throw new BadRequestException(
-          `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForUnofficialCompsAndMeetups} competitors`,
-        );
       }
 
       // Unset unapproved from the results so that they can be included in the rankings

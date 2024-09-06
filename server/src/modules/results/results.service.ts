@@ -127,15 +127,23 @@ export class ResultsService {
         }
       }
 
-      // Look for orphan rounds or ones that belong to multiple contests or ones that have an invalid date
       const rounds = await this.roundModel.find().populate(resultPopulateOptions).exec();
       for (const round of rounds) {
         const contests = await this.contestModel.find({ 'events.rounds': round._id }).exec();
 
+        // Look for orphan rounds or ones that belong to multiple contests
         if (contests.length === 0) {
           this.logger.error(`Error: round has no contest: ${round}`);
         } else if (contests.length > 1) {
           this.logger.error(`Error: round ${round} belongs to multiple contests: ${contests}`);
+        }
+        // Check if the round has no results
+        else if (
+          round.results.length === 0 &&
+          contests[0].state >= ContestState.Finished &&
+          contests[0].state !== ContestState.Removed
+        ) {
+          this.logger.error(`Error: round has no results: ${round}`);
         } else {
           // Look for results with empty attempts
           for (const result of round.results) {
@@ -230,8 +238,6 @@ export class ResultsService {
 
       for (const result of falseAverageResults2)
         this.logger.error(`Result ${result._id} has an average despite having two attempts`);
-
-      this.logger.log('All results inconsistencies checked!');
     }
   }
 

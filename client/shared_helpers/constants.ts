@@ -13,7 +13,7 @@ const C = {
   maxFmMoves: 999,
   maxTimeLimit: 60 * 60 * 100, // 1 hour
   minCompetitorLimit: 5,
-  minCompetitorsForUnofficialCompsAndMeetups: 3,
+  minCompetitorsForNonWca: 3,
   maxConfirmationCodeAttempts: 3,
   confirmationCodeCooldown: 5 * 60 * 1000, // in milliseconds (5 minutes)
   passwordResetSessionLength: 3, // in days

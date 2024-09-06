@@ -174,7 +174,6 @@ const ContestForm = ({
   const disableIfCompApproved = !isAdmin && mode === 'edit' && contest.state >= ContestState.Approved;
   // This has been nominated for the best variable name award!
   const disableIfCompApprovedEvenForAdmin = mode === 'edit' && contest.state >= ContestState.Approved;
-  const disableIfCompFinished = mode === 'edit' && contest.state >= ContestState.Finished;
   const disableIfCompPublished = mode === 'edit' && contest.state >= ContestState.Published;
   const disableIfDetailsImported = !isAdmin && detailsImported;
 
@@ -828,7 +827,7 @@ const ContestForm = ({
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         onSubmit={handleSubmit}
-        disableButton={disableIfCompFinished}
+        disableButton={disableIfCompPublished}
       >
         {isAdmin && mode === 'edit' && <CreatorDetails creator={creator} />}
 
@@ -1034,13 +1033,13 @@ const ContestForm = ({
               placeholder="john@example.com"
               value={contact}
               setValue={setContact}
-              disabled={disableIfCompFinished}
+              disabled={disableIfCompPublished}
             />
             <FormTextArea
               title="Description (optional)"
               value={description}
               setValue={setDescription}
-              disabled={disableIfCompFinished}
+              disabled={disableIfCompPublished}
             />
             <FormNumberInput
               title={'Competitor limit' + (!getIsCompType(type) ? ' (optional)' : '')}
@@ -1245,7 +1244,7 @@ const ContestForm = ({
                   title="Room name"
                   value={roomName}
                   setValue={setRoomName}
-                  disabled={disableIfCompFinished}
+                  disabled={disableIfCompPublished}
                 />
               </div>
               <div className="col-4 d-flex justify-content-between align-items-end gap-3 mb-3">
@@ -1255,7 +1254,7 @@ const ContestForm = ({
                     options={colorOptions}
                     selected={roomColor}
                     setSelected={setRoomColor}
-                    disabled={disableIfCompFinished}
+                    disabled={disableIfCompPublished}
                     noMargin
                   />
                 </div>
@@ -1265,7 +1264,7 @@ const ContestForm = ({
             <button
               type="button"
               className="mt-3 mb-2 btn btn-success"
-              disabled={disableIfCompFinished || !roomName.trim()}
+              disabled={disableIfCompPublished || !roomName.trim()}
               onClick={addRoom}
             >
               Create
@@ -1279,7 +1278,7 @@ const ContestForm = ({
                   options={roomOptions}
                   selected={selectedRoom}
                   setSelected={setSelectedRoom}
-                  disabled={disableIfCompFinished || rooms.length === 0}
+                  disabled={disableIfCompPublished || rooms.length === 0}
                 />
               </div>
               <div className="col">
@@ -1288,7 +1287,7 @@ const ContestForm = ({
                   options={activityOptions}
                   selected={activityCode}
                   setSelected={setActivityCode}
-                  disabled={disableIfCompFinished || !selectedRoom}
+                  disabled={disableIfCompPublished || !selectedRoom}
                 />
               </div>
             </div>
@@ -1297,7 +1296,7 @@ const ContestForm = ({
                 title="Custom activity"
                 value={customActivity}
                 setValue={setCustomActivity}
-                disabled={disableIfCompFinished}
+                disabled={disableIfCompPublished}
               />
             )}
             <div className="mb-3 row align-items-end">
@@ -1310,7 +1309,7 @@ const ContestForm = ({
                   timeZone={venueTimeZone}
                   dateFormat="Pp"
                   timeIntervals={5}
-                  disabled={disableIfCompFinished}
+                  disabled={disableIfCompPublished}
                   showUTCTime
                 />
               </div>
@@ -1322,7 +1321,7 @@ const ContestForm = ({
                   timeZone={venueTimeZone}
                   dateFormat="Pp"
                   timeIntervals={5}
-                  disabled={disableIfCompFinished}
+                  disabled={disableIfCompPublished}
                   showUTCTime
                 />
               </div>
@@ -1330,7 +1329,7 @@ const ContestForm = ({
             <button
               type="button"
               className="mt-3 mb-2 btn btn-success"
-              disabled={disableIfCompFinished || !isValidActivity}
+              disabled={disableIfCompPublished || !isValidActivity}
               onClick={addActivity}
             >
               Add to schedule
@@ -1344,8 +1343,8 @@ const ContestForm = ({
           rooms={rooms}
           contestEvents={contestEvents}
           timeZone={venueTimeZone}
-          onEditActivity={disableIfCompFinished ? undefined : editActivity}
-          onDeleteActivity={disableIfCompFinished ? undefined : deleteActivity}
+          onEditActivity={disableIfCompPublished ? undefined : editActivity}
+          onDeleteActivity={disableIfCompPublished ? undefined : deleteActivity}
         />
       )}
     </div>
