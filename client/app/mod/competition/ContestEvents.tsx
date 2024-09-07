@@ -24,7 +24,6 @@ const ContestEvents = ({
   removeEventRound,
   contestType,
   disableNewEvents,
-  disableIfContestPublished,
 }: {
   events: IEvent[];
   contestEvents: IContestEvent[];
@@ -33,7 +32,6 @@ const ContestEvents = ({
   removeEventRound: (eventId: string) => void;
   contestType: ContestType;
   disableNewEvents: boolean;
-  disableIfContestPublished: boolean;
 }) => {
   const [newEventId, setNewEventId] = useState(events[0].eventId);
 
@@ -226,7 +224,7 @@ const ContestEvents = ({
             events={remainingEvents}
             eventId={newEventId}
             setEventId={setNewEventId}
-            disabled={disableIfContestPublished}
+            disabled={disableNewEvents || contestEvents.length === filteredEvents.length}
           />
         </div>
       </div>
@@ -343,7 +341,6 @@ const ContestEvents = ({
                     options={roundProceedOptions}
                     selected={round.proceed.type}
                     setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                    disabled={disableIfContestPublished}
                     oneLine
                     small
                   />
@@ -352,7 +349,6 @@ const ContestEvents = ({
                       id="round_proceed_value"
                       value={round.proceed.value}
                       setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
-                      disabled={disableIfContestPublished}
                       integer
                       min={round.proceed.type === RoundProceed.Percentage ? 1 : 2}
                       max={round.proceed.type === RoundProceed.Percentage ? C.maxProceedPercentage : Infinity}

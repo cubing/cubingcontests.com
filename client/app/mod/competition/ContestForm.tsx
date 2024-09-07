@@ -879,7 +879,6 @@ const ContestForm = ({
             removeEventRound={removeEventRound}
             contestType={type}
             disableNewEvents={!userInfo.isAdmin && disableIfContestApproved && type !== ContestType.Meetup}
-            disableIfContestPublished={disableIfContestPublished}
           />
         )}
 
