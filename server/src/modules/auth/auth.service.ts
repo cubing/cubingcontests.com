@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, RootFilterQuery } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { addWeeks } from 'date-fns';
@@ -114,7 +114,10 @@ export class AuthService {
     try {
       // Delete existing valid auth token
       await this.authTokenModel
-        .deleteOne({ competitionId: contest.competitionId, createdAt: { $gt: addWeeks(new Date(), -1) } })
+        .deleteOne({
+          competitionId: contest.competitionId,
+          createdAt: { $gt: addWeeks(new Date(), -1) },
+        } as RootFilterQuery<AuthTokenDocument>)
         .exec();
       await this.authTokenModel.create({ token: hash, competitionId: contest.competitionId });
     } catch (err) {
@@ -129,7 +132,7 @@ export class AuthService {
 
     try {
       authToken = await this.authTokenModel
-        .findOne({ competitionId, createdAt: { $gt: addWeeks(new Date(), -1) } })
+        .findOne({ competitionId, createdAt: { $gt: addWeeks(new Date(), -1) } } as RootFilterQuery<AuthTokenDocument>)
         .exec();
     } catch (err) {
       throw new InternalServerErrorException(`Error while validating token: ${err.message}`);

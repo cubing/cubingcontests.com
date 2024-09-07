@@ -1,6 +1,6 @@
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, RootFilterQuery } from 'mongoose';
 import { addMonths } from 'date-fns';
 import { IAdminStats, IAttempt, IResult } from '@sh/types';
 import { roundFormats } from '@sh/roundFormats';
@@ -23,7 +23,7 @@ export class AppService {
   ) {}
 
   async getAdminStats(): Promise<IAdminStats> {
-    const oneMonthAgo = addMonths(new Date(), -1);
+    const createdAt = { $gte: addMonths(new Date(), -1) };
 
     const adminStats: IAdminStats = {
       totalPersons: await this.personsService.getPersonsTotal(),
@@ -39,68 +39,66 @@ export class AppService {
 
     adminStats.analytics.push({
       label: 'Contests list views',
-      value: await this.logModel.countDocuments({ type: 'get_contests', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'get_contests', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Contest page views',
-      value: await this.logModel.countDocuments({ type: 'get_contest', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'get_contest', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Rankings views',
-      value: await this.logModel.countDocuments({ type: 'get_rankings', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'get_rankings', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Records views',
-      value: await this.logModel.countDocuments({ type: 'get_records', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'get_records', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Users registered',
-      value: await this.logModel.countDocuments({ type: 'create_user', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'create_user', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Mod dashboard views',
-      value: await this.logModel.countDocuments({ type: 'get_mod_contests', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'get_mod_contests', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Edit contest / data entry page views',
-      value: await this.logModel.countDocuments({ type: 'get_mod_contest', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'get_mod_contest', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Contests created',
-      value: await this.logModel.countDocuments({ type: 'create_contest', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'create_contest', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Persons created',
-      value: await this.logModel.countDocuments({ type: 'create_person', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'create_person', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Events created',
-      value: await this.logModel.countDocuments({ type: 'create_event', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'create_event', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Event updates',
-      value: await this.logModel.countDocuments({ type: 'update_event', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'update_event', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Results created',
-      value: await this.logModel.countDocuments({ type: 'create_result', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'create_result', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Results submitted',
-      value: await this.logModel.countDocuments({ type: 'submit_result', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'submit_result', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Results deleted',
-      value: await this.logModel.countDocuments({ type: 'delete_result', createdAt: { $gte: oneMonthAgo } }).exec(),
+      value: await this.logModel.countDocuments({ type: 'delete_result', createdAt } as any).exec(),
     });
     adminStats.analytics.push({
       label: 'Record types updates',
-      value: await this.logModel
-        .countDocuments({ type: 'update_record_types', createdAt: { $gte: oneMonthAgo } })
-        .exec(),
+      value: await this.logModel.countDocuments({ type: 'update_record_types', createdAt } as any).exec(),
     });
 
-    await this.logModel.deleteMany({ createdAt: { $lt: addMonths(new Date(), -1) } });
+    await this.logModel.deleteMany({ createdAt: { $lt: addMonths(new Date(), -1) } } as RootFilterQuery<LogDocument>);
 
     return adminStats;
   }

@@ -357,6 +357,8 @@ class ProceedDto implements IProceed {
   @IsInt({ message: 'Please enter a valid round proceed value' })
   @Min(1, { message: 'The round proceed value must be at least 1' })
   @ValidateIf((obj) => obj.type === RoundProceed.Percentage)
-  @Max(75, { message: 'The round proceed percentage must be at most 75%' })
+  @Max(C.maxProceedPercentage, {
+    message: `The round proceed percentage cannot be higher than ${C.maxProceedPercentage}%`,
+  })
   value: number;
 }

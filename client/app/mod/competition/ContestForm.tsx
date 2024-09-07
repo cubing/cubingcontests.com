@@ -4,25 +4,6 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { addHours } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from '~/helpers/customHooks';
-import Form from '@c/form/Form';
-import FormTextInput from '@c/form/FormTextInput';
-import FormCountrySelect from '@c/form/FormCountrySelect';
-import FormEventSelect from '@c/form/FormEventSelect';
-import FormRadio from '@c/form/FormRadio';
-import FormSelect from '@c/form/FormSelect';
-import FormPersonInputs from '@c/form/FormPersonInputs';
-import FormNumberInput from '@c/form/FormNumberInput';
-import FormTextArea from '@c/form/FormTextArea';
-import FormDatePicker from '@c/form/FormDatePicker';
-import EventTitle from '@c/EventTitle';
-import Tabs from '@c/UI/Tabs';
-import Schedule from '@c/Schedule';
-import ColorSquare from '@c/UI/ColorSquare';
-import Loading from '@c/UI/Loading';
-import Button from '@c/UI/Button';
-import AttemptInput from '@c/AttemptInput';
-import FormCheckbox from '@c/form/FormCheckbox';
-import CreatorDetails from '@c/CreatorDetails';
 import {
   IContestDto,
   ICompetitionDetails,
@@ -30,39 +11,36 @@ import {
   IEvent,
   IPerson,
   IRoom,
-  IRound,
   IMeetupDetails,
-  IAttempt,
-  ICutoff,
-  ITimeLimit,
   IContestData,
   IActivity,
 } from '@sh/types';
-import {
-  Color,
-  ContestState,
-  ContestType,
-  EventFormat,
-  EventGroup,
-  RoundFormat,
-  RoundProceed,
-  RoundType,
-} from '@sh/enums';
+import { Color, ContestState, ContestType, RoundType } from '@sh/enums';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
-import {
-  colorOptions,
-  contestTypeOptions,
-  cutoffAttemptsOptions,
-  roundFormatOptions,
-  roundProceedOptions,
-} from '~/helpers/multipleChoiceOptions';
+import { colorOptions, contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 import { roundTypes } from '~/helpers/roundTypes';
-import { getContestIdFromName, getUserInfo } from '~/helpers/utilityFunctions';
+import { getContestIdFromName, getTimeLimit, getUserInfo } from '~/helpers/utilityFunctions';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
+import Form from '@c/form/Form';
+import FormTextInput from '@c/form/FormTextInput';
+import FormCountrySelect from '@c/form/FormCountrySelect';
+import FormRadio from '@c/form/FormRadio';
+import FormSelect from '@c/form/FormSelect';
+import FormPersonInputs from '@c/form/FormPersonInputs';
+import FormNumberInput from '@c/form/FormNumberInput';
+import FormTextArea from '@c/form/FormTextArea';
+import FormDatePicker from '@c/form/FormDatePicker';
+import Tabs from '@c/UI/Tabs';
+import Schedule from '@c/Schedule';
+import ColorSquare from '@c/UI/ColorSquare';
+import Loading from '@c/UI/Loading';
+import Button from '@c/UI/Button';
+import CreatorDetails from '@c/CreatorDetails';
+import ContestEvents from './ContestEvents';
 
-const isAdmin = getUserInfo()?.isAdmin;
+const userInfo = getUserInfo();
 
 const ContestForm = ({
   events,
@@ -104,7 +82,6 @@ const ContestForm = ({
   const [competitorLimit, setCompetitorLimit] = useState<number>(undefined);
 
   // Event stuff
-  const [newEventId, setNewEventId] = useState(events[0].eventId);
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>([]);
 
   // Schedule stuff
@@ -123,10 +100,6 @@ const ContestForm = ({
   // Use memo
   //////////////////////////////////////////////////////////////////////////////
 
-  const totalRounds: number = useMemo(
-    () => contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0),
-    [contestEvents],
-  );
   const roomOptions = useMemo(
     () =>
       rooms.map((room) => ({
@@ -154,28 +127,18 @@ const ContestForm = ({
     setActivityCode(output[0].value as string); // set selected activity code as the first available option
     return output;
   }, [contestEvents, rooms]);
-  const isValidActivity = useMemo(
-    () =>
-      activityCode &&
-      (activityCode !== 'other-misc' || customActivity) &&
-      roomOptions.some((r) => r.value === selectedRoom),
-    [activityCode, customActivity, roomOptions, selectedRoom],
-  );
 
   const tabs = [
     { title: 'Details', value: 'details' },
     { title: 'Events', value: 'events' },
     { title: 'Schedule', value: 'schedule', hidden: !getIsCompType(type) },
   ];
-  const filteredEvents = events.filter((ev) => type !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA));
-  const remainingEvents = filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId));
-  // Fix new event ID, if it's not in the list of remaining events
-  if (!remainingEvents.some((e) => e.eventId === newEventId)) setNewEventId(remainingEvents[0].eventId);
-  const disableIfCompApproved = !isAdmin && mode === 'edit' && contest.state >= ContestState.Approved;
-  // This has been nominated for the best variable name award!
-  const disableIfCompApprovedEvenForAdmin = mode === 'edit' && contest.state >= ContestState.Approved;
-  const disableIfCompPublished = mode === 'edit' && contest.state >= ContestState.Published;
-  const disableIfDetailsImported = !isAdmin && detailsImported;
+  const disableIfContestApproved = mode === 'edit' && contest.state >= ContestState.Approved;
+  const disableIfContestPublished = mode === 'edit' && contest.state >= ContestState.Published;
+  const disableIfDetailsImported = !userInfo.isAdmin && detailsImported;
+  const selectedRoomExists = roomOptions.some((r) => r.value === selectedRoom);
+  if (!selectedRoomExists && roomOptions.length > 0) setSelectedRoom(roomOptions[0].value);
+  const isValidActivity = activityCode && (activityCode !== 'other-misc' || customActivity) && roomOptions.length > 0;
 
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
@@ -333,21 +296,29 @@ const ContestForm = ({
     }
   };
 
-  const fillWithMockData = () => {
-    setName('New Competition 2024');
-    setShortName('New Competition 2024');
-    setCompetitionId('NewCompetition2024');
-    setType(ContestType.Competition);
+  const fillWithMockData = (mockContestType = ContestType.Competition) => {
+    setType(mockContestType);
     setCity('Singapore');
     setCountryIso2('SG');
     setAddress('Address');
     setVenue('Venue');
     setLatitude(1.314663);
     setLongitude(103.845409);
-    setVenueTimeZone('Asia/Singapore');
-    addContestEvent();
+    setContact(`${userInfo.username}@cc.com`);
+    setDescription('THIS IS A MOCK CONTEST!');
     setCompetitorLimit(100);
-    setRooms([{ id: 1, name: 'Main', color: Color.White, activities: [] }]);
+
+    if (mockContestType === ContestType.Meetup) {
+      setName('New Meetup 2024');
+      setShortName('New Meetup 2024');
+      setCompetitionId('NewMeetup2024');
+    } else {
+      setName('New Competition 2024');
+      setShortName('New Competition 2024');
+      setCompetitionId('NewCompetition2024');
+      setVenueTimeZone('Asia/Singapore');
+      setRooms([{ id: 1, name: 'Main', color: Color.White, activities: [] }]);
+    }
   };
 
   const changeActiveTab = (newTab: string) => {
@@ -386,7 +357,8 @@ const ContestForm = ({
   };
 
   const changeShortName = (value: string) => {
-    if (value.length <= 32) setShortName(value);
+    // Only update the value if the new one is within the allowed limit, or if it's shorter than it was (e.g. when Backspace is pressed)
+    if (value.length <= 32 || value.length < shortName.length) setShortName(value);
   };
 
   const getWcaCompDetails = async () => {
@@ -494,146 +466,24 @@ const ContestForm = ({
     }
   };
 
-  const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
-    const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, format: value })),
-          },
-    );
-    setContestEvents(newContestEvents);
-  };
+  const removeContestEvent = (eventId: string) => {
+    const newContestEvents: IContestEvent[] = [];
 
-  const changeRoundTimeLimit = (eventIndex: number, roundIndex: number, value: IAttempt) => {
-    const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : {
-                    ...round,
-                    timeLimit: { ...round.timeLimit, centiseconds: value.result },
-                  },
-            ),
-          },
-    );
-
-    setContestEvents(newContestEvents);
-  };
-
-  const changeRoundTimeLimitCumulative = (eventIndex: number, roundIndex: number) => {
-    const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : {
-                    ...round,
-                    timeLimit: {
-                      ...round.timeLimit,
-                      cumulativeRoundIds: round.timeLimit.cumulativeRoundIds.length > 0 ? [] : [round.roundId],
-                    },
-                  },
-            ),
-          },
-    );
-
-    setContestEvents(newContestEvents);
-  };
-
-  const changeRoundCutoffEnabled = (eventIndex: number, roundIndex: number) => {
-    const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : {
-                    ...round,
-                    cutoff: round.cutoff
-                      ? undefined
-                      : { attemptResult: 12000, numberOfAttempts: round.format === RoundFormat.Average ? 2 : 1 },
-                  },
-            ),
-          },
-    );
-    setContestEvents(newContestEvents);
-  };
-
-  const changeRoundCutoff = (eventIndex: number, roundIndex: number, value: ICutoff) => {
-    const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, cutoff: value })),
-          },
-    );
-    setContestEvents(newContestEvents);
-  };
-
-  const changeRoundProceed = (eventIndex: number, roundIndex: number, type: RoundProceed, newVal?: number) => {
-    const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : { ...round, proceed: { type, value: newVal === undefined ? round.proceed.value : newVal } },
-            ),
-          },
-    );
-
-    setContestEvents(newContestEvents);
-  };
-
-  const getTimeLimit = (eventFormat: EventFormat): ITimeLimit =>
-    eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
-
-  const getNewRound = (event: IEvent, roundNumber: number): IRound => {
-    return {
-      roundId: `${event.eventId}-r${roundNumber}`,
-      competitionId: 'temp', // this gets replaced for all rounds on submit
-      roundTypeId: RoundType.Final,
-      format: events.find((el) => el.eventId === event.eventId).defaultRoundFormat,
-      timeLimit: getTimeLimit(event.format),
-      results: [],
-    };
-  };
-
-  const addRound = (eventId: string) => {
-    const contestEvent = contestEvents.find((el) => el.event.eventId === eventId);
-
-    // Update the currently semi-final round
-    if (contestEvent.rounds.length > 2) {
-      const semiRound = contestEvent.rounds[contestEvent.rounds.length - 2];
-      semiRound.roundTypeId = Object.values(RoundType)[contestEvent.rounds.length - 2];
+    for (const contestEvent of contestEvents) {
+      if (contestEvent.event.eventId === eventId) {
+        // Remove all schedule activities for that event
+        for (const room of rooms) {
+          for (const activity of room.activities) {
+            if (contestEvent.rounds.some((r) => r.roundId === activity.activityCode))
+              deleteActivity(room.id, activity.id);
+          }
+        }
+      } else {
+        newContestEvents.push(contestEvent);
+      }
     }
 
-    // Update the currently last round
-    const lastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
-    lastRound.proceed = {
-      type: RoundProceed.Percentage,
-      value: 50,
-    };
-    lastRound.roundTypeId = contestEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
-
-    // Add new round
-    contestEvent.rounds.push(getNewRound(contestEvent.event, contestEvent.rounds.length + 1));
-
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
+    setContestEvents(newContestEvents);
   };
 
   const removeEventRound = (eventId: string) => {
@@ -665,42 +515,6 @@ const ContestForm = ({
     }
 
     setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
-  };
-
-  const addContestEvent = () => {
-    const contestEvent = events.find((el) => el.eventId === newEventId);
-
-    setContestEvents(
-      [...contestEvents, { event: contestEvent, rounds: [getNewRound(contestEvent, 1)] }].sort(
-        (a: IContestEvent, b: IContestEvent) => a.event.rank - b.event.rank,
-      ),
-    );
-
-    if (remainingEvents.length > 1) {
-      const newId = remainingEvents.find((event) => event.eventId !== newEventId)?.eventId;
-      setNewEventId(newId);
-    }
-  };
-
-  const removeContestEvent = (eventId: string) => {
-    const newContestEvents: IContestEvent[] = [];
-
-    for (const event of contestEvents) {
-      if (event.event.eventId === eventId) {
-        // Remove all schedule activities for that event
-        for (const room of rooms) {
-          for (const activity of room.activities) {
-            if (event.rounds.some((r) => r.roundId === activity.activityCode)) {
-              deleteActivity(room.id, activity.id);
-            }
-          }
-        }
-      } else {
-        newContestEvents.push(event);
-      }
-    }
-
-    setContestEvents(contestEvents.filter((el) => el.event.eventId !== eventId));
   };
 
   const addRoom = () => {
@@ -765,8 +579,9 @@ const ContestForm = ({
   };
 
   const deleteActivity = (roomId: number, activityId: number) => {
-    setRooms(
-      rooms.map((room) =>
+    // This syntax is necessary, because this may be called multiple times in the same tick
+    setRooms((prev) =>
+      prev.map((room) =>
         room.id !== roomId
           ? room
           : {
@@ -827,21 +642,29 @@ const ContestForm = ({
       <Form
         buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         onSubmit={handleSubmit}
-        disableButton={disableIfCompPublished}
+        disableButton={disableIfContestPublished}
       >
-        {isAdmin && mode === 'edit' && <CreatorDetails creator={creator} />}
+        {userInfo.isAdmin && mode === 'edit' && <CreatorDetails creator={creator} />}
 
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
         {activeTab === 'details' && (
           <>
             {process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' && mode === 'new' && (
-              <Button
-                text="Fill with mock data"
-                onClick={fillWithMockData}
-                disabled={detailsImported}
-                className="btn-secondary my-3"
-              />
+              <div className="d-flex gap-3 mt-3 mb-4">
+                <Button
+                  text="Set mock competition data"
+                  onClick={() => fillWithMockData()}
+                  disabled={detailsImported}
+                  className="btn-secondary"
+                />
+                <Button
+                  text="Set mock meetup data"
+                  onClick={() => fillWithMockData(ContestType.Meetup)}
+                  disabled={detailsImported}
+                  className="btn-secondary"
+                />
+              </div>
             )}
             {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
@@ -849,7 +672,7 @@ const ContestForm = ({
                   // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
                   <Button id="clone_contest_button" text="Clone" onClick={cloneContest} loadingId={loadingId} />
                 )}
-                {isAdmin && (
+                {userInfo.isAdmin && (
                   <Button
                     id="delete_contest_button"
                     text="Remove Contest"
@@ -892,13 +715,13 @@ const ContestForm = ({
               value={name}
               setValue={changeName}
               autoFocus
-              disabled={disableIfCompApproved || disableIfDetailsImported}
+              disabled={disableIfDetailsImported}
             />
             <FormTextInput
               title="Short name"
               value={shortName}
               setValue={changeShortName}
-              disabled={disableIfCompApproved || disableIfDetailsImported}
+              disabled={disableIfDetailsImported}
             />
             <FormTextInput
               title="Contest ID"
@@ -913,7 +736,7 @@ const ContestForm = ({
               setSelected={setType}
               disabled={mode !== 'new' || disableIfDetailsImported}
             />
-            {type === ContestType.WcaComp && (mode === 'new' || isAdmin) && (
+            {type === ContestType.WcaComp && mode === 'new' && (
               <Button
                 id="get_wca_comp_details_button"
                 text="Get WCA competition details"
@@ -925,12 +748,7 @@ const ContestForm = ({
             )}
             <div className="row">
               <div className="col">
-                <FormTextInput
-                  title="City"
-                  value={city}
-                  setValue={setCity}
-                  disabled={disableIfCompApproved || disableIfDetailsImported}
-                />
+                <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfDetailsImported} />
               </div>
               <div className="col">
                 <FormCountrySelect
@@ -940,10 +758,10 @@ const ContestForm = ({
                 />
               </div>
             </div>
-            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfCompApproved} />
+            <FormTextInput title="Address" value={address} setValue={setAddress} />
             <div className="row">
               <div className="col-12 col-md-6">
-                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfCompApproved} />
+                <FormTextInput title="Venue" value={venue} setValue={setVenue} />
               </div>
               <div className="col-12 col-md-6">
                 <div className="row">
@@ -952,7 +770,7 @@ const ContestForm = ({
                       title="Latitude"
                       value={latitude}
                       setValue={(val) => changeCoordinates(val, longitude)}
-                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                      disabled={disableIfContestApproved || disableIfDetailsImported}
                       min={-90}
                       max={90}
                     />
@@ -962,7 +780,7 @@ const ContestForm = ({
                       title="Longitude"
                       value={longitude}
                       setValue={(val) => changeCoordinates(latitude, val)}
-                      disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                      disabled={disableIfContestApproved || disableIfDetailsImported}
                       min={-180}
                       max={180}
                     />
@@ -987,7 +805,7 @@ const ContestForm = ({
                     setValue={changeStartDate}
                     timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
                     dateFormat="Pp"
-                    disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                    disabled={disableIfContestApproved || disableIfDetailsImported}
                     showUTCTime
                   />
                 ) : (
@@ -997,7 +815,7 @@ const ContestForm = ({
                     value={startDate}
                     setValue={changeStartDate}
                     dateFormat="P"
-                    disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                    disabled={disableIfContestApproved || disableIfDetailsImported}
                   />
                 )}
               </div>
@@ -1008,7 +826,7 @@ const ContestForm = ({
                     title="End date"
                     value={endDate}
                     setValue={setEndDate}
-                    disabled={disableIfCompApprovedEvenForAdmin || disableIfDetailsImported}
+                    disabled={disableIfContestApproved || disableIfDetailsImported}
                   />
                 </div>
               )}
@@ -1023,7 +841,7 @@ const ContestForm = ({
                 setPersons={setOrganizers}
                 infiniteInputs
                 nextFocusTargetId="contact"
-                disabled={disableIfCompApproved}
+                disabled={disableIfContestApproved && !userInfo.isAdmin}
                 addNewPersonFromNewTab
               />
             </div>
@@ -1033,19 +851,19 @@ const ContestForm = ({
               placeholder="john@example.com"
               value={contact}
               setValue={setContact}
-              disabled={disableIfCompPublished}
+              disabled={disableIfContestPublished}
             />
             <FormTextArea
               title="Description (optional)"
               value={description}
               setValue={setDescription}
-              disabled={disableIfCompPublished}
+              disabled={disableIfContestPublished}
             />
             <FormNumberInput
               title={'Competitor limit' + (!getIsCompType(type) ? ' (optional)' : '')}
               value={competitorLimit}
               setValue={setCompetitorLimit}
-              disabled={disableIfCompApproved || disableIfDetailsImported}
+              disabled={(disableIfContestApproved && !userInfo.isAdmin) || disableIfDetailsImported}
               integer
               min={C.minCompetitorLimit}
             />
@@ -1053,186 +871,16 @@ const ContestForm = ({
         )}
 
         {activeTab === 'events' && (
-          <>
-            <p className="my-4">
-              Total events: {contestEvents.length} | Total rounds: {totalRounds}
-            </p>
-            <div className="my-4 d-flex align-items-center gap-3">
-              <Button
-                text="Add Event"
-                onClick={addContestEvent}
-                disabled={
-                  disableIfCompApproved || disableIfCompPublished || contestEvents.length === filteredEvents.length
-                }
-                className="btn btn-success"
-              />
-              <div className="flex-grow-1">
-                <FormEventSelect
-                  title=""
-                  noMargin
-                  events={remainingEvents}
-                  eventId={newEventId}
-                  setEventId={setNewEventId}
-                  disabled={disableIfCompPublished}
-                />
-              </div>
-            </div>
-            {contestEvents.map((ce, eventIndex) => (
-              <div key={ce.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
-                <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-                  <EventTitle event={ce.event} fontSize="4" noMargin showIcon showDescription />
-
-                  <button
-                    type="button"
-                    className="btn btn-danger btn-sm"
-                    onClick={() => removeContestEvent(ce.event.eventId)}
-                    disabled={disableIfCompPublished || ce.rounds.some((r) => r.results.length > 0)}
-                  >
-                    Remove Event
-                  </button>
-                </div>
-                {ce.rounds.map((round, roundIndex) => (
-                  <div key={round.roundId} className="mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary">
-                    <div className="flex-grow-1 d-flex align-items-center gap-3 gap-md-5">
-                      <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
-
-                      <div className="flex-grow-1">
-                        <FormSelect
-                          title=""
-                          options={roundFormatOptions}
-                          selected={round.format}
-                          setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
-                          disabled={disableIfCompPublished || round.results.length > 0}
-                          noMargin
-                        />
-                      </div>
-                    </div>
-                    {ce.event.format === EventFormat.Time && (
-                      <div className="d-flex flex-wrap align-items-center gap-3 gap-md-5 w-100 mt-3">
-                        <div className="d-flex justify-content-between align-items-center gap-3">
-                          <h6 className="flex-shrink-0 m-0">Time limit:</h6>
-
-                          <div style={{ maxWidth: '8rem' }}>
-                            <AttemptInput
-                              attNumber={0}
-                              attempt={{ result: round.timeLimit.centiseconds }}
-                              setAttempt={(val) => changeRoundTimeLimit(eventIndex, roundIndex, val)}
-                              event={ce.event}
-                              maxTime={C.maxTimeLimit}
-                              disabled={disableIfCompPublished || round.results.length > 0}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="d-flex justify-content-between align-items-center gap-3">
-                          <h6 className="flex-shrink-0 m-0">Cumulative limit:</h6>
-
-                          <FormCheckbox
-                            title=""
-                            id={`cumulative_limit_${ce.event.eventId}_${roundIndex + 1}`}
-                            selected={round.timeLimit.cumulativeRoundIds.length > 0}
-                            setSelected={() => changeRoundTimeLimitCumulative(eventIndex, roundIndex)}
-                            disabled={disableIfCompPublished || round.results.length > 0}
-                            noMargin
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 gap-md-5 mt-3">
-                      <h6 className="flex-shrink-0 m-0">Cutoff:</h6>
-
-                      <FormCheckbox
-                        title="Enabled"
-                        id={`cutoff_${ce.event.eventId}_${roundIndex + 1}`}
-                        selected={round.cutoff !== undefined}
-                        setSelected={() => changeRoundCutoffEnabled(eventIndex, roundIndex)}
-                        disabled={disableIfCompPublished || round.results.length > 0}
-                        noMargin
-                        small
-                      />
-
-                      <div style={{ maxWidth: '8rem' }}>
-                        <AttemptInput
-                          attNumber={0}
-                          attempt={{
-                            result: round.cutoff?.attemptResult === undefined ? 0 : round.cutoff.attemptResult,
-                          }}
-                          setAttempt={(val: IAttempt) =>
-                            changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, attemptResult: val.result })
-                          }
-                          event={ce.event}
-                          maxTime={C.maxTimeLimit}
-                          disabled={disableIfCompPublished || !round.cutoff || round.results.length > 0}
-                        />
-                      </div>
-
-                      <div className="d-flex justify-content-between align-items-center gap-3">
-                        <h6 className="m-0">Attempts:</h6>
-
-                        <FormSelect
-                          title=""
-                          options={cutoffAttemptsOptions}
-                          selected={round.cutoff?.numberOfAttempts || 2}
-                          setSelected={(val: number) =>
-                            changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, numberOfAttempts: val })
-                          }
-                          disabled={disableIfCompPublished || !round.cutoff || round.results.length > 0}
-                          noMargin
-                        />
-                      </div>
-                    </div>
-                    {round.roundTypeId !== RoundType.Final && (
-                      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
-                        <FormRadio
-                          id={`${round.roundId}_proceed_type`}
-                          title="Proceed to next round:"
-                          options={roundProceedOptions}
-                          selected={round.proceed.type}
-                          setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
-                          disabled={disableIfCompPublished}
-                          oneLine
-                          small
-                        />
-                        <div style={{ width: '5rem' }}>
-                          <FormNumberInput
-                            id="round_proceed_value"
-                            value={round.proceed.value}
-                            setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
-                            disabled={disableIfCompPublished}
-                            integer
-                            min={round.proceed.type === RoundProceed.Percentage ? 1 : 2}
-                            max={round.proceed.type === RoundProceed.Percentage ? 99 : Infinity}
-                            noMargin
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                <div className="d-flex gap-3">
-                  {ce.rounds.length < 10 && (
-                    <Button
-                      text={`Add Round ${ce.rounds.length + 1}`}
-                      className="btn-success btn-sm"
-                      onClick={() => addRound(ce.event.eventId)}
-                      disabled={mode === 'edit'} // TEMPORARY
-                    />
-                  )}
-                  {ce.rounds.length > 1 && (
-                    <Button
-                      text="Remove Round"
-                      onClick={() => removeEventRound(ce.event.eventId)}
-                      disabled={
-                        disableIfCompPublished ||
-                        ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0
-                      }
-                      className="btn-danger btn-sm"
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
-          </>
+          <ContestEvents
+            events={events}
+            contestEvents={contestEvents}
+            setContestEvents={setContestEvents}
+            removeContestEvent={removeContestEvent}
+            removeEventRound={removeEventRound}
+            contestType={type}
+            disableNewEvents={!userInfo.isAdmin && disableIfContestApproved && type !== ContestType.Meetup}
+            disableIfContestPublished={disableIfContestPublished}
+          />
         )}
 
         {activeTab === 'schedule' && (
@@ -1244,7 +892,7 @@ const ContestForm = ({
                   title="Room name"
                   value={roomName}
                   setValue={setRoomName}
-                  disabled={disableIfCompPublished}
+                  disabled={disableIfContestPublished}
                 />
               </div>
               <div className="col-4 d-flex justify-content-between align-items-end gap-3 mb-3">
@@ -1254,21 +902,19 @@ const ContestForm = ({
                     options={colorOptions}
                     selected={roomColor}
                     setSelected={setRoomColor}
-                    disabled={disableIfCompPublished}
+                    disabled={disableIfContestPublished}
                     noMargin
                   />
                 </div>
                 <ColorSquare color={roomColor} />
               </div>
             </div>
-            <button
-              type="button"
-              className="mt-3 mb-2 btn btn-success"
-              disabled={disableIfCompPublished || !roomName.trim()}
+            <Button
+              text="Create"
+              className="mt-3 mb-2 btn-success"
               onClick={addRoom}
-            >
-              Create
-            </button>
+              disabled={disableIfContestPublished || !roomName.trim()}
+            />
             <hr />
             <h3 className="mb-3">Schedule</h3>
             <div className="row">
@@ -1278,7 +924,7 @@ const ContestForm = ({
                   options={roomOptions}
                   selected={selectedRoom}
                   setSelected={setSelectedRoom}
-                  disabled={disableIfCompPublished || rooms.length === 0}
+                  disabled={disableIfContestPublished || rooms.length === 0}
                 />
               </div>
               <div className="col">
@@ -1287,7 +933,7 @@ const ContestForm = ({
                   options={activityOptions}
                   selected={activityCode}
                   setSelected={setActivityCode}
-                  disabled={disableIfCompPublished || !selectedRoom}
+                  disabled={disableIfContestPublished || !selectedRoom}
                 />
               </div>
             </div>
@@ -1296,7 +942,7 @@ const ContestForm = ({
                 title="Custom activity"
                 value={customActivity}
                 setValue={setCustomActivity}
-                disabled={disableIfCompPublished}
+                disabled={disableIfContestPublished}
               />
             )}
             <div className="mb-3 row align-items-end">
@@ -1309,7 +955,7 @@ const ContestForm = ({
                   timeZone={venueTimeZone}
                   dateFormat="Pp"
                   timeIntervals={5}
-                  disabled={disableIfCompPublished}
+                  disabled={disableIfContestPublished}
                   showUTCTime
                 />
               </div>
@@ -1321,19 +967,17 @@ const ContestForm = ({
                   timeZone={venueTimeZone}
                   dateFormat="Pp"
                   timeIntervals={5}
-                  disabled={disableIfCompPublished}
+                  disabled={disableIfContestPublished}
                   showUTCTime
                 />
               </div>
             </div>
-            <button
-              type="button"
-              className="mt-3 mb-2 btn btn-success"
-              disabled={disableIfCompPublished || !isValidActivity}
+            <Button
+              text="Add to schedule"
+              className="mt-3 mb-2 btn-success"
+              disabled={disableIfContestPublished || !isValidActivity}
               onClick={addActivity}
-            >
-              Add to schedule
-            </button>
+            />
           </>
         )}
       </Form>
@@ -1343,8 +987,8 @@ const ContestForm = ({
           rooms={rooms}
           contestEvents={contestEvents}
           timeZone={venueTimeZone}
-          onEditActivity={disableIfCompPublished ? undefined : editActivity}
-          onDeleteActivity={disableIfCompPublished ? undefined : deleteActivity}
+          onEditActivity={disableIfContestPublished ? undefined : editActivity}
+          onDeleteActivity={disableIfContestPublished ? undefined : deleteActivity}
         />
       )}
     </div>

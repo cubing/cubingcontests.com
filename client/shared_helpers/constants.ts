@@ -15,6 +15,7 @@ const C = {
   minCompetitorLimit: 5,
   minCompetitorsForNonWca: 3,
   maxConfirmationCodeAttempts: 3,
+  maxProceedPercentage: 75,
   confirmationCodeCooldown: 5 * 60 * 1000, // in milliseconds (5 minutes)
   passwordResetSessionLength: 3, // in days
   passwordSaltRounds: 10,

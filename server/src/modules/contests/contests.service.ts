@@ -75,13 +75,33 @@ export class ContestsService {
               .join(', ')}`,
           );
         } else {
-          const contest = contests[0];
+          const [contest] = contests;
 
-          for (const venue of s.venues) {
-            for (const room of venue.rooms) {
-              for (const activity of room.activities) {
-                const startTime = toZonedTime(activity.startTime, venue.timezone);
-                const endTime = toZonedTime(activity.endTime, venue.timezone);
+          for (let i = 0; i < s.venues.length; i++) {
+            const venue = s.venues[i];
+
+            // Check for duplicate ID venues
+            if (s.venues.some((v, index) => index > i && v.id === venue.id))
+              this.logger.error(`Error: contest ${contest.competitionId} has duplicate venue ID - ${venue.id}`);
+
+            for (let j = 0; j < venue.rooms.length; j++) {
+              const room = venue.rooms[j];
+
+              // Check for duplicate ID rooms
+              if (venue.rooms.some((r, index) => index > j && r.id === room.id))
+                this.logger.error(`Error: contest ${contest.competitionId} has duplicate room ID - ${room.id}`);
+
+              for (let k = 0; k < s.venues[i].rooms[j].activities.length; k++) {
+                const activity = room.activities[k];
+
+                // Check for duplicate ID rooms
+                if (room.activities.some((a, index) => index > k && a.id === activity.id))
+                  this.logger.error(
+                    `Error: contest ${contest.competitionId} has duplicate activity ID - ${activity.id}`,
+                  );
+
+                const startTime = toZonedTime(activity.startTime, s.venues[i].timezone);
+                const endTime = toZonedTime(activity.endTime, s.venues[i].timezone);
 
                 // Check that no activity is outside of the date range of the contest
                 if (startTime < contest.startDate || endTime >= addDays(contest.endDate, 1)) {
@@ -139,8 +159,6 @@ export class ContestsService {
           }
         }
       }
-
-      this.logger.log('All contests inconsistencies checked!');
     }
   }
 
@@ -301,6 +319,7 @@ export class ContestsService {
   async updateContest(competitionId: string, contestDto: ContestDto, user: IPartialUser) {
     // Do not exclude internal fields so that the contest can be saved below
     const contest = await this.getFullContest(competitionId, { exclude: false });
+    const isAdmin = user.roles.includes(Role.Admin);
 
     this.authService.checkAccessRightsToContest(user, contest);
     this.validateAndCleanUpContest(contestDto, user);
@@ -315,9 +334,7 @@ export class ContestsService {
     );
     contest.contact = contestDto.contact;
     contest.description = contestDto.description;
-    contest.events = await this.updateContestEvents(contest, contestDto.events);
-
-    const isAdmin = user.roles.includes(Role.Admin);
+    contest.events = await this.updateContestEvents(contest, contestDto.events, isAdmin);
 
     if (contestDto.compDetails) {
       if (contest.compDetails) {
@@ -581,8 +598,13 @@ export class ContestsService {
     };
   }
 
-  // Deletes/adds/updates contest events and rounds
-  private async updateContestEvents(contest: ContestDocument, newEvents: IContestEvent[]): Promise<ContestEvent[]> {
+  // Deletes/adds/updates contest events and rounds. This assumes that access rights have already been checked,
+  // so it only makes further checks for admin-only features for when the contest hasn't been finished yet.
+  private async updateContestEvents(
+    contest: ContestDocument,
+    newEvents: IContestEvent[],
+    isAdmin: boolean,
+  ): Promise<ContestEvent[]> {
     // Remove deleted rounds and events
     for (const contestEvent of contest.events) {
       const sameEventInNew = newEvents.find((el) => el.event.eventId === contestEvent.event.eventId);
@@ -607,7 +629,9 @@ export class ContestsService {
         for (const round of contestEvent.rounds) await round.deleteOne();
         contest.events = contest.events.filter((el) => el.event.eventId !== contestEvent.event.eventId);
       } else {
-        throw new BadRequestException('You may not delete an event that has rounds with results');
+        throw new BadRequestException(
+          'You may not delete an event that has rounds with results. Please reload and try again.',
+        );
       }
     }
 
@@ -627,14 +651,12 @@ export class ContestsService {
               sameRoundInContest.format = round.format;
               sameRoundInContest.timeLimit = round.timeLimit;
               sameRoundInContest.cutoff = round.cutoff;
-            } else if (
-              round.format !== sameRoundInContest.format ||
-              JSON.stringify(round.timeLimit) !== JSON.stringify(sameRoundInContest.timeLimit) ||
-              JSON.stringify(round.cutoff) !== JSON.stringify(sameRoundInContest.cutoff)
-            ) {
-              throw new BadRequestException(
-                'You may not change the format, time limit or cutoff of a round that has results',
-              );
+            } else if (round.format !== sameRoundInContest.format) {
+              throw new BadRequestException('You may not change the format of a round that has results');
+            } else if (JSON.stringify(round.timeLimit) !== JSON.stringify(sameRoundInContest.timeLimit)) {
+              throw new BadRequestException('You may not change the time limit of a round that has results');
+            } else if (JSON.stringify(round.cutoff) !== JSON.stringify(sameRoundInContest.cutoff)) {
+              throw new BadRequestException('You may not change the cutoff of a round that has results');
             }
 
             // Update proceed object if the updated round has it, or unset proceed if it doesn't,
@@ -647,12 +669,15 @@ export class ContestsService {
           // If it's a new round, add it
           else {
             const newRound = await this.roundModel.create(round);
-            sameEventInContest.rounds.push(newRound);
+            // For WHATEVER REASON simply doing rounds.push() doesn't work here since some version of Mongoose
+            sameEventInContest.rounds = [...sameEventInContest.rounds, newRound];
           }
         }
-      } else {
+      } else if (isAdmin || contest.state < ContestState.Approved || contest.type === ContestType.Meetup) {
         // If it's a new event, add it
         contest.events.push(await this.getNewContestEvent(newEvent));
+      } else {
+        throw new BadRequestException('You are unauthorized to add an event to an approved competition');
       }
     }
 
@@ -752,10 +777,9 @@ export class ContestsService {
 
       // Schedule validation
       const venues = new Set<number>();
-      const rooms = new Set<number>();
-      const roomNames = new Set<string>();
-      const activities = new Set<number>();
-      const activityCodes = new Set<string>();
+      let rooms = new Set<number>();
+      let activities = new Set<number>();
+      let activityCodes = new Set<string>();
 
       for (const venue of contest.compDetails.schedule.venues) {
         if (venue.countryIso2 !== contest.countryIso2)
@@ -769,8 +793,6 @@ export class ContestsService {
         for (const room of venue.rooms) {
           if (rooms.has(room.id)) throw new BadRequestException(`Duplicate room ID found: ${room.id}`);
           rooms.add(room.id);
-          if (roomNames.has(room.name)) throw new BadRequestException(`Duplicate room name found: ${room.name}`);
-          roomNames.add(room.name);
 
           for (const activity of room.activities) {
             if (activities.has(activity.id))
@@ -798,7 +820,12 @@ export class ContestsService {
             if (zonedStartTime > zonedEndTime)
               throw new BadRequestException('An activity start time may not be after the end time');
           }
+
+          activities = new Set();
+          activityCodes = new Set();
         }
+
+        rooms = new Set();
       }
     }
 

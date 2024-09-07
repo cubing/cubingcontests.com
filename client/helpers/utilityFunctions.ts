@@ -3,7 +3,7 @@ import { isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Color, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
-import { IAttempt, IEvent } from '@sh/types';
+import { IAttempt, IEvent, ITimeLimit } from '@sh/types';
 import { IUserInfo } from './interfaces/UserInfo';
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string): string => {
@@ -249,3 +249,6 @@ export const getIsWebglUnsupported = (): boolean => {
     return true;
   }
 };
+
+export const getTimeLimit = (eventFormat: EventFormat): ITimeLimit =>
+  eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
