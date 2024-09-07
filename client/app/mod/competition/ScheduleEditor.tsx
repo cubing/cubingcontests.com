@@ -14,10 +14,12 @@ import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
 import ColorSquare from '@c/UI/ColorSquare';
 import Schedule from '@c/Schedule';
+import { getIsOtherActivity } from '~/shared_helpers/sharedFunctions';
 
 const ScheduleEditor = ({
   rooms,
   setRooms,
+  originalRooms,
   venueTimeZone,
   startDate,
   contestEvents,
@@ -25,13 +27,18 @@ const ScheduleEditor = ({
 }: {
   rooms: IRoom[];
   setRooms: (val: IRoom[] | ((prev: IRoom[]) => IRoom[])) => void;
+  originalRooms: IRoom[] | undefined;
   venueTimeZone: string;
   startDate: Date;
   contestEvents: IContestEvent[];
   disabled: boolean;
 }) => {
+  // Room stuff
   const [roomName, setRoomName] = useState('');
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
+
+  // Activity stuff
+  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(null);
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
   const [activityCode, setActivityCode] = useState('');
   const [customActivity, setCustomActivity] = useState('');
@@ -52,8 +59,11 @@ const ScheduleEditor = ({
 
     for (const contestEvent of contestEvents) {
       for (const round of contestEvent.rounds) {
-        // Add all rounds not already added to the schedule as activity code options
-        if (!rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId))) {
+        // Add all rounds not already in the schedule and the activity under edit as activity code options
+        if (
+          activityUnderEdit?.activityCode === round.roundId ||
+          !rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId))
+        ) {
           output.push({
             label: `${contestEvent.event.name} ${roundTypes[round.roundTypeId].label}`,
             value: round.roundId,
@@ -65,7 +75,7 @@ const ScheduleEditor = ({
     output.push({ label: 'Custom', value: 'other-misc' });
     setActivityCode(output[0].value as string); // set selected activity code as the first available option
     return output;
-  }, [contestEvents, rooms]);
+  }, [contestEvents, rooms, activityUnderEdit]);
 
   const selectedRoomExists = roomOptions.some((r) => r.value === selectedRoom);
   if (!selectedRoomExists && roomOptions.length > 0) setSelectedRoom(roomOptions[0].value);
@@ -94,42 +104,58 @@ const ScheduleEditor = ({
     }
   };
 
-  const addActivity = () => {
+  const saveActivity = () => {
+    // If we're editing a contest, and there was already an activity for the selected round, get the original activity ID.
+    // Otherwise, simply return the current highest activity ID + 1.
+    const getNewActivityId = (room: IRoom) => {
+      const originalRoom = originalRooms?.find((r) => r.id === room.id);
+      if (originalRoom && !getIsOtherActivity(activityCode)) {
+        const originalActivity = originalRoom.activities.find((a) => a.activityCode === activityCode);
+        if (originalActivity) return originalActivity.id;
+      }
+
+      if (room.activities.length === 0) return 1;
+      return room.activities.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1;
+    };
+
+    const getFieldsFromInputs = () => ({
+      activityCode,
+      startTime: activityStartTime,
+      endTime: activityEndTime,
+      name: activityCode === 'other-misc' ? customActivity : undefined,
+      childActivities: [] as IActivity[],
+    });
+
     const newRooms = rooms.map((room) =>
       room.id !== selectedRoom
         ? room
         : {
             ...room,
-            activities: [
-              ...room.activities,
-              {
-                // Gets the current highest ID + 1
-                id:
-                  room.activities.length === 0
-                    ? 1
-                    : room.activities.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
-                activityCode,
-                name: activityCode === 'other-misc' ? customActivity : undefined,
-                startTime: activityStartTime,
-                endTime: activityEndTime,
-                childActivities: [],
-              },
-            ],
+            activities: activityUnderEdit
+              ? room.activities.map((a) => (a.id === activityUnderEdit.id ? { id: a.id, ...getFieldsFromInputs() } : a))
+              : [...room.activities, { id: getNewActivityId(room), ...getFieldsFromInputs() }],
           },
     );
 
     setRooms(newRooms);
     setActivityCode('');
     setCustomActivity('');
+    setActivityUnderEdit(null);
   };
 
-  // Simply deletes the activity and copies the values to the inputs
   const editActivity = (roomId: number, activity: IActivity) => {
-    deleteActivity(roomId, activity.id);
+    setActivityUnderEdit(activity);
+    setSelectedRoom(roomId);
     setActivityCode(activity.activityCode);
     setActivityStartTime(activity.startTime);
     setActivityEndTime(activity.endTime);
     setCustomActivity(activity.name ?? '');
+  };
+
+  const cancelEdit = () => {
+    setActivityUnderEdit(null);
+    setActivityCode('');
+    setCustomActivity('');
   };
 
   const deleteActivity = (roomId: number, activityId: number) => {
@@ -184,7 +210,7 @@ const ScheduleEditor = ({
               options={roomOptions}
               selected={selectedRoom}
               setSelected={setSelectedRoom}
-              disabled={disabled || rooms.length === 0}
+              disabled={disabled || rooms.length === 0 || activityUnderEdit !== null}
             />
           </div>
           <div className="col">
@@ -193,7 +219,7 @@ const ScheduleEditor = ({
               options={activityOptions}
               selected={activityCode}
               setSelected={setActivityCode}
-              disabled={disabled || !selectedRoom}
+              disabled={disabled || !selectedRoom || activityUnderEdit !== null}
             />
           </div>
         </div>
@@ -232,12 +258,15 @@ const ScheduleEditor = ({
             />
           </div>
         </div>
-        <Button
-          text="Add to schedule"
-          className="mt-3 mb-2 btn-success"
-          disabled={disabled || !isValidActivity}
-          onClick={addActivity}
-        />
+        <div className="d-flex gap-3 mb-2">
+          <Button
+            text={activityUnderEdit ? 'Update' : 'Add to schedule'}
+            onClick={saveActivity}
+            disabled={disabled || !isValidActivity}
+            className={activityUnderEdit ? 'btn-primary' : 'btn-success'}
+          />
+          {activityUnderEdit !== null && <Button text="Cancel" onClick={cancelEdit} className="btn-danger" />}
+        </div>
       </section>
 
       {/* Bit of a hack to escape the boundaries of the form component to give the schedule more width */}
