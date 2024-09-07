@@ -40,7 +40,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
 
   return (
     <ContestLayout contest={contest} activeTab="details">
-      <div className="row w-100 mb-4 mx-0 fs-5">
+      <div className="row w-100 mx-0 fs-5">
         <div className="col-md-5 px-0">
           <div className="px-2">
             <div className="mb-3">

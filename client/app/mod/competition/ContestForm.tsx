@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { addHours } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from '~/helpers/customHooks';
@@ -13,32 +13,27 @@ import {
   IRoom,
   IMeetupDetails,
   IContestData,
-  IActivity,
 } from '@sh/types';
 import { Color, ContestState, ContestType, RoundType } from '@sh/enums';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
-import { colorOptions, contestTypeOptions } from '~/helpers/multipleChoiceOptions';
-import { roundTypes } from '~/helpers/roundTypes';
+import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 import { getContestIdFromName, getTimeLimit, getUserInfo } from '~/helpers/utilityFunctions';
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import C from '@sh/constants';
 import { MainContext } from '~/helpers/contexts';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
 import FormCountrySelect from '@c/form/FormCountrySelect';
 import FormRadio from '@c/form/FormRadio';
-import FormSelect from '@c/form/FormSelect';
 import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormNumberInput from '@c/form/FormNumberInput';
 import FormTextArea from '@c/form/FormTextArea';
 import FormDatePicker from '@c/form/FormDatePicker';
 import Tabs from '@c/UI/Tabs';
-import Schedule from '@c/Schedule';
-import ColorSquare from '@c/UI/ColorSquare';
 import Loading from '@c/UI/Loading';
 import Button from '@c/UI/Button';
 import CreatorDetails from '@c/CreatorDetails';
 import ContestEvents from './ContestEvents';
+import ScheduleEditor from './ScheduleEditor';
 
 const userInfo = getUserInfo();
 
@@ -72,8 +67,7 @@ const ContestForm = ({
   const [latitude, setLatitude] = useState(0); // vertical coordinate (Y); ranges from -90 to 90
   const [longitude, setLongitude] = useState(0); // horizontal coordinate (X); ranges from -180 to 180
   const [startDate, setStartDate] = useState(getDateOnly(new Date()));
-  // Meetup-only
-  const [startTime, setStartTime] = useState(addHours(getDateOnly(new Date()), 12)); // use 12:00 as default start time
+  const [startTime, setStartTime] = useState(addHours(getDateOnly(new Date()), 12)); // meetup-only; set 12:00 as initial start time
   const [endDate, setEndDate] = useState(new Date());
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
@@ -87,46 +81,10 @@ const ContestForm = ({
   // Schedule stuff
   const [venueTimeZone, setVenueTimeZone] = useState('GMT'); // e.g. Europe/Berlin
   const [rooms, setRooms] = useState<IRoom[]>([]);
-  const [roomName, setRoomName] = useState('');
-  const [roomColor, setRoomColor] = useState<Color>(Color.White);
-  const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
-  const [activityCode, setActivityCode] = useState('');
-  const [customActivity, setCustomActivity] = useState('');
-  // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
-  const [activityStartTime, setActivityStartTime] = useState<Date>(addHours(getDateOnly(new Date()), 12));
-  const [activityEndTime, setActivityEndTime] = useState<Date>(addHours(getDateOnly(new Date()), 13));
 
   //////////////////////////////////////////////////////////////////////////////
   // Use memo
   //////////////////////////////////////////////////////////////////////////////
-
-  const roomOptions = useMemo(
-    () =>
-      rooms.map((room) => ({
-        label: room.name,
-        value: room.id,
-      })),
-    [rooms.length],
-  );
-  const activityOptions = useMemo(() => {
-    const output: MultiChoiceOption[] = [];
-
-    for (const contestEvent of contestEvents) {
-      for (const round of contestEvent.rounds) {
-        // Add all rounds not already added to the schedule as activity code options
-        if (!rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId))) {
-          output.push({
-            label: `${contestEvent.event.name} ${roundTypes[round.roundTypeId].label}`,
-            value: round.roundId,
-          });
-        }
-      }
-    }
-
-    output.push({ label: 'Custom', value: 'other-misc' });
-    setActivityCode(output[0].value as string); // set selected activity code as the first available option
-    return output;
-  }, [contestEvents, rooms]);
 
   const tabs = [
     { title: 'Details', value: 'details' },
@@ -136,9 +94,6 @@ const ContestForm = ({
   const disableIfContestApproved = mode === 'edit' && contest.state >= ContestState.Approved;
   const disableIfContestPublished = mode === 'edit' && contest.state >= ContestState.Published;
   const disableIfDetailsImported = !userInfo.isAdmin && detailsImported;
-  const selectedRoomExists = roomOptions.some((r) => r.value === selectedRoom);
-  if (!selectedRoomExists && roomOptions.length > 0) setSelectedRoom(roomOptions[0].value);
-  const isValidActivity = activityCode && (activityCode !== 'other-misc' || customActivity) && roomOptions.length > 0;
 
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
@@ -166,28 +121,22 @@ const ContestForm = ({
       // Convert the dates from string to Date
       setStartDate(new Date(contest.startDate));
 
-      if (!getIsCompType(contest.type)) {
-        setStartTime(new Date(contest.meetupDetails.startTime));
-
-        if (contest.type === ContestType.Meetup) setVenueTimeZone(contest.timezone);
-      } else {
+      if (getIsCompType(contest.type)) {
         setEndDate(new Date(contest.endDate));
-
-        const setDefaultActivityTimes = (timezone: string) => {
-          setActivityStartTime(fromZonedTime(addHours(new Date(contest.startDate), 12), timezone));
-          setActivityEndTime(fromZonedTime(addHours(new Date(contest.startDate), 13), timezone));
-        };
 
         if (contest.compDetails) {
           const venue = contest.compDetails.schedule.venues[0];
           setRooms(venue.rooms);
           setVenueTimeZone(venue.timezone);
-          setDefaultActivityTimes(venue.timezone);
-        } else {
-          fetchTimeZone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then(
-            (timeZone) => setDefaultActivityTimes(timeZone),
-          );
+          // This was necessary for imported comps in the past, because they had compDetails as undefined immediately after import.
+          // Commenting this out, cause the import feature is currently disabled. Feel free to remove this in the future if it's no
+          // longer needed for importing comps.
+          // } else {
+          //   fetchTimeZone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then((tz) => setDefaultActivityTimes(tz));
         }
+      } else {
+        setStartTime(new Date(contest.meetupDetails.startTime));
+        setVenueTimeZone(contest.timezone);
       }
 
       if (mode === 'copy') {
@@ -339,9 +288,6 @@ const ContestForm = ({
             })),
           })),
         );
-      } else if (newTab === 'schedule') {
-        setActivityStartTime(fromZonedTime(addHours(new Date(startDate), 12), venueTimeZone));
-        setActivityEndTime(fromZonedTime(addHours(new Date(startDate), 13), venueTimeZone));
       }
     }
   };
@@ -389,7 +335,7 @@ const ContestForm = ({
       setDescription(newContest.description);
       setCompetitorLimit(newContest.competitorLimit);
 
-      await changeCoordinates(latitude, longitude, newContest.startDate);
+      await changeCoordinates(latitude, longitude);
 
       setDetailsImported(true);
       resetMessagesAndLoadingId();
@@ -417,7 +363,7 @@ const ContestForm = ({
     }
   };
 
-  const changeCoordinates = async (newLat: number, newLong: number, newActivityTimesDate?: Date) => {
+  const changeCoordinates = async (newLat: number, newLong: number) => {
     if ([null, undefined].includes(newLat) || [null, undefined].includes(newLong)) {
       setLatitude(newLat);
       setLongitude(newLong);
@@ -431,11 +377,6 @@ const ContestForm = ({
       limitTimezoneRequests(async () => {
         // Adjust all times to the new time zone
         const timeZone: string = await fetchTimeZone(processedLatitude, processedLongitude);
-
-        const start = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 12) : activityStartTime;
-        setActivityStartTime(fromZonedTime(toZonedTime(start, venueTimeZone), timeZone));
-        const end = newActivityTimesDate ? addHours(new Date(newActivityTimesDate), 13) : activityEndTime;
-        setActivityEndTime(fromZonedTime(toZonedTime(end, venueTimeZone), timeZone));
 
         if (type === ContestType.Meetup) {
           setStartTime(fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone));
@@ -467,40 +408,11 @@ const ContestForm = ({
   };
 
   const removeContestEvent = (eventId: string) => {
-    const newContestEvents: IContestEvent[] = [];
-
-    for (const contestEvent of contestEvents) {
-      if (contestEvent.event.eventId === eventId) {
-        // Remove all schedule activities for that event
-        for (const room of rooms) {
-          for (const activity of room.activities) {
-            if (contestEvent.rounds.some((r) => r.roundId === activity.activityCode))
-              deleteActivity(room.id, activity.id);
-          }
-        }
-      } else {
-        newContestEvents.push(contestEvent);
-      }
-    }
-
-    setContestEvents(newContestEvents);
+    setContestEvents(contestEvents.filter((ce) => ce.event.eventId !== eventId));
   };
 
   const removeEventRound = (eventId: string) => {
     const contestEvent = contestEvents.find((el) => el.event.eventId === eventId);
-
-    // Remove the schedule activity for that round
-    for (const room of rooms) {
-      const activityToDelete = room.activities.find(
-        (el) => el.activityCode === contestEvent.rounds[contestEvent.rounds.length - 1].roundId,
-      );
-
-      if (activityToDelete) {
-        deleteActivity(room.id, activityToDelete.id);
-        break;
-      }
-    }
-
     contestEvent.rounds = contestEvent.rounds.slice(0, -1);
 
     // Update new final round
@@ -515,81 +427,6 @@ const ContestForm = ({
     }
 
     setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
-  };
-
-  const addRoom = () => {
-    setRoomName('');
-    setRooms([
-      ...rooms,
-      {
-        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
-        name: roomName.trim(),
-        color: roomColor,
-        activities: [],
-      },
-    ]);
-  };
-
-  const changeActivityStartTime = (newTime: Date) => {
-    setActivityStartTime(newTime);
-
-    if (newTime) {
-      // Change the activity end time too
-      const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
-      setActivityEndTime(new Date(newTime.getTime() + activityLength));
-    }
-  };
-
-  const addActivity = () => {
-    const newRooms = rooms.map((room) =>
-      room.id !== selectedRoom
-        ? room
-        : {
-            ...room,
-            activities: [
-              ...room.activities,
-              {
-                // Gets the current highest ID + 1
-                id:
-                  room.activities.length === 0
-                    ? 1
-                    : room.activities.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
-                activityCode,
-                name: activityCode === 'other-misc' ? customActivity : undefined,
-                startTime: activityStartTime,
-                endTime: activityEndTime,
-                childActivities: [],
-              },
-            ],
-          },
-    );
-
-    setRooms(newRooms);
-    setActivityCode('');
-    setCustomActivity('');
-  };
-
-  // Simply deletes the activity and copies the values to the inputs
-  const editActivity = (roomId: number, activity: IActivity) => {
-    deleteActivity(roomId, activity.id);
-    setActivityCode(activity.activityCode);
-    setActivityStartTime(activity.startTime);
-    setActivityEndTime(activity.endTime);
-    setCustomActivity(activity.name ?? '');
-  };
-
-  const deleteActivity = (roomId: number, activityId: number) => {
-    // This syntax is necessary, because this may be called multiple times in the same tick
-    setRooms((prev) =>
-      prev.map((room) =>
-        room.id !== roomId
-          ? room
-          : {
-              ...room,
-              activities: room.activities.filter((a) => a.id !== activityId),
-            },
-      ),
-    );
   };
 
   const cloneContest = () => {
@@ -883,113 +720,16 @@ const ContestForm = ({
         )}
 
         {activeTab === 'schedule' && (
-          <>
-            <h3 className="mb-3">Rooms</h3>
-            <div className="row">
-              <div className="col-8">
-                <FormTextInput
-                  title="Room name"
-                  value={roomName}
-                  setValue={setRoomName}
-                  disabled={disableIfContestPublished}
-                />
-              </div>
-              <div className="col-4 d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div className="flex-grow-1">
-                  <FormSelect
-                    title="Color"
-                    options={colorOptions}
-                    selected={roomColor}
-                    setSelected={setRoomColor}
-                    disabled={disableIfContestPublished}
-                    noMargin
-                  />
-                </div>
-                <ColorSquare color={roomColor} />
-              </div>
-            </div>
-            <Button
-              text="Create"
-              className="mt-3 mb-2 btn-success"
-              onClick={addRoom}
-              disabled={disableIfContestPublished || !roomName.trim()}
-            />
-            <hr />
-            <h3 className="mb-3">Schedule</h3>
-            <div className="row">
-              <div className="col">
-                <FormSelect
-                  title="Room"
-                  options={roomOptions}
-                  selected={selectedRoom}
-                  setSelected={setSelectedRoom}
-                  disabled={disableIfContestPublished || rooms.length === 0}
-                />
-              </div>
-              <div className="col">
-                <FormSelect
-                  title="Activity"
-                  options={activityOptions}
-                  selected={activityCode}
-                  setSelected={setActivityCode}
-                  disabled={disableIfContestPublished || !selectedRoom}
-                />
-              </div>
-            </div>
-            {activityCode === 'other-misc' && (
-              <FormTextInput
-                title="Custom activity"
-                value={customActivity}
-                setValue={setCustomActivity}
-                disabled={disableIfContestPublished}
-              />
-            )}
-            <div className="mb-3 row align-items-end">
-              <div className="col">
-                <FormDatePicker
-                  id="activity_start_time"
-                  title={`Start time (${venueTimeZone})`}
-                  value={activityStartTime}
-                  setValue={changeActivityStartTime}
-                  timeZone={venueTimeZone}
-                  dateFormat="Pp"
-                  timeIntervals={5}
-                  disabled={disableIfContestPublished}
-                  showUTCTime
-                />
-              </div>
-              <div className="col">
-                <FormDatePicker
-                  id="activity_end_time"
-                  value={activityEndTime}
-                  setValue={setActivityEndTime}
-                  timeZone={venueTimeZone}
-                  dateFormat="Pp"
-                  timeIntervals={5}
-                  disabled={disableIfContestPublished}
-                  showUTCTime
-                />
-              </div>
-            </div>
-            <Button
-              text="Add to schedule"
-              className="mt-3 mb-2 btn-success"
-              disabled={disableIfContestPublished || !isValidActivity}
-              onClick={addActivity}
-            />
-          </>
+          <ScheduleEditor
+            rooms={rooms}
+            setRooms={setRooms}
+            venueTimeZone={venueTimeZone}
+            startDate={startDate}
+            contestEvents={contestEvents}
+            disabled={disableIfContestPublished}
+          />
         )}
       </Form>
-
-      {activeTab === 'schedule' && (
-        <Schedule
-          rooms={rooms}
-          contestEvents={contestEvents}
-          timeZone={venueTimeZone}
-          onEditActivity={disableIfContestPublished ? undefined : editActivity}
-          onDeleteActivity={disableIfContestPublished ? undefined : deleteActivity}
-        />
-      )}
     </div>
   );
 };

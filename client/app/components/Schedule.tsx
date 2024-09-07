@@ -77,94 +77,99 @@ const Schedule = ({
   };
 
   return (
-    <>
+    <section className="fs-6">
       <h1 className="mb-4 text-center">Schedule</h1>
 
-      {days.map((day) => (
-        <div key={day.date.toString()}>
-          <h4 className="mx-2 mb-3 fw-bold">{day.date.toDateString()}</h4>
+      <div className="d-flex flex-column gap-5">
+        {days.map((day) => (
+          <div key={day.date.toString()}>
+            <h4 className="mx-2 mb-3 fw-bold">{day.date.toDateString()}</h4>
 
-          <div className="flex-grow-1 mb-5 table-responsive">
-            <table className="table table-hover text-nowrap">
-              <thead>
-                <tr>
-                  <th scope="col">Start</th>
-                  <th scope="col">End</th>
-                  <th scope="col">Activity</th>
-                  <th scope="col">Room</th>
-                  <th scope="col">Format</th>
-                  {(onEditActivity || onDeleteActivity) && <th scope="col">Actions</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {day.activities.map((activity) => {
-                  let contestEvent: IContestEvent, round: IRound;
+            <div className="flex-grow-1 table-responsive">
+              <table className="table table-hover text-nowrap">
+                <thead>
+                  <tr>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                    <th scope="col">Activity</th>
+                    <th scope="col">Room</th>
+                    <th scope="col">Format</th>
+                    {(onEditActivity || onDeleteActivity) && <th scope="col">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {day.activities.map((activity) => {
+                    let contestEvent: IContestEvent, round: IRound;
 
-                  if (activity.activityCode !== 'other-misc') {
-                    contestEvent = contestEvents.find((ce) => ce.event.eventId === activity.activityCode.split('-')[0]);
-                    if (!contestEvent) throw new Error(`Contest event for activity ${activity.activityCode} not found`);
-                    round = contestEvent.rounds.find((r) => r.roundId === activity.activityCode);
-                  }
+                    if (activity.activityCode !== 'other-misc') {
+                      contestEvent = contestEvents.find(
+                        (ce) => ce.event.eventId === activity.activityCode.split('-')[0],
+                      );
+                      if (!contestEvent)
+                        throw new Error(`Contest event for activity ${activity.activityCode} not found`);
+                      round = contestEvent.rounds.find((r) => r.roundId === activity.activityCode);
+                    }
 
-                  return (
-                    <tr key={`${activity.room.id}_${activity.id}`}>
-                      <td>{activity.formattedStartTime}</td>
-                      <td>{activity.formattedEndTime}</td>
-                      <td>
-                        {activity.activityCode !== 'other-misc' ? (
-                          <span className="d-flex gap-1">
-                            <EventTitle event={contestEvent.event} fontSize="6" noMargin showIcon />
-                            <span>{roundTypes[round.roundTypeId].label}</span>
-                          </span>
-                        ) : (
-                          activity.name
-                        )}
-                      </td>
-                      <td>
-                        <span className="d-flex gap-3">
-                          <ColorSquare
-                            color={activity.room.color}
-                            style={{ height: '1.5rem', width: '1.8rem', margin: 0 }}
-                          />
-                          {activity.room.name}
-                        </span>
-                      </td>
-                      <td>
-                        {activity.activityCode !== 'other-misc' && round
-                          ? roundFormats.find((rf) => rf.value === round.format).label
-                          : ''}
-                      </td>
-                      {(onEditActivity || onDeleteActivity) && (
+                    return (
+                      <tr key={`${activity.room.id}_${activity.id}`}>
+                        <td>{activity.formattedStartTime}</td>
+                        <td>{activity.formattedEndTime}</td>
                         <td>
-                          <div className="d-flex gap-2">
-                            {onEditActivity && (
-                              <Button
-                                text="Edit"
-                                onClick={() => onEditActivity(activity.room.id, activity)}
-                                disabled={!getIsEditableActivity(activity.activityCode)}
-                                className="btn-sm"
-                              />
-                            )}
-                            {onDeleteActivity && (
-                              <Button
-                                text="Delete"
-                                onClick={() => onDeleteActivity(activity.room.id, activity.id)}
-                                disabled={!getIsEditableActivity(activity.activityCode)}
-                                className="btn-danger btn-sm"
-                              />
-                            )}
-                          </div>
+                          {activity.activityCode !== 'other-misc' ? (
+                            <span className="d-flex gap-1">
+                              <EventTitle event={contestEvent.event} fontSize="6" noMargin showIcon />
+                              <span>{roundTypes[round.roundTypeId].label}</span>
+                            </span>
+                          ) : (
+                            activity.name
+                          )}
                         </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <td>
+                          <span className="d-flex gap-3">
+                            <ColorSquare
+                              color={activity.room.color}
+                              style={{ height: '1.5rem', width: '1.8rem', margin: 0 }}
+                            />
+                            {activity.room.name}
+                          </span>
+                        </td>
+                        <td>
+                          {activity.activityCode !== 'other-misc' && round
+                            ? roundFormats.find((rf) => rf.value === round.format).label
+                            : ''}
+                        </td>
+                        {(onEditActivity || onDeleteActivity) && (
+                          <td>
+                            <div className="d-flex gap-2">
+                              {onEditActivity && (
+                                <Button
+                                  text="Edit"
+                                  onClick={() => onEditActivity(activity.room.id, activity)}
+                                  disabled={!getIsEditableActivity(activity.activityCode)}
+                                  className="btn-sm"
+                                />
+                              )}
+                              {onDeleteActivity && (
+                                <Button
+                                  text="Delete"
+                                  onClick={() => onDeleteActivity(activity.room.id, activity.id)}
+                                  disabled={!getIsEditableActivity(activity.activityCode)}
+                                  className="btn-danger btn-sm"
+                                />
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      ))}
-    </>
+        ))}
+      </div>
+    </section>
   );
 };
 

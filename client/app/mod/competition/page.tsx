@@ -3,10 +3,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useMyFetch } from '~/helpers/customHooks';
-import Loading from '@c/UI/Loading';
-import ContestForm from './ContestForm';
 import { IContestData, IEvent } from '@sh/types';
 import { MainContext } from '~/helpers/contexts';
+import Loading from '@c/UI/Loading';
+import ContestForm from './ContestForm';
 
 const CreateEditContestPage = () => {
   const myFetch = useMyFetch();
