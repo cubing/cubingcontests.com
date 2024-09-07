@@ -758,10 +758,10 @@ const ContestForm = ({
                 />
               </div>
             </div>
-            <FormTextInput title="Address" value={address} setValue={setAddress} />
+            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfDetailsImported} />
             <div className="row">
               <div className="col-12 col-md-6">
-                <FormTextInput title="Venue" value={venue} setValue={setVenue} />
+                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfDetailsImported} />
               </div>
               <div className="col-12 col-md-6">
                 <div className="row">
