@@ -24,7 +24,7 @@ import C from '@sh/constants';
 import { IContestEvent, IContestData, IContest, IContestDto, IRound, ISchedule } from '@sh/types';
 import { ContestState, ContestType, EventGroup } from '@sh/enums';
 import { Role } from '@sh/enums';
-import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
+import { getDateOnly, getIsCompType, getIsOtherActivity } from '@sh/sharedFunctions';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
@@ -112,7 +112,7 @@ export class ContestsService {
                   );
                 }
 
-                if (activity.activityCode !== 'other-misc') {
+                if (!getIsOtherActivity(activity.activityCode)) {
                   // Check that all results for this schedule activity have the right date
                   const round = await this.roundModel
                     .findOne({ competitionId: contest.competitionId, roundId: activity.activityCode })
@@ -799,7 +799,7 @@ export class ContestsService {
               throw new BadRequestException(`Duplicate activity ID found: ${activity.id}`);
             activities.add(activity.id);
 
-            if (!/^other-/.test(activity.activityCode)) {
+            if (!getIsOtherActivity(activity.activityCode)) {
               if (!roundIds.has(activity.activityCode))
                 throw new BadRequestException(`Activity ${activity.activityCode} does not have a corresponding round`);
 

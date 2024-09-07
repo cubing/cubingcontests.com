@@ -2,12 +2,21 @@ import { isSameDay } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
+import { getIsOtherActivity } from '@sh/sharedFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import EventTitle from './EventTitle';
 import ColorSquare from '@c/UI/ColorSquare';
 import Button from '@c/UI/Button';
 
 type RoomActivity = IActivity & { room: IRoom };
+type DayActivity = RoomActivity & {
+  formattedStartTime: string;
+  formattedEndTime: string;
+  isEditableActivity: boolean;
+  round?: IRound;
+  roundFormatLabel?: string;
+  contestEvent?: IContestEvent;
+};
 
 const Schedule = ({
   rooms,
@@ -39,10 +48,7 @@ const Schedule = ({
 
   const days: {
     date: Date;
-    activities: (RoomActivity & {
-      formattedStartTime: string;
-      formattedEndTime: string;
-    })[];
+    activities: DayActivity[];
   }[] = [];
 
   for (const activity of allActivities) {
@@ -54,27 +60,32 @@ const Schedule = ({
       days.push({ date: zonedStartTime, activities: [] });
 
     const isMultiDayActivity = !isSameDay(zonedStartTime, zonedEndTime);
-
-    days.at(-1).activities.push({
+    const dayActivity: DayActivity = {
       ...activity,
       formattedStartTime: formatInTimeZone(activity.startTime, timeZone, 'HH:mm'),
       formattedEndTime:
         (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, 'dd MMM')} ` : '') +
         formatInTimeZone(activity.endTime, timeZone, 'HH:mm'),
-    });
-  }
+      isEditableActivity: false,
+    };
 
-  const getIsEditableActivity = (activityCode: string) => {
-    if (/^other-/.test(activityCode)) return true;
-
-    for (const contestEvent of contestEvents) {
-      if (contestEvent.event.eventId === activityCode.split('-')[0]) {
-        const round = contestEvent.rounds.find((r) => r.roundId === activityCode);
-        return round.results.length === 0;
+    if (getIsOtherActivity(activity.activityCode)) {
+      dayActivity.isEditableActivity = true;
+    } else {
+      dayActivity.contestEvent = contestEvents.find(
+        (ce) => ce.event.eventId === dayActivity.activityCode.split('-')[0],
+      );
+      if (dayActivity.contestEvent) {
+        dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
+        if (dayActivity.round) {
+          dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round.format).label;
+          if (dayActivity.round.results.length === 0) dayActivity.isEditableActivity = true;
+        }
       }
     }
-    throw new Error(`Round for activity ${activityCode} not found`);
-  };
+
+    days.at(-1).activities.push(dayActivity);
+  }
 
   return (
     <section className="fs-6">
@@ -98,71 +109,59 @@ const Schedule = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {day.activities.map((activity) => {
-                    let contestEvent: IContestEvent, round: IRound;
-
-                    if (activity.activityCode !== 'other-misc') {
-                      contestEvent = contestEvents.find(
-                        (ce) => ce.event.eventId === activity.activityCode.split('-')[0],
-                      );
-                      if (!contestEvent)
-                        throw new Error(`Contest event for activity ${activity.activityCode} not found`);
-                      round = contestEvent.rounds.find((r) => r.roundId === activity.activityCode);
-                    }
-
-                    return (
-                      <tr key={`${activity.room.id}_${activity.id}`}>
-                        <td>{activity.formattedStartTime}</td>
-                        <td>{activity.formattedEndTime}</td>
-                        <td>
-                          {activity.activityCode !== 'other-misc' ? (
-                            <span className="d-flex gap-1">
-                              <EventTitle event={contestEvent.event} fontSize="6" noMargin showIcon />
-                              <span>{roundTypes[round.roundTypeId].label}</span>
-                            </span>
-                          ) : (
-                            activity.name
-                          )}
-                        </td>
-                        <td>
-                          <span className="d-flex gap-3">
-                            <ColorSquare
-                              color={activity.room.color}
-                              style={{ height: '1.5rem', width: '1.8rem', margin: 0 }}
-                            />
-                            {activity.room.name}
+                  {day.activities.map((a) => (
+                    <tr key={`${a.room.id}_${a.id}`}>
+                      <td>{a.formattedStartTime}</td>
+                      <td>{a.formattedEndTime}</td>
+                      <td>
+                        {a.activityCode !== 'other-misc' ? (
+                          <span className="d-flex align-items-center gap-2">
+                            {a.contestEvent && (
+                              <EventTitle event={a.contestEvent.event} fontSize="6" noMargin showIcon />
+                            )}
+                            {a.round ? (
+                              <span>{roundTypes[a.round.roundTypeId].label}</span>
+                            ) : (
+                              <>
+                                <span className="text-danger fw-bold">ERROR</span>
+                                <span>({a.activityCode})</span>
+                              </>
+                            )}
                           </span>
-                        </td>
-                        <td>
-                          {activity.activityCode !== 'other-misc' && round
-                            ? roundFormats.find((rf) => rf.value === round.format).label
-                            : ''}
-                        </td>
-                        {(onEditActivity || onDeleteActivity) && (
-                          <td>
-                            <div className="d-flex gap-2">
-                              {onEditActivity && (
-                                <Button
-                                  text="Edit"
-                                  onClick={() => onEditActivity(activity.room.id, activity)}
-                                  disabled={!getIsEditableActivity(activity.activityCode)}
-                                  className="btn-sm"
-                                />
-                              )}
-                              {onDeleteActivity && (
-                                <Button
-                                  text="Delete"
-                                  onClick={() => onDeleteActivity(activity.room.id, activity.id)}
-                                  disabled={!getIsEditableActivity(activity.activityCode)}
-                                  className="btn-danger btn-sm"
-                                />
-                              )}
-                            </div>
-                          </td>
+                        ) : (
+                          a.name
                         )}
-                      </tr>
-                    );
-                  })}
+                      </td>
+                      <td>
+                        <span className="d-flex gap-3">
+                          <ColorSquare color={a.room.color} style={{ height: '1.5rem', width: '1.8rem', margin: 0 }} />
+                          {a.room.name}
+                        </span>
+                      </td>
+                      <td>{a.roundFormatLabel}</td>
+                      {(onEditActivity || onDeleteActivity) && (
+                        <td>
+                          <div className="d-flex gap-2">
+                            {onEditActivity && (
+                              <Button
+                                text="Edit"
+                                onClick={() => onEditActivity(a.room.id, a)}
+                                disabled={!a.isEditableActivity}
+                                className="btn-xs"
+                              />
+                            )}
+                            {onDeleteActivity && (
+                              <Button
+                                text="Delete"
+                                onClick={() => onDeleteActivity(a.room.id, a.id)}
+                                className="btn-danger btn-xs"
+                              />
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

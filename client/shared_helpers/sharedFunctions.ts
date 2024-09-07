@@ -346,3 +346,5 @@ export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefi
 
   return undefined;
 };
+
+export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);

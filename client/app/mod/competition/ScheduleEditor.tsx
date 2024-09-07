@@ -243,7 +243,7 @@ const ScheduleEditor = ({
       {/* Bit of a hack to escape the boundaries of the form component to give the schedule more width */}
       <div className="d-flex justify-content-center">
         <div className="min-vw-100">
-          <div className="container-md -mb-5">
+          <div className="container-md">
             <Schedule
               rooms={rooms}
               contestEvents={contestEvents}
