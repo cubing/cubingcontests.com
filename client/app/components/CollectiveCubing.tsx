@@ -142,11 +142,12 @@ const CollectiveCubing = () => {
                 {isSolved && (
                   <Button
                     id="scramble_button"
-                    text="Scramble"
                     onClick={scrambleCube}
                     loadingId={loadingId}
                     className="btn-success w-100 mt-2 mb-4"
-                  />
+                  >
+                    Scramble
+                  </Button>
                 )}
                 <p>
                   All-time number of solves: <b>{numberOfSolves}</b>
@@ -175,12 +176,13 @@ const CollectiveCubing = () => {
                   <div className="my-3 my--md-4">
                     <Button
                       id="confirm_button"
-                      text="Confirm"
                       onClick={confirmMove}
                       disabled={!selectedMove}
                       loadingId={loadingId}
                       className="btn-success w-100"
-                    />
+                    >
+                      Confirm
+                    </Button>
                   </div>
                   <p className="my-2">
                     Moves used:{' '}

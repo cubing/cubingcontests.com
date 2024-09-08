@@ -62,13 +62,9 @@ const ConfirmEmailPage = () => {
           nextFocusTargetId="form_submit_button"
           autoFocus
         />
-        <Button
-          id="resend_code_button"
-          text="Resend code"
-          onClick={resendCode}
-          loadingId={loadingId}
-          className="btn-secondary btn-sm"
-        />
+        <Button id="resend_code_button" onClick={resendCode} loadingId={loadingId} className="btn-secondary btn-sm">
+          Resend Code
+        </Button>
       </Form>
     </div>
   );

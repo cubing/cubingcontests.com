@@ -20,12 +20,6 @@ import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
 
-const getApprovedContestResultQuery = (personId: number) => ({
-  competitionId: { $exists: true },
-  unapproved: { $exists: false },
-  personIds: personId,
-});
-
 @Injectable()
 export class PersonsService {
   constructor(
@@ -69,49 +63,39 @@ export class PersonsService {
     if (user.roles.includes(Role.Admin)) {
       // BE VERY CAREFUL HERE SO AS NOT TO EVER LEAK PASSWORD HASHES!!!
       const persons = await this.personModel
-        .find({}, exclSysButKeepCreatedBy)
-        .populate({ path: 'createdBy', model: 'User' })
-        .sort({ personId: -1 })
+        .aggregate([
+          { $project: { ...exclSysButKeepCreatedBy } },
+          // Keep in mind creator and creatorPerson end up as arrays with one element (or none if not found)
+          { $lookup: { from: 'users', localField: 'createdBy', foreignField: '_id', as: 'creator' } },
+          { $lookup: { from: 'people', localField: 'creator.personId', foreignField: 'personId', as: 'crtrPerson' } },
+          { $sort: { personId: -1 } },
+        ])
         .exec();
 
-      const fePersons: IFePerson[] = [];
-
       for (const person of persons) {
-        const newFePerson: IFePerson = { ...person.toObject(), isEditable: true };
-
-        if (person.createdBy) {
-          newFePerson.creator = {
-            username: person.createdBy.username,
-            email: person.createdBy.email,
-            person: person.createdBy.personId ? await this.getPersonByPersonId(person.createdBy.personId) : null,
+        const creator = person.creator[0];
+        // When the creator is now a deleted user, creator is undefined, but createdBy isn't. If the creator is an external device, createdBy is undefined.
+        if (creator) {
+          person.creator = {
+            username: creator.username,
+            email: creator.email,
+            person: { name: person.crtrPerson[0].name, wcaId: person.crtrPerson[0].wcaId },
           };
+        } else if (person.createdBy === undefined) {
+          person.creator = 'EXT_DEVICE';
+        } else {
+          person.creator = undefined;
         }
-        // createdBy = null, when there was a creator, but it's a deleted user; external devices just leave it undefined
-        else if (person.createdBy === undefined) {
-          newFePerson.creator = 'EXT_DEVICE';
-        }
-
-        (newFePerson as any).createdBy = undefined; // THIS IS CRUCIAL, BECAUSE IT REMOVES ALL UNNEEDED USER DATA, INCLUDING THE PASSWORD HASH
-        fePersons.push(newFePerson);
+        person.createdBy = undefined;
+        person.crtrPerson = undefined;
       }
 
-      return fePersons;
+      return persons;
     } else {
-      const persons = await this.personModel
+      return await this.personModel
         .find({ createdBy: new mongo.ObjectId(user._id as string) }, excl)
         .sort({ personId: -1 })
         .exec();
-
-      const fePersons: IFePerson[] = [];
-
-      for (const person of persons) {
-        const newFePerson: IFePerson = person.toObject();
-        const approvedResult = await this.resultModel.findOne(getApprovedContestResultQuery(person.personId)).exec();
-        if (!approvedResult) newFePerson.isEditable = true;
-        fePersons.push(newFePerson);
-      }
-
-      return fePersons;
     }
   }
 
@@ -143,21 +127,19 @@ export class PersonsService {
     return { person: await this.createPerson(wcaPerson, { user }), isNew: true };
   }
 
+  // This takes either a competition ID or the populated contest events
   async getContestParticipants({
     competitionId,
     contestEvents,
   }: {
     competitionId?: string;
     contestEvents?: ContestEvent[];
-  }): Promise<IFePerson[]> {
+  }): Promise<PersonDocument[]> {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
-    if (contestEvents) {
-      for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
-    } else {
-      compRounds = await this.roundModel.find({ competitionId }).populate(resultPopulateOptions).exec();
-    }
+    if (contestEvents) for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
+    else compRounds = await this.roundModel.find({ competitionId }).populate(resultPopulateOptions).exec();
 
     for (const round of compRounds) {
       for (const result of round.results) {
@@ -175,8 +157,8 @@ export class PersonsService {
     return await this.getPersonsByPersonIds(personIds);
   }
 
-  async getPersonsTotal(): Promise<number> {
-    return await this.personModel.countDocuments().exec();
+  async getTotalPersons(queryFilter: any = {}): Promise<number> {
+    return await this.personModel.countDocuments(queryFilter).exec();
   }
 
   async createPerson(
@@ -191,7 +173,7 @@ export class PersonsService {
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 
-    if (personDto.wcaId) {
+    if (personDto.wcaId.trim()) {
       personDto.wcaId = personDto.wcaId.trim().toUpperCase();
       duplicatePerson = await this.personModel.findOne({ wcaId: personDto.wcaId }).exec();
     } else {
@@ -206,9 +188,9 @@ export class PersonsService {
     }
 
     const [newestPerson] = await this.personModel.find({}, { personId: 1 }).sort({ personId: -1 }).limit(1).exec();
-
     const createdPerson = await this.personModel.create({
       ...personDto,
+      unapproved: true,
       personId: newestPerson ? newestPerson.personId + 1 : 1,
       createdBy: user !== 'EXT_DEVICE' ? new mongo.ObjectId(user._id as string) : undefined,
     });
@@ -231,13 +213,10 @@ export class PersonsService {
       if (sameWcaIdPerson) throw new ConflictException('Another competitor already has that WCA ID');
     }
 
-    const approvedResult = await this.resultModel.findOne(getApprovedContestResultQuery(person.personId)).exec();
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (!isAdmin && approvedResult) {
-      throw new BadRequestException(
-        'You may not edit a person who has competetd in a published contest. Please contact the admins.',
-      );
+    if (!isAdmin && !person.unapproved) {
+      throw new BadRequestException('You may not edit a person who has competed in a published contest');
     }
 
     if (personDto.wcaId) {
@@ -257,15 +236,24 @@ export class PersonsService {
 
     await person.save();
 
-    return this.getFrontendPerson(person, { isEditable: !approvedResult, user });
+    return this.getFrontendPerson(person, { user });
   }
 
-  private getFrontendPerson(
-    person: PersonDocument,
-    { isEditable, user }: { isEditable?: boolean; user?: IPartialUser | 'EXT_DEVICE' } = {},
-  ): IFePerson {
+  async approvePersons({ personIds, competitionId }: { personIds?: number[]; competitionId?: string }) {
+    const competitors = personIds
+      ? await this.getPersonsByPersonIds(personIds)
+      : await this.getContestParticipants({ competitionId });
+
+    for (const competitor of competitors) {
+      if (competitor.unapproved) {
+        competitor.unapproved = undefined;
+        await competitor.save();
+      }
+    }
+  }
+
+  private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {
     const fePerson: IFePerson = person.toObject();
-    if (isEditable) fePerson.isEditable = true;
 
     // Remove system fields
     Object.keys(excl).forEach((key) => delete (fePerson as any)[key]);

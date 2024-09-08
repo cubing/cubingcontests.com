@@ -19,7 +19,7 @@ export interface IResult {
   competitionId?: string; // not needed for submitted results
   eventId: string;
   date: Date;
-  unapproved?: boolean; // undefined by default, set if true
+  unapproved?: true;
   // This is an array, because for team events (e.g. Team-Blind) it stores multiple IDs
   personIds: number[];
   ranking?: number; // not needed for submitted results
@@ -40,7 +40,7 @@ export interface IFeResult extends IResult {
 
 export interface IUpdateResultDto {
   date: Date;
-  unapproved?: boolean;
+  unapproved?: true; // only needed for updating submitted results, because they can be approved at the same time
   personIds: number[];
   attempts: IAttempt[];
   videoLink?: string; // required for submitted results

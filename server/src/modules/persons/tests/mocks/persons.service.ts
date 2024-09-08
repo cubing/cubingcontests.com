@@ -12,4 +12,5 @@ export const PersonsServiceMock = (): any => ({
   getContestParticipants() {
     return 999;
   },
+  approvePersons() {},
 });

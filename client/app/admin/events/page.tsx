@@ -1,6 +1,8 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
 import { IFeEvent, ListPageMode } from '@sh/types';
 import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
@@ -16,6 +18,7 @@ import FormRadio from '@c/form/FormRadio';
 import FormNumberInput from '@c/form/FormNumberInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormTextArea from '@c/form/FormTextArea';
+import Button from '@c/UI/Button';
 
 const CreateEditEventPage = () => {
   const myFetch = useMyFetch();
@@ -111,9 +114,9 @@ const CreateEditEventPage = () => {
       <ToastMessages />
 
       {mode === 'view' ? (
-        <button type="button" className="btn btn-success ms-3" onClick={() => setMode('add')}>
+        <Button onClick={() => setMode('add')} className="btn-success btn-sm ms-3">
           Add event
-        </button>
+        </Button>
       ) : (
         <Form buttonText="Submit" onSubmit={handleSubmit} hideToasts showCancelButton onCancel={() => setMode('view')}>
           <FormTextInput
@@ -225,7 +228,7 @@ const CreateEditEventPage = () => {
         </Form>
       )}
 
-      <div className="container my-5 table-responsive">
+      <div className="container my-4 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>
@@ -250,9 +253,9 @@ const CreateEditEventPage = () => {
                 <td>{eventCategories.find((ec) => event.groups.includes(ec.group)).title}</td>
                 {/* <td>X</td> */}
                 <td>
-                  <button type="button" onClick={() => onEditEvent(event)} className="btn btn-primary btn-sm">
-                    Edit
-                  </button>
+                  <Button onClick={() => onEditEvent(event)} className="btn-xs">
+                    <FontAwesomeIcon icon={faPencil} />
+                  </Button>
                 </td>
               </tr>
             ))}

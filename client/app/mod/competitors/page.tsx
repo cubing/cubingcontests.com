@@ -1,7 +1,9 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faPencil, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
 import { IFePerson, ListPageMode } from '@sh/types';
 import { getUserInfo } from '~/helpers/utilityFunctions';
@@ -13,6 +15,8 @@ import CreatorDetails from '@c/CreatorDetails';
 import Competitor from '@c/Competitor';
 import ToastMessages from '@c/UI/ToastMessages';
 import PersonForm from './PersonForm';
+import FormSelect from '~/app/components/form/FormSelect';
+import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -23,6 +27,24 @@ const CreatePersonPage = () => {
   const [mode, setMode] = useState<ListPageMode | 'add-once'>(searchParams.get('redirect') ? 'add-once' : 'view');
   const [persons, setPersons] = useState<IFePerson[]>([]);
   const [personUnderEdit, setPersonUnderEdit] = useState<IFePerson>();
+  const [approvedFilter, setApprovedFilter] = useState<'approved' | 'unapproved' | ''>('');
+
+  const filteredPersons = useMemo(
+    () =>
+      persons.filter(
+        (p) =>
+          approvedFilter === '' ||
+          (approvedFilter === 'approved' && !p.unapproved) ||
+          (approvedFilter === 'unapproved' && p.unapproved),
+      ),
+    [persons, approvedFilter],
+  );
+
+  const approvedFilterOptions: MultiChoiceOption[] = [
+    { label: 'Any', value: '' },
+    { label: 'Approved', value: 'approved' },
+    { label: 'Not approved', value: 'unapproved' },
+  ];
 
   useEffect(() => {
     myFetch.get('/persons/mod', { authorize: true }).then(({ payload, errors }) => {
@@ -58,9 +80,9 @@ const CreatePersonPage = () => {
       <ToastMessages />
 
       {mode === 'view' ? (
-        <button type="button" className="btn btn-success ms-3" onClick={onAddCompetitor}>
+        <Button onClick={onAddCompetitor} className="btn-success btn-sm ms-3">
           Add competitor
-        </button>
+        </Button>
       ) : (
         <PersonForm
           personUnderEdit={personUnderEdit}
@@ -71,11 +93,20 @@ const CreatePersonPage = () => {
 
       {mode !== 'add-once' && (
         <>
-          {userInfo.isAdmin && (
-            <p className="my-4 px-3">
-              Total competitors:&nbsp;<b>{persons.length}</b>
-            </p>
-          )}
+          <div className="mt-4 mb-2 px-3">
+            <FormSelect
+              title="Status"
+              selected={approvedFilter}
+              setSelected={setApprovedFilter}
+              options={approvedFilterOptions}
+              oneLine
+              style={{ maxWidth: '16rem' }}
+            />
+          </div>
+
+          <p className="my-3 px-3">
+            Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
+          </p>
 
           <div className="container mt-3 table-responsive">
             <table className="table table-hover text-nowrap">
@@ -87,11 +118,12 @@ const CreatePersonPage = () => {
                   <th scope="col">WCA ID</th>
                   <th scope="col">Country</th>
                   {userInfo.isAdmin && <th scope="col">Created by</th>}
+                  <th scope="col">Approved</th>
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {persons.map((person: IFePerson) => (
+                {filteredPersons.map((person: IFePerson) => (
                   <tr key={person.personId}>
                     <td>{person.personId}</td>
                     <td>
@@ -107,15 +139,23 @@ const CreatePersonPage = () => {
                         <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
                       </td>
                     )}
+                    <td className="fs-5">
+                      {person.unapproved ? (
+                        <FontAwesomeIcon icon={faXmark} className="text-danger" />
+                      ) : (
+                        <FontAwesomeIcon icon={faCheck} />
+                      )}
+                    </td>
                     <td>
-                      {person.isEditable && (
+                      {(person.unapproved || userInfo.isAdmin) && (
                         <Button
-                          type="button"
-                          text="Edit"
                           onClick={() => onEditCompetitor(person)}
                           disabled={mode !== 'view'}
-                          className="btn btn-primary btn-xs"
-                        />
+                          className="btn-xs"
+                          ariaLabel="Edit"
+                        >
+                          <FontAwesomeIcon icon={faPencil} />
+                        </Button>
                       )}
                     </td>
                   </tr>

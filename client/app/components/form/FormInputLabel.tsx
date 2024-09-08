@@ -3,11 +3,15 @@ import Tooltip from '@c/UI/Tooltip';
 const FormInputLabel = ({ text, inputId, tooltip }: { text: string; inputId: string; tooltip?: string }) => {
   if (text) {
     return (
-      <span className="d-flex align-items-center gap-2 mb-2">
-        <label htmlFor={inputId} className="form-label mb-1">
+      <span className="flex-shrink-0 d-flex align-items-center gap-2">
+        <label htmlFor={inputId} className="form-label">
           {text}
         </label>
-        {tooltip && <Tooltip id={`${inputId}_tooltip`} text={tooltip} />}
+        {tooltip && (
+          <span className="mb-2">
+            <Tooltip id={`${inputId}_tooltip`} text={tooltip} />
+          </span>
+        )}
       </span>
     );
   }

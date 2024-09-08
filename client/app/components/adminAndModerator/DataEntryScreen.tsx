@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
 import ResultForm from './ResultForm';
 import ToastMessages from '@c/UI/ToastMessages';
@@ -105,7 +107,6 @@ const DataEntryScreen = ({
       } else {
         const updateResultDto: IUpdateResultDto = {
           date: newResult.date,
-          unapproved: resultUnderEdit.unapproved,
           personIds: newResult.personIds,
           attempts: newResult.attempts,
         };
@@ -217,38 +218,40 @@ const DataEntryScreen = ({
               contestEvents={contestEvents}
               disableMainSelects={resultUnderEdit !== null}
             />
-            <Button
-              id="submit_attempt_button"
-              text="Submit"
-              onClick={submitResult}
-              disabled={!isEditable}
-              loadingId={loadingId}
-            />
+            <Button id="submit_attempt_button" onClick={submitResult} disabled={!isEditable} loadingId={loadingId}>
+              Submit
+            </Button>
             {contest.queuePosition !== undefined && (
               <>
-                <p className="mt-4 mb-3">Current position in queue:</p>
+                <p className="mt-4 mb-2">Current position in queue:</p>
                 <div className="d-flex align-items-center gap-3">
                   <Button
                     id="queue_decrement_button"
-                    text="–"
                     onClick={() => updateQueuePosition('decrement')}
                     loadingId={loadingId}
-                    className="btn-success"
-                  />
+                    className="btn-success btn-xs"
+                    ariaLabel="Decrement queue position"
+                  >
+                    <FontAwesomeIcon icon={faMinus} />
+                  </Button>
                   <p className="mb-0 fs-5 fw-bold">{queuePosition}</p>
                   <Button
                     id="queue_increment_button"
-                    text="+"
                     onClick={() => updateQueuePosition('increment')}
                     loadingId={loadingId}
-                    className="btn-success"
-                  />
+                    className="btn-success btn-xs"
+                    ariaLabel="Increment queue position"
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
+                  </Button>
                   <Button
                     id="queue_reset_button"
-                    text="Reset"
                     onClick={() => updateQueuePosition('reset')}
                     loadingId={loadingId}
-                  />
+                    className="btn-xs"
+                  >
+                    Reset
+                  </Button>
                 </div>
               </>
             )}

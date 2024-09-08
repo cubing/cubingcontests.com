@@ -71,12 +71,9 @@ const UserSettingsPage = () => {
             </p>
           )}
 
-          <Button
-            id="delete_account_button"
-            text="Delete Account"
-            onClick={deleteUser}
-            className="mt-4 btn-danger btn-sm"
-          />
+          <Button id="delete_account_button" onClick={deleteUser} className="mt-4 btn-danger btn-sm">
+            Delete Account
+          </Button>
           <p className="mt-2" style={{ fontSize: '0.85rem' }}>
             This deletes all of your account data, but does not affect your competitor data, even if your competitor
             profile is tied to your account.

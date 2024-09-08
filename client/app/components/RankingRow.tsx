@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { FaCaretRight, FaCaretDown } from 'react-icons/fa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import Country from '@c/Country';
 import Competitor from '@c/Competitor';
 import ContestName from '@c/ContestName';
@@ -65,13 +66,14 @@ const RankingRow = ({
       </td>
       {showTeamColumn && (
         <td>
-          <div className="d-flex flex-column align-items-start gap-2">
-            {/* The style is necessary, because the icon is too tall, so it makes the whole row taller */}
-            <span className="mb-2 text-white" style={{ height: '1.5rem', marginTop: '-4px' }}>
+          <div className="d-flex flex-column align-items-start gap-2 fs-6">
+            <span className="text-white">
               <u style={{ cursor: 'pointer' }} onClick={() => setTeamExpanded(!teamExpanded)}>
                 {teamExpanded ? 'Close' : 'Open'}
               </u>
-              <span className="ms-1 fs-5">{teamExpanded ? <FaCaretDown /> : <FaCaretRight />}</span>
+              <span className="ms-2">
+                {teamExpanded ? <FontAwesomeIcon icon={faCaretDown} /> : <FontAwesomeIcon icon={faCaretRight} />}
+              </span>
             </span>
 
             {teamExpanded && ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}

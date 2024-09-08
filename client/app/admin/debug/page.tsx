@@ -59,7 +59,9 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
 
         <FormTextInput title="Email address" value={email} setValue={setEmail} />
 
-        <Button id="send_email_button" text="Send" onClick={sendEmail} loadingId={loadingId} />
+        <Button id="send_email_button" onClick={sendEmail} loadingId={loadingId}>
+          Send
+        </Button>
       </div>
     </div>
   );

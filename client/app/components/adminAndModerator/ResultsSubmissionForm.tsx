@@ -301,21 +301,23 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
           )}
           <Button
             id="submit_button"
-            text="Submit"
             onClick={() => submitResult()}
             loadingId={loadingId}
             disabled={isLoadingRecordPairs}
             className="mt-3"
-          />
+          >
+            Submit
+          </Button>
           {resultId && submissionInfo.result.unapproved && (
             <Button
               id="approve_button"
-              text="Submit and approve"
               onClick={() => submitResult(true)}
               loadingId={loadingId}
               disabled={isLoadingRecordPairs}
               className="btn-success mt-3 ms-3"
-            />
+            >
+              Submit and approve
+            </Button>
           )}
         </Form>
       </div>

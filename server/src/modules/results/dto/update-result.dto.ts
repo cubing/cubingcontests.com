@@ -21,7 +21,7 @@ export class UpdateResultDto implements IUpdateResultDto {
 
   @IsOptional()
   @IsBoolean()
-  unapproved?: boolean;
+  unapproved?: true;
 
   @ArrayMinSize(1)
   @IsInt({ each: true })

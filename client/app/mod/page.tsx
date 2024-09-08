@@ -2,13 +2,16 @@
 
 import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { faClock } from '@fortawesome/free-regular-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
-import ToastMessages from '@c/UI/ToastMessages';
 import { ContestState } from '@sh/enums';
 import { IAdminStats, IContest } from '@sh/types';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 import { getFormattedDate, getUserInfo } from '~/helpers/utilityFunctions';
 import { MainContext } from '~/helpers/contexts';
+import ToastMessages from '@c/UI/ToastMessages';
 import Country from '@c/Country';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Button from '@c/UI/Button';
@@ -23,6 +26,11 @@ const ModeratorDashboardPage = () => {
   const [contests, setContests] = useState<IContest[]>();
   const [adminStats, setAdminStats] = useState<IAdminStats>();
   const [showAnalytics, setShowAnalytics] = useState(false);
+
+  const pendingContests =
+    contests?.filter(
+      (c) => c.state === ContestState.Created || (c.state > ContestState.Approved && c.state < ContestState.Published),
+    ).length ?? 0;
 
   useEffect(() => {
     myFetch.get('/competitions/mod', { authorize: true }).then(({ payload, errors }) => {
@@ -87,23 +95,27 @@ const ModeratorDashboardPage = () => {
         {adminStats && (
           <>
             <p>
-              Total contests: <b>{contests?.length || 0}</b>&#8194;|&#8194;Total competitors:{' '}
-              <b>{adminStats.totalPersons}</b>
+              Total contests:&nbsp;<b>{contests?.length ?? 0}</b>&#8194;|&#8194;Pending:&nbsp;<b>{pendingContests}</b>
+            </p>
+            <p>
+              Total competitors: <b>{adminStats.totalPersons}</b>&#8194;|&#8194;Not approved:&nbsp;
+              <b>{adminStats.unapprovedPersons}</b>
             </p>
             <p>
               Total users:&nbsp;
-              <b>{adminStats.totalUsers}</b>&#8194;|&#8194;Unconfirmed:&nbsp;<b>{adminStats.unconfirmedUsers}</b>
+              <b>{adminStats.totalUsers}</b>&#8194;|&#8194;Not approved:&nbsp;<b>{adminStats.unapprovedUsers}</b>
             </p>
             <p>
-              Total results:&nbsp;<b>{adminStats.totalResults}</b>&#8194;|&#8194;Unapproved:&nbsp;
+              Total results:&nbsp;<b>{adminStats.totalResults}</b>&#8194;|&#8194;Not approved:&nbsp;
               <b>{adminStats.totalUnapprovedSubmittedResults}</b>
             </p>
             <Button
               type="button"
-              text={showAnalytics ? 'Hide analytics' : 'Show analytics'}
               onClick={() => setShowAnalytics(!showAnalytics)}
-              className="btn btn-success btn-sm mt-2 mb-4"
-            />
+              className="btn btn-success btn-sm mb-3"
+            >
+              {showAnalytics ? 'Hide analytics' : 'Show analytics'}
+            </Button>
             {showAnalytics && (
               <div className="mb-4">
                 <h5 className="mb-4">Stats for the past month</h5>
@@ -141,7 +153,9 @@ const ModeratorDashboardPage = () => {
                 <th scope="col">Name</th>
                 <th scope="col">Place</th>
                 <th scope="col">Type</th>
-                <th scope="col">Ppl</th>
+                <th scope="col">
+                  <FontAwesomeIcon icon={faUserGroup} aria-label="Number of participants" />
+                </th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
@@ -178,8 +192,9 @@ const ModeratorDashboardPage = () => {
                               href={`/mod/competition?edit_id=${contest.competitionId}`}
                               prefetch={false}
                               className="btn btn-primary btn-xs"
+                              aria-label="Edit"
                             >
-                              Edit
+                              <FontAwesomeIcon icon={faPencil} />
                             </Link>
                           )}
                           {(contest.state < ContestState.Finished || userInfo.isAdmin) && (
@@ -198,32 +213,38 @@ const ModeratorDashboardPage = () => {
                             <Button
                               id={`set_state_${ContestState.Approved}_${contest.competitionId}_button`}
                               type="button"
-                              text="Approve"
                               onClick={() => changeState(contest.competitionId, ContestState.Approved)}
                               loadingId={loadingId}
                               className="btn btn-warning btn-xs"
-                            />
+                            >
+                              Approve
+                            </Button>
                           )}
                           {contest.state === ContestState.Ongoing && (
                             <Button
                               id={`set_state_${ContestState.Finished}_${contest.competitionId}_button`}
                               type="button"
-                              text="Finish"
                               onClick={() => changeState(contest.competitionId, ContestState.Finished)}
                               loadingId={loadingId}
                               className="btn btn-warning btn-xs"
-                            />
+                            >
+                              Finish
+                            </Button>
                           )}
-                          {contest.state === ContestState.Finished && userInfo.isAdmin && (
-                            <Button
-                              id={`set_state_${ContestState.Published}_${contest.competitionId}_button`}
-                              type="button"
-                              text="Publish"
-                              onClick={() => changeState(contest.competitionId, ContestState.Published)}
-                              loadingId={loadingId}
-                              className="btn btn-warning btn-xs"
-                            />
-                          )}
+                          {contest.state === ContestState.Finished &&
+                            (userInfo.isAdmin ? (
+                              <Button
+                                id={`set_state_${ContestState.Published}_${contest.competitionId}_button`}
+                                type="button"
+                                onClick={() => changeState(contest.competitionId, ContestState.Published)}
+                                loadingId={loadingId}
+                                className="btn btn-warning btn-xs"
+                              >
+                                Publish
+                              </Button>
+                            ) : (
+                              <FontAwesomeIcon icon={faClock} className="my-1 fs-5" />
+                            ))}
                         </div>
                       )}
                     </td>

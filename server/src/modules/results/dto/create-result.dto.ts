@@ -1,7 +1,6 @@
 import {
   ArrayMinSize,
   ArrayMaxSize,
-  IsBoolean,
   IsDateString,
   IsInt,
   IsNotEmpty,
@@ -13,8 +12,8 @@ import {
   Validate,
   ValidateIf,
 } from 'class-validator';
-import { IAttempt, IResult } from '@sh/types';
 import { Type } from 'class-transformer';
+import { IAttempt, IResult } from '@sh/types';
 import C from '@sh/constants';
 import { DATE_VALIDATION_MSG } from '~/src/helpers/messages';
 import { ContestAttempts } from '~/src/helpers/customValidators';
@@ -31,10 +30,6 @@ export class CreateResultDto implements IResult {
 
   @IsDateString({}, { message: DATE_VALIDATION_MSG })
   date: Date;
-
-  @IsOptional()
-  @IsBoolean()
-  unapproved?: boolean;
 
   @ArrayMinSize(1)
   @IsInt({ each: true })

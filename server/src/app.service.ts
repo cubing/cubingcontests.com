@@ -12,6 +12,8 @@ import { ResultsService } from '@m/results/results.service';
 import { EnterAttemptDto } from '~/src/app-dto/enter-attempt.dto';
 import { EnterResultsDto, ExternalResultDto } from './app-dto/enter-results.dto';
 
+type PartialResult = Omit<IResult, 'eventId' | 'best' | 'average'>;
+
 @Injectable()
 export class AppService {
   constructor(
@@ -26,9 +28,10 @@ export class AppService {
     const createdAt = { $gte: addMonths(new Date(), -1) };
 
     const adminStats: IAdminStats = {
-      totalPersons: await this.personsService.getPersonsTotal(),
-      totalUsers: await this.usersService.getUsersTotal(),
-      unconfirmedUsers: await this.usersService.getUsersTotal({ unconfirmedOnly: true }),
+      totalPersons: await this.personsService.getTotalPersons(),
+      unapprovedPersons: await this.personsService.getTotalPersons({ unapproved: true }),
+      totalUsers: await this.usersService.getTotalUsers(),
+      unapprovedUsers: await this.usersService.getTotalUsers({ confirmationCodeHash: { $exists: true } }),
       totalResults: await this.resultsService.getTotalResults(),
       totalUnapprovedSubmittedResults: await this.resultsService.getTotalResults({
         competitionId: { $exists: false },
@@ -125,7 +128,7 @@ export class AppService {
       else attempts.push({ result: 0 });
     }
 
-    const newResultPartial = {
+    const newResultPartial: PartialResult = {
       date: null as Date, // real date assigned below
       unapproved: true, // it's not allowed to enter a new attempt for a finished contest anyways
       // TO-DO: ADD PROPER SUPPORT FOR TEAM EVENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -162,7 +165,7 @@ export class AppService {
         (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
       );
 
-      const newResultPartial = {
+      const newResultPartial: PartialResult = {
         date: null as Date,
         unapproved: true,
         personIds: [person.personId],

@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { FaExclamationTriangle } from 'react-icons/fa';
 import C from '@sh/constants';
 import CollectiveCubing from '~/app/components/CollectiveCubing';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 const Home = () => {
   return (
@@ -41,7 +42,7 @@ const Home = () => {
         instructions.
       </p>
       <div className="mt-4 mx-3 p-3 border rounded-3 fw-bold">
-        <FaExclamationTriangle className="me-2" />
+        <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
         Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
         held as an official{' '}
         <a href="https://worldcubeassociation.org/" target="_blank">

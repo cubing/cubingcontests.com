@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
+import { IFeResult, IRecordType } from '@sh/types';
+import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions';
 import ToastMessages from '@c/UI/ToastMessages';
 import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitors from '@c/Competitors';
-import { IFeResult, IRecordType } from '@sh/types';
-import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions';
 
 const ManageResultsPage = () => {
   const myFetch = useMyFetch();
@@ -88,8 +90,9 @@ const ManageResultsPage = () => {
                       href={`/admin/results/${(result as any)._id}`}
                       prefetch={false}
                       className="btn btn-primary btn-xs"
+                      aria-label="Edit"
                     >
-                      Edit
+                      <FontAwesomeIcon icon={faPencil} />
                     </Link>
                   </td>
                 </tr>

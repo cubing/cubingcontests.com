@@ -2,6 +2,8 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { useMyFetch } from '~/helpers/customHooks';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { Role } from '@sh/enums';
 import { IFeUser } from '@sh/types';
 import { getRoleLabel } from '@sh/sharedFunctions';
@@ -133,10 +135,12 @@ const ManageUsersPage = () => {
                   <Button
                     id={`edit_${user.username}_button`}
                     type="button"
-                    text="Edit"
                     onClick={() => onEditUser(user)}
-                    className="btn btn-primary btn-xs"
-                  />
+                    className="btn-xs"
+                    ariaLabel="Edit"
+                  >
+                    <FontAwesomeIcon icon={faPencil} />
+                  </Button>
                 </td>
               </tr>
             ))}

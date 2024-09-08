@@ -22,6 +22,9 @@ export class Person implements IPerson {
 
   @Prop({ type: mongoose.Types.ObjectId, ref: 'User' })
   createdBy?: UserDocument;
+
+  @Prop()
+  unapproved?: true;
 }
 
 export type PersonDocument = HydratedDocument<Person>;

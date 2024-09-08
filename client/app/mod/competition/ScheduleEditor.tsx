@@ -181,7 +181,7 @@ const ScheduleEditor = ({
           <div className="col-8">
             <FormTextInput title="Room name" value={roomName} setValue={setRoomName} disabled={disabled} />
           </div>
-          <div className="col-4 d-flex justify-content-between align-items-end gap-3 mb-3">
+          <div className="col-4 d-flex justify-content-between align-items-end gap-3">
             <div className="flex-grow-1">
               <FormSelect
                 title="Color"
@@ -189,18 +189,14 @@ const ScheduleEditor = ({
                 selected={roomColor}
                 setSelected={setRoomColor}
                 disabled={disabled}
-                noMargin
               />
             </div>
             <ColorSquare color={roomColor} />
           </div>
         </div>
-        <Button
-          text="Create"
-          className="mt-3 mb-2 btn-success"
-          onClick={addRoom}
-          disabled={disabled || !roomName.trim()}
-        />
+        <Button onClick={addRoom} disabled={disabled || !roomName.trim()} className="btn-success mt-3 mb-2">
+          Create
+        </Button>
         <hr />
         <h3 className="mb-3">Schedule</h3>
         <div className="row">
@@ -260,12 +256,17 @@ const ScheduleEditor = ({
         </div>
         <div className="d-flex gap-3 mb-2">
           <Button
-            text={activityUnderEdit ? 'Update' : 'Add to schedule'}
             onClick={saveActivity}
             disabled={disabled || !isValidActivity}
             className={activityUnderEdit ? 'btn-primary' : 'btn-success'}
-          />
-          {activityUnderEdit !== null && <Button text="Cancel" onClick={cancelEdit} className="btn-danger" />}
+          >
+            {activityUnderEdit ? 'Update' : 'Add to schedule'}
+          </Button>
+          {activityUnderEdit !== null && (
+            <Button onClick={cancelEdit} className="btn-danger">
+              Cancel
+            </Button>
+          )}
         </div>
       </section>
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import FormInputLabel from './FormInputLabel';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
 
@@ -88,10 +89,11 @@ const FormTextInput = ({
         {password && (
           <button
             type="button"
-            className="px-2 pt-0 pb-1 btn btn-primary fs-5"
             onClick={() => setHidePassword(!hidePassword)}
+            className="btn btn-primary py-1 px-2 fs-5"
+            aria-label="Toggle show password"
           >
-            {hidePassword ? <FaEye /> : <FaEyeSlash />}
+            {hidePassword ? <FontAwesomeIcon icon={faEye} className="" /> : <FontAwesomeIcon icon={faEyeSlash} />}
           </button>
         )}
       </div>

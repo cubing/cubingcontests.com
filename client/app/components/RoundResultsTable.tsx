@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitor from '@c/Competitor';
@@ -105,20 +107,23 @@ const RoundResultsTable = ({
                   <td className="py-1">
                     <Button
                       id={`edit_result_${(result as any)._id}_button`}
-                      text="Edit"
                       onClick={() => onEditResult(result)}
                       loadingId={loadingId}
                       disabled={disableEditAndDelete}
-                      className="me-2 btn btn-primary btn-sm"
-                    />
+                      className="me-2 btn-xs"
+                      ariaLabel="Edit"
+                    >
+                      <FontAwesomeIcon icon={faPencil} />
+                    </Button>
                     <Button
                       id={`delete_result_${(result as any)._id}_button`}
-                      text="Delete"
                       onClick={() => onDeleteResult((result as any)._id)}
                       loadingId={loadingId}
                       disabled={disableEditAndDelete}
-                      className="btn btn-danger btn-sm"
-                    />
+                      className="btn-danger btn-xs"
+                    >
+                      Delete
+                    </Button>
                   </td>
                 )}
               </tr>

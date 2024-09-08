@@ -1,7 +1,8 @@
 export interface IAdminStats {
   totalPersons: number;
+  unapprovedPersons: number;
   totalUsers: number;
-  unconfirmedUsers: number;
+  unapprovedUsers: number;
   totalResults: number;
   totalUnapprovedSubmittedResults: number;
   analytics: {

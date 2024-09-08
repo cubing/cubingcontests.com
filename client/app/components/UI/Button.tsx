@@ -1,23 +1,22 @@
 import Loading from '@c/UI/Loading';
 
 const Button = ({
+  children,
   id,
-  text,
   type = 'button',
   onClick,
   loadingId,
   disabled,
   className = '',
+  ariaLabel,
 }: {
-  id?: string;
-  text: string;
+  children: React.ReactNode;
   type?: 'button' | 'submit';
-  onClick: () => void;
   loadingId?: string;
   disabled?: boolean;
-  className?: string;
-}) => {
-  id = id ?? `${text}_button`;
+  ariaLabel?: string;
+} & React.HTMLAttributes<HTMLButtonElement>) => {
+  const isLoading = loadingId && loadingId === id;
 
   return (
     <button
@@ -27,11 +26,12 @@ const Button = ({
       onSubmit={(e) => e.preventDefault()}
       disabled={disabled || !!loadingId}
       className={`position-relative btn btn-primary ${className}`}
+      aria-label={ariaLabel}
     >
-      <span style={loadingId !== id ? {} : { opacity: 0 }}>{text}</span>
+      <span style={isLoading ? { opacity: 0 } : {}}>{children}</span>
       <div
         className={`${
-          loadingId !== id ? 'd-none' : ''
+          isLoading ? '' : 'd-none'
         } position-absolute top-0 start-0 h-100 w-100 d-flex justify-content-center align-items-center`}
       >
         <Loading small />

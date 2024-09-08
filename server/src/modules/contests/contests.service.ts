@@ -463,6 +463,8 @@ export class ContestsService {
       // Unset unapproved from the results so that they can be included in the rankings
       await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
 
+      await this.personsService.approvePersons({ competitionId });
+
       await this.emailService.sendEmail(
         contestCreatorEmail,
         `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,

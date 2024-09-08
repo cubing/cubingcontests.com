@@ -1,9 +1,9 @@
 'use client';
 
-import ToastMessages from '@c/UI/ToastMessages';
-import Button from '@c/UI/Button';
 import { useContext } from 'react';
 import { MainContext } from '~/helpers/contexts';
+import ToastMessages from '@c/UI/ToastMessages';
+import Button from '@c/UI/Button';
 
 const Form = ({
   children,
@@ -45,23 +45,24 @@ const Form = ({
           {showSubmitButton && (
             <Button
               id="form_submit_button"
-              text={buttonText}
               type="submit"
               onClick={onSubmit}
               loadingId={loadingId}
               disabled={disableButton}
-              className="btn btn-primary"
-            />
+            >
+              {buttonText}
+            </Button>
           )}
           {showCancelButton && (
             <Button
               id="form_cancel_button"
-              text="Cancel"
               onClick={onCancel}
               loadingId={loadingId}
               disabled={disableButton}
-              className="btn btn-danger"
-            />
+              className="btn-danger"
+            >
+              Cancel
+            </Button>
           )}
         </div>
       )}

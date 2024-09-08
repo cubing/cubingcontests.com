@@ -1,5 +1,6 @@
 import Competitor from '@c/Competitor';
 import { IFeUser } from '@sh/types';
+import { ReactElement } from 'react';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 
 const CreatorDetails = ({
@@ -11,23 +12,31 @@ const CreatorDetails = ({
   small?: boolean;
   loggedInUser?: IUserInfo;
 }) => {
-  let specialCase: string;
-  if (!creator) specialCase = 'Deleted user';
-  else if (creator === 'EXT_DEVICE') specialCase = 'External device';
-  else if (loggedInUser && creator.username === loggedInUser.username) specialCase = 'Me';
+  let specialCase: ReactElement;
+  if (!creator) specialCase = <span>Deleted user</span>;
+  else if (creator === 'EXT_DEVICE') specialCase = <span className="text-warning">External device</span>;
+  else if (loggedInUser && creator.username === loggedInUser.username) specialCase = <span>Me</span>;
 
-  if (specialCase)
-    return small ? <span>{specialCase}</span> : <div className="mb-3">Created by:&#8194;{specialCase}</div>;
+  if (specialCase) return small ? specialCase : <div className="mb-3">Created by:&#8194;{specialCase}</div>;
 
   creator = creator as IFeUser;
   const username = <a href={`mailto:${creator.email}`}>{creator.username}</a>;
-  const competitor = creator.person !== null ? <Competitor person={creator.person} noFlag /> : 'Not found';
+  const competitor =
+    creator.person !== null ? (
+      <Competitor person={creator.person} noFlag />
+    ) : (
+      <span className="text-danger">Not found</span>
+    );
 
   if (small) {
     return (
-      <span className="d-flex flex-wrap align-items-center column-gap-2">
+      <span
+        className={`d-flex flex-wrap align-items-center column-gap-2 ${
+          creator.person === null ? 'text-danger fw-bold' : ''
+        }`}
+      >
         {competitor}
-        <span>({username})</span>
+        {creator.person !== null && <span>({username})</span>}
       </span>
     );
   }

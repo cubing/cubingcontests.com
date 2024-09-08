@@ -489,62 +489,66 @@ const ContestForm = ({
           <>
             {process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' && mode === 'new' && (
               <div className="d-flex gap-3 mt-3 mb-4">
+                <Button onClick={() => fillWithMockData()} disabled={detailsImported} className="btn-secondary">
+                  Set Mock Competition
+                </Button>
                 <Button
-                  text="Set mock competition data"
-                  onClick={() => fillWithMockData()}
-                  disabled={detailsImported}
-                  className="btn-secondary"
-                />
-                <Button
-                  text="Set mock meetup data"
                   onClick={() => fillWithMockData(ContestType.Meetup)}
                   disabled={detailsImported}
                   className="btn-secondary"
-                />
+                >
+                  Set Mock Meetup
+                </Button>
               </div>
             )}
             {mode === 'edit' && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
                 {contest.type !== ContestType.WcaComp && (
                   // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
-                  <Button id="clone_contest_button" text="Clone" onClick={cloneContest} loadingId={loadingId} />
+                  <Button id="clone_contest_button" onClick={cloneContest} loadingId={loadingId}>
+                    Clone
+                  </Button>
                 )}
                 {userInfo.isAdmin && (
                   <Button
                     id="delete_contest_button"
-                    text="Remove Contest"
                     onClick={removeContest}
                     loadingId={loadingId}
                     disabled={contest.participants > 0}
                     className="btn-danger"
-                  />
+                  >
+                    Remove Contest
+                  </Button>
                 )}
                 <Button
                   id="download_scorecards_button"
-                  text="Scorecards"
                   onClick={downloadScorecards}
                   loadingId={loadingId}
                   disabled={contest.state < ContestState.Approved}
                   className="btn-success"
-                />
+                >
+                  Scorecards
+                </Button>
                 <Button
                   id="enable_queue_button"
-                  text={queueEnabled ? 'Queue Enabled' : 'Enable Queue'}
                   onClick={enableQueue}
                   loadingId={loadingId}
                   disabled={
                     contest.state < ContestState.Approved || contest.state >= ContestState.Finished || queueEnabled
                   }
                   className="btn-secondary"
-                />
+                >
+                  {queueEnabled ? 'Queue Enabled' : 'Enable Queue'}
+                </Button>
                 <Button
                   id="get_access_token_button"
-                  text="Get Access Token"
                   onClick={createAuthToken}
                   loadingId={loadingId}
                   disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
                   className="btn-secondary"
-                />
+                >
+                  Get Access Token
+                </Button>
               </div>
             )}
             <FormTextInput
@@ -576,12 +580,13 @@ const ContestForm = ({
             {type === ContestType.WcaComp && mode === 'new' && (
               <Button
                 id="get_wca_comp_details_button"
-                text="Get WCA competition details"
                 onClick={getWcaCompDetails}
                 loadingId={loadingId}
                 className="mb-3"
                 disabled={disableIfDetailsImported}
-              />
+              >
+                Get WCA competition details
+              </Button>
             )}
             <div className="row">
               <div className="col">

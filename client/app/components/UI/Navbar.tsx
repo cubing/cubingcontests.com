@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { FaBars } from 'react-icons/fa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { getUserInfo, logOutUser } from '~/helpers/utilityFunctions';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
 // import { ISearchResult } from '~/helpers/interfaces';
@@ -65,8 +66,13 @@ const NavbarItems = () => {
         <Link className="navbar-brand fs-3" href="/">
           Cubing Contests
         </Link>
-        <button className="cc-icon-button d-lg-none" onClick={() => setExpanded(!expanded)} type="button">
-          <FaBars />
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="cc-icon-button d-lg-none"
+          aria-label="Menu button"
+        >
+          <FontAwesomeIcon icon={faBars} />
         </button>
         <div className={'navbar-collapse justify-content-end' + (expanded ? '' : ' collapse')}>
           <ul className="navbar-nav align-items-start align-items-lg-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
@@ -141,7 +147,7 @@ const NavbarItems = () => {
                 onMouseEnter={() => toggleDropdown('user', true)}
                 onMouseLeave={() => toggleDropdown('user', false)}
               >
-                <button type="button" className="nav-link dropdown-toggle" onClick={() => toggleDropdown('user')}>
+                <button type="button" onClick={() => toggleDropdown('user')} className="nav-link dropdown-toggle">
                   {userInfo.username}
                 </button>
                 <ul className={`dropdown-menu end-0 py-0 px-3 px-lg-2 ${userExpanded ? 'show' : ''}`}>
@@ -163,7 +169,7 @@ const NavbarItems = () => {
                     </Link>
                   </li>
                   <li>
-                    <button type="button" className="nav-link" onClick={logOut}>
+                    <button type="button" onClick={logOut} className="nav-link">
                       Log Out
                     </button>
                   </li>

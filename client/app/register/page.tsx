@@ -61,10 +61,11 @@ const RegisterPage = () => {
           nextFocusTargetId="form_submit_button"
           password
         />
-        <Link href="/login" className="d-block mt-4 fs-5">
-          Log in
-        </Link>
       </Form>
+
+      <div className="container mt-4 mx-auto px-3 fs-5" style={{ maxWidth: '768px' }}>
+        <Link href="/login">Log in</Link>
+      </div>
     </div>
   );
 };

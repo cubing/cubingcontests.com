@@ -504,9 +504,6 @@ export class ResultsService {
     { user }: { user?: IPartialUser } = {},
   ): Promise<RoundDocument> {
     const contest = await this.getContestAndCheckAccessRights(createResultDto.competitionId, { user });
-    // Admins are allowed to edit finished contests too, so this check is necessary. If it's a finished contest and
-    // the user is not an admin, they won't have access rights anyways, so the roles don't need to be checked here.
-    if (contest.state < ContestState.Finished) createResultDto.unapproved = true;
 
     const round = await this.roundModel
       .findOne({ competitionId: createResultDto.competitionId, roundId })
@@ -550,8 +547,15 @@ export class ResultsService {
 
     // Create new result and update the round's results
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
-    const newResult = await this.resultModel.create(setResultRecords(createResultDto, event, recordPairs));
+    const newResult = await this.resultModel.create({
+      ...setResultRecords(createResultDto, event, recordPairs),
+      // Admins are allowed to edit finished contests, so this check is necessary. If it's a finished contest
+      // and the user is not an admin, they won't have access rights anyways, so the roles don't need to be checked here.
+      unapproved: contest.state < ContestState.Finished ? true : undefined,
+    });
+
     await this.updateFutureRecords(newResult, event, recordPairs, { mode: 'create' });
+    if (!newResult.unapproved) await this.personsService.approvePersons({ personIds: newResult.personIds });
 
     round.results.push(newResult);
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
@@ -588,11 +592,14 @@ export class ResultsService {
     const createdResult = await this.resultModel.create(setResultRecords(newResult, event, recordPairs, !isAdmin));
 
     if (isAdmin) {
-      await this.updateFutureRecords(submitResultDto, event, recordPairs, { mode: 'create' });
+      await this.personsService.approvePersons({ personIds: createdResult.personIds });
+
+      await this.updateFutureRecords(createdResult, event, recordPairs, { mode: 'create' });
     } else {
-      let text = `A new ${submitResultDto.eventId} result has been submitted by user ${
-        user.username
-      }: ${getFormattedTime(createdResult.best, { event, showMultiPoints: true, showDecimals: true })}`;
+      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${getFormattedTime(
+        createdResult.best,
+        { event, showMultiPoints: true, showDecimals: true },
+      )}`;
       if (createdResult.regionalSingleRecord) text += ` (${createdResult.regionalSingleRecord})`;
       if (createdResult.average > 0) {
         text += `, average: ${getFormattedTime(createdResult.average)}`;
@@ -651,7 +658,10 @@ export class ResultsService {
     if (result.unapproved && !updateResultDto.unapproved) {
       result.unapproved = undefined;
       await result.save();
+
       await this.updateFutureRecords(result, event, recordPairs, { mode: 'create' });
+      await this.personsService.approvePersons({ personIds: result.personIds });
+
       await this.emailService.sendEmail(
         await this.usersService.getUserEmail({ _id: result.createdBy }),
         `Your ${event.name} result has been approved. You can see it in the rankings <a href="${process.env.BASE_URL}/rankings/${event.eventId}/single">here</a>.`,

@@ -1,12 +1,17 @@
 import Link from 'next/link';
-import { FaCircle } from 'react-icons/fa';
-import ContestTypeBadge from '@c/ContestTypeBadge';
-import Country from '@c/Country';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircle, faDiamond, faSquare, faUserGroup } from '@fortawesome/free-solid-svg-icons';
 import { IContest } from '@sh/types';
+import { ContestType } from '@sh/enums';
 import { getBSClassFromColor, getFormattedDate } from '~/helpers/utilityFunctions';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
+import ContestTypeBadge from '@c/ContestTypeBadge';
+import Country from '@c/Country';
 
 const ContestsTable = ({ contests }: { contests: IContest[] }) => {
+  const getShapeIcon = (type: ContestType) =>
+    type === ContestType.Competition ? faSquare : type === ContestType.Meetup ? faDiamond : faCircle;
+
   return (
     <>
       {/* MOBILE VIEW */}
@@ -20,7 +25,8 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
             >
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex align-items-center gap-2">
-                  <FaCircle
+                  <FontAwesomeIcon
+                    icon={getShapeIcon(contest.type)}
                     className={`text-${getBSClassFromColor(
                       contestTypeOptions.find((el) => el.value === contest.type).color,
                     )}`}
@@ -65,7 +71,9 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
               <th scope="col">Name</th>
               <th scope="col">Place</th>
               <th scope="col">Type</th>
-              <th scope="col">Participants</th>
+              <th scope="col">
+                <FontAwesomeIcon icon={faUserGroup} aria-label="Number of participants" />
+              </th>
             </tr>
           </thead>
           <tbody>

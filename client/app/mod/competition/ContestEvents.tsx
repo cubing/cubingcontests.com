@@ -212,11 +212,12 @@ const ContestEvents = ({
       </p>
       <div className="my-4 d-flex align-items-center gap-3">
         <Button
-          text="Add Event"
           onClick={addContestEvent}
           disabled={disableNewEvents || contestEvents.length === filteredEvents.length}
-          className="btn btn-success"
-        />
+          className="btn-success"
+        >
+          Add Event
+        </Button>
         <div className="flex-grow-1">
           <FormEventSelect
             title=""
@@ -236,11 +237,9 @@ const ContestEvents = ({
             {totalResultsPerContestEvent[eventIndex] > 0 ? (
               <p className="mb-0">Total results: {totalResultsPerContestEvent[eventIndex]}</p>
             ) : (
-              <Button
-                text="Remove event"
-                className="btn-danger btn-sm"
-                onClick={() => removeContestEvent(ce.event.eventId)}
-              />
+              <Button className="btn-danger btn-sm" onClick={() => removeContestEvent(ce.event.eventId)}>
+                Remove Event
+              </Button>
             )}
           </div>
           {ce.rounds.map((round, roundIndex) => (
@@ -255,7 +254,7 @@ const ContestEvents = ({
                     selected={round.format}
                     setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
                     disabled={round.results.length > 0}
-                    noMargin
+                    className="mb-0"
                   />
                 </div>
               </div>
@@ -329,7 +328,7 @@ const ContestEvents = ({
                       changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, numberOfAttempts: val })
                     }
                     disabled={!round.cutoff || round.results.length > 0}
-                    noMargin
+                    className="mb-0"
                   />
                 </div>
               </div>
@@ -361,19 +360,18 @@ const ContestEvents = ({
           ))}
           <div className="d-flex gap-3">
             {ce.rounds.length < 10 && (
-              <Button
-                text={`Add Round ${ce.rounds.length + 1}`}
-                className="btn-success btn-sm"
-                onClick={() => addRound(ce.event.eventId)}
-              />
+              <Button onClick={() => addRound(ce.event.eventId)} className="btn-success btn-sm">{`Add Round ${
+                ce.rounds.length + 1
+              }`}</Button>
             )}
             {ce.rounds.length > 1 && (
               <Button
-                text="Remove Round"
                 onClick={() => removeEventRound(ce.event.eventId)}
                 disabled={ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0}
                 className="btn-danger btn-sm"
-              />
+              >
+                Remove Round
+              </Button>
             )}
           </div>
         </div>

@@ -1,5 +1,7 @@
 import { isSameDay } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { getIsOtherActivity } from '@sh/sharedFunctions';
@@ -12,7 +14,7 @@ type RoomActivity = IActivity & { room: IRoom };
 type DayActivity = RoomActivity & {
   formattedStartTime: string;
   formattedEndTime: string;
-  isEditableActivity: boolean;
+  isEditable: boolean;
   round?: IRound;
   roundFormatLabel?: string;
   contestEvent?: IContestEvent;
@@ -66,11 +68,11 @@ const Schedule = ({
       formattedEndTime:
         (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, 'dd MMM')} ` : '') +
         formatInTimeZone(activity.endTime, timeZone, 'HH:mm'),
-      isEditableActivity: false,
+      isEditable: false,
     };
 
     if (getIsOtherActivity(activity.activityCode)) {
-      dayActivity.isEditableActivity = true;
+      dayActivity.isEditable = true;
     } else {
       dayActivity.contestEvent = contestEvents.find(
         (ce) => ce.event.eventId === dayActivity.activityCode.split('-')[0],
@@ -79,7 +81,7 @@ const Schedule = ({
         dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
         if (dayActivity.round) {
           dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round.format).label;
-          if (dayActivity.round.results.length === 0) dayActivity.isEditableActivity = true;
+          if (dayActivity.round.results.length === 0) dayActivity.isEditable = true;
         }
       }
     }
@@ -144,18 +146,18 @@ const Schedule = ({
                           <div className="d-flex gap-2">
                             {onEditActivity && (
                               <Button
-                                text="Edit"
                                 onClick={() => onEditActivity(a.room.id, a)}
-                                disabled={!a.isEditableActivity}
+                                disabled={!a.isEditable}
                                 className="btn-xs"
-                              />
+                                ariaLabel="Edit"
+                              >
+                                <FontAwesomeIcon icon={faPencil} />
+                              </Button>
                             )}
                             {onDeleteActivity && (
-                              <Button
-                                text="Delete"
-                                onClick={() => onDeleteActivity(a.room.id, a.id)}
-                                className="btn-danger btn-xs"
-                              />
+                              <Button onClick={() => onDeleteActivity(a.room.id, a.id)} className="btn-danger btn-xs">
+                                Delete
+                              </Button>
                             )}
                           </div>
                         </td>

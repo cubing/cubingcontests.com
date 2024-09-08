@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { FaQuestionCircle } from 'react-icons/fa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 
 const tooltipWidth = 200;
 const horizontalPadding = 10;
@@ -55,7 +56,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
         </div>
       </div>
 
-      <FaQuestionCircle className="m-1 fs-6 text-secondary-emphasis" />
+      <FontAwesomeIcon icon={faQuestionCircle} className="m-1 fs-6 text-secondary-emphasis" />
     </div>
   );
 };

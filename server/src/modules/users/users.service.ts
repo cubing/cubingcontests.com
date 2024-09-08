@@ -299,10 +299,8 @@ export class UsersService {
     return user?.username;
   }
 
-  async getUsersTotal({ unconfirmedOnly }: { unconfirmedOnly: boolean } = { unconfirmedOnly: false }): Promise<number> {
-    return await this.userModel
-      .countDocuments(unconfirmedOnly ? { confirmationCodeHash: { $exists: true } } : undefined)
-      .exec();
+  async getTotalUsers(queryFilter: any = {}): Promise<number> {
+    return await this.userModel.countDocuments(queryFilter).exec();
   }
 
   private async validateUserObject(user: IUser | IFeUser) {
