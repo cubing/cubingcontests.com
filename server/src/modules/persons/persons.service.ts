@@ -74,12 +74,13 @@ export class PersonsService {
 
       for (const person of persons) {
         const creator = person.creator[0];
-        // When the creator is now a deleted user, creator is undefined, but createdBy isn't. If the creator is an external device, createdBy is undefined.
+        const creatorPerson = person.crtrPerson[0];
+        // If the creator is a deleted user now, creator is undefined, but createdBy isn't. If the creator is an external device, createdBy is undefined.
         if (creator) {
           person.creator = {
             username: creator.username,
             email: creator.email,
-            person: { name: person.crtrPerson[0].name, wcaId: person.crtrPerson[0].wcaId },
+            person: creatorPerson ? { name: creatorPerson.name, wcaId: creatorPerson.wcaId } : undefined,
           };
         } else if (person.createdBy === undefined) {
           person.creator = 'EXT_DEVICE';
