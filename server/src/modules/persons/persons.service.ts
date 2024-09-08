@@ -11,7 +11,6 @@ import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/help
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { ContestEvent } from '~/src/models/contest.model';
-import { ResultDocument } from '~/src/models/result.model';
 import { PersonDto } from './dto/person.dto';
 import { IFePerson, IPersonDto, IWcaPersonDto } from '@sh/types';
 import { fetchWcaPerson } from '@sh/sharedFunctions';
@@ -26,7 +25,6 @@ export class PersonsService {
     private readonly logger: MyLogger,
     @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
   ) {}
 
   async onModuleInit() {

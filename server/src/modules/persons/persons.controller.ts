@@ -29,12 +29,12 @@ export class PersonsController {
   async getPersons(
     @Query('name') name = '',
     @Query('exactMatch') exactMatch = false,
-    @Query('personId') personId: number | null = null,
+    @Query('personId') personId?: number,
   ) {
     if (name) {
       if (exactMatch) return await this.personsService.getPersonByName(name);
       else return await this.personsService.getPersonsByName(name);
-    } else if (personId !== null) {
+    } else if (personId !== undefined) {
       return await this.personsService.getPersonByPersonId(personId);
     }
 

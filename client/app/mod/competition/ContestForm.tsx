@@ -13,6 +13,7 @@ import {
   IRoom,
   IMeetupDetails,
   IContestData,
+  IFePerson,
 } from '@sh/types';
 import { Color, ContestState, ContestType, RoundType } from '@sh/enums';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
@@ -245,28 +246,36 @@ const ContestForm = ({
     }
   };
 
-  const fillWithMockData = (mockContestType = ContestType.Competition) => {
-    setType(mockContestType);
-    setCity('Singapore');
-    setCountryIso2('SG');
-    setAddress('Address');
-    setVenue('Venue');
-    setLatitude(1.314663);
-    setLongitude(103.845409);
-    setContact(`${userInfo.username}@cc.com`);
-    setDescription('THIS IS A MOCK CONTEST!');
-    setCompetitorLimit(100);
+  const fillWithMockData = async (mockContestType = ContestType.Competition) => {
+    const { payload, errors } = await myFetch.get<IFePerson>(`/persons?personId=${userInfo.personId}`, {
+      loadingId: 'set_mock_comp_button',
+    });
 
-    if (mockContestType === ContestType.Meetup) {
-      setName('New Meetup 2024');
-      setShortName('New Meetup 2024');
-      setCompetitionId('NewMeetup2024');
-    } else {
-      setName('New Competition 2024');
-      setShortName('New Competition 2024');
-      setCompetitionId('NewCompetition2024');
-      setVenueTimeZone('Asia/Singapore');
-      setRooms([{ id: 1, name: 'Main', color: Color.White, activities: [] }]);
+    if (!errors) {
+      setType(mockContestType);
+      setCity('Singapore');
+      setCountryIso2('SG');
+      setAddress('Address');
+      setVenue('Venue');
+      setLatitude(1.314663);
+      setLongitude(103.845409);
+      setOrganizerNames([payload.name]);
+      setOrganizers([payload]);
+      setContact(`${userInfo.username}@cc.com`);
+      setDescription('THIS IS A MOCK CONTEST!');
+      setCompetitorLimit(100);
+
+      if (mockContestType === ContestType.Meetup) {
+        setName('New Meetup 2024');
+        setShortName('New Meetup 2024');
+        setCompetitionId('NewMeetup2024');
+      } else {
+        setName('New Competition 2024');
+        setShortName('New Competition 2024');
+        setCompetitionId('NewCompetition2024');
+        setVenueTimeZone('Asia/Singapore');
+        setRooms([{ id: 1, name: 'Main', color: Color.White, activities: [] }]);
+      }
     }
   };
 
@@ -489,7 +498,12 @@ const ContestForm = ({
           <>
             {process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' && mode === 'new' && (
               <div className="d-flex gap-3 mt-3 mb-4">
-                <Button onClick={() => fillWithMockData()} disabled={detailsImported} className="btn-secondary">
+                <Button
+                  id="set_mock_comp_button"
+                  onClick={() => fillWithMockData()}
+                  disabled={detailsImported}
+                  className="btn-secondary"
+                >
                   Set Mock Competition
                 </Button>
                 <Button

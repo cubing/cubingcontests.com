@@ -142,6 +142,7 @@ export const getUserInfo = (): IUserInfo => {
       const userInfo: IUserInfo = {
         id: authorizedUser.sub,
         username: authorizedUser.username,
+        personId: authorizedUser.personId,
         roles: authorizedUser.roles,
         isAdmin: authorizedUser.roles.includes(Role.Admin),
         isMod: authorizedUser.roles.includes(Role.Moderator),
