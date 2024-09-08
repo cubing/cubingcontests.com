@@ -174,7 +174,7 @@ export class PersonsService {
     // First check that a person with the same name, country and WCA ID does not already exist
     let duplicatePerson: PersonDocument;
 
-    if (personDto.wcaId.trim()) {
+    if (personDto.wcaId?.trim()) {
       personDto.wcaId = personDto.wcaId.trim().toUpperCase();
       duplicatePerson = await this.personModel.findOne({ wcaId: personDto.wcaId }).exec();
     } else {
