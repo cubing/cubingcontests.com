@@ -83,29 +83,19 @@ Please do **NOT** try to deploy your own instance until this project is ready fo
 
 ## Development
 
-This project uses Next JS for the frontend and Nest JS (confusing, I know) with MongoDB for the backend. To set up the development environment, install Node, NPM, the Nest JS CLI, and Docker, clone this repository, and then run the following commands:
+This project uses Next JS for the frontend and Nest JS (confusing, I know) with MongoDB for the backend. To set up the development environment, install Node, NPM and Docker, clone this repository, and then run this command from the root of the project:
 
 ```sh
-./scripts/init.sh # set up Git hooks and copy .env.example to .env
-
-cd client
-npm install # install frontend packages
-
-cd ../server
-npm install # install backend packages
+./bin/start-dev.sh
 ```
+
+That is the script you can always run when developing Cubing Contests. It starts the frontend [c], backend [s], and database [d] in parallel using concurrently (the [c/s/d] prefix indicates where the logs are coming from). This script also checks that you have the Nest JS CLI and Concurrently installed globally (with NPM), sets up the pre-commit hook, sets up the .env files, and installs the NPM packages in both the `client` and the `server` directories.
 
 The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing.
 
-To start just the backend and the DB in development, run this command in the `server` directory (runs the backend and the MongoDB Docker container):
+Keep in mind that when Handlebars files (the `.hbs` files used for the email templates) are edited, the dev environment has to be restarted for those changes to take effect.
 
-```sh
-npm run fulldev
-```
-
-To start **both** the frontend and the backend, run **the same command** in the `client` directory. That version of the command starts the frontend, the backend, and the DB. Keep in mind that when Handlebars files (`.hbs`) are edited, the dev environment has to be restarted for those changes to take effect.
-
-Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo Express (makes it much easier to work with the database). The username is `admin` and the password is `cc`. `localhost:5000` is used by the backend.
+Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo Express (makes it much easier to work with the database). The username is `admin` and the password is `cc`. `localhost:5000` is used by the backend. The default ports can be overridden.
 
 There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory, but Nest JS does. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
 
@@ -117,9 +107,9 @@ It will also create an admin user with the username `admin`, a moderator with th
 
 ### Environment
 
-Environment variables are specified in `.env` in the root directory and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
+Environment variables are specified in `.env` in the root of the project, and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
 
-In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `npm run fulldev` commands copy `.env` to `server/.env.dev` automatically. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
+In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `start-dev.sh` script copies `.env` to `server/.env.dev` automatically and changes the value of `NODE_ENV` to `development`. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 
 Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS. See that file for more details. The values are taken from the frontend container's environment variables. These must be set during the container's build process when deploying, because that is when Next JS sets the variables in `.env.local`.
 
@@ -129,6 +119,12 @@ To start all containers locally, including the frontend, the backend and the dat
 
 ```sh
 ./script/start-prod.sh --dev
+```
+
+To clean up everything, run this command:
+
+```sh
+./script/start-prod.sh --dev --cleanup
 ```
 
 ### Data structure

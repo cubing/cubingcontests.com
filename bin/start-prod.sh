@@ -27,7 +27,7 @@ set_version_in_env() {
 
 if [ "$1" == "--use-version" ]; then
 
-  ######  USE OLDER VERSION  ######
+  ######  USE OLDER VERSION (THIS IS NOT ALWAYS SAFE!)  ######
 
   # Check that a version argument was passed
   if [ -z "$2" ]; then

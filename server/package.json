@@ -8,8 +8,6 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch --preserveWatchOutput",
-    "copyenv": "cat ../.env | sed -E \"s/NODE_ENV=production$/NODE_ENV=development$/\" > .env.dev",
-    "fulldev": "npm run copyenv && concurrently -kc yellow,green \"sleep 3 && npm run dev\" \"cd .. && docker compose up\"",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
