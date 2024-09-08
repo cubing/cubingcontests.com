@@ -12,6 +12,8 @@ const Competitor = ({
   noFlag?: boolean;
   noLink?: boolean;
 }) => {
+  if (!person) return <span>Not found</span>;
+
   let displayText = person.name;
   if (showLocalizedName && person.localizedName) displayText += ` (${person.localizedName})`;
 

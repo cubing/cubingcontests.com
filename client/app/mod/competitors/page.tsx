@@ -9,14 +9,14 @@ import { IFePerson, ListPageMode } from '@sh/types';
 import { getUserInfo } from '~/helpers/utilityFunctions';
 import { MainContext } from '~/helpers/contexts';
 import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import Button from '@c/UI/Button';
 import Country from '@c/Country';
 import CreatorDetails from '@c/CreatorDetails';
 import Competitor from '@c/Competitor';
 import ToastMessages from '@c/UI/ToastMessages';
 import PersonForm from './PersonForm';
-import FormSelect from '~/app/components/form/FormSelect';
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import FormSelect from '@c/form/FormSelect';
 
 const userInfo: IUserInfo = getUserInfo();
 
