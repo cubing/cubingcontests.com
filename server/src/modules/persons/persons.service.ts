@@ -126,7 +126,7 @@ export class PersonsService {
     return { person: await this.createPerson(wcaPerson, { user }), isNew: true };
   }
 
-  // This takes either a competition ID or the populated contest events
+  // This takes either a contest ID or the populated contest events
   async getContestParticipants({
     competitionId,
     contestEvents,

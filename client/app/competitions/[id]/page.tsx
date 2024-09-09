@@ -94,7 +94,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             ) : contest.state === ContestState.Finished ? (
               <p className="mb-4">The results for this contest are currently being checked</p>
             ) : contest.state === ContestState.Removed ? (
-              <p className="mb-4 text-danger">This contest has been removed</p>
+              <p className="mb-4 text-danger">THIS CONTEST HAS BEEN REMOVED!</p>
             ) : undefined}
 
             {contest.type === ContestType.WcaComp && (

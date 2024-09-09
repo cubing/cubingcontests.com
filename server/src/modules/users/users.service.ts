@@ -73,13 +73,7 @@ export class UsersService {
 
   async getPartialUserWithQuery(query: any): Promise<IPartialUser> {
     return await this.userModel
-      .findOne(query, {
-        password: 0,
-        email: 0,
-        confirmationCodeHash: 0,
-        confirmationCodeAttempts: 0,
-        cooldownStarted: 0,
-      })
+      .findOne(query, { password: 0, confirmationCodeHash: 0, confirmationCodeAttempts: 0, cooldownStarted: 0 })
       .exec();
   }
 

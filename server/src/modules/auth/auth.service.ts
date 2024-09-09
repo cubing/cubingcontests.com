@@ -50,6 +50,7 @@ export class AuthService {
       sub: user._id as any,
       personId: user.personId,
       username: user.username,
+      email: user.email,
       roles: user.roles,
     };
 
@@ -74,6 +75,7 @@ export class AuthService {
           _id: user._id,
           personId: user.personId,
           username: user.username,
+          email: user.email,
           roles: user.roles,
         };
       }
@@ -89,6 +91,7 @@ export class AuthService {
       sub: user._id as string,
       personId: user.personId,
       username: user.username,
+      email: user.email,
       roles: user.roles,
     };
 

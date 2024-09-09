@@ -5,7 +5,7 @@ import {
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
-import { addDays, endOfDay } from 'date-fns';
+import { addDays, differenceInDays, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { find as findTimezone } from 'geo-tz';
 import { ContestDto } from './dto/contest.dto';
@@ -238,19 +238,7 @@ export class ContestsService {
     return output;
   }
 
-  // Create new contest, if one with that ID doesn't already exist
-  async createContest(
-    contestDto: ContestDto,
-    { user, saveResults = false }: { user: IPartialUser; saveResults: boolean },
-  ) {
-    const isAdmin = user.roles.includes(Role.Admin);
-    const contestUrl = getContestUrl(contestDto.competitionId);
-
-    // Only admins are allowed to import contests and have the results immediately saved
-    if (!isAdmin) saveResults = false;
-
-    this.validateAndCleanUpContest(contestDto, user);
-
+  async createContest(contestDto: ContestDto, user: IPartialUser, saveResults = false) {
     // No need to check that the state is not removed, because removed contests have _REMOVED at the end anyways
     const sameIdC = await this.contestModel.findOne({ competitionId: contestDto.competitionId }).exec();
     if (sameIdC) throw new BadRequestException(`A contest with the ID ${contestDto.competitionId} already exists`);
@@ -264,16 +252,17 @@ export class ContestsService {
     if (sameShortC)
       throw new BadRequestException(`A contest with the short name ${contestDto.shortName} already exists`);
 
+    this.validateAndCleanUpContest(contestDto, user);
+
     // First save all of the rounds in the DB (without any results until they get posted)
     const contestEvents: ContestEvent[] = [];
-    const contestCreatorEmail = await this.usersService.getUserEmail({ _id: user._id });
 
     for (const contestEvent of contestDto.events) {
       contestEvents.push(await this.getNewContestEvent(contestEvent, saveResults));
     }
 
     // Create new contest
-    const newCompetition: IContest = {
+    const newContest: IContest = {
       ...contestDto,
       events: contestEvents,
       createdBy: new mongo.ObjectId(user._id as string),
@@ -281,33 +270,32 @@ export class ContestsService {
       participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents })).length,
     };
 
-    newCompetition.organizers = await this.personsService.getPersonsByPersonIds(
+    newContest.organizers = await this.personsService.getPersonsByPersonIds(
       contestDto.organizers.map((org) => org.personId),
     );
 
     if (contestDto.type === ContestType.Meetup) {
-      newCompetition.timezone = findTimezone(
+      newContest.timezone = findTimezone(
         contestDto.latitudeMicrodegrees / 1000000,
         contestDto.longitudeMicrodegrees / 1000000,
       )[0];
     }
 
-    if (contestDto.compDetails?.schedule) {
-      newCompetition.compDetails.schedule = await this.scheduleModel.create(contestDto.compDetails.schedule);
-    }
+    if (contestDto.compDetails?.schedule)
+      newContest.compDetails.schedule = await this.scheduleModel.create(contestDto.compDetails.schedule);
 
     try {
-      await this.contestModel.create(newCompetition);
+      await this.contestModel.create(newContest);
 
-      await this.emailService.sendContestSubmittedNotification(contestCreatorEmail, newCompetition, contestUrl);
-
-      if (!isAdmin) {
-        await this.emailService.sendEmail(
-          C.contactEmail,
-          `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newCompetition.name}</a>.`,
-          { subject: `New contest: ${newCompetition.shortName}` },
-        );
-      }
+      const contestUrl = getContestUrl(contestDto.competitionId);
+      await this.emailService.sendContestSubmittedNotification(user.email, newContest, contestUrl);
+      const prefix = differenceInDays(new Date(), newContest.startDate) < 7 ? 'URGENT! ' : '';
+      // Email to the admins
+      await this.emailService.sendEmail(
+        C.contactEmail,
+        `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newContest.name}</a>.`,
+        { subject: `${prefix}New contest: ${newContest.shortName}` },
+      );
     } catch (err) {
       // Remove created schedule
       await this.scheduleModel.deleteOne({ competitionId: contestDto.competitionId }).exec();
@@ -377,13 +365,13 @@ export class ContestsService {
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
-    const contestUrl = getContestUrl(contest.competitionId);
+    const contestUrl = getContestUrl(competitionId);
 
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException('A competition without a schedule cannot be approved');
-
     if (contest.state === newState)
       throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
+
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
     // A contest can have results before being approved if it's an imported contest.
     if (isAdmin && resultFromContest && contest.state < ContestState.Ongoing && newState === ContestState.Approved) {
@@ -400,76 +388,10 @@ export class ContestsService {
           { subject: `Contest approved: ${contest.shortName}` },
         );
       } else if (newState === ContestState.Finished) {
-        if (contest.type !== ContestType.WcaComp && contest.participants < C.minCompetitorsForNonWca) {
-          throw new BadRequestException(
-            `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForNonWca} competitors`,
-          );
-        }
-
-        // Check there are no rounds with no results
-        const zeroResultsRound = await this.roundModel.findOne({ competitionId, results: { $size: 0 } }).exec();
-        if (zeroResultsRound) {
-          const [eventId, roundNumber] = zeroResultsRound.roundId.split('-');
-          const event = await this.eventsService.getEventById(eventId);
-          throw new BadRequestException(`${event.name} round ${roundNumber.slice(1)} has no results`);
-        }
-
-        // Check there are no incomplete results
-        const incompleteResult = await this.resultModel.findOne({ competitionId, 'attempts.result': 0 }).exec();
-        if (incompleteResult) {
-          const event = await this.eventsService.getEventById(incompleteResult.eventId);
-          throw new BadRequestException(`This contest has an unentered attempt in ${event.name}`);
-        }
-
-        const dnsOnlyResult = await this.resultModel
-          .findOne({ competitionId, attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } } })
-          .exec();
-        if (dnsOnlyResult) {
-          throw new BadRequestException(
-            `This contest has a result with only DNS attempts in event ${
-              (await this.eventsService.getEventById(dnsOnlyResult.eventId)).name
-            }`,
-          );
-        }
-
-        // If there are no issues, finish the contest and send the admins an email
-        contest.queuePosition = undefined;
-
-        if (!isAdmin) {
-          await this.emailService.sendEmail(
-            C.contactEmail,
-            `Contest <a href="${contestUrl}">${contest.name}</a> has been finished. Review the results and publish them to have them included in the rankings.`,
-            { subject: `Contest finished: ${contest.shortName}` },
-          );
-        }
+        await this.finishContest(contest);
+      } else if (isAdmin && newState === ContestState.Published) {
+        await this.publishContest(contest, contestCreatorEmail);
       }
-    }
-
-    if (isAdmin && newState === ContestState.Published) {
-      this.logger.log(`Publishing contest ${contest.competitionId}...`);
-
-      if (contest.type === ContestType.WcaComp) {
-        const response = await fetch(
-          `https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}/results`,
-        );
-        const data = await response.json();
-        if (!data || data.length === 0) {
-          throw new BadRequestException(
-            'You must wait until the results have been published on the WCA website before publishing it',
-          );
-        }
-      }
-
-      // Unset unapproved from the results so that they can be included in the rankings
-      await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
-
-      await this.personsService.approvePersons({ competitionId });
-
-      await this.emailService.sendEmail(
-        contestCreatorEmail,
-        `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
-        { subject: `Contest published: ${contest.shortName}` },
-      );
     }
 
     await contest.save();
@@ -535,7 +457,7 @@ export class ContestsService {
     return round;
   }
 
-  // Finds the contest with the given competition ID with the rounds and results populated
+  // Finds the contest with the given contest ID with the rounds and results populated
   async getFullContest(
     competitionId: string,
     {
@@ -838,5 +760,82 @@ export class ContestsService {
       if (!contest.organizers.some((o) => o.personId === user.personId))
         throw new BadRequestException('You cannot create a contest which you are not organizing');
     }
+  }
+
+  private async finishContest(contest: ContestDocument) {
+    if (contest.type !== ContestType.WcaComp && contest.participants < C.minCompetitorsForNonWca) {
+      throw new BadRequestException(
+        `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForNonWca} competitors`,
+      );
+    }
+
+    // Check there are no rounds with no results
+    const zeroResultsRound = await this.roundModel
+      .findOne({ competitionId: contest.competitionId, results: { $size: 0 } })
+      .exec();
+
+    if (zeroResultsRound) {
+      const [eventId, roundNumber] = zeroResultsRound.roundId.split('-');
+      const event = await this.eventsService.getEventById(eventId);
+      throw new BadRequestException(`${event.name} round ${roundNumber.slice(1)} has no results`);
+    }
+
+    // Check there are no incomplete results
+    const incompleteResult = await this.resultModel
+      .findOne({ competitionId: contest.competitionId, 'attempts.result': 0 })
+      .exec();
+    if (incompleteResult) {
+      const event = await this.eventsService.getEventById(incompleteResult.eventId);
+      throw new BadRequestException(`This contest has an unentered attempt in ${event.name}`);
+    }
+
+    const dnsOnlyResult = await this.resultModel
+      .findOne({ competitionId: contest.competitionId, attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } } })
+      .exec();
+    if (dnsOnlyResult) {
+      throw new BadRequestException(
+        `This contest has a result with only DNS attempts in event ${
+          (await this.eventsService.getEventById(dnsOnlyResult.eventId)).name
+        }`,
+      );
+    }
+
+    // If there are no issues, finish the contest and send the admins an email
+    contest.queuePosition = undefined;
+
+    const contestUrl = getContestUrl(contest.competitionId);
+    await this.emailService.sendEmail(
+      C.contactEmail,
+      `Contest <a href="${contestUrl}">${contest.name}</a> has been finished. Review the results and publish them to have them included in the rankings.`,
+      { subject: `Contest finished: ${contest.shortName}` },
+    );
+  }
+
+  private async publishContest(contest: ContestDocument, contestCreatorEmail: string) {
+    this.logger.log(`Publishing contest ${contest.competitionId}...`);
+
+    if (contest.type === ContestType.WcaComp) {
+      const response = await fetch(
+        `https://www.worldcubeassociation.org/api/v0/competitions/${contest.competitionId}/results`,
+      );
+      const data = await response.json();
+      if (!data || data.length === 0) {
+        throw new BadRequestException(
+          'You must wait until the results have been published on the WCA website before publishing it',
+        );
+      }
+    }
+
+    // Unset unapproved from the results so that they can be included in the rankings
+    await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
+
+    await this.personsService.approvePersons({ competitionId: contest.competitionId });
+
+    const contestUrl = getContestUrl(contest.competitionId);
+    await this.emailService.sendEmail(
+      contestCreatorEmail,
+      `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
+      { subject: `Contest published: ${contest.shortName}` },
+    );
   }
 }

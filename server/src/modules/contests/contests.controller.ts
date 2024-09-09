@@ -76,7 +76,8 @@ export class ContestsController {
   ) {
     this.logger.logAndSave(`Creating contest ${contestDto.competitionId}`, LogType.CreateContest);
 
-    return await this.service.createContest(contestDto, { user: req.user, saveResults });
+    // Only admins are allowed to import contests and have the results immediately saved
+    return await this.service.createContest(contestDto, req.user, saveResults && req.user.roles.includes(Role.Admin));
   }
 
   // PATCH /competitions/:competitionId

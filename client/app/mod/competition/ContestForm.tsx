@@ -170,7 +170,7 @@ const ContestForm = ({
     if (typeof latitude === 'number') latitudeMicrodegrees = Math.round(latitude * 1000000);
     if (typeof longitude === 'number') longitudeMicrodegrees = Math.round(longitude * 1000000);
 
-    // Set the competition ID for every round and empty results if there were any
+    // Set the contest ID for every round and empty results if there were any
     // in order to avoid sending too much data to the backend
     const processedCompEvents = contestEvents.map((ce) => ({
       ...ce,
@@ -318,7 +318,7 @@ const ContestForm = ({
 
   const getWcaCompDetails = async () => {
     if (!competitionId) {
-      changeErrorMessages(['Please enter a competition ID']);
+      changeErrorMessages(['Please enter a contest ID']);
       return;
     }
 

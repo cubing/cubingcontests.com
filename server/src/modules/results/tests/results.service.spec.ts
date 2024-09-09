@@ -36,11 +36,13 @@ import { eventsStub } from '~/src/modules/events/tests/stubs/events.stub';
 const adminUser: IPartialUser = {
   personId: 1,
   username: 'adminuser',
+  email: 'admin@example.com',
   roles: [Role.Admin],
 };
 const modUser: IPartialUser = {
   personId: 2,
   username: 'moduser',
+  email: 'mod@example.com',
   roles: [Role.Moderator],
 };
 
