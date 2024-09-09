@@ -8,6 +8,7 @@ services:
       - 127.0.0.1:27017:27017
     volumes:
       - cubingcontests-db:/data/db:rw
+      - cubingcontests-configdb:/data/configdb:rw
       # The scripts in docker-entrypoint-initdb.d are run when the container and volume are first created
       - mongo-init:/docker-entrypoint-initdb.d:ro
     environment:
@@ -54,6 +55,8 @@ networks:
   cubingcontests:
 volumes:
   cubingcontests-db:
+    driver: local
+  cubingcontests-configdb:
     driver: local
   mongo-init:
     driver: local

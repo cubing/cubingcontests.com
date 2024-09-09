@@ -7,7 +7,8 @@ services:
     ports:
       - 127.0.0.1:27017:27017
     volumes:
-      - cubingcontests-db-dev:/data/db:rw
+      - cubingcontests-db:/data/db:rw
+      - cubingcontests-configdb:/data/configdb:rw
       - mongo-init:/docker-entrypoint-initdb.d:ro
     environment:
       - MONGO_INITDB_ROOT_USERNAME=$MONGO_ADMIN_USERNAME
@@ -36,8 +37,10 @@ services:
 networks:
   cubingcontests-dev:
 volumes:
-  cubingcontests-db-dev:
+  cubingcontests-db:
     # Tells docker to create the storage for the volume on the local file system
+    driver: local
+  cubingcontests-configdb:
     driver: local
   mongo-init:
     driver: local
