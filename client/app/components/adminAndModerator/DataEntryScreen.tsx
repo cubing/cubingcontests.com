@@ -143,12 +143,12 @@ const DataEntryScreen = ({
   };
 
   const updateRecordPairs = async (newResult: IResult) => {
-    const eventRecordPair = recordPairsByEvent.find((el) => el.eventId === newResult.eventId);
+    const eventRP = recordPairsByEvent.find((el) => el.eventId === newResult.eventId);
 
     // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (
-      newResult.best < eventRecordPair.recordPairs[0].best ||
-      newResult.average < eventRecordPair.recordPairs[0].average
+      eventRP.recordPairs.length > 0 &&
+      (newResult.best < eventRP.recordPairs[0].best || newResult.average < eventRP.recordPairs[0].average)
     ) {
       const { payload, errors } = await myFetch.get(
         `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(',')}`,
