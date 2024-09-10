@@ -46,7 +46,7 @@ if [ "$1" == "--use-version" ]; then
   echo "Reverting to version $VERSION (press ENTER to continue...)"
   read
 
-  ./scripts/dump-db.sh /dump
+  ./bin/dump-db.sh /dump
 
   # Stop Docker containers
   sudo docker compose -f docker-compose-prod.yml down &&
@@ -65,7 +65,7 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
     sudo apt update &&
     sudo apt dist-upgrade
 
-    ./scripts/dump-db.sh /dump
+    ./bin/dump-db.sh /dump
   fi
 
   # Stop Docker containers
