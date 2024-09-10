@@ -185,7 +185,7 @@ export const useFetchPerson = () => {
     // const {
     //   payload: { result: wcaPersonMatches },
     //   errors,
-    // } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/search/users?q=${name}&persons_table=true`, {
+    // } = await myFetch.get(`https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${name}`, {
     //   loadingId: null,
     // });
     // if (errors) throw new Error(errors[0]);

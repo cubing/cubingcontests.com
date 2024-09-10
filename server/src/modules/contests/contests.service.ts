@@ -290,7 +290,7 @@ export class ContestsService {
       const contestUrl = getContestUrl(contestDto.competitionId);
       await this.emailService.sendContestSubmittedNotification(user.email, newContest, contestUrl);
       const prefix = differenceInDays(new Date(), newContest.startDate) < 7 ? 'URGENT! ' : '';
-      // Email to the admins
+      // Email the admins
       await this.emailService.sendEmail(
         C.contactEmail,
         `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newContest.name}</a>.`,
@@ -803,6 +803,7 @@ export class ContestsService {
     // If there are no issues, finish the contest and send the admins an email
     contest.queuePosition = undefined;
 
+    // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);
     await this.emailService.sendEmail(
       C.contactEmail,
@@ -814,12 +815,13 @@ export class ContestsService {
   private async publishContest(contest: ContestDocument, contestCreatorEmail: string) {
     this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
+    let wcaCompData: unknown[];
     if (contest.type === ContestType.WcaComp) {
-      const response = await fetch(
+      const res = await fetch(
         `https://www.worldcubeassociation.org/api/v0/competitions/${contest.competitionId}/results`,
       );
-      const data = await response.json();
-      if (!data || data.length === 0) {
+      wcaCompData = await res.json();
+      if (!wcaCompData || wcaCompData.length === 0) {
         throw new BadRequestException(
           'You must wait until the results have been published on the WCA website before publishing it',
         );
@@ -829,8 +831,9 @@ export class ContestsService {
     // Unset unapproved from the results so that they can be included in the rankings
     await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
 
-    await this.personsService.approvePersons({ competitionId: contest.competitionId });
+    await this.personsService.approvePersons({ competitionId: contest.competitionId, wcaCompData });
 
+    // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);
     await this.emailService.sendEmail(
       contestCreatorEmail,

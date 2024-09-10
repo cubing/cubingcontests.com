@@ -554,8 +554,9 @@ export class ResultsService {
       unapproved: contest.state < ContestState.Finished ? true : undefined,
     });
 
-    await this.updateFutureRecords(newResult, event, recordPairs, { mode: 'create' });
     if (!newResult.unapproved) await this.personsService.approvePersons({ personIds: newResult.personIds });
+
+    await this.updateFutureRecords(newResult, event, recordPairs, { mode: 'create' });
 
     round.results.push(newResult);
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });

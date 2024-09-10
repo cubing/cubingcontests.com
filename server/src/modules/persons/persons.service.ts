@@ -48,9 +48,11 @@ export class PersonsService {
 
   async getPersonsByPersonIds(
     personIds: number[],
-    { preserveOrder }: { preserveOrder?: boolean } = {},
+    { preserveOrder, unapprovedOnly }: { preserveOrder?: boolean; unapprovedOnly?: boolean } = {},
   ): Promise<PersonDocument[]> {
-    let persons: PersonDocument[] = await this.personModel.find({ personId: { $in: personIds } }, excl).exec();
+    const query: any = { personId: { $in: personIds } };
+    if (unapprovedOnly) query.unapproved = true;
+    let persons: PersonDocument[] = await this.personModel.find(query, excl).exec();
 
     if (preserveOrder) persons = personIds.map((pid) => persons.find((p) => p.personId === pid));
 
@@ -130,9 +132,11 @@ export class PersonsService {
   async getContestParticipants({
     competitionId,
     contestEvents,
+    unapprovedOnly,
   }: {
     competitionId?: string;
     contestEvents?: ContestEvent[];
+    unapprovedOnly?: boolean;
   }): Promise<PersonDocument[]> {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
@@ -153,7 +157,7 @@ export class PersonsService {
       }
     }
 
-    return await this.getPersonsByPersonIds(personIds);
+    return await this.getPersonsByPersonIds(personIds, { unapprovedOnly });
   }
 
   async getTotalPersons(queryFilter: any = {}): Promise<number> {
@@ -238,15 +242,42 @@ export class PersonsService {
     return this.getFrontendPerson(person, { user });
   }
 
-  async approvePersons({ personIds, competitionId }: { personIds?: number[]; competitionId?: string }) {
+  // Returns array of competitors who couldn't be approved
+  async approvePersons({
+    personIds,
+    competitionId,
+    wcaCompData,
+  }: {
+    personIds?: number[];
+    competitionId?: string;
+    wcaCompData?: unknown[];
+  }) {
     const competitors = personIds
       ? await this.getPersonsByPersonIds(personIds)
-      : await this.getContestParticipants({ competitionId });
+      : await this.getContestParticipants({ competitionId, unapprovedOnly: true });
 
     for (const competitor of competitors) {
       if (competitor.unapproved) {
-        competitor.unapproved = undefined;
-        await competitor.save();
+        if (!competitor.wcaId && wcaCompData) {
+          const res = await fetch(
+            `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${competitor.name}`,
+          );
+          if (res.ok) {
+            const { result: wcaPersons } = await res.json();
+            if (
+              wcaPersons?.length === 1 &&
+              wcaPersons[0].name === competitor.name &&
+              wcaPersons[0].country_iso2 === competitor.countryIso2
+            ) {
+              competitor.wcaId = wcaPersons[0].wca_id;
+            }
+          }
+        }
+
+        if (competitor.wcaId) {
+          competitor.unapproved = undefined;
+          await competitor.save();
+        }
       }
     }
   }
