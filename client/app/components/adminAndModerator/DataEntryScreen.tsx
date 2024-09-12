@@ -196,12 +196,12 @@ const DataEntryScreen = ({
   };
 
   return (
-    <div>
+    <div className="px-2">
       <ToastMessages />
 
       <div className="row py-4">
         <div className="col-lg-3 mb-4">
-          <div className="px-2">
+          <div>
             <ResultForm
               event={currEvent}
               persons={currentPersons}

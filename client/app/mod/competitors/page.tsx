@@ -52,6 +52,11 @@ const CreatePersonPage = () => {
     });
   }, []);
 
+  const cancel = () => {
+    setMode('view');
+    resetMessagesAndLoadingId();
+  };
+
   const onAddCompetitor = () => {
     setMode('add');
     setPersonUnderEdit(undefined);
@@ -87,7 +92,7 @@ const CreatePersonPage = () => {
         <PersonForm
           personUnderEdit={personUnderEdit}
           onSubmit={updateCompetitors}
-          onCancel={mode !== 'add-once' ? () => setMode('view') : undefined}
+          onCancel={mode !== 'add-once' ? cancel : undefined}
         />
       )}
 

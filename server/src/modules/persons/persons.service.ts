@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo, Model } from 'mongoose';
 import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
@@ -36,6 +30,14 @@ export class PersonsService {
 
         await this.personModel.create({ name: 'Test Admin', countryIso2: 'CH', personId: 1 });
         await this.personModel.create({ name: 'Test Moderator', countryIso2: 'NR', personId: 2 });
+      }
+    }
+
+    if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
+      const persons = await this.personModel.find().exec();
+      for (const person of persons) {
+        if (persons.some((p) => p.personId !== person.personId && p.name === person.name))
+          this.logger.error(`Error: multiple persons found with the name ${person.name}`);
       }
     }
   }
@@ -173,22 +175,7 @@ export class PersonsService {
       LogType.CreatePerson,
     );
 
-    // First check that a person with the same name, country and WCA ID does not already exist
-    let duplicatePerson: PersonDocument;
-
-    if (personDto.wcaId?.trim()) {
-      personDto.wcaId = personDto.wcaId.trim().toUpperCase();
-      duplicatePerson = await this.personModel.findOne({ wcaId: personDto.wcaId }).exec();
-    } else {
-      duplicatePerson = await this.personModel
-        .findOne({ name: personDto.name, countryIso2: personDto.countryIso2 })
-        .exec();
-    }
-
-    if (duplicatePerson) {
-      if (personDto.wcaId) throw new BadRequestException('A person with the same WCA ID already exists');
-      throw new BadRequestException('A person with the same name and country already exists');
-    }
+    await this.validateAndCleanUpPerson(personDto);
 
     const [newestPerson] = await this.personModel.find({}, { personId: 1 }).sort({ personId: -1 }).limit(1).exec();
     const createdPerson = await this.personModel.create({
@@ -207,20 +194,15 @@ export class PersonsService {
       LogType.UpdatePerson,
     );
 
+    await this.validateAndCleanUpPerson(personDto, { excludeId: id });
+
     const person = await this.personModel.findById(id).exec();
     if (!person) throw new NotFoundException('Person not found');
 
-    if (personDto.wcaId) {
-      personDto.wcaId = personDto.wcaId.toUpperCase();
-      const sameWcaIdPerson = await this.personModel.findOne({ _id: { $ne: id }, wcaId: personDto.wcaId });
-      if (sameWcaIdPerson) throw new ConflictException('Another competitor already has that WCA ID');
-    }
-
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (!isAdmin && !person.unapproved) {
+    if (!isAdmin && !person.unapproved)
       throw new BadRequestException('You may not edit a person who has competed in a published contest');
-    }
 
     if (personDto.wcaId) {
       const wcaPerson: IPersonDto = await fetchWcaPerson(personDto.wcaId);
@@ -280,6 +262,19 @@ export class PersonsService {
         }
       }
     }
+  }
+
+  private async validateAndCleanUpPerson(personDto: PersonDto, { excludeId }: { excludeId?: string } = {}) {
+    const queryBase: any = excludeId ? { _id: { $ne: excludeId } } : {};
+
+    if (personDto.wcaId?.trim()) {
+      personDto.wcaId = personDto.wcaId.trim().toUpperCase();
+      const sameWcaIdPerson = await this.personModel.findOne({ ...queryBase, wcaId: personDto.wcaId }).exec();
+      if (sameWcaIdPerson) throw new BadRequestException('A person with the same WCA ID already exists');
+    }
+
+    const sameNamePerson = await this.personModel.findOne({ ...queryBase, name: personDto.name }).exec();
+    if (sameNamePerson) throw new BadRequestException('A person with the same name already exists');
   }
 
   private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {
