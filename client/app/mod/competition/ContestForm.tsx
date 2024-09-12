@@ -742,7 +742,6 @@ const ContestForm = ({
           <ScheduleEditor
             rooms={rooms}
             setRooms={setRooms}
-            originalRooms={mode === 'edit' ? contest.compDetails.schedule.venues[0].rooms : undefined}
             venueTimeZone={venueTimeZone}
             startDate={startDate}
             contestEvents={contestEvents}

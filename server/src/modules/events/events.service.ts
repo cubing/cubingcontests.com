@@ -59,15 +59,10 @@ export class EventsService {
     else if (!includeHidden) queryFilter.groups = { $ne: EventGroup.Hidden };
     if (eventIds) queryFilter.eventId = { $in: eventIds };
 
-    try {
-      let func = this.eventModel.find(queryFilter, excl);
+    let query = this.eventModel.find(queryFilter, excl);
+    if (populateRules) query = query.populate({ path: 'rule', model: 'EventRule' });
 
-      if (populateRules) func = func.populate({ path: 'rule', model: 'EventRule' });
-
-      return await func.sort({ rank: 1 }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    return await query.sort({ rank: 1 }).exec();
   }
 
   async getFrontendEvents(
@@ -85,24 +80,14 @@ export class EventsService {
   }
 
   async getSubmissionBasedEvents(): Promise<EventDocument[]> {
-    try {
-      return await this.eventModel
-        .find({ groups: { $in: [EventGroup.ExtremeBLD, EventGroup.SubmissionsAllowed] } }, excl)
-        .sort({ rank: 1 })
-        .exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    return await this.eventModel
+      .find({ groups: { $in: [EventGroup.ExtremeBLD, EventGroup.SubmissionsAllowed] } }, excl)
+      .sort({ rank: 1 })
+      .exec();
   }
 
   async getEventById(eventId: string): Promise<EventDocument> {
-    let event: EventDocument;
-
-    try {
-      event = await this.eventModel.findOne({ eventId }, excl).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    const event = await this.eventModel.findOne({ eventId }, excl).exec();
 
     if (!event) throw new NotFoundException(`Event with ID ${eventId} not found`);
 
@@ -206,11 +191,7 @@ export class EventsService {
       }
     }
 
-    try {
-      await event.save();
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while saving event ${eventId}: ${err.message}`);
-    }
+    await event.save();
 
     return await this.getFrontendEvents({ includeHidden: true, populateRules: true });
   }

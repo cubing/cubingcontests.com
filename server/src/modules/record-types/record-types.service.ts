@@ -23,35 +23,26 @@ export class RecordTypesService {
 
   // Executed before the app is bootstrapped
   async onModuleInit() {
-    try {
-      const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find().exec();
+    const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find().exec();
 
-      if (recordTypes.length === 0) {
-        this.logger.log('Seeding the record types collection...');
+    if (recordTypes.length === 0) {
+      this.logger.log('Seeding the record types collection...');
 
-        await this.recordTypeModel.insertMany(recordTypesSeed);
+      await this.recordTypeModel.insertMany(recordTypesSeed);
 
-        this.logger.log('Record types collection successfully seeded');
-      } else {
-        this.logger.log('Record types collection already seeded');
-      }
-    } catch (err) {
-      throw new InternalServerErrorException(`Error while seeding records types collection: ${err.message}`);
+      this.logger.log('Record types collection successfully seeded');
+    } else {
+      this.logger.log('Record types collection already seeded');
     }
   }
 
   async getRecordTypes(query?: any): Promise<RecordTypeDocument[]> {
     const queryFilter = query?.active ? { active: query.active } : {};
 
-    try {
-      return await this.recordTypeModel.find(queryFilter, excl).sort({ order: 1 }).exec();
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    return await this.recordTypeModel.find(queryFilter, excl).sort({ order: 1 }).exec();
   }
 
-  // updateRTsDtoS = update record types DTOs (plural, cause it's an array)
-  async updateRecordTypes(updateRTsDtoS: UpdateRecordTypeDto[]) {
+  async updateRecordTypes(updateRTsDtoArr: UpdateRecordTypeDto[]) {
     let recordTypes; // this needs to just hold the PREVIOUS record types; used for setting records below
     let events: EventDocument[];
 
@@ -59,7 +50,7 @@ export class RecordTypesService {
       recordTypes = await this.recordTypeModel.find().exec();
       events = await this.eventModel.find().exec();
 
-      for (const newRecordType of updateRTsDtoS) {
+      for (const newRecordType of updateRTsDtoArr) {
         await this.recordTypeModel.updateOne({ wcaEquivalent: newRecordType.wcaEquivalent }, newRecordType).exec();
       }
     } catch (err) {
@@ -70,13 +61,13 @@ export class RecordTypesService {
     if (!events) throw new InternalServerErrorException('Unable to find events while updating record types');
 
     // Set the records
-    for (let i = 0; i < updateRTsDtoS.length; i++) {
-      const wcaEquiv = updateRTsDtoS[i].wcaEquivalent;
+    for (let i = 0; i < updateRTsDtoArr.length; i++) {
+      const wcaEquiv = updateRTsDtoArr[i].wcaEquivalent;
 
       // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       if (wcaEquiv === WcaRecordType.WR) {
         // Remove records if set to inactive but was active before, or set the records for the opposite case
-        if (!updateRTsDtoS[i].active && recordTypes[i].active) {
+        if (!updateRTsDtoArr[i].active && recordTypes[i].active) {
           this.logger.log(`Unsetting ${wcaEquiv} records`);
 
           // Remove single records
@@ -88,7 +79,7 @@ export class RecordTypesService {
           await this.resultModel
             .updateMany({ regionalAverageRecord: wcaEquiv }, { $unset: { regionalAverageRecord: '' } })
             .exec();
-        } else if (updateRTsDtoS[i].active && !recordTypes[i].active) {
+        } else if (updateRTsDtoArr[i].active && !recordTypes[i].active) {
           try {
             for (const event of events) {
               await this.setEventSingleRecords(event, wcaEquiv);

@@ -14,12 +14,10 @@ import FormTextInput from '@c/form/FormTextInput';
 import Button from '@c/UI/Button';
 import ColorSquare from '@c/UI/ColorSquare';
 import Schedule from '@c/Schedule';
-import { getIsOtherActivity } from '~/shared_helpers/sharedFunctions';
 
 const ScheduleEditor = ({
   rooms,
   setRooms,
-  originalRooms,
   venueTimeZone,
   startDate,
   contestEvents,
@@ -27,7 +25,6 @@ const ScheduleEditor = ({
 }: {
   rooms: IRoom[];
   setRooms: (val: IRoom[] | ((prev: IRoom[]) => IRoom[])) => void;
-  originalRooms: IRoom[] | undefined;
   venueTimeZone: string;
   startDate: Date;
   contestEvents: IContestEvent[];
@@ -73,7 +70,8 @@ const ScheduleEditor = ({
     }
 
     output.push({ label: 'Custom', value: 'other-misc' });
-    setActivityCode(output[0].value as string); // set selected activity code as the first available option
+    // Set selected activity code as the first available option, if not editing
+    if (activityUnderEdit === null) setActivityCode(output[0].value as string);
     return output;
   }, [contestEvents, rooms, activityUnderEdit]);
 
@@ -105,19 +103,6 @@ const ScheduleEditor = ({
   };
 
   const saveActivity = () => {
-    // If we're editing a contest, and there was already an activity for the selected round, get the original activity ID.
-    // Otherwise, simply return the current highest activity ID + 1.
-    const getNewActivityId = (room: IRoom) => {
-      const originalRoom = originalRooms?.find((r) => r.id === room.id);
-      if (originalRoom && !getIsOtherActivity(activityCode)) {
-        const originalActivity = originalRoom.activities.find((a) => a.activityCode === activityCode);
-        if (originalActivity) return originalActivity.id;
-      }
-
-      if (room.activities.length === 0) return 1;
-      return room.activities.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1;
-    };
-
     const getFieldsFromInputs = () => ({
       activityCode,
       startTime: activityStartTime,
@@ -133,7 +118,10 @@ const ScheduleEditor = ({
             ...room,
             activities: activityUnderEdit
               ? room.activities.map((a) => (a.id === activityUnderEdit.id ? { id: a.id, ...getFieldsFromInputs() } : a))
-              : [...room.activities, { id: getNewActivityId(room), ...getFieldsFromInputs() }],
+              : [
+                  ...room.activities,
+                  { id: Math.max(...room.activities.map((a) => a.id), 0) + 1, ...getFieldsFromInputs() },
+                ],
           },
     );
 
@@ -215,7 +203,7 @@ const ScheduleEditor = ({
               options={activityOptions}
               selected={activityCode}
               setSelected={setActivityCode}
-              disabled={disabled || !selectedRoom || activityUnderEdit !== null}
+              disabled={disabled || !selectedRoom}
             />
           </div>
         </div>

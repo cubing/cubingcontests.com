@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-  NotImplementedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { addDays, differenceInDays, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { find as findTimezone } from 'geo-tz';
@@ -257,9 +251,8 @@ export class ContestsService {
     // First save all of the rounds in the DB (without any results until they get posted)
     const contestEvents: ContestEvent[] = [];
 
-    for (const contestEvent of contestDto.events) {
+    for (const contestEvent of contestDto.events)
       contestEvents.push(await this.getNewContestEvent(contestEvent, saveResults));
-    }
 
     // Create new contest
     const newContest: IContest = {
@@ -297,8 +290,12 @@ export class ContestsService {
         { subject: `${prefix}New contest: ${newContest.shortName}` },
       );
     } catch (err) {
-      // Remove created schedule
-      await this.scheduleModel.deleteOne({ competitionId: contestDto.competitionId }).exec();
+      // Remove created contest, rounds, results and schedule
+      await this.contestModel.deleteOne({ competitionId: contestDto.competitionId }).exec();
+      await this.roundModel.deleteMany({ competitionId: contestDto.competitionId }).exec();
+      if (saveResults) await this.resultModel.deleteMany({ competitionId: contestDto.competitionId }).exec();
+      if (contestDto.compDetails)
+        await this.scheduleModel.deleteOne({ competitionId: contestDto.competitionId }).exec();
 
       throw new InternalServerErrorException(err.message);
     }
@@ -361,16 +358,15 @@ export class ContestsService {
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
     await this.authService.checkAccessRightsToContest(user, contest);
+    if (getIsCompType(contest.type) && !contest.compDetails)
+      throw new BadRequestException('A competition without a schedule cannot be approved');
+    if (contest.state === newState)
+      throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
 
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
     const contestUrl = getContestUrl(competitionId);
-
-    if (getIsCompType(contest.type) && !contest.compDetails)
-      throw new BadRequestException('A competition without a schedule cannot be approved');
-    if (contest.state === newState)
-      throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
 
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
     // A contest can have results before being approved if it's an imported contest.
@@ -522,8 +518,9 @@ export class ContestsService {
     };
   }
 
-  // Deletes/adds/updates contest events and rounds. This assumes that access rights have already been checked,
-  // so it only makes further checks for admin-only features for when the contest hasn't been finished yet.
+  // Deletes/adds/updates contest events and rounds. This assumes that access rights have already been checked
+  // and no invalid operations were attempted. If any were, they will simply be ignored here, so as not to leave
+  // partial DB edits before an exception is thrown.
   private async updateContestEvents(
     contest: ContestDocument,
     newEvents: IContestEvent[],
@@ -535,27 +532,17 @@ export class ContestsService {
 
       if (sameEventInNew) {
         for (const round of contestEvent.rounds) {
-          // Delete round if it has no results
-          if (!sameEventInNew.rounds.some((el) => el.roundId === round.roundId)) {
-            if (round.results.length === 0) {
-              await round.deleteOne();
-              contestEvent.rounds = contestEvent.rounds.filter((el) => el !== round);
-            } else {
-              throw new BadRequestException(
-                'You may not delete a round that has results. Please reload and try again.',
-              );
-            }
+          // Delete round if it has no results. If it does have results, ignore the removal.
+          if (!sameEventInNew.rounds.some((el) => el.roundId === round.roundId) && round.results.length === 0) {
+            await round.deleteOne();
+            contestEvent.rounds = contestEvent.rounds.filter((el) => el !== round);
           }
         }
       }
-      // Delete event and all of its rounds if it has no results
+      // Delete event and all of its rounds if it has no results. If it does have a round with results, ignore the removal.
       else if (!contestEvent.rounds.some((el) => el.results.length > 0)) {
         for (const round of contestEvent.rounds) await round.deleteOne();
         contest.events = contest.events.filter((el) => el.event.eventId !== contestEvent.event.eventId);
-      } else {
-        throw new BadRequestException(
-          'You may not delete an event that has rounds with results. Please reload and try again.',
-        );
       }
     }
 
@@ -575,12 +562,6 @@ export class ContestsService {
               sameRoundInContest.format = round.format;
               sameRoundInContest.timeLimit = round.timeLimit;
               sameRoundInContest.cutoff = round.cutoff;
-            } else if (round.format !== sameRoundInContest.format) {
-              throw new BadRequestException('You may not change the format of a round that has results');
-            } else if (JSON.stringify(round.timeLimit) !== JSON.stringify(sameRoundInContest.timeLimit)) {
-              throw new BadRequestException('You may not change the time limit of a round that has results');
-            } else if (JSON.stringify(round.cutoff) !== JSON.stringify(sameRoundInContest.cutoff)) {
-              throw new BadRequestException('You may not change the cutoff of a round that has results');
             }
 
             // Update proceed object if the updated round has it, or unset proceed if it doesn't,
@@ -597,11 +578,10 @@ export class ContestsService {
             sameEventInContest.rounds = [...sameEventInContest.rounds, newRound];
           }
         }
-      } else if (isAdmin || contest.state < ContestState.Approved || contest.type === ContestType.Meetup) {
-        // If it's a new event, add it
+      }
+      // If it's a new event and the user is authorized, add the event. If unauthorized, just ignore the addition.
+      else if (isAdmin || contest.state < ContestState.Approved || contest.type === ContestType.Meetup) {
         contest.events.push(await this.getNewContestEvent(newEvent));
-      } else {
-        throw new BadRequestException('You are unauthorized to add an event to an approved competition');
       }
     }
 
@@ -611,6 +591,7 @@ export class ContestsService {
     return contest.events;
   }
 
+  // Assumes no invalid operations were attempted (they will be ignored here anyways)
   private async updateSchedule(contest: ContestDocument, newSchedule: ISchedule) {
     for (const venue of newSchedule.venues) {
       const sameVenueInContest = contest.compDetails.schedule.venues.find((v) => v.id === venue.id);
@@ -620,9 +601,8 @@ export class ContestsService {
       sameVenueInContest.latitudeMicrodegrees = venue.latitudeMicrodegrees;
       sameVenueInContest.longitudeMicrodegrees = venue.longitudeMicrodegrees;
       sameVenueInContest.timezone = venue.timezone; // this is set in validateAndCleanUpContest
-
-      if (sameVenueInContest.rooms.some((r1) => !venue.rooms.some((r2) => r2.id === r1.id)))
-        throw new NotImplementedException('Removing rooms is not supported yet');
+      // Remove deleted rooms
+      sameVenueInContest.rooms = sameVenueInContest.rooms.filter((r1) => venue.rooms.some((r2) => r2.id === r1.id));
 
       for (const room of venue.rooms) {
         const sameRoom = sameVenueInContest.rooms.find((r) => r.id === room.id);
@@ -638,25 +618,26 @@ export class ContestsService {
             const sameActivity = sameRoom.activities.find((a) => a.id === activity.id);
 
             if (sameActivity) {
-              if (sameActivity.activityCode !== activity.activityCode)
-                throw new BadRequestException('You may not edit a schedule activity code');
+              sameActivity.activityCode = activity.activityCode;
 
-              if (sameActivity.activityCode === 'other-misc') {
+              if (activity.activityCode === 'other-misc') {
                 sameActivity.name = activity.name;
+                sameActivity.startTime = activity.startTime;
+                sameActivity.endTime = activity.endTime;
               } else {
-                let round: IRound;
-                for (const contestEvent of contest.events) {
-                  round = contestEvent.rounds.find((r) => r.roundId === sameActivity.activityCode);
-                  if (round) break;
-                }
-                const startTimeChanged = new Date(activity.startTime).getTime() !== sameActivity.startTime.getTime();
-                const endTimeChanged = new Date(activity.endTime).getTime() !== sameActivity.endTime.getTime();
-                if (round.results.length > 0 && (startTimeChanged || endTimeChanged))
-                  throw new BadRequestException('You may not edit the activity for a round that has results');
-              }
+                if (sameActivity.name) sameActivity.name = undefined;
 
-              sameActivity.startTime = activity.startTime;
-              sameActivity.endTime = activity.endTime;
+                for (const contestEvent of contest.events) {
+                  const round = contestEvent.rounds.find((r) => r.roundId === sameActivity.activityCode);
+                  if (round) {
+                    if (round.results.length > 0) {
+                      sameActivity.startTime = activity.startTime;
+                      sameActivity.endTime = activity.endTime;
+                    }
+                    break;
+                  }
+                }
+              }
             } else {
               // If it's a new activity, add it
               sameRoom.activities.push(activity);
@@ -712,6 +693,7 @@ export class ContestsService {
         if (venues.has(venue.id)) throw new BadRequestException(`Duplicate venue ID found: ${venue.id}`);
         venues.add(venue.id);
 
+        // Set the time zone based on the contest's coordinates
         venue.timezone = findTimezone(venue.latitudeMicrodegrees / 1000000, venue.longitudeMicrodegrees / 1000000)[0];
 
         for (const room of venue.rooms) {
@@ -719,6 +701,9 @@ export class ContestsService {
           rooms.add(room.id);
 
           for (const activity of room.activities) {
+            if (activity.activityCode !== 'other-misc' && activity.name)
+              throw new BadRequestException('A non-custom activity may not have a custom title');
+
             if (activities.has(activity.id))
               throw new BadRequestException(`Duplicate activity ID found: ${activity.id}`);
             activities.add(activity.id);

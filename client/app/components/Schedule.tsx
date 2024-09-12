@@ -15,6 +15,7 @@ type DayActivity = RoomActivity & {
   formattedStartTime: string;
   formattedEndTime: string;
   isEditable: boolean;
+  isDeletable: boolean;
   round?: IRound;
   roundFormatLabel?: string;
   contestEvent?: IContestEvent;
@@ -69,10 +70,12 @@ const Schedule = ({
         (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, 'dd MMM')} ` : '') +
         formatInTimeZone(activity.endTime, timeZone, 'HH:mm'),
       isEditable: false,
+      isDeletable: false,
     };
 
     if (getIsOtherActivity(activity.activityCode)) {
       dayActivity.isEditable = true;
+      dayActivity.isDeletable = true;
     } else {
       dayActivity.contestEvent = contestEvents.find(
         (ce) => ce.event.eventId === dayActivity.activityCode.split('-')[0],
@@ -81,7 +84,12 @@ const Schedule = ({
         dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
         if (dayActivity.round) {
           dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round.format).label;
-          if (dayActivity.round.results.length === 0) dayActivity.isEditable = true;
+          if (dayActivity.round.results.length === 0) {
+            dayActivity.isEditable = true;
+            dayActivity.isDeletable = true;
+          }
+        } else {
+          dayActivity.isDeletable = true; // allow deleting activities for missing rounds
         }
       }
     }
@@ -161,7 +169,11 @@ const Schedule = ({
                                 </Button>
                               )}
                               {onDeleteActivity && (
-                                <Button onClick={() => onDeleteActivity(a.room.id, a.id)} className="btn-danger btn-xs">
+                                <Button
+                                  onClick={() => onDeleteActivity(a.room.id, a.id)}
+                                  disabled={!a.isDeletable}
+                                  className="btn-danger btn-xs"
+                                >
                                   Delete
                                 </Button>
                               )}
