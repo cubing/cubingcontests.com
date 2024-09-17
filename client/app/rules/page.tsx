@@ -9,6 +9,7 @@ import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
 import Tabs from '@c/UI/Tabs';
 import ToastMessages from '@c/UI/ToastMessages';
 import MarkdownDescription from '@c/MarkdownDescription';
+import EventTitle from '@c/EventTitle';
 
 const RulesPage = () => {
   const myFetch = useMyFetch();
@@ -154,21 +155,25 @@ const RulesPage = () => {
               These rules apply to each event individually. If an event is not listed here, it must follow the most
               relevant WCA Regulations, based on the nature of the event.
             </p>
-            {events.map((event) => (
-              <div key={event.eventId}>
-                <h4 className="mt-4 mb-3">{event.name}</h4>
-                <MarkdownDescription>{event.ruleText}</MarkdownDescription>
-                <p>
-                  The ranked average format is{' '}
-                  <b>
-                    {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.value === RoundFormat.Average
-                      ? roundFormats[4].label
-                      : roundFormats[3].label}
-                  </b>
-                  .
-                </p>
-              </div>
-            ))}
+            {events.map((event) => {
+              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat);
+              const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
+
+              return (
+                <div key={event.eventId} className="mt-4">
+                  <EventTitle event={event} fontSize="4" showIcon linkToRankings />
+                  <MarkdownDescription>{event.ruleText}</MarkdownDescription>
+                  <p className="mb-1">
+                    The ranked average format is <b>{rankedFormat.label}</b>
+                  </p>
+                  {roundFormat.value !== rankedFormat.value && (
+                    <p>
+                      The default round format is <b>{roundFormat.label}</b>
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </>
         )}
 

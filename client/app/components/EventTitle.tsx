@@ -5,10 +5,10 @@ import Tooltip from '@c/UI/Tooltip';
 
 const EventTitle = ({
   event,
-  showIcon = false,
-  showDescription = false,
-  linkToRankings = false,
-  noMargin = false,
+  showIcon,
+  showDescription,
+  linkToRankings,
+  noMargin,
   fontSize = '3',
 }: {
   event: IEvent;
