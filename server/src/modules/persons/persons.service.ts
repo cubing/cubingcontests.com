@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo, Model } from 'mongoose';
 import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
@@ -270,11 +276,11 @@ export class PersonsService {
     if (personDto.wcaId?.trim()) {
       personDto.wcaId = personDto.wcaId.trim().toUpperCase();
       const sameWcaIdPerson = await this.personModel.findOne({ ...queryBase, wcaId: personDto.wcaId }).exec();
-      if (sameWcaIdPerson) throw new BadRequestException('A person with the same WCA ID already exists');
+      if (sameWcaIdPerson) throw new ConflictException('A person with the same WCA ID already exists');
     }
 
     const sameNamePerson = await this.personModel.findOne({ ...queryBase, name: personDto.name }).exec();
-    if (sameNamePerson) throw new BadRequestException('A person with the same name already exists');
+    if (sameNamePerson) throw new ConflictException('A person with the same name already exists');
   }
 
   private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {

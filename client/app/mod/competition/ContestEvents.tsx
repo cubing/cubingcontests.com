@@ -349,7 +349,7 @@ const ContestEvents = ({
                       value={round.proceed.value}
                       setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
                       integer
-                      min={round.proceed.type === RoundProceed.Percentage ? 1 : 2}
+                      min={round.proceed.type === RoundProceed.Percentage ? 1 : C.minProceedNumber}
                       max={round.proceed.type === RoundProceed.Percentage ? C.maxProceedPercentage : Infinity}
                       noMargin
                     />

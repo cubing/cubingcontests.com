@@ -6,7 +6,8 @@ const MarkdownDescription = ({ children }: { children: React.ReactNode }) => {
     <p style={{ whiteSpace: 'pre-wrap' }}>
       {tempString.split(':::::').map((part, index) =>
         markdownLinkRegex.test(part) ? (
-          <a key={index} href={/\((https?:\/\/[^)]*)\)/.exec(part)[1]} target="_blank">
+          // target="_blank" doesn't work when added to this a tag, for some reason
+          <a key={index} href={/\((https?:\/\/[^)]*)\)/.exec(part)[1]}>
             {/\[([^\]]*)\]/.exec(part)[1]}
           </a>
         ) : (

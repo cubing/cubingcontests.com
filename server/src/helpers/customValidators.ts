@@ -1,5 +1,54 @@
 import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
-import { IAttempt } from '@sh/types';
+import { IAttempt, IContestEvent, IProceed, IRound } from '@sh/types';
+import { EventFormat, RoundProceed } from '@sh/enums';
+import C from '~~/client/shared_helpers/constants';
+
+@ValidatorConstraint({ name: 'EventWithTimeFormatHasTimeLimits', async: false })
+export class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInterface {
+  validate(events: IContestEvent[]) {
+    return !events.some((ce) => ce.event.format === EventFormat.Time && ce.rounds.some((r) => !r.timeLimit));
+  }
+
+  defaultMessage() {
+    return 'An event with the format Time must have a time limit';
+  }
+}
+
+@ValidatorConstraint({ name: 'EventWithoutTimeFormatHasNoLimitsOrCutoffs', async: false })
+export class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintInterface {
+  validate(events: IContestEvent[]) {
+    return !events.some((ce) => ce.event.format !== EventFormat.Time && ce.rounds.some((r) => r.timeLimit || r.cutoff));
+  }
+
+  defaultMessage() {
+    return 'An event with a format other than Time cannot have a time limit or cutoff';
+  }
+}
+
+@ValidatorConstraint({ name: 'RoundHasValidTimeLimitAndCutoff', async: false })
+export class RoundHasValidTimeLimitAndCutoff implements ValidatorConstraintInterface {
+  validate(rounds: IRound[]) {
+    return !rounds.some((r) => r.timeLimit && r.cutoff && r.cutoff.attemptResult >= r.timeLimit.centiseconds);
+  }
+
+  defaultMessage() {
+    return 'The cutoff cannot be higher than or equal to the time limit';
+  }
+}
+
+@ValidatorConstraint({ name: 'ProceedValueMinMax', async: false })
+export class ProceedValueMinMax implements ValidatorConstraintInterface {
+  validate(proceed: IProceed) {
+    return (
+      (proceed.type === RoundProceed.Number && proceed.value >= C.minProceedNumber) ||
+      (proceed.type === RoundProceed.Percentage && proceed.value <= C.maxProceedPercentage)
+    );
+  }
+
+  defaultMessage() {
+    return `A round cannot allow fewer than ${C.minProceedNumber} competitors or more than ${C.maxProceedPercentage}% of competitors to proceed to the next round`;
+  }
+}
 
 @ValidatorConstraint({ name: 'VideoBasedAttempts', async: false })
 export class VideoBasedAttempts implements ValidatorConstraintInterface {

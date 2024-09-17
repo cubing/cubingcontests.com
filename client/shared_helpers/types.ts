@@ -29,10 +29,11 @@ export type { IAdminStats } from './interfaces/AdminStats';
 // Types
 export type { IEvent, IFeEvent } from './types/Event';
 export type { ICollectiveSolution, IFeCollectiveSolution, IMakeMoveDto } from './types/CollectiveSolution';
-export type { NxNMove } from './types/NxNMove';
 export type { ListPageMode } from './types/ListPageMode';
 export type { HttpMethod } from './types/HttpMethod';
 export type { FetchObj } from './types/FetchObj';
+export type { NumberInputValue } from './types/NumberInputValue';
+export type { NxNMove } from './types/NxNMove';
 
 // WCIF types
 export type {

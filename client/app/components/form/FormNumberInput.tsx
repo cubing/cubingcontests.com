@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import FormInputLabel from './FormInputLabel';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
+import { NumberInputValue } from '@sh/types';
 
 const FormNumberInput = ({
   id,
@@ -24,8 +25,7 @@ const FormNumberInput = ({
   title?: string;
   placeholder?: string;
   tooltip?: string;
-  // undefined is the empty value, null is the invalid value
-  value: number | null | undefined;
+  value: NumberInputValue;
   setValue: (val: number) => void;
   onKeyDown?: (e: any) => void;
   nextFocusTargetId?: string;
@@ -46,6 +46,11 @@ const FormNumberInput = ({
     if (value === undefined) setDisplayValue('');
     else if (value !== null) setDisplayValue(value.toString());
   }, [value]);
+
+  // The min or max changing could make the value no longer valid, hence this effect
+  useEffect(() => {
+    validateAndChange(displayValue);
+  }, [min, max]);
 
   const validateAndChange = (newValue: string) => {
     setDisplayValue(newValue);

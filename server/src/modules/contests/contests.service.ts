@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { addDays, differenceInDays, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { find as findTimezone } from 'geo-tz';
@@ -235,16 +241,15 @@ export class ContestsService {
   async createContest(contestDto: ContestDto, user: IPartialUser, saveResults = false) {
     // No need to check that the state is not removed, because removed contests have _REMOVED at the end anyways
     const sameIdC = await this.contestModel.findOne({ competitionId: contestDto.competitionId }).exec();
-    if (sameIdC) throw new BadRequestException(`A contest with the ID ${contestDto.competitionId} already exists`);
+    if (sameIdC) throw new ConflictException(`A contest with the ID ${contestDto.competitionId} already exists`);
     const sameNameC = await this.contestModel
       .findOne({ name: contestDto.name, state: { $ne: ContestState.Removed } })
       .exec();
-    if (sameNameC) throw new BadRequestException(`A contest with the name ${contestDto.name} already exists`);
+    if (sameNameC) throw new ConflictException(`A contest with the name ${contestDto.name} already exists`);
     const sameShortC = await this.contestModel
       .findOne({ shortName: contestDto.shortName, state: { $ne: ContestState.Removed } })
       .exec();
-    if (sameShortC)
-      throw new BadRequestException(`A contest with the short name ${contestDto.shortName} already exists`);
+    if (sameShortC) throw new ConflictException(`A contest with the short name ${contestDto.shortName} already exists`);
 
     this.validateAndCleanUpContest(contestDto, user);
 

@@ -15,15 +15,13 @@ import {
   IsNotEmpty,
   ArrayMaxSize,
   IsInt,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
   Validate,
   MaxLength,
   NotEquals,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import Countries from '@sh/Countries';
-import { Color, ContestType, EventFormat, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
 import {
   IPerson,
   ICompetitionDetails,
@@ -47,30 +45,14 @@ import { CreateResultDto } from '@m/results/dto/create-result.dto';
 import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
 import C from '@sh/constants';
 import { getFormattedTime, getIsCompType } from '@sh/sharedFunctions';
+import {
+  EventWithoutTimeFormatHasNoLimitsOrCutoffs,
+  EventWithTimeFormatHasTimeLimits,
+  ProceedValueMinMax,
+  RoundHasValidTimeLimitAndCutoff,
+} from '~/src/helpers/customValidators';
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
-
-@ValidatorConstraint({ name: 'EventWithTimeFormatHasTimeLimits', async: false })
-class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInterface {
-  validate(events: IContestEvent[]) {
-    return !events.some((ce) => ce.event.format === EventFormat.Time && ce.rounds.some((r) => !r.timeLimit));
-  }
-
-  defaultMessage() {
-    return 'An event with the format Time must have a time limit';
-  }
-}
-
-@ValidatorConstraint({ name: 'EventWithoutTimeFormatHasNoLimitsOrCutoffs', async: false })
-class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintInterface {
-  validate(events: IContestEvent[]) {
-    return !events.some((ce) => ce.event.format !== EventFormat.Time && ce.rounds.some((r) => r.timeLimit || r.cutoff));
-  }
-
-  defaultMessage() {
-    return 'An event with a format other than Time cannot have a time limit or cutoff';
-  }
-}
 
 export class ContestDto implements IContestDto {
   @IsString()
@@ -261,19 +243,8 @@ class ActivityDto implements IActivity {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-// COMPETITION EVENT
+// CONTEST EVENT
 ////////////////////////////////////////////////////////////////////////////////////////////
-
-@ValidatorConstraint({ name: 'HasValidTimeLimitAndCutoff', async: false })
-class HasValidTimeLimitAndCutoff implements ValidatorConstraintInterface {
-  validate(rounds: IRound[]) {
-    return !rounds.some((r) => r.timeLimit && r.cutoff && r.cutoff.attemptResult >= r.timeLimit.centiseconds);
-  }
-
-  defaultMessage() {
-    return 'The cutoff cannot be higher than or equal to the time limit';
-  }
-}
 
 class ContestEventDto implements IContestEvent {
   @ValidateNested()
@@ -282,7 +253,7 @@ class ContestEventDto implements IContestEvent {
 
   @ArrayMinSize(1, { message: 'Please enter at least one round for each event' })
   @ArrayMaxSize(C.maxRounds, { message: `You cannot hold more than ${C.maxRounds} rounds for one event` })
-  @Validate(HasValidTimeLimitAndCutoff)
+  @Validate(RoundHasValidTimeLimitAndCutoff)
   @ValidateNested({ each: true })
   @Type(() => RoundDto)
   rounds: IRound[];
@@ -316,6 +287,7 @@ class RoundDto implements IRound {
   cutoff?: ICutoff;
 
   @ValidateIf((obj) => obj.roundTypeId !== RoundType.Final)
+  @Validate(ProceedValueMinMax)
   @ValidateNested()
   @Type(() => ProceedDto)
   proceed?: IProceed;
@@ -356,9 +328,5 @@ class ProceedDto implements IProceed {
 
   @IsInt({ message: 'Please enter a valid round proceed value' })
   @Min(1, { message: 'The round proceed value must be at least 1' })
-  @ValidateIf((obj) => obj.type === RoundProceed.Percentage)
-  @Max(C.maxProceedPercentage, {
-    message: `The round proceed percentage cannot be higher than ${C.maxProceedPercentage}%`,
-  })
   value: number;
 }

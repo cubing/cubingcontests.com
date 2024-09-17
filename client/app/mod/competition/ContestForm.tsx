@@ -14,6 +14,7 @@ import {
   IMeetupDetails,
   IContestData,
   IFePerson,
+  NumberInputValue,
 } from '@sh/types';
 import { Color, ContestState, ContestType, RoundType } from '@sh/enums';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
@@ -74,7 +75,7 @@ const ContestForm = ({
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
   const [contact, setContact] = useState('');
   const [description, setDescription] = useState('');
-  const [competitorLimit, setCompetitorLimit] = useState<number>(undefined);
+  const [competitorLimit, setCompetitorLimit] = useState<NumberInputValue>();
 
   // Event stuff
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>([]);
