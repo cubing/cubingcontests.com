@@ -109,6 +109,8 @@ It will also create an admin user with the username `admin`, a moderator with th
 
 Environment variables are specified in `.env` in the root of the project, and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
 
+**Keep in mind that the `TZ` environment variable is crucial for data processing (i.e. validating dates, schedules, etc.). The timezone being set to UTC on the backend simplifies some of the date-related code. The frontend does not have this benefit and must account for the user's local time zone, since the Javascript Date object does not.**
+
 In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `start-dev.sh` script copies `.env` to `server/.env.dev` automatically and changes the value of `NODE_ENV` to `development`. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 
 Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS. See that file for more details. The values are taken from the frontend container's environment variables. These must be set during the container's build process when deploying, because that is when Next JS sets the variables in `.env.local`.
