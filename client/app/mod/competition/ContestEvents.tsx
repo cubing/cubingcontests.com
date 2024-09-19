@@ -20,16 +20,12 @@ const ContestEvents = ({
   events,
   contestEvents,
   setContestEvents,
-  removeContestEvent,
-  removeEventRound,
   contestType,
   disableNewEvents,
 }: {
   events: IEvent[];
   contestEvents: IContestEvent[];
   setContestEvents: (val: IContestEvent[]) => void;
-  removeContestEvent: (eventId: string) => void;
-  removeEventRound: (eventId: string) => void;
   contestType: ContestType;
   disableNewEvents: boolean;
 }) => {
@@ -77,6 +73,10 @@ const ContestEvents = ({
     }
   };
 
+  const deleteContestEvent = (eventId: string) => {
+    setContestEvents(contestEvents.filter((ce) => ce.event.eventId !== eventId));
+  };
+
   const addRound = (eventId: string) => {
     const contestEvent = contestEvents.find((el) => el.event.eventId === eventId);
 
@@ -96,6 +96,24 @@ const ContestEvents = ({
 
     // Add new round
     contestEvent.rounds.push(getNewRound(contestEvent.event, contestEvent.rounds.length + 1));
+
+    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
+  };
+
+  const deleteRound = (eventId: string) => {
+    const contestEvent = contestEvents.find((el) => el.event.eventId === eventId);
+    contestEvent.rounds = contestEvent.rounds.slice(0, -1);
+
+    // Update new final round
+    const newLastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
+    delete newLastRound.proceed;
+    newLastRound.roundTypeId = RoundType.Final;
+
+    // Update new semi final round
+    if (contestEvent.rounds.length > 2) {
+      const newSemiRound = contestEvent.rounds[contestEvent.rounds.length - 2];
+      newSemiRound.roundTypeId = RoundType.Semi;
+    }
 
     setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
   };
@@ -237,7 +255,7 @@ const ContestEvents = ({
             {totalResultsPerContestEvent[eventIndex] > 0 ? (
               <p className="mb-0">Total results: {totalResultsPerContestEvent[eventIndex]}</p>
             ) : (
-              <Button className="btn-danger btn-sm" onClick={() => removeContestEvent(ce.event.eventId)}>
+              <Button className="btn-danger btn-sm" onClick={() => deleteContestEvent(ce.event.eventId)}>
                 Remove Event
               </Button>
             )}
@@ -366,7 +384,7 @@ const ContestEvents = ({
             )}
             {ce.rounds.length > 1 && (
               <Button
-                onClick={() => removeEventRound(ce.event.eventId)}
+                onClick={() => deleteRound(ce.event.eventId)}
                 disabled={ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0}
                 className="btn-danger btn-sm"
               >

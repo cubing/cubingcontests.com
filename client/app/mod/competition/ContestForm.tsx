@@ -16,7 +16,7 @@ import {
   IFePerson,
   NumberInputValue,
 } from '@sh/types';
-import { Color, ContestState, ContestType, RoundType } from '@sh/enums';
+import { Color, ContestState, ContestType } from '@sh/enums';
 import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
 import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
 import { getContestIdFromName, getTimeLimit, getUserInfo } from '~/helpers/utilityFunctions';
@@ -417,28 +417,6 @@ const ContestForm = ({
     }
   };
 
-  const removeContestEvent = (eventId: string) => {
-    setContestEvents(contestEvents.filter((ce) => ce.event.eventId !== eventId));
-  };
-
-  const removeEventRound = (eventId: string) => {
-    const contestEvent = contestEvents.find((el) => el.event.eventId === eventId);
-    contestEvent.rounds = contestEvent.rounds.slice(0, -1);
-
-    // Update new final round
-    const newLastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
-    delete newLastRound.proceed;
-    newLastRound.roundTypeId = RoundType.Final;
-
-    // Update new semi final round
-    if (contestEvent.rounds.length > 2) {
-      const newSemiRound = contestEvent.rounds[contestEvent.rounds.length - 2];
-      newSemiRound.roundTypeId = RoundType.Semi;
-    }
-
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
-  };
-
   const cloneContest = () => {
     changeLoadingId('clone_contest_button');
     window.location.href = `/mod/competition?copy_id=${contest.competitionId}`;
@@ -732,8 +710,6 @@ const ContestForm = ({
             events={events}
             contestEvents={contestEvents}
             setContestEvents={setContestEvents}
-            removeContestEvent={removeContestEvent}
-            removeEventRound={removeEventRound}
             contestType={type}
             disableNewEvents={!userInfo.isAdmin && disableIfContestApproved && type !== ContestType.Meetup}
           />

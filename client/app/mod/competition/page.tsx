@@ -31,6 +31,7 @@ const CreateEditContestPage = () => {
     fetchData();
   }, []);
 
+  // CODE SMELL!!!
   const fetchData = async () => {
     const { payload: eventsData, errors: errors1 } = await myFetch.get('/events/mod', {
       authorize: true,

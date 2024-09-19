@@ -55,6 +55,7 @@ const FormNumberInput = ({
   const validateAndChange = (newValue: string) => {
     setDisplayValue(newValue);
 
+    // Update value (if it's different from its previous value)
     const numberValue = Number(newValue);
 
     if (
@@ -65,10 +66,10 @@ const FormNumberInput = ({
       numberValue >= min &&
       numberValue <= max
     ) {
-      setValue(numberValue);
+      if (value !== numberValue) setValue(numberValue);
     } else if (newValue) {
-      setValue(null);
-    } else {
+      if (value !== null) setValue(null);
+    } else if (value !== undefined) {
       setValue(undefined);
     }
   };

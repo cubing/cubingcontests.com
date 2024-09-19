@@ -539,17 +539,27 @@ export class ContestsService {
 
       if (sameEventInNew) {
         for (const round of contestEvent.rounds) {
-          // Delete round if it has no results. If it does have results, ignore the removal.
-          if (!sameEventInNew.rounds.some((el) => el.roundId === round.roundId) && round.results.length === 0) {
-            await round.deleteOne();
-            contestEvent.rounds = contestEvent.rounds.filter((el) => el !== round);
+          // If a round was deleted, remove it, if it has no results
+          if (!sameEventInNew.rounds.some((r) => r.roundId === round.roundId)) {
+            if (round.results.length === 0) {
+              await round.deleteOne();
+              contestEvent.rounds = contestEvent.rounds.filter((el) => el !== round);
+            } else {
+              this.logger.error(
+                `Ignoring invalid round deletion of ${round.roundId} at ${contest.competitionId} (round has results)`,
+              );
+            }
           }
         }
       }
-      // Delete event and all of its rounds if it has no results. If it does have a round with results, ignore the removal.
+      // Delete event and all of its rounds if it has no results
       else if (!contestEvent.rounds.some((el) => el.results.length > 0)) {
         for (const round of contestEvent.rounds) await round.deleteOne();
         contest.events = contest.events.filter((el) => el.event.eventId !== contestEvent.event.eventId);
+      } else {
+        this.logger.error(
+          `Ignoring invalid event deletion of ${contestEvent.event.eventId} at ${contest.competitionId} (one of the rounds has results)`,
+        );
       }
     }
 
@@ -589,6 +599,10 @@ export class ContestsService {
       // If it's a new event and the user is authorized, add the event. If unauthorized, just ignore the addition.
       else if (isAdmin || contest.state < ContestState.Approved || contest.type === ContestType.Meetup) {
         contest.events.push(await this.getNewContestEvent(newEvent));
+      } else {
+        this.logger.error(
+          `Ignoring invalid addition of contest event ${newEvent.event.eventId} at ${contest.competitionId}. isAdmin: ${isAdmin}; contest.state: ${contest.state}.`,
+        );
       }
     }
 
@@ -627,19 +641,25 @@ export class ContestsService {
             if (sameActivity) {
               sameActivity.activityCode = activity.activityCode;
 
-              if (activity.activityCode === 'other-misc') {
-                sameActivity.name = activity.name;
+              if (getIsOtherActivity(sameActivity.activityCode)) {
+                if (sameActivity.activityCode === 'other-misc') sameActivity.name = activity.name;
                 sameActivity.startTime = activity.startTime;
                 sameActivity.endTime = activity.endTime;
               } else {
+                // Remove custom activity name, if this was a custom activity before
                 if (sameActivity.name) sameActivity.name = undefined;
 
+                // Update start and end time, if the round doesn't have
                 for (const contestEvent of contest.events) {
                   const round = contestEvent.rounds.find((r) => r.roundId === sameActivity.activityCode);
                   if (round) {
-                    if (round.results.length > 0) {
+                    if (round.results.length === 0) {
                       sameActivity.startTime = activity.startTime;
                       sameActivity.endTime = activity.endTime;
+                    } else {
+                      this.logger.error(
+                        `Ignoring schedule activity update for ${sameActivity.activityCode} at ${contest.competitionId} (round has results)`,
+                      );
                     }
                     break;
                   }
