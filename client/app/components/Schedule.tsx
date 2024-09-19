@@ -1,7 +1,7 @@
 import { isSameDay } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { roundFormats } from '@sh/roundFormats';
 import { IActivity, IContestEvent, IRoom, IRound } from '@sh/types';
 import { getIsOtherActivity } from '@sh/sharedFunctions';
@@ -15,7 +15,6 @@ type DayActivity = RoomActivity & {
   formattedStartTime: string;
   formattedEndTime: string;
   isEditable: boolean;
-  isDeletable: boolean;
   round?: IRound;
   roundFormatLabel?: string;
   contestEvent?: IContestEvent;
@@ -69,28 +68,20 @@ const Schedule = ({
       formattedEndTime:
         (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, 'dd MMM')} ` : '') +
         formatInTimeZone(activity.endTime, timeZone, 'HH:mm'),
-      isEditable: false,
-      isDeletable: false,
+      isEditable: true,
     };
 
-    if (getIsOtherActivity(activity.activityCode)) {
-      dayActivity.isEditable = true;
-      dayActivity.isDeletable = true;
-    } else {
+    if (!getIsOtherActivity(activity.activityCode)) {
       dayActivity.contestEvent = contestEvents.find(
         (ce) => ce.event.eventId === dayActivity.activityCode.split('-')[0],
       );
       if (dayActivity.contestEvent) {
         dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
-        if (dayActivity.round) {
+        if (dayActivity.round)
           dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round.format).label;
-          if (dayActivity.round.results.length === 0) {
-            dayActivity.isEditable = true;
-            dayActivity.isDeletable = true;
-          }
-        } else {
-          dayActivity.isDeletable = true; // allow deleting activities for missing rounds
-        }
+        else dayActivity.isEditable = false;
+      } else {
+        dayActivity.isEditable = false;
       }
     }
 
@@ -169,12 +160,8 @@ const Schedule = ({
                                 </Button>
                               )}
                               {onDeleteActivity && (
-                                <Button
-                                  onClick={() => onDeleteActivity(a.room.id, a.id)}
-                                  disabled={!a.isDeletable}
-                                  className="btn-danger btn-xs"
-                                >
-                                  Delete
+                                <Button onClick={() => onDeleteActivity(a.room.id, a.id)} className="btn-danger btn-xs">
+                                  <FontAwesomeIcon icon={faTrash} />
                                 </Button>
                               )}
                             </div>

@@ -242,7 +242,7 @@ const ScheduleEditor = ({
             />
           </div>
         </div>
-        <div className="d-flex gap-3 mb-2">
+        <div className="d-flex gap-3 mb-4">
           <Button
             onClick={saveActivity}
             disabled={disabled || !isValidActivity}
@@ -256,6 +256,7 @@ const ScheduleEditor = ({
             </Button>
           )}
         </div>
+        <p className="text-center text-danger">Please make sure that the schedules match between CC and the WCA.</p>
       </section>
 
       {/* Bit of a hack to escape the boundaries of the form component to give the schedule more width */}

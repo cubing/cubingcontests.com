@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Time from '@c/Time';
 import Solves from '@c/Solves';
 import Competitor from '@c/Competitor';
@@ -122,7 +122,7 @@ const RoundResultsTable = ({
                       disabled={disableEditAndDelete}
                       className="btn-danger btn-xs"
                     >
-                      Delete
+                      <FontAwesomeIcon icon={faTrash} />
                     </Button>
                   </td>
                 )}

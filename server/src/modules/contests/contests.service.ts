@@ -640,31 +640,10 @@ export class ContestsService {
 
             if (sameActivity) {
               sameActivity.activityCode = activity.activityCode;
-
-              if (getIsOtherActivity(sameActivity.activityCode)) {
-                if (sameActivity.activityCode === 'other-misc') sameActivity.name = activity.name;
-                sameActivity.startTime = activity.startTime;
-                sameActivity.endTime = activity.endTime;
-              } else {
-                // Remove custom activity name, if this was a custom activity before
-                if (sameActivity.name) sameActivity.name = undefined;
-
-                // Update start and end time, if the round doesn't have
-                for (const contestEvent of contest.events) {
-                  const round = contestEvent.rounds.find((r) => r.roundId === sameActivity.activityCode);
-                  if (round) {
-                    if (round.results.length === 0) {
-                      sameActivity.startTime = activity.startTime;
-                      sameActivity.endTime = activity.endTime;
-                    } else {
-                      this.logger.error(
-                        `Ignoring schedule activity update for ${sameActivity.activityCode} at ${contest.competitionId} (round has results)`,
-                      );
-                    }
-                    break;
-                  }
-                }
-              }
+              if (sameActivity.activityCode === 'other-misc') sameActivity.name = activity.name;
+              else sameActivity.name = undefined;
+              sameActivity.startTime = activity.startTime;
+              sameActivity.endTime = activity.endTime;
             } else {
               // If it's a new activity, add it
               sameRoom.activities.push(activity);

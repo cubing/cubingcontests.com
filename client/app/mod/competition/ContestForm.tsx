@@ -465,7 +465,7 @@ const ContestForm = ({
   return (
     <div>
       <Form
-        buttonText={mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
+        buttonText={mode === 'edit' ? 'Save Contest' : 'Create Contest'}
         onSubmit={handleSubmit}
         disableButton={disableIfContestPublished}
       >
