@@ -129,13 +129,15 @@ const ModeratorDashboardPage = () => {
             )}
           </>
         )}
-        {!userInfo.isAdmin && (
+        {!userInfo.isAdmin && contests && (
           <>
-            <p className="my-4 fs-5">
-              Your contests will not be public and you will not be able to enter results until an admin approves them
-            </p>
+            {!contests.some((c) => c.state >= ContestState.Approved) && (
+              <p className="my-3 text-danger fw-bold">
+                Your contests will not be public and you will not be able to enter results until an admin approves them
+              </p>
+            )}
             <p>
-              Number of contests: <b>{contests?.length || 0}</b>
+              Number of contests: <b>{contests.length}</b>
             </p>
           </>
         )}
