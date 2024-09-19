@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { addHours } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
-import { Color } from '@sh/enums';
+import { Color, ContestType } from '@sh/enums';
 import { IActivity, IContestEvent, IRoom } from '@sh/types';
 import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
 import { roundTypes } from '~/helpers/roundTypes';
@@ -20,6 +20,7 @@ const ScheduleEditor = ({
   setRooms,
   venueTimeZone,
   startDate,
+  contestType,
   contestEvents,
   disabled,
 }: {
@@ -27,6 +28,7 @@ const ScheduleEditor = ({
   setRooms: (val: IRoom[] | ((prev: IRoom[]) => IRoom[])) => void;
   venueTimeZone: string;
   startDate: Date;
+  contestType: ContestType;
   contestEvents: IContestEvent[];
   disabled: boolean;
 }) => {
@@ -256,7 +258,9 @@ const ScheduleEditor = ({
             </Button>
           )}
         </div>
-        <p className="text-center text-danger">Please make sure that the schedules match between CC and the WCA.</p>
+        {contestType === ContestType.WcaComp && (
+          <p className="text-center text-danger">Please make sure that the schedules match between CC and the WCA.</p>
+        )}
       </section>
 
       {/* Bit of a hack to escape the boundaries of the form component to give the schedule more width */}

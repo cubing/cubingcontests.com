@@ -225,25 +225,40 @@ const ContestForm = ({
       meetupDetails,
     };
 
-    // Validation
-    const tempErrors: string[] = [];
+    const getRoundWithDefaultTimeLimitExists = () =>
+      processedCompEvents.some((ce) =>
+        ce.rounds.some((r) => r.timeLimit.centiseconds === 60000 && r.timeLimit.cumulativeRoundIds.length === 0),
+      );
+    const doSubmit =
+      mode === 'edit' || // this check isn't needed when editing a contest
+      !getRoundWithDefaultTimeLimitExists() ||
+      confirm(`
+You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?
+`);
 
-    if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
-      tempErrors.push('Please enter all organizers');
+    if (doSubmit) {
+      // Validation
+      const tempErrors: string[] = [];
 
-    if (type === ContestType.WcaComp && !detailsImported)
-      tempErrors.push('You must use the "Get WCA competition details" feature');
+      if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
+        tempErrors.push('Please enter all organizers');
 
-    if (tempErrors.length > 0) {
-      changeErrorMessages(tempErrors);
+      if (type === ContestType.WcaComp && !detailsImported)
+        tempErrors.push('You must use the "Get WCA competition details" feature');
+
+      if (tempErrors.length > 0) {
+        changeErrorMessages(tempErrors);
+      } else {
+        const { errors } =
+          mode === 'edit'
+            ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp, { loadingId: null })
+            : await myFetch.post('/competitions', newComp, { loadingId: null });
+
+        if (errors) changeErrorMessages(errors);
+        else window.location.href = '/mod';
+      }
     } else {
-      const { errors } =
-        mode === 'edit'
-          ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp, { loadingId: null })
-          : await myFetch.post('/competitions', newComp, { loadingId: null });
-
-      if (errors) changeErrorMessages(errors);
-      else window.location.href = '/mod';
+      changeLoadingId('');
     }
   };
 
@@ -721,6 +736,7 @@ const ContestForm = ({
             setRooms={setRooms}
             venueTimeZone={venueTimeZone}
             startDate={startDate}
+            contestType={type}
             contestEvents={contestEvents}
             disabled={disableIfContestPublished}
           />
