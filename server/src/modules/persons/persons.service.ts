@@ -242,13 +242,13 @@ export class PersonsService {
     const result = await this.resultModel.findOne({ personIds: person.personId }).exec();
     if (result)
       throw new BadRequestException(
-        `You may not delete a person who has a result. A ${result.eventId} result was found in ${result.competitionId}.`,
+        `You may not delete a person who has a result. This person has a result in ${result.eventId} at ${result.competitionId}.`,
       );
 
     const organizedContest = await this.contestModel.findOne({ organizers: person._id }).exec();
     if (organizedContest)
       throw new BadRequestException(
-        `You may not delete a person who has organized a contest. This person organized ${organizedContest.competitionId}.`,
+        `You may not delete a person who has organized a contest. This person was an organizer at ${organizedContest.competitionId}.`,
       );
 
     await person.deleteOne();

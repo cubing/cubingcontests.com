@@ -52,7 +52,7 @@ const CreatePersonPage = () => {
   ];
 
   const rowVirtualizer = useVirtualizer({
-    count: persons.length,
+    count: filteredPersons.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 47, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
     overscan: 20,
@@ -103,7 +103,7 @@ const CreatePersonPage = () => {
   };
 
   return (
-    <section className="flex-grow-1 d-flex flex-column" style={{ maxHeight: '80vh' }}>
+    <section className="flex-grow-1 d-flex flex-column" style={{ maxHeight: '82vh' }}>
       <h2 className="mb-4 text-center">Competitors</h2>
       <ToastMessages />
 
@@ -133,102 +133,91 @@ const CreatePersonPage = () => {
             />
           </div>
 
-          <p className="my-3 px-3">
+          <p className="mb-2 px-3">
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div ref={parentRef} className="container mt-3 table-responsive overflow-y-auto">
-            <table className="table table-hover text-nowrap">
-              <thead>
-                <tr>
-                  <th scope="col">CC ID</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Localized Name</th>
-                  <th scope="col">WCA ID</th>
-                  <th scope="col">Country</th>
-                  {userInfo.isAdmin && <th scope="col">Created by</th>}
-                  <th scope="col">Approved</th>
-                  <th scope="col">Actions</th>
-                </tr>
-              </thead>
-              <tbody
-                // TanStack Virtual styling
-                style={{
-                  height: `${rowVirtualizer.getTotalSize()}px`,
-                  // width: '100%',
-                  position: 'relative',
-                }}
-              >
-                {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-                  const person = filteredPersons.length > 0 ? filteredPersons[virtualItem.index] : undefined;
-                  if (!person) return;
+          <div ref={parentRef} className="flex-grow-1 container mt-3 table-responsive overflow-y-auto">
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+              <table className="table table-hover text-nowrap">
+                <thead>
+                  <tr>
+                    <th scope="col">CC ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Localized Name</th>
+                    <th scope="col">WCA ID</th>
+                    <th scope="col">Country</th>
+                    {userInfo.isAdmin && <th scope="col">Created by</th>}
+                    <th scope="col">Approved</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
+                    const person = filteredPersons.length > 0 ? filteredPersons[virtualItem.index] : undefined;
+                    if (!person) return;
 
-                  return (
-                    <tr
-                      key={virtualItem.key as React.Key}
-                      id={`row_${virtualItem.index + 1}`}
-                      // TanStack Virtual styling
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        // width: '100%',
-                        height: `${virtualItem.size}px`,
-                        transform: `translateY(${virtualItem.start}px)`,
-                      }}
-                    >
-                      <td>{person.personId}</td>
-                      <td>
-                        <Competitor person={person} noFlag />
-                      </td>
-                      <td>{person.localizedName}</td>
-                      <td>{person.wcaId}</td>
-                      <td>
-                        <Country countryIso2={person.countryIso2} shorten />
-                      </td>
-                      {userInfo.isAdmin && (
+                    return (
+                      <tr
+                        key={virtualItem.key as React.Key}
+                        style={{
+                          height: `${virtualItem.size}px`,
+                          transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                        }}
+                      >
+                        <td>{person.personId}</td>
                         <td>
-                          <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
+                          <Competitor person={person} noFlag />
                         </td>
-                      )}
-                      <td className="fs-5">
-                        {person.unapproved ? (
-                          <FontAwesomeIcon icon={faXmark} className="text-danger" />
-                        ) : (
-                          <FontAwesomeIcon icon={faCheck} />
+                        <td>{person.localizedName}</td>
+                        <td>{person.wcaId}</td>
+                        <td>
+                          <Country countryIso2={person.countryIso2} shorten />
+                        </td>
+                        {userInfo.isAdmin && (
+                          <td>
+                            <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
+                          </td>
                         )}
-                      </td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          {(userInfo.isAdmin || person.unapproved) && (
-                            <Button
-                              onClick={() => onEditCompetitor(person)}
-                              disabled={mode !== 'view'}
-                              className="btn-xs"
-                              ariaLabel="Edit"
-                            >
-                              <FontAwesomeIcon icon={faPencil} />
-                            </Button>
+                        <td className="fs-5">
+                          {person.unapproved ? (
+                            <FontAwesomeIcon icon={faXmark} className="text-danger" />
+                          ) : (
+                            <FontAwesomeIcon icon={faCheck} />
                           )}
-                          {userInfo.isAdmin && person.unapproved && (
-                            <Button
-                              id={`delete_person_${person.personId}_button`}
-                              onClick={() => deleteCompetitor(person)}
-                              loadingId={loadingId}
-                              disabled={mode !== 'view'}
-                              className="btn-xs btn-danger"
-                              ariaLabel="Delete"
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            {(userInfo.isAdmin || person.unapproved) && (
+                              <Button
+                                onClick={() => onEditCompetitor(person)}
+                                disabled={mode !== 'view'}
+                                className="btn-xs"
+                                ariaLabel="Edit"
+                              >
+                                <FontAwesomeIcon icon={faPencil} />
+                              </Button>
+                            )}
+                            {userInfo.isAdmin && person.unapproved && (
+                              <Button
+                                id={`delete_person_${person.personId}_button`}
+                                onClick={() => deleteCompetitor(person)}
+                                loadingId={loadingId}
+                                disabled={mode !== 'view'}
+                                className="btn-xs btn-danger"
+                                ariaLabel="Delete"
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
