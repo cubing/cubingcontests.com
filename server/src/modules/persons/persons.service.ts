@@ -10,7 +10,7 @@ import { mongo, Model } from 'mongoose';
 import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
-import { ContestEvent } from '~/src/models/contest.model';
+import { ContestDocument, ContestEvent } from '~/src/models/contest.model';
 import { PersonDto } from './dto/person.dto';
 import { IFePerson, IPersonDto, IWcaPersonDto } from '@sh/types';
 import { fetchWcaPerson } from '@sh/sharedFunctions';
@@ -18,6 +18,7 @@ import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
+import { ResultDocument } from '~/src/models/result.model';
 
 @Injectable()
 export class PersonsService {
@@ -25,6 +26,8 @@ export class PersonsService {
     private readonly logger: MyLogger,
     @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
     @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
+    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
+    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
   ) {}
 
   async onModuleInit() {
@@ -228,6 +231,27 @@ export class PersonsService {
     await person.save();
 
     return this.getFrontendPerson(person, { user });
+  }
+
+  async deletePerson(id: string) {
+    this.logger.logAndSave(`Deleting person with ID ${id}`, LogType.DeletePerson);
+
+    const person = await this.personModel.findById(id).exec();
+    if (!person.unapproved) throw new BadRequestException('You may not delete an approved person');
+
+    const result = await this.resultModel.findOne({ personIds: person.personId }).exec();
+    if (result)
+      throw new BadRequestException(
+        `You may not delete a person who has a result. A ${result.eventId} result was found in ${result.competitionId}.`,
+      );
+
+    const organizedContest = await this.contestModel.findOne({ organizers: person._id }).exec();
+    if (organizedContest)
+      throw new BadRequestException(
+        `You may not delete a person who has organized a contest. This person organized ${organizedContest.competitionId}.`,
+      );
+
+    await person.deleteOne();
   }
 
   // Returns array of competitors who couldn't be approved

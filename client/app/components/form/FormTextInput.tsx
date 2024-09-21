@@ -27,6 +27,7 @@ const FormTextInput = ({
   monospace,
   invalid,
   noMargin,
+  oneLine,
 }: {
   id?: string;
   title?: string;
@@ -42,6 +43,7 @@ const FormTextInput = ({
   submitOnEnter?: boolean;
   invalid?: boolean;
   noMargin?: boolean;
+  oneLine?: boolean;
 } & React.HTMLAttributes<HTMLInputElement>) => {
   if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput');
   if (setValue && onChange) throw new Error('setValue and onChange cannot be used at the same time in FormTextInput');
@@ -67,10 +69,11 @@ const FormTextInput = ({
   };
 
   return (
-    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
+    <div className={`fs-5 ${noMargin ? '' : ' mb-3'} ${oneLine ? 'd-flex align-items-center gap-3' : ''}`}>
       <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
 
-      <div className="d-flex justify-content-between align-items-center gap-3">
+      {/* mb-2 is to offset the bottom margin of the label */}
+      <div className={`d-flex justify-content-between align-items-center gap-3 ${oneLine ? 'mb-2' : ''}`}>
         <input
           type={hidePassword ? 'password' : 'text'}
           id={inputId}

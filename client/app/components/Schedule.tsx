@@ -160,7 +160,11 @@ const Schedule = ({
                                 </Button>
                               )}
                               {onDeleteActivity && (
-                                <Button onClick={() => onDeleteActivity(a.room.id, a.id)} className="btn-danger btn-xs">
+                                <Button
+                                  onClick={() => onDeleteActivity(a.room.id, a.id)}
+                                  className="btn-danger btn-xs"
+                                  ariaLabel="Delete"
+                                >
                                   <FontAwesomeIcon icon={faTrash} />
                                 </Button>
                               )}

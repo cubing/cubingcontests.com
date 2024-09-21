@@ -15,6 +15,7 @@ export enum LogType {
   GetModPersons = 'get_mod_persons',
   CreatePerson = 'create_person',
   UpdatePerson = 'update_person',
+  DeletePerson = 'delete_person',
 
   CreateEvent = 'create_event',
   UpdateEvent = 'update_event',

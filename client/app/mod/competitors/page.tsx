@@ -1,9 +1,10 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faPencil, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faPencil, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
 import { IFePerson, ListPageMode } from '@sh/types';
 import { getUserInfo } from '~/helpers/utilityFunctions';
@@ -17,27 +18,31 @@ import Competitor from '@c/Competitor';
 import ToastMessages from '@c/UI/ToastMessages';
 import PersonForm from './PersonForm';
 import FormSelect from '@c/form/FormSelect';
+import FormTextInput from '@c/form/FormTextInput';
 
 const userInfo: IUserInfo = getUserInfo();
 
 const CreatePersonPage = () => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { resetMessagesAndLoadingId } = useContext(MainContext);
+  const { changeSuccessMessage, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const parentRef = useRef();
   const [mode, setMode] = useState<ListPageMode | 'add-once'>(searchParams.get('redirect') ? 'add-once' : 'view');
   const [persons, setPersons] = useState<IFePerson[]>([]);
   const [personUnderEdit, setPersonUnderEdit] = useState<IFePerson>();
   const [approvedFilter, setApprovedFilter] = useState<'approved' | 'unapproved' | ''>('');
+  const [search, setSearch] = useState('');
 
   const filteredPersons = useMemo(
     () =>
       persons.filter(
         (p) =>
-          approvedFilter === '' ||
-          (approvedFilter === 'approved' && !p.unapproved) ||
-          (approvedFilter === 'unapproved' && p.unapproved),
+          p.name.includes(search) &&
+          (approvedFilter === '' ||
+            (approvedFilter === 'approved' && !p.unapproved) ||
+            (approvedFilter === 'unapproved' && p.unapproved)),
       ),
-    [persons, approvedFilter],
+    [persons, approvedFilter, search],
   );
 
   const approvedFilterOptions: MultiChoiceOption[] = [
@@ -45,6 +50,13 @@ const CreatePersonPage = () => {
     { label: 'Approved', value: 'approved' },
     { label: 'Not approved', value: 'unapproved' },
   ];
+
+  const rowVirtualizer = useVirtualizer({
+    count: persons.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 47, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
+    overscan: 20,
+  });
 
   useEffect(() => {
     myFetch.get('/persons/mod', { authorize: true }).then(({ payload, errors }) => {
@@ -70,22 +82,33 @@ const CreatePersonPage = () => {
     window.scrollTo(0, 0);
   };
 
+  const deleteCompetitor = async (person: IFePerson) => {
+    const { errors } = await myFetch.delete(`/persons/${(person as any)._id}`, {
+      loadingId: `delete_person_${person.personId}_button`,
+    });
+
+    if (!errors) {
+      setPersons(persons.filter((p) => (p as any)._id !== (person as any)._id));
+      changeSuccessMessage(`Successfully deleted ${person.name}`);
+    }
+  };
+
   const updateCompetitors = (person: IFePerson, isNew = false) => {
     if (isNew) {
       setPersons([person, ...persons]);
     } else {
-      setPersons(persons.map((c) => (c.personId === person.personId ? { ...person, creator: c.creator } : c)));
+      setPersons(persons.map((p) => (p.personId === person.personId ? { ...person, creator: p.creator } : p)));
       setMode('view');
     }
   };
 
   return (
-    <div>
+    <section className="flex-grow-1 d-flex flex-column" style={{ maxHeight: '80vh' }}>
       <h2 className="mb-4 text-center">Competitors</h2>
       <ToastMessages />
 
       {mode === 'view' ? (
-        <Button onClick={onAddCompetitor} className="btn-success btn-sm ms-3">
+        <Button onClick={onAddCompetitor} className="btn-success btn-sm ms-3" style={{ width: 'fit-content' }}>
           Add competitor
         </Button>
       ) : (
@@ -98,7 +121,8 @@ const CreatePersonPage = () => {
 
       {mode !== 'add-once' && (
         <>
-          <div className="mt-4 mb-2 px-3">
+          <div className="d-flex align-items-center gap-3 mt-4 px-3">
+            <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
             <FormSelect
               title="Status"
               selected={approvedFilter}
@@ -113,7 +137,7 @@ const CreatePersonPage = () => {
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div className="container mt-3 table-responsive">
+          <div ref={parentRef} className="container mt-3 table-responsive overflow-y-auto">
             <table className="table table-hover text-nowrap">
               <thead>
                 <tr>
@@ -127,50 +151,88 @@ const CreatePersonPage = () => {
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredPersons.map((person: IFePerson) => (
-                  <tr key={person.personId}>
-                    <td>{person.personId}</td>
-                    <td>
-                      <Competitor person={person} noFlag />
-                    </td>
-                    <td>{person.localizedName}</td>
-                    <td>{person.wcaId}</td>
-                    <td>
-                      <Country countryIso2={person.countryIso2} shorten />
-                    </td>
-                    {userInfo.isAdmin && (
+              <tbody
+                // TanStack Virtual styling
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  // width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                  const person = filteredPersons.length > 0 ? filteredPersons[virtualItem.index] : undefined;
+                  if (!person) return;
+
+                  return (
+                    <tr
+                      key={virtualItem.key as React.Key}
+                      id={`row_${virtualItem.index + 1}`}
+                      // TanStack Virtual styling
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        // width: '100%',
+                        height: `${virtualItem.size}px`,
+                        transform: `translateY(${virtualItem.start}px)`,
+                      }}
+                    >
+                      <td>{person.personId}</td>
                       <td>
-                        <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
+                        <Competitor person={person} noFlag />
                       </td>
-                    )}
-                    <td className="fs-5">
-                      {person.unapproved ? (
-                        <FontAwesomeIcon icon={faXmark} className="text-danger" />
-                      ) : (
-                        <FontAwesomeIcon icon={faCheck} />
+                      <td>{person.localizedName}</td>
+                      <td>{person.wcaId}</td>
+                      <td>
+                        <Country countryIso2={person.countryIso2} shorten />
+                      </td>
+                      {userInfo.isAdmin && (
+                        <td>
+                          <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
+                        </td>
                       )}
-                    </td>
-                    <td>
-                      {(person.unapproved || userInfo.isAdmin) && (
-                        <Button
-                          onClick={() => onEditCompetitor(person)}
-                          disabled={mode !== 'view'}
-                          className="btn-xs"
-                          ariaLabel="Edit"
-                        >
-                          <FontAwesomeIcon icon={faPencil} />
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      <td className="fs-5">
+                        {person.unapproved ? (
+                          <FontAwesomeIcon icon={faXmark} className="text-danger" />
+                        ) : (
+                          <FontAwesomeIcon icon={faCheck} />
+                        )}
+                      </td>
+                      <td>
+                        <div className="d-flex gap-2">
+                          {(userInfo.isAdmin || person.unapproved) && (
+                            <Button
+                              onClick={() => onEditCompetitor(person)}
+                              disabled={mode !== 'view'}
+                              className="btn-xs"
+                              ariaLabel="Edit"
+                            >
+                              <FontAwesomeIcon icon={faPencil} />
+                            </Button>
+                          )}
+                          {userInfo.isAdmin && person.unapproved && (
+                            <Button
+                              id={`delete_person_${person.personId}_button`}
+                              onClick={() => deleteCompetitor(person)}
+                              loadingId={loadingId}
+                              disabled={mode !== 'view'}
+                              className="btn-xs btn-danger"
+                              ariaLabel="Delete"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </>
       )}
-    </div>
+    </section>
   );
 };
 

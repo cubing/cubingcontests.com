@@ -10,6 +10,7 @@ import {
   BadRequestException,
   Param,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { PersonsService } from './persons.service';
 import { MyLogger } from '@m/my-logger/my-logger.service';
@@ -77,5 +78,13 @@ export class PersonsController {
   @Roles(Role.Admin, Role.Moderator)
   async updatePerson(@Param('id') id: string, @Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
     return await this.personsService.updatePerson(id, personDto, req.user);
+  }
+
+  // DELETE /persons/:id
+  @Delete(':id')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async deletePerson(@Param('id') id: string) {
+    return await this.personsService.deletePerson(id);
   }
 }

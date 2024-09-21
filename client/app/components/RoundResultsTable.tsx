@@ -104,26 +104,29 @@ const RoundResultsTable = ({
                   <Solves event={event} attempts={result.attempts} />
                 </td>
                 {onEditResult && (
-                  <td className="py-1">
-                    <Button
-                      id={`edit_result_${(result as any)._id}_button`}
-                      onClick={() => onEditResult(result)}
-                      loadingId={loadingId}
-                      disabled={disableEditAndDelete}
-                      className="me-2 btn-xs"
-                      ariaLabel="Edit"
-                    >
-                      <FontAwesomeIcon icon={faPencil} />
-                    </Button>
-                    <Button
-                      id={`delete_result_${(result as any)._id}_button`}
-                      onClick={() => onDeleteResult((result as any)._id)}
-                      loadingId={loadingId}
-                      disabled={disableEditAndDelete}
-                      className="btn-danger btn-xs"
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </Button>
+                  <td>
+                    <div className="d-flex gap-2">
+                      <Button
+                        id={`edit_result_${(result as any)._id}_button`}
+                        onClick={() => onEditResult(result)}
+                        loadingId={loadingId}
+                        disabled={disableEditAndDelete}
+                        className="btn-xs"
+                        ariaLabel="Edit"
+                      >
+                        <FontAwesomeIcon icon={faPencil} />
+                      </Button>
+                      <Button
+                        id={`delete_result_${(result as any)._id}_button`}
+                        onClick={() => onDeleteResult((result as any)._id)}
+                        loadingId={loadingId}
+                        disabled={disableEditAndDelete}
+                        className="btn-danger btn-xs"
+                        ariaLabel="Delete"
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </div>
                   </td>
                 )}
               </tr>

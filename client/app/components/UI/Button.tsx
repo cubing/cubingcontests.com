@@ -8,6 +8,7 @@ const Button = ({
   loadingId,
   disabled,
   className = '',
+  style,
   ariaLabel,
 }: {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ const Button = ({
       onSubmit={(e) => e.preventDefault()}
       disabled={disabled || !!loadingId}
       className={`position-relative btn btn-primary ${className}`}
+      style={style}
       aria-label={ariaLabel}
     >
       <span style={isLoading ? { opacity: 0 } : {}}>{children}</span>

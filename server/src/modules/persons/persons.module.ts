@@ -5,6 +5,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PersonSchema } from '~/src/models/person.model';
 import { RoundSchema } from '~/src/models/round.model';
 import { LoggerModule } from '@m/my-logger/my-logger.module';
+import { ResultSchema } from '~/src/models/result.model';
+import { ContestSchema } from '~/src/models/contest.model';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { LoggerModule } from '@m/my-logger/my-logger.module';
     MongooseModule.forFeature([
       { name: 'Person', schema: PersonSchema },
       { name: 'Round', schema: RoundSchema },
+      { name: 'Result', schema: ResultSchema },
+      { name: 'Competition', schema: ContestSchema },
     ]),
   ],
   controllers: [PersonsController],
