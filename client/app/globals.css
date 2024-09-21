@@ -104,12 +104,8 @@ body[data-bs-theme='light'] {
   visibility: hidden;
 }
 
-.cc-tooltip:hover {
+.cc-tooltip:hover .cc-tooltip-text {
   visibility: visible;
-  
-  .cc-tooltip-text {
-    visibility: visible;
-  }
 }
 
 /* Override Bootstrap's styling for the outline of a focused invalid input to make it easier to distinguish from
@@ -131,4 +127,9 @@ body[data-bs-theme='light'] {
     max-width: 12rem;
     white-space: nowrap;
   }
+}
+
+/* Override Bootstrap's overflow-x for responsible tables (only in contest layouts) */
+.cc-contest-layout .table-responsive {
+  overflow-x: visible;
 }
