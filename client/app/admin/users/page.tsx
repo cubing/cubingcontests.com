@@ -111,7 +111,7 @@ const ManageUsersPage = () => {
         </Form>
       )}
 
-      <div className="container my-5 table-responsive">
+      <div className="my-5 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>

@@ -491,7 +491,7 @@ export class ResultsService {
         persons: res.personIds.map((pid) => res.persons.find((p) => p.personId === pid)),
       }));
 
-      return frontendResults.slice(0, 100); // TEMPORARY: only returns 100 results. TO-DO: add pagination!
+      return frontendResults;
     } catch (err) {
       throw new InternalServerErrorException(`Error while getting submission-based results: ${err.message}`);
     }

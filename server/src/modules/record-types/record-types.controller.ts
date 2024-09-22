@@ -9,17 +9,18 @@ import { RecordTypesService } from './record-types.service';
 import { UpdateRecordTypeDto } from './dto/update-record-type.dto';
 
 @Controller('record-types')
-@UseGuards(AuthenticatedGuard, RolesGuard)
-@Roles(Role.Admin)
 export class RecordTypesController {
   constructor(private readonly logger: MyLogger, private readonly service: RecordTypesService) {}
 
   @Get() // GET /record-types?active=true/false
   async getRecordTypes(@Query('active') active: boolean) {
-    return await this.service.getRecordTypes({ active });
+    // Converting active to boolean just in case, to prevent injection attacks
+    return await this.service.getRecordTypes({ active: !!active });
   }
 
   @Post() // POST /record-types
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
   async updateRecordTypes(@Body(new ValidationPipe()) updateRecordTypesDtoS: UpdateRecordTypeDto[]) {
     this.logger.logAndSave('Updating record types', LogType.UpdateRecordTypes);
 

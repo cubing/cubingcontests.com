@@ -228,7 +228,7 @@ const CreateEditEventPage = () => {
         </Form>
       )}
 
-      <div className="container my-4 table-responsive">
+      <div className="my-4 table-responsive">
         <table className="table table-hover text-nowrap">
           <thead>
             <tr>

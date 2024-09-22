@@ -37,9 +37,7 @@ export class RecordTypesService {
   }
 
   async getRecordTypes(query?: any): Promise<RecordTypeDocument[]> {
-    const queryFilter = query?.active ? { active: query.active } : {};
-
-    return await this.recordTypeModel.find(queryFilter, excl).sort({ order: 1 }).exec();
+    return await this.recordTypeModel.find(query, excl).sort({ order: 1 }).exec();
   }
 
   async updateRecordTypes(updateRTsDtoArr: UpdateRecordTypeDto[]) {

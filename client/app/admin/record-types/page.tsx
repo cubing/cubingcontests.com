@@ -1,33 +1,18 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useMyFetch } from '~/helpers/customHooks';
 // import RecordTypesForm from './RecordTypesForm';
-import { IRecordType } from '@sh/types';
-import Loading from '@c/UI/Loading';
+import { ssrFetch } from '~/helpers/fetchUtils';
 
-const ConfigureRecordTypesPage = () => {
-  const myFetch = useMyFetch();
+const ConfigureRecordTypesPage = async () => {
+  const { payload: recordTypes } = await ssrFetch('/record-types');
 
-  const [recordTypes, setRecordTypes] = useState<IRecordType[]>();
+  if (!recordTypes) return <h3 className="mt-4 text-center">Error while fetching record types</h3>;
 
-  useEffect(() => {
-    myFetch.get('/record-types', { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setRecordTypes(payload as IRecordType[]);
-    });
-  }, []);
-
-  if (recordTypes) {
-    return (
-      <div>
-        <h2 className="mb-4 text-center">Record Types</h2>
-        TEMPORARILY REMOVED
-        {/* <RecordTypesForm recordTypes={recordTypes} /> */}
-      </div>
-    );
-  }
-
-  return <Loading />;
+  return (
+    <div>
+      <h2 className="mb-4 text-center">Record Types</h2>
+      TEMPORARILY REMOVED
+      {/* <RecordTypesForm recordTypes={recordTypes} /> */}
+    </div>
+  );
 };
 
 export default ConfigureRecordTypesPage;

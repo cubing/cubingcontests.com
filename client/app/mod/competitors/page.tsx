@@ -137,7 +137,7 @@ const CreatePersonPage = () => {
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div ref={parentRef} className="flex-grow-1 container mt-3 table-responsive overflow-y-auto">
+          <div ref={parentRef} className="flex-grow-1 mt-3 table-responsive overflow-y-auto">
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               <table className="table table-hover text-nowrap">
                 <thead>
@@ -153,16 +153,16 @@ const CreatePersonPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
-                    const person = filteredPersons.length > 0 ? filteredPersons[virtualItem.index] : undefined;
-                    if (!person) return;
+                  {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                    if (filteredPersons.length === 0) return;
+                    const person = filteredPersons[virtualItem.index];
 
                     return (
                       <tr
                         key={virtualItem.key as React.Key}
                         style={{
                           height: `${virtualItem.size}px`,
-                          transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                          transform: `translateY(${virtualItem.start - virtualItem.index * virtualItem.size}px)`,
                         }}
                       >
                         <td>{person.personId}</td>

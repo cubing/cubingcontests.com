@@ -142,6 +142,7 @@ const ImportExportPage = () => {
   //       if (!errors) setEvents(payload);
   //     });
 
+  // This endpoint used to require authorization, but the {authorize: true} can be removed now
   //     myFetch.get('/record-types?active=true', { authorize: true }).then(({ payload, errors }) => {
   //       if (!errors) setActiveRecordTypes(payload);
   //     });
