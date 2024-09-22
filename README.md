@@ -91,7 +91,9 @@ This project uses Next JS for the frontend and Nest JS (confusing, I know) with 
 
 That is the script you can always run when developing Cubing Contests. It starts the frontend [c], backend [s], and database [d] in parallel using concurrently (the [c/s/d] prefix indicates where the logs are coming from). This script also checks that you have the Nest JS CLI and Concurrently installed globally (with NPM), sets up the pre-commit hook, sets up the .env files, and installs the NPM packages in both the `client` and the `server` directories.
 
-The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing.
+The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing. Please use this hook if you plan on opening up a PR.
+
+The code in this repo has been formatted with Prettier (a VS Code extension). It would be best for you to use this extension too, while developing for this repo. Make sure it's enabled, set as your formatter, it formats on save (or whatever behavior you prefer), and that it's using the `.prettierrc` config file in the root of this project.
 
 Keep in mind that when Handlebars files (the `.hbs` files used for the email templates) are edited, the dev environment has to be restarted for those changes to take effect.
 
