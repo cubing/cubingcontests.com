@@ -153,7 +153,7 @@ const CreatePersonPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                  {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
                     if (filteredPersons.length === 0) return;
                     const person = filteredPersons[virtualItem.index];
 
@@ -162,7 +162,7 @@ const CreatePersonPage = () => {
                         key={virtualItem.key as React.Key}
                         style={{
                           height: `${virtualItem.size}px`,
-                          transform: `translateY(${virtualItem.start - virtualItem.index * virtualItem.size}px)`,
+                          transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
                         }}
                       >
                         <td>{person.personId}</td>

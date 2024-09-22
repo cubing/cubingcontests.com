@@ -59,7 +59,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               </tr>
             </thead>
             <tbody>
-              {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+              {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
                 if (results?.length === 0) return;
                 const result = results[virtualItem.index];
 
@@ -68,7 +68,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                     key={virtualItem.key as React.Key}
                     style={{
                       height: `${virtualItem.size}px`,
-                      transform: `translateY(${virtualItem.start - virtualItem.index * virtualItem.size}px)`,
+                      transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
                     }}
                   >
                     <td>{result.event ? shortenEventName(result.event.name) : 'EVENT NOT FOUND'}</td>
