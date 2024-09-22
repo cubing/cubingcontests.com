@@ -81,8 +81,8 @@ const RulesPage = () => {
                 Some events may have specific allowances for this.
               </li>
               <li>
-                T4. A competitor who has participated in an event as part of one team must not compete as part of any
-                other team for that event.
+                T4. A competitor who has participated in a round as a member of one team must not compete as a member of
+                any other team in that round.
               </li>
             </ul>
 
