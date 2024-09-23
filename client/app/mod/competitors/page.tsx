@@ -89,7 +89,7 @@ const CreatePersonPage = () => {
 
     if (!errors) {
       setPersons(persons.filter((p) => (p as any)._id !== (person as any)._id));
-      changeSuccessMessage(`Successfully deleted ${person.name}`);
+      changeSuccessMessage(`Successfully deleted ${person.name} (CC ID: ${person.personId})`);
     }
   };
 

@@ -43,9 +43,14 @@ export class PersonsService {
     }
 
     if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
+      this.logger.log('Checking persons inconsistencies in the DB...');
+
+      // Look for persons with the same name
       const persons = await this.personModel.find().exec();
-      for (const person of persons) {
-        if (persons.some((p) => p.personId !== person.personId && p.name === person.name))
+
+      for (let i = 0; i < persons.length; i++) {
+        const person = persons[i];
+        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name))
           this.logger.error(`Error: multiple persons found with the name ${person.name}`);
       }
     }
