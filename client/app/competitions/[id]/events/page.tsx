@@ -32,35 +32,39 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
             {contest.events.map((compEvent) =>
               compEvent.rounds.map((round, roundIndex) => {
                 const cutoffText = round.cutoff
-                  ? `${round.cutoff.numberOfAttempts} ${round.cutoff.numberOfAttempts === 1 ? 'attempt' : 'attempts'
+                  ? `${round.cutoff.numberOfAttempts} ${
+                    round.cutoff.numberOfAttempts === 1 ? 'attempt' : 'attempts'
                   } to get < ${getFormattedTime(round.cutoff.attemptResult, { event: compEvent.event })}`
                   : '';
 
                 return (
                   <tr key={round.roundId} className={roundIndex !== 0 ? 'table-active' : ''}>
-                    <td>{roundIndex === 0 &&
-                      <EventTitle
-                        event={compEvent.event}
-                        fontSize="6"
-                        noMargin
-                        showIcon
-                        linkToRankings
-                        showDescription
-                      />
-                    }</td>
+                    <td>
+                      {roundIndex === 0 && (
+                        <EventTitle
+                          event={compEvent.event}
+                          fontSize="6"
+                          noMargin
+                          showIcon
+                          linkToRankings
+                          showDescription
+                        />
+                      )}
+                    </td>
                     <td>{roundTypes[round.roundTypeId].label}</td>
                     <td>{roundFormats.find((rf) => rf.value === round.format).label}</td>
                     <td>
                       {round.timeLimit
                         ? getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event }) +
-                        (round.timeLimit.cumulativeRoundIds.length > 0 ? ' cumulative' : '')
+                          (round.timeLimit.cumulativeRoundIds.length > 0 ? ' cumulative' : '')
                         : ''}
                     </td>
                     <td>{cutoffText}</td>
                     {hasNonFinalRound && (
                       <td>
                         {round.roundTypeId !== RoundType.Final &&
-                          `Top ${round.proceed.value}${round.proceed.type === RoundProceed.Percentage ? '%' : ''
+                          `Top ${round.proceed.value}${
+                            round.proceed.type === RoundProceed.Percentage ? '%' : ''
                           } advance to next round`}
                       </td>
                     )}
