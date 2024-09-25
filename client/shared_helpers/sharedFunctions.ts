@@ -348,3 +348,6 @@ export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefi
 };
 
 export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
+
+export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
+  contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);

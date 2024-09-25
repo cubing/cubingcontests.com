@@ -17,6 +17,7 @@ const C = {
   maxConfirmationCodeAttempts: 3,
   minProceedNumber: 3,
   maxProceedPercentage: 75,
+  maxMeetupRounds: 15,
   confirmationCodeCooldown: 5 * 60 * 1000, // in milliseconds (5 minutes)
   passwordResetSessionLength: 3, // in days
   passwordSaltRounds: 10,

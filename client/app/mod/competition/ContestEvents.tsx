@@ -15,6 +15,7 @@ import FormSelect from '@c/form/FormSelect';
 import Button from '@c/UI/Button';
 import FormEventSelect from '@c/form/FormEventSelect';
 import { getTimeLimit } from '~/helpers/utilityFunctions';
+import { getTotalRounds } from '~/shared_helpers/sharedFunctions';
 
 const ContestEvents = ({
   events,
@@ -31,21 +32,21 @@ const ContestEvents = ({
 }) => {
   const [newEventId, setNewEventId] = useState(events[0].eventId);
 
-  const totalRounds: number = useMemo(
-    () => contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0),
-    [contestEvents],
-  );
+  const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [contestEvents]);
   const totalResultsPerContestEvent: number[] = useMemo(
     () => contestEvents.map((ce) => ce.rounds.map((r) => r.results.length).reduce((prev, curr) => curr + prev)),
     [contestEvents],
   );
 
+  const disableNewRounds = contestType === ContestType.Meetup && totalRounds >= 15;
   const filteredEvents = events.filter(
     (ev) => contestType !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA),
   );
   const remainingEvents = filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId));
   // Fix new event ID, if it's not in the list of remaining events
   if (!remainingEvents.some((e) => e.eventId === newEventId)) setNewEventId(remainingEvents[0].eventId);
+  // Also disable new events if new rounds are disabled or if there are no more events to add
+  disableNewEvents = disableNewEvents || disableNewRounds || contestEvents.length === filteredEvents.length;
 
   const getNewRound = (event: IEvent, roundNumber: number): IRound => {
     return {
@@ -229,11 +230,7 @@ const ContestEvents = ({
         Total events: {contestEvents.length} | Total rounds: {totalRounds}
       </p>
       <div className="my-4 d-flex align-items-center gap-3">
-        <Button
-          onClick={addContestEvent}
-          disabled={disableNewEvents || contestEvents.length === filteredEvents.length}
-          className="btn-success"
-        >
+        <Button onClick={addContestEvent} disabled={disableNewEvents} className="btn-success">
           Add Event
         </Button>
         <div className="flex-grow-1">
@@ -243,7 +240,7 @@ const ContestEvents = ({
             events={remainingEvents}
             eventId={newEventId}
             setEventId={setNewEventId}
-            disabled={disableNewEvents || contestEvents.length === filteredEvents.length}
+            disabled={disableNewEvents}
           />
         </div>
       </div>
@@ -378,9 +375,11 @@ const ContestEvents = ({
           ))}
           <div className="d-flex gap-3">
             {ce.rounds.length < 10 && (
-              <Button onClick={() => addRound(ce.event.eventId)} className="btn-success btn-sm">{`Add Round ${
-                ce.rounds.length + 1
-              }`}</Button>
+              <Button
+                onClick={() => addRound(ce.event.eventId)}
+                disabled={disableNewRounds}
+                className="btn-success btn-sm"
+              >{`Add Round ${ce.rounds.length + 1}`}</Button>
             )}
             {ce.rounds.length > 1 && (
               <Button

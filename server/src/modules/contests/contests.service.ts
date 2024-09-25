@@ -24,7 +24,7 @@ import C from '@sh/constants';
 import { IContestEvent, IContestData, IContest, IContestDto, IRound, ISchedule } from '@sh/types';
 import { ContestState, ContestType, EventGroup } from '@sh/enums';
 import { Role } from '@sh/enums';
-import { getDateOnly, getIsCompType, getIsOtherActivity } from '@sh/sharedFunctions';
+import { getDateOnly, getIsCompType, getIsOtherActivity, getTotalRounds } from '@sh/sharedFunctions';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { ResultsService } from '@m/results/results.service';
 import { EventsService } from '@m/events/events.service';
@@ -742,6 +742,11 @@ export class ContestsService {
 
         rooms = new Set();
       }
+    }
+    // Validation of meetups
+    else if (contest.type === ContestType.Meetup) {
+      if (getTotalRounds(contest.events) > C.maxMeetupRounds)
+        throw new BadRequestException('You may not hold more than 15 rounds at a meetup');
     }
 
     // Disallow mods to make admin-only edits
