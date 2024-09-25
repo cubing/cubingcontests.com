@@ -6,12 +6,14 @@ const Tabs = ({
   activeTab,
   setActiveTab,
   prefetch,
+  replace,
   forServerSidePage,
 }: {
   tabs: INavigationItem[];
   activeTab: string; // the value of the currently active tab
   setActiveTab?: (val: string) => void; // not needed on a client-side-rendered page
   prefetch?: boolean;
+  replace?: boolean;
   forServerSidePage?: boolean;
 }) => {
   if (prefetch && !forServerSidePage)
@@ -36,6 +38,7 @@ const Tabs = ({
               <Link
                 href={tab.route}
                 prefetch={prefetch}
+                replace={replace}
                 className={'nav-link' + (activeTab === tab.value ? ' active' : '')}
               >
                 <span className="d-none d-md-inline">{tab.title}</span>

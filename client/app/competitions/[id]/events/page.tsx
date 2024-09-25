@@ -1,5 +1,5 @@
 import { ssrFetch } from '~/helpers/fetchUtils';
-import ContestLayout from '@c/ContestLayout';
+import ContestLayout from '~/app/competitions/ContestLayout';
 import EventTitle from '@c/EventTitle';
 import { IContest } from '@sh/types';
 import { RoundProceed, RoundType } from '@sh/enums';

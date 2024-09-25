@@ -1,6 +1,6 @@
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { ssrFetch } from '~/helpers/fetchUtils';
-import ContestLayout from '@c/ContestLayout';
+import ContestLayout from '~/app/competitions/ContestLayout';
 import ContestTypeBadge from '@c/ContestTypeBadge';
 import Country from '@c/Country';
 import Competitor from '@c/Competitor';

@@ -31,7 +31,7 @@ const ContestLayout = ({
   return (
     <div className="mb-4">
       <h2 className="px-2 text-center">{contest.name}</h2>
-      <Tabs tabs={tabs} activeTab={activeTab} forServerSidePage />
+      <Tabs tabs={tabs} activeTab={activeTab} forServerSidePage replace />
 
       {children}
     </div>

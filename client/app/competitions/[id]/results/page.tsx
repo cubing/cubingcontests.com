@@ -1,5 +1,5 @@
 import { ssrFetch } from '~/helpers/fetchUtils';
-import ContestLayout from '@c/ContestLayout';
+import ContestLayout from '~/app/competitions/ContestLayout';
 import ContestResults from '@c/ContestResults';
 import C from '@sh/constants';
 import { IContestData } from '@sh/types';
