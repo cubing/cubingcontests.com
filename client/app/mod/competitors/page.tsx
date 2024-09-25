@@ -3,6 +3,7 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { remove as removeAccents } from 'remove-accents';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faPencil, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
@@ -37,7 +38,7 @@ const CreatePersonPage = () => {
     () =>
       persons.filter(
         (p) =>
-          p.name.includes(search) &&
+          removeAccents(p.name.toLowerCase()).includes(removeAccents(search.toLowerCase())) &&
           (approvedFilter === '' ||
             (approvedFilter === 'approved' && !p.unapproved) ||
             (approvedFilter === 'unapproved' && p.unapproved)),
@@ -121,7 +122,7 @@ const CreatePersonPage = () => {
 
       {mode !== 'add-once' && (
         <>
-          <div className="d-flex align-items-center gap-3 mt-4 px-3">
+          <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 px-3">
             <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
             <FormSelect
               title="Status"
@@ -129,7 +130,7 @@ const CreatePersonPage = () => {
               setSelected={setApprovedFilter}
               options={approvedFilterOptions}
               oneLine
-              style={{ maxWidth: '16rem' }}
+              style={{ maxWidth: '15rem' }}
             />
           </div>
 

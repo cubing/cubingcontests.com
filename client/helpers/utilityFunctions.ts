@@ -1,6 +1,7 @@
 import jwtDecode from 'jwt-decode';
 import { isSameDay, isSameMonth, isSameYear } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
+import { remove as removeAccents } from 'remove-accents';
 import { Color, EventFormat, Role } from '@sh/enums';
 import C from '@sh/constants';
 import { IAttempt, IEvent, ITimeLimit } from '@sh/types';
@@ -185,7 +186,7 @@ export const getBSClassFromColor = (color: Color): string => {
 };
 
 export const getContestIdFromName = (name: string): string => {
-  let output = name.replaceAll(/[^a-zA-Z0-9 ]/g, '');
+  let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, '');
   const parts = output.split(' ');
 
   output = parts
