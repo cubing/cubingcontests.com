@@ -14,8 +14,7 @@ export class RecordTypesController {
 
   @Get() // GET /record-types?active=true/false
   async getRecordTypes(@Query('active') active: boolean) {
-    // Converting active to boolean just in case, to prevent injection attacks
-    return await this.service.getRecordTypes({ active: !!active });
+    return await this.service.getRecordTypes(active ? { active: true } : {});
   }
 
   @Post() // POST /record-types

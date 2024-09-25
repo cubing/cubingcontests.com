@@ -6,7 +6,7 @@ const Time = ({
   result,
   event,
   recordTypes,
-  average = false,
+  average,
 }: {
   result: IResult;
   event: IEvent;
