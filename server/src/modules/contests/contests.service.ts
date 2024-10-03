@@ -410,10 +410,12 @@ export class ContestsService {
 
     contest.state = ContestState.Removed;
     contest.competitionId += '_REMOVED';
+    contest.queuePosition = undefined;
 
     await contest.save();
 
-    await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
+    if (getIsCompType(contest.type))
+      await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     await this.authService.deleteAuthToken(competitionId);
 
