@@ -39,7 +39,18 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
 
                 return (
                   <tr key={round.roundId} className={roundIndex !== 0 ? 'table-active' : ''}>
-                    <td>{roundIndex === 0 && <EventTitle event={compEvent.event} fontSize="6" noMargin showIcon />}</td>
+                    <td>
+                      {roundIndex === 0 && (
+                        <EventTitle
+                          event={compEvent.event}
+                          fontSize="6"
+                          noMargin
+                          showIcon
+                          linkToRankings
+                          showDescription
+                        />
+                      )}
+                    </td>
                     <td>{roundTypes[round.roundTypeId].label}</td>
                     <td>{roundFormats.find((rf) => rf.value === round.format).label}</td>
                     <td>

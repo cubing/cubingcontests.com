@@ -121,7 +121,14 @@ const Schedule = ({
                           {a.activityCode !== 'other-misc' ? (
                             <span className="d-flex align-items-center gap-2">
                               {a.contestEvent && (
-                                <EventTitle event={a.contestEvent.event} fontSize="6" noMargin showIcon />
+                                <EventTitle
+                                  event={a.contestEvent.event}
+                                  fontSize="6"
+                                  noMargin
+                                  showIcon
+                                  showDescription
+                                  linkToRankings
+                                />
                               )}
                               {a.round ? (
                                 <span>{roundTypes[a.round.roundTypeId].label}</span>

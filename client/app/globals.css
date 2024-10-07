@@ -126,3 +126,8 @@ body[data-bs-theme='light'] {
     white-space: nowrap;
   }
 }
+
+/* Override Bootstrap's overflow-x for responsible tables (only in contest layouts) */
+.cc-contest-layout .table-responsive {
+  overflow-x: visible;
+}
