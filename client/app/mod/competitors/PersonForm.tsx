@@ -151,6 +151,7 @@ const PersonForm = ({
       onCancel={onCancel}
     >
       {personUnderEdit && <CreatorDetails creator={personUnderEdit.creator} />}
+      {personUnderEdit && <p>ID: {personUnderEdit.personId}</p>}
       <FormTextInput
         title="WCA ID"
         id="wca_id"
