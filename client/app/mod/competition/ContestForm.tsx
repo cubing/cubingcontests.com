@@ -637,8 +637,11 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   </div>
                 </div>
                 <div className="row">
-                  <div className="text-secondary fs-6">
+                  <div className="text-secondary fs-6 mb-2">
                     Time zone: {isLoadingTimezone ? <Loading small dontCenter /> : venueTimeZone}
+                  </div>
+                  <div className="text-danger fs-6">
+                    The coordinates must point to a building and match the address of the venue.
                   </div>
                 </div>
               </div>
