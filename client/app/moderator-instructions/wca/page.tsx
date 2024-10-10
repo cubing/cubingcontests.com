@@ -25,9 +25,10 @@ const page = () => {
         <p>
           A3. Go to the Events tab and select all unofficial events and rounds you would like to hold. Please think this
           part through carefully, because it will not be possible to change the format for a round after the competition
-          is approved without direct admin intervention. As such, changing formats is <b>highly</b> discouraged. A new
-          event may be added upon request, but we encourage holding the existing events in the{' '}
-          <b className="hl">Unofficial</b> category more instead.
+          is approved without direct admin intervention. As such, changing formats is <b>highly</b> discouraged. You may
+          add additional rounds after the contest is approved yourself if you have the time for it, but adding an event
+          requires admin approval. If you would like to hold a completely new event, you may request for it to be added,
+          but this should be done before your contest is approved.
         </p>
         <p>
           A4. Go to the Schedule tab and add all rounds to the schedule. You must first enter the rooms and then add the

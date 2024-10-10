@@ -9,6 +9,7 @@ import { IContest, IContestData } from '@sh/types';
 import { ContestState, ContestType } from '@sh/enums';
 import { getDateOnly } from '@sh/sharedFunctions';
 import { getFormattedDate } from '~/helpers/utilityFunctions';
+import WcaCompAdditionalDetails from '~/app/components/WcaCompAdditionalDetails';
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const { payload } = await ssrFetch(`/competitions/${params.id}`);
@@ -98,13 +99,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             ) : undefined}
 
             {contest.type === ContestType.WcaComp && (
-              <p className="mb-4">
-                Unofficial events from {contest.name}. For official events see the official{' '}
-                <a href={`https://worldcubeassociation.org/competitions/${contest.competitionId}`}>
-                  WCA competition page
-                </a>
-                .
-              </p>
+              <WcaCompAdditionalDetails name={contest.name} competitionId={contest.competitionId} />
             )}
 
             {contest.description && (

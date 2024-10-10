@@ -36,6 +36,7 @@ import Button from '@c/UI/Button';
 import CreatorDetails from '@c/CreatorDetails';
 import ContestEvents from './ContestEvents';
 import ScheduleEditor from './ScheduleEditor';
+import WcaCompAdditionalDetails from '~/app/components/WcaCompAdditionalDetails';
 
 const userInfo = getUserInfo();
 
@@ -712,6 +713,16 @@ You have a round with a default time limit of 10:00. A round with a high time li
               setValue={setDescription}
               disabled={disableIfContestPublished}
             />
+            {type === ContestType.WcaComp && (
+              <div>
+                <p className="fs-6 fst-italic">
+                  The following text will be displayed above the description on the contest page:
+                </p>
+                <div className="mx-2">
+                  <WcaCompAdditionalDetails name={name || '[CONTEST NAME]'} competitionId={competitionId} />
+                </div>
+              </div>
+            )}
             <FormNumberInput
               title={'Competitor limit' + (!getIsCompType(type) ? ' (optional)' : '')}
               value={competitorLimit}
