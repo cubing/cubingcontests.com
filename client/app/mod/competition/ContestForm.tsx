@@ -715,6 +715,10 @@ You have a round with a default time limit of 10:00. A round with a high time li
             />
             {type === ContestType.WcaComp && (
               <div>
+                <p className="fs-6">
+                  The description must be available in English for WCA competitions. You may still include versions
+                  written in other languages, and the order doesn't matter.
+                </p>
                 <p className="fs-6 fst-italic">
                   The following text will be displayed above the description on the contest page:
                 </p>
