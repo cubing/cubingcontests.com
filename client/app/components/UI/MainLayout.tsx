@@ -9,7 +9,7 @@ import { MainContext, Theme } from '~/helpers/contexts';
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
-  const [theme, setTheme] = useState<Theme>();
+  const [theme, setTheme] = useState<Theme>('dark');
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [loadingId, setLoadingId] = useState('');
@@ -21,7 +21,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       setTheme(storedTheme as Theme);
     } else {
       localStorage.setItem('theme', 'dark');
-      setTheme('dark');
     }
   }, []);
 
@@ -86,13 +85,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           resetMessages,
         }}
       >
-        {theme && (
-          <>
-            <Navbar />
-            <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">{children}</main>
-            <Footer />
-          </>
-        )}
+        <Navbar />
+        <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">{children}</main>
+        <Footer />
       </MainContext.Provider>
     </body>
   );

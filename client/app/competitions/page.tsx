@@ -22,7 +22,11 @@ const ContestsPage = async ({ searchParams: { eventId } }: { searchParams: { eve
   return (
     <div>
       <h2 className="mb-4 text-center">All contests</h2>
-      {events && <EventButtons key={eventId} eventId={eventId} events={events} forPage="competitions" />}
+
+      <div className="px-2">
+        {events && <EventButtons key={eventId} eventId={eventId} events={events} forPage="competitions" />}
+      </div>
+
       {contests?.length > 0 ? (
         <ContestsTable contests={contests} />
       ) : (

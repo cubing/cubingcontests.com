@@ -19,7 +19,7 @@ const EventTitle = ({
   fontSize?: '1' | '2' | '3' | '4' | '5' | '6';
 }) => {
   return (
-    <h3 className={`d-flex align-items-center gap-2 fs-${fontSize} ${noMargin ? ' m-0' : ' mx-2 mb-3'}`}>
+    <h3 className={`d-flex align-items-center gap-2 fs-${fontSize} ${noMargin ? ' m-0' : ' ms-2 me-3 mb-3'}`}>
       {showIcon && <EventIcon event={event} />}
 
       {!linkToRankings ? (
