@@ -106,13 +106,6 @@ export class ResultsController {
     @Body(new ValidationPipe()) createResultDto: CreateResultDto,
     @Request() req: any,
   ) {
-    this.logger.logAndSave(
-      `Creating new result for contest ${createResultDto.competitionId}, round ${roundId}: ${JSON.stringify(
-        createResultDto,
-      )}`,
-      LogType.CreateResult,
-    );
-
     return await this.service.createResult(createResultDto, roundId, req.user);
   }
 
@@ -121,11 +114,6 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
   async submitResult(@Body(new ValidationPipe()) submitResultDto: SubmitResultDto, @Request() req: any) {
-    this.logger.logAndSave(
-      `Submitting new result for event ${submitResultDto.eventId}: ${JSON.stringify(submitResultDto)}`,
-      LogType.SubmitResult,
-    );
-
     return await this.service.submitResult(submitResultDto, req.user);
   }
 
@@ -138,8 +126,6 @@ export class ResultsController {
     @Body(new ValidationPipe()) updateResultDto: UpdateResultDto,
     @Request() req: any,
   ) {
-    this.logger.logAndSave(`Updating result with ID ${id}: ${JSON.stringify(updateResultDto)}`, LogType.UpdateResult);
-
     return await this.service.updateResult(id, updateResultDto, { user: req.user });
   }
 
@@ -148,8 +134,6 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async deleteContestResult(@Param('id') id: string, @Request() req: any) {
-    this.logger.logAndSave(`Deleting result with ID ${id}`, LogType.DeleteResult);
-
     return await this.service.deleteResult(id, req.user);
   }
 }

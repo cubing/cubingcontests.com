@@ -53,6 +53,7 @@ import {
 } from '@sh/sharedFunctions';
 import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
 import { EmailService } from '~/src/modules/email/email.service';
+import { LogType } from '~/src/helpers/enums';
 
 @Injectable()
 export class ResultsService {
@@ -503,6 +504,11 @@ export class ResultsService {
     roundId: string,
     { user }: { user?: IPartialUser } = {},
   ): Promise<RoundDocument> {
+    this.logger.logAndSave(
+      `Creating new contest result: ${JSON.stringify(createResultDto)} (round ${roundId})`,
+      LogType.CreateResult,
+    );
+
     const contest = await this.getContestAndCheckAccessRights(createResultDto.competitionId, { user });
 
     const round = await this.roundModel
@@ -572,6 +578,11 @@ export class ResultsService {
   }
 
   async submitResult(submitResultDto: SubmitResultDto, user: IPartialUser) {
+    this.logger.logAndSave(
+      `Submitting new video-based result: ${JSON.stringify(submitResultDto)}`,
+      LogType.SubmitResult,
+    );
+
     const isAdmin = user.roles.includes(Role.Admin);
 
     // Disallow admin-only features
@@ -616,6 +627,11 @@ export class ResultsService {
 
   // The user can be left undefined when this is called from enterAttemptFromExternalDevice() or when editing a submitted result
   async updateResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
+    this.logger.logAndSave(
+      `Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
+      LogType.UpdateResult,
+    );
+
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
     const event = await this.eventsService.getEventById(result.eventId);
@@ -692,6 +708,9 @@ export class ResultsService {
   async deleteResult(resultId: string, user: IPartialUser): Promise<RoundDocument> {
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);
+
+    this.logger.logAndSave(`Deleting result: ${JSON.stringify(result)}`, LogType.DeleteResult);
+
     const event = await this.eventsService.getEventById(result.eventId);
 
     let contest: ContestDocument, round: RoundDocument;
