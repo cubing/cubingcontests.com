@@ -10,6 +10,7 @@ import Tabs from '@c/UI/Tabs';
 import ToastMessages from '@c/UI/ToastMessages';
 import MarkdownDescription from '@c/MarkdownDescription';
 import EventTitle from '@c/EventTitle';
+import ExternalLink from '@c/ExternalLink';
 
 const RulesPage = () => {
   const myFetch = useMyFetch();
@@ -40,8 +41,7 @@ const RulesPage = () => {
           <>
             <ol className="ps-3 lh-lg">
               <li>
-                The <a href="https://www.worldcubeassociation.org/regulations/full/">WCA Regulations</a> must be
-                followed wherever possible.
+                The <ExternalLink to="wca-regulations" /> must be followed wherever possible.
               </li>
               <li>
                 Judges and equipment (i.e. timers, stopwatches, sight blockers, etc.) are required for unofficial events
@@ -49,9 +49,8 @@ const RulesPage = () => {
               </li>
               <li>Gen 2 timers are allowed in addition to the timers allowed for WCA competitions.</li>
               <li>
-                <a href="https://experiments.cubing.net/cubing.js/mark3/">cubing.js</a> or{' '}
-                <a href="https://cstimer.net/">csTimer</a> scrambles must be used for twisty puzzle events. In
-                particular, random-state scrambles must be used for a puzzle, if available.
+                <ExternalLink to="cubingjs" /> or <ExternalLink to="cstimer" /> scrambles must be used for twisty puzzle
+                events. In particular, random-state scrambles must be used for a puzzle, if available.
               </li>
               <li>Only organizers and Delegates of WCA competitions are allowed to hold unofficial events at them.</li>
               <li>
@@ -90,7 +89,7 @@ const RulesPage = () => {
             <ul className="list-inline lh-lg">
               <li>
                 F1. A fully blindfolded attempt proceeds like a normal blindfolded attempt (see{' '}
-                <a href="https://www.worldcubeassociation.org/regulations/#article-B-blindfolded">
+                <a href="https://www.worldcubeassociation.org/regulations/full#article-B-blindfolded" target="_blank">
                   Article B of the WCA Regulations
                 </a>
                 ), with the following changes:
