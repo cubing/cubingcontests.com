@@ -22,7 +22,8 @@ const EventButtons = ({
   const filteredCategories =
     forPage === 'competitions'
       ? eventCategories.filter((ec) => !['extremebld', 'removed'].includes(ec.value))
-      : eventCategories;
+      : forPage === 'rankings' ? eventCategories.filter((ec) => ec.value !== 'removed') 
+        : eventCategories;
 
   const [selectedCat, setSelectedCat] = useState(
     filteredCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ??
