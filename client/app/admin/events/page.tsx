@@ -252,6 +252,7 @@ const CreateEditEventPage = () => {
                     fontSize='6'
                     event={event}
                     showIcon
+                    showDescription
                     linkToRankings
                   />
                 </td>
