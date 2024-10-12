@@ -19,6 +19,7 @@ import FormNumberInput from '@c/form/FormNumberInput';
 import FormCheckbox from '@c/form/FormCheckbox';
 import FormTextArea from '@c/form/FormTextArea';
 import Button from '@c/UI/Button';
+import EventTitle from '~/app/components/EventTitle';
 
 const CreateEditEventPage = () => {
   const myFetch = useMyFetch();
@@ -246,7 +247,15 @@ const CreateEditEventPage = () => {
             {events.map((event: IFeEvent, index) => (
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
-                <td>{event.name}</td>
+                <td>
+                  <EventTitle
+                    fontSize='6'
+                    event={event}
+                    showIcon
+                    showDescription
+                    linkToRankings
+                  />
+                </td>
                 <td>{event.eventId}</td>
                 <td>{event.rank}</td>
                 <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat).shortLabel}</td>

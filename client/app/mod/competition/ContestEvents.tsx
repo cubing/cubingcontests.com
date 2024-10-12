@@ -247,7 +247,7 @@ const ContestEvents = ({
       {contestEvents.map((ce, eventIndex) => (
         <div key={ce.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-            <EventTitle event={ce.event} fontSize="4" noMargin showIcon showDescription />
+            <EventTitle event={ce.event} fontSize="4" noMargin showIcon showDescription linkToRankings />
 
             {totalResultsPerContestEvent[eventIndex] > 0 ? (
               <p className="mb-0">Total results: {totalResultsPerContestEvent[eventIndex]}</p>
