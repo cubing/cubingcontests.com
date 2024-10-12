@@ -19,11 +19,7 @@ const EventButtons = ({
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
-  const filteredCategories =
-    forPage === 'competitions'
-      ? eventCategories.filter((ec) => !['extremebld', 'removed'].includes(ec.value))
-      : forPage === 'rankings' ? eventCategories.filter((ec) => ec.value !== 'removed') 
-        : eventCategories;
+  const filteredCategories = eventCategories.filter((ec) => ec.value !== 'removed');
 
   const [selectedCat, setSelectedCat] = useState(
     filteredCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ??
