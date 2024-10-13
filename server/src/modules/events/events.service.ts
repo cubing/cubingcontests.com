@@ -96,7 +96,12 @@ export class EventsService {
 
   async createEvent(createEventDto: CreateEventDto): Promise<IFeEvent[]> {
     const event = await this.eventModel.findOne({ eventId: createEventDto.eventId }).exec();
-    if (event) throw new BadRequestException(`Event with id ${createEventDto.eventId} already exists`);
+    if (event) throw new BadRequestException(`Event with ID ${createEventDto.eventId} already exists`);
+
+    const eventWithSameName = await this.eventModel
+      .findOne({ name: { $regex: createEventDto.name, $options: 'i' } })
+      .exec();
+    if (eventWithSameName) throw new BadRequestException(`Event with name ${createEventDto.name} already exists`);
 
     const eventWithSameRank = await this.eventModel.findOne({ rank: createEventDto.rank }).exec();
     if (eventWithSameRank) throw new BadRequestException(`Event with rank ${createEventDto.rank} already exists`);
