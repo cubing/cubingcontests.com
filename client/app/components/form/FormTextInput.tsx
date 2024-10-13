@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import FormInputLabel from './FormInputLabel';
 import { genericOnKeyDown } from '~/helpers/utilityFunctions';
+import Button from '~/app/components/UI/Button';
 
 const FormTextInput = ({
   id,
@@ -89,15 +90,11 @@ const FormTextInput = ({
           onBlur={handleBlur}
           className={'form-control flex-grow-1' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
         />
+
         {password && (
-          <button
-            type="button"
-            onClick={() => setHidePassword(!hidePassword)}
-            className="btn btn-primary py-1 px-2 fs-5"
-            aria-label="Toggle show password"
-          >
-            {hidePassword ? <FontAwesomeIcon icon={faEye} className="" /> : <FontAwesomeIcon icon={faEyeSlash} />}
-          </button>
+          <Button onClick={() => setHidePassword(!hidePassword)} className="px-2" aria-label="Toggle show password">
+            <FontAwesomeIcon icon={hidePassword ? faEye : faEyeSlash} style={{ width: '1.3rem' }} />
+          </Button>
         )}
       </div>
     </div>

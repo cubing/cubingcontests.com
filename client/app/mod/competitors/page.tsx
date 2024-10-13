@@ -59,7 +59,7 @@ const CreatePersonPage = () => {
   const rowVirtualizer = useVirtualizer({
     count: filteredPersons.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 47, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
+    estimateSize: () => 44.7833, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
     overscan: 20,
   });
 
@@ -184,12 +184,12 @@ const CreatePersonPage = () => {
                             <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
                           </td>
                         )}
-                        <td className="fs-5">
-                          {person.unapproved ? (
-                            <FontAwesomeIcon icon={faXmark} className="text-danger" />
-                          ) : (
-                            <FontAwesomeIcon icon={faCheck} />
-                          )}
+                        <td>
+                          <FontAwesomeIcon
+                            icon={person.unapproved ? faXmark : faCheck}
+                            className={person.unapproved ? 'text-danger' : ''}
+                            style={{ height: '1.3rem' }}
+                          />
                         </td>
                         <td>
                           <div className="d-flex gap-2">

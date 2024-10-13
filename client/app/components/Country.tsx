@@ -29,7 +29,8 @@ const Country = ({
   return (
     <span className="d-inline-flex align-items-center gap-2">
       {!noText && swapPositions && getCountry(countryIso2)}
-      {FlagComponent && FlagComponent({ title: getCountry(countryIso2), className: 'cc-flag-icon' })}
+      {FlagComponent &&
+        FlagComponent({ title: getCountry(countryIso2), className: 'cc-flag-icon', style: { height: '1.16rem' } })}
       {!noText && !swapPositions && getCountry(countryIso2)}
     </span>
   );

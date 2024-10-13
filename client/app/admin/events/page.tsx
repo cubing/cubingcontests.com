@@ -110,7 +110,7 @@ const CreateEditEventPage = () => {
   };
 
   return (
-    <div>
+    <section>
       <h2 className="mb-4 text-center">Events</h2>
       <ToastMessages />
 
@@ -248,15 +248,15 @@ const CreateEditEventPage = () => {
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>
-                  <EventTitle fontSize="6" event={event} showIcon showDescription linkToRankings noMargin />
+                  <EventTitle fontSize="6" event={event} showIcon linkToRankings noMargin />
                 </td>
                 <td>{event.eventId}</td>
                 <td>{event.rank}</td>
                 <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat).shortLabel}</td>
                 <td>{eventCategories.find((ec) => event.groups.includes(ec.group)).title}</td>
-                {/* <td>X</td> */}
+                {/* <td>{event.groups}</td> */}
                 <td>
-                  <Button onClick={() => onEditEvent(event)} className="btn-xs">
+                  <Button onClick={() => onEditEvent(event)} className="btn-xs" ariaLabel="Edit">
                     <FontAwesomeIcon icon={faPencil} />
                   </Button>
                 </td>
@@ -265,7 +265,7 @@ const CreateEditEventPage = () => {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 };
 

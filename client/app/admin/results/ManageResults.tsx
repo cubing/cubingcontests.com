@@ -22,7 +22,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const rowVirtualizer = useVirtualizer({
     count: results.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 45, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
+    estimateSize: () => 43.4167, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
     overscan: 20,
   });
 

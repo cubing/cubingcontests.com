@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo, Model } from 'mongoose';
+import { remove as removeAccents } from 'remove-accents';
 import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
@@ -117,8 +118,12 @@ export class PersonsService {
   }
 
   async getPersonsByName(name: string): Promise<IFePerson[]> {
+    const simplifiedParts = removeAccents(name.toLocaleLowerCase()).split(' ');
+    const nameQuery = { $and: simplifiedParts.map((part) => ({ name: { $regex: part, $options: 'i' } })) };
+    const locNameQuery = { $and: simplifiedParts.map((part) => ({ localizedName: { $regex: part, $options: 'i' } })) };
+
     return await this.personModel
-      .find({ name: { $regex: name, $options: 'i' } }, excl)
+      .find({ $or: [nameQuery, locNameQuery] }, excl)
       .limit(10)
       .exec();
   }

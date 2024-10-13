@@ -59,7 +59,7 @@ body[data-bs-theme='light'] {
 
 /* Custom class for Bootstrap buttons */
 .btn-xs {
-  --bs-btn-padding-y: 0.25rem !important;
+  --bs-btn-padding-y: 0.2rem !important;
   --bs-btn-padding-x: 0.5rem !important;
   --bs-btn-font-size: 0.75rem !important;
 }
@@ -91,11 +91,6 @@ body[data-bs-theme='light'] {
 .cc-icon-button:active,
 .cc-icon-button.cc-icon-button--active {
   color: var(--bs-btn-active-bg);
-}
-
-.cc-flag-icon {
-  width: 1.75rem;
-  margin: 0;
 }
 
 .cc-tooltip .cc-tooltip-text {
