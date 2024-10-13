@@ -248,13 +248,7 @@ const CreateEditEventPage = () => {
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>
-                  <EventTitle
-                    fontSize='6'
-                    event={event}
-                    showIcon
-                    showDescription
-                    linkToRankings
-                  />
+                  <EventTitle fontSize="6" event={event} showIcon showDescription linkToRankings noMargin />
                 </td>
                 <td>{event.eventId}</td>
                 <td>{event.rank}</td>

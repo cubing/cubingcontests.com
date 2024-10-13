@@ -33,7 +33,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   }, []);
 
   return (
-    <section className="flex-grow-1 d-flex flex-column" style={{ maxHeight: '82vh' }}>
+    <section>
       <h2 className="mb-4 text-center">Results</h2>
       <ToastMessages />
 
@@ -43,7 +43,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
         <b>{results.filter((r) => r.unapproved).length}</b>
       </p>
 
-      <div ref={parentRef} className="flex-grow-1 mt-3 table-responsive overflow-y-auto">
+      <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: '600px' }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
             <thead>

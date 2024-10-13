@@ -36,13 +36,17 @@ const CreatePersonPage = () => {
 
   const filteredPersons = useMemo(
     () =>
-      persons.filter(
-        (p) =>
-          removeAccents(p.name.toLowerCase()).includes(removeAccents(search.toLowerCase())) &&
-          (approvedFilter === '' ||
-            (approvedFilter === 'approved' && !p.unapproved) ||
-            (approvedFilter === 'unapproved' && p.unapproved)),
-      ),
+      persons.filter((p) => {
+        const simplifiedSearch = removeAccents(search.toLocaleLowerCase());
+        const passesNameFilter =
+          removeAccents(p.name.toLocaleLowerCase()).includes(simplifiedSearch) || // search by name
+          p.localizedName?.toLocaleLowerCase().includes(simplifiedSearch); // search by localized name
+        const passesApprovedFilter =
+          approvedFilter === '' ||
+          (approvedFilter === 'approved' && !p.unapproved) ||
+          (approvedFilter === 'unapproved' && p.unapproved);
+        return passesNameFilter && passesApprovedFilter;
+      }),
     [persons, approvedFilter, search],
   );
 
@@ -104,7 +108,7 @@ const CreatePersonPage = () => {
   };
 
   return (
-    <section className="flex-grow-1 d-flex flex-column" style={{ maxHeight: '82vh' }}>
+    <section>
       <h2 className="mb-4 text-center">Competitors</h2>
       <ToastMessages />
 
@@ -138,7 +142,7 @@ const CreatePersonPage = () => {
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div ref={parentRef} className="flex-grow-1 mt-3 table-responsive overflow-y-auto">
+          <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: '500px' }}>
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               <table className="table table-hover text-nowrap">
                 <thead>

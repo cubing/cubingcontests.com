@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useMyFetch } from '~/helpers/customHooks';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil } from '@fortawesome/free-solid-svg-icons';
@@ -14,10 +14,12 @@ import FormPersonInputs from '@c/form/FormPersonInputs';
 import FormCheckbox from '@c/form/FormCheckbox';
 import Button from '@c/UI/Button';
 import ToastMessages from '@c/UI/ToastMessages';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 const ManageUsersPage = () => {
   const myFetch = useMyFetch();
   const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const parentRef = useRef();
 
   const [users, setUsers] = useState<IFeUser[]>([]);
   const [username, setUsername] = useState('');
@@ -27,6 +29,13 @@ const ManageUsersPage = () => {
   const [isUser, setIsUser] = useState(false);
   const [isMod, setIsMod] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const rowVirtualizer = useVirtualizer({
+    count: users.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 45, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
+    overscan: 20,
+  });
 
   useEffect(() => {
     myFetch.get('/users', { authorize: true }).then(({ payload, errors }) => {
@@ -83,7 +92,7 @@ const ManageUsersPage = () => {
   };
 
   return (
-    <div>
+    <section>
       <h2 className="mb-4 text-center">Users</h2>
       <ToastMessages />
 
@@ -111,43 +120,56 @@ const ManageUsersPage = () => {
         </Form>
       )}
 
-      <div className="my-5 table-responsive">
-        <table className="table table-hover text-nowrap">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Username</th>
-              <th scope="col">Email</th>
-              <th scope="col">Competitor</th>
-              <th scope="col">Roles</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user: IFeUser, index) => (
-              <tr key={user.username}>
-                <td>{index + 1}</td>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
-                <td>{user.person?.name}</td>
-                <td>{user.roles.map((r) => getRoleLabel(r, true)).join(', ')}</td>
-                <td>
-                  <Button
-                    id={`edit_${user.username}_button`}
-                    type="button"
-                    onClick={() => onEditUser(user)}
-                    className="btn-xs"
-                    ariaLabel="Edit"
-                  >
-                    <FontAwesomeIcon icon={faPencil} />
-                  </Button>
-                </td>
+      <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: '650px' }}>
+        <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+          <table className="table table-hover text-nowrap">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Username</th>
+                <th scope="col">Email</th>
+                <th scope="col">Competitor</th>
+                <th scope="col">Roles</th>
+                <th scope="col">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
+                if (users?.length === 0) return;
+                const user = users[virtualItem.index];
+
+                return (
+                  <tr
+                    key={virtualItem.key as React.Key}
+                    style={{
+                      height: `${virtualItem.size}px`,
+                      transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                    }}
+                  >
+                    <td>{index + 1}</td>
+                    <td>{user.username}</td>
+                    <td>{user.email}</td>
+                    <td>{user.person?.name}</td>
+                    <td>{user.roles.map((r) => getRoleLabel(r, true)).join(', ')}</td>
+                    <td>
+                      <Button
+                        id={`edit_${user.username}_button`}
+                        type="button"
+                        onClick={() => onEditUser(user)}
+                        className="btn-xs"
+                        ariaLabel="Edit"
+                      >
+                        <FontAwesomeIcon icon={faPencil} />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

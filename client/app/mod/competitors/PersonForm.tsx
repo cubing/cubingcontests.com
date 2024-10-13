@@ -168,7 +168,7 @@ const PersonForm = ({
         disabled={loadingId !== ''}
       />
       <FormTextInput
-        title="Full Name"
+        title="Full Name (name, last name)"
         id="full_name"
         value={name}
         setValue={setName}
