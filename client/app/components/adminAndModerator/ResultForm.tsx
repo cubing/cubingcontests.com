@@ -12,7 +12,7 @@ import EventButtons from '@c/EventButtons';
 import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/types';
 import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
-import { getMakesCutoff, getBestAndAverage, setResultRecords } from '@sh/sharedFunctions';
+import { getMakesCutoff, getBestAndAverage, setResultRecords, getFormattedTime } from '@sh/sharedFunctions';
 import { roundTypes } from '~/helpers/roundTypes';
 import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
 import { MainContext } from '~/helpers/contexts';
@@ -296,6 +296,20 @@ const ResultForm = ({
             )}
           </div>
         )}
+        <div className="mt-2">
+          {round?.timeLimit && (
+            <div>
+            Time limit:&nbsp;
+              {getFormattedTime(round.timeLimit.centiseconds)} {round?.timeLimit.cumulativeRoundIds.length > 0 && 'in total'}
+            </div>
+          )}
+          {round?.cutoff && (
+            <div>
+              Cutoff:&nbsp;
+              {getFormattedTime(round.cutoff.attemptResult)}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
