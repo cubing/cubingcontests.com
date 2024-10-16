@@ -126,6 +126,7 @@ const CreatePersonPage = () => {
 
       {mode !== 'add-once' && (
         <>
+          {/* Same styling as the filters on the manage users page */}
           <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 px-3">
             <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
             <FormSelect

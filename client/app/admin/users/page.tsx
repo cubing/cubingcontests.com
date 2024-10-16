@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useMyFetch } from '~/helpers/customHooks';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil } from '@fortawesome/free-solid-svg-icons';
@@ -29,9 +29,15 @@ const ManageUsersPage = () => {
   const [isUser, setIsUser] = useState(false);
   const [isMod, setIsMod] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filteredUsers = useMemo(
+    () => users.filter((u) => u.username.toLocaleLowerCase().includes(search.toLocaleLowerCase())),
+    [users, search],
+  );
 
   const rowVirtualizer = useVirtualizer({
-    count: users.length,
+    count: filteredUsers.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 43.4167, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
     overscan: 20,
@@ -120,6 +126,11 @@ const ManageUsersPage = () => {
         </Form>
       )}
 
+      {/* Same styling as the filters on the manage competitors page */}
+      <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 px-3">
+        <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
+      </div>
+
       <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: '650px' }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
@@ -135,8 +146,8 @@ const ManageUsersPage = () => {
             </thead>
             <tbody>
               {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
-                if (users?.length === 0) return;
-                const user = users[virtualItem.index];
+                if (filteredUsers?.length === 0) return;
+                const user = filteredUsers[virtualItem.index];
 
                 return (
                   <tr
@@ -146,7 +157,7 @@ const ManageUsersPage = () => {
                       transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
                     }}
                   >
-                    <td>{index + 1}</td>
+                    <td>{virtualItem.index + 1}</td>
                     <td>{user.username}</td>
                     <td>{user.email}</td>
                     <td>{user.person?.name}</td>
