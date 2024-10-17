@@ -120,9 +120,12 @@ export class PersonsService {
     const simplifiedParts = getSimplifiedString(name).split(' ');
     const nameQuery = { $and: simplifiedParts.map((part) => ({ name: { $regex: part, $options: 'i' } })) };
     const locNameQuery = { $and: simplifiedParts.map((part) => ({ localizedName: { $regex: part, $options: 'i' } })) };
+    // To-do: replace this with a search that would match by sanitizing the diacritics in the name/localizedName too,
+    // so that Lukasz (query) also matches Łukasz (db) without TEMP_QUERY
+    const TEMP_QUERY = { name: { $regex: name, $options: 'i' } };
 
     return await this.personModel
-      .find({ $or: [nameQuery, locNameQuery] }, excl)
+      .find({ $or: [nameQuery, locNameQuery, TEMP_QUERY] }, excl)
       .limit(10)
       .exec();
   }

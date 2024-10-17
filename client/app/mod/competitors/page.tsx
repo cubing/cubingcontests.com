@@ -40,8 +40,7 @@ const CreatePersonPage = () => {
     return persons.filter((p) => {
       const passesNameFilter =
         getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
-        !p.localizedName ||
-        getSimplifiedString(p.localizedName).includes(simplifiedSearch); // search by localized name
+        (p.localizedName && getSimplifiedString(p.localizedName).includes(simplifiedSearch)); // search by localized name
       const passesApprovedFilter =
         approvedFilter === '' ||
         (approvedFilter === 'approved' && !p.unapproved) ||
