@@ -81,7 +81,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
                         {rankings.map((r) => (
                           <li
                             key={r.type + r.resultId}
-                            className="d-flex flex-column gap-2 py-3 list-group-item list-group-item-dark"
+                            className="d-flex flex-column gap-2 py-3 list-group-item list-group-item-secondary"
                           >
                             <div className="d-flex justify-content-between">
                               <span>

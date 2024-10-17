@@ -37,15 +37,15 @@ const EventButtons = ({
 
   const handleEventClick = (newEventId: string) => {
     if (forPage === 'results') {
-      router.push(`/competitions/${id}/results?eventId=${newEventId}`);
+      router.replace(`/competitions/${id}/results?eventId=${newEventId}`);
     } else if (forPage === 'rankings') {
       const show = searchParams.get('show');
       router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
     } else if (forPage === 'competitions') {
-      if (searchParams.get('eventId') === newEventId) window.location.href = '/competitions';
-      else router.push(`/competitions?eventId=${newEventId}`);
+      if (searchParams.get('eventId') === newEventId) router.replace('/competitions');
+      else router.replace(`/competitions?eventId=${newEventId}`);
     } else {
-      window.location.href = `/mod/competition/${id}?eventId=${newEventId}`;
+      router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
     }
   };
 

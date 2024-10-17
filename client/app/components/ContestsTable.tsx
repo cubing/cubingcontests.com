@@ -21,7 +21,7 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
           {contests.map((contest: IContest, index: number) => (
             <li
               key={contest.competitionId}
-              className={`list-group-item ps-2 ${index % 2 === 1 ? ' list-group-item-dark' : ''}`}
+              className={`list-group-item ps-2 ${index % 2 === 1 ? ' list-group-item-secondary' : ''}`}
             >
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex align-items-center gap-2">
