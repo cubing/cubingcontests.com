@@ -3,7 +3,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { remove as removeAccents } from 'remove-accents';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faPencil, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useMyFetch } from '~/helpers/customHooks';
@@ -20,6 +19,7 @@ import ToastMessages from '@c/UI/ToastMessages';
 import PersonForm from './PersonForm';
 import FormSelect from '@c/form/FormSelect';
 import FormTextInput from '@c/form/FormTextInput';
+import { getSimplifiedString } from '@sh/sharedFunctions';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -34,21 +34,21 @@ const CreatePersonPage = () => {
   const [approvedFilter, setApprovedFilter] = useState<'approved' | 'unapproved' | ''>('');
   const [search, setSearch] = useState('');
 
-  const filteredPersons = useMemo(
-    () =>
-      persons.filter((p) => {
-        const simplifiedSearch = removeAccents(search.toLocaleLowerCase());
-        const passesNameFilter =
-          removeAccents(p.name.toLocaleLowerCase()).includes(simplifiedSearch) || // search by name
-          p.localizedName?.toLocaleLowerCase().includes(simplifiedSearch); // search by localized name
-        const passesApprovedFilter =
-          approvedFilter === '' ||
-          (approvedFilter === 'approved' && !p.unapproved) ||
-          (approvedFilter === 'unapproved' && p.unapproved);
-        return passesNameFilter && passesApprovedFilter;
-      }),
-    [persons, approvedFilter, search],
-  );
+  const filteredPersons = useMemo(() => {
+    const simplifiedSearch = getSimplifiedString(search);
+
+    return persons.filter((p) => {
+      const passesNameFilter =
+        getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
+        !p.localizedName ||
+        getSimplifiedString(p.localizedName).includes(simplifiedSearch); // search by localized name
+      const passesApprovedFilter =
+        approvedFilter === '' ||
+        (approvedFilter === 'approved' && !p.unapproved) ||
+        (approvedFilter === 'unapproved' && p.unapproved);
+      return passesNameFilter && passesApprovedFilter;
+    });
+  }, [persons, approvedFilter, search]);
 
   const approvedFilterOptions: MultiChoiceOption[] = [
     { label: 'Any', value: '' },

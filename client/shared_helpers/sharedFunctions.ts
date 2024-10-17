@@ -1,5 +1,6 @@
 import { differenceInDays } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
+import { remove as removeAccents } from 'remove-accents';
 import C from '@sh/constants';
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums';
 import {
@@ -351,3 +352,5 @@ export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activ
 
 export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
   contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
+
+export const getSimplifiedString = (input: string): string => removeAccents(input.toLocaleLowerCase());

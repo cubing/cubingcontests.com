@@ -7,14 +7,13 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo, Model } from 'mongoose';
-import { remove as removeAccents } from 'remove-accents';
 import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
 import { ContestDocument, ContestEvent } from '~/src/models/contest.model';
 import { PersonDto } from './dto/person.dto';
 import { IFePerson, IPersonDto, IWcaPersonDto } from '@sh/types';
-import { fetchWcaPerson } from '@sh/sharedFunctions';
+import { fetchWcaPerson, getSimplifiedString } from '@sh/sharedFunctions';
 import { Role } from '@sh/enums';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
 import { MyLogger } from '@m/my-logger/my-logger.service';
@@ -118,7 +117,7 @@ export class PersonsService {
   }
 
   async getPersonsByName(name: string): Promise<IFePerson[]> {
-    const simplifiedParts = removeAccents(name.toLocaleLowerCase()).split(' ');
+    const simplifiedParts = getSimplifiedString(name).split(' ');
     const nameQuery = { $and: simplifiedParts.map((part) => ({ name: { $regex: part, $options: 'i' } })) };
     const locNameQuery = { $and: simplifiedParts.map((part) => ({ localizedName: { $regex: part, $options: 'i' } })) };
 

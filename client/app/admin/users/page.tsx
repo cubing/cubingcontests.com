@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { Role } from '@sh/enums';
 import { IFeUser } from '@sh/types';
-import { getRoleLabel } from '@sh/sharedFunctions';
+import { getRoleLabel, getSimplifiedString } from '@sh/sharedFunctions';
 import { MainContext } from '~/helpers/contexts';
 import Form from '@c/form/Form';
 import FormTextInput from '@c/form/FormTextInput';
@@ -31,10 +31,15 @@ const ManageUsersPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [search, setSearch] = useState('');
 
-  const filteredUsers = useMemo(
-    () => users.filter((u) => u.username.toLocaleLowerCase().includes(search.toLocaleLowerCase())),
-    [users, search],
-  );
+  const filteredUsers = useMemo(() => {
+    const simplifiedSearch = getSimplifiedString(search);
+
+    return users.filter(
+      (u) =>
+        u.username.toLocaleLowerCase().includes(simplifiedSearch) ||
+        getSimplifiedString(u.person.name).includes(simplifiedSearch),
+    );
+  }, [users, search]);
 
   const rowVirtualizer = useVirtualizer({
     count: filteredUsers.length,
@@ -130,6 +135,10 @@ const ManageUsersPage = () => {
       <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 px-3">
         <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
       </div>
+
+      <p className="mb-2 px-3">
+        Number of users:&nbsp;<b>{filteredUsers.length}</b>
+      </p>
 
       <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: '650px' }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
