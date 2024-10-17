@@ -97,6 +97,17 @@ const CreatePersonPage = () => {
     }
   };
 
+  const approveCompetitor = async (person: IFePerson) => {
+    const { payload, errors } = await myFetch.patch(`/persons/${(person as any)._id}/approve`, {
+      loadingId: `approve_person_${person.personId}_button`,
+    });
+
+    if (!errors) {
+      setPersons(persons.map((p) => (p.personId === person.personId ? { ...payload, creator: p.creator } : p)));
+      changeSuccessMessage(`Successfully approved ${person.name} (CC ID: ${person.personId})`);
+    }
+  };
+
   const updateCompetitors = (person: IFePerson, isNew = false) => {
     if (isNew) {
       setPersons([person, ...persons]);
@@ -193,6 +204,18 @@ const CreatePersonPage = () => {
                         </td>
                         <td>
                           <div className="d-flex gap-2">
+                            {userInfo.isAdmin && person.unapproved && (
+                              <Button
+                                id={`approve_person_${person.personId}_button`}
+                                onClick={() => approveCompetitor(person)}
+                                loadingId={loadingId}
+                                disabled={mode !== 'view'}
+                                className="btn-xs btn-success"
+                                ariaLabel="Approve"
+                              >
+                                <FontAwesomeIcon icon={faCheck} />
+                              </Button>
+                            )}
                             {(userInfo.isAdmin || person.unapproved) && (
                               <Button
                                 onClick={() => onEditCompetitor(person)}

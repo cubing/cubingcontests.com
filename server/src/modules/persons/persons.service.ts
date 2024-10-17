@@ -249,6 +249,7 @@ export class PersonsService {
     this.logger.logAndSave(`Deleting person with ID ${id}`, LogType.DeletePerson);
 
     const person = await this.personModel.findById(id).exec();
+    if (!person) throw new NotFoundException('Person not found');
     if (!person.unapproved) throw new BadRequestException('You may not delete an approved person');
 
     const result = await this.resultModel.findOne({ personIds: person.personId }).exec();
@@ -266,6 +267,19 @@ export class PersonsService {
     await person.deleteOne();
   }
 
+  async approvePerson(id: string) {
+    this.logger.logAndSave(`Approving person with ID ${id}`, LogType.ApprovePersons);
+
+    const person = await this.personModel.findById(id).exec();
+    if (!person) throw new NotFoundException('Person not found');
+    if (!person.unapproved) throw new BadRequestException(`${person.name} has already been approved`);
+
+    person.unapproved = undefined;
+    await person.save();
+
+    return this.getFrontendPerson(person);
+  }
+
   // Returns array of competitors who couldn't be approved
   async approvePersons({
     personIds,
@@ -276,6 +290,13 @@ export class PersonsService {
     competitionId?: string;
     wcaCompData?: unknown[];
   }) {
+    this.logger.logAndSave(
+      `Approving ${
+        competitionId ? `unapproved persons from contest with ID ${competitionId}` : 'persons'
+      } with person IDs: ${personIds.join(', ')}`,
+      LogType.ApprovePersons,
+    );
+
     const competitors = personIds
       ? await this.getPersonsByPersonIds(personIds)
       : await this.getContestParticipants({ competitionId, unapprovedOnly: true });

@@ -80,6 +80,14 @@ export class PersonsController {
     return await this.personsService.updatePerson(id, personDto, req.user);
   }
 
+  // PATCH /persons/:id/approve
+  @Patch(':id/approve')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async approvePerson(@Param('id') id: string) {
+    return await this.personsService.approvePerson(id);
+  }
+
   // DELETE /persons/:id
   @Delete(':id')
   @UseGuards(AuthenticatedGuard, RolesGuard)
