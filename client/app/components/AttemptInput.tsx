@@ -223,6 +223,9 @@ const AttemptInput = ({
           newText.length <= C.maxFmMoves.toString().length ||
           (newText.length <= 8 && event.format !== EventFormat.Number)
         ) {
+          if (timeLimit && +newText > timeLimit.centiseconds) {
+            return dnfTheAttempt();
+          }
           const newAttempt = getAttempt(attempt, event, forMemo ? attemptText : newText, {
             solved,
             attempted,
