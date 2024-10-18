@@ -1,7 +1,6 @@
 import { ssrFetch } from '~/helpers/fetchUtils';
 import ContestLayout from '~/app/competitions/ContestLayout';
 import ContestResults from '@c/ContestResults';
-import C from '@sh/constants';
 import { IContestData } from '@sh/types';
 
 const ContestResultsPage = async ({
@@ -13,7 +12,6 @@ const ContestResultsPage = async ({
 }) => {
   const { payload: contestData }: { payload?: IContestData } = await ssrFetch(
     `/competitions/${id}?eventId=${eventId ?? 'FIRST_EVENT'}`,
-    { revalidate: C.contestResultsRev },
   );
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
 
