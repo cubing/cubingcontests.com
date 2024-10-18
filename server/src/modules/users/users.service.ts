@@ -225,7 +225,7 @@ export class UsersService {
   }
 
   async requestPasswordReset(email: string) {
-    const user = await this.userModel.findOne({ email }).exec();
+    const user = await this.userModel.findOne({ email: email.trim().toLowerCase() }).exec();
 
     if (user) {
       const code = randomBytes(32).toString('hex');
