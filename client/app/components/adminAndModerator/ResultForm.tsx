@@ -1,21 +1,30 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
-import Loading from '@c/UI/Loading';
-import FormEventSelect from '@c/form/FormEventSelect';
-import FormSelect from '@c/form/FormSelect';
-import FormPersonInputs from '@c/form/FormPersonInputs';
-import FormCheckbox from '@c/form/FormCheckbox';
-import AttemptInput from '@c/AttemptInput';
-import Time from '@c/Time';
-import EventButtons from '@c/EventButtons';
-import { IAttempt, IContestEvent, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/types';
-import { EventFormat, RoundFormat, RoundType } from '@sh/enums';
-import { roundFormats } from '@sh/roundFormats';
-import { getMakesCutoff, getBestAndAverage, setResultRecords } from '@sh/sharedFunctions';
-import { roundTypes } from '~/helpers/roundTypes';
-import { roundFormatOptions } from '~/helpers/multipleChoiceOptions';
-import { MainContext } from '~/helpers/contexts';
+import React, { useContext, useEffect, useState } from 'react';
+import Loading from '~/app/components/UI/Loading.tsx';
+import FormEventSelect from '~/app/components/form/FormEventSelect.tsx';
+import FormSelect from '~/app/components/form/FormSelect.tsx';
+import FormPersonInputs from '~/app/components/form/FormPersonInputs.tsx';
+import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
+import AttemptInput from '~/app/components/AttemptInput.tsx';
+import Time from '~/app/components/Time.tsx';
+import EventButtons from '~/app/components/EventButtons.tsx';
+import {
+  IAttempt,
+  IContestEvent,
+  IEvent,
+  IPerson,
+  IRecordPair,
+  IRecordType,
+  IResult,
+  IRound,
+} from '~/shared_helpers/types.ts';
+import { EventFormat, RoundFormat, RoundType } from '~/shared_helpers/enums.ts';
+import { roundFormats } from '~/shared_helpers/roundFormats.ts';
+import { getBestAndAverage, getMakesCutoff, setResultRecords } from '~/shared_helpers/sharedFunctions.ts';
+import { roundTypes } from '~/helpers/roundTypes.ts';
+import { roundFormatOptions } from '~/helpers/multipleChoiceOptions.ts';
+import { MainContext } from '~/helpers/contexts.ts';
 
 /**
  * This component has 3 uses: for entering results on PostResultsScreen,
@@ -72,10 +81,14 @@ const ResultForm = ({
   const { changeErrorMessages, loadingId } = useContext(MainContext);
 
   // This is only needed for displaying the temporary best single and average, as well as any record badges
-  const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 } as IResult);
+  const [tempResult, setTempResult] = useState<IResult>(
+    { best: -1, average: -1 } as IResult,
+  );
   const [personNames, setPersonNames] = useState(['']);
   // If this is null, that means the option is disabled
-  const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
+  const [keepCompetitors, setKeepCompetitors] = useState(
+    showOptionToKeepCompetitors ? false : null,
+  );
   const [attemptsResetTrigger, setAttemptsResetTrigger] = useState<boolean>();
 
   if (!forResultsSubmissionForm) {
@@ -92,11 +105,12 @@ const ResultForm = ({
       reset();
       if (keepCompetitors) focusFirstAttempt();
       else document.getElementById('Competitor_1').focus();
-    }
-    // If resetTrigger is undefined, that means we're editing a result
+    } // If resetTrigger is undefined, that means we're editing a result
     else {
       // Set person names if there are no null persons (needed when editing results)
-      if (!persons.some((el) => el === null)) setPersonNames(persons.map((el) => el.name));
+      if (!persons.some((el) => el === null)) {
+        setPersonNames(persons.map((el) => el.name));
+      }
       updateTempResult();
       focusFirstAttempt();
     }
@@ -112,13 +126,24 @@ const ResultForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const focusFirstAttempt = () => {
-    if (event.format === EventFormat.Multi) document.getElementById('attempt_1_solved')?.focus();
-    else document.getElementById('attempt_1')?.focus();
+    if (event.format === EventFormat.Multi) {
+      document.getElementById('attempt_1_solved')?.focus();
+    } else document.getElementById('attempt_1')?.focus();
   };
 
   const updateTempResult = () => {
-    const { best, average } = getBestAndAverage(attempts, event, { round, roundFormat });
-    setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
+    const { best, average } = getBestAndAverage(attempts, event, {
+      round,
+      roundFormat,
+    });
+    setTempResult(
+      setResultRecords(
+        { best, average, attempts } as IResult,
+        event,
+        recordPairs,
+        true,
+      ),
+    );
   };
 
   const changeEvent = (newEventId: string) => {
@@ -135,7 +160,11 @@ const ResultForm = ({
       newRoundFormat = newCompEvent.rounds[0].format;
     }
 
-    reset({ newEvent, newRoundFormat, resetCompetitors: newEvent.participants !== event.participants });
+    reset({
+      newEvent,
+      newRoundFormat,
+      resetCompetitors: newEvent.participants !== event.participants,
+    });
   };
 
   // Only used for PostResultsScreen
@@ -149,8 +178,12 @@ const ResultForm = ({
 
   // Returns true if there are errors
   const checkPersonSelectionErrors = (newSelectedPerson: IPerson): boolean => {
-    if (round?.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))) {
-      changeErrorMessages(["That competitor's results have already been entered"]);
+    if (
+      round?.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))
+    ) {
+      changeErrorMessages([
+        "That competitor's results have already been entered",
+      ]);
       return true;
     }
 
@@ -158,25 +191,42 @@ const ResultForm = ({
   };
 
   const changeAttempt = (index: number, newAttempt: IAttempt) => {
-    const newAttempts = attempts.map((el, i) => (i !== index ? el : newAttempt));
+    const newAttempts = attempts.map((
+      el,
+      i,
+    ) => (i !== index ? el : newAttempt));
     setAttempts(newAttempts);
 
     // Update temporary best and average
-    const { best, average } = getBestAndAverage(newAttempts, event, { round, roundFormat });
-    setTempResult(setResultRecords({ best, average, attempts: newAttempts } as IResult, event, recordPairs, true));
+    const { best, average } = getBestAndAverage(newAttempts, event, {
+      round,
+      roundFormat,
+    });
+    setTempResult(
+      setResultRecords(
+        { best, average, attempts: newAttempts } as IResult,
+        event,
+        recordPairs,
+        true,
+      ),
+    );
   };
 
   const focusNext = (index: number) => {
     // Focus next time input or the submit button if it's the last input
     if (index + 1 < lastActiveAttempt) {
       // If Multi format and the next attempt is not DNS, focus the solved input, therwise focus the time input
-      if (event.format === EventFormat.Multi && attempts[index + 1].result !== -2) {
+      if (
+        event.format === EventFormat.Multi && attempts[index + 1].result !== -2
+      ) {
         document.getElementById(`attempt_${index + 2}_solved`).focus();
       } else {
         document.getElementById(`attempt_${index + 2}`).focus();
       }
     } else {
-      if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
+      if (nextFocusTargetId) {
+        document.getElementById(nextFocusTargetId)?.focus();
+      }
     }
   };
 
@@ -193,20 +243,29 @@ const ResultForm = ({
       newEvent = event,
       newRoundFormat = roundFormat,
       resetCompetitors = !keepCompetitors,
-    }: { newEvent?: IEvent; newRoundFormat?: RoundFormat; resetCompetitors?: boolean } = {
+    }: {
+      newEvent?: IEvent;
+      newRoundFormat?: RoundFormat;
+      resetCompetitors?: boolean;
+    } = {
       newEvent: event,
       newRoundFormat: roundFormat,
       resetCompetitors: !keepCompetitors,
     },
   ) => {
     if (forResultsSubmissionForm) {
-      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((el) => el.value);
+      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((
+        el,
+      ) => el.value);
 
-      if (!allowedRoundFormats.includes(newRoundFormat)) setRoundFormat(RoundFormat.BestOf1);
-      else setRoundFormat(newRoundFormat);
+      if (!allowedRoundFormats.includes(newRoundFormat)) {
+        setRoundFormat(RoundFormat.BestOf1);
+      } else setRoundFormat(newRoundFormat);
     }
 
-    const newAttempts = new Array(roundFormats.find((rf) => rf.value === newRoundFormat).attempts).fill({ result: 0 });
+    const newAttempts = new Array(
+      roundFormats.find((rf) => rf.value === newRoundFormat).attempts,
+    ).fill({ result: 0 });
     setAttempts(newAttempts);
     setAttemptsResetTrigger(!attemptsResetTrigger);
     setTempResult({ best: -1, average: -1, attempts: newAttempts } as IResult);
@@ -219,38 +278,49 @@ const ResultForm = ({
 
   return (
     <>
-      {forResultsSubmissionForm ? (
-        <FormEventSelect
-          events={events}
-          eventId={event.eventId}
-          setEventId={(val) => changeEvent(val)}
-          disabled={disableMainSelects}
-        />
-      ) : (
-        <EventButtons eventId={event.eventId} events={events} forPage="data-entry" />
-      )}
-      <div className="mb-3 fs-5">
-        {forResultsSubmissionForm ? (
-          <FormSelect
-            title="Format"
-            options={getAllowedRoundFormatOptions(event)}
-            selected={roundFormat}
-            setSelected={(val: RoundFormat) => reset({ newRoundFormat: val, resetCompetitors: false })}
+      {forResultsSubmissionForm
+        ? (
+          <FormEventSelect
+            events={events}
+            eventId={event.eventId}
+            setEventId={(val) => changeEvent(val)}
             disabled={disableMainSelects}
           />
-        ) : (
-          <FormSelect
-            title="Round"
-            options={rounds.map((el) => ({ label: roundTypes[el.roundTypeId].label, value: el.roundTypeId }))}
-            selected={round.roundTypeId}
-            setSelected={changeRound}
-            disabled={disableMainSelects}
+        )
+        : (
+          <EventButtons
+            eventId={event.eventId}
+            events={events}
+            forPage='data-entry'
           />
         )}
+      <div className='mb-3 fs-5'>
+        {forResultsSubmissionForm
+          ? (
+            <FormSelect
+              title='Format'
+              options={getAllowedRoundFormatOptions(event)}
+              selected={roundFormat}
+              setSelected={(val: RoundFormat) => reset({ newRoundFormat: val, resetCompetitors: false })}
+              disabled={disableMainSelects}
+            />
+          )
+          : (
+            <FormSelect
+              title='Round'
+              options={rounds.map((el) => ({
+                label: roundTypes[el.roundTypeId].label,
+                value: el.roundTypeId,
+              }))}
+              selected={round.roundTypeId}
+              setSelected={changeRound}
+              disabled={disableMainSelects}
+            />
+          )}
       </div>
-      <div className="mb-3">
+      <div className='mb-3'>
         <FormPersonInputs
-          title="Competitor"
+          title='Competitor'
           personNames={personNames}
           setPersonNames={setPersonNames}
           persons={persons}
@@ -261,7 +331,11 @@ const ResultForm = ({
           noGrid={!forResultsSubmissionForm}
         />
         {keepCompetitors !== null && (
-          <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
+          <FormCheckbox
+            title="Don't clear competitors"
+            selected={keepCompetitors}
+            setSelected={setKeepCompetitors}
+          />
         )}
       </div>
       {attempts.map((attempt, i) => (
@@ -275,23 +349,31 @@ const ResultForm = ({
           timeLimit={round?.timeLimit}
           memoInputForBld={forResultsSubmissionForm}
           resetTrigger={attemptsResetTrigger}
-          allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
+          allowUnknownTime={isAdmin &&
+            [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
           disabled={round?.cutoff && i + 1 > lastActiveAttempt}
         />
       ))}
-      <div className="mb-3">
-        {loadingId === 'RECORD_PAIRS' ? (
-          <Loading small dontCenter />
-        ) : (
+      <div className='mb-3'>
+        {loadingId === 'RECORD_PAIRS' ? <Loading small dontCenter /> : (
           <div>
             <div>
               Best:&nbsp;
-              <Time result={tempResult} event={event} recordTypes={recordTypes} />
+              <Time
+                result={tempResult}
+                event={event}
+                recordTypes={recordTypes}
+              />
             </div>
             {roundCanHaveAverage && (
-              <div className="mt-2">
+              <div className='mt-2'>
                 {attempts.length === 5 ? 'Average:' : 'Mean:'}&nbsp;
-                <Time result={tempResult} event={event} recordTypes={recordTypes} average />
+                <Time
+                  result={tempResult}
+                  event={event}
+                  recordTypes={recordTypes}
+                  average
+                />
               </div>
             )}
           </div>

@@ -1,34 +1,39 @@
 'use client';
 
-import { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { useMyFetch } from '~/helpers/customHooks';
-import ResultForm from './ResultForm';
-import ToastMessages from '@c/UI/ToastMessages';
-import Button from '@c/UI/Button';
-import RoundResultsTable from '@c/RoundResultsTable';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import ResultForm from './ResultForm.tsx';
+import ToastMessages from '~/app/components/UI/ToastMessages.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import RoundResultsTable from '~/app/components/RoundResultsTable.tsx';
 import {
-  IContestEvent,
-  IContestData,
-  IResult,
-  IPerson,
-  IRound,
   IAttempt,
+  IContestData,
+  IContestEvent,
   IEventRecordPairs,
+  IPerson,
+  IResult,
+  IRound,
   IUpdateResultDto,
-} from '@sh/types';
-import { ContestState } from '@sh/enums';
-import { getUserInfo, shortenEventName } from '~/helpers/utilityFunctions';
-import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import { MainContext } from '~/helpers/contexts';
-import { getBestAndAverage } from '@sh/sharedFunctions';
+} from '~/shared_helpers/types.ts';
+import { ContestState } from '~/shared_helpers/enums.ts';
+import { getUserInfo, shortenEventName } from '~/helpers/utilityFunctions.ts';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo.ts';
+import { MainContext } from '~/helpers/contexts.ts';
+import { getBestAndAverage } from '~/shared_helpers/sharedFunctions.ts';
 
-const userInfo: IUserInfo = getUserInfo();
+const userInfo: IUserInfo | undefined = getUserInfo();
 
 const DataEntryScreen = ({
-  compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent: initialRecordPairs },
+  compData: {
+    contest,
+    persons: prevPersons,
+    activeRecordTypes,
+    recordPairsByEvent: initialRecordPairs,
+  },
 }: {
   compData: IContestData;
 }) => {
@@ -36,17 +41,24 @@ const DataEntryScreen = ({
   const myFetch = useMyFetch();
   const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
-  const eventId = searchParams.get('eventId') ?? contest.events[0].event.eventId;
+  const eventId = searchParams.get('eventId') ??
+    contest.events[0].event.eventId;
 
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
   const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
-  const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
+  const [recordPairsByEvent, setRecordPairsByEvent] = useState<
+    IEventRecordPairs[]
+  >(initialRecordPairs);
 
-  const [round, setRound] = useState<IRound>(contest.events.find((ce) => ce.event.eventId === eventId).rounds[0]);
+  const [round, setRound] = useState<IRound>(
+    contest.events.find((ce) => ce.event.eventId === eventId).rounds[0],
+  );
   const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
-  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
+  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(
+    contest.events,
+  );
   const [queuePosition, setQueuePosition] = useState(contest.queuePosition);
 
   const currEvent = useMemo(
@@ -54,18 +66,26 @@ const DataEntryScreen = ({
     [contest, round.roundId],
   );
   const recordPairs = useMemo(
-    () => recordPairsByEvent.find((el) => el.eventId === currEvent.eventId).recordPairs,
+    () =>
+      recordPairsByEvent.find((el) => el.eventId === currEvent.eventId)
+        .recordPairs,
     [recordPairsByEvent, currEvent],
   );
 
-  const isEditable = userInfo.isAdmin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
+  const isEditable = userInfo.isAdmin ||
+    [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
 
   useEffect(() => {
     if (!isEditable) {
-      if (contest.state < ContestState.Approved)
-        changeErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
-      else if (contest.state >= ContestState.Finished)
-        changeErrorMessages(['This contest is over. Submitting results is disabled.']);
+      if (contest.state < ContestState.Approved) {
+        changeErrorMessages([
+          "This contest hasn't been approved yet. Submitting results is disabled.",
+        ]);
+      } else if (contest.state >= ContestState.Finished) {
+        changeErrorMessages([
+          'This contest is over. Submitting results is disabled.',
+        ]);
+      }
     }
   }, [contest, recordPairsByEvent, isEditable]);
 
@@ -85,7 +105,9 @@ const DataEntryScreen = ({
         return;
       }
 
-      const { best, average } = getBestAndAverage(attempts, currEvent, { round });
+      const { best, average } = getBestAndAverage(attempts, currEvent, {
+        round,
+      });
       const newResult: IResult = {
         competitionId: contest.competitionId,
         eventId: currEvent.eventId,
@@ -99,9 +121,13 @@ const DataEntryScreen = ({
       let updatedRound: IRound, errors: string[];
 
       if (resultUnderEdit === null) {
-        const { payload, errors: err } = await myFetch.post(`/results/${round.roundId}`, newResult, {
-          loadingId: 'submit_attempt_button',
-        });
+        const { payload, errors: err } = await myFetch.post(
+          `/results/${round.roundId}`,
+          newResult,
+          {
+            loadingId: 'submit_attempt_button',
+          },
+        );
         updatedRound = payload;
         errors = err;
       } else {
@@ -122,7 +148,10 @@ const DataEntryScreen = ({
 
       if (!errors) {
         // Add new persons to list of persons
-        setPersons([...persons, ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId))]);
+        setPersons([
+          ...persons,
+          ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId)),
+        ]);
         setResultFormResetTrigger(!resultFormResetTrigger);
         updateRoundAndCompEvents(updatedRound);
         updateRecordPairs(newResult);
@@ -134,9 +163,12 @@ const DataEntryScreen = ({
     setRound(updatedRound);
 
     const newContestEvents = contestEvents.map((ce) =>
-      ce.event.eventId !== currEvent.eventId
-        ? ce
-        : { ...ce, rounds: ce.rounds.map((r) => (r.roundId !== updatedRound.roundId ? r : updatedRound)) },
+      ce.event.eventId !== currEvent.eventId ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((
+          r,
+        ) => (r.roundId !== updatedRound.roundId ? r : updatedRound)),
+      }
     );
 
     setContestEvents(newContestEvents);
@@ -148,7 +180,8 @@ const DataEntryScreen = ({
     // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (
       eventRP.recordPairs.length > 0 &&
-      (newResult.best < eventRP.recordPairs[0].best || newResult.average < eventRP.recordPairs[0].average)
+      (newResult.best < eventRP.recordPairs[0].best ||
+        newResult.average < eventRP.recordPairs[0].average)
     ) {
       const { payload, errors } = await myFetch.get(
         `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(',')}`,
@@ -165,7 +198,9 @@ const DataEntryScreen = ({
       resetMessagesAndLoadingId();
       setResultUnderEdit(result);
       setAttempts(result.attempts);
-      setCurrentPersons(persons.filter((p) => result.personIds.includes(p.personId)));
+      setCurrentPersons(
+        persons.filter((p) => result.personIds.includes(p.personId)),
+      );
       setResultFormResetTrigger(undefined);
       window.scrollTo(0, 0);
     }
@@ -176,16 +211,21 @@ const DataEntryScreen = ({
       const answer = confirm('Are you sure you want to delete this result?');
 
       if (answer) {
-        const { payload, errors } = await myFetch.delete(`/results/${resultId}`, {
-          loadingId: `delete_result_${resultId}_button`,
-        });
+        const { payload, errors } = await myFetch.delete(
+          `/results/${resultId}`,
+          {
+            loadingId: `delete_result_${resultId}_button`,
+          },
+        );
 
         if (!errors) updateRoundAndCompEvents(payload);
       }
     }
   };
 
-  const updateQueuePosition = async (mode: 'decrement' | 'increment' | 'reset') => {
+  const updateQueuePosition = async (
+    mode: 'decrement' | 'increment' | 'reset',
+  ) => {
     const { payload, errors } = await myFetch.patch(
       `/competitions/queue-${mode}/${contest.competitionId}`,
       {},
@@ -196,11 +236,11 @@ const DataEntryScreen = ({
   };
 
   return (
-    <div className="px-2">
+    <div className='px-2'>
       <ToastMessages />
 
-      <div className="row py-4">
-        <div className="col-lg-3 mb-4">
+      <div className='row py-4'>
+        <div className='col-lg-3 mb-4'>
           <div>
             <ResultForm
               event={currEvent}
@@ -210,7 +250,7 @@ const DataEntryScreen = ({
               setAttempts={setAttempts}
               recordPairs={recordPairs}
               recordTypes={activeRecordTypes}
-              nextFocusTargetId="submit_attempt_button"
+              nextFocusTargetId='submit_attempt_button'
               resetTrigger={resultFormResetTrigger}
               round={round}
               setRound={setRound}
@@ -218,37 +258,42 @@ const DataEntryScreen = ({
               contestEvents={contestEvents}
               disableMainSelects={resultUnderEdit !== null}
             />
-            <Button id="submit_attempt_button" onClick={submitResult} disabled={!isEditable} loadingId={loadingId}>
+            <Button
+              id='submit_attempt_button'
+              onClick={submitResult}
+              disabled={!isEditable}
+              loadingId={loadingId}
+            >
               Submit
             </Button>
             {contest.queuePosition !== undefined && (
               <>
-                <p className="mt-4 mb-2">Current position in queue:</p>
-                <div className="d-flex align-items-center gap-3">
+                <p className='mt-4 mb-2'>Current position in queue:</p>
+                <div className='d-flex align-items-center gap-3'>
                   <Button
-                    id="queue_decrement_button"
+                    id='queue_decrement_button'
                     onClick={() => updateQueuePosition('decrement')}
                     loadingId={loadingId}
-                    className="btn-success btn-xs"
-                    ariaLabel="Decrement queue position"
+                    className='btn-success btn-xs'
+                    ariaLabel='Decrement queue position'
                   >
                     <FontAwesomeIcon icon={faMinus} />
                   </Button>
-                  <p className="mb-0 fs-5 fw-bold">{queuePosition}</p>
+                  <p className='mb-0 fs-5 fw-bold'>{queuePosition}</p>
                   <Button
-                    id="queue_increment_button"
+                    id='queue_increment_button'
                     onClick={() => updateQueuePosition('increment')}
                     loadingId={loadingId}
-                    className="btn-success btn-xs"
-                    ariaLabel="Increment queue position"
+                    className='btn-success btn-xs'
+                    ariaLabel='Increment queue position'
                   >
                     <FontAwesomeIcon icon={faPlus} />
                   </Button>
                   <Button
-                    id="queue_reset_button"
+                    id='queue_reset_button'
                     onClick={() => updateQueuePosition('reset')}
                     loadingId={loadingId}
-                    className="btn-xs"
+                    className='btn-xs'
                   >
                     Reset
                   </Button>
@@ -258,8 +303,8 @@ const DataEntryScreen = ({
           </div>
         </div>
 
-        <div className="col-lg-9">
-          <h3 className="mt-2 mb-4 text-center">
+        <div className='col-lg-9'>
+          <h3 className='mt-2 mb-4 text-center'>
             {contest.shortName} &ndash; {shortenEventName(currEvent.name)}
           </h3>
 

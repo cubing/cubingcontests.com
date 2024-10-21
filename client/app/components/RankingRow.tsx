@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
-import Country from '@c/Country';
-import Competitor from '@c/Competitor';
-import ContestName from '@c/ContestName';
-import Solves from '@c/Solves';
-import RankingLinks from '@c/RankingLinks';
-import Competitors from '@c/Competitors';
-import { IEvent, IPerson, IRanking } from '@sh/types';
-import { getFormattedTime } from '@sh/sharedFunctions';
-import { getFormattedDate } from '~/helpers/utilityFunctions';
+import Country from '~/app/components/Country.tsx';
+import Competitor from '~/app/components/Competitor.tsx';
+import ContestName from '~/app/components/ContestName.tsx';
+import Solves from '~/app/components/Solves.tsx';
+import RankingLinks from '~/app/components/RankingLinks.tsx';
+import Competitors from '~/app/components/Competitors.tsx';
+import { IEvent, IPerson, IRanking } from '~/shared_helpers/types.ts';
+import { getFormattedTime } from '~/shared_helpers/sharedFunctions.ts';
+import { getFormattedDate } from '~/helpers/utilityFunctions.ts';
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
 const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
@@ -49,11 +49,23 @@ const RankingRow = ({
 
   return (
     <tr>
-      <td>{!onlyKeepPerson && <span className={isTiedRanking ? 'text-secondary' : ''}>{firstColumnValue}</span>}</td>
+      <td>
+        {!onlyKeepPerson && (
+          <span className={isTiedRanking ? 'text-secondary' : ''}>
+            {firstColumnValue}
+          </span>
+        )}
+      </td>
       <td>
         <Competitors persons={personsToDisplay} noFlag={!showAllTeammates} />
       </td>
-      <td>{!onlyKeepPerson && getFormattedTime(ranking.result, { event, showMultiPoints: !forRecordsTable })}</td>
+      <td>
+        {!onlyKeepPerson &&
+          getFormattedTime(ranking.result, {
+            event,
+            showMultiPoints: !forRecordsTable,
+          })}
+      </td>
       {!showAllTeammates && (
         <td>
           <Country countryIso2={person.countryIso2} shorten />
@@ -66,30 +78,45 @@ const RankingRow = ({
       </td>
       {showTeamColumn && (
         <td>
-          <div className="d-flex flex-column align-items-start gap-2 fs-6">
-            <span className="text-white">
-              <u style={{ cursor: 'pointer' }} onClick={() => setTeamExpanded(!teamExpanded)}>
+          <div className='d-flex flex-column align-items-start gap-2 fs-6'>
+            <span className='text-white'>
+              <u
+                style={{ cursor: 'pointer' }}
+                onClick={() => setTeamExpanded(!teamExpanded)}
+              >
                 {teamExpanded ? 'Close' : 'Open'}
               </u>
-              <span className="ms-2">
+              <span className='ms-2'>
                 {teamExpanded ? <FontAwesomeIcon icon={faCaretDown} /> : <FontAwesomeIcon icon={faCaretRight} />}
               </span>
             </span>
 
-            {teamExpanded && ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
+            {teamExpanded &&
+              ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
           </div>
         </td>
       )}
       {showDetailsColumn && (
         <td>
           {!onlyKeepPerson &&
-            (ranking.attempts ? (
-              <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
-            ) : (
-              ranking.memo && (
-                <span>[{getFormattedTime(ranking.memo, { showDecimals: false, alwaysShowMinutes: true })}]</span>
+            (ranking.attempts
+              ? (
+                <Solves
+                  event={event}
+                  attempts={ranking.attempts}
+                  showMultiPoints={!forRecordsTable}
+                />
               )
-            ))}
+              : (
+                ranking.memo && (
+                  <span>
+                    [{getFormattedTime(ranking.memo, {
+                      showDecimals: false,
+                      alwaysShowMinutes: true,
+                    })}]
+                  </span>
+                )
+              ))}
         </td>
       )}
     </tr>

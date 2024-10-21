@@ -1,7 +1,7 @@
-import { MultiChoiceOption } from './interfaces/MultiChoiceOption';
-import { Color, ContestType, EventFormat, RoundProceed } from '@sh/enums';
-import { roundFormats } from '@sh/roundFormats';
-import { eventCategories } from './eventCategories';
+import { MultiChoiceOption } from './interfaces/MultiChoiceOption.ts';
+import { Color, ContestType, EventFormat, RoundProceed } from '~/shared_helpers/enums.ts';
+import { roundFormats } from '~/shared_helpers/roundFormats.ts';
+import { eventCategories } from './eventCategories.ts';
 
 export const colorOptions: MultiChoiceOption[] = [
   {
@@ -58,7 +58,9 @@ export const contestTypeOptions: MultiChoiceOption[] = [
   },
 ];
 
-export const roundFormatOptions: MultiChoiceOption[] = roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
+export const roundFormatOptions: MultiChoiceOption[] = roundFormats.map((
+  rf,
+) => ({ label: rf.label, value: rf.value }));
 
 export const roundProceedOptions: MultiChoiceOption[] = [
   {
@@ -86,7 +88,9 @@ export const eventFormatOptions: MultiChoiceOption[] = [
   },
 ];
 
-export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((el) => ({
+export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((
+  el,
+) => ({
   label: el.title,
   value: el.group,
 }));

@@ -1,17 +1,19 @@
 'use client';
 
-import { useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useMyFetch } from '~/helpers/customHooks';
-import FormTextInput from '@c/form/FormTextInput';
-import Form from '@c/form/Form';
-import { MainContext } from '~/helpers/contexts';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import Form from '~/app/components/form/Form.tsx';
+import { MainContext } from '~/helpers/contexts.ts';
 
 const LoginPage = () => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeErrorMessages, resetMessagesAndLoadingId } = useContext(MainContext);
+  const { changeErrorMessages, resetMessagesAndLoadingId } = useContext(
+    MainContext,
+  );
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -67,32 +69,35 @@ const LoginPage = () => {
 
   return (
     <div>
-      <h2 className="mb-4 text-center">Login</h2>
+      <h2 className='mb-4 text-center'>Login</h2>
 
-      <Form buttonText="Log in" onSubmit={handleSubmit}>
+      <Form buttonText='Log in' onSubmit={handleSubmit}>
         <FormTextInput
-          id="username"
-          title="Username or email"
+          id='username'
+          title='Username or email'
           value={username}
           setValue={changeUsername}
-          nextFocusTargetId="password"
+          nextFocusTargetId='password'
           autoFocus
         />
         <FormTextInput
-          id="password"
-          title="Password"
+          id='password'
+          title='Password'
           value={password}
           setValue={changePassword}
           password
           submitOnEnter
         />
-        <Link href="/reset-password" className="d-block mt-4">
+        <Link href='/reset-password' className='d-block mt-4'>
           Forgot password?
         </Link>
       </Form>
 
-      <div className="container mt-4 mx-auto px-3 fs-5" style={{ maxWidth: '768px' }}>
-        <Link href="/register">Create account</Link>
+      <div
+        className='container mt-4 mx-auto px-3 fs-5'
+        style={{ maxWidth: '768px' }}
+      >
+        <Link href='/register'>Create account</Link>
       </div>
     </div>
   );

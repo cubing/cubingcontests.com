@@ -1,13 +1,13 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import Time from '@c/Time';
-import Solves from '@c/Solves';
-import Competitor from '@c/Competitor';
-import Button from '@c/UI/Button';
-import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/types';
-import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
-import { roundFormats } from '@sh/roundFormats';
+import Time from '~/app/components/Time.tsx';
+import Solves from '~/app/components/Solves.tsx';
+import Competitor from '~/app/components/Competitor.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import { IEvent, IPerson, IRecordType, IResult, IRound } from '~/shared_helpers/types.ts';
+import { RoundFormat, RoundProceed, RoundType } from '~/shared_helpers/enums.ts';
+import { getRoundRanksWithAverage } from '~/shared_helpers/sharedFunctions.ts';
+import { roundFormats } from '~/shared_helpers/roundFormats.ts';
 
 const RoundResultsTable = ({
   round,
@@ -37,7 +37,8 @@ const RoundResultsTable = ({
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {
     if (
-      ((roundRanksWithAverage && result.average > 0) || (!roundRanksWithAverage && result.best > 0)) &&
+      ((roundRanksWithAverage && result.average > 0) ||
+        (!roundRanksWithAverage && result.best > 0)) &&
       // This is necessary to account for rounding down to 0 (see Math.floor() below)
       (result.ranking === 1 ||
         // Final round and the ranking is in the top 3
@@ -45,9 +46,9 @@ const RoundResultsTable = ({
         // Non-final round and the ranking satisfies the proceed parameters
         (round.roundTypeId !== RoundType.Final &&
           result.ranking <=
-            (round.proceed.type === RoundProceed.Number
-              ? round.proceed.value
-              : Math.floor((round.results.length * round.proceed.value) / 100))))
+            (round.proceed.type === RoundProceed.Number ? round.proceed.value : Math.floor(
+              (round.results.length * round.proceed.value) / 100,
+            ))))
     ) {
       return { color: 'black', background: '#10c010' };
     }
@@ -56,16 +57,20 @@ const RoundResultsTable = ({
   };
 
   return (
-    <div className="flex-grow-1 table-responsive">
-      <table className="table table-hover table-responsive text-nowrap">
+    <div className='flex-grow-1 table-responsive'>
+      <table className='table table-hover table-responsive text-nowrap'>
         <thead>
           <tr>
-            <th scope="col">#</th>
-            <th scope="col">Name</th>
-            <th scope="col">Best</th>
-            {roundCanHaveAverage && <th scope="col">{round.format === RoundFormat.Average ? 'Average' : 'Mean'}</th>}
-            <th scope="col">Attempts</th>
-            {onDeleteResult && <th scope="col">Actions</th>}
+            <th scope='col'>#</th>
+            <th scope='col'>Name</th>
+            <th scope='col'>Best</th>
+            {roundCanHaveAverage && (
+              <th scope='col'>
+                {round.format === RoundFormat.Average ? 'Average' : 'Mean'}
+              </th>
+            )}
+            <th scope='col'>Attempts</th>
+            {onDeleteResult && <th scope='col'>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -75,16 +80,20 @@ const RoundResultsTable = ({
 
             return (
               <tr key={result.personIds[0]}>
-                <td className="ps-2" style={getRankingHighlight(result)}>
-                  <span className={isTie ? 'text-secondary' : ''}>{result.ranking}</span>
+                <td className='ps-2' style={getRankingHighlight(result)}>
+                  <span className={isTie ? 'text-secondary' : ''}>
+                    {result.ranking}
+                  </span>
                 </td>
                 <td>
-                  <div className="d-flex flex-wrap gap-2">
+                  <div className='d-flex flex-wrap gap-2'>
                     {result.personIds.map((personId, i) => {
                       const person = persons.find((p: IPerson) => p.personId === personId);
-                      if (!person) return <span key={personId}>(name not found)</span>;
+                      if (!person) {
+                        return <span key={personId}>(name not found)</span>;
+                      }
                       return (
-                        <span key={person.personId} className="d-flex gap-2">
+                        <span key={person.personId} className='d-flex gap-2'>
                           <Competitor person={person} showLocalizedName />
                           {i !== result.personIds.length - 1 && <span>&</span>}
                         </span>
@@ -93,11 +102,22 @@ const RoundResultsTable = ({
                   </div>
                 </td>
                 <td>
-                  <Time result={result} event={event} recordTypes={recordTypes} />
+                  <Time
+                    result={result}
+                    event={event}
+                    recordTypes={recordTypes}
+                  />
                 </td>
                 {roundCanHaveAverage && (
                   <td>
-                    {result.average !== 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}
+                    {result.average !== 0 && (
+                      <Time
+                        result={result}
+                        event={event}
+                        recordTypes={recordTypes}
+                        average
+                      />
+                    )}
                   </td>
                 )}
                 <td>
@@ -105,14 +125,14 @@ const RoundResultsTable = ({
                 </td>
                 {onEditResult && (
                   <td>
-                    <div className="d-flex gap-2">
+                    <div className='d-flex gap-2'>
                       <Button
                         id={`edit_result_${(result as any)._id}_button`}
                         onClick={() => onEditResult(result)}
                         loadingId={loadingId}
                         disabled={disableEditAndDelete}
-                        className="btn-xs"
-                        ariaLabel="Edit"
+                        className='btn-xs'
+                        ariaLabel='Edit'
                       >
                         <FontAwesomeIcon icon={faPencil} />
                       </Button>
@@ -121,8 +141,8 @@ const RoundResultsTable = ({
                         onClick={() => onDeleteResult((result as any)._id)}
                         loadingId={loadingId}
                         disabled={disableEditAndDelete}
-                        className="btn-danger btn-xs"
-                        ariaLabel="Delete"
+                        className='btn-danger btn-xs'
+                        ariaLabel='Delete'
                       >
                         <FontAwesomeIcon icon={faTrash} />
                       </Button>

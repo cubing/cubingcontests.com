@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import enGB from 'date-fns/locale/en-GB';
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import FormInputLabel from './FormInputLabel';
-import { getDateOnly } from '@sh/sharedFunctions';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
+import FormInputLabel from './FormInputLabel.tsx';
+import { getDateOnly } from '~/shared_helpers/sharedFunctions.ts';
 
 registerLocale('en-GB', enGB);
 setDefaultLocale('en-GB');
@@ -34,7 +34,9 @@ const FormDatePicker = ({
   disabled?: boolean;
   showUTCTime?: boolean;
 }) => {
-  if (!id && !title) throw new Error('Neither title nor id are set in FormDatePicker');
+  if (!id && !title) {
+    throw new Error('Neither title nor id are set in FormDatePicker');
+  }
 
   const inputId = id || `${title}_date`;
   const showTimeSelect = dateFormat !== 'P';
@@ -45,12 +47,13 @@ const FormDatePicker = ({
 
   const onChange = (newDate: Date) => {
     // The time zone conversion is necessary, because otherwise JS uses the user's local time zone
-    if (!showTimeSelect) setValue(getDateOnly(fromZonedTime(newDate, timeZone)));
-    else setValue(fromZonedTime(newDate, timeZone));
+    if (!showTimeSelect) {
+      setValue(getDateOnly(fromZonedTime(newDate, timeZone)));
+    } else setValue(fromZonedTime(newDate, timeZone));
   };
 
   return (
-    <div className="mb-3">
+    <div className='mb-3'>
       <FormInputLabel text={title} inputId={inputId} />
 
       <DatePicker
@@ -62,12 +65,16 @@ const FormDatePicker = ({
         timeIntervals={timeIntervals}
         showTimeSelect={showTimeSelect}
         showTimeSelectOnly={dateFormat === 'HH:mm'}
-        locale="en-GB"
+        locale='en-GB'
         disabled={disabled}
-        className="form-control"
+        className='form-control'
       />
 
-      {showUTCTime && <div className="mt-3 text-secondary fs-6">UTC:&#8194;{value.toUTCString().slice(0, -4)}</div>}
+      {showUTCTime && (
+        <div className='mt-3 text-secondary fs-6'>
+          UTC:&#8194;{value.toUTCString().slice(0, -4)}
+        </div>
+      )}
     </div>
   );
 };

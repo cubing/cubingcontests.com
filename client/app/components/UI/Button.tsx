@@ -1,4 +1,4 @@
-import Loading from '@c/UI/Loading';
+import Loading from '~/app/components/UI/Loading.tsx';
 
 const Button = ({
   children,

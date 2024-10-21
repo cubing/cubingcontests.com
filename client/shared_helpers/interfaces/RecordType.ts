@@ -1,4 +1,4 @@
-import { Color, WcaRecordType } from '../enums';
+import { Color, WcaRecordType } from '../enums.ts';
 
 export interface IRecordType {
   label: string;

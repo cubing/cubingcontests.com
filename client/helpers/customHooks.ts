@@ -1,11 +1,11 @@
 'use client';
 
-import { useContext, useState } from 'react';
-import { doFetch } from '~/helpers/fetchUtils';
-import { FetchObj, IContestDto, IWcaPersonDto, IPerson, IPersonDto } from '@sh/types';
-import { ContestType } from '@sh/enums';
-import C from '@sh/constants';
-import { MainContext } from '~/helpers/contexts';
+import React, { useContext, useState } from 'react';
+import { doFetch } from '~/helpers/fetchUtils.ts';
+import { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from '~/shared_helpers/types.ts';
+import { ContestType } from '~/shared_helpers/enums.ts';
+import C from '~/shared_helpers/constants.ts';
+import { MainContext } from '~/helpers/contexts.ts';
 
 type FetchOptions = {
   authorize?: boolean;
@@ -16,7 +16,12 @@ type FetchOptions = {
 };
 
 export const useMyFetch = () => {
-  const { changeErrorMessages, changeLoadingId, resetMessagesAndLoadingId, resetMessages } = useContext(MainContext);
+  const {
+    changeErrorMessages,
+    changeLoadingId,
+    resetMessagesAndLoadingId,
+    resetMessages,
+  } = useContext(MainContext);
 
   const reset = (response: FetchObj, keepLoadingAfterSuccess: boolean) => {
     if (response.errors) changeErrorMessages(response.errors);
@@ -39,7 +44,11 @@ export const useMyFetch = () => {
       } = { authorize: false },
     ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch<T>(url, 'GET', { authorize, redirect, fileName });
+      const response = await doFetch<T>(url, 'GET', {
+        authorize,
+        redirect,
+        fileName,
+      });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
@@ -119,8 +128,12 @@ export const useFetchWcaCompDetails = () => {
       // Gets rid of the link and just takes the venue name
       venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
       address: wcaCompData.venue.address,
-      latitudeMicrodegrees: Math.round(wcaCompData.venue.coordinates.latitude * 1000000),
-      longitudeMicrodegrees: Math.round(wcaCompData.venue.coordinates.longitude * 1000000),
+      latitudeMicrodegrees: Math.round(
+        wcaCompData.venue.coordinates.latitude * 1000000,
+      ),
+      longitudeMicrodegrees: Math.round(
+        wcaCompData.venue.coordinates.longitude * 1000000,
+      ),
       startDate,
       endDate,
       organizers: [], // this is set below
@@ -135,7 +148,9 @@ export const useFetchWcaCompDetails = () => {
     const notFoundPersonNames: string[] = [];
 
     // Set organizer objects
-    for (const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]) {
+    for (
+      const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]
+    ) {
       const name = org.name;
       let person: IPerson;
 
@@ -143,14 +158,19 @@ export const useFetchWcaCompDetails = () => {
       else person = await fetchPerson(name, { countryIso2: org.country_iso2 });
 
       if (person !== null) {
-        if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
+        if (
+          !newContest.organizers.some((el) => el.personId === person.personId)
+        ) newContest.organizers.push(person);
       } else if (!notFoundPersonNames.includes(org.name)) {
         notFoundPersonNames.push(org.name);
       }
     }
 
-    if (notFoundPersonNames.length > 0)
-      throw new Error(`Organizers with these names were not found: ${notFoundPersonNames.join(', ')}`);
+    if (notFoundPersonNames.length > 0) {
+      throw new Error(
+        `Organizers with these names were not found: ${notFoundPersonNames.join(', ')}`,
+      );
+    }
 
     return newContest;
   };
@@ -165,20 +185,28 @@ export const useFetchPerson = () => {
     { wcaId, countryIso2 }: { wcaId?: string; countryIso2?: string },
   ): Promise<IPerson | null> => {
     if (wcaId) {
-      const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${wcaId}`, {
-        authorize: true,
-        loadingId: null,
-      });
+      const { payload, errors } = await myFetch.get<IWcaPersonDto>(
+        `/persons/${wcaId}`,
+        {
+          authorize: true,
+          loadingId: null,
+        },
+      );
       if (errors) throw new Error(errors[0]);
       return payload.person;
     }
 
     // If a WCA ID wasn't provided, first try looking in the CC database
     const englishNameOnly = name.split('(')[0].trim(); // get rid of the ( and everything after it
-    const { payload, errors: e1 } = await myFetch.get(`/persons?name=${englishNameOnly}&exactMatch=true`, {
-      loadingId: null,
-    });
-    if (e1) throw new Error(`Error while fetching person with the name ${name}`);
+    const { payload, errors: e1 } = await myFetch.get(
+      `/persons?name=${englishNameOnly}&exactMatch=true`,
+      {
+        loadingId: null,
+      },
+    );
+    if (e1) {
+      throw new Error(`Error while fetching person with the name ${name}`);
+    }
     if (payload) return payload;
 
     // If not found, try searching for exact name matches in the WCA database
@@ -202,7 +230,11 @@ export const useFetchPerson = () => {
     // If still not found and the country was provided, use that to create a new person with no WCA ID (likely an organization)
     if (countryIso2) {
       const newPerson: IPersonDto = { name, countryIso2 };
-      const { payload: person, errors } = await myFetch.post('/persons/no-wcaid', newPerson, { loadingId: null });
+      const { payload: person, errors } = await myFetch.post(
+        '/persons/no-wcaid',
+        newPerson,
+        { loadingId: null },
+      );
       if (errors) throw new Error(errors[0]);
       if (person) return person;
     }
@@ -211,7 +243,10 @@ export const useFetchPerson = () => {
   };
 };
 
-export const useLimitRequests = (): [(callback: () => void) => void, boolean] => {
+export const useLimitRequests = (): [
+  (callback: () => void) => void,
+  boolean,
+] => {
   const [fetchTimer, setFetchTimer] = useState<NodeJS.Timeout | null>(null);
 
   return [

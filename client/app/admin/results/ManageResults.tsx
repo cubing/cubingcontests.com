@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil } from '@fortawesome/free-solid-svg-icons';
-import { useMyFetch } from '~/helpers/customHooks';
-import { IFeResult, IRecordType } from '@sh/types';
-import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions';
-import ToastMessages from '@c/UI/ToastMessages';
-import Time from '@c/Time';
-import Solves from '@c/Solves';
-import Competitors from '@c/Competitors';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import { IFeResult, IRecordType } from '~/shared_helpers/types.ts';
+import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions.ts';
+import ToastMessages from '~/app/components/UI/ToastMessages.tsx';
+import Time from '~/app/components/Time.tsx';
+import Solves from '~/app/components/Solves.tsx';
+import Competitors from '~/app/components/Competitors.tsx';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
@@ -27,35 +27,41 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   });
 
   useEffect(() => {
-    myFetch.get('/results/submission-based', { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setResults(payload);
-    });
+    myFetch.get('/results/submission-based', { authorize: true }).then(
+      ({ payload, errors }) => {
+        if (!errors) setResults(payload);
+      },
+    );
   }, []);
 
   return (
     <section>
-      <h2 className="mb-4 text-center">Results</h2>
+      <h2 className='mb-4 text-center'>Results</h2>
       <ToastMessages />
 
-      <p className="px-3">
+      <p className='px-3'>
         Total submitted results:&nbsp;<b>{results.length}</b>
         &#8194;|&#8194;Unapproved:&nbsp;
         <b>{results.filter((r) => r.unapproved).length}</b>
       </p>
 
-      <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: '600px' }}>
+      <div
+        ref={parentRef}
+        className='mt-3 table-responsive overflow-y-auto'
+        style={{ height: '600px' }}
+      >
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-          <table className="table table-hover text-nowrap">
+          <table className='table table-hover text-nowrap'>
             <thead>
               <tr>
-                <th scope="col">Event</th>
-                <th scope="col">Competitors</th>
-                <th scope="col">Best</th>
-                <th scope="col">Average</th>
-                <th scope="col">Attempts</th>
-                <th scope="col">Date</th>
-                <th scope="col">Approved</th>
-                <th scope="col">Actions</th>
+                <th scope='col'>Event</th>
+                <th scope='col'>Competitors</th>
+                <th scope='col'>Best</th>
+                <th scope='col'>Average</th>
+                <th scope='col'>Attempts</th>
+                <th scope='col'>Date</th>
+                <th scope='col'>Approved</th>
+                <th scope='col'>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -71,20 +77,29 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                       transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
                     }}
                   >
-                    <td>{result.event ? shortenEventName(result.event.name) : 'EVENT NOT FOUND'}</td>
                     <td>
-                      {result.persons.length > 0 ? (
-                        <Competitors persons={result.persons} vertical />
-                      ) : (
+                      {result.event ? shortenEventName(result.event.name) : 'EVENT NOT FOUND'}
+                    </td>
+                    <td>
+                      {result.persons.length > 0 ? <Competitors persons={result.persons} vertical /> : (
                         'COMPETITOR NOT FOUND'
                       )}
                     </td>
                     <td>
-                      <Time result={result} event={result.event} recordTypes={recordTypes} />
+                      <Time
+                        result={result}
+                        event={result.event}
+                        recordTypes={recordTypes}
+                      />
                     </td>
                     <td>
                       {result.attempts.length >= 3 && (
-                        <Time result={result} event={result.event} recordTypes={recordTypes} average />
+                        <Time
+                          result={result}
+                          event={result.event}
+                          recordTypes={recordTypes}
+                          average
+                        />
                       )}
                     </td>
                     <td>
@@ -92,18 +107,16 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                     </td>
                     <td>{getFormattedDate(result.date)}</td>
                     <td>
-                      {result.unapproved ? (
-                        <span className="badge bg-danger">No</span>
-                      ) : (
-                        <span className="badge bg-success">Yes</span>
-                      )}
+                      {result.unapproved
+                        ? <span className='badge bg-danger'>No</span>
+                        : <span className='badge bg-success'>Yes</span>}
                     </td>
                     <td>
                       <Link
                         href={`/admin/results/${(result as any)._id}`}
                         prefetch={false}
-                        className="btn btn-primary btn-xs"
-                        aria-label="Edit"
+                        className='btn btn-primary btn-xs'
+                        aria-label='Edit'
                       >
                         <FontAwesomeIcon icon={faPencil} />
                       </Link>

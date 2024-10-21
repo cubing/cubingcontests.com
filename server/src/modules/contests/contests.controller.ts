@@ -1,16 +1,16 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Param,
-  Request,
-  Body,
-  Query,
-  ValidationPipe,
-  UseGuards,
   BadRequestException,
+  Body,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { MyLogger } from '@m/my-logger/my-logger.service';
 import { LogType } from '~/src/helpers/enums';
@@ -104,8 +104,9 @@ export class ContestsController {
     @Request() req: any,
   ) {
     const parsedState = parseInt(newState);
-    if (isNaN(parsedState) || !Object.values(ContestState).includes(parsedState))
+    if (isNaN(parsedState) || !Object.values(ContestState).includes(parsedState)) {
       throw new BadRequestException('Please provide a valid state');
+    }
     if (parsedState === ContestState.Removed) {
       throw new BadRequestException(
         'You may not directly set the state to removed. Use the remove contest feature instead.',

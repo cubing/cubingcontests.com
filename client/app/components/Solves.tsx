@@ -1,5 +1,5 @@
-import { IAttempt, IEvent } from '@sh/types';
-import { getFormattedTime } from '@sh/sharedFunctions';
+import { IAttempt, IEvent } from '~/shared_helpers/types.ts';
+import { getFormattedTime } from '~/shared_helpers/sharedFunctions.ts';
 
 const Solves = ({
   event,
@@ -11,9 +11,11 @@ const Solves = ({
   showMultiPoints?: boolean;
 }) => {
   return (
-    <div className="d-flex gap-2">
+    <div className='d-flex gap-2'>
       {attempts.map((attempt, index) => (
-        <span key={index}>{getFormattedTime(attempt.result, { event, showMultiPoints })}</span>
+        <span key={index}>
+          {getFormattedTime(attempt.result, { event, showMultiPoints })}
+        </span>
       ))}
     </div>
   );

@@ -1,5 +1,5 @@
-import Competitor from '@c/Competitor';
-import { IPerson } from '@sh/types';
+import Competitor from '~/app/components/Competitor.tsx';
+import { IPerson } from '~/shared_helpers/types.ts';
 
 const Competitors = ({
   persons,
@@ -12,18 +12,16 @@ const Competitors = ({
 }) => {
   if (vertical) {
     return (
-      <div className="d-flex flex-column gap-2">
-        {persons.map((person) => (
-          <Competitor key={person.personId} person={person} />
-        ))}
+      <div className='d-flex flex-column gap-2'>
+        {persons.map((person) => <Competitor key={person.personId} person={person} />)}
       </div>
     );
   }
 
   return (
-    <div className="d-flex flex-wrap align-items-start gap-2">
+    <div className='d-flex flex-wrap align-items-start gap-2'>
       {persons.map((person, index) => (
-        <span key={person.personId} className="d-flex gap-2">
+        <span key={person.personId} className='d-flex gap-2'>
           <Competitor key={person.personId} person={person} noFlag={noFlag} />
           {index !== persons.length - 1 && <span>&</span>}
         </span>

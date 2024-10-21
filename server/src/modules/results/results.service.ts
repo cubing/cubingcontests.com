@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { toZonedTime } from 'date-fns-tz';
 import { InjectModel } from '@nestjs/mongoose';
-import { mongo, Model } from 'mongoose';
+import { Model, mongo } from 'mongoose';
 import { ResultDocument } from '~/src/models/result.model';
 import { ContestDocument } from '~/src/models/contest.model';
 import { RoundDocument } from '~/src/models/round.model';
@@ -27,16 +27,16 @@ import C from '@sh/constants';
 import { ContestState, Role, RoundFormat, WcaRecordType } from '@sh/enums';
 import { roundFormats } from '@sh/roundFormats';
 import {
-  IEventRankings,
-  IRecordType,
-  IRecordPair,
-  IEventRecordPairs,
-  IResultsSubmissionInfo,
-  IRanking,
-  IEvent,
-  IFeResult,
   IActivity,
+  IEvent,
+  IEventRankings,
+  IEventRecordPairs,
+  IFeResult,
+  IRanking,
+  IRecordPair,
+  IRecordType,
   IResult,
+  IResultsSubmissionInfo,
   IRound,
 } from '@sh/types';
 import { IPartialUser } from '~/src/helpers/interfaces/User';
@@ -51,7 +51,7 @@ import {
   getRoundRanksWithAverage,
   setResultRecords,
 } from '@sh/sharedFunctions';
-import { setRankings, getBaseSinglesFilter, getBaseAvgsFilter } from '~/src/helpers/utilityFunctions';
+import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings } from '~/src/helpers/utilityFunctions';
 import { EmailService } from '~/src/modules/email/email.service';
 import { LogType } from '~/src/helpers/enums';
 
@@ -137,8 +137,7 @@ export class ResultsService {
           this.logger.error(`Error: round has no contest: ${round}`);
         } else if (contests.length > 1) {
           this.logger.error(`Error: round ${round} belongs to multiple contests: ${contests}`);
-        }
-        // Check if the round has no results
+        } // Check if the round has no results
         else if (
           round.results.length === 0 &&
           contests[0].state >= ContestState.Finished &&
@@ -148,16 +147,18 @@ export class ResultsService {
         } else {
           // Look for results with empty attempts
           for (const result of round.results) {
-            if (result.attempts.some((a) => a.result === 0))
+            if (result.attempts.some((a) => a.result === 0)) {
               this.logger.error(`Error: result ${result._id} has an empty attempt`);
+            }
 
             const roundFormat = roundFormats.find((rf) => rf.value === round.format);
             const makesCutoff = getMakesCutoff(result.attempts, round.cutoff);
             if (
               (makesCutoff && result.attempts.length !== roundFormat.attempts) ||
               (!makesCutoff && result.attempts.length !== round.cutoff.numberOfAttempts)
-            )
+            ) {
               this.logger.error(`Error: result ${result} has the wrong number of attempts`);
+            }
           }
         }
       }
@@ -183,9 +184,11 @@ export class ResultsService {
       ]);
       if (repeatedVideoLinks.length > 0) {
         this.logger.error(
-          `These video links have multiple results: ${repeatedVideoLinks
-            .map((x) => `${x._id || '[blank]'} (${x.count})`)
-            .join(', ')}`,
+          `These video links have multiple results: ${
+            repeatedVideoLinks
+              .map((x) => `${x._id || '[blank]'} (${x.count})`)
+              .join(', ')
+          }`,
         );
       }
 
@@ -206,9 +209,11 @@ export class ResultsService {
       ]);
       if (repeatedDiscussionLinks.length > 0) {
         this.logger.error(
-          `These discussion links have multiple results: ${repeatedDiscussionLinks
-            .map((x) => `${x._id} (${x.count})`)
-            .join(', ')}`,
+          `These discussion links have multiple results: ${
+            repeatedDiscussionLinks
+              .map((x) => `${x._id} (${x.count})`)
+              .join(', ')
+          }`,
         );
       }
 
@@ -221,24 +226,25 @@ export class ResultsService {
           result.date.getUTCMinutes() !== 0 ||
           result.date.getUTCSeconds() !== 0 ||
           result.date.getUTCMilliseconds() !== 0
-        )
+        ) {
           this.logger.error(
-            `Result ${result._id} from competition ${
-              result.competitionId
-            } has invalid date: ${result.date.toUTCString()}`,
+            `Result ${result._id} from competition ${result.competitionId} has invalid date: ${result.date.toUTCString()}`,
           );
+        }
       }
 
       // Look for results with average when they shouldn't have one
       const falseAverageResults1 = await this.resultModel.find({ attempts: { $size: 1 }, average: { $ne: 0 } }).exec();
 
-      for (const result of falseAverageResults1)
+      for (const result of falseAverageResults1) {
         this.logger.error(`Result ${result._id} has an average despite having one attempt`);
+      }
 
       const falseAverageResults2 = await this.resultModel.find({ attempts: { $size: 2 }, average: { $ne: 0 } }).exec();
 
-      for (const result of falseAverageResults2)
+      for (const result of falseAverageResults2) {
         this.logger.error(`Result ${result._id} has an average despite having two attempts`);
+      }
     }
   }
 
@@ -382,8 +388,9 @@ export class ResultsService {
     }
 
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
-    if (!activeRecordTypes.some((el) => el.wcaEquivalent === wcaEquivalent))
+    if (!activeRecordTypes.some((el) => el.wcaEquivalent === wcaEquivalent)) {
       throw new BadRequestException(`The record type ${wcaEquivalent} is inactive`);
+    }
 
     const recordsByEvent: IEventRankings[] = [];
     const events = await this.eventsService.getEvents({ excludeRemovedAndHidden: true });
@@ -588,8 +595,9 @@ export class ResultsService {
     // Disallow admin-only features
     if (!isAdmin) {
       if (submitResultDto.videoLink === '') throw new UnauthorizedException('Please enter a video link');
-      if (submitResultDto.attempts.some((a) => a.result === C.maxTime))
+      if (submitResultDto.attempts.some((a) => a.result === C.maxTime)) {
         throw new UnauthorizedException('You are not authorized to set unknown time');
+      }
     }
 
     if (!isAdmin) submitResultDto.unapproved = true;
@@ -608,10 +616,12 @@ export class ResultsService {
 
       await this.updateFutureRecords(createdResult, event, recordPairs, { mode: 'create' });
     } else {
-      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${getFormattedTime(
-        createdResult.best,
-        { event, showMultiPoints: true, showDecimals: true },
-      )}`;
+      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${
+        getFormattedTime(
+          createdResult.best,
+          { event, showMultiPoints: true, showDecimals: true },
+        )
+      }`;
       if (createdResult.regionalSingleRecord) text += ` (${createdResult.regionalSingleRecord})`;
       if (createdResult.average > 0) {
         text += `, average: ${getFormattedTime(createdResult.average)}`;
@@ -866,8 +876,9 @@ export class ResultsService {
       previousAvg?: number; // only used for result edit
     },
   ) {
-    if (mode === 'edit' && (previousBest === undefined || previousAvg === undefined))
+    if (mode === 'edit' && (previousBest === undefined || previousAvg === undefined)) {
       throw new InternalServerErrorException('Previous single and average are not defined');
+    }
 
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
     for (const rp of recordPairs) {
@@ -916,8 +927,9 @@ export class ResultsService {
 
             // Make sure it's better than the record at the time, if there was one, and better than the new average, if it's an edit
             if (rp.average > 0) average.$lte = rp.average;
-            if (mode === 'edit' && compareAvgs(result, { average: rp.average } as IResult, true) < 0)
+            if (mode === 'edit' && compareAvgs(result, { average: rp.average } as IResult, true) < 0) {
               average.$lte = result.average;
+            }
             avgQuery.average = average;
 
             await this.recordTypesService.setEventAvgRecords(event, rp.wcaEquivalent, avgQuery);
@@ -983,8 +995,9 @@ export class ResultsService {
         `This event must have ${event.participants ?? 1} participant${event.participants ? 's' : ''}`,
       );
     }
-    if (result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2)))
+    if (result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2))) {
       throw new BadRequestException('You cannot enter the same person twice in the same result');
+    }
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
     // and this is only used for those results, because a competition result would have a round
@@ -1016,10 +1029,11 @@ export class ResultsService {
 
       // Time limit validation
       if (round.timeLimit) {
-        if (result.attempts.some((a) => a.result > round.timeLimit.centiseconds))
+        if (result.attempts.some((a) => a.result > round.timeLimit.centiseconds)) {
           throw new BadRequestException(
             `This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`,
           );
+        }
 
         if (round.timeLimit.cumulativeRoundIds.length > 0) {
           let total = 0;
@@ -1062,10 +1076,11 @@ export class ResultsService {
           const passes = getMakesCutoff(result.attempts, round.cutoff);
 
           if (passes) {
-            if (result.attempts.length !== format.attempts)
+            if (result.attempts.length !== format.attempts) {
               throw new BadRequestException(
                 `The number of attempts should be ${format.attempts}; received: ${result.attempts.length}`,
               );
+            }
           } else if (result.attempts.length > round.cutoff.numberOfAttempts) {
             if (result.attempts.slice(round.cutoff.numberOfAttempts).some((a) => a.result !== 0)) {
               throw new BadRequestException(
@@ -1081,8 +1096,7 @@ export class ResultsService {
           }
         }
       }
-    }
-    // Video-based results validation
+    } // Video-based results validation
     else {
       if (result.videoLink === undefined) throw new BadRequestException('Please enter a video link');
     }

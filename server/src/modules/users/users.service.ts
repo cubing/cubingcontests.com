@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { mongo, Model } from 'mongoose';
+import { Model, mongo } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { addDays } from 'date-fns';
@@ -133,8 +133,9 @@ export class UsersService {
 
     let newRole: Role;
     if (!user.roles.includes(Role.Admin) && updateUserDto.roles.includes(Role.Admin)) newRole = Role.Admin;
-    else if (!user.roles.includes(Role.Moderator) && updateUserDto.roles.includes(Role.Moderator))
+    else if (!user.roles.includes(Role.Moderator) && updateUserDto.roles.includes(Role.Moderator)) {
       newRole = Role.Moderator;
+    }
 
     user.roles = updateUserDto.roles;
     if (updateUserDto.person) user.personId = updateUserDto.person.personId;
@@ -160,8 +161,9 @@ export class UsersService {
       if (user.confirmationCodeAttempts >= C.maxConfirmationCodeAttempts) {
         this.checkUserCooldown(user);
 
-        if (!user.confirmationCodeHash)
+        if (!user.confirmationCodeHash) {
           throw new BadRequestException('Please resend the confirmation code before trying again');
+        }
       }
 
       // Using .toLowerCase(), because the code doesn't need to be case-sensitive
@@ -194,9 +196,11 @@ export class UsersService {
         await user.save();
 
         throw new BadRequestException(
-          `The entered code is incorrect and you have no more attempts left. Please request a new code after the ${Math.round(
-            C.confirmationCodeCooldown / 60000,
-          )} minute cooldown is over.`,
+          `The entered code is incorrect and you have no more attempts left. Please request a new code after the ${
+            Math.round(
+              C.confirmationCodeCooldown / 60000,
+            )
+          } minute cooldown is over.`,
         );
       }
     }
@@ -326,9 +330,11 @@ export class UsersService {
 
       if (remainingCooldownTime > 0) {
         throw new BadRequestException(
-          `You have an active cooldown, please try again later. Remaining time: ${getFormattedTime(
-            Math.round(remainingCooldownTime / 10),
-          )}`,
+          `You have an active cooldown, please try again later. Remaining time: ${
+            getFormattedTime(
+              Math.round(remainingCooldownTime / 10),
+            )
+          }`,
         );
       }
     }

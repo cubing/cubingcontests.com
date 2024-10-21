@@ -1,8 +1,10 @@
-import { Color, ContestType } from '@sh/enums';
-import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
-import { getBSClassFromColor } from '~/helpers/utilityFunctions';
+import { Color, ContestType } from '~/shared_helpers/enums.ts';
+import { contestTypeOptions } from '~/helpers/multipleChoiceOptions.ts';
+import { getBSClassFromColor } from '~/helpers/utilityFunctions.ts';
 
-const ContestTypeBadge = ({ type, brief = false }: { type: ContestType; brief?: boolean }) => {
+const ContestTypeBadge = (
+  { type, brief = false }: { type: ContestType; brief?: boolean },
+) => {
   const contestType = contestTypeOptions.find((el) => el.value === type);
 
   const getBlackTextClass = () => {

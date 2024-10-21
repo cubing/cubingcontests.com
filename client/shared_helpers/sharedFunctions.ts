@@ -1,26 +1,26 @@
 import { differenceInDays } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { remove as removeAccents } from 'remove-accents';
-import C from '@sh/constants';
-import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums';
+import C from '~/shared_helpers/constants.ts';
+import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums.ts';
 import {
-  IResult,
-  IRecordPair,
-  IEvent,
-  IAttempt,
-  ICutoff,
-  IContest,
-  IWcifCompetition,
-  IWcifSchedule,
-  IContestEvent,
-  IWcifEvent,
   IActivity,
-  IWcifActivity,
-  IRound,
-  IWcifRound,
+  IAttempt,
+  IContest,
+  IContestEvent,
+  ICutoff,
+  IEvent,
   IPersonDto,
-} from './types';
-import { roundFormats } from './roundFormats';
+  IRecordPair,
+  IResult,
+  IRound,
+  IWcifActivity,
+  IWcifCompetition,
+  IWcifEvent,
+  IWcifRound,
+  IWcifSchedule,
+} from './types.ts';
+import { roundFormats } from './roundFormats.ts';
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
@@ -34,7 +34,11 @@ export const compareSingles = (a: IResult, b: IResult): number => {
 // Same logic as above, except the single is also used as a tie-breaker if both averages are DNF.
 // This tie-breaking behavior can be disabled with noTieBreaker = true (e.g. when setting records).
 // However, that third argument cannot be used with the Array.sort() method.
-export const compareAvgs = (a: IResult, b: IResult, noTieBreaker = false): number => {
+export const compareAvgs = (
+  a: IResult,
+  b: IResult,
+  noTieBreaker = false,
+): number => {
   if (a.average <= 0) {
     if (b.average <= 0) {
       if (noTieBreaker) return 0;
@@ -61,18 +65,33 @@ export const setResultRecords = (
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
-      const comparisonToRecordSingle = compareSingles(result, { best: recordPair.best } as IResult);
+      const comparisonToRecordSingle = compareSingles(
+        result,
+        { best: recordPair.best } as IResult,
+      );
 
       if (result.best > 0 && comparisonToRecordSingle <= 0) {
-        if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
+        if (!noConsoleLog) {
+          console.log(`New ${result.eventId} single WR: ${result.best}`);
+        }
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
-      if (result.attempts.length === roundFormats.find((rf) => rf.value === event.defaultRoundFormat).attempts) {
-        const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average } as IResult, true);
+      if (
+        result.attempts.length ===
+          roundFormats.find((rf) => rf.value === event.defaultRoundFormat)
+            .attempts
+      ) {
+        const comparisonToRecordAvg = compareAvgs(
+          result,
+          { average: recordPair.average } as IResult,
+          true,
+        );
 
         if (result.average > 0 && comparisonToRecordAvg <= 0) {
-          if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
+          if (!noConsoleLog) {
+            console.log(`New ${result.eventId} average WR: ${result.average}`);
+          }
           result.regionalAverageRecord = recordPair.wcaEquivalent;
         }
       }
@@ -88,7 +107,9 @@ export const getDateOnly = (date: Date): Date => {
     return null;
   }
 
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
 };
 
 export const getFormattedTime = (
@@ -156,7 +177,8 @@ export const getFormattedTime = (
     // Only times under ten minutes can have decimals, or if noFormatting = true, or if it's an event that always
     // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
     if (
-      ((hours === 0 && minutes < 10) || noFormatting || (event && getAlwaysShowDecimals(event) && time < 360000)) &&
+      ((hours === 0 && minutes < 10) || noFormatting ||
+        (event && getAlwaysShowDecimals(event) && time < 360000)) &&
       showDecimals
     ) {
       output += seconds.toFixed(2);
@@ -170,7 +192,8 @@ export const getFormattedTime = (
     } else {
       if (time < 0) timeStr = timeStr.replace('-', '');
 
-      const points = (time < 0 ? -1 : 1) * (9999 - parseInt(timeStr.slice(0, -11)));
+      const points = (time < 0 ? -1 : 1) *
+        (9999 - parseInt(timeStr.slice(0, -11)));
       const missed = parseInt(timeStr.slice(timeStr.length - 4));
       const solved = points + missed;
 
@@ -195,7 +218,9 @@ export const getBestAndAverage = (
   event: IEvent,
   { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
 ): { best: number; average: number } => {
-  if (!round && !roundFormat) throw new Error('round and roundFormat cannot both be undefined');
+  if (!round && !roundFormat) {
+    throw new Error('round and roundFormat cannot both be undefined');
+  }
 
   let best: number, average: number;
   let sum = 0;
@@ -217,9 +242,14 @@ export const getBestAndAverage = (
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (!makesCutoff || expectedAttempts < 3 || attempts.filter((a) => a.result !== 0).length < expectedAttempts) {
+  if (
+    !makesCutoff || expectedAttempts < 3 ||
+    attempts.filter((a) => a.result !== 0).length < expectedAttempts
+  ) {
     average = 0;
-  } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && format !== RoundFormat.Average)) {
+  } else if (
+    dnfDnsCount > 1 || (dnfDnsCount > 0 && format !== RoundFormat.Average)
+  ) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
@@ -228,7 +258,9 @@ export const getBestAndAverage = (
       if (dnfDnsCount === 0) sum -= Math.max(...convertedAttempts);
     }
 
-    average = Math.round((sum / 3) * (event.format === EventFormat.Number ? 100 : 1));
+    average = Math.round(
+      (sum / 3) * (event.format === EventFormat.Number ? 100 : 1),
+    );
   }
 
   return { best, average };
@@ -238,17 +270,28 @@ export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean =>
   [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
 
 export const getDefaultAverageAttempts = (event: IEvent) =>
-  roundFormats.find((rf) => rf.value === event.defaultRoundFormat).attempts === 5 ? 5 : 3;
+  roundFormats.find((rf) => rf.value === event.defaultRoundFormat).attempts ===
+      5
+    ? 5
+    : 3;
 
 export const getAlwaysShowDecimals = (event: IEvent): boolean =>
-  event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
+  event.groups.includes(EventGroup.ExtremeBLD) &&
+  event.format !== EventFormat.Multi;
 
 export const getIsCompType = (contestType: ContestType): boolean =>
   [ContestType.WcaComp, ContestType.Competition].includes(contestType);
 
 // If the round has no cutoff (undefined), return true
-export const getMakesCutoff = (attempts: IAttempt[], cutoff: ICutoff | undefined): boolean =>
-  !cutoff || attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result > 0 && a.result < cutoff.attemptResult);
+export const getMakesCutoff = (
+  attempts: IAttempt[],
+  cutoff: ICutoff | undefined,
+): boolean =>
+  !cutoff ||
+  attempts.some((a, i) =>
+    i < cutoff.numberOfAttempts && a.result > 0 &&
+    a.result < cutoff.attemptResult
+  );
 
 const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
 
@@ -328,7 +371,9 @@ export const getRoleLabel = (role: Role, capitalize = false): string => {
   }
 };
 
-export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefined> => {
+export const fetchWcaPerson = async (
+  wcaId: string,
+): Promise<IPersonDto | undefined> => {
   const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
 
   if (response.ok) {
@@ -351,6 +396,9 @@ export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefi
 export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
 
 export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
-  contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
+  contestEvents.map((ce) => ce.rounds.length).reduce(
+    (prev, curr) => prev + curr,
+    0,
+  );
 
 export const getSimplifiedString = (input: string): string => removeAccents(input.toLocaleLowerCase());

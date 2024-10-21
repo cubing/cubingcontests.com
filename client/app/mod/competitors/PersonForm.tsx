@@ -1,16 +1,16 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMyFetch } from '~/helpers/customHooks';
-import { IFePerson, IWcaPersonDto } from '@sh/types';
-import Form from '@c/form/Form';
-import { MainContext } from '~/helpers/contexts';
-import CreatorDetails from '@c/CreatorDetails';
-import FormTextInput from '@c/form/FormTextInput';
-import FormCheckbox from '@c/form/FormCheckbox';
-import FormCountrySelect from '@c/form/FormCountrySelect';
-import { fetchWcaPerson } from '@sh/sharedFunctions';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import { IFePerson, IWcaPersonDto } from '~/shared_helpers/types.ts';
+import Form from '~/app/components/form/Form.tsx';
+import { MainContext } from '~/helpers/contexts.ts';
+import CreatorDetails from '~/app/components/CreatorDetails.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
+import FormCountrySelect from '~/app/components/form/FormCountrySelect.tsx';
+import { fetchWcaPerson } from '~/shared_helpers/sharedFunctions.ts';
 
 const PersonForm = ({
   personUnderEdit,
@@ -23,15 +23,26 @@ const PersonForm = ({
 }) => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
-    useContext(MainContext);
+  const {
+    changeErrorMessages,
+    changeSuccessMessage,
+    loadingId,
+    changeLoadingId,
+    resetMessagesAndLoadingId,
+  } = useContext(MainContext);
 
   const [nextFocusTarget, setNextFocusTarget] = useState('');
   const [name, setName] = useState(personUnderEdit?.name ?? '');
-  const [localizedName, setLocalizedName] = useState(personUnderEdit?.localizedName ?? '');
+  const [localizedName, setLocalizedName] = useState(
+    personUnderEdit?.localizedName ?? '',
+  );
   const [wcaId, setWcaId] = useState(personUnderEdit?.wcaId ?? '');
-  const [hasWcaId, setHasWcaId] = useState<boolean>(personUnderEdit === undefined || !!personUnderEdit.wcaId);
-  const [countryIso2, setCountryIso2] = useState(personUnderEdit?.countryIso2 ?? 'NOT_SELECTED');
+  const [hasWcaId, setHasWcaId] = useState<boolean>(
+    personUnderEdit === undefined || !!personUnderEdit.wcaId,
+  );
+  const [countryIso2, setCountryIso2] = useState(
+    personUnderEdit?.countryIso2 ?? 'NOT_SELECTED',
+  );
 
   useEffect(() => {
     if (nextFocusTarget) {
@@ -49,10 +60,16 @@ const PersonForm = ({
       countryIso2,
     };
     const { payload, errors } = personUnderEdit
-      ? await myFetch.patch(`/persons/${(personUnderEdit as any)._id}`, newPerson, {
+      ? await myFetch.patch(
+        `/persons/${(personUnderEdit as any)._id}`,
+        newPerson,
+        {
+          loadingId: 'form_submit_button',
+        },
+      )
+      : await myFetch.post('/persons/no-wcaid', newPerson, {
         loadingId: 'form_submit_button',
-      })
-      : await myFetch.post('/persons/no-wcaid', newPerson, { loadingId: 'form_submit_button' });
+      });
 
     if (!errors) afterSubmit(payload);
   };
@@ -88,13 +105,18 @@ const PersonForm = ({
 
       if (newWcaId.length === 10) {
         if (!personUnderEdit) {
-          const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, { authorize: true });
+          const { payload, errors } = await myFetch.get<IWcaPersonDto>(
+            `/persons/${newWcaId}`,
+            { authorize: true },
+          );
 
           if (!errors) {
             if (payload.isNew) {
               afterSubmit(payload.person);
             } else {
-              changeErrorMessages(['A competitor with this WCA ID already exists']);
+              changeErrorMessages([
+                'A competitor with this WCA ID already exists',
+              ]);
               setName(payload.person.name);
               setLocalizedName(payload.person.localizedName ?? '');
               setCountryIso2(payload.person.countryIso2);
@@ -143,7 +165,7 @@ const PersonForm = ({
 
   return (
     <Form
-      buttonText="Submit"
+      buttonText='Submit'
       onSubmit={handleSubmit}
       hideToasts
       hideButton={hasWcaId && !personUnderEdit}
@@ -153,8 +175,8 @@ const PersonForm = ({
       {personUnderEdit && <CreatorDetails creator={personUnderEdit.creator} />}
       {personUnderEdit && <p>CC ID: {personUnderEdit.personId}</p>}
       <FormTextInput
-        title="WCA ID"
-        id="wca_id"
+        title='WCA ID'
+        id='wca_id'
         monospace
         value={wcaId}
         setValue={changeWcaId}
@@ -168,25 +190,25 @@ const PersonForm = ({
         disabled={loadingId !== ''}
       />
       <FormTextInput
-        title="Full Name (name, last name)"
-        id="full_name"
+        title='Full Name (name, last name)'
+        id='full_name'
         value={name}
         setValue={setName}
-        nextFocusTargetId="localized_name"
+        nextFocusTargetId='localized_name'
         disabled={loadingId !== '' || hasWcaId}
       />
       <FormTextInput
-        title="Localized Name (optional)"
-        id="localized_name"
+        title='Localized Name (optional)'
+        id='localized_name'
         value={localizedName}
         setValue={setLocalizedName}
-        nextFocusTargetId="country_iso_2"
+        nextFocusTargetId='country_iso_2'
         disabled={loadingId !== '' || hasWcaId}
       />
       <FormCountrySelect
         countryIso2={countryIso2}
         setCountryIso2={setCountryIso2}
-        nextFocusTargetId="form_submit_button"
+        nextFocusTargetId='form_submit_button'
         disabled={loadingId !== '' || hasWcaId}
       />
     </Form>

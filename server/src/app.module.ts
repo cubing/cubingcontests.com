@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -19,10 +19,9 @@ import { RoundSchema } from '~/src/models/round.model';
 import { EmailModule } from '~/src/modules/email/email.module';
 import { CollectiveSolutionModule } from './modules/collective-solution/collective-solution.module';
 
-const mongoUri =
-  process.env.NODE_ENV === 'production'
-    ? `mongodb://${process.env.MONGO_DEV_USERNAME}:${process.env.MONGO_DEV_PASSWORD}@cc-mongo:27017/cubingcontests`
-    : `mongodb://${process.env.MONGO_DEV_USERNAME}:${process.env.MONGO_DEV_PASSWORD}@127.0.0.1:27017/cubingcontests`;
+const mongoUri = process.env.NODE_ENV === 'production'
+  ? `mongodb://${process.env.MONGO_DEV_USERNAME}:${process.env.MONGO_DEV_PASSWORD}@cc-mongo:27017/cubingcontests`
+  : `mongodb://${process.env.MONGO_DEV_USERNAME}:${process.env.MONGO_DEV_PASSWORD}@127.0.0.1:27017/cubingcontests`;
 
 @Module({
   imports: [

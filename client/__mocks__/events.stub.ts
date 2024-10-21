@@ -1,5 +1,5 @@
-import { IEvent } from '@sh/types';
-import { EventFormat, EventGroup } from '@sh/enums';
+import { IEvent } from '~/shared_helpers/types.ts';
+import { EventFormat, EventGroup } from '~/shared_helpers/enums.ts';
 
 export const mockTimeEvent = {
   eventId: '333',

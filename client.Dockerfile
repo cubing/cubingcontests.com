@@ -1,18 +1,19 @@
-FROM node:20-alpine
+FROM denoland/deno:distroless-2.0.2
 
-RUN apk update && apk upgrade
+EXPOSE 3000
 
-COPY client /home/app/client
+COPY client /app/client
 
-WORKDIR /home/app/client
+WORKDIR /app/client
+
+# Prefer not to run as root
+USER deno
 
 ARG API_BASE_URL
 
 ENV ENVIRONMENT=production
 
-RUN npm install
-RUN npm run build
+RUN deno install
+RUN deno task build
 
-EXPOSE 3000
-
-CMD [ "npm", "start" ]
+CMD [ "deno", "task", "start" ]

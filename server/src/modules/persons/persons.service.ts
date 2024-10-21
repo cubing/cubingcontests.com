@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { mongo, Model } from 'mongoose';
+import { Model, mongo } from 'mongoose';
 import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
 import { PersonDocument } from '~/src/models/person.model';
 import { RoundDocument } from '~/src/models/round.model';
@@ -50,8 +50,9 @@ export class PersonsService {
 
       for (let i = 0; i < persons.length; i++) {
         const person = persons[i];
-        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name))
+        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name)) {
           this.logger.error(`Error: multiple persons found with the name ${person.name}`);
+        }
       }
     }
   }
@@ -164,7 +165,7 @@ export class PersonsService {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
-    if (contestEvents) for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
+    if (contestEvents) { for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds); }
     else compRounds = await this.roundModel.find({ competitionId }).populate(resultPopulateOptions).exec();
 
     for (const round of compRounds) {
@@ -222,8 +223,9 @@ export class PersonsService {
 
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (!isAdmin && !person.unapproved)
+    if (!isAdmin && !person.unapproved) {
       throw new BadRequestException('You may not edit a person who has competed in a published contest');
+    }
 
     if (personDto.wcaId) {
       const wcaPerson: IPersonDto = await fetchWcaPerson(personDto.wcaId);
@@ -253,16 +255,18 @@ export class PersonsService {
     if (!person.unapproved) throw new BadRequestException('You may not delete an approved person');
 
     const result = await this.resultModel.findOne({ personIds: person.personId }).exec();
-    if (result)
+    if (result) {
       throw new BadRequestException(
         `You may not delete a person who has a result. This person has a result in ${result.eventId} at ${result.competitionId}.`,
       );
+    }
 
     const organizedContest = await this.contestModel.findOne({ organizers: person._id }).exec();
-    if (organizedContest)
+    if (organizedContest) {
       throw new BadRequestException(
         `You may not delete a person who has organized a contest. This person was an organizer at ${organizedContest.competitionId}.`,
       );
+    }
 
     await person.deleteOne();
   }
@@ -290,16 +294,14 @@ export class PersonsService {
     competitionId?: string;
     wcaCompData?: unknown[];
   }) {
-    this.logger.logAndSave(
-      `Approving ${
-        competitionId ? `unapproved persons from contest with ID ${competitionId}` : 'persons'
-      } with person IDs: ${personIds.join(', ')}`,
-      LogType.ApprovePersons,
-    );
-
     const competitors = personIds
       ? await this.getPersonsByPersonIds(personIds)
       : await this.getContestParticipants({ competitionId, unapprovedOnly: true });
+    const message = competitionId
+      ? `Approving unapproved persons from contest with ID ${competitionId}`
+      : `Approving persons with person IDs: ${personIds.join(', ')}`;
+
+    this.logger.logAndSave(message, LogType.ApprovePersons);
 
     for (const competitor of competitors) {
       if (competitor.unapproved) {

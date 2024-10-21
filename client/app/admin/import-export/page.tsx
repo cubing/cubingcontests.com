@@ -1,23 +1,24 @@
 'use client';
 
-// import { useContext, useEffect, useState } from 'react';
-// import { useMyFetch, useFetchPerson, useFetchWcaCompDetails } from '~/helpers/customHooks';
-// import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from '@sh/enums';
-// import { IContestDto, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '@sh/types';
+import React from 'react';
+// import React, { useContext, useEffect, useState } from 'react';
+// import { useMyFetch, useFetchPerson, useFetchWcaCompDetails } from '~/helpers/customHooks.ts';
+// import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from '~/shared_helpers/enums.ts';
+// import { IContestDto, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '~/shared_helpers/types.ts';
 // import {
 //   compareAvgs,
 //   compareSingles,
 //   getDefaultAverageAttempts,
 //   getRoundRanksWithAverage,
 //   getBestAndAverage,
-// } from '@sh/sharedFunctions';
-// import { roundFormats } from '@sh/roundFormats';
-// import { MainContext } from '~/helpers/contexts';
-// import { getContestIdFromName } from '~/helpers/utilityFunctions';
-// import Button from '@c/UI/Button';
-// import Form from '@c/form/Form';
-// import FormTextInput from '@c/form/FormTextInput';
-// import ContestResults from '@c/ContestResults';
+// } from '~/shared_helpers/sharedFunctions';
+// import { roundFormats } from '~/shared_helpers/roundFormats.ts';
+// import { MainContext } from '~/helpers/contexts.ts';
+// import { getContestIdFromName } from '~/helpers/utilityFunctions.ts';
+// import Button from '~/app/components/UI/Button.tsx';
+// import Form from '~/app/components/form/Form.tsx';
+// import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+// import ContestResults from '~/app/components/ContestResults.tsx';
 
 // const setRankingsAndRecords = (
 //   results: IResult[],

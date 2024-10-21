@@ -1,4 +1,4 @@
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption.ts';
 
 const FormRadio = ({
   id,
@@ -23,23 +23,27 @@ const FormRadio = ({
     <div
       className={`${oneLine ? 'd-flex flex-wrap align-items-center gap-3 gap-md-5' : ''}  ${small ? 'fs-6' : 'fs-5'}`}
     >
-      <h5 className={`${oneLine ? 'm-0' : ''}  ${small ? 'fs-6' : 'fs-5'}`}>{title}</h5>
+      <h5 className={`${oneLine ? 'm-0' : ''}  ${small ? 'fs-6' : 'fs-5'}`}>
+        {title}
+      </h5>
 
-      <div className={`d-flex flex-wrap gap-3 gap-md-4 ${oneLine ? '' : 'my-3'}`}>
+      <div
+        className={`d-flex flex-wrap gap-3 gap-md-4 ${oneLine ? '' : 'my-3'}`}
+      >
         {options.map((option) => {
           const uniqueId = `radio_${id || title}_${option.value}`;
 
           return (
-            <div key={uniqueId} className="form-check">
+            <div key={uniqueId} className='form-check'>
               <input
                 id={uniqueId}
-                type="radio"
+                type='radio'
                 checked={selected === option.value}
                 onChange={() => setSelected(option.value)}
                 disabled={disabled || option.disabled}
-                className="form-check-input"
+                className='form-check-input'
               />
-              <label className="form-check-label" htmlFor={uniqueId}>
+              <label className='form-check-label' htmlFor={uniqueId}>
                 {option.label}
               </label>
             </div>

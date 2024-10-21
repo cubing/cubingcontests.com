@@ -1,11 +1,11 @@
 'use client';
 
-import RoundResultsTable from './RoundResultsTable';
-import { IContestEvent, IPerson, IRecordType } from '@sh/types';
-import { useEffect, useState } from 'react';
-import { roundTypes } from '~/helpers/roundTypes';
-import EventTitle from './EventTitle';
-import FormSelect from './form/FormSelect';
+import RoundResultsTable from './RoundResultsTable.tsx';
+import { IContestEvent, IPerson, IRecordType } from '~/shared_helpers/types.ts';
+import React, { useEffect, useState } from 'react';
+import { roundTypes } from '~/helpers/roundTypes.ts';
+import EventTitle from './EventTitle.tsx';
+import FormSelect from './form/FormSelect.tsx';
 
 const EventResultsTable = ({
   contestEvent,
@@ -19,20 +19,22 @@ const EventResultsTable = ({
   onDeleteResult?: (resultId: string) => void;
 }) => {
   // Display finals by default
-  const [currRound, setCurrRound] = useState(contestEvent.rounds[contestEvent.rounds.length - 1]);
+  const [currRound, setCurrRound] = useState(
+    contestEvent.rounds[contestEvent.rounds.length - 1],
+  );
 
   useEffect(() => {
     setCurrRound(contestEvent.rounds[contestEvent.rounds.length - 1]);
   }, [contestEvent]);
 
   return (
-    <div className="my-3">
-      <div className="mb-4">
+    <div className='my-3'>
+      <div className='mb-4'>
         <EventTitle event={contestEvent.event} linkToRankings showDescription />
       </div>
 
       {contestEvent.rounds.length > 1 && (
-        <div className="mb-4 px-2" style={{ maxWidth: '450px' }}>
+        <div className='mb-4 px-2' style={{ maxWidth: '450px' }}>
           <FormSelect
             options={contestEvent.rounds.map((el) => ({
               label: roundTypes[el.roundTypeId].label,

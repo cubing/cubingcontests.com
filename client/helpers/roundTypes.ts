@@ -1,4 +1,4 @@
-import { RoundType } from '@sh/enums';
+import { RoundType } from '~/shared_helpers/enums.ts';
 
 export const roundTypes: any = {
   [RoundType.First]: { id: RoundType.First, label: 'First round' },

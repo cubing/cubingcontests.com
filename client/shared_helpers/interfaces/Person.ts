@@ -1,4 +1,4 @@
-import { IFeUser } from '@sh/types';
+import { IFeUser } from '~/shared_helpers/types.ts';
 
 export type IPerson = {
   name: string;

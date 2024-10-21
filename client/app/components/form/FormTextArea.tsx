@@ -15,14 +15,16 @@ const FormTextArea = ({
   rows?: number;
   disabled?: boolean;
 }) => {
-  if (!id && !title) throw new Error('Neither title nor id are set in FormTextArea');
+  if (!id && !title) {
+    throw new Error('Neither title nor id are set in FormTextArea');
+  }
 
   const inputId = id || title;
 
   return (
-    <div className="mb-3">
+    <div className='mb-3'>
       {title && (
-        <label htmlFor={inputId} className="form-label">
+        <label htmlFor={inputId} className='form-label'>
           {title}
         </label>
       )}
@@ -31,7 +33,7 @@ const FormTextArea = ({
         rows={rows}
         value={value}
         onChange={(e: any) => setValue(e.target.value)}
-        className="form-control"
+        className='form-control'
         disabled={disabled}
       />
     </div>

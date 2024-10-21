@@ -1,19 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { addHours } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
-import { Color, ContestType } from '@sh/enums';
-import { IActivity, IContestEvent, IRoom } from '@sh/types';
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
-import { roundTypes } from '~/helpers/roundTypes';
-import { colorOptions } from '~/helpers/multipleChoiceOptions';
-import FormDatePicker from '@c/form/FormDatePicker';
-import FormSelect from '@c/form/FormSelect';
-import FormTextInput from '@c/form/FormTextInput';
-import Button from '@c/UI/Button';
-import ColorSquare from '@c/UI/ColorSquare';
-import Schedule from '@c/Schedule';
+import { Color, ContestType } from '~/shared_helpers/enums.ts';
+import { IActivity, IContestEvent, IRoom } from '~/shared_helpers/types.ts';
+import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption.ts';
+import { roundTypes } from '~/helpers/roundTypes.ts';
+import { colorOptions } from '~/helpers/multipleChoiceOptions.ts';
+import FormDatePicker from '~/app/components/form/FormDatePicker.tsx';
+import FormSelect from '~/app/components/form/FormSelect.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import ColorSquare from '~/app/components/UI/ColorSquare.tsx';
+import Schedule from '~/app/components/Schedule.tsx';
 
 const ScheduleEditor = ({
   rooms,
@@ -37,13 +37,19 @@ const ScheduleEditor = ({
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
 
   // Activity stuff
-  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(null);
+  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(
+    null,
+  );
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
   const [activityCode, setActivityCode] = useState('');
   const [customActivity, setCustomActivity] = useState('');
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
-  const [activityStartTime, setActivityStartTime] = useState(fromZonedTime(addHours(startDate, 12), venueTimeZone));
-  const [activityEndTime, setActivityEndTime] = useState(fromZonedTime(addHours(startDate, 13), venueTimeZone));
+  const [activityStartTime, setActivityStartTime] = useState(
+    fromZonedTime(addHours(startDate, 12), venueTimeZone),
+  );
+  const [activityEndTime, setActivityEndTime] = useState(
+    fromZonedTime(addHours(startDate, 13), venueTimeZone),
+  );
 
   const roomOptions = useMemo(
     () =>
@@ -78,15 +84,19 @@ const ScheduleEditor = ({
   }, [contestEvents, rooms, activityUnderEdit]);
 
   const selectedRoomExists = roomOptions.some((r) => r.value === selectedRoom);
-  if (!selectedRoomExists && roomOptions.length > 0) setSelectedRoom(roomOptions[0].value);
-  const isValidActivity = activityCode && (activityCode !== 'other-misc' || customActivity) && roomOptions.length > 0;
+  if (!selectedRoomExists && roomOptions.length > 0) {
+    setSelectedRoom(roomOptions[0].value);
+  }
+  const isValidActivity = activityCode &&
+    (activityCode !== 'other-misc' || customActivity) && roomOptions.length > 0;
 
   const addRoom = () => {
     setRoomName('');
     setRooms([
       ...rooms,
       {
-        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
+        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id +
+          1,
         name: roomName.trim(),
         color: roomColor,
         activities: [],
@@ -99,7 +109,8 @@ const ScheduleEditor = ({
 
     if (newTime) {
       // Change the activity end time too
-      const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
+      const activityLength = activityEndTime.getTime() -
+        activityStartTime.getTime();
       setActivityEndTime(new Date(newTime.getTime() + activityLength));
     }
   };
@@ -114,17 +125,21 @@ const ScheduleEditor = ({
     });
 
     const newRooms = rooms.map((room) =>
-      room.id !== selectedRoom
-        ? room
-        : {
-            ...room,
-            activities: activityUnderEdit
-              ? room.activities.map((a) => (a.id === activityUnderEdit.id ? { id: a.id, ...getFieldsFromInputs() } : a))
-              : [
-                  ...room.activities,
-                  { id: Math.max(...room.activities.map((a) => a.id), 0) + 1, ...getFieldsFromInputs() },
-                ],
-          },
+      room.id !== selectedRoom ? room : {
+        ...room,
+        activities: activityUnderEdit
+          ? room.activities.map((a) => (a.id === activityUnderEdit.id ? { id: a.id, ...getFieldsFromInputs() } : a))
+          : [
+            ...room.activities,
+            {
+              id: Math.max(
+                ...room.activities.map((a) => a.id),
+                0,
+              ) + 1,
+              ...getFieldsFromInputs(),
+            },
+          ],
+      }
     );
 
     setRooms(newRooms);
@@ -152,29 +167,32 @@ const ScheduleEditor = ({
     // This syntax is necessary, because this may be called multiple times in the same tick
     setRooms((prev) =>
       prev.map((room) =>
-        room.id !== roomId
-          ? room
-          : {
-              ...room,
-              activities: room.activities.filter((a) => a.id !== activityId),
-            },
-      ),
+        room.id !== roomId ? room : {
+          ...room,
+          activities: room.activities.filter((a) => a.id !== activityId),
+        }
+      )
     );
   };
 
   return (
     <>
       <section>
-        <h3 className="mb-3">Rooms</h3>
+        <h3 className='mb-3'>Rooms</h3>
 
-        <div className="row">
-          <div className="col-8">
-            <FormTextInput title="Room name" value={roomName} setValue={setRoomName} disabled={disabled} />
+        <div className='row'>
+          <div className='col-8'>
+            <FormTextInput
+              title='Room name'
+              value={roomName}
+              setValue={setRoomName}
+              disabled={disabled}
+            />
           </div>
-          <div className="col-4 d-flex justify-content-between align-items-end gap-3">
-            <div className="flex-grow-1">
+          <div className='col-4 d-flex justify-content-between align-items-end gap-3'>
+            <div className='flex-grow-1'>
               <FormSelect
-                title="Color"
+                title='Color'
                 options={colorOptions}
                 selected={roomColor}
                 setSelected={setRoomColor}
@@ -184,24 +202,29 @@ const ScheduleEditor = ({
             <ColorSquare color={roomColor} />
           </div>
         </div>
-        <Button onClick={addRoom} disabled={disabled || !roomName.trim()} className="btn-success mt-3 mb-2">
+        <Button
+          onClick={addRoom}
+          disabled={disabled || !roomName.trim()}
+          className='btn-success mt-3 mb-2'
+        >
           Create
         </Button>
         <hr />
-        <h3 className="mb-3">Schedule</h3>
-        <div className="row">
-          <div className="col">
+        <h3 className='mb-3'>Schedule</h3>
+        <div className='row'>
+          <div className='col'>
             <FormSelect
-              title="Room"
+              title='Room'
               options={roomOptions}
               selected={selectedRoom}
               setSelected={setSelectedRoom}
-              disabled={disabled || rooms.length === 0 || activityUnderEdit !== null}
+              disabled={disabled || rooms.length === 0 ||
+                activityUnderEdit !== null}
             />
           </div>
-          <div className="col">
+          <div className='col'>
             <FormSelect
-              title="Activity"
+              title='Activity'
               options={activityOptions}
               selected={activityCode}
               setSelected={setActivityCode}
@@ -211,40 +234,40 @@ const ScheduleEditor = ({
         </div>
         {activityCode === 'other-misc' && (
           <FormTextInput
-            title="Custom activity"
+            title='Custom activity'
             value={customActivity}
             setValue={setCustomActivity}
             disabled={disabled}
           />
         )}
-        <div className="mb-3 row align-items-end">
-          <div className="col">
+        <div className='mb-3 row align-items-end'>
+          <div className='col'>
             <FormDatePicker
-              id="activity_start_time"
+              id='activity_start_time'
               title={`Start time (${venueTimeZone})`}
               value={activityStartTime}
               setValue={changeActivityStartTime}
               timeZone={venueTimeZone}
-              dateFormat="Pp"
+              dateFormat='Pp'
               timeIntervals={5}
               disabled={disabled}
               showUTCTime
             />
           </div>
-          <div className="col">
+          <div className='col'>
             <FormDatePicker
-              id="activity_end_time"
+              id='activity_end_time'
               value={activityEndTime}
               setValue={setActivityEndTime}
               timeZone={venueTimeZone}
-              dateFormat="Pp"
+              dateFormat='Pp'
               timeIntervals={5}
               disabled={disabled}
               showUTCTime
             />
           </div>
         </div>
-        <div className="d-flex gap-3 mb-4">
+        <div className='d-flex gap-3 mb-4'>
           <Button
             onClick={saveActivity}
             disabled={disabled || !isValidActivity}
@@ -253,20 +276,22 @@ const ScheduleEditor = ({
             {activityUnderEdit ? 'Update' : 'Add to schedule'}
           </Button>
           {activityUnderEdit !== null && (
-            <Button onClick={cancelEdit} className="btn-danger">
+            <Button onClick={cancelEdit} className='btn-danger'>
               Cancel
             </Button>
           )}
         </div>
         {contestType === ContestType.WcaComp && (
-          <p className="text-center text-danger">Please make sure that the schedules match between CC and the WCA.</p>
+          <p className='text-center text-danger'>
+            Please make sure that the schedules match between CC and the WCA.
+          </p>
         )}
       </section>
 
       {/* Bit of a hack to escape the boundaries of the form component to give the schedule more width */}
-      <div className="d-flex justify-content-center">
-        <div className="min-vw-100">
-          <div className="container-md">
+      <div className='d-flex justify-content-center'>
+        <div className='min-vw-100'>
+          <div className='container-md'>
             <Schedule
               rooms={rooms}
               contestEvents={contestEvents}

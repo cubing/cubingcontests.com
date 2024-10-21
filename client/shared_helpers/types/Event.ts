@@ -1,5 +1,5 @@
-import { IEventRule } from '@sh/types';
-import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
+import { IEventRule } from '~/shared_helpers/types.ts';
+import { EventFormat, EventGroup, RoundFormat } from '~/shared_helpers/enums.ts';
 
 export type IEvent = {
   eventId: string;

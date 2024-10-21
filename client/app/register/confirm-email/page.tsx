@@ -1,12 +1,12 @@
 'use client';
 
-import { useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMyFetch } from '~/helpers/customHooks';
-import Form from '@c/form/Form';
-import FormTextInput from '@c/form/FormTextInput';
-import Button from '@c/UI/Button';
-import { MainContext } from '~/helpers/contexts';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import Form from '~/app/components/form/Form.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import { MainContext } from '~/helpers/contexts.ts';
 
 const ConfirmEmailPage = () => {
   const searchParams = useSearchParams();
@@ -51,18 +51,23 @@ const ConfirmEmailPage = () => {
 
   return (
     <div>
-      <h2 className="mb-4 text-center">Confirm Email</h2>
+      <h2 className='mb-4 text-center'>Confirm Email</h2>
 
-      <Form buttonText="Confirm" onSubmit={handleSubmit}>
+      <Form buttonText='Confirm' onSubmit={handleSubmit}>
         <FormTextInput
-          id="confirmation_code"
-          title="Confirmation code"
+          id='confirmation_code'
+          title='Confirmation code'
           value={code}
           setValue={setCode}
-          nextFocusTargetId="form_submit_button"
+          nextFocusTargetId='form_submit_button'
           autoFocus
         />
-        <Button id="resend_code_button" onClick={resendCode} loadingId={loadingId} className="btn-secondary btn-sm">
+        <Button
+          id='resend_code_button'
+          onClick={resendCode}
+          loadingId={loadingId}
+          className='btn-secondary btn-sm'
+        >
           Resend Code
         </Button>
       </Form>

@@ -119,8 +119,9 @@ export class AppService {
     const roundFormat = roundFormats.find((rf) => rf.value === round.format);
     const attempts: IAttempt[] = [];
 
-    if (result && result.personIds.length > 1)
+    if (result && result.personIds.length > 1) {
       throw new NotImplementedException('External data entry for team events is not supported yet');
+    }
 
     for (let i = 0; i < roundFormat.attempts; i++) {
       if (i === enterAttemptDto.attemptNumber - 1) attempts.push({ result: enterAttemptDto.attemptResult });

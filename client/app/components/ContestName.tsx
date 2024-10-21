@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import Country from './Country';
-import { IContest } from '@sh/types';
+import Country from './Country.tsx';
+import { IContest } from '~/shared_helpers/types.ts';
 
 const ContestName = ({ contest }: { contest: IContest }) => {
   return (
-    <span className="d-flex align-items-center gap-2">
+    <span className='d-flex align-items-center gap-2'>
       <Country countryIso2={contest.countryIso2} noText />
 
       <Link href={`/competitions/${contest.competitionId}`} prefetch={false}>

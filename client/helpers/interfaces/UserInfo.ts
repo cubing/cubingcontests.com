@@ -1,4 +1,4 @@
-import { Role } from '@sh/enums';
+import { Role } from '~/shared_helpers/enums.ts';
 
 export interface IUserInfo {
   id: string;

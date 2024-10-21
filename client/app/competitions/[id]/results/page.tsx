@@ -1,7 +1,7 @@
-import { ssrFetch } from '~/helpers/fetchUtils';
-import ContestLayout from '~/app/competitions/ContestLayout';
-import ContestResults from '@c/ContestResults';
-import { IContestData } from '@sh/types';
+import { ssrFetch } from '~/helpers/fetchUtils.ts';
+import ContestLayout from '~/app/competitions/ContestLayout.tsx';
+import ContestResults from '~/app/components/ContestResults.tsx';
+import { IContestData } from '~/shared_helpers/types.ts';
 
 const ContestResultsPage = async ({
   params: { id },
@@ -13,10 +13,12 @@ const ContestResultsPage = async ({
   const { payload: contestData }: { payload?: IContestData } = await ssrFetch(
     `/competitions/${id}?eventId=${eventId ?? 'FIRST_EVENT'}`,
   );
-  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
+  if (!contestData) {
+    return <h3 className='mt-4 text-center'>Contest not found</h3>;
+  }
 
   return (
-    <ContestLayout contest={contestData.contest} activeTab="results">
+    <ContestLayout contest={contestData.contest} activeTab='results'>
       <ContestResults
         contest={contestData.contest}
         persons={contestData.persons}

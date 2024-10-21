@@ -1,14 +1,18 @@
 'use client';
 
-import { useContext, useState } from 'react';
-import { useMyFetch } from '~/helpers/customHooks';
-import Form from '@c/form/Form';
-import FormTextInput from '@c/form/FormTextInput';
-import { MainContext } from '~/helpers/contexts';
+import React, { useContext, useState } from 'react';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import Form from '~/app/components/form/Form.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import { MainContext } from '~/helpers/contexts.ts';
 
 const RequestPasswordResetPage = () => {
   const myFetch = useMyFetch();
-  const { changeErrorMessages, changeSuccessMessage, resetMessagesAndLoadingId } = useContext(MainContext);
+  const {
+    changeErrorMessages,
+    changeSuccessMessage,
+    resetMessagesAndLoadingId,
+  } = useContext(MainContext);
 
   const [email, setEmail] = useState('');
 
@@ -38,15 +42,15 @@ const RequestPasswordResetPage = () => {
 
   return (
     <div>
-      <h2 className="mb-4 text-center">Request password reset</h2>
+      <h2 className='mb-4 text-center'>Request password reset</h2>
 
       <Form onSubmit={handleSubmit}>
         <FormTextInput
-          id="email"
-          title="Email address"
+          id='email'
+          title='Email address'
           value={email}
           setValue={changeEmail}
-          nextFocusTargetId="form_submit_button"
+          nextFocusTargetId='form_submit_button'
           autoFocus
         />
       </Form>

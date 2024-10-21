@@ -1,48 +1,51 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { addHours } from 'date-fns';
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from '~/helpers/customHooks';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from '~/helpers/customHooks.ts';
 import {
-  IContestDto,
   ICompetitionDetails,
+  IContestData,
+  IContestDto,
   IContestEvent,
   IEvent,
+  IFePerson,
+  IMeetupDetails,
   IPerson,
   IRoom,
-  IMeetupDetails,
-  IContestData,
-  IFePerson,
   NumberInputValue,
-} from '@sh/types';
-import { Color, ContestState, ContestType } from '@sh/enums';
-import { getDateOnly, getIsCompType } from '@sh/sharedFunctions';
-import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
-import { getContestIdFromName, getTimeLimit, getUserInfo } from '~/helpers/utilityFunctions';
-import C from '@sh/constants';
-import { MainContext } from '~/helpers/contexts';
-import Form from '@c/form/Form';
-import FormTextInput from '@c/form/FormTextInput';
-import FormCountrySelect from '@c/form/FormCountrySelect';
-import FormRadio from '@c/form/FormRadio';
-import FormPersonInputs from '@c/form/FormPersonInputs';
-import FormNumberInput from '@c/form/FormNumberInput';
-import FormTextArea from '@c/form/FormTextArea';
-import FormDatePicker from '@c/form/FormDatePicker';
-import Tabs from '@c/UI/Tabs';
-import Loading from '@c/UI/Loading';
-import Button from '@c/UI/Button';
-import CreatorDetails from '@c/CreatorDetails';
-import ContestEvents from './ContestEvents';
-import ScheduleEditor from './ScheduleEditor';
-import WcaCompAdditionalDetails from '~/app/components/WcaCompAdditionalDetails';
+} from '~/shared_helpers/types.ts';
+import { Color, ContestState, ContestType } from '~/shared_helpers/enums.ts';
+import { getDateOnly, getIsCompType } from '~/shared_helpers/sharedFunctions.ts';
+import { contestTypeOptions } from '~/helpers/multipleChoiceOptions.ts';
+import { getContestIdFromName, getTimeLimit, getUserInfo } from '~/helpers/utilityFunctions.ts';
+import C from '~/shared_helpers/constants.ts';
+import { MainContext } from '~/helpers/contexts.ts';
+import Form from '~/app/components/form/Form.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import FormCountrySelect from '~/app/components/form/FormCountrySelect.tsx';
+import FormRadio from '~/app/components/form/FormRadio.tsx';
+import FormPersonInputs from '~/app/components/form/FormPersonInputs.tsx';
+import FormNumberInput from '~/app/components/form/FormNumberInput.tsx';
+import FormTextArea from '~/app/components/form/FormTextArea.tsx';
+import FormDatePicker from '~/app/components/form/FormDatePicker.tsx';
+import Tabs from '~/app/components/UI/Tabs.tsx';
+import Loading from '~/app/components/UI/Loading.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import CreatorDetails from '~/app/components/CreatorDetails.tsx';
+import ContestEvents from './ContestEvents.tsx';
+import ScheduleEditor from './ScheduleEditor.tsx';
+import WcaCompAdditionalDetails from '~/app/components/WcaCompAdditionalDetails.tsx';
 
 const userInfo = getUserInfo();
 
 const ContestForm = ({
   events,
-  contestData: { contest, creator } = { contest: undefined, creator: undefined } as IContestData,
+  contestData: { contest, creator } = {
+    contest: undefined,
+    creator: undefined,
+  } as IContestData,
   mode,
 }: {
   events: IEvent[];
@@ -52,11 +55,18 @@ const ContestForm = ({
   const myFetch = useMyFetch();
   const [limitTimezoneRequests, isLoadingTimezone] = useLimitRequests();
   const fetchWcaCompDetails = useFetchWcaCompDetails();
-  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
-    useContext(MainContext);
+  const {
+    changeErrorMessages,
+    changeSuccessMessage,
+    loadingId,
+    changeLoadingId,
+    resetMessagesAndLoadingId,
+  } = useContext(MainContext);
 
   const [activeTab, setActiveTab] = useState('details');
-  const [detailsImported, setDetailsImported] = useState(mode === 'edit' && contest?.type === ContestType.WcaComp);
+  const [detailsImported, setDetailsImported] = useState(
+    mode === 'edit' && contest?.type === ContestType.WcaComp,
+  );
   const [queueEnabled, setQueueEnabled] = useState(false);
 
   const [competitionId, setCompetitionId] = useState('');
@@ -70,7 +80,9 @@ const ContestForm = ({
   const [latitude, setLatitude] = useState(0); // vertical coordinate (Y); ranges from -90 to 90
   const [longitude, setLongitude] = useState(0); // horizontal coordinate (X); ranges from -180 to 180
   const [startDate, setStartDate] = useState(getDateOnly(new Date()));
-  const [startTime, setStartTime] = useState(addHours(getDateOnly(new Date()), 12)); // meetup-only; set 12:00 as initial start time
+  const [startTime, setStartTime] = useState(
+    addHours(getDateOnly(new Date()), 12),
+  ); // meetup-only; set 12:00 as initial start time
   const [endDate, setEndDate] = useState(new Date());
   const [organizerNames, setOrganizerNames] = useState<string[]>(['']);
   const [organizers, setOrganizers] = useState<IPerson[]>([null]);
@@ -94,8 +106,10 @@ const ContestForm = ({
     { title: 'Events', value: 'events' },
     { title: 'Schedule', value: 'schedule', hidden: !getIsCompType(type) },
   ];
-  const disableIfContestApproved = mode === 'edit' && contest.state >= ContestState.Approved;
-  const disableIfContestPublished = mode === 'edit' && contest.state >= ContestState.Published;
+  const disableIfContestApproved = mode === 'edit' &&
+    contest.state >= ContestState.Approved;
+  const disableIfContestPublished = mode === 'edit' &&
+    contest.state >= ContestState.Published;
   const disableIfDetailsImported = !userInfo.isAdmin && detailsImported;
 
   //////////////////////////////////////////////////////////////////////////////
@@ -143,7 +157,9 @@ const ContestForm = ({
       }
 
       if (mode === 'copy') {
-        const contestEventsWithoutRoundIdsOrResults = contest.events.map((ce) => ({
+        const contestEventsWithoutRoundIdsOrResults = contest.events.map((
+          ce,
+        ) => ({
           ...ce,
           rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
         }));
@@ -160,7 +176,10 @@ const ContestForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
-    if (!startDate || (getIsCompType(type) && !endDate) || (!getIsCompType(type) && !startTime)) {
+    if (
+      !startDate || (getIsCompType(type) && !endDate) ||
+      (!getIsCompType(type) && !startTime)
+    ) {
       changeErrorMessages(['Please enter valid dates']);
       return;
     }
@@ -169,14 +188,22 @@ const ContestForm = ({
 
     const selectedOrganizers = organizers.filter((el) => el !== null);
     let latitudeMicrodegrees: number, longitudeMicrodegrees: number;
-    if (typeof latitude === 'number') latitudeMicrodegrees = Math.round(latitude * 1000000);
-    if (typeof longitude === 'number') longitudeMicrodegrees = Math.round(longitude * 1000000);
+    if (typeof latitude === 'number') {
+      latitudeMicrodegrees = Math.round(latitude * 1000000);
+    }
+    if (typeof longitude === 'number') {
+      longitudeMicrodegrees = Math.round(longitude * 1000000);
+    }
 
     // Set the contest ID for every round and empty results if there were any
     // in order to avoid sending too much data to the backend
     const processedCompEvents = contestEvents.map((ce) => ({
       ...ce,
-      rounds: ce.rounds.map((round) => ({ ...round, competitionId, results: [] })),
+      rounds: ce.rounds.map((round) => ({
+        ...round,
+        competitionId,
+        results: [],
+      })),
     }));
 
     let compDetails: ICompetitionDetails; // this is left undefined if the type is not competition
@@ -228,10 +255,12 @@ const ContestForm = ({
 
     const getRoundWithDefaultTimeLimitExists = () =>
       processedCompEvents.some((ce) =>
-        ce.rounds.some((r) => r.timeLimit.centiseconds === 60000 && r.timeLimit.cumulativeRoundIds.length === 0),
+        ce.rounds.some((r) =>
+          r.timeLimit.centiseconds === 60000 &&
+          r.timeLimit.cumulativeRoundIds.length === 0
+        )
       );
-    const doSubmit =
-      mode === 'edit' || // this check isn't needed when editing a contest
+    const doSubmit = mode === 'edit' || // this check isn't needed when editing a contest
       !getRoundWithDefaultTimeLimitExists() ||
       confirm(`
 You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?
@@ -241,19 +270,29 @@ You have a round with a default time limit of 10:00. A round with a high time li
       // Validation
       const tempErrors: string[] = [];
 
-      if (selectedOrganizers.length < organizerNames.filter((el) => el !== '').length)
+      if (
+        selectedOrganizers.length <
+          organizerNames.filter((el) => el !== '').length
+      ) {
         tempErrors.push('Please enter all organizers');
+      }
 
-      if (type === ContestType.WcaComp && !detailsImported)
-        tempErrors.push('You must use the "Get WCA competition details" feature');
+      if (type === ContestType.WcaComp && !detailsImported) {
+        tempErrors.push(
+          'You must use the "Get WCA competition details" feature',
+        );
+      }
 
       if (tempErrors.length > 0) {
         changeErrorMessages(tempErrors);
       } else {
-        const { errors } =
-          mode === 'edit'
-            ? await myFetch.patch(`/competitions/${contest.competitionId}`, newComp, { loadingId: null })
-            : await myFetch.post('/competitions', newComp, { loadingId: null });
+        const { errors } = mode === 'edit'
+          ? await myFetch.patch(
+            `/competitions/${contest.competitionId}`,
+            newComp,
+            { loadingId: null },
+          )
+          : await myFetch.post('/competitions', newComp, { loadingId: null });
 
         if (errors) changeErrorMessages(errors);
         else window.location.href = '/mod';
@@ -263,10 +302,15 @@ You have a round with a default time limit of 10:00. A round with a high time li
     }
   };
 
-  const fillWithMockData = async (mockContestType = ContestType.Competition) => {
-    const { payload, errors } = await myFetch.get<IFePerson>(`/persons?personId=${userInfo.personId}`, {
-      loadingId: 'set_mock_comp_button',
-    });
+  const fillWithMockData = async (
+    mockContestType = ContestType.Competition,
+  ) => {
+    const { payload, errors } = await myFetch.get<IFePerson>(
+      `/persons?personId=${userInfo.personId}`,
+      {
+        loadingId: 'set_mock_comp_button',
+      },
+    );
 
     if (!errors) {
       setType(mockContestType);
@@ -297,7 +341,10 @@ You have a round with a default time limit of 10:00. A round with a high time li
   };
 
   const changeActiveTab = (newTab: string) => {
-    if (newTab === 'schedule' && (typeof latitude !== 'number' || typeof longitude !== 'number')) {
+    if (
+      newTab === 'schedule' &&
+      (typeof latitude !== 'number' || typeof longitude !== 'number')
+    ) {
       changeErrorMessages(['Please enter valid coordinates first']);
     } else {
       setActiveTab(newTab);
@@ -321,7 +368,9 @@ You have a round with a default time limit of 10:00. A round with a high time li
   const changeName = (value: string) => {
     // If not editing a competition, update Competition ID accordingly, unless it deviates from the name
     if (mode !== 'edit') {
-      if (competitionId === getContestIdFromName(name)) setCompetitionId(getContestIdFromName(value));
+      if (competitionId === getContestIdFromName(name)) {
+        setCompetitionId(getContestIdFromName(value));
+      }
       if (shortName === name && value.length <= 32) setShortName(value);
     }
 
@@ -330,7 +379,9 @@ You have a round with a default time limit of 10:00. A round with a high time li
 
   const changeShortName = (value: string) => {
     // Only update the value if the new one is within the allowed limit, or if it's shorter than it was (e.g. when Backspace is pressed)
-    if (value.length <= 32 || value.length < shortName.length) setShortName(value);
+    if (value.length <= 32 || value.length < shortName.length) {
+      setShortName(value);
+    }
   };
 
   const getWcaCompDetails = async () => {
@@ -343,8 +394,12 @@ You have a round with a default time limit of 10:00. A round with a high time li
       changeLoadingId('get_wca_comp_details_button');
       const newContest = await fetchWcaCompDetails(competitionId);
 
-      const latitude = Number((newContest.latitudeMicrodegrees / 1000000).toFixed(6));
-      const longitude = Number((newContest.longitudeMicrodegrees / 1000000).toFixed(6));
+      const latitude = Number(
+        (newContest.latitudeMicrodegrees / 1000000).toFixed(6),
+      );
+      const longitude = Number(
+        (newContest.longitudeMicrodegrees / 1000000).toFixed(6),
+      );
 
       setName(newContest.name);
       setShortName(newContest.shortName);
@@ -366,19 +421,22 @@ You have a round with a default time limit of 10:00. A round with a high time li
       setDetailsImported(true);
       resetMessagesAndLoadingId();
     } catch (err: any) {
-      if (err.message.includes('Not found'))
+      if (err.message.includes('Not found')) {
         changeErrorMessages([
           `Competition with ID ${competitionId} not found. This may be because it's not been enough time since it was announced. If so, please try again in 24 hours.`,
         ]);
-      else changeErrorMessages([err.message]);
+      } else changeErrorMessages([err.message]);
     }
   };
 
   const fetchTimeZone = async (lat: number, long: number): Promise<string> => {
-    const { errors, payload } = await myFetch.get(`/timezone?latitude=${lat}&longitude=${long}`, {
-      authorize: true,
-      loadingId: null,
-    });
+    const { errors, payload } = await myFetch.get(
+      `/timezone?latitude=${lat}&longitude=${long}`,
+      {
+        authorize: true,
+        loadingId: null,
+      },
+    );
 
     if (errors) {
       changeErrorMessages(errors);
@@ -390,7 +448,9 @@ You have a round with a default time limit of 10:00. A round with a high time li
   };
 
   const changeCoordinates = async (newLat: number, newLong: number) => {
-    if ([null, undefined].includes(newLat) || [null, undefined].includes(newLong)) {
+    if (
+      [null, undefined].includes(newLat) || [null, undefined].includes(newLong)
+    ) {
       setLatitude(newLat);
       setLongitude(newLong);
     } else {
@@ -402,18 +462,29 @@ You have a round with a default time limit of 10:00. A round with a high time li
 
       limitTimezoneRequests(async () => {
         // Adjust all times to the new time zone
-        const timeZone: string = await fetchTimeZone(processedLatitude, processedLongitude);
+        const timeZone: string = await fetchTimeZone(
+          processedLatitude,
+          processedLongitude,
+        );
 
         if (type === ContestType.Meetup) {
-          setStartTime(fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone));
+          setStartTime(
+            fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone),
+          );
         } else if (getIsCompType(type)) {
           setRooms(
             rooms.map((r) => ({
               ...r,
               activities: r.activities.map((a) => ({
                 ...a,
-                startTime: fromZonedTime(toZonedTime(a.startTime, venueTimeZone), timeZone),
-                endTime: fromZonedTime(toZonedTime(a.endTime, venueTimeZone), timeZone),
+                startTime: fromZonedTime(
+                  toZonedTime(a.startTime, venueTimeZone),
+                  timeZone,
+                ),
+                endTime: fromZonedTime(
+                  toZonedTime(a.endTime, venueTimeZone),
+                  timeZone,
+                ),
               })),
             })),
           );
@@ -439,13 +510,18 @@ You have a round with a default time limit of 10:00. A round with a high time li
   };
 
   const removeContest = async () => {
-    const answer = confirm(`Are you sure you would like to remove ${contest.name}?`);
+    const answer = confirm(
+      `Are you sure you would like to remove ${contest.name}?`,
+    );
 
     if (answer) {
-      const { errors } = await myFetch.delete(`/competitions/${competitionId}`, {
-        loadingId: 'delete_contest_button',
-        keepLoadingAfterSuccess: true,
-      });
+      const { errors } = await myFetch.delete(
+        `/competitions/${competitionId}`,
+        {
+          loadingId: 'delete_contest_button',
+          keepLoadingAfterSuccess: true,
+        },
+      );
 
       if (!errors) window.location.href = '/mod';
     }
@@ -470,10 +546,13 @@ You have a round with a default time limit of 10:00. A round with a high time li
   };
 
   const createAuthToken = async () => {
-    const { payload, errors } = await myFetch.get(`/create-auth-token/${contest.competitionId}`, {
-      authorize: true,
-      loadingId: 'get_access_token_button',
-    });
+    const { payload, errors } = await myFetch.get(
+      `/create-auth-token/${contest.competitionId}`,
+      {
+        authorize: true,
+        loadingId: 'get_access_token_button',
+      },
+    );
 
     if (!errors) changeSuccessMessage(`Your new access token is ${payload}`);
   };
@@ -487,100 +566,109 @@ You have a round with a default time limit of 10:00. A round with a high time li
       >
         {userInfo.isAdmin && mode === 'edit' && <CreatorDetails creator={creator} />}
 
-        <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          setActiveTab={changeActiveTab}
+        />
 
         {activeTab === 'details' && (
           <>
-            {process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' && mode === 'new' && (
-              <div className="d-flex gap-3 mt-3 mb-4">
+            {process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production' &&
+              mode === 'new' && (
+              <div className='d-flex gap-3 mt-3 mb-4'>
                 <Button
-                  id="set_mock_comp_button"
+                  id='set_mock_comp_button'
                   onClick={() => fillWithMockData()}
                   disabled={detailsImported}
-                  className="btn-secondary"
+                  className='btn-secondary'
                 >
                   Set Mock Competition
                 </Button>
                 <Button
                   onClick={() => fillWithMockData(ContestType.Meetup)}
                   disabled={detailsImported}
-                  className="btn-secondary"
+                  className='btn-secondary'
                 >
                   Set Mock Meetup
                 </Button>
               </div>
             )}
             {mode === 'edit' && (
-              <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
+              <div className='d-flex flex-wrap gap-3 mt-3 mb-4'>
                 {contest.type !== ContestType.WcaComp && (
                   // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
-                  <Button id="clone_contest_button" onClick={cloneContest} loadingId={loadingId}>
+                  <Button
+                    id='clone_contest_button'
+                    onClick={cloneContest}
+                    loadingId={loadingId}
+                  >
                     Clone
                   </Button>
                 )}
                 {userInfo.isAdmin && (
                   <Button
-                    id="delete_contest_button"
+                    id='delete_contest_button'
                     onClick={removeContest}
                     loadingId={loadingId}
                     disabled={contest.participants > 0}
-                    className="btn-danger"
+                    className='btn-danger'
                   >
                     Remove Contest
                   </Button>
                 )}
                 <Button
-                  id="download_scorecards_button"
+                  id='download_scorecards_button'
                   onClick={downloadScorecards}
                   loadingId={loadingId}
                   disabled={contest.state < ContestState.Approved}
-                  className="btn-success"
+                  className='btn-success'
                 >
                   Scorecards
                 </Button>
                 <Button
-                  id="enable_queue_button"
+                  id='enable_queue_button'
                   onClick={enableQueue}
                   loadingId={loadingId}
-                  disabled={
-                    contest.state < ContestState.Approved || contest.state >= ContestState.Finished || queueEnabled
-                  }
-                  className="btn-secondary"
+                  disabled={contest.state < ContestState.Approved ||
+                    contest.state >= ContestState.Finished || queueEnabled}
+                  className='btn-secondary'
                 >
                   {queueEnabled ? 'Queue Enabled' : 'Enable Queue'}
                 </Button>
                 <Button
-                  id="get_access_token_button"
+                  id='get_access_token_button'
                   onClick={createAuthToken}
                   loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
-                  className="btn-secondary"
+                  disabled={contest.state < ContestState.Approved ||
+                    contest.state >= ContestState.Finished}
+                  className='btn-secondary'
                 >
                   Get Access Token
                 </Button>
               </div>
             )}
             <FormTextInput
-              title="Contest name"
+              title='Contest name'
               value={name}
               setValue={changeName}
               autoFocus
               disabled={disableIfDetailsImported}
             />
             <FormTextInput
-              title="Short name"
+              title='Short name'
               value={shortName}
               setValue={changeShortName}
               disabled={disableIfDetailsImported}
             />
             <FormTextInput
-              title="Contest ID"
+              title='Contest ID'
               value={competitionId}
               setValue={setCompetitionId}
               disabled={mode === 'edit' || disableIfDetailsImported}
             />
             <FormRadio
-              title="Type"
+              title='Type'
               options={contestTypeOptions.filter((ct) => !ct.disabled)}
               selected={type}
               setSelected={setType}
@@ -588,20 +676,25 @@ You have a round with a default time limit of 10:00. A round with a high time li
             />
             {type === ContestType.WcaComp && mode === 'new' && (
               <Button
-                id="get_wca_comp_details_button"
+                id='get_wca_comp_details_button'
                 onClick={getWcaCompDetails}
                 loadingId={loadingId}
-                className="mb-3"
+                className='mb-3'
                 disabled={disableIfDetailsImported}
               >
                 Get WCA competition details
               </Button>
             )}
-            <div className="row">
-              <div className="col">
-                <FormTextInput title="City" value={city} setValue={setCity} disabled={disableIfDetailsImported} />
+            <div className='row'>
+              <div className='col'>
+                <FormTextInput
+                  title='City'
+                  value={city}
+                  setValue={setCity}
+                  disabled={disableIfDetailsImported}
+                />
               </div>
-              <div className="col">
+              <div className='col'>
                 <FormCountrySelect
                   countryIso2={countryIso2}
                   setCountryIso2={setCountryIso2}
@@ -609,129 +702,151 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 />
               </div>
             </div>
-            <FormTextInput title="Address" value={address} setValue={setAddress} disabled={disableIfDetailsImported} />
-            <div className="row">
-              <div className="col-12 col-md-6">
-                <FormTextInput title="Venue" value={venue} setValue={setVenue} disabled={disableIfDetailsImported} />
+            <FormTextInput
+              title='Address'
+              value={address}
+              setValue={setAddress}
+              disabled={disableIfDetailsImported}
+            />
+            <div className='row'>
+              <div className='col-12 col-md-6'>
+                <FormTextInput
+                  title='Venue'
+                  value={venue}
+                  setValue={setVenue}
+                  disabled={disableIfDetailsImported}
+                />
               </div>
-              <div className="col-12 col-md-6">
-                <div className="row">
-                  <div className="col-6">
+              <div className='col-12 col-md-6'>
+                <div className='row'>
+                  <div className='col-6'>
                     <FormNumberInput
-                      title="Latitude"
+                      title='Latitude'
                       value={latitude}
                       setValue={(val) => changeCoordinates(val, longitude)}
-                      disabled={disableIfContestApproved || disableIfDetailsImported}
+                      disabled={disableIfContestApproved ||
+                        disableIfDetailsImported}
                       min={-90}
                       max={90}
                     />
                   </div>
-                  <div className="col-6">
+                  <div className='col-6'>
                     <FormNumberInput
-                      title="Longitude"
+                      title='Longitude'
                       value={longitude}
                       setValue={(val) => changeCoordinates(latitude, val)}
-                      disabled={disableIfContestApproved || disableIfDetailsImported}
+                      disabled={disableIfContestApproved ||
+                        disableIfDetailsImported}
                       min={-180}
                       max={180}
                     />
                   </div>
                 </div>
-                <div className="row">
-                  <div className="text-secondary fs-6 mb-2">
+                <div className='row'>
+                  <div className='text-secondary fs-6 mb-2'>
                     Time zone: {isLoadingTimezone ? <Loading small dontCenter /> : venueTimeZone}
                   </div>
-                  <div className="text-danger fs-6">
+                  <div className='text-danger fs-6'>
                     The coordinates must point to a building and match the address of the venue.
                   </div>
                 </div>
               </div>
             </div>
-            <div className="my-3 row">
-              <div className="col">
-                {!getIsCompType(type) ? (
-                  <FormDatePicker
-                    id="start_date"
-                    title={`Start date and time (${
-                      type === ContestType.Meetup ? (isLoadingTimezone ? '...' : venueTimeZone) : 'UTC'
-                    })`}
-                    value={startTime}
-                    setValue={changeStartDate}
-                    timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
-                    dateFormat="Pp"
-                    disabled={disableIfContestApproved || disableIfDetailsImported}
-                    showUTCTime
-                  />
-                ) : (
-                  <FormDatePicker
-                    id="start_date"
-                    title="Start date"
-                    value={startDate}
-                    setValue={changeStartDate}
-                    dateFormat="P"
-                    disabled={disableIfContestApproved || disableIfDetailsImported}
-                  />
-                )}
+            <div className='my-3 row'>
+              <div className='col'>
+                {!getIsCompType(type)
+                  ? (
+                    <FormDatePicker
+                      id='start_date'
+                      title={`Start date and time (${
+                        type === ContestType.Meetup ? (isLoadingTimezone ? '...' : venueTimeZone) : 'UTC'
+                      })`}
+                      value={startTime}
+                      setValue={changeStartDate}
+                      timeZone={type === ContestType.Meetup ? venueTimeZone : 'UTC'}
+                      dateFormat='Pp'
+                      disabled={disableIfContestApproved ||
+                        disableIfDetailsImported}
+                      showUTCTime
+                    />
+                  )
+                  : (
+                    <FormDatePicker
+                      id='start_date'
+                      title='Start date'
+                      value={startDate}
+                      setValue={changeStartDate}
+                      dateFormat='P'
+                      disabled={disableIfContestApproved ||
+                        disableIfDetailsImported}
+                    />
+                  )}
               </div>
               {getIsCompType(type) && (
-                <div className="col">
+                <div className='col'>
                   <FormDatePicker
-                    id="end_date"
-                    title="End date"
+                    id='end_date'
+                    title='End date'
                     value={endDate}
                     setValue={setEndDate}
-                    disabled={disableIfContestApproved || disableIfDetailsImported}
+                    disabled={disableIfContestApproved ||
+                      disableIfDetailsImported}
                   />
                 </div>
               )}
             </div>
             <h5>Organizers</h5>
-            <div className="my-3 pt-3 px-4 border rounded bg-body-tertiary">
+            <div className='my-3 pt-3 px-4 border rounded bg-body-tertiary'>
               <FormPersonInputs
-                title="Organizer"
+                title='Organizer'
                 personNames={organizerNames}
                 setPersonNames={setOrganizerNames}
                 persons={organizers}
                 setPersons={setOrganizers}
                 infiniteInputs
-                nextFocusTargetId="contact"
+                nextFocusTargetId='contact'
                 disabled={disableIfContestApproved && !userInfo.isAdmin}
                 addNewPersonFromNewTab
               />
             </div>
             <FormTextInput
-              id="contact"
-              title="Contact (optional)"
-              placeholder="john@example.com"
+              id='contact'
+              title='Contact (optional)'
+              placeholder='john@example.com'
               value={contact}
               setValue={setContact}
               disabled={disableIfContestPublished}
             />
             <FormTextArea
-              title="Description (optional)"
+              title='Description (optional)'
               value={description}
               setValue={setDescription}
               disabled={disableIfContestPublished}
             />
             {type === ContestType.WcaComp && (
               <div>
-                <p className="fs-6">
+                <p className='fs-6'>
                   The description must be available in English for WCA competitions. You may still include versions
                   written in other languages, and the order doesn't matter.
                 </p>
-                <p className="fs-6 fst-italic">
+                <p className='fs-6 fst-italic'>
                   The following text will be displayed above the description on the contest page:
                 </p>
-                <div className="mx-2">
-                  <WcaCompAdditionalDetails name={name || '[CONTEST NAME]'} competitionId={competitionId} />
+                <div className='mx-2'>
+                  <WcaCompAdditionalDetails
+                    name={name || '[CONTEST NAME]'}
+                    competitionId={competitionId}
+                  />
                 </div>
               </div>
             )}
             <FormNumberInput
-              title={'Competitor limit' + (!getIsCompType(type) ? ' (optional)' : '')}
+              title={'Competitor limit' +
+                (!getIsCompType(type) ? ' (optional)' : '')}
               value={competitorLimit}
               setValue={setCompetitorLimit}
-              disabled={(disableIfContestApproved && !userInfo.isAdmin) || disableIfDetailsImported}
+              disabled={(disableIfContestApproved && !userInfo.isAdmin) ||
+                disableIfDetailsImported}
               integer
               min={C.minCompetitorLimit}
             />
@@ -744,7 +859,8 @@ You have a round with a default time limit of 10:00. A round with a high time li
             contestEvents={contestEvents}
             setContestEvents={setContestEvents}
             contestType={type}
-            disableNewEvents={!userInfo.isAdmin && disableIfContestApproved && type !== ContestType.Meetup}
+            disableNewEvents={!userInfo.isAdmin && disableIfContestApproved &&
+              type !== ContestType.Meetup}
           />
         )}
 

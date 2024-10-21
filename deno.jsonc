@@ -1,0 +1,31 @@
+{
+  // When updating this, remember to also update it in .vscode/settings.json
+  "workspace": ["./client", "./server2"],
+  "nodeModulesDir": "auto",
+
+  "lint": {
+    "include": ["./**/*.ts", "./**/*.tsx"],
+    "exclude": ["./**/*.d.ts"],
+    "rules": {
+      "tags": ["recommended"],
+      "include": [],
+      "exclude": []
+    }
+  },
+
+  "fmt": {
+    "include": ["./**/*.ts", "./**/*.tsx"],
+    "exclude": ["./**/*.d.ts"],
+    "lineWidth": 120,
+    "singleQuote": true
+  },
+
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "deno.ns"
+    ],
+    "jsx": "preserve"
+  }
+}

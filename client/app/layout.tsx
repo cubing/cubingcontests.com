@@ -1,6 +1,7 @@
-import '@/globals.css';
 import 'bootstrap/dist/css/bootstrap.css';
-import MainLayout from '~/app/components/UI/MainLayout';
+import '~/app/globals.css';
+import React from 'react';
+import MainLayout from '~/app/components/UI/MainLayout.tsx';
 
 // SEO
 export const metadata = {
@@ -15,9 +16,11 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout(
+  { children }: { children: React.ReactNode },
+) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <MainLayout>{children}</MainLayout>
     </html>
   );

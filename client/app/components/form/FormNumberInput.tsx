@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import FormInputLabel from './FormInputLabel';
-import { genericOnKeyDown } from '~/helpers/utilityFunctions';
-import { NumberInputValue } from '@sh/types';
+import React, { useEffect, useState } from 'react';
+import FormInputLabel from './FormInputLabel.tsx';
+import { genericOnKeyDown } from '~/helpers/utilityFunctions.ts';
+import { NumberInputValue } from '~/shared_helpers/types.ts';
 
 const FormNumberInput = ({
   id,
@@ -36,7 +36,9 @@ const FormNumberInput = ({
   invalid?: boolean;
   noMargin?: boolean;
 }) => {
-  if (!id && !title) throw new Error('Neither title nor id are set in FormNumberInput');
+  if (!id && !title) {
+    throw new Error('Neither title nor id are set in FormNumberInput');
+  }
 
   const [displayValue, setDisplayValue] = useState(value?.toString() || '');
 
@@ -79,7 +81,7 @@ const FormNumberInput = ({
       <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
 
       <input
-        type="text"
+        type='text'
         id={inputId}
         value={displayValue}
         placeholder={placeholder}

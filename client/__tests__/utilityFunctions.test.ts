@@ -1,9 +1,9 @@
-import { getAttempt } from '~/helpers/utilityFunctions';
-import { EventFormat, EventGroup } from '@sh/enums';
-import { IEvent } from '@sh/types';
-import C from '@sh/constants';
-import { getFormattedTime } from '@sh/sharedFunctions';
-import { mockTimeEvent } from '~/__mocks__/events.stub';
+import { getAttempt } from '~/helpers/utilityFunctions.ts';
+import { EventFormat, EventGroup } from '~/shared_helpers/enums.ts';
+import { IEvent } from '~/shared_helpers/types.ts';
+import C from '~/shared_helpers/constants.ts';
+import { getFormattedTime } from '~/shared_helpers/sharedFunctions.ts';
+import { mockTimeEvent } from '~/__mocks__/events.stub.ts';
 
 const roundOpts = {
   roundTime: true,
@@ -12,28 +12,28 @@ const roundOpts = {
 
 const timeExamples = [
   {
-    inputs: { time: '553', memo: undefined as string },
-    outputAtt: { result: 553, memo: undefined as number },
+    inputs: { time: '553', memo: undefined },
+    outputAtt: { result: 553, memo: undefined },
   },
   {
-    inputs: { time: '2453', memo: undefined as string },
-    outputAtt: { result: 2453, memo: undefined as number },
+    inputs: { time: '2453', memo: undefined },
+    outputAtt: { result: 2453, memo: undefined },
   },
   {
-    inputs: { time: '24253', memo: undefined as string },
-    outputAtt: { result: 16253, memo: undefined as number },
+    inputs: { time: '24253', memo: undefined },
+    outputAtt: { result: 16253, memo: undefined },
   },
   {
-    inputs: { time: '141786', memo: undefined as string },
-    outputAtt: { result: 85786, memo: undefined as number },
+    inputs: { time: '141786', memo: undefined },
+    outputAtt: { result: 85786, memo: undefined },
   },
   {
-    inputs: { time: '1000284', memo: undefined as string },
-    outputAtt: { result: 360284, memo: undefined as number },
+    inputs: { time: '1000284', memo: undefined },
+    outputAtt: { result: 360284, memo: undefined },
   },
   {
-    inputs: { time: '11510694', memo: undefined as string },
-    outputAtt: { result: 4266694, memo: undefined as number },
+    inputs: { time: '11510694', memo: undefined },
+    outputAtt: { result: 4266694, memo: undefined },
   },
   // With memo
   {
@@ -54,8 +54,8 @@ const timeExamples = [
     outputAtt: { result: null, memo: 146344 },
   },
   {
-    inputs: { time: '25085622', memo: undefined as string }, // > 24 hours
-    outputAtt: { result: null, memo: undefined as number },
+    inputs: { time: '25085622', memo: undefined }, // > 24 hours
+    outputAtt: { result: null, memo: undefined },
   },
 ];
 
@@ -81,101 +81,101 @@ const multiBlindExamples = [
   {
     result: 999700043890000,
     formatted: '2/2 43.89',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '4389',
       solved: 2,
       attempted: 2,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   {
     result: 999600065570000,
     formatted: '3/3 1:05.57',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '10557',
       solved: 3,
       attempted: 3,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   {
     result: 999901499000002,
     formatted: '2/4 24:59',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '245900',
       solved: 2,
       attempted: 4,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   {
     result: 999100774000001,
     formatted: '9/10 12:54',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '125400',
       solved: 9,
       attempted: 10,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   {
     result: 995203486000004,
     formatted: '51/55 58:06',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '580600',
       solved: 51,
       attempted: 55,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   {
     result: 995803600000008,
     formatted: '49/57 1:00:00',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '1000000',
       solved: 49,
       attempted: 57,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   {
     result: 89335998000047,
     formatted: '9153/9200 9:59:58', // Old Style
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '9595800',
       solved: 9153,
       attempted: 9200,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   // DNFs
   {
     result: -999603161000009,
     formatted: 'DNF (6/15 52:41)',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '524100',
       solved: 6,
       attempted: 15,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
   {
     result: -999900516420001,
     formatted: 'DNF (1/2 8:36.42)',
-    memo: undefined as number,
+    memo: undefined,
     inputs: {
       time: '83642',
       solved: 1,
       attempted: 2,
-      memo: undefined as string,
+      memo: undefined,
     },
   },
 ];
@@ -188,17 +188,25 @@ describe('getAttempt', () => {
       const { inputs, outputAtt } = example;
 
       it(`parses ${example.inputs.time}${example.inputs.memo ? ` with ${inputs.memo} memo` : ''} correctly`, () => {
-        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, { ...roundOpts, memo: inputs.memo });
-        const expectedResult =
-          outputAtt.result >= 60000 ? outputAtt.result - (outputAtt.result % 100) : outputAtt.result;
-        const expectedMemo = outputAtt.memo >= 60000 ? outputAtt.memo - (outputAtt.memo % 100) : outputAtt.memo;
+        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, {
+          ...roundOpts,
+          memo: inputs.memo,
+        });
+        const expectedResult = outputAtt.result !== null && outputAtt.result >= 60000
+          ? outputAtt.result - (outputAtt.result % 100)
+          : outputAtt.result;
+        const expectedMemo = outputAtt.memo !== null && outputAtt.memo >= 60000
+          ? outputAtt.memo - (outputAtt.memo % 100)
+          : outputAtt.memo;
 
         expect(output.result).toBe(expectedResult);
         expect(output.memo).toBe(expectedMemo);
       });
 
       it(`parses ${inputs.time}${inputs.memo ? ` with ${inputs.memo} memo` : ''} without rounding correctly`, () => {
-        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, { memo: inputs.memo });
+        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, {
+          memo: inputs.memo,
+        });
 
         expect(output.result).toBe(outputAtt.result);
         expect(output.memo).toBe(outputAtt.memo);
@@ -276,15 +284,27 @@ describe('getAttempt', () => {
     }
 
     it('parses empty Multi-Blind attempt correctly', () => {
-      expect(getAttempt(dummyAtt, mockMultiEvent, '', roundOpts).result).toBe(0);
+      expect(getAttempt(dummyAtt, mockMultiEvent, '', roundOpts).result).toBe(
+        0,
+      );
     });
 
     it('disallows unknown time for Multi-Blind', () => {
-      expect(getAttempt(dummyAtt, mockMultiEvent, '24000000', { solved: 36, attempted: 36 }).result).toBeNull();
+      expect(
+        getAttempt(dummyAtt, mockMultiEvent, '24000000', {
+          solved: 36,
+          attempted: 36,
+        }).result,
+      ).toBeNull();
     });
 
     it('parses Multi-Blind Old Style attempt with unknown time correctly', () => {
-      expect(getAttempt(dummyAtt, mockOldStyleEvent, '24000000', { solved: 36, attempted: 36 }).result).toBe(
+      expect(
+        getAttempt(dummyAtt, mockOldStyleEvent, '24000000', {
+          solved: 36,
+          attempted: 36,
+        }).result,
+      ).toBe(
         996386400000000,
       );
     });
@@ -363,25 +383,35 @@ describe('getFormattedTime', () => {
     });
 
     it('formats 39.66 without formatting correctly', () => {
-      expect(getFormattedTime(3966, { event: mockNumberEvent, noFormatting: true })).toBe('3966');
+      expect(
+        getFormattedTime(3966, { event: mockNumberEvent, noFormatting: true }),
+      ).toBe('3966');
     });
   });
 
   describe('format Multi-Blind attempts', () => {
     for (const example of multiBlindExamples) {
       it(`formats ${example.formatted} correctly`, () => {
-        expect(getFormattedTime(example.result, { event: mockMultiEvent })).toBe(example.formatted);
+        expect(getFormattedTime(example.result, { event: mockMultiEvent }))
+          .toBe(example.formatted);
       });
 
       it(`formats ${example.formatted} without formatting correctly`, () => {
-        expect(getFormattedTime(example.result, { event: mockMultiEvent, noFormatting: true })).toBe(
+        expect(
+          getFormattedTime(example.result, {
+            event: mockMultiEvent,
+            noFormatting: true,
+          }),
+        ).toBe(
           `${example.inputs.solved};${example.inputs.attempted};${example.inputs.time}`,
         );
       });
     }
 
     it('formats Multi-Blind result with unknown time correctly', () => {
-      expect(getFormattedTime(996386400000000, { event: mockMultiEvent })).toBe('36/36 Unknown time');
+      expect(getFormattedTime(996386400000000, { event: mockMultiEvent })).toBe(
+        '36/36 Unknown time',
+      );
     });
   });
 
@@ -399,11 +429,15 @@ describe('getFormattedTime', () => {
 
   it('formats Multi attempt with unknown time correctly', () => {
     const attempt = Number(`9995${C.maxTime}0001`);
-    expect(getFormattedTime(attempt, { event: mockMultiEvent })).toBe('5/6 Unknown time');
+    expect(getFormattedTime(attempt, { event: mockMultiEvent })).toBe(
+      '5/6 Unknown time',
+    );
   });
 
   it('formats 0:34 memo time correctly', () => {
-    expect(getFormattedTime(3400, { alwaysShowMinutes: true, showDecimals: false })).toBe('0:34');
+    expect(
+      getFormattedTime(3400, { alwaysShowMinutes: true, showDecimals: false }),
+    ).toBe('0:34');
   });
 
   it('formats 14:07 memo time correctly', () => {

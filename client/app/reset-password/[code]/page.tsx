@@ -1,12 +1,14 @@
 'use client';
 
-import { useContext, useState } from 'react';
-import { useMyFetch } from '~/helpers/customHooks';
-import Form from '@c/form/Form';
-import FormTextInput from '@c/form/FormTextInput';
-import { MainContext } from '~/helpers/contexts';
+import React, { useContext, useState } from 'react';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import Form from '~/app/components/form/Form.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import { MainContext } from '~/helpers/contexts.ts';
 
-const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) => {
+const ResetPasswordPage = (
+  { params: { code } }: { params: { code: string } },
+) => {
   const myFetch = useMyFetch();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
 
@@ -19,7 +21,9 @@ const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) =
 
     if (!password) tempErrors.push('Please enter a password');
     else if (!passwordRepeat) tempErrors.push('Please confirm your password');
-    else if (passwordRepeat !== password) tempErrors.push('The entered passwords do not match');
+    else if (passwordRepeat !== password) {
+      tempErrors.push('The entered passwords do not match');
+    }
 
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
@@ -42,31 +46,31 @@ const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) =
 
   return (
     <div>
-      <h2 className="mb-4 text-center">Reset Password</h2>
+      <h2 className='mb-4 text-center'>Reset Password</h2>
 
       <Form onSubmit={handleSubmit}>
         <FormTextInput
-          id="email"
-          title="Email"
+          id='email'
+          title='Email'
           value={email}
           setValue={setEmail}
-          nextFocusTargetId="password"
+          nextFocusTargetId='password'
           autoFocus
         />
         <FormTextInput
-          id="password"
-          title="Password"
+          id='password'
+          title='Password'
           value={password}
           setValue={setPassword}
-          nextFocusTargetId="password_repeat"
+          nextFocusTargetId='password_repeat'
           password
         />
         <FormTextInput
-          id="password_repeat"
-          title="Repeat password"
+          id='password_repeat'
+          title='Repeat password'
           value={passwordRepeat}
           setValue={setPasswordRepeat}
-          nextFocusTargetId="form_submit_button"
+          nextFocusTargetId='form_submit_button'
           password
         />
       </Form>

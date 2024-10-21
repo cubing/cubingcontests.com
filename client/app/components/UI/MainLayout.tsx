@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import Navbar from '@c/UI/Navbar';
-import Footer from '@c/UI/Footer';
-import { MainContext, Theme } from '~/helpers/contexts';
+import Navbar from '~/app/components/UI/Navbar.tsx';
+import Footer from '~/app/components/UI/Footer.tsx';
+import { MainContext, Theme } from '~/helpers/contexts.ts';
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
@@ -37,7 +37,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   const changeErrorMessages = (newErrorMessages: string[]) => {
     // Don't change error messages from [] to [], cause that would trigger an unnecessary rerender
-    if (errorMessages.length > 0 || newErrorMessages.length > 0) setErrorMessages(newErrorMessages);
+    if (errorMessages.length > 0 || newErrorMessages.length > 0) {
+      setErrorMessages(newErrorMessages);
+    }
     setSuccessMessage('');
     setLoadingId('');
   };
@@ -86,7 +88,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         <Navbar />
-        <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">{children}</main>
+        <main className='container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1'>
+          {children}
+        </main>
         <Footer />
       </MainContext.Provider>
     </body>

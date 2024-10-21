@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import FormInputLabel from './FormInputLabel';
-import { genericOnKeyDown } from '~/helpers/utilityFunctions';
-import Button from '~/app/components/UI/Button';
+import FormInputLabel from './FormInputLabel.tsx';
+import { genericOnKeyDown } from '~/helpers/utilityFunctions.ts';
+import Button from '~/app/components/UI/Button.tsx';
 
 const FormTextInput = ({
   id,
@@ -46,8 +46,14 @@ const FormTextInput = ({
   noMargin?: boolean;
   oneLine?: boolean;
 } & React.HTMLAttributes<HTMLInputElement>) => {
-  if (!id && !title) throw new Error('Neither title nor id are set in FormTextInput');
-  if (setValue && onChange) throw new Error('setValue and onChange cannot be used at the same time in FormTextInput');
+  if (!id && !title) {
+    throw new Error('Neither title nor id are set in FormTextInput');
+  }
+  if (setValue && onChange) {
+    throw new Error(
+      'setValue and onChange cannot be used at the same time in FormTextInput',
+    );
+  }
 
   const [hidePassword, setHidePassword] = useState(password);
 
@@ -70,11 +76,15 @@ const FormTextInput = ({
   };
 
   return (
-    <div className={`fs-5 ${noMargin ? '' : ' mb-3'} ${oneLine ? 'd-flex align-items-center gap-3' : ''}`}>
+    <div
+      className={`fs-5 ${noMargin ? '' : ' mb-3'} ${oneLine ? 'd-flex align-items-center gap-3' : ''}`}
+    >
       <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
 
       {/* mb-2 is to offset the bottom margin of the label */}
-      <div className={`d-flex justify-content-between align-items-center gap-3 ${oneLine ? 'mb-2' : ''}`}>
+      <div
+        className={`d-flex justify-content-between align-items-center gap-3 ${oneLine ? 'mb-2' : ''}`}
+      >
         <input
           type={hidePassword ? 'password' : 'text'}
           id={inputId}
@@ -88,12 +98,21 @@ const FormTextInput = ({
           onClick={onClick}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          className={'form-control flex-grow-1' + (monospace ? ' font-monospace' : '') + (invalid ? ' is-invalid' : '')}
+          className={'form-control flex-grow-1' +
+            (monospace ? ' font-monospace' : '') +
+            (invalid ? ' is-invalid' : '')}
         />
 
         {password && (
-          <Button onClick={() => setHidePassword(!hidePassword)} className="px-2" aria-label="Toggle show password">
-            <FontAwesomeIcon icon={hidePassword ? faEye : faEyeSlash} style={{ width: '1.3rem' }} />
+          <Button
+            onClick={() => setHidePassword(!hidePassword)}
+            className='px-2'
+            aria-label='Toggle show password'
+          >
+            <FontAwesomeIcon
+              icon={hidePassword ? faEye : faEyeSlash}
+              style={{ width: '1.3rem' }}
+            />
           </Button>
         )}
       </div>

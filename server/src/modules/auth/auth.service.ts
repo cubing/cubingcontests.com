@@ -106,10 +106,12 @@ export class AuthService {
 
   // ASSUMES THE USER'S ACCESS RIGHTS HAVE ALREADY BEEN CHECKED!
   async createAuthToken(contest: ContestDocument): Promise<string> {
-    if (contest.state < ContestState.Approved)
+    if (contest.state < ContestState.Approved) {
       throw new BadRequestException("You may not create an access token for a contest that hasn't been approved yet");
-    if (contest.state >= ContestState.Finished)
+    }
+    if (contest.state >= ContestState.Finished) {
       throw new BadRequestException('You may not create an access token for a finished contest');
+    }
 
     const token = randomBytes(32).toString('hex');
     const hash = await bcrypt.hash(token, 0); // there's no need to salt the tokens
@@ -152,8 +154,7 @@ export class AuthService {
   checkAccessRightsToContest(user: IPartialUser, contest: ContestDocument) {
     if (contest.state === ContestState.Removed) throw new BadRequestException('This contest has been removed');
 
-    const hasAccessRights =
-      user.roles.includes(Role.Admin) ||
+    const hasAccessRights = user.roles.includes(Role.Admin) ||
       (user.roles.includes(Role.Moderator) &&
         contest.organizers.some((el) => el.personId === user.personId) &&
         contest.state < ContestState.Finished);

@@ -20,11 +20,11 @@ if [ ! -x "$(command -v concurrently)" ]; then
   exit 2
 fi
 
-# Install NPM packages
+# Install dependencies
 cd client
-npm install
+deno install
 cd ../server
-npm install
+deno install --allow-scripts
 cd ..
 
 # Copy the .env file to server/.env.dev, but change NODE_ENV from production to development
@@ -32,7 +32,7 @@ cat .env | sed -E "s/NODE_ENV=production$/NODE_ENV=development$/" > ./server/.en
 
 # Start the frontent (c), backend (s) and database (d)
 concurrently -kc blue,yellow,green -n c,s,d \
-  "cd client && npm run dev" \
+  "cd client && deno task dev" \
   "cd server && sleep 2 && npm run dev" \
   "docker compose up"
 

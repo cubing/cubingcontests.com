@@ -1,16 +1,16 @@
 import {
-  ArrayMinSize,
   ArrayMaxSize,
+  ArrayMinSize,
   IsDateString,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
-  Min,
-  ValidateNested,
   Max,
+  Min,
   Validate,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IAttempt, IResult } from '@sh/types';

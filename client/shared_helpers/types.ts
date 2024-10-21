@@ -1,28 +1,29 @@
 // Interfaces
 export type {
+  ICompetitionDetails,
   IContest,
+  IContestData,
   IContestDto,
   IContestEvent,
-  IContestData,
-  ICompetitionDetails,
   IMeetupDetails,
-} from './interfaces/Contest';
+} from './interfaces/Contest.ts';
 export type { IEventRule } from './interfaces/EventRule';
-export type { IPerson, IPersonDto, IFePerson, IWcaPersonDto } from './interfaces/Person';
+export type { IFePerson, IPerson, IPersonDto, IWcaPersonDto } from './interfaces/Person';
 export type { IRecordType } from './interfaces/RecordType';
 export type {
-  IResult,
-  IUpdateResultDto,
-  IFeResult,
   IAttempt,
-  IRanking,
   IEventRankings,
-  IRecordPair,
   IEventRecordPairs,
+  IFeAttempt,
+  IFeResult,
+  IRanking,
+  IRecordPair,
+  IResult,
   IResultsSubmissionInfo,
-} from './interfaces/Result';
-export type { IRound, ITimeLimit, ICutoff, IProceed } from './interfaces/Round';
-export type { ISchedule, IVenue, IRoom, IActivity } from './interfaces/Schedule';
+  IUpdateResultDto,
+} from './interfaces/Result.ts';
+export type { ICutoff, IProceed, IRound, ITimeLimit } from './interfaces/Round';
+export type { IActivity, IRoom, ISchedule, IVenue } from './interfaces/Schedule';
 export type { IFeUser } from './interfaces/User';
 export type { IAdminStats } from './interfaces/AdminStats';
 
@@ -37,9 +38,9 @@ export type { NxNMove } from './types/NxNMove';
 
 // WCIF types
 export type {
+  Activity as IWcifActivity,
   Competition as IWcifCompetition,
   Event as IWcifEvent,
   Round as IWcifRound,
   Schedule as IWcifSchedule,
-  Activity as IWcifActivity,
 } from '@wca/helpers';

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMyFetch } from '~/helpers/customHooks';
-import { IContestData, IEvent } from '@sh/types';
-import { MainContext } from '~/helpers/contexts';
-import Loading from '@c/UI/Loading';
-import ContestForm from './ContestForm';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import { IContestData, IEvent } from '~/shared_helpers/types.ts';
+import { MainContext } from '~/helpers/contexts.ts';
+import Loading from '~/app/components/UI/Loading.tsx';
+import ContestForm from './ContestForm.tsx';
 
 const CreateEditContestPage = () => {
   const myFetch = useMyFetch();
@@ -33,12 +33,18 @@ const CreateEditContestPage = () => {
 
   // CODE SMELL!!!
   const fetchData = async () => {
-    const { payload: eventsData, errors: errors1 } = await myFetch.get('/events/mod', {
-      authorize: true,
-      loadingId: null,
-    });
+    const { payload: eventsData, errors: errors1 } = await myFetch.get(
+      '/events/mod',
+      {
+        authorize: true,
+        loadingId: null,
+      },
+    );
     const { payload: contestData, errors: errors2 } = competitionId
-      ? await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true, loadingId: null })
+      ? await myFetch.get(`/competitions/mod/${competitionId}`, {
+        authorize: true,
+        loadingId: null,
+      })
       : { payload: undefined, errors: undefined };
 
     if (errors1 ?? errors2) {
@@ -52,7 +58,9 @@ const CreateEditContestPage = () => {
   if (events && (mode === 'new' || contestData)) {
     return (
       <div>
-        <h2 className="mb-4 text-center">{mode === 'edit' ? 'Edit Contest' : 'Create Contest'}</h2>
+        <h2 className='mb-4 text-center'>
+          {mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
+        </h2>
 
         <ContestForm events={events} contestData={contestData} mode={mode} />
       </div>

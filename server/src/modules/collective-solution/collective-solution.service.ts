@@ -66,8 +66,9 @@ export class CollectiveSolutionService {
   public async makeMove(makeMoveDto: MakeMoveDto, user: IPartialUser): Promise<IFeCollectiveSolution> {
     const currentSolution = await this.getCurrentSolution();
 
-    if (!currentSolution)
+    if (!currentSolution) {
       throw new BadRequestException("A solve hasn't been started yet. Please generate a scramble first.");
+    }
 
     if (user._id === currentSolution.lastUserWhoInteracted.toString()) {
       const message = currentSolution.solution
@@ -85,8 +86,9 @@ export class CollectiveSolutionService {
 
     currentSolution.solution = `${currentSolution.solution} ${makeMoveDto.move}`.trim();
     currentSolution.lastUserWhoInteracted = new mongo.ObjectId(user._id as string);
-    if (!currentSolution.usersWhoMadeMoves.some((usr) => usr.toString() === user._id))
+    if (!currentSolution.usersWhoMadeMoves.some((usr) => usr.toString() === user._id)) {
       currentSolution.usersWhoMadeMoves.push(currentSolution.lastUserWhoInteracted);
+    }
 
     if (await this.getIsSolved(currentSolution)) currentSolution.state = 20;
 

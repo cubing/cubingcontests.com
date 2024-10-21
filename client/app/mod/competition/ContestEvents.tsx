@@ -1,21 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import C from '@sh/constants';
-import { ContestType, EventFormat, EventGroup, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { IAttempt, IContestEvent, ICutoff, IEvent, IRound } from '@sh/types';
-import { cutoffAttemptsOptions, roundFormatOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions';
-import { roundTypes } from '~/helpers/roundTypes';
-import EventTitle from '@c/EventTitle';
-import AttemptInput from '@c/AttemptInput';
-import FormCheckbox from '@c/form/FormCheckbox';
-import FormNumberInput from '@c/form/FormNumberInput';
-import FormRadio from '@c/form/FormRadio';
-import FormSelect from '@c/form/FormSelect';
-import Button from '@c/UI/Button';
-import FormEventSelect from '@c/form/FormEventSelect';
-import { getTimeLimit } from '~/helpers/utilityFunctions';
-import { getTotalRounds } from '~/shared_helpers/sharedFunctions';
+import React, { useMemo, useState } from 'react';
+import C from '~/shared_helpers/constants.ts';
+import { ContestType, EventFormat, EventGroup, RoundFormat, RoundProceed, RoundType } from '~/shared_helpers/enums.ts';
+import { IAttempt, IContestEvent, ICutoff, IEvent, IRound } from '~/shared_helpers/types.ts';
+import { cutoffAttemptsOptions, roundFormatOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions.ts';
+import { roundTypes } from '~/helpers/roundTypes.ts';
+import EventTitle from '~/app/components/EventTitle.tsx';
+import AttemptInput from '~/app/components/AttemptInput.tsx';
+import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
+import FormNumberInput from '~/app/components/form/FormNumberInput.tsx';
+import FormRadio from '~/app/components/form/FormRadio.tsx';
+import FormSelect from '~/app/components/form/FormSelect.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import FormEventSelect from '~/app/components/form/FormEventSelect.tsx';
+import { getTimeLimit } from '~/helpers/utilityFunctions.ts';
+import { getTotalRounds } from '~/shared_helpers/sharedFunctions.ts';
 
 const ContestEvents = ({
   events,
@@ -32,21 +32,29 @@ const ContestEvents = ({
 }) => {
   const [newEventId, setNewEventId] = useState(events[0].eventId);
 
-  const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [contestEvents]);
+  const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [
+    contestEvents,
+  ]);
   const totalResultsPerContestEvent: number[] = useMemo(
     () => contestEvents.map((ce) => ce.rounds.map((r) => r.results.length).reduce((prev, curr) => curr + prev)),
     [contestEvents],
   );
 
-  const disableNewRounds = contestType === ContestType.Meetup && totalRounds >= 15;
+  const disableNewRounds = contestType === ContestType.Meetup &&
+    totalRounds >= 15;
   const filteredEvents = events.filter(
-    (ev) => contestType !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA),
+    (ev) =>
+      contestType !== ContestType.WcaComp ||
+      !ev.groups.includes(EventGroup.WCA),
   );
   const remainingEvents = filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId));
   // Fix new event ID, if it's not in the list of remaining events
-  if (!remainingEvents.some((e) => e.eventId === newEventId)) setNewEventId(remainingEvents[0].eventId);
+  if (!remainingEvents.some((e) => e.eventId === newEventId)) {
+    setNewEventId(remainingEvents[0].eventId);
+  }
   // Also disable new events if new rounds are disabled or if there are no more events to add
-  disableNewEvents = disableNewEvents || disableNewRounds || contestEvents.length === filteredEvents.length;
+  disableNewEvents = disableNewEvents || disableNewRounds ||
+    contestEvents.length === filteredEvents.length;
 
   const getNewRound = (event: IEvent, roundNumber: number): IRound => {
     return {
@@ -75,7 +83,9 @@ const ContestEvents = ({
   };
 
   const deleteContestEvent = (eventId: string) => {
-    setContestEvents(contestEvents.filter((ce) => ce.event.eventId !== eventId));
+    setContestEvents(
+      contestEvents.filter((ce) => ce.event.eventId !== eventId),
+    );
   };
 
   const addRound = (eventId: string) => {
@@ -96,9 +106,15 @@ const ContestEvents = ({
     lastRound.roundTypeId = contestEvent.rounds.length > 1 ? RoundType.Semi : RoundType.First;
 
     // Add new round
-    contestEvent.rounds.push(getNewRound(contestEvent.event, contestEvent.rounds.length + 1));
+    contestEvent.rounds.push(
+      getNewRound(contestEvent.event, contestEvent.rounds.length + 1),
+    );
 
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
+    setContestEvents(
+      contestEvents.map((
+        el,
+      ) => (el.event.eventId === eventId ? contestEvent : el)),
+    );
   };
 
   const deleteRound = (eventId: string) => {
@@ -116,59 +132,67 @@ const ContestEvents = ({
       newSemiRound.roundTypeId = RoundType.Semi;
     }
 
-    setContestEvents(contestEvents.map((el) => (el.event.eventId === eventId ? contestEvent : el)));
+    setContestEvents(
+      contestEvents.map((
+        el,
+      ) => (el.event.eventId === eventId ? contestEvent : el)),
+    );
   };
 
-  const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
+  const changeRoundFormat = (
+    eventIndex: number,
+    roundIndex: number,
+    value: RoundFormat,
+  ) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, format: value })),
-          },
+      i !== eventIndex ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((
+          round,
+          i,
+        ) => (i !== roundIndex ? round : { ...round, format: value })),
+      }
     );
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundTimeLimit = (eventIndex: number, roundIndex: number, value: IAttempt) => {
+  const changeRoundTimeLimit = (
+    eventIndex: number,
+    roundIndex: number,
+    value: IAttempt,
+  ) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : {
-                    ...round,
-                    timeLimit: { ...round.timeLimit, centiseconds: value.result },
-                  },
-            ),
-          },
+      i !== eventIndex ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((round, i) =>
+          i !== roundIndex ? round : {
+            ...round,
+            timeLimit: { ...round.timeLimit, centiseconds: value.result },
+          }
+        ),
+      }
     );
 
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundTimeLimitCumulative = (eventIndex: number, roundIndex: number) => {
+  const changeRoundTimeLimitCumulative = (
+    eventIndex: number,
+    roundIndex: number,
+  ) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : {
-                    ...round,
-                    timeLimit: {
-                      ...round.timeLimit,
-                      cumulativeRoundIds: round.timeLimit.cumulativeRoundIds.length > 0 ? [] : [round.roundId],
-                    },
-                  },
-            ),
-          },
+      i !== eventIndex ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((round, i) =>
+          i !== roundIndex ? round : {
+            ...round,
+            timeLimit: {
+              ...round.timeLimit,
+              cumulativeRoundIds: round.timeLimit.cumulativeRoundIds.length > 0 ? [] : [round.roundId],
+            },
+          }
+        ),
+      }
     );
 
     setContestEvents(newContestEvents);
@@ -176,49 +200,58 @@ const ContestEvents = ({
 
   const changeRoundCutoffEnabled = (eventIndex: number, roundIndex: number) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : {
-                    ...round,
-                    cutoff: round.cutoff
-                      ? undefined
-                      : { attemptResult: 12000, numberOfAttempts: round.format === RoundFormat.Average ? 2 : 1 },
-                  },
-            ),
-          },
+      i !== eventIndex ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((round, i) =>
+          i !== roundIndex ? round : {
+            ...round,
+            cutoff: round.cutoff ? undefined : {
+              attemptResult: 12000,
+              numberOfAttempts: round.format === RoundFormat.Average ? 2 : 1,
+            },
+          }
+        ),
+      }
     );
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundCutoff = (eventIndex: number, roundIndex: number, value: ICutoff) => {
+  const changeRoundCutoff = (
+    eventIndex: number,
+    roundIndex: number,
+    value: ICutoff,
+  ) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, cutoff: value })),
-          },
+      i !== eventIndex ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((
+          round,
+          i,
+        ) => (i !== roundIndex ? round : { ...round, cutoff: value })),
+      }
     );
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundProceed = (eventIndex: number, roundIndex: number, type: RoundProceed, newVal?: number) => {
+  const changeRoundProceed = (
+    eventIndex: number,
+    roundIndex: number,
+    type: RoundProceed,
+    newVal?: number,
+  ) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex
-        ? ce
-        : {
-            ...ce,
-            rounds: ce.rounds.map((round, i) =>
-              i !== roundIndex
-                ? round
-                : { ...round, proceed: { type, value: newVal === undefined ? round.proceed.value : newVal } },
-            ),
-          },
+      i !== eventIndex ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((round, i) =>
+          i !== roundIndex ? round : {
+            ...round,
+            proceed: {
+              type,
+              value: newVal === undefined ? round.proceed.value : newVal,
+            },
+          }
+        ),
+      }
     );
 
     setContestEvents(newContestEvents);
@@ -226,16 +259,20 @@ const ContestEvents = ({
 
   return (
     <section>
-      <p className="my-4">
+      <p className='my-4'>
         Total events: {contestEvents.length} | Total rounds: {totalRounds}
       </p>
-      <div className="my-4 d-flex align-items-center gap-3">
-        <Button onClick={addContestEvent} disabled={disableNewEvents} className="btn-success">
+      <div className='my-4 d-flex align-items-center gap-3'>
+        <Button
+          onClick={addContestEvent}
+          disabled={disableNewEvents}
+          className='btn-success'
+        >
           Add Event
         </Button>
-        <div className="flex-grow-1">
+        <div className='flex-grow-1'>
           <FormEventSelect
-            title=""
+            title=''
             noMargin
             events={remainingEvents}
             eventId={newEventId}
@@ -245,38 +282,63 @@ const ContestEvents = ({
         </div>
       </div>
       {contestEvents.map((ce, eventIndex) => (
-        <div key={ce.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
-          <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-            <EventTitle event={ce.event} fontSize="4" noMargin showIcon showDescription linkToRankings />
+        <div
+          key={ce.event.eventId}
+          className='mb-3 py-3 px-4 border rounded bg-body-tertiary'
+        >
+          <div className='d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3'>
+            <EventTitle
+              event={ce.event}
+              fontSize='4'
+              noMargin
+              showIcon
+              showDescription
+              linkToRankings
+            />
 
-            {totalResultsPerContestEvent[eventIndex] > 0 ? (
-              <p className="mb-0">Total results: {totalResultsPerContestEvent[eventIndex]}</p>
-            ) : (
-              <Button className="btn-danger btn-sm" onClick={() => deleteContestEvent(ce.event.eventId)}>
-                Remove Event
-              </Button>
-            )}
+            {totalResultsPerContestEvent[eventIndex] > 0
+              ? (
+                <p className='mb-0'>
+                  Total results: {totalResultsPerContestEvent[eventIndex]}
+                </p>
+              )
+              : (
+                <Button
+                  className='btn-danger btn-sm'
+                  onClick={() => deleteContestEvent(ce.event.eventId)}
+                >
+                  Remove Event
+                </Button>
+              )}
           </div>
           {ce.rounds.map((round, roundIndex) => (
-            <div key={round.roundId} className="mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary">
-              <div className="flex-grow-1 d-flex align-items-center gap-3 gap-md-5">
-                <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
+            <div
+              key={round.roundId}
+              className='mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary'
+            >
+              <div className='flex-grow-1 d-flex align-items-center gap-3 gap-md-5'>
+                <h5 className='m-0'>{roundTypes[round.roundTypeId].label}</h5>
 
-                <div className="flex-grow-1">
+                <div className='flex-grow-1'>
                   <FormSelect
-                    title=""
+                    title=''
                     options={roundFormatOptions}
                     selected={round.format}
-                    setSelected={(val: string) => changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
+                    setSelected={(val: string) =>
+                      changeRoundFormat(
+                        eventIndex,
+                        roundIndex,
+                        val as RoundFormat,
+                      )}
                     disabled={round.results.length > 0}
-                    className="mb-0"
+                    className='mb-0'
                   />
                 </div>
               </div>
               {ce.event.format === EventFormat.Time && (
-                <div className="d-flex flex-wrap align-items-center gap-3 gap-md-5 w-100 mt-3">
-                  <div className="d-flex justify-content-between align-items-center gap-3">
-                    <h6 className="flex-shrink-0 m-0">Time limit:</h6>
+                <div className='d-flex flex-wrap align-items-center gap-3 gap-md-5 w-100 mt-3'>
+                  <div className='d-flex justify-content-between align-items-center gap-3'>
+                    <h6 className='flex-shrink-0 m-0'>Time limit:</h6>
 
                     <div style={{ maxWidth: '8rem' }}>
                       <AttemptInput
@@ -290,11 +352,11 @@ const ContestEvents = ({
                     </div>
                   </div>
 
-                  <div className="d-flex justify-content-between align-items-center gap-3">
-                    <h6 className="flex-shrink-0 m-0">Cumulative limit:</h6>
+                  <div className='d-flex justify-content-between align-items-center gap-3'>
+                    <h6 className='flex-shrink-0 m-0'>Cumulative limit:</h6>
 
                     <FormCheckbox
-                      title=""
+                      title=''
                       id={`cumulative_limit_${ce.event.eventId}_${roundIndex + 1}`}
                       selected={round.timeLimit.cumulativeRoundIds.length > 0}
                       setSelected={() => changeRoundTimeLimitCumulative(eventIndex, roundIndex)}
@@ -304,11 +366,11 @@ const ContestEvents = ({
                   </div>
                 </div>
               )}
-              <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 gap-md-5 mt-3">
-                <h6 className="flex-shrink-0 m-0">Cutoff:</h6>
+              <div className='d-flex flex-wrap justify-content-between align-items-center gap-3 gap-md-5 mt-3'>
+                <h6 className='flex-shrink-0 m-0'>Cutoff:</h6>
 
                 <FormCheckbox
-                  title="Enabled"
+                  title='Enabled'
                   id={`cutoff_${ce.event.eventId}_${roundIndex + 1}`}
                   selected={round.cutoff !== undefined}
                   setSelected={() => changeRoundCutoffEnabled(eventIndex, roundIndex)}
@@ -324,45 +386,60 @@ const ContestEvents = ({
                       result: round.cutoff?.attemptResult === undefined ? 0 : round.cutoff.attemptResult,
                     }}
                     setAttempt={(val: IAttempt) =>
-                      changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, attemptResult: val.result })
-                    }
+                      changeRoundCutoff(eventIndex, roundIndex, {
+                        ...round.cutoff,
+                        attemptResult: val.result,
+                      })}
                     event={ce.event}
                     maxTime={C.maxTimeLimit}
                     disabled={!round.cutoff || round.results.length > 0}
                   />
                 </div>
 
-                <div className="d-flex justify-content-between align-items-center gap-3">
-                  <h6 className="m-0">Attempts:</h6>
+                <div className='d-flex justify-content-between align-items-center gap-3'>
+                  <h6 className='m-0'>Attempts:</h6>
 
                   <FormSelect
-                    title=""
+                    title=''
                     options={cutoffAttemptsOptions}
                     selected={round.cutoff?.numberOfAttempts || 2}
                     setSelected={(val: number) =>
-                      changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, numberOfAttempts: val })
-                    }
+                      changeRoundCutoff(eventIndex, roundIndex, {
+                        ...round.cutoff,
+                        numberOfAttempts: val,
+                      })}
                     disabled={!round.cutoff || round.results.length > 0}
-                    className="mb-0"
+                    className='mb-0'
                   />
                 </div>
               </div>
               {round.roundTypeId !== RoundType.Final && (
-                <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+                <div className='d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3'>
                   <FormRadio
                     id={`${round.roundId}_proceed_type`}
-                    title="Proceed to next round:"
+                    title='Proceed to next round:'
                     options={roundProceedOptions}
                     selected={round.proceed.type}
-                    setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
+                    setSelected={(val: any) =>
+                      changeRoundProceed(
+                        eventIndex,
+                        roundIndex,
+                        val as RoundProceed,
+                      )}
                     oneLine
                     small
                   />
                   <div style={{ width: '5rem' }}>
                     <FormNumberInput
-                      id="round_proceed_value"
+                      id='round_proceed_value'
                       value={round.proceed.value}
-                      setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
+                      setValue={(val) =>
+                        changeRoundProceed(
+                          eventIndex,
+                          roundIndex,
+                          round.proceed.type,
+                          val,
+                        )}
                       integer
                       min={round.proceed.type === RoundProceed.Percentage ? 1 : C.minProceedNumber}
                       max={round.proceed.type === RoundProceed.Percentage ? C.maxProceedPercentage : Infinity}
@@ -373,19 +450,21 @@ const ContestEvents = ({
               )}
             </div>
           ))}
-          <div className="d-flex gap-3">
+          <div className='d-flex gap-3'>
             {ce.rounds.length < 10 && (
               <Button
                 onClick={() => addRound(ce.event.eventId)}
                 disabled={disableNewRounds}
-                className="btn-success btn-sm"
-              >{`Add Round ${ce.rounds.length + 1}`}</Button>
+                className='btn-success btn-sm'
+              >
+                {`Add Round ${ce.rounds.length + 1}`}
+              </Button>
             )}
             {ce.rounds.length > 1 && (
               <Button
                 onClick={() => deleteRound(ce.event.eventId)}
                 disabled={ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0}
-                className="btn-danger btn-sm"
+                className='btn-danger btn-sm'
               >
                 Remove Round
               </Button>

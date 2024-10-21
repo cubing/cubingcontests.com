@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useLimitRequests, useMyFetch } from '~/helpers/customHooks';
-import Loading from '@c/UI/Loading';
-import FormTextInput from './FormTextInput';
-import Competitor from '@c/Competitor';
-import { IWcaPersonDto, IPerson } from '@sh/types';
-import C from '@sh/constants';
-import { getUserInfo } from '~/helpers/utilityFunctions';
-import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+import React, { useState } from 'react';
+import { useLimitRequests, useMyFetch } from '~/helpers/customHooks.ts';
+import Loading from '~/app/components/UI/Loading.tsx';
+import FormTextInput from './FormTextInput.tsx';
+import Competitor from '~/app/components/Competitor.tsx';
+import { IPerson, IWcaPersonDto } from '~/shared_helpers/types.ts';
+import C from '~/shared_helpers/constants.ts';
+import { getUserInfo } from '~/helpers/utilityFunctions.ts';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo.ts';
 
 const userInfo: IUserInfo = getUserInfo();
 const MAX_MATCHES = 6;
@@ -48,7 +48,9 @@ const FormPersonInputs = ({
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
   const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
 
-  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(defaultMatchedPersons);
+  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(
+    defaultMatchedPersons,
+  );
   const [personSelection, setPersonSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number>(null);
 
@@ -61,17 +63,27 @@ const FormPersonInputs = ({
     if (value) {
       limitMatchedPersonsRequests(async () => {
         if (!C.wcaIdRegexLoose.test(value)) {
-          const { payload, errors } = await myFetch.get(`/persons?name=${value}`);
+          const { payload, errors } = await myFetch.get(
+            `/persons?name=${value}`,
+          );
 
           if (!errors && payload.length > 0) {
-            const newMatchedPersons = [...payload.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
+            const newMatchedPersons = [
+              ...payload.slice(0, MAX_MATCHES),
+              ...defaultMatchedPersons,
+            ];
             setMatchedPersons(newMatchedPersons);
-            if (newMatchedPersons.length < personSelection) setPersonSelection(0);
+            if (newMatchedPersons.length < personSelection) {
+              setPersonSelection(0);
+            }
           }
         } else {
-          const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, {
-            authorize: true,
-          });
+          const { payload, errors } = await myFetch.get<IWcaPersonDto>(
+            `/persons/${value}`,
+            {
+              authorize: true,
+            },
+          );
 
           if (!errors) setMatchedPersons([payload.person]);
         }
@@ -87,7 +99,10 @@ const FormPersonInputs = ({
   };
 
   // Returns true if an input was added
-  const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: IPerson[]): boolean => {
+  const addEmptyInputIfRequired = (
+    newPersonNames: string[],
+    newPersons: IPerson[],
+  ): boolean => {
     // Add new empty input if there isn't an empty one left
     if (infiniteInputs && !newPersons.some((el) => el === null)) {
       newPersonNames.push('');
@@ -103,7 +118,10 @@ const FormPersonInputs = ({
     else setFocusedInput(null);
 
     // Update person name and reset the person object for that organizer
-    const newPersonNames = personNames.map((el, i) => (i === index ? value : el));
+    const newPersonNames = personNames.map((
+      el,
+      i,
+    ) => (i === index ? value : el));
     // This is done so that setPersons is only called if one of the persons actually had to be reset to null
     let personsUpdated = false;
     const newPersons: IPerson[] = persons.map((el, i) => {
@@ -114,7 +132,8 @@ const FormPersonInputs = ({
       return el;
     });
 
-    personsUpdated = addEmptyInputIfRequired(newPersonNames, newPersons) || personsUpdated;
+    personsUpdated = addEmptyInputIfRequired(newPersonNames, newPersons) ||
+      personsUpdated;
 
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
@@ -129,14 +148,19 @@ const FormPersonInputs = ({
     // Focus on the first attempt input, if all names have been entered, or the next person input,
     // if all names haven't been entered and the last person input is not currently focused
     if (!newPersons.includes(null)) {
-      if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
+      if (nextFocusTargetId) {
+        document.getElementById(nextFocusTargetId)?.focus();
+      }
     } else {
       const emptyInputIndex = newPersons.findIndex((el) => el === null);
       document.getElementById(`${title}_${emptyInputIndex + 1}`)?.focus();
     }
   };
 
-  const selectCompetitor = async (inputIndex: number, selectionIndex: number) => {
+  const selectCompetitor = async (
+    inputIndex: number,
+    selectionIndex: number,
+  ) => {
     if (matchedPersons[selectionIndex] === null) {
       // Only mods are allowed to open the add new competitor page
       if (userInfo.isMod) {
@@ -146,15 +170,23 @@ const FormPersonInputs = ({
           open('/mod/competitors', '_blank');
         } else {
           if (!redirectToOnAddPerson) window.location.href = '/mod/competitors';
-          else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
+          else {window.location.replace(
+              `/mod/competitors?redirect=${redirectToOnAddPerson}`,
+            );}
         }
       }
     } else {
       const newSelectedPerson = matchedPersons[selectionIndex];
 
       if (!checkCustomErrors || !checkCustomErrors(newSelectedPerson)) {
-        const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
-        const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
+        const newPersons = persons.map((
+          el,
+          i,
+        ) => (i !== inputIndex ? el : newSelectedPerson));
+        const newPersonNames = personNames.map((
+          el,
+          i,
+        ) => (i !== inputIndex ? el : newSelectedPerson.name));
         setPersons(newPersons);
         setPersonNames(newPersonNames);
         addEmptyInputIfRequired(newPersonNames, newPersons);
@@ -173,7 +205,10 @@ const FormPersonInputs = ({
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
 
-      if (personSelection + 1 <= matchedPersons.length - defaultMatchedPersons.length) {
+      if (
+        personSelection + 1 <=
+          matchedPersons.length - defaultMatchedPersons.length
+      ) {
         setPersonSelection(personSelection + 1);
       } else {
         setPersonSelection(0);
@@ -182,18 +217,22 @@ const FormPersonInputs = ({
       e.preventDefault();
 
       if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
-      else setPersonSelection(matchedPersons.length - defaultMatchedPersons.length);
-    }
-    // Disallow entering certain characters
+      else {setPersonSelection(
+          matchedPersons.length - defaultMatchedPersons.length,
+        );}
+    } // Disallow entering certain characters
     else if (/[()_/\\[\]]/.test(e.key)) {
       e.preventDefault();
     }
   };
 
   return (
-    <div className="row">
+    <div className='row'>
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? 'col-md-6' : ''}>
+        <div
+          key={inputIndex}
+          className={personNames.length > 1 && !noGrid ? 'col-md-6' : ''}
+        >
           <FormTextInput
             id={`${title}_${inputIndex + 1}`}
             title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
@@ -206,29 +245,43 @@ const FormPersonInputs = ({
             disabled={disabled}
           />
           {inputIndex === focusedInput && personName && (
-            <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
-              {isLoadingMatchedPersons ? (
-                <li className="list-group-item">
-                  <div style={{ width: '200px' }}>
-                    <Loading small />
-                  </div>
-                </li>
-              ) : matchedPersons.length > 0 ? (
-                matchedPersons.map((person: IPerson, matchIndex) => (
-                  <li
-                    key={matchIndex}
-                    className={'list-group-item' + (matchIndex === personSelection ? ' active' : '')}
-                    style={{ cursor: 'pointer' }}
-                    aria-current={matchIndex === personSelection}
-                    onMouseEnter={() => setPersonSelection(matchIndex)}
-                    onMouseDown={() => selectCompetitor(inputIndex, matchIndex)}
-                  >
-                    {person !== null ? <Competitor person={person} showLocalizedName noLink /> : '(add new person)'}
+            <ul className='position-absolute list-group' style={{ zIndex: 10 }}>
+              {isLoadingMatchedPersons
+                ? (
+                  <li className='list-group-item'>
+                    <div style={{ width: '200px' }}>
+                      <Loading small />
+                    </div>
                   </li>
-                ))
-              ) : (
-                '(competitor not found)'
-              )}
+                )
+                : matchedPersons.length > 0
+                ? (
+                  matchedPersons.map((person: IPerson, matchIndex) => (
+                    <li
+                      key={matchIndex}
+                      className={'list-group-item' +
+                        (matchIndex === personSelection ? ' active' : '')}
+                      style={{ cursor: 'pointer' }}
+                      aria-current={matchIndex === personSelection}
+                      onMouseEnter={() => setPersonSelection(matchIndex)}
+                      onMouseDown={() =>
+                        selectCompetitor(inputIndex, matchIndex)}
+                    >
+                      {person !== null
+                        ? (
+                          <Competitor
+                            person={person}
+                            showLocalizedName
+                            noLink
+                          />
+                        )
+                        : '(add new person)'}
+                    </li>
+                  ))
+                )
+                : (
+                  '(competitor not found)'
+                )}
             </ul>
           )}
         </div>

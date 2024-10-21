@@ -1,5 +1,5 @@
-import { IResult } from '../types';
-import { RoundFormat, RoundType, RoundProceed } from '../enums';
+import { IResult } from '../types.ts';
+import { RoundFormat, RoundProceed, RoundType } from '../enums.ts';
 
 export interface ITimeLimit {
   centiseconds: number;

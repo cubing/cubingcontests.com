@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { readFile } from 'fs/promises';
 import { createTransport } from 'nodemailer';
 import Handlebars from 'handlebars';

@@ -1,25 +1,32 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useLimitRequests, useMyFetch } from '~/helpers/customHooks';
-import ResultForm from '@c/adminAndModerator/ResultForm';
-import Loading from '@c/UI/Loading';
-import Form from '@c/form/Form';
-import FormCheckbox from '@c/form/FormCheckbox';
-import FormDateInput from '@c/form/FormDateInput';
-import FormTextInput from '@c/form/FormTextInput';
-import Button from '@c/UI/Button';
-import CreatorDetails from '@c/CreatorDetails';
-import { IAttempt, IEvent, IPerson, IResult, IResultsSubmissionInfo, IUpdateResultDto } from '@sh/types';
-import { RoundFormat } from '@sh/enums';
-import { roundFormats } from '@sh/roundFormats';
-import C from '@sh/constants';
-import { getUserInfo } from '~/helpers/utilityFunctions';
-import { IUserInfo } from '~/helpers/interfaces/UserInfo';
-import { MainContext } from '~/helpers/contexts';
-import { getBestAndAverage } from '@sh/sharedFunctions';
-import ExternalLink from '~/app/components/ExternalLink';
+import { useLimitRequests, useMyFetch } from '~/helpers/customHooks.ts';
+import ResultForm from '~/app/components/adminAndModerator/ResultForm.tsx';
+import Loading from '~/app/components/UI/Loading.tsx';
+import Form from '~/app/components/form/Form.tsx';
+import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
+import FormDateInput from '~/app/components/form/FormDateInput.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import CreatorDetails from '~/app/components/CreatorDetails.tsx';
+import {
+  IAttempt,
+  IEvent,
+  IPerson,
+  IResult,
+  IResultsSubmissionInfo,
+  IUpdateResultDto,
+} from '~/shared_helpers/types.ts';
+import { RoundFormat } from '~/shared_helpers/enums.ts';
+import { roundFormats } from '~/shared_helpers/roundFormats.ts';
+import C from '~/shared_helpers/constants.ts';
+import { getUserInfo } from '~/helpers/utilityFunctions.ts';
+import { IUserInfo } from '~/helpers/interfaces/UserInfo.ts';
+import { MainContext } from '~/helpers/contexts.ts';
+import { getBestAndAverage } from '~/shared_helpers/sharedFunctions.ts';
+import ExternalLink from '~/app/components/ExternalLink.tsx';
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -29,17 +36,25 @@ const userInfo: IUserInfo = getUserInfo();
  */
 
 const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
-  if (resultId && !userInfo.isAdmin) throw new Error('Only an admin can edit results');
+  if (resultId && !userInfo.isAdmin) {
+    throw new Error('Only an admin can edit results');
+  }
 
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
   const [limitRecordPairsRequests, isLoadingRecordPairs] = useLimitRequests();
-  const { changeErrorMessages, changeSuccessMessage, loadingId } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, loadingId } = useContext(
+    MainContext,
+  );
 
   const [showRules, setShowRules] = useState(false);
-  const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo>();
+  const [submissionInfo, setSubmissionInfo] = useState<
+    IResultsSubmissionInfo
+  >();
   // Only trigger reset on page load on the submit results page
-  const [resultFormResetTrigger, setResultFormResetTrigger] = useState<boolean>(resultId ? undefined : true);
+  const [resultFormResetTrigger, setResultFormResetTrigger] = useState<boolean>(
+    resultId ? undefined : true,
+  );
 
   const [event, setEvent] = useState<IEvent>();
   const [roundFormat, setRoundFormat] = useState(RoundFormat.BestOf1);
@@ -61,34 +76,44 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     if (!resultId) {
       myFetch
         .get(`/results/submission-info/${new Date()}`, { authorize: true })
-        .then(({ payload, errors }: { payload?: IResultsSubmissionInfo; errors?: string[] }) => {
+        .then(
+          (
+            { payload, errors }: {
+              payload?: IResultsSubmissionInfo;
+              errors?: string[];
+            },
+          ) => {
+            if (!errors) {
+              setSubmissionInfo(payload);
+
+              const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get('eventId'));
+              if (event) setEvent(event);
+              else setEvent(payload.events[0]);
+            }
+          },
+        );
+    } // If editing a result
+    else {
+      myFetch.get(`/results/editing-info/${resultId}`, { authorize: true })
+        .then(({ payload, errors }) => {
           if (!errors) {
             setSubmissionInfo(payload);
+            const { result, persons, events } = payload as IResultsSubmissionInfo;
 
-            const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get('eventId'));
-            if (event) setEvent(event);
-            else setEvent(payload.events[0]);
+            setEvent(events[0]);
+            setRoundFormat(
+              roundFormats.find((rf) =>
+                rf.attempts === result.attempts.length &&
+                rf.value !== RoundFormat.BestOf3
+              ).value,
+            );
+            setAttempts(result.attempts);
+            setDate(new Date(result.date));
+            setCompetitors(persons);
+            setVideoLink(result.videoLink);
+            if (result.discussionLink) setDiscussionLink(result.discussionLink);
           }
         });
-    }
-    // If editing a result
-    else {
-      myFetch.get(`/results/editing-info/${resultId}`, { authorize: true }).then(({ payload, errors }) => {
-        if (!errors) {
-          setSubmissionInfo(payload);
-          const { result, persons, events } = payload as IResultsSubmissionInfo;
-
-          setEvent(events[0]);
-          setRoundFormat(
-            roundFormats.find((rf) => rf.attempts === result.attempts.length && rf.value !== RoundFormat.BestOf3).value,
-          );
-          setAttempts(result.attempts);
-          setDate(new Date(result.date));
-          setCompetitors(persons);
-          setVideoLink(result.videoLink);
-          if (result.discussionLink) setDiscussionLink(result.discussionLink);
-        }
-      });
     }
   }, []);
 
@@ -102,7 +127,9 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       return;
     }
 
-    const { best, average } = getBestAndAverage(attempts, event, { roundFormat });
+    const { best, average } = getBestAndAverage(attempts, event, {
+      roundFormat,
+    });
     const newResult: IResult = {
       eventId: event.eventId,
       date,
@@ -114,7 +141,9 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       discussionLink: discussionLink || undefined,
     };
 
-    if (submissionInfo.result?.unapproved && !approve) newResult.unapproved = true;
+    if (submissionInfo.result?.unapproved && !approve) {
+      newResult.unapproved = true;
+    }
 
     if (!resultId) {
       const { errors } = await myFetch.post('/results', newResult, {
@@ -136,15 +165,23 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         videoLink: newResult.videoLink,
         discussionLink: newResult.discussionLink,
       };
-      if (!approve) updateResultDto.unapproved = submissionInfo.result.unapproved;
+      if (!approve) {
+        updateResultDto.unapproved = submissionInfo.result.unapproved;
+      }
 
-      const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto, {
-        loadingId: approve ? 'approve_button' : 'submit_button',
-        keepLoadingAfterSuccess: true,
-      });
+      const { errors } = await myFetch.patch(
+        `/results/${resultId}`,
+        updateResultDto,
+        {
+          loadingId: approve ? 'approve_button' : 'submit_button',
+          keepLoadingAfterSuccess: true,
+        },
+      );
 
       if (!errors) {
-        changeSuccessMessage(approve ? 'Result successfully approved' : 'Result successfully updated');
+        changeSuccessMessage(
+          approve ? 'Result successfully approved' : 'Result successfully updated',
+        );
 
         setTimeout(() => {
           window.location.href = '/admin/results';
@@ -162,12 +199,17 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         const eventsStr = submissionInfo.events.map((e) => e.eventId).join(',');
         const queryParams = resultId ? `?excludeResultId=${resultId}` : '';
 
-        const { payload, errors } = await myFetch.get(`/results/record-pairs/${newDate}/${eventsStr}${queryParams}`, {
-          authorize: true,
-          loadingId: 'RECORD_PAIRS',
-        });
+        const { payload, errors } = await myFetch.get(
+          `/results/record-pairs/${newDate}/${eventsStr}${queryParams}`,
+          {
+            authorize: true,
+            loadingId: 'RECORD_PAIRS',
+          },
+        );
 
-        if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
+        if (!errors) {
+          setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
+        }
       });
     }
   };
@@ -190,57 +232,68 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   if (submissionInfo) {
     return (
       <div>
-        <h2 className="text-center">{resultId ? 'Edit Result' : 'Submit Result'}</h2>
+        <h2 className='text-center'>
+          {resultId ? 'Edit Result' : 'Submit Result'}
+        </h2>
 
-        <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: '900px' }}>
-          {resultId ? (
-            <p>
-              Once you submit the attempt, the backend will remove future records that would have been cancelled by it.
-            </p>
-          ) : (
-            <>
+        <div className='mt-3 mx-auto px-3 fs-6' style={{ maxWidth: '900px' }}>
+          {resultId
+            ? (
               <p>
-                Here you can submit results for events that allow submissions. You may submit other people's results
-                too. New results will be included in the rankings after an admin approves them. A result can only be
-                accepted if it has video evidence of the <b>ENTIRE</b> solve (including memorization, if applicable).
-                The video date is used as proof of when the solve was done, an earlier date cannot be used. Make sure
-                that you can be identified from the provided video; if your channel name is not your real name, please
-                include your full name or WCA ID in the description of the video. If you do not have a WCA ID, please
-                contact the admins to have a competitor profile created for you. If you have any questions or
-                suggestions, feel free to send an email to {C.contactEmail}.
+                Once you submit the attempt, the backend will remove future records that would have been cancelled by
+                it.
               </p>
-              <div className="alert alert-warning mb-4" role="alert">
-                Some events now require evidence of the scramble being applied. Please make sure you follow rule 5!
-              </div>
-              <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
-                {showRules ? 'Hide rules' : 'Show rules'}
-              </button>
-              {showRules && (
-                <div className="mt-4">
-                  <p>
-                    1. For blindfolded events, your face must be visible during the entire solve (it must be visible
-                    that your mask is on during the solving phase).
-                  </p>
-                  <p>
-                    2. The final time must be visible at the end of the video with no cuts after the end of the solve.
-                    Having the time always visible is preferable.
-                  </p>
-                  <p>
-                    3. For team events, every participant must use a different scramble, be in the same place, not touch
-                    the puzzle while waiting for other participants (penalty: +2), and be visible on video at the same
-                    time (an exception can be made for team events with 5+ participants). Penalty for an early start:
-                    +2.
-                  </p>
-                  <p>4. If you're submitting a Mean of 3, there must be no cuts between the solves.</p>
-                  <p>
-                    5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was
-                    generated and applied. Scrambles must be generated with <ExternalLink to="cstimer" /> or{' '}
-                    <ExternalLink to="cubingjs" />.
-                  </p>
+            )
+            : (
+              <>
+                <p>
+                  Here you can submit results for events that allow submissions. You may submit other people's results
+                  too. New results will be included in the rankings after an admin approves them. A result can only be
+                  accepted if it has video evidence of the <b>ENTIRE</b>{' '}
+                  solve (including memorization, if applicable). The video date is used as proof of when the solve was
+                  done, an earlier date cannot be used. Make sure that you can be identified from the provided video; if
+                  your channel name is not your real name, please include your full name or WCA ID in the description of
+                  the video. If you do not have a WCA ID, please contact the admins to have a competitor profile created
+                  for you. If you have any questions or suggestions, feel free to send an email to {C.contactEmail}.
+                </p>
+                <div className='alert alert-warning mb-4' role='alert'>
+                  Some events now require evidence of the scramble being applied. Please make sure you follow rule 5!
                 </div>
-              )}
-            </>
-          )}
+                <button
+                  type='button'
+                  className='btn btn-success btn-sm'
+                  onClick={() => setShowRules(!showRules)}
+                >
+                  {showRules ? 'Hide rules' : 'Show rules'}
+                </button>
+                {showRules && (
+                  <div className='mt-4'>
+                    <p>
+                      1. For blindfolded events, your face must be visible during the entire solve (it must be visible
+                      that your mask is on during the solving phase).
+                    </p>
+                    <p>
+                      2. The final time must be visible at the end of the video with no cuts after the end of the solve.
+                      Having the time always visible is preferable.
+                    </p>
+                    <p>
+                      3. For team events, every participant must use a different scramble, be in the same place, not
+                      touch the puzzle while waiting for other participants (penalty: +2), and be visible on video at
+                      the same time (an exception can be made for team events with 5+ participants). Penalty for an
+                      early start: +2.
+                    </p>
+                    <p>
+                      4. If you're submitting a Mean of 3, there must be no cuts between the solves.
+                    </p>
+                    <p>
+                      5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was
+                      generated and applied. Scrambles must be generated with <ExternalLink to='cstimer' /> or{' '}
+                      <ExternalLink to='cubingjs' />.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
         </div>
 
         <Form hideButton>
@@ -253,7 +306,10 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             setAttempts={setAttempts}
             recordPairs={recordPairs}
             recordTypes={submissionInfo.activeRecordTypes}
-            nextFocusTargetId={!submissionInfo.result || submissionInfo.result.unapproved ? 'date' : 'video_link'}
+            nextFocusTargetId={!submissionInfo.result ||
+                submissionInfo.result.unapproved
+              ? 'date'
+              : 'video_link'}
             resetTrigger={resultFormResetTrigger}
             setEvent={setEvent}
             events={submissionInfo.events}
@@ -265,64 +321,64 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             forResultsSubmissionForm
           />
           <FormDateInput
-            id="date"
-            title="Date (dd.mm.yyyy)"
+            id='date'
+            title='Date (dd.mm.yyyy)'
             value={date}
             setValue={changeDate}
             disabled={submissionInfo.result ? !submissionInfo.result.unapproved : false}
             nextFocusTargetId={videoUnavailable ? 'discussion_link' : 'video_link'}
           />
           <FormTextInput
-            id="video_link"
-            title="Link to video"
-            placeholder="E.g: https://youtube.com/watch?v=xyz"
+            id='video_link'
+            title='Link to video'
+            placeholder='E.g: https://youtube.com/watch?v=xyz'
             value={videoLink}
             setValue={changeVideoLink}
-            nextFocusTargetId="discussion_link"
+            nextFocusTargetId='discussion_link'
             disabled={videoUnavailable}
           />
           {userInfo.isAdmin && (
             // Same text as in RankingLinks
             <FormCheckbox
-              title="Video no longer available"
+              title='Video no longer available'
               selected={videoUnavailable}
               setSelected={setVideoUnavailable}
             />
           )}
           {resultId && videoLink && (
-            <a href={videoLink} target="_blank" className="d-block mb-3">
+            <a href={videoLink} target='_blank' className='d-block mb-3'>
               Video link
             </a>
           )}
           <FormTextInput
-            id="discussion_link"
-            title="Link to discussion (optional)"
-            placeholder="E.g: https://speedsolving.com/threads/xyz"
+            id='discussion_link'
+            title='Link to discussion (optional)'
+            placeholder='E.g: https://speedsolving.com/threads/xyz'
             value={discussionLink}
             setValue={setDiscussionLink}
-            nextFocusTargetId="submit_button"
+            nextFocusTargetId='submit_button'
           />
           {resultId && discussionLink && (
-            <a href={discussionLink} target="_blank" className="d-block">
+            <a href={discussionLink} target='_blank' className='d-block'>
               Discussion link
             </a>
           )}
           <Button
-            id="submit_button"
+            id='submit_button'
             onClick={() => submitResult()}
             loadingId={loadingId}
             disabled={isLoadingRecordPairs}
-            className="mt-3"
+            className='mt-3'
           >
             Submit
           </Button>
           {resultId && submissionInfo.result.unapproved && (
             <Button
-              id="approve_button"
+              id='approve_button'
               onClick={() => submitResult(true)}
               loadingId={loadingId}
               disabled={isLoadingRecordPairs}
-              className="btn-success mt-3 ms-3"
+              className='btn-success mt-3 ms-3'
             >
               Submit and approve
             </Button>

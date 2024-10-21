@@ -1,9 +1,8 @@
-import { FetchObj, HttpMethod } from '@sh/types';
+import { FetchObj, HttpMethod } from '~/shared_helpers/types.ts';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_ENVIRONMENT === 'production'
-    ? process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL
-    : 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_ENVIRONMENT === 'production'
+  ? process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL
+  : 'http://localhost:5000/api';
 
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,
@@ -65,12 +64,13 @@ export const doFetch = async <T = any>(
     res = await fetch(url, options);
   } catch (err: any) {
     console.error(err);
-    return { errors: [err?.message || `Unknown error while fetching from ${url}`] };
+    return {
+      errors: [err?.message || `Unknown error while fetching from ${url}`],
+    };
   }
 
   // Get JSON, if it was returned. KEEP IN MIND THAT THE .json ENDPOINTS RETURN TEXT AND DON'T SET 400 STATUSES.
   let json;
-  let blobby; // if dlFile = true, the file will be saved here
   let is404 = false;
 
   if (!fileName) {
@@ -88,8 +88,6 @@ export const doFetch = async <T = any>(
         is404 = true;
       }
     }
-  } else {
-    blobby = await res.blob();
   }
 
   // Handle bad requests/server errors
@@ -123,6 +121,7 @@ export const doFetch = async <T = any>(
   } else if (fileName) {
     const anchor = document.createElement('a');
     document.body.appendChild(anchor);
+    const blobby = await res.blob();
     const objectUrl = window.URL.createObjectURL(blobby);
 
     anchor.href = objectUrl;

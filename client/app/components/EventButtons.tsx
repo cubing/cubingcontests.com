@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { IEvent } from '@sh/types';
-import { eventCategories } from '~/helpers/eventCategories';
-import EventIcon from '@c/EventIcon';
+import { IEvent } from '~/shared_helpers/types.ts';
+import { eventCategories } from '~/helpers/eventCategories.ts';
+import EventIcon from '~/app/components/EventIcon.tsx';
 
 const EventButtons = ({
   eventId,
@@ -40,10 +40,13 @@ const EventButtons = ({
       router.replace(`/competitions/${id}/results?eventId=${newEventId}`);
     } else if (forPage === 'rankings') {
       const show = searchParams.get('show');
-      router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
+      router.push(
+        `/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`,
+      );
     } else if (forPage === 'competitions') {
-      if (searchParams.get('eventId') === newEventId) router.replace('/competitions');
-      else router.replace(`/competitions?eventId=${newEventId}`);
+      if (searchParams.get('eventId') === newEventId) {
+        router.replace('/competitions');
+      } else router.replace(`/competitions?eventId=${newEventId}`);
     } else {
       router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
     }
@@ -54,16 +57,19 @@ const EventButtons = ({
       {/* Event categories */}
       {['rankings', 'competitions'].includes(forPage) && (
         <>
-          <div className="btn-group btn-group-sm mt-2 mb-3" role="group">
+          <div className='btn-group btn-group-sm mt-2 mb-3' role='group'>
             {filteredCategories.map((cat) => (
               <button
                 key={cat.value}
-                type="button"
-                className={'btn btn-primary' + (cat === selectedCat ? ' active' : '')}
+                type='button'
+                className={'btn btn-primary' +
+                  (cat === selectedCat ? ' active' : '')}
                 onClick={() => setSelectedCat(cat)}
               >
-                <span className="d-none d-md-inline">{cat.title}</span>
-                <span className="d-inline d-md-none">{cat.shortTitle || cat.title}</span>
+                <span className='d-none d-md-inline'>{cat.title}</span>
+                <span className='d-inline d-md-none'>
+                  {cat.shortTitle || cat.title}
+                </span>
               </button>
             ))}
           </div>
@@ -72,7 +78,7 @@ const EventButtons = ({
         </>
       )}
 
-      <div className="d-flex flex-wrap mb-3 fs-3">
+      <div className='d-flex flex-wrap mb-3 fs-3'>
         {filteredEvents.map((event) => (
           <EventIcon
             key={event.eventId}

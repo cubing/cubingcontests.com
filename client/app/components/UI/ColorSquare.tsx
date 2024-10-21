@@ -1,10 +1,12 @@
-import { Color } from '@sh/enums';
+import { Color } from '~/shared_helpers/enums.ts';
 
-const ColorSquare = ({ color, style }: { color: Color; style?: React.CSSProperties }) => {
-  if (color !== Color.White)
+const ColorSquare = (
+  { color, style }: { color: Color; style?: React.CSSProperties },
+) => {
+  if (color !== Color.White) {
     return (
       <span
-        className="cc-color-square"
+        className='cc-color-square'
         style={{
           margin: '3px',
           width: '2.1rem',
@@ -14,8 +16,10 @@ const ColorSquare = ({ color, style }: { color: Color; style?: React.CSSProperti
           backgroundColor: `#${color}`,
           ...style,
         }}
-      ></span>
+      >
+      </span>
     );
+  }
 };
 
 export default ColorSquare;

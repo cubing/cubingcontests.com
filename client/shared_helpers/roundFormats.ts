@@ -1,4 +1,4 @@
-import { RoundFormat } from '@sh/enums';
+import { RoundFormat } from '~/shared_helpers/enums.ts';
 
 export const roundFormats = [
   {

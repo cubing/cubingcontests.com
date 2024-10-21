@@ -1,5 +1,5 @@
-import { WcaRecordType } from '@sh/enums';
-import { IContest, IEvent, IFeUser, IPerson, IRecordType } from '@sh/types';
+import { WcaRecordType } from '~/shared_helpers/enums.ts';
+import { IContest, IEvent, IFeUser, IPerson, IRecordType } from '~/shared_helpers/types.ts';
 
 export interface IAttempt {
   /**
@@ -13,6 +13,12 @@ export interface IAttempt {
    */
   result: number;
   memo?: number; // memorization time in centiseconds (optional and only used for BLD events)
+}
+
+// This allows null values for when the inputs are empty on the frontend
+export interface IFeAttempt {
+  result: number | null;
+  memo?: number | null;
 }
 
 export interface IResult {

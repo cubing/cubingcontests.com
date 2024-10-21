@@ -1,9 +1,12 @@
 'use client';
 
-import Countries from '@sh/Countries';
-import { genericOnKeyDown } from '~/helpers/utilityFunctions';
+import Countries from '~/shared_helpers/Countries.ts';
+import { genericOnKeyDown } from '~/helpers/utilityFunctions.ts';
 
-const countryOptions = [{ name: 'Select country', code: 'NOT_SELECTED' }, ...Countries];
+const countryOptions = [
+  { name: 'Select country', code: 'NOT_SELECTED' },
+  ...Countries,
+];
 
 const FormCountrySelect = ({
   countryIso2,
@@ -17,13 +20,13 @@ const FormCountrySelect = ({
   disabled?: boolean;
 }) => {
   return (
-    <div className="mb-3 fs-5">
-      <label htmlFor="country_iso_2" className="form-label">
+    <div className='mb-3 fs-5'>
+      <label htmlFor='country_iso_2' className='form-label'>
         Country
       </label>
       <select
-        id="country_iso_2"
-        className="form-select"
+        id='country_iso_2'
+        className='form-select'
         value={countryIso2}
         onChange={(e) => setCountryIso2(e.target.value)}
         onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId })}
