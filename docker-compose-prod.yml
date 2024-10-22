@@ -20,7 +20,7 @@ services:
 
   server:
     container_name: cc-server # if this is ever changed, make sure to update all references to the old container name in the code
-    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-api:${VERSION}'
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server:${VERSION}'
     networks:
       - cubingcontests
     # env_file: .env
@@ -37,6 +37,19 @@ services:
       - mongo
     restart: always
 
+  server2:
+    container_name: cc-server2 # if this is changed, make sure to update all references to the old container name in .env
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server2:${VERSION}'
+    networks:
+      - cubingcontests
+    ports:
+      - 127.0.0.1:$BACKEND2_PORT:$BACKEND2_PORT
+    environment:
+      - PORT=$BACKEND2_PORT
+    depends_on:
+      - mongo
+    restart: always
+
   client:
     container_name: cc-client
     image: '${DOCKER_IMAGE_PREFIX}cubingcontests-client:${VERSION}'
@@ -49,6 +62,7 @@ services:
     depends_on:
       - mongo
       - server
+      - server2
     restart: always
 
 networks:
