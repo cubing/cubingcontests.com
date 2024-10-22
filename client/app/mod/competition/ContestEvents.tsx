@@ -1,21 +1,28 @@
-'use client';
+"use client";
 
-import React, { useMemo, useState } from 'react';
-import C from '~/shared_helpers/constants.ts';
-import { ContestType, EventFormat, EventGroup, RoundFormat, RoundProceed, RoundType } from '~/shared_helpers/enums.ts';
-import { IAttempt, IContestEvent, ICutoff, IEvent, IRound } from '~/shared_helpers/types.ts';
-import { cutoffAttemptsOptions, roundFormatOptions, roundProceedOptions } from '~/helpers/multipleChoiceOptions.ts';
-import { roundTypes } from '~/helpers/roundTypes.ts';
-import EventTitle from '~/app/components/EventTitle.tsx';
-import AttemptInput from '~/app/components/AttemptInput.tsx';
-import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
-import FormNumberInput from '~/app/components/form/FormNumberInput.tsx';
-import FormRadio from '~/app/components/form/FormRadio.tsx';
-import FormSelect from '~/app/components/form/FormSelect.tsx';
-import Button from '~/app/components/UI/Button.tsx';
-import FormEventSelect from '~/app/components/form/FormEventSelect.tsx';
-import { getTimeLimit } from '~/helpers/utilityFunctions.ts';
-import { getTotalRounds } from '~/shared_helpers/sharedFunctions.ts';
+import React, { useMemo, useState } from "react";
+import C from "../../../shared_helpers/constants.ts";
+import {
+  ContestType,
+  EventFormat,
+  EventGroup,
+  RoundFormat,
+  RoundProceed,
+  RoundType,
+} from "../../../shared_helpers/enums.ts";
+import { IAttempt, IContestEvent, ICutoff, IEvent, IRound } from "../../../shared_helpers/types.ts";
+import { cutoffAttemptsOptions, roundFormatOptions, roundProceedOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { roundTypes } from "~/helpers/roundTypes.ts";
+import EventTitle from "~/app/components/EventTitle.tsx";
+import AttemptInput from "~/app/components/AttemptInput.tsx";
+import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
+import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
+import FormRadio from "~/app/components/form/FormRadio.tsx";
+import FormSelect from "~/app/components/form/FormSelect.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
+import { getTimeLimit } from "~/helpers/utilityFunctions.ts";
+import { getTotalRounds } from "../../../shared_helpers/sharedFunctions.ts";
 
 const ContestEvents = ({
   events,
@@ -59,7 +66,7 @@ const ContestEvents = ({
   const getNewRound = (event: IEvent, roundNumber: number): IRound => {
     return {
       roundId: `${event.eventId}-r${roundNumber}`,
-      competitionId: 'TEMPORARY', // this gets replaced for all rounds on submit
+      competitionId: "TEMPORARY", // this gets replaced for all rounds on submit
       roundTypeId: RoundType.Final,
       format: events.find((el) => el.eventId === event.eventId).defaultRoundFormat,
       timeLimit: getTimeLimit(event.format),
@@ -259,20 +266,20 @@ const ContestEvents = ({
 
   return (
     <section>
-      <p className='my-4'>
+      <p className="my-4">
         Total events: {contestEvents.length} | Total rounds: {totalRounds}
       </p>
-      <div className='my-4 d-flex align-items-center gap-3'>
+      <div className="my-4 d-flex align-items-center gap-3">
         <Button
           onClick={addContestEvent}
           disabled={disableNewEvents}
-          className='btn-success'
+          className="btn-success"
         >
           Add Event
         </Button>
-        <div className='flex-grow-1'>
+        <div className="flex-grow-1">
           <FormEventSelect
-            title=''
+            title=""
             noMargin
             events={remainingEvents}
             eventId={newEventId}
@@ -284,12 +291,12 @@ const ContestEvents = ({
       {contestEvents.map((ce, eventIndex) => (
         <div
           key={ce.event.eventId}
-          className='mb-3 py-3 px-4 border rounded bg-body-tertiary'
+          className="mb-3 py-3 px-4 border rounded bg-body-tertiary"
         >
-          <div className='d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3'>
+          <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
             <EventTitle
               event={ce.event}
-              fontSize='4'
+              fontSize="4"
               noMargin
               showIcon
               showDescription
@@ -298,13 +305,13 @@ const ContestEvents = ({
 
             {totalResultsPerContestEvent[eventIndex] > 0
               ? (
-                <p className='mb-0'>
+                <p className="mb-0">
                   Total results: {totalResultsPerContestEvent[eventIndex]}
                 </p>
               )
               : (
                 <Button
-                  className='btn-danger btn-sm'
+                  className="btn-danger btn-sm"
                   onClick={() => deleteContestEvent(ce.event.eventId)}
                 >
                   Remove Event
@@ -314,14 +321,14 @@ const ContestEvents = ({
           {ce.rounds.map((round, roundIndex) => (
             <div
               key={round.roundId}
-              className='mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary'
+              className="mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary"
             >
-              <div className='flex-grow-1 d-flex align-items-center gap-3 gap-md-5'>
-                <h5 className='m-0'>{roundTypes[round.roundTypeId].label}</h5>
+              <div className="flex-grow-1 d-flex align-items-center gap-3 gap-md-5">
+                <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
 
-                <div className='flex-grow-1'>
+                <div className="flex-grow-1">
                   <FormSelect
-                    title=''
+                    title=""
                     options={roundFormatOptions}
                     selected={round.format}
                     setSelected={(val: string) =>
@@ -331,16 +338,16 @@ const ContestEvents = ({
                         val as RoundFormat,
                       )}
                     disabled={round.results.length > 0}
-                    className='mb-0'
+                    className="mb-0"
                   />
                 </div>
               </div>
               {ce.event.format === EventFormat.Time && (
-                <div className='d-flex flex-wrap align-items-center gap-3 gap-md-5 w-100 mt-3'>
-                  <div className='d-flex justify-content-between align-items-center gap-3'>
-                    <h6 className='flex-shrink-0 m-0'>Time limit:</h6>
+                <div className="d-flex flex-wrap align-items-center gap-3 gap-md-5 w-100 mt-3">
+                  <div className="d-flex justify-content-between align-items-center gap-3">
+                    <h6 className="flex-shrink-0 m-0">Time limit:</h6>
 
-                    <div style={{ maxWidth: '8rem' }}>
+                    <div style={{ maxWidth: "8rem" }}>
                       <AttemptInput
                         attNumber={0}
                         attempt={{ result: round.timeLimit.centiseconds }}
@@ -352,11 +359,11 @@ const ContestEvents = ({
                     </div>
                   </div>
 
-                  <div className='d-flex justify-content-between align-items-center gap-3'>
-                    <h6 className='flex-shrink-0 m-0'>Cumulative limit:</h6>
+                  <div className="d-flex justify-content-between align-items-center gap-3">
+                    <h6 className="flex-shrink-0 m-0">Cumulative limit:</h6>
 
                     <FormCheckbox
-                      title=''
+                      title=""
                       id={`cumulative_limit_${ce.event.eventId}_${roundIndex + 1}`}
                       selected={round.timeLimit.cumulativeRoundIds.length > 0}
                       setSelected={() => changeRoundTimeLimitCumulative(eventIndex, roundIndex)}
@@ -366,11 +373,11 @@ const ContestEvents = ({
                   </div>
                 </div>
               )}
-              <div className='d-flex flex-wrap justify-content-between align-items-center gap-3 gap-md-5 mt-3'>
-                <h6 className='flex-shrink-0 m-0'>Cutoff:</h6>
+              <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 gap-md-5 mt-3">
+                <h6 className="flex-shrink-0 m-0">Cutoff:</h6>
 
                 <FormCheckbox
-                  title='Enabled'
+                  title="Enabled"
                   id={`cutoff_${ce.event.eventId}_${roundIndex + 1}`}
                   selected={round.cutoff !== undefined}
                   setSelected={() => changeRoundCutoffEnabled(eventIndex, roundIndex)}
@@ -379,7 +386,7 @@ const ContestEvents = ({
                   small
                 />
 
-                <div style={{ maxWidth: '8rem' }}>
+                <div style={{ maxWidth: "8rem" }}>
                   <AttemptInput
                     attNumber={0}
                     attempt={{
@@ -396,11 +403,11 @@ const ContestEvents = ({
                   />
                 </div>
 
-                <div className='d-flex justify-content-between align-items-center gap-3'>
-                  <h6 className='m-0'>Attempts:</h6>
+                <div className="d-flex justify-content-between align-items-center gap-3">
+                  <h6 className="m-0">Attempts:</h6>
 
                   <FormSelect
-                    title=''
+                    title=""
                     options={cutoffAttemptsOptions}
                     selected={round.cutoff?.numberOfAttempts || 2}
                     setSelected={(val: number) =>
@@ -409,15 +416,15 @@ const ContestEvents = ({
                         numberOfAttempts: val,
                       })}
                     disabled={!round.cutoff || round.results.length > 0}
-                    className='mb-0'
+                    className="mb-0"
                   />
                 </div>
               </div>
               {round.roundTypeId !== RoundType.Final && (
-                <div className='d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3'>
+                <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
                   <FormRadio
                     id={`${round.roundId}_proceed_type`}
-                    title='Proceed to next round:'
+                    title="Proceed to next round:"
                     options={roundProceedOptions}
                     selected={round.proceed.type}
                     setSelected={(val: any) =>
@@ -429,9 +436,9 @@ const ContestEvents = ({
                     oneLine
                     small
                   />
-                  <div style={{ width: '5rem' }}>
+                  <div style={{ width: "5rem" }}>
                     <FormNumberInput
-                      id='round_proceed_value'
+                      id="round_proceed_value"
                       value={round.proceed.value}
                       setValue={(val) =>
                         changeRoundProceed(
@@ -450,12 +457,12 @@ const ContestEvents = ({
               )}
             </div>
           ))}
-          <div className='d-flex gap-3'>
+          <div className="d-flex gap-3">
             {ce.rounds.length < 10 && (
               <Button
                 onClick={() => addRound(ce.event.eventId)}
                 disabled={disableNewRounds}
-                className='btn-success btn-sm'
+                className="btn-success btn-sm"
               >
                 {`Add Round ${ce.rounds.length + 1}`}
               </Button>
@@ -464,7 +471,7 @@ const ContestEvents = ({
               <Button
                 onClick={() => deleteRound(ce.event.eventId)}
                 disabled={ce.rounds.find((r) => r.roundTypeId === RoundType.Final).results.length > 0}
-                className='btn-danger btn-sm'
+                className="btn-danger btn-sm"
               >
                 Remove Round
               </Button>

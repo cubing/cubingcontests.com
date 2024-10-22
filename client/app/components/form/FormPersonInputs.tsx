@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useLimitRequests, useMyFetch } from '~/helpers/customHooks.ts';
-import Loading from '~/app/components/UI/Loading.tsx';
-import FormTextInput from './FormTextInput.tsx';
-import Competitor from '~/app/components/Competitor.tsx';
-import { IPerson, IWcaPersonDto } from '~/shared_helpers/types.ts';
-import C from '~/shared_helpers/constants.ts';
-import { getUserInfo } from '~/helpers/utilityFunctions.ts';
-import { IUserInfo } from '~/helpers/interfaces/UserInfo.ts';
+import React, { useState } from "react";
+import { useLimitRequests, useMyFetch } from "~/helpers/customHooks.ts";
+import Loading from "~/app/components/UI/Loading.tsx";
+import FormTextInput from "./FormTextInput.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
+import { IPerson, IWcaPersonDto } from "../../../shared_helpers/types.ts";
+import C from "../../../shared_helpers/constants.ts";
+import { getUserInfo } from "~/helpers/utilityFunctions.ts";
+import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
 
 const userInfo: IUserInfo = getUserInfo();
 const MAX_MATCHES = 6;
@@ -26,7 +26,7 @@ const FormPersonInputs = ({
   disabled,
   addNewPersonFromNewTab,
   checkCustomErrors,
-  redirectToOnAddPerson = '',
+  redirectToOnAddPerson = "",
   noGrid,
 }: {
   title: string;
@@ -92,7 +92,7 @@ const FormPersonInputs = ({
   };
 
   // This is called first on focus leave for the previous input and then on focus for the new input
-  const changeFocusedInput = (inputIndex: number | null, inputValue = '') => {
+  const changeFocusedInput = (inputIndex: number | null, inputValue = "") => {
     setFocusedInput(inputIndex);
     setPersonSelection(0);
     queryMatchedPersons(inputValue);
@@ -105,7 +105,7 @@ const FormPersonInputs = ({
   ): boolean => {
     // Add new empty input if there isn't an empty one left
     if (infiniteInputs && !newPersons.some((el) => el === null)) {
-      newPersonNames.push('');
+      newPersonNames.push("");
       newPersons.push(null);
       return true;
     }
@@ -167,9 +167,9 @@ const FormPersonInputs = ({
         setFocusedInput(null);
 
         if (addNewPersonFromNewTab) {
-          open('/mod/competitors', '_blank');
+          open("/mod/competitors", "_blank");
         } else {
-          if (!redirectToOnAddPerson) window.location.href = '/mod/competitors';
+          if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
           else {window.location.replace(
               `/mod/competitors?redirect=${redirectToOnAddPerson}`,
             );}
@@ -197,12 +197,12 @@ const FormPersonInputs = ({
   };
 
   const onPersonKeyDown = async (inputIndex: number, e: any) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       // Make sure the focused input is not empty
       if (personNames[inputIndex]) {
         selectCompetitor(inputIndex, personSelection);
       }
-    } else if (e.key === 'ArrowDown') {
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
 
       if (
@@ -213,7 +213,7 @@ const FormPersonInputs = ({
       } else {
         setPersonSelection(0);
       }
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
 
       if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
@@ -227,11 +227,11 @@ const FormPersonInputs = ({
   };
 
   return (
-    <div className='row'>
+    <div className="row">
       {personNames.map((personName: string, inputIndex: number) => (
         <div
           key={inputIndex}
-          className={personNames.length > 1 && !noGrid ? 'col-md-6' : ''}
+          className={personNames.length > 1 && !noGrid ? "col-md-6" : ""}
         >
           <FormTextInput
             id={`${title}_${inputIndex + 1}`}
@@ -245,11 +245,11 @@ const FormPersonInputs = ({
             disabled={disabled}
           />
           {inputIndex === focusedInput && personName && (
-            <ul className='position-absolute list-group' style={{ zIndex: 10 }}>
+            <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
               {isLoadingMatchedPersons
                 ? (
-                  <li className='list-group-item'>
-                    <div style={{ width: '200px' }}>
+                  <li className="list-group-item">
+                    <div style={{ width: "200px" }}>
                       <Loading small />
                     </div>
                   </li>
@@ -259,9 +259,9 @@ const FormPersonInputs = ({
                   matchedPersons.map((person: IPerson, matchIndex) => (
                     <li
                       key={matchIndex}
-                      className={'list-group-item' +
-                        (matchIndex === personSelection ? ' active' : '')}
-                      style={{ cursor: 'pointer' }}
+                      className={"list-group-item" +
+                        (matchIndex === personSelection ? " active" : "")}
+                      style={{ cursor: "pointer" }}
                       aria-current={matchIndex === personSelection}
                       onMouseEnter={() => setPersonSelection(matchIndex)}
                       onMouseDown={() =>
@@ -275,12 +275,12 @@ const FormPersonInputs = ({
                             noLink
                           />
                         )
-                        : '(add new person)'}
+                        : "(add new person)"}
                     </li>
                   ))
                 )
                 : (
-                  '(competitor not found)'
+                  "(competitor not found)"
                 )}
             </ul>
           )}

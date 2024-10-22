@@ -1,13 +1,13 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import Time from '~/app/components/Time.tsx';
-import Solves from '~/app/components/Solves.tsx';
-import Competitor from '~/app/components/Competitor.tsx';
-import Button from '~/app/components/UI/Button.tsx';
-import { IEvent, IPerson, IRecordType, IResult, IRound } from '~/shared_helpers/types.ts';
-import { RoundFormat, RoundProceed, RoundType } from '~/shared_helpers/enums.ts';
-import { getRoundRanksWithAverage } from '~/shared_helpers/sharedFunctions.ts';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import Time from "~/app/components/Time.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import { IEvent, IPerson, IRecordType, IResult, IRound } from "../../shared_helpers/types.ts";
+import { RoundFormat, RoundProceed, RoundType } from "../../shared_helpers/enums.ts";
+import { getRoundRanksWithAverage } from "../../shared_helpers/sharedFunctions.ts";
+import { roundFormats } from "../../shared_helpers/roundFormats.ts";
 
 const RoundResultsTable = ({
   round,
@@ -50,27 +50,27 @@ const RoundResultsTable = ({
               (round.results.length * round.proceed.value) / 100,
             ))))
     ) {
-      return { color: 'black', background: '#10c010' };
+      return { color: "black", background: "#10c010" };
     }
 
     return {};
   };
 
   return (
-    <div className='flex-grow-1 table-responsive'>
-      <table className='table table-hover table-responsive text-nowrap'>
+    <div className="flex-grow-1 table-responsive">
+      <table className="table table-hover table-responsive text-nowrap">
         <thead>
           <tr>
-            <th scope='col'>#</th>
-            <th scope='col'>Name</th>
-            <th scope='col'>Best</th>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Best</th>
             {roundCanHaveAverage && (
-              <th scope='col'>
-                {round.format === RoundFormat.Average ? 'Average' : 'Mean'}
+              <th scope="col">
+                {round.format === RoundFormat.Average ? "Average" : "Mean"}
               </th>
             )}
-            <th scope='col'>Attempts</th>
-            {onDeleteResult && <th scope='col'>Actions</th>}
+            <th scope="col">Attempts</th>
+            {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -80,20 +80,20 @@ const RoundResultsTable = ({
 
             return (
               <tr key={result.personIds[0]}>
-                <td className='ps-2' style={getRankingHighlight(result)}>
-                  <span className={isTie ? 'text-secondary' : ''}>
+                <td className="ps-2" style={getRankingHighlight(result)}>
+                  <span className={isTie ? "text-secondary" : ""}>
                     {result.ranking}
                   </span>
                 </td>
                 <td>
-                  <div className='d-flex flex-wrap gap-2'>
+                  <div className="d-flex flex-wrap gap-2">
                     {result.personIds.map((personId, i) => {
                       const person = persons.find((p: IPerson) => p.personId === personId);
                       if (!person) {
                         return <span key={personId}>(name not found)</span>;
                       }
                       return (
-                        <span key={person.personId} className='d-flex gap-2'>
+                        <span key={person.personId} className="d-flex gap-2">
                           <Competitor person={person} showLocalizedName />
                           {i !== result.personIds.length - 1 && <span>&</span>}
                         </span>
@@ -125,14 +125,14 @@ const RoundResultsTable = ({
                 </td>
                 {onEditResult && (
                   <td>
-                    <div className='d-flex gap-2'>
+                    <div className="d-flex gap-2">
                       <Button
                         id={`edit_result_${(result as any)._id}_button`}
                         onClick={() => onEditResult(result)}
                         loadingId={loadingId}
                         disabled={disableEditAndDelete}
-                        className='btn-xs'
-                        ariaLabel='Edit'
+                        className="btn-xs"
+                        ariaLabel="Edit"
                       >
                         <FontAwesomeIcon icon={faPencil} />
                       </Button>
@@ -141,8 +141,8 @@ const RoundResultsTable = ({
                         onClick={() => onDeleteResult((result as any)._id)}
                         loadingId={loadingId}
                         disabled={disableEditAndDelete}
-                        className='btn-danger btn-xs'
-                        ariaLabel='Delete'
+                        className="btn-danger btn-xs"
+                        ariaLabel="Delete"
                       >
                         <FontAwesomeIcon icon={faTrash} />
                       </Button>

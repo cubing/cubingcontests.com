@@ -2,6 +2,12 @@
   // When updating this, remember to also update it in .vscode/settings.json
   "workspace": ["./client", "./server2"],
   "nodeModulesDir": "auto",
+  "exclude": ["./server"],
+
+  "tasks": {
+    "client": "cd client && deno task dev",
+    "server2": "cd server2 && deno task start"
+  },
 
   "lint": {
     "include": ["./**/*.ts", "./**/*.tsx"],
@@ -16,8 +22,7 @@
   "fmt": {
     "include": ["./**/*.ts", "./**/*.tsx"],
     "exclude": ["./**/*.d.ts"],
-    "lineWidth": 120,
-    "singleQuote": true
+    "lineWidth": 120
   },
 
   "compilerOptions": {
@@ -26,6 +31,6 @@
       "dom.iterable",
       "deno.ns"
     ],
-    "jsx": "preserve"
+    "jsx": "precompile"
   }
 }

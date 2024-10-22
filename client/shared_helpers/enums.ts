@@ -1,7 +1,7 @@
 export enum EventFormat {
-  Time = 'time',
-  Number = 'number', // for FMC
-  Multi = 'multi',
+  Time = "time",
+  Number = "number", // for FMC
+  Multi = "multi",
 }
 
 export enum EventGroup {
@@ -21,24 +21,24 @@ export enum EventGroup {
 }
 
 export enum RoundFormat {
-  Average = 'a',
-  Mean = 'm',
-  BestOf3 = '3',
-  BestOf2 = '2',
-  BestOf1 = '1',
+  Average = "a",
+  Mean = "m",
+  BestOf3 = "3",
+  BestOf2 = "2",
+  BestOf1 = "1",
 }
 
 export enum RoundType {
-  First = '1',
-  Second = '2',
-  Third = '3',
-  Fourth = '4',
-  Fifth = '5',
-  Sixth = '6',
-  Seventh = '7',
-  Eighth = '8',
-  Semi = 's',
-  Final = 'f',
+  First = "1",
+  Second = "2",
+  Third = "3",
+  Fourth = "4",
+  Fifth = "5",
+  Sixth = "6",
+  Seventh = "7",
+  Eighth = "8",
+  Semi = "s",
+  Final = "f",
 }
 
 export enum RoundProceed {
@@ -64,30 +64,30 @@ export enum ContestState {
 }
 
 export enum WcaRecordType {
-  WR = 'WR',
-  ER = 'ER',
-  NAR = 'NAR',
-  SAR = 'SAR',
-  AsR = 'AsR',
-  AfR = 'AfR',
-  OcR = 'OcR',
-  NR = 'NR',
-  PR = 'PR',
+  WR = "WR",
+  ER = "ER",
+  NAR = "NAR",
+  SAR = "SAR",
+  AsR = "AsR",
+  AfR = "AfR",
+  OcR = "OcR",
+  NR = "NR",
+  PR = "PR",
 }
 
 export enum Color {
-  White = 'fff',
-  Black = '000',
-  Red = 'f00',
-  Yellow = 'ff0',
-  Green = '0f0',
-  Cyan = '0ff',
-  Blue = '00f',
-  Magenta = 'f0f',
+  White = "fff",
+  Black = "000",
+  Red = "f00",
+  Yellow = "ff0",
+  Green = "0f0",
+  Cyan = "0ff",
+  Blue = "00f",
+  Magenta = "f0f",
 }
 
 export enum Role {
-  User = 'user',
-  Admin = 'admin',
-  Moderator = 'mod',
+  User = "user",
+  Admin = "admin",
+  Moderator = "mod",
 }

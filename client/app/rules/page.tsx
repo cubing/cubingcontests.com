@@ -1,51 +1,51 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useMyFetch } from '~/helpers/customHooks.ts';
-import { IFeEvent } from '~/shared_helpers/types.ts';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
-import { RoundFormat } from '~/shared_helpers/enums.ts';
-import { INavigationItem } from '~/helpers/interfaces/NavigationItem.ts';
-import Tabs from '~/app/components/UI/Tabs.tsx';
-import ToastMessages from '~/app/components/UI/ToastMessages.tsx';
-import MarkdownDescription from '~/app/components/MarkdownDescription.tsx';
-import EventTitle from '~/app/components/EventTitle.tsx';
-import ExternalLink from '~/app/components/ExternalLink.tsx';
+import React, { useEffect, useState } from "react";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import { IFeEvent } from "../../shared_helpers/types.ts";
+import { roundFormats } from "../../shared_helpers/roundFormats.ts";
+import { RoundFormat } from "../../shared_helpers/enums.ts";
+import { INavigationItem } from "~/helpers/interfaces/NavigationItem.ts";
+import Tabs from "~/app/components/UI/Tabs.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import MarkdownDescription from "~/app/components/MarkdownDescription.tsx";
+import EventTitle from "~/app/components/EventTitle.tsx";
+import ExternalLink from "~/app/components/ExternalLink.tsx";
 
 const RulesPage = () => {
   const myFetch = useMyFetch();
 
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState("general");
   const [events, setEvents] = useState<IFeEvent[]>([]);
 
   const tabs: INavigationItem[] = [
-    { title: 'General', value: 'general' },
+    { title: "General", value: "general" },
     {
-      title: 'Unofficial Competitions',
-      shortTitle: 'Unofficial',
-      value: 'unofficial',
+      title: "Unofficial Competitions",
+      shortTitle: "Unofficial",
+      value: "unofficial",
     },
-    { title: 'Meetups', value: 'meetups' },
+    { title: "Meetups", value: "meetups" },
   ];
 
   useEffect(() => {
-    myFetch.get('/events/with-rules').then(({ payload, errors }) => {
+    myFetch.get("/events/with-rules").then(({ payload, errors }) => {
       if (!errors) setEvents(payload);
     });
   }, []);
 
   return (
     <div>
-      <h2 className='mb-4 text-center'>Rules</h2>
+      <h2 className="mb-4 text-center">Rules</h2>
       <ToastMessages />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
 
-      <div className='px-2'>
-        {activeTab === 'general' && (
+      <div className="px-2">
+        {activeTab === "general" && (
           <>
-            <ol className='ps-3 lh-lg'>
+            <ol className="ps-3 lh-lg">
               <li>
-                The <ExternalLink to='wca-regulations' /> must be followed wherever possible.
+                The <ExternalLink to="wca-regulations" /> must be followed wherever possible.
               </li>
               <li>
                 Judges and equipment (i.e. timers, stopwatches, sight blockers, etc.) are required for unofficial events
@@ -55,7 +55,7 @@ const RulesPage = () => {
                 Gen 2 timers are allowed in addition to the timers allowed for WCA competitions.
               </li>
               <li>
-                <ExternalLink to='cubingjs' /> or <ExternalLink to='cstimer' />{' '}
+                <ExternalLink to="cubingjs" /> or <ExternalLink to="cstimer" />{" "}
                 scrambles must be used for twisty puzzle events. In particular, random-state scrambles must be used for
                 a puzzle, if available.
               </li>
@@ -69,8 +69,8 @@ const RulesPage = () => {
               </li>
             </ol>
 
-            <h4 className='my-4'>Relay events</h4>
-            <ul className='list-inline lh-lg'>
+            <h4 className="my-4">Relay events</h4>
+            <ul className="list-inline lh-lg">
               <li>R1. The judge uncovers all puzzles at once.</li>
               <li>
                 R2. An attempt includes a normal 15-second inspection phase, regardless of the number of puzzles. The
@@ -78,8 +78,8 @@ const RulesPage = () => {
               </li>
             </ul>
 
-            <h4 className='my-4'>Team events</h4>
-            <ul className='list-inline lh-lg'>
+            <h4 className="my-4">Team events</h4>
+            <ul className="list-inline lh-lg">
               <li>
                 T1. There must be no physical contact between any members of a team during an attempt. Penalty: DNF.
               </li>
@@ -96,13 +96,13 @@ const RulesPage = () => {
               </li>
             </ul>
 
-            <h4 className='my-4'>Fully blindfolded events</h4>
-            <ul className='list-inline lh-lg'>
+            <h4 className="my-4">Fully blindfolded events</h4>
+            <ul className="list-inline lh-lg">
               <li>
-                F1. A fully blindfolded attempt proceeds like a normal blindfolded attempt (see{' '}
+                F1. A fully blindfolded attempt proceeds like a normal blindfolded attempt (see{" "}
                 <a
-                  href='https://www.worldcubeassociation.org/regulations/full#article-B-blindfolded'
-                  target='_blank'
+                  href="https://www.worldcubeassociation.org/regulations/full#article-B-blindfolded"
+                  target="_blank"
                 >
                   Article B of the WCA Regulations
                 </a>
@@ -124,13 +124,13 @@ const RulesPage = () => {
             </ul>
           </>
         )}
-        {activeTab === 'unofficial' && (
+        {activeTab === "unofficial" && (
           <>
             <p>
               These rules only apply to unofficial competitions, and they supplement the general rules, with some points
               being overridden.
             </p>
-            <ul className='list-inline lh-lg'>
+            <ul className="list-inline lh-lg">
               <li>
                 U1. An unofficial competition may not have fewer than three competitors in total. Such competitions will
                 be removed without the results being published.
@@ -142,18 +142,18 @@ const RulesPage = () => {
             </ul>
           </>
         )}
-        {activeTab === 'meetups' && (
+        {activeTab === "meetups" && (
           <>
             <p>
               These rules only apply to meetups, and they supplement the general rules, with some points being
               overridden.
             </p>
-            <ul className='list-inline lh-lg'>
+            <ul className="list-inline lh-lg">
               <li>
                 M1. Timers, stopwatches and other official equipment is not required. Mobile devices may be used to time
                 attempts.
               </li>
-              <li className='ps-3'>
+              <li className="ps-3">
                 M1.1. Inspection time must still be followed.
               </li>
               <li>M2. Judges are not required.</li>
@@ -179,15 +179,15 @@ const RulesPage = () => {
               const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
 
               return (
-                <div key={event.eventId} className='mt-4'>
+                <div key={event.eventId} className="mt-4">
                   <EventTitle
                     event={event}
-                    fontSize='4'
+                    fontSize="4"
                     showIcon
                     linkToRankings
                   />
                   <MarkdownDescription>{event.ruleText}</MarkdownDescription>
-                  <p className='mb-1'>
+                  <p className="mb-1">
                     The ranked average format is <b>{rankedFormat.label}</b>
                   </p>
                   {roundFormat.value !== rankedFormat.value && (
@@ -204,10 +204,10 @@ const RulesPage = () => {
         <hr />
         <h3>License</h3>
         <p>
-          The contents of this page are available under the{' '}
-          <a href='https://creativecommons.org/licenses/by-sa/4.0/'>
+          The contents of this page are available under the{" "}
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/">
             CC Attribution-ShareAlike 4.0 International
-          </a>{' '}
+          </a>{" "}
           license.
         </p>
       </div>

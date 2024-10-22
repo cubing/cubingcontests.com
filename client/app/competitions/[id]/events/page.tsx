@@ -1,33 +1,33 @@
-import { ssrFetch } from '~/helpers/fetchUtils.ts';
-import ContestLayout from '~/app/competitions/ContestLayout.tsx';
-import EventTitle from '~/app/components/EventTitle.tsx';
-import { IContest } from '~/shared_helpers/types.ts';
-import { RoundProceed, RoundType } from '~/shared_helpers/enums.ts';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
-import { roundTypes } from '~/helpers/roundTypes.ts';
-import { getFormattedTime } from '~/shared_helpers/sharedFunctions.ts';
+import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import ContestLayout from "~/app/competitions/ContestLayout.tsx";
+import EventTitle from "~/app/components/EventTitle.tsx";
+import { IContest } from "../../../../shared_helpers/types.ts";
+import { RoundProceed, RoundType } from "../../../../shared_helpers/enums.ts";
+import { roundFormats } from "../../../../shared_helpers/roundFormats.ts";
+import { roundTypes } from "~/helpers/roundTypes.ts";
+import { getFormattedTime } from "../../../../shared_helpers/sharedFunctions.ts";
 
 const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
   if (!contestData) {
-    return <h3 className='mt-4 text-center'>Contest not found</h3>;
+    return <h3 className="mt-4 text-center">Contest not found</h3>;
   }
   const { contest }: { contest: IContest } = contestData;
 
   const hasNonFinalRound = contest.events.some((ev) => ev.rounds.some((r) => r.proceed));
 
   return (
-    <ContestLayout contest={contest} activeTab='events'>
-      <div className='flex-grow-1 mb-5 table-responsive'>
-        <table className='table table-hover text-nowrap'>
+    <ContestLayout contest={contest} activeTab="events">
+      <div className="flex-grow-1 mb-5 table-responsive">
+        <table className="table table-hover text-nowrap">
           <thead>
             <tr>
-              <th scope='col'>Event</th>
-              <th scope='col'>Round</th>
-              <th scope='col'>Format</th>
-              <th scope='col'>Time Limit</th>
-              <th scope='col'>Cutoff</th>
-              {hasNonFinalRound && <th scope='col'>Proceed</th>}
+              <th scope="col">Event</th>
+              <th scope="col">Round</th>
+              <th scope="col">Format</th>
+              <th scope="col">Time Limit</th>
+              <th scope="col">Cutoff</th>
+              {hasNonFinalRound && <th scope="col">Proceed</th>}
             </tr>
           </thead>
           <tbody>
@@ -35,24 +35,24 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
               compEvent.rounds.map((round, roundIndex) => {
                 const cutoffText = round.cutoff
                   ? `${round.cutoff.numberOfAttempts} ${
-                    round.cutoff.numberOfAttempts === 1 ? 'attempt' : 'attempts'
+                    round.cutoff.numberOfAttempts === 1 ? "attempt" : "attempts"
                   } to get < ${
                     getFormattedTime(round.cutoff.attemptResult, {
                       event: compEvent.event,
                     })
                   }`
-                  : '';
+                  : "";
 
                 return (
                   <tr
                     key={round.roundId}
-                    className={roundIndex !== 0 ? 'table-active' : ''}
+                    className={roundIndex !== 0 ? "table-active" : ""}
                   >
                     <td>
                       {roundIndex === 0 && (
                         <EventTitle
                           event={compEvent.event}
-                          fontSize='6'
+                          fontSize="6"
                           noMargin
                           showIcon
                           linkToRankings
@@ -70,15 +70,15 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                         ? getFormattedTime(round.timeLimit.centiseconds, {
                           event: compEvent.event,
                         }) +
-                          (round.timeLimit.cumulativeRoundIds.length > 0 ? ' cumulative' : '')
-                        : ''}
+                          (round.timeLimit.cumulativeRoundIds.length > 0 ? " cumulative" : "")
+                        : ""}
                     </td>
                     <td>{cutoffText}</td>
                     {hasNonFinalRound && (
                       <td>
                         {round.roundTypeId !== RoundType.Final &&
                           `Top ${round.proceed.value}${
-                            round.proceed.type === RoundProceed.Percentage ? '%' : ''
+                            round.proceed.type === RoundProceed.Percentage ? "%" : ""
                           } advance to next round`}
                       </td>
                     )}

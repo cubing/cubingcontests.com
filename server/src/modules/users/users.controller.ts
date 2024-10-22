@@ -1,14 +1,14 @@
-import { Body, Controller, Delete, Get, Patch, Request, UseGuards, ValidationPipe } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
-import { RolesGuard } from '~/src/guards/roles.guard';
-import { Roles } from '~/src/helpers/roles.decorator';
-import { LogType } from '~/src/helpers/enums';
-import { Role } from '@sh/enums';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Body, Controller, Delete, Get, Patch, Request, UseGuards, ValidationPipe } from "@nestjs/common";
+import { UsersService } from "./users.service";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
+import { RolesGuard } from "~/src/guards/roles.guard";
+import { Roles } from "~/src/helpers/roles.decorator";
+import { LogType } from "~/src/helpers/enums";
+import { Role } from "@sh/enums";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
-@Controller('users')
+@Controller("users")
 export class UsersController {
   constructor(private readonly logger: MyLogger, private readonly usersService: UsersService) {}
 
@@ -31,7 +31,7 @@ export class UsersController {
   }
 
   // GET /users/details
-  @Get('details')
+  @Get("details")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
   async getUserDetails(@Request() req: any) {

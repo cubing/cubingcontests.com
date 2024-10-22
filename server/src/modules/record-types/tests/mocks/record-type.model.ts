@@ -1,5 +1,5 @@
-import { RecordTypeDocument } from '~/src/models/record-type.model';
-import { recordTypesStub } from '../stubs/record-types.stub';
+import { RecordTypeDocument } from "~/src/models/record-type.model";
+import { recordTypesStub } from "../stubs/record-types.stub";
 
 export const RecordTypeModelMock = (): any => ({
   tempOutput: undefined,

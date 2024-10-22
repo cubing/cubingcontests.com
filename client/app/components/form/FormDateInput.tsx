@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { isValid, parseISO } from 'date-fns';
-import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
-import C from '~/shared_helpers/constants.ts';
-import { genericOnKeyDown } from '~/helpers/utilityFunctions.ts';
+import React, { useEffect, useMemo, useState } from "react";
+import { isValid, parseISO } from "date-fns";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import C from "../../../shared_helpers/constants.ts";
+import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
 
 const FormDateInput = ({
   id,
@@ -21,22 +21,22 @@ const FormDateInput = ({
   disabled?: boolean;
   nextFocusTargetId?: string;
 }) => {
-  const [dateText, setDateText] = useState('');
+  const [dateText, setDateText] = useState("");
   const [position, setPosition] = useState(0);
 
   const prettyDate = useMemo(() => {
-    let prettyDate = '';
+    let prettyDate = "";
 
     for (let i = 0; i < 10; i++) {
       if (i === 2 || i === 5) {
-        prettyDate += '.';
+        prettyDate += ".";
       } else {
         let digit;
         if (i < 2 && dateText.length > i) digit = dateText[i];
         else if ([3, 4].includes(i) && dateText.length > i - 1) {
           digit = dateText[i - 1];
         } else if (i > 5 && dateText.length > i - 2) digit = dateText[i - 2];
-        prettyDate += digit || '_';
+        prettyDate += digit || "_";
       }
     }
 
@@ -47,9 +47,9 @@ const FormDateInput = ({
 
   useEffect(() => {
     if (value) {
-      setDateText(formatInTimeZone(value, 'UTC', 'ddMMyyyy'));
-    } else if (value === undefined && dateText !== '') {
-      setDateText('');
+      setDateText(formatInTimeZone(value, "UTC", "ddMMyyyy"));
+    } else if (value === undefined && dateText !== "") {
+      setDateText("");
     }
   }, [value]);
 
@@ -93,7 +93,7 @@ const FormDateInput = ({
               `${newDateText.slice(4)}-${newDateText.slice(2, 4)}-${newDateText.slice(0, 2)}`,
             );
             // The conversion is necessary, because otherwise JS uses the user's local time zone
-            setValue(isValid(parsed) ? fromZonedTime(parsed, 'UTC') : null);
+            setValue(isValid(parsed) ? fromZonedTime(parsed, "UTC") : null);
           }
 
           changePosition({ change: 1, dateTextLength: newDateText.length });
@@ -103,12 +103,12 @@ const FormDateInput = ({
   };
 
   const onKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       genericOnKeyDown(e, { nextFocusTargetId });
-    } else if (e.key === 'ArrowLeft') {
+    } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       changePosition({ change: -1 });
-    } else if (e.key === 'ArrowRight') {
+    } else if (e.key === "ArrowRight") {
       e.preventDefault();
       changePosition({ change: 1 });
     } else if (C.navigationKeys.includes(e.key)) {
@@ -154,23 +154,23 @@ const FormDateInput = ({
   };
 
   return (
-    <div className='mb-3 fs-5'>
+    <div className="mb-3 fs-5">
       {title && (
-        <label htmlFor={inputId} className='form-label'>
+        <label htmlFor={inputId} className="form-label">
           {title}
         </label>
       )}
       <input
         id={inputId}
-        type='text'
+        type="text"
         value={prettyDate}
         onChange={(e) => onChange(e)}
         onKeyDown={(e) => onKeyDown(e)}
         onFocus={() => changePosition()}
         onClick={(e: any) => setPosition(e.target.selectionStart)}
         disabled={disabled}
-        className={'form-control' +
-          (value === null && dateText.length === 8 ? ' is-invalid' : '')}
+        className={"form-control" +
+          (value === null && dateText.length === 8 ? " is-invalid" : "")}
       />
     </div>
   );

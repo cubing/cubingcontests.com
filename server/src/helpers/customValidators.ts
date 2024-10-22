@@ -1,42 +1,42 @@
-import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
-import { IAttempt, IContestEvent, IProceed, IRound } from '@sh/types';
-import { EventFormat, RoundProceed } from '@sh/enums';
-import C from '@sh/constants';
+import { ValidatorConstraint, ValidatorConstraintInterface } from "class-validator";
+import { IAttempt, IContestEvent, IProceed, IRound } from "@sh/types";
+import { EventFormat, RoundProceed } from "@sh/enums";
+import C from "@sh/constants";
 
-@ValidatorConstraint({ name: 'EventWithTimeFormatHasTimeLimits', async: false })
+@ValidatorConstraint({ name: "EventWithTimeFormatHasTimeLimits", async: false })
 export class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInterface {
   validate(events: IContestEvent[]) {
     return !events.some((ce) => ce.event.format === EventFormat.Time && ce.rounds.some((r) => !r.timeLimit));
   }
 
   defaultMessage() {
-    return 'An event with the format Time must have a time limit';
+    return "An event with the format Time must have a time limit";
   }
 }
 
-@ValidatorConstraint({ name: 'EventWithoutTimeFormatHasNoLimitsOrCutoffs', async: false })
+@ValidatorConstraint({ name: "EventWithoutTimeFormatHasNoLimitsOrCutoffs", async: false })
 export class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintInterface {
   validate(events: IContestEvent[]) {
     return !events.some((ce) => ce.event.format !== EventFormat.Time && ce.rounds.some((r) => r.timeLimit || r.cutoff));
   }
 
   defaultMessage() {
-    return 'An event with a format other than Time cannot have a time limit or cutoff';
+    return "An event with a format other than Time cannot have a time limit or cutoff";
   }
 }
 
-@ValidatorConstraint({ name: 'RoundHasValidTimeLimitAndCutoff', async: false })
+@ValidatorConstraint({ name: "RoundHasValidTimeLimitAndCutoff", async: false })
 export class RoundHasValidTimeLimitAndCutoff implements ValidatorConstraintInterface {
   validate(rounds: IRound[]) {
     return !rounds.some((r) => r.timeLimit && r.cutoff && r.cutoff.attemptResult >= r.timeLimit.centiseconds);
   }
 
   defaultMessage() {
-    return 'The cutoff cannot be higher than or equal to the time limit';
+    return "The cutoff cannot be higher than or equal to the time limit";
   }
 }
 
-@ValidatorConstraint({ name: 'ProceedValueMinMax', async: false })
+@ValidatorConstraint({ name: "ProceedValueMinMax", async: false })
 export class ProceedValueMinMax implements ValidatorConstraintInterface {
   validate(proceed: IProceed) {
     return (
@@ -50,24 +50,24 @@ export class ProceedValueMinMax implements ValidatorConstraintInterface {
   }
 }
 
-@ValidatorConstraint({ name: 'VideoBasedAttempts', async: false })
+@ValidatorConstraint({ name: "VideoBasedAttempts", async: false })
 export class VideoBasedAttempts implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
     return attempts.some((a) => a.result > 0) && !attempts.some((a) => a.result === 0);
   }
 
   defaultMessage() {
-    return 'You cannot submit only DNF/DNS attempts, and you cannot submit empty attempts';
+    return "You cannot submit only DNF/DNS attempts, and you cannot submit empty attempts";
   }
 }
 
-@ValidatorConstraint({ name: 'ContestAttempts', async: false })
+@ValidatorConstraint({ name: "ContestAttempts", async: false })
 export class ContestAttempts implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
     return attempts.some((a) => a.result !== -2) && attempts.some((a) => a.result !== 0);
   }
 
   defaultMessage() {
-    return 'You cannot submit only DNS attempts or only empty attempts';
+    return "You cannot submit only DNS attempts or only empty attempts";
   }
 }

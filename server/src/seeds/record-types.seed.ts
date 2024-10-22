@@ -1,65 +1,65 @@
-import { IRecordType } from '@sh/types';
-import { Color, WcaRecordType } from '@sh/enums';
+import { IRecordType } from "@sh/types";
+import { Color, WcaRecordType } from "@sh/enums";
 
 export const recordTypesSeed: IRecordType[] = [
   {
-    label: 'WR',
+    label: "WR",
     wcaEquivalent: WcaRecordType.WR,
     order: 10,
     active: false,
     color: Color.Red,
   },
   {
-    label: 'ER',
+    label: "ER",
     wcaEquivalent: WcaRecordType.ER,
     order: 20,
     active: false,
     color: Color.Yellow,
   },
   {
-    label: 'NAR',
+    label: "NAR",
     wcaEquivalent: WcaRecordType.NAR,
     order: 30,
     active: false,
     color: Color.Yellow,
   },
   {
-    label: 'SAR',
+    label: "SAR",
     wcaEquivalent: WcaRecordType.SAR,
     order: 40,
     active: false,
     color: Color.Yellow,
   },
   {
-    label: 'AsR',
+    label: "AsR",
     wcaEquivalent: WcaRecordType.AsR,
     order: 50,
     active: false,
     color: Color.Yellow,
   },
   {
-    label: 'AfR',
+    label: "AfR",
     wcaEquivalent: WcaRecordType.AfR,
     order: 60,
     active: false,
     color: Color.Yellow,
   },
   {
-    label: 'OcR',
+    label: "OcR",
     wcaEquivalent: WcaRecordType.OcR,
     order: 70,
     active: false,
     color: Color.Yellow,
   },
   {
-    label: 'NR',
+    label: "NR",
     wcaEquivalent: WcaRecordType.NR,
     order: 80,
     active: false,
     color: Color.Green,
   },
   {
-    label: 'PR',
+    label: "PR",
     wcaEquivalent: WcaRecordType.PR,
     order: 90,
     active: false,

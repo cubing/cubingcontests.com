@@ -4,14 +4,14 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-} from '@nestjs/common';
-import { addDays, differenceInDays, endOfDay } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
-import { find as findTimezone } from 'geo-tz';
-import { ContestDto } from './dto/contest.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, mongo } from 'mongoose';
-import { ContestDocument, ContestEvent } from '~/src/models/contest.model';
+} from "@nestjs/common";
+import { addDays, differenceInDays, endOfDay } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { find as findTimezone } from "geo-tz";
+import { ContestDto } from "./dto/contest.dto";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, mongo } from "mongoose";
+import { ContestDocument, ContestEvent } from "~/src/models/contest.model";
 import {
   eventPopulateOptions,
   excl,
@@ -19,24 +19,24 @@ import {
   orgPopulateOptions,
   resultPopulateOptions,
   schedulePopulateOptions,
-} from '~/src/helpers/dbHelpers';
-import C from '@sh/constants';
-import { IContest, IContestData, IContestDto, IContestEvent, IRound, ISchedule } from '@sh/types';
-import { ContestState, ContestType, EventGroup } from '@sh/enums';
-import { Role } from '@sh/enums';
-import { getDateOnly, getIsCompType, getIsOtherActivity, getTotalRounds } from '@sh/sharedFunctions';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { ResultsService } from '@m/results/results.service';
-import { EventsService } from '@m/events/events.service';
-import { RecordTypesService } from '@m/record-types/record-types.service';
-import { PersonsService } from '@m/persons/persons.service';
-import { AuthService } from '@m/auth/auth.service';
-import { EmailService } from '@m/email/email.service';
-import { UsersService } from '@m/users/users.service';
-import { RoundDocument } from '~/src/models/round.model';
-import { ResultDocument } from '~/src/models/result.model';
-import { ScheduleDocument } from '~/src/models/schedule.model';
-import { IPartialUser } from '~/src/helpers/interfaces/User';
+} from "~/src/helpers/dbHelpers";
+import C from "@sh/constants";
+import { IContest, IContestData, IContestDto, IContestEvent, IRound, ISchedule } from "@sh/types";
+import { ContestState, ContestType, EventGroup } from "@sh/enums";
+import { Role } from "@sh/enums";
+import { getDateOnly, getIsCompType, getIsOtherActivity, getTotalRounds } from "@sh/sharedFunctions";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { ResultsService } from "@m/results/results.service";
+import { EventsService } from "@m/events/events.service";
+import { RecordTypesService } from "@m/record-types/record-types.service";
+import { PersonsService } from "@m/persons/persons.service";
+import { AuthService } from "@m/auth/auth.service";
+import { EmailService } from "@m/email/email.service";
+import { UsersService } from "@m/users/users.service";
+import { RoundDocument } from "~/src/models/round.model";
+import { ResultDocument } from "~/src/models/result.model";
+import { ScheduleDocument } from "~/src/models/schedule.model";
+import { IPartialUser } from "~/src/helpers/interfaces/User";
 
 const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
 
@@ -51,20 +51,20 @@ export class ContestsService {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
-    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
-    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
+    @InjectModel("Competition") private readonly contestModel: Model<ContestDocument>,
+    @InjectModel("Round") private readonly roundModel: Model<RoundDocument>,
+    @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
+    @InjectModel("Schedule") private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
   async onModuleInit() {
-    if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
-      this.logger.log('Checking contests inconsistencies in the DB...');
+    if (process.env.DO_DB_CONSISTENCY_CHECKS === "true") {
+      this.logger.log("Checking contests inconsistencies in the DB...");
 
       const schedules = await this.scheduleModel.find().exec();
 
       for (const s of schedules) {
-        const contests = await this.contestModel.find({ 'compDetails.schedule': s._id }).exec();
+        const contests = await this.contestModel.find({ "compDetails.schedule": s._id }).exec();
 
         if (contests.length === 0) {
           this.logger.error(`Error: schedule has no contest: ${JSON.stringify(s)}`);
@@ -73,7 +73,7 @@ export class ContestsService {
             `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${
               contests
                 .map((c) => c.competitionId)
-                .join(', ')
+                .join(", ")
             }`,
           );
         } else {
@@ -155,7 +155,7 @@ export class ContestsService {
       for (const contest of contests) {
         for (const contestEvent of contest.events) {
           for (const round of contestEvent.rounds) {
-            if (round.roundId.split('-')[0] !== contestEvent.event.eventId) {
+            if (round.roundId.split("-")[0] !== contestEvent.event.eventId) {
               this.logger.error(
                 `Round ${round.roundId} is inconsistent with event ${contestEvent.event.eventId} in contest ${contest.competitionId}`,
               );
@@ -171,7 +171,7 @@ export class ContestsService {
     if (region) queryFilter.countryIso2 = region;
     if (eventId) {
       const event = await this.eventsService.getEventById(eventId);
-      queryFilter['events.event'] = event._id;
+      queryFilter["events.event"] = event._id;
     }
 
     const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
@@ -184,7 +184,7 @@ export class ContestsService {
     // Check access rights
     if (!user.roles.includes(Role.Admin)) {
       const person = await this.personsService.getPersonByPersonId(user.personId, {
-        customError: 'Your profile must be tied to your account before you can use moderator features',
+        customError: "Your profile must be tied to your account before you can use moderator features",
       });
       queryFilter = { organizers: (person as any)._id };
     }
@@ -211,10 +211,10 @@ export class ContestsService {
 
     if (eventId) {
       output.contest = contest.toObject(); // TEMP SOLUTION! (figure out the results population below instead of doing this workaround)
-      const contestEvent = eventId === 'FIRST_EVENT'
+      const contestEvent = eventId === "FIRST_EVENT"
         ? output.contest.events[0]
         : output.contest.events.find((ce) => ce.event.eventId === eventId);
-      if (!contestEvent) throw new BadRequestException('Event not found');
+      if (!contestEvent) throw new BadRequestException("Event not found");
 
       // Populate the results of all rounds for this event
       for (const round of contestEvent.rounds) {
@@ -301,7 +301,7 @@ export class ContestsService {
       await this.emailService.sendEmail(
         C.contactEmail,
         `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newContest.name}</a>.`,
-        { subject: `${difference <= 7 ? 'URGENT! ' : ''}New contest: ${newContest.shortName}` },
+        { subject: `${difference <= 7 ? "URGENT! " : ""}New contest: ${newContest.shortName}` },
       );
     } catch (err) {
       // Remove created contest, rounds, results and schedule
@@ -325,10 +325,10 @@ export class ContestsService {
     this.validateAndCleanUpContest(contestDto, user);
 
     if (contestDto.competitionId !== contest.competitionId) {
-      throw new BadRequestException('Changing the contest ID is not allowed');
+      throw new BadRequestException("Changing the contest ID is not allowed");
     }
     if (contestDto.countryIso2 !== contest.countryIso2) {
-      throw new BadRequestException('Changing the country is not allowed');
+      throw new BadRequestException("Changing the country is not allowed");
     }
 
     contest.organizers = await this.personsService.getPersonsByPersonIds(
@@ -376,7 +376,7 @@ export class ContestsService {
 
     await this.authService.checkAccessRightsToContest(user, contest);
     if (getIsCompType(contest.type) && !contest.compDetails) {
-      throw new BadRequestException('A competition without a schedule cannot be approved');
+      throw new BadRequestException("A competition without a schedule cannot be approved");
     }
     if (contest.state === newState) {
       throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
@@ -417,10 +417,10 @@ export class ContestsService {
   async deleteContest(competitionId: string, user: IPartialUser) {
     const contest = await this.getPartialContestAndCheckAccessRights(competitionId, user);
 
-    if (contest.participants > 0) throw new BadRequestException('You may not remove a contest that has results');
+    if (contest.participants > 0) throw new BadRequestException("You may not remove a contest that has results");
 
     contest.state = ContestState.Removed;
-    contest.competitionId += '_REMOVED';
+    contest.competitionId += "_REMOVED";
     contest.queuePosition = undefined;
 
     await contest.save();
@@ -433,7 +433,7 @@ export class ContestsService {
 
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
     await this.emailService.sendEmail(contestCreatorEmail, `Your contest ${contest.name} has been removed.`, {
-      subject: 'Contest removed',
+      subject: "Contest removed",
     });
   }
 
@@ -453,7 +453,7 @@ export class ContestsService {
     if (newPosition !== undefined) contest.queuePosition = newPosition;
     else contest.queuePosition += difference;
 
-    if (contest.queuePosition < 0) throw new BadRequestException('Queue position may not be lower than 0');
+    if (contest.queuePosition < 0) throw new BadRequestException("Queue position may not be lower than 0");
 
     await contest.save();
     return contest.queuePosition;
@@ -462,8 +462,8 @@ export class ContestsService {
   // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
   async getContestRound(competitionId: string, eventId: string, roundNumber: number): Promise<IRound> {
     const contest = await this.getFullContest(competitionId, { populateResults: true });
-    if (contest.state === ContestState.Removed) throw new BadRequestException('This contest has been removed');
-    if (contest.state > ContestState.Ongoing) throw new BadRequestException('The contest is finished');
+    if (contest.state === ContestState.Removed) throw new BadRequestException("This contest has been removed");
+    if (contest.state > ContestState.Ongoing) throw new BadRequestException("The contest is finished");
 
     const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
     if (!contestEvent) throw new NotFoundException(`Event with ID ${eventId} not found for the given competition`);
@@ -651,7 +651,7 @@ export class ContestsService {
 
             if (sameActivity) {
               sameActivity.activityCode = activity.activityCode;
-              if (sameActivity.activityCode === 'other-misc') sameActivity.name = activity.name;
+              if (sameActivity.activityCode === "other-misc") sameActivity.name = activity.name;
               else sameActivity.name = undefined;
               sameActivity.startTime = activity.startTime;
               sameActivity.endTime = activity.endTime;
@@ -672,7 +672,7 @@ export class ContestsService {
 
   private validateAndCleanUpContest(contest: IContestDto, user: IPartialUser) {
     if (contest.startDate > contest.endDate) {
-      throw new BadRequestException('The start date must be before the end date');
+      throw new BadRequestException("The start date must be before the end date");
     }
 
     // Validation for WCA competitions and unofficial competitions
@@ -682,7 +682,7 @@ export class ContestsService {
       for (const contestEvent of contest.events) {
         if (contest.type === ContestType.WcaComp && contestEvent.event.groups.includes(EventGroup.WCA)) {
           throw new BadRequestException(
-            'WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.',
+            "WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.",
           );
         }
 
@@ -692,7 +692,7 @@ export class ContestsService {
             isRoundActivityFound = venue.rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId));
             if (isRoundActivityFound) break;
           }
-          if (!isRoundActivityFound) throw new BadRequestException('Please add all rounds to the schedule');
+          if (!isRoundActivityFound) throw new BadRequestException("Please add all rounds to the schedule");
 
           if (roundIds.has(round.roundId)) throw new BadRequestException(`Duplicate round found: ${round.roundId}`);
           roundIds.add(round.roundId); // used below in schedule validation
@@ -707,7 +707,7 @@ export class ContestsService {
 
       for (const venue of contest.compDetails.schedule.venues) {
         if (venue.countryIso2 !== contest.countryIso2) {
-          throw new BadRequestException('The schedule may not have a country different from the contest country');
+          throw new BadRequestException("The schedule may not have a country different from the contest country");
         }
 
         if (venues.has(venue.id)) throw new BadRequestException(`Duplicate venue ID found: ${venue.id}`);
@@ -721,8 +721,8 @@ export class ContestsService {
           rooms.add(room.id);
 
           for (const activity of room.activities) {
-            if (activity.activityCode !== 'other-misc' && activity.name) {
-              throw new BadRequestException('A non-custom activity may not have a custom title');
+            if (activity.activityCode !== "other-misc" && activity.name) {
+              throw new BadRequestException("A non-custom activity may not have a custom title");
             }
 
             if (activities.has(activity.id)) {
@@ -744,17 +744,17 @@ export class ContestsService {
 
             const zonedStartTime = toZonedTime(activity.startTime, venue.timezone).getTime();
             if (zonedStartTime < new Date(contest.startDate).getTime()) {
-              throw new BadRequestException('An activity may not start before the start date');
+              throw new BadRequestException("An activity may not start before the start date");
             }
             const zonedEndTime = toZonedTime(activity.endTime, venue.timezone).getTime();
             if (zonedEndTime > endOfDay(new Date(contest.endDate)).getTime()) {
-              throw new BadRequestException('An activity may not end after the end date');
+              throw new BadRequestException("An activity may not end after the end date");
             }
             if (zonedStartTime === zonedEndTime) {
-              throw new BadRequestException('An activity may not start and end at the same time');
+              throw new BadRequestException("An activity may not start and end at the same time");
             }
             if (zonedStartTime > zonedEndTime) {
-              throw new BadRequestException('An activity start time may not be after the end time');
+              throw new BadRequestException("An activity start time may not be after the end time");
             }
           }
 
@@ -767,16 +767,16 @@ export class ContestsService {
     } // Validation of meetups
     else if (contest.type === ContestType.Meetup) {
       if (getTotalRounds(contest.events) > C.maxMeetupRounds) {
-        throw new BadRequestException('You may not hold more than 15 rounds at a meetup');
+        throw new BadRequestException("You may not hold more than 15 rounds at a meetup");
       }
     }
 
     // Disallow mods to make admin-only edits
     if (!user.roles.includes(Role.Admin)) {
-      if (!contest.address) throw new BadRequestException('Please enter an address');
-      if (!contest.venue) throw new BadRequestException('Please enter the venue name');
+      if (!contest.address) throw new BadRequestException("Please enter an address");
+      if (!contest.venue) throw new BadRequestException("Please enter the venue name");
       if (!contest.organizers.some((o) => o.personId === user.personId)) {
-        throw new BadRequestException('You cannot create a contest which you are not organizing');
+        throw new BadRequestException("You cannot create a contest which you are not organizing");
       }
     }
   }
@@ -794,14 +794,14 @@ export class ContestsService {
       .exec();
 
     if (zeroResultsRound) {
-      const [eventId, roundNumber] = zeroResultsRound.roundId.split('-');
+      const [eventId, roundNumber] = zeroResultsRound.roundId.split("-");
       const event = await this.eventsService.getEventById(eventId);
       throw new BadRequestException(`${event.name} round ${roundNumber.slice(1)} has no results`);
     }
 
     // Check there are no incomplete results
     const incompleteResult = await this.resultModel
-      .findOne({ competitionId: contest.competitionId, 'attempts.result': 0 })
+      .findOne({ competitionId: contest.competitionId, "attempts.result": 0 })
       .exec();
     if (incompleteResult) {
       const event = await this.eventsService.getEventById(incompleteResult.eventId);
@@ -842,13 +842,13 @@ export class ContestsService {
       wcaCompData = await res.json();
       if (!wcaCompData || wcaCompData.length === 0) {
         throw new BadRequestException(
-          'You must wait until the results have been published on the WCA website before publishing it',
+          "You must wait until the results have been published on the WCA website before publishing it",
         );
       }
     }
 
     // Unset unapproved from the results so that they can be included in the rankings
-    await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: '' } });
+    await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: "" } });
 
     await this.personsService.approvePersons({ competitionId: contest.competitionId, wcaCompData });
 

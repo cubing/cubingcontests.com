@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 // import React, { useContext, useEffect, useState } from 'react';
 // import { useMyFetch, useFetchPerson, useFetchWcaCompDetails } from '~/helpers/customHooks.ts';
 // import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from '~/shared_helpers/enums.ts';

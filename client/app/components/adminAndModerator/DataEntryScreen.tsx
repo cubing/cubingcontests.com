@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { useMyFetch } from '~/helpers/customHooks.ts';
-import ResultForm from './ResultForm.tsx';
-import ToastMessages from '~/app/components/UI/ToastMessages.tsx';
-import Button from '~/app/components/UI/Button.tsx';
-import RoundResultsTable from '~/app/components/RoundResultsTable.tsx';
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import ResultForm from "./ResultForm.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import RoundResultsTable from "~/app/components/RoundResultsTable.tsx";
 import {
   IAttempt,
   IContestData,
@@ -18,12 +18,12 @@ import {
   IResult,
   IRound,
   IUpdateResultDto,
-} from '~/shared_helpers/types.ts';
-import { ContestState } from '~/shared_helpers/enums.ts';
-import { getUserInfo, shortenEventName } from '~/helpers/utilityFunctions.ts';
-import { IUserInfo } from '~/helpers/interfaces/UserInfo.ts';
-import { MainContext } from '~/helpers/contexts.ts';
-import { getBestAndAverage } from '~/shared_helpers/sharedFunctions.ts';
+} from "../../../shared_helpers/types.ts";
+import { ContestState } from "../../../shared_helpers/enums.ts";
+import { getUserInfo, shortenEventName } from "~/helpers/utilityFunctions.ts";
+import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import { getBestAndAverage } from "../../../shared_helpers/sharedFunctions.ts";
 
 const userInfo: IUserInfo | undefined = getUserInfo();
 
@@ -41,7 +41,7 @@ const DataEntryScreen = ({
   const myFetch = useMyFetch();
   const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
-  const eventId = searchParams.get('eventId') ??
+  const eventId = searchParams.get("eventId") ??
     contest.events[0].event.eventId;
 
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState(true); // trigger reset on page load
@@ -62,7 +62,7 @@ const DataEntryScreen = ({
   const [queuePosition, setQueuePosition] = useState(contest.queuePosition);
 
   const currEvent = useMemo(
-    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split('-')[0]).event,
+    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split("-")[0]).event,
     [contest, round.roundId],
   );
   const recordPairs = useMemo(
@@ -83,7 +83,7 @@ const DataEntryScreen = ({
         ]);
       } else if (contest.state >= ContestState.Finished) {
         changeErrorMessages([
-          'This contest is over. Submitting results is disabled.',
+          "This contest is over. Submitting results is disabled.",
         ]);
       }
     }
@@ -91,7 +91,7 @@ const DataEntryScreen = ({
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
-    document.getElementById('Competitor_1').focus();
+    document.getElementById("Competitor_1").focus();
   }, [round.roundId]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ const DataEntryScreen = ({
   const submitResult = async () => {
     if (isEditable) {
       if (currentPersons.some((p) => !p)) {
-        changeErrorMessages(['Invalid person(s)']);
+        changeErrorMessages(["Invalid person(s)"]);
         return;
       }
 
@@ -125,7 +125,7 @@ const DataEntryScreen = ({
           `/results/${round.roundId}`,
           newResult,
           {
-            loadingId: 'submit_attempt_button',
+            loadingId: "submit_attempt_button",
           },
         );
         updatedRound = payload;
@@ -139,7 +139,7 @@ const DataEntryScreen = ({
         const { payload, errors: err } = await myFetch.patch(
           `/results/${(resultUnderEdit as any)._id}`,
           updateResultDto,
-          { loadingId: 'submit_attempt_button' },
+          { loadingId: "submit_attempt_button" },
         );
         updatedRound = payload;
         errors = err;
@@ -184,7 +184,7 @@ const DataEntryScreen = ({
         newResult.average < eventRP.recordPairs[0].average)
     ) {
       const { payload, errors } = await myFetch.get(
-        `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(',')}`,
+        `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(",")}`,
         { authorize: true, loadingId: null },
       );
 
@@ -208,7 +208,7 @@ const DataEntryScreen = ({
 
   const deleteResult = async (resultId: string) => {
     if (isEditable) {
-      const answer = confirm('Are you sure you want to delete this result?');
+      const answer = confirm("Are you sure you want to delete this result?");
 
       if (answer) {
         const { payload, errors } = await myFetch.delete(
@@ -224,7 +224,7 @@ const DataEntryScreen = ({
   };
 
   const updateQueuePosition = async (
-    mode: 'decrement' | 'increment' | 'reset',
+    mode: "decrement" | "increment" | "reset",
   ) => {
     const { payload, errors } = await myFetch.patch(
       `/competitions/queue-${mode}/${contest.competitionId}`,
@@ -236,11 +236,11 @@ const DataEntryScreen = ({
   };
 
   return (
-    <div className='px-2'>
+    <div className="px-2">
       <ToastMessages />
 
-      <div className='row py-4'>
-        <div className='col-lg-3 mb-4'>
+      <div className="row py-4">
+        <div className="col-lg-3 mb-4">
           <div>
             <ResultForm
               event={currEvent}
@@ -250,7 +250,7 @@ const DataEntryScreen = ({
               setAttempts={setAttempts}
               recordPairs={recordPairs}
               recordTypes={activeRecordTypes}
-              nextFocusTargetId='submit_attempt_button'
+              nextFocusTargetId="submit_attempt_button"
               resetTrigger={resultFormResetTrigger}
               round={round}
               setRound={setRound}
@@ -259,7 +259,7 @@ const DataEntryScreen = ({
               disableMainSelects={resultUnderEdit !== null}
             />
             <Button
-              id='submit_attempt_button'
+              id="submit_attempt_button"
               onClick={submitResult}
               disabled={!isEditable}
               loadingId={loadingId}
@@ -268,32 +268,32 @@ const DataEntryScreen = ({
             </Button>
             {contest.queuePosition !== undefined && (
               <>
-                <p className='mt-4 mb-2'>Current position in queue:</p>
-                <div className='d-flex align-items-center gap-3'>
+                <p className="mt-4 mb-2">Current position in queue:</p>
+                <div className="d-flex align-items-center gap-3">
                   <Button
-                    id='queue_decrement_button'
-                    onClick={() => updateQueuePosition('decrement')}
+                    id="queue_decrement_button"
+                    onClick={() => updateQueuePosition("decrement")}
                     loadingId={loadingId}
-                    className='btn-success btn-xs'
-                    ariaLabel='Decrement queue position'
+                    className="btn-success btn-xs"
+                    ariaLabel="Decrement queue position"
                   >
                     <FontAwesomeIcon icon={faMinus} />
                   </Button>
-                  <p className='mb-0 fs-5 fw-bold'>{queuePosition}</p>
+                  <p className="mb-0 fs-5 fw-bold">{queuePosition}</p>
                   <Button
-                    id='queue_increment_button'
-                    onClick={() => updateQueuePosition('increment')}
+                    id="queue_increment_button"
+                    onClick={() => updateQueuePosition("increment")}
                     loadingId={loadingId}
-                    className='btn-success btn-xs'
-                    ariaLabel='Increment queue position'
+                    className="btn-success btn-xs"
+                    ariaLabel="Increment queue position"
                   >
                     <FontAwesomeIcon icon={faPlus} />
                   </Button>
                   <Button
-                    id='queue_reset_button'
-                    onClick={() => updateQueuePosition('reset')}
+                    id="queue_reset_button"
+                    onClick={() => updateQueuePosition("reset")}
                     loadingId={loadingId}
-                    className='btn-xs'
+                    className="btn-xs"
                   >
                     Reset
                   </Button>
@@ -303,8 +303,8 @@ const DataEntryScreen = ({
           </div>
         </div>
 
-        <div className='col-lg-9'>
-          <h3 className='mt-2 mb-4 text-center'>
+        <div className="col-lg-9">
+          <h3 className="mt-2 mb-4 text-center">
             {contest.shortName} &ndash; {shortenEventName(currEvent.name)}
           </h3>
 

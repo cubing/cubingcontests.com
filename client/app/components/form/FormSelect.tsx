@@ -1,5 +1,5 @@
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption.ts';
-import FormInputLabel from './FormInputLabel.tsx';
+import { MultiChoiceOption } from "~/helpers/interfaces/MultiChoiceOption.ts";
+import FormInputLabel from "./FormInputLabel.tsx";
 
 const FormSelect = ({
   id,
@@ -9,7 +9,7 @@ const FormSelect = ({
   setSelected,
   disabled,
   oneLine,
-  className = '',
+  className = "",
   style,
 }: {
   title?: string;
@@ -19,16 +19,16 @@ const FormSelect = ({
   disabled?: boolean;
   oneLine?: boolean;
 } & React.HTMLAttributes<HTMLElement>) => {
-  let inputId = 'select';
+  let inputId = "select";
 
   if (id) inputId = id;
   else if (title) {
-    inputId = `${title.toLowerCase().replaceAll(' ', '_')}_select`;
+    inputId = `${title.toLowerCase().replaceAll(" ", "_")}_select`;
   }
 
   return (
     <div
-      className={`fs-5 ${className || 'mb-3'} ${oneLine ? 'd-flex align-items-center gap-3' : ''}`}
+      className={`fs-5 ${className || "mb-3"} ${oneLine ? "d-flex align-items-center gap-3" : ""}`}
       style={style}
     >
       <FormInputLabel text={title} inputId={inputId} />
@@ -38,10 +38,10 @@ const FormSelect = ({
         value={selected}
         onChange={(e) =>
           setSelected(
-            typeof selected === 'string' ? e.target.value : Number(e.target.value),
+            typeof selected === "string" ? e.target.value : Number(e.target.value),
           )}
         disabled={disabled}
-        className={`form-select ${oneLine ? 'mb-2' : ''}`} // mb-2 is to offset the bottom margin of the label
+        className={`form-select ${oneLine ? "mb-2" : ""}`} // mb-2 is to offset the bottom margin of the label
       >
         {options.map((option: MultiChoiceOption) => (
           <option key={option.value} value={option.value}>

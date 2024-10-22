@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useContext, useState } from 'react';
-import { doFetch } from '~/helpers/fetchUtils.ts';
-import { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from '~/shared_helpers/types.ts';
-import { ContestType } from '~/shared_helpers/enums.ts';
-import C from '~/shared_helpers/constants.ts';
-import { MainContext } from '~/helpers/contexts.ts';
+import { useContext, useState } from "react";
+import { doFetch } from "~/helpers/fetchUtils.ts";
+import { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "../shared_helpers/types.ts";
+import { ContestType } from "../shared_helpers/enums.ts";
+import C from "../shared_helpers/constants.ts";
+import { MainContext } from "~/helpers/contexts.ts";
 
 type FetchOptions = {
   authorize?: boolean;
@@ -37,14 +37,14 @@ export const useMyFetch = () => {
         redirect,
         fileName,
         loadingId,
-        keepLoadingAfterSuccess,
+        keepLoadingAfterSuccess = false,
       }: FetchOptions & {
         redirect?: string; // this can only be set if authorize is set too
         fileName?: string;
       } = { authorize: false },
     ): Promise<FetchObj<T>> {
-      if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch<T>(url, 'GET', {
+      if (loadingId !== null) changeLoadingId(loadingId || "_");
+      const response = await doFetch<T>(url, "GET", {
         authorize,
         redirect,
         fileName,
@@ -55,41 +55,41 @@ export const useMyFetch = () => {
     async post<T = any>(
       url: string,
       body: unknown,
-      { authorize = true, loadingId, keepLoadingAfterSuccess }: FetchOptions = {
+      { authorize = true, loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {
         authorize: true,
       },
     ): Promise<FetchObj<T>> {
-      if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch<T>(url, 'POST', { body, authorize });
+      if (loadingId !== null) changeLoadingId(loadingId || "_");
+      const response = await doFetch<T>(url, "POST", { body, authorize });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
     async put<T = any>(
       url: string,
       body: unknown,
-      { loadingId, keepLoadingAfterSuccess }: FetchOptions = {},
+      { loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {},
     ): Promise<FetchObj<T>> {
-      if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch<T>(url, 'PUT', { body });
+      if (loadingId !== null) changeLoadingId(loadingId || "_");
+      const response = await doFetch<T>(url, "PUT", { body });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
     async patch<T = any>(
       url: string,
       body: unknown,
-      { loadingId, keepLoadingAfterSuccess }: FetchOptions = {},
+      { loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {},
     ): Promise<FetchObj<T>> {
-      if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch<T>(url, 'PATCH', { body });
+      if (loadingId !== null) changeLoadingId(loadingId || "_");
+      const response = await doFetch<T>(url, "PATCH", { body });
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
     async delete<T = any>(
       url: string,
-      { loadingId, keepLoadingAfterSuccess }: FetchOptions = {},
+      { loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {},
     ): Promise<FetchObj<T>> {
-      if (loadingId !== null) changeLoadingId(loadingId || '_');
-      const response = await doFetch<T>(url, 'DELETE');
+      if (loadingId !== null) changeLoadingId(loadingId || "_");
+      const response = await doFetch<T>(url, "DELETE");
       if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
       return response;
     },
@@ -126,7 +126,7 @@ export const useFetchWcaCompDetails = () => {
       city: wcaCompData.city,
       countryIso2: wcaCompData.country,
       // Gets rid of the link and just takes the venue name
-      venue: wcaCompData.venue.name.split(']')[0].replace('[', ''),
+      venue: wcaCompData.venue.name.split("]")[0].replace("[", ""),
       address: wcaCompData.venue.address,
       latitudeMicrodegrees: Math.round(
         wcaCompData.venue.coordinates.latitude * 1000000,
@@ -137,7 +137,7 @@ export const useFetchWcaCompDetails = () => {
       startDate,
       endDate,
       organizers: [], // this is set below
-      description: '',
+      description: "",
       competitorLimit,
       events: [],
       // compDetails.schedule needs to be set by an admin manually
@@ -168,7 +168,7 @@ export const useFetchWcaCompDetails = () => {
 
     if (notFoundPersonNames.length > 0) {
       throw new Error(
-        `Organizers with these names were not found: ${notFoundPersonNames.join(', ')}`,
+        `Organizers with these names were not found: ${notFoundPersonNames.join(", ")}`,
       );
     }
 
@@ -197,7 +197,7 @@ export const useFetchPerson = () => {
     }
 
     // If a WCA ID wasn't provided, first try looking in the CC database
-    const englishNameOnly = name.split('(')[0].trim(); // get rid of the ( and everything after it
+    const englishNameOnly = name.split("(")[0].trim(); // get rid of the ( and everything after it
     const { payload, errors: e1 } = await myFetch.get(
       `/persons?name=${englishNameOnly}&exactMatch=true`,
       {
@@ -231,7 +231,7 @@ export const useFetchPerson = () => {
     if (countryIso2) {
       const newPerson: IPersonDto = { name, countryIso2 };
       const { payload: person, errors } = await myFetch.post(
-        '/persons/no-wcaid',
+        "/persons/no-wcaid",
         newPerson,
         { loadingId: null },
       );

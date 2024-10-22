@@ -1,7 +1,7 @@
-import { WcaRecordType } from '@sh/enums';
-import { getBaseAvgsFilter, getBaseSinglesFilter } from '~/src/helpers/utilityFunctions';
-import { recordTypesStub } from '../stubs/record-types.stub';
-import { EventDocument } from '~/src/models/event.model';
+import { WcaRecordType } from "@sh/enums";
+import { getBaseAvgsFilter, getBaseSinglesFilter } from "~/src/helpers/utilityFunctions";
+import { recordTypesStub } from "../stubs/record-types.stub";
+import { EventDocument } from "~/src/models/event.model";
 
 export const setEventSingleRecordsMock = jest.fn();
 export const setEventAvgRecordsMock = jest.fn();

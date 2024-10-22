@@ -1,7 +1,7 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
-import { IPerson } from '@sh/types';
-import { UserDocument } from './user.model';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import mongoose, { HydratedDocument } from "mongoose";
+import { IPerson } from "@sh/types";
+import { UserDocument } from "./user.model";
 
 @Schema({ timestamps: true })
 export class Person implements IPerson {
@@ -20,7 +20,7 @@ export class Person implements IPerson {
   @Prop({ required: true })
   countryIso2: string;
 
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Types.ObjectId, ref: "User" })
   createdBy?: UserDocument;
 
   @Prop()

@@ -1,5 +1,5 @@
-import { Role } from '~/shared_helpers/enums.ts';
-import { IPerson } from '~/shared_helpers/types.ts';
+import { Role } from "../enums.ts";
+import { IPerson } from "../types.ts";
 
 export interface IFeUser {
   username: string;

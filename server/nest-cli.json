@@ -2,10 +2,10 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
-  "entryFile": "server/src/main.js",
+  "entryFile": "src/main.js",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": ["public", "scorecards/fonts/*", "**/email/templates/*"],
+    "assets": ["scorecards/fonts/*", "**/email/templates/*"],
     "watchAssets": true,
     "typeCheck": true
   }

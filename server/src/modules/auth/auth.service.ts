@@ -4,24 +4,24 @@ import {
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, RootFilterQuery } from 'mongoose';
-import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
-import { addWeeks } from 'date-fns';
-import { IJwtPayload } from '~/src/helpers/interfaces/JwtPayload';
-import { JwtService } from '@nestjs/jwt';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { UsersService } from '@m/users/users.service';
-import { CreateUserDto } from '@m/users/dto/create-user.dto';
-import { ContestState, Role } from '@sh/enums';
-import C from '@sh/constants';
-import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { ContestDocument } from '~/src/models/contest.model';
-import { AuthTokenDocument } from '~/src/models/auth-token.model';
-import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
-import { LogType } from '~/src/helpers/enums';
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, RootFilterQuery } from "mongoose";
+import * as bcrypt from "bcrypt";
+import { randomBytes } from "crypto";
+import { addWeeks } from "date-fns";
+import { IJwtPayload } from "~/src/helpers/interfaces/JwtPayload";
+import { JwtService } from "@nestjs/jwt";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { UsersService } from "@m/users/users.service";
+import { CreateUserDto } from "@m/users/dto/create-user.dto";
+import { ContestState, Role } from "@sh/enums";
+import C from "@sh/constants";
+import { IPartialUser } from "~/src/helpers/interfaces/User";
+import { ContestDocument } from "~/src/models/contest.model";
+import { AuthTokenDocument } from "~/src/models/auth-token.model";
+import { getUserEmailVerified } from "~/src/helpers/utilityFunctions";
+import { LogType } from "~/src/helpers/enums";
 
 @Injectable()
 export class AuthService {
@@ -29,7 +29,7 @@ export class AuthService {
     private readonly logger: MyLogger,
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
-    @InjectModel('AuthToken') private readonly authTokenModel: Model<AuthTokenDocument>,
+    @InjectModel("AuthToken") private readonly authTokenModel: Model<AuthTokenDocument>,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -62,14 +62,14 @@ export class AuthService {
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {
-    const email = username.includes('@') ? username.toLowerCase() : undefined;
+    const email = username.includes("@") ? username.toLowerCase() : undefined;
     const user = await this.usersService.getUserWithQuery(email ? { email } : { username });
 
     if (user) {
       const passwordsMatch = await bcrypt.compare(password, user.password);
 
       if (passwordsMatch) {
-        if (!getUserEmailVerified(user)) throw new BadRequestException('UNCONFIRMED');
+        if (!getUserEmailVerified(user)) throw new BadRequestException("UNCONFIRMED");
 
         return {
           _id: user._id,
@@ -81,7 +81,7 @@ export class AuthService {
       }
     }
 
-    throw new NotFoundException('The username or password is incorrect');
+    throw new NotFoundException("The username or password is incorrect");
   }
 
   async revalidate(jwtUser: any) {
@@ -110,10 +110,10 @@ export class AuthService {
       throw new BadRequestException("You may not create an access token for a contest that hasn't been approved yet");
     }
     if (contest.state >= ContestState.Finished) {
-      throw new BadRequestException('You may not create an access token for a finished contest');
+      throw new BadRequestException("You may not create an access token for a finished contest");
     }
 
-    const token = randomBytes(32).toString('hex');
+    const token = randomBytes(32).toString("hex");
     const hash = await bcrypt.hash(token, 0); // there's no need to salt the tokens
 
     try {
@@ -152,7 +152,7 @@ export class AuthService {
 
   // THE CONTEST MUST ALREADY BE POPULATED!
   checkAccessRightsToContest(user: IPartialUser, contest: ContestDocument) {
-    if (contest.state === ContestState.Removed) throw new BadRequestException('This contest has been removed');
+    if (contest.state === ContestState.Removed) throw new BadRequestException("This contest has been removed");
 
     const hasAccessRights = user.roles.includes(Role.Admin) ||
       (user.roles.includes(Role.Moderator) &&
@@ -165,7 +165,7 @@ export class AuthService {
         LogType.AccessDenied,
       );
 
-      throw new UnauthorizedException('You do not have access rights for this contest');
+      throw new UnauthorizedException("You do not have access rights for this contest");
     }
   }
 }

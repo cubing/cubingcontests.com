@@ -1,18 +1,18 @@
-import { join } from 'node:path';
-import { readFile } from 'fs/promises';
-import { createTransport } from 'nodemailer';
-import Handlebars from 'handlebars';
-import { Injectable } from '@nestjs/common';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { LogType } from '~/src/helpers/enums';
-import { IContest } from '@sh/types';
-import { getRoleLabel } from '@sh/sharedFunctions';
-import { ContestType, Role } from '@sh/enums';
+import { join } from "node:path";
+import { readFile } from "fs/promises";
+import { createTransport } from "nodemailer";
+import Handlebars from "handlebars";
+import { Injectable } from "@nestjs/common";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { LogType } from "~/src/helpers/enums";
+import { IContest } from "@sh/types";
+import { getRoleLabel } from "@sh/sharedFunctions";
+import { ContestType, Role } from "@sh/enums";
 
 // The fileName is the name of a file inside of the templates directory
 const getEmailContents = async (fileName: string, context: any): Promise<string> => {
   // The path is like this cause of the dist structure after the Nest build step
-  const templateFile = await readFile(join('./dist/modules/email/templates', fileName), 'utf-8');
+  const templateFile = await readFile(join("./dist/modules/email/templates", fileName), "utf-8");
   const template = Handlebars.compile(templateFile, { strict: true });
 
   return template(context);
@@ -20,7 +20,7 @@ const getEmailContents = async (fileName: string, context: any): Promise<string>
 
 @Injectable()
 export class EmailService {
-  private sender = `"No Reply" no-reply@${process.env.BASE_URL.split('://')[1]}`;
+  private sender = `"No Reply" no-reply@${process.env.BASE_URL.split("://")[1]}`;
   private transporter = createTransport({
     host: process.env.MAIL_URL,
     port: 587,
@@ -34,8 +34,8 @@ export class EmailService {
   constructor(private readonly logger: MyLogger) {}
 
   // The recipient can either be specified with the email or the username
-  async sendEmail(to: string, text: string, { subject = '' }: { subject?: string }) {
-    const contents = await getEmailContents('default.hbs', { text });
+  async sendEmail(to: string, text: string, { subject = "" }: { subject?: string }) {
+    const contents = await getEmailContents("default.hbs", { text });
 
     try {
       await this.transporter.sendMail({
@@ -50,7 +50,7 @@ export class EmailService {
   }
 
   async sendEmailConfirmationCode(to: string, code: string) {
-    const contents = await getEmailContents('email-confirmation.hbs', {
+    const contents = await getEmailContents("email-confirmation.hbs", {
       code,
       ccUrl: process.env.BASE_URL,
     });
@@ -59,7 +59,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from: this.sender,
         to,
-        subject: 'Email confirmation',
+        subject: "Email confirmation",
         html: contents,
       });
     } catch (err) {
@@ -68,7 +68,7 @@ export class EmailService {
   }
 
   async sendPasswordResetCode(to: string, code: string) {
-    const contents = await getEmailContents('password-reset-request.hbs', {
+    const contents = await getEmailContents("password-reset-request.hbs", {
       code,
       ccUrl: process.env.BASE_URL,
     });
@@ -77,7 +77,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from: this.sender,
         to,
-        subject: 'Password reset request',
+        subject: "Password reset request",
         html: contents,
       });
     } catch (err) {
@@ -86,13 +86,13 @@ export class EmailService {
   }
 
   async sendPasswordChangedNotification(to: string) {
-    const contents = await getEmailContents('password-changed.hbs', { ccUrl: process.env.BASE_URL });
+    const contents = await getEmailContents("password-changed.hbs", { ccUrl: process.env.BASE_URL });
 
     try {
       await this.transporter.sendMail({
         from: this.sender,
         to,
-        subject: 'Password changed',
+        subject: "Password changed",
         html: contents,
       });
     } catch (err) {
@@ -101,7 +101,7 @@ export class EmailService {
   }
 
   async sendContestSubmittedNotification(to: string, contest: IContest, contestUrl: string) {
-    const contents = await getEmailContents('contest-submitted.hbs', {
+    const contents = await getEmailContents("contest-submitted.hbs", {
       competitionId: contest.competitionId,
       wcaCompetition: contest.type === ContestType.WcaComp,
       contestName: contest.name,
@@ -113,7 +113,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from: this.sender,
         to,
-        subject: 'Contest submitted',
+        subject: "Contest submitted",
         html: contents,
       });
     } catch (err) {
@@ -125,7 +125,7 @@ export class EmailService {
   }
 
   async sendPrivilegesGrantedNotification(to: string, role: Role) {
-    const contents = await getEmailContents('privileges-granted.hbs', {
+    const contents = await getEmailContents("privileges-granted.hbs", {
       role: getRoleLabel(role),
       ccUrl: process.env.BASE_URL,
     });
@@ -134,7 +134,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from: this.sender,
         to,
-        subject: 'Privileges granted',
+        subject: "Privileges granted",
         html: contents,
       });
     } catch (err) {

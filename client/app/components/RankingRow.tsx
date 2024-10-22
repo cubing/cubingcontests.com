@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
-import Country from '~/app/components/Country.tsx';
-import Competitor from '~/app/components/Competitor.tsx';
-import ContestName from '~/app/components/ContestName.tsx';
-import Solves from '~/app/components/Solves.tsx';
-import RankingLinks from '~/app/components/RankingLinks.tsx';
-import Competitors from '~/app/components/Competitors.tsx';
-import { IEvent, IPerson, IRanking } from '~/shared_helpers/types.ts';
-import { getFormattedTime } from '~/shared_helpers/sharedFunctions.ts';
-import { getFormattedDate } from '~/helpers/utilityFunctions.ts';
+import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
+import Country from "~/app/components/Country.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
+import ContestName from "~/app/components/ContestName.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import RankingLinks from "~/app/components/RankingLinks.tsx";
+import Competitors from "~/app/components/Competitors.tsx";
+import { IEvent, IPerson, IRanking } from "../../shared_helpers/types.ts";
+import { getFormattedTime } from "../../shared_helpers/sharedFunctions.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
 // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
-const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
+const getRecordType = (type: "single" | "average" | "mean"): string => {
   return type[0].toUpperCase() + type.slice(1);
 };
 
@@ -51,7 +51,7 @@ const RankingRow = ({
     <tr>
       <td>
         {!onlyKeepPerson && (
-          <span className={isTiedRanking ? 'text-secondary' : ''}>
+          <span className={isTiedRanking ? "text-secondary" : ""}>
             {firstColumnValue}
           </span>
         )}
@@ -78,15 +78,15 @@ const RankingRow = ({
       </td>
       {showTeamColumn && (
         <td>
-          <div className='d-flex flex-column align-items-start gap-2 fs-6'>
-            <span className='text-white'>
+          <div className="d-flex flex-column align-items-start gap-2 fs-6">
+            <span className="text-white">
               <u
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: "pointer" }}
                 onClick={() => setTeamExpanded(!teamExpanded)}
               >
-                {teamExpanded ? 'Close' : 'Open'}
+                {teamExpanded ? "Close" : "Open"}
               </u>
-              <span className='ms-2'>
+              <span className="ms-2">
                 {teamExpanded ? <FontAwesomeIcon icon={faCaretDown} /> : <FontAwesomeIcon icon={faCaretRight} />}
               </span>
             </span>

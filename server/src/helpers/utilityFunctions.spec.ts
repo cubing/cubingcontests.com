@@ -1,13 +1,13 @@
-import { setRankings } from './utilityFunctions';
-import { RoundDocument } from '../models/round.model';
-import { ResultDocument } from '../models/result.model';
-import { unrankedRoundsStub } from '../modules/contests/tests/stubs/unranked-rounds';
-import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
+import { setRankings } from "./utilityFunctions";
+import { RoundDocument } from "../models/round.model";
+import { ResultDocument } from "../models/result.model";
+import { unrankedRoundsStub } from "../modules/contests/tests/stubs/unranked-rounds";
+import { getRoundRanksWithAverage } from "@sh/sharedFunctions";
 
-describe('setRankings works correctly', () => {
+describe("setRankings works correctly", () => {
   const unrankedRounds = unrankedRoundsStub() as RoundDocument[];
 
-  it('sets rankings for 3x3x3 round correctly', async () => {
+  it("sets rankings for 3x3x3 round correctly", async () => {
     const round = unrankedRounds[0];
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
@@ -21,7 +21,7 @@ describe('setRankings works correctly', () => {
     expect(round.results[3].average).toBe(1624);
   });
 
-  it('sets rankings for 3x3x3 FM round correctly', async () => {
+  it("sets rankings for 3x3x3 FM round correctly", async () => {
     const round = unrankedRounds[1];
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
@@ -40,7 +40,7 @@ describe('setRankings works correctly', () => {
     expect(round.results[3].best).toBe(40);
   });
 
-  it('sets rankings for 3x3x3 BLD round correctly', async () => {
+  it("sets rankings for 3x3x3 BLD round correctly", async () => {
     const round = unrankedRounds[2];
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
@@ -60,7 +60,7 @@ describe('setRankings works correctly', () => {
     expect(round.results[5].best).toBe(-1);
   });
 
-  it('sets rankings for 2x2x2 round with Bo3 format correctly', async () => {
+  it("sets rankings for 2x2x2 round with Bo3 format correctly", async () => {
     const round = unrankedRounds[3];
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
@@ -72,7 +72,7 @@ describe('setRankings works correctly', () => {
     expect(round.results[2].best).toBe(449);
   });
 
-  it('sets rankings for 5x5x5 round with only DNF averages correctly', async () => {
+  it("sets rankings for 5x5x5 round with only DNF averages correctly", async () => {
     const round = unrankedRounds[4];
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
 
@@ -84,7 +84,7 @@ describe('setRankings works correctly', () => {
     expect(round.results[1].average).toBe(-1);
   });
 
-  it('sets rankings for 3x3x3 top single results (pre-sorted) correctly', async () => {
+  it("sets rankings for 3x3x3 top single results (pre-sorted) correctly", async () => {
     const top333SingleRankings = await setRankings(
       [
         { best: 467 },
@@ -113,7 +113,7 @@ describe('setRankings works correctly', () => {
     expect(top333SingleRankings[9].ranking).toBe(9);
   });
 
-  it('sets rankings for 3x3x3 top average results (pre-sorted) without tie breakers correctly', async () => {
+  it("sets rankings for 3x3x3 top average results (pre-sorted) without tie breakers correctly", async () => {
     const top333SingleRankings = await setRankings(
       [
         { average: 467 },

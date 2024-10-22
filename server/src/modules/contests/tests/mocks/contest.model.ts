@@ -1,5 +1,5 @@
-import { ContestDocument } from '~/src/models/contest.model';
-import { contestsStub } from '../stubs/competitions.stub';
+import { ContestDocument } from "~/src/models/contest.model";
+import { contestsStub } from "../stubs/competitions.stub";
 
 export const ContestModelMock = (): any => ({
   tempOutput: undefined,
@@ -54,7 +54,7 @@ export const ContestModelMock = (): any => ({
 
     // If the output is an array, return the array, otherwise return the single found
     // contest document with a save() method.
-    if (typeof temp?.length === 'number') {
+    if (typeof temp?.length === "number") {
       return temp;
     } else {
       return { ...temp, async save() {} };

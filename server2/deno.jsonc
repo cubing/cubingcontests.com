@@ -4,7 +4,7 @@
   },
 
   "tasks": {
-    "start": "deno run --allow-net main.ts"
+    "start": "deno run --env-file=../.env --allow-env --allow-read --allow-net main.ts"
   }
   // "compilerOptions": {
   //   "jsx": "precompile",

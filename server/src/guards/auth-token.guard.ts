@@ -1,5 +1,5 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { AuthService } from '@m/auth/auth.service';
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { AuthService } from "@m/auth/auth.service";
 
 @Injectable()
 export class AuthTokenGuard implements CanActivate {
@@ -7,7 +7,7 @@ export class AuthTokenGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.authorization?.split('Bearer ')[1];
+    const token = request.headers.authorization?.split("Bearer ")[1];
 
     if (!token || !request.body?.competitionWcaId) return false;
 

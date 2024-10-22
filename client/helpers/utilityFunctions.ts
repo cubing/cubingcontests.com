@@ -1,33 +1,33 @@
-import jwtDecode from 'jwt-decode';
-import { isSameDay, isSameMonth, isSameYear } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
-import { remove as removeAccents } from 'remove-accents';
-import { Color, EventFormat, Role } from '~/shared_helpers/enums.ts';
-import C from '~/shared_helpers/constants.ts';
-import { IAttempt, IEvent, IFeAttempt, ITimeLimit } from '~/shared_helpers/types.ts';
-import { IUserInfo } from './interfaces/UserInfo.ts';
+import jwtDecode from "jwt-decode";
+import { isSameDay, isSameMonth, isSameYear } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { remove as removeAccents } from "remove-accents";
+import { Color, EventFormat, Role } from "../shared_helpers/enums.ts";
+import C from "../shared_helpers/constants.ts";
+import { IAttempt, IEvent, IFeAttempt, ITimeLimit } from "../shared_helpers/types.ts";
+import { IUserInfo } from "./interfaces/UserInfo.ts";
 
 export const getFormattedDate = (
   startDate: Date | string,
   endDate?: Date | string,
 ): string => {
-  if (!startDate) throw new Error('Start date missing!');
+  if (!startDate) throw new Error("Start date missing!");
 
-  if (typeof startDate === 'string') startDate = new Date(startDate);
-  if (typeof endDate === 'string') endDate = new Date(endDate);
+  if (typeof startDate === "string") startDate = new Date(startDate);
+  if (typeof endDate === "string") endDate = new Date(endDate);
 
-  const fullFormat = 'd MMM yyyy';
+  const fullFormat = "d MMM yyyy";
 
   if (!endDate || isSameDay(startDate, endDate)) {
-    return formatInTimeZone(startDate, 'UTC', fullFormat);
+    return formatInTimeZone(startDate, "UTC", fullFormat);
   } else {
     let startFormat: string;
 
     if (!isSameYear(startDate, endDate)) startFormat = fullFormat;
-    else if (!isSameMonth(startDate, endDate)) startFormat = 'd MMM';
-    else startFormat = 'd';
+    else if (!isSameMonth(startDate, endDate)) startFormat = "d MMM";
+    else startFormat = "d";
 
-    return `${formatInTimeZone(startDate, 'UTC', startFormat)} - ${formatInTimeZone(endDate, 'UTC', fullFormat)}`;
+    return `${formatInTimeZone(startDate, "UTC", startFormat)} - ${formatInTimeZone(endDate, "UTC", fullFormat)}`;
   }
 };
 
@@ -48,7 +48,7 @@ export const getCentiseconds = (
 
   if (time.length >= 5) {
     // Round attempts >= 10 minutes long, unless noRounding = true
-    if (time.length >= 6 && round) time = time.slice(0, -2) + '00';
+    if (time.length >= 6 && round) time = time.slice(0, -2) + "00";
 
     if (time.length >= 7) hours = parseInt(time.slice(0, time.length - 6));
     minutes = parseInt(time.slice(Math.max(time.length - 6, 0), -4));
@@ -98,7 +98,7 @@ export const getAttempt = (
   },
 ): IFeAttempt => {
   if (time.length > 8 || (memo && memo.length > 8)) {
-    throw new Error('Times longer than 8 digits are not supported');
+    throw new Error("Times longer than 8 digits are not supported");
   }
 
   const maxFmResultDigits = C.maxFmMoves.toString().length;
@@ -127,33 +127,33 @@ export const getAttempt = (
 
   if (event.format === EventFormat.Multi && newAttempt.result) {
     if (
-      typeof solved !== 'number' || typeof attempted !== 'number' ||
+      typeof solved !== "number" || typeof attempted !== "number" ||
       solved > attempted
     ) return { result: null };
 
     const maxTime = Math.min(attempted, 6) * 60000 + attempted * 200; // accounts for +2s
 
     // Disallow submitting multi times > max time, and <= 1 hour for old style
-    if (event.eventId === '333mbf' && newAttempt.result > maxTime) {
+    if (event.eventId === "333mbf" && newAttempt.result > maxTime) {
       return { ...newAttempt, result: null };
-    } else if (event.eventId === '333mbo' && newAttempt.result <= 360000) {
+    } else if (event.eventId === "333mbo" && newAttempt.result <= 360000) {
       return { ...newAttempt, result: null };
     }
 
     // See the IResult interface for information about how this works
-    let multiOutput = ''; // DDDDTTTTTTTMMMM
+    let multiOutput = ""; // DDDDTTTTTTTMMMM
     const missed: number = attempted - solved;
     let points: number = solved - missed;
 
     if (points <= 0) {
-      if (points < 0 || solved < 2) multiOutput += '-';
+      if (points < 0 || solved < 2) multiOutput += "-";
       points = -points;
     }
 
     multiOutput += 9999 - points;
-    multiOutput += new Array(7 - newAttempt.result.toString().length).fill('0').join('') +
+    multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") +
       newAttempt.result;
-    multiOutput += new Array(4 - missed.toString().length).fill('0').join('') +
+    multiOutput += new Array(4 - missed.toString().length).fill("0").join("") +
       missed;
 
     newAttempt.result = parseInt(multiOutput);
@@ -164,12 +164,12 @@ export const getAttempt = (
 
 // Returns the authenticated user's info
 export const getUserInfo = (): IUserInfo | undefined => {
-  if (typeof localStorage !== 'undefined') {
-    const token = localStorage.getItem('jwtToken');
+  if (typeof localStorage !== "undefined") {
+    const token = localStorage.getItem("jwtToken");
 
     if (token) {
       // Decode the JWT (only take the part after "Bearer ")
-      const authorizedUser: any = jwtDecode(token.split(' ')[1]);
+      const authorizedUser: any = jwtDecode(token.split(" ")[1]);
 
       const userInfo: IUserInfo = {
         id: authorizedUser.sub,
@@ -189,41 +189,41 @@ export const getBSClassFromColor = (color: Color): string => {
   // THE MAGENTA OPTION IS SKIPPED FOR NOW
   switch (color) {
     case Color.Red: {
-      return 'danger';
+      return "danger";
     }
     case Color.Blue: {
-      return 'primary';
+      return "primary";
     }
     case Color.Green: {
-      return 'success';
+      return "success";
     }
     case Color.Yellow: {
-      return 'warning';
+      return "warning";
     }
     case Color.White: {
-      return 'light';
+      return "light";
     }
     case Color.Cyan: {
-      return 'info';
+      return "info";
     }
     case Color.Black: {
-      return 'dark';
+      return "dark";
     }
     default: {
       console.error(`Unknown color: ${color}`);
-      return 'dark';
+      return "dark";
     }
   }
 };
 
 export const getContestIdFromName = (name: string): string => {
-  let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, '');
-  const parts = output.split(' ');
+  let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, "");
+  const parts = output.split(" ");
 
   output = parts
-    .filter((el) => el !== '')
+    .filter((el) => el !== "")
     .map((el) => el[0].toUpperCase() + el.slice(1))
-    .join('');
+    .join("");
 
   return output;
 };
@@ -240,7 +240,7 @@ export const genericOnKeyDown = (
     submitOnEnter?: boolean;
   },
 ) => {
-  if (e.key === 'Enter') {
+  if (e.key === "Enter") {
     if (!submitOnEnter) e.preventDefault();
     if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
   }
@@ -250,36 +250,36 @@ export const genericOnKeyDown = (
 
 export const shortenEventName = (name: string): string => {
   return name
-    .replaceAll('2x2x2', '2x2')
-    .replaceAll('3x3x3', '3x3')
-    .replaceAll('4x4x4', '4x4')
-    .replaceAll('5x5x5', '5x5')
-    .replaceAll('6x6x6', '6x6')
-    .replaceAll('7x7x7', '7x7')
-    .replaceAll('8x8x8', '8x8')
-    .replaceAll('9x9x9', '9x9')
-    .replaceAll('10x10x10', '10x10')
-    .replaceAll('11x11x11', '11x11')
-    .replace('Blindfolded', 'BLD')
-    .replace('Multi-Blind', 'MBLD')
-    .replace('One-Handed', 'OH')
-    .replace('Match The Scramble', 'MTS')
-    .replace('Face-Turning Octahedron', 'FTO')
-    .replace(' Cuboid', '')
-    .replace(' Challenge', '')
-    .replace('Three 3x3 Cubes', '3x 3x3');
+    .replaceAll("2x2x2", "2x2")
+    .replaceAll("3x3x3", "3x3")
+    .replaceAll("4x4x4", "4x4")
+    .replaceAll("5x5x5", "5x5")
+    .replaceAll("6x6x6", "6x6")
+    .replaceAll("7x7x7", "7x7")
+    .replaceAll("8x8x8", "8x8")
+    .replaceAll("9x9x9", "9x9")
+    .replaceAll("10x10x10", "10x10")
+    .replaceAll("11x11x11", "11x11")
+    .replace("Blindfolded", "BLD")
+    .replace("Multi-Blind", "MBLD")
+    .replace("One-Handed", "OH")
+    .replace("Match The Scramble", "MTS")
+    .replace("Face-Turning Octahedron", "FTO")
+    .replace(" Cuboid", "")
+    .replace(" Challenge", "")
+    .replace("Three 3x3 Cubes", "3x 3x3");
 };
 
 export const logOutUser = () => {
-  localStorage.removeItem('jwtToken');
-  window.location.href = '/';
+  localStorage.removeItem("jwtToken");
+  window.location.href = "/";
 };
 
 export const getIsWebglSupported = (): boolean => {
   try {
-    const canvas = document.createElement('canvas');
-    const webglContext = canvas.getContext('webgl');
-    const webglExperimentalContext = canvas.getContext('experimental-webgl');
+    const canvas = document.createElement("canvas");
+    const webglContext = canvas.getContext("webgl");
+    const webglExperimentalContext = canvas.getContext("experimental-webgl");
 
     return !!(window.WebGLRenderingContext && webglContext &&
       webglExperimentalContext);

@@ -1,19 +1,19 @@
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { ssrFetch } from '~/helpers/fetchUtils.ts';
-import ContestLayout from '~/app/competitions/ContestLayout.tsx';
-import ContestTypeBadge from '~/app/components/ContestTypeBadge.tsx';
-import Country from '~/app/components/Country.tsx';
-import Competitor from '~/app/components/Competitor.tsx';
-import MarkdownDescription from '~/app/components/MarkdownDescription.tsx';
-import { IContest, IContestData } from '~/shared_helpers/types.ts';
-import { ContestState, ContestType } from '~/shared_helpers/enums.ts';
-import { getDateOnly } from '~/shared_helpers/sharedFunctions.ts';
-import { getFormattedDate } from '~/helpers/utilityFunctions.ts';
-import WcaCompAdditionalDetails from '~/app/components/WcaCompAdditionalDetails.tsx';
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import ContestLayout from "~/app/competitions/ContestLayout.tsx";
+import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
+import Country from "~/app/components/Country.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
+import MarkdownDescription from "~/app/components/MarkdownDescription.tsx";
+import { IContest, IContestData } from "../../../shared_helpers/types.ts";
+import { ContestState, ContestType } from "../../../shared_helpers/enums.ts";
+import { getDateOnly } from "../../../shared_helpers/sharedFunctions.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const { payload } = await ssrFetch(`/competitions/${params.id}`);
-  if (!payload) return <h3 className='mt-4 text-center'>Contest not found</h3>;
+  if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = payload as IContestData;
 
   const formattedDate = getFormattedDate(
@@ -25,11 +25,11 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
     ? formatInTimeZone(
       contest.meetupDetails.startTime,
       contest.timezone,
-      'H:mm',
+      "H:mm",
     )
     : null;
   const startOfDayInLocalTZ = getDateOnly(
-    toZonedTime(new Date(), contest.timezone ?? 'UTC'),
+    toZonedTime(new Date(), contest.timezone ?? "UTC"),
   );
   const start = new Date(contest.startDate);
   const isOngoing = contest.state < ContestState.Finished &&
@@ -44,7 +44,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
     return (
       <a
         href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`}
-        target='_blank'
+        target="_blank"
       >
         {latitude}, {longitude}
       </a>
@@ -52,31 +52,31 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   };
 
   return (
-    <ContestLayout contest={contest} activeTab='details'>
-      <div className='row w-100 mx-0 fs-5'>
-        <div className='col-md-5 px-0'>
-          <div className='px-2'>
-            <div className='mb-3'>
+    <ContestLayout contest={contest} activeTab="details">
+      <div className="row w-100 mx-0 fs-5">
+        <div className="col-md-5 px-0">
+          <div className="px-2">
+            <div className="mb-3">
               <ContestTypeBadge type={contest.type} />
             </div>
-            <p className='mb-2'>Date:&#8194;{formattedDate}</p>
-            {formattedTime && <p className='mb-2'>Starts at:&#8194;{formattedTime}</p>}
-            <p className='mb-2'>
+            <p className="mb-2">Date:&#8194;{formattedDate}</p>
+            {formattedTime && <p className="mb-2">Starts at:&#8194;{formattedTime}</p>}
+            <p className="mb-2">
               City:&#8194;{contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
             </p>
             {/* Venue and address may be undefined for some old WCA competitions */}
-            {contest.venue && <p className='mb-2'>Venue:&#8194;{contest.venue}</p>}
-            {contest.address && <p className='mb-2'>Address:&#8194;{contest.address}</p>}
-            <p className='mb-2'>Coordinates:&#8194;{getFormattedCoords()}</p>
+            {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
+            {contest.address && <p className="mb-2">Address:&#8194;{contest.address}</p>}
+            <p className="mb-2">Coordinates:&#8194;{getFormattedCoords()}</p>
             {contest.contact && (
-              <p className='mb-2'>
-                Contact:&#8194;<span className='fs-6'>{contest.contact}</span>
+              <p className="mb-2">
+                Contact:&#8194;<span className="fs-6">{contest.contact}</span>
               </p>
             )}
-            <p className='mb-2'>
-              {contest.organizers.length > 1 ? 'Organizers' : 'Organizer'}:&#8194;
+            <p className="mb-2">
+              {contest.organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
               {contest.organizers.map((org, index) => (
-                <span key={org.personId} className='d-flex-inline'>
+                <span key={org.personId} className="d-flex-inline">
                   {index !== 0 && <span>,</span>}
                   <Competitor person={org} noFlag />
                 </span>
@@ -84,13 +84,13 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             </p>
             {contest.participants > 0
               ? (
-                <p className='mb-2'>
+                <p className="mb-2">
                   Number of participants:&#8194;<b>{contest.participants}</b>
                 </p>
               )
               : (
                 contest.competitorLimit && (
-                  <p className='mb-2'>
+                  <p className="mb-2">
                     Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
                   </p>
                 )
@@ -98,27 +98,27 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
           </div>
         </div>
 
-        <hr className='d-md-none mt-2 mb-3' />
+        <hr className="d-md-none mt-2 mb-3" />
 
-        <div className='col-md-7 px-0'>
-          <div className='px-2'>
+        <div className="col-md-7 px-0">
+          <div className="px-2">
             {contest.state === ContestState.Created
               ? (
-                <p className='mb-4'>
+                <p className="mb-4">
                   This contest is currently awaiting approval
                 </p>
               )
               : isOngoing
-              ? <p className='mb-4'>This contest is currently ongoing</p>
+              ? <p className="mb-4">This contest is currently ongoing</p>
               : contest.state === ContestState.Finished
               ? (
-                <p className='mb-4'>
+                <p className="mb-4">
                   The results for this contest are currently being checked
                 </p>
               )
               : contest.state === ContestState.Removed
               ? (
-                <p className='mb-4 text-danger'>
+                <p className="mb-4 text-danger">
                   THIS CONTEST HAS BEEN REMOVED!
                 </p>
               )
@@ -133,10 +133,10 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
 
             {contest.description && (
               <>
-                <p className='fw-bold'>Description:</p>
+                <p className="fw-bold">Description:</p>
                 <MarkdownDescription>{contest.description}</MarkdownDescription>
                 {contest.queuePosition && (
-                  <p className='mt-5'>
+                  <p className="mt-5">
                     Current position in queue: <b>{contest.queuePosition}</b>
                   </p>
                 )}

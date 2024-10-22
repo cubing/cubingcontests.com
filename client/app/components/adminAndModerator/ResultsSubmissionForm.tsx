@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useLimitRequests, useMyFetch } from '~/helpers/customHooks.ts';
-import ResultForm from '~/app/components/adminAndModerator/ResultForm.tsx';
-import Loading from '~/app/components/UI/Loading.tsx';
-import Form from '~/app/components/form/Form.tsx';
-import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
-import FormDateInput from '~/app/components/form/FormDateInput.tsx';
-import FormTextInput from '~/app/components/form/FormTextInput.tsx';
-import Button from '~/app/components/UI/Button.tsx';
-import CreatorDetails from '~/app/components/CreatorDetails.tsx';
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useLimitRequests, useMyFetch } from "~/helpers/customHooks.ts";
+import ResultForm from "~/app/components/adminAndModerator/ResultForm.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
+import Form from "~/app/components/form/Form.tsx";
+import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
+import FormDateInput from "~/app/components/form/FormDateInput.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import {
   IAttempt,
   IEvent,
@@ -18,15 +18,15 @@ import {
   IResult,
   IResultsSubmissionInfo,
   IUpdateResultDto,
-} from '~/shared_helpers/types.ts';
-import { RoundFormat } from '~/shared_helpers/enums.ts';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
-import C from '~/shared_helpers/constants.ts';
-import { getUserInfo } from '~/helpers/utilityFunctions.ts';
-import { IUserInfo } from '~/helpers/interfaces/UserInfo.ts';
-import { MainContext } from '~/helpers/contexts.ts';
-import { getBestAndAverage } from '~/shared_helpers/sharedFunctions.ts';
-import ExternalLink from '~/app/components/ExternalLink.tsx';
+} from "../../../shared_helpers/types.ts";
+import { RoundFormat } from "../../../shared_helpers/enums.ts";
+import { roundFormats } from "../../../shared_helpers/roundFormats.ts";
+import C from "../../../shared_helpers/constants.ts";
+import { getUserInfo } from "~/helpers/utilityFunctions.ts";
+import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import { getBestAndAverage } from "../../../shared_helpers/sharedFunctions.ts";
+import ExternalLink from "~/app/components/ExternalLink.tsx";
 
 const userInfo: IUserInfo = getUserInfo();
 
@@ -37,7 +37,7 @@ const userInfo: IUserInfo = getUserInfo();
 
 const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   if (resultId && !userInfo.isAdmin) {
-    throw new Error('Only an admin can edit results');
+    throw new Error("Only an admin can edit results");
   }
 
   const searchParams = useSearchParams();
@@ -62,9 +62,9 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   // null means the date is invalid; undefined means it's empty
   const [date, setDate] = useState<Date | null | undefined>();
   const [competitors, setCompetitors] = useState<IPerson[]>([null]);
-  const [videoLink, setVideoLink] = useState('');
+  const [videoLink, setVideoLink] = useState("");
   const [videoUnavailable, setVideoUnavailable] = useState(false);
-  const [discussionLink, setDiscussionLink] = useState('');
+  const [discussionLink, setDiscussionLink] = useState("");
 
   const recordPairs = useMemo(
     () => submissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
@@ -86,7 +86,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             if (!errors) {
               setSubmissionInfo(payload);
 
-              const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get('eventId'));
+              const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get("eventId"));
               if (event) setEvent(event);
               else setEvent(payload.events[0]);
             }
@@ -123,7 +123,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
 
   const submitResult = async (approve = false) => {
     if (competitors.some((p) => !p)) {
-      changeErrorMessages(['Invalid person(s)']);
+      changeErrorMessages(["Invalid person(s)"]);
       return;
     }
 
@@ -137,7 +137,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       attempts,
       best,
       average,
-      videoLink: videoUnavailable ? '' : videoLink,
+      videoLink: videoUnavailable ? "" : videoLink,
       discussionLink: discussionLink || undefined,
     };
 
@@ -146,15 +146,15 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     }
 
     if (!resultId) {
-      const { errors } = await myFetch.post('/results', newResult, {
-        loadingId: approve ? 'approve_button' : 'submit_button',
+      const { errors } = await myFetch.post("/results", newResult, {
+        loadingId: approve ? "approve_button" : "submit_button",
       });
 
       if (!errors) {
-        changeSuccessMessage('Result successfully submitted');
+        changeSuccessMessage("Result successfully submitted");
         setDate(undefined);
-        setVideoLink('');
-        setDiscussionLink('');
+        setVideoLink("");
+        setDiscussionLink("");
         setResultFormResetTrigger(!resultFormResetTrigger);
       }
     } else {
@@ -173,18 +173,18 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         `/results/${resultId}`,
         updateResultDto,
         {
-          loadingId: approve ? 'approve_button' : 'submit_button',
+          loadingId: approve ? "approve_button" : "submit_button",
           keepLoadingAfterSuccess: true,
         },
       );
 
       if (!errors) {
         changeSuccessMessage(
-          approve ? 'Result successfully approved' : 'Result successfully updated',
+          approve ? "Result successfully approved" : "Result successfully updated",
         );
 
         setTimeout(() => {
-          window.location.href = '/admin/results';
+          window.location.href = "/admin/results";
         }, 1000);
       }
     }
@@ -196,14 +196,14 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     // Update the record pairs with the new date
     if (newDate) {
       limitRecordPairsRequests(async () => {
-        const eventsStr = submissionInfo.events.map((e) => e.eventId).join(',');
-        const queryParams = resultId ? `?excludeResultId=${resultId}` : '';
+        const eventsStr = submissionInfo.events.map((e) => e.eventId).join(",");
+        const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
 
         const { payload, errors } = await myFetch.get(
           `/results/record-pairs/${newDate}/${eventsStr}${queryParams}`,
           {
             authorize: true,
-            loadingId: 'RECORD_PAIRS',
+            loadingId: "RECORD_PAIRS",
           },
         );
 
@@ -218,10 +218,10 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     let newVideoLink: string;
 
     // Remove unnecessary params from youtube links
-    if (newValue.includes('youtube.com') && newValue.includes('&')) {
-      newVideoLink = newValue.split('&')[0];
-    } else if (newValue.includes('youtu.be') && newValue.includes('?')) {
-      newVideoLink = newValue.split('?')[0];
+    if (newValue.includes("youtube.com") && newValue.includes("&")) {
+      newVideoLink = newValue.split("&")[0];
+    } else if (newValue.includes("youtu.be") && newValue.includes("?")) {
+      newVideoLink = newValue.split("?")[0];
     } else {
       newVideoLink = newValue;
     }
@@ -232,11 +232,11 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   if (submissionInfo) {
     return (
       <div>
-        <h2 className='text-center'>
-          {resultId ? 'Edit Result' : 'Submit Result'}
+        <h2 className="text-center">
+          {resultId ? "Edit Result" : "Submit Result"}
         </h2>
 
-        <div className='mt-3 mx-auto px-3 fs-6' style={{ maxWidth: '900px' }}>
+        <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: "900px" }}>
           {resultId
             ? (
               <p>
@@ -249,25 +249,25 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
                 <p>
                   Here you can submit results for events that allow submissions. You may submit other people's results
                   too. New results will be included in the rankings after an admin approves them. A result can only be
-                  accepted if it has video evidence of the <b>ENTIRE</b>{' '}
+                  accepted if it has video evidence of the <b>ENTIRE</b>{" "}
                   solve (including memorization, if applicable). The video date is used as proof of when the solve was
                   done, an earlier date cannot be used. Make sure that you can be identified from the provided video; if
                   your channel name is not your real name, please include your full name or WCA ID in the description of
                   the video. If you do not have a WCA ID, please contact the admins to have a competitor profile created
                   for you. If you have any questions or suggestions, feel free to send an email to {C.contactEmail}.
                 </p>
-                <div className='alert alert-warning mb-4' role='alert'>
+                <div className="alert alert-warning mb-4" role="alert">
                   Some events now require evidence of the scramble being applied. Please make sure you follow rule 5!
                 </div>
                 <button
-                  type='button'
-                  className='btn btn-success btn-sm'
+                  type="button"
+                  className="btn btn-success btn-sm"
                   onClick={() => setShowRules(!showRules)}
                 >
-                  {showRules ? 'Hide rules' : 'Show rules'}
+                  {showRules ? "Hide rules" : "Show rules"}
                 </button>
                 {showRules && (
-                  <div className='mt-4'>
+                  <div className="mt-4">
                     <p>
                       1. For blindfolded events, your face must be visible during the entire solve (it must be visible
                       that your mask is on during the solving phase).
@@ -287,8 +287,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
                     </p>
                     <p>
                       5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was
-                      generated and applied. Scrambles must be generated with <ExternalLink to='cstimer' /> or{' '}
-                      <ExternalLink to='cubingjs' />.
+                      generated and applied. Scrambles must be generated with <ExternalLink to="cstimer" /> or{" "}
+                      <ExternalLink to="cubingjs" />.
                     </p>
                   </div>
                 )}
@@ -308,8 +308,8 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             recordTypes={submissionInfo.activeRecordTypes}
             nextFocusTargetId={!submissionInfo.result ||
                 submissionInfo.result.unapproved
-              ? 'date'
-              : 'video_link'}
+              ? "date"
+              : "video_link"}
             resetTrigger={resultFormResetTrigger}
             setEvent={setEvent}
             events={submissionInfo.events}
@@ -321,64 +321,64 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             forResultsSubmissionForm
           />
           <FormDateInput
-            id='date'
-            title='Date (dd.mm.yyyy)'
+            id="date"
+            title="Date (dd.mm.yyyy)"
             value={date}
             setValue={changeDate}
             disabled={submissionInfo.result ? !submissionInfo.result.unapproved : false}
-            nextFocusTargetId={videoUnavailable ? 'discussion_link' : 'video_link'}
+            nextFocusTargetId={videoUnavailable ? "discussion_link" : "video_link"}
           />
           <FormTextInput
-            id='video_link'
-            title='Link to video'
-            placeholder='E.g: https://youtube.com/watch?v=xyz'
+            id="video_link"
+            title="Link to video"
+            placeholder="E.g: https://youtube.com/watch?v=xyz"
             value={videoLink}
             setValue={changeVideoLink}
-            nextFocusTargetId='discussion_link'
+            nextFocusTargetId="discussion_link"
             disabled={videoUnavailable}
           />
           {userInfo.isAdmin && (
             // Same text as in RankingLinks
             <FormCheckbox
-              title='Video no longer available'
+              title="Video no longer available"
               selected={videoUnavailable}
               setSelected={setVideoUnavailable}
             />
           )}
           {resultId && videoLink && (
-            <a href={videoLink} target='_blank' className='d-block mb-3'>
+            <a href={videoLink} target="_blank" className="d-block mb-3">
               Video link
             </a>
           )}
           <FormTextInput
-            id='discussion_link'
-            title='Link to discussion (optional)'
-            placeholder='E.g: https://speedsolving.com/threads/xyz'
+            id="discussion_link"
+            title="Link to discussion (optional)"
+            placeholder="E.g: https://speedsolving.com/threads/xyz"
             value={discussionLink}
             setValue={setDiscussionLink}
-            nextFocusTargetId='submit_button'
+            nextFocusTargetId="submit_button"
           />
           {resultId && discussionLink && (
-            <a href={discussionLink} target='_blank' className='d-block'>
+            <a href={discussionLink} target="_blank" className="d-block">
               Discussion link
             </a>
           )}
           <Button
-            id='submit_button'
+            id="submit_button"
             onClick={() => submitResult()}
             loadingId={loadingId}
             disabled={isLoadingRecordPairs}
-            className='mt-3'
+            className="mt-3"
           >
             Submit
           </Button>
           {resultId && submissionInfo.result.unapproved && (
             <Button
-              id='approve_button'
+              id="approve_button"
               onClick={() => submitResult(true)}
               loadingId={loadingId}
               disabled={isLoadingRecordPairs}
-              className='btn-success mt-3 ms-3'
+              className="btn-success mt-3 ms-3"
             >
               Submit and approve
             </Button>

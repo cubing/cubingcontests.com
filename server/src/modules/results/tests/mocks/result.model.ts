@@ -1,6 +1,6 @@
-import { ResultDocument } from '~/src/models/result.model';
-import { IResult } from '@sh/types';
-import { resultsStub } from '../stubs/results.stub';
+import { ResultDocument } from "~/src/models/result.model";
+import { IResult } from "@sh/types";
+import { resultsStub } from "../stubs/results.stub";
 
 export const ResultModelMock = (): any => ({
   tempOutput: undefined,

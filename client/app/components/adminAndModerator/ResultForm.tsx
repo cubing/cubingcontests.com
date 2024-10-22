@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useContext, useEffect, useState } from 'react';
-import Loading from '~/app/components/UI/Loading.tsx';
-import FormEventSelect from '~/app/components/form/FormEventSelect.tsx';
-import FormSelect from '~/app/components/form/FormSelect.tsx';
-import FormPersonInputs from '~/app/components/form/FormPersonInputs.tsx';
-import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
-import AttemptInput from '~/app/components/AttemptInput.tsx';
-import Time from '~/app/components/Time.tsx';
-import EventButtons from '~/app/components/EventButtons.tsx';
+import React, { useContext, useEffect, useState } from "react";
+import Loading from "~/app/components/UI/Loading.tsx";
+import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
+import FormSelect from "~/app/components/form/FormSelect.tsx";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
+import AttemptInput from "~/app/components/AttemptInput.tsx";
+import Time from "~/app/components/Time.tsx";
+import EventButtons from "~/app/components/EventButtons.tsx";
 import {
   IAttempt,
   IContestEvent,
@@ -18,13 +18,13 @@ import {
   IRecordType,
   IResult,
   IRound,
-} from '~/shared_helpers/types.ts';
-import { EventFormat, RoundFormat, RoundType } from '~/shared_helpers/enums.ts';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
-import { getBestAndAverage, getMakesCutoff, setResultRecords } from '~/shared_helpers/sharedFunctions.ts';
-import { roundTypes } from '~/helpers/roundTypes.ts';
-import { roundFormatOptions } from '~/helpers/multipleChoiceOptions.ts';
-import { MainContext } from '~/helpers/contexts.ts';
+} from "../../../shared_helpers/types.ts";
+import { EventFormat, RoundFormat, RoundType } from "../../../shared_helpers/enums.ts";
+import { roundFormats } from "../../../shared_helpers/roundFormats.ts";
+import { getBestAndAverage, getMakesCutoff, setResultRecords } from "../../../shared_helpers/sharedFunctions.ts";
+import { roundTypes } from "~/helpers/roundTypes.ts";
+import { roundFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { MainContext } from "~/helpers/contexts.ts";
 
 /**
  * This component has 3 uses: for entering results on PostResultsScreen,
@@ -84,7 +84,7 @@ const ResultForm = ({
   const [tempResult, setTempResult] = useState<IResult>(
     { best: -1, average: -1 } as IResult,
   );
-  const [personNames, setPersonNames] = useState(['']);
+  const [personNames, setPersonNames] = useState([""]);
   // If this is null, that means the option is disabled
   const [keepCompetitors, setKeepCompetitors] = useState(
     showOptionToKeepCompetitors ? false : null,
@@ -104,7 +104,7 @@ const ResultForm = ({
     if (resetTrigger !== undefined) {
       reset();
       if (keepCompetitors) focusFirstAttempt();
-      else document.getElementById('Competitor_1').focus();
+      else document.getElementById("Competitor_1").focus();
     } // If resetTrigger is undefined, that means we're editing a result
     else {
       // Set person names if there are no null persons (needed when editing results)
@@ -127,8 +127,8 @@ const ResultForm = ({
 
   const focusFirstAttempt = () => {
     if (event.format === EventFormat.Multi) {
-      document.getElementById('attempt_1_solved')?.focus();
-    } else document.getElementById('attempt_1')?.focus();
+      document.getElementById("attempt_1_solved")?.focus();
+    } else document.getElementById("attempt_1")?.focus();
   };
 
   const updateTempResult = () => {
@@ -272,7 +272,7 @@ const ResultForm = ({
 
     if (resetCompetitors) {
       setPersons(new Array(newEvent.participants || 1).fill(null));
-      setPersonNames(new Array(newEvent.participants || 1).fill(''));
+      setPersonNames(new Array(newEvent.participants || 1).fill(""));
     }
   };
 
@@ -291,14 +291,14 @@ const ResultForm = ({
           <EventButtons
             eventId={event.eventId}
             events={events}
-            forPage='data-entry'
+            forPage="data-entry"
           />
         )}
-      <div className='mb-3 fs-5'>
+      <div className="mb-3 fs-5">
         {forResultsSubmissionForm
           ? (
             <FormSelect
-              title='Format'
+              title="Format"
               options={getAllowedRoundFormatOptions(event)}
               selected={roundFormat}
               setSelected={(val: RoundFormat) => reset({ newRoundFormat: val, resetCompetitors: false })}
@@ -307,7 +307,7 @@ const ResultForm = ({
           )
           : (
             <FormSelect
-              title='Round'
+              title="Round"
               options={rounds.map((el) => ({
                 label: roundTypes[el.roundTypeId].label,
                 value: el.roundTypeId,
@@ -318,15 +318,15 @@ const ResultForm = ({
             />
           )}
       </div>
-      <div className='mb-3'>
+      <div className="mb-3">
         <FormPersonInputs
-          title='Competitor'
+          title="Competitor"
           personNames={personNames}
           setPersonNames={setPersonNames}
           persons={persons}
           setPersons={setPersons}
           checkCustomErrors={checkPersonSelectionErrors}
-          nextFocusTargetId={event.format !== EventFormat.Multi ? 'attempt_1' : 'attempt_1_solved'}
+          nextFocusTargetId={event.format !== EventFormat.Multi ? "attempt_1" : "attempt_1_solved"}
           redirectToOnAddPerson={window.location.pathname}
           noGrid={!forResultsSubmissionForm}
         />
@@ -354,8 +354,8 @@ const ResultForm = ({
           disabled={round?.cutoff && i + 1 > lastActiveAttempt}
         />
       ))}
-      <div className='mb-3'>
-        {loadingId === 'RECORD_PAIRS' ? <Loading small dontCenter /> : (
+      <div className="mb-3">
+        {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
           <div>
             <div>
               Best:&nbsp;
@@ -366,8 +366,8 @@ const ResultForm = ({
               />
             </div>
             {roundCanHaveAverage && (
-              <div className='mt-2'>
-                {attempts.length === 5 ? 'Average:' : 'Mean:'}&nbsp;
+              <div className="mt-2">
+                {attempts.length === 5 ? "Average:" : "Mean:"}&nbsp;
                 <Time
                   result={tempResult}
                   event={event}

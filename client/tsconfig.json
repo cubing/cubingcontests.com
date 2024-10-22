@@ -14,7 +14,6 @@
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "strict": true,
-    "strictNullChecks": false,
     "noImplicitAny": true,
     "noEmit": true,
     "esModuleInterop": true,

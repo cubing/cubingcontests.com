@@ -1,4 +1,4 @@
-import { IFeUser } from '~/shared_helpers/types.ts';
+import { IFeUser } from "../types.ts";
 
 export type IPerson = {
   name: string;
@@ -11,10 +11,10 @@ export type IPerson = {
   unapproved?: true;
 };
 
-export type IPersonDto = Omit<IPerson, 'personId' | 'createdBy'>;
+export type IPersonDto = Omit<IPerson, "personId" | "createdBy">;
 
-export type IFePerson = Omit<IPerson, 'createdBy'> & {
-  creator?: IFeUser | 'EXT_DEVICE'; // this is only defined for requests made by admins
+export type IFePerson = Omit<IPerson, "createdBy"> & {
+  creator?: IFeUser | "EXT_DEVICE"; // this is only defined for requests made by admins
 };
 
 export type IWcaPersonDto = {

@@ -1,5 +1,5 @@
-import { IRecordPair } from '@sh/types';
-import { WcaRecordType } from '@sh/enums';
+import { IRecordPair } from "@sh/types";
+import { WcaRecordType } from "@sh/enums";
 
 export const ResultsServiceMock = () => ({
   async getEventRecordPairs(): Promise<IRecordPair[]> {

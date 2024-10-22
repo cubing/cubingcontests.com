@@ -1,8 +1,8 @@
-import { differenceInDays } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
-import { remove as removeAccents } from 'remove-accents';
-import C from '~/shared_helpers/constants.ts';
-import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums.ts';
+import { differenceInDays } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { remove as removeAccents } from "remove-accents";
+import C from "./constants.ts";
+import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
 import {
   IActivity,
   IAttempt,
@@ -19,8 +19,8 @@ import {
   IWcifEvent,
   IWcifRound,
   IWcifSchedule,
-} from './types.ts';
-import { roundFormats } from './roundFormats.ts';
+} from "./types.ts";
+import { roundFormats } from "./roundFormats.ts";
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
@@ -134,13 +134,13 @@ export const getFormattedTime = (
   },
 ): string => {
   if (time === 0) {
-    return '?';
+    return "?";
   } else if (time === -1) {
-    return 'DNF';
+    return "DNF";
   } else if (time === -2) {
-    return 'DNS';
+    return "DNS";
   } else if (time === C.maxTime) {
-    return 'Unknown';
+    return "Unknown";
   } else if (event?.format === EventFormat.Number) {
     // FM singles are limited to 999 moves, so if it's more than that, it must be the mean. Format it accordingly.
     if (time > C.maxFmMoves && !noFormatting) return (time / 100).toFixed(2);
@@ -152,27 +152,27 @@ export const getFormattedTime = (
     if (event?.format !== EventFormat.Multi) centiseconds = time;
     else centiseconds = parseInt(timeStr.slice(timeStr.length - 11, -4));
 
-    let output = '';
+    let output = "";
     const hours = Math.floor(centiseconds / 360000);
     const minutes = Math.floor(centiseconds / 6000) % 60;
     const seconds = (centiseconds - hours * 360000 - minutes * 6000) / 100;
 
     if (hours > 0) {
       output = hours.toString();
-      if (!noFormatting) output += ':';
+      if (!noFormatting) output += ":";
     }
 
     const showMinutes = hours > 0 || minutes > 0 || alwaysShowMinutes;
 
     if (showMinutes) {
-      if (hours > 0 && minutes === 0) output += '00';
-      else if (minutes < 10 && hours > 0) output += '0' + minutes;
+      if (hours > 0 && minutes === 0) output += "00";
+      else if (minutes < 10 && hours > 0) output += "0" + minutes;
       else output += minutes;
 
-      if (!noFormatting) output += ':';
+      if (!noFormatting) output += ":";
     }
 
-    if (seconds < 10 && showMinutes) output += '0';
+    if (seconds < 10 && showMinutes) output += "0";
 
     // Only times under ten minutes can have decimals, or if noFormatting = true, or if it's an event that always
     // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
@@ -182,7 +182,7 @@ export const getFormattedTime = (
       showDecimals
     ) {
       output += seconds.toFixed(2);
-      if (noFormatting) output = Number(output.replace('.', '')).toString();
+      if (noFormatting) output = Number(output.replace(".", "")).toString();
     } else {
       output += Math.floor(seconds).toFixed(0); // remove the decimals
     }
@@ -190,7 +190,7 @@ export const getFormattedTime = (
     if (event?.format !== EventFormat.Multi) {
       return output;
     } else {
-      if (time < 0) timeStr = timeStr.replace('-', '');
+      if (time < 0) timeStr = timeStr.replace("-", "");
 
       const points = (time < 0 ? -1 : 1) *
         (9999 - parseInt(timeStr.slice(0, -11)));
@@ -201,8 +201,8 @@ export const getFormattedTime = (
         if (noFormatting) return `${solved};${solved + missed};${output}`;
         // This includes an En space before the points part
         return (
-          `${solved}/${solved + missed} ${centiseconds !== C.maxTime ? output : 'Unknown time'}` +
-          (showMultiPoints ? ` (${points})` : '')
+          `${solved}/${solved + missed} ${centiseconds !== C.maxTime ? output : "Unknown time"}` +
+          (showMultiPoints ? ` (${points})` : "")
         );
       } else {
         if (noFormatting) return `${solved};${solved + missed};${output}`;
@@ -219,7 +219,7 @@ export const getBestAndAverage = (
   { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
 ): { best: number; average: number } => {
   if (!round && !roundFormat) {
-    throw new Error('round and roundFormat cannot both be undefined');
+    throw new Error("round and roundFormat cannot both be undefined");
   }
 
   let best: number, average: number;
@@ -293,10 +293,10 @@ export const getMakesCutoff = (
     a.result < cutoff.attemptResult
   );
 
-const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
+const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, "UTC", "yyyy-MM-dd");
 
 export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
-  formatVersion: '1.0',
+  formatVersion: "1.0",
   id: contest.competitionId,
   name: contest.name,
   shortName: contest.shortName,
@@ -312,8 +312,8 @@ export const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
   rounds: contestEvent.rounds.map((r) => getWcifRound(r)),
   extensions: [
     {
-      id: 'TEMPORARY',
-      specUrl: '',
+      id: "TEMPORARY",
+      specUrl: "",
       data: {
         name: contestEvent.event.name,
         participants: contestEvent.event.participants || 1,
@@ -348,7 +348,7 @@ export const getWcifSchedule = (contest: IContest): IWcifSchedule => ({
 
 export const getWcifActivity = (activity: IActivity): IWcifActivity => ({
   ...activity,
-  name: activity.name || '',
+  name: activity.name || "",
   startTime: convertDateToWcifDate(activity.startTime),
   endTime: convertDateToWcifDate(activity.endTime),
   childActivities: activity.childActivities.map((ca) => getWcifActivity(ca)),
@@ -358,14 +358,14 @@ export const getWcifActivity = (activity: IActivity): IWcifActivity => ({
 export const getRoleLabel = (role: Role, capitalize = false): string => {
   switch (role) {
     case Role.User:
-      if (capitalize) return 'User';
-      return 'user';
+      if (capitalize) return "User";
+      return "user";
     case Role.Moderator:
-      if (capitalize) return 'Moderator';
-      return 'moderator';
+      if (capitalize) return "Moderator";
+      return "moderator";
     case Role.Admin:
-      if (capitalize) return 'Admin';
-      return 'admin';
+      if (capitalize) return "Admin";
+      return "admin";
     default:
       throw new Error(`Unknown role: ${role}`);
   }
@@ -379,7 +379,7 @@ export const fetchWcaPerson = async (
   if (response.ok) {
     const payload = await response.json();
 
-    const parts = payload.name.split(' (');
+    const parts = payload.name.split(" (");
     const newPerson: IPersonDto = {
       name: parts[0],
       localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,

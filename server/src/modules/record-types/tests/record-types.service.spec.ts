@@ -1,14 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getModelToken } from '@nestjs/mongoose';
-import { mockEventModel } from '@m/events/tests/mocks/event.model';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { RecordTypesService } from '../record-types.service';
-import { MyLoggerMock } from '@m/my-logger/tests/my-logger.service';
-import { RecordTypeModelMock } from './mocks/record-type.model';
-import { ResultModelMock } from '@m/results/tests/mocks/result.model';
-import { recordTypesStub } from './stubs/record-types.stub';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getModelToken } from "@nestjs/mongoose";
+import { mockEventModel } from "@m/events/tests/mocks/event.model";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { RecordTypesService } from "../record-types.service";
+import { MyLoggerMock } from "@m/my-logger/tests/my-logger.service";
+import { RecordTypeModelMock } from "./mocks/record-type.model";
+import { ResultModelMock } from "@m/results/tests/mocks/result.model";
+import { recordTypesStub } from "./stubs/record-types.stub";
 
-describe('RecordTypesService', () => {
+describe("RecordTypesService", () => {
   let recordTypesService: RecordTypesService;
   // let resultModel: Model<ResultDocument>;
   // let recordTypeModel: Model<RecordTypeDocument>;
@@ -22,15 +22,15 @@ describe('RecordTypesService', () => {
           useFactory: MyLoggerMock,
         },
         {
-          provide: getModelToken('Result'),
+          provide: getModelToken("Result"),
           useFactory: ResultModelMock,
         },
         {
-          provide: getModelToken('Event'),
+          provide: getModelToken("Event"),
           useFactory: mockEventModel,
         },
         {
-          provide: getModelToken('RecordType'),
+          provide: getModelToken("RecordType"),
           useFactory: RecordTypeModelMock,
         },
       ],
@@ -41,11 +41,11 @@ describe('RecordTypesService', () => {
     // recordTypeModel = module.get<Model<RecordTypeDocument>>(getModelToken('RecordType'));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(recordTypesService).toBeDefined();
   });
 
-  it('should set records when they are activated without error', async () => {
+  it("should set records when they are activated without error", async () => {
     await recordTypesService.updateRecordTypes(recordTypesStub());
   });
 });

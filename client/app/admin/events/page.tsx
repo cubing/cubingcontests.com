@@ -1,37 +1,37 @@
-'use client';
+"use client";
 
-import React, { useContext, useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil } from '@fortawesome/free-solid-svg-icons';
-import { useMyFetch } from '~/helpers/customHooks.ts';
-import { IFeEvent, ListPageMode } from '~/shared_helpers/types.ts';
-import { EventFormat, EventGroup, RoundFormat } from '~/shared_helpers/enums.ts';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
-import { eventCategories } from '~/helpers/eventCategories.ts';
-import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from '~/helpers/multipleChoiceOptions.ts';
-import { MainContext } from '~/helpers/contexts.ts';
-import ToastMessages from '~/app/components/UI/ToastMessages.tsx';
-import Form from '~/app/components/form/Form.tsx';
-import FormTextInput from '~/app/components/form/FormTextInput.tsx';
-import FormSelect from '~/app/components/form/FormSelect.tsx';
-import FormRadio from '~/app/components/form/FormRadio.tsx';
-import FormNumberInput from '~/app/components/form/FormNumberInput.tsx';
-import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
-import FormTextArea from '~/app/components/form/FormTextArea.tsx';
-import Button from '~/app/components/UI/Button.tsx';
-import EventTitle from '~/app/components/EventTitle.tsx';
+import React, { useContext, useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencil } from "@fortawesome/free-solid-svg-icons";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import { IFeEvent, ListPageMode } from "../../../shared_helpers/types.ts";
+import { EventFormat, EventGroup, RoundFormat } from "../../../shared_helpers/enums.ts";
+import { roundFormats } from "../../../shared_helpers/roundFormats.ts";
+import { eventCategories } from "~/helpers/eventCategories.ts";
+import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import Form from "~/app/components/form/Form.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import FormSelect from "~/app/components/form/FormSelect.tsx";
+import FormRadio from "~/app/components/form/FormRadio.tsx";
+import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
+import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
+import FormTextArea from "~/app/components/form/FormTextArea.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import EventTitle from "~/app/components/EventTitle.tsx";
 
 const CreateEditEventPage = () => {
   const myFetch = useMyFetch();
   const { loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [events, setEvents] = useState<IFeEvent[]>([]);
-  const [mode, setMode] = useState<ListPageMode>('view');
+  const [mode, setMode] = useState<ListPageMode>("view");
   const [eventIdUnlocked, setEventIdUnlocked] = useState(false);
 
-  const [eventId, setEventId] = useState('');
-  const [name, setName] = useState('');
-  const [newEventId, setNewEventId] = useState('');
+  const [eventId, setEventId] = useState("");
+  const [name, setName] = useState("");
+  const [newEventId, setNewEventId] = useState("");
   const [rank, setRank] = useState<number | null | undefined>();
   const [format, setFormat] = useState(EventFormat.Time);
   const [defaultRoundFormat, setDefaultRoundFormat] = useState(
@@ -43,11 +43,11 @@ const CreateEditEventPage = () => {
   const [removedWCA, setRemovedWCA] = useState(false);
   const [hasMemo, setHasMemo] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [description, setDescription] = useState('');
-  const [rule, setRule] = useState('');
+  const [description, setDescription] = useState("");
+  const [rule, setRule] = useState("");
 
   useEffect(() => {
-    myFetch.get('/events/mod?withRules=true', { authorize: true }).then(
+    myFetch.get("/events/mod?withRules=true", { authorize: true }).then(
       ({ payload, errors }) => {
         if (!errors) setEvents(payload);
       },
@@ -55,7 +55,7 @@ const CreateEditEventPage = () => {
   }, []);
 
   useEffect(() => {
-    if (mode !== 'view') document.getElementById('event_name').focus();
+    if (mode !== "view") document.getElementById("event_name").focus();
   }, [mode]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -80,24 +80,24 @@ const CreateEditEventPage = () => {
     if (hasMemo) newEvent.groups.push(EventGroup.HasMemo);
     if (hidden) newEvent.groups.push(EventGroup.Hidden);
 
-    const { payload, errors } = mode === 'add'
-      ? await myFetch.post('/events', newEvent, {
-        loadingId: 'form_submit_button',
+    const { payload, errors } = mode === "add"
+      ? await myFetch.post("/events", newEvent, {
+        loadingId: "form_submit_button",
       })
       : await myFetch.patch(`/events/${eventId}`, newEvent, {
-        loadingId: 'form_submit_button',
+        loadingId: "form_submit_button",
       });
 
     if (!errors) {
       setEvents(payload);
-      setMode('view');
+      setMode("view");
     }
   };
 
   const onEditEvent = (event: IFeEvent) => {
     window.scrollTo(0, 0);
     resetMessagesAndLoadingId();
-    setMode('edit');
+    setMode("edit");
     setEventIdUnlocked(false);
 
     setEventId(event.eventId);
@@ -120,163 +120,163 @@ const CreateEditEventPage = () => {
 
   return (
     <section>
-      <h2 className='mb-4 text-center'>Events</h2>
+      <h2 className="mb-4 text-center">Events</h2>
       <ToastMessages />
 
-      {mode === 'view'
+      {mode === "view"
         ? (
           <Button
-            onClick={() => setMode('add')}
-            className='btn-success btn-sm ms-3'
+            onClick={() => setMode("add")}
+            className="btn-success btn-sm ms-3"
           >
             Add event
           </Button>
         )
         : (
           <Form
-            buttonText='Submit'
+            buttonText="Submit"
             onSubmit={handleSubmit}
             hideToasts
             showCancelButton
-            onCancel={() => setMode('view')}
+            onCancel={() => setMode("view")}
           >
             <FormTextInput
-              id='event_name'
-              title='Event name'
+              id="event_name"
+              title="Event name"
               value={name}
               setValue={setName}
-              nextFocusTargetId='event_id'
-              disabled={loadingId !== ''}
+              nextFocusTargetId="event_id"
+              disabled={loadingId !== ""}
             />
-            <div className='row'>
-              <div className='col'>
+            <div className="row">
+              <div className="col">
                 <FormTextInput
-                  id='event_id'
-                  title='Event ID'
+                  id="event_id"
+                  title="Event ID"
                   value={newEventId}
                   setValue={setNewEventId}
-                  nextFocusTargetId='rank'
-                  disabled={(mode === 'edit' && !eventIdUnlocked) ||
-                    loadingId !== ''}
+                  nextFocusTargetId="rank"
+                  disabled={(mode === "edit" && !eventIdUnlocked) ||
+                    loadingId !== ""}
                 />
               </div>
-              <div className='col'>
+              <div className="col">
                 <FormNumberInput
-                  id='rank'
-                  title='Rank'
-                  tooltip='Determines the order of the events'
+                  id="rank"
+                  title="Rank"
+                  tooltip="Determines the order of the events"
                   value={rank}
                   setValue={setRank}
-                  nextFocusTargetId='default_format'
-                  disabled={loadingId !== ''}
+                  nextFocusTargetId="default_format"
+                  disabled={loadingId !== ""}
                   integer
                   min={1}
                 />
               </div>
             </div>
-            {mode === 'edit' && (
+            {mode === "edit" && (
               <FormCheckbox
-                title='Unlock event ID'
+                title="Unlock event ID"
                 selected={eventIdUnlocked}
                 setSelected={setEventIdUnlocked}
               />
             )}
-            <div className='row'>
-              <div className='col'>
+            <div className="row">
+              <div className="col">
                 <FormSelect
-                  id='default_format'
-                  title='Default format'
+                  id="default_format"
+                  title="Default format"
                   options={roundFormatOptions}
                   selected={defaultRoundFormat}
                   setSelected={setDefaultRoundFormat}
-                  disabled={mode === 'edit' || loadingId !== ''}
+                  disabled={mode === "edit" || loadingId !== ""}
                 />
               </div>
-              <div className='col'>
+              <div className="col">
                 <FormNumberInput
-                  title='Participants'
+                  title="Participants"
                   value={participants}
                   setValue={setParticipants}
-                  disabled={mode === 'edit' || loadingId !== ''}
+                  disabled={mode === "edit" || loadingId !== ""}
                   integer
                   min={1}
                 />
               </div>
             </div>
             <FormRadio
-              title='Event format'
+              title="Event format"
               options={eventFormatOptions}
               selected={format}
               setSelected={setFormat}
-              disabled={mode === 'edit' || loadingId !== ''}
+              disabled={mode === "edit" || loadingId !== ""}
             />
-            <div className='mb-4'>
+            <div className="mb-4">
               <FormRadio
-                title='Event category'
+                title="Event category"
                 options={eventCategoryOptions}
                 selected={category}
                 setSelected={setCategory}
-                disabled={loadingId !== ''}
+                disabled={loadingId !== ""}
               />
             </div>
-            <h5 className='mb-4'>Options</h5>
+            <h5 className="mb-4">Options</h5>
             <FormCheckbox
-              title='Allow submissions'
+              title="Allow submissions"
               selected={submissionsAllowed}
               setSelected={setSubmissionsAllowed}
-              disabled={loadingId !== ''}
+              disabled={loadingId !== ""}
             />
             <FormCheckbox
-              title='Formerly WCA event'
+              title="Formerly WCA event"
               selected={removedWCA}
               setSelected={setRemovedWCA}
-              disabled={loadingId !== ''}
+              disabled={loadingId !== ""}
             />
             <FormCheckbox
-              title='Has memorization'
+              title="Has memorization"
               selected={hasMemo}
               setSelected={setHasMemo}
-              disabled={loadingId !== ''}
+              disabled={loadingId !== ""}
             />
             <FormCheckbox
-              title='Hidden'
+              title="Hidden"
               selected={hidden}
               setSelected={setHidden}
-              disabled={loadingId !== ''}
+              disabled={loadingId !== ""}
             />
             <FormTextArea
-              title='Description (optional)'
+              title="Description (optional)"
               value={description}
               setValue={setDescription}
               rows={4}
-              disabled={loadingId !== ''}
+              disabled={loadingId !== ""}
             />
             <FormTextArea
-              title='Rules (optional)'
+              title="Rules (optional)"
               value={rule}
               setValue={setRule}
               rows={5}
-              disabled={loadingId !== ''}
+              disabled={loadingId !== ""}
             />
-            <p className='fs-6' style={{ whiteSpace: 'pre-wrap' }}>
+            <p className="fs-6" style={{ whiteSpace: "pre-wrap" }}>
               You can use bullet characters (•, ◦, ▪), in the rules to mark each point, along with the tab character (
-              {'\t'}) for indentation in sub-points.
+              {"\t"}) for indentation in sub-points.
             </p>
           </Form>
         )}
 
-      <div className='my-4 table-responsive'>
-        <table className='table table-hover text-nowrap'>
+      <div className="my-4 table-responsive">
+        <table className="table table-hover text-nowrap">
           <thead>
             <tr>
-              <th scope='col'>#</th>
-              <th scope='col'>Name</th>
-              <th scope='col'>Event ID</th>
-              <th scope='col'>Rank</th>
-              <th scope='col'>Default format</th>
-              <th scope='col'>Category</th>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Event ID</th>
+              <th scope="col">Rank</th>
+              <th scope="col">Default format</th>
+              <th scope="col">Category</th>
               {/* <th scope="col">Groups</th> */}
-              <th scope='col'>Actions</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -285,7 +285,7 @@ const CreateEditEventPage = () => {
                 <td>{index + 1}</td>
                 <td>
                   <EventTitle
-                    fontSize='6'
+                    fontSize="6"
                     event={event}
                     showIcon
                     linkToRankings
@@ -305,8 +305,8 @@ const CreateEditEventPage = () => {
                 <td>
                   <Button
                     onClick={() => onEditEvent(event)}
-                    className='btn-xs'
-                    ariaLabel='Edit'
+                    className="btn-xs"
+                    ariaLabel="Edit"
                   >
                     <FontAwesomeIcon icon={faPencil} />
                   </Button>

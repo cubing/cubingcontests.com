@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import Navbar from '~/app/components/UI/Navbar.tsx';
-import Footer from '~/app/components/UI/Footer.tsx';
-import { MainContext, Theme } from '~/helpers/contexts.ts';
+import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Navbar from "~/app/components/UI/Navbar.tsx";
+import Footer from "~/app/components/UI/Footer.tsx";
+import { MainContext, Theme } from "~/helpers/contexts.ts";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>("dark");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [loadingId, setLoadingId] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loadingId, setLoadingId] = useState("");
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('theme');
+    const storedTheme = localStorage.getItem("theme");
 
     if (storedTheme) {
       setTheme(storedTheme as Theme);
     } else {
-      localStorage.setItem('theme', 'dark');
+      localStorage.setItem("theme", "dark");
     }
   }, []);
 
@@ -31,7 +31,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const changeTheme = (newTheme: Theme) => {
     if (newTheme !== theme) {
       setTheme(newTheme);
-      localStorage.setItem('theme', newTheme);
+      localStorage.setItem("theme", newTheme);
     }
   };
 
@@ -40,38 +40,38 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     if (errorMessages.length > 0 || newErrorMessages.length > 0) {
       setErrorMessages(newErrorMessages);
     }
-    setSuccessMessage('');
-    setLoadingId('');
+    setSuccessMessage("");
+    setLoadingId("");
   };
 
   const changeSuccessMessage = (newSuccessMessage: string) => {
     setSuccessMessage(newSuccessMessage);
     if (errorMessages.length > 0) setErrorMessages([]);
-    setLoadingId('');
+    setLoadingId("");
   };
 
   const changeLoadingId = (newLoadingId: string) => {
     setLoadingId(newLoadingId);
     if (errorMessages.length > 0) setErrorMessages([]);
-    setSuccessMessage('');
+    setSuccessMessage("");
   };
 
   const resetMessagesAndLoadingId = () => {
     if (errorMessages.length > 0) setErrorMessages([]);
-    setSuccessMessage('');
-    setLoadingId('');
+    setSuccessMessage("");
+    setLoadingId("");
   };
 
   const resetMessages = () => {
     if (errorMessages.length > 0) setErrorMessages([]);
-    setSuccessMessage('');
+    setSuccessMessage("");
   };
 
   return (
     <body
       data-bs-theme={theme}
       className={`cc-${theme}-layout min-vh-100 d-flex flex-column`}
-      style={{ overflowX: 'hidden' }}
+      style={{ overflowX: "hidden" }}
     >
       <MainContext.Provider
         value={{
@@ -88,7 +88,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         <Navbar />
-        <main className='container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1'>
+        <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">
           {children}
         </main>
         <Footer />

@@ -1,24 +1,24 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { formatInTimeZone } from 'date-fns-tz';
-import { InjectModel } from '@nestjs/mongoose';
-import { excl } from '~/src/helpers/dbHelpers';
-import { Model } from 'mongoose';
-import { RecordTypeDocument } from '~/src/models/record-type.model';
-import { ResultDocument } from '~/src/models/result.model';
-import { EventDocument } from '~/src/models/event.model';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { WcaRecordType } from '@sh/enums';
-import { UpdateRecordTypeDto } from './dto/update-record-type.dto';
-import { recordTypesSeed } from '~/src/seeds/record-types.seed';
-import { getBaseAvgsFilter, getBaseSinglesFilter } from '~/src/helpers/utilityFunctions';
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { formatInTimeZone } from "date-fns-tz";
+import { InjectModel } from "@nestjs/mongoose";
+import { excl } from "~/src/helpers/dbHelpers";
+import { Model } from "mongoose";
+import { RecordTypeDocument } from "~/src/models/record-type.model";
+import { ResultDocument } from "~/src/models/result.model";
+import { EventDocument } from "~/src/models/event.model";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { WcaRecordType } from "@sh/enums";
+import { UpdateRecordTypeDto } from "./dto/update-record-type.dto";
+import { recordTypesSeed } from "~/src/seeds/record-types.seed";
+import { getBaseAvgsFilter, getBaseSinglesFilter } from "~/src/helpers/utilityFunctions";
 
 @Injectable()
 export class RecordTypesService {
   constructor(
     private readonly logger: MyLogger,
-    @InjectModel('RecordType') private readonly recordTypeModel: Model<RecordTypeDocument>,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
+    @InjectModel("RecordType") private readonly recordTypeModel: Model<RecordTypeDocument>,
+    @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
+    @InjectModel("Event") private readonly eventModel: Model<EventDocument>,
   ) {}
 
   // Executed before the app is bootstrapped
@@ -26,13 +26,13 @@ export class RecordTypesService {
     const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find().exec();
 
     if (recordTypes.length === 0) {
-      this.logger.log('Seeding the record types collection...');
+      this.logger.log("Seeding the record types collection...");
 
       await this.recordTypeModel.insertMany(recordTypesSeed);
 
-      this.logger.log('Record types collection successfully seeded');
+      this.logger.log("Record types collection successfully seeded");
     } else {
-      this.logger.log('Record types collection already seeded');
+      this.logger.log("Record types collection already seeded");
     }
   }
 
@@ -55,8 +55,8 @@ export class RecordTypesService {
       throw new InternalServerErrorException(`Error while creating record types: ${err.message}`);
     }
 
-    if (!recordTypes) throw new InternalServerErrorException('Unable to find existing record types');
-    if (!events) throw new InternalServerErrorException('Unable to find events while updating record types');
+    if (!recordTypes) throw new InternalServerErrorException("Unable to find existing record types");
+    if (!events) throw new InternalServerErrorException("Unable to find events while updating record types");
 
     // Set the records
     for (let i = 0; i < updateRTsDtoArr.length; i++) {
@@ -70,12 +70,12 @@ export class RecordTypesService {
 
           // Remove single records
           await this.resultModel
-            .updateMany({ regionalSingleRecord: wcaEquiv }, { $unset: { regionalSingleRecord: '' } })
+            .updateMany({ regionalSingleRecord: wcaEquiv }, { $unset: { regionalSingleRecord: "" } })
             .exec();
 
           // Remove average records
           await this.resultModel
-            .updateMany({ regionalAverageRecord: wcaEquiv }, { $unset: { regionalAverageRecord: '' } })
+            .updateMany({ regionalAverageRecord: wcaEquiv }, { $unset: { regionalAverageRecord: "" } })
             .exec();
         } else if (updateRTsDtoArr[i].active && !recordTypes[i].active) {
           try {
@@ -99,7 +99,7 @@ export class RecordTypesService {
     const bestSingleResultsByDay = await this.resultModel
       .aggregate([
         { $match: queryFilter },
-        { $group: { _id: '$date', best: { $min: '$best' } } },
+        { $group: { _id: "$date", best: { $min: "$best" } } },
         { $sort: { _id: 1 } },
       ])
       .exec();
@@ -111,7 +111,7 @@ export class RecordTypesService {
       if (result.best <= currentSingleRecord) {
         currentSingleRecord = result.best;
 
-        const date = formatInTimeZone(result._id, 'UTC', 'd MMM yyyy'); // _id is the date from the group stage
+        const date = formatInTimeZone(result._id, "UTC", "d MMM yyyy"); // _id is the date from the group stage
         this.logger.log(`New single ${wcaEquiv} for ${event.eventId}: ${result.best} (${date})`);
 
         const sameDayTiedRecordsFilter: any = queryFilter;
@@ -129,7 +129,7 @@ export class RecordTypesService {
     const bestAvgResultsByDay = await this.resultModel
       .aggregate([
         { $match: queryFilter },
-        { $group: { _id: '$date', average: { $min: '$average' } } },
+        { $group: { _id: "$date", average: { $min: "$average" } } },
         { $sort: { _id: 1 } },
       ])
       .exec();
@@ -141,7 +141,7 @@ export class RecordTypesService {
       if (result.average <= currentAvgRecord) {
         currentAvgRecord = result.average;
 
-        const date = formatInTimeZone(result._id, 'UTC', 'd MMM yyyy'); // _id is the date from the group stage
+        const date = formatInTimeZone(result._id, "UTC", "d MMM yyyy"); // _id is the date from the group stage
         this.logger.log(`New average ${wcaEquiv} for ${event.eventId}: ${result.average} (${date})`);
 
         const sameDayTiedRecordsFilter: any = queryFilter;

@@ -1,27 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getModelToken } from '@nestjs/mongoose';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { ContestsService } from '../contests.service';
-import { EventsService } from '@m/events/events.service';
-import { ResultsService } from '@m/results/results.service';
-import { RecordTypesService } from '@m/record-types/record-types.service';
-import { PersonsService } from '@m/persons/persons.service';
-import { AuthService } from '@m/auth/auth.service';
-import { EmailService } from '@m/email/email.service';
-import { UsersService } from '@m/users/users.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getModelToken } from "@nestjs/mongoose";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { ContestsService } from "../contests.service";
+import { EventsService } from "@m/events/events.service";
+import { ResultsService } from "@m/results/results.service";
+import { RecordTypesService } from "@m/record-types/record-types.service";
+import { PersonsService } from "@m/persons/persons.service";
+import { AuthService } from "@m/auth/auth.service";
+import { EmailService } from "@m/email/email.service";
+import { UsersService } from "@m/users/users.service";
 
 // Mocks and stubs
-import { MyLoggerMock } from '@m/my-logger/tests/my-logger.service';
-import { EventsServiceMock } from '@m/events/tests/mocks/events.service';
-import { RecordTypesServiceMock } from '@m/record-types/tests/mocks/record-types.service';
-import { ResultsServiceMock } from '@m/results/tests/mocks/results.service';
-import { PersonsServiceMock } from '@m/persons/tests/mocks/persons.service';
-import { AuthServiceMock } from '@m/auth/tests/mocks/auth.service';
-import { ContestModelMock } from './mocks/contest.model';
-import { RoundModelMock } from './mocks/round.model';
-import { ResultModelMock } from '@m/results/tests/mocks/result.model';
+import { MyLoggerMock } from "@m/my-logger/tests/my-logger.service";
+import { EventsServiceMock } from "@m/events/tests/mocks/events.service";
+import { RecordTypesServiceMock } from "@m/record-types/tests/mocks/record-types.service";
+import { ResultsServiceMock } from "@m/results/tests/mocks/results.service";
+import { PersonsServiceMock } from "@m/persons/tests/mocks/persons.service";
+import { AuthServiceMock } from "@m/auth/tests/mocks/auth.service";
+import { ContestModelMock } from "./mocks/contest.model";
+import { RoundModelMock } from "./mocks/round.model";
+import { ResultModelMock } from "@m/results/tests/mocks/result.model";
 
-describe('ContestsService', () => {
+describe("ContestsService", () => {
   let competitionsService: ContestsService;
   // let contestModel: Model<ContestDocument>;
   // let roundModel: Model<RoundDocument>;
@@ -64,19 +64,19 @@ describe('ContestsService', () => {
           useValue: {},
         },
         {
-          provide: getModelToken('Competition'),
+          provide: getModelToken("Competition"),
           useFactory: ContestModelMock,
         },
         {
-          provide: getModelToken('Round'),
+          provide: getModelToken("Round"),
           useFactory: RoundModelMock,
         },
         {
-          provide: getModelToken('Result'),
+          provide: getModelToken("Result"),
           useFactory: ResultModelMock,
         },
         {
-          provide: getModelToken('Schedule'),
+          provide: getModelToken("Schedule"),
           useValue: {},
         },
       ],
@@ -88,7 +88,7 @@ describe('ContestsService', () => {
     // resultModel = module.get<Model<ResultDocument>>(getModelToken('Result'));
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(competitionsService).toBeDefined();
   });
 });

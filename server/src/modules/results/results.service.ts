@@ -4,28 +4,28 @@ import {
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { toZonedTime } from 'date-fns-tz';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, mongo } from 'mongoose';
-import { ResultDocument } from '~/src/models/result.model';
-import { ContestDocument } from '~/src/models/contest.model';
-import { RoundDocument } from '~/src/models/round.model';
-import { EventDocument } from '~/src/models/event.model';
-import { ScheduleDocument } from '~/src/models/schedule.model';
-import { RecordTypesService } from '@m/record-types/record-types.service';
-import { EventsService } from '@m/events/events.service';
-import { PersonsService } from '@m/persons/persons.service';
-import { AuthService } from '@m/auth/auth.service';
-import { UsersService } from '@m/users/users.service';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { CreateResultDto } from './dto/create-result.dto';
-import { SubmitResultDto } from './dto/submit-result.dto';
-import { UpdateResultDto } from './dto/update-result.dto';
-import { excl, exclSysButKeepCreatedBy, orgPopulateOptions, resultPopulateOptions } from '~/src/helpers/dbHelpers';
-import C from '@sh/constants';
-import { ContestState, Role, RoundFormat, WcaRecordType } from '@sh/enums';
-import { roundFormats } from '@sh/roundFormats';
+} from "@nestjs/common";
+import { toZonedTime } from "date-fns-tz";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, mongo } from "mongoose";
+import { ResultDocument } from "~/src/models/result.model";
+import { ContestDocument } from "~/src/models/contest.model";
+import { RoundDocument } from "~/src/models/round.model";
+import { EventDocument } from "~/src/models/event.model";
+import { ScheduleDocument } from "~/src/models/schedule.model";
+import { RecordTypesService } from "@m/record-types/record-types.service";
+import { EventsService } from "@m/events/events.service";
+import { PersonsService } from "@m/persons/persons.service";
+import { AuthService } from "@m/auth/auth.service";
+import { UsersService } from "@m/users/users.service";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { CreateResultDto } from "./dto/create-result.dto";
+import { SubmitResultDto } from "./dto/submit-result.dto";
+import { UpdateResultDto } from "./dto/update-result.dto";
+import { excl, exclSysButKeepCreatedBy, orgPopulateOptions, resultPopulateOptions } from "~/src/helpers/dbHelpers";
+import C from "@sh/constants";
+import { ContestState, Role, RoundFormat, WcaRecordType } from "@sh/enums";
+import { roundFormats } from "@sh/roundFormats";
 import {
   IActivity,
   IEvent,
@@ -38,8 +38,8 @@ import {
   IResult,
   IResultsSubmissionInfo,
   IRound,
-} from '@sh/types';
-import { IPartialUser } from '~/src/helpers/interfaces/User';
+} from "@sh/types";
+import { IPartialUser } from "~/src/helpers/interfaces/User";
 import {
   compareAvgs,
   compareSingles,
@@ -50,10 +50,10 @@ import {
   getMakesCutoff,
   getRoundRanksWithAverage,
   setResultRecords,
-} from '@sh/sharedFunctions';
-import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings } from '~/src/helpers/utilityFunctions';
-import { EmailService } from '~/src/modules/email/email.service';
-import { LogType } from '~/src/helpers/enums';
+} from "@sh/sharedFunctions";
+import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings } from "~/src/helpers/utilityFunctions";
+import { EmailService } from "~/src/modules/email/email.service";
+import { LogType } from "~/src/helpers/enums";
 
 @Injectable()
 export class ResultsService {
@@ -65,15 +65,15 @@ export class ResultsService {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
-    @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
+    @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
+    @InjectModel("Round") private readonly roundModel: Model<RoundDocument>,
+    @InjectModel("Competition") private readonly contestModel: Model<ContestDocument>,
+    @InjectModel("Schedule") private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
   async onModuleInit() {
-    if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
-      this.logger.log('Checking results inconsistencies in the DB...');
+    if (process.env.DO_DB_CONSISTENCY_CHECKS === "true") {
+      this.logger.log("Checking results inconsistencies in the DB...");
 
       // Look for orphan contest results or ones that somehow belong to multiple rounds
       const contestResults = await this.resultModel.find({ competitionId: { $exists: true } }).exec();
@@ -89,7 +89,7 @@ export class ResultsService {
       for (const event of events) {
         // Single records
         const singleRecordResults = await this.resultModel
-          .find({ eventId: event.eventId, regionalSingleRecord: 'WR' })
+          .find({ eventId: event.eventId, regionalSingleRecord: "WR" })
           .exec();
 
         for (const result of singleRecordResults) {
@@ -109,7 +109,7 @@ export class ResultsService {
 
         // Average records
         const averageRecordResults = await this.resultModel
-          .find({ eventId: event.eventId, regionalAverageRecord: 'WR' })
+          .find({ eventId: event.eventId, regionalAverageRecord: "WR" })
           .exec();
 
         for (const result of averageRecordResults) {
@@ -130,7 +130,7 @@ export class ResultsService {
 
       const rounds = await this.roundModel.find().populate(resultPopulateOptions).exec();
       for (const round of rounds) {
-        const contests = await this.contestModel.find({ 'events.rounds': round._id }).exec();
+        const contests = await this.contestModel.find({ "events.rounds": round._id }).exec();
 
         // Look for orphan rounds or ones that belong to multiple contests
         if (contests.length === 0) {
@@ -165,46 +165,46 @@ export class ResultsService {
 
       // Look for duplicate video links (ignoring the ones that are intentionally repeated in the production DB)
       let knownDuplicates = [
-        '',
-        'https://www.youtube.com/watch?v=3MfyECPWhms',
-        'https://www.youtube.com/watch?v=h4T55MftnRc',
-        'https://www.youtube.com/watch?v=YYKOlLgQigA',
-        'https://youtu.be/kD7HLIMAy0Y',
-        'https://youtu.be/Z-NczuQ-7Og',
-        'https://youtu.be/6SZZ5GFJEqc',
-        'https://youtu.be/5yHJEphVmGw',
-        'https://youtu.be/kJe39nKlNZE',
-        'https://www.youtube.com/watch?v=DEfccjzzpbM',
-        'https://youtu.be/5cWf4jnik4A',
+        "",
+        "https://www.youtube.com/watch?v=3MfyECPWhms",
+        "https://www.youtube.com/watch?v=h4T55MftnRc",
+        "https://www.youtube.com/watch?v=YYKOlLgQigA",
+        "https://youtu.be/kD7HLIMAy0Y",
+        "https://youtu.be/Z-NczuQ-7Og",
+        "https://youtu.be/6SZZ5GFJEqc",
+        "https://youtu.be/5yHJEphVmGw",
+        "https://youtu.be/kJe39nKlNZE",
+        "https://www.youtube.com/watch?v=DEfccjzzpbM",
+        "https://youtu.be/5cWf4jnik4A",
       ];
       const repeatedVideoLinks = await this.resultModel.aggregate([
         { $match: { videoLink: { $exists: true, $nin: knownDuplicates } } },
-        { $group: { _id: '$videoLink', count: { $sum: 1 } } },
+        { $group: { _id: "$videoLink", count: { $sum: 1 } } },
         { $match: { count: { $gt: 1 } } },
       ]);
       if (repeatedVideoLinks.length > 0) {
         this.logger.error(
           `These video links have multiple results: ${
             repeatedVideoLinks
-              .map((x) => `${x._id || '[blank]'} (${x.count})`)
-              .join(', ')
+              .map((x) => `${x._id || "[blank]"} (${x.count})`)
+              .join(", ")
           }`,
         );
       }
 
       // Look for duplicate discussion links
       knownDuplicates = [
-        'https://www.speedsolving.com/forum/threads/6x6-blindfolded-rankings-thread.41968/page-11#post-1212891',
-        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1345821',
-        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-31#post-1426321',
-        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1384930',
-        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-34#post-1512606',
-        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-31#post-1424699',
-        'https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1563025',
+        "https://www.speedsolving.com/forum/threads/6x6-blindfolded-rankings-thread.41968/page-11#post-1212891",
+        "https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1345821",
+        "https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-31#post-1426321",
+        "https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1384930",
+        "https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-34#post-1512606",
+        "https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/page-31#post-1424699",
+        "https://www.speedsolving.com/threads/6x6-blindfolded-rankings-thread.41968/post-1563025",
       ];
       const repeatedDiscussionLinks = await this.resultModel.aggregate([
         { $match: { discussionLink: { $exists: true, $nin: knownDuplicates } } },
-        { $group: { _id: '$discussionLink', count: { $sum: 1 } } },
+        { $group: { _id: "$discussionLink", count: { $sum: 1 } } },
         { $match: { count: { $gt: 1 } } },
       ]);
       if (repeatedDiscussionLinks.length > 0) {
@@ -212,7 +212,7 @@ export class ResultsService {
           `These discussion links have multiple results: ${
             repeatedDiscussionLinks
               .map((x) => `${x._id} (${x.count})`)
-              .join(', ')
+              .join(", ")
           }`,
         );
       }
@@ -248,7 +248,7 @@ export class ResultsService {
     }
   }
 
-  async getRankings(eventId: string, forAverage = false, show?: 'results'): Promise<IEventRankings> {
+  async getRankings(eventId: string, forAverage = false, show?: "results"): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
     const eventRankings: IEventRankings = {
@@ -260,15 +260,15 @@ export class ResultsService {
     if (!forAverage) {
       const $match = { ...getBaseSinglesFilter(event), unapproved: { $exists: false } };
 
-      if (show === 'results') {
+      if (show === "results") {
         // Get all top single results
         eventResults = await this.resultModel
           .aggregate([
             { $match },
-            { $unwind: { path: '$attempts', includeArrayIndex: 'attemptNumber' } },
+            { $unwind: { path: "$attempts", includeArrayIndex: "attemptNumber" } },
             { $project: excl },
-            { $match: { 'attempts.result': { $gt: 0, $ne: C.maxTime } } },
-            { $sort: { 'attempts.result': 1 } },
+            { $match: { "attempts.result": { $gt: 0, $ne: C.maxTime } } },
+            { $sort: { "attempts.result": 1 } },
           ])
           .exec();
 
@@ -279,8 +279,8 @@ export class ResultsService {
         const prSingles = await this.resultModel
           .aggregate([
             { $match },
-            { $unwind: '$personIds' },
-            { $group: { _id: { personId: '$personIds' }, best: { $min: '$best' } } },
+            { $unwind: "$personIds" },
+            { $group: { _id: { personId: "$personIds" }, best: { $min: "$best" } } },
             { $sort: { best: 1 } },
           ])
           .exec();
@@ -308,7 +308,7 @@ export class ResultsService {
         };
 
         // Set memo, if the result has it
-        if (show === 'results') {
+        if (show === "results") {
           ranking.memo = (result.attempts as any).memo; // will be left undefined if there is no memo
         } else {
           const tiedBestAttempts = result.attempts.filter((el) => el.result === result.best);
@@ -324,7 +324,7 @@ export class ResultsService {
     } else {
       const $match = { ...getBaseAvgsFilter(event), unapproved: { $exists: false } };
 
-      if (show === 'results') {
+      if (show === "results") {
         // Get all top average results
         eventResults = await this.resultModel.find($match).sort({ average: 1 }).exec();
       } else {
@@ -333,8 +333,8 @@ export class ResultsService {
         const prAverages = await this.resultModel
           .aggregate([
             { $match },
-            { $unwind: '$personIds' },
-            { $group: { _id: { personId: '$personIds' }, average: { $min: '$average' } } },
+            { $unwind: "$personIds" },
+            { $group: { _id: { personId: "$personIds" }, average: { $min: "$average" } } },
             { $sort: { average: 1 } },
           ])
           .exec();
@@ -403,7 +403,7 @@ export class ResultsService {
 
         for (const result of singleResults) {
           eventRecords.rankings.push({
-            type: 'single',
+            type: "single",
             persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
             resultId: result._id.toString(),
             result: result.best,
@@ -418,7 +418,7 @@ export class ResultsService {
 
         for (const result of averageResults) {
           eventRecords.rankings.push({
-            type: result.attempts.length === 3 ? 'mean' : 'average',
+            type: result.attempts.length === 3 ? "mean" : "average",
             persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
             resultId: result._id.toString(),
             result: result.average,
@@ -456,7 +456,7 @@ export class ResultsService {
 
   async getEditingInfo(resultId: string): Promise<IResultsSubmissionInfo> {
     const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec();
-    if (!result) throw new NotFoundException('Result not found');
+    if (!result) throw new NotFoundException("Result not found");
 
     const event = await this.eventsService.getEventById(result.eventId);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
@@ -485,9 +485,9 @@ export class ResultsService {
       let frontendResults: IFeResult[] = await this.resultModel
         .aggregate([
           { $match: { competitionId: { $exists: false } } },
-          { $lookup: { from: 'people', localField: 'personIds', foreignField: 'personId', as: 'persons' } },
-          { $lookup: { from: 'events', localField: 'eventId', foreignField: 'eventId', as: 'event' } },
-          { $set: { event: { $arrayElemAt: ['$event', 0] } } }, // $lookup makes the event field an array, so this undoes that
+          { $lookup: { from: "people", localField: "personIds", foreignField: "personId", as: "persons" } },
+          { $lookup: { from: "events", localField: "eventId", foreignField: "eventId", as: "event" } },
+          { $set: { event: { $arrayElemAt: ["$event", 0] } } }, // $lookup makes the event field an array, so this undoes that
           { $sort: { createdAt: -1 } },
           { $project: excl },
         ])
@@ -522,10 +522,10 @@ export class ResultsService {
       .findOne({ competitionId: createResultDto.competitionId, roundId })
       .populate(resultPopulateOptions)
       .exec();
-    if (!round) throw new BadRequestException('Round not found');
+    if (!round) throw new BadRequestException("Round not found");
     const event = await this.eventsService.getEventById(createResultDto.eventId);
 
-    await this.validateAndCleanUpResult(createResultDto, event, { mode: 'create', round });
+    await this.validateAndCleanUpResult(createResultDto, event, { mode: "create", round });
 
     // Set result date. For contests with a schedule, the schedule must be used to set the date.
     if (!getIsCompType(contest.type)) {
@@ -569,7 +569,7 @@ export class ResultsService {
 
     if (!newResult.unapproved) await this.personsService.approvePersons({ personIds: newResult.personIds });
 
-    await this.updateFutureRecords(newResult, event, recordPairs, { mode: 'create' });
+    await this.updateFutureRecords(newResult, event, recordPairs, { mode: "create" });
 
     round.results.push(newResult);
     round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
@@ -594,9 +594,9 @@ export class ResultsService {
 
     // Disallow admin-only features
     if (!isAdmin) {
-      if (submitResultDto.videoLink === '') throw new UnauthorizedException('Please enter a video link');
+      if (submitResultDto.videoLink === "") throw new UnauthorizedException("Please enter a video link");
       if (submitResultDto.attempts.some((a) => a.result === C.maxTime)) {
-        throw new UnauthorizedException('You are not authorized to set unknown time');
+        throw new UnauthorizedException("You are not authorized to set unknown time");
       }
     }
 
@@ -605,7 +605,7 @@ export class ResultsService {
 
     const event = await this.eventsService.getEventById(submitResultDto.eventId);
 
-    await this.validateAndCleanUpResult(submitResultDto, event, { mode: 'submit' });
+    await this.validateAndCleanUpResult(submitResultDto, event, { mode: "submit" });
 
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
     const newResult = { ...submitResultDto, createdBy: new mongo.ObjectId(user._id as string) };
@@ -614,7 +614,7 @@ export class ResultsService {
     if (isAdmin) {
       await this.personsService.approvePersons({ personIds: createdResult.personIds });
 
-      await this.updateFutureRecords(createdResult, event, recordPairs, { mode: 'create' });
+      await this.updateFutureRecords(createdResult, event, recordPairs, { mode: "create" });
     } else {
       let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${
         getFormattedTime(
@@ -629,7 +629,7 @@ export class ResultsService {
       }
       text += `. Video link: ${newResult.videoLink}`;
 
-      await this.emailService.sendEmail(C.contactEmail, text, { subject: 'New Result Submission' });
+      await this.emailService.sendEmail(C.contactEmail, text, { subject: "New Result Submission" });
     }
 
     return createdResult;
@@ -653,7 +653,7 @@ export class ResultsService {
         .findOne({ results: new mongo.ObjectId(resultId) })
         .populate(resultPopulateOptions)
         .exec();
-      if (!round) throw new BadRequestException('Round not found');
+      if (!round) throw new BadRequestException("Round not found");
     }
 
     const previousBest = result.best;
@@ -673,7 +673,7 @@ export class ResultsService {
     result.regionalSingleRecord = undefined;
     result.regionalAverageRecord = undefined;
 
-    await this.validateAndCleanUpResult(result, event, { mode: 'edit', round });
+    await this.validateAndCleanUpResult(result, event, { mode: "edit", round });
 
     const recordPairs = await this.getEventRecordPairs(event, {
       recordsUpTo: result.date,
@@ -686,17 +686,17 @@ export class ResultsService {
       result.unapproved = undefined;
       await result.save();
 
-      await this.updateFutureRecords(result, event, recordPairs, { mode: 'create' });
+      await this.updateFutureRecords(result, event, recordPairs, { mode: "create" });
       await this.personsService.approvePersons({ personIds: result.personIds });
 
       await this.emailService.sendEmail(
         await this.usersService.getUserEmail({ _id: result.createdBy }),
         `Your ${event.name} result has been approved. You can see it in the rankings <a href="${process.env.BASE_URL}/rankings/${event.eventId}/single">here</a>.`,
-        { subject: 'Result Approved' },
+        { subject: "Result Approved" },
       );
     } else {
       await result.save();
-      await this.updateFutureRecords(result, event, recordPairs, { mode: 'edit', previousBest, previousAvg });
+      await this.updateFutureRecords(result, event, recordPairs, { mode: "edit", previousBest, previousAvg });
     }
 
     // Update round rankings, if it's a contest result
@@ -730,12 +730,12 @@ export class ResultsService {
         .findOne({ results: new mongo.ObjectId(resultId) })
         .populate(resultPopulateOptions)
         .exec();
-      if (!round) throw new BadRequestException('Round not found');
+      if (!round) throw new BadRequestException("Round not found");
     }
 
     await this.resultModel.deleteOne({ _id: resultId }).exec();
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: result.date, excludeResultId: resultId });
-    await this.updateFutureRecords(result, event, recordPairs, { mode: 'delete' });
+    await this.updateFutureRecords(result, event, recordPairs, { mode: "delete" });
 
     if (contest) {
       round.results = round.results.filter((el) => el._id.toString() !== resultId);
@@ -871,21 +871,21 @@ export class ResultsService {
       previousBest,
       previousAvg,
     }: {
-      mode: 'create' | 'edit' | 'delete';
+      mode: "create" | "edit" | "delete";
       previousBest?: number; // only used for result edit
       previousAvg?: number; // only used for result edit
     },
   ) {
-    if (mode === 'edit' && (previousBest === undefined || previousAvg === undefined)) {
-      throw new InternalServerErrorException('Previous single and average are not defined');
+    if (mode === "edit" && (previousBest === undefined || previousAvg === undefined)) {
+      throw new InternalServerErrorException("Previous single and average are not defined");
     }
 
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
     for (const rp of recordPairs) {
       try {
-        const singlesComparison = mode === 'edit' ? compareSingles(result, { best: previousBest } as IResult) : 0;
-        const singleGotWorse = singlesComparison > 0 || (mode === 'delete' && result.best > 0);
-        const singleGotBetter = singlesComparison < 0 || (mode === 'create' && result.best > 0);
+        const singlesComparison = mode === "edit" ? compareSingles(result, { best: previousBest } as IResult) : 0;
+        const singleGotWorse = singlesComparison > 0 || (mode === "delete" && result.best > 0);
+        const singleGotBetter = singlesComparison < 0 || (mode === "create" && result.best > 0);
 
         if (singleGotWorse || singleGotBetter) {
           const singleQuery = {
@@ -899,21 +899,21 @@ export class ResultsService {
 
             // Make sure it's better than the record at the time, if there was one, and better than the new best, if it's an edit
             if (rp.best > 0) best.$lte = rp.best;
-            if (mode === 'edit' && compareSingles(result, { best: rp.best } as IResult) < 0) best.$lte = result.best;
+            if (mode === "edit" && compareSingles(result, { best: rp.best } as IResult) < 0) best.$lte = result.best;
             singleQuery.best = best;
 
             await this.recordTypesService.setEventSingleRecords(event, rp.wcaEquivalent, singleQuery);
           } else {
             // Remove single records cancelled by the new result or by the improved edited result
             await this.resultModel
-              .updateMany({ ...singleQuery, best: { $gt: result.best } }, { $unset: { regionalSingleRecord: '' } })
+              .updateMany({ ...singleQuery, best: { $gt: result.best } }, { $unset: { regionalSingleRecord: "" } })
               .exec();
           }
         }
 
-        const avgsComparison = mode === 'edit' ? compareAvgs(result, { average: previousAvg } as IResult, true) : 0;
-        const avgGotWorse = avgsComparison > 0 || (mode === 'delete' && result.average > 0);
-        const avgGotBetter = avgsComparison < 0 || (mode === 'create' && result.average > 0);
+        const avgsComparison = mode === "edit" ? compareAvgs(result, { average: previousAvg } as IResult, true) : 0;
+        const avgGotWorse = avgsComparison > 0 || (mode === "delete" && result.average > 0);
+        const avgGotBetter = avgsComparison < 0 || (mode === "create" && result.average > 0);
 
         if (avgGotWorse || avgGotBetter) {
           const avgQuery = {
@@ -927,7 +927,7 @@ export class ResultsService {
 
             // Make sure it's better than the record at the time, if there was one, and better than the new average, if it's an edit
             if (rp.average > 0) average.$lte = rp.average;
-            if (mode === 'edit' && compareAvgs(result, { average: rp.average } as IResult, true) < 0) {
+            if (mode === "edit" && compareAvgs(result, { average: rp.average } as IResult, true) < 0) {
               average.$lte = result.average;
             }
             avgQuery.average = average;
@@ -936,7 +936,7 @@ export class ResultsService {
           } else {
             // Remove average records cancelled by the new result or by the improved edited result
             await this.resultModel
-              .updateMany({ ...avgQuery, average: { $gt: result.average } }, { $unset: { regionalAverageRecord: '' } })
+              .updateMany({ ...avgQuery, average: { $gt: result.average } }, { $unset: { regionalAverageRecord: "" } })
               .exec();
           }
         }
@@ -987,16 +987,16 @@ export class ResultsService {
       mode,
     }: {
       round?: IRound; // if round is defined, that means it's a contest result, not a submitted one
-      mode: 'create' | 'submit' | 'edit';
+      mode: "create" | "submit" | "edit";
     },
   ) {
     if (result.personIds.length !== (event.participants ?? 1)) {
       throw new BadRequestException(
-        `This event must have ${event.participants ?? 1} participant${event.participants ? 's' : ''}`,
+        `This event must have ${event.participants ?? 1} participant${event.participants ? "s" : ""}`,
       );
     }
     if (result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2))) {
-      throw new BadRequestException('You cannot enter the same person twice in the same result');
+      throw new BadRequestException("You cannot enter the same person twice in the same result");
     }
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
@@ -1008,22 +1008,22 @@ export class ResultsService {
     // Validate the best single and the average
     const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat: format.value });
     if (result.best === null) result.best = best;
-    else if (result.best !== best) throw new BadRequestException('The best single is incorrect. Please try again.');
+    else if (result.best !== best) throw new BadRequestException("The best single is incorrect. Please try again.");
     if (result.average === null) result.average = average;
-    else if (result.average !== average) throw new BadRequestException('The average is incorrect. Please try again.');
+    else if (result.average !== average) throw new BadRequestException("The average is incorrect. Please try again.");
 
     if (round) {
       // Make sure there is no result for any of the same people
       const resultFromSamePerson = round.results.find(
         (r) =>
-          (mode !== 'edit' || (r as any)._id.toString() !== (result as any)._id.toString()) &&
+          (mode !== "edit" || (r as any)._id.toString() !== (result as any)._id.toString()) &&
           r.personIds.some((p) => result.personIds.includes(p)),
       );
       if (resultFromSamePerson) {
         throw new BadRequestException(
           result.personIds.length === 1
-            ? 'That competitor already has a result in this round'
-            : 'One of the competitors already has a result in this round',
+            ? "That competitor already has a result in this round"
+            : "One of the competitors already has a result in this round",
         );
       }
 
@@ -1064,8 +1064,8 @@ export class ResultsService {
             throw new BadRequestException(
               `This round has a cumulative time limit of ${getFormattedTime(round.timeLimit.centiseconds)}${
                 round.timeLimit.cumulativeRoundIds.length === 1
-                  ? ''
-                  : ` for these rounds: ${round.timeLimit.cumulativeRoundIds.join(', ')}`
+                  ? ""
+                  : ` for these rounds: ${round.timeLimit.cumulativeRoundIds.join(", ")}`
               }`,
             );
           }
@@ -1098,7 +1098,7 @@ export class ResultsService {
       }
     } // Video-based results validation
     else {
-      if (result.videoLink === undefined) throw new BadRequestException('Please enter a video link');
+      if (result.videoLink === undefined) throw new BadRequestException("Please enter a video link");
     }
   }
 }

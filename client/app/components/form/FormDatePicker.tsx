@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import enGB from 'date-fns/locale/en-GB';
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
-import FormInputLabel from './FormInputLabel.tsx';
-import { getDateOnly } from '~/shared_helpers/sharedFunctions.ts';
+import React, { useEffect } from "react";
+import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import enGB from "date-fns/locale/en-GB";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import FormInputLabel from "./FormInputLabel.tsx";
+import { getDateOnly } from "../../../shared_helpers/sharedFunctions.ts";
 
-registerLocale('en-GB', enGB);
-setDefaultLocale('en-GB');
+registerLocale("en-GB", enGB);
+setDefaultLocale("en-GB");
 
 const FormDatePicker = ({
   id,
   title,
   value,
   setValue,
-  timeZone = 'UTC',
-  dateFormat = 'P',
-  timeFormat = 'p',
+  timeZone = "UTC",
+  dateFormat = "P",
+  timeFormat = "p",
   timeIntervals = 10,
   disabled = false,
   showUTCTime = false,
@@ -35,11 +35,11 @@ const FormDatePicker = ({
   showUTCTime?: boolean;
 }) => {
   if (!id && !title) {
-    throw new Error('Neither title nor id are set in FormDatePicker');
+    throw new Error("Neither title nor id are set in FormDatePicker");
   }
 
   const inputId = id || `${title}_date`;
-  const showTimeSelect = dateFormat !== 'P';
+  const showTimeSelect = dateFormat !== "P";
 
   useEffect(() => {
     if (!showTimeSelect) setValue(getDateOnly(value));
@@ -53,7 +53,7 @@ const FormDatePicker = ({
   };
 
   return (
-    <div className='mb-3'>
+    <div className="mb-3">
       <FormInputLabel text={title} inputId={inputId} />
 
       <DatePicker
@@ -64,14 +64,14 @@ const FormDatePicker = ({
         timeFormat={timeFormat}
         timeIntervals={timeIntervals}
         showTimeSelect={showTimeSelect}
-        showTimeSelectOnly={dateFormat === 'HH:mm'}
-        locale='en-GB'
+        showTimeSelectOnly={dateFormat === "HH:mm"}
+        locale="en-GB"
         disabled={disabled}
-        className='form-control'
+        className="form-control"
       />
 
       {showUTCTime && (
-        <div className='mt-3 text-secondary fs-6'>
+        <div className="mt-3 text-secondary fs-6">
           UTC:&#8194;{value.toUTCString().slice(0, -4)}
         </div>
       )}

@@ -1,9 +1,12 @@
-import { Hono } from 'hono';
+import { type Context, Hono } from "hono";
+import { serveStatic } from "hono/deno";
 
-const app = new Hono();
+const app = new Hono().basePath("/api2");
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!');
+app.use("/static/*", serveStatic({ root: "./static" }));
+
+app.get("/", (c: Context) => {
+  return c.text("Hello Hono!");
 });
 
-Deno.serve(app.fetch);
+Deno.serve({ port: parseInt(Deno.env.get("BACKEND2_PORT") as string) }, app.fetch);

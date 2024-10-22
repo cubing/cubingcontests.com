@@ -18,7 +18,11 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   # Remove all images that contain "cubingcontests"
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
-  docker build --build-arg API_BASE_URL=https://cubingcontests.com/api -t denimint/cubingcontests-client:$NEW_VERSION --file client.Dockerfile . &&
+  docker build --build-arg API_BASE_URL=$PROD_BASE_URL \
+                           API_BASE_URL_SERVER_SIDE=$API_BASE_URL_SERVER_SIDE \
+                           API2_BASE_URL=$API2_BASE_URL \
+                           API2_BASE_URL_SERVER_SIDE=$API2_BASE_URL_SERVER_SIDE \
+    -t denimint/cubingcontests-client:$NEW_VERSION --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$NEW_VERSION denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$NEW_VERSION &&
   docker push denimint/cubingcontests-client:latest &&

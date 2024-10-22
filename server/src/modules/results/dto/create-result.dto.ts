@@ -11,12 +11,12 @@ import {
   Validate,
   ValidateIf,
   ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { IAttempt, IResult } from '@sh/types';
-import C from '@sh/constants';
-import { DATE_VALIDATION_MSG } from '~/src/helpers/messages';
-import { ContestAttempts } from '~/src/helpers/customValidators';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { IAttempt, IResult } from "@sh/types";
+import C from "@sh/constants";
+import { DATE_VALIDATION_MSG } from "~/src/helpers/messages";
+import { ContestAttempts } from "~/src/helpers/customValidators";
 
 export class CreateResultDto implements IResult {
   @IsOptional()
