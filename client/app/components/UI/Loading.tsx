@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { MainContext } from "~/helpers/contexts.ts";
 
 const Loading = (

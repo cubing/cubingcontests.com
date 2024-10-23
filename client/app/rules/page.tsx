@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeEvent } from "../../shared_helpers/types.ts";
-import { roundFormats } from "../../shared_helpers/roundFormats.ts";
-import { RoundFormat } from "../../shared_helpers/enums.ts";
-import { INavigationItem } from "~/helpers/interfaces/NavigationItem.ts";
+import { IFeEvent } from "~/shared_helpers/types.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { RoundFormat } from "~/shared_helpers/enums.ts";
+import { INavigationItem } from "~/helpers/types.ts";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import MarkdownDescription from "~/app/components/MarkdownDescription.tsx";

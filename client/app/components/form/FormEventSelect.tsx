@@ -1,6 +1,6 @@
 "use client";
 
-import { IEvent } from "../../../shared_helpers/types.ts";
+import { IEvent } from "~/shared_helpers/types.ts";
 
 const FormEventSelect = ({
   title = "Event",

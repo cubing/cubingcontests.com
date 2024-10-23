@@ -1,8 +1,8 @@
 "use client";
 
 import RoundResultsTable from "./RoundResultsTable.tsx";
-import { IContestEvent, IPerson, IRecordType } from "../../shared_helpers/types.ts";
-import React, { useEffect, useState } from "react";
+import { IContestEvent, IPerson, IRecordType } from "~/shared_helpers/types.ts";
+import { useEffect, useState } from "react";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import EventTitle from "./EventTitle.tsx";
 import FormSelect from "./form/FormSelect.tsx";
@@ -13,7 +13,7 @@ const EventResultsTable = ({
   recordTypes,
   onDeleteResult,
 }: {
-  contestEvent: IContestEvent | null;
+  contestEvent: IContestEvent;
   persons: IPerson[];
   recordTypes: IRecordType[];
   onDeleteResult?: (resultId: string) => void;

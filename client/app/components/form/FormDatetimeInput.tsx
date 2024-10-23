@@ -1,19 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
-import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import enGB from "date-fns/locale/en-GB";
+import { useEffect } from "react";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import FormInputLabel from "./FormInputLabel.tsx";
-import { getDateOnly } from "../../../shared_helpers/sharedFunctions.ts";
+import { getDateOnly } from "~/shared_helpers/sharedFunctions.ts";
 
-registerLocale("en-GB", enGB);
-setDefaultLocale("en-GB");
-
-const FormDatePicker = ({
+const FormDatetimeInput = ({
   id,
-  title,
+  title = "",
   value,
   setValue,
   timeZone = "UTC",
@@ -35,7 +29,7 @@ const FormDatePicker = ({
   showUTCTime?: boolean;
 }) => {
   if (!id && !title) {
-    throw new Error("Neither title nor id are set in FormDatePicker");
+    throw new Error("Neither title nor id are set in FormDatetimeInput");
   }
 
   const inputId = id || `${title}_date`;
@@ -45,7 +39,7 @@ const FormDatePicker = ({
     if (!showTimeSelect) setValue(getDateOnly(value));
   }, [showTimeSelect]);
 
-  const onChange = (newDate: Date) => {
+  const onChange = (newDate: string) => {
     // The time zone conversion is necessary, because otherwise JS uses the user's local time zone
     if (!showTimeSelect) {
       setValue(getDateOnly(fromZonedTime(newDate, timeZone)));
@@ -56,7 +50,8 @@ const FormDatePicker = ({
     <div className="mb-3">
       <FormInputLabel text={title} inputId={inputId} />
 
-      <DatePicker
+      {
+        /* <DatePicker
         id={inputId}
         selected={value && toZonedTime(value, timeZone)}
         onChange={onChange}
@@ -66,6 +61,15 @@ const FormDatePicker = ({
         showTimeSelect={showTimeSelect}
         showTimeSelectOnly={dateFormat === "HH:mm"}
         locale="en-GB"
+        disabled={disabled}
+        className="form-control"
+      /> */
+      }
+      <input
+        id={inputId}
+        type="datetime-local"
+        value={value ? toZonedTime(value, timeZone).toDateString() : ""}
+        onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         className="form-control"
       />
@@ -79,4 +83,4 @@ const FormDatePicker = ({
   );
 };
 
-export default FormDatePicker;
+export default FormDatetimeInput;

@@ -1,7 +1,7 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import ContestResults from "~/app/components/ContestResults.tsx";
-import { IContestData } from "../../../../shared_helpers/types.ts";
+import { IContestData } from "~/shared_helpers/types.ts";
 
 const ContestResultsPage = async ({
   params: { id },

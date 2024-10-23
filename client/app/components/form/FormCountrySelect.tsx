@@ -1,6 +1,6 @@
 "use client";
 
-import Countries from "../../../shared_helpers/Countries.ts";
+import Countries from "~/shared_helpers/Countries.ts";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
 
 const countryOptions = [

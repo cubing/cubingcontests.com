@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IContestData, IEvent } from "../../../shared_helpers/types.ts";
+import { IContestData, IEvent } from "~/shared_helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ContestForm from "./ContestForm.tsx";

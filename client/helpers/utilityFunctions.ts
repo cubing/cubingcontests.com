@@ -2,10 +2,10 @@ import jwtDecode from "jwt-decode";
 import { isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
-import { Color, EventFormat, Role } from "../shared_helpers/enums.ts";
-import C from "../shared_helpers/constants.ts";
-import { IAttempt, IEvent, IFeAttempt, ITimeLimit } from "../shared_helpers/types.ts";
-import { IUserInfo } from "./interfaces/UserInfo.ts";
+import { Color, EventFormat, Role } from "~/shared_helpers/enums.ts";
+import C from "~/shared_helpers/constants.ts";
+import { IAttempt, IEvent, IFeAttempt, ITimeLimit } from "~/shared_helpers/types.ts";
+import { UserInfo } from "./types.ts";
 
 export const getFormattedDate = (
   startDate: Date | string,
@@ -163,7 +163,7 @@ export const getAttempt = (
 };
 
 // Returns the authenticated user's info
-export const getUserInfo = (): IUserInfo | undefined => {
+export const getUserInfo = (): UserInfo => {
   if (typeof localStorage !== "undefined") {
     const token = localStorage.getItem("jwtToken");
 
@@ -171,7 +171,7 @@ export const getUserInfo = (): IUserInfo | undefined => {
       // Decode the JWT (only take the part after "Bearer ")
       const authorizedUser: any = jwtDecode(token.split(" ")[1]);
 
-      const userInfo: IUserInfo = {
+      const userInfo: UserInfo = {
         id: authorizedUser.sub,
         username: authorizedUser.username,
         personId: authorizedUser.personId,
@@ -283,7 +283,7 @@ export const getIsWebglSupported = (): boolean => {
 
     return !!(window.WebGLRenderingContext && webglContext &&
       webglExperimentalContext);
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 };

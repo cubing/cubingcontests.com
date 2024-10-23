@@ -4,10 +4,10 @@ import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { IEvent, IPerson, IRecordType, IResult, IRound } from "../../shared_helpers/types.ts";
-import { RoundFormat, RoundProceed, RoundType } from "../../shared_helpers/enums.ts";
-import { getRoundRanksWithAverage } from "../../shared_helpers/sharedFunctions.ts";
-import { roundFormats } from "../../shared_helpers/roundFormats.ts";
+import { IEvent, IPerson, IRecordType, IResult, IRound } from "~/shared_helpers/types.ts";
+import { RoundFormat, RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
+import { getRoundRanksWithAverage } from "~/shared_helpers/sharedFunctions.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 
 const RoundResultsTable = ({
   round,

@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { addHours } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import { Color, ContestType } from "../../../shared_helpers/enums.ts";
-import { IActivity, IContestEvent, IRoom } from "../../../shared_helpers/types.ts";
-import { MultiChoiceOption } from "~/helpers/interfaces/MultiChoiceOption.ts";
+import { Color, ContestType } from "~/shared_helpers/enums.ts";
+import { IActivity, IContestEvent, IRoom } from "~/shared_helpers/types.ts";
+import { MultiChoiceOption } from "~/helpers/types.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
-import FormDatePicker from "~/app/components/form/FormDatePicker.tsx";
+import FormDatetimeInput from "~/app/components/form/FormDatetimeInput.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
@@ -242,7 +242,7 @@ const ScheduleEditor = ({
         )}
         <div className="mb-3 row align-items-end">
           <div className="col">
-            <FormDatePicker
+            <FormDatetimeInput
               id="activity_start_time"
               title={`Start time (${venueTimeZone})`}
               value={activityStartTime}
@@ -255,7 +255,7 @@ const ScheduleEditor = ({
             />
           </div>
           <div className="col">
-            <FormDatePicker
+            <FormDatetimeInput
               id="activity_end_time"
               value={activityEndTime}
               setValue={setActivityEndTime}

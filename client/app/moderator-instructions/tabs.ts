@@ -1,4 +1,4 @@
-import { INavigationItem } from "~/helpers/interfaces/NavigationItem.ts";
+import { INavigationItem } from "~/helpers/types.ts";
 
 export const tabs: INavigationItem[] = [
   {

@@ -1,8 +1,8 @@
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { EventFormat, EventGroup } from "../shared_helpers/enums.ts";
-import { IEvent } from "../shared_helpers/types.ts";
-import C from "../shared_helpers/constants.ts";
-import { getFormattedTime } from "../shared_helpers/sharedFunctions.ts";
+import { EventFormat, EventGroup } from "~/shared_helpers/enums.ts";
+import { IEvent } from "~/shared_helpers/types.ts";
+import C from "~/shared_helpers/constants.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 import { mockTimeEvent } from "~/__mocks__/events.stub.ts";
 
 const roundOpts = {

@@ -16,7 +16,6 @@
     "jwt-decode": "^3.1.2",
     "next": "^14.2.15",
     "react": "^18.3.1",
-    "react-datepicker": "^7.3.0",
     "react-dom": "^18.3.1",
     "remove-accents": "^0.5.0"
   },
@@ -24,7 +23,6 @@
     "@types/jest": "^29.5.13",
     "@types/node": "^20.16.13",
     "@types/react": "^18.3.11",
-    "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^18.3.1",
     "jest": "^29.6.4",
     "jest-environment-jsdom": "^29.6.4",

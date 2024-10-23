@@ -1,4 +1,4 @@
-import { MultiChoiceOption } from "~/helpers/interfaces/MultiChoiceOption.ts";
+import { MultiChoiceOption } from "~/helpers/types.ts";
 
 const FormRadio = ({
   id,

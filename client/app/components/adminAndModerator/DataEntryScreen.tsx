@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -18,14 +18,14 @@ import {
   IResult,
   IRound,
   IUpdateResultDto,
-} from "../../../shared_helpers/types.ts";
-import { ContestState } from "../../../shared_helpers/enums.ts";
+} from "~/shared_helpers/types.ts";
+import { ContestState } from "~/shared_helpers/enums.ts";
 import { getUserInfo, shortenEventName } from "~/helpers/utilityFunctions.ts";
-import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
+import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getBestAndAverage } from "../../../shared_helpers/sharedFunctions.ts";
+import { getBestAndAverage } from "~/shared_helpers/sharedFunctions.ts";
 
-const userInfo: IUserInfo | undefined = getUserInfo();
+const userInfo: UserInfo = getUserInfo();
 
 const DataEntryScreen = ({
   compData: {
@@ -51,9 +51,9 @@ const DataEntryScreen = ({
   >(initialRecordPairs);
 
   const [round, setRound] = useState<IRound>(
-    contest.events.find((ce) => ce.event.eventId === eventId).rounds[0],
+    contest.events.find((ce: IContestEvent) => ce.event.eventId === eventId)?.rounds[0],
   );
-  const [currentPersons, setCurrentPersons] = useState<IPerson[]>([null]);
+  const [currentPersons, setCurrentPersons] = useState<InputPerson[]>([null]);
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>(
@@ -62,17 +62,17 @@ const DataEntryScreen = ({
   const [queuePosition, setQueuePosition] = useState(contest.queuePosition);
 
   const currEvent = useMemo(
-    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split("-")[0]).event,
+    () => contest.events.find((ev) => ev.event.eventId === round.roundId.split("-")[0])?.event,
     [contest, round.roundId],
   );
   const recordPairs = useMemo(
     () =>
-      recordPairsByEvent.find((el) => el.eventId === currEvent.eventId)
+      recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === currEvent.eventId)
         .recordPairs,
     [recordPairsByEvent, currEvent],
   );
 
-  const isEditable = userInfo.isAdmin ||
+  const isEditable = userInfo?.isAdmin ||
     [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ const DataEntryScreen = ({
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
-    document.getElementById("Competitor_1").focus();
+    document.getElementById("Competitor_1")?.focus();
   }, [round.roundId]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ const DataEntryScreen = ({
 
   const submitResult = async () => {
     if (isEditable) {
-      if (currentPersons.some((p) => !p)) {
+      if (currentPersons.some((p: InputPerson) => !p)) {
         changeErrorMessages(["Invalid person(s)"]);
         return;
       }
@@ -112,13 +112,13 @@ const DataEntryScreen = ({
         competitionId: contest.competitionId,
         eventId: currEvent.eventId,
         date: new Date(), // real date assigned on the backend
-        personIds: currentPersons.map((p) => p.personId),
+        personIds: currentPersons.map((p: InputPerson) => p.personId),
         ranking: 0, // real rankings assigned on the backend
         attempts, // attempts that got cancelled due to not making cutoff are removed on the backend
         best,
         average,
       };
-      let updatedRound: IRound, errors: string[];
+      let updatedRound: IRound, errors: string[] | undefined;
 
       if (resultUnderEdit === null) {
         const { payload, errors: err } = await myFetch.post(
@@ -129,7 +129,7 @@ const DataEntryScreen = ({
           },
         );
         updatedRound = payload;
-        errors = err;
+        if (err) errors = err;
       } else {
         const updateResultDto: IUpdateResultDto = {
           date: newResult.date,
@@ -142,7 +142,7 @@ const DataEntryScreen = ({
           { loadingId: "submit_attempt_button" },
         );
         updatedRound = payload;
-        errors = err;
+        if (err) errors = err;
         setResultUnderEdit(null);
       }
 
@@ -150,7 +150,7 @@ const DataEntryScreen = ({
         // Add new persons to list of persons
         setPersons([
           ...persons,
-          ...currentPersons.filter((cp) => !persons.some((p) => p.personId === cp.personId)),
+          ...currentPersons.filter((cp: IPerson) => !persons.some((p: IPerson) => p.personId === cp.personId)),
         ]);
         setResultFormResetTrigger(!resultFormResetTrigger);
         updateRoundAndCompEvents(updatedRound);
@@ -162,7 +162,7 @@ const DataEntryScreen = ({
   const updateRoundAndCompEvents = (updatedRound: IRound) => {
     setRound(updatedRound);
 
-    const newContestEvents = contestEvents.map((ce) =>
+    const newContestEvents = contestEvents.map((ce: IContestEvent) =>
       ce.event.eventId !== currEvent.eventId ? ce : {
         ...ce,
         rounds: ce.rounds.map((
@@ -175,7 +175,7 @@ const DataEntryScreen = ({
   };
 
   const updateRecordPairs = async (newResult: IResult) => {
-    const eventRP = recordPairsByEvent.find((el) => el.eventId === newResult.eventId);
+    const eventRP = recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === newResult.eventId);
 
     // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (
@@ -199,7 +199,7 @@ const DataEntryScreen = ({
       setResultUnderEdit(result);
       setAttempts(result.attempts);
       setCurrentPersons(
-        persons.filter((p) => result.personIds.includes(p.personId)),
+        persons.filter((p: IPerson) => result.personIds.includes(p.personId)),
       );
       setResultFormResetTrigger(undefined);
       window.scrollTo(0, 0);
@@ -254,7 +254,7 @@ const DataEntryScreen = ({
               resetTrigger={resultFormResetTrigger}
               round={round}
               setRound={setRound}
-              rounds={contestEvents.find((el) => el.event.eventId === currEvent.eventId).rounds}
+              rounds={contestEvents.find((ce: IContestEvent) => ce.event.eventId === currEvent.eventId).rounds}
               contestEvents={contestEvents}
               disableMainSelects={resultUnderEdit !== null}
             />

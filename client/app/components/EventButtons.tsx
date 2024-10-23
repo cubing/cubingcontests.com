@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { IEvent } from "../../shared_helpers/types.ts";
+import { IEvent } from "~/shared_helpers/types.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import EventIcon from "~/app/components/EventIcon.tsx";
 

@@ -3,9 +3,9 @@ import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import RankingsTable from "~/app/components/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { IEvent, IEventRankings } from "../../../../shared_helpers/types.ts";
-import { EventGroup, RoundFormat } from "../../../../shared_helpers/enums.ts";
-import C from "../../../../shared_helpers/constants.ts";
+import { IEvent, IEventRankings } from "~/shared_helpers/types.ts";
+import { EventGroup, RoundFormat } from "~/shared_helpers/enums.ts";
+import C from "~/shared_helpers/constants.ts";
 
 // SEO
 export const metadata = {

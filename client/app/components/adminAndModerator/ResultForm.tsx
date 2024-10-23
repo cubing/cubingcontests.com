@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Loading from "~/app/components/UI/Loading.tsx";
 import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
@@ -13,15 +13,15 @@ import {
   IAttempt,
   IContestEvent,
   IEvent,
-  IPerson,
+  InputPerson,
   IRecordPair,
   IRecordType,
   IResult,
   IRound,
-} from "../../../shared_helpers/types.ts";
-import { EventFormat, RoundFormat, RoundType } from "../../../shared_helpers/enums.ts";
-import { roundFormats } from "../../../shared_helpers/roundFormats.ts";
-import { getBestAndAverage, getMakesCutoff, setResultRecords } from "../../../shared_helpers/sharedFunctions.ts";
+} from "~/shared_helpers/types.ts";
+import { EventFormat, RoundFormat, RoundType } from "~/shared_helpers/enums.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { getBestAndAverage, getMakesCutoff, setResultRecords } from "~/shared_helpers/sharedFunctions.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { roundFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -55,8 +55,8 @@ const ResultForm = ({
   forResultsSubmissionForm,
 }: {
   event: IEvent;
-  persons: IPerson[];
-  setPersons: (val: IPerson[]) => void;
+  persons: InputPerson[];
+  setPersons: (val: InputPerson[]) => void;
   attempts: IAttempt[];
   setAttempts: (val: IAttempt[]) => void;
   recordPairs: IRecordPair[];
@@ -104,7 +104,7 @@ const ResultForm = ({
     if (resetTrigger !== undefined) {
       reset();
       if (keepCompetitors) focusFirstAttempt();
-      else document.getElementById("Competitor_1").focus();
+      else document.getElementById("Competitor_1")?.focus();
     } // If resetTrigger is undefined, that means we're editing a result
     else {
       // Set person names if there are no null persons (needed when editing results)
@@ -177,13 +177,11 @@ const ResultForm = ({
   };
 
   // Returns true if there are errors
-  const checkPersonSelectionErrors = (newSelectedPerson: IPerson): boolean => {
+  const checkPersonSelectionErrors = (newSelectedPerson: InputPerson): boolean => {
     if (
       round?.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))
     ) {
-      changeErrorMessages([
-        "That competitor's results have already been entered",
-      ]);
+      changeErrorMessages(["That competitor's results have already been entered"]);
       return true;
     }
 
@@ -219,9 +217,9 @@ const ResultForm = ({
       if (
         event.format === EventFormat.Multi && attempts[index + 1].result !== -2
       ) {
-        document.getElementById(`attempt_${index + 2}_solved`).focus();
+        document.getElementById(`attempt_${index + 2}_solved`)?.focus();
       } else {
-        document.getElementById(`attempt_${index + 2}`).focus();
+        document.getElementById(`attempt_${index + 2}`)?.focus();
       }
     } else {
       if (nextFocusTargetId) {
@@ -263,9 +261,7 @@ const ResultForm = ({
       } else setRoundFormat(newRoundFormat);
     }
 
-    const newAttempts = new Array(
-      roundFormats.find((rf) => rf.value === newRoundFormat).attempts,
-    ).fill({ result: 0 });
+    const newAttempts = new Array(roundFormats.find((rf) => rf.value === newRoundFormat)?.attempts).fill({ result: 0 });
     setAttempts(newAttempts);
     setAttemptsResetTrigger(!attemptsResetTrigger);
     setTempResult({ best: -1, average: -1, attempts: newAttempts } as IResult);
@@ -287,13 +283,7 @@ const ResultForm = ({
             disabled={disableMainSelects}
           />
         )
-        : (
-          <EventButtons
-            eventId={event.eventId}
-            events={events}
-            forPage="data-entry"
-          />
-        )}
+        : <EventButtons eventId={event.eventId} events={events} forPage="data-entry" />}
       <div className="mb-3 fs-5">
         {forResultsSubmissionForm
           ? (
@@ -308,10 +298,7 @@ const ResultForm = ({
           : (
             <FormSelect
               title="Round"
-              options={rounds.map((el) => ({
-                label: roundTypes[el.roundTypeId].label,
-                value: el.roundTypeId,
-              }))}
+              options={rounds.map((el) => ({ label: roundTypes[el.roundTypeId].label, value: el.roundTypeId }))}
               selected={round.roundTypeId}
               setSelected={changeRound}
               disabled={disableMainSelects}
@@ -331,11 +318,7 @@ const ResultForm = ({
           noGrid={!forResultsSubmissionForm}
         />
         {keepCompetitors !== null && (
-          <FormCheckbox
-            title="Don't clear competitors"
-            selected={keepCompetitors}
-            setSelected={setKeepCompetitors}
-          />
+          <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
         )}
       </div>
       {attempts.map((attempt, i) => (
@@ -349,8 +332,7 @@ const ResultForm = ({
           timeLimit={round?.timeLimit}
           memoInputForBld={forResultsSubmissionForm}
           resetTrigger={attemptsResetTrigger}
-          allowUnknownTime={isAdmin &&
-            [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
+          allowUnknownTime={isAdmin && [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat)}
           disabled={round?.cutoff && i + 1 > lastActiveAttempt}
         />
       ))}
@@ -359,21 +341,12 @@ const ResultForm = ({
           <div>
             <div>
               Best:&nbsp;
-              <Time
-                result={tempResult}
-                event={event}
-                recordTypes={recordTypes}
-              />
+              <Time result={tempResult} event={event} recordTypes={recordTypes} />
             </div>
             {roundCanHaveAverage && (
               <div className="mt-2">
                 {attempts.length === 5 ? "Average:" : "Mean:"}&nbsp;
-                <Time
-                  result={tempResult}
-                  event={event}
-                  recordTypes={recordTypes}
-                  average
-                />
+                <Time result={tempResult} event={event} recordTypes={recordTypes} average />
               </div>
             )}
           </div>

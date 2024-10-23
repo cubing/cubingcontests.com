@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import FormInputLabel from "./FormInputLabel.tsx";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
-import { NumberInputValue } from "../../../shared_helpers/types.ts";
+import { NumberInputValue } from "~/shared_helpers/types.ts";
 
 const FormNumberInput = ({
   id,

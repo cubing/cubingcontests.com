@@ -1,6 +1,5 @@
-import React from "react";
 import Country from "./Country.tsx";
-import { IFePerson, IPerson } from "../../shared_helpers/types.ts";
+import { IFePerson, IPerson } from "~/shared_helpers/types.ts";
 
 const Competitor = ({
   person,

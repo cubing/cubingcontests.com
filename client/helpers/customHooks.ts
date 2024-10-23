@@ -2,9 +2,9 @@
 
 import { useContext, useState } from "react";
 import { doFetch } from "~/helpers/fetchUtils.ts";
-import { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "../shared_helpers/types.ts";
-import { ContestType } from "../shared_helpers/enums.ts";
-import C from "../shared_helpers/constants.ts";
+import { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "~/shared_helpers/types.ts";
+import { ContestType } from "~/shared_helpers/enums.ts";
+import C from "~/shared_helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 
 type FetchOptions = {
@@ -148,28 +148,22 @@ export const useFetchWcaCompDetails = () => {
     const notFoundPersonNames: string[] = [];
 
     // Set organizer objects
-    for (
-      const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]
-    ) {
+    for (const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]) {
       const name = org.name;
-      let person: IPerson;
+      let person: IPerson | undefined;
 
       if (org.wca_id) person = await fetchPerson(name, { wcaId: org.wca_id });
       else person = await fetchPerson(name, { countryIso2: org.country_iso2 });
 
-      if (person !== null) {
-        if (
-          !newContest.organizers.some((el) => el.personId === person.personId)
-        ) newContest.organizers.push(person);
+      if (person) {
+        if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
       } else if (!notFoundPersonNames.includes(org.name)) {
         notFoundPersonNames.push(org.name);
       }
     }
 
     if (notFoundPersonNames.length > 0) {
-      throw new Error(
-        `Organizers with these names were not found: ${notFoundPersonNames.join(", ")}`,
-      );
+      throw new Error(`Organizers with these names were not found: ${notFoundPersonNames.join(", ")}`);
     }
 
     return newContest;
@@ -183,14 +177,11 @@ export const useFetchPerson = () => {
   return async (
     name: string,
     { wcaId, countryIso2 }: { wcaId?: string; countryIso2?: string },
-  ): Promise<IPerson | null> => {
+  ): Promise<IPerson | undefined> => {
     if (wcaId) {
       const { payload, errors } = await myFetch.get<IWcaPersonDto>(
         `/persons/${wcaId}`,
-        {
-          authorize: true,
-          loadingId: null,
-        },
+        { authorize: true, loadingId: null },
       );
       if (errors) throw new Error(errors[0]);
       return payload.person;
@@ -200,13 +191,9 @@ export const useFetchPerson = () => {
     const englishNameOnly = name.split("(")[0].trim(); // get rid of the ( and everything after it
     const { payload, errors: e1 } = await myFetch.get(
       `/persons?name=${englishNameOnly}&exactMatch=true`,
-      {
-        loadingId: null,
-      },
+      { loadingId: null },
     );
-    if (e1) {
-      throw new Error(`Error while fetching person with the name ${name}`);
-    }
+    if (e1) throw new Error(`Error while fetching person with the name ${name}`);
     if (payload) return payload;
 
     // If not found, try searching for exact name matches in the WCA database
@@ -239,7 +226,7 @@ export const useFetchPerson = () => {
       if (person) return person;
     }
 
-    return null;
+    return undefined;
   };
 };
 

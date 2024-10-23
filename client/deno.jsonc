@@ -4,9 +4,8 @@
   },
   "tasks": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "deno lint && next build",
     "start": "next start",
-    "lint": "next lint",
     "test": "jest"
   }
 }

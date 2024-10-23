@@ -1,10 +1,10 @@
-import { Role } from "../../shared_helpers/enums.ts";
+import { Role } from "~/shared_helpers/enums.ts";
 
-export interface IUserInfo {
+export type UserInfo = undefined | {
   id: string;
   username: string;
   personId?: number;
   roles: Role[];
   isAdmin: boolean;
   isMod: boolean;
-}
+};

@@ -1,5 +1,5 @@
 import Competitor from "~/app/components/Competitor.tsx";
-import { IPerson } from "../../shared_helpers/types.ts";
+import { IPerson } from "~/shared_helpers/types.ts";
 
 const Competitors = ({
   persons,

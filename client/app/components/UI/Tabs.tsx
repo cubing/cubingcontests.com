@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { INavigationItem } from "~/helpers/interfaces/NavigationItem.ts";
+import { INavigationItem } from "~/helpers/types.ts";
 
 const Tabs = ({
   tabs,

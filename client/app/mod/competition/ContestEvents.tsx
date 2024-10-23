@@ -1,16 +1,9 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import C from "../../../shared_helpers/constants.ts";
-import {
-  ContestType,
-  EventFormat,
-  EventGroup,
-  RoundFormat,
-  RoundProceed,
-  RoundType,
-} from "../../../shared_helpers/enums.ts";
-import { IAttempt, IContestEvent, ICutoff, IEvent, IRound } from "../../../shared_helpers/types.ts";
+import { useMemo, useState } from "react";
+import C from "~/shared_helpers/constants.ts";
+import { ContestType, EventFormat, EventGroup, RoundFormat, RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
+import { IAttempt, IContestEvent, ICutoff, IEvent, IRound } from "~/shared_helpers/types.ts";
 import { cutoffAttemptsOptions, roundFormatOptions, roundProceedOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import EventTitle from "~/app/components/EventTitle.tsx";
@@ -22,7 +15,7 @@ import FormSelect from "~/app/components/form/FormSelect.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
 import { getTimeLimit } from "~/helpers/utilityFunctions.ts";
-import { getTotalRounds } from "../../../shared_helpers/sharedFunctions.ts";
+import { getTotalRounds } from "~/shared_helpers/sharedFunctions.ts";
 
 const ContestEvents = ({
   events,

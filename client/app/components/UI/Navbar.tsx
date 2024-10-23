@@ -6,12 +6,12 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { getUserInfo, logOutUser } from "~/helpers/utilityFunctions.ts";
-import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
+import { UserInfo } from "~/helpers/types.ts";
 
 const NavbarItems = () => {
   const pathname = usePathname();
 
-  const [userInfo, setUserInfo] = useState<IUserInfo>();
+  const [userInfo, setUserInfo] = useState<UserInfo>();
   const [expanded, setExpanded] = useState(false);
   const [resultsExpanded, setResultsExpanded] = useState(false);
   const [userExpanded, setUserExpanded] = useState(false);

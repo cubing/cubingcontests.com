@@ -1,5 +1,5 @@
 import Link from "next/link";
-import C from "../shared_helpers/constants.ts";
+import C from "~/shared_helpers/constants.ts";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";

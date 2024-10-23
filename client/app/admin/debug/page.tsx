@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";

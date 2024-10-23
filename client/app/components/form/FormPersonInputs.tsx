@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useLimitRequests, useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import FormTextInput from "./FormTextInput.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
-import { IPerson, IWcaPersonDto } from "../../../shared_helpers/types.ts";
-import C from "../../../shared_helpers/constants.ts";
+import { IPerson, IWcaPersonDto } from "~/shared_helpers/types.ts";
+import C from "~/shared_helpers/constants.ts";
 import { getUserInfo } from "~/helpers/utilityFunctions.ts";
-import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
+import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 
-const userInfo: IUserInfo = getUserInfo();
+const userInfo: UserInfo = getUserInfo();
 const MAX_MATCHES = 6;
 const personInputTooltip =
   "Enter the competitor's name if they are already on Cubing Contests. If not, enter their full WCA ID to add them.";
@@ -32,8 +32,8 @@ const FormPersonInputs = ({
   title: string;
   personNames: string[];
   setPersonNames: (val: string[]) => void;
-  persons: IPerson[];
-  setPersons: (val: IPerson[]) => void;
+  persons: InputPerson[];
+  setPersons: (val: InputPerson[]) => void;
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
   disabled?: boolean;
@@ -46,11 +46,9 @@ const FormPersonInputs = ({
   const [limitMatchedPersonsRequests, isLoadingMatchedPersons] = useLimitRequests();
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
-  const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
+  const defaultMatchedPersons: InputPerson[] = userInfo?.isMod ? [null] : [];
 
-  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(
-    defaultMatchedPersons,
-  );
+  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(defaultMatchedPersons);
   const [personSelection, setPersonSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number>(null);
 
@@ -63,29 +61,17 @@ const FormPersonInputs = ({
     if (value) {
       limitMatchedPersonsRequests(async () => {
         if (!C.wcaIdRegexLoose.test(value)) {
-          const { payload, errors } = await myFetch.get(
-            `/persons?name=${value}`,
-          );
+          const { payload, errors } = await myFetch.get(`/persons?name=${value}`);
 
           if (!errors && payload.length > 0) {
-            const newMatchedPersons = [
-              ...payload.slice(0, MAX_MATCHES),
-              ...defaultMatchedPersons,
-            ];
+            const newMatchedPersons = [...payload.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
             setMatchedPersons(newMatchedPersons);
-            if (newMatchedPersons.length < personSelection) {
-              setPersonSelection(0);
-            }
+            if (newMatchedPersons.length < personSelection) setPersonSelection(0);
           }
         } else {
-          const { payload, errors } = await myFetch.get<IWcaPersonDto>(
-            `/persons/${value}`,
-            {
-              authorize: true,
-            },
-          );
+          const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, { authorize: true });
 
-          if (!errors) setMatchedPersons([payload.person]);
+          if (payload && !errors) setMatchedPersons([payload.person]);
         }
       });
     }
@@ -99,10 +85,7 @@ const FormPersonInputs = ({
   };
 
   // Returns true if an input was added
-  const addEmptyInputIfRequired = (
-    newPersonNames: string[],
-    newPersons: IPerson[],
-  ): boolean => {
+  const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: InputPerson[]): boolean => {
     // Add new empty input if there isn't an empty one left
     if (infiniteInputs && !newPersons.some((el) => el === null)) {
       newPersonNames.push("");
@@ -124,7 +107,7 @@ const FormPersonInputs = ({
     ) => (i === index ? value : el));
     // This is done so that setPersons is only called if one of the persons actually had to be reset to null
     let personsUpdated = false;
-    const newPersons: IPerson[] = persons.map((el, i) => {
+    const newPersons: InputPerson[] = persons.map((el, i) => {
       if (i === index) {
         if (persons[i] !== null) personsUpdated = true;
         return null;
@@ -140,7 +123,7 @@ const FormPersonInputs = ({
     queryMatchedPersons(value);
   };
 
-  const focusNext = (newPersons: IPerson[]) => {
+  const focusNext = (newPersons: InputPerson[]) => {
     setFocusedInput(null);
     setMatchedPersons(defaultMatchedPersons);
     setPersonSelection(0);
@@ -157,13 +140,10 @@ const FormPersonInputs = ({
     }
   };
 
-  const selectCompetitor = async (
-    inputIndex: number,
-    selectionIndex: number,
-  ) => {
+  const selectCompetitor = (inputIndex: number, selectionIndex: number) => {
     if (matchedPersons[selectionIndex] === null) {
       // Only mods are allowed to open the add new competitor page
-      if (userInfo.isMod) {
+      if (userInfo?.isMod) {
         setFocusedInput(null);
 
         if (addNewPersonFromNewTab) {
@@ -196,7 +176,7 @@ const FormPersonInputs = ({
     }
   };
 
-  const onPersonKeyDown = async (inputIndex: number, e: any) => {
+  const onPersonKeyDown = (inputIndex: number, e: any) => {
     if (e.key === "Enter") {
       // Make sure the focused input is not empty
       if (personNames[inputIndex]) {
@@ -256,7 +236,7 @@ const FormPersonInputs = ({
                 )
                 : matchedPersons.length > 0
                 ? (
-                  matchedPersons.map((person: IPerson, matchIndex) => (
+                  matchedPersons.map((person: IPerson, matchIndex: number) => (
                     <li
                       key={matchIndex}
                       className={"list-group-item" +
@@ -267,21 +247,11 @@ const FormPersonInputs = ({
                       onMouseDown={() =>
                         selectCompetitor(inputIndex, matchIndex)}
                     >
-                      {person !== null
-                        ? (
-                          <Competitor
-                            person={person}
-                            showLocalizedName
-                            noLink
-                          />
-                        )
-                        : "(add new person)"}
+                      {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
                     </li>
                   ))
                 )
-                : (
-                  "(competitor not found)"
-                )}
+                : "(competitor not found)"}
             </ul>
           )}
         </div>

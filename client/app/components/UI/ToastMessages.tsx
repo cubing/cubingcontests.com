@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { MainContext } from "~/helpers/contexts.ts";
 
 const ToastMessages = () => {

@@ -1,11 +1,11 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { IContest } from "../../../../shared_helpers/types.ts";
-import { RoundProceed, RoundType } from "../../../../shared_helpers/enums.ts";
-import { roundFormats } from "../../../../shared_helpers/roundFormats.ts";
+import { IContest } from "~/shared_helpers/types.ts";
+import { RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { getFormattedTime } from "../../../../shared_helpers/sharedFunctions.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 
 const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);

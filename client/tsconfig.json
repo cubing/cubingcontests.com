@@ -18,7 +18,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -32,7 +32,6 @@
   },
   "include": [
     "next-env.d.ts",
-    "react-datepicker.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"

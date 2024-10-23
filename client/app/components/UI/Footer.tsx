@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext } from "react";
+import { useContext } from "react";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 

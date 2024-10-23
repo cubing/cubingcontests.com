@@ -10,18 +10,18 @@
   },
 
   "lint": {
-    "include": ["./**/*.ts", "./**/*.tsx"],
-    "exclude": ["./**/*.d.ts"],
+    "include": ["*.ts", "*.tsx"],
+    "exclude": ["*.d.ts", "./client/.next", "./server"],
     "rules": {
       "tags": ["recommended"],
       "include": [],
-      "exclude": []
+      "exclude": ["no-window", "no-window-prefix", "no-process-globals", "no-explicit-any"]
     }
   },
 
   "fmt": {
-    "include": ["./**/*.ts", "./**/*.tsx"],
-    "exclude": ["./**/*.d.ts"],
+    "include": ["*.ts", "*.tsx"],
+    "exclude": ["*.d.ts", "./client/.next", "./server"],
     "lineWidth": 120
   },
 
@@ -29,6 +29,7 @@
     "lib": [
       "dom",
       "dom.iterable",
+      "dom.asynciterable",
       "deno.ns"
     ],
     "jsx": "precompile"

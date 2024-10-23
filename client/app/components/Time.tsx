@@ -1,6 +1,6 @@
-import { IEvent, IRecordType, IResult } from "../../shared_helpers/types.ts";
+import { IEvent, IRecordType, IResult } from "~/shared_helpers/types.ts";
 import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
-import { getFormattedTime } from "../../shared_helpers/sharedFunctions.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 
 const Time = ({
   result,

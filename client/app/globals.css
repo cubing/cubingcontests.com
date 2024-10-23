@@ -107,12 +107,6 @@ body[data-bs-theme="light"] {
   box-shadow: 0 0 0 0.25rem rgba(var(--bs-danger-rgb), 0.65);
 }
 
-/* This class is used by react datepicker */
-.react-datepicker-wrapper {
-  display: block;
-  width: 100%;
-}
-
 /* 768px corresponds to Bootstrap's md size (THIS IS USED IN OTHER PLACES TOO, REPLACE IT WITH A GLOBAL VARIABLE) */
 @media (max-width: 768px) {
   .cc-homepage-link {

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
-import { Role } from "../../../shared_helpers/enums.ts";
-import { IFeUser } from "../../../shared_helpers/types.ts";
-import { getRoleLabel, getSimplifiedString } from "../../../shared_helpers/sharedFunctions.ts";
+import { Role } from "~/shared_helpers/enums.ts";
+import { IFeUser } from "~/shared_helpers/types.ts";
+import { getRoleLabel, getSimplifiedString } from "~/shared_helpers/sharedFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
@@ -35,9 +35,9 @@ const ManageUsersPage = () => {
     const simplifiedSearch = getSimplifiedString(search);
 
     return users.filter(
-      (u) =>
+      (u: IFeUser) =>
         u.username.toLocaleLowerCase().includes(simplifiedSearch) ||
-        getSimplifiedString(u.person.name).includes(simplifiedSearch),
+        (u.person && getSimplifiedString(u.person.name).includes(simplifiedSearch)),
     );
   }, [users, search]);
 
@@ -84,12 +84,12 @@ const ManageUsersPage = () => {
     if (!errors) {
       setUsername("");
       setUsers(
-        users.map((u) => (u.username === newUser.username ? payload : u)),
+        users.map((u: IFeUser) => (u.username === newUser.username ? payload : u)),
       );
     }
   };
 
-  const onEditUser = async (user: IFeUser) => {
+  const onEditUser = (user: IFeUser) => {
     window.scrollTo(0, 0);
     resetMessagesAndLoadingId();
 
@@ -207,7 +207,7 @@ const ManageUsersPage = () => {
                     <td>{user.email}</td>
                     <td>{user.person?.name}</td>
                     <td>
-                      {user.roles.map((r) => getRoleLabel(r, true)).join(", ")}
+                      {user.roles.map((r: Role) => getRoleLabel(r, true)).join(", ")}
                     </td>
                     <td>
                       <Button

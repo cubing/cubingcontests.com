@@ -1,4 +1,4 @@
-import { Color } from "../../../shared_helpers/enums.ts";
+import { Color } from "~/shared_helpers/enums.ts";
 
 const ColorSquare = (
   { color, style }: { color: Color; style?: React.CSSProperties },

@@ -1,6 +1,6 @@
 import "@cubing/icons";
-import { IEvent } from "../../shared_helpers/types.ts";
-import { EventGroup } from "../../shared_helpers/enums.ts";
+import { IEvent } from "~/shared_helpers/types.ts";
+import { EventGroup } from "~/shared_helpers/enums.ts";
 import { shortenEventName } from "~/helpers/utilityFunctions.ts";
 
 const unofficialEventIcons = [

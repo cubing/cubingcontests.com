@@ -1,7 +1,7 @@
-import { IAttempt } from "../shared_helpers/types.ts";
-import { getBestAndAverage } from "../shared_helpers/sharedFunctions.ts";
+import { IAttempt } from "~/shared_helpers/types.ts";
+import { getBestAndAverage } from "~/shared_helpers/sharedFunctions.ts";
 import { mockTimeEvent } from "~/__mocks__/events.stub.ts";
-import { RoundFormat } from "../shared_helpers/enums.ts";
+import { RoundFormat } from "~/shared_helpers/enums.ts";
 
 describe("getBestAndAverage", () => {
   it("Sets average to 0 when there is only one attempt", () => {

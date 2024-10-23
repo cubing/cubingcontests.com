@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
-import C from "../../../shared_helpers/constants.ts";
-import { IFeUser } from "../../../shared_helpers/types.ts";
-import { getRoleLabel } from "../../../shared_helpers/sharedFunctions.ts";
-import { Role } from "../../../shared_helpers/enums.ts";
+import C from "~/shared_helpers/constants.ts";
+import { IFeUser } from "~/shared_helpers/types.ts";
+import { getRoleLabel } from "~/shared_helpers/sharedFunctions.ts";
+import { Role } from "~/shared_helpers/enums.ts";
 import { logOutUser } from "~/helpers/utilityFunctions.ts";
 
 const UserSettingsPage = () => {

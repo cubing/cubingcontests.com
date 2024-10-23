@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLimitRequests, useMyFetch } from "~/helpers/customHooks.ts";
 import ResultForm from "~/app/components/adminAndModerator/ResultForm.tsx";
@@ -12,23 +12,24 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import {
+  IAdminResultsSubmissionInfo,
   IAttempt,
   IEvent,
-  IPerson,
+  type IEventRecordPairs,
   IResult,
   IResultsSubmissionInfo,
   IUpdateResultDto,
-} from "../../../shared_helpers/types.ts";
-import { RoundFormat } from "../../../shared_helpers/enums.ts";
-import { roundFormats } from "../../../shared_helpers/roundFormats.ts";
-import C from "../../../shared_helpers/constants.ts";
+} from "~/shared_helpers/types.ts";
+import { RoundFormat } from "~/shared_helpers/enums.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import C from "~/shared_helpers/constants.ts";
 import { getUserInfo } from "~/helpers/utilityFunctions.ts";
-import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
+import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getBestAndAverage } from "../../../shared_helpers/sharedFunctions.ts";
+import { getBestAndAverage } from "~/shared_helpers/sharedFunctions.ts";
 import ExternalLink from "~/app/components/ExternalLink.tsx";
 
-const userInfo: IUserInfo = getUserInfo();
+const userInfo: UserInfo = getUserInfo();
 
 /**
  * If resultId is defined, that means this component is for submitting new results.
@@ -36,7 +37,7 @@ const userInfo: IUserInfo = getUserInfo();
  */
 
 const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
-  if (resultId && !userInfo.isAdmin) {
+  if (resultId && !userInfo?.isAdmin) {
     throw new Error("Only an admin can edit results");
   }
 
@@ -48,9 +49,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   );
 
   const [showRules, setShowRules] = useState(false);
-  const [submissionInfo, setSubmissionInfo] = useState<
-    IResultsSubmissionInfo
-  >();
+  const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo | IAdminResultsSubmissionInfo>();
   // Only trigger reset on page load on the submit results page
   const [resultFormResetTrigger, setResultFormResetTrigger] = useState<boolean>(
     resultId ? undefined : true,
@@ -61,13 +60,14 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   const [attempts, setAttempts] = useState<IAttempt[]>([]);
   // null means the date is invalid; undefined means it's empty
   const [date, setDate] = useState<Date | null | undefined>();
-  const [competitors, setCompetitors] = useState<IPerson[]>([null]);
+  const [competitors, setCompetitors] = useState<InputPerson[]>([null]);
   const [videoLink, setVideoLink] = useState("");
   const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [discussionLink, setDiscussionLink] = useState("");
 
   const recordPairs = useMemo(
-    () => submissionInfo?.recordPairsByEvent.find((el) => el.eventId === event.eventId)?.recordPairs,
+    () =>
+      submissionInfo?.recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === event.eventId)?.recordPairs,
     [submissionInfo, event],
   );
 
@@ -83,7 +83,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               errors?: string[];
             },
           ) => {
-            if (!errors) {
+            if (payload && !errors) {
               setSubmissionInfo(payload);
 
               const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get("eventId"));
@@ -96,16 +96,16 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     else {
       myFetch.get(`/results/editing-info/${resultId}`, { authorize: true })
         .then(({ payload, errors }) => {
-          if (!errors) {
+          if (payload && !errors) {
             setSubmissionInfo(payload);
-            const { result, persons, events } = payload as IResultsSubmissionInfo;
+            const { result, persons, events } = payload as IAdminResultsSubmissionInfo;
 
             setEvent(events[0]);
             setRoundFormat(
               roundFormats.find((rf) =>
                 rf.attempts === result.attempts.length &&
                 rf.value !== RoundFormat.BestOf3
-              ).value,
+              )?.value,
             );
             setAttempts(result.attempts);
             setDate(new Date(result.date));
@@ -122,7 +122,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   //////////////////////////////////////////////////////////////////////////////
 
   const submitResult = async (approve = false) => {
-    if (competitors.some((p) => !p)) {
+    if (competitors.some((p: InputPerson) => !p)) {
       changeErrorMessages(["Invalid person(s)"]);
       return;
     }
@@ -133,7 +133,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     const newResult: IResult = {
       eventId: event.eventId,
       date,
-      personIds: competitors.map((p) => p.personId),
+      personIds: competitors.map((p: InputPerson) => p.personId),
       attempts,
       best,
       average,
@@ -196,7 +196,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     // Update the record pairs with the new date
     if (newDate) {
       limitRecordPairsRequests(async () => {
-        const eventsStr = submissionInfo.events.map((e) => e.eventId).join(",");
+        const eventsStr = submissionInfo.events.map((e: IEvent) => e.eventId).join(",");
         const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
 
         const { payload, errors } = await myFetch.get(
@@ -317,7 +317,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             setRoundFormat={setRoundFormat}
             disableMainSelects={!!resultId}
             showOptionToKeepCompetitors
-            isAdmin={userInfo.isAdmin}
+            isAdmin={userInfo?.isAdmin}
             forResultsSubmissionForm
           />
           <FormDateInput
@@ -337,7 +337,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             nextFocusTargetId="discussion_link"
             disabled={videoUnavailable}
           />
-          {userInfo.isAdmin && (
+          {userInfo?.isAdmin && (
             // Same text as in RankingLinks
             <FormCheckbox
               title="Video no longer available"

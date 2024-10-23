@@ -5,10 +5,6 @@
 .pnp
 .pnp.js
 
-# testing
-**/coverage
-**/.nyc_output
-
 # build files
 client/.next/
 client/out/
@@ -28,9 +24,6 @@ npm-debug.log*
 *.env*
 !*.env.example
 !client/.env.local
-
-# vercel
-client/.vercel
 
 # typescript
 *.tsbuildinfo

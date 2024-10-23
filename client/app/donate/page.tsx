@@ -1,4 +1,4 @@
-import C from "../../shared_helpers/constants.ts";
+import C from "~/shared_helpers/constants.ts";
 
 const DonatePage = () => {
   return (

@@ -1,4 +1,4 @@
-import { FetchObj, HttpMethod } from "../shared_helpers/types.ts";
+import { FetchObj, HttpMethod } from "~/shared_helpers/types.ts";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_ENVIRONMENT === "production"
   ? process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL
@@ -84,7 +84,7 @@ export const doFetch = async <T = any>(
     } else if (url.slice(url.length - 5) === ".json") {
       try {
         json = JSON.parse(await res.text());
-      } catch (err) {
+      } catch (_e) {
         is404 = true;
       }
     }

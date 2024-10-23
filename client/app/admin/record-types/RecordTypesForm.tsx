@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
-import { IRecordType } from "../../../shared_helpers/types.ts";
-import { Color, WcaRecordType } from "../../../shared_helpers/enums.ts";
+import { IRecordType } from "~/shared_helpers/types.ts";
+import { Color, WcaRecordType } from "~/shared_helpers/enums.ts";
 import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { Role } from "../../shared_helpers/enums.ts";
+import { Role } from "~/shared_helpers/enums.ts";
 
 const AuthorizedLayout = (
   { role, children }: { role: Role; children: React.ReactNode },

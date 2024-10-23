@@ -1,7 +1,7 @@
+import { ReactElement } from "react";
 import Competitor from "~/app/components/Competitor.tsx";
-import { IFeUser } from "../../shared_helpers/types.ts";
-import React, { ReactElement } from "react";
-import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
+import { IFeUser } from "~/shared_helpers/types.ts";
+import { UserInfo } from "~/helpers/types.ts";
 
 const CreatorDetails = ({
   creator,
@@ -10,7 +10,7 @@ const CreatorDetails = ({
 }: {
   creator: IFeUser | "EXT_DEVICE";
   small?: boolean;
-  loggedInUser?: IUserInfo;
+  loggedInUser?: UserInfo;
 }) => {
   let specialCase: ReactElement;
   if (!creator) specialCase = <span>Deleted user</span>;

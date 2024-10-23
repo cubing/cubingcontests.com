@@ -1,4 +1,4 @@
-import { EventGroup } from "../shared_helpers/enums.ts";
+import { EventGroup } from "~/shared_helpers/enums.ts";
 
 export const eventCategories = [
   {

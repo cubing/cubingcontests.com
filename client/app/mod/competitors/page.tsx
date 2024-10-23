@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFePerson, ListPageMode } from "../../../shared_helpers/types.ts";
+import { IFePerson, ListPageMode } from "~/shared_helpers/types.ts";
 import { getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { IUserInfo } from "~/helpers/interfaces/UserInfo.ts";
-import { MultiChoiceOption } from "~/helpers/interfaces/MultiChoiceOption.ts";
+import { UserInfo } from "~/helpers/types.ts";
+import { MultiChoiceOption } from "~/helpers/types.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import Country from "~/app/components/Country.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
@@ -19,9 +19,9 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import PersonForm from "./PersonForm.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import { getSimplifiedString } from "../../../shared_helpers/sharedFunctions.ts";
+import { getSimplifiedString } from "~/shared_helpers/sharedFunctions.ts";
 
-const userInfo: IUserInfo = getUserInfo();
+const userInfo: UserInfo = getUserInfo();
 
 const CreatePersonPage = () => {
   const searchParams = useSearchParams();
@@ -41,7 +41,7 @@ const CreatePersonPage = () => {
   const filteredPersons = useMemo(() => {
     const simplifiedSearch = getSimplifiedString(search);
 
-    return persons.filter((p) => {
+    return persons.filter((p: IFePerson) => {
       const passesNameFilter = getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
         (p.localizedName &&
           getSimplifiedString(p.localizedName).includes(simplifiedSearch)); // search by localized name
@@ -97,7 +97,7 @@ const CreatePersonPage = () => {
     });
 
     if (!errors) {
-      setPersons(persons.filter((p) => (p as any)._id !== (person as any)._id));
+      setPersons(persons.filter((p: IFePerson) => (p as any)._id !== (person as any)._id));
       changeSuccessMessage(
         `Successfully deleted ${person.name} (CC ID: ${person.personId})`,
       );
@@ -114,13 +114,9 @@ const CreatePersonPage = () => {
 
     if (!errors) {
       setPersons(
-        persons.map((
-          p,
-        ) => (p.personId === person.personId ? { ...payload, creator: p.creator } : p)),
+        persons.map((p: IFePerson) => (p.personId === person.personId ? { ...payload, creator: p.creator } : p)),
       );
-      changeSuccessMessage(
-        `Successfully approved ${person.name} (CC ID: ${person.personId})`,
-      );
+      changeSuccessMessage(`Successfully approved ${person.name} (CC ID: ${person.personId})`);
     }
   };
 
@@ -129,9 +125,7 @@ const CreatePersonPage = () => {
       setPersons([person, ...persons]);
     } else {
       setPersons(
-        persons.map((
-          p,
-        ) => (p.personId === person.personId ? { ...person, creator: p.creator } : p)),
+        persons.map((p: IFePerson) => (p.personId === person.personId ? { ...person, creator: p.creator } : p)),
       );
       setMode("view");
     }
@@ -187,7 +181,7 @@ const CreatePersonPage = () => {
           <div
             ref={parentRef}
             className="mt-3 table-responsive overflow-y-auto"
-            style={{ height: "500px" }}
+            style={{ height: "600px" }}
           >
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               <table className="table table-hover text-nowrap">
@@ -198,7 +192,7 @@ const CreatePersonPage = () => {
                     <th scope="col">Localized Name</th>
                     <th scope="col">WCA ID</th>
                     <th scope="col">Country</th>
-                    {userInfo.isAdmin && <th scope="col">Created by</th>}
+                    {userInfo?.isAdmin && <th scope="col">Created by</th>}
                     <th scope="col">Approved</th>
                     <th scope="col">Actions</th>
                   </tr>
@@ -226,7 +220,7 @@ const CreatePersonPage = () => {
                           <td>
                             <Country countryIso2={person.countryIso2} shorten />
                           </td>
-                          {userInfo.isAdmin && (
+                          {userInfo?.isAdmin && (
                             <td>
                               <CreatorDetails
                                 creator={person.creator}
@@ -244,7 +238,7 @@ const CreatePersonPage = () => {
                           </td>
                           <td>
                             <div className="d-flex gap-2">
-                              {userInfo.isAdmin && person.unapproved && (
+                              {userInfo?.isAdmin && person.unapproved && (
                                 <Button
                                   id={`approve_person_${person.personId}_button`}
                                   onClick={() => approveCompetitor(person)}
@@ -256,7 +250,7 @@ const CreatePersonPage = () => {
                                   <FontAwesomeIcon icon={faCheck} />
                                 </Button>
                               )}
-                              {(userInfo.isAdmin || person.unapproved) && (
+                              {(userInfo?.isAdmin || person.unapproved) && (
                                 <Button
                                   onClick={() => onEditCompetitor(person)}
                                   disabled={mode !== "view"}
@@ -266,7 +260,7 @@ const CreatePersonPage = () => {
                                   <FontAwesomeIcon icon={faPencil} />
                                 </Button>
                               )}
-                              {userInfo.isAdmin && person.unapproved && (
+                              {userInfo?.isAdmin && person.unapproved && (
                                 <Button
                                   id={`delete_person_${person.personId}_button`}
                                   onClick={() => deleteCompetitor(person)}

@@ -1,6 +1,5 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "~/app/globals.css";
-import React from "react";
 import MainLayout from "~/app/components/UI/MainLayout.tsx";
 
 // SEO

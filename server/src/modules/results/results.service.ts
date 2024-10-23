@@ -37,6 +37,7 @@ import {
   IRecordType,
   IResult,
   IResultsSubmissionInfo,
+  IAdminResultsSubmissionInfo,
   IRound,
 } from "@sh/types";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
@@ -454,14 +455,14 @@ export class ResultsService {
     return resultsSubmissionInfo;
   }
 
-  async getEditingInfo(resultId: string): Promise<IResultsSubmissionInfo> {
+  async getEditingInfo(resultId: string): Promise<IAdminResultsSubmissionInfo> {
     const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec();
     if (!result) throw new NotFoundException("Result not found");
 
     const event = await this.eventsService.getEventById(result.eventId);
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
-    const resultEditingInfo: IResultsSubmissionInfo = {
+    const resultEditingInfo: IAdminResultsSubmissionInfo = {
       events: [event],
       recordPairsByEvent: await this.getRecordPairs([event], result.date, {
         activeRecordTypes,

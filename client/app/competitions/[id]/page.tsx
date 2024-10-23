@@ -5,9 +5,9 @@ import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import MarkdownDescription from "~/app/components/MarkdownDescription.tsx";
-import { IContest, IContestData } from "../../../shared_helpers/types.ts";
-import { ContestState, ContestType } from "../../../shared_helpers/enums.ts";
-import { getDateOnly } from "../../../shared_helpers/sharedFunctions.ts";
+import { IContest, IContestData } from "~/shared_helpers/types.ts";
+import { ContestState, ContestType } from "~/shared_helpers/enums.ts";
+import { getDateOnly } from "~/shared_helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 

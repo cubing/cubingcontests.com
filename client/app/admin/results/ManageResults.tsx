@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeResult, IRecordType } from "../../../shared_helpers/types.ts";
+import { IFeResult, IRecordType } from "~/shared_helpers/types.ts";
 import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Time from "~/app/components/Time.tsx";
@@ -42,13 +42,13 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
       <p className="px-3">
         Total submitted results:&nbsp;<b>{results.length}</b>
         &#8194;|&#8194;Unapproved:&nbsp;
-        <b>{results.filter((r) => r.unapproved).length}</b>
+        <b>{results.filter((r: IFeResult) => r.unapproved).length}</b>
       </p>
 
       <div
         ref={parentRef}
         className="mt-3 table-responsive overflow-y-auto"
-        style={{ height: "600px" }}
+        style={{ height: "700px" }}
       >
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">

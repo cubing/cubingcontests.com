@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FormTextInput from "./form/FormTextInput.tsx";
 import FormNumberInput from "./form/FormNumberInput.tsx";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { EventFormat, EventGroup } from "../../shared_helpers/enums.ts";
-import { IAttempt, IEvent, ITimeLimit } from "../../shared_helpers/types.ts";
-import { getAlwaysShowDecimals, getFormattedTime } from "../../shared_helpers/sharedFunctions.ts";
-import C from "../../shared_helpers/constants.ts";
+import { EventFormat, EventGroup } from "~/shared_helpers/enums.ts";
+import { IAttempt, IEvent, ITimeLimit } from "~/shared_helpers/types.ts";
+import { getAlwaysShowDecimals, getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import C from "~/shared_helpers/constants.ts";
 
 const DNFKeys = ["f", "F", "d", "D", "/"];
 const DNSKeys = ["s", "S", "*"];

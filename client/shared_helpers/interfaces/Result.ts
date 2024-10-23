@@ -90,8 +90,11 @@ export interface IResultsSubmissionInfo {
   events: IEvent[];
   recordPairsByEvent: IEventRecordPairs[];
   activeRecordTypes: IRecordType[];
-  // These are only used for the edit result page, so this information is admin-only
-  result?: IResult;
-  persons?: IPerson[];
-  creator?: IFeUser;
+}
+
+// These are only used for the edit result page, so this information is admin-only
+export interface IAdminResultsSubmissionInfo extends IResultsSubmissionInfo {
+  result: IResult;
+  persons: IPerson[];
+  creator: IFeUser;
 }

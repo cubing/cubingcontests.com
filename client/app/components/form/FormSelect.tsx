@@ -1,4 +1,4 @@
-import { MultiChoiceOption } from "~/helpers/interfaces/MultiChoiceOption.ts";
+import { MultiChoiceOption } from "~/helpers/types.ts";
 import FormInputLabel from "./FormInputLabel.tsx";
 
 const FormSelect = ({

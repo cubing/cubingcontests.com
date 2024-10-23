@@ -5,12 +5,12 @@ import RankingLinks from "~/app/components/RankingLinks.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import C from "../../../shared_helpers/constants.ts";
-import { IEventRankings } from "../../../shared_helpers/types.ts";
-import { getFormattedTime } from "../../../shared_helpers/sharedFunctions.ts";
+import C from "~/shared_helpers/constants.ts";
+import { IEventRankings } from "~/shared_helpers/types.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
-import { INavigationItem } from "~/helpers/interfaces/NavigationItem.ts";
+import { INavigationItem } from "~/helpers/types.ts";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 
 // SEO

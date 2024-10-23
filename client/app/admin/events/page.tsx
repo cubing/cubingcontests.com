@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeEvent, ListPageMode } from "../../../shared_helpers/types.ts";
-import { EventFormat, EventGroup, RoundFormat } from "../../../shared_helpers/enums.ts";
-import { roundFormats } from "../../../shared_helpers/roundFormats.ts";
+import { IFeEvent, ListPageMode } from "~/shared_helpers/types.ts";
+import { EventFormat, EventGroup, RoundFormat } from "~/shared_helpers/enums.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -55,7 +55,7 @@ const CreateEditEventPage = () => {
   }, []);
 
   useEffect(() => {
-    if (mode !== "view") document.getElementById("event_name").focus();
+    if (mode !== "view") document.getElementById("event_name")?.focus();
   }, [mode]);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ const CreateEditEventPage = () => {
     const newEvent: IFeEvent = {
       eventId: newEventId,
       name,
-      rank,
+      rank: rank as number,
       format,
       defaultRoundFormat,
       groups: [category],
@@ -107,9 +107,7 @@ const CreateEditEventPage = () => {
     setFormat(event.format);
     setDefaultRoundFormat(event.defaultRoundFormat);
     setParticipants(event.participants || 1);
-    setCategory(
-      event.groups.find((g) => eventCategories.some((ec) => ec.group === g)),
-    );
+    setCategory(event.groups.find((g: EventGroup) => eventCategories.some((ec) => ec.group === g)) as EventGroup);
     setSubmissionsAllowed(event.groups.includes(EventGroup.SubmissionsAllowed));
     setRemovedWCA(event.groups.includes(EventGroup.RemovedWCA));
     setHasMemo(event.groups.includes(EventGroup.HasMemo));
@@ -280,7 +278,7 @@ const CreateEditEventPage = () => {
             </tr>
           </thead>
           <tbody>
-            {events.map((event: IFeEvent, index) => (
+            {events.map((event: IFeEvent, index: number) => (
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>
@@ -295,11 +293,10 @@ const CreateEditEventPage = () => {
                 <td>{event.eventId}</td>
                 <td>{event.rank}</td>
                 <td>
-                  {roundFormats.find((rf) => rf.value === event.defaultRoundFormat).shortLabel}
+                  {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}
                 </td>
                 <td>
-                  {eventCategories.find((ec) => event.groups.includes(ec.group))
-                    .title}
+                  {eventCategories.find((ec) => event.groups.includes(ec.group))?.title}
                 </td>
                 {/* <td>{event.groups}</td> */}
                 <td>

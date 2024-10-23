@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { addHours } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { useFetchWcaCompDetails, useLimitRequests, useMyFetch } from "~/helpers/customHooks.ts";
@@ -12,15 +12,15 @@ import {
   IEvent,
   IFePerson,
   IMeetupDetails,
-  IPerson,
   IRoom,
+  type IRound,
   NumberInputValue,
-} from "../../../shared_helpers/types.ts";
-import { Color, ContestState, ContestType } from "../../../shared_helpers/enums.ts";
-import { getDateOnly, getIsCompType } from "../../../shared_helpers/sharedFunctions.ts";
+} from "~/shared_helpers/types.ts";
+import { Color, ContestState, ContestType } from "~/shared_helpers/enums.ts";
+import { getDateOnly, getIsCompType } from "~/shared_helpers/sharedFunctions.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getContestIdFromName, getTimeLimit, getUserInfo } from "~/helpers/utilityFunctions.ts";
-import C from "../../../shared_helpers/constants.ts";
+import C from "~/shared_helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
@@ -29,7 +29,7 @@ import FormRadio from "~/app/components/form/FormRadio.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
 import FormTextArea from "~/app/components/form/FormTextArea.tsx";
-import FormDatePicker from "~/app/components/form/FormDatePicker.tsx";
+import FormDatetimeInput from "~/app/components/form/FormDatetimeInput.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Button from "~/app/components/UI/Button.tsx";
@@ -37,15 +37,13 @@ import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
+import type { InputPerson } from "~/helpers/types.ts";
 
 const userInfo = getUserInfo();
 
 const ContestForm = ({
   events,
-  contestData: { contest, creator } = {
-    contest: undefined,
-    creator: undefined,
-  } as IContestData,
+  contestData: { contest, creator } = { contest: undefined, creator: undefined },
   mode,
 }: {
   events: IEvent[];
@@ -85,7 +83,7 @@ const ContestForm = ({
   ); // meetup-only; set 12:00 as initial start time
   const [endDate, setEndDate] = useState(new Date());
   const [organizerNames, setOrganizerNames] = useState<string[]>([""]);
-  const [organizers, setOrganizers] = useState<IPerson[]>([null]);
+  const [organizers, setOrganizers] = useState<InputPerson[]>([null]);
   const [contact, setContact] = useState("");
   const [description, setDescription] = useState("");
   const [competitorLimit, setCompetitorLimit] = useState<NumberInputValue>();
@@ -110,7 +108,7 @@ const ContestForm = ({
     contest.state >= ContestState.Approved;
   const disableIfContestPublished = mode === "edit" &&
     contest.state >= ContestState.Published;
-  const disableIfDetailsImported = !userInfo.isAdmin && detailsImported;
+  const disableIfDetailsImported = !userInfo?.isAdmin && detailsImported;
 
   //////////////////////////////////////////////////////////////////////////////
   // Use effect
@@ -186,7 +184,7 @@ const ContestForm = ({
 
     changeLoadingId("form_submit_button");
 
-    const selectedOrganizers = organizers.filter((el) => el !== null);
+    const selectedOrganizers = organizers.filter((o: InputPerson) => o !== null);
     let latitudeMicrodegrees: number, longitudeMicrodegrees: number;
     if (typeof latitude === "number") {
       latitudeMicrodegrees = Math.round(latitude * 1000000);
@@ -197,7 +195,7 @@ const ContestForm = ({
 
     // Set the contest ID for every round and empty results if there were any
     // in order to avoid sending too much data to the backend
-    const processedCompEvents = contestEvents.map((ce) => ({
+    const processedCompEvents = contestEvents.map((ce: IContestEvent) => ({
       ...ce,
       rounds: ce.rounds.map((round) => ({
         ...round,
@@ -222,7 +220,7 @@ const ContestForm = ({
               longitudeMicrodegrees,
               timezone: "TEMPORARY", // this is set on the backend
               // Only send the rooms that have at least one activity
-              rooms: rooms.filter((el) => el.activities.length > 0),
+              rooms: rooms.filter((r: IRoom) => r.activities.length > 0),
             },
           ],
         },
@@ -254,11 +252,8 @@ const ContestForm = ({
     };
 
     const getRoundWithDefaultTimeLimitExists = () =>
-      processedCompEvents.some((ce) =>
-        ce.rounds.some((r) =>
-          r.timeLimit.centiseconds === 60000 &&
-          r.timeLimit.cumulativeRoundIds.length === 0
-        )
+      processedCompEvents.some((ce: IContestEvent) =>
+        ce.rounds.some((r) => r.timeLimit?.centiseconds === 60000 && r.timeLimit?.cumulativeRoundIds.length === 0)
       );
     const doSubmit = mode === "edit" || // this check isn't needed when editing a contest
       !getRoundWithDefaultTimeLimitExists() ||
@@ -270,10 +265,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
       // Validation
       const tempErrors: string[] = [];
 
-      if (
-        selectedOrganizers.length <
-          organizerNames.filter((el) => el !== "").length
-      ) {
+      if (selectedOrganizers.length < organizerNames.filter((on: string) => on !== "").length) {
         tempErrors.push("Please enter all organizers");
       }
 
@@ -306,13 +298,13 @@ You have a round with a default time limit of 10:00. A round with a high time li
     mockContestType = ContestType.Competition,
   ) => {
     const { payload, errors } = await myFetch.get<IFePerson>(
-      `/persons?personId=${userInfo.personId}`,
+      `/persons?personId=${userInfo?.personId}`,
       {
         loadingId: "set_mock_comp_button",
       },
     );
 
-    if (!errors) {
+    if (payload && !errors) {
       setType(mockContestType);
       setCity("Singapore");
       setCountryIso2("SG");
@@ -322,7 +314,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
       setLongitude(103.845409);
       setOrganizerNames([payload.name]);
       setOrganizers([payload]);
-      setContact(`${userInfo.username}@cc.com`);
+      setContact(`${userInfo?.username}@cc.com`);
       setDescription("THIS IS A MOCK CONTEST!");
       setCompetitorLimit(100);
 
@@ -353,9 +345,9 @@ You have a round with a default time limit of 10:00. A round with a high time li
         // If the rounds that are supposed to have time limits don't have them
         // (this can be true for old contests), set them to empty time limits
         setContestEvents(
-          contestEvents.map((ce) => ({
+          contestEvents.map((ce: IContestEvent) => ({
             ...ce,
-            rounds: ce.rounds.map((r) => ({
+            rounds: ce.rounds.map((r: IRound) => ({
               ...r,
               timeLimit: r.timeLimit ?? getTimeLimit(ce.event.format),
             })),
@@ -429,7 +421,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
     }
   };
 
-  const fetchTimeZone = async (lat: number, long: number): Promise<string> => {
+  const fetchTimeZone = async (lat: number, long: number): Promise<string | undefined> => {
     const { errors, payload } = await myFetch.get(
       `/timezone?latitude=${lat}&longitude=${long}`,
       {
@@ -447,10 +439,8 @@ You have a round with a default time limit of 10:00. A round with a high time li
     }
   };
 
-  const changeCoordinates = async (newLat: number, newLong: number) => {
-    if (
-      [null, undefined].includes(newLat) || [null, undefined].includes(newLong)
-    ) {
+  const changeCoordinates = (newLat: number, newLong: number) => {
+    if (typeof newLat === "number" || typeof newLong === "number") {
       setLatitude(newLat);
       setLongitude(newLong);
     } else {
@@ -462,29 +452,23 @@ You have a round with a default time limit of 10:00. A round with a high time li
 
       limitTimezoneRequests(async () => {
         // Adjust all times to the new time zone
-        const timeZone: string = await fetchTimeZone(
-          processedLatitude,
-          processedLongitude,
-        );
+        const timeZone: string | undefined = await fetchTimeZone(processedLatitude, processedLongitude);
+
+        if (!timeZone) {
+          changeErrorMessages(["Error while fetching the time zone. Please reload and try again."]);
+          return;
+        }
 
         if (type === ContestType.Meetup) {
-          setStartTime(
-            fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone),
-          );
+          setStartTime(fromZonedTime(toZonedTime(startTime, venueTimeZone), timeZone));
         } else if (getIsCompType(type)) {
           setRooms(
-            rooms.map((r) => ({
+            rooms.map((r: IRoom) => ({
               ...r,
               activities: r.activities.map((a) => ({
                 ...a,
-                startTime: fromZonedTime(
-                  toZonedTime(a.startTime, venueTimeZone),
-                  timeZone,
-                ),
-                endTime: fromZonedTime(
-                  toZonedTime(a.endTime, venueTimeZone),
-                  timeZone,
-                ),
+                startTime: fromZonedTime(toZonedTime(a.startTime, venueTimeZone), timeZone),
+                endTime: fromZonedTime(toZonedTime(a.endTime, venueTimeZone), timeZone),
               })),
             })),
           );
@@ -564,7 +548,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
         onSubmit={handleSubmit}
         disableButton={disableIfContestPublished}
       >
-        {userInfo.isAdmin && mode === "edit" && <CreatorDetails creator={creator} />}
+        {userInfo?.isAdmin && mode === "edit" && <CreatorDetails creator={creator} />}
 
         <Tabs
           tabs={tabs}
@@ -606,7 +590,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                     Clone
                   </Button>
                 )}
-                {userInfo.isAdmin && (
+                {userInfo?.isAdmin && (
                   <Button
                     id="delete_contest_button"
                     onClick={removeContest}
@@ -630,8 +614,8 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   id="enable_queue_button"
                   onClick={enableQueue}
                   loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved ||
-                    contest.state >= ContestState.Finished || queueEnabled}
+                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished ||
+                    queueEnabled}
                   className="btn-secondary"
                 >
                   {queueEnabled ? "Queue Enabled" : "Enable Queue"}
@@ -640,8 +624,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   id="get_access_token_button"
                   onClick={createAuthToken}
                   loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved ||
-                    contest.state >= ContestState.Finished}
+                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
                   className="btn-secondary"
                 >
                   Get Access Token
@@ -724,8 +707,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                       title="Latitude"
                       value={latitude}
                       setValue={(val) => changeCoordinates(val, longitude)}
-                      disabled={disableIfContestApproved ||
-                        disableIfDetailsImported}
+                      disabled={disableIfContestApproved || disableIfDetailsImported}
                       min={-90}
                       max={90}
                     />
@@ -735,8 +717,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                       title="Longitude"
                       value={longitude}
                       setValue={(val) => changeCoordinates(latitude, val)}
-                      disabled={disableIfContestApproved ||
-                        disableIfDetailsImported}
+                      disabled={disableIfContestApproved || disableIfDetailsImported}
                       min={-180}
                       max={180}
                     />
@@ -756,7 +737,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
               <div className="col">
                 {!getIsCompType(type)
                   ? (
-                    <FormDatePicker
+                    <FormDatetimeInput
                       id="start_date"
                       title={`Start date and time (${
                         type === ContestType.Meetup ? (isLoadingTimezone ? "..." : venueTimeZone) : "UTC"
@@ -765,32 +746,29 @@ You have a round with a default time limit of 10:00. A round with a high time li
                       setValue={changeStartDate}
                       timeZone={type === ContestType.Meetup ? venueTimeZone : "UTC"}
                       dateFormat="Pp"
-                      disabled={disableIfContestApproved ||
-                        disableIfDetailsImported}
+                      disabled={disableIfContestApproved || disableIfDetailsImported}
                       showUTCTime
                     />
                   )
                   : (
-                    <FormDatePicker
+                    <FormDatetimeInput
                       id="start_date"
                       title="Start date"
                       value={startDate}
                       setValue={changeStartDate}
                       dateFormat="P"
-                      disabled={disableIfContestApproved ||
-                        disableIfDetailsImported}
+                      disabled={disableIfContestApproved || disableIfDetailsImported}
                     />
                   )}
               </div>
               {getIsCompType(type) && (
                 <div className="col">
-                  <FormDatePicker
+                  <FormDatetimeInput
                     id="end_date"
                     title="End date"
                     value={endDate}
                     setValue={setEndDate}
-                    disabled={disableIfContestApproved ||
-                      disableIfDetailsImported}
+                    disabled={disableIfContestApproved || disableIfDetailsImported}
                   />
                 </div>
               )}
@@ -805,7 +783,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 setPersons={setOrganizers}
                 infiniteInputs
                 nextFocusTargetId="contact"
-                disabled={disableIfContestApproved && !userInfo.isAdmin}
+                disabled={disableIfContestApproved && !userInfo?.isAdmin}
                 addNewPersonFromNewTab
               />
             </div>
@@ -833,20 +811,15 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   The following text will be displayed above the description on the contest page:
                 </p>
                 <div className="mx-2">
-                  <WcaCompAdditionalDetails
-                    name={name || "[CONTEST NAME]"}
-                    competitionId={competitionId}
-                  />
+                  <WcaCompAdditionalDetails name={name || "[CONTEST NAME]"} competitionId={competitionId} />
                 </div>
               </div>
             )}
             <FormNumberInput
-              title={"Competitor limit" +
-                (!getIsCompType(type) ? " (optional)" : "")}
+              title={"Competitor limit" + (!getIsCompType(type) ? " (optional)" : "")}
               value={competitorLimit}
               setValue={setCompetitorLimit}
-              disabled={(disableIfContestApproved && !userInfo.isAdmin) ||
-                disableIfDetailsImported}
+              disabled={(disableIfContestApproved && !userInfo?.isAdmin) || disableIfDetailsImported}
               integer
               min={C.minCompetitorLimit}
             />
@@ -859,8 +832,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
             contestEvents={contestEvents}
             setContestEvents={setContestEvents}
             contestType={type}
-            disableNewEvents={!userInfo.isAdmin && disableIfContestApproved &&
-              type !== ContestType.Meetup}
+            disableNewEvents={!userInfo?.isAdmin && disableIfContestApproved && type !== ContestType.Meetup}
           />
         )}
 
