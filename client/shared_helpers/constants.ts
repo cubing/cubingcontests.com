@@ -3,7 +3,7 @@
 
 const C = {
   contactEmail: "cubing-contests-admin@googlegroups.com",
-  fetchThrottleTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
+  fetchDebounceTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
   // Timeouts before revalidating a request in seconds
   rankingsRev: 300, //  5 minutes
   contestsRev: 60, // 1 minute

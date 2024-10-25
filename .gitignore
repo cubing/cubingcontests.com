@@ -23,7 +23,7 @@ npm-debug.log*
 # local env files
 *.env*
 !*.env.example
-!client/.env.local
+!client/.env.production
 
 # typescript
 *.tsbuildinfo

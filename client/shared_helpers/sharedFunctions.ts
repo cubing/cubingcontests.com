@@ -1,25 +1,7 @@
-import { differenceInDays } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
 import C from "./constants.ts";
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
-import {
-  IActivity,
-  IAttempt,
-  IContest,
-  IContestEvent,
-  ICutoff,
-  IEvent,
-  IPersonDto,
-  IRecordPair,
-  IResult,
-  IRound,
-  IWcifActivity,
-  IWcifCompetition,
-  IWcifEvent,
-  IWcifRound,
-  IWcifSchedule,
-} from "./types.ts";
+import { IAttempt, IContestEvent, ICutoff, IEvent, IPersonDto, IRecordPair, IResult, IRound } from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
@@ -78,9 +60,7 @@ export const setResultRecords = (
       }
 
       if (
-        result.attempts.length ===
-          roundFormats.find((rf) => rf.value === event.defaultRoundFormat)
-            .attempts
+        result.attempts.length === roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.attempts
       ) {
         const comparisonToRecordAvg = compareAvgs(
           result,
@@ -101,7 +81,7 @@ export const setResultRecords = (
   return result;
 };
 
-export const getDateOnly = (date: Date): Date => {
+export const getDateOnly = (date: Date): Date | null => {
   if (!date) {
     console.error(`The date passed to getDateOnly is invalid: ${date}`);
     return null;
@@ -227,7 +207,9 @@ export const getBestAndAverage = (
   let dnfDnsCount = 0;
   const makesCutoff = getMakesCutoff(attempts, round?.cutoff);
   const format = round?.format ?? roundFormat;
-  const expectedAttempts = roundFormats.find((rf) => rf.value === format).attempts;
+  const expectedAttempts = roundFormats.find((rf) => rf.value === format)?.attempts;
+
+  if (!expectedAttempts) throw new Error("Round format not found");
 
   // This actually follows the rule that the lower the attempt value is - the better
   const convertedAttempts: number[] = attempts.map(({ result }) => {
@@ -269,11 +251,11 @@ export const getBestAndAverage = (
 export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean =>
   [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
 
-export const getDefaultAverageAttempts = (event: IEvent) =>
-  roundFormats.find((rf) => rf.value === event.defaultRoundFormat).attempts ===
-      5
-    ? 5
-    : 3;
+export const getDefaultAverageAttempts = (event: IEvent) => {
+  const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat);
+  if (!roundFormat) throw new Error("Round format not found");
+  return roundFormat.attempts === 5 ? 5 : 3;
+};
 
 export const getAlwaysShowDecimals = (event: IEvent): boolean =>
   event.groups.includes(EventGroup.ExtremeBLD) &&
@@ -292,68 +274,6 @@ export const getMakesCutoff = (
     i < cutoff.numberOfAttempts && a.result > 0 &&
     a.result < cutoff.attemptResult
   );
-
-const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, "UTC", "yyyy-MM-dd");
-
-export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
-  formatVersion: "1.0",
-  id: contest.competitionId,
-  name: contest.name,
-  shortName: contest.shortName,
-  persons: [],
-  events: contest.events.map((ce) => getWcifCompEvent(ce)),
-  schedule: contest.compDetails?.schedule ? getWcifSchedule(contest) : ({} as IWcifSchedule),
-  competitorLimit: contest.competitorLimit,
-  extensions: [],
-});
-
-export const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
-  id: contestEvent.event.eventId as any,
-  rounds: contestEvent.rounds.map((r) => getWcifRound(r)),
-  extensions: [
-    {
-      id: "TEMPORARY",
-      specUrl: "",
-      data: {
-        name: contestEvent.event.name,
-        participants: contestEvent.event.participants || 1,
-      },
-    },
-  ],
-});
-
-export const getWcifRound = (round: IRound): IWcifRound => ({
-  id: round.roundId,
-  format: round.format,
-  timeLimit: round.timeLimit ?? null,
-  cutoff: round.cutoff ?? null,
-  advancementCondition: null, // TO-DO: IMPLEMENT THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  results: [], // TO-DO: ADD CONVERSION FROM IRESULT TO IWCIFRESULT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  extensions: [],
-});
-
-export const getWcifSchedule = (contest: IContest): IWcifSchedule => ({
-  startDate: convertDateToWcifDate(contest.startDate),
-  numberOfDays: differenceInDays(contest.endDate, contest.startDate) + 1,
-  venues: contest.compDetails.schedule.venues.map((v) => ({
-    ...v,
-    rooms: v.rooms.map((r) => ({
-      ...r,
-      activities: r.activities.map((a) => getWcifActivity(a)),
-      extensions: [],
-    })),
-    extensions: [],
-  })),
-});
-
-export const getWcifActivity = (activity: IActivity): IWcifActivity => ({
-  ...activity,
-  name: activity.name || "",
-  startTime: convertDateToWcifDate(activity.startTime),
-  endTime: convertDateToWcifDate(activity.endTime),
-  childActivities: activity.childActivities.map((ca) => getWcifActivity(ca)),
-  extensions: [],
-});
 
 export const getRoleLabel = (role: Role, capitalize = false): string => {
   switch (role) {

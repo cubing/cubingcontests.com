@@ -2,6 +2,7 @@
   "deno.enable": true,
   "deno.enablePaths": [
     "./client",
-    "./server2"
+    "./server2",
+    "./bin"
   ]
 }

@@ -1,6 +1,12 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "~/app/globals.css";
 import MainLayout from "~/app/components/UI/MainLayout.tsx";
+// Prevent server-side rendering bug with FA icons, where the icons flash as very large before full page load
+import "@fortawesome/fontawesome-svg-core/styles.css";
+// Prevent FA from adding its CSS since we did it manually above
+import { config } from "@fortawesome/fontawesome-svg-core";
+
+config.autoAddCss = false;
 
 // SEO
 export const metadata = {

@@ -7,7 +7,7 @@ const ToastMessages = () => {
   const { errorMessages, successMessage } = useContext(MainContext);
 
   useEffect(() => {
-    if (successMessage || errorMessages.some((el) => el !== "")) {
+    if (successMessage || errorMessages.some((msg: string) => msg !== "")) {
       document
         .getElementById(successMessage ? "success_message" : "error_message_1")
         ?.scrollIntoView({ block: "center" });
@@ -15,7 +15,7 @@ const ToastMessages = () => {
   }, [successMessage, errorMessages]);
 
   if (errorMessages.length > 0) {
-    return errorMessages.map((message, index) => (
+    return errorMessages.map((message: string, index: number) => (
       <div
         key={index}
         id={`error_message_${index + 1}`}

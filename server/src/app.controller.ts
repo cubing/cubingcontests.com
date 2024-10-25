@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   Post,
-  Query,
   Request,
   Res,
   UseGuards,
@@ -13,7 +12,6 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { find as findTimezone } from "geo-tz";
 import { AppService } from "./app.service";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { AuthService } from "@m/auth/auth.service";
@@ -24,7 +22,7 @@ import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
 import { Role } from "@sh/enums";
 import { orgPopulateOptions } from "~/src/helpers/dbHelpers";
-import { getWcifCompetition } from "@sh/sharedFunctions";
+import { getWcifCompetition } from "~/src/helpers/utilityFunctions";
 import { ContestDocument } from "~/src/models/contest.model";
 import { EnterAttemptDto } from "~/src/app-dto/enter-attempt.dto";
 import { LogType } from "~/src/helpers/enums";
@@ -48,19 +46,6 @@ export class AppController {
   @Roles(Role.Admin)
   async getAdminStats() {
     return await this.service.getAdminStats();
-  }
-
-  // GET /timezone?latitude=...&longitude=...
-  @Get("timezone")
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin, Role.Moderator)
-  async getTimezone(@Query("latitude") latitude: number, @Query("longitude") longitude: number) {
-    this.logger.log(`Getting time zone for coordinates ${latitude}, ${longitude}`);
-
-    if (latitude > 90 || latitude < -90) throw new BadRequestException(`Invalid latitude: ${latitude}`);
-    if (longitude > 180 || longitude < -180) throw new BadRequestException(`Invalid longitude: ${longitude}`);
-
-    return { timezone: findTimezone(latitude, longitude)[0] };
   }
 
   @Get("scorecards/:competitionId")

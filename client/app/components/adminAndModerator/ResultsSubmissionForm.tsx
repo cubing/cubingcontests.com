@@ -1,8 +1,9 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useLimitRequests, useMyFetch } from "~/helpers/customHooks.ts";
+import { debounce } from "lodash";
+import { useMyFetch } from "~/helpers/customHooks.ts";
 import ResultForm from "~/app/components/adminAndModerator/ResultForm.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Form from "~/app/components/form/Form.tsx";
@@ -16,6 +17,7 @@ import {
   IAttempt,
   IEvent,
   type IEventRecordPairs,
+  type IPerson,
   IResult,
   IResultsSubmissionInfo,
   IUpdateResultDto,
@@ -43,10 +45,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
 
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const [limitRecordPairsRequests, isLoadingRecordPairs] = useLimitRequests();
-  const { changeErrorMessages, changeSuccessMessage, loadingId } = useContext(
-    MainContext,
-  );
+  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId } = useContext(MainContext);
 
   const [showRules, setShowRules] = useState(false);
   const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo | IAdminResultsSubmissionInfo>();
@@ -117,6 +116,22 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     }
   }, []);
 
+  const updateRecordPairs = useCallback(
+    debounce(async (date: Date) => {
+      const eventsStr = submissionInfo.events.map((e: IEvent) => e.eventId).join(",");
+      const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
+
+      const { payload, errors } = await myFetch.get(
+        `/results/record-pairs/${date}/${eventsStr}${queryParams}`,
+        { authorize: true, loadingId: null },
+      );
+
+      if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
+      changeLoadingId("");
+    }, C.fetchDebounceTimeout),
+    [submissionInfo],
+  );
+
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
@@ -133,7 +148,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     const newResult: IResult = {
       eventId: event.eventId,
       date,
-      personIds: competitors.map((p: InputPerson) => p.personId),
+      personIds: competitors.map((p: InputPerson) => (p as IPerson).personId),
       attempts,
       best,
       average,
@@ -190,27 +205,15 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     }
   };
 
-  const changeDate = (newDate: Date) => {
+  const changeDate = (newDate: Date | null | undefined) => {
     setDate(newDate);
 
-    // Update the record pairs with the new date
     if (newDate) {
-      limitRecordPairsRequests(async () => {
-        const eventsStr = submissionInfo.events.map((e: IEvent) => e.eventId).join(",");
-        const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
-
-        const { payload, errors } = await myFetch.get(
-          `/results/record-pairs/${newDate}/${eventsStr}${queryParams}`,
-          {
-            authorize: true,
-            loadingId: "RECORD_PAIRS",
-          },
-        );
-
-        if (!errors) {
-          setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
-        }
-      });
+      updateRecordPairs(newDate);
+      changeLoadingId("RECORD_PAIRS");
+    } else {
+      updateRecordPairs.cancel();
+      changeLoadingId("");
     }
   };
 
@@ -306,10 +309,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             setAttempts={setAttempts}
             recordPairs={recordPairs}
             recordTypes={submissionInfo.activeRecordTypes}
-            nextFocusTargetId={!submissionInfo.result ||
-                submissionInfo.result.unapproved
-              ? "date"
-              : "video_link"}
+            nextFocusTargetId={!submissionInfo.result || submissionInfo.result.unapproved ? "date" : "video_link"}
             resetTrigger={resultFormResetTrigger}
             setEvent={setEvent}
             events={submissionInfo.events}
@@ -367,7 +367,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             id="submit_button"
             onClick={() => submitResult()}
             loadingId={loadingId}
-            disabled={isLoadingRecordPairs}
             className="mt-3"
           >
             Submit
@@ -377,7 +376,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               id="approve_button"
               onClick={() => submitResult(true)}
               loadingId={loadingId}
-              disabled={isLoadingRecordPairs}
               className="btn-success mt-3 ms-3"
             >
               Submit and approve

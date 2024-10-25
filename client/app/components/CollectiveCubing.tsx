@@ -33,16 +33,9 @@ const getCubeState = (colSol: IFeCollectiveSolution): string => `${colSol.scramb
 
 const CollectiveCubing = () => {
   const myFetch = useMyFetch();
-  const {
-    changeErrorMessages,
-    loadingId,
-    changeLoadingId,
-    resetMessagesAndLoadingId,
-  } = useContext(MainContext);
+  const { changeErrorMessages, loadingId, changeLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
-  const [collectiveSolution, setCollectiveSolution] = useState<
-    IFeCollectiveSolution
-  >();
+  const [collectiveSolution, setCollectiveSolution] = useState<IFeCollectiveSolution>();
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
   const isSolved = !collectiveSolution || collectiveSolution.state === 20;
@@ -51,9 +44,7 @@ const CollectiveCubing = () => {
     : 0;
 
   useEffect(() => {
-    console.log("test");
     if (!getIsWebglSupported()) {
-      console.log("test");
       changeErrorMessages(["Please enable WebGL to render the cube"]);
       return;
     }
@@ -82,9 +73,7 @@ const CollectiveCubing = () => {
     // return () => removeEventListener('keypress', doMoveWithKeyboard);
   }, []);
 
-  const update = (
-    { payload, errors, errorData }: FetchObj<IFeCollectiveSolution>,
-  ) => {
+  const update = ({ payload, errors, errorData }: FetchObj<IFeCollectiveSolution>) => {
     const newCollectiveSolution = payload ?? errorData?.collectiveSolution;
 
     if (errors) {
@@ -100,9 +89,7 @@ const CollectiveCubing = () => {
 
   const scrambleCube = async () => {
     changeLoadingId("scramble_button");
-    const fetchData = await myFetch.post("/collective-solution", {}, {
-      loadingId: null,
-    });
+    const fetchData = await myFetch.post("/collective-solution", {}, { loadingId: null });
     update(fetchData);
   };
 
@@ -114,15 +101,8 @@ const CollectiveCubing = () => {
   const confirmMove = async () => {
     if (collectiveSolution && selectedMove) {
       changeLoadingId("confirm_button");
-      const makeMoveDto: IMakeMoveDto = {
-        move: selectedMove,
-        lastSeenSolution: collectiveSolution.solution,
-      };
-      const fetchData = await myFetch.post(
-        "/collective-solution/make-move",
-        makeMoveDto,
-        { loadingId: null },
-      );
+      const makeMoveDto: IMakeMoveDto = { move: selectedMove, lastSeenSolution: collectiveSolution.solution };
+      const fetchData = await myFetch.post("/collective-solution/make-move", makeMoveDto, { loadingId: null });
       update(fetchData);
     }
   };
@@ -133,22 +113,11 @@ const CollectiveCubing = () => {
     <>
       <p>
         Let's solve Rubik's Cubes together! Simply log in and make a turn.{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
-          U
-        </b>{" "}
-        is the{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
-          yellow
-        </b>{" "}
-        face and{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>
-          F
-        </b>{" "}
-        is{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>
-          green
-        </b>
-        . You may not make two turns in a row.
+        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>U</b> is the{" "}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>yellow</b> face and{" "}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>F</b> is{" "}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>green</b>. You may not make two turns in a
+        row.
       </p>
 
       <ToastMessages />
@@ -182,10 +151,7 @@ const CollectiveCubing = () => {
                 <>
                   <div
                     className="gap-1 gap-md-3 mt-1 mt-md-4"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(6, 1fr)",
-                    }}
+                    style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)" }}
                   >
                     {nxnMoves.map((move) => (
                       <div key={move} className="p-0">
@@ -213,10 +179,7 @@ const CollectiveCubing = () => {
                   <p className="my-2">
                     Moves used:{" "}
                     <b>
-                      {collectiveSolution?.solution
-                        ? (collectiveSolution.solution.match(/ /g)?.length ??
-                          0) + 1
-                        : 0}
+                      {collectiveSolution?.solution ? (collectiveSolution.solution.match(/ /g)?.length ?? 0) + 1 : 0}
                     </b>
                   </p>
                 </>

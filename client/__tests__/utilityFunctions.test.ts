@@ -1,3 +1,5 @@
+import { expect } from "@std/expect";
+import { describe, it } from "@std/testing/bdd";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
 import { EventFormat, EventGroup } from "~/shared_helpers/enums.ts";
 import { IEvent } from "~/shared_helpers/types.ts";
@@ -195,7 +197,7 @@ describe("getAttempt", () => {
         const expectedResult = outputAtt.result !== null && outputAtt.result >= 60000
           ? outputAtt.result - (outputAtt.result % 100)
           : outputAtt.result;
-        const expectedMemo = outputAtt.memo !== null && outputAtt.memo >= 60000
+        const expectedMemo = outputAtt.memo !== null && outputAtt.memo && outputAtt.memo >= 60000
           ? outputAtt.memo - (outputAtt.memo % 100)
           : outputAtt.memo;
 

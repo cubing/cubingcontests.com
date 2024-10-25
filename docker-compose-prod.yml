@@ -57,8 +57,6 @@ services:
       - cubingcontests
     ports:
       - 127.0.0.1:$FRONTEND_PORT:$FRONTEND_PORT
-    environment:
-      - ENVIRONMENT=production
     depends_on:
       - mongo
       - server

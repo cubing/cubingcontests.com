@@ -7,7 +7,7 @@ const Competitor = ({
   noFlag,
   noLink,
 }: {
-  person: IPerson | IFePerson;
+  person: IPerson | IFePerson | undefined;
   showLocalizedName?: boolean;
   noFlag?: boolean;
   noLink?: boolean;

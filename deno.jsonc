@@ -2,7 +2,7 @@
   // When updating this, remember to also update it in .vscode/settings.json
   "workspace": ["./client", "./server2"],
   "nodeModulesDir": "auto",
-  "exclude": ["./server"],
+  "exclude": ["./client/.next", "./server"],
 
   "tasks": {
     "client": "cd client && deno task dev",
@@ -15,7 +15,12 @@
     "rules": {
       "tags": ["recommended"],
       "include": [],
-      "exclude": ["no-window", "no-window-prefix", "no-process-globals", "no-explicit-any"]
+      "exclude": [
+        "no-window",
+        "no-window-prefix",
+        "no-process-globals",
+        "no-explicit-any"
+      ]
     }
   },
 
@@ -32,6 +37,6 @@
       "dom.asynciterable",
       "deno.ns"
     ],
-    "jsx": "precompile"
+    "jsx": "react-jsx"
   }
 }

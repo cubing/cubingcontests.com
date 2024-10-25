@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { doFetch } from "~/helpers/fetchUtils.ts";
 import { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "~/shared_helpers/types.ts";
 import { ContestType } from "~/shared_helpers/enums.ts";
@@ -36,7 +36,7 @@ export const useMyFetch = () => {
         authorize = false,
         redirect,
         fileName,
-        loadingId,
+        loadingId, // set loadingId to null to prevent automatic loading behavior
         keepLoadingAfterSuccess = false,
       }: FetchOptions & {
         redirect?: string; // this can only be set if authorize is set too
@@ -184,7 +184,7 @@ export const useFetchPerson = () => {
         { authorize: true, loadingId: null },
       );
       if (errors) throw new Error(errors[0]);
-      return payload.person;
+      return payload?.person;
     }
 
     // If a WCA ID wasn't provided, first try looking in the CC database
@@ -228,26 +228,4 @@ export const useFetchPerson = () => {
 
     return undefined;
   };
-};
-
-export const useLimitRequests = (): [
-  (callback: () => void) => void,
-  boolean,
-] => {
-  const [fetchTimer, setFetchTimer] = useState<NodeJS.Timeout | null>(null);
-
-  return [
-    (callback: () => void) => {
-      if (fetchTimer !== null) clearTimeout(fetchTimer);
-
-      setFetchTimer(
-        setTimeout(async () => {
-          await callback();
-          // Resetting this AFTER the callback, so that the fetch request can complete first
-          setFetchTimer(null);
-        }, C.fetchThrottleTimeout),
-      );
-    },
-    fetchTimer !== null,
-  ];
 };

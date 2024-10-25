@@ -9,22 +9,14 @@ import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import Time from "~/app/components/Time.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
-import {
-  IAttempt,
-  IContestEvent,
-  IEvent,
-  InputPerson,
-  IRecordPair,
-  IRecordType,
-  IResult,
-  IRound,
-} from "~/shared_helpers/types.ts";
+import { IAttempt, IContestEvent, IEvent, IRecordPair, IRecordType, IResult, IRound } from "~/shared_helpers/types.ts";
 import { EventFormat, RoundFormat, RoundType } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { getBestAndAverage, getMakesCutoff, setResultRecords } from "~/shared_helpers/sharedFunctions.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { roundFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
+import type { InputPerson } from "~/helpers/types.ts";
 
 /**
  * This component has 3 uses: for entering results on PostResultsScreen,
