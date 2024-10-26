@@ -15,17 +15,18 @@ import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import type { InputPerson } from "~/helpers/types.ts";
 
 const ManageUsersPage = () => {
   const myFetch = useMyFetch();
   const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
-  const parentRef = useRef();
+  const parentRef = useRef<Element>(null);
 
   const [users, setUsers] = useState<IFeUser[]>([]);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [personNames, setPersonNames] = useState([""]);
-  const [persons, setPersons] = useState([null]);
+  const [persons, setPersons] = useState<InputPerson[]>([null]);
   const [isUser, setIsUser] = useState(false);
   const [isMod, setIsMod] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -60,32 +61,21 @@ const ManageUsersPage = () => {
 
   const handleSubmit = async () => {
     if (persons[0] === null && personNames[0].trim() !== "") {
-      changeErrorMessages([
-        "The competitor has not been entered. Either enter them or clear the input.",
-      ]);
+      changeErrorMessages(["The competitor has not been entered. Either enter them or clear the input."]);
       return;
     }
 
-    const newUser: IFeUser = {
-      username,
-      email,
-      person: persons[0] ?? undefined,
-      roles: [],
-    };
+    const newUser: IFeUser = { username, email, person: persons[0] ?? undefined, roles: [] };
 
     if (isUser) newUser.roles.push(Role.User);
     if (isMod) newUser.roles.push(Role.Moderator);
     if (isAdmin) newUser.roles.push(Role.Admin);
 
-    const { payload, errors } = await myFetch.patch("/users", newUser, {
-      loadingId: "form_submit_button",
-    });
+    const { payload, errors } = await myFetch.patch("/users", newUser, { loadingId: "form_submit_button" });
 
     if (!errors) {
       setUsername("");
-      setUsers(
-        users.map((u: IFeUser) => (u.username === newUser.username ? payload : u)),
-      );
+      setUsers(users.map((u: IFeUser) => (u.username === newUser.username ? payload : u)));
     }
   };
 
@@ -121,7 +111,7 @@ const ManageUsersPage = () => {
           showCancelButton
           onCancel={() => setUsername("")}
         >
-          <div className="row">
+          <div className="row mb-3">
             <div className="col">
               <FormTextInput title="Username" value={username} disabled />
             </div>
@@ -159,24 +149,15 @@ const ManageUsersPage = () => {
       )}
 
       {/* Same styling as the filters on the manage competitors page */}
-      <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 px-3">
-        <FormTextInput
-          title="Search"
-          value={search}
-          setValue={setSearch}
-          oneLine
-        />
+      <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 mb-3 px-3">
+        <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
       </div>
 
       <p className="mb-2 px-3">
         Number of users:&nbsp;<b>{filteredUsers.length}</b>
       </p>
 
-      <div
-        ref={parentRef}
-        className="mt-3 table-responsive overflow-y-auto"
-        style={{ height: "650px" }}
-      >
+      <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "650px" }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
             <thead>
@@ -206,9 +187,7 @@ const ManageUsersPage = () => {
                     <td>{user.username}</td>
                     <td>{user.email}</td>
                     <td>{user.person?.name}</td>
-                    <td>
-                      {user.roles.map((r: Role) => getRoleLabel(r, true)).join(", ")}
-                    </td>
+                    <td>{user.roles.map((r: Role) => getRoleLabel(r, true)).join(", ")}</td>
                     <td>
                       <Button
                         id={`edit_${user.username}_button`}

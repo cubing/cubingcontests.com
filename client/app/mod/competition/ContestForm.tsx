@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { addHours } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
@@ -74,7 +74,7 @@ const ContestForm = ({
   const [name, setName] = useState(contest?.name ?? "");
   const [shortName, setShortName] = useState(contest?.shortName ?? "");
   const [type, setType] = useState(contest?.type ?? ContestType.Meetup);
-  const [city, setCity] = useState(contest?.type ?? "");
+  const [city, setCity] = useState(contest?.city ?? "");
   const [countryIso2, setCountryIso2] = useState(contest?.countryIso2 ?? "NOT_SELECTED");
   const [venue, setVenue] = useState(contest?.venue ?? "");
   const [address, setAddress] = useState(contest?.address ?? "");
@@ -102,7 +102,6 @@ const ContestForm = ({
 
   // Schedule stuff
   const [rooms, setRooms] = useState<IRoom[]>(contest?.compDetails ? contest.compDetails.schedule.venues[0].rooms : []);
-  // const [timeZone, setTimeZone] = useState("Etc/GMT");
   const timeZoneQueryKey = ["timeZone", mode, contest?.competitionId];
   const { data: { timeZone }, isFetching: isFetchingTimeZone } = useQuery<{ timeZone: string }>({
     queryKey: timeZoneQueryKey,
@@ -164,7 +163,7 @@ const ContestForm = ({
     // too much data to the backend. Remove internal IDs in case we're copying a contest.
     const processedCompEvents = contestEvents.map((ce: IContestEvent) => ({
       ...ce,
-      rounds: ce.rounds.map((round) => ({ ...round, _id: undefined, competitionId, results: [] })),
+      rounds: ce.rounds.map((round) => ({ ...round, competitionId, results: [] })),
     }));
 
     let compDetails: ICompetitionDetails | undefined;
@@ -206,7 +205,7 @@ const ContestForm = ({
       startDate,
       endDate: getIsCompType(type) ? endDate : undefined,
       organizers: selectedOrganizers,
-      contact: contact.trim(),
+      contact: contact.trim() || undefined,
       description: description.trim(),
       competitorLimit: competitorLimit || undefined,
       events: processedCompEvents,
@@ -369,7 +368,6 @@ You have a round with a default time limit of 10:00. A round with a high time li
   };
 
   const adjustTimes = (newTimeZone: string) => {
-    console.log("test", newTimeZone, timeZone);
     if (type === ContestType.Meetup) {
       setStartTime(fromZonedTime(toZonedTime(startTime, timeZone), newTimeZone));
     } else if (getIsCompType(type)) {
@@ -536,18 +534,21 @@ You have a round with a default time limit of 10:00. A round with a high time li
               setValue={changeName}
               autoFocus
               disabled={disableIfDetailsImported}
+              className="mb-3"
             />
             <FormTextInput
               title="Short name"
               value={shortName}
               setValue={changeShortName}
               disabled={disableIfDetailsImported}
+              className="mb-3"
             />
             <FormTextInput
               title="Contest ID"
               value={competitionId}
               setValue={setCompetitionId}
               disabled={mode === "edit" || disableIfDetailsImported}
+              className="mb-3"
             />
             <FormRadio
               title="Type"
@@ -567,7 +568,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 Get WCA competition details
               </Button>
             )}
-            <div className="row">
+            <div className="row mb-3">
               <div className="col">
                 <FormTextInput
                   title="City"
@@ -589,9 +590,10 @@ You have a round with a default time limit of 10:00. A round with a high time li
               value={address}
               setValue={setAddress}
               disabled={disableIfDetailsImported}
+              className="mb-3"
             />
             <div className="row">
-              <div className="col-12 col-md-6">
+              <div className="col-12 col-md-6 mb-3">
                 <FormTextInput
                   title="Venue"
                   value={venue}
@@ -643,7 +645,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                       setValue={changeStartDate}
                       timeZone={timeZone}
                       disabled={disableIfContestApproved}
-                      showTimeSelect
+                      dateFormat="Pp"
                       showUTCTime
                     />
                   )
@@ -654,6 +656,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                       value={startDate}
                       setValue={changeStartDate}
                       disabled={disableIfContestApproved || disableIfDetailsImported}
+                      dateFormat="P"
                     />
                   )}
               </div>
@@ -690,6 +693,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
               value={contact}
               setValue={setContact}
               disabled={disableIfContestPublished}
+              className="mb-3"
             />
             <FormTextArea
               title="Description (optional)"

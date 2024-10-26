@@ -62,8 +62,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                     </td>
                     <td>{roundTypes[round.roundTypeId].label}</td>
                     <td>
-                      {roundFormats.find((rf) => rf.value === round.format)
-                        .label}
+                      {roundFormats.find((rf) => rf.value === round.format)?.label}
                     </td>
                     <td>
                       {round.timeLimit

@@ -111,8 +111,9 @@ export class ContestDto implements IContestDto {
   @Type(() => PersonDto)
   organizers: IPerson[];
 
+  @IsOptional()
   @IsEmail()
-  contact: string;
+  contact?: string;
 
   @IsString()
   description: string;

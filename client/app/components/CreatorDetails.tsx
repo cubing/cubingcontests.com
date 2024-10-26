@@ -20,9 +20,7 @@ const CreatorDetails = ({
     specialCase = <span>Me</span>;
   }
 
-  if (specialCase) {
-    return small ? specialCase : <div className="mb-3">Created by:&#8194;{specialCase}</div>;
-  }
+  if (specialCase) return small ? specialCase : <div className="mb-3">Created by:&#8194;{specialCase}</div>;
 
   creator = creator as IFeUser;
   const username = <a href={`mailto:${creator.email}`}>{creator.username}</a>;

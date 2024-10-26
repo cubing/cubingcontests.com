@@ -10,9 +10,10 @@ import AttemptInput from "~/app/components/AttemptInput.tsx";
 import Time from "~/app/components/Time.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import {
-  IAttempt,
   IContestEvent,
+  type ICutoff,
   IEvent,
+  type IFeAttempt,
   type IPerson,
   IRecordPair,
   IRecordType,
@@ -58,8 +59,8 @@ const ResultForm = ({
   event: IEvent;
   persons: InputPerson[];
   setPersons: (val: InputPerson[]) => void;
-  attempts: IAttempt[];
-  setAttempts: (val: IAttempt[]) => void;
+  attempts: IFeAttempt[];
+  setAttempts: (val: IFeAttempt[]) => void;
   recordPairs: IRecordPair[];
   recordTypes: IRecordType[];
   nextFocusTargetId?: string;
@@ -85,9 +86,7 @@ const ResultForm = ({
   const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 });
   const [personNames, setPersonNames] = useState([""]);
   // If this is null, that means the option is disabled
-  const [keepCompetitors, setKeepCompetitors] = useState(
-    showOptionToKeepCompetitors ? false : null,
-  );
+  const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
   const [attemptsResetTrigger, setAttemptsResetTrigger] = useState<boolean>();
 
   if (!forResultsSubmissionForm) {
@@ -97,8 +96,9 @@ const ResultForm = ({
 
   const rf = roundFormats.find((rf) => rf.value === roundFormat);
   const roundCanHaveAverage = rf && rf.attempts >= 3;
-  // The second round.cutoff doesn't need a ?, because getMakesCutoff returns true if the cutoff is undefined
-  const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff) ? attempts.length : round?.cutoff?.numberOfAttempts;
+  const lastActiveAttempt: number = getMakesCutoff(attempts, round?.cutoff)
+    ? attempts.length
+    : (round?.cutoff as ICutoff).numberOfAttempts;
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
@@ -132,17 +132,9 @@ const ResultForm = ({
   };
 
   const updateTempResult = () => {
-    const { best, average } = getBestAndAverage(attempts, event, {
-      round,
-      roundFormat,
-    });
+    const { best, average } = getBestAndAverage(attempts, event, { round, roundFormat });
     setTempResult(
-      setResultRecords(
-        { best, average, attempts } as IResult,
-        event,
-        recordPairs,
-        true,
-      ),
+      setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true),
     );
   };
 
@@ -178,9 +170,7 @@ const ResultForm = ({
 
   // Returns true if there are errors
   const checkPersonSelectionErrors = (newSelectedPerson: InputPerson): boolean => {
-    if (
-      round?.results.some((res: IResult) => res.personIds.includes(newSelectedPerson.personId))
-    ) {
+    if (newSelectedPerson && round?.results.some((r) => r.personIds.includes(newSelectedPerson.personId))) {
       changeErrorMessages(["That competitor's results have already been entered"]);
       return true;
     }
@@ -188,25 +178,14 @@ const ResultForm = ({
     return false;
   };
 
-  const changeAttempt = (index: number, newAttempt: IAttempt) => {
-    const newAttempts = attempts.map((
-      el,
-      i,
-    ) => (i !== index ? el : newAttempt));
+  const changeAttempt = (index: number, newAttempt: IFeAttempt) => {
+    const newAttempts = attempts.map((a, i) => (i !== index ? a : newAttempt));
     setAttempts(newAttempts);
 
     // Update temporary best and average
-    const { best, average } = getBestAndAverage(newAttempts, event, {
-      round,
-      roundFormat,
-    });
+    const { best, average } = getBestAndAverage(newAttempts, event, { round, roundFormat });
     setTempResult(
-      setResultRecords(
-        { best, average, attempts: newAttempts } as IResult,
-        event,
-        recordPairs,
-        true,
-      ),
+      setResultRecords({ best, average, attempts: newAttempts } as IResult, event, recordPairs, true),
     );
   };
 
@@ -214,17 +193,13 @@ const ResultForm = ({
     // Focus next time input or the submit button if it's the last input
     if (index + 1 < lastActiveAttempt) {
       // If Multi format and the next attempt is not DNS, focus the solved input, therwise focus the time input
-      if (
-        event.format === EventFormat.Multi && attempts[index + 1].result !== -2
-      ) {
+      if (event.format === EventFormat.Multi && attempts[index + 1].result !== -2) {
         document.getElementById(`attempt_${index + 2}_solved`)?.focus();
       } else {
         document.getElementById(`attempt_${index + 2}`)?.focus();
       }
-    } else {
-      if (nextFocusTargetId) {
-        document.getElementById(nextFocusTargetId)?.focus();
-      }
+    } else if (nextFocusTargetId) {
+      document.getElementById(nextFocusTargetId)?.focus();
     }
   };
 
@@ -264,8 +239,8 @@ const ResultForm = ({
     setTempResult({ best: -1, average: -1, attempts: newAttempts } as IResult);
 
     if (resetCompetitors) {
-      setPersons(new Array(newEvent.participants || 1).fill(null));
-      setPersonNames(new Array(newEvent.participants || 1).fill(""));
+      setPersons(new Array(newEvent.participants).fill(null));
+      setPersonNames(new Array(newEvent.participants).fill(""));
     }
   };
 
@@ -323,7 +298,7 @@ const ResultForm = ({
           key={i}
           attNumber={i + 1}
           attempt={attempt}
-          setAttempt={(val: IAttempt) => changeAttempt(i, val)}
+          setAttempt={(val: IFeAttempt) => changeAttempt(i, val)}
           event={event}
           focusNext={() => focusNext(i)}
           timeLimit={round?.timeLimit}

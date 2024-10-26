@@ -24,8 +24,8 @@ class Event implements IEvent {
   @Prop({ type: [{ type: Number, enum: EventGroup }], required: true })
   groups: EventGroup[];
 
-  @Prop({ immutable: true })
-  participants?: number;
+  @Prop({ required: true, immutable: true })
+  participants: number;
 
   @Prop()
   description?: string;

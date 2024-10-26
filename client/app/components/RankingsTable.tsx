@@ -16,17 +16,13 @@ const RankingsTable = ({
   topResultsRankings?: boolean;
 }) => {
   if (topResultsRankings && recordsTable) {
-    throw new Error(
-      "forAverage and topResultsRankings cannot both be true in RankingsTable",
-    );
+    throw new Error("forAverage and topResultsRankings cannot both be true in RankingsTable");
   }
 
   const hasComp = rankings.some((el) => el.contest);
   const hasLink = rankings.some((el) => el.videoLink || el.discussionLink);
-  const showAllTeammates = event?.participants > 1 && topResultsRankings &&
-    !recordsTable;
-  const showTeamColumn = event?.participants > 1 && !showAllTeammates &&
-    !recordsTable;
+  const showAllTeammates = event && event.participants > 1 && topResultsRankings && !recordsTable;
+  const showTeamColumn = event && event.participants > 1 && !showAllTeammates && !recordsTable;
   const hasSolves = rankings.some((el) => el.attempts);
   const showDetailsColumn = hasSolves || rankings.some((el) => el.memo);
   let lastRanking = 0;
@@ -65,7 +61,7 @@ const RankingsTable = ({
         <tbody>
           {rankings.map((ranking) => {
             const isTiedRanking = ranking.ranking === lastRanking;
-            lastRanking = ranking.ranking;
+            lastRanking = ranking.ranking as number;
 
             if (recordsTable) {
               return ranking.persons.map((person, i) => (
@@ -83,9 +79,7 @@ const RankingsTable = ({
             }
 
             let key = `${ranking.resultId}_${ranking.persons[0].personId}`;
-            if (ranking.attemptNumber !== undefined) {
-              key += `_${ranking.attemptNumber}`;
-            }
+            if (ranking.attemptNumber !== undefined) key += `_${ranking.attemptNumber}`;
 
             return (
               <RankingRow

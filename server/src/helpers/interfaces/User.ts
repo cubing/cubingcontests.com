@@ -5,7 +5,7 @@ export interface IPartialUser {
   personId?: number; // assigned manually by an admin
   username: string;
   email: string;
-  roles?: Role[]; // optional, because it's not needed for the create DTO, it's set by the backend automatically
+  roles: Role[];
 }
 
 export interface IUser extends IPartialUser {

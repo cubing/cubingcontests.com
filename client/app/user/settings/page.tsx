@@ -16,7 +16,7 @@ const UserSettingsPage = () => {
 
   const [user, setUser] = useState<IFeUser>();
 
-  const filteredRoles = user?.roles?.filter((r) => r !== Role.User) ?? [];
+  const filteredRoles: Role[] = user?.roles.filter((r: Role) => r !== Role.User) ?? [];
 
   useEffect(() => {
     myFetch.get("/users/details", { authorize: true }).then(
@@ -27,9 +27,7 @@ const UserSettingsPage = () => {
   }, []);
 
   const deleteUser = async () => {
-    const answer = confirm(
-      "Are you CERTAIN you would like to delete your account? This action is permanent!",
-    );
+    const answer = confirm("Are you CERTAIN you would like to delete your account? This action is permanent!");
 
     if (answer) {
       const { errors } = await myFetch.delete("/users", {

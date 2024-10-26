@@ -48,10 +48,7 @@ const Schedule = ({
 
   allActivities.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
-  const days: {
-    date: Date;
-    activities: DayActivity[];
-  }[] = [];
+  const days: { date: Date; activities: DayActivity[] }[] = [];
 
   for (const activity of allActivities) {
     const zonedStartTime = toZonedTime(activity.startTime, timeZone);
@@ -82,7 +79,7 @@ const Schedule = ({
       if (dayActivity.contestEvent) {
         dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
         if (dayActivity.round) {
-          dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round.format).label;
+          dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round?.format)?.label;
         } else dayActivity.isEditable = false;
       } else {
         dayActivity.isEditable = false;
@@ -139,35 +136,21 @@ const Schedule = ({
                                       linkToRankings
                                     />
                                   )}
-                                  {a.round
-                                    ? (
-                                      <span>
-                                        {roundTypes[a.round.roundTypeId].label}
-                                      </span>
-                                    )
-                                    : (
-                                      <>
-                                        <span className="text-danger fw-bold">
-                                          ERROR
-                                        </span>
-                                        <span>({a.activityCode})</span>
-                                      </>
-                                    )}
+                                  {a.round ? <span>{roundTypes[a.round.roundTypeId].label}</span> : (
+                                    <>
+                                      <span className="text-danger fw-bold">ERROR</span>
+                                      <span>({a.activityCode})</span>
+                                    </>
+                                  )}
                                 </span>
                               )
-                              : (
-                                a.name
-                              )}
+                              : a.name}
                           </td>
                           <td>
                             <span className="d-flex gap-3">
                               <ColorSquare
                                 color={a.room.color}
-                                style={{
-                                  height: "1.5rem",
-                                  width: "1.8rem",
-                                  margin: 0,
-                                }}
+                                style={{ height: "1.5rem", width: "1.8rem", margin: 0 }}
                               />
                               {a.room.name}
                             </span>

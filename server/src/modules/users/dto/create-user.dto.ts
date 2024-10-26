@@ -16,7 +16,7 @@ export class UserDto {
   email: string;
 }
 
-export class CreateUserDto extends UserDto implements IUser {
+export class CreateUserDto extends UserDto {
   // SAME AS IN reset-user-password.dto.ts
   @IsString()
   @MaxLength(60, getMaxLengthOpts("password", 60))

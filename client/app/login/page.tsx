@@ -11,9 +11,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 const LoginPage = () => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeErrorMessages, resetMessagesAndLoadingId } = useContext(
-    MainContext,
-  );
+  const { changeErrorMessages, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -23,11 +21,11 @@ const LoginPage = () => {
 
     if (!password) {
       tempErrors.push("Please enter a password");
-      document.getElementById("password").focus();
+      document.getElementById("password")?.focus();
     }
     if (!username) {
       tempErrors.push("Please enter a username or email address");
-      document.getElementById("username").focus();
+      document.getElementById("username")?.focus();
     }
 
     if (tempErrors.length > 0) {
@@ -79,6 +77,7 @@ const LoginPage = () => {
           setValue={changeUsername}
           nextFocusTargetId="password"
           autoFocus
+          className="mb-3"
         />
         <FormTextInput
           id="password"
@@ -87,6 +86,7 @@ const LoginPage = () => {
           setValue={changePassword}
           password
           submitOnEnter
+          className="mb-3"
         />
         <Link href="/reset-password" className="d-block mt-4">
           Forgot password?

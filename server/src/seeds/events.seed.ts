@@ -18,6 +18,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "222",
@@ -26,6 +27,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "444",
@@ -34,6 +36,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "555",
@@ -42,6 +45,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "666",
@@ -50,6 +54,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "777",
@@ -58,6 +63,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Mean,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "333bf",
@@ -66,6 +72,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
     groups: [EventGroup.WCA, EventGroup.HasMemo],
+    participants: 1,
   },
   {
     eventId: "333fm",
@@ -74,6 +81,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Number,
     defaultRoundFormat: RoundFormat.Mean,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "333oh",
@@ -82,6 +90,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "clock",
@@ -90,6 +99,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "minx",
@@ -98,6 +108,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "pyram",
@@ -106,6 +117,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "skewb",
@@ -114,6 +126,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "sq1",
@@ -122,6 +135,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.WCA],
+    participants: 1,
   },
   {
     eventId: "444bf",
@@ -130,6 +144,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
     groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed, EventGroup.HasMemo],
+    participants: 1,
   },
   {
     eventId: "555bf",
@@ -138,6 +153,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf3,
     groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed, EventGroup.HasMemo],
+    participants: 1,
   },
   {
     eventId: "333mbf",
@@ -146,6 +162,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.WCA, EventGroup.SubmissionsAllowed, EventGroup.HasMemo],
+    participants: 1,
   },
   ///////////////////////////////////////////////////////////////////
   // Unofficial
@@ -157,6 +174,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial],
+    participants: 1,
   },
   {
     eventId: "333_team_bld",
@@ -174,6 +192,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial],
+    participants: 1,
   },
   {
     eventId: "magic",
@@ -182,6 +201,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
+    participants: 1,
   },
   {
     eventId: "mmagic",
@@ -190,6 +210,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
+    participants: 1,
   },
   {
     eventId: "333ft",
@@ -198,6 +219,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Unofficial, EventGroup.RemovedWCA],
+    participants: 1,
   },
   ///////////////////////////////////////////////////////////////////
   // Extreme BLD
@@ -209,6 +231,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Multi,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.RemovedWCA, EventGroup.HasMemo],
+    participants: 1,
   },
   {
     eventId: "666bf",
@@ -217,6 +240,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
+    participants: 1,
   },
   {
     eventId: "777bf",
@@ -225,6 +249,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
+    participants: 1,
   },
   {
     eventId: "888bf",
@@ -233,6 +258,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
+    participants: 1,
   },
   {
     eventId: "999bf",
@@ -241,6 +267,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.BestOf1,
     groups: [EventGroup.ExtremeBLD, EventGroup.HasMemo],
+    participants: 1,
   },
   ///////////////////////////////////////////////////////////////////
   // Miscellaneous
@@ -252,6 +279,7 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Miscellaneous],
+    participants: 1,
   },
   {
     eventId: "gigaminx",
@@ -260,5 +288,6 @@ export const eventsSeed: IEvent[] = [
     format: EventFormat.Time,
     defaultRoundFormat: RoundFormat.Average,
     groups: [EventGroup.Miscellaneous],
+    participants: 1,
   },
 ];

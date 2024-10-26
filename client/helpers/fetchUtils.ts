@@ -1,6 +1,6 @@
 import { FetchObj, HttpMethod } from "~/shared_helpers/types.ts";
 
-const API_BASE_URL = process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL;
+const apiBaseUrl = process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL; // server side one won't be available client-side
 
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,
@@ -41,7 +41,7 @@ export const doFetch = async <T = any>(
   }
 
   // Add API base URL if the passed URL is not a full link
-  if (!/^https?:\/\//.test(url)) url = API_BASE_URL + url;
+  if (!/^https?:\/\//.test(url)) url = apiBaseUrl + url;
 
   if (authorize) {
     const jwtToken = localStorage.getItem("jwtToken");

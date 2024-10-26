@@ -7,10 +7,7 @@ import C from "~/shared_helpers/constants.ts";
 import { IEvent, IFeAttempt, ITimeLimit, type NumberInputValue } from "~/shared_helpers/types.ts";
 import { UserInfo } from "./types.ts";
 
-export const getFormattedDate = (
-  startDate: Date | string,
-  endDate?: Date | string,
-): string => {
+export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
   if (!startDate) throw new Error("Start date missing!");
 
   if (typeof startDate === "string") startDate = new Date(startDate);
@@ -164,7 +161,7 @@ export const getUserInfo = (): UserInfo => {
   }
 };
 
-export const getBSClassFromColor = (color: Color): string => {
+export const getBSClassFromColor = (color: Color | undefined): string => {
   // THE MAGENTA OPTION IS SKIPPED FOR NOW
   switch (color) {
     case Color.Red: {

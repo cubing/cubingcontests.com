@@ -16,21 +16,16 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = payload as IContestData;
 
-  const formattedDate = getFormattedDate(
-    contest.startDate,
-    contest.endDate || null,
-  );
+  const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests
   const formattedTime = contest.meetupDetails
     ? formatInTimeZone(
       contest.meetupDetails.startTime,
-      contest.timezone,
+      contest.timezone as string,
       "H:mm",
     )
     : null;
-  const startOfDayInLocalTZ = getDateOnly(
-    toZonedTime(new Date(), contest.timezone ?? "UTC"),
-  );
+  const startOfDayInLocalTZ = getDateOnly(toZonedTime(new Date(), contest.timezone ?? "UTC")) as Date;
   const start = new Date(contest.startDate);
   const isOngoing = contest.state < ContestState.Finished &&
     ((!contest.endDate && start.getTime() === startOfDayInLocalTZ.getTime()) ||
@@ -42,10 +37,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
     const longitude = (contest.longitudeMicrodegrees / 1000000).toFixed(6);
 
     return (
-      <a
-        href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`}
-        target="_blank"
-      >
+      <a href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`} target="_blank">
         {latitude}, {longitude}
       </a>
     );
@@ -103,32 +95,17 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
         <div className="col-md-7 px-0">
           <div className="px-2">
             {contest.state === ContestState.Created
-              ? (
-                <p className="mb-4">
-                  This contest is currently awaiting approval
-                </p>
-              )
+              ? <p className="mb-4">This contest is currently awaiting approval</p>
               : isOngoing
               ? <p className="mb-4">This contest is currently ongoing</p>
               : contest.state === ContestState.Finished
-              ? (
-                <p className="mb-4">
-                  The results for this contest are currently being checked
-                </p>
-              )
+              ? <p className="mb-4">The results for this contest are currently being checked</p>
               : contest.state === ContestState.Removed
-              ? (
-                <p className="mb-4 text-danger">
-                  THIS CONTEST HAS BEEN REMOVED!
-                </p>
-              )
+              ? <p className="mb-4 text-danger">THIS CONTEST HAS BEEN REMOVED!</p>
               : undefined}
 
             {contest.type === ContestType.WcaComp && (
-              <WcaCompAdditionalDetails
-                name={contest.name}
-                competitionId={contest.competitionId}
-              />
+              <WcaCompAdditionalDetails name={contest.name} competitionId={contest.competitionId} />
             )}
 
             {contest.description && (

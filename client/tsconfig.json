@@ -32,6 +32,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "react-datepicker.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"

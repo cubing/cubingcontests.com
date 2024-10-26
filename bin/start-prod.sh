@@ -93,9 +93,9 @@ else
   if [ "$2" != "--cleanup" ]; then
     # Build frontend and API containers
     source .env # needed for the build args
-    docker build --build-arg API_BASE_URL=$CLIENT_ARG_API_BASE_URL \
+    docker build --build-arg API_BASE_URL=$API_BASE_URL_DEV \
                              API_BASE_URL_SERVER_SIDE=$CLIENT_ARG_API_BASE_URL_SERVER_SIDE \
-                             API_BASE_URL2=$CLIENT_ARG_API_BASE_URL2 \
+                             API_BASE_URL2=$API_BASE_URL2_DEV \
                              API_BASE_URL2_SERVER_SIDE=$CLIENT_ARG_API_BASE_URL2_SERVER_SIDE \
       -t cubingcontests-client --file client.Dockerfile . &&
     docker build -t cubingcontests-server --file server.Dockerfile . &&

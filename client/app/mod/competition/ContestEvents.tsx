@@ -32,20 +32,16 @@ const ContestEvents = ({
 }) => {
   const [newEventId, setNewEventId] = useState(events[0].eventId);
 
-  const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [
-    contestEvents,
-  ]);
+  const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [contestEvents]);
   const totalResultsPerContestEvent: number[] = useMemo(
     () => contestEvents.map((ce) => ce.rounds.map((r) => r.results.length).reduce((prev, curr) => curr + prev)),
     [contestEvents],
   );
 
-  const disableNewRounds = contestType === ContestType.Meetup &&
-    totalRounds >= 15;
-  const filteredEvents = events.filter(
-    (ev) =>
-      contestType !== ContestType.WcaComp ||
-      !ev.groups.includes(EventGroup.WCA),
+  const disableNewRounds = contestType === ContestType.Meetup && totalRounds >= 15;
+  const filteredEvents = events.filter((ev) =>
+    contestType !== ContestType.WcaComp ||
+    !ev.groups.includes(EventGroup.WCA)
   );
   const remainingEvents = filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId));
   // Fix new event ID, if it's not in the list of remaining events
@@ -61,7 +57,7 @@ const ContestEvents = ({
       roundId: `${event.eventId}-r${roundNumber}`,
       competitionId: "TEMPORARY", // this gets replaced for all rounds on submit
       roundTypeId: RoundType.Final,
-      format: events.find((el) => el.eventId === event.eventId).defaultRoundFormat,
+      format: (events.find((el) => el.eventId === event.eventId) as IEvent).defaultRoundFormat,
       timeLimit: getTimeLimit(event.format),
       results: [],
     };
@@ -71,8 +67,8 @@ const ContestEvents = ({
     const event = events.find((el) => el.eventId === newEventId);
 
     setContestEvents(
-      [...contestEvents, { event, rounds: [getNewRound(event, 1)] }].sort(
-        (a: IContestEvent, b: IContestEvent) => a.event.rank - b.event.rank,
+      [...contestEvents, { event, rounds: [getNewRound(event, 1)] }].sort((a: IContestEvent, b: IContestEvent) =>
+        a.event.rank - b.event.rank
       ),
     );
 
@@ -83,9 +79,7 @@ const ContestEvents = ({
   };
 
   const deleteContestEvent = (eventId: string) => {
-    setContestEvents(
-      contestEvents.filter((ce) => ce.event.eventId !== eventId),
-    );
+    setContestEvents(contestEvents.filter((ce) => ce.event.eventId !== eventId));
   };
 
   const addRound = (eventId: string) => {
@@ -382,14 +376,9 @@ const ContestEvents = ({
                 <div style={{ maxWidth: "8rem" }}>
                   <AttemptInput
                     attNumber={0}
-                    attempt={{
-                      result: round.cutoff?.attemptResult === undefined ? 0 : round.cutoff.attemptResult,
-                    }}
+                    attempt={{ result: round.cutoff?.attemptResult === undefined ? 0 : round.cutoff.attemptResult }}
                     setAttempt={(val: IAttempt) =>
-                      changeRoundCutoff(eventIndex, roundIndex, {
-                        ...round.cutoff,
-                        attemptResult: val.result,
-                      })}
+                      changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, attemptResult: val.result })}
                     event={ce.event}
                     maxTime={C.maxTimeLimit}
                     disabled={!round.cutoff || round.results.length > 0}
@@ -404,10 +393,7 @@ const ContestEvents = ({
                     options={cutoffAttemptsOptions}
                     selected={round.cutoff?.numberOfAttempts || 2}
                     setSelected={(val: number) =>
-                      changeRoundCutoff(eventIndex, roundIndex, {
-                        ...round.cutoff,
-                        numberOfAttempts: val,
-                      })}
+                      changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff, numberOfAttempts: val })}
                     disabled={!round.cutoff || round.results.length > 0}
                     className="mb-0"
                   />
@@ -420,12 +406,7 @@ const ContestEvents = ({
                     title="Proceed to next round:"
                     options={roundProceedOptions}
                     selected={round.proceed.type}
-                    setSelected={(val: any) =>
-                      changeRoundProceed(
-                        eventIndex,
-                        roundIndex,
-                        val as RoundProceed,
-                      )}
+                    setSelected={(val: any) => changeRoundProceed(eventIndex, roundIndex, val as RoundProceed)}
                     oneLine
                     small
                   />
@@ -433,13 +414,7 @@ const ContestEvents = ({
                     <FormNumberInput
                       id="round_proceed_value"
                       value={round.proceed.value}
-                      setValue={(val) =>
-                        changeRoundProceed(
-                          eventIndex,
-                          roundIndex,
-                          round.proceed.type,
-                          val,
-                        )}
+                      setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
                       integer
                       min={round.proceed.type === RoundProceed.Percentage ? 1 : C.minProceedNumber}
                       max={round.proceed.type === RoundProceed.Percentage ? C.maxProceedPercentage : Infinity}

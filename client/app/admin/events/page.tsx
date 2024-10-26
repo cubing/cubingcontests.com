@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeEvent, ListPageMode } from "~/shared_helpers/types.ts";
+import { IFeEvent, ListPageMode, type NumberInputValue } from "~/shared_helpers/types.ts";
 import { EventFormat, EventGroup, RoundFormat } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
@@ -34,10 +34,8 @@ const CreateEditEventPage = () => {
   const [newEventId, setNewEventId] = useState("");
   const [rank, setRank] = useState<number | null | undefined>();
   const [format, setFormat] = useState(EventFormat.Time);
-  const [defaultRoundFormat, setDefaultRoundFormat] = useState(
-    RoundFormat.Average,
-  );
-  const [participants, setParticipants] = useState(1);
+  const [defaultRoundFormat, setDefaultRoundFormat] = useState(RoundFormat.Average);
+  const [participants, setParticipants] = useState<NumberInputValue>(1);
   const [category, setCategory] = useState(EventGroup.Miscellaneous);
   const [submissionsAllowed, setSubmissionsAllowed] = useState(false);
   const [removedWCA, setRemovedWCA] = useState(false);
@@ -47,11 +45,9 @@ const CreateEditEventPage = () => {
   const [rule, setRule] = useState("");
 
   useEffect(() => {
-    myFetch.get("/events/mod?withRules=true", { authorize: true }).then(
-      ({ payload, errors }) => {
-        if (!errors) setEvents(payload);
-      },
-    );
+    myFetch.get("/events/mod?withRules=true", { authorize: true }).then(({ payload, errors }) => {
+      if (!errors) setEvents(payload);
+    });
   }, []);
 
   useEffect(() => {
@@ -70,7 +66,7 @@ const CreateEditEventPage = () => {
       format,
       defaultRoundFormat,
       groups: [category],
-      participants: participants > 1 ? participants : undefined,
+      participants: participants as number,
       description: description || undefined,
       ruleText: rule || undefined,
     };
@@ -81,12 +77,8 @@ const CreateEditEventPage = () => {
     if (hidden) newEvent.groups.push(EventGroup.Hidden);
 
     const { payload, errors } = mode === "add"
-      ? await myFetch.post("/events", newEvent, {
-        loadingId: "form_submit_button",
-      })
-      : await myFetch.patch(`/events/${eventId}`, newEvent, {
-        loadingId: "form_submit_button",
-      });
+      ? await myFetch.post("/events", newEvent, { loadingId: "form_submit_button" })
+      : await myFetch.patch(`/events/${eventId}`, newEvent, { loadingId: "form_submit_button" });
 
     if (!errors) {
       setEvents(payload);
@@ -106,14 +98,14 @@ const CreateEditEventPage = () => {
     setRank(event.rank);
     setFormat(event.format);
     setDefaultRoundFormat(event.defaultRoundFormat);
-    setParticipants(event.participants || 1);
+    setParticipants(event.participants);
     setCategory(event.groups.find((g: EventGroup) => eventCategories.some((ec) => ec.group === g)) as EventGroup);
     setSubmissionsAllowed(event.groups.includes(EventGroup.SubmissionsAllowed));
     setRemovedWCA(event.groups.includes(EventGroup.RemovedWCA));
     setHasMemo(event.groups.includes(EventGroup.HasMemo));
     setHidden(event.groups.includes(EventGroup.Hidden));
-    setDescription(event.description);
-    setRule(event.ruleText);
+    setDescription(event.description ?? "");
+    setRule(event.ruleText ?? "");
   };
 
   return (
@@ -122,14 +114,7 @@ const CreateEditEventPage = () => {
       <ToastMessages />
 
       {mode === "view"
-        ? (
-          <Button
-            onClick={() => setMode("add")}
-            className="btn-success btn-sm ms-3"
-          >
-            Add event
-          </Button>
-        )
+        ? <Button onClick={() => setMode("add")} className="btn-success btn-sm ms-3">Add event</Button>
         : (
           <Form
             buttonText="Submit"
@@ -145,6 +130,7 @@ const CreateEditEventPage = () => {
               setValue={setName}
               nextFocusTargetId="event_id"
               disabled={loadingId !== ""}
+              className="mb-3"
             />
             <div className="row">
               <div className="col">
@@ -154,8 +140,8 @@ const CreateEditEventPage = () => {
                   value={newEventId}
                   setValue={setNewEventId}
                   nextFocusTargetId="rank"
-                  disabled={(mode === "edit" && !eventIdUnlocked) ||
-                    loadingId !== ""}
+                  disabled={(mode === "edit" && !eventIdUnlocked) || loadingId !== ""}
+                  className="mb-3"
                 />
               </div>
               <div className="col">
@@ -173,11 +159,7 @@ const CreateEditEventPage = () => {
               </div>
             </div>
             {mode === "edit" && (
-              <FormCheckbox
-                title="Unlock event ID"
-                selected={eventIdUnlocked}
-                setSelected={setEventIdUnlocked}
-              />
+              <FormCheckbox title="Unlock event ID" selected={eventIdUnlocked} setSelected={setEventIdUnlocked} />
             )}
             <div className="row">
               <div className="col">
@@ -236,12 +218,7 @@ const CreateEditEventPage = () => {
               setSelected={setHasMemo}
               disabled={loadingId !== ""}
             />
-            <FormCheckbox
-              title="Hidden"
-              selected={hidden}
-              setSelected={setHidden}
-              disabled={loadingId !== ""}
-            />
+            <FormCheckbox title="Hidden" selected={hidden} setSelected={setHidden} disabled={loadingId !== ""} />
             <FormTextArea
               title="Description (optional)"
               value={description}
@@ -282,29 +259,15 @@ const CreateEditEventPage = () => {
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>
-                  <EventTitle
-                    fontSize="6"
-                    event={event}
-                    showIcon
-                    linkToRankings
-                    noMargin
-                  />
+                  <EventTitle fontSize="6" event={event} showIcon linkToRankings noMargin />
                 </td>
                 <td>{event.eventId}</td>
                 <td>{event.rank}</td>
-                <td>
-                  {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}
-                </td>
-                <td>
-                  {eventCategories.find((ec) => event.groups.includes(ec.group))?.title}
-                </td>
+                <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}</td>
+                <td>{eventCategories.find((ec) => event.groups.includes(ec.group))?.title}</td>
                 {/* <td>{event.groups}</td> */}
                 <td>
-                  <Button
-                    onClick={() => onEditEvent(event)}
-                    className="btn-xs"
-                    ariaLabel="Edit"
-                  >
+                  <Button onClick={() => onEditEvent(event)} className="btn-xs" ariaLabel="Edit">
                     <FontAwesomeIcon icon={faPencil} />
                   </Button>
                 </td>

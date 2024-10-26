@@ -85,8 +85,8 @@ class Competition implements IContest {
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Person" }], required: true })
   organizers: PersonDocument[];
 
-  @Prop({required: true})
-  contact: string;
+  @Prop()
+  contact?: string;
 
   @Prop({required: true})
   description: string;

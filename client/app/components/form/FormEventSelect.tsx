@@ -19,11 +19,7 @@ const FormEventSelect = ({
 }) => {
   return (
     <div className={"fs-5" + (noMargin ? "" : " mb-3")}>
-      {title && (
-        <label htmlFor="event_select" className="form-label">
-          {title}
-        </label>
-      )}
+      {title && <label htmlFor="event_select" className="form-label">{title}</label>}
       <select
         id="event_select"
         className="form-select"
@@ -31,11 +27,7 @@ const FormEventSelect = ({
         onChange={(e) => setEventId(e.target.value)}
         disabled={disabled || !events.some((e) => e.eventId === eventId)}
       >
-        {events.map((el: IEvent) => (
-          <option key={el.eventId} value={el.eventId}>
-            {el.name}
-          </option>
-        ))}
+        {events.map((el: IEvent) => <option key={el.eventId} value={el.eventId}>{el.name}</option>)}
       </select>
     </div>
   );

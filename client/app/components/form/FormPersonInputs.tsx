@@ -224,20 +224,20 @@ const FormPersonInputs = ({
   return (
     <div className="row">
       {personNames.map((personName: string, inputIndex: number) => (
-        <div
-          key={inputIndex}
-          className={personNames.length > 1 && !noGrid ? "col-md-6" : ""}
-        >
+        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? "col-md-6" : ""}>
           <FormTextInput
             id={`${title}_${inputIndex + 1}`}
             title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
             tooltip={inputIndex === 0 ? personInputTooltip : undefined}
             value={personName}
-            setValue={(val: string) => changePersonName(inputIndex, val)}
-            onKeyDown={(e: any) => onPersonKeyDown(inputIndex, e)}
+            setValue={(val: string) =>
+              changePersonName(inputIndex, val)}
+            onKeyDown={(e: any) =>
+              onPersonKeyDown(inputIndex, e)}
             onFocus={() => changeFocusedInput(inputIndex, personName)}
             onBlur={() => changeFocusedInput(null)}
             disabled={disabled}
+            className="mb-3"
           />
           {inputIndex === focusedInput && personName && (
             <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
@@ -254,8 +254,7 @@ const FormPersonInputs = ({
                   matchedPersons.map((person: IPerson, matchIndex: number) => (
                     <li
                       key={matchIndex}
-                      className={"list-group-item" +
-                        (matchIndex === personSelection ? " active" : "")}
+                      className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}
                       style={{ cursor: "pointer" }}
                       aria-current={matchIndex === personSelection}
                       onMouseEnter={() => setPersonSelection(matchIndex)}

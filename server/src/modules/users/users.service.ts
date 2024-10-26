@@ -344,8 +344,8 @@ export class UsersService {
     return {
       username: user.username,
       email: user.email,
-      person: user.personId ? await this.personsService.getPersonByPersonId(user.personId) : undefined,
       roles: user.roles,
+      person: user.personId ? await this.personsService.getPersonByPersonId(user.personId) : undefined,
     };
   }
 }

@@ -51,12 +51,8 @@ const ScheduleEditor = ({
     fromZonedTime(addHours(startDate, 13), venueTimeZone),
   );
 
-  const roomOptions = useMemo(
-    () =>
-      rooms.map((room) => ({
-        label: room.name,
-        value: room.id,
-      })),
+  const roomOptions = useMemo<MultiChoiceOption[]>(
+    () => rooms.map((room) => ({ label: room.name, value: room.id })),
     [rooms.length],
   );
   const activityOptions = useMemo(() => {
@@ -83,7 +79,7 @@ const ScheduleEditor = ({
     return output;
   }, [contestEvents, rooms, activityUnderEdit]);
 
-  const selectedRoomExists = roomOptions.some((r) => r.value === selectedRoom);
+  const selectedRoomExists = roomOptions.some((r: MultiChoiceOption) => r.value === selectedRoom);
   if (!selectedRoomExists && roomOptions.length > 0) {
     setSelectedRoom(roomOptions[0].value);
   }
@@ -95,8 +91,7 @@ const ScheduleEditor = ({
     setRooms([
       ...rooms,
       {
-        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id +
-          1,
+        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
         name: roomName.trim(),
         color: roomColor,
         activities: [],
@@ -109,8 +104,7 @@ const ScheduleEditor = ({
 
     if (newTime) {
       // Change the activity end time too
-      const activityLength = activityEndTime.getTime() -
-        activityStartTime.getTime();
+      const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
       setActivityEndTime(new Date(newTime.getTime() + activityLength));
     }
   };
@@ -131,13 +125,7 @@ const ScheduleEditor = ({
           ? room.activities.map((a) => (a.id === activityUnderEdit.id ? { id: a.id, ...getFieldsFromInputs() } : a))
           : [
             ...room.activities,
-            {
-              id: Math.max(
-                ...room.activities.map((a) => a.id),
-                0,
-              ) + 1,
-              ...getFieldsFromInputs(),
-            },
+            { id: Math.max(...room.activities.map((a) => a.id), 0) + 1, ...getFieldsFromInputs() },
           ],
       }
     );
@@ -210,7 +198,9 @@ const ScheduleEditor = ({
           Create
         </Button>
         <hr />
+
         <h3 className="mb-3">Schedule</h3>
+
         <div className="row">
           <div className="col">
             <FormSelect
@@ -238,6 +228,7 @@ const ScheduleEditor = ({
             value={customActivity}
             setValue={setCustomActivity}
             disabled={disabled}
+            className="mb-3"
           />
         )}
         <div className="mb-3 row align-items-end">

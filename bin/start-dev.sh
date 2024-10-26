@@ -18,7 +18,7 @@ fi
 # Install dependencies
 deno install
 
-# Copy CLIENT_ARG_ environment variables from .env to client/.env.development
+# Copy required environment variables from .env to client/.env.development
 deno run --allow-read --allow-write ./bin/copy-env-vars.ts
 
 # This stuff is temporary. It can be removed when the backend migration is done.

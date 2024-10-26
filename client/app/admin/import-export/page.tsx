@@ -386,6 +386,7 @@ const ImportExportPage = () => {
   //           value={competitionIdText}
   //           setValue={setCompetitionIdText}
   //           disabled={!!contest}
+  //           className="mb-3"
   //         />
   //         {contest ? (
   //           <div className="d-flex gap-3">

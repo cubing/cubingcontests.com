@@ -15,7 +15,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 
 const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const myFetch = useMyFetch();
-  const parentRef = useRef();
+  const parentRef = useRef<Element>(null);
 
   const [results, setResults] = useState<IFeResult[]>([]);
 
@@ -45,11 +45,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
         <b>{results.filter((r: IFeResult) => r.unapproved).length}</b>
       </p>
 
-      <div
-        ref={parentRef}
-        className="mt-3 table-responsive overflow-y-auto"
-        style={{ height: "700px" }}
-      >
+      <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "700px" }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
             <thead>

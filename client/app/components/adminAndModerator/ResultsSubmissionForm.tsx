@@ -328,6 +328,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             setValue={changeVideoLink}
             nextFocusTargetId="discussion_link"
             disabled={videoUnavailable}
+            className="mb-3"
           />
           {userInfo?.isAdmin && (
             // Same text as in RankingLinks
@@ -337,11 +338,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
               setSelected={setVideoUnavailable}
             />
           )}
-          {resultId && videoLink && (
-            <a href={videoLink} target="_blank" className="d-block mb-3">
-              Video link
-            </a>
-          )}
+          {videoLink && <a href={videoLink} target="_blank" className="d-block mb-3">Video link</a>}
           <FormTextInput
             id="discussion_link"
             title="Link to discussion (optional)"
@@ -349,12 +346,9 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
             value={discussionLink}
             setValue={setDiscussionLink}
             nextFocusTargetId="submit_button"
+            className="mb-3"
           />
-          {resultId && discussionLink && (
-            <a href={discussionLink} target="_blank" className="d-block">
-              Discussion link
-            </a>
-          )}
+          {discussionLink && <a href={discussionLink} target="_blank" className="d-block">Discussion link</a>}
           <Button
             id="submit_button"
             onClick={() => submitResult()}

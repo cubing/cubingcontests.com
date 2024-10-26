@@ -983,17 +983,14 @@ export class ResultsService {
   async validateAndCleanUpResult(
     result: IResult,
     event: IEvent,
-    {
-      round,
-      mode,
-    }: {
+    { round, mode }: {
       round?: IRound; // if round is defined, that means it's a contest result, not a submitted one
       mode: "create" | "submit" | "edit";
     },
   ) {
-    if (result.personIds.length !== (event.participants ?? 1)) {
+    if (result.personIds.length !== event.participants) {
       throw new BadRequestException(
-        `This event must have ${event.participants ?? 1} participant${event.participants ? "s" : ""}`,
+        `This event must have ${event.participants} participant${event.participants > 1 ? "s" : ""}`,
       );
     }
     if (result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2))) {

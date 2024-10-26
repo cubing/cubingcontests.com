@@ -82,10 +82,7 @@ const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
     {
       id: "TEMPORARY",
       specUrl: "",
-      data: {
-        name: contestEvent.event.name,
-        participants: contestEvent.event.participants || 1,
-      },
+      data: { name: contestEvent.event.name, participants: contestEvent.event.participants },
     },
   ],
 });

@@ -1,7 +1,17 @@
 import { remove as removeAccents } from "remove-accents";
 import C from "./constants.ts";
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
-import { IAttempt, IContestEvent, ICutoff, IEvent, IPersonDto, IRecordPair, IResult, IRound } from "./types.ts";
+import {
+  IAttempt,
+  IContestEvent,
+  ICutoff,
+  IEvent,
+  type IFeAttempt,
+  IPersonDto,
+  IRecordPair,
+  IResult,
+  IRound,
+} from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
@@ -81,7 +91,7 @@ export const setResultRecords = (
   return result;
 };
 
-export const getDateOnly = (date: Date): Date | null => {
+export const getDateOnly = (date: Date | null): Date | null => {
   if (!date) {
     console.error(`The date passed to getDateOnly is invalid: ${date}`);
     return null;
@@ -194,13 +204,11 @@ export const getFormattedTime = (
 
 // Returns the best and average times
 export const getBestAndAverage = (
-  attempts: IAttempt[],
+  attempts: IAttempt[] | IFeAttempt[],
   event: IEvent,
   { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
 ): { best: number; average: number } => {
-  if (!round && !roundFormat) {
-    throw new Error("round and roundFormat cannot both be undefined");
-  }
+  if (!round && !roundFormat) throw new Error("round and roundFormat cannot both be undefined");
 
   let best: number, average: number;
   let sum = 0;
@@ -213,11 +221,13 @@ export const getBestAndAverage = (
 
   // This actually follows the rule that the lower the attempt value is - the better
   const convertedAttempts: number[] = attempts.map(({ result }) => {
-    if (result > 0) {
-      sum += result;
-      return result;
+    if (result) {
+      if (result > 0) {
+        sum += result;
+        return result;
+      }
+      if (result !== 0) dnfDnsCount++;
     }
-    if (result !== 0) dnfDnsCount++;
     return Infinity;
   });
 
@@ -265,15 +275,9 @@ export const getIsCompType = (contestType: ContestType): boolean =>
   [ContestType.WcaComp, ContestType.Competition].includes(contestType);
 
 // If the round has no cutoff (undefined), return true
-export const getMakesCutoff = (
-  attempts: IAttempt[],
-  cutoff: ICutoff | undefined,
-): boolean =>
+export const getMakesCutoff = (attempts: IAttempt[] | IFeAttempt[], cutoff: ICutoff | undefined): boolean =>
   !cutoff ||
-  attempts.some((a, i) =>
-    i < cutoff.numberOfAttempts && a.result > 0 &&
-    a.result < cutoff.attemptResult
-  );
+  attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result && a.result > 0 && a.result < cutoff.attemptResult);
 
 export const getRoleLabel = (role: Role, capitalize = false): string => {
   switch (role) {

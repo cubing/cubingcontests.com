@@ -7,6 +7,7 @@ import { getBSClassFromColor, getFormattedDate } from "~/helpers/utilityFunction
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
+import type { MultiChoiceOption } from "~/helpers/types.ts";
 
 const ContestsTable = ({ contests }: { contests: IContest[] }) => {
   const getShapeIcon = (type: ContestType) =>
@@ -29,7 +30,7 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
                     icon={getShapeIcon(contest.type)}
                     className={`text-${
                       getBSClassFromColor(
-                        contestTypeOptions.find((el) => el.value === contest.type).color,
+                        (contestTypeOptions.find((el) => el.value === contest.type) as MultiChoiceOption).color,
                       )
                     }`}
                     style={{ minWidth: "0.5rem", width: "0.5rem" }}
@@ -83,10 +84,7 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
               <th scope="col">Place</th>
               <th scope="col">Type</th>
               <th scope="col">
-                <FontAwesomeIcon
-                  icon={faUserGroup}
-                  aria-label="Number of participants"
-                />
+                <FontAwesomeIcon icon={faUserGroup} aria-label="Number of participants" />
               </th>
             </tr>
           </thead>

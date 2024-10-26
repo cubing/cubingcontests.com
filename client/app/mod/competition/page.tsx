@@ -13,7 +13,7 @@ const CreateEditContestPage = () => {
   const { changeErrorMessages } = useContext(MainContext);
 
   const [events, setEvents] = useState<IEvent[]>();
-  const [contestData, setContestData] = useState<IContestData>();
+  const [contestData, setContestData] = useState<IContestData | undefined>();
 
   const searchParams = useSearchParams();
 
@@ -54,7 +54,7 @@ const CreateEditContestPage = () => {
           {mode === "edit" ? "Edit Contest" : "Create Contest"}
         </h2>
 
-        <ContestForm events={events} contestData={contestData} mode={mode} />
+        <ContestForm events={events} mode={mode} contest={contestData?.contest} creator={contestData?.creator} />
       </div>
     );
   }

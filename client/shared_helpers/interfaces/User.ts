@@ -4,6 +4,6 @@ import { IPerson } from "../types.ts";
 export interface IFeUser {
   username: string;
   email: string;
-  roles?: Role[];
+  roles: Role[];
   person?: IPerson;
 }

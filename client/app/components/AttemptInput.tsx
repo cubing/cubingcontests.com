@@ -51,7 +51,7 @@ const AttemptInput = ({
   focusNext = () => {},
   timeLimit,
   memoInputForBld = false,
-  // resetTrigger,
+  resetTrigger,
   allowUnknownTime = false,
   maxTime,
   disabled = false,
@@ -63,7 +63,7 @@ const AttemptInput = ({
   focusNext?: () => void;
   timeLimit?: ITimeLimit;
   memoInputForBld?: boolean;
-  // resetTrigger?: boolean;
+  resetTrigger?: boolean;
   allowUnknownTime?: boolean;
   maxTime?: number; // maximum allowed time in centiseconds (can be used for time limit/cutoff inputs)
   disabled?: boolean;
@@ -117,14 +117,14 @@ const AttemptInput = ({
     }
   }, [attempt]);
 
-  // useEffect(() => {
-  //   if (resetTrigger !== undefined) {
-  //     setSolved(undefined);
-  //     setAttempted(undefined);
-  //     setAttemptText("");
-  //     setMemoText(undefined);
-  //   }
-  // }, [resetTrigger]);
+  useEffect(() => {
+    if (resetTrigger !== undefined) {
+      setSolved(undefined);
+      setAttempted(undefined);
+      setAttemptText("");
+      setMemoText(undefined);
+    }
+  }, [resetTrigger]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -348,8 +348,8 @@ const AttemptInput = ({
           onFocus={resetCursorPosition}
           onBlur={() => onTimeFocusOut()}
           invalid={isInvalidAttempt}
-          noMargin={attNumber === 0}
           disabled={disabled}
+          className={attNumber === 0 ? "" : "mb-3"}
         />
       </div>
       {includeMemo && (
@@ -366,6 +366,7 @@ const AttemptInput = ({
             onBlur={() => onTimeFocusOut(true)}
             disabled={["DNF", "DNS", "Unknown"].includes(formattedAttemptText)}
             invalid={isInvalidAttempt}
+            className="mb-3"
           />
         </div>
       )}

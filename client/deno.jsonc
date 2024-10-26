@@ -6,8 +6,8 @@
   },
   "tasks": {
     "dev": "next dev",
-    // "build": "deno check . && next build",
-    "build": "next build",
+    "build": "deno run --unstable-unsafe-proto -A npm:next build",
+    // "build": "next build",
     "start": "next start",
     "test": "jest"
   }

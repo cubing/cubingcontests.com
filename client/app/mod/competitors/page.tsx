@@ -27,15 +27,13 @@ const CreatePersonPage = () => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
   const { changeSuccessMessage, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
-  const parentRef = useRef();
+  const parentRef = useRef<Element>(null);
   const [mode, setMode] = useState<ListPageMode | "add-once">(
     searchParams.get("redirect") ? "add-once" : "view",
   );
   const [persons, setPersons] = useState<IFePerson[]>([]);
   const [personUnderEdit, setPersonUnderEdit] = useState<IFePerson>();
-  const [approvedFilter, setApprovedFilter] = useState<
-    "approved" | "unapproved" | ""
-  >("");
+  const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
   const [search, setSearch] = useState("");
 
   const filteredPersons = useMemo(() => {
@@ -66,11 +64,9 @@ const CreatePersonPage = () => {
   });
 
   useEffect(() => {
-    myFetch.get("/persons/mod", { authorize: true }).then(
-      ({ payload, errors }) => {
-        if (!errors) setPersons(payload);
-      },
-    );
+    myFetch.get("/persons/mod", { authorize: true }).then(({ payload, errors }) => {
+      if (!errors) setPersons(payload);
+    });
   }, []);
 
   const cancel = () => {
@@ -98,18 +94,14 @@ const CreatePersonPage = () => {
 
     if (!errors) {
       setPersons(persons.filter((p: IFePerson) => (p as any)._id !== (person as any)._id));
-      changeSuccessMessage(
-        `Successfully deleted ${person.name} (CC ID: ${person.personId})`,
-      );
+      changeSuccessMessage(`Successfully deleted ${person.name} (CC ID: ${person.personId})`);
     }
   };
 
   const approveCompetitor = async (person: IFePerson) => {
     const { payload, errors } = await myFetch.patch(
       `/persons/${(person as any)._id}/approve`,
-      {
-        loadingId: `approve_person_${person.personId}_button`,
-      },
+      { loadingId: `approve_person_${person.personId}_button` },
     );
 
     if (!errors) {
@@ -138,11 +130,7 @@ const CreatePersonPage = () => {
 
       {mode === "view"
         ? (
-          <Button
-            onClick={onAddCompetitor}
-            className="btn-success btn-sm ms-3"
-            style={{ width: "fit-content" }}
-          >
+          <Button onClick={onAddCompetitor} className="btn-success btn-sm ms-3" style={{ width: "fit-content" }}>
             Add competitor
           </Button>
         )
@@ -178,11 +166,7 @@ const CreatePersonPage = () => {
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div
-            ref={parentRef}
-            className="mt-3 table-responsive overflow-y-auto"
-            style={{ height: "600px" }}
-          >
+          <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: "600px" }}>
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               <table className="table table-hover text-nowrap">
                 <thead>
@@ -222,11 +206,7 @@ const CreatePersonPage = () => {
                           </td>
                           {userInfo?.isAdmin && (
                             <td>
-                              <CreatorDetails
-                                creator={person.creator}
-                                small
-                                loggedInUser={userInfo}
-                              />
+                              <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
                             </td>
                           )}
                           <td>

@@ -348,7 +348,7 @@ export class PersonsService {
     // Remove system fields
     Object.keys(excl).forEach((key) => delete (fePerson as any)[key]);
 
-    if (user && user !== "EXT_DEVICE") fePerson.creator = { username: user.username, email: "" };
+    if (user && user !== "EXT_DEVICE") fePerson.creator = { username: user.username, email: "", roles: [] };
 
     return fePerson;
   }

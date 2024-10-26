@@ -30,7 +30,7 @@ export interface IContest {
   endDate?: Date; // competition-only
   timezone?: string; // meetup-only; not needed on creation
   organizers: IPerson[]; // stored as references
-  contact: string;
+  contact?: string;
   description: string;
   competitorLimit?: number; // required for competitions
   events: IContestEvent[];

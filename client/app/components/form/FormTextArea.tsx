@@ -15,19 +15,14 @@ const FormTextArea = ({
   rows?: number;
   disabled?: boolean;
 }) => {
-  if (!id && !title) {
-    throw new Error("Neither title nor id are set in FormTextArea");
-  }
+  if (!id && !title) throw new Error("Neither title nor id are set in FormTextArea");
 
-  const inputId = id || title;
+  const inputId = (id || title) as string;
 
   return (
     <div className="mb-3">
-      {title && (
-        <label htmlFor={inputId} className="form-label">
-          {title}
-        </label>
-      )}
+      {title && <label htmlFor={inputId} className="form-label">{title}</label>}
+
       <textarea
         id={inputId}
         rows={rows}

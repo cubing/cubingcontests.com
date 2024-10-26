@@ -17,7 +17,7 @@ class User implements IUser {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ type: [{ type: String, enum: Role }] })
+  @Prop({ required: true, type: [{ type: String, enum: Role }] })
   roles: Role[];
 
   @Prop()
