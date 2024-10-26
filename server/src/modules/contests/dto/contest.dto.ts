@@ -111,13 +111,11 @@ export class ContestDto implements IContestDto {
   @Type(() => PersonDto)
   organizers: IPerson[];
 
-  @IsOptional()
   @IsEmail()
-  contact?: string;
+  contact: string;
 
-  @IsOptional()
   @IsString()
-  description?: string;
+  description: string;
 
   @ValidateIf((obj) => getIsCompType(obj.type) || obj.competitorLimit)
   @IsInt({ message: "Please enter a valid competitor limit" })

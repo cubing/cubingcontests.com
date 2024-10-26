@@ -1,10 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import Navbar from "~/app/components/UI/Navbar.tsx";
 import Footer from "~/app/components/UI/Footer.tsx";
 import { MainContext, Theme } from "~/helpers/contexts.ts";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      retry: false,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
@@ -37,9 +50,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   const changeErrorMessages = (newErrorMessages: string[]) => {
     // Don't change error messages from [] to [], cause that would trigger an unnecessary rerender
-    if (errorMessages.length > 0 || newErrorMessages.length > 0) {
-      setErrorMessages(newErrorMessages);
-    }
+    if (errorMessages.length > 0 || newErrorMessages.length > 0) setErrorMessages(newErrorMessages);
     setSuccessMessage("");
     setLoadingId("");
   };
@@ -73,26 +84,29 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       className={`cc-${theme}-layout min-vh-100 d-flex flex-column`}
       style={{ overflowX: "hidden" }}
     >
-      <MainContext.Provider
-        value={{
-          theme,
-          setTheme: changeTheme,
-          errorMessages,
-          changeErrorMessages,
-          successMessage,
-          changeSuccessMessage,
-          loadingId,
-          changeLoadingId,
-          resetMessagesAndLoadingId,
-          resetMessages,
-        }}
-      >
-        <Navbar />
-        <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">
-          {children}
-        </main>
-        <Footer />
-      </MainContext.Provider>
+      <QueryClientProvider client={queryClient}>
+        <MainContext.Provider
+          value={{
+            queryClient,
+            theme,
+            setTheme: changeTheme,
+            errorMessages,
+            changeErrorMessages,
+            successMessage,
+            changeSuccessMessage,
+            loadingId,
+            changeLoadingId,
+            resetMessagesAndLoadingId,
+            resetMessages,
+          }}
+        >
+          <Navbar />
+          <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">
+            {children}
+          </main>
+          <Footer />
+        </MainContext.Provider>
+      </QueryClientProvider>
     </body>
   );
 };

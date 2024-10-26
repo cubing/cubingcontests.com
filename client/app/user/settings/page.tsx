@@ -34,7 +34,7 @@ const UserSettingsPage = () => {
     if (answer) {
       const { errors } = await myFetch.delete("/users", {
         loadingId: "delete_account_button",
-        keepLoadingAfterSuccess: true,
+        keepLoadingOnSuccess: true,
       });
 
       if (!errors) logOutUser();

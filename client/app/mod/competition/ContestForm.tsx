@@ -1,17 +1,19 @@
 "use client";
 
 import { useCallback, useContext, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { addHours } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { debounce } from "lodash";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
 import {
   ICompetitionDetails,
-  IContestData,
+  type IContest,
   IContestDto,
   IContestEvent,
   IEvent,
   IFePerson,
+  type IFeUser,
   IMeetupDetails,
   IRoom,
   type IRound,
@@ -44,16 +46,19 @@ const userInfo = getUserInfo();
 
 const ContestForm = ({
   events,
-  contestData,
   mode,
+  contest,
+  creator,
 }: {
   events: IEvent[];
-  contestData?: IContestData;
   mode: "new" | "edit" | "copy";
+  contest?: IContest;
+  creator?: IFeUser;
 }) => {
   const myFetch = useMyFetch();
   const fetchWcaCompDetails = useFetchWcaCompDetails();
   const {
+    queryClient,
     changeErrorMessages,
     changeSuccessMessage,
     loadingId,
@@ -62,140 +67,78 @@ const ContestForm = ({
   } = useContext(MainContext);
 
   const [activeTab, setActiveTab] = useState("details");
-  const [detailsImported, setDetailsImported] = useState(
-    mode === "edit" && contestData?.contest.type === ContestType.WcaComp,
-  );
-  const [queueEnabled, setQueueEnabled] = useState(false);
+  const [detailsImported, setDetailsImported] = useState(mode === "edit" && contest?.type === ContestType.WcaComp);
+  const [queueEnabled, setQueueEnabled] = useState(contest?.queuePosition !== undefined);
 
-  const [competitionId, setCompetitionId] = useState("");
-  const [name, setName] = useState("");
-  const [shortName, setShortName] = useState("");
-  const [type, setType] = useState(ContestType.Meetup);
-  const [city, setCity] = useState("");
-  const [countryIso2, setCountryIso2] = useState("NOT_SELECTED");
-  const [venue, setVenue] = useState("");
-  const [address, setAddress] = useState("");
-  const [latitude, setLatitude] = useState(0); // vertical coordinate (Y); ranges from -90 to 90
-  const [longitude, setLongitude] = useState(0); // horizontal coordinate (X); ranges from -180 to 180
-  const [startDate, setStartDate] = useState(getDateOnly(new Date()));
-  const [startTime, setStartTime] = useState(addHours(getDateOnly(new Date()) as Date, 12)); // meetup-only; set 12:00 as initial start time
-  const [endDate, setEndDate] = useState(new Date());
-  const [organizerNames, setOrganizerNames] = useState<string[]>([""]);
-  const [organizers, setOrganizers] = useState<InputPerson[]>([null]);
-  const [contact, setContact] = useState("");
-  const [description, setDescription] = useState("");
-  const [competitorLimit, setCompetitorLimit] = useState<NumberInputValue>();
+  const [competitionId, setCompetitionId] = useState(contest?.competitionId ?? "");
+  const [name, setName] = useState(contest?.name ?? "");
+  const [shortName, setShortName] = useState(contest?.shortName ?? "");
+  const [type, setType] = useState(contest?.type ?? ContestType.Meetup);
+  const [city, setCity] = useState(contest?.type ?? "");
+  const [countryIso2, setCountryIso2] = useState(contest?.countryIso2 ?? "NOT_SELECTED");
+  const [venue, setVenue] = useState(contest?.venue ?? "");
+  const [address, setAddress] = useState(contest?.address ?? "");
+  // Vertical coordinate (Y); ranges from -90 to 90
+  const [latitude, setLatitude] = useState<NumberInputValue>(contest ? contest.latitudeMicrodegrees / 1000000 : 0);
+  // Horizontal coordinate (X); ranges from -180 to 180
+  const [longitude, setLongitude] = useState<NumberInputValue>(contest ? contest.longitudeMicrodegrees / 1000000 : 0);
+  const [startDate, setStartDate] = useState(contest ? new Date(contest.startDate) : getDateOnly(new Date()));
+  // Meetup-only; set 12:00 as initial start time
+  const [startTime, setStartTime] = useState(
+    contest?.meetupDetails ? new Date(contest.meetupDetails.startTime) : addHours(getDateOnly(new Date()) as Date, 12),
+  );
+  const [endDate, setEndDate] = useState(contest?.endDate ? new Date(contest.endDate as Date) : new Date());
+  const [organizerNames, setOrganizerNames] = useState<string[]>([
+    ...(contest?.organizers.map((o) => o.name) ?? []),
+    "",
+  ]);
+  const [organizers, setOrganizers] = useState<InputPerson[]>([...(contest?.organizers ?? []), null]);
+  const [contact, setContact] = useState(contest?.contact ?? "");
+  const [description, setDescription] = useState(contest?.description ?? "");
+  const [competitorLimit, setCompetitorLimit] = useState<NumberInputValue>(contest?.competitorLimit);
 
   // Event stuff
-  const [contestEvents, setContestEvents] = useState<IContestEvent[]>([]);
+  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest?.events ?? []);
 
   // Schedule stuff
-  const [venueTimeZone, setVenueTimeZone] = useState("GMT"); // e.g. Europe/Berlin
-  const [rooms, setRooms] = useState<IRoom[]>([]);
+  const [rooms, setRooms] = useState<IRoom[]>(contest?.compDetails ? contest.compDetails.schedule.venues[0].rooms : []);
+  // const [timeZone, setTimeZone] = useState("Etc/GMT");
+  const timeZoneQueryKey = ["timeZone", mode, contest?.competitionId];
+  const { data: { timeZone }, isFetching: isFetchingTimeZone } = useQuery<{ timeZone: string }>({
+    queryKey: timeZoneQueryKey,
+    queryFn: () =>
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL2}/timezone?latitude=${latitude}&longitude=${longitude}`)
+        .then((res) => {
+          if (!res.ok) {
+            const msg = res.status === 400 ? "Please enter valid coordinates" : "Error while fetching time zone";
+            changeErrorMessages([msg]);
+          }
+          return res.json();
+        })
+        .then((res) => {
+          adjustTimes(res.timeZone);
+          return res;
+        }),
+    initialData: {
+      timeZone: contest?.compDetails
+        ? contest.compDetails.schedule.venues[0].timezone
+        : (contest?.timezone ?? "Etc/GMT"),
+    },
+  });
+
+  const updateTimeZone = useCallback(
+    debounce(() => queryClient.invalidateQueries({ queryKey: timeZoneQueryKey }), C.fetchDebounceTimeout),
+    [timeZone],
+  );
 
   const tabs = [
     { title: "Details", value: "details" },
     { title: "Events", value: "events" },
     { title: "Schedule", value: "schedule", hidden: !getIsCompType(type) },
   ];
-  const disableIfContestApproved: boolean = mode === "edit" && !!contestData &&
-    contestData.contest.state >= ContestState.Approved;
-  const disableIfContestPublished: boolean = mode === "edit" && !!contestData &&
-    contestData.contest.state >= ContestState.Published;
+  const disableIfContestApproved: boolean = mode === "edit" && !!contest && contest.state >= ContestState.Approved;
+  const disableIfContestPublished: boolean = mode === "edit" && !!contest && contest.state >= ContestState.Published;
   const disableIfDetailsImported = !userInfo?.isAdmin && detailsImported;
-
-  const updateTimeZoneAndAdjustTimes = useCallback(
-    debounce(async (latitude: number, longitude: number) => {
-      const { payload, errors } = await myFetch.get(
-        `/timezone?latitude=${latitude}&longitude=${longitude}`,
-        { authorize: true, loadingId: null },
-      );
-
-      if (errors) {
-        changeErrorMessages(["Error while fetching the time zone. Please reload and try again."]);
-      } else {
-        setVenueTimeZone(payload.timezone);
-
-        if (type === ContestType.Meetup) {
-          setStartTime(fromZonedTime(toZonedTime(startTime, venueTimeZone), payload.timeZone));
-        } else if (getIsCompType(type)) {
-          setRooms(
-            rooms.map((r: IRoom) => ({
-              ...r,
-              activities: r.activities.map((a) => ({
-                ...a,
-                startTime: fromZonedTime(toZonedTime(a.startTime, venueTimeZone), payload.timeZone),
-                endTime: fromZonedTime(toZonedTime(a.endTime, venueTimeZone), payload.timeZone),
-              })),
-            })),
-          );
-        }
-        changeLoadingId("");
-      }
-    }, C.fetchDebounceTimeout),
-    [venueTimeZone],
-  );
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Use effect
-  //////////////////////////////////////////////////////////////////////////////
-
-  useEffect(() => {
-    if (mode !== "new") {
-      const { contest } = contestData as IContestData;
-
-      setCompetitionId(contest.competitionId);
-      setName(contest.name);
-      setShortName(contest.shortName);
-      setType(contest.type);
-      if (contest.city) setCity(contest.city);
-      setCountryIso2(contest.countryIso2);
-      if (contest.venue) setVenue(contest.venue);
-      if (contest.address) setAddress(contest.address);
-      if (contest.latitudeMicrodegrees && contest.longitudeMicrodegrees) {
-        setLatitude(contest.latitudeMicrodegrees / 1000000);
-        setLongitude(contest.longitudeMicrodegrees / 1000000);
-      }
-      setOrganizerNames([...contest.organizers.map((el) => el.name), ""]);
-      setOrganizers([...contest.organizers, null]);
-      if (contest.contact) setContact(contest.contact);
-      if (contest.description) setDescription(contest.description);
-      if (contest.competitorLimit) setCompetitorLimit(contest.competitorLimit);
-      // Convert the dates from string to Date
-      setStartDate(new Date(contest.startDate));
-
-      if (getIsCompType(contest.type)) {
-        setEndDate(new Date(contest.endDate as Date));
-
-        if (contest.compDetails) {
-          const venue = contest.compDetails.schedule.venues[0];
-          setRooms(venue.rooms);
-          setVenueTimeZone(venue.timezone);
-          // This was necessary for imported comps in the past, because they had compDetails as undefined immediately after import.
-          // Commenting this out, cause the import feature is currently disabled. Feel free to remove this in the future if it's no
-          // longer needed for importing comps.
-          // } else {
-          //   fetchTimeZone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000).then((tz) => setDefaultActivityTimes(tz));
-        }
-      } else {
-        setStartTime(new Date((contest.meetupDetails as IMeetupDetails).startTime));
-        setVenueTimeZone(contest.timezone);
-      }
-
-      if (mode === "copy") {
-        const contestEventsWithoutRoundIdsOrResults = contest.events.map((
-          ce,
-        ) => ({
-          ...ce,
-          rounds: ce.rounds.map((r) => ({ ...r, _id: undefined, results: [] })),
-        }));
-        setContestEvents(contestEventsWithoutRoundIdsOrResults);
-      } else if (mode === "edit") {
-        setContestEvents(contest.events);
-        if (contest.queuePosition) setQueueEnabled(true);
-      }
-    }
-  }, [contestData, events]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -217,11 +160,11 @@ const ContestForm = ({
     const latitudeMicrodegrees = Math.round(latitude * 1000000);
     const longitudeMicrodegrees = Math.round(longitude * 1000000);
 
-    // Set the contest ID for every round and empty results if there were any
-    // in order to avoid sending too much data to the backend
+    // Set the contest ID for every round and empty results if there were any  in order to avoid sending
+    // too much data to the backend. Remove internal IDs in case we're copying a contest.
     const processedCompEvents = contestEvents.map((ce: IContestEvent) => ({
       ...ce,
-      rounds: ce.rounds.map((round) => ({ ...round, competitionId, results: [] })),
+      rounds: ce.rounds.map((round) => ({ ...round, _id: undefined, competitionId, results: [] })),
     }));
 
     let compDetails: ICompetitionDetails | undefined;
@@ -263,8 +206,8 @@ const ContestForm = ({
       startDate,
       endDate: getIsCompType(type) ? endDate : undefined,
       organizers: selectedOrganizers,
-      contact: contact.trim() || undefined,
-      description: description.trim() || undefined,
+      contact: contact.trim(),
+      description: description.trim(),
       competitorLimit: competitorLimit || undefined,
       events: processedCompEvents,
       compDetails,
@@ -284,22 +227,17 @@ You have a round with a default time limit of 10:00. A round with a high time li
     if (doSubmit) {
       // Validation
       const tempErrors: string[] = [];
-
       if (selectedOrganizers.length < organizerNames.filter((on: string) => on !== "").length) {
         tempErrors.push("Please enter all organizers");
       }
-
       if (type === ContestType.WcaComp && !detailsImported) {
         tempErrors.push('You must use the "Get WCA competition details" feature');
       }
-
       if (tempErrors.length > 0) {
         changeErrorMessages(tempErrors);
       } else {
         const { errors } = mode === "edit"
-          ? await myFetch.patch(`/competitions/${(contestData as IContestData).contest.competitionId}`, newComp, {
-            loadingId: null,
-          })
+          ? await myFetch.patch(`/competitions/${contest?.competitionId}`, newComp, { loadingId: null })
           : await myFetch.post("/competitions", newComp, { loadingId: null });
 
         if (errors) changeErrorMessages(errors);
@@ -310,13 +248,10 @@ You have a round with a default time limit of 10:00. A round with a high time li
     }
   };
 
-  const fillWithMockData = async (
-    mockContestType = ContestType.Competition,
-  ) => {
-    const { payload, errors } = await myFetch.get<IFePerson>(
-      `/persons?personId=${userInfo?.personId}`,
-      { loadingId: "set_mock_comp_button" },
-    );
+  const fillWithMockData = async (mockContestType = ContestType.Competition) => {
+    const { payload, errors } = await myFetch.get<IFePerson>(`/persons?personId=${userInfo?.personId}`, {
+      loadingId: "set_mock_comp_button",
+    });
 
     if (payload && !errors) {
       setType(mockContestType);
@@ -326,6 +261,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
       setVenue("Venue");
       setLatitude(1.314663);
       setLongitude(103.845409);
+      queryClient.setQueryData(timeZoneQueryKey, { timeZone: "Asia/Singapore" });
       setOrganizerNames([payload.name]);
       setOrganizers([payload]);
       setContact(`${userInfo?.username}@cc.com`);
@@ -340,7 +276,6 @@ You have a round with a default time limit of 10:00. A round with a high time li
         setName("New Competition 2024");
         setShortName("New Competition 2024");
         setCompetitionId("NewCompetition2024");
-        setVenueTimeZone("Asia/Singapore");
         setRooms([{ id: 1, name: "Main", color: Color.White, activities: [] }]);
       }
     }
@@ -406,8 +341,6 @@ You have a round with a default time limit of 10:00. A round with a high time li
       setCountryIso2(newContest.countryIso2);
       setAddress(newContest.address);
       setVenue(newContest.venue);
-      setLatitude(latitude);
-      setLongitude(longitude);
       setStartDate(newContest.startDate);
       setEndDate(newContest.endDate);
       setOrganizers([...newContest.organizers, null]);
@@ -428,26 +361,35 @@ You have a round with a default time limit of 10:00. A round with a high time li
     }
   };
 
-  const changeCoordinates = (newLat: number, newLong: number) => {
-    if (typeof newLat === "number" || typeof newLong === "number") {
-      setLatitude(newLat);
-      setLongitude(newLong);
-    } else {
-      const processedLatitude = Math.min(Math.max(newLat, -90), 90);
-      const processedLongitude = Math.min(Math.max(newLong, -180), 180);
+  const changeCoordinates = (newLat: NumberInputValue, newLong: NumberInputValue) => {
+    setLatitude(typeof newLat === "number" ? Math.min(Math.max(newLat, -90), 90) : newLat);
+    setLongitude(typeof newLong === "number" ? Math.min(Math.max(newLong, -180), 180) : newLong);
 
-      setLatitude(processedLatitude);
-      setLongitude(processedLongitude);
+    if (typeof newLat === "number" && typeof newLong === "number") updateTimeZone();
+  };
 
-      changeLoadingId("TIMEZONE_UPDATE");
-      updateTimeZoneAndAdjustTimes(processedLatitude, processedLongitude);
+  const adjustTimes = (newTimeZone: string) => {
+    console.log("test", newTimeZone, timeZone);
+    if (type === ContestType.Meetup) {
+      setStartTime(fromZonedTime(toZonedTime(startTime, timeZone), newTimeZone));
+    } else if (getIsCompType(type)) {
+      setRooms(
+        rooms.map((r: IRoom) => ({
+          ...r,
+          activities: r.activities.map((a) => ({
+            ...a,
+            startTime: fromZonedTime(toZonedTime(a.startTime, timeZone), newTimeZone),
+            endTime: fromZonedTime(toZonedTime(a.endTime, timeZone), newTimeZone),
+          })),
+        })),
+      );
     }
   };
 
   const changeStartDate = (newDate: Date) => {
     if (!getIsCompType(type)) {
       setStartTime(newDate);
-      setStartDate(getDateOnly(toZonedTime(newDate, venueTimeZone)));
+      setStartDate(getDateOnly(toZonedTime(newDate, timeZone)));
     } else {
       setStartDate(newDate);
 
@@ -457,18 +399,16 @@ You have a round with a default time limit of 10:00. A round with a high time li
 
   const cloneContest = () => {
     changeLoadingId("clone_contest_button");
-    window.location.href = `/mod/competition?copy_id=${(contestData as IContestData).contest.competitionId}`;
+    window.location.href = `/mod/competition?copy_id=${contest?.competitionId}`;
   };
 
   const removeContest = async () => {
-    const answer = confirm(
-      `Are you sure you would like to remove ${(contestData as IContestData).contest.name}?`,
-    );
+    const answer = confirm(`Are you sure you would like to remove ${contest?.name}?`);
 
     if (answer) {
       const { errors } = await myFetch.delete(
         `/competitions/${competitionId}`,
-        { loadingId: "delete_contest_button", keepLoadingAfterSuccess: true },
+        { loadingId: "delete_contest_button", keepLoadingOnSuccess: true },
       );
 
       if (!errors) window.location.href = "/mod";
@@ -476,26 +416,24 @@ You have a round with a default time limit of 10:00. A round with a high time li
   };
 
   const downloadScorecards = async () => {
-    await myFetch.get(`/scorecards/${(contestData as IContestData).contest.competitionId}`, {
+    await myFetch.get(`/scorecards/${contest?.competitionId}`, {
       authorize: true,
-      fileName: `${(contestData as IContestData).contest.competitionId}_Scorecards.pdf`,
+      fileName: `${contest?.competitionId}_Scorecards.pdf`,
       loadingId: "download_scorecards_button",
     });
   };
 
   const enableQueue = async () => {
-    const { errors } = await myFetch.patch(
-      `/competitions/enable-queue/${(contestData as IContestData).contest.competitionId}`,
-      {},
-      { loadingId: "enable_queue_button" },
-    );
+    const { errors } = await myFetch.patch(`/competitions/enable-queue/${contest?.competitionId}`, {}, {
+      loadingId: "enable_queue_button",
+    });
 
     if (!errors) setQueueEnabled(true);
   };
 
   const createAuthToken = async () => {
     const { payload, errors } = await myFetch.get(
-      `/create-auth-token/${(contestData as IContestData).contest.competitionId}`,
+      `/create-auth-token/${contest?.competitionId}`,
       { authorize: true, loadingId: "get_access_token_button" },
     );
 
@@ -509,9 +447,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
         onSubmit={handleSubmit}
         disableButton={disableIfContestPublished}
       >
-        {userInfo?.isAdmin && mode === "edit" && contestData?.creator && (
-          <CreatorDetails creator={contestData.creator} />
-        )}
+        {mode === "edit" && creator && <CreatorDetails creator={creator} />}
 
         <Tabs
           tabs={tabs}
@@ -541,9 +477,9 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 </Button>
               </div>
             )}
-            {mode === "edit" && contestData && (
+            {mode === "edit" && contest && (
               <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
-                {contestData.contest.type !== ContestType.WcaComp && (
+                {contest.type !== ContestType.WcaComp && (
                   // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
                   <Button
                     id="clone_contest_button"
@@ -558,7 +494,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                     id="delete_contest_button"
                     onClick={removeContest}
                     loadingId={loadingId}
-                    disabled={contestData.contest.participants > 0}
+                    disabled={contest.participants > 0}
                     className="btn-danger"
                   >
                     Remove Contest
@@ -568,7 +504,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   id="download_scorecards_button"
                   onClick={downloadScorecards}
                   loadingId={loadingId}
-                  disabled={contestData.contest.state < ContestState.Approved}
+                  disabled={contest.state < ContestState.Approved}
                   className="btn-success"
                 >
                   Scorecards
@@ -577,8 +513,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   id="enable_queue_button"
                   onClick={enableQueue}
                   loadingId={loadingId}
-                  disabled={contestData.contest.state < ContestState.Approved ||
-                    contestData.contest.state >= ContestState.Finished ||
+                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished ||
                     queueEnabled}
                   className="btn-secondary"
                 >
@@ -588,8 +523,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   id="get_access_token_button"
                   onClick={createAuthToken}
                   loadingId={loadingId}
-                  disabled={contestData.contest.state < ContestState.Approved ||
-                    contestData.contest.state >= ContestState.Finished}
+                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
                   className="btn-secondary"
                 >
                   Get Access Token
@@ -690,7 +624,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 </div>
                 <div className="row">
                   <div className="text-secondary fs-6 mb-2">
-                    Time zone: {loadingId === "TIMEZONE_UPDATE" ? <Loading small dontCenter /> : venueTimeZone}
+                    Time zone: {isFetchingTimeZone ? <Loading small dontCenter /> : timeZone}
                   </div>
                   <div className="text-danger fs-6">
                     The coordinates must point to a building and match the address of the venue.
@@ -700,18 +634,16 @@ You have a round with a default time limit of 10:00. A round with a high time li
             </div>
             <div className="my-3 row">
               <div className="col">
-                {!getIsCompType(type)
+                {type === ContestType.Meetup
                   ? (
                     <FormDatetimeInput
                       id="start_date"
-                      title={`Start date and time (${
-                        type === ContestType.Meetup ? (loadingId === "TIMEZONE_UPDATE" ? "..." : venueTimeZone) : "UTC"
-                      })`}
+                      title={`Start date and time (${isFetchingTimeZone ? "..." : timeZone})`}
                       value={startTime}
                       setValue={changeStartDate}
-                      timeZone={type === ContestType.Meetup ? venueTimeZone : "UTC"}
-                      dateFormat="Pp"
-                      disabled={disableIfContestApproved || disableIfDetailsImported}
+                      timeZone={timeZone}
+                      disabled={disableIfContestApproved}
+                      showTimeSelect
                       showUTCTime
                     />
                   )
@@ -721,7 +653,6 @@ You have a round with a default time limit of 10:00. A round with a high time li
                       title="Start date"
                       value={startDate}
                       setValue={changeStartDate}
-                      dateFormat="P"
                       disabled={disableIfContestApproved || disableIfDetailsImported}
                     />
                   )}
@@ -805,7 +736,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
           <ScheduleEditor
             rooms={rooms}
             setRooms={setRooms}
-            venueTimeZone={venueTimeZone}
+            venueTimeZone={timeZone}
             startDate={startDate}
             contestType={type}
             contestEvents={contestEvents}

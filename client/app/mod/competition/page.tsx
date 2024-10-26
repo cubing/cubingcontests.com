@@ -28,32 +28,24 @@ const CreateEditContestPage = () => {
   }
 
   useEffect(() => {
-    fetchData();
+    // CODE SMELL!!!
+    (async () => {
+      const { payload: eventsData, errors: errors1 } = await myFetch.get(
+        "/events/mod",
+        { authorize: true, loadingId: null },
+      );
+      const { payload: contestData, errors: errors2 } = competitionId
+        ? await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true, loadingId: null })
+        : { payload: undefined, errors: undefined };
+
+      if (errors1 ?? errors2) {
+        changeErrorMessages(["Error while fetching contest data"]);
+      } else {
+        setEvents(eventsData);
+        if (contestData) setContestData(contestData);
+      }
+    })();
   }, []);
-
-  // CODE SMELL!!!
-  const fetchData = async () => {
-    const { payload: eventsData, errors: errors1 } = await myFetch.get(
-      "/events/mod",
-      {
-        authorize: true,
-        loadingId: null,
-      },
-    );
-    const { payload: contestData, errors: errors2 } = competitionId
-      ? await myFetch.get(`/competitions/mod/${competitionId}`, {
-        authorize: true,
-        loadingId: null,
-      })
-      : { payload: undefined, errors: undefined };
-
-    if (errors1 ?? errors2) {
-      changeErrorMessages(["Error while fetching contest data"]);
-    } else {
-      setEvents(eventsData);
-      if (contestData) setContestData(contestData);
-    }
-  };
 
   if (events && (mode === "new" || contestData)) {
     return (

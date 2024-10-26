@@ -70,6 +70,22 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     [submissionInfo, event],
   );
 
+  const updateRecordPairs = useCallback(
+    debounce(async (date: Date) => {
+      const eventsStr = submissionInfo.events.map((e: IEvent) => e.eventId).join(",");
+      const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
+
+      const { payload, errors } = await myFetch.get(
+        `/results/record-pairs/${date}/${eventsStr}${queryParams}`,
+        { authorize: true, loadingId: null },
+      );
+
+      if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
+      changeLoadingId("");
+    }, C.fetchDebounceTimeout),
+    [submissionInfo],
+  );
+
   useEffect(() => {
     // If submitting results
     if (!resultId) {
@@ -116,22 +132,6 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
     }
   }, []);
 
-  const updateRecordPairs = useCallback(
-    debounce(async (date: Date) => {
-      const eventsStr = submissionInfo.events.map((e: IEvent) => e.eventId).join(",");
-      const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
-
-      const { payload, errors } = await myFetch.get(
-        `/results/record-pairs/${date}/${eventsStr}${queryParams}`,
-        { authorize: true, loadingId: null },
-      );
-
-      if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
-      changeLoadingId("");
-    }, C.fetchDebounceTimeout),
-    [submissionInfo],
-  );
-
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
@@ -160,10 +160,10 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       newResult.unapproved = true;
     }
 
+    const loadingId = approve ? "approve_button" : "submit_button";
+
     if (!resultId) {
-      const { errors } = await myFetch.post("/results", newResult, {
-        loadingId: approve ? "approve_button" : "submit_button",
-      });
+      const { errors } = await myFetch.post("/results", newResult, { loadingId });
 
       if (!errors) {
         changeSuccessMessage("Result successfully submitted");
@@ -184,19 +184,13 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         updateResultDto.unapproved = submissionInfo.result.unapproved;
       }
 
-      const { errors } = await myFetch.patch(
-        `/results/${resultId}`,
-        updateResultDto,
-        {
-          loadingId: approve ? "approve_button" : "submit_button",
-          keepLoadingAfterSuccess: true,
-        },
-      );
+      const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto, {
+        loadingId,
+        keepLoadingOnSuccess: true,
+      });
 
       if (!errors) {
-        changeSuccessMessage(
-          approve ? "Result successfully approved" : "Result successfully updated",
-        );
+        changeSuccessMessage(approve ? "Result successfully approved" : "Result successfully updated");
 
         setTimeout(() => {
           window.location.href = "/admin/results";
@@ -235,9 +229,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
   if (submissionInfo) {
     return (
       <div>
-        <h2 className="text-center">
-          {resultId ? "Edit Result" : "Submit Result"}
-        </h2>
+        <h2 className="text-center">{resultId ? "Edit Result" : "Submit Result"}</h2>
 
         <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: "900px" }}>
           {resultId

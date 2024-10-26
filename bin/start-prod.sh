@@ -95,8 +95,8 @@ else
     source .env # needed for the build args
     docker build --build-arg API_BASE_URL=$CLIENT_ARG_API_BASE_URL \
                              API_BASE_URL_SERVER_SIDE=$CLIENT_ARG_API_BASE_URL_SERVER_SIDE \
-                             API2_BASE_URL=$CLIENT_ARG_API2_BASE_URL \
-                             API2_BASE_URL_SERVER_SIDE=$CLIENT_ARG_API2_BASE_URL_SERVER_SIDE \
+                             API_BASE_URL2=$CLIENT_ARG_API_BASE_URL2 \
+                             API_BASE_URL2_SERVER_SIDE=$CLIENT_ARG_API_BASE_URL2_SERVER_SIDE \
       -t cubingcontests-client --file client.Dockerfile . &&
     docker build -t cubingcontests-server --file server.Dockerfile . &&
     docker build -t cubingcontests-server2 --file server2.Dockerfile . &&

@@ -1,8 +1,10 @@
 import { createContext } from "react";
+import { QueryClient } from "@tanstack/react-query";
 
 export type Theme = "dark" | "light";
 
 export interface IMainContext {
+  queryClient: QueryClient;
   theme: Theme;
   setTheme: (value: Theme) => void;
   errorMessages: string[];

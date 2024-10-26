@@ -11,9 +11,9 @@ const FormDatetimeInput = ({
   value,
   setValue,
   timeZone = "UTC",
-  dateFormat = "P",
-  timeFormat = "p",
-  timeIntervals = 10,
+  showTimeSelect = false,
+  // dateFormat = "P",
+  // timeIntervals = 10,
   disabled = false,
   showUTCTime = false,
 }: {
@@ -22,24 +22,22 @@ const FormDatetimeInput = ({
   value: Date;
   setValue: (val: Date) => void;
   timeZone?: string;
-  dateFormat?: string; // P is date select only, Pp is date and time select
-  timeFormat?: string;
-  timeIntervals?: number;
+  showTimeSelect?: boolean;
+  // dateFormat?: string; // P is date select only, Pp is date and time select
+  // timeIntervals?: number;
   disabled?: boolean;
   showUTCTime?: boolean;
 }) => {
-  if (!id && !title) {
-    throw new Error("Neither title nor id are set in FormDatetimeInput");
-  }
+  if (!id && !title) throw new Error("Neither title nor id are set in FormDatetimeInput");
 
   const inputId = id || `${title}_date`;
-  const showTimeSelect = dateFormat !== "P";
 
   useEffect(() => {
     if (!showTimeSelect) setValue(getDateOnly(value));
   }, [showTimeSelect]);
 
   const onChange = (newDate: string) => {
+    console.log(newDate, typeof newDate);
     // The time zone conversion is necessary, because otherwise JS uses the user's local time zone
     if (!showTimeSelect) {
       setValue(getDateOnly(fromZonedTime(newDate, timeZone)));
@@ -52,22 +50,22 @@ const FormDatetimeInput = ({
 
       {
         /* <DatePicker
-        id={inputId}
-        selected={value && toZonedTime(value, timeZone)}
-        onChange={onChange}
+         id={inputId}
+         selected={value && toZonedTime(value, timeZone)}
+         onChange={onChange}
         dateFormat={dateFormat}
         timeFormat={timeFormat}
         timeIntervals={timeIntervals}
-        showTimeSelect={showTimeSelect}
-        showTimeSelectOnly={dateFormat === "HH:mm"}
-        locale="en-GB"
-        disabled={disabled}
-        className="form-control"
+         showTimeSelect={showTimeSelect}
+         showTimeSelectOnly={dateFormat === "HH:mm"}
+         locale="en-GB"
+         disabled={disabled}
+         className="form-control"
       /> */
       }
       <input
         id={inputId}
-        type="datetime-local"
+        type={showTimeSelect ? "datetime-local" : "date"}
         value={value ? toZonedTime(value, timeZone).toDateString() : ""}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}

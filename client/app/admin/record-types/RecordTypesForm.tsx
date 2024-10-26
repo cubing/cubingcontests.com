@@ -18,7 +18,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const handleSubmit = async () => {
     const { errors } = await myFetch.post("/record-types", tRecordTypes, {
       loadingId: "form_submit_button",
-      keepLoadingAfterSuccess: true,
+      keepLoadingOnSuccess: true,
     });
     if (!errors) window.location.href = "/mod";
   };

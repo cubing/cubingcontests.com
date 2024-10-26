@@ -1,6 +1,6 @@
 import { FetchObj, HttpMethod } from "~/shared_helpers/types.ts";
 
-const API_BASE_URL = (process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL) + "/api";
+const API_BASE_URL = process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // This must only be called with authorize = true on the client side.
 // Returns { payload } if request was successful and a payload was received,

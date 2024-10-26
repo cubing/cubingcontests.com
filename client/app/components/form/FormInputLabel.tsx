@@ -2,7 +2,7 @@ import Tooltip from "~/app/components/UI/Tooltip.tsx";
 
 const FormInputLabel = (
   { text, inputId, tooltip }: {
-    text: string;
+    text?: string;
     inputId: string;
     tooltip?: string;
   },

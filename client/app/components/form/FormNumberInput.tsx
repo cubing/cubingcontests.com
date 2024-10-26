@@ -26,7 +26,7 @@ const FormNumberInput = ({
   placeholder?: string;
   tooltip?: string;
   value: NumberInputValue;
-  setValue: (val: number) => void;
+  setValue: (val: NumberInputValue) => void;
   onKeyDown?: (e: any) => void;
   nextFocusTargetId?: string;
   disabled?: boolean;
@@ -42,7 +42,7 @@ const FormNumberInput = ({
 
   const [displayValue, setDisplayValue] = useState(value?.toString() || "");
 
-  const inputId = id || title;
+  const inputId = (id || title) as string;
 
   useEffect(() => {
     if (value === undefined) setDisplayValue("");

@@ -9,7 +9,16 @@ import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import Time from "~/app/components/Time.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
-import { IAttempt, IContestEvent, IEvent, IRecordPair, IRecordType, IResult, IRound } from "~/shared_helpers/types.ts";
+import {
+  IAttempt,
+  IContestEvent,
+  IEvent,
+  type IPerson,
+  IRecordPair,
+  IRecordType,
+  IResult,
+  IRound,
+} from "~/shared_helpers/types.ts";
 import { EventFormat, RoundFormat, RoundType } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { getBestAndAverage, getMakesCutoff, setResultRecords } from "~/shared_helpers/sharedFunctions.ts";
@@ -73,9 +82,7 @@ const ResultForm = ({
   const { changeErrorMessages, loadingId } = useContext(MainContext);
 
   // This is only needed for displaying the temporary best single and average, as well as any record badges
-  const [tempResult, setTempResult] = useState<IResult>(
-    { best: -1, average: -1 } as IResult,
-  );
+  const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 });
   const [personNames, setPersonNames] = useState([""]);
   // If this is null, that means the option is disabled
   const [keepCompetitors, setKeepCompetitors] = useState(
@@ -84,13 +91,14 @@ const ResultForm = ({
   const [attemptsResetTrigger, setAttemptsResetTrigger] = useState<boolean>();
 
   if (!forResultsSubmissionForm) {
-    roundFormat = round.format;
-    events = contestEvents.map((el) => el.event);
+    roundFormat = round?.format;
+    events = contestEvents?.map((el) => el.event);
   }
 
-  const roundCanHaveAverage = roundFormats.find((rf) => rf.value === roundFormat).attempts >= 3;
+  const rf = roundFormats.find((rf) => rf.value === roundFormat);
+  const roundCanHaveAverage = rf && rf.attempts >= 3;
   // The second round.cutoff doesn't need a ?, because getMakesCutoff returns true if the cutoff is undefined
-  const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff) ? attempts.length : round.cutoff.numberOfAttempts;
+  const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff) ? attempts.length : round?.cutoff?.numberOfAttempts;
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
@@ -100,8 +108,8 @@ const ResultForm = ({
     } // If resetTrigger is undefined, that means we're editing a result
     else {
       // Set person names if there are no null persons (needed when editing results)
-      if (!persons.some((el) => el === null)) {
-        setPersonNames(persons.map((el) => el.name));
+      if (!persons.some((p) => p === null)) {
+        setPersonNames(persons.map((p: InputPerson) => (p as IPerson).name));
       }
       updateTempResult();
       focusFirstAttempt();
@@ -224,7 +232,6 @@ const ResultForm = ({
     if (event.defaultRoundFormat !== RoundFormat.Average) {
       return roundFormatOptions.filter((el) => el.value !== RoundFormat.BestOf3);
     }
-
     return roundFormatOptions;
   };
 
@@ -244,9 +251,7 @@ const ResultForm = ({
     },
   ) => {
     if (forResultsSubmissionForm) {
-      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((
-        el,
-      ) => el.value);
+      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((rf) => rf.value);
 
       if (!allowedRoundFormats.includes(newRoundFormat)) {
         setRoundFormat(RoundFormat.BestOf1);

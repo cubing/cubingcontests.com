@@ -12,7 +12,7 @@ type FetchOptions = {
   // If loadingId is defined, the myFetch function will handle setting the loading ID and manage error messages.
   // If it's undefined, it will still do that, but loadingId will be '_'. If it's null, that functionality will be disabled.
   loadingId?: string | null;
-  keepLoadingAfterSuccess?: boolean;
+  keepLoadingOnSuccess?: boolean;
 };
 
 export const useMyFetch = () => {
@@ -23,9 +23,9 @@ export const useMyFetch = () => {
     resetMessages,
   } = useContext(MainContext);
 
-  const reset = (response: FetchObj, keepLoadingAfterSuccess: boolean) => {
+  const reset = (response: FetchObj, keepLoadingOnSuccess: boolean) => {
     if (response.errors) changeErrorMessages(response.errors);
-    else if (keepLoadingAfterSuccess) resetMessages();
+    else if (keepLoadingOnSuccess) resetMessages();
     else resetMessagesAndLoadingId();
   };
 
@@ -37,7 +37,7 @@ export const useMyFetch = () => {
         redirect,
         fileName,
         loadingId, // set loadingId to null to prevent automatic loading behavior
-        keepLoadingAfterSuccess = false,
+        keepLoadingOnSuccess = false,
       }: FetchOptions & {
         redirect?: string; // this can only be set if authorize is set too
         fileName?: string;
@@ -49,48 +49,48 @@ export const useMyFetch = () => {
         redirect,
         fileName,
       });
-      if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
+      if (loadingId !== null) reset(response, keepLoadingOnSuccess);
       return response;
     },
     async post<T = any>(
       url: string,
       body: unknown,
-      { authorize = true, loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {
+      { authorize = true, loadingId, keepLoadingOnSuccess = false }: FetchOptions = {
         authorize: true,
       },
     ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || "_");
       const response = await doFetch<T>(url, "POST", { body, authorize });
-      if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
+      if (loadingId !== null) reset(response, keepLoadingOnSuccess);
       return response;
     },
     async put<T = any>(
       url: string,
       body: unknown,
-      { loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {},
+      { loadingId, keepLoadingOnSuccess = false }: FetchOptions = {},
     ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || "_");
       const response = await doFetch<T>(url, "PUT", { body });
-      if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
+      if (loadingId !== null) reset(response, keepLoadingOnSuccess);
       return response;
     },
     async patch<T = any>(
       url: string,
       body: unknown,
-      { loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {},
+      { loadingId, keepLoadingOnSuccess = false }: FetchOptions = {},
     ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || "_");
       const response = await doFetch<T>(url, "PATCH", { body });
-      if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
+      if (loadingId !== null) reset(response, keepLoadingOnSuccess);
       return response;
     },
     async delete<T = any>(
       url: string,
-      { loadingId, keepLoadingAfterSuccess = false }: FetchOptions = {},
+      { loadingId, keepLoadingOnSuccess = false }: FetchOptions = {},
     ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || "_");
       const response = await doFetch<T>(url, "DELETE");
-      if (loadingId !== null) reset(response, keepLoadingAfterSuccess);
+      if (loadingId !== null) reset(response, keepLoadingOnSuccess);
       return response;
     },
   };
