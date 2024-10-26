@@ -2,7 +2,7 @@
   // When updating this, remember to also update it in .vscode/settings.json
   "workspace": ["./client", "./server2"],
   "nodeModulesDir": "auto",
-  "exclude": ["./client/.next", "./server"],
+  // "exclude": ["./client/.next"],
 
   "tasks": {
     "client": "cd client && deno task dev",
@@ -11,7 +11,7 @@
 
   "lint": {
     "include": ["*.ts", "*.tsx"],
-    "exclude": ["*.d.ts", "./client/.next", "./server"],
+    "exclude": ["*.d.ts", "./server"],
     "rules": {
       "tags": ["recommended"],
       "include": [],
@@ -26,7 +26,7 @@
 
   "fmt": {
     "include": ["*.ts", "*.tsx"],
-    "exclude": ["*.d.ts", "./client/.next", "./server"],
+    "exclude": ["*.d.ts"],
     "lineWidth": 120
   },
 
