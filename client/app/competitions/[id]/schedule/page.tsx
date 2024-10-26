@@ -1,7 +1,7 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import Schedule from "~/app/components/Schedule.tsx";
-import { IContest } from "~/shared_helpers/types.ts";
+import { type ICompetitionDetails, IContest } from "~/shared_helpers/types.ts";
 
 const CompetitionSchedulePage = async (
   { params }: { params: { id: string } },
@@ -15,9 +15,9 @@ const CompetitionSchedulePage = async (
   return (
     <ContestLayout contest={contest} activeTab="schedule">
       <Schedule
-        rooms={contest.compDetails.schedule.venues[0].rooms}
+        rooms={(contest.compDetails as ICompetitionDetails).schedule.venues[0].rooms}
         contestEvents={contest.events}
-        timeZone={contest.compDetails.schedule.venues[0].timezone}
+        timeZone={(contest.compDetails as ICompetitionDetails).schedule.venues[0].timezone}
       />
     </ContestLayout>
   );

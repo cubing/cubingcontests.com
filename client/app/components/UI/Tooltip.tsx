@@ -29,6 +29,8 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
   // Limits the tooltip's horizontal position so that it doesn't go beyond the edge of the screen
   const repositionTooltip = () => {
     const tooltipDiv = document.getElementById(id);
+    if (!tooltipDiv?.parentElement) throw new Error(`Unable to find the parent of element with id ${id}`);
+
     // The parent has no width, so it's a good reference point to do the calculations off of
     const parentBounds = tooltipDiv.parentElement.getBoundingClientRect();
     const optimalLeftEdge = parentBounds.left - tooltipWidth / 2 -
@@ -54,7 +56,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
       bottom: bounds.bottom + window.scrollY,
     };
     const pageHeight = document.documentElement.getBoundingClientRect().height;
-    setIsBelowTarget((prevIsBelowTarget) => {
+    setIsBelowTarget((prevIsBelowTarget: boolean) => {
       const positionSwitchDistance = bounds.height + tooltipOffset * 2;
       const distanceFromPageBottom = prevIsBelowTarget
         ? pageHeight - globalPos.bottom

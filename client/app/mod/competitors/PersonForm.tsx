@@ -105,12 +105,9 @@ const PersonForm = ({
 
       if (newWcaId.length === 10) {
         if (!personUnderEdit) {
-          const { payload, errors } = await myFetch.get<IWcaPersonDto>(
-            `/persons/${newWcaId}`,
-            { authorize: true },
-          );
+          const { payload } = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, { authorize: true });
 
-          if (!errors) {
+          if (payload) {
             if (payload.isNew) {
               afterSubmit(payload.person);
             } else {

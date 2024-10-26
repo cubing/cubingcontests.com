@@ -8,11 +8,11 @@ const CreatorDetails = ({
   small,
   loggedInUser,
 }: {
-  creator: IFeUser | "EXT_DEVICE";
+  creator: IFeUser | "EXT_DEVICE" | undefined;
   small?: boolean;
   loggedInUser?: UserInfo;
 }) => {
-  let specialCase: ReactElement;
+  let specialCase: ReactElement | undefined;
   if (!creator) specialCase = <span>Deleted user</span>;
   else if (creator === "EXT_DEVICE") {
     specialCase = <span className="text-warning">External device</span>;

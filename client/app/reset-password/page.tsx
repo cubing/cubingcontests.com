@@ -24,7 +24,7 @@ const RequestPasswordResetPage = () => {
   const handleSubmit = async () => {
     if (!email) {
       changeErrorMessages(["Please enter an email address"]);
-      document.getElementById("email").focus();
+      document.getElementById("email")?.focus();
     } else {
       const { errors } = await myFetch.post(
         "/auth/request-password-reset",

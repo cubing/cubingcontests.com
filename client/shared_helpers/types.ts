@@ -23,7 +23,7 @@ export type {
   IResultsSubmissionInfo,
   IUpdateResultDto,
 } from "./interfaces/Result.ts";
-export type { ICutoff, IProceed, IRound, ITimeLimit } from "./interfaces/Round.ts";
+export type { ICutoff, IProceed, IRound, IRoundFormat, ITimeLimit } from "./interfaces/Round.ts";
 export type { IActivity, IRoom, ISchedule, IVenue } from "./interfaces/Schedule.ts";
 export type { IFeUser } from "./interfaces/User.ts";
 export type { IAdminStats } from "./interfaces/AdminStats.ts";
@@ -45,3 +45,7 @@ export type {
   Round as IWcifRound,
   Schedule as IWcifSchedule,
 } from "@wca/helpers";
+
+// Random types
+
+export type ResultRankingType = "single" | "average" | "mean";

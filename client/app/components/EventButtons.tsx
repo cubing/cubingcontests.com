@@ -11,7 +11,7 @@ const EventButtons = ({
   events,
   forPage,
 }: {
-  eventId: string;
+  eventId: string | undefined;
   events: IEvent[];
   forPage: "results" | "rankings" | "competitions" | "data-entry";
 }) => {
@@ -27,7 +27,7 @@ const EventButtons = ({
   );
 
   // If hideCategories = true, just show all events that were passed in
-  const filteredEvents = useMemo(
+  const filteredEvents = useMemo<IEvent[]>(
     () =>
       !["rankings", "competitions"].includes(forPage)
         ? events
@@ -40,13 +40,10 @@ const EventButtons = ({
       router.replace(`/competitions/${id}/results?eventId=${newEventId}`);
     } else if (forPage === "rankings") {
       const show = searchParams.get("show");
-      router.push(
-        `/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`,
-      );
+      router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`);
     } else if (forPage === "competitions") {
-      if (searchParams.get("eventId") === newEventId) {
-        router.replace("/competitions");
-      } else router.replace(`/competitions?eventId=${newEventId}`);
+      if (searchParams.get("eventId") === newEventId) router.replace("/competitions");
+      else router.replace(`/competitions?eventId=${newEventId}`);
     } else {
       router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
     }
@@ -67,9 +64,7 @@ const EventButtons = ({
                 onClick={() => setSelectedCat(cat)}
               >
                 <span className="d-none d-md-inline">{cat.title}</span>
-                <span className="d-inline d-md-none">
-                  {cat.shortTitle || cat.title}
-                </span>
+                <span className="d-inline d-md-none">{cat.shortTitle || cat.title}</span>
               </button>
             ))}
           </div>
@@ -79,7 +74,7 @@ const EventButtons = ({
       )}
 
       <div className="d-flex flex-wrap mb-3 fs-3">
-        {filteredEvents.map((event) => (
+        {filteredEvents.map((event: IEvent) => (
           <EventIcon
             key={event.eventId}
             event={event}

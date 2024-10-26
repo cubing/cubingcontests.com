@@ -9,9 +9,7 @@ import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 
 const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
   const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
-  if (!contestData) {
-    return <h3 className="mt-4 text-center">Contest not found</h3>;
-  }
+  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
 
   const hasNonFinalRound = contest.events.some((ev) => ev.rounds.some((r) => r.proceed));
@@ -36,11 +34,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                 const cutoffText = round.cutoff
                   ? `${round.cutoff.numberOfAttempts} ${
                     round.cutoff.numberOfAttempts === 1 ? "attempt" : "attempts"
-                  } to get < ${
-                    getFormattedTime(round.cutoff.attemptResult, {
-                      event: compEvent.event,
-                    })
-                  }`
+                  } to get < ${getFormattedTime(round.cutoff.attemptResult, { event: compEvent.event })}`
                   : "";
 
                 return (
@@ -66,9 +60,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                     </td>
                     <td>
                       {round.timeLimit
-                        ? getFormattedTime(round.timeLimit.centiseconds, {
-                          event: compEvent.event,
-                        }) +
+                        ? getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event }) +
                           (round.timeLimit.cumulativeRoundIds.length > 0 ? " cumulative" : "")
                         : ""}
                     </td>
@@ -76,8 +68,8 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                     {hasNonFinalRound && (
                       <td>
                         {round.roundTypeId !== RoundType.Final &&
-                          `Top ${round.proceed.value}${
-                            round.proceed.type === RoundProceed.Percentage ? "%" : ""
+                          `Top ${round.proceed?.value}${
+                            round.proceed?.type === RoundProceed.Percentage ? "%" : ""
                           } advance to next round`}
                       </td>
                     )}

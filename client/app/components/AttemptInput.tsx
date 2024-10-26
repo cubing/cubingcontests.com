@@ -13,17 +13,13 @@ const DNFKeys = ["f", "F", "d", "D", "/"];
 const DNSKeys = ["s", "S", "*"];
 const unknownTimeKeys = ["u", "U"];
 
-const getFormattedText = (
-  text: string,
-  { forMemo = false, isNumberFormat = false },
-): string => {
+const getFormattedText = (text: string, { forMemo = false, isNumberFormat = false }): string => {
   if (isNumberFormat) return text;
 
   let output = "";
   const decimals = forMemo ? 0 : 2;
 
-  if (forMemo && text === undefined) return "0:00";
-  else if (!forMemo && text === "") return "0.00";
+  if (text === "") return forMemo ? "0:00" : "0.00";
   else if (["DNF", "DNS", "Unknown"].includes(text)) return text;
   // Memo time formatting always requires minutes, even if they're 0
   else if (text.length < 5 && !forMemo) {
@@ -70,9 +66,8 @@ const AttemptInput = ({
 }) => {
   const [solved, setSolved] = useState<NumberInputValue>(undefined);
   const [attempted, setAttempted] = useState<NumberInputValue>(undefined);
-  const [attemptText, setAttemptText] = useState("");
-  // undefined is the empty value. If left like that, the memo won't be saved in the DB.
-  const [memoText, setMemoText] = useState(undefined);
+  const [attemptText, setAttemptText] = useState<string>("");
+  const [memoText, setMemoText] = useState<string>("");
 
   const formattedAttemptText = useMemo(
     () => getFormattedText(attemptText, { isNumberFormat: event.format === EventFormat.Number }),
@@ -122,7 +117,7 @@ const AttemptInput = ({
       setSolved(undefined);
       setAttempted(undefined);
       setAttemptText("");
-      setMemoText(undefined);
+      setMemoText("");
     }
   }, [resetTrigger]);
 
@@ -137,7 +132,7 @@ const AttemptInput = ({
     setSolved(undefined);
     setAttempted(undefined);
     setAttemptText("DNS");
-    setMemoText(undefined);
+    setMemoText("");
   };
 
   const changeSolved = (newSolved: NumberInputValue) => {
@@ -177,10 +172,10 @@ const AttemptInput = ({
           const newAttText = attemptText.slice(0, -1);
           setAttemptText(newAttText);
           setAttempt(getAttempt(attempt, event, newAttText, { solved, attempted, memo: memoText }));
-        } else if (forMemo && memoText !== undefined) {
+        } else if (forMemo && memoText) {
           // This is different, because the memo input has no decimals, but memo time is still stored as centiseconds
-          let newMemoText: string | undefined = memoText.slice(0, -3) + "00";
-          if (newMemoText === "00") newMemoText = undefined;
+          let newMemoText: string = memoText.slice(0, -3);
+          if (newMemoText) newMemoText += "00";
 
           setMemoText(newMemoText);
           setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted, memo: newMemoText }));
@@ -200,7 +195,7 @@ const AttemptInput = ({
           if (event.format !== EventFormat.Multi) {
             setAttempt({ result: C.maxTime });
             setAttemptText("Unknown");
-            setMemoText(undefined);
+            setMemoText("");
           } else {
             // C.maxTime is 24 hours
             setAttempt(getAttempt(attempt, event, "24000000", { solved, attempted }));
@@ -275,7 +270,7 @@ const AttemptInput = ({
   const dnfTheAttempt = () => {
     setAttempt({ result: -1 }); // set DNF
     setAttemptText("DNF");
-    setMemoText(undefined);
+    setMemoText("");
   };
 
   const resetCursorPosition = (e: any) => {

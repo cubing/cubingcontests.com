@@ -230,7 +230,9 @@ const ResultForm = ({
 
       if (!allowedRoundFormats.includes(newRoundFormat)) {
         setRoundFormat(RoundFormat.BestOf1);
-      } else setRoundFormat(newRoundFormat);
+      } else {
+        setRoundFormat(newRoundFormat);
+      }
     }
 
     const newAttempts = new Array(roundFormats.find((rf) => rf.value === newRoundFormat)?.attempts).fill({ result: 0 });

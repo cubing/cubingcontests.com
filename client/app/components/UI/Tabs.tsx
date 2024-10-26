@@ -17,9 +17,7 @@ const Tabs = ({
   forServerSidePage?: boolean;
 }) => {
   if (prefetch && !forServerSidePage) {
-    throw new Error(
-      "The Tabs component only supports prefetch when forServerSidePage is set",
-    );
+    throw new Error("The Tabs component only supports prefetch when forServerSidePage is set");
   }
 
   return (
@@ -28,12 +26,11 @@ const Tabs = ({
         .filter((el) => !el.hidden)
         .map((tab) => (
           <li key={tab.value} className="me-2 nav-item">
-            {!forServerSidePage
+            {!forServerSidePage && setActiveTab
               ? (
                 <button
                   type="button"
-                  className={"nav-link" +
-                    (activeTab === tab.value ? " active" : "")}
+                  className={"nav-link" + (activeTab === tab.value ? " active" : "")}
                   onClick={() => setActiveTab(tab.value)}
                 >
                   <span className="d-none d-md-inline">{tab.title}</span>

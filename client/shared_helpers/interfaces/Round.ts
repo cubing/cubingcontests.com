@@ -29,3 +29,11 @@ export interface IRound {
   proceed?: IProceed;
   results: IResult[]; // this is an empty array until results are posted
 }
+
+export interface IRoundFormat {
+  value: RoundFormat;
+  label: string;
+  shortLabel: string;
+  attempts: number;
+  isAverage: boolean;
+}

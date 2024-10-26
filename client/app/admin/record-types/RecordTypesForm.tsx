@@ -25,43 +25,28 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
 
   const changeLabel = (wcaEquivalent: WcaRecordType, value: string) => {
     setTRecordTypes(
-      tRecordTypes.map((
-        rt,
-      ) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, label: value } : rt)),
+      tRecordTypes.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, label: value } : rt)),
     );
   };
 
   const changeActive = (wcaEquivalent: WcaRecordType) => {
     setTRecordTypes(
-      tRecordTypes.map((
-        rt,
-      ) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, active: !rt.active } : rt)),
+      tRecordTypes.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, active: !rt.active } : rt)),
     );
   };
 
   const changeColor = (wcaEquivalent: WcaRecordType, color: Color) => {
     setTRecordTypes(
-      tRecordTypes.map((
-        rt,
-      ) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, color } : rt)),
+      tRecordTypes.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, color } : rt)),
     );
   };
 
   return (
-    <Form
-      buttonText={recordTypes?.length > 0 ? "Edit" : "Create"}
-      onSubmit={handleSubmit}
-    >
-      {tRecordTypes.map((rt) => (
-        <div
-          key={rt.wcaEquivalent}
-          className="row align-items-center mb-3 text-nowrap"
-        >
+    <Form buttonText={recordTypes?.length > 0 ? "Edit" : "Create"} onSubmit={handleSubmit}>
+      {tRecordTypes.map((rt: IRecordType) => (
+        <div key={rt.wcaEquivalent} className="row align-items-center mb-3 text-nowrap">
           <div className="d-none d-md-block col-2">
-            <label
-              htmlFor={rt.wcaEquivalent + "_label_input"}
-              className="form-label mb-0"
-            >
+            <label htmlFor={rt.wcaEquivalent + "_label_input"} className="form-label mb-0">
               {rt.wcaEquivalent}&#8194;label
             </label>
           </div>
@@ -70,7 +55,8 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               type="text"
               id={rt.wcaEquivalent + "_label_input"}
               value={rt.label}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => changeLabel(rt.wcaEquivalent, e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                changeLabel(rt.wcaEquivalent, e.target.value)}
               className="form-control"
             />
           </div>
@@ -79,15 +65,14 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               title="Active"
               id={rt.wcaEquivalent}
               selected={rt.active}
-              setSelected={() => changeActive(rt.wcaEquivalent)}
+              setSelected={() =>
+                changeActive(rt.wcaEquivalent)}
               noMargin
             />
           </div>
           <div className="col-6 col-md-5">
             <span className="d-flex align-items-center gap-2 gap-md-3">
-              <label htmlFor="color_select" className="form-label mb-0">
-                Color
-              </label>
+              <label htmlFor="color_select" className="form-label mb-0">Color</label>
 
               <select
                 id="color_select"
@@ -98,9 +83,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                 {colorOptions
                   .filter((el) => ![Color.White, Color.Magenta].includes(el.value as any))
                   .map((colorOption) => (
-                    <option key={colorOption.value} value={colorOption.value}>
-                      {colorOption.label}
-                    </option>
+                    <option key={colorOption.value} value={colorOption.value}>{colorOption.label}</option>
                   ))}
               </select>
 

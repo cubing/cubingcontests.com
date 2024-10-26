@@ -6,11 +6,11 @@ import EventTitle from "~/app/components/EventTitle.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import C from "~/shared_helpers/constants.ts";
-import { IEventRankings } from "~/shared_helpers/types.ts";
+import { IEventRankings, type ResultRankingType } from "~/shared_helpers/types.ts";
 import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
-import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { capitalize, getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
-import { INavigationItem } from "~/helpers/types.ts";
+import { type EventCategory, INavigationItem } from "~/helpers/types.ts";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 
 // SEO
@@ -27,117 +27,98 @@ export const metadata = {
 };
 
 const RecordsPage = async ({ params }: { params: { category: string } }) => {
-  // Refreshes records every 5 minutes
   const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await ssrFetch("/results/records/WR", {
     revalidate: C.rankingsRev,
   });
 
+  if (!recordsByEvent) return <p className="mt-5 text-center fs-4">Records not found</p>;
+
   // Gets just the events for the current records category
-  const filteredEventRecords = recordsByEvent?.filter((er) =>
-    er.event.groups.includes(
-      eventCategories.find((rc) => rc.value === params.category).group,
-    )
+  const filteredEventRecords = recordsByEvent.filter((er) =>
+    er.event.groups.includes((eventCategories.find((ec) => ec.value === params.category) as EventCategory).group)
   );
-  const selectedCat = eventCategories.find((el) => el.value === params.category);
+  const selectedCat = eventCategories.find((ec) => ec.value === params.category) as EventCategory;
   const tabs: INavigationItem[] = eventCategories.map((cat) => ({
     title: cat.title,
     shortTitle: cat.shortTitle,
     value: cat.value,
     route: `/records/${cat.value}`,
-    hidden: !recordsByEvent?.some((el) => el.event.groups.includes(cat.group)),
+    hidden: !recordsByEvent?.some((er) => er.event.groups.includes(cat.group)),
   }));
 
-  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingRow has this same function too.
-  const getRecordType = (type: "single" | "average" | "mean"): string => {
-    return type[0].toUpperCase() + type.slice(1);
-  };
+  return (
+    <div>
+      <h2 className="mb-4 text-center">Records</h2>
 
-  if (recordsByEvent) {
-    return (
-      <div>
-        <h2 className="mb-4 text-center">Records</h2>
+      {!recordsByEvent || recordsByEvent.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
+        <>
+          <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
 
-        {!recordsByEvent || recordsByEvent.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
-          <>
-            <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
+          {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
 
-            {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
+          {params.category === "extremebld" && (
+            <Link
+              href={"/user/submit-results"}
+              className="btn btn-success btn ms-2"
+            >
+              Submit a result
+            </Link>
+          )}
 
-            {params.category === "extremebld" && (
-              <Link
-                href={"/user/submit-results"}
-                className="btn btn-success btn ms-2"
-              >
-                Submit a result
-              </Link>
-            )}
+          <div className="mt-4">
+            {filteredEventRecords.map(
+              ({ event, rankings }: IEventRankings) => {
+                return (
+                  <div key={event.eventId} className="mb-3">
+                    <EventTitle
+                      event={event}
+                      showIcon
+                      linkToRankings
+                      showDescription
+                    />
 
-            <div className="mt-4">
-              {filteredEventRecords.map(
-                ({ event, rankings }: IEventRankings) => {
-                  return (
-                    <div key={event.eventId} className="mb-3">
-                      <EventTitle
-                        event={event}
-                        showIcon
-                        linkToRankings
-                        showDescription
-                      />
-
-                      {/* MOBILE VIEW */}
-                      <div className="d-lg-none mt-2 mb-4 border-top border-bottom">
-                        <ul className="list-group list-group-flush">
-                          {rankings.map((r) => (
-                            <li
-                              key={r.type + r.resultId}
-                              className="d-flex flex-column gap-2 py-3 list-group-item list-group-item-secondary"
-                            >
-                              <div className="d-flex justify-content-between">
-                                <span>
-                                  <b>
-                                    {getFormattedTime(r.result, { event })}
-                                  </b>
-                                  &#8194;{getRecordType(r.type)}
-                                </span>
-                                {r.contest
-                                  ? (
-                                    <Link
-                                      href={`/competitions/${r.contest.competitionId}`}
-                                      prefetch={false}
-                                    >
-                                      {getFormattedDate(r.date)}
-                                    </Link>
-                                  )
-                                  : <span>{getFormattedDate(r.date)}</span>}
-                              </div>
-                              <Competitors persons={r.persons} vertical />
-                              {r.attempts && <Solves event={event} attempts={r.attempts} />}
-                              {!r.contest && <RankingLinks ranking={r} />}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* DESKTOP VIEW */}
-                      <div className="d-none d-lg-block">
-                        <RankingsTable
-                          rankings={rankings}
-                          event={event}
-                          recordsTable
-                        />
-                      </div>
+                    {/* MOBILE VIEW */}
+                    <div className="d-lg-none mt-2 mb-4 border-top border-bottom">
+                      <ul className="list-group list-group-flush">
+                        {rankings.map((r) => (
+                          <li
+                            key={r.type + r.resultId}
+                            className="d-flex flex-column gap-2 py-3 list-group-item list-group-item-secondary"
+                          >
+                            <div className="d-flex justify-content-between">
+                              <span>
+                                <b>{getFormattedTime(r.result, { event })}</b>
+                                &#8194;{capitalize(r.type as ResultRankingType)}
+                              </span>
+                              {r.contest
+                                ? (
+                                  <Link href={`/competitions/${r.contest.competitionId}`} prefetch={false}>
+                                    {getFormattedDate(r.date)}
+                                  </Link>
+                                )
+                                : <span>{getFormattedDate(r.date)}</span>}
+                            </div>
+                            <Competitors persons={r.persons} vertical />
+                            {r.attempts && <Solves event={event} attempts={r.attempts} />}
+                            {!r.contest && <RankingLinks ranking={r} />}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                  );
-                },
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  }
 
-  return <p className="mt-5 text-center fs-4">Records not found</p>;
+                    {/* DESKTOP VIEW */}
+                    <div className="d-none d-lg-block">
+                      <RankingsTable rankings={rankings} event={event} recordsTable />
+                    </div>
+                  </div>
+                );
+              },
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 export default RecordsPage;

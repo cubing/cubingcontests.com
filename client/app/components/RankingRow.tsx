@@ -9,14 +9,9 @@ import ContestName from "~/app/components/ContestName.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import { IEvent, IPerson, IRanking } from "~/shared_helpers/types.ts";
+import { IEvent, IPerson, IRanking, type ResultRankingType } from "~/shared_helpers/types.ts";
 import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
-import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
-
-// THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
-const getRecordType = (type: "single" | "average" | "mean"): string => {
-  return type[0].toUpperCase() + type.slice(1);
-};
+import { capitalize, getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
 const RankingRow = ({
   isTiedRanking,
@@ -40,7 +35,7 @@ const RankingRow = ({
   forRecordsTable?: boolean;
 }) => {
   const [teamExpanded, setTeamExpanded] = useState(false);
-  const firstColumnValue = ranking.ranking || getRecordType(ranking.type);
+  const firstColumnValue = ranking.ranking ?? capitalize(ranking.type as ResultRankingType);
   const personsToDisplay = showAllTeammates ? ranking.persons : [person];
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -50,21 +45,14 @@ const RankingRow = ({
   return (
     <tr>
       <td>
-        {!onlyKeepPerson && (
-          <span className={isTiedRanking ? "text-secondary" : ""}>
-            {firstColumnValue}
-          </span>
-        )}
+        {!onlyKeepPerson && <span className={isTiedRanking ? "text-secondary" : ""}>{firstColumnValue}</span>}
       </td>
       <td>
         <Competitors persons={personsToDisplay} noFlag={!showAllTeammates} />
       </td>
       <td>
         {!onlyKeepPerson &&
-          getFormattedTime(ranking.result, {
-            event,
-            showMultiPoints: !forRecordsTable,
-          })}
+          getFormattedTime(ranking.result, { event, showMultiPoints: !forRecordsTable })}
       </td>
       {!showAllTeammates && (
         <td>

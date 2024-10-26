@@ -330,7 +330,6 @@ export class ResultsService {
         eventResults = await this.resultModel.find($match).sort({ average: 1 }).exec();
       } else {
         // Get top averages by person
-
         const prAverages = await this.resultModel
           .aggregate([
             { $match },

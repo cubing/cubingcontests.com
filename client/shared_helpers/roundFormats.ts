@@ -1,6 +1,7 @@
+import type { IRoundFormat } from "~/shared_helpers/types.ts";
 import { RoundFormat } from "./enums.ts";
 
-export const roundFormats = [
+export const roundFormats: IRoundFormat[] = [
   {
     value: RoundFormat.BestOf1,
     label: "Best of 1",

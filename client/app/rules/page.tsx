@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeEvent } from "~/shared_helpers/types.ts";
+import { type IFeEvent, type IRoundFormat } from "~/shared_helpers/types.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { RoundFormat } from "~/shared_helpers/enums.ts";
 import { INavigationItem } from "~/helpers/types.ts";
@@ -174,8 +174,8 @@ const RulesPage = () => {
               These rules apply to each event individually. If an event is not listed here, it must follow the most
               relevant WCA Regulations, based on the nature of the event.
             </p>
-            {events.map((event) => {
-              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat);
+            {events.map((event: IFeEvent) => {
+              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
               const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
 
               return (

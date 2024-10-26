@@ -142,9 +142,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       return;
     }
 
-    const { best, average } = getBestAndAverage(attempts, event, {
-      roundFormat,
-    });
+    const { best, average } = getBestAndAverage(attempts, event, { roundFormat });
     const newResult: IResult = {
       eventId: event.eventId,
       date,
@@ -156,9 +154,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
       discussionLink: discussionLink || undefined,
     };
 
-    if (submissionInfo.result?.unapproved && !approve) {
-      newResult.unapproved = true;
-    }
+    if (submissionInfo.result?.unapproved && !approve) newResult.unapproved = true;
 
     const loadingId = approve ? "approve_button" : "submit_button";
 
@@ -180,9 +176,7 @@ const ResultsSubmissionForm = ({ resultId }: { resultId?: string }) => {
         videoLink: newResult.videoLink,
         discussionLink: newResult.discussionLink,
       };
-      if (!approve) {
-        updateResultDto.unapproved = submissionInfo.result.unapproved;
-      }
+      if (!approve) updateResultDto.unapproved = submissionInfo.result.unapproved;
 
       const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto, {
         loadingId,

@@ -105,14 +105,12 @@ const DataEntryScreen = ({
         return;
       }
 
-      const { best, average } = getBestAndAverage(attempts, currEvent, {
-        round,
-      });
+      const { best, average } = getBestAndAverage(attempts, currEvent, { round });
       const newResult: IResult = {
         competitionId: contest.competitionId,
         eventId: currEvent.eventId,
         date: new Date(), // real date assigned on the backend
-        personIds: currentPersons.map((p: InputPerson) => p.personId),
+        personIds: currentPersons.map((p: InputPerson) => (p as IPerson).personId),
         ranking: 0, // real rankings assigned on the backend
         attempts, // attempts that got cancelled due to not making cutoff are removed on the backend
         best,

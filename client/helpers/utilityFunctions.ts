@@ -4,7 +4,13 @@ import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
 import { Color, EventFormat, Role } from "~/shared_helpers/enums.ts";
 import C from "~/shared_helpers/constants.ts";
-import { IEvent, IFeAttempt, ITimeLimit, type NumberInputValue } from "~/shared_helpers/types.ts";
+import {
+  IEvent,
+  IFeAttempt,
+  ITimeLimit,
+  type NumberInputValue,
+  type ResultRankingType,
+} from "~/shared_helpers/types.ts";
 import { UserInfo } from "./types.ts";
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
@@ -29,13 +35,15 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
 };
 
 // Returns null if the time is invalid
-export const getCentiseconds = (
+const getCentiseconds = (
   time: string, // the time string without formatting (e.g. 1:35.97 should be "13597")
   { round = true, throwErrorWhenInvalidTime = false }: {
     round?: boolean;
     throwErrorWhenInvalidTime?: boolean;
   } = { round: true, throwErrorWhenInvalidTime: false },
 ): number | null => {
+  if (time === "") return 0;
+
   let hours = 0;
   let minutes = 0;
   let centiseconds: number;
@@ -82,24 +90,20 @@ export const getAttempt = (
     // These three parameters are optional if the event format is Number
     solved?: NumberInputValue;
     attempted?: NumberInputValue;
-    memo?: string | undefined; // only used for events with the event group HasMemo
+    memo?: string; // only used for events with the event group HasMemo
   } = { roundTime: false, roundMemo: false },
 ): IFeAttempt => {
-  if (time.length > 8 || (memo && memo.length > 8)) {
-    throw new Error("Times longer than 8 digits are not supported");
-  }
+  if (time.length > 8 || (memo && memo.length > 8)) throw new Error("Times longer than 8 digits are not supported");
 
   const maxFmResultDigits = C.maxFmMoves.toString().length;
   if (time.length > maxFmResultDigits && event.format === EventFormat.Number) {
     throw new Error(`Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`);
   }
 
-  if (event.format === EventFormat.Number) {
-    return { ...attempt, result: time ? parseInt(time) : 0 };
-  }
+  if (event.format === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
 
-  const newAttempt: IFeAttempt = { result: time ? getCentiseconds(time, { round: roundTime }) : 0 };
-  if (memo !== undefined) {
+  const newAttempt: IFeAttempt = { result: getCentiseconds(time, { round: roundTime }) };
+  if (memo) {
     newAttempt.memo = getCentiseconds(memo, { round: roundMemo });
     if (newAttempt.memo && newAttempt.result && newAttempt.memo >= newAttempt.result) {
       return { ...newAttempt, result: null };
@@ -268,3 +272,5 @@ export const getTimeLimit = (
   eventFormat: EventFormat,
 ): ITimeLimit | undefined =>
   eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
+
+export const capitalize = (input: string): string => input[0].toUpperCase() + input.slice(1);

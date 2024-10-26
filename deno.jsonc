@@ -1,8 +1,8 @@
 {
-  // When updating this, remember to also update it in .vscode/settings.json
+  // When updating this, remember to also update it in .vscode/settings.json (but leave ./bin there)
   "workspace": ["./client", "./server2"],
+  "exclude": ["./client/.next", "./server"],
   "nodeModulesDir": "auto",
-  // "exclude": ["./client/.next"],
 
   "tasks": {
     "client": "cd client && deno task dev",
@@ -11,7 +11,7 @@
 
   "lint": {
     "include": ["*.ts", "*.tsx"],
-    "exclude": ["*.d.ts", "./server"],
+    "exclude": ["*.d.ts"],
     "rules": {
       "tags": ["recommended"],
       "include": [],

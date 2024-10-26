@@ -1,5 +1,5 @@
 import { WcaRecordType } from "../enums.ts";
-import { IContest, IEvent, IFeUser, IPerson, IRecordType } from "../types.ts";
+import { IContest, IEvent, IFeUser, IPerson, IRecordType, type ResultRankingType } from "../types.ts";
 
 export interface IAttempt {
   /**
@@ -54,7 +54,7 @@ export interface IUpdateResultDto {
 }
 
 export interface IRanking {
-  type?: "single" | "average" | "mean"; // only set for the records page
+  type?: ResultRankingType; // only set for the records page
   ranking?: number; // only set for the rankings page
   persons: IPerson[];
   resultId: string;

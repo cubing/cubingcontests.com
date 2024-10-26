@@ -5,7 +5,7 @@ const C = {
   contactEmail: "cubing-contests-admin@googlegroups.com",
   fetchDebounceTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
   // Timeouts before revalidating a request in seconds
-  rankingsRev: 300, //  5 minutes
+  rankingsRev: 120, //  2 minutes
   contestsRev: 60, // 1 minute
   maxRounds: 10, // maximum number of rounds allowed
   maxTime: 24 * 60 * 60 * 100, // 24 hours (IF THIS IS EVER UPDATED, ALSO CONSIDER THE LINES WITH 24000000 IN AttemptInput)

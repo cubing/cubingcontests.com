@@ -1,6 +1,7 @@
 import { EventGroup } from "~/shared_helpers/enums.ts";
+import type { EventCategory } from "~/helpers/types.ts";
 
-export const eventCategories = [
+export const eventCategories: EventCategory[] = [
   {
     title: "Unofficial",
     value: "unofficial",
