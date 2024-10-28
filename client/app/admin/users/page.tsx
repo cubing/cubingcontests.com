@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { capitalize } from "lodash";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
@@ -187,7 +188,7 @@ const ManageUsersPage = () => {
                     <td>{user.username}</td>
                     <td>{user.email}</td>
                     <td>{user.person?.name}</td>
-                    <td>{user.roles.map((r: Role) => getRoleLabel(r, true)).join(", ")}</td>
+                    <td>{user.roles.map((r: Role) => capitalize(getRoleLabel(r))).join(", ")}</td>
                     <td>
                       <Button
                         id={`edit_${user.username}_button`}

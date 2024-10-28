@@ -98,15 +98,16 @@ export class ResultsController {
   }
 
   // POST /results/:roundId
-  @Post(":roundId")
+  @Post(":competitionId/:roundId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
   async createResult(
+    @Param("competitionId") competitionId: string,
     @Param("roundId") roundId: string,
     @Body(new ValidationPipe()) createResultDto: CreateResultDto,
     @Request() req: any,
   ) {
-    return await this.service.createResult(createResultDto, roundId, req.user);
+    return await this.service.createResult(competitionId, roundId, createResultDto, req.user);
   }
 
   // POST /results

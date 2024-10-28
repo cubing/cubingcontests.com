@@ -27,7 +27,6 @@ const FormPersonInputs = ({
   nextFocusTargetId,
   disabled,
   addNewPersonFromNewTab,
-  checkCustomErrors,
   redirectToOnAddPerson = "",
   noGrid,
 }: {
@@ -40,7 +39,6 @@ const FormPersonInputs = ({
   nextFocusTargetId?: string;
   disabled?: boolean;
   addNewPersonFromNewTab?: boolean;
-  checkCustomErrors?: (newSelectedPerson: IPerson) => boolean;
   redirectToOnAddPerson?: string;
   noGrid?: boolean;
 }) => {
@@ -116,10 +114,7 @@ const FormPersonInputs = ({
     else setFocusedInput(null);
 
     // Update person name and reset the person object for that organizer
-    const newPersonNames = personNames.map((
-      el,
-      i,
-    ) => (i === index ? value : el));
+    const newPersonNames = personNames.map((el, i) => (i === index ? value : el));
     // This is done so that setPersons is only called if one of the persons actually had to be reset to null
     let personsUpdated = false;
     const newPersons: InputPerson[] = persons.map((el, i) => {
@@ -172,38 +167,24 @@ const FormPersonInputs = ({
       }
     } else {
       const newSelectedPerson = matchedPersons[selectionIndex];
-
-      if (!checkCustomErrors || !checkCustomErrors(newSelectedPerson)) {
-        const newPersons = persons.map((
-          el,
-          i,
-        ) => (i !== inputIndex ? el : newSelectedPerson));
-        const newPersonNames = personNames.map((
-          el,
-          i,
-        ) => (i !== inputIndex ? el : newSelectedPerson.name));
-        setPersons(newPersons);
-        setPersonNames(newPersonNames);
-        addEmptyInputIfRequired(newPersonNames, newPersons);
-        // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
-        setTimeout(() => focusNext(newPersons), 0);
-      }
+      const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
+      const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
+      setPersons(newPersons);
+      setPersonNames(newPersonNames);
+      addEmptyInputIfRequired(newPersonNames, newPersons);
+      // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
+      setTimeout(() => focusNext(newPersons), 0);
     }
   };
 
   const onPersonKeyDown = (inputIndex: number, e: any) => {
     if (e.key === "Enter") {
       // Make sure the focused input is not empty
-      if (personNames[inputIndex]) {
-        selectCompetitor(inputIndex, personSelection);
-      }
+      if (personNames[inputIndex]) selectCompetitor(inputIndex, personSelection);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
 
-      if (
-        personSelection + 1 <=
-          matchedPersons.length - defaultMatchedPersons.length
-      ) {
+      if (personSelection + 1 <= matchedPersons.length - defaultMatchedPersons.length) {
         setPersonSelection(personSelection + 1);
       } else {
         setPersonSelection(0);
@@ -212,9 +193,7 @@ const FormPersonInputs = ({
       e.preventDefault();
 
       if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
-      else {setPersonSelection(
-          matchedPersons.length - defaultMatchedPersons.length,
-        );}
+      else setPersonSelection(matchedPersons.length - defaultMatchedPersons.length);
     } // Disallow entering certain characters
     else if (/[()_/\\[\]]/.test(e.key)) {
       e.preventDefault();

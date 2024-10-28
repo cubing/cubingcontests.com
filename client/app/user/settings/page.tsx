@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { capitalize } from "lodash";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
@@ -66,7 +67,7 @@ const UserSettingsPage = () => {
               Your roles: {filteredRoles.map((r, i) => (
                 <span key={r}>
                   {i !== 0 && <span>,</span>}
-                  <b>{getRoleLabel(r, true)}</b>
+                  <b>{capitalize(getRoleLabel(r))}</b>
                 </span>
               ))}
             </p>

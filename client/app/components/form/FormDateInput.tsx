@@ -6,6 +6,15 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import C from "~/shared_helpers/constants.ts";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
 
+type Props = {
+  id?: string;
+  title: string;
+  value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
+  setValue: (val: Date | null | undefined) => void;
+  disabled?: boolean;
+  nextFocusTargetId?: string;
+};
+
 const FormDateInput = ({
   id,
   title,
@@ -13,14 +22,8 @@ const FormDateInput = ({
   setValue,
   disabled,
   nextFocusTargetId,
-}: {
-  id?: string;
-  title: string;
-  value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
-  setValue: (val: Date | null | undefined) => void;
-  disabled?: boolean;
-  nextFocusTargetId?: string;
-}) => {
+  className,
+}: Props & React.HTMLAttributes<HTMLElement>) => {
   const [dateText, setDateText] = useState("");
   const [position, setPosition] = useState(0);
 
@@ -154,7 +157,7 @@ const FormDateInput = ({
   };
 
   return (
-    <div className="mb-3 fs-5">
+    <div className={`fs-5 ${className}`}>
       {title && (
         <label htmlFor={inputId} className="form-label">
           {title}

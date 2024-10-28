@@ -19,6 +19,7 @@ type DayActivity = RoomActivity & {
   roundFormatLabel?: string;
   contestEvent?: IContestEvent;
 };
+type Day = { date: Date; activities: DayActivity[] };
 
 const Schedule = ({
   rooms,
@@ -48,14 +49,15 @@ const Schedule = ({
 
   allActivities.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
-  const days: { date: Date; activities: DayActivity[] }[] = [];
+  const days: Day[] = [];
 
   for (const activity of allActivities) {
     const zonedStartTime = toZonedTime(activity.startTime, timeZone);
     const zonedEndTime = toZonedTime(activity.endTime, timeZone);
 
     // Add new day if the activity is on a new day or if the days array is empty
-    if (days.length === 0 || !isSameDay(days.at(-1).date, zonedStartTime)) {
+    const lastDay = days.at(-1);
+    if (lastDay === undefined || !isSameDay(lastDay.date, zonedStartTime)) {
       days.push({ date: zonedStartTime, activities: [] });
     }
 
@@ -86,7 +88,7 @@ const Schedule = ({
       }
     }
 
-    days.at(-1).activities.push(dayActivity);
+    (lastDay as Day).activities.push(dayActivity);
   }
 
   return (
@@ -94,11 +96,7 @@ const Schedule = ({
       <h1 className="mb-4 text-center">Schedule</h1>
 
       {days.length === 0
-        ? (
-          <h5 className="text-center fst-italic">
-            The schedule is currently empty
-          </h5>
-        )
+        ? <h5 className="text-center fst-italic">The schedule is currently empty</h5>
         : (
           <div className="d-flex flex-column gap-5">
             {days.map((day) => (

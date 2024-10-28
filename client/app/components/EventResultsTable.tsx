@@ -1,7 +1,7 @@
 "use client";
 
 import RoundResultsTable from "./RoundResultsTable.tsx";
-import { IContestEvent, IPerson, IRecordType } from "~/shared_helpers/types.ts";
+import { IContestEvent, IPerson, IRecordType, type IRound } from "~/shared_helpers/types.ts";
 import { useEffect, useState } from "react";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import EventTitle from "./EventTitle.tsx";
@@ -19,9 +19,7 @@ const EventResultsTable = ({
   onDeleteResult?: (resultId: string) => void;
 }) => {
   // Display finals by default
-  const [currRound, setCurrRound] = useState(
-    contestEvent.rounds[contestEvent.rounds.length - 1],
-  );
+  const [currRound, setCurrRound] = useState<IRound>(contestEvent.rounds[contestEvent.rounds.length - 1]);
 
   useEffect(() => {
     setCurrRound(contestEvent.rounds[contestEvent.rounds.length - 1]);
@@ -41,7 +39,7 @@ const EventResultsTable = ({
               value: el.roundTypeId,
             }))}
             selected={currRound.roundTypeId}
-            setSelected={(val) => setCurrRound(contestEvent.rounds.find((el) => el.roundTypeId === val))}
+            setSelected={(val) => setCurrRound(contestEvent.rounds.find((r) => r.roundTypeId === val) as IRound)}
           />
         </div>
       )}

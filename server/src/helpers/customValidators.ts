@@ -50,8 +50,8 @@ export class ProceedValueMinMax implements ValidatorConstraintInterface {
   }
 }
 
-@ValidatorConstraint({ name: "VideoBasedAttempts", async: false })
-export class VideoBasedAttempts implements ValidatorConstraintInterface {
+@ValidatorConstraint({ name: "SubmittedAttempts", async: false })
+export class SubmittedAttempts implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
     return attempts.some((a) => a.result > 0) && !attempts.some((a) => a.result === 0);
   }

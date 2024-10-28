@@ -16,8 +16,9 @@ import { IAttempt, IUpdateResultDto } from "@sh/types";
 import { ContestAttempts } from "~/src/helpers/customValidators";
 
 export class UpdateResultDto implements IUpdateResultDto {
+  @IsOptional()
   @IsDateString({}, { message: DATE_VALIDATION_MSG })
-  date: Date;
+  date?: Date;
 
   @IsOptional()
   @IsBoolean()

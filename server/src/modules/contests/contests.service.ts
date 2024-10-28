@@ -21,7 +21,7 @@ import {
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IRound, ISchedule } from "@sh/types";
+import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "@sh/types";
 import { ContestState, ContestType, EventGroup } from "@sh/enums";
 import { Role } from "@sh/enums";
 import { getDateOnly, getIsCompType, getIsOtherActivity, getTotalRounds } from "@sh/sharedFunctions";
@@ -166,7 +166,7 @@ export class ContestsService {
     }
   }
 
-  async getContests(region?: string, eventId?: string): Promise<ContestDocument[]> {
+  async getContests(region?: string, eventId?: string) {
     const queryFilter: any = { state: { $gt: ContestState.Created, $lt: ContestState.Removed } };
     if (region) queryFilter.countryIso2 = region;
     if (eventId) {
@@ -178,7 +178,7 @@ export class ContestsService {
     return contests;
   }
 
-  async getModContests(user: IPartialUser): Promise<IContest[]> {
+  async getModContests(user: IPartialUser) {
     let queryFilter: any = {};
 
     // Check access rights
@@ -204,13 +204,14 @@ export class ContestsService {
 
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     const output: IContestData = {
-      contest,
+      contest: contest as IContest,
       persons: await this.personsService.getContestParticipants({ competitionId }),
       activeRecordTypes,
     };
 
     if (eventId) {
-      output.contest = contest.toObject(); // TEMP SOLUTION! (figure out the results population below instead of doing this workaround)
+      // TEMP SOLUTION! (figure out the results population below instead of doing this workaround)
+      output.contest = contest.toObject() as IContest;
       const contestEvent = eventId === "FIRST_EVENT"
         ? output.contest.events[0]
         : output.contest.events.find((ce) => ce.event.eventId === eventId);
@@ -268,7 +269,7 @@ export class ContestsService {
     // Create new contest
     const newContest: IContest = {
       ...contestDto,
-      events: contestEvents,
+      events: contestEvents as IContestEvent[],
       createdBy: new mongo.ObjectId(user._id as string),
       state: ContestState.Created,
       participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents })).length,
@@ -460,7 +461,7 @@ export class ContestsService {
   }
 
   // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
-  async getContestRound(competitionId: string, eventId: string, roundNumber: number): Promise<IRound> {
+  async getContestRound(competitionId: string, eventId: string, roundNumber: number) {
     const contest = await this.getFullContest(competitionId, { populateResults: true });
     if (contest.state === ContestState.Removed) throw new BadRequestException("This contest has been removed");
     if (contest.state > ContestState.Ongoing) throw new BadRequestException("The contest is finished");
@@ -519,7 +520,7 @@ export class ContestsService {
       for (const round of contestEvent.rounds) {
         // This is only used for the import contest feature and can only be used by an admin
         if (saveResults) {
-          round.results = await this.resultModel.create(round.results.map((r) => ({ ...r, unapproved: true })));
+          round.results = await this.resultModel.create(round.results.map((r) => ({ ...r, unapproved: true }))) as IResult[];
         }
 
         eventRounds.push(await this.roundModel.create({ ...round, _id: undefined }));

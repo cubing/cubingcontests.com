@@ -58,10 +58,6 @@ export const contestTypeOptions: MultiChoiceOption[] = [
   },
 ];
 
-export const roundFormatOptions: MultiChoiceOption[] = roundFormats.map((
-  rf,
-) => ({ label: rf.label, value: rf.value }));
-
 export const roundProceedOptions: MultiChoiceOption[] = [
   {
     label: "Number",

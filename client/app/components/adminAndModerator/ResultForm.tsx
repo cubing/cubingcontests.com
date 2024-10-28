@@ -19,12 +19,12 @@ import {
   IRecordType,
   IResult,
   IRound,
+  type ISubmittedResult,
 } from "~/shared_helpers/types.ts";
 import { EventFormat, RoundFormat, RoundType } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { getBestAndAverage, getMakesCutoff, setResultRecords } from "~/shared_helpers/sharedFunctions.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { roundFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 
@@ -64,7 +64,7 @@ const ResultForm = ({
   recordPairs: IRecordPair[];
   recordTypes: IRecordType[];
   nextFocusTargetId?: string;
-  resetTrigger: boolean; // if this is undefined, that means we're editing a result
+  resetTrigger: boolean | null; // if this is null, that means we're editing a result
   // These props are for PostResultsScreen
   round?: IRound;
   setRound?: (val: IRound) => void;
@@ -83,7 +83,7 @@ const ResultForm = ({
   const { changeErrorMessages, loadingId } = useContext(MainContext);
 
   // This is only needed for displaying the temporary best single and average, as well as any record badges
-  const [tempResult, setTempResult] = useState<IResult>({ best: -1, average: -1 });
+  const [tempResult, setTempResult] = useState<IResult | ISubmittedResult>({ best: -1, average: -1 });
   const [personNames, setPersonNames] = useState([""]);
   // If this is null, that means the option is disabled
   const [keepCompetitors, setKeepCompetitors] = useState(showOptionToKeepCompetitors ? false : null);
@@ -101,12 +101,11 @@ const ResultForm = ({
     : (round?.cutoff as ICutoff).numberOfAttempts;
 
   useEffect(() => {
-    if (resetTrigger !== undefined) {
+    if (resetTrigger !== null) {
       reset();
       if (keepCompetitors) focusFirstAttempt();
       else document.getElementById("Competitor_1")?.focus();
-    } // If resetTrigger is undefined, that means we're editing a result
-    else {
+    } else {
       // Set person names if there are no null persons (needed when editing results)
       if (!persons.some((p) => p === null)) {
         setPersonNames(persons.map((p: InputPerson) => (p as IPerson).name));
@@ -126,16 +125,13 @@ const ResultForm = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const focusFirstAttempt = () => {
-    if (event.format === EventFormat.Multi) {
-      document.getElementById("attempt_1_solved")?.focus();
-    } else document.getElementById("attempt_1")?.focus();
+    if (event.format === EventFormat.Multi) document.getElementById("attempt_1_solved")?.focus();
+    else document.getElementById("attempt_1")?.focus();
   };
 
   const updateTempResult = () => {
     const { best, average } = getBestAndAverage(attempts, event, { round, roundFormat });
-    setTempResult(
-      setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true),
-    );
+    setTempResult(setResultRecords({ best, average, attempts } as IResult, event, recordPairs, true));
   };
 
   const changeEvent = (newEventId: string) => {
@@ -159,7 +155,7 @@ const ResultForm = ({
     });
   };
 
-  // Only used for PostResultsScreen
+  // Only used for the data entry page
   const changeRound = (newRoundType: RoundType) => {
     const currCompEvent = contestEvents.find((ce) => ce.event.eventId === event.eventId);
     const newRound = currCompEvent.rounds.find((r) => r.roundTypeId === newRoundType);
@@ -190,7 +186,6 @@ const ResultForm = ({
   };
 
   const focusNext = (index: number) => {
-    // Focus next time input or the submit button if it's the last input
     if (index + 1 < lastActiveAttempt) {
       // If Multi format and the next attempt is not DNS, focus the solved input, therwise focus the time input
       if (event.format === EventFormat.Multi && attempts[index + 1].result !== -2) {
@@ -201,13 +196,6 @@ const ResultForm = ({
     } else if (nextFocusTargetId) {
       document.getElementById(nextFocusTargetId)?.focus();
     }
-  };
-
-  const getAllowedRoundFormatOptions = (event: IEvent) => {
-    if (event.defaultRoundFormat !== RoundFormat.Average) {
-      return roundFormatOptions.filter((el) => el.value !== RoundFormat.BestOf3);
-    }
-    return roundFormatOptions;
   };
 
   const reset = (
@@ -226,7 +214,7 @@ const ResultForm = ({
     },
   ) => {
     if (forResultsSubmissionForm) {
-      const allowedRoundFormats = getAllowedRoundFormatOptions(newEvent).map((rf) => rf.value);
+      const allowedRoundFormats = getAllowedRoundFormatOptions(newRoundFormat).map((rf) => rf.value);
 
       if (!allowedRoundFormats.includes(newRoundFormat)) {
         setRoundFormat(RoundFormat.BestOf1);
@@ -244,6 +232,13 @@ const ResultForm = ({
       setPersons(new Array(newEvent.participants).fill(null));
       setPersonNames(new Array(newEvent.participants).fill(""));
     }
+  };
+
+  const getAllowedRoundFormatOptions = (event: IEvent) => {
+    if (event.defaultRoundFormat !== RoundFormat.Average) {
+      return roundFormatOptions.filter((rf) => rf.value !== RoundFormat.BestOf3);
+    }
+    return roundFormatOptions;
   };
 
   return (

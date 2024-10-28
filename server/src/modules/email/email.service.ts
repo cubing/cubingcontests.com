@@ -110,12 +110,7 @@ export class EmailService {
     });
 
     try {
-      await this.transporter.sendMail({
-        from: this.sender,
-        to,
-        subject: "Contest submitted",
-        html: contents,
-      });
+      await this.transporter.sendMail({ from: this.sender, to, subject: "Contest submitted", html: contents });
     } catch (err) {
       this.logger.logAndSave(
         `Error while sending contest submitted notification for contest ${contest.name}:, ${err}`,
@@ -131,12 +126,7 @@ export class EmailService {
     });
 
     try {
-      await this.transporter.sendMail({
-        from: this.sender,
-        to,
-        subject: "Privileges granted",
-        html: contents,
-      });
+      await this.transporter.sendMail({ from: this.sender, to, subject: "Privileges granted", html: contents });
     } catch (err) {
       this.logger.logAndSave(`Error while sending contest submitted notification for contest:, ${err}`, LogType.Error);
     }

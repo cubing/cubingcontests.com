@@ -8,7 +8,7 @@ import { IFeEvent, ListPageMode, type NumberInputValue } from "~/shared_helpers/
 import { EventFormat, EventGroup, RoundFormat } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
-import { eventCategoryOptions, eventFormatOptions, roundFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Form from "~/app/components/form/Form.tsx";
@@ -20,6 +20,7 @@ import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormTextArea from "~/app/components/form/FormTextArea.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
+import { getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
 
 const CreateEditEventPage = () => {
   const myFetch = useMyFetch();
@@ -166,7 +167,7 @@ const CreateEditEventPage = () => {
                 <FormSelect
                   id="default_format"
                   title="Default format"
-                  options={roundFormatOptions}
+                  options={getRoundFormatOptions(roundFormats)}
                   selected={defaultRoundFormat}
                   setSelected={setDefaultRoundFormat}
                   disabled={mode === "edit" || loadingId !== ""}

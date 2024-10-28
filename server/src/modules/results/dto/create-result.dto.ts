@@ -4,7 +4,6 @@ import {
   IsDateString,
   IsInt,
   IsNotEmpty,
-  IsOptional,
   IsString,
   Max,
   Min,
@@ -13,31 +12,19 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { IAttempt, IResult } from "@sh/types";
+import { IAttempt } from "@sh/types";
 import C from "@sh/constants";
-import { DATE_VALIDATION_MSG } from "~/src/helpers/messages";
 import { ContestAttempts } from "~/src/helpers/customValidators";
+import { IResultDto } from "~/shared_helpers/interfaces/Result";
 
-export class CreateResultDto implements IResult {
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  competitionId?: string;
-
+export class CreateResultDto implements IResultDto {
   @IsString()
   @IsNotEmpty()
   eventId: string;
 
-  @IsDateString({}, { message: DATE_VALIDATION_MSG })
-  date: Date;
-
   @ArrayMinSize(1)
   @IsInt({ each: true })
   personIds: number[];
-
-  @IsOptional()
-  @IsInt()
-  ranking?: number;
 
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
@@ -45,12 +32,6 @@ export class CreateResultDto implements IResult {
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
   attempts: IAttempt[];
-
-  @IsInt()
-  best: number;
-
-  @IsInt()
-  average: number;
 }
 
 export class AttemptDto implements IAttempt {

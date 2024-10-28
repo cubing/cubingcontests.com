@@ -39,6 +39,7 @@ import {
   IResultsSubmissionInfo,
   IAdminResultsSubmissionInfo,
   IRound,
+  ISubmittedResult,
 } from "@sh/types";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import {
@@ -52,9 +53,10 @@ import {
   getRoundRanksWithAverage,
   setResultRecords,
 } from "@sh/sharedFunctions";
-import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings } from "~/src/helpers/utilityFunctions";
+import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings, setRoundRankings } from "~/src/helpers/utilityFunctions";
 import { EmailService } from "~/src/modules/email/email.service";
 import { LogType } from "~/src/helpers/enums";
+import { differenceInHours } from "date-fns";
 
 @Injectable()
 export class ResultsService {
@@ -149,7 +151,7 @@ export class ResultsService {
           // Look for results with empty attempts
           for (const result of round.results) {
             if (result.attempts.some((a) => a.result === 0)) {
-              this.logger.error(`Error: result ${result._id} has an empty attempt`);
+              this.logger.error(`Error: result ${(result as any)._id} has an empty attempt`);
             }
 
             const roundFormat = roundFormats.find((rf) => rf.value === round.format);
@@ -293,13 +295,13 @@ export class ResultsService {
         }
       }
 
-      const rankedResults = await setRankings(eventResults, { dontSortOrSave: true });
+      const rankedResults = await setRankings(eventResults, false);
 
       for (const result of rankedResults) {
         const ranking: IRanking = {
           ranking: result.ranking,
           persons: await this.personsService.getPersonsByPersonIds(result.personIds, { preserveOrder: true }),
-          resultId: result._id.toString(),
+          resultId: (result as any)._id.toString(),
           result: show ? (result.attempts as any).result : result.best,
           // Will be left undefined if the request wasn't for top single results
           attemptNumber: (result as any).attemptNumber,
@@ -317,7 +319,7 @@ export class ResultsService {
         }
 
         if (result.competitionId) {
-          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec();
+          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec() as any;
         }
 
         eventRankings.rankings.push(ranking);
@@ -346,11 +348,7 @@ export class ResultsService {
         }
       }
 
-      const rankedResults = await setRankings(eventResults, {
-        ranksWithAverage: true,
-        dontSortOrSave: true,
-        noTieBreakerForAvgs: true,
-      });
+      const rankedResults = await setRankings(eventResults, true);
 
       for (const result of rankedResults) {
         const ranking: IRanking = {
@@ -365,7 +363,7 @@ export class ResultsService {
         };
 
         if (result.competitionId) {
-          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec();
+          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec() as any;
         }
 
         eventRankings.rankings.push(ranking);
@@ -409,7 +407,7 @@ export class ResultsService {
             result: result.best,
             date: result.date,
             contest: result.competitionId
-              ? await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec()
+              ? await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec() as any
               : undefined,
             videoLink: result.videoLink,
             discussionLink: result.discussionLink,
@@ -424,7 +422,7 @@ export class ResultsService {
             result: result.average,
             date: result.date,
             contest: result.competitionId
-              ? await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec()
+              ? await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec() as any
               : undefined,
             attempts: result.attempts,
             videoLink: result.videoLink,
@@ -455,7 +453,7 @@ export class ResultsService {
   }
 
   async getEditingInfo(resultId: string): Promise<IAdminResultsSubmissionInfo> {
-    const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec();
+    const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec() as ISubmittedResult;
     if (!result) throw new NotFoundException("Result not found");
 
     const event = await this.eventsService.getEventById(result.eventId);
@@ -507,8 +505,9 @@ export class ResultsService {
 
   // The user can be left undefined when this is called by app.service.ts, which has its own authorization check
   async createResult(
-    createResultDto: CreateResultDto,
+    competitionId: string,
     roundId: string,
+    createResultDto: CreateResultDto,
     { user }: { user?: IPartialUser } = {},
   ): Promise<RoundDocument> {
     this.logger.logAndSave(
@@ -516,27 +515,32 @@ export class ResultsService {
       LogType.CreateResult,
     );
 
-    const contest = await this.getContestAndCheckAccessRights(createResultDto.competitionId, { user });
+    const contest = await this.getContestAndCheckAccessRights(competitionId, { user });
 
-    const round = await this.roundModel
-      .findOne({ competitionId: createResultDto.competitionId, roundId })
-      .populate(resultPopulateOptions)
-      .exec();
+    const round = await this.roundModel.findOne({ competitionId, roundId }).populate(resultPopulateOptions).exec();
     if (!round) throw new BadRequestException("Round not found");
     const event = await this.eventsService.getEventById(createResultDto.eventId);
-
-    await this.validateAndCleanUpResult(createResultDto, event, { mode: "create", round });
+    const newResult: IResult = {
+      ...createResultDto,
+      competitionId,
+      // Admins are allowed to edit finished contests, so this check is necessary. If it's a finished contest
+      // and the user is not an admin, they won't have access rights anyways, so the roles don't need to be checked here.
+      unapproved: contest.state < ContestState.Finished ? true : undefined,
+      // All of these are set below
+      date: new Date(),
+      ranking: 0,
+      best: 0,
+      average: 0,
+    }
 
     // Set result date. For contests with a schedule, the schedule must be used to set the date.
     if (!getIsCompType(contest.type)) {
-      createResultDto.date = contest.startDate;
+      newResult.date = contest.startDate;
     } else {
-      const schedule = await this.scheduleModel.findOne({ competitionId: createResultDto.competitionId }).exec();
+      const schedule = await this.scheduleModel.findOne({ competitionId }).exec();
 
       if (!schedule) {
-        throw new InternalServerErrorException(
-          `No schedule found for contest with ID ${createResultDto.competitionId}`,
-        );
+        throw new InternalServerErrorException(`No schedule found for contest with ID ${competitionId}`);
       }
 
       let activity: IActivity;
@@ -547,7 +551,7 @@ export class ResultsService {
             for (const act of room.activities) {
               if (act.activityCode === round.roundId) {
                 activity = act;
-                createResultDto.date = getDateOnly(toZonedTime(activity.endTime, venue.timezone));
+                newResult.date = getDateOnly(toZonedTime(activity.endTime, venue.timezone));
                 break scheduleLoop;
               }
             }
@@ -558,29 +562,22 @@ export class ResultsService {
       if (!activity) throw new InternalServerErrorException(`No schedule activity found for round ${round.roundId}`);
     }
 
+    await this.validateAndCleanUpResult(newResult, event, { mode: "create", round: round as IRound });
+
     // Create new result and update the round's results
-    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
-    const newResult = await this.resultModel.create({
-      ...setResultRecords(createResultDto, event, recordPairs),
-      // Admins are allowed to edit finished contests, so this check is necessary. If it's a finished contest
-      // and the user is not an admin, they won't have access rights anyways, so the roles don't need to be checked here.
-      unapproved: contest.state < ContestState.Finished ? true : undefined,
-    });
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: newResult.date });
+    const createdResult = await this.resultModel.create(setResultRecords(newResult, event, recordPairs));
 
-    if (!newResult.unapproved) await this.personsService.approvePersons({ personIds: newResult.personIds });
+    if (!createdResult.unapproved) await this.personsService.approvePersons({ personIds: newResult.personIds });
 
-    await this.updateFutureRecords(newResult, event, recordPairs, { mode: "create" });
+    await this.updateFutureRecords(createdResult, event, recordPairs, { mode: "create" });
 
-    round.results.push(newResult);
-    round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
+    round.results.push(createdResult);
+    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
     await round.save();
     await this.updateContestParticipants(contest);
 
-    const updatedRound = await this.roundModel
-      .findOne({ competitionId: createResultDto.competitionId, roundId }, excl)
-      .populate(resultPopulateOptions)
-      .exec();
-
+    const updatedRound = await this.roundModel.findOne({ competitionId, roundId }, excl).populate(resultPopulateOptions).exec();
     return updatedRound;
   }
 
@@ -600,15 +597,19 @@ export class ResultsService {
       }
     }
 
-    if (!isAdmin) submitResultDto.unapproved = true;
-    submitResultDto.date = new Date(submitResultDto.date);
-
     const event = await this.eventsService.getEventById(submitResultDto.eventId);
 
-    await this.validateAndCleanUpResult(submitResultDto, event, { mode: "submit" });
-
+    // The best and average get set in validateAndCleanUpResult
+    const newResult: ISubmittedResult = {
+      ...submitResultDto,
+      unapproved: isAdmin ? undefined : true,
+      date: new Date(submitResultDto.date),
+      best: 0,
+      average: 0,
+      createdBy: new mongo.ObjectId(user._id as string)
+    };
+    await this.validateAndCleanUpResult(newResult, event, { mode: "submit" });
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
-    const newResult = { ...submitResultDto, createdBy: new mongo.ObjectId(user._id as string) };
     const createdResult = await this.resultModel.create(setResultRecords(newResult, event, recordPairs, !isAdmin));
 
     if (isAdmin) {
@@ -637,10 +638,7 @@ export class ResultsService {
 
   // The user can be left undefined when this is called from enterAttemptFromExternalDevice() or when editing a submitted result
   async updateResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
-    this.logger.logAndSave(
-      `Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
-      LogType.UpdateResult,
-    );
+    this.logger.logAndSave(`Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`, LogType.UpdateResult);
 
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
@@ -667,19 +665,16 @@ export class ResultsService {
 
     result.personIds = updateResultDto.personIds;
     result.attempts = updateResultDto.attempts; // the best and average get updated in validateAndCleanUpResult
-    // The best and average are set in validateAndCleanUpResult
-    result.best = null;
-    result.average = null;
     result.regionalSingleRecord = undefined;
     result.regionalAverageRecord = undefined;
 
-    await this.validateAndCleanUpResult(result, event, { mode: "edit", round });
+    await this.validateAndCleanUpResult(result as IResult | ISubmittedResult, event, { mode: "edit", round: round as IRound });
 
     const recordPairs = await this.getEventRecordPairs(event, {
       recordsUpTo: result.date,
       excludeResultId: result._id.toString(),
     });
-    setResultRecords(result, event, recordPairs);
+    setResultRecords(result as IResult | ISubmittedResult, event, recordPairs);
 
     // This is only relevant for video-based results
     if (result.unapproved && !updateResultDto.unapproved) {
@@ -702,7 +697,7 @@ export class ResultsService {
     // Update round rankings, if it's a contest result
     if (contest) {
       round.results = round.results.map((r) => (r._id.toString() === resultId ? result : r));
-      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
+      round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
       round.save();
       await this.updateContestParticipants(contest);
 
@@ -739,7 +734,7 @@ export class ResultsService {
 
     if (contest) {
       round.results = round.results.filter((el) => el._id.toString() !== resultId);
-      round.results = await setRankings(round.results, { ranksWithAverage: getRoundRanksWithAverage(round.format) });
+      round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
       round.save();
       await this.updateContestParticipants(contest);
 
@@ -863,7 +858,7 @@ export class ResultsService {
 
   // Updates records set on the same day or in the future
   async updateFutureRecords(
-    result: CreateResultDto | ResultDocument,
+    result: ResultDocument,
     event: EventDocument,
     recordPairs: IRecordPair[],
     {
@@ -883,7 +878,7 @@ export class ResultsService {
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
     for (const rp of recordPairs) {
       try {
-        const singlesComparison = mode === "edit" ? compareSingles(result, { best: previousBest } as IResult) : 0;
+        const singlesComparison = mode === "edit" ? compareSingles(result, { best: previousBest }) : 0;
         const singleGotWorse = singlesComparison > 0 || (mode === "delete" && result.best > 0);
         const singleGotBetter = singlesComparison < 0 || (mode === "create" && result.best > 0);
 
@@ -899,7 +894,7 @@ export class ResultsService {
 
             // Make sure it's better than the record at the time, if there was one, and better than the new best, if it's an edit
             if (rp.best > 0) best.$lte = rp.best;
-            if (mode === "edit" && compareSingles(result, { best: rp.best } as IResult) < 0) best.$lte = result.best;
+            if (mode === "edit" && compareSingles(result, { best: rp.best }) < 0) best.$lte = result.best;
             singleQuery.best = best;
 
             await this.recordTypesService.setEventSingleRecords(event, rp.wcaEquivalent, singleQuery);
@@ -911,7 +906,7 @@ export class ResultsService {
           }
         }
 
-        const avgsComparison = mode === "edit" ? compareAvgs(result, { average: previousAvg } as IResult, true) : 0;
+        const avgsComparison = mode === "edit" ? compareAvgs(result, { average: previousAvg }) : 0;
         const avgGotWorse = avgsComparison > 0 || (mode === "delete" && result.average > 0);
         const avgGotBetter = avgsComparison < 0 || (mode === "create" && result.average > 0);
 
@@ -927,7 +922,7 @@ export class ResultsService {
 
             // Make sure it's better than the record at the time, if there was one, and better than the new average, if it's an edit
             if (rp.average > 0) average.$lte = rp.average;
-            if (mode === "edit" && compareAvgs(result, { average: rp.average } as IResult, true) < 0) {
+            if (mode === "edit" && compareAvgs(result, { average: rp.average }) < 0) {
               average.$lte = result.average;
             }
             avgQuery.average = average;
@@ -980,7 +975,7 @@ export class ResultsService {
   }
 
   async validateAndCleanUpResult(
-    result: IResult,
+    result: IResult | ISubmittedResult,
     event: IEvent,
     { round, mode }: {
       round?: IRound; // if round is defined, that means it's a contest result, not a submitted one
@@ -995,6 +990,9 @@ export class ResultsService {
     if (result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2))) {
       throw new BadRequestException("You cannot enter the same person twice in the same result");
     }
+    // There is a time zone that's 14 hours ahead of UTC, hence the 15 hour margin here
+    if (differenceInHours(result.date, new Date()) > 15)
+      throw new BadRequestException('The date cannot be in the future');
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
     // and this is only used for those results, because a competition result would have a round
@@ -1002,12 +1000,10 @@ export class ResultsService {
       ? roundFormats.find((rf) => rf.value === round.format)
       : roundFormats.find((rf) => rf.attempts === result.attempts.length && rf.value !== RoundFormat.BestOf3);
 
-    // Validate the best single and the average
-    const { best, average } = getBestAndAverage(result.attempts, event, { round, roundFormat: format.value });
-    if (result.best === null) result.best = best;
-    else if (result.best !== best) throw new BadRequestException("The best single is incorrect. Please try again.");
-    if (result.average === null) result.average = average;
-    else if (result.average !== average) throw new BadRequestException("The average is incorrect. Please try again.");
+    // Set the best single and average
+    const { best, average } = getBestAndAverage(result.attempts, event, format.value, { cutoff: round?.cutoff });
+    result.best = best;
+    result.average = average;
 
     if (round) {
       // Make sure there is no result for any of the same people
@@ -1041,16 +1037,16 @@ export class ResultsService {
           // Add all attempt times from the other rounds included in the cumulative time limit
           const rounds = await this.roundModel
             .find({
-              competitionId: result.competitionId,
+              competitionId: (result as IResult).competitionId,
               roundId: { $in: round.timeLimit.cumulativeRoundIds, $ne: round.roundId },
             })
             .populate(resultPopulateOptions)
             .exec();
 
           for (const r of rounds) {
-            const samePeoplesResult: IResult = r.results.find(
+            const samePeoplesResult = r.results.find(
               (res) => !res.personIds.some((pid) => !result.personIds.includes(pid)),
-            );
+            ) as IResult;
 
             if (samePeoplesResult) {
               for (const attempt of samePeoplesResult.attempts) total += attempt.result;
@@ -1095,7 +1091,7 @@ export class ResultsService {
       }
     } // Video-based results validation
     else {
-      if (result.videoLink === undefined) throw new BadRequestException("Please enter a video link");
+      if ((result as ISubmittedResult).videoLink === undefined) throw new BadRequestException("Please enter a video link");
     }
   }
 }

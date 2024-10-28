@@ -1,30 +1,34 @@
 import { ResultDocument } from "~/src/models/result.model";
-import { compareAvgs, compareSingles, getDefaultAverageAttempts } from "@sh/sharedFunctions";
-import { IActivity, IContest, IContestEvent, IEvent, IRound, IWcifActivity, IWcifCompetition, IWcifEvent, IWcifRound, IWcifSchedule } from "@sh/types";
+import {
+  compareAvgs,
+  compareSingles,
+  getDefaultAverageAttempts,
+} from "@sh/sharedFunctions";
+import {
+  IActivity,
+  IContest,
+  IContestEvent,
+  IEvent,
+  IRound,
+  IWcifActivity,
+  IWcifCompetition,
+  IWcifEvent,
+  IWcifRound,
+  IWcifSchedule,
+} from "@sh/types";
 import { IUser } from "~/src/helpers/interfaces/User";
 import { formatInTimeZone } from "date-fns-tz";
 import { differenceInDays } from "date-fns";
 
-export const setRankings = async (
+export const setRoundRankings = async (
   results: ResultDocument[],
-  {
-    ranksWithAverage,
-    dontSortOrSave,
-    noTieBreakerForAvgs,
-  }: { ranksWithAverage?: boolean; dontSortOrSave?: boolean; noTieBreakerForAvgs?: boolean },
+  ranksWithAverage: boolean,
 ): Promise<ResultDocument[]> => {
   if (results.length === 0) return results;
 
-  let sortedResults: ResultDocument[];
-
-  if (dontSortOrSave) {
-    sortedResults = results;
-  } else if (ranksWithAverage) {
-    sortedResults = results.sort((a, b) => compareAvgs(a, b, noTieBreakerForAvgs));
-  } else {
-    sortedResults = results.sort(compareSingles);
-  }
-
+  const sortedResults = results.sort(
+    ranksWithAverage ? compareAvgs : compareSingles,
+  );
   let prevResult = sortedResults[0];
   let ranking = 1;
 
@@ -32,7 +36,7 @@ export const setRankings = async (
     // If the previous result was not tied with this one, increase ranking
     if (
       i > 0 &&
-      ((ranksWithAverage && compareAvgs(prevResult, sortedResults[i], noTieBreakerForAvgs) < 0) ||
+      ((ranksWithAverage && compareAvgs(prevResult, sortedResults[i]) < 0) ||
         (!ranksWithAverage && compareSingles(prevResult, sortedResults[i]) < 0))
     ) {
       ranking = i + 1;
@@ -40,10 +44,39 @@ export const setRankings = async (
 
     sortedResults[i].ranking = ranking;
     prevResult = sortedResults[i];
-    if (!dontSortOrSave) await sortedResults[i].save(); // update the result in the DB
+    await sortedResults[i].save(); // update the result in the DB
   }
 
   return sortedResults;
+};
+
+export const setRankings = async (
+  results: ResultDocument[],
+  ranksWithAverage: boolean,
+): Promise<ResultDocument[]> => {
+  if (results.length === 0) return results;
+
+  let prevResult = results[0];
+  let ranking = 1;
+
+  for (let i = 0; i < results.length; i++) {
+    // If the previous result was not tied with this one, increase ranking
+    if (
+      i > 0 &&
+      ((ranksWithAverage &&
+        compareAvgs({ average: prevResult.average }, {
+            average: results[i].average,
+          }) < 0) ||
+        (!ranksWithAverage && compareSingles(prevResult, results[i]) < 0))
+    ) {
+      ranking = i + 1;
+    }
+
+    results[i].ranking = ranking;
+    prevResult = results[i];
+  }
+
+  return results;
 };
 
 export const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => {
@@ -52,14 +85,20 @@ export const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => {
 };
 
 export const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => {
-  const output: any = { eventId: event.eventId, average, attempts: { $size: getDefaultAverageAttempts(event) } };
+  const output: any = {
+    eventId: event.eventId,
+    average,
+    attempts: { $size: getDefaultAverageAttempts(event) },
+  };
   return output;
 };
 
-export const getUserEmailVerified = (user: IUser) => user.confirmationCodeHash === undefined && !user.cooldownStarted;
+export const getUserEmailVerified = (user: IUser) =>
+  user.confirmationCodeHash === undefined && !user.cooldownStarted;
 
-export const importEsmModule = async <T = any>(moduleName: string): Promise<T> =>
-  await (eval(`import('${moduleName}')`) as Promise<T>);
+export const importEsmModule = async <T = any>(
+  moduleName: string,
+): Promise<T> => await (eval(`import('${moduleName}')`) as Promise<T>);
 
 export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
   formatVersion: "1.0",
@@ -68,12 +107,15 @@ export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
   shortName: contest.shortName,
   persons: [],
   events: contest.events.map((ce) => getWcifCompEvent(ce)),
-  schedule: contest.compDetails?.schedule ? getWcifSchedule(contest) : ({} as IWcifSchedule),
+  schedule: contest.compDetails?.schedule
+    ? getWcifSchedule(contest)
+    : ({} as IWcifSchedule),
   competitorLimit: contest.competitorLimit ?? null,
   extensions: [],
 });
 
-const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, "UTC", "yyyy-MM-dd");
+const convertDateToWcifDate = (date: Date): string =>
+  formatInTimeZone(date, "UTC", "yyyy-MM-dd");
 
 const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
   id: contestEvent.event.eventId as any,
@@ -82,7 +124,10 @@ const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
     {
       id: "TEMPORARY",
       specUrl: "",
-      data: { name: contestEvent.event.name, participants: contestEvent.event.participants },
+      data: {
+        name: contestEvent.event.name,
+        participants: contestEvent.event.participants,
+      },
     },
   ],
 });

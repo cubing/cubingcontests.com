@@ -41,7 +41,7 @@ const Tabs = ({
               )
               : (
                 <Link
-                  href={tab.route}
+                  href={tab.route as string}
                   prefetch={prefetch}
                   replace={replace}
                   className={"nav-link" +

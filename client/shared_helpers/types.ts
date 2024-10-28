@@ -21,6 +21,7 @@ export type {
   IRecordPair,
   IResult,
   IResultsSubmissionInfo,
+  ISubmittedResult,
   IUpdateResultDto,
 } from "./interfaces/Result.ts";
 export type { ICutoff, IProceed, IRound, IRoundFormat, ITimeLimit } from "./interfaces/Round.ts";

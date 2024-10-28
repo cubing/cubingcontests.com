@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { capitalize } from "lodash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import Country from "~/app/components/Country.tsx";
@@ -11,7 +12,7 @@ import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import { IEvent, IPerson, IRanking, type ResultRankingType } from "~/shared_helpers/types.ts";
 import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
-import { capitalize, getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
 const RankingRow = ({
   isTiedRanking,

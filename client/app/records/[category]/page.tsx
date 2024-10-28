@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { capitalize } from "lodash";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import RankingsTable from "~/app/components/RankingsTable.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
@@ -8,7 +9,7 @@ import Competitors from "~/app/components/Competitors.tsx";
 import C from "~/shared_helpers/constants.ts";
 import { IEventRankings, type ResultRankingType } from "~/shared_helpers/types.ts";
 import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
-import { capitalize, getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { type EventCategory, INavigationItem } from "~/helpers/types.ts";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";

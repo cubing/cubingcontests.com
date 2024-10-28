@@ -44,25 +44,23 @@ const AttemptInput = ({
   attempt,
   setAttempt,
   event,
-  focusNext = () => {},
   timeLimit,
   memoInputForBld = false,
-  resetTrigger,
   allowUnknownTime = false,
   maxTime,
   disabled = false,
+  nextFocusTargetId,
 }: {
   attNumber: number; // number of the attempt (use 0 if the input is used for a time limit or cutoff)
   attempt: IFeAttempt;
   setAttempt: (val: IFeAttempt) => void;
   event: IEvent;
-  focusNext?: () => void;
   timeLimit?: ITimeLimit;
   memoInputForBld?: boolean;
-  resetTrigger?: boolean;
   allowUnknownTime?: boolean;
   maxTime?: number; // maximum allowed time in centiseconds (can be used for time limit/cutoff inputs)
   disabled?: boolean;
+  nextFocusTargetId?: string;
 }) => {
   const [solved, setSolved] = useState<NumberInputValue>(undefined);
   const [attempted, setAttempted] = useState<NumberInputValue>(undefined);
@@ -107,23 +105,26 @@ const AttemptInput = ({
         // Memo time
         if (attempt.memo && attempt.memo > 0) {
           setMemoText(getFormattedTime(attempt.memo, { noFormatting: true }));
+        } else if (attempt.memo === undefined) {
+          setMemoText("");
         }
       }
     }
   }, [attempt]);
 
-  useEffect(() => {
-    if (resetTrigger !== undefined) {
-      setSolved(undefined);
-      setAttempted(undefined);
-      setAttemptText("");
-      setMemoText("");
-    }
-  }, [resetTrigger]);
-
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
+
+  const focusNext = () => {
+    if (nextFocusTargetId) {
+      document.getElementById(nextFocusTargetId)?.focus();
+    } else {
+      const solvedInput = document.getElementById(`attempt_${attNumber + 1}_solved`);
+      if (solvedInput && !(solvedInput as any).disabled) solvedInput.focus();
+      else document.getElementById(`attempt_${attNumber + 1}`)?.focus();
+    }
+  };
 
   const handleSetDNS = (e: any) => {
     e.preventDefault();

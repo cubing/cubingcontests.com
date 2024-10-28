@@ -12,8 +12,6 @@ import { ResultsService } from "@m/results/results.service";
 import { EnterAttemptDto } from "~/src/app-dto/enter-attempt.dto";
 import { EnterResultsDto, ExternalResultDto } from "./app-dto/enter-results.dto";
 
-type PartialResult = Omit<IResult, "eventId" | "best" | "average">;
-
 @Injectable()
 export class AppService {
   constructor(
@@ -113,9 +111,9 @@ export class AppService {
       enterAttemptDto.eventId,
       enterAttemptDto.roundNumber,
     );
-    const result: IResult | undefined = round.results.find(
+    const result = round.results.find(
       (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
-    );
+    ) as IResult | undefined;
     const roundFormat = roundFormats.find((rf) => rf.value === round.format);
     const attempts: IAttempt[] = [];
 
@@ -129,27 +127,20 @@ export class AppService {
       else attempts.push({ result: 0 });
     }
 
-    const newResultPartial: PartialResult = {
-      date: null as Date, // real date assigned below
-      unapproved: true, // it's not allowed to enter a new attempt for a finished contest anyways
-      // TO-DO: ADD PROPER SUPPORT FOR TEAM EVENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      personIds: [person.personId],
-      attempts,
-    };
-
     if (result) {
-      await this.resultsService.updateResult((result as any)._id.toString(), newResultPartial);
+      await this.resultsService.updateResult((result as any)._id.toString(), {
+        // TO-DO: MAKE THE updateResult FUNCTION DO THIS AUTOMATICALLY FOR EXTERNALLY-ENTERED RESULTS(?)
+        unapproved: true,
+        // TO-DO: ADD PROPER SUPPORT FOR TEAM EVENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        personIds: [person.personId],
+        attempts,
+      });
     } else {
-      await this.resultsService.createResult(
-        {
-          ...newResultPartial,
-          eventId: enterAttemptDto.eventId,
-          competitionId: enterAttemptDto.competitionWcaId,
-          best: null,
-          average: null,
-        },
-        round.roundId,
-      );
+      await this.resultsService.createResult(enterAttemptDto.competitionWcaId, round.roundId, {
+        personIds: [person.personId],
+        attempts,
+        eventId: enterAttemptDto.eventId,
+      });
     }
   }
 
@@ -162,30 +153,22 @@ export class AppService {
 
     for (const externalResultDto of enterResultsDto.results) {
       const person = await this.getPersonForExtDeviceDataEntry(externalResultDto);
-      const result: IResult | undefined = round.results.find(
+      const result = round.results.find(
         (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
-      );
-
-      const newResultPartial: PartialResult = {
-        date: null as Date,
-        unapproved: true,
-        personIds: [person.personId],
-        attempts: externalResultDto.attempts,
-      };
+      ) as IResult | undefined;
 
       if (result) {
-        await this.resultsService.updateResult((result as any)._id.toString(), newResultPartial);
+        await this.resultsService.updateResult((result as any)._id.toString(), {
+          unapproved: true,
+          personIds: [person.personId],
+          attempts: externalResultDto.attempts,
+        });
       } else {
-        await this.resultsService.createResult(
-          {
-            ...newResultPartial,
-            eventId: enterResultsDto.eventId,
-            competitionId: enterResultsDto.competitionWcaId,
-            best: null,
-            average: null,
-          },
-          round.roundId,
-        );
+        await this.resultsService.createResult(enterResultsDto.competitionWcaId, round.roundId, {
+          eventId: enterResultsDto.eventId,
+          personIds: [person.personId],
+          attempts: externalResultDto.attempts,
+        });
       }
     }
   }

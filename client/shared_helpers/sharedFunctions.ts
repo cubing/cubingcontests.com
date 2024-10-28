@@ -10,78 +10,67 @@ import {
   IPersonDto,
   IRecordPair,
   IResult,
-  IRound,
+  type IRoundFormat,
+  type ISubmittedResult,
 } from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
 
+type BestCompareObj = { best: number };
+type AvgCompareObj = { best?: number; average: number };
+
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
-export const compareSingles = (a: IResult, b: IResult): number => {
+export const compareSingles = (a: BestCompareObj, b: BestCompareObj): number => {
   if (a.best <= 0 && b.best > 0) return 1;
   else if (a.best > 0 && b.best <= 0) return -1;
   else if (a.best <= 0 && b.best <= 0) return 0;
   return a.best - b.best;
 };
 
-// Same logic as above, except the single is also used as a tie-breaker if both averages are DNF.
-// This tie-breaking behavior can be disabled with noTieBreaker = true (e.g. when setting records).
-// However, that third argument cannot be used with the Array.sort() method.
-export const compareAvgs = (
-  a: IResult,
-  b: IResult,
-  noTieBreaker = false,
-): number => {
+// Same logic as above, except the single can also be used as a tie breaker if the averages are equivalent
+export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
+  // If a.best or b.best is left undefined, the tie breaker will not be used
+  const useTieBreaker = typeof a.best === "number" && typeof b.best === "number";
+  const breakTie = () => compareSingles({ best: a.best as number }, { best: b.best as number });
+
   if (a.average <= 0) {
     if (b.average <= 0) {
-      if (noTieBreaker) return 0;
-      return compareSingles(a, b);
+      if (useTieBreaker) breakTie();
+      return 0;
     }
     return 1;
   } else if (a.average > 0 && b.average <= 0) {
     return -1;
   }
-
-  if (a.average === b.average && !noTieBreaker) return compareSingles(a, b);
-
+  if (a.average === b.average && useTieBreaker) return breakTie();
   return a.average - b.average;
 };
 
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
 // and includes unapproved results
 export const setResultRecords = (
-  result: IResult,
+  result: IResult | ISubmittedResult,
   event: IEvent,
   recordPairs: IRecordPair[],
   noConsoleLog = false,
-): IResult => {
+): IResult | ISubmittedResult => {
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
-      const comparisonToRecordSingle = compareSingles(
-        result,
-        { best: recordPair.best } as IResult,
-      );
+      const comparisonToRecordSingle = compareSingles(result, { best: recordPair.best } as IResult);
 
       if (result.best > 0 && comparisonToRecordSingle <= 0) {
-        if (!noConsoleLog) {
-          console.log(`New ${result.eventId} single WR: ${result.best}`);
-        }
+        if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
       if (
         result.attempts.length === roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.attempts
       ) {
-        const comparisonToRecordAvg = compareAvgs(
-          result,
-          { average: recordPair.average } as IResult,
-          true,
-        );
+        const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average });
 
         if (result.average > 0 && comparisonToRecordAvg <= 0) {
-          if (!noConsoleLog) {
-            console.log(`New ${result.eventId} average WR: ${result.average}`);
-          }
+          if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
           result.regionalAverageRecord = recordPair.wcaEquivalent;
         }
       }
@@ -97,9 +86,7 @@ export const getDateOnly = (date: Date | null): Date | null => {
     return null;
   }
 
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  );
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
 
 export const getFormattedTime = (
@@ -206,18 +193,15 @@ export const getFormattedTime = (
 export const getBestAndAverage = (
   attempts: IAttempt[] | IFeAttempt[],
   event: IEvent,
-  { round, roundFormat }: { round?: IRound; roundFormat?: RoundFormat },
+  roundFormat: RoundFormat,
+  { cutoff }: { cutoff?: ICutoff } = {},
 ): { best: number; average: number } => {
-  if (!round && !roundFormat) throw new Error("round and roundFormat cannot both be undefined");
-
   let best: number, average: number;
   let sum = 0;
   let dnfDnsCount = 0;
-  const makesCutoff = getMakesCutoff(attempts, round?.cutoff);
-  const format = round?.format ?? roundFormat;
-  const expectedAttempts = roundFormats.find((rf) => rf.value === format)?.attempts;
-
-  if (!expectedAttempts) throw new Error("Round format not found");
+  const makesCutoff = getMakesCutoff(attempts, cutoff);
+  const expectedAttempts = (roundFormats.find((rf) => rf.value === roundFormat) as IRoundFormat).attempts;
+  const enteredAttempts = attempts.filter((a) => a.result !== 0).length;
 
   // This actually follows the rule that the lower the attempt value is - the better
   const convertedAttempts: number[] = attempts.map(({ result }) => {
@@ -234,13 +218,10 @@ export const getBestAndAverage = (
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (
-    !makesCutoff || expectedAttempts < 3 ||
-    attempts.filter((a) => a.result !== 0).length < expectedAttempts
-  ) {
+  if (!makesCutoff || expectedAttempts < 3 || enteredAttempts < expectedAttempts) {
     average = 0;
   } else if (
-    dnfDnsCount > 1 || (dnfDnsCount > 0 && format !== RoundFormat.Average)
+    dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== RoundFormat.Average)
   ) {
     average = -1;
   } else {
@@ -250,9 +231,7 @@ export const getBestAndAverage = (
       if (dnfDnsCount === 0) sum -= Math.max(...convertedAttempts);
     }
 
-    average = Math.round(
-      (sum / 3) * (event.format === EventFormat.Number ? 100 : 1),
-    );
+    average = Math.round((sum / 3) * (event.format === EventFormat.Number ? 100 : 1));
   }
 
   return { best, average };
@@ -279,16 +258,13 @@ export const getMakesCutoff = (attempts: IAttempt[] | IFeAttempt[], cutoff: ICut
   !cutoff ||
   attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result && a.result > 0 && a.result < cutoff.attemptResult);
 
-export const getRoleLabel = (role: Role, capitalize = false): string => {
+export const getRoleLabel = (role: Role): string => {
   switch (role) {
     case Role.User:
-      if (capitalize) return "User";
       return "user";
     case Role.Moderator:
-      if (capitalize) return "Moderator";
       return "moderator";
     case Role.Admin:
-      if (capitalize) return "Admin";
       return "admin";
     default:
       throw new Error(`Unknown role: ${role}`);

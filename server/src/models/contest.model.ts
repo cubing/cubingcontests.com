@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { ICompetitionDetails, IContest, IContestEvent, IMeetupDetails } from "@sh/types";
+import { ICompetitionDetails, IMeetupDetails } from "@sh/types";
 import { RoundDocument } from "./round.model";
 import { PersonDocument } from "./person.model";
 import { ContestState, ContestType } from "@sh/enums";
@@ -9,7 +9,7 @@ import { ScheduleDocument } from "./schedule.model";
 import { UserDocument } from "./user.model";
 
 @Schema({ _id: false })
-export class ContestEvent implements IContestEvent {
+export class ContestEvent {
   @Prop({ type: mongoose.Types.ObjectId, ref: "Event", required: true })
   event: EventDocument;
 
@@ -36,7 +36,7 @@ export class MeetupDetails implements IMeetupDetails {
 const MeetupDetailsSchema = SchemaFactory.createForClass(MeetupDetails);
 
 @Schema({ timestamps: true })
-class Competition implements IContest {
+class Competition {
   @Prop({ required: true, unique: true })
   competitionId: string;
 

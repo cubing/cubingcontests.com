@@ -14,6 +14,7 @@
     "npm:@hono/zod-validator@~0.4.1": "0.4.1_hono@4.6.6_zod@3.23.8",
     "npm:@tanstack/react-query@^5.59.16": "5.59.16_react@18.3.1",
     "npm:@tanstack/react-virtual@^3.10.8": "3.10.8_react@18.3.1_react-dom@18.3.1__react@18.3.1",
+    "npm:@types/lodash@^4.17.12": "4.17.12",
     "npm:@types/node@*": "22.5.4",
     "npm:@types/node@^20.16.13": "20.16.13",
     "npm:@types/react-dom@^18.3.1": "18.3.1",
@@ -233,6 +234,9 @@
     },
     "@types/geojson@7946.0.14": {
       "integrity": "sha512-WCfD5Ht3ZesJUsONdhvm84dmzWOiOzOAqOncN0++w0lBw1o8OuDNJF2McvvCef/yBqb/HYRahp1BYtODFQ8bRg=="
+    },
+    "@types/lodash@4.17.12": {
+      "integrity": "sha512-sviUmCE8AYdaF/KIHLDJBQgeYzPBI0vf/17NaYehBJfYD1j6/L95Slh07NlyK2iNyBNaEkb3En2jRt+a8y3xZQ=="
     },
     "@types/node@20.16.13": {
       "integrity": "sha512-GjQ7im10B0labo8ZGXDGROUl9k0BNyDgzfGpb4g/cl+4yYDWVKcozANF4FGr4/p0O/rAkQClM6Wiwkije++1Tg==",
@@ -616,6 +620,7 @@
             "npm:@fortawesome/react-fontawesome@~0.2.2",
             "npm:@tanstack/react-query@^5.59.16",
             "npm:@tanstack/react-virtual@^3.10.8",
+            "npm:@types/lodash@^4.17.12",
             "npm:@types/node@^20.16.13",
             "npm:@types/react-dom@^18.3.1",
             "npm:@types/react@^18.3.11",

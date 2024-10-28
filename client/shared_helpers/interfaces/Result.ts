@@ -22,35 +22,51 @@ export interface IFeAttempt {
 }
 
 export interface IResult {
-  competitionId?: string; // not needed for submitted results
+  competitionId: string;
   eventId: string;
   date: Date;
   unapproved?: true;
   // This is an array, because for team events (e.g. Team-Blind) it stores multiple IDs
   personIds: number[];
-  ranking?: number; // not needed for submitted results
+  ranking: number;
   attempts: IAttempt[];
   best: number;
   average: number; // for FMC it's 100 times the mean (to avoid decimals)
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
-  videoLink?: string; // required for submitted results (but admins may leave this empty)
-  discussionLink?: string; // only used for submitted results (still optional though)
-  createdBy?: unknown; // user ID of the user who created the result (only used for submitted results)
 }
 
-export interface IFeResult extends IResult {
-  event: IEvent;
-  persons: IPerson[];
+export type ISubmittedResult = Omit<IResult, "competitionId" | "ranking"> & {
+  videoLink: string;
+  discussionLink?: string;
+  createdBy?: unknown; // user ID of the user who created the result
+};
+
+export interface IResultDto {
+  eventId: string;
+  personIds: number[];
+  attempts: IAttempt[];
+}
+
+export interface ISubmittedResultDto extends IResultDto {
+  date: Date;
+  unapproved?: true;
+  videoLink: string;
+  discussionLink?: string;
 }
 
 export interface IUpdateResultDto {
-  date: Date;
+  date?: Date; // only used for submitted results
   unapproved?: true; // only needed for updating submitted results, because they can be approved at the same time
   personIds: number[];
   attempts: IAttempt[];
   videoLink?: string; // required for submitted results
   discussionLink?: string; // only used for submitted results
+}
+
+export interface IFeResult extends IResult {
+  event: IEvent;
+  persons: IPerson[];
 }
 
 export interface IRanking {
@@ -94,7 +110,7 @@ export interface IResultsSubmissionInfo {
 
 // These are only used for the edit result page, so this information is admin-only
 export interface IAdminResultsSubmissionInfo extends IResultsSubmissionInfo {
-  result: IResult;
+  result: ISubmittedResult;
   persons: IPerson[];
   creator: IFeUser;
 }

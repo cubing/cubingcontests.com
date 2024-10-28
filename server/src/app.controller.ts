@@ -29,6 +29,7 @@ import { LogType } from "~/src/helpers/enums";
 import { EmailService } from "@m/email/email.service";
 import { ContestsService } from "@m/contests/contests.service";
 import { EnterResultsDto } from "./app-dto/enter-results.dto";
+import { IContest } from "~/shared_helpers/types";
 
 @Controller()
 export class AppController {
@@ -56,7 +57,7 @@ export class AppController {
 
     await this.authService.checkAccessRightsToContest(req.user, contest);
 
-    const buffer = await getScorecards(getWcifCompetition(contest));
+    const buffer = await getScorecards(getWcifCompetition(contest as IContest));
 
     res.set({
       "Content-Type": "application/pdf",

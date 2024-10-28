@@ -1,14 +1,9 @@
-import { IEvent, IRecordType, IResult } from "~/shared_helpers/types.ts";
+import { IEvent, IRecordType, IResult, type ISubmittedResult } from "~/shared_helpers/types.ts";
 import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
 import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 
-const Time = ({
-  result,
-  event,
-  recordTypes,
-  average,
-}: {
-  result: IResult;
+const Time = ({ result, event, recordTypes, average }: {
+  result: IResult | ISubmittedResult;
   event: IEvent;
   recordTypes: IRecordType[];
   average?: boolean;

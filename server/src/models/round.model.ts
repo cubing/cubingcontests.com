@@ -39,7 +39,7 @@ export class Proceed implements IProceed {
 const ProceedSchema = SchemaFactory.createForClass(Proceed);
 
 @Schema({ timestamps: true })
-export class Round implements IRound {
+export class Round {
   @Prop({ required: true })
   roundId: string;
 

@@ -4,14 +4,8 @@ import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
 import { Color, EventFormat, Role } from "~/shared_helpers/enums.ts";
 import C from "~/shared_helpers/constants.ts";
-import {
-  IEvent,
-  IFeAttempt,
-  ITimeLimit,
-  type NumberInputValue,
-  type ResultRankingType,
-} from "~/shared_helpers/types.ts";
-import { UserInfo } from "./types.ts";
+import { IEvent, IFeAttempt, type IRoundFormat, ITimeLimit, type NumberInputValue } from "~/shared_helpers/types.ts";
+import { type MultiChoiceOption, UserInfo } from "./types.ts";
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
   if (!startDate) throw new Error("Start date missing!");
@@ -168,27 +162,20 @@ export const getUserInfo = (): UserInfo => {
 export const getBSClassFromColor = (color: Color | undefined): string => {
   // THE MAGENTA OPTION IS SKIPPED FOR NOW
   switch (color) {
-    case Color.Red: {
+    case Color.Red:
       return "danger";
-    }
-    case Color.Blue: {
+    case Color.Blue:
       return "primary";
-    }
-    case Color.Green: {
+    case Color.Green:
       return "success";
-    }
-    case Color.Yellow: {
+    case Color.Yellow:
       return "warning";
-    }
-    case Color.White: {
+    case Color.White:
       return "light";
-    }
-    case Color.Cyan: {
+    case Color.Cyan:
       return "info";
-    }
-    case Color.Black: {
+    case Color.Black:
       return "dark";
-    }
     default: {
       console.error(`Unknown color: ${color}`);
       return "dark";
@@ -200,10 +187,7 @@ export const getContestIdFromName = (name: string): string => {
   let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, "");
   const parts = output.split(" ");
 
-  output = parts
-    .filter((el) => el !== "")
-    .map((el) => el[0].toUpperCase() + el.slice(1))
-    .join("");
+  output = parts.filter((el) => el !== "").map((el) => el[0].toUpperCase() + el.slice(1)).join("");
 
   return output;
 };
@@ -261,16 +245,14 @@ export const getIsWebglSupported = (): boolean => {
     const webglContext = canvas.getContext("webgl");
     const webglExperimentalContext = canvas.getContext("experimental-webgl");
 
-    return !!(window.WebGLRenderingContext && webglContext &&
-      webglExperimentalContext);
+    return !!(window.WebGLRenderingContext && webglContext && webglExperimentalContext);
   } catch (_e) {
     return false;
   }
 };
 
-export const getTimeLimit = (
-  eventFormat: EventFormat,
-): ITimeLimit | undefined =>
+export const getTimeLimit = (eventFormat: EventFormat): ITimeLimit | undefined =>
   eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
 
-export const capitalize = (input: string): string => input[0].toUpperCase() + input.slice(1);
+export const getRoundFormatOptions = (roundFormats: IRoundFormat[]): MultiChoiceOption[] =>
+  roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
