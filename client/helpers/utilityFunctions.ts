@@ -5,7 +5,7 @@ import { remove as removeAccents } from "remove-accents";
 import { Color, EventFormat, Role } from "~/shared_helpers/enums.ts";
 import C from "~/shared_helpers/constants.ts";
 import { IEvent, IFeAttempt, type IRoundFormat, ITimeLimit, type NumberInputValue } from "~/shared_helpers/types.ts";
-import { type MultiChoiceOption, UserInfo } from "./types.ts";
+import { type InputPerson, type MultiChoiceOption, UserInfo } from "./types.ts";
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
   if (!startDate) throw new Error("Start date missing!");
@@ -256,3 +256,9 @@ export const getTimeLimit = (eventFormat: EventFormat): ITimeLimit | undefined =
 
 export const getRoundFormatOptions = (roundFormats: IRoundFormat[]): MultiChoiceOption[] =>
   roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
+
+export const getBlankCompetitors = (participants: number): [InputPerson[], string[]] => {
+  const persons = new Array(participants).fill(null);
+  const personNames = new Array(participants).fill("");
+  return [persons, personNames];
+};

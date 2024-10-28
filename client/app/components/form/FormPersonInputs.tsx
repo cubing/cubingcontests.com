@@ -23,6 +23,7 @@ const FormPersonInputs = ({
   setPersonNames,
   persons,
   setPersons,
+  onSelectPerson,
   infiniteInputs,
   nextFocusTargetId,
   disabled,
@@ -35,6 +36,7 @@ const FormPersonInputs = ({
   setPersonNames: (val: string[]) => void;
   persons: InputPerson[];
   setPersons: (val: InputPerson[]) => void;
+  onSelectPerson?: (val: IPerson) => void;
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
   disabled?: boolean;
@@ -114,7 +116,7 @@ const FormPersonInputs = ({
     else setFocusedInput(null);
 
     // Update person name and reset the person object for that organizer
-    const newPersonNames = personNames.map((el, i) => (i === index ? value : el));
+    const newPersonNames = personNames.map((name, i) => (i === index ? value : name));
     // This is done so that setPersons is only called if one of the persons actually had to be reset to null
     let personsUpdated = false;
     const newPersons: InputPerson[] = persons.map((el, i) => {
@@ -125,8 +127,7 @@ const FormPersonInputs = ({
       return el;
     });
 
-    personsUpdated = addEmptyInputIfRequired(newPersonNames, newPersons) ||
-      personsUpdated;
+    personsUpdated = personsUpdated || addEmptyInputIfRequired(newPersonNames, newPersons);
 
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
@@ -150,20 +151,15 @@ const FormPersonInputs = ({
     }
   };
 
-  const selectCompetitor = (inputIndex: number, selectionIndex: number) => {
+  const selectPerson = (inputIndex: number, selectionIndex: number) => {
     if (matchedPersons[selectionIndex] === null) {
       // Only mods are allowed to open the add new competitor page
       if (userInfo?.isMod) {
         setFocusedInput(null);
 
-        if (addNewPersonFromNewTab) {
-          open("/mod/competitors", "_blank");
-        } else {
-          if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
-          else {window.location.replace(
-              `/mod/competitors?redirect=${redirectToOnAddPerson}`,
-            );}
-        }
+        if (addNewPersonFromNewTab) open("/mod/competitors", "_blank");
+        else if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
+        else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
       }
     } else {
       const newSelectedPerson = matchedPersons[selectionIndex];
@@ -172,6 +168,7 @@ const FormPersonInputs = ({
       setPersons(newPersons);
       setPersonNames(newPersonNames);
       addEmptyInputIfRequired(newPersonNames, newPersons);
+      if (onSelectPerson) onSelectPerson(newSelectedPerson);
       // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
       setTimeout(() => focusNext(newPersons), 0);
     }
@@ -180,7 +177,7 @@ const FormPersonInputs = ({
   const onPersonKeyDown = (inputIndex: number, e: any) => {
     if (e.key === "Enter") {
       // Make sure the focused input is not empty
-      if (personNames[inputIndex]) selectCompetitor(inputIndex, personSelection);
+      if (personNames[inputIndex]) selectPerson(inputIndex, personSelection);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
 
@@ -238,7 +235,7 @@ const FormPersonInputs = ({
                       aria-current={matchIndex === personSelection}
                       onMouseEnter={() => setPersonSelection(matchIndex)}
                       onMouseDown={() =>
-                        selectCompetitor(inputIndex, matchIndex)}
+                        selectPerson(inputIndex, matchIndex)}
                     >
                       {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
                     </li>

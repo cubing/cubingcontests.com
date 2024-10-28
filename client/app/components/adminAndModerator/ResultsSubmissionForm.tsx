@@ -24,7 +24,7 @@ import {
 import { EventFormat, RoundFormat } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import C from "~/shared_helpers/constants.ts";
-import { getRoundFormatOptions, getUserInfo } from "~/helpers/utilityFunctions.ts";
+import { getBlankCompetitors, getRoundFormatOptions, getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import ExternalLink from "~/app/components/ExternalLink.tsx";
@@ -199,8 +199,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   };
 
   const resetCompetitors = (participants: number = event.participants) => {
-    setCompetitors(new Array(participants).fill(null));
-    setPersonNames(new Array(participants).fill(""));
+    const [competitors, personNames] = getBlankCompetitors(participants);
+    setCompetitors(competitors);
+    setPersonNames(personNames);
   };
 
   const changeRoundFormat = (newFormat: RoundFormat) => {
@@ -210,8 +211,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   };
 
   const resetAttempts = (numberOfAttempts: number = roundFormat.attempts) => {
-    const newAttempts = new Array(numberOfAttempts).fill({ result: 0 });
-    setAttempts(newAttempts);
+    setAttempts(new Array(numberOfAttempts).fill({ result: 0 }));
   };
 
   const changeAttempt = (index: number, newAttempt: IFeAttempt) => {

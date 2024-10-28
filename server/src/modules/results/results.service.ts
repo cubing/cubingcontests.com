@@ -519,6 +519,8 @@ export class ResultsService {
 
     const round = await this.roundModel.findOne({ competitionId, roundId }).populate(resultPopulateOptions).exec();
     if (!round) throw new BadRequestException("Round not found");
+    if (round.results.find(r => r.personIds.some(pid => createResultDto.personIds.includes(pid))))
+      throw new BadRequestException("The competitor(s) already has a result in this round")
     const event = await this.eventsService.getEventById(createResultDto.eventId);
     const newResult: IResult = {
       ...createResultDto,
@@ -1076,9 +1078,7 @@ export class ResultsService {
             }
           } else if (result.attempts.length > round.cutoff.numberOfAttempts) {
             if (result.attempts.slice(round.cutoff.numberOfAttempts).some((a) => a.result !== 0)) {
-              throw new BadRequestException(
-                `This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`,
-              );
+              throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
             } else {
               result.attempts = result.attempts.slice(0, round.cutoff.numberOfAttempts);
             }
