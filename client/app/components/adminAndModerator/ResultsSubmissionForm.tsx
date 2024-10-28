@@ -74,7 +74,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   const updateRecordPairs = useCallback(
     debounce(async (date: Date) => {
-      const eventsStr = submissionInfo.events.map((e: IEvent) => e.eventId).join(",");
+      const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((e: IEvent) => e.eventId).join(",");
       const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
 
       const { payload, errors } = await myFetch.get(
@@ -82,7 +82,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
         { authorize: true, loadingId: null },
       );
 
-      if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload });
+      if (!errors) {
+        setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload } as IResultsSubmissionInfo);
+      }
       changeLoadingId("");
     }, C.fetchDebounceTimeout),
     [submissionInfo],

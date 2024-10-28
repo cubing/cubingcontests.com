@@ -45,7 +45,7 @@ export type ISubmittedResult = Omit<IResult, "competitionId" | "ranking"> & {
 export interface IResultDto {
   eventId: string;
   personIds: number[];
-  attempts: IAttempt[];
+  attempts: IFeAttempt[];
 }
 
 export interface ISubmittedResultDto extends IResultDto {
@@ -59,7 +59,7 @@ export interface IUpdateResultDto {
   date?: Date; // only used for submitted results
   unapproved?: true; // only needed for updating submitted results, because they can be approved at the same time
   personIds: number[];
-  attempts: IAttempt[];
+  attempts: IFeAttempt[];
   videoLink?: string; // required for submitted results
   discussionLink?: string; // only used for submitted results
 }

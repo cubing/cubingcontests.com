@@ -9,9 +9,9 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import RoundResultsTable from "~/app/components/RoundResultsTable.tsx";
 import {
-  type IAttempt,
   type IContestData,
   type IContestEvent,
+  type ICutoff,
   type IEventRecordPairs,
   type IPerson,
   type IResult,
@@ -55,7 +55,9 @@ const DataEntryScreen = ({
   const currEvent = currContestEvent.event;
 
   const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
-  const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(initialRecordPairs);
+  const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(
+    initialRecordPairs as IEventRecordPairs[],
+  );
   const [round, setRound] = useState<IRound>(currContestEvent.rounds[0]);
 
   const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
@@ -69,14 +71,12 @@ const DataEntryScreen = ({
 
   const roundOptions = useMemo<MultiChoiceOption[]>(
     () =>
-      contestEvents.find((ce: IContestEvent) => ce.event.eventId === currEvent.eventId).rounds.map((r: IRound) => ({
-        label: roundTypes[r.roundTypeId].label,
-        value: r.roundTypeId,
-      })),
-    [contestEvents, currEvent],
+      currContestEvent.rounds.map((r: IRound) => ({ label: roundTypes[r.roundTypeId].label, value: r.roundTypeId })),
+    [currContestEvent],
   );
   const recordPairs = useMemo<IRecordPair[]>(
-    () => recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === currEvent.eventId).recordPairs,
+    () =>
+      (recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === eventId) as IEventRecordPairs).recordPairs,
     [recordPairsByEvent, currEvent],
   );
 
@@ -109,8 +109,8 @@ const DataEntryScreen = ({
       }
 
       const resultDto: IResultDto = {
-        eventId: currEvent.eventId,
-        personIds: currentPersons.map((p: IPerson) => p.personId),
+        eventId,
+        personIds: currentPersons.map((p: InputPerson) => (p as IPerson).personId),
         attempts,
       };
       let updatedRound: IRound, errors: string[] | undefined;
@@ -139,7 +139,9 @@ const DataEntryScreen = ({
         // Add new persons to list of persons
         const newPersons: IPerson[] = [
           ...persons,
-          ...currentPersons.filter((cp: IPerson) => !persons.some((p: IPerson) => p.personId === cp.personId)),
+          ...currentPersons.filter((cp: InputPerson) =>
+            !persons.some((p: IPerson) => p.personId === (cp as IPerson).personId)
+          ) as IPerson[],
         ];
         setPersons(newPersons);
         setPersonNames(newPersons.map((p) => p.name));
@@ -154,7 +156,7 @@ const DataEntryScreen = ({
   const changeRound = (updatedRound: IRound) => {
     setRound(updatedRound);
     setContestEvents(contestEvents.map((ce: IContestEvent) =>
-      ce.event.eventId !== currEvent.eventId ? ce : {
+      ce.event.eventId !== eventId ? ce : {
         ...ce,
         rounds: ce.rounds.map((r) => (r.roundId !== updatedRound.roundId ? r : updatedRound)),
       }
@@ -173,7 +175,9 @@ const DataEntryScreen = ({
   };
 
   const updateRecordPairs = async (newResult: IResult) => {
-    const eventRP = recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === newResult.eventId);
+    const eventRP = recordPairsByEvent.find((erp: IEventRecordPairs) =>
+      erp.eventId === newResult.eventId
+    ) as IEventRecordPairs;
 
     // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (
@@ -192,9 +196,7 @@ const DataEntryScreen = ({
 
   const onSelectPerson = (person: IPerson) => {
     if (currentPersons.every((p: InputPerson) => p === null)) {
-      const existingResultForSelectedPerson: IResult = round.results.find((r: IResult) =>
-        r.personIds.includes(person.personId)
-      );
+      const existingResultForSelectedPerson = round.results.find((r: IResult) => r.personIds.includes(person.personId));
       if (existingResultForSelectedPerson) editResult(existingResultForSelectedPerson);
     }
   };
@@ -205,7 +207,7 @@ const DataEntryScreen = ({
       setResultUnderEdit(result);
       setAttempts(result.attempts);
       const newCurrentPersons: IPerson[] = result.personIds.map((pid) =>
-        persons.find((p: IPerson) => p.personId === pid)
+        persons.find((p: IPerson) => p.personId === pid) as IPerson
       );
       setCurrentPersons(newCurrentPersons);
       setPersonNames(newCurrentPersons.map((p) => p.name));
@@ -268,7 +270,7 @@ const DataEntryScreen = ({
               redirectToOnAddPerson={window.location.pathname}
               noGrid
             />
-            {attempts.map((attempt: IAttempt, i: number) => (
+            {attempts.map((attempt: IFeAttempt, i: number) => (
               <AttemptInput
                 key={i}
                 attNumber={i + 1}
@@ -277,7 +279,7 @@ const DataEntryScreen = ({
                 event={currEvent}
                 nextFocusTargetId={i + 1 === attempts.length ? "submit_attempt_button" : undefined}
                 timeLimit={round.timeLimit}
-                disabled={!getMakesCutoff(attempts, round.cutoff) && i + 1 > round.cutoff.attempts}
+                disabled={!getMakesCutoff(attempts, round.cutoff) && i + 1 > (round.cutoff as ICutoff).numberOfAttempts}
               />
             ))}
             {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
