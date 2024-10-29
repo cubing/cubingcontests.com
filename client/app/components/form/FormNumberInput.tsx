@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import FormInputLabel from './FormInputLabel.tsx';
-import { genericOnKeyDown } from '~/helpers/utilityFunctions.ts';
-import { NumberInputValue } from '~/shared_helpers/types.ts';
+import { useEffect, useState } from "react";
+import FormInputLabel from "./FormInputLabel.tsx";
+import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
+import { NumberInputValue } from "~/shared_helpers/types.ts";
 
 const FormNumberInput = ({
   id,
@@ -37,15 +37,15 @@ const FormNumberInput = ({
   noMargin?: boolean;
 }) => {
   if (!id && !title) {
-    throw new Error('Neither title nor id are set in FormNumberInput');
+    throw new Error("Neither title nor id are set in FormNumberInput");
   }
 
-  const [displayValue, setDisplayValue] = useState(value?.toString() || '');
+  const [displayValue, setDisplayValue] = useState(value?.toString() || "");
 
   const inputId = (id || title) as string;
 
   useEffect(() => {
-    if (value === undefined) setDisplayValue('');
+    if (value === undefined) setDisplayValue("");
     else if (value !== null) setDisplayValue(value.toString());
   }, [value]);
 
@@ -61,10 +61,10 @@ const FormNumberInput = ({
     const numberValue = Number(newValue);
 
     if (
-      newValue !== '' &&
+      newValue !== "" &&
       !/[^0-9.-]/.test(newValue) &&
       !isNaN(numberValue) &&
-      (!integer || !newValue.includes('.')) &&
+      (!integer || !newValue.includes(".")) &&
       numberValue >= min &&
       numberValue <= max
     ) {
@@ -77,18 +77,18 @@ const FormNumberInput = ({
   };
 
   return (
-    <div className={`fs-5 ${noMargin ? '' : 'mb-3'}`}>
+    <div className={`fs-5 ${noMargin ? "" : "mb-3"}`}>
       <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
 
       <input
-        type='text'
+        type="text"
         id={inputId}
         value={displayValue}
         placeholder={placeholder}
         onChange={(e: any) => validateAndChange(e.target.value)}
         onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId, onKeyDown })}
         disabled={disabled}
-        className={`form-control ${value === null || invalid ? 'is-invalid' : ''}`}
+        className={`form-control ${value === null || invalid ? "is-invalid" : ""}`}
       />
     </div>
   );

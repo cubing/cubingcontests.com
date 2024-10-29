@@ -1,21 +1,21 @@
-import Link from 'next/link';
-import './moderator-instructions.css';
-import C from '~/shared_helpers/constants.ts';
+import Link from "next/link";
+import "./moderator-instructions.css";
+import C from "~/shared_helpers/constants.ts";
 
 const ModeratorInstructions = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='px-3 pb-4'>
-      <h3 className='mb-4 text-center'>How to hold a contest</h3>
+    <div className="px-3 pb-4">
+      <h3 className="mb-4 text-center">How to hold a contest</h3>
 
-      <div className='mb-4'>
+      <div className="mb-4">
         <p>
           If you don't already have moderator privileges and you would like to hold unofficial events at a WCA
           competition (A) or create an unofficial competition (B) or meetup (C), follow these steps:
         </p>
-        <div style={{ height: '1rem' }} />
+        <div style={{ height: "1rem" }} />
         <p>
-          1. <Link href='/register'>Create an account</Link> and send an email to {C.contactEmail}{' '}
-          with the following information (exception: for WCA competitions,{' '}
+          1. <Link href="/register">Create an account</Link> and send an email to {C.contactEmail}{" "}
+          with the following information (exception: for WCA competitions,{" "}
           <b>you must first wait until the competition has been announced</b> on the WCA website):
         </p>
         <p>1.1. Username</p>

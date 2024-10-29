@@ -1,18 +1,18 @@
-import { Color, ContestType } from '~/shared_helpers/enums.ts';
-import { contestTypeOptions } from '~/helpers/multipleChoiceOptions.ts';
-import { getBSClassFromColor } from '~/helpers/utilityFunctions.ts';
-import type { MultiChoiceOption } from '~/helpers/types.ts';
+import { Color, ContestType } from "~/shared_helpers/enums.ts";
+import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
+import type { MultiChoiceOption } from "~/helpers/types.ts";
 
 type Props = { type: ContestType; brief?: boolean };
 
 const ContestTypeBadge = ({ type, brief = false }: Props) => {
   const contestType = contestTypeOptions.find((el) => el.value === type) as MultiChoiceOption;
-  const textClass = contestType.color === Color.White || contestType.color === Color.Yellow ? 'text-black' : '';
+  const textClass = contestType.color === Color.White || contestType.color === Color.Yellow ? "text-black" : "";
 
   return (
     <div
       className={`badge bg-${getBSClassFromColor(contestType.color)} ${textClass}`}
-      style={{ padding: '0.4rem 0.5rem' }}
+      style={{ padding: "0.4rem 0.5rem" }}
     >
       {brief ? contestType?.shortLabel || contestType?.label : contestType?.label}
     </div>

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useContext } from 'react';
-import { MainContext } from '~/helpers/contexts.ts';
-import ToastMessages from '~/app/components/UI/ToastMessages.tsx';
-import Button from '~/app/components/UI/Button.tsx';
+import { useContext } from "react";
+import { MainContext } from "~/helpers/contexts.ts";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import Button from "~/app/components/UI/Button.tsx";
 
 const Form = ({
   children,
-  buttonText = 'Submit',
+  buttonText = "Submit",
   hideToasts,
   hideButton,
   disableButton,
@@ -27,12 +27,12 @@ const Form = ({
   const showSubmitButton = !hideButton && buttonText;
   if (showSubmitButton && !onSubmit) {
     throw new Error(
-      'onSubmit cannot be undefined unless the submit button is hidden',
+      "onSubmit cannot be undefined unless the submit button is hidden",
     );
   }
   if (showCancelButton && !onCancel) {
     throw new Error(
-      'onCancel cannot be undefined unless the cancel button is hidden',
+      "onCancel cannot be undefined unless the cancel button is hidden",
     );
   }
 
@@ -40,8 +40,8 @@ const Form = ({
 
   return (
     <form
-      className='container my-4 mx-auto px-3 fs-5'
-      style={{ maxWidth: '768px' }}
+      className="container my-4 mx-auto px-3 fs-5"
+      style={{ maxWidth: "768px" }}
       onSubmit={(e) => e.preventDefault()}
     >
       {!hideToasts && <ToastMessages />}
@@ -49,11 +49,11 @@ const Form = ({
       {children}
 
       {(showSubmitButton || showCancelButton) && (
-        <div className='d-flex gap-3 mt-4'>
+        <div className="d-flex gap-3 mt-4">
           {showSubmitButton && (
             <Button
-              id='form_submit_button'
-              type='submit'
+              id="form_submit_button"
+              type="submit"
               onClick={onSubmit}
               loadingId={loadingId}
               disabled={disableButton}
@@ -63,11 +63,11 @@ const Form = ({
           )}
           {showCancelButton && (
             <Button
-              id='form_cancel_button'
+              id="form_cancel_button"
               onClick={onCancel}
               loadingId={loadingId}
               disabled={disableButton}
-              className='btn-danger'
+              className="btn-danger"
             >
               Cancel
             </Button>

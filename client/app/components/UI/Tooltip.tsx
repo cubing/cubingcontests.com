@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 
 const tooltipWidth = 200;
 const horizontalPadding = 10;
@@ -13,12 +13,12 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
   const [isBelowTarget, setIsBelowTarget] = useState(true);
 
   useEffect(() => {
-    window.addEventListener('resize', repositionTooltip);
-    window.addEventListener('scrollend', repositionTooltip);
+    window.addEventListener("resize", repositionTooltip);
+    window.addEventListener("scrollend", repositionTooltip);
 
     return () => {
-      window.removeEventListener('resize', repositionTooltip);
-      window.removeEventListener('scrollend', repositionTooltip);
+      window.removeEventListener("resize", repositionTooltip);
+      window.removeEventListener("scrollend", repositionTooltip);
     };
   }, []);
 
@@ -44,7 +44,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
       newPosition -= optimalRightEdge - window.innerWidth;
     }
 
-    tooltipDiv.style.left = newPosition + 'px';
+    tooltipDiv.style.left = newPosition + "px";
 
     updateIsBelowTarget(tooltipDiv);
   };
@@ -70,33 +70,33 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
 
   return (
     <div
-      className='cc-tooltip position-relative d-flex align-items-center'
-      style={{ cursor: 'default' }}
+      className="cc-tooltip position-relative d-flex align-items-center"
+      style={{ cursor: "default" }}
     >
       <div
-        className='cc-tooltip-text position-absolute d-flex flex-column align-items-center'
-        style={{ height: 0, width: '100%' }}
+        className="cc-tooltip-text position-absolute d-flex flex-column align-items-center"
+        style={{ height: 0, width: "100%" }}
       >
         {/* Tip of the tooltip pointing to the target */}
         <span
-          className='position-absolute z-2 bg-black'
+          className="position-absolute z-2 bg-black"
           style={{
-            height: '1.5rem',
-            width: '1.5rem',
-            rotate: '45deg',
+            height: "1.5rem",
+            width: "1.5rem",
+            rotate: "45deg",
             ...(isBelowTarget ? { top: `${tipOffset}px` } : { bottom: `${tipOffset}px` }),
           }}
         />
-        <div className='position-relative' style={{ width: '0' }}>
+        <div className="position-relative" style={{ width: "0" }}>
           {/* Tooltip */}
           <div
             id={id}
-            className='position-absolute z-3 p-3 rounded bg-black text-white fs-6'
+            className="position-absolute z-3 p-3 rounded bg-black text-white fs-6"
             style={{
               width: `${tooltipWidth}px`,
               left: `${-tooltipWidth / 2}px`,
               ...(isBelowTarget ? { top: `${tooltipOffset}px` } : { bottom: `${tooltipOffset}px` }),
-              whiteSpace: 'pre-wrap',
+              whiteSpace: "pre-wrap",
             }}
           >
             {text}
@@ -106,7 +106,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
 
       <FontAwesomeIcon
         icon={faQuestionCircle}
-        className='m-1 fs-6 text-secondary-emphasis'
+        className="m-1 fs-6 text-secondary-emphasis"
       />
     </div>
   );

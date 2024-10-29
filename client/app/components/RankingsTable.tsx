@@ -1,5 +1,5 @@
-import RankingRow from './RankingRow.tsx';
-import { IEvent, IRanking } from '~/shared_helpers/types.ts';
+import RankingRow from "./RankingRow.tsx";
+import { IEvent, IRanking } from "~/shared_helpers/types.ts";
 
 const RankingsTable = ({
   rankings,
@@ -16,7 +16,7 @@ const RankingsTable = ({
   topResultsRankings?: boolean;
 }) => {
   if (topResultsRankings && recordsTable) {
-    throw new Error('forAverage and topResultsRankings cannot both be true in RankingsTable');
+    throw new Error("forAverage and topResultsRankings cannot both be true in RankingsTable");
   }
 
   const hasComp = rankings.some((el) => el.contest);
@@ -29,8 +29,8 @@ const RankingsTable = ({
 
   if (rankings.length === 0) {
     return (
-      <p className='mt-4 mx-2 fs-5'>
-        {forAverage ? 'There are no average results for this event yet' : 'There are no results for this event yet'}
+      <p className="mt-4 mx-2 fs-5">
+        {forAverage ? "There are no average results for this event yet" : "There are no results for this event yet"}
       </p>
     );
   }
@@ -40,22 +40,22 @@ const RankingsTable = ({
   /////////////////////////////////////////////////////////////////////////////////////////
 
   return (
-    <div className='table-responsive flex-grow-1'>
-      <table className='table table-hover table-responsive text-nowrap'>
+    <div className="table-responsive flex-grow-1">
+      <table className="table table-hover table-responsive text-nowrap">
         <thead>
           <tr>
-            <th>{recordsTable ? 'Type' : '#'}</th>
-            <th>{!showAllTeammates ? 'Name' : 'Team'}</th>
+            <th>{recordsTable ? "Type" : "#"}</th>
+            <th>{!showAllTeammates ? "Name" : "Team"}</th>
             <th>Result</th>
             {!showAllTeammates && <th>Representing</th>}
             <th>Date</th>
             <th>
-              {hasComp ? 'Competition' : ''}
-              {hasComp && hasLink ? ' / ' : ''}
-              {hasLink ? 'Links' : ''}
+              {hasComp ? "Competition" : ""}
+              {hasComp && hasLink ? " / " : ""}
+              {hasLink ? "Links" : ""}
             </th>
             {showTeamColumn && <th>Team</th>}
-            {showDetailsColumn && <th>{hasSolves ? 'Solves' : 'Memorization time'}</th>}
+            {showDetailsColumn && <th>{hasSolves ? "Solves" : "Memorization time"}</th>}
           </tr>
         </thead>
         <tbody>

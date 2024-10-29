@@ -1,6 +1,6 @@
-import { IEvent, IRecordType, IResult, type ISubmittedResult } from '~/shared_helpers/types.ts';
-import { getBSClassFromColor } from '~/helpers/utilityFunctions.ts';
-import { getFormattedTime } from '~/shared_helpers/sharedFunctions.ts';
+import { IEvent, IRecordType, IResult, type ISubmittedResult } from "~/shared_helpers/types.ts";
+import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 
 const Time = ({ result, event, recordTypes, average }: {
   result: IResult | ISubmittedResult;
@@ -15,7 +15,7 @@ const Time = ({ result, event, recordTypes, average }: {
   );
 
   return (
-    <div className='d-inline-flex align-items-center gap-2'>
+    <div className="d-inline-flex align-items-center gap-2">
       {getFormattedTime(average ? result.average : result.best, {
         event,
         showMultiPoints: true,
@@ -24,7 +24,7 @@ const Time = ({ result, event, recordTypes, average }: {
       {recordType && (
         <span
           className={`badge bg-${getBSClassFromColor(recordType?.color)}`}
-          style={{ fontSize: '0.7rem' }}
+          style={{ fontSize: "0.7rem" }}
         >
           {recordType.label}
         </span>

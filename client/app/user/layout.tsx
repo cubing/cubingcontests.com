@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import AuthorizedLayout from '~/app/components/AuthorizedLayout.tsx';
-import { Role } from '~/shared_helpers/enums.ts';
+import AuthorizedLayout from "~/app/components/AuthorizedLayout.tsx";
+import { Role } from "~/shared_helpers/enums.ts";
 
 // This layout is almost the same as the admin and mod layouts
 

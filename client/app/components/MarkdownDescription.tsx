@@ -6,12 +6,12 @@ const MarkdownDescription = ({ children }: Props) => {
   const markdownLinkRegex = /(\[[^\]]*\]\(https?:\/\/[^)]*\))/g;
   const tempString = (children as any).toString().replace(
     markdownLinkRegex,
-    ':::::$1:::::',
+    ":::::$1:::::",
   );
 
   return (
-    <p style={{ whiteSpace: 'pre-wrap' }}>
-      {tempString.split(':::::').map((part: string, index: number) =>
+    <p style={{ whiteSpace: "pre-wrap" }}>
+      {tempString.split(":::::").map((part: string, index: number) =>
         markdownLinkRegex.test(part)
           ? (
             // target="_blank" doesn't work when added to this a tag, for some reason

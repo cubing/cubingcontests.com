@@ -3,7 +3,7 @@
   word-break: break-word;
 }
 
-body[data-bs-theme='dark'] {
+body[data-bs-theme="dark"] {
   /* Copied from Bootstrap 5.3's btn-light */
   .btn-lightdark,
   .cc-icon-button {
@@ -28,7 +28,7 @@ body[data-bs-theme='dark'] {
   }
 }
 
-body[data-bs-theme='light'] {
+body[data-bs-theme="light"] {
   /* Copied from Bootstrap 5.3's btn-dark */
   .btn-lightdark,
   .cc-icon-button {

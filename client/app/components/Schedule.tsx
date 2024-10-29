@@ -1,14 +1,14 @@
-import { isSameDay } from 'date-fns';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
-import { IActivity, IContestEvent, IRoom, IRound } from '~/shared_helpers/types.ts';
-import { getIsOtherActivity } from '~/shared_helpers/sharedFunctions.ts';
-import { roundTypes } from '~/helpers/roundTypes.ts';
-import EventTitle from './EventTitle.tsx';
-import ColorSquare from '~/app/components/UI/ColorSquare.tsx';
-import Button from '~/app/components/UI/Button.tsx';
+import { isSameDay } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { IActivity, IContestEvent, IRoom, IRound } from "~/shared_helpers/types.ts";
+import { getIsOtherActivity } from "~/shared_helpers/sharedFunctions.ts";
+import { roundTypes } from "~/helpers/roundTypes.ts";
+import EventTitle from "./EventTitle.tsx";
+import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
+import Button from "~/app/components/UI/Button.tsx";
 
 type RoomActivity = IActivity & { room: IRoom };
 type DayActivity = RoomActivity & {
@@ -41,8 +41,8 @@ const Schedule = ({
       ...room.activities.map((activity) => ({
         ...activity,
         room,
-        startTime: typeof activity.startTime === 'string' ? new Date(activity.startTime) : activity.startTime,
-        endTime: typeof activity.endTime === 'string' ? new Date(activity.endTime) : activity.endTime,
+        startTime: typeof activity.startTime === "string" ? new Date(activity.startTime) : activity.startTime,
+        endTime: typeof activity.endTime === "string" ? new Date(activity.endTime) : activity.endTime,
       })),
     );
   }
@@ -67,16 +67,16 @@ const Schedule = ({
       formattedStartTime: formatInTimeZone(
         activity.startTime,
         timeZone,
-        'HH:mm',
+        "HH:mm",
       ),
-      formattedEndTime: (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, 'dd MMM')} ` : '') +
-        formatInTimeZone(activity.endTime, timeZone, 'HH:mm'),
+      formattedEndTime: (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, "dd MMM")} ` : "") +
+        formatInTimeZone(activity.endTime, timeZone, "HH:mm"),
       isEditable: true,
     };
 
     if (!getIsOtherActivity(activity.activityCode)) {
       dayActivity.contestEvent = contestEvents.find(
-        (ce) => ce.event.eventId === dayActivity.activityCode.split('-')[0],
+        (ce) => ce.event.eventId === dayActivity.activityCode.split("-")[0],
       );
       if (dayActivity.contestEvent) {
         dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
@@ -92,27 +92,27 @@ const Schedule = ({
   }
 
   return (
-    <section className='fs-6'>
-      <h1 className='mb-4 text-center'>Schedule</h1>
+    <section className="fs-6">
+      <h1 className="mb-4 text-center">Schedule</h1>
 
       {days.length === 0
-        ? <h5 className='text-center fst-italic'>The schedule is currently empty</h5>
+        ? <h5 className="text-center fst-italic">The schedule is currently empty</h5>
         : (
-          <div className='d-flex flex-column gap-5'>
+          <div className="d-flex flex-column gap-5">
             {days.map((day) => (
               <div key={day.date.toString()}>
-                <h4 className='mx-2 mb-3 fw-bold'>{day.date.toDateString()}</h4>
+                <h4 className="mx-2 mb-3 fw-bold">{day.date.toDateString()}</h4>
 
-                <div className='flex-grow-1 table-responsive'>
-                  <table className='table table-hover text-nowrap'>
+                <div className="flex-grow-1 table-responsive">
+                  <table className="table table-hover text-nowrap">
                     <thead>
                       <tr>
-                        <th scope='col'>Start</th>
-                        <th scope='col'>End</th>
-                        <th scope='col'>Activity</th>
-                        <th scope='col'>Room</th>
-                        <th scope='col'>Format</th>
-                        {(onEditActivity || onDeleteActivity) && <th scope='col'>Actions</th>}
+                        <th scope="col">Start</th>
+                        <th scope="col">End</th>
+                        <th scope="col">Activity</th>
+                        <th scope="col">Room</th>
+                        <th scope="col">Format</th>
+                        {(onEditActivity || onDeleteActivity) && <th scope="col">Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -121,13 +121,13 @@ const Schedule = ({
                           <td>{a.formattedStartTime}</td>
                           <td>{a.formattedEndTime}</td>
                           <td>
-                            {a.activityCode !== 'other-misc'
+                            {a.activityCode !== "other-misc"
                               ? (
-                                <span className='d-flex align-items-center gap-2'>
+                                <span className="d-flex align-items-center gap-2">
                                   {a.contestEvent && (
                                     <EventTitle
                                       event={a.contestEvent.event}
-                                      fontSize='6'
+                                      fontSize="6"
                                       noMargin
                                       showIcon
                                       showDescription
@@ -136,7 +136,7 @@ const Schedule = ({
                                   )}
                                   {a.round ? <span>{roundTypes[a.round.roundTypeId].label}</span> : (
                                     <>
-                                      <span className='text-danger fw-bold'>ERROR</span>
+                                      <span className="text-danger fw-bold">ERROR</span>
                                       <span>({a.activityCode})</span>
                                     </>
                                   )}
@@ -145,10 +145,10 @@ const Schedule = ({
                               : a.name}
                           </td>
                           <td>
-                            <span className='d-flex gap-3'>
+                            <span className="d-flex gap-3">
                               <ColorSquare
                                 color={a.room.color}
-                                style={{ height: '1.5rem', width: '1.8rem', margin: 0 }}
+                                style={{ height: "1.5rem", width: "1.8rem", margin: 0 }}
                               />
                               {a.room.name}
                             </span>
@@ -156,13 +156,13 @@ const Schedule = ({
                           <td>{a.roundFormatLabel}</td>
                           {(onEditActivity || onDeleteActivity) && (
                             <td>
-                              <div className='d-flex gap-2'>
+                              <div className="d-flex gap-2">
                                 {onEditActivity && (
                                   <Button
                                     onClick={() => onEditActivity(a.room.id, a)}
                                     disabled={!a.isEditable}
-                                    className='btn-xs'
-                                    ariaLabel='Edit'
+                                    className="btn-xs"
+                                    ariaLabel="Edit"
                                   >
                                     <FontAwesomeIcon icon={faPencil} />
                                   </Button>
@@ -170,8 +170,8 @@ const Schedule = ({
                                 {onDeleteActivity && (
                                   <Button
                                     onClick={() => onDeleteActivity(a.room.id, a.id)}
-                                    className='btn-danger btn-xs'
-                                    ariaLabel='Delete'
+                                    className="btn-danger btn-xs"
+                                    ariaLabel="Delete"
                                   >
                                     <FontAwesomeIcon icon={faTrash} />
                                   </Button>

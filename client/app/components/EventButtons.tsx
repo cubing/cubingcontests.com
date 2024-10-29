@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { IEvent } from '~/shared_helpers/types.ts';
-import { eventCategories } from '~/helpers/eventCategories.ts';
-import EventIcon from '~/app/components/EventIcon.tsx';
+import { useMemo, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { IEvent } from "~/shared_helpers/types.ts";
+import { eventCategories } from "~/helpers/eventCategories.ts";
+import EventIcon from "~/app/components/EventIcon.tsx";
 
 const EventButtons = ({
   eventId,
@@ -13,13 +13,13 @@ const EventButtons = ({
 }: {
   eventId: string | undefined;
   events: IEvent[];
-  forPage: 'results' | 'rankings' | 'competitions' | 'data-entry';
+  forPage: "results" | "rankings" | "competitions" | "data-entry";
 }) => {
   const router = useRouter();
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
-  const filteredCategories = eventCategories.filter((ec) => ec.value !== 'removed');
+  const filteredCategories = eventCategories.filter((ec) => ec.value !== "removed");
 
   const [selectedCat, setSelectedCat] = useState(
     filteredCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ??
@@ -29,20 +29,20 @@ const EventButtons = ({
   // If hideCategories = true, just show all events that were passed in
   const filteredEvents = useMemo<IEvent[]>(
     () =>
-      !['rankings', 'competitions'].includes(forPage)
+      !["rankings", "competitions"].includes(forPage)
         ? events
         : events.filter((el) => el.groups.includes(selectedCat.group)),
     [events, selectedCat],
   );
 
   const handleEventClick = (newEventId: string) => {
-    if (forPage === 'results') {
+    if (forPage === "results") {
       router.replace(`/competitions/${id}/results?eventId=${newEventId}`);
-    } else if (forPage === 'rankings') {
-      const show = searchParams.get('show');
-      router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ''}`);
-    } else if (forPage === 'competitions') {
-      if (searchParams.get('eventId') === newEventId) router.replace('/competitions');
+    } else if (forPage === "rankings") {
+      const show = searchParams.get("show");
+      router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`);
+    } else if (forPage === "competitions") {
+      if (searchParams.get("eventId") === newEventId) router.replace("/competitions");
       else router.replace(`/competitions?eventId=${newEventId}`);
     } else {
       router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
@@ -52,19 +52,19 @@ const EventButtons = ({
   return (
     <div>
       {/* Event categories */}
-      {['rankings', 'competitions'].includes(forPage) && (
+      {["rankings", "competitions"].includes(forPage) && (
         <>
-          <div className='btn-group btn-group-sm mt-2 mb-3' role='group'>
+          <div className="btn-group btn-group-sm mt-2 mb-3" role="group">
             {filteredCategories.map((cat) => (
               <button
                 key={cat.value}
-                type='button'
-                className={'btn btn-primary' +
-                  (cat === selectedCat ? ' active' : '')}
+                type="button"
+                className={"btn btn-primary" +
+                  (cat === selectedCat ? " active" : "")}
                 onClick={() => setSelectedCat(cat)}
               >
-                <span className='d-none d-md-inline'>{cat.title}</span>
-                <span className='d-inline d-md-none'>{cat.shortTitle || cat.title}</span>
+                <span className="d-none d-md-inline">{cat.title}</span>
+                <span className="d-inline d-md-none">{cat.shortTitle || cat.title}</span>
               </button>
             ))}
           </div>
@@ -73,7 +73,7 @@ const EventButtons = ({
         </>
       )}
 
-      <div className='d-flex flex-wrap mb-3 fs-3'>
+      <div className="d-flex flex-wrap mb-3 fs-3">
         {filteredEvents.map((event: IEvent) => (
           <EventIcon
             key={event.eventId}

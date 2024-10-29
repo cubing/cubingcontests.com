@@ -1,58 +1,58 @@
-import { MultiChoiceOption } from './types.ts';
-import { Color, ContestType, EventFormat, RoundProceed } from '~/shared_helpers/enums.ts';
-import { roundFormats } from '~/shared_helpers/roundFormats.ts';
-import { eventCategories } from './eventCategories.ts';
+import { MultiChoiceOption } from "./types.ts";
+import { Color, ContestType, EventFormat, RoundProceed } from "~/shared_helpers/enums.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { eventCategories } from "./eventCategories.ts";
 
 export const colorOptions: MultiChoiceOption[] = [
   {
-    label: 'No color',
+    label: "No color",
     value: Color.White,
   },
   {
-    label: 'Black',
+    label: "Black",
     value: Color.Black,
   },
   {
-    label: 'Red',
+    label: "Red",
     value: Color.Red,
   },
   {
-    label: 'Yellow',
+    label: "Yellow",
     value: Color.Yellow,
   },
   {
-    label: 'Green',
+    label: "Green",
     value: Color.Green,
   },
   {
-    label: 'Cyan',
+    label: "Cyan",
     value: Color.Cyan,
   },
   {
-    label: 'Blue',
+    label: "Blue",
     value: Color.Blue,
   },
   {
-    label: 'Magenta',
+    label: "Magenta",
     value: Color.Magenta,
   },
 ];
 
 export const contestTypeOptions: MultiChoiceOption[] = [
   {
-    label: 'Meetup',
+    label: "Meetup",
     value: ContestType.Meetup,
     color: Color.Green,
   },
   {
-    label: 'WCA Competition',
-    shortLabel: 'WCA',
+    label: "WCA Competition",
+    shortLabel: "WCA",
     value: ContestType.WcaComp,
     color: Color.Red,
   },
   {
-    label: 'Competition',
-    shortLabel: 'Comp',
+    label: "Competition",
+    shortLabel: "Comp",
     value: ContestType.Competition,
     color: Color.Yellow,
   },
@@ -60,26 +60,26 @@ export const contestTypeOptions: MultiChoiceOption[] = [
 
 export const roundProceedOptions: MultiChoiceOption[] = [
   {
-    label: 'Number',
+    label: "Number",
     value: RoundProceed.Number,
   },
   {
-    label: 'Percentage',
+    label: "Percentage",
     value: RoundProceed.Percentage,
   },
 ];
 
 export const eventFormatOptions: MultiChoiceOption[] = [
   {
-    label: 'Time',
+    label: "Time",
     value: EventFormat.Time,
   },
   {
-    label: 'Number',
+    label: "Number",
     value: EventFormat.Number,
   },
   {
-    label: 'Multi-Blind',
+    label: "Multi-Blind",
     value: EventFormat.Multi,
   },
 ];
@@ -93,11 +93,11 @@ export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((
 
 export const cutoffAttemptsOptions: MultiChoiceOption[] = [
   {
-    label: '1',
+    label: "1",
     value: 1,
   },
   {
-    label: '2',
+    label: "2",
     value: 2,
   },
 ];

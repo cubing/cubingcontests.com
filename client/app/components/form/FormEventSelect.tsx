@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { IEvent } from '~/shared_helpers/types.ts';
+import { IEvent } from "~/shared_helpers/types.ts";
 
 const FormEventSelect = ({
-  title = 'Event',
+  title = "Event",
   noMargin = false,
   events,
   eventId,
@@ -18,11 +18,11 @@ const FormEventSelect = ({
   disabled?: boolean;
 }) => {
   return (
-    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
-      {title && <label htmlFor='event_select' className='form-label'>{title}</label>}
+    <div className={"fs-5" + (noMargin ? "" : " mb-3")}>
+      {title && <label htmlFor="event_select" className="form-label">{title}</label>}
       <select
-        id='event_select'
-        className='form-select'
+        id="event_select"
+        className="form-select"
         value={eventId}
         onChange={(e) => setEventId(e.target.value)}
         disabled={disabled || !events.some((e) => e.eventId === eventId)}

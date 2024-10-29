@@ -1,4 +1,4 @@
-import type { EventGroup } from '~/shared_helpers/enums.ts';
+import type { EventGroup } from "~/shared_helpers/enums.ts";
 
 export type EventCategory = {
   title: string;

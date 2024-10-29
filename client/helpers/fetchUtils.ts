@@ -1,4 +1,4 @@
-import { FetchObj, HttpMethod } from '~/shared_helpers/types.ts';
+import { FetchObj, HttpMethod } from "~/shared_helpers/types.ts";
 
 const apiBaseUrl = process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL; // server side one won't be available client-side
 
@@ -24,19 +24,19 @@ export const doFetch = async <T = any>(
 ): Promise<FetchObj<T>> => {
   const options: any = { method, headers: {} };
 
-  if (method === 'GET') {
+  if (method === "GET") {
     // If authorize is true, that overrides the revalidate timeout
     if (authorize) options.next = { revalidate: 0 };
     else options.next = { revalidate };
-  } else if (['POST', 'PUT', 'PATCH'].includes(method)) {
-    options.headers['Content-type'] = 'application/json';
+  } else if (["POST", "PUT", "PATCH"].includes(method)) {
+    options.headers["Content-type"] = "application/json";
     if (body) {
       options.body = JSON.stringify(body);
     } else {
-      console.error('Body cannot be empty');
-      return { errors: ['Body cannot be empty'] };
+      console.error("Body cannot be empty");
+      return { errors: ["Body cannot be empty"] };
     }
-  } else if (method !== 'DELETE') {
+  } else if (method !== "DELETE") {
     throw new Error(`Not implemented HTTP method: ${method}`);
   }
 
@@ -44,12 +44,12 @@ export const doFetch = async <T = any>(
   if (!/^https?:\/\//.test(url)) url = apiBaseUrl + url;
 
   if (authorize) {
-    const jwtToken = localStorage.getItem('jwtToken');
+    const jwtToken = localStorage.getItem("jwtToken");
 
     if (jwtToken) {
       options.headers.Authorization = jwtToken;
     } else {
-      if (!redirect) window.location.href = '/login';
+      if (!redirect) window.location.href = "/login";
       else window.location.href = `/login?redirect=${redirect}`;
       return {};
     }
@@ -72,14 +72,14 @@ export const doFetch = async <T = any>(
   let is404 = false;
 
   if (!fileName) {
-    if (res.headers.get('content-type')?.includes('application/json')) {
+    if (res.headers.get("content-type")?.includes("application/json")) {
       try {
         json = await res.json();
       } catch (err: any) {
         console.error(err);
-        return { errors: [err?.message || 'Unknown error while parsing JSON'] };
+        return { errors: [err?.message || "Unknown error while parsing JSON"] };
       }
-    } else if (url.slice(url.length - 5) === '.json') {
+    } else if (url.slice(url.length - 5) === ".json") {
       try {
         json = JSON.parse(await res.text());
       } catch (_e) {
@@ -92,7 +92,7 @@ export const doFetch = async <T = any>(
   if (res.status >= 400 || is404) {
     // If unauthorized or forbidden, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
-      if (!redirect) window.location.href = '/login';
+      if (!redirect) window.location.href = "/login";
       else window.location.replace(`/login?redirect=${redirect}`);
       return {};
     } else {
@@ -101,15 +101,15 @@ export const doFetch = async <T = any>(
 
       if (json?.message) {
         // Sometimes the server returns the message as a single string and sometimes as an array of messages
-        if (typeof json.message === 'string') errors = [json.message];
+        if (typeof json.message === "string") errors = [json.message];
         else errors = json.message;
 
-        errors = errors.filter((err) => err.trim() !== '');
+        errors = errors.filter((err) => err.trim() !== "");
         errorData = json.data;
       } else if (res.status === 404 || is404) {
         errors = [`Not found: ${url}`];
       } else {
-        errors = ['Unknown error'];
+        errors = ["Unknown error"];
       }
 
       return { errors, errorData };
@@ -117,7 +117,7 @@ export const doFetch = async <T = any>(
   } else if (!fileName && json) {
     return { payload: json };
   } else if (fileName) {
-    const anchor = document.createElement('a');
+    const anchor = document.createElement("a");
     document.body.appendChild(anchor);
     const blobby = await res.blob();
     const objectUrl = window.URL.createObjectURL(blobby);
@@ -138,5 +138,5 @@ export const ssrFetch = async <T = any>(
   url: string,
   { revalidate = 0 }: { revalidate?: number | false } = { revalidate: 0 },
 ): Promise<FetchObj<T>> => {
-  return await doFetch<T>(url, 'GET', { revalidate, authorize: false });
+  return await doFetch<T>(url, "GET", { revalidate, authorize: false });
 };
