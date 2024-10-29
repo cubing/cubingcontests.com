@@ -88,7 +88,7 @@ class Competition {
   @Prop()
   contact?: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   description: string;
 
   @Prop()

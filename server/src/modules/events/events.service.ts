@@ -137,7 +137,10 @@ export class EventsService {
       event.rule = await this.eventRuleModel.create({ eventId: updateEventDto.eventId, rule: updateEventDto.ruleText });
     } else if (updateEventDto.ruleText && event.rule) {
       await this.eventRuleModel
-        .updateOne({ eventId: updateEventDto.eventId }, { eventId: updateEventDto.eventId, rule: updateEventDto.ruleText })
+        .updateOne({ eventId: updateEventDto.eventId }, {
+          eventId: updateEventDto.eventId,
+          rule: updateEventDto.ruleText,
+        })
         .exec();
     }
 

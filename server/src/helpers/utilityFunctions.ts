@@ -1,9 +1,5 @@
 import { ResultDocument } from "~/src/models/result.model";
-import {
-  compareAvgs,
-  compareSingles,
-  getDefaultAverageAttempts,
-} from "@sh/sharedFunctions";
+import { compareAvgs, compareSingles, getDefaultAverageAttempts } from "@sh/sharedFunctions";
 import {
   IActivity,
   IContest,
@@ -93,8 +89,7 @@ export const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => {
   return output;
 };
 
-export const getUserEmailVerified = (user: IUser) =>
-  user.confirmationCodeHash === undefined && !user.cooldownStarted;
+export const getUserEmailVerified = (user: IUser) => user.confirmationCodeHash === undefined && !user.cooldownStarted;
 
 export const importEsmModule = async <T = any>(
   moduleName: string,
@@ -107,15 +102,12 @@ export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
   shortName: contest.shortName,
   persons: [],
   events: contest.events.map((ce) => getWcifCompEvent(ce)),
-  schedule: contest.compDetails?.schedule
-    ? getWcifSchedule(contest)
-    : ({} as IWcifSchedule),
+  schedule: contest.compDetails?.schedule ? getWcifSchedule(contest) : ({} as IWcifSchedule),
   competitorLimit: contest.competitorLimit ?? null,
   extensions: [],
 });
 
-const convertDateToWcifDate = (date: Date): string =>
-  formatInTimeZone(date, "UTC", "yyyy-MM-dd");
+const convertDateToWcifDate = (date: Date): string => formatInTimeZone(date, "UTC", "yyyy-MM-dd");
 
 const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
   id: contestEvent.event.eventId as any,

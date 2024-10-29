@@ -83,9 +83,9 @@ describe("setRoundRankings works correctly", () => {
     expect(round.results[1].best).toBe(4913);
     expect(round.results[1].average).toBe(-1);
   });
-})
+});
 
-describe('setRankings works correctly', () => {
+describe("setRankings works correctly", () => {
   it("sets rankings for 3x3x3 top single results (pre-sorted) correctly", async () => {
     const top333SingleRankings = await setRankings(
       [
@@ -100,7 +100,7 @@ describe('setRankings works correctly', () => {
         { best: 590 },
         { best: 590 },
       ] as ResultDocument[],
-      false
+      false,
     );
 
     expect(top333SingleRankings[0].ranking).toBe(1);
@@ -126,7 +126,7 @@ describe('setRankings works correctly', () => {
         { average: 552 },
         { average: 555 },
       ] as ResultDocument[],
-      true
+      true,
     );
 
     expect(top333SingleRankings[0].ranking).toBe(1);

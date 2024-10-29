@@ -28,6 +28,7 @@ import { ContestState, Role, RoundFormat, WcaRecordType } from "@sh/enums";
 import { roundFormats } from "@sh/roundFormats";
 import {
   IActivity,
+  IAdminResultsSubmissionInfo,
   IEvent,
   IEventRankings,
   IEventRecordPairs,
@@ -37,7 +38,6 @@ import {
   IRecordType,
   IResult,
   IResultsSubmissionInfo,
-  IAdminResultsSubmissionInfo,
   IRound,
   ISubmittedResult,
 } from "@sh/types";
@@ -319,7 +319,8 @@ export class ResultsService {
         }
 
         if (result.competitionId) {
-          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec() as any;
+          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl)
+            .exec() as any;
         }
 
         eventRankings.rankings.push(ranking);
@@ -363,7 +364,8 @@ export class ResultsService {
         };
 
         if (result.competitionId) {
-          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl).exec() as any;
+          ranking.contest = await this.contestModel.findOne({ competitionId: result.competitionId }, excl)
+            .exec() as any;
         }
 
         eventRankings.rankings.push(ranking);
@@ -453,7 +455,8 @@ export class ResultsService {
   }
 
   async getEditingInfo(resultId: string): Promise<IAdminResultsSubmissionInfo> {
-    const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy).exec() as ISubmittedResult;
+    const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy)
+      .exec() as ISubmittedResult;
     if (!result) throw new NotFoundException("Result not found");
 
     const event = await this.eventsService.getEventById(result.eventId);
@@ -519,8 +522,9 @@ export class ResultsService {
 
     const round = await this.roundModel.findOne({ competitionId, roundId }).populate(resultPopulateOptions).exec();
     if (!round) throw new BadRequestException("Round not found");
-    if (round.results.find(r => r.personIds.some(pid => createResultDto.personIds.includes(pid))))
-      throw new BadRequestException("The competitor(s) already has a result in this round")
+    if (round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid)))) {
+      throw new BadRequestException("The competitor(s) already has a result in this round");
+    }
     const event = await this.eventsService.getEventById(createResultDto.eventId);
     const newResult: IResult = {
       ...createResultDto,
@@ -533,7 +537,7 @@ export class ResultsService {
       ranking: 0,
       best: 0,
       average: 0,
-    }
+    };
 
     // Set result date. For contests with a schedule, the schedule must be used to set the date.
     if (!getIsCompType(contest.type)) {
@@ -579,7 +583,8 @@ export class ResultsService {
     await round.save();
     await this.updateContestParticipants(contest);
 
-    const updatedRound = await this.roundModel.findOne({ competitionId, roundId }, excl).populate(resultPopulateOptions).exec();
+    const updatedRound = await this.roundModel.findOne({ competitionId, roundId }, excl).populate(resultPopulateOptions)
+      .exec();
     return updatedRound;
   }
 
@@ -608,7 +613,7 @@ export class ResultsService {
       date: new Date(submitResultDto.date),
       best: 0,
       average: 0,
-      createdBy: new mongo.ObjectId(user._id as string)
+      createdBy: new mongo.ObjectId(user._id as string),
     };
     await this.validateAndCleanUpResult(newResult, event, { mode: "submit" });
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
@@ -640,7 +645,10 @@ export class ResultsService {
 
   // The user can be left undefined when this is called from enterAttemptFromExternalDevice() or when editing a submitted result
   async updateResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
-    this.logger.logAndSave(`Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`, LogType.UpdateResult);
+    this.logger.logAndSave(
+      `Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
+      LogType.UpdateResult,
+    );
 
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
@@ -670,7 +678,10 @@ export class ResultsService {
     result.regionalSingleRecord = undefined;
     result.regionalAverageRecord = undefined;
 
-    await this.validateAndCleanUpResult(result as IResult | ISubmittedResult, event, { mode: "edit", round: round as IRound });
+    await this.validateAndCleanUpResult(result as IResult | ISubmittedResult, event, {
+      mode: "edit",
+      round: round as IRound,
+    });
 
     const recordPairs = await this.getEventRecordPairs(event, {
       recordsUpTo: result.date,
@@ -993,8 +1004,9 @@ export class ResultsService {
       throw new BadRequestException("You cannot enter the same person twice in the same result");
     }
     // There is a time zone that's 14 hours ahead of UTC, hence the 15 hour margin here
-    if (differenceInHours(result.date, new Date()) > 15)
-      throw new BadRequestException('The date cannot be in the future');
+    if (differenceInHours(result.date, new Date()) > 15) {
+      throw new BadRequestException("The date cannot be in the future");
+    }
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
     // and this is only used for those results, because a competition result would have a round
@@ -1078,7 +1090,9 @@ export class ResultsService {
             }
           } else if (result.attempts.length > round.cutoff.numberOfAttempts) {
             if (result.attempts.slice(round.cutoff.numberOfAttempts).some((a) => a.result !== 0)) {
-              throw new BadRequestException(`This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`);
+              throw new BadRequestException(
+                `This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`,
+              );
             } else {
               result.attempts = result.attempts.slice(0, round.cutoff.numberOfAttempts);
             }
@@ -1091,7 +1105,9 @@ export class ResultsService {
       }
     } // Video-based results validation
     else {
-      if ((result as ISubmittedResult).videoLink === undefined) throw new BadRequestException("Please enter a video link");
+      if ((result as ISubmittedResult).videoLink === undefined) {
+        throw new BadRequestException("Please enter a video link");
+      }
     }
   }
 }

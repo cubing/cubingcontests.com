@@ -143,9 +143,10 @@ describe("ResultsService", () => {
           attempts: [{ result: 1568 }, { result: 2054 }, { result: 1911 }, { result: 1723 }, { result: 1489 }],
         };
 
-        await expect(resultsService.createResult("Munich19022023", "333-r1", new333Result, { user: adminUser })).rejects.toThrow(
-          new BadRequestException("The competitor(s) already has a result in this round"),
-        );
+        await expect(resultsService.createResult("Munich19022023", "333-r1", new333Result, { user: adminUser })).rejects
+          .toThrow(
+            new BadRequestException("The competitor(s) already has a result in this round"),
+          );
 
         const newTeamBldResult: CreateResultDto = {
           eventId: "333_team_bld",

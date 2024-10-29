@@ -520,7 +520,9 @@ export class ContestsService {
       for (const round of contestEvent.rounds) {
         // This is only used for the import contest feature and can only be used by an admin
         if (saveResults) {
-          round.results = await this.resultModel.create(round.results.map((r) => ({ ...r, unapproved: true }))) as IResult[];
+          round.results = await this.resultModel.create(
+            round.results.map((r) => ({ ...r, unapproved: true })),
+          ) as IResult[];
         }
 
         eventRounds.push(await this.roundModel.create({ ...round, _id: undefined }));

@@ -1,22 +1,22 @@
-const path = require('path');
-const PdfPrinter = require('pdfmake');
-const Helpers = require('@wca/helpers');
+const path = require("path");
+const PdfPrinter = require("pdfmake");
+const Helpers = require("@wca/helpers");
 
 const fonts = {
   Roboto: {
     // The paths are like this cause of the dist structure after the Nest build step
-    normal: path.resolve('./dist/scorecards/fonts/Roboto-Regular.ttf'),
-    bold: path.resolve('./dist/scorecards/fonts/Roboto-Medium.ttf'),
-    italics: path.resolve('./dist/scorecards/fonts/Roboto-Italic.ttf'),
-    bolditalics: path.resolve('./dist/scorecards/fonts/Roboto-MediumItalic.ttf'),
+    normal: path.resolve("./dist/scorecards/fonts/Roboto-Regular.ttf"),
+    bold: path.resolve("./dist/scorecards/fonts/Roboto-Medium.ttf"),
+    italics: path.resolve("./dist/scorecards/fonts/Roboto-Italic.ttf"),
+    bolditalics: path.resolve("./dist/scorecards/fonts/Roboto-MediumItalic.ttf"),
   },
 };
 
 const printer = new PdfPrinter(fonts);
 
 const getRoundAttempts = (format) => {
-  if (format === 'a') return 5;
-  if (format === 'm') return 3;
+  if (format === "a") return 5;
+  if (format === "m") return 3;
   return parseInt(format); // handles '1', '2', and '3'
 };
 
@@ -27,15 +27,15 @@ const getRoundAttempts = (format) => {
  */
 const getScorecards = async (wcifCompetition) => {
   const getSingleScorecard = ({ round, roundNumber, event }) => {
-    const eventExt = event.extensions.find((e) => e.id === 'TEMPORARY')?.data;
+    const eventExt = event.extensions.find((e) => e.id === "TEMPORARY")?.data;
 
     return [
-      { text: wcifCompetition.shortName, fontSize: 15, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+      { text: wcifCompetition.shortName, fontSize: 15, bold: true, alignment: "center", margin: [0, 0, 0, 10] },
       {
-        layout: 'noBorders',
+        layout: "noBorders",
         table: {
           headerRows: 0,
-          widths: ['75%', '25%'],
+          widths: ["75%", "25%"],
           body: [
             [
               { text: eventExt?.name, fontSize: 10 },
@@ -48,22 +48,22 @@ const getScorecards = async (wcifCompetition) => {
       {
         table: {
           headerRows: 1,
-          widths: ['30%', '70%'],
+          widths: ["30%", "70%"],
           body: [
             [
               {
-                text: 'WCA ID',
+                text: "WCA ID",
                 fontSize: 10,
                 border: [false, false, false, false],
                 margin: [0, 0, 0, 5],
               },
               {
-                text: 'Full Name',
+                text: "Full Name",
                 fontSize: 10,
                 border: [false, false, false, false],
               },
             ],
-            ...new Array(eventExt.participants).fill([{ text: '', margin: [0, 0, 0, 20] }, { text: '' }]),
+            ...new Array(eventExt.participants).fill([{ text: "", margin: [0, 0, 0, 20] }, { text: "" }]),
           ],
         },
         margin: [4, 3, 0, 16],
@@ -71,48 +71,48 @@ const getScorecards = async (wcifCompetition) => {
       {
         table: {
           headerRows: 1,
-          widths: ['7%', '16%', '45%', '16%', '16%'],
+          widths: ["7%", "16%", "45%", "16%", "16%"],
           body: [
             [
-              { text: '', border: [false, false, false, false] },
-              { text: 'Scr', style: 'colHeader', border: [false, false, false, false] },
-              { text: 'Result', style: 'colHeader', border: [false, false, false, false] },
-              { text: 'Judge', style: 'colHeader', border: [false, false, false, false] },
-              { text: 'Comp', style: 'colHeader', border: [false, false, false, false] },
+              { text: "", border: [false, false, false, false] },
+              { text: "Scr", style: "colHeader", border: [false, false, false, false] },
+              { text: "Result", style: "colHeader", border: [false, false, false, false] },
+              { text: "Judge", style: "colHeader", border: [false, false, false, false] },
+              { text: "Comp", style: "colHeader", border: [false, false, false, false] },
             ],
             ...new Array(getRoundAttempts(round.format))
-              .fill('')
+              .fill("")
               .map((_, index) => [
-                { text: (index + 1).toString(), style: 'rowNumber', border: [false, false, false, false] },
-                '',
-                '',
-                '',
-                '',
+                { text: (index + 1).toString(), style: "rowNumber", border: [false, false, false, false] },
+                "",
+                "",
+                "",
+                "",
               ]),
-            [{ text: 'E', style: 'rowNumber', border: [false, false, false, false] }, '', '', '', ''],
+            [{ text: "E", style: "rowNumber", border: [false, false, false, false] }, "", "", "", ""],
           ],
         },
       },
       {
-        layout: 'noBorders',
+        layout: "noBorders",
         table: {
           headerRows: 0,
-          widths: ['55%', '45%'],
+          widths: ["55%", "45%"],
           body: [
             [
               {
-                text: round.timeLimit ? `Time limit: ${Helpers.formatCentiseconds(round.timeLimit.centiseconds)}` : '',
+                text: round.timeLimit ? `Time limit: ${Helpers.formatCentiseconds(round.timeLimit.centiseconds)}` : "",
                 fontSize: 11,
               },
               {
-                text: round.cutoff ? `Cutoff: ${Helpers.formatCentiseconds(round.cutoff.attemptResult)}` : '',
+                text: round.cutoff ? `Cutoff: ${Helpers.formatCentiseconds(round.cutoff.attemptResult)}` : "",
                 fontSize: 11,
-                alignment: 'right',
+                alignment: "right",
               },
             ],
           ],
         },
-        margin: [22, eventExt.participants === 1 ? 20 : 8, 0, round.format === 'a' ? 40 : 80],
+        margin: [22, eventExt.participants === 1 ? 20 : 8, 0, round.format === "a" ? 40 : 80],
       },
     ];
   };
@@ -131,19 +131,19 @@ const getScorecards = async (wcifCompetition) => {
 
   const docDefinition = {
     content: roundObjects.map((roundObj, index) => ({
-      layout: 'noBorders',
+      layout: "noBorders",
       table: {
         headerRows: 0,
-        widths: ['48%', '4%', '48%'],
+        widths: ["48%", "4%", "48%"],
         body: [
-          [getSingleScorecard(roundObj), '', getSingleScorecard(roundObj)],
-          [getSingleScorecard(roundObj), '', getSingleScorecard(roundObj)],
+          [getSingleScorecard(roundObj), "", getSingleScorecard(roundObj)],
+          [getSingleScorecard(roundObj), "", getSingleScorecard(roundObj)],
         ],
       },
-      pageBreak: index + 1 === roundObjects.length ? '' : 'after',
+      pageBreak: index + 1 === roundObjects.length ? "" : "after",
     })),
     defaultStyle: {
-      font: 'Roboto',
+      font: "Roboto",
     },
     styles: {
       rowNumber: {
@@ -153,7 +153,7 @@ const getScorecards = async (wcifCompetition) => {
       },
       colHeader: {
         margin: [0, 0, 0, 3],
-        alignment: 'center',
+        alignment: "center",
         fontSize: 8,
       },
     },
@@ -167,8 +167,8 @@ const getScorecards = async (wcifCompetition) => {
   const pdfBuffer = await new Promise((resolve) => {
     const buffer = [];
 
-    pdfDoc.on('data', buffer.push.bind(buffer));
-    pdfDoc.on('end', () => {
+    pdfDoc.on("data", buffer.push.bind(buffer));
+    pdfDoc.on("end", () => {
       const data = Buffer.concat(buffer);
       resolve(data);
     });
