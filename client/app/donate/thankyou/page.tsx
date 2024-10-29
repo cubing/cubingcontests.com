@@ -11,9 +11,7 @@ const ThankYouPage = () => {
       </p>
 
       <div className="d-flex justify-content-center mt-5">
-        <Link href="/" className="btn btn-primary">
-          Back to Homepage
-        </Link>
+        <Link href="/" className="btn btn-primary">Back to Homepage</Link>
       </div>
     </div>
   );

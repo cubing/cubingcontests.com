@@ -11,6 +11,19 @@ import { getDateOnly } from "../../../shared_helpers/sharedFunctions.ts";
 registerLocale("en-GB", enGB);
 setDefaultLocale("en-GB");
 
+type Props = {
+  id?: string;
+  title?: string;
+  value: Date;
+  setValue: (val: Date) => void;
+  timeZone?: string;
+  dateFormat?: string; // P is date select only, Pp is date and time select
+  timeFormat?: string;
+  timeIntervals?: number;
+  disabled?: boolean;
+  showUTCTime?: boolean;
+};
+
 const FormDatePicker = ({
   id,
   title,
@@ -22,21 +35,8 @@ const FormDatePicker = ({
   timeIntervals = 10,
   disabled = false,
   showUTCTime = false,
-}: {
-  id?: string;
-  title?: string;
-  value: Date;
-  setValue: (val: Date) => void;
-  timeZone?: string;
-  dateFormat?: string; // P is date select only, Pp is date and time select
-  timeFormat?: string;
-  timeIntervals?: number;
-  disabled?: boolean;
-  showUTCTime?: boolean;
-}) => {
-  if (!id && !title) {
-    throw new Error("Neither title nor id are set in FormDatePicker");
-  }
+}: Props) => {
+  if (!id && !title) throw new Error("Neither title nor id are set in FormDatePicker");
 
   const inputId = id || `${title}_date`;
   const showTimeSelect = dateFormat !== "P";
@@ -47,9 +47,8 @@ const FormDatePicker = ({
 
   const onChange = (newDate: Date) => {
     // The time zone conversion is necessary, because otherwise JS uses the user's local time zone
-    if (!showTimeSelect) {
-      setValue(getDateOnly(fromZonedTime(newDate, timeZone)) as Date);
-    } else setValue(fromZonedTime(newDate, timeZone));
+    if (!showTimeSelect) setValue(getDateOnly(fromZonedTime(newDate, timeZone)) as Date);
+    else setValue(fromZonedTime(newDate, timeZone));
   };
 
   return (
@@ -71,9 +70,7 @@ const FormDatePicker = ({
       />
 
       {showUTCTime && (
-        <div className="mt-3 text-secondary fs-6">
-          UTC:&#8194;{value ? value.toUTCString().slice(0, -4) : "ERROR"}
-        </div>
+        <div className="mt-3 text-secondary fs-6">UTC:&#8194;{value ? value.toUTCString().slice(0, -4) : "ERROR"}</div>
       )}
     </div>
   );

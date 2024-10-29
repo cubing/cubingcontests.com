@@ -64,12 +64,6 @@ body[data-bs-theme="light"] {
   --bs-btn-font-size: 0.75rem !important;
 }
 
-/* This class is used by react datepicker */
-.react-datepicker-wrapper {
-  display: block;
-  width: 100%;
-}
-
 .cc-basic-heading {
   margin-top: 1.5rem;
   margin-bottom: 1rem;
@@ -111,6 +105,12 @@ body[data-bs-theme="light"] {
    other invalid inputs near it that are NOT focused (this only increases the alpha number in the rgba function) */
 .form-control.is-invalid:focus {
   box-shadow: 0 0 0 0.25rem rgba(var(--bs-danger-rgb), 0.65);
+}
+
+/* This class is used by react datepicker */
+.react-datepicker-wrapper {
+  display: block;
+  width: 100%;
 }
 
 /* 768px corresponds to Bootstrap's md size (THIS IS USED IN OTHER PLACES TOO, REPLACE IT WITH A GLOBAL VARIABLE) */

@@ -2,6 +2,15 @@
 
 import { IEvent } from "~/shared_helpers/types.ts";
 
+type Props = {
+  title?: string;
+  noMargin?: boolean;
+  events: IEvent[];
+  eventId: string;
+  setEventId: (val: string) => void;
+  disabled?: boolean;
+};
+
 const FormEventSelect = ({
   title = "Event",
   noMargin = false,
@@ -9,14 +18,7 @@ const FormEventSelect = ({
   eventId,
   setEventId,
   disabled = false,
-}: {
-  title?: string;
-  noMargin?: boolean;
-  events: IEvent[];
-  eventId: string;
-  setEventId: (val: string) => void;
-  disabled?: boolean;
-}) => {
+}: Props) => {
   return (
     <div className={"fs-5" + (noMargin ? "" : " mb-3")}>
       {title && <label htmlFor="event_select" className="form-label">{title}</label>}

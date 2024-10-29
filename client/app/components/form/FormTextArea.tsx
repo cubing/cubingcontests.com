@@ -1,5 +1,14 @@
 "use client";
 
+type Props = {
+  id?: string;
+  title?: string;
+  value: string;
+  setValue: (val: string) => void;
+  rows?: number;
+  disabled?: boolean;
+};
+
 const FormTextArea = ({
   id,
   title,
@@ -7,14 +16,7 @@ const FormTextArea = ({
   setValue,
   rows = 10,
   disabled = false,
-}: {
-  id?: string;
-  title?: string;
-  value: string;
-  setValue: (val: string) => void;
-  rows?: number;
-  disabled?: boolean;
-}) => {
+}: Props) => {
   if (!id && !title) throw new Error("Neither title nor id are set in FormTextArea");
 
   const inputId = (id || title) as string;

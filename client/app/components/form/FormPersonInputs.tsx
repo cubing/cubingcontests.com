@@ -142,9 +142,7 @@ const FormPersonInputs = ({
     // Focus on the first attempt input, if all names have been entered, or the next person input,
     // if all names haven't been entered and the last person input is not currently focused
     if (!newPersons.includes(null)) {
-      if (nextFocusTargetId) {
-        document.getElementById(nextFocusTargetId)?.focus();
-      }
+      if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
     } else {
       const emptyInputIndex = newPersons.findIndex((el) => el === null);
       document.getElementById(`${title}_${emptyInputIndex + 1}`)?.focus();
