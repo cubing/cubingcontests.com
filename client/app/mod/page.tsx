@@ -61,7 +61,7 @@ const ModeratorDashboardPage = () => {
     );
 
     if (!errors) {
-      setContests(contests.map((c: IContest) => (c.competitionId === competitionId ? payload : c)));
+      setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
     }
   };
 

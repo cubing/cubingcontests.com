@@ -10,15 +10,17 @@ type Props = {
   event: IEvent;
   roundFormat: RoundFormat;
   attempts: IFeAttempt[];
-  recordPairs: IRecordPair[];
+  recordPairs: IRecordPair[] | undefined;
   recordTypes: IRecordType[];
   cutoff?: ICutoff;
 };
 
 const BestAndAverage = ({ event, roundFormat, attempts, recordPairs, recordTypes, cutoff }: Props) => {
-  const pseudoResult = useMemo(() => {
+  const pseudoResult = useMemo<IResult>(() => {
     const { best, average } = getBestAndAverage(attempts, event, roundFormat, { cutoff });
-    return setResultRecords({ best, average, attempts, eventId: event.eventId } as IResult, event, recordPairs, true);
+    let tempResult = { best, average, attempts, eventId: event.eventId } as IResult;
+    if (recordPairs) tempResult = setResultRecords(tempResult, event, recordPairs, true) as IResult;
+    return tempResult;
   }, [attempts, event, roundFormat, recordPairs, cutoff]);
 
   return (

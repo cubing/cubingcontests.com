@@ -166,7 +166,7 @@ const CreatePersonPage = () => {
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: "600px" }}>
+          <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "600px" }}>
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               <table className="table table-hover text-nowrap">
                 <thead>

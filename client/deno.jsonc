@@ -8,7 +8,6 @@
     "dev": "next dev",
     "build": "deno run --unstable-unsafe-proto -A npm:next build",
     // "build": "next build",
-    "start": "next start",
-    "test": "jest"
+    "start": "next start"
   }
 }

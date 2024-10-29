@@ -50,7 +50,6 @@ export interface IResultDto {
 
 export interface ISubmittedResultDto extends IResultDto {
   date: Date;
-  unapproved?: true;
   videoLink: string;
   discussionLink?: string;
 }

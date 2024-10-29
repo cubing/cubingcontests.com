@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { AttemptDto, CreateResultDto } from "./create-result.dto";
-import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsDateString, IsOptional, IsUrl, Validate, ValidateNested } from "class-validator";
+import { ArrayMaxSize, ArrayMinSize, IsDateString, IsOptional, IsUrl, Validate, ValidateNested } from "class-validator";
 import { IAttempt } from "@sh/types";
 import { DATE_VALIDATION_MSG, DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from "~/src/helpers/messages";
 import { SubmittedAttempts } from "~/src/helpers/customValidators";
@@ -9,10 +9,6 @@ import { ISubmittedResultDto } from "~/shared_helpers/interfaces/Result";
 export class SubmitResultDto extends CreateResultDto implements ISubmittedResultDto {
   @IsDateString({}, { message: DATE_VALIDATION_MSG })
   date: Date;
-
-  @IsOptional()
-  @IsBoolean()
-  unapproved?: true;
 
   @ArrayMinSize(1)
   @ArrayMaxSize(5)

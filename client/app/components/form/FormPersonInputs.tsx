@@ -48,11 +48,11 @@ const FormPersonInputs = ({
   const { loadingId, changeLoadingId } = useContext(MainContext);
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
-  const defaultMatchedPersons: InputPerson[] = userInfo?.isMod ? [null] : [];
+  const defaultMatchedPersons: (IPerson | null)[] = userInfo?.isMod ? [null] : [];
 
-  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(defaultMatchedPersons);
+  const [matchedPersons, setMatchedPersons] = useState<(IPerson | null)[]>(defaultMatchedPersons);
   const [personSelection, setPersonSelection] = useState(0);
-  const [focusedInput, setFocusedInput] = useState<number>(null);
+  const [focusedInput, setFocusedInput] = useState<number | null>(null);
 
   const getMatchedPersons = useCallback(
     debounce(async (value: string) => {
@@ -227,7 +227,7 @@ const FormPersonInputs = ({
                 )
                 : matchedPersons.length > 0
                 ? (
-                  matchedPersons.map((person: IPerson, matchIndex: number) => (
+                  matchedPersons.map((person: IPerson | null, matchIndex: number) => (
                     <li
                       key={matchIndex}
                       className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}

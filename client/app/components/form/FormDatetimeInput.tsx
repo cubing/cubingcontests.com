@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import enGB from "date-fns/locale/en-GB";
+import { enGB } from "date-fns/locale/en-GB";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import FormInputLabel from "./FormInputLabel.tsx";
 import { getDateOnly } from "../../../shared_helpers/sharedFunctions.ts";

@@ -2,14 +2,14 @@ import { remove as removeAccents } from "remove-accents";
 import C from "./constants.ts";
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
 import {
-  IAttempt,
-  IContestEvent,
-  ICutoff,
-  IEvent,
+  type IAttempt,
+  type IContestEvent,
+  type ICutoff,
+  type IEvent,
   type IFeAttempt,
-  IPersonDto,
-  IRecordPair,
-  IResult,
+  type IPersonDto,
+  type IRecordPair,
+  type IResult,
   type IRoundFormat,
   type ISubmittedResult,
 } from "./types.ts";
@@ -35,7 +35,7 @@ export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
 
   if (a.average <= 0) {
     if (b.average <= 0) {
-      if (useTieBreaker) breakTie();
+      if (useTieBreaker) return breakTie();
       return 0;
     }
     return 1;

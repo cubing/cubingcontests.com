@@ -51,7 +51,7 @@ const ScheduleEditor = ({
     fromZonedTime(addHours(startDate, 13), venueTimeZone),
   );
 
-  const roomOptions = useMemo<MultiChoiceOption[]>(
+  const roomOptions = useMemo<MultiChoiceOption<number>[]>(
     () => rooms.map((room) => ({ label: room.name, value: room.id })),
     [rooms.length],
   );

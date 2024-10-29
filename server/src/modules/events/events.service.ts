@@ -109,9 +109,7 @@ export class EventsService {
     const { ruleText, ...newEvent }: IFeEvent = createEventDto;
     let eventRule: EventRuleDocument;
 
-    if (ruleText) {
-      eventRule = await this.eventRuleModel.create({ eventId: newEvent.eventId, rule: ruleText });
-    }
+    if (ruleText) eventRule = await this.eventRuleModel.create({ eventId: newEvent.eventId, rule: ruleText });
 
     await this.eventModel.create({ ...newEvent, rule: eventRule });
 
@@ -139,10 +137,7 @@ export class EventsService {
       event.rule = await this.eventRuleModel.create({ eventId: updateEventDto.eventId, rule: updateEventDto.ruleText });
     } else if (updateEventDto.ruleText && event.rule) {
       await this.eventRuleModel
-        .updateOne(
-          { eventId: updateEventDto.eventId },
-          { eventId: updateEventDto.eventId, rule: updateEventDto.ruleText },
-        )
+        .updateOne({ eventId: updateEventDto.eventId }, { eventId: updateEventDto.eventId, rule: updateEventDto.ruleText })
         .exec();
     }
 

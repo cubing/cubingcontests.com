@@ -82,7 +82,7 @@ const ContestForm = ({
   const [latitude, setLatitude] = useState<NumberInputValue>(contest ? contest.latitudeMicrodegrees / 1000000 : 0);
   // Horizontal coordinate (X); ranges from -180 to 180
   const [longitude, setLongitude] = useState<NumberInputValue>(contest ? contest.longitudeMicrodegrees / 1000000 : 0);
-  const [startDate, setStartDate] = useState(contest ? new Date(contest.startDate) : getDateOnly(new Date()));
+  const [startDate, setStartDate] = useState(contest ? new Date(contest.startDate) : getDateOnly(new Date()) as Date);
   // Meetup-only; set 12:00 as initial start time
   const [startTime, setStartTime] = useState(
     contest?.meetupDetails ? new Date(contest.meetupDetails.startTime) : addHours(getDateOnly(new Date()) as Date, 12),
@@ -341,7 +341,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
       setAddress(newContest.address);
       setVenue(newContest.venue);
       setStartDate(newContest.startDate);
-      setEndDate(newContest.endDate);
+      setEndDate(newContest.endDate as Date);
       setOrganizers([...newContest.organizers, null]);
       setOrganizerNames([...newContest.organizers.map((o) => o.name), ""]);
       setDescription(newContest.description);
@@ -387,7 +387,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
   const changeStartDate = (newDate: Date) => {
     if (!getIsCompType(type)) {
       setStartTime(newDate);
-      setStartDate(getDateOnly(toZonedTime(newDate, timeZone)));
+      setStartDate(getDateOnly(toZonedTime(newDate, timeZone)) as Date);
     } else {
       setStartDate(newDate);
 

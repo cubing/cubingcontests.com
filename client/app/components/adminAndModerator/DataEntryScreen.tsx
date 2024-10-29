@@ -74,13 +74,15 @@ const DataEntryScreen = ({
       currContestEvent.rounds.map((r: IRound) => ({ label: roundTypes[r.roundTypeId].label, value: r.roundTypeId })),
     [currContestEvent],
   );
-  const recordPairs = useMemo<IRecordPair[]>(
-    () =>
-      (recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === eventId) as IEventRecordPairs).recordPairs,
+  const recordPairs = useMemo<IRecordPair[] | undefined>(
+    () => recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === eventId)?.recordPairs,
     [recordPairsByEvent, currEvent],
   );
 
   const isEditable = userInfo?.isAdmin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
+  const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
+    ? attempts.length
+    : (round.cutoff as ICutoff).numberOfAttempts;
 
   useEffect(() => {
     if (!isEditable) {
@@ -277,9 +279,9 @@ const DataEntryScreen = ({
                 attempt={attempt}
                 setAttempt={(val: IFeAttempt) => changeAttempt(i, val)}
                 event={currEvent}
-                nextFocusTargetId={i + 1 === attempts.length ? "submit_attempt_button" : undefined}
+                nextFocusTargetId={i + 1 === lastActiveAttempt ? "submit_attempt_button" : undefined}
                 timeLimit={round.timeLimit}
-                disabled={!getMakesCutoff(attempts, round.cutoff) && i + 1 > (round.cutoff as ICutoff).numberOfAttempts}
+                disabled={i + 1 > lastActiveAttempt}
               />
             ))}
             {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (

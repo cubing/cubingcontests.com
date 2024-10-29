@@ -20,6 +20,7 @@ export interface IMainContext {
 }
 
 export const MainContext = createContext<IMainContext>({
+  queryClient: undefined as any,
   theme: "dark",
   setTheme: () => {},
   errorMessages: [],

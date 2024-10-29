@@ -49,11 +49,13 @@ const ContestEvents = ({
   );
 
   const disableNewRounds = contestType === ContestType.Meetup && totalRounds >= 15;
-  const filteredEvents = events.filter((ev) =>
+  const filteredEvents: IEvent[] = events.filter((ev) =>
     contestType !== ContestType.WcaComp ||
     !ev.groups.includes(EventGroup.WCA)
   );
-  const remainingEvents = filteredEvents.filter((ev) => !contestEvents.some((ce) => ce.event.eventId === ev.eventId));
+  const remainingEvents: IEvent[] = filteredEvents.filter((ev) =>
+    !contestEvents.some((ce) => ce.event.eventId === ev.eventId)
+  );
   // Fix new event ID, if it's not in the list of remaining events
   if (!remainingEvents.some((e) => e.eventId === newEventId)) {
     setNewEventId(remainingEvents[0].eventId);
@@ -82,7 +84,7 @@ const ContestEvents = ({
     );
 
     if (remainingEvents.length > 1) {
-      const newId = remainingEvents.find((event) => event.eventId !== newEventId)?.eventId;
+      const newId = (remainingEvents.find((event) => event.eventId !== newEventId) as IEvent).eventId;
       setNewEventId(newId);
     }
   };
@@ -144,7 +146,9 @@ const ContestEvents = ({
       i !== eventIndex ? ce : {
         ...ce,
         rounds: ce.rounds.map((round, i) =>
-          i !== roundIndex ? round : { ...round, timeLimit: { ...round.timeLimit, centiseconds: value.result } }
+          i !== roundIndex
+            ? round
+            : { ...round, timeLimit: { ...round.timeLimit, centiseconds: value.result } as ITimeLimit }
         ),
       }
     );
@@ -162,7 +166,7 @@ const ContestEvents = ({
             timeLimit: {
               ...round.timeLimit,
               cumulativeRoundIds: (round.timeLimit as ITimeLimit).cumulativeRoundIds.length > 0 ? [] : [round.roundId],
-            },
+            } as ITimeLimit,
           }
         ),
       }
@@ -211,7 +215,7 @@ const ContestEvents = ({
         rounds: ce.rounds.map((round, i) =>
           i !== roundIndex ? round : {
             ...round,
-            proceed: { type, value: newVal === undefined ? (round.proceed as IProceed).value : newVal },
+            proceed: { type, value: newVal === undefined ? (round.proceed as IProceed).value : newVal } as IProceed,
           }
         ),
       }
@@ -361,7 +365,8 @@ const ContestEvents = ({
                     <FormNumberInput
                       id="round_proceed_value"
                       value={round.proceed.value}
-                      setValue={(val) => changeRoundProceed(eventIndex, roundIndex, round.proceed.type, val)}
+                      setValue={(val) =>
+                        changeRoundProceed(eventIndex, roundIndex, (round.proceed as IProceed).type, val)}
                       integer
                       min={round.proceed.type === RoundProceed.Percentage ? 1 : C.minProceedNumber}
                       max={round.proceed.type === RoundProceed.Percentage ? C.maxProceedPercentage : Infinity}
