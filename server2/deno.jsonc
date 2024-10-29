@@ -7,10 +7,8 @@
   },
 
   "tasks": {
-    "start": "deno run --watch --env-file=../.env --allow-env --allow-read --allow-net main.ts"
+    // allow-read is required for serving static assets
+    "dev": "deno run --watch --env-file=../.env --allow-env --allow-read --allow-net main.ts",
+    "start": "deno run --allow-env --allow-read --allow-net main.ts"
   }
-  // "compilerOptions": {
-  //   "jsx": "precompile",
-  //   "jsxImportSource": "hono/jsx"
-  // }
 }

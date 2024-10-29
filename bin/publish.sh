@@ -16,13 +16,13 @@ fi
 if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   echo -e "\nPushing to Dockerhub"
   docker login -u denimint
-  # Remove all images that contain "cubingcontests"
-  docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
+  # Remove all images that contain "cubingcontests" (DISABLING THIS TO SEE IF IT WOULD JUST DO AN OVERWRITE CORRECTLY!)
+  # docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
-  docker build --build-arg API_BASE_URL=$CLIENT_ARG_API_BASE_URL \
-                           API_BASE_URL_SERVER_SIDE=$CLIENT_ARG_API_BASE_URL_SERVER_SIDE \
-                           API_BASE_URL2=$CLIENT_ARG_API_BASE_URL2 \
-                           API_BASE_URL2_SERVER_SIDE=$CLIENT_ARG_API_BASE_URL2_SERVER_SIDE \
+  docker build --build-arg API_BASE_URL="$CLIENT_ARG_API_BASE_URL" \
+               --build-arg API_BASE_URL_SERVER_SIDE="$CLIENT_ARG_API_BASE_URL_SERVER_SIDE" \
+               --build-arg API_BASE_URL2="$CLIENT_ARG_API_BASE_URL2" \
+               --build-arg API_BASE_URL2_SERVER_SIDE="$CLIENT_ARG_API_BASE_URL2_SERVER_SIDE" \
     -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$new_version denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$new_version &&

@@ -23,9 +23,9 @@ services:
     image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server:${VERSION}'
     networks:
       - cubingcontests
-    # env_file: .env
     ports:
       - 127.0.0.1:$BACKEND_PORT:$BACKEND_PORT
+    env_file: .env
     environment:
       - NODE_ENV=production
       - PORT=$BACKEND_PORT
@@ -44,8 +44,7 @@ services:
       - cubingcontests
     ports:
       - 127.0.0.1:$BACKEND2_PORT:$BACKEND2_PORT
-    environment:
-      - PORT=$BACKEND2_PORT
+    env_file: .env
     depends_on:
       - mongo
     restart: always

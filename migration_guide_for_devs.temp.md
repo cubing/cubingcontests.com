@@ -19,3 +19,6 @@ You may delete the globally-installed Nest CLI package, it's no longer required.
 ```sh
 npm remove -g @nestjs/cli
 ```
+
+# Environment Variables
+

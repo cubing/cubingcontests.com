@@ -31,9 +31,9 @@ cp .env server/.env.dev
 
 # Start the frontent (c), legacy backend (l), new backend (s) and database (d)
 concurrently -kc blue,red,yellow,green -n c,l,s,d \
-  "deno task client" \
+  "cd client && deno task dev" \
   "cd server && npm run dev" \
-  "deno task server2" \
+  "cd server2 && deno task dev" \
   "docker compose up"
 
 docker compose down

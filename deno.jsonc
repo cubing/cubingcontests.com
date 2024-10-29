@@ -4,11 +4,6 @@
   "exclude": ["./client/.next", "./server"],
   "nodeModulesDir": "auto",
 
-  "tasks": {
-    "client": "cd client && deno task dev",
-    "server2": "cd server2 && deno task start"
-  },
-
   "lint": {
     "include": ["*.ts", "*.tsx"],
     "exclude": ["*.d.ts"],
