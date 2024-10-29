@@ -12,37 +12,28 @@ import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
 import { fetchWcaPerson } from "~/shared_helpers/sharedFunctions.ts";
 
+type Props = {
+  personUnderEdit: IFePerson | undefined;
+  onSubmit: (person: IFePerson, isNew?: boolean) => void;
+  onCancel: (() => void) | undefined;
+};
+
 const PersonForm = ({
   personUnderEdit,
   onSubmit,
   onCancel,
-}: {
-  personUnderEdit: IFePerson | undefined;
-  onSubmit: (person: IFePerson, isNew?: boolean) => void;
-  onCancel: (() => void) | undefined;
-}) => {
+}: Props) => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const {
-    changeErrorMessages,
-    changeSuccessMessage,
-    loadingId,
-    changeLoadingId,
-    resetMessagesAndLoadingId,
-  } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
+    useContext(MainContext);
 
   const [nextFocusTarget, setNextFocusTarget] = useState("");
   const [name, setName] = useState(personUnderEdit?.name ?? "");
-  const [localizedName, setLocalizedName] = useState(
-    personUnderEdit?.localizedName ?? "",
-  );
+  const [localizedName, setLocalizedName] = useState(personUnderEdit?.localizedName ?? "");
   const [wcaId, setWcaId] = useState(personUnderEdit?.wcaId ?? "");
-  const [hasWcaId, setHasWcaId] = useState<boolean>(
-    personUnderEdit === undefined || !!personUnderEdit.wcaId,
-  );
-  const [countryIso2, setCountryIso2] = useState(
-    personUnderEdit?.countryIso2 ?? "NOT_SELECTED",
-  );
+  const [hasWcaId, setHasWcaId] = useState<boolean>(personUnderEdit === undefined || !!personUnderEdit.wcaId);
+  const [countryIso2, setCountryIso2] = useState(personUnderEdit?.countryIso2 ?? "NOT_SELECTED");
 
   useEffect(() => {
     if (nextFocusTarget) {
@@ -63,13 +54,9 @@ const PersonForm = ({
       ? await myFetch.patch(
         `/persons/${(personUnderEdit as any)._id}`,
         newPerson,
-        {
-          loadingId: "form_submit_button",
-        },
+        { loadingId: "form_submit_button" },
       )
-      : await myFetch.post("/persons/no-wcaid", newPerson, {
-        loadingId: "form_submit_button",
-      });
+      : await myFetch.post("/persons/no-wcaid", newPerson, { loadingId: "form_submit_button" });
 
     if (!errors) afterSubmit(payload);
   };
@@ -111,9 +98,7 @@ const PersonForm = ({
             if (payload.isNew) {
               afterSubmit(payload.person);
             } else {
-              changeErrorMessages([
-                "A competitor with this WCA ID already exists",
-              ]);
+              changeErrorMessages(["A competitor with this WCA ID already exists"]);
               setName(payload.person.name);
               setLocalizedName(payload.person.localizedName ?? "");
               setCountryIso2(payload.person.countryIso2);

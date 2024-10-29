@@ -27,19 +27,21 @@ import { getRoundFormatOptions, getTimeLimit } from "~/helpers/utilityFunctions.
 import { getTotalRounds } from "~/shared_helpers/sharedFunctions.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 
+type Props = {
+  events: IEvent[];
+  contestEvents: IContestEvent[];
+  setContestEvents: (val: IContestEvent[]) => void;
+  contestType: ContestType;
+  disableNewEvents: boolean;
+};
+
 const ContestEvents = ({
   events,
   contestEvents,
   setContestEvents,
   contestType,
   disableNewEvents,
-}: {
-  events: IEvent[];
-  contestEvents: IContestEvent[];
-  setContestEvents: (val: IContestEvent[]) => void;
-  contestType: ContestType;
-  disableNewEvents: boolean;
-}) => {
+}: Props) => {
   const [newEventId, setNewEventId] = useState(events[0].eventId);
 
   const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [contestEvents]);
@@ -50,16 +52,13 @@ const ContestEvents = ({
 
   const disableNewRounds = contestType === ContestType.Meetup && totalRounds >= 15;
   const filteredEvents: IEvent[] = events.filter((ev) =>
-    contestType !== ContestType.WcaComp ||
-    !ev.groups.includes(EventGroup.WCA)
+    contestType !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA)
   );
   const remainingEvents: IEvent[] = filteredEvents.filter((ev) =>
     !contestEvents.some((ce) => ce.event.eventId === ev.eventId)
   );
   // Fix new event ID, if it's not in the list of remaining events
-  if (!remainingEvents.some((e) => e.eventId === newEventId)) {
-    setNewEventId(remainingEvents[0].eventId);
-  }
+  if (!remainingEvents.some((e) => e.eventId === newEventId)) setNewEventId(remainingEvents[0].eventId);
   // Also disable new events if new rounds are disabled or if there are no more events to add
   disableNewEvents = disableNewEvents || disableNewRounds || contestEvents.length === filteredEvents.length;
 
@@ -229,9 +228,7 @@ const ContestEvents = ({
       <p className="my-4">Total events: {contestEvents.length} | Total rounds: {totalRounds}</p>
 
       <div className="my-4 d-flex align-items-center gap-3">
-        <Button onClick={addContestEvent} disabled={disableNewEvents} className="btn-success">
-          Add Event
-        </Button>
+        <Button onClick={addContestEvent} disabled={disableNewEvents} className="btn-success">Add Event</Button>
         <div className="flex-grow-1">
           <FormEventSelect
             title=""
@@ -244,17 +241,17 @@ const ContestEvents = ({
         </div>
       </div>
       {contestEvents.map((ce, eventIndex) => (
-        <div
-          key={ce.event.eventId}
-          className="mb-3 py-3 px-4 border rounded bg-body-tertiary"
-        >
+        <div key={ce.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
             <EventTitle event={ce.event} fontSize="4" noMargin showIcon showDescription linkToRankings />
 
             {totalResultsPerContestEvent[eventIndex] > 0
               ? <p className="mb-0">Total results: {totalResultsPerContestEvent[eventIndex]}</p>
               : (
-                <Button className="btn-danger btn-sm" onClick={() => deleteContestEvent(ce.event.eventId)}>
+                <Button
+                  className="btn-danger btn-sm"
+                  onClick={() => deleteContestEvent(ce.event.eventId)}
+                >
                   Remove Event
                 </Button>
               )}
@@ -315,7 +312,8 @@ const ContestEvents = ({
                   title="Enabled"
                   id={`cutoff_${ce.event.eventId}_${roundIndex + 1}`}
                   selected={round.cutoff !== undefined}
-                  setSelected={() => changeRoundCutoffEnabled(eventIndex, roundIndex)}
+                  setSelected={() =>
+                    changeRoundCutoffEnabled(eventIndex, roundIndex)}
                   disabled={round.results.length > 0}
                   noMargin
                   small

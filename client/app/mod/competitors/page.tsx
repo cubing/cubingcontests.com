@@ -28,9 +28,7 @@ const CreatePersonPage = () => {
   const myFetch = useMyFetch();
   const { changeSuccessMessage, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
   const parentRef = useRef<Element>(null);
-  const [mode, setMode] = useState<ListPageMode | "add-once">(
-    searchParams.get("redirect") ? "add-once" : "view",
-  );
+  const [mode, setMode] = useState<ListPageMode | "add-once">(searchParams.get("redirect") ? "add-once" : "view");
   const [persons, setPersons] = useState<IFePerson[]>([]);
   const [personUnderEdit, setPersonUnderEdit] = useState<IFePerson>();
   const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
@@ -41,10 +39,8 @@ const CreatePersonPage = () => {
 
     return persons.filter((p: IFePerson) => {
       const passesNameFilter = getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
-        (p.localizedName &&
-          getSimplifiedString(p.localizedName).includes(simplifiedSearch)); // search by localized name
-      const passesApprovedFilter = approvedFilter === "" ||
-        (approvedFilter === "approved" && !p.unapproved) ||
+        (p.localizedName && getSimplifiedString(p.localizedName).includes(simplifiedSearch)); // search by localized name
+      const passesApprovedFilter = approvedFilter === "" || (approvedFilter === "approved" && !p.unapproved) ||
         (approvedFilter === "unapproved" && p.unapproved);
       return passesNameFilter && passesApprovedFilter;
     });
@@ -182,82 +178,80 @@ const CreatePersonPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rowVirtualizer.getVirtualItems().map(
-                    (virtualItem, index) => {
-                      if (filteredPersons.length === 0) return;
-                      const person = filteredPersons[virtualItem.index];
+                  {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
+                    if (filteredPersons.length === 0) return;
+                    const person = filteredPersons[virtualItem.index];
 
-                      return (
-                        <tr
-                          key={virtualItem.key as React.Key}
-                          style={{
-                            height: `${virtualItem.size}px`,
-                            transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
-                          }}
-                        >
-                          <td>{person.personId}</td>
+                    return (
+                      <tr
+                        key={virtualItem.key as React.Key}
+                        style={{
+                          height: `${virtualItem.size}px`,
+                          transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                        }}
+                      >
+                        <td>{person.personId}</td>
+                        <td>
+                          <Competitor person={person} noFlag />
+                        </td>
+                        <td>{person.localizedName}</td>
+                        <td>{person.wcaId}</td>
+                        <td>
+                          <Country countryIso2={person.countryIso2} shorten />
+                        </td>
+                        {userInfo?.isAdmin && (
                           <td>
-                            <Competitor person={person} noFlag />
+                            <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
                           </td>
-                          <td>{person.localizedName}</td>
-                          <td>{person.wcaId}</td>
-                          <td>
-                            <Country countryIso2={person.countryIso2} shorten />
-                          </td>
-                          {userInfo?.isAdmin && (
-                            <td>
-                              <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
-                            </td>
-                          )}
-                          <td>
-                            <FontAwesomeIcon
-                              icon={person.unapproved ? faXmark : faCheck}
-                              className={person.unapproved ? "text-danger" : ""}
-                              style={{ height: "1.3rem" }}
-                            />
-                          </td>
-                          <td>
-                            <div className="d-flex gap-2">
-                              {userInfo?.isAdmin && person.unapproved && (
-                                <Button
-                                  id={`approve_person_${person.personId}_button`}
-                                  onClick={() => approveCompetitor(person)}
-                                  loadingId={loadingId}
-                                  disabled={mode !== "view"}
-                                  className="btn-xs btn-success"
-                                  ariaLabel="Approve"
-                                >
-                                  <FontAwesomeIcon icon={faCheck} />
-                                </Button>
-                              )}
-                              {(userInfo?.isAdmin || person.unapproved) && (
-                                <Button
-                                  onClick={() => onEditCompetitor(person)}
-                                  disabled={mode !== "view"}
-                                  className="btn-xs"
-                                  ariaLabel="Edit"
-                                >
-                                  <FontAwesomeIcon icon={faPencil} />
-                                </Button>
-                              )}
-                              {userInfo?.isAdmin && person.unapproved && (
-                                <Button
-                                  id={`delete_person_${person.personId}_button`}
-                                  onClick={() => deleteCompetitor(person)}
-                                  loadingId={loadingId}
-                                  disabled={mode !== "view"}
-                                  className="btn-xs btn-danger"
-                                  ariaLabel="Delete"
-                                >
-                                  <FontAwesomeIcon icon={faTrash} />
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    },
-                  )}
+                        )}
+                        <td>
+                          <FontAwesomeIcon
+                            icon={person.unapproved ? faXmark : faCheck}
+                            className={person.unapproved ? "text-danger" : ""}
+                            style={{ height: "1.3rem" }}
+                          />
+                        </td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            {userInfo?.isAdmin && person.unapproved && (
+                              <Button
+                                id={`approve_person_${person.personId}_button`}
+                                onClick={() => approveCompetitor(person)}
+                                loadingId={loadingId}
+                                disabled={mode !== "view"}
+                                className="btn-xs btn-success"
+                                ariaLabel="Approve"
+                              >
+                                <FontAwesomeIcon icon={faCheck} />
+                              </Button>
+                            )}
+                            {(userInfo?.isAdmin || person.unapproved) && (
+                              <Button
+                                onClick={() => onEditCompetitor(person)}
+                                disabled={mode !== "view"}
+                                className="btn-xs"
+                                ariaLabel="Edit"
+                              >
+                                <FontAwesomeIcon icon={faPencil} />
+                              </Button>
+                            )}
+                            {userInfo?.isAdmin && person.unapproved && (
+                              <Button
+                                id={`delete_person_${person.personId}_button`}
+                                onClick={() => deleteCompetitor(person)}
+                                loadingId={loadingId}
+                                disabled={mode !== "view"}
+                                className="btn-xs btn-danger"
+                                ariaLabel="Delete"
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

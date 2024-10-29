@@ -15,6 +15,16 @@ import Button from "~/app/components/UI/Button.tsx";
 import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
 import Schedule from "~/app/components/Schedule.tsx";
 
+type Props = {
+  rooms: IRoom[];
+  setRooms: (val: IRoom[] | ((prev: IRoom[]) => IRoom[])) => void;
+  venueTimeZone: string;
+  startDate: Date;
+  contestType: ContestType;
+  contestEvents: IContestEvent[];
+  disabled: boolean;
+};
+
 const ScheduleEditor = ({
   rooms,
   setRooms,
@@ -23,33 +33,19 @@ const ScheduleEditor = ({
   contestType,
   contestEvents,
   disabled,
-}: {
-  rooms: IRoom[];
-  setRooms: (val: IRoom[] | ((prev: IRoom[]) => IRoom[])) => void;
-  venueTimeZone: string;
-  startDate: Date;
-  contestType: ContestType;
-  contestEvents: IContestEvent[];
-  disabled: boolean;
-}) => {
+}: Props) => {
   // Room stuff
   const [roomName, setRoomName] = useState("");
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
 
   // Activity stuff
-  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(
-    null,
-  );
+  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(null);
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
   const [activityCode, setActivityCode] = useState("");
   const [customActivity, setCustomActivity] = useState("");
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
-  const [activityStartTime, setActivityStartTime] = useState(
-    fromZonedTime(addHours(startDate, 12), venueTimeZone),
-  );
-  const [activityEndTime, setActivityEndTime] = useState(
-    fromZonedTime(addHours(startDate, 13), venueTimeZone),
-  );
+  const [activityStartTime, setActivityStartTime] = useState(fromZonedTime(addHours(startDate, 12), venueTimeZone));
+  const [activityEndTime, setActivityEndTime] = useState(fromZonedTime(addHours(startDate, 13), venueTimeZone));
 
   const roomOptions = useMemo<MultiChoiceOption<number>[]>(
     () => rooms.map((room) => ({ label: room.name, value: room.id })),
@@ -80,11 +76,8 @@ const ScheduleEditor = ({
   }, [contestEvents, rooms, activityUnderEdit]);
 
   const selectedRoomExists = roomOptions.some((r: MultiChoiceOption) => r.value === selectedRoom);
-  if (!selectedRoomExists && roomOptions.length > 0) {
-    setSelectedRoom(roomOptions[0].value);
-  }
-  const isValidActivity = activityCode &&
-    (activityCode !== "other-misc" || customActivity) && roomOptions.length > 0;
+  if (!selectedRoomExists && roomOptions.length > 0) setSelectedRoom(roomOptions[0].value);
+  const isValidActivity = activityCode && (activityCode !== "other-misc" || customActivity) && roomOptions.length > 0;
 
   const addRoom = () => {
     setRoomName("");
@@ -170,12 +163,7 @@ const ScheduleEditor = ({
 
         <div className="row">
           <div className="col-8">
-            <FormTextInput
-              title="Room name"
-              value={roomName}
-              setValue={setRoomName}
-              disabled={disabled}
-            />
+            <FormTextInput title="Room name" value={roomName} setValue={setRoomName} disabled={disabled} />
           </div>
           <div className="col-4 d-flex justify-content-between align-items-end gap-3">
             <div className="flex-grow-1">
@@ -190,11 +178,7 @@ const ScheduleEditor = ({
             <ColorSquare color={roomColor} />
           </div>
         </div>
-        <Button
-          onClick={addRoom}
-          disabled={disabled || !roomName.trim()}
-          className="btn-success mt-3 mb-2"
-        >
+        <Button onClick={addRoom} disabled={disabled || !roomName.trim()} className="btn-success mt-3 mb-2">
           Create
         </Button>
         <hr />
@@ -208,8 +192,7 @@ const ScheduleEditor = ({
               options={roomOptions}
               selected={selectedRoom}
               setSelected={setSelectedRoom}
-              disabled={disabled || rooms.length === 0 ||
-                activityUnderEdit !== null}
+              disabled={disabled || rooms.length === 0 || activityUnderEdit !== null}
             />
           </div>
           <div className="col">
@@ -266,11 +249,7 @@ const ScheduleEditor = ({
           >
             {activityUnderEdit ? "Update" : "Add to schedule"}
           </Button>
-          {activityUnderEdit !== null && (
-            <Button onClick={cancelEdit} className="btn-danger">
-              Cancel
-            </Button>
-          )}
+          {activityUnderEdit !== null && <Button onClick={cancelEdit} className="btn-danger">Cancel</Button>}
         </div>
         {contestType === ContestType.WcaComp && (
           <p className="text-center text-danger">

@@ -93,10 +93,7 @@ const LoginPage = () => {
         </Link>
       </Form>
 
-      <div
-        className="container mt-4 mx-auto px-3 fs-5"
-        style={{ maxWidth: "768px" }}
-      >
+      <div className="container mt-4 mx-auto px-3 fs-5" style={{ maxWidth: "768px" }}>
         <Link href="/register">Create account</Link>
       </div>
     </div>
