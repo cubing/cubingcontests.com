@@ -55,20 +55,18 @@ const CollectiveCubing = () => {
     // selectMoveWithKeyboard(move as NxNMove);
     // };
 
-    myFetch.get("/collective-solution").then(
-      ({ payload, errors }: FetchObj<IFeCollectiveSolution>) => {
-        if (!errors) {
-          if (payload) {
-            setCollectiveSolution(payload);
-            addTwistyPlayerElement(getCubeState(payload));
-          } else {
-            addTwistyPlayerElement();
-          }
-
-          // addEventListener('keypress', doMoveWithKeyboard);
+    myFetch.get("/collective-solution").then(({ payload, errors }: FetchObj<IFeCollectiveSolution>) => {
+      if (!errors) {
+        if (payload) {
+          setCollectiveSolution(payload);
+          addTwistyPlayerElement(getCubeState(payload));
+        } else {
+          addTwistyPlayerElement();
         }
-      },
-    );
+
+        // addEventListener('keypress', doMoveWithKeyboard);
+      }
+    });
 
     // return () => removeEventListener('keypress', doMoveWithKeyboard);
   }, []);
@@ -129,8 +127,7 @@ const CollectiveCubing = () => {
           <div className="row gap-3">
             <div className="col-md-4">
               <div className="d-flex flex-column align-items-center">
-                <div id="twisty_player_container" style={{ maxWidth: "100%" }}>
-                </div>
+                <div id="twisty_player_container" style={{ maxWidth: "100%" }} />
                 {isSolved && (
                   <Button
                     id="scramble_button"

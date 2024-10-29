@@ -380,9 +380,8 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
           className="mb-3"
         />
         {userInfo?.isAdmin && (
-          // Same text as in RankingLinks
           <FormCheckbox
-            title="Video no longer available"
+            title={C.videoNoLongerAvailableMsg}
             selected={videoUnavailable}
             setSelected={setVideoUnavailable}
           />

@@ -1,15 +1,17 @@
 import Competitor from "~/app/components/Competitor.tsx";
 import { IPerson } from "~/shared_helpers/types.ts";
 
+type Props = {
+  persons: IPerson[];
+  noFlag?: boolean;
+  vertical?: boolean;
+};
+
 const Competitors = ({
   persons,
   noFlag = false,
   vertical = false,
-}: {
-  persons: IPerson[];
-  noFlag?: boolean;
-  vertical?: boolean;
-}) => {
+}: Props) => {
   if (vertical) {
     return (
       <div className="d-flex flex-column gap-2">

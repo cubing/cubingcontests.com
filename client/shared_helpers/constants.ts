@@ -35,6 +35,7 @@ const C = {
   ],
   moneroDonationAddress:
     "8AaML2et9RQKmZp4NYm9STKbjhfFB4h81ZxeGV166oapNzPFUTneaRmakwE61cyHr1ZUYreEU7eHF8XmMBykG8TpAwM6SVq",
+  videoNoLongerAvailableMsg: "Video no longer available",
 };
 
 export default C;

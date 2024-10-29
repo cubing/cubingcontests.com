@@ -14,11 +14,8 @@ const CreatorDetails = ({
 }) => {
   let specialCase: ReactElement | undefined;
   if (!creator) specialCase = <span>Deleted user</span>;
-  else if (creator === "EXT_DEVICE") {
-    specialCase = <span className="text-warning">External device</span>;
-  } else if (loggedInUser && creator.username === loggedInUser.username) {
-    specialCase = <span>Me</span>;
-  }
+  else if (creator === "EXT_DEVICE") specialCase = <span className="text-warning">External device</span>;
+  else if (loggedInUser && creator.username === loggedInUser.username) specialCase = <span>Me</span>;
 
   if (specialCase) return small ? specialCase : <div className="mb-3">Created by:&#8194;{specialCase}</div>;
 

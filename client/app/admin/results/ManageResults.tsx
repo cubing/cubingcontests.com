@@ -27,11 +27,9 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   });
 
   useEffect(() => {
-    myFetch.get("/results/submission-based", { authorize: true }).then(
-      ({ payload, errors }) => {
-        if (!errors) setResults(payload);
-      },
-    );
+    myFetch.get("/results/submission-based", { authorize: true }).then(({ payload, errors }) => {
+      if (!errors) setResults(payload);
+    });
   }, []);
 
   return (

@@ -4,10 +4,7 @@ type Props = {
 
 const MarkdownDescription = ({ children }: Props) => {
   const markdownLinkRegex = /(\[[^\]]*\]\(https?:\/\/[^)]*\))/g;
-  const tempString = (children as any).toString().replace(
-    markdownLinkRegex,
-    ":::::$1:::::",
-  );
+  const tempString = (children as any).toString().replace(markdownLinkRegex, ":::::$1:::::");
 
   return (
     <p style={{ whiteSpace: "pre-wrap" }}>

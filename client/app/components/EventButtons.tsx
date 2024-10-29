@@ -6,15 +6,17 @@ import { IEvent } from "~/shared_helpers/types.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import EventIcon from "~/app/components/EventIcon.tsx";
 
+type Props = {
+  eventId: string | undefined;
+  events: IEvent[];
+  forPage: "results" | "rankings" | "competitions" | "data-entry";
+};
+
 const EventButtons = ({
   eventId,
   events,
   forPage,
-}: {
-  eventId: string | undefined;
-  events: IEvent[];
-  forPage: "results" | "rankings" | "competitions" | "data-entry";
-}) => {
+}: Props) => {
   const router = useRouter();
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
@@ -59,8 +61,7 @@ const EventButtons = ({
               <button
                 key={cat.value}
                 type="button"
-                className={"btn btn-primary" +
-                  (cat === selectedCat ? " active" : "")}
+                className={"btn btn-primary" + (cat === selectedCat ? " active" : "")}
                 onClick={() => setSelectedCat(cat)}
               >
                 <span className="d-none d-md-inline">{cat.title}</span>

@@ -3,13 +3,13 @@ import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import Schedule from "~/app/components/Schedule.tsx";
 import { type ICompetitionDetails, IContest } from "~/shared_helpers/types.ts";
 
-const CompetitionSchedulePage = async (
-  { params }: { params: { id: string } },
-) => {
+type Props = {
+  params: { id: string };
+};
+
+const CompetitionSchedulePage = async ({ params }: Props) => {
   const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
-  if (!contestData) {
-    return <h3 className="mt-4 text-center">Contest not found</h3>;
-  }
+  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
 
   return (

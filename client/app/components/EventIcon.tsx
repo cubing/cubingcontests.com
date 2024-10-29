@@ -41,48 +41,31 @@ const unofficialEventIcons = [
   "redi",
 ];
 
-const EventIcon = (
-  { event, onClick, isActive }: {
-    event: IEvent;
-    onClick?: () => void;
-    isActive?: boolean;
-  },
-) => {
-  const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) ||
-    event.groups.includes(EventGroup.RemovedWCA);
-  const iconExists = isOrWasWCAEvent ||
-    unofficialEventIcons.includes(event.eventId);
+type Props = {
+  event: IEvent;
+  onClick?: () => void;
+  isActive?: boolean;
+};
+
+const EventIcon = ({ event, onClick, isActive }: Props) => {
+  const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) || event.groups.includes(EventGroup.RemovedWCA);
+  const iconExists = isOrWasWCAEvent || unofficialEventIcons.includes(event.eventId);
 
   if (!iconExists) {
     if (!onClick) return <></>;
 
     return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={"btn btn-lightdark btn-sm m-1" + (isActive ? " active" : "")}
-      >
+      <button type="button" onClick={onClick} className={"btn btn-lightdark btn-sm m-1" + (isActive ? " active" : "")}>
         {shortenEventName(event.name)}
       </button>
     );
   }
 
-  if (!onClick) {
-    return (
-      <span
-        className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`}
-      />
-    );
-  }
+  if (!onClick) return <span className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`} />;
 
   return (
-    <div
-      onClick={onClick}
-      className={"cc-icon-button" + (isActive ? " cc-icon-button--active" : "")}
-    >
-      <span
-        className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`}
-      />
+    <div onClick={onClick} className={"cc-icon-button" + (isActive ? " cc-icon-button--active" : "")}>
+      <span className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`} />
     </div>
   );
 };

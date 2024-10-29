@@ -7,9 +7,12 @@ import { getBSClassFromColor, getFormattedDate } from "~/helpers/utilityFunction
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
-import type { MultiChoiceOption } from "~/helpers/types.ts";
 
-const ContestsTable = ({ contests }: { contests: IContest[] }) => {
+type Props = {
+  contests: IContest[];
+};
+
+const ContestsTable = ({ contests }: Props) => {
   const getShapeIcon = (type: ContestType) =>
     type === ContestType.Competition ? faSquare : type === ContestType.Meetup ? faDiamond : faCircle;
 
@@ -29,18 +32,12 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
                   <FontAwesomeIcon
                     icon={getShapeIcon(contest.type)}
                     className={`text-${
-                      getBSClassFromColor(
-                        (contestTypeOptions.find((el) => el.value === contest.type) as MultiChoiceOption).color,
-                      )
+                      getBSClassFromColor(contestTypeOptions.find((el) => el.value === contest.type)?.color)
                     }`}
                     style={{ minWidth: "0.5rem", width: "0.5rem" }}
                   />
 
-                  <Link
-                    href={`/competitions/${contest.competitionId}`}
-                    prefetch={false}
-                    className="link-primary"
-                  >
+                  <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
                     {contest.shortName}
                   </Link>
                 </div>
@@ -52,12 +49,7 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
               <div className="d-flex justify-content-between gap-3">
                 <div className="ms-2">
                   <span>
-                    {contest.city},{" "}
-                    <Country
-                      countryIso2={contest.countryIso2}
-                      swapPositions
-                      shorten
-                    />
+                    {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
                   </span>
                 </div>
                 <div className="flex-shrink-0 text-end">
@@ -93,11 +85,7 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
               <tr key={contest.competitionId}>
                 <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                 <td>
-                  <Link
-                    href={`/competitions/${contest.competitionId}`}
-                    prefetch={false}
-                    className="link-primary"
-                  >
+                  <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
                     {contest.shortName}
                   </Link>
                 </td>

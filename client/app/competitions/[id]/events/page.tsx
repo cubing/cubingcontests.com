@@ -1,13 +1,17 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { IContest } from "~/shared_helpers/types.ts";
+import { IContest, type IProceed } from "~/shared_helpers/types.ts";
 import { RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 
-const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
+type Props = {
+  params: { id: string };
+};
+
+const ContestEventsPage = async ({ params }: Props) => {
   const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
@@ -38,10 +42,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                   : "";
 
                 return (
-                  <tr
-                    key={round.roundId}
-                    className={roundIndex !== 0 ? "table-active" : ""}
-                  >
+                  <tr key={round.roundId} className={roundIndex !== 0 ? "table-active" : ""}>
                     <td>
                       {roundIndex === 0 && (
                         <EventTitle
@@ -55,9 +56,7 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                       )}
                     </td>
                     <td>{roundTypes[round.roundTypeId].label}</td>
-                    <td>
-                      {roundFormats.find((rf) => rf.value === round.format)?.label}
-                    </td>
+                    <td>{roundFormats.find((rf) => rf.value === round.format)?.label}</td>
                     <td>
                       {round.timeLimit
                         ? getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event }) +
@@ -68,8 +67,8 @@ const ContestEventsPage = async ({ params }: { params: { id: string } }) => {
                     {hasNonFinalRound && (
                       <td>
                         {round.roundTypeId !== RoundType.Final &&
-                          `Top ${round.proceed?.value}${
-                            round.proceed?.type === RoundProceed.Percentage ? "%" : ""
+                          `Top ${(round.proceed as IProceed).value}${
+                            (round.proceed as IProceed).type === RoundProceed.Percentage ? "%" : ""
                           } advance to next round`}
                       </td>
                     )}

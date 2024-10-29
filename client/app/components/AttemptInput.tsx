@@ -39,6 +39,19 @@ const getFormattedText = (text: string, { forMemo = false, isNumberFormat = fals
   return output;
 };
 
+type Props = {
+  attNumber: number; // number of the attempt (use 0 if the input is used for a time limit or cutoff)
+  attempt: IFeAttempt;
+  setAttempt: (val: IFeAttempt) => void;
+  event: IEvent;
+  timeLimit?: ITimeLimit;
+  memoInputForBld?: boolean;
+  allowUnknownTime?: boolean;
+  maxTime?: number; // maximum allowed time in centiseconds (can be used for time limit/cutoff inputs)
+  disabled?: boolean;
+  nextFocusTargetId?: string;
+};
+
 const AttemptInput = ({
   attNumber,
   attempt,
@@ -50,18 +63,7 @@ const AttemptInput = ({
   maxTime,
   disabled = false,
   nextFocusTargetId,
-}: {
-  attNumber: number; // number of the attempt (use 0 if the input is used for a time limit or cutoff)
-  attempt: IFeAttempt;
-  setAttempt: (val: IFeAttempt) => void;
-  event: IEvent;
-  timeLimit?: ITimeLimit;
-  memoInputForBld?: boolean;
-  allowUnknownTime?: boolean;
-  maxTime?: number; // maximum allowed time in centiseconds (can be used for time limit/cutoff inputs)
-  disabled?: boolean;
-  nextFocusTargetId?: string;
-}) => {
+}: Props) => {
   const [solved, setSolved] = useState<NumberInputValue>(undefined);
   const [attempted, setAttempted] = useState<NumberInputValue>(undefined);
   const [attemptText, setAttemptText] = useState<string>("");
@@ -287,8 +289,7 @@ const AttemptInput = ({
     const extraTip = allowUnknownTime ? "\nUse U for Unknown time." : "";
 
     if (event.format !== EventFormat.Multi) {
-      timeInputTooltip = "Use D, F, or / for DNF.\nUse S or * for DNS." +
-        extraTip;
+      timeInputTooltip = "Use D, F, or / for DNF.\nUse S or * for DNS." + extraTip;
     } else {
       timeInputTooltip =
         "Enter the result even for DNF attempts (they're treated as DNF, but the result is still shown).\nUse S or * for DNS." +

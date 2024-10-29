@@ -15,9 +15,11 @@ export const metadata = {
   },
 };
 
-const ContestsPage = async (
-  { searchParams: { eventId } }: { searchParams: { eventId?: string } },
-) => {
+type Props = {
+  searchParams: { eventId?: string };
+};
+
+const ContestsPage = async ({ searchParams: { eventId } }: Props) => {
   const { payload: events } = await ssrFetch("/events");
   const { payload: contests } = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ""}`);
 
@@ -26,14 +28,7 @@ const ContestsPage = async (
       <h2 className="mb-4 text-center">All contests</h2>
 
       <div className="px-2">
-        {events && (
-          <EventButtons
-            key={eventId}
-            eventId={eventId}
-            events={events}
-            forPage="competitions"
-          />
-        )}
+        {events && <EventButtons key={eventId} eventId={eventId} events={events} forPage="competitions" />}
       </div>
 
       {contests?.length > 0

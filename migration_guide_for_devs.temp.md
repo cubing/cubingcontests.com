@@ -12,7 +12,7 @@ git config --unset core.hooksPath
 
 ## Deno
 
-Cubing Contests now uses Deno instead of Node JS for the Next JS application. You should remove your `node_modules` directory from the `client` directory:
+Cubing Contests now uses Deno instead of Node JS for the Next JS application. Install Deno by following the instructions [here](https://docs.deno.com/runtime/getting_started/installation/). Then, you should remove your `node_modules` directory from the `client` directory:
 
 ```sh
 rm -rf ./client/node_modules

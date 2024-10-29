@@ -128,24 +128,9 @@ const ManageUsersPage = () => {
             setPersonNames={setPersonNames}
           />
           <h5 className="mb-4">Roles</h5>
-          <FormCheckbox
-            title="User"
-            selected={isUser}
-            setSelected={setIsUser}
-            disabled={loadingId !== ""}
-          />
-          <FormCheckbox
-            title="Moderator"
-            selected={isMod}
-            setSelected={setIsMod}
-            disabled={loadingId !== ""}
-          />
-          <FormCheckbox
-            title="Admin"
-            selected={isAdmin}
-            setSelected={setIsAdmin}
-            disabled
-          />
+          <FormCheckbox title="User" selected={isUser} setSelected={setIsUser} disabled={loadingId !== ""} />
+          <FormCheckbox title="Moderator" selected={isMod} setSelected={setIsMod} disabled={loadingId !== ""} />
+          <FormCheckbox title="Admin" selected={isAdmin} setSelected={setIsAdmin} disabled />
         </Form>
       )}
 

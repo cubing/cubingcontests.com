@@ -3,11 +3,14 @@ import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
 import type { MultiChoiceOption } from "~/helpers/types.ts";
 
-type Props = { type: ContestType; brief?: boolean };
+type Props = {
+  type: ContestType;
+  brief?: boolean;
+};
 
 const ContestTypeBadge = ({ type, brief = false }: Props) => {
   const contestType = contestTypeOptions.find((el) => el.value === type) as MultiChoiceOption;
-  const textClass = contestType.color === Color.White || contestType.color === Color.Yellow ? "text-black" : "";
+  const textClass: string = contestType.color === Color.White || contestType.color === Color.Yellow ? "text-black" : "";
 
   return (
     <div

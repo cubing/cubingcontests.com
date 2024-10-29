@@ -19,18 +19,13 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
   const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests
   const formattedTime = contest.meetupDetails
-    ? formatInTimeZone(
-      contest.meetupDetails.startTime,
-      contest.timezone as string,
-      "H:mm",
-    )
+    ? formatInTimeZone(contest.meetupDetails.startTime, contest.timezone as string, "H:mm")
     : null;
   const startOfDayInLocalTZ = getDateOnly(toZonedTime(new Date(), contest.timezone ?? "UTC")) as Date;
   const start = new Date(contest.startDate);
   const isOngoing = contest.state < ContestState.Finished &&
     ((!contest.endDate && start.getTime() === startOfDayInLocalTZ.getTime()) ||
-      (contest.endDate && start <= startOfDayInLocalTZ &&
-        new Date(contest.endDate) >= startOfDayInLocalTZ));
+      (contest.endDate && start <= startOfDayInLocalTZ && new Date(contest.endDate) >= startOfDayInLocalTZ));
 
   const getFormattedCoords = () => {
     const latitude = (contest.latitudeMicrodegrees / 1000000).toFixed(6);
@@ -69,7 +64,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
               {contest.organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
               {contest.organizers.map((org, index) => (
                 <span key={org.personId} className="d-flex-inline">
-                  {index !== 0 && <span>,</span>}
+                  {index !== 0 && <span>,{" "}</span>}
                   <Competitor person={org} noFlag />
                 </span>
               ))}
