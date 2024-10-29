@@ -1,4 +1,4 @@
-import { NxNMove } from "../types.ts";
+import { NxNMove } from '../types.ts';
 
 export type ICollectiveSolution = {
   eventId: string;
@@ -11,7 +11,7 @@ export type ICollectiveSolution = {
 };
 
 export type IFeCollectiveSolution =
-  & Omit<ICollectiveSolution, "usersWhoMadeMoves" | "lastUserWhoInteracted">
+  & Omit<ICollectiveSolution, 'usersWhoMadeMoves' | 'lastUserWhoInteracted'>
   & {
     lastUserWhoInteractedId: string;
     totalUsersWhoMadeMoves: number;

@@ -3,18 +3,18 @@ const nextConfig = {
   redirects() {
     return [
       {
-        source: "/records",
-        destination: "/records/unofficial",
+        source: '/records',
+        destination: '/records/unofficial',
         permanent: true,
       },
       {
-        source: "/rankings",
-        destination: "/rankings/fto/single",
+        source: '/rankings',
+        destination: '/rankings/fto/single',
         permanent: true,
       },
       {
-        source: "/moderator-instructions",
-        destination: "/moderator-instructions/wca",
+        source: '/moderator-instructions',
+        destination: '/moderator-instructions/wca',
         permanent: true,
       },
     ];

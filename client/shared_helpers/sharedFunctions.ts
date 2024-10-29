@@ -1,6 +1,6 @@
-import { remove as removeAccents } from "remove-accents";
-import C from "./constants.ts";
-import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
+import { remove as removeAccents } from 'remove-accents';
+import C from './constants.ts';
+import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from './enums.ts';
 import {
   type IAttempt,
   type IContestEvent,
@@ -12,8 +12,8 @@ import {
   type IResult,
   type IRoundFormat,
   type ISubmittedResult,
-} from "./types.ts";
-import { roundFormats } from "./roundFormats.ts";
+} from './types.ts';
+import { roundFormats } from './roundFormats.ts';
 
 type BestCompareObj = { best: number };
 type AvgCompareObj = { best?: number; average: number };
@@ -30,7 +30,7 @@ export const compareSingles = (a: BestCompareObj, b: BestCompareObj): number => 
 // Same logic as above, except the single can also be used as a tie breaker if the averages are equivalent
 export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
   // If a.best or b.best is left undefined, the tie breaker will not be used
-  const useTieBreaker = typeof a.best === "number" && typeof b.best === "number";
+  const useTieBreaker = typeof a.best === 'number' && typeof b.best === 'number';
   const breakTie = () => compareSingles({ best: a.best as number }, { best: b.best as number });
 
   if (a.average <= 0) {
@@ -111,13 +111,13 @@ export const getFormattedTime = (
   },
 ): string => {
   if (time === 0) {
-    return "?";
+    return '?';
   } else if (time === -1) {
-    return "DNF";
+    return 'DNF';
   } else if (time === -2) {
-    return "DNS";
+    return 'DNS';
   } else if (time === C.maxTime) {
-    return "Unknown";
+    return 'Unknown';
   } else if (event?.format === EventFormat.Number) {
     // FM singles are limited to 999 moves, so if it's more than that, it must be the mean. Format it accordingly.
     if (time > C.maxFmMoves && !noFormatting) return (time / 100).toFixed(2);
@@ -129,27 +129,27 @@ export const getFormattedTime = (
     if (event?.format !== EventFormat.Multi) centiseconds = time;
     else centiseconds = parseInt(timeStr.slice(timeStr.length - 11, -4));
 
-    let output = "";
+    let output = '';
     const hours = Math.floor(centiseconds / 360000);
     const minutes = Math.floor(centiseconds / 6000) % 60;
     const seconds = (centiseconds - hours * 360000 - minutes * 6000) / 100;
 
     if (hours > 0) {
       output = hours.toString();
-      if (!noFormatting) output += ":";
+      if (!noFormatting) output += ':';
     }
 
     const showMinutes = hours > 0 || minutes > 0 || alwaysShowMinutes;
 
     if (showMinutes) {
-      if (hours > 0 && minutes === 0) output += "00";
-      else if (minutes < 10 && hours > 0) output += "0" + minutes;
+      if (hours > 0 && minutes === 0) output += '00';
+      else if (minutes < 10 && hours > 0) output += '0' + minutes;
       else output += minutes;
 
-      if (!noFormatting) output += ":";
+      if (!noFormatting) output += ':';
     }
 
-    if (seconds < 10 && showMinutes) output += "0";
+    if (seconds < 10 && showMinutes) output += '0';
 
     // Only times under ten minutes can have decimals, or if noFormatting = true, or if it's an event that always
     // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
@@ -159,7 +159,7 @@ export const getFormattedTime = (
       showDecimals
     ) {
       output += seconds.toFixed(2);
-      if (noFormatting) output = Number(output.replace(".", "")).toString();
+      if (noFormatting) output = Number(output.replace('.', '')).toString();
     } else {
       output += Math.floor(seconds).toFixed(0); // remove the decimals
     }
@@ -167,7 +167,7 @@ export const getFormattedTime = (
     if (event?.format !== EventFormat.Multi) {
       return output;
     } else {
-      if (time < 0) timeStr = timeStr.replace("-", "");
+      if (time < 0) timeStr = timeStr.replace('-', '');
 
       const points = (time < 0 ? -1 : 1) *
         (9999 - parseInt(timeStr.slice(0, -11)));
@@ -178,8 +178,8 @@ export const getFormattedTime = (
         if (noFormatting) return `${solved};${solved + missed};${output}`;
         // This includes an En space before the points part
         return (
-          `${solved}/${solved + missed} ${centiseconds !== C.maxTime ? output : "Unknown time"}` +
-          (showMultiPoints ? ` (${points})` : "")
+          `${solved}/${solved + missed} ${centiseconds !== C.maxTime ? output : 'Unknown time'}` +
+          (showMultiPoints ? ` (${points})` : '')
         );
       } else {
         if (noFormatting) return `${solved};${solved + missed};${output}`;
@@ -242,7 +242,7 @@ export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean =>
 
 export const getDefaultAverageAttempts = (event: IEvent) => {
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat);
-  if (!roundFormat) throw new Error("Round format not found");
+  if (!roundFormat) throw new Error('Round format not found');
   return roundFormat.attempts === 5 ? 5 : 3;
 };
 
@@ -261,11 +261,11 @@ export const getMakesCutoff = (attempts: IAttempt[] | IFeAttempt[], cutoff: ICut
 export const getRoleLabel = (role: Role): string => {
   switch (role) {
     case Role.User:
-      return "user";
+      return 'user';
     case Role.Moderator:
-      return "moderator";
+      return 'moderator';
     case Role.Admin:
-      return "admin";
+      return 'admin';
     default:
       throw new Error(`Unknown role: ${role}`);
   }
@@ -279,7 +279,7 @@ export const fetchWcaPerson = async (
   if (response.ok) {
     const payload = await response.json();
 
-    const parts = payload.name.split(" (");
+    const parts = payload.name.split(' (');
     const newPerson: IPersonDto = {
       name: parts[0],
       localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,

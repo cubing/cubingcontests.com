@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { debounce } from "lodash";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import Loading from "~/app/components/UI/Loading.tsx";
-import Form from "~/app/components/form/Form.tsx";
-import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
-import FormDateInput from "~/app/components/form/FormDateInput.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import Button from "~/app/components/UI/Button.tsx";
-import CreatorDetails from "~/app/components/CreatorDetails.tsx";
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { debounce } from 'lodash';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import Loading from '~/app/components/UI/Loading.tsx';
+import Form from '~/app/components/form/Form.tsx';
+import FormCheckbox from '~/app/components/form/FormCheckbox.tsx';
+import FormDateInput from '~/app/components/form/FormDateInput.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import CreatorDetails from '~/app/components/CreatorDetails.tsx';
 import {
   type IAdminResultsSubmissionInfo,
   type IEvent,
@@ -20,20 +20,20 @@ import {
   type IResultsSubmissionInfo,
   type IRoundFormat,
   type IUpdateResultDto,
-} from "~/shared_helpers/types.ts";
-import { EventFormat, RoundFormat } from "~/shared_helpers/enums.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
-import C from "~/shared_helpers/constants.ts";
-import { getBlankCompetitors, getRoundFormatOptions, getUserInfo } from "~/helpers/utilityFunctions.ts";
-import { type InputPerson, UserInfo } from "~/helpers/types.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import ExternalLink from "~/app/components/ExternalLink.tsx";
-import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
-import FormSelect from "~/app/components/form/FormSelect.tsx";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
-import AttemptInput from "~/app/components/AttemptInput.tsx";
-import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
-import type { IRecordPair, ISubmittedResultDto } from "~/shared_helpers/interfaces/Result.ts";
+} from '~/shared_helpers/types.ts';
+import { EventFormat, RoundFormat } from '~/shared_helpers/enums.ts';
+import { roundFormats } from '~/shared_helpers/roundFormats.ts';
+import C from '~/shared_helpers/constants.ts';
+import { getBlankCompetitors, getRoundFormatOptions, getUserInfo } from '~/helpers/utilityFunctions.ts';
+import { type InputPerson, UserInfo } from '~/helpers/types.ts';
+import { MainContext } from '~/helpers/contexts.ts';
+import ExternalLink from '~/app/components/ExternalLink.tsx';
+import FormEventSelect from '~/app/components/form/FormEventSelect.tsx';
+import FormSelect from '~/app/components/form/FormSelect.tsx';
+import FormPersonInputs from '~/app/components/form/FormPersonInputs.tsx';
+import AttemptInput from '~/app/components/AttemptInput.tsx';
+import BestAndAverage from '~/app/components/adminAndModerator/BestAndAverage.tsx';
+import type { IRecordPair, ISubmittedResultDto } from '~/shared_helpers/interfaces/Result.ts';
 
 const userInfo: UserInfo = getUserInfo();
 const allowedRoundFormats: IRoundFormat[] = roundFormats.filter((rf) => rf.value !== RoundFormat.BestOf3);
@@ -47,7 +47,7 @@ type Props = {
 };
 
 const ResultsSubmissionForm = ({ resultId }: Props) => {
-  if (resultId && !userInfo?.isAdmin) throw new Error("Only an admin can edit results");
+  if (resultId && !userInfo?.isAdmin) throw new Error('Only an admin can edit results');
 
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
@@ -59,13 +59,13 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   const [event, setEvent] = useState<IEvent>({} as IEvent);
   const [roundFormat, setRoundFormat] = useState<IRoundFormat>(allowedRoundFormats[0]);
   const [competitors, setCompetitors] = useState<InputPerson[]>([null]);
-  const [personNames, setPersonNames] = useState([""]);
+  const [personNames, setPersonNames] = useState(['']);
   const [keepCompetitors, setKeepCompetitors] = useState(false);
   const [attempts, setAttempts] = useState<IFeAttempt[]>([]);
   const [date, setDate] = useState<Date | null | undefined>(); // null means the date is invalid; undefined means it's empty
-  const [videoLink, setVideoLink] = useState("");
+  const [videoLink, setVideoLink] = useState('');
   const [videoUnavailable, setVideoUnavailable] = useState(false);
-  const [discussionLink, setDiscussionLink] = useState("");
+  const [discussionLink, setDiscussionLink] = useState('');
 
   const recordPairs = useMemo<IRecordPair[] | undefined>(
     () =>
@@ -75,8 +75,8 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   const updateRecordPairs = useCallback(
     debounce(async (date: Date) => {
-      const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((e: IEvent) => e.eventId).join(",");
-      const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
+      const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((e: IEvent) => e.eventId).join(',');
+      const queryParams = resultId ? `?excludeResultId=${resultId}` : '';
 
       const { payload, errors } = await myFetch.get(
         `/results/record-pairs/${date}/${eventsStr}${queryParams}`,
@@ -86,7 +86,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
       if (!errors) {
         setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload } as IResultsSubmissionInfo);
       }
-      changeLoadingId("");
+      changeLoadingId('');
     }, C.fetchDebounceTimeout),
     [submissionInfo],
   );
@@ -103,12 +103,12 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
             if (payload && !errors) {
               setSubmissionInfo(payload);
 
-              const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get("eventId")) ??
+              const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get('eventId')) ??
                 payload.events[0];
               setEvent(event);
               resetCompetitors(event.participants);
               resetAttempts();
-              document.getElementById("Competitor_1")?.focus();
+              document.getElementById('Competitor_1')?.focus();
             }
           },
         );
@@ -139,7 +139,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   const submitResult = async (approve = false) => {
     if (competitors.some((p: InputPerson) => !p)) {
-      changeErrorMessages(["Invalid person(s)"]);
+      changeErrorMessages(['Invalid person(s)']);
       return;
     }
 
@@ -148,23 +148,23 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
       date: date as Date,
       personIds: competitors.map((p: InputPerson) => (p as IPerson).personId),
       attempts,
-      videoLink: videoUnavailable ? "" : videoLink,
+      videoLink: videoUnavailable ? '' : videoLink,
       discussionLink: discussionLink || undefined,
     };
 
-    const loadingId = approve ? "approve_button" : "submit_button";
+    const loadingId = approve ? 'approve_button' : 'submit_button';
 
     if (!resultId) {
-      const { errors } = await myFetch.post("/results", newResult, { loadingId });
+      const { errors } = await myFetch.post('/results', newResult, { loadingId });
 
       if (!errors) {
-        changeSuccessMessage("Result successfully submitted");
+        changeSuccessMessage('Result successfully submitted');
         setDate(undefined);
-        setVideoLink("");
-        setDiscussionLink("");
+        setVideoLink('');
+        setDiscussionLink('');
         resetCompetitors();
         resetAttempts();
-        if (!keepCompetitors) document.getElementById("Competitor_1")?.focus();
+        if (!keepCompetitors) document.getElementById('Competitor_1')?.focus();
       }
     } else {
       const updateResultDto: IUpdateResultDto = {
@@ -182,10 +182,10 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
       });
 
       if (!errors) {
-        changeSuccessMessage(approve ? "Result successfully approved" : "Result successfully updated");
+        changeSuccessMessage(approve ? 'Result successfully approved' : 'Result successfully updated');
 
         setTimeout(() => {
-          window.location.href = "/admin/results";
+          window.location.href = '/admin/results';
         }, 1000);
       }
     }
@@ -226,10 +226,10 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
     if (newDate) {
       updateRecordPairs(newDate);
-      changeLoadingId("RECORD_PAIRS");
+      changeLoadingId('RECORD_PAIRS');
     } else {
       updateRecordPairs.cancel();
-      changeLoadingId("");
+      changeLoadingId('');
     }
   };
 
@@ -237,10 +237,10 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
     let newVideoLink: string;
 
     // Remove unnecessary params from youtube links
-    if (newValue.includes("youtube.com") && newValue.includes("&")) {
-      newVideoLink = newValue.split("&")[0];
-    } else if (newValue.includes("youtu.be") && newValue.includes("?")) {
-      newVideoLink = newValue.split("?")[0];
+    if (newValue.includes('youtube.com') && newValue.includes('&')) {
+      newVideoLink = newValue.split('&')[0];
+    } else if (newValue.includes('youtu.be') && newValue.includes('?')) {
+      newVideoLink = newValue.split('?')[0];
     } else {
       newVideoLink = newValue;
     }
@@ -252,9 +252,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   return (
     <div>
-      <h2 className="text-center">{resultId ? "Edit Result" : "Submit Result"}</h2>
+      <h2 className='text-center'>{resultId ? 'Edit Result' : 'Submit Result'}</h2>
 
-      <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: "900px" }}>
+      <div className='mt-3 mx-auto px-3 fs-6' style={{ maxWidth: '900px' }}>
         {resultId
           ? (
             <p>
@@ -266,25 +266,25 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
               <p>
                 Here you can submit results for events that allow submissions. You may submit other people's results
                 too. New results will be included in the rankings after an admin approves them. A result can only be
-                accepted if it has video evidence of the <b>ENTIRE</b>{" "}
+                accepted if it has video evidence of the <b>ENTIRE</b>{' '}
                 solve (including memorization, if applicable). The video date is used as proof of when the solve was
                 done, an earlier date cannot be used. Make sure that you can be identified from the provided video; if
                 your channel name is not your real name, please include your full name or WCA ID in the description of
                 the video. If you do not have a WCA ID, please contact the admins to have a competitor profile created
                 for you. If you have any questions or suggestions, feel free to send an email to {C.contactEmail}.
               </p>
-              <div className="alert alert-warning mb-4" role="alert">
+              <div className='alert alert-warning mb-4' role='alert'>
                 Some events now require evidence of the scramble being applied. Please make sure you follow rule 5!
               </div>
               <button
-                type="button"
-                className="btn btn-success btn-sm"
+                type='button'
+                className='btn btn-success btn-sm'
                 onClick={() => setShowRules(!showRules)}
               >
-                {showRules ? "Hide rules" : "Show rules"}
+                {showRules ? 'Hide rules' : 'Show rules'}
               </button>
               {showRules && (
-                <div className="mt-4">
+                <div className='mt-4'>
                   <p>
                     1. For blindfolded events, your face must be visible during the entire solve (it must be visible
                     that your mask is on during the solving phase).
@@ -304,8 +304,8 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
                   </p>
                   <p>
                     5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was
-                    generated and applied. Scrambles must be generated with <ExternalLink to="cstimer" /> or{" "}
-                    <ExternalLink to="cubingjs" />.
+                    generated and applied. Scrambles must be generated with <ExternalLink to='cstimer' /> or{' '}
+                    <ExternalLink to='cubingjs' />.
                   </p>
                 </div>
               )}
@@ -322,19 +322,19 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
           disabled={resultId !== undefined}
         />
         <FormSelect
-          title="Format"
+          title='Format'
           options={getRoundFormatOptions(allowedRoundFormats)}
           selected={roundFormat.value}
           setSelected={(val: RoundFormat) => changeRoundFormat(val)}
           disabled={resultId !== undefined}
         />
         <FormPersonInputs
-          title="Competitor"
+          title='Competitor'
           personNames={personNames}
           setPersonNames={setPersonNames}
           persons={competitors}
           setPersons={setCompetitors}
-          nextFocusTargetId={event.format !== EventFormat.Multi ? "attempt_1" : "attempt_1_solved"}
+          nextFocusTargetId={event.format !== EventFormat.Multi ? 'attempt_1' : 'attempt_1_solved'}
           redirectToOnAddPerson={window.location.pathname}
         />
         <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
@@ -348,10 +348,10 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
             memoInputForBld
             allowUnknownTime={userInfo?.isAdmin &&
               [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat.value)}
-            nextFocusTargetId={i + 1 === attempts.length ? isDateDisabled ? "video_link" : "date" : undefined}
+            nextFocusTargetId={i + 1 === attempts.length ? isDateDisabled ? 'video_link' : 'date' : undefined}
           />
         ))}
-        {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
+        {loadingId === 'RECORD_PAIRS' ? <Loading small dontCenter /> : (
           <BestAndAverage
             event={event}
             roundFormat={roundFormat.value}
@@ -361,52 +361,52 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
           />
         )}
         <FormDateInput
-          id="date"
-          title="Date (dd.mm.yyyy)"
+          id='date'
+          title='Date (dd.mm.yyyy)'
           value={date}
           setValue={changeDate}
           disabled={isDateDisabled}
-          nextFocusTargetId={videoUnavailable ? "discussion_link" : "video_link"}
-          className="my-3"
+          nextFocusTargetId={videoUnavailable ? 'discussion_link' : 'video_link'}
+          className='my-3'
         />
         <FormTextInput
-          id="video_link"
-          title="Link to video"
-          placeholder="E.g: https://youtube.com/watch?v=xyz"
+          id='video_link'
+          title='Link to video'
+          placeholder='E.g: https://youtube.com/watch?v=xyz'
           value={videoLink}
           setValue={changeVideoLink}
-          nextFocusTargetId="discussion_link"
+          nextFocusTargetId='discussion_link'
           disabled={videoUnavailable}
-          className="mb-3"
+          className='mb-3'
         />
         {userInfo?.isAdmin && (
           // Same text as in RankingLinks
           <FormCheckbox
-            title="Video no longer available"
+            title='Video no longer available'
             selected={videoUnavailable}
             setSelected={setVideoUnavailable}
           />
         )}
-        {videoLink && <a href={videoLink} target="_blank" className="d-block mb-3">Video link</a>}
+        {videoLink && <a href={videoLink} target='_blank' className='d-block mb-3'>Video link</a>}
         <FormTextInput
-          id="discussion_link"
-          title="Link to discussion (optional)"
-          placeholder="E.g: https://speedsolving.com/threads/xyz"
+          id='discussion_link'
+          title='Link to discussion (optional)'
+          placeholder='E.g: https://speedsolving.com/threads/xyz'
           value={discussionLink}
           setValue={setDiscussionLink}
-          nextFocusTargetId="submit_button"
-          className="mb-3"
+          nextFocusTargetId='submit_button'
+          className='mb-3'
         />
-        {discussionLink && <a href={discussionLink} target="_blank" className="d-block">Discussion link</a>}
-        <Button id="submit_button" onClick={() => submitResult()} loadingId={loadingId} className="mt-3">
+        {discussionLink && <a href={discussionLink} target='_blank' className='d-block'>Discussion link</a>}
+        <Button id='submit_button' onClick={() => submitResult()} loadingId={loadingId} className='mt-3'>
           Submit
         </Button>
         {resultId && (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved && (
           <Button
-            id="approve_button"
+            id='approve_button'
             onClick={() => submitResult(true)}
             loadingId={loadingId}
-            className="btn-success mt-3 ms-3"
+            className='btn-success mt-3 ms-3'
           >
             Submit and approve
           </Button>

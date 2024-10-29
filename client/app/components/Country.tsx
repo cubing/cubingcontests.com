@@ -1,5 +1,5 @@
-import * as Flags from "country-flag-icons/react/3x2";
-import Countries from "~/shared_helpers/Countries.ts";
+import * as Flags from 'country-flag-icons/react/3x2';
+import Countries from '~/shared_helpers/Countries.ts';
 
 const Country = ({
   countryIso2,
@@ -14,7 +14,7 @@ const Country = ({
 }) => {
   if (noText && shorten) {
     throw new Error(
-      "Country does not support the noText and shorten arguments at the same time",
+      'Country does not support the noText and shorten arguments at the same time',
     );
   }
 
@@ -23,7 +23,7 @@ const Country = ({
   const getCountry = (countryIso2: string): string => {
     const country = Countries.find((el) => el.code === countryIso2);
 
-    if (!country) return "NOT FOUND";
+    if (!country) return 'NOT FOUND';
 
     if (shorten && country.shortName) return country.shortName;
 
@@ -31,13 +31,13 @@ const Country = ({
   };
 
   return (
-    <span className="d-inline-flex align-items-center gap-2">
+    <span className='d-inline-flex align-items-center gap-2'>
       {!noText && swapPositions && getCountry(countryIso2)}
       {FlagComponent &&
         FlagComponent({
           title: getCountry(countryIso2),
-          className: "cc-flag-icon",
-          style: { height: "1.16rem" },
+          className: 'cc-flag-icon',
+          style: { height: '1.16rem' },
         })}
       {!noText && !swapPositions && getCountry(countryIso2)}
     </span>

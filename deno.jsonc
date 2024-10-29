@@ -24,7 +24,8 @@
   "fmt": {
     "include": ["*.ts", "*.tsx"],
     "exclude": ["*.d.ts"],
-    "lineWidth": 120
+    "lineWidth": 120,
+    "singleQuote": true
   },
 
   "compilerOptions": {

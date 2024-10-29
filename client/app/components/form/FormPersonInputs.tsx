@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useCallback, useContext, useState } from "react";
-import { debounce } from "lodash";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import Loading from "~/app/components/UI/Loading.tsx";
-import FormTextInput from "./FormTextInput.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
-import { IPerson, IWcaPersonDto } from "~/shared_helpers/types.ts";
-import C from "~/shared_helpers/constants.ts";
-import { getUserInfo } from "~/helpers/utilityFunctions.ts";
-import { type InputPerson, UserInfo } from "~/helpers/types.ts";
-import { MainContext } from "~/helpers/contexts.ts";
+import { useCallback, useContext, useState } from 'react';
+import { debounce } from 'lodash';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import Loading from '~/app/components/UI/Loading.tsx';
+import FormTextInput from './FormTextInput.tsx';
+import Competitor from '~/app/components/Competitor.tsx';
+import { IPerson, IWcaPersonDto } from '~/shared_helpers/types.ts';
+import C from '~/shared_helpers/constants.ts';
+import { getUserInfo } from '~/helpers/utilityFunctions.ts';
+import { type InputPerson, UserInfo } from '~/helpers/types.ts';
+import { MainContext } from '~/helpers/contexts.ts';
 
 const userInfo: UserInfo = getUserInfo();
 const MAX_MATCHES = 6;
@@ -28,7 +28,7 @@ const FormPersonInputs = ({
   nextFocusTargetId,
   disabled,
   addNewPersonFromNewTab,
-  redirectToOnAddPerson = "",
+  redirectToOnAddPerson = '',
   noGrid,
 }: {
   title: string;
@@ -72,7 +72,7 @@ const FormPersonInputs = ({
 
         if (payload && !errors) setMatchedPersons([payload.person]);
       }
-      changeLoadingId("");
+      changeLoadingId('');
     }, C.fetchDebounceTimeout),
     [personSelection],
   );
@@ -85,15 +85,15 @@ const FormPersonInputs = ({
 
     if (value) {
       getMatchedPersons(value);
-      changeLoadingId("MATCHED_PERSONS");
+      changeLoadingId('MATCHED_PERSONS');
     } else {
       getMatchedPersons.cancel();
-      changeLoadingId("");
+      changeLoadingId('');
     }
   };
 
   // This is called first on focus leave for the previous input and then on focus for the new input
-  const changeFocusedInput = (inputIndex: number | null, inputValue = "") => {
+  const changeFocusedInput = (inputIndex: number | null, inputValue = '') => {
     setFocusedInput(inputIndex);
     setPersonSelection(0);
     queryMatchedPersons(inputValue);
@@ -103,7 +103,7 @@ const FormPersonInputs = ({
   const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: InputPerson[]): boolean => {
     // Add new empty input if there isn't an empty one left
     if (infiniteInputs && !newPersons.some((el) => el === null)) {
-      newPersonNames.push("");
+      newPersonNames.push('');
       newPersons.push(null);
       return true;
     }
@@ -157,8 +157,8 @@ const FormPersonInputs = ({
       if (userInfo?.isMod) {
         setFocusedInput(null);
 
-        if (addNewPersonFromNewTab) open("/mod/competitors", "_blank");
-        else if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
+        if (addNewPersonFromNewTab) open('/mod/competitors', '_blank');
+        else if (!redirectToOnAddPerson) window.location.href = '/mod/competitors';
         else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
       }
     } else {
@@ -175,10 +175,10 @@ const FormPersonInputs = ({
   };
 
   const onPersonKeyDown = (inputIndex: number, e: any) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       // Make sure the focused input is not empty
       if (personNames[inputIndex]) selectPerson(inputIndex, personSelection);
-    } else if (e.key === "ArrowDown") {
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault();
 
       if (personSelection + 1 <= matchedPersons.length - defaultMatchedPersons.length) {
@@ -186,7 +186,7 @@ const FormPersonInputs = ({
       } else {
         setPersonSelection(0);
       }
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
 
       if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
@@ -198,9 +198,9 @@ const FormPersonInputs = ({
   };
 
   return (
-    <div className="row">
+    <div className='row'>
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? "col-md-6" : ""}>
+        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? 'col-md-6' : ''}>
           <FormTextInput
             id={`${title}_${inputIndex + 1}`}
             title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
@@ -213,14 +213,14 @@ const FormPersonInputs = ({
             onFocus={() => changeFocusedInput(inputIndex, personName)}
             onBlur={() => changeFocusedInput(null)}
             disabled={disabled}
-            className="mb-3"
+            className='mb-3'
           />
           {inputIndex === focusedInput && personName && (
-            <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
-              {loadingId === "MATCHED_PERSONS"
+            <ul className='position-absolute list-group' style={{ zIndex: 10 }}>
+              {loadingId === 'MATCHED_PERSONS'
                 ? (
-                  <li className="list-group-item">
-                    <div style={{ width: "200px" }}>
+                  <li className='list-group-item'>
+                    <div style={{ width: '200px' }}>
                       <Loading small />
                     </div>
                   </li>
@@ -230,18 +230,18 @@ const FormPersonInputs = ({
                   matchedPersons.map((person: IPerson | null, matchIndex: number) => (
                     <li
                       key={matchIndex}
-                      className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}
-                      style={{ cursor: "pointer" }}
+                      className={'list-group-item' + (matchIndex === personSelection ? ' active' : '')}
+                      style={{ cursor: 'pointer' }}
                       aria-current={matchIndex === personSelection}
                       onMouseEnter={() => setPersonSelection(matchIndex)}
                       onMouseDown={() =>
                         selectPerson(inputIndex, matchIndex)}
                     >
-                      {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
+                      {person !== null ? <Competitor person={person} showLocalizedName noLink /> : '(add new person)'}
                     </li>
                   ))
                 )
-                : "(competitor not found)"}
+                : '(competitor not found)'}
             </ul>
           )}
         </div>

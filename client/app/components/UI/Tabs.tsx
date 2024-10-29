@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { INavigationItem } from "~/helpers/types.ts";
+import Link from 'next/link';
+import { INavigationItem } from '~/helpers/types.ts';
 
 const Tabs = ({
   tabs,
@@ -17,24 +17,24 @@ const Tabs = ({
   forServerSidePage?: boolean;
 }) => {
   if (prefetch && !forServerSidePage) {
-    throw new Error("The Tabs component only supports prefetch when forServerSidePage is set");
+    throw new Error('The Tabs component only supports prefetch when forServerSidePage is set');
   }
 
   return (
-    <ul className="mb-3 nav nav-tabs">
+    <ul className='mb-3 nav nav-tabs'>
       {tabs
         .filter((el) => !el.hidden)
         .map((tab) => (
-          <li key={tab.value} className="me-2 nav-item">
+          <li key={tab.value} className='me-2 nav-item'>
             {!forServerSidePage && setActiveTab
               ? (
                 <button
-                  type="button"
-                  className={"nav-link" + (activeTab === tab.value ? " active" : "")}
+                  type='button'
+                  className={'nav-link' + (activeTab === tab.value ? ' active' : '')}
                   onClick={() => setActiveTab(tab.value)}
                 >
-                  <span className="d-none d-md-inline">{tab.title}</span>
-                  <span className="d-inline d-md-none">
+                  <span className='d-none d-md-inline'>{tab.title}</span>
+                  <span className='d-inline d-md-none'>
                     {tab.shortTitle || tab.title}
                   </span>
                 </button>
@@ -44,11 +44,11 @@ const Tabs = ({
                   href={tab.route as string}
                   prefetch={prefetch}
                   replace={replace}
-                  className={"nav-link" +
-                    (activeTab === tab.value ? " active" : "")}
+                  className={'nav-link' +
+                    (activeTab === tab.value ? ' active' : '')}
                 >
-                  <span className="d-none d-md-inline">{tab.title}</span>
-                  <span className="d-inline d-md-none">
+                  <span className='d-none d-md-inline'>{tab.title}</span>
+                  <span className='d-inline d-md-none'>
                     {tab.shortTitle || tab.title}
                   </span>
                 </Link>

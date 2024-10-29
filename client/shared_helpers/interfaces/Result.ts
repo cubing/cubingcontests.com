@@ -1,5 +1,5 @@
-import { WcaRecordType } from "../enums.ts";
-import { IContest, IEvent, IFeUser, IPerson, IRecordType, type ResultRankingType } from "../types.ts";
+import { WcaRecordType } from '../enums.ts';
+import { IContest, IEvent, IFeUser, IPerson, IRecordType, type ResultRankingType } from '../types.ts';
 
 export interface IAttempt {
   /**
@@ -36,7 +36,7 @@ export interface IResult {
   regionalAverageRecord?: string;
 }
 
-export type ISubmittedResult = Omit<IResult, "competitionId" | "ranking"> & {
+export type ISubmittedResult = Omit<IResult, 'competitionId' | 'ranking'> & {
   videoLink: string;
   discussionLink?: string;
   createdBy?: unknown; // user ID of the user who created the result

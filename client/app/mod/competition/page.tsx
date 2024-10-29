@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useContext, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IContestData, IEvent } from "~/shared_helpers/types.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import Loading from "~/app/components/UI/Loading.tsx";
-import ContestForm from "./ContestForm.tsx";
+import { useContext, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import { IContestData, IEvent } from '~/shared_helpers/types.ts';
+import { MainContext } from '~/helpers/contexts.ts';
+import Loading from '~/app/components/UI/Loading.tsx';
+import ContestForm from './ContestForm.tsx';
 
 const CreateEditContestPage = () => {
   const myFetch = useMyFetch();
@@ -17,21 +17,21 @@ const CreateEditContestPage = () => {
 
   const searchParams = useSearchParams();
 
-  let mode: "new" | "edit" | "copy" = "new";
-  let competitionId = searchParams.get("edit_id");
+  let mode: 'new' | 'edit' | 'copy' = 'new';
+  let competitionId = searchParams.get('edit_id');
 
   if (competitionId) {
-    mode = "edit";
+    mode = 'edit';
   } else {
-    competitionId = searchParams.get("copy_id");
-    if (competitionId) mode = "copy";
+    competitionId = searchParams.get('copy_id');
+    if (competitionId) mode = 'copy';
   }
 
   useEffect(() => {
     // CODE SMELL!!!
     (async () => {
       const { payload: eventsData, errors: errors1 } = await myFetch.get(
-        "/events/mod",
+        '/events/mod',
         { authorize: true, loadingId: null },
       );
       const { payload: contestData, errors: errors2 } = competitionId
@@ -39,7 +39,7 @@ const CreateEditContestPage = () => {
         : { payload: undefined, errors: undefined };
 
       if (errors1 ?? errors2) {
-        changeErrorMessages(["Error while fetching contest data"]);
+        changeErrorMessages(['Error while fetching contest data']);
       } else {
         setEvents(eventsData);
         if (contestData) setContestData(contestData);
@@ -47,11 +47,11 @@ const CreateEditContestPage = () => {
     })();
   }, []);
 
-  if (events && (mode === "new" || contestData)) {
+  if (events && (mode === 'new' || contestData)) {
     return (
       <div>
-        <h2 className="mb-4 text-center">
-          {mode === "edit" ? "Edit Contest" : "Create Contest"}
+        <h2 className='mb-4 text-center'>
+          {mode === 'edit' ? 'Edit Contest' : 'Create Contest'}
         </h2>
 
         <ContestForm events={events} mode={mode} contest={contestData?.contest} creator={contestData?.creator} />

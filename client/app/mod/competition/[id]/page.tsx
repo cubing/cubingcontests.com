@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import Loading from "~/app/components/UI/Loading.tsx";
-import DataEntryScreen from "~/app/components/adminAndModerator/DataEntryScreen.tsx";
-import { IContestData } from "~/shared_helpers/types.ts";
+import { useEffect, useState } from 'react';
+import { useMyFetch } from '~/helpers/customHooks.ts';
+import Loading from '~/app/components/UI/Loading.tsx';
+import DataEntryScreen from '~/app/components/adminAndModerator/DataEntryScreen.tsx';
+import { IContestData } from '~/shared_helpers/types.ts';
 
 const PostResultsPage = ({
   params: { id },
@@ -19,7 +19,7 @@ const PostResultsPage = ({
 
   useEffect(() => {
     myFetch
-      .get(`/competitions/mod/${id}?eventId=${eventId ?? "FIRST_EVENT"}`, {
+      .get(`/competitions/mod/${id}?eventId=${eventId ?? 'FIRST_EVENT'}`, {
         authorize: true,
       })
       .then(({ payload, errors }) => {

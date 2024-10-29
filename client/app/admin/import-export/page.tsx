@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // import { useContext, useEffect, useState } from 'react';
 // import { useMyFetch, useFetchPerson, useFetchWcaCompDetails } from '~/helpers/customHooks.ts';

@@ -1,4 +1,4 @@
-import { Color } from "~/shared_helpers/enums.ts";
+import { Color } from '~/shared_helpers/enums.ts';
 
 export type MultiChoiceOption<T = string | number> = {
   label: string;

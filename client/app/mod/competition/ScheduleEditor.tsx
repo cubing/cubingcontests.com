@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { addHours } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
-import { Color, ContestType } from "~/shared_helpers/enums.ts";
-import { IActivity, IContestEvent, IRoom } from "~/shared_helpers/types.ts";
-import { MultiChoiceOption } from "~/helpers/types.ts";
-import { roundTypes } from "~/helpers/roundTypes.ts";
-import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
-import FormDatetimeInput from "~/app/components/form/FormDatetimeInput.tsx";
-import FormSelect from "~/app/components/form/FormSelect.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import Button from "~/app/components/UI/Button.tsx";
-import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
-import Schedule from "~/app/components/Schedule.tsx";
+import { useMemo, useState } from 'react';
+import { addHours } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
+import { Color, ContestType } from '~/shared_helpers/enums.ts';
+import { IActivity, IContestEvent, IRoom } from '~/shared_helpers/types.ts';
+import { MultiChoiceOption } from '~/helpers/types.ts';
+import { roundTypes } from '~/helpers/roundTypes.ts';
+import { colorOptions } from '~/helpers/multipleChoiceOptions.ts';
+import FormDatetimeInput from '~/app/components/form/FormDatetimeInput.tsx';
+import FormSelect from '~/app/components/form/FormSelect.tsx';
+import FormTextInput from '~/app/components/form/FormTextInput.tsx';
+import Button from '~/app/components/UI/Button.tsx';
+import ColorSquare from '~/app/components/UI/ColorSquare.tsx';
+import Schedule from '~/app/components/Schedule.tsx';
 
 const ScheduleEditor = ({
   rooms,
@@ -33,7 +33,7 @@ const ScheduleEditor = ({
   disabled: boolean;
 }) => {
   // Room stuff
-  const [roomName, setRoomName] = useState("");
+  const [roomName, setRoomName] = useState('');
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
 
   // Activity stuff
@@ -41,8 +41,8 @@ const ScheduleEditor = ({
     null,
   );
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
-  const [activityCode, setActivityCode] = useState("");
-  const [customActivity, setCustomActivity] = useState("");
+  const [activityCode, setActivityCode] = useState('');
+  const [customActivity, setCustomActivity] = useState('');
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
   const [activityStartTime, setActivityStartTime] = useState(
     fromZonedTime(addHours(startDate, 12), venueTimeZone),
@@ -73,7 +73,7 @@ const ScheduleEditor = ({
       }
     }
 
-    output.push({ label: "Custom", value: "other-misc" });
+    output.push({ label: 'Custom', value: 'other-misc' });
     // Set selected activity code as the first available option, if not editing
     if (activityUnderEdit === null) setActivityCode(output[0].value as string);
     return output;
@@ -84,10 +84,10 @@ const ScheduleEditor = ({
     setSelectedRoom(roomOptions[0].value);
   }
   const isValidActivity = activityCode &&
-    (activityCode !== "other-misc" || customActivity) && roomOptions.length > 0;
+    (activityCode !== 'other-misc' || customActivity) && roomOptions.length > 0;
 
   const addRoom = () => {
-    setRoomName("");
+    setRoomName('');
     setRooms([
       ...rooms,
       {
@@ -114,7 +114,7 @@ const ScheduleEditor = ({
       activityCode,
       startTime: activityStartTime,
       endTime: activityEndTime,
-      name: activityCode === "other-misc" ? customActivity : undefined,
+      name: activityCode === 'other-misc' ? customActivity : undefined,
       childActivities: [] as IActivity[],
     });
 
@@ -131,8 +131,8 @@ const ScheduleEditor = ({
     );
 
     setRooms(newRooms);
-    setActivityCode("");
-    setCustomActivity("");
+    setActivityCode('');
+    setCustomActivity('');
     setActivityUnderEdit(null);
   };
 
@@ -142,13 +142,13 @@ const ScheduleEditor = ({
     setActivityCode(activity.activityCode);
     setActivityStartTime(activity.startTime);
     setActivityEndTime(activity.endTime);
-    setCustomActivity(activity.name ?? "");
+    setCustomActivity(activity.name ?? '');
   };
 
   const cancelEdit = () => {
     setActivityUnderEdit(null);
-    setActivityCode("");
-    setCustomActivity("");
+    setActivityCode('');
+    setCustomActivity('');
   };
 
   const deleteActivity = (roomId: number, activityId: number) => {
@@ -166,21 +166,21 @@ const ScheduleEditor = ({
   return (
     <>
       <section>
-        <h3 className="mb-3">Rooms</h3>
+        <h3 className='mb-3'>Rooms</h3>
 
-        <div className="row">
-          <div className="col-8">
+        <div className='row'>
+          <div className='col-8'>
             <FormTextInput
-              title="Room name"
+              title='Room name'
               value={roomName}
               setValue={setRoomName}
               disabled={disabled}
             />
           </div>
-          <div className="col-4 d-flex justify-content-between align-items-end gap-3">
-            <div className="flex-grow-1">
+          <div className='col-4 d-flex justify-content-between align-items-end gap-3'>
+            <div className='flex-grow-1'>
               <FormSelect
-                title="Color"
+                title='Color'
                 options={colorOptions}
                 selected={roomColor}
                 setSelected={setRoomColor}
@@ -193,18 +193,18 @@ const ScheduleEditor = ({
         <Button
           onClick={addRoom}
           disabled={disabled || !roomName.trim()}
-          className="btn-success mt-3 mb-2"
+          className='btn-success mt-3 mb-2'
         >
           Create
         </Button>
         <hr />
 
-        <h3 className="mb-3">Schedule</h3>
+        <h3 className='mb-3'>Schedule</h3>
 
-        <div className="row">
-          <div className="col">
+        <div className='row'>
+          <div className='col'>
             <FormSelect
-              title="Room"
+              title='Room'
               options={roomOptions}
               selected={selectedRoom}
               setSelected={setSelectedRoom}
@@ -212,9 +212,9 @@ const ScheduleEditor = ({
                 activityUnderEdit !== null}
             />
           </div>
-          <div className="col">
+          <div className='col'>
             <FormSelect
-              title="Activity"
+              title='Activity'
               options={activityOptions}
               selected={activityCode}
               setSelected={setActivityCode}
@@ -222,67 +222,67 @@ const ScheduleEditor = ({
             />
           </div>
         </div>
-        {activityCode === "other-misc" && (
+        {activityCode === 'other-misc' && (
           <FormTextInput
-            title="Custom activity"
+            title='Custom activity'
             value={customActivity}
             setValue={setCustomActivity}
             disabled={disabled}
-            className="mb-3"
+            className='mb-3'
           />
         )}
-        <div className="mb-3 row align-items-end">
-          <div className="col">
+        <div className='mb-3 row align-items-end'>
+          <div className='col'>
             <FormDatetimeInput
-              id="activity_start_time"
+              id='activity_start_time'
               title={`Start time (${venueTimeZone})`}
               value={activityStartTime}
               setValue={changeActivityStartTime}
               timeZone={venueTimeZone}
-              dateFormat="Pp"
+              dateFormat='Pp'
               timeIntervals={5}
               disabled={disabled}
               showUTCTime
             />
           </div>
-          <div className="col">
+          <div className='col'>
             <FormDatetimeInput
-              id="activity_end_time"
+              id='activity_end_time'
               value={activityEndTime}
               setValue={setActivityEndTime}
               timeZone={venueTimeZone}
-              dateFormat="Pp"
+              dateFormat='Pp'
               timeIntervals={5}
               disabled={disabled}
               showUTCTime
             />
           </div>
         </div>
-        <div className="d-flex gap-3 mb-4">
+        <div className='d-flex gap-3 mb-4'>
           <Button
             onClick={saveActivity}
             disabled={disabled || !isValidActivity}
-            className={activityUnderEdit ? "btn-primary" : "btn-success"}
+            className={activityUnderEdit ? 'btn-primary' : 'btn-success'}
           >
-            {activityUnderEdit ? "Update" : "Add to schedule"}
+            {activityUnderEdit ? 'Update' : 'Add to schedule'}
           </Button>
           {activityUnderEdit !== null && (
-            <Button onClick={cancelEdit} className="btn-danger">
+            <Button onClick={cancelEdit} className='btn-danger'>
               Cancel
             </Button>
           )}
         </div>
         {contestType === ContestType.WcaComp && (
-          <p className="text-center text-danger">
+          <p className='text-center text-danger'>
             Please make sure that the schedules match between CC and the WCA.
           </p>
         )}
       </section>
 
       {/* Bit of a hack to escape the boundaries of the form component to give the schedule more width */}
-      <div className="d-flex justify-content-center">
-        <div className="min-vw-100">
-          <div className="container-md">
+      <div className='d-flex justify-content-center'>
+        <div className='min-vw-100'>
+          <div className='container-md'>
             <Schedule
               rooms={rooms}
               contestEvents={contestEvents}
