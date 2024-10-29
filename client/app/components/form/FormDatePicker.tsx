@@ -11,7 +11,7 @@ import { getDateOnly } from "../../../shared_helpers/sharedFunctions.ts";
 registerLocale("en-GB", enGB);
 setDefaultLocale("en-GB");
 
-const FormDatetimeInput = ({
+const FormDatePicker = ({
   id,
   title,
   value,
@@ -79,4 +79,4 @@ const FormDatetimeInput = ({
   );
 };
 
-export default FormDatetimeInput;
+export default FormDatePicker;

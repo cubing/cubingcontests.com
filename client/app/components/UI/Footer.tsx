@@ -11,12 +11,7 @@ const Footer = () => {
     <footer className="container d-flex flex-wrap gap-3 justify-content-center align-items-center min-vw-100 py-3 bg-body-tertiary text-center fs-5">
       <p className="m-0">
         Made by
-        <a
-          href="https://denimintsaev.com/"
-          className="ms-2 text-light-emphasis"
-        >
-          Deni Mintsaev
-        </a>
+        <a href="https://denimintsaev.com/" className="ms-2 text-light-emphasis">Deni Mintsaev</a>
       </p>
       <a
         href="https://github.com/cubing/cubingcontests.com"

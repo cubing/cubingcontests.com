@@ -24,10 +24,7 @@ const NavbarItems = () => {
     logOutUser();
   };
 
-  const toggleDropdown = (
-    dropdown: "results" | "user",
-    newValue = !resultsExpanded,
-  ) => {
+  const toggleDropdown = (dropdown: "results" | "user", newValue = !resultsExpanded) => {
     if (dropdown === "results") {
       setResultsExpanded(newValue);
       setUserExpanded(false);
@@ -46,9 +43,7 @@ const NavbarItems = () => {
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-md position-relative">
-        <Link className="navbar-brand fs-3" href="/">
-          Cubing Contests
-        </Link>
+        <Link className="navbar-brand fs-3" href="/">Cubing Contests</Link>
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
@@ -57,10 +52,7 @@ const NavbarItems = () => {
         >
           <FontAwesomeIcon icon={faBars} />
         </button>
-        <div
-          className={"navbar-collapse justify-content-end" +
-            (expanded ? "" : " collapse")}
-        >
+        <div className={"navbar-collapse justify-content-end" + (expanded ? "" : " collapse")}>
           <ul className="navbar-nav align-items-start align-items-lg-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
             <li className="nav-item">
               <Link
@@ -130,13 +122,7 @@ const NavbarItems = () => {
             {!userInfo
               ? (
                 <li className="nav-item">
-                  <Link
-                    className="nav-link"
-                    href="/login"
-                    onClick={collapseAll}
-                  >
-                    Log In
-                  </Link>
+                  <Link className="nav-link" href="/login" onClick={collapseAll}>Log In</Link>
                 </li>
               )
               : (
@@ -145,11 +131,7 @@ const NavbarItems = () => {
                   onMouseEnter={() => toggleDropdown("user", true)}
                   onMouseLeave={() => toggleDropdown("user", false)}
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown("user")}
-                    className="nav-link dropdown-toggle"
-                  >
+                  <button type="button" onClick={() => toggleDropdown("user")} className="nav-link dropdown-toggle">
                     {userInfo.username}
                   </button>
                   <ul
@@ -167,31 +149,13 @@ const NavbarItems = () => {
                       </li>
                     )}
                     <li>
-                      <Link
-                        className="nav-link"
-                        href="/user/submit-results"
-                        onClick={collapseAll}
-                      >
-                        Submit Results
-                      </Link>
+                      <Link className="nav-link" href="/user/submit-results" onClick={collapseAll}>Submit Results</Link>
                     </li>
                     <li>
-                      <Link
-                        className="nav-link"
-                        href="/user/settings"
-                        onClick={collapseAll}
-                      >
-                        Settings
-                      </Link>
+                      <Link className="nav-link" href="/user/settings" onClick={collapseAll}>Settings</Link>
                     </li>
                     <li>
-                      <button
-                        type="button"
-                        onClick={logOut}
-                        className="nav-link"
-                      >
-                        Log Out
-                      </button>
+                      <button type="button" onClick={logOut} className="nav-link">Log Out</button>
                     </li>
                   </ul>
                 </li>

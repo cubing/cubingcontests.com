@@ -32,7 +32,7 @@ import FormRadio from "~/app/components/form/FormRadio.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
 import FormTextArea from "~/app/components/form/FormTextArea.tsx";
-import FormDatetimeInput from "~/app/components/form/FormDatetimeInput.tsx";
+import FormDatePicker from "~/app/components/form/FormDatePicker.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Button from "~/app/components/UI/Button.tsx";
@@ -638,7 +638,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
               <div className="col">
                 {type === ContestType.Meetup
                   ? (
-                    <FormDatetimeInput
+                    <FormDatePicker
                       id="start_date"
                       title={`Start date and time (${isFetchingTimeZone ? "..." : timeZone})`}
                       value={startTime}
@@ -650,7 +650,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                     />
                   )
                   : (
-                    <FormDatetimeInput
+                    <FormDatePicker
                       id="start_date"
                       title="Start date"
                       value={startDate}
@@ -662,7 +662,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
               </div>
               {getIsCompType(type) && (
                 <div className="col">
-                  <FormDatetimeInput
+                  <FormDatePicker
                     id="end_date"
                     title="End date"
                     value={endDate}

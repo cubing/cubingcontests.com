@@ -21,19 +21,21 @@ type DayActivity = RoomActivity & {
 };
 type Day = { date: Date; activities: DayActivity[] };
 
+type Props = {
+  rooms: IRoom[];
+  contestEvents: IContestEvent[];
+  timeZone: string;
+  onDeleteActivity?: (roomId: number, activityId: number) => void;
+  onEditActivity?: (roomId: number, activity: IActivity) => void;
+};
+
 const Schedule = ({
   rooms,
   contestEvents,
   timeZone,
   onDeleteActivity,
   onEditActivity,
-}: {
-  rooms: IRoom[];
-  contestEvents: IContestEvent[];
-  timeZone: string;
-  onDeleteActivity?: (roomId: number, activityId: number) => void;
-  onEditActivity?: (roomId: number, activity: IActivity) => void;
-}) => {
+}: Props) => {
   const allActivities: RoomActivity[] = [];
 
   for (const room of rooms) {
@@ -64,11 +66,7 @@ const Schedule = ({
     const isMultiDayActivity = !isSameDay(zonedStartTime, zonedEndTime);
     const dayActivity: DayActivity = {
       ...activity,
-      formattedStartTime: formatInTimeZone(
-        activity.startTime,
-        timeZone,
-        "HH:mm",
-      ),
+      formattedStartTime: formatInTimeZone(activity.startTime, timeZone, "HH:mm"),
       formattedEndTime: (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, "dd MMM")} ` : "") +
         formatInTimeZone(activity.endTime, timeZone, "HH:mm"),
       isEditable: true,
@@ -82,7 +80,9 @@ const Schedule = ({
         dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
         if (dayActivity.round) {
           dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round?.format)?.label;
-        } else dayActivity.isEditable = false;
+        } else {
+          dayActivity.isEditable = false;
+        }
       } else {
         dayActivity.isEditable = false;
       }

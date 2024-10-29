@@ -33,16 +33,12 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
 
     // The parent has no width, so it's a good reference point to do the calculations off of
     const parentBounds = tooltipDiv.parentElement.getBoundingClientRect();
-    const optimalLeftEdge = parentBounds.left - tooltipWidth / 2 -
-      horizontalPadding;
-    const optimalRightEdge = parentBounds.right + tooltipWidth / 2 +
-      horizontalPadding;
+    const optimalLeftEdge = parentBounds.left - tooltipWidth / 2 - horizontalPadding;
+    const optimalRightEdge = parentBounds.right + tooltipWidth / 2 + horizontalPadding;
     let newPosition = -tooltipWidth / 2;
 
     if (optimalLeftEdge < 0) newPosition -= optimalLeftEdge;
-    else if (optimalRightEdge > window.innerWidth) {
-      newPosition -= optimalRightEdge - window.innerWidth;
-    }
+    else if (optimalRightEdge > window.innerWidth) newPosition -= optimalRightEdge - window.innerWidth;
 
     tooltipDiv.style.left = newPosition + "px";
 
@@ -51,10 +47,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
 
   const updateIsBelowTarget = (tooltipDiv: HTMLElement) => {
     const bounds = tooltipDiv.getBoundingClientRect();
-    const globalPos = {
-      top: bounds.top + window.scrollY,
-      bottom: bounds.bottom + window.scrollY,
-    };
+    const globalPos = { top: bounds.top + window.scrollY, bottom: bounds.bottom + window.scrollY };
     const pageHeight = document.documentElement.getBoundingClientRect().height;
     setIsBelowTarget((prevIsBelowTarget: boolean) => {
       const positionSwitchDistance = bounds.height + tooltipOffset * 2;
@@ -63,8 +56,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
         : pageHeight - globalPos.bottom - positionSwitchDistance;
       const distanceFromPageTop = prevIsBelowTarget ? globalPos.top - positionSwitchDistance : globalPos.top;
 
-      return distanceFromPageBottom > distanceFromPageTop ||
-        distanceFromPageTop < 300;
+      return distanceFromPageBottom > distanceFromPageTop || distanceFromPageTop < 300;
     });
   };
 
@@ -104,10 +96,7 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
         </div>
       </div>
 
-      <FontAwesomeIcon
-        icon={faQuestionCircle}
-        className="m-1 fs-6 text-secondary-emphasis"
-      />
+      <FontAwesomeIcon icon={faQuestionCircle} className="m-1 fs-6 text-secondary-emphasis" />
     </div>
   );
 };

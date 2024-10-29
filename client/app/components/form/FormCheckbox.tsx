@@ -15,9 +15,7 @@ const FormCheckbox = ({
   noMargin?: boolean;
   small?: boolean;
 }) => {
-  if (!id && !title) {
-    throw new Error("Neither title nor id are set in FormCheckbox!");
-  }
+  if (!id && !title) throw new Error("Neither title nor id are set in FormCheckbox!");
 
   const inputId = `${id || title}_checkbox`;
 
@@ -35,10 +33,7 @@ const FormCheckbox = ({
         disabled={disabled}
       />
       {title && (
-        <label
-          className={`form-check-label ${small ? "fs-6" : "fs-5"}`}
-          htmlFor={inputId}
-        >
+        <label className={`form-check-label ${small ? "fs-6" : "fs-5"}`} htmlFor={inputId}>
           {title}
         </label>
       )}

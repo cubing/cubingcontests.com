@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { INavigationItem } from "~/helpers/types.ts";
 
+type Props = {
+  tabs: INavigationItem[];
+  activeTab: string; // the value of the currently active tab
+  setActiveTab?: (val: string) => void; // not needed on a client-side-rendered page
+  prefetch?: boolean;
+  replace?: boolean;
+  forServerSidePage?: boolean;
+};
+
 const Tabs = ({
   tabs,
   activeTab,
@@ -8,14 +17,7 @@ const Tabs = ({
   prefetch,
   replace,
   forServerSidePage,
-}: {
-  tabs: INavigationItem[];
-  activeTab: string; // the value of the currently active tab
-  setActiveTab?: (val: string) => void; // not needed on a client-side-rendered page
-  prefetch?: boolean;
-  replace?: boolean;
-  forServerSidePage?: boolean;
-}) => {
+}: Props) => {
   if (prefetch && !forServerSidePage) {
     throw new Error("The Tabs component only supports prefetch when forServerSidePage is set");
   }
@@ -34,9 +36,7 @@ const Tabs = ({
                   onClick={() => setActiveTab(tab.value)}
                 >
                   <span className="d-none d-md-inline">{tab.title}</span>
-                  <span className="d-inline d-md-none">
-                    {tab.shortTitle || tab.title}
-                  </span>
+                  <span className="d-inline d-md-none">{tab.shortTitle || tab.title}</span>
                 </button>
               )
               : (
@@ -44,13 +44,10 @@ const Tabs = ({
                   href={tab.route as string}
                   prefetch={prefetch}
                   replace={replace}
-                  className={"nav-link" +
-                    (activeTab === tab.value ? " active" : "")}
+                  className={"nav-link" + (activeTab === tab.value ? " active" : "")}
                 >
                   <span className="d-none d-md-inline">{tab.title}</span>
-                  <span className="d-inline d-md-none">
-                    {tab.shortTitle || tab.title}
-                  </span>
+                  <span className="d-inline d-md-none">{tab.shortTitle || tab.title}</span>
                 </Link>
               )}
           </li>

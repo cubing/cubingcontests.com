@@ -28,13 +28,7 @@ const ToastMessages = () => {
     ));
   }
 
-  if (successMessage) {
-    return (
-      <div id="success_message" className="mb-3 alert alert-success fs-5">
-        {successMessage}
-      </div>
-    );
-  }
+  if (successMessage) return <div id="success_message" className="mb-3 alert alert-success fs-5">{successMessage}</div>;
 };
 
 export default ToastMessages;

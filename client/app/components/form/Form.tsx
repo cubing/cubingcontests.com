@@ -5,6 +5,17 @@ import { MainContext } from "~/helpers/contexts.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 
+type Props = {
+  children: React.ReactNode;
+  buttonText?: string;
+  hideToasts?: boolean;
+  hideButton?: boolean;
+  disableButton?: boolean;
+  showCancelButton?: boolean;
+  onSubmit?: () => void;
+  onCancel?: () => void;
+};
+
 const Form = ({
   children,
   buttonText = "Submit",
@@ -14,27 +25,10 @@ const Form = ({
   showCancelButton,
   onSubmit,
   onCancel,
-}: {
-  children: React.ReactNode;
-  buttonText?: string;
-  hideToasts?: boolean;
-  hideButton?: boolean;
-  disableButton?: boolean;
-  showCancelButton?: boolean;
-  onSubmit?: () => void;
-  onCancel?: () => void;
-}) => {
+}: Props) => {
   const showSubmitButton = !hideButton && buttonText;
-  if (showSubmitButton && !onSubmit) {
-    throw new Error(
-      "onSubmit cannot be undefined unless the submit button is hidden",
-    );
-  }
-  if (showCancelButton && !onCancel) {
-    throw new Error(
-      "onCancel cannot be undefined unless the cancel button is hidden",
-    );
-  }
+  if (showSubmitButton && !onSubmit) throw new Error("onSubmit cannot be undefined unless the submit button is hidden");
+  if (showCancelButton && !onCancel) throw new Error("onCancel cannot be undefined unless the cancel button is hidden");
 
   const { loadingId } = useContext(MainContext);
 

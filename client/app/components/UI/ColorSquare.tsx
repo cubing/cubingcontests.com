@@ -1,8 +1,11 @@
 import { Color } from "~/shared_helpers/enums.ts";
 
-const ColorSquare = (
-  { color, style }: { color: Color; style?: React.CSSProperties },
-) => {
+type Props = {
+  color: Color;
+  style?: React.CSSProperties;
+};
+
+const ColorSquare = ({ color, style }: Props) => {
   if (color !== Color.White) {
     return (
       <span
@@ -16,8 +19,7 @@ const ColorSquare = (
           backgroundColor: `#${color}`,
           ...style,
         }}
-      >
-      </span>
+      />
     );
   }
 };

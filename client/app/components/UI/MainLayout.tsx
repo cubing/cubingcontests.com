@@ -101,9 +101,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           }}
         >
           <Navbar />
-          <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">
-            {children}
-          </main>
+          <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">{children}</main>
           <Footer />
         </MainContext.Provider>
       </QueryClientProvider>
