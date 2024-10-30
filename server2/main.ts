@@ -27,4 +27,7 @@ app.get(
   },
 );
 
-Deno.serve({ port: parseInt(Deno.env.get("BACKEND2_PORT") as string) }, app.fetch);
+const port = parseInt(Deno.env.get("BACKEND2_PORT") as string);
+if (!port) throw new Error("Please provide a BACKEND2_PORT environment variable");
+
+Deno.serve({ port }, app.fetch);

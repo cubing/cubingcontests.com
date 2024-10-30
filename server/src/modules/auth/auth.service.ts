@@ -33,7 +33,6 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto) {
-    createUserDto.email = createUserDto.email.toLowerCase();
     createUserDto.password = await bcrypt.hash(createUserDto.password, C.passwordSaltRounds);
 
     // Give the user the user role by default

@@ -529,9 +529,7 @@ export class ResultsService {
     const newResult: IResult = {
       ...createResultDto,
       competitionId,
-      // Admins are allowed to edit finished contests, so this check is necessary. If it's a finished contest
-      // and the user is not an admin, they won't have access rights anyways, so the roles don't need to be checked here.
-      unapproved: contest.state < ContestState.Finished ? true : undefined,
+      unapproved: user?.roles.includes(Role.Admin) && contest.state >= ContestState.Finished ? undefined : true,
       // All of these are set below
       date: new Date(),
       ranking: 0,

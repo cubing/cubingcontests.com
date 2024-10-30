@@ -1,5 +1,4 @@
 import { IsEmail, IsString, IsStrongPassword, Matches, MaxLength, MinLength } from "class-validator";
-import { IUser } from "~/src/helpers/interfaces/User";
 import { INVALID_EMAIL_MSG, PASSWORD_VALIDATION_MSG } from "~/src/helpers/messages";
 import { getMaxLengthOpts, getMinLengthOpts } from "~/src/helpers/validation";
 

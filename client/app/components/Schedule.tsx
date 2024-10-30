@@ -88,7 +88,7 @@ const Schedule = ({
       }
     }
 
-    (lastDay as Day).activities.push(dayActivity);
+    (days.at(-1) as Day).activities.push(dayActivity);
   }
 
   return (
