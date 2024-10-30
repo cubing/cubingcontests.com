@@ -1,25 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useMyFetch } from '~/helpers/customHooks';
-import Loading from '@c/UI/Loading';
-import DataEntryScreen from '@c/adminAndModerator/DataEntryScreen';
-import { IContestData } from '@sh/types';
+import { useEffect, useState } from "react";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import Loading from "~/app/components/UI/Loading.tsx";
+import DataEntryScreen from "~/app/components/adminAndModerator/DataEntryScreen.tsx";
+import { IContestData } from "~/shared_helpers/types.ts";
 
-const PostResultsPage = ({
-  params: { id },
-  searchParams: { eventId },
-}: {
+type Props = {
   params: { id: string };
   searchParams: { eventId: string };
-}) => {
+};
+
+const PostResultsPage = ({ params: { id }, searchParams: { eventId } }: Props) => {
   const myFetch = useMyFetch();
 
   const [contestData, setContestData] = useState<IContestData>();
 
   useEffect(() => {
-    myFetch
-      .get(`/competitions/mod/${id}?eventId=${eventId ?? 'FIRST_EVENT'}`, { authorize: true })
+    myFetch.get(`/competitions/mod/${id}?eventId=${eventId ?? "FIRST_EVENT"}`, { authorize: true })
       .then(({ payload, errors }) => {
         if (!errors) setContestData(payload as IContestData);
       });

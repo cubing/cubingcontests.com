@@ -18,14 +18,14 @@ services:
       - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
     restart: always
 
-  api:
-    container_name: cc-api # if this is ever changed, make sure to update all references to the old container name in the code
-    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-api:${VERSION}'
+  server:
+    container_name: cc-server # if this is ever changed, make sure to update all references to the old container name in the code
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server:${VERSION}'
     networks:
       - cubingcontests
-    env_file: .env
     ports:
-      - 127.0.0.1:5000:5000
+      - 127.0.0.1:$BACKEND_PORT:$BACKEND_PORT
+    env_file: .env
     environment:
       - NODE_ENV=production
       - PORT=$BACKEND_PORT
@@ -37,18 +37,29 @@ services:
       - mongo
     restart: always
 
+  server2:
+    container_name: cc-server2 # if this is changed, make sure to update all references to the old container name in .env
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server2:${VERSION}'
+    networks:
+      - cubingcontests
+    ports:
+      - 127.0.0.1:$BACKEND2_PORT:$BACKEND2_PORT
+    env_file: .env
+    depends_on:
+      - mongo
+    restart: always
+
   client:
     container_name: cc-client
     image: '${DOCKER_IMAGE_PREFIX}cubingcontests-client:${VERSION}'
     networks:
       - cubingcontests
     ports:
-      - 127.0.0.1:3000:3000
-    environment:
-      - ENVIRONMENT=production
+      - 127.0.0.1:$FRONTEND_PORT:$FRONTEND_PORT
     depends_on:
       - mongo
-      - api
+      - server
+      - server2
     restart: always
 
 networks:

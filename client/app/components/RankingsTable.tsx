@@ -1,5 +1,5 @@
-import RankingRow from './RankingRow';
-import { IEvent, IRanking } from '@sh/types';
+import RankingRow from "./RankingRow.tsx";
+import { IEvent, IRanking } from "~/shared_helpers/types.ts";
 
 const RankingsTable = ({
   rankings,
@@ -15,13 +15,14 @@ const RankingsTable = ({
   recordsTable?: boolean;
   topResultsRankings?: boolean;
 }) => {
-  if (topResultsRankings && recordsTable)
-    throw new Error('forAverage and topResultsRankings cannot both be true in RankingsTable');
+  if (topResultsRankings && recordsTable) {
+    throw new Error("forAverage and topResultsRankings cannot both be true in RankingsTable");
+  }
 
   const hasComp = rankings.some((el) => el.contest);
   const hasLink = rankings.some((el) => el.videoLink || el.discussionLink);
-  const showAllTeammates = event?.participants > 1 && topResultsRankings && !recordsTable;
-  const showTeamColumn = event?.participants > 1 && !showAllTeammates && !recordsTable;
+  const showAllTeammates = event && event.participants > 1 && topResultsRankings && !recordsTable;
+  const showTeamColumn = event && event.participants > 1 && !showAllTeammates && !recordsTable;
   const hasSolves = rankings.some((el) => el.attempts);
   const showDetailsColumn = hasSolves || rankings.some((el) => el.memo);
   let lastRanking = 0;
@@ -29,7 +30,7 @@ const RankingsTable = ({
   if (rankings.length === 0) {
     return (
       <p className="mt-4 mx-2 fs-5">
-        {forAverage ? 'There are no average results for this event yet' : 'There are no results for this event yet'}
+        {forAverage ? "There are no average results for this event yet" : "There are no results for this event yet"}
       </p>
     );
   }
@@ -43,24 +44,24 @@ const RankingsTable = ({
       <table className="table table-hover table-responsive text-nowrap">
         <thead>
           <tr>
-            <th>{recordsTable ? 'Type' : '#'}</th>
-            <th>{!showAllTeammates ? 'Name' : 'Team'}</th>
+            <th>{recordsTable ? "Type" : "#"}</th>
+            <th>{!showAllTeammates ? "Name" : "Team"}</th>
             <th>Result</th>
             {!showAllTeammates && <th>Representing</th>}
             <th>Date</th>
             <th>
-              {hasComp ? 'Competition' : ''}
-              {hasComp && hasLink ? ' / ' : ''}
-              {hasLink ? 'Links' : ''}
+              {hasComp ? "Competition" : ""}
+              {hasComp && hasLink ? " / " : ""}
+              {hasLink ? "Links" : ""}
             </th>
             {showTeamColumn && <th>Team</th>}
-            {showDetailsColumn && <th>{hasSolves ? 'Solves' : 'Memorization time'}</th>}
+            {showDetailsColumn && <th>{hasSolves ? "Solves" : "Memorization time"}</th>}
           </tr>
         </thead>
         <tbody>
           {rankings.map((ranking) => {
             const isTiedRanking = ranking.ranking === lastRanking;
-            lastRanking = ranking.ranking;
+            lastRanking = ranking.ranking as number;
 
             if (recordsTable) {
               return ranking.persons.map((person, i) => (

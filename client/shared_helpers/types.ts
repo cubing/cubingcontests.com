@@ -1,45 +1,52 @@
 // Interfaces
 export type {
+  ICompetitionDetails,
   IContest,
+  IContestData,
   IContestDto,
   IContestEvent,
-  IContestData,
-  ICompetitionDetails,
   IMeetupDetails,
-} from './interfaces/Contest';
-export type { IEventRule } from './interfaces/EventRule';
-export type { IPerson, IPersonDto, IFePerson, IWcaPersonDto } from './interfaces/Person';
-export type { IRecordType } from './interfaces/RecordType';
+} from "./interfaces/Contest.ts";
+export type { IEventRule } from "./interfaces/EventRule.ts";
+export type { IFePerson, IPerson, IPersonDto, IWcaPersonDto } from "./interfaces/Person.ts";
+export type { IRecordType } from "./interfaces/RecordType.ts";
 export type {
-  IResult,
-  IUpdateResultDto,
-  IFeResult,
+  IAdminResultsSubmissionInfo,
   IAttempt,
-  IRanking,
   IEventRankings,
-  IRecordPair,
   IEventRecordPairs,
+  IFeAttempt,
+  IFeResult,
+  IRanking,
+  IRecordPair,
+  IResult,
   IResultsSubmissionInfo,
-} from './interfaces/Result';
-export type { IRound, ITimeLimit, ICutoff, IProceed } from './interfaces/Round';
-export type { ISchedule, IVenue, IRoom, IActivity } from './interfaces/Schedule';
-export type { IFeUser } from './interfaces/User';
-export type { IAdminStats } from './interfaces/AdminStats';
+  ISubmittedResult,
+  IUpdateResultDto,
+} from "./interfaces/Result.ts";
+export type { ICutoff, IProceed, IRound, IRoundFormat, ITimeLimit } from "./interfaces/Round.ts";
+export type { IActivity, IRoom, ISchedule, IVenue } from "./interfaces/Schedule.ts";
+export type { IFeUser } from "./interfaces/User.ts";
+export type { IAdminStats } from "./interfaces/AdminStats.ts";
 
 // Types
-export type { IEvent, IFeEvent } from './types/Event';
-export type { ICollectiveSolution, IFeCollectiveSolution, IMakeMoveDto } from './types/CollectiveSolution';
-export type { ListPageMode } from './types/ListPageMode';
-export type { HttpMethod } from './types/HttpMethod';
-export type { FetchObj } from './types/FetchObj';
-export type { NumberInputValue } from './types/NumberInputValue';
-export type { NxNMove } from './types/NxNMove';
+export type { IEvent, IFeEvent } from "./types/Event.ts";
+export type { ICollectiveSolution, IFeCollectiveSolution, IMakeMoveDto } from "./types/CollectiveSolution.ts";
+export type { ListPageMode } from "./types/ListPageMode.ts";
+export type { HttpMethod } from "./types/HttpMethod.ts";
+export type { FetchObj } from "./types/FetchObj.ts";
+export type { NumberInputValue } from "./types/NumberInputValue.ts";
+export type { NxNMove } from "./types/NxNMove.ts";
 
 // WCIF types
 export type {
+  Activity as IWcifActivity,
   Competition as IWcifCompetition,
   Event as IWcifEvent,
   Round as IWcifRound,
   Schedule as IWcifSchedule,
-  Activity as IWcifActivity,
-} from '@wca/helpers';
+} from "@wca/helpers";
+
+// Random types
+
+export type ResultRankingType = "single" | "average" | "mean";

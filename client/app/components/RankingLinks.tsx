@@ -1,20 +1,11 @@
-import { IRanking } from '@sh/types';
+import { IRanking } from "~/shared_helpers/types.ts";
+import C from "~/shared_helpers/constants.ts";
 
 const RankingLinks = ({ ranking }: { ranking: IRanking }) => {
   return (
     <div className="d-flex gap-2">
-      {ranking.videoLink ? (
-        <a href={ranking.videoLink} target="_blank">
-          Video
-        </a>
-      ) : (
-        'Video no longer available' // same text as on the submit results page
-      )}
-      {ranking.discussionLink && (
-        <a href={ranking.discussionLink} target="_blank">
-          Discussion
-        </a>
-      )}
+      {ranking.videoLink ? <a href={ranking.videoLink} target="_blank">Video</a> : C.videoNoLongerAvailableMsg}
+      {ranking.discussionLink && <a href={ranking.discussionLink} target="_blank">Discussion</a>}
     </div>
   );
 };

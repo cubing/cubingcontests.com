@@ -1,8 +1,8 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
-import { IEvent } from '@sh/types';
-import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
-import { EventRuleDocument } from '~/src/models/event-rule.model';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import mongoose, { HydratedDocument } from "mongoose";
+import { IEvent } from "@sh/types";
+import { EventFormat, EventGroup, RoundFormat } from "@sh/enums";
+import { EventRuleDocument } from "~/src/models/event-rule.model";
 
 @Schema({ timestamps: true })
 class Event implements IEvent {
@@ -24,13 +24,13 @@ class Event implements IEvent {
   @Prop({ type: [{ type: Number, enum: EventGroup }], required: true })
   groups: EventGroup[];
 
-  @Prop({ immutable: true })
-  participants?: number;
+  @Prop({ required: true, immutable: true })
+  participants: number;
 
   @Prop()
   description?: string;
 
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'EventRule' })
+  @Prop({ type: mongoose.Types.ObjectId, ref: "EventRule" })
   rule?: EventRuleDocument;
 }
 

@@ -1,76 +1,78 @@
-import Link from 'next/link';
-import Tabs from '@c/UI/Tabs';
-import RankingsTable from '@c/RankingsTable';
-import RankingLinks from '@c/RankingLinks';
-import EventTitle from '@c/EventTitle';
-import Solves from '@c/Solves';
-import Competitors from '@c/Competitors';
-import C from '@sh/constants';
-import { IEventRankings } from '@sh/types';
-import { getFormattedTime } from '@sh/sharedFunctions';
-import { getFormattedDate } from '~/helpers/utilityFunctions';
-import { eventCategories } from '~/helpers/eventCategories';
-import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
-import { ssrFetch } from '~/helpers/fetchUtils';
+import Link from "next/link";
+import { capitalize } from "lodash";
+import Tabs from "~/app/components/UI/Tabs.tsx";
+import RankingsTable from "~/app/components/RankingsTable.tsx";
+import RankingLinks from "~/app/components/RankingLinks.tsx";
+import EventTitle from "~/app/components/EventTitle.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import Competitors from "~/app/components/Competitors.tsx";
+import C from "~/shared_helpers/constants.ts";
+import { IEventRankings, type ResultRankingType } from "~/shared_helpers/types.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { eventCategories } from "~/helpers/eventCategories.ts";
+import { type EventCategory, INavigationItem } from "~/helpers/types.ts";
+import { ssrFetch } from "~/helpers/fetchUtils.ts";
 
 // SEO
 export const metadata = {
-  title: 'Records | Cubing Contests',
+  title: "Records | Cubing Contests",
   description: "Records from unofficial Rubik's Cube competitions and speedcuber meetups.",
   keywords:
     "records rankings rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
-  icons: { icon: '/favicon.png' },
-  metadataBase: new URL('https://cubingcontests.com'),
+  icons: { icon: "/favicon.png" },
+  metadataBase: new URL("https://cubingcontests.com"),
   openGraph: {
-    images: ['/api/cubing_contests_3.jpg'],
+    images: ["/api2/static/cubing_contests_3.jpg"],
   },
 };
 
-const RecordsPage = async ({ params }: { params: { category: string } }) => {
-  // Refreshes records every 5 minutes
-  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await ssrFetch('/results/records/WR', {
+type Props = {
+  params: { category: string };
+};
+
+const RecordsPage = async ({ params }: Props) => {
+  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await ssrFetch("/results/records/WR", {
     revalidate: C.rankingsRev,
   });
 
+  if (!recordsByEvent) return <p className="mt-5 text-center fs-4">Records not found</p>;
+
   // Gets just the events for the current records category
-  const filteredEventRecords = recordsByEvent?.filter((er) =>
-    er.event.groups.includes(eventCategories.find((rc) => rc.value === params.category).group),
+  const filteredEventRecords = recordsByEvent.filter((er) =>
+    er.event.groups.includes((eventCategories.find((ec) => ec.value === params.category) as EventCategory).group)
   );
-  const selectedCat = eventCategories.find((el) => el.value === params.category);
+  const selectedCat = eventCategories.find((ec) => ec.value === params.category) as EventCategory;
   const tabs: INavigationItem[] = eventCategories.map((cat) => ({
     title: cat.title,
     shortTitle: cat.shortTitle,
     value: cat.value,
     route: `/records/${cat.value}`,
-    hidden: !recordsByEvent?.some((el) => el.event.groups.includes(cat.group)),
+    hidden: !recordsByEvent?.some((er) => er.event.groups.includes(cat.group)),
   }));
 
-  // THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. RankingRow has this same function too.
-  const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
-    return type[0].toUpperCase() + type.slice(1);
-  };
+  return (
+    <div>
+      <h2 className="mb-4 text-center">Records</h2>
 
-  if (recordsByEvent) {
-    return (
-      <div>
-        <h2 className="mb-4 text-center">Records</h2>
+      {recordsByEvent.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
+        <>
+          <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
 
-        {!recordsByEvent || recordsByEvent.length === 0 ? (
-          <p className="mx-2 fs-5">No records have been set yet</p>
-        ) : (
-          <>
-            <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
+          {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
 
-            {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
+          {params.category === "extremebld" && (
+            <Link
+              href={"/user/submit-results"}
+              className="btn btn-success btn ms-2"
+            >
+              Submit a result
+            </Link>
+          )}
 
-            {params.category === 'extremebld' && (
-              <Link href={'/user/submit-results'} className="btn btn-success btn ms-2">
-                Submit a result
-              </Link>
-            )}
-
-            <div className="mt-4">
-              {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
+          <div className="mt-4">
+            {filteredEventRecords.map(
+              ({ event, rankings }: IEventRankings) => {
                 return (
                   <div key={event.eventId} className="mb-3">
                     <EventTitle event={event} showIcon linkToRankings showDescription />
@@ -86,15 +88,15 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
                             <div className="d-flex justify-content-between">
                               <span>
                                 <b>{getFormattedTime(r.result, { event })}</b>
-                                &#8194;{getRecordType(r.type)}
+                                &#8194;{capitalize(r.type as ResultRankingType)}
                               </span>
-                              {r.contest ? (
-                                <Link href={`/competitions/${r.contest.competitionId}`} prefetch={false}>
-                                  {getFormattedDate(r.date)}
-                                </Link>
-                              ) : (
-                                <span>{getFormattedDate(r.date)}</span>
-                              )}
+                              {r.contest
+                                ? (
+                                  <Link href={`/competitions/${r.contest.competitionId}`} prefetch={false}>
+                                    {getFormattedDate(r.date)}
+                                  </Link>
+                                )
+                                : <span>{getFormattedDate(r.date)}</span>}
                             </div>
                             <Competitors persons={r.persons} vertical />
                             {r.attempts && <Solves event={event} attempts={r.attempts} />}
@@ -110,15 +112,13 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
                     </div>
                   </div>
                 );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  }
-
-  return <p className="mt-5 text-center fs-4">Records not found</p>;
+              },
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 export default RecordsPage;

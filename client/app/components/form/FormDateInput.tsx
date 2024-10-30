@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { parseISO, isValid } from 'date-fns';
-import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
-import C from '@sh/constants';
-import { genericOnKeyDown } from '~/helpers/utilityFunctions';
+import { useEffect, useMemo, useState } from "react";
+import { isValid, parseISO } from "date-fns";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import C from "~/shared_helpers/constants.ts";
+import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
+
+type Props = {
+  id?: string;
+  title: string;
+  value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
+  setValue: (val: Date | null | undefined) => void;
+  disabled?: boolean;
+  nextFocusTargetId?: string;
+};
 
 const FormDateInput = ({
   id,
@@ -13,29 +22,23 @@ const FormDateInput = ({
   setValue,
   disabled,
   nextFocusTargetId,
-}: {
-  id?: string;
-  title: string;
-  value: Date | null | undefined; // null means the date is invalid; undefined means it's empty
-  setValue: (val: Date | null | undefined) => void;
-  disabled?: boolean;
-  nextFocusTargetId?: string;
-}) => {
-  const [dateText, setDateText] = useState('');
+  className,
+}: Props & React.HTMLAttributes<HTMLElement>) => {
+  const [dateText, setDateText] = useState("");
   const [position, setPosition] = useState(0);
 
   const prettyDate = useMemo(() => {
-    let prettyDate = '';
+    let prettyDate = "";
 
     for (let i = 0; i < 10; i++) {
       if (i === 2 || i === 5) {
-        prettyDate += '.';
+        prettyDate += ".";
       } else {
         let digit;
         if (i < 2 && dateText.length > i) digit = dateText[i];
         else if ([3, 4].includes(i) && dateText.length > i - 1) digit = dateText[i - 1];
         else if (i > 5 && dateText.length > i - 2) digit = dateText[i - 2];
-        prettyDate += digit || '_';
+        prettyDate += digit || "_";
       }
     }
 
@@ -45,11 +48,8 @@ const FormDateInput = ({
   const inputId = id || `${title}_date`;
 
   useEffect(() => {
-    if (value) {
-      setDateText(formatInTimeZone(value, 'UTC', 'ddMMyyyy'));
-    } else if (value === undefined && dateText !== '') {
-      setDateText('');
-    }
+    if (value) setDateText(formatInTimeZone(value, "UTC", "ddMMyyyy"));
+    else if (value === undefined && dateText !== "") setDateText("");
   }, [value]);
 
   useEffect(() => {
@@ -74,8 +74,7 @@ const FormDateInput = ({
 
         changePosition({ change: -1, dateTextLength: newDateText.length });
       }
-    }
-    // New digit detection
+    } // New digit detection
     else if (e.target.value.length > prettyDate.length) {
       if (dateText.length < 8) {
         const newCharacter = e.target.value[e.target.selectionStart - 1];
@@ -89,7 +88,7 @@ const FormDateInput = ({
           } else {
             const parsed = parseISO(`${newDateText.slice(4)}-${newDateText.slice(2, 4)}-${newDateText.slice(0, 2)}`);
             // The conversion is necessary, because otherwise JS uses the user's local time zone
-            setValue(isValid(parsed) ? fromZonedTime(parsed, 'UTC') : null);
+            setValue(isValid(parsed) ? fromZonedTime(parsed, "UTC") : null);
           }
 
           changePosition({ change: 1, dateTextLength: newDateText.length });
@@ -99,12 +98,12 @@ const FormDateInput = ({
   };
 
   const onKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       genericOnKeyDown(e, { nextFocusTargetId });
-    } else if (e.key === 'ArrowLeft') {
+    } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       changePosition({ change: -1 });
-    } else if (e.key === 'ArrowRight') {
+    } else if (e.key === "ArrowRight") {
       e.preventDefault();
       changePosition({ change: 1 });
     } else if (C.navigationKeys.includes(e.key)) {
@@ -112,11 +111,7 @@ const FormDateInput = ({
     }
   };
 
-  const changePosition = ({
-    change,
-    newPosition,
-    dateTextLength = dateText.length,
-  }: {
+  const changePosition = ({ change, newPosition, dateTextLength = dateText.length }: {
     change?: number;
     newPosition?: number;
     dateTextLength?: number;
@@ -147,12 +142,8 @@ const FormDateInput = ({
   };
 
   return (
-    <div className="mb-3 fs-5">
-      {title && (
-        <label htmlFor={inputId} className="form-label">
-          {title}
-        </label>
-      )}
+    <div className={`fs-5 ${className}`}>
+      {title && <label htmlFor={inputId} className="form-label">{title}</label>}
       <input
         id={inputId}
         type="text"
@@ -162,7 +153,7 @@ const FormDateInput = ({
         onFocus={() => changePosition()}
         onClick={(e: any) => setPosition(e.target.selectionStart)}
         disabled={disabled}
-        className={'form-control' + (value === null && dateText.length === 8 ? ' is-invalid' : '')}
+        className={"form-control" + (value === null && dateText.length === 8 ? " is-invalid" : "")}
       />
     </div>
   );

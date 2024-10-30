@@ -1,5 +1,5 @@
-import { IEventRule } from '@sh/types';
-import { EventFormat, EventGroup, RoundFormat } from '@sh/enums';
+import { IEventRule } from "../types.ts";
+import { EventFormat, EventGroup, RoundFormat } from "../enums.ts";
 
 export type IEvent = {
   eventId: string;
@@ -8,11 +8,11 @@ export type IEvent = {
   format: EventFormat;
   defaultRoundFormat: RoundFormat;
   groups: EventGroup[]; // the first group must ALWAYS be the main group for the event (e.g. WCA)
-  participants?: number; // only required if the format is team time
+  participants: number;
   description?: string;
   rule?: IEventRule;
 };
 
-export type IFeEvent = Omit<IEvent, 'rule'> & {
+export type IFeEvent = Omit<IEvent, "rule"> & {
   ruleText?: string;
 };

@@ -1,19 +1,19 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
-import { IContest, IContestEvent, ICompetitionDetails, IMeetupDetails } from '@sh/types';
-import { RoundDocument } from './round.model';
-import { PersonDocument } from './person.model';
-import { ContestState, ContestType } from '@sh/enums';
-import { EventDocument } from './event.model';
-import { ScheduleDocument } from './schedule.model';
-import { UserDocument } from './user.model';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import mongoose, { HydratedDocument } from "mongoose";
+import { ICompetitionDetails, IMeetupDetails } from "@sh/types";
+import { RoundDocument } from "./round.model";
+import { PersonDocument } from "./person.model";
+import { ContestState, ContestType } from "@sh/enums";
+import { EventDocument } from "./event.model";
+import { ScheduleDocument } from "./schedule.model";
+import { UserDocument } from "./user.model";
 
 @Schema({ _id: false })
-export class ContestEvent implements IContestEvent {
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'Event', required: true })
+export class ContestEvent {
+  @Prop({ type: mongoose.Types.ObjectId, ref: "Event", required: true })
   event: EventDocument;
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Round' }], required: true })
+  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Round" }], required: true })
   rounds: RoundDocument[];
 }
 
@@ -21,7 +21,7 @@ const ContestEventSchema = SchemaFactory.createForClass(ContestEvent);
 
 @Schema({ _id: false })
 export class CompetitionDetails implements ICompetitionDetails {
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'Schedule', required: true })
+  @Prop({ type: mongoose.Types.ObjectId, ref: "Schedule", required: true })
   schedule: ScheduleDocument;
 }
 
@@ -36,11 +36,11 @@ export class MeetupDetails implements IMeetupDetails {
 const MeetupDetailsSchema = SchemaFactory.createForClass(MeetupDetails);
 
 @Schema({ timestamps: true })
-class Competition implements IContest {
+class Competition {
   @Prop({ required: true, unique: true })
   competitionId: string;
 
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: mongoose.Types.ObjectId, ref: "User", required: true })
   createdBy: UserDocument;
 
   @Prop({ enum: ContestState, required: true })
@@ -82,14 +82,14 @@ class Competition implements IContest {
   @Prop()
   timezone?: string;
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Person' }], required: true })
+  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Person" }], required: true })
   organizers: PersonDocument[];
 
   @Prop()
   contact?: string;
 
-  @Prop()
-  description?: string;
+  @Prop() // this is not set to required, since that would also disallow ''
+  description: string;
 
   @Prop()
   competitorLimit?: number;

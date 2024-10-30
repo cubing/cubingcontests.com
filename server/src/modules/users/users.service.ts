@@ -1,29 +1,29 @@
-import { setTimeout as nodeSetTimeout } from 'timers/promises';
+import { setTimeout as nodeSetTimeout } from "timers/promises";
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { mongo, Model } from 'mongoose';
-import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
-import { addDays } from 'date-fns';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { UserDocument } from '~/src/models/user.model';
-import { PersonsService } from '@m/persons/persons.service';
-import { EmailService } from '@m/email/email.service';
-import { Role } from '@sh/enums';
-import { IFeUser } from '@sh/types';
-import C from '@sh/constants';
-import { getFormattedTime } from '@sh/sharedFunctions';
-import { IPartialUser, IUser } from '~/src/helpers/interfaces/User';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { LogType } from '~/src/helpers/enums';
-import { ALREADY_VERIFIED_MSG, USER_NOT_FOUND_MSG } from '~/src/helpers/messages';
-import { getUserEmailVerified } from '~/src/helpers/utilityFunctions';
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, mongo } from "mongoose";
+import * as bcrypt from "bcrypt";
+import { randomBytes } from "crypto";
+import { addDays } from "date-fns";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { UserDocument } from "~/src/models/user.model";
+import { PersonsService } from "@m/persons/persons.service";
+import { EmailService } from "@m/email/email.service";
+import { Role } from "@sh/enums";
+import { IFeUser } from "@sh/types";
+import C from "@sh/constants";
+import { getFormattedTime } from "@sh/sharedFunctions";
+import { IPartialUser, IUser } from "~/src/helpers/interfaces/User";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { LogType } from "~/src/helpers/enums";
+import { ALREADY_VERIFIED_MSG, USER_NOT_FOUND_MSG } from "~/src/helpers/messages";
+import { getUserEmailVerified } from "~/src/helpers/utilityFunctions";
 
 const verificationCodeSaltRounds = 10; // useful, because it's short, so a rainbow table could theoretically match it
 const frontendUserSelect = { username: 1, email: 1, personId: 1, roles: 1 };
@@ -34,34 +34,34 @@ export class UsersService {
     private readonly logger: MyLogger,
     private readonly personsService: PersonsService,
     private readonly emailService: EmailService,
-    @InjectModel('User') private readonly userModel: Model<UserDocument>,
+    @InjectModel("User") private readonly userModel: Model<UserDocument>,
   ) {}
 
   async onModuleInit() {
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== "production") {
       const anyUser = await this.userModel.findOne().exec();
 
       if (!anyUser) {
-        this.logger.log('Creating test users for development...');
+        this.logger.log("Creating test users for development...");
 
         // This is the hash for the password 'cc'
-        const password = '$2b$10$eW2KnkZtAoNv50pRCMazSeSXwhRB8bYksUcqMkxSGdOiW8OpTjdm.';
+        const password = "$2b$10$eW2KnkZtAoNv50pRCMazSeSXwhRB8bYksUcqMkxSGdOiW8OpTjdm.";
 
         await this.userModel.create({
-          username: 'admin',
-          email: 'admin@cc.com',
+          username: "admin",
+          email: "admin@cc.com",
           password,
-          roles: ['user', 'mod', 'admin'],
+          roles: ["user", "mod", "admin"],
           personId: 1, // Test Admin person from the persons.service.ts onModuleInit()
         });
         await this.userModel.create({
-          username: 'mod',
-          email: 'mod@cc.com',
+          username: "mod",
+          email: "mod@cc.com",
           password,
-          roles: ['user', 'mod'],
+          roles: ["user", "mod"],
           personId: 2, // Test Moderator person from the persons.service.ts onModuleInit()
         });
-        await this.userModel.create({ username: 'user', email: 'user@cc.com', password, roles: ['user'] });
+        await this.userModel.create({ username: "user", email: "user@cc.com", password, roles: ["user"] });
       }
     }
   }
@@ -98,7 +98,7 @@ export class UsersService {
     const user = await this.userModel.findOne({ _id: new mongo.ObjectId(id) }, frontendUserSelect).exec();
 
     if (!user) {
-      if (userMustExist) throw new NotFoundException('User not found');
+      if (userMustExist) throw new NotFoundException("User not found");
       return undefined;
     }
 
@@ -133,8 +133,9 @@ export class UsersService {
 
     let newRole: Role;
     if (!user.roles.includes(Role.Admin) && updateUserDto.roles.includes(Role.Admin)) newRole = Role.Admin;
-    else if (!user.roles.includes(Role.Moderator) && updateUserDto.roles.includes(Role.Moderator))
+    else if (!user.roles.includes(Role.Moderator) && updateUserDto.roles.includes(Role.Moderator)) {
       newRole = Role.Moderator;
+    }
 
     user.roles = updateUserDto.roles;
     if (updateUserDto.person) user.personId = updateUserDto.person.personId;
@@ -160,8 +161,9 @@ export class UsersService {
       if (user.confirmationCodeAttempts >= C.maxConfirmationCodeAttempts) {
         this.checkUserCooldown(user);
 
-        if (!user.confirmationCodeHash)
-          throw new BadRequestException('Please resend the confirmation code before trying again');
+        if (!user.confirmationCodeHash) {
+          throw new BadRequestException("Please resend the confirmation code before trying again");
+        }
       }
 
       // Using .toLowerCase(), because the code doesn't need to be case-sensitive
@@ -185,7 +187,7 @@ export class UsersService {
         const remainingAttempts = C.maxConfirmationCodeAttempts - user.confirmationCodeAttempts;
         throw new BadRequestException(
           `The entered code is incorrect. Please try again (${remainingAttempts} attempt${
-            remainingAttempts > 1 ? 's' : ''
+            remainingAttempts > 1 ? "s" : ""
           } left).`,
         );
       } else {
@@ -228,7 +230,7 @@ export class UsersService {
     const user = await this.userModel.findOne({ email: email.trim().toLowerCase() }).exec();
 
     if (user) {
-      const code = randomBytes(32).toString('hex');
+      const code = randomBytes(32).toString("hex");
       user.passwordResetCodeHash = await bcrypt.hash(code, 0);
       user.passwordResetStarted = new Date();
       await user.save();
@@ -257,7 +259,7 @@ export class UsersService {
           await this.closePasswordResetSession({ user });
 
           throw new BadRequestException(
-            'The password reset session has expired. Please make a new password reset request on the login page.',
+            "The password reset session has expired. Please make a new password reset request on the login page.",
           );
         }
 
@@ -269,12 +271,12 @@ export class UsersService {
       }
     }
 
-    throw new BadRequestException('Password reset failed. Please try again.');
+    throw new BadRequestException("Password reset failed. Please try again.");
   }
 
   async closePasswordResetSession({ user, id }: { user?: UserDocument; id?: string }) {
     if (!user) user = await this.userModel.findById(id).exec();
-    if (!user) throw new InternalServerErrorException('User not found');
+    if (!user) throw new InternalServerErrorException("User not found");
 
     user.passwordResetCodeHash = undefined;
     user.passwordResetStarted = undefined;
@@ -309,15 +311,15 @@ export class UsersService {
     if (personId) {
       const samePersonUser = await this.userModel.findOne({ username: { $ne: user.username }, personId }).exec();
 
-      if (samePersonUser) throw new ConflictException('The selected competitor is already tied to another user');
+      if (samePersonUser) throw new ConflictException("The selected competitor is already tied to another user");
     } else if (user.roles.some((r) => [Role.Moderator, Role.Admin].includes(r))) {
-      throw new BadRequestException('Admins and moderators must have a competitor tied to the user');
+      throw new BadRequestException("Admins and moderators must have a competitor tied to the user");
     }
   }
 
   // Generates an 8 character alphanumeric code
   private generateVerificationCode(): string {
-    return randomBytes(4).toString('hex');
+    return randomBytes(4).toString("hex");
   }
 
   private checkUserCooldown(user: UserDocument) {
@@ -338,8 +340,8 @@ export class UsersService {
     return {
       username: user.username,
       email: user.email,
-      person: user.personId ? await this.personsService.getPersonByPersonId(user.personId) : undefined,
       roles: user.roles,
+      person: user.personId ? await this.personsService.getPersonByPersonId(user.personId) : undefined,
     };
   }
 }

@@ -1,81 +1,81 @@
 import {
+  ArrayMaxSize,
   ArrayMinSize,
   IsDateString,
+  IsEmail,
   IsEnum,
   IsIn,
+  IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   Matches,
-  Min,
   Max,
-  MinLength,
-  ValidateNested,
-  IsEmail,
-  ValidateIf,
-  IsNotEmpty,
-  ArrayMaxSize,
-  IsInt,
-  Validate,
   MaxLength,
+  Min,
+  MinLength,
   NotEquals,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import Countries from '@sh/Countries';
-import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from '@sh/enums';
+  Validate,
+  ValidateIf,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
+import Countries from "@sh/Countries";
+import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from "@sh/enums";
 import {
-  IPerson,
+  IActivity,
   ICompetitionDetails,
-  IContestEvent,
   IContestDto,
+  IContestEvent,
+  ICutoff,
   IEvent,
-  IRound,
+  IMeetupDetails,
+  IPerson,
   IProceed,
   IResult,
-  ISchedule,
-  IVenue,
   IRoom,
-  IActivity,
-  IMeetupDetails,
+  IRound,
+  ISchedule,
   ITimeLimit,
-  ICutoff,
-} from '@sh/types';
-import { CreateEventDto } from '@m/events/dto/create-event.dto';
-import { PersonDto } from '@m/persons/dto/person.dto';
-import { CreateResultDto } from '@m/results/dto/create-result.dto';
-import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from '~/src/helpers/validation';
-import C from '@sh/constants';
-import { getFormattedTime, getIsCompType } from '@sh/sharedFunctions';
+  IVenue,
+} from "@sh/types";
+import { CreateEventDto } from "@m/events/dto/create-event.dto";
+import { PersonDto } from "@m/persons/dto/person.dto";
+import { CreateResultDto } from "@m/results/dto/create-result.dto";
+import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from "~/src/helpers/validation";
+import C from "@sh/constants";
+import { getFormattedTime, getIsCompType } from "@sh/sharedFunctions";
 import {
   EventWithoutTimeFormatHasNoLimitsOrCutoffs,
   EventWithTimeFormatHasTimeLimits,
   ProceedValueMinMax,
   RoundHasValidTimeLimitAndCutoff,
-} from '~/src/helpers/customValidators';
+} from "~/src/helpers/customValidators";
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
 export class ContestDto implements IContestDto {
   @IsString()
-  @MinLength(5, getMinLengthOpts('contest ID', 5))
-  @Matches(/^[a-zA-Z0-9]*$/, { message: 'The contest ID must only contain alphanumeric characters' })
+  @MinLength(5, getMinLengthOpts("contest ID", 5))
+  @Matches(/^[a-zA-Z0-9]*$/, { message: "The contest ID must only contain alphanumeric characters" })
   competitionId: string;
 
   @IsString()
-  @MinLength(10, getMinLengthOpts('contest name', 10))
-  @Matches(/.* [0-9]{4}$/, { message: 'The contest name must have the year at the end, separated by a space' })
+  @MinLength(10, getMinLengthOpts("contest name", 10))
+  @Matches(/.* [0-9]{4}$/, { message: "The contest name must have the year at the end, separated by a space" })
   name: string;
 
   @IsString()
-  @MinLength(8, getMinLengthOpts('short name', 8))
-  @MaxLength(32, getMaxLengthOpts('short name', 32))
-  @Matches(/.* [0-9]{4}$/, { message: 'The short name must have the year at the end, separated by a space' })
+  @MinLength(8, getMinLengthOpts("short name", 8))
+  @MaxLength(32, getMaxLengthOpts("short name", 32))
+  @Matches(/.* [0-9]{4}$/, { message: "The short name must have the year at the end, separated by a space" })
   shortName: string;
 
   @IsEnum(ContestType)
   type: ContestType;
 
   @IsString()
-  @IsNotEmpty({ message: 'Please enter the city' })
+  @IsNotEmpty({ message: "Please enter the city" })
   city: string;
 
   @IsIn(Countries.map((el) => el.code), invalidCountryOpts)
@@ -87,26 +87,26 @@ export class ContestDto implements IContestDto {
   @IsString()
   address: string;
 
-  @IsInt({ message: 'Please enter a valid latitude' })
-  @Min(-90000000, { message: 'The latitude cannot be less than -90 degrees' })
-  @Max(90000000, { message: 'The latitude cannot be more than 90 degrees' })
-  @NotEquals(0, { message: 'Please enter the venue latitude' })
+  @IsInt({ message: "Please enter a valid latitude" })
+  @Min(-90000000, { message: "The latitude cannot be less than -90 degrees" })
+  @Max(90000000, { message: "The latitude cannot be more than 90 degrees" })
+  @NotEquals(0, { message: "Please enter the venue latitude" })
   latitudeMicrodegrees: number;
 
-  @IsInt({ message: 'Please enter a valid longitude' })
-  @Min(-180000000, { message: 'The longitude cannot be less than -180 degrees' })
-  @Max(180000000, { message: 'The longitude cannot be more than 180 degrees' })
-  @NotEquals(0, { message: 'Please enter the venue longitude' })
+  @IsInt({ message: "Please enter a valid longitude" })
+  @Min(-180000000, { message: "The longitude cannot be less than -180 degrees" })
+  @Max(180000000, { message: "The longitude cannot be more than 180 degrees" })
+  @NotEquals(0, { message: "Please enter the venue longitude" })
   longitudeMicrodegrees: number;
 
-  @IsDateString({}, { message: 'Please enter a valid start date' })
+  @IsDateString({}, { message: "Please enter a valid start date" })
   startDate: Date;
 
   @ValidateIf((obj) => getIsCompType(obj.type))
-  @IsDateString({}, { message: 'Please enter a valid end date' })
+  @IsDateString({}, { message: "Please enter a valid end date" })
   endDate?: Date;
 
-  @ArrayMinSize(1, { message: 'Please enter at least one organizer' })
+  @ArrayMinSize(1, { message: "Please enter at least one organizer" })
   @ValidateNested({ each: true })
   @Type(() => PersonDto)
   organizers: IPerson[];
@@ -115,16 +115,15 @@ export class ContestDto implements IContestDto {
   @IsEmail()
   contact?: string;
 
-  @IsOptional()
   @IsString()
-  description?: string;
+  description: string;
 
   @ValidateIf((obj) => getIsCompType(obj.type) || obj.competitorLimit)
-  @IsInt({ message: 'Please enter a valid competitor limit' })
+  @IsInt({ message: "Please enter a valid competitor limit" })
   @Min(C.minCompetitorLimit, { message: `The competitor limit cannot be less than ${C.minCompetitorLimit}` })
   competitorLimit?: number;
 
-  @ArrayMinSize(1, { message: 'Please select at least one event' })
+  @ArrayMinSize(1, { message: "Please select at least one event" })
   @Validate(EventWithTimeFormatHasTimeLimits)
   @Validate(EventWithoutTimeFormatHasNoLimitsOrCutoffs)
   @ValidateNested({ each: true })
@@ -153,7 +152,7 @@ class CompetitionDetailsDto implements ICompetitionDetails {
 }
 
 class MeetupDetailsDto implements IMeetupDetails {
-  @IsDateString({}, { message: 'Please enter a valid start time' })
+  @IsDateString({}, { message: "Please enter a valid start time" })
   startTime: Date;
 }
 
@@ -162,7 +161,7 @@ class ScheduleDto implements ISchedule {
   @IsNotEmpty()
   competitionId: string;
 
-  @ArrayMinSize(1, { message: 'Please enter at least one venue' })
+  @ArrayMinSize(1, { message: "Please enter at least one venue" })
   @ValidateNested({ each: true })
   @Type(() => VenueDto)
   venues: IVenue[];
@@ -211,7 +210,7 @@ class RoomDto implements IRoom {
   @IsEnum(Color)
   color: Color;
 
-  @ArrayMinSize(1, { message: 'Please enter at least one activity' })
+  @ArrayMinSize(1, { message: "Please enter at least one activity" })
   @ValidateNested({ each: true })
   @Type(() => ActivityDto)
   activities: IActivity[];
@@ -226,15 +225,15 @@ class ActivityDto implements IActivity {
   @Matches(activityCodeRegex)
   activityCode: string;
 
-  @ValidateIf((obj) => obj.activityCode === 'other-misc')
+  @ValidateIf((obj) => obj.activityCode === "other-misc")
   @IsString()
   @IsNotEmpty()
   name?: string;
 
-  @IsDateString({}, { message: 'Please enter valid activity start times' })
+  @IsDateString({}, { message: "Please enter valid activity start times" })
   startTime: Date;
 
-  @IsDateString({}, { message: 'Please enter valid activity end times' })
+  @IsDateString({}, { message: "Please enter valid activity end times" })
   endTime: Date;
 
   @ValidateNested({ each: true })
@@ -251,7 +250,7 @@ class ContestEventDto implements IContestEvent {
   @Type(() => CreateEventDto)
   event: IEvent;
 
-  @ArrayMinSize(1, { message: 'Please enter at least one round for each event' })
+  @ArrayMinSize(1, { message: "Please enter at least one round for each event" })
   @ArrayMaxSize(C.maxRounds, { message: `You cannot hold more than ${C.maxRounds} rounds for one event` })
   @Validate(RoundHasValidTimeLimitAndCutoff)
   @ValidateNested({ each: true })
@@ -299,7 +298,7 @@ class RoundDto implements IRound {
 
 class TimeLimitDto implements ITimeLimit {
   @IsInt()
-  @Min(1, { message: 'Please enter a valid time limit' })
+  @Min(1, { message: "Please enter a valid time limit" })
   @Max(C.maxTimeLimit, {
     message: `The time limit cannot be higher than ${getFormattedTime(C.maxTimeLimit)}`,
   })
@@ -312,8 +311,8 @@ class TimeLimitDto implements ITimeLimit {
 
 class CutoffDto implements ICutoff {
   @IsInt()
-  @Min(1, { message: 'Please enter a valid cutoff' })
-  @Max(C.maxTimeLimit, { message: 'Please enter a valid cutoff' })
+  @Min(1, { message: "Please enter a valid cutoff" })
+  @Max(C.maxTimeLimit, { message: "Please enter a valid cutoff" })
   attemptResult: number;
 
   @IsInt()
@@ -326,7 +325,7 @@ class ProceedDto implements IProceed {
   @IsEnum(RoundProceed)
   type: RoundProceed;
 
-  @IsInt({ message: 'Please enter a valid round proceed value' })
-  @Min(1, { message: 'The round proceed value must be at least 1' })
+  @IsInt({ message: "Please enter a valid round proceed value" })
+  @Min(1, { message: "The round proceed value must be at least 1" })
   value: number;
 }

@@ -1,9 +1,13 @@
-import { ssrFetch } from '~/helpers/fetchUtils';
-import ContestLayout from '~/app/competitions/ContestLayout';
-import Schedule from '@c/Schedule';
-import { IContest } from '@sh/types';
+import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import ContestLayout from "~/app/competitions/ContestLayout.tsx";
+import Schedule from "~/app/components/Schedule.tsx";
+import { type ICompetitionDetails, IContest } from "~/shared_helpers/types.ts";
 
-const CompetitionSchedulePage = async ({ params }: { params: { id: string } }) => {
+type Props = {
+  params: { id: string };
+};
+
+const CompetitionSchedulePage = async ({ params }: Props) => {
   const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
   if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
   const { contest }: { contest: IContest } = contestData;
@@ -11,9 +15,9 @@ const CompetitionSchedulePage = async ({ params }: { params: { id: string } }) =
   return (
     <ContestLayout contest={contest} activeTab="schedule">
       <Schedule
-        rooms={contest.compDetails.schedule.venues[0].rooms}
+        rooms={(contest.compDetails as ICompetitionDetails).schedule.venues[0].rooms}
         contestEvents={contest.events}
-        timeZone={contest.compDetails.schedule.venues[0].timezone}
+        timeZone={(contest.compDetails as ICompetitionDetails).schedule.venues[0].timezone}
       />
     </ContestLayout>
   );

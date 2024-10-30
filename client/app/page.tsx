@@ -1,9 +1,9 @@
-import Link from 'next/link';
-import C from '@sh/constants';
-import CollectiveCubing from '~/app/components/CollectiveCubing';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import ExternalLink from '~/app/components/ExternalLink';
+import Link from "next/link";
+import C from "~/shared_helpers/constants.ts";
+import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import ExternalLink from "~/app/components/ExternalLink.tsx";
 
 const Home = () => {
   return (
@@ -11,7 +11,7 @@ const Home = () => {
       <h1 className="mb-4 text-center">Cubing Contests</h1>
 
       <p>
-        This is a place for hosting unofficial Rubik's Cube competitions, unofficial events held at{' '}
+        This is a place for hosting unofficial Rubik's Cube competitions, unofficial events held at{" "}
         <ExternalLink to="wca" /> competitions, speedcuber meetups, and other unofficial events.
       </p>
       <p>

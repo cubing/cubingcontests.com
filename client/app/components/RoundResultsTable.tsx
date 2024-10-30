@@ -1,13 +1,24 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import Time from '@c/Time';
-import Solves from '@c/Solves';
-import Competitor from '@c/Competitor';
-import Button from '@c/UI/Button';
-import { IResult, IRound, IPerson, IEvent, IRecordType } from '@sh/types';
-import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { getRoundRanksWithAverage } from '@sh/sharedFunctions';
-import { roundFormats } from '@sh/roundFormats';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import Time from "~/app/components/Time.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import { IEvent, IPerson, IRecordType, IResult, IRound, type IRoundFormat } from "~/shared_helpers/types.ts";
+import { RoundFormat, RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
+import { getRoundRanksWithAverage } from "~/shared_helpers/sharedFunctions.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+
+type Props = {
+  round: IRound;
+  event: IEvent;
+  persons: IPerson[];
+  recordTypes: IRecordType[];
+  onEditResult?: (result: IResult) => void;
+  onDeleteResult?: (resultId: string) => void;
+  loadingId?: string;
+  disableEditAndDelete?: boolean;
+};
 
 const RoundResultsTable = ({
   round,
@@ -19,17 +30,8 @@ const RoundResultsTable = ({
   onDeleteResult,
   loadingId,
   disableEditAndDelete,
-}: {
-  round: IRound;
-  event: IEvent;
-  persons: IPerson[];
-  recordTypes: IRecordType[];
-  onEditResult?: (result: IResult) => void;
-  onDeleteResult?: (resultId: string) => void;
-  loadingId?: string;
-  disableEditAndDelete?: boolean;
-}) => {
-  const roundFormat = roundFormats.find((rf) => rf.value === round.format);
+}: Props) => {
+  const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
   const roundCanHaveAverage = roundFormat.attempts >= 3;
   const roundRanksWithAverage = getRoundRanksWithAverage(round.format);
   let lastRanking = 0;
@@ -43,13 +45,12 @@ const RoundResultsTable = ({
         // Final round and the ranking is in the top 3
         (round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
         // Non-final round and the ranking satisfies the proceed parameters
-        (round.roundTypeId !== RoundType.Final &&
-          result.ranking <=
+        (round.proceed && result.ranking <=
             (round.proceed.type === RoundProceed.Number
               ? round.proceed.value
               : Math.floor((round.results.length * round.proceed.value) / 100))))
     ) {
-      return { color: 'black', background: '#10c010' };
+      return { color: "black", background: "#10c010" };
     }
 
     return {};
@@ -63,7 +64,7 @@ const RoundResultsTable = ({
             <th scope="col">#</th>
             <th scope="col">Name</th>
             <th scope="col">Best</th>
-            {roundCanHaveAverage && <th scope="col">{round.format === RoundFormat.Average ? 'Average' : 'Mean'}</th>}
+            {roundCanHaveAverage && <th scope="col">{round.format === RoundFormat.Average ? "Average" : "Mean"}</th>}
             <th scope="col">Attempts</th>
             {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
@@ -76,7 +77,7 @@ const RoundResultsTable = ({
             return (
               <tr key={result.personIds[0]}>
                 <td className="ps-2" style={getRankingHighlight(result)}>
-                  <span className={isTie ? 'text-secondary' : ''}>{result.ranking}</span>
+                  <span className={isTie ? "text-secondary" : ""}>{result.ranking}</span>
                 </td>
                 <td>
                   <div className="d-flex flex-wrap gap-2">
@@ -103,7 +104,7 @@ const RoundResultsTable = ({
                 <td>
                   <Solves event={event} attempts={result.attempts} />
                 </td>
-                {onEditResult && (
+                {onEditResult && onDeleteResult && (
                   <td>
                     <div className="d-flex gap-2">
                       <Button

@@ -1,4 +1,4 @@
-import { NxNMove } from '@sh/types';
+import { NxNMove } from "../types.ts";
 
 export type ICollectiveSolution = {
   eventId: string;
@@ -10,7 +10,7 @@ export type ICollectiveSolution = {
   state: 10 | 20 | 30; // 10 - ongoing solution; 20 - solved; 30 - archived (a new scramble has been generated since)
 };
 
-export type IFeCollectiveSolution = Omit<ICollectiveSolution, 'usersWhoMadeMoves' | 'lastUserWhoInteracted'> & {
+export type IFeCollectiveSolution = Omit<ICollectiveSolution, "usersWhoMadeMoves" | "lastUserWhoInteracted"> & {
   lastUserWhoInteractedId: string;
   totalUsersWhoMadeMoves: number;
 };

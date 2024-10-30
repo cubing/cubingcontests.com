@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useMyFetch } from '~/helpers/customHooks';
-import { IFeEvent } from '@sh/types';
-import { roundFormats } from '@sh/roundFormats';
-import { RoundFormat } from '@sh/enums';
-import { INavigationItem } from '~/helpers/interfaces/NavigationItem';
-import Tabs from '@c/UI/Tabs';
-import ToastMessages from '@c/UI/ToastMessages';
-import MarkdownDescription from '@c/MarkdownDescription';
-import EventTitle from '@c/EventTitle';
-import ExternalLink from '@c/ExternalLink';
+import { useEffect, useState } from "react";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import { type IFeEvent, type IRoundFormat } from "~/shared_helpers/types.ts";
+import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { RoundFormat } from "~/shared_helpers/enums.ts";
+import { INavigationItem } from "~/helpers/types.ts";
+import Tabs from "~/app/components/UI/Tabs.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import MarkdownDescription from "~/app/components/MarkdownDescription.tsx";
+import EventTitle from "~/app/components/EventTitle.tsx";
+import ExternalLink from "~/app/components/ExternalLink.tsx";
 
 const RulesPage = () => {
   const myFetch = useMyFetch();
 
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState("general");
   const [events, setEvents] = useState<IFeEvent[]>([]);
 
   const tabs: INavigationItem[] = [
-    { title: 'General', value: 'general' },
-    { title: 'Unofficial Competitions', shortTitle: 'Unofficial', value: 'unofficial' },
-    { title: 'Meetups', value: 'meetups' },
+    { title: "General", value: "general" },
+    { title: "Unofficial Competitions", shortTitle: "Unofficial", value: "unofficial" },
+    { title: "Meetups", value: "meetups" },
   ];
 
   useEffect(() => {
-    myFetch.get('/events/with-rules').then(({ payload, errors }) => {
+    myFetch.get("/events/with-rules").then(({ payload, errors }) => {
       if (!errors) setEvents(payload);
     });
   }, []);
@@ -37,7 +37,7 @@ const RulesPage = () => {
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
 
       <div className="px-2">
-        {activeTab === 'general' && (
+        {activeTab === "general" && (
           <>
             <ol className="ps-3 lh-lg">
               <li>
@@ -49,8 +49,9 @@ const RulesPage = () => {
               </li>
               <li>Gen 2 timers are allowed in addition to the timers allowed for WCA competitions.</li>
               <li>
-                <ExternalLink to="cubingjs" /> or <ExternalLink to="cstimer" /> scrambles must be used for twisty puzzle
-                events. In particular, random-state scrambles must be used for a puzzle, if available.
+                <ExternalLink to="cubingjs" /> or <ExternalLink to="cstimer" />{" "}
+                scrambles must be used for twisty puzzle events. In particular, random-state scrambles must be used for
+                a puzzle, if available.
               </li>
               <li>Only organizers and Delegates of WCA competitions are allowed to hold unofficial events at them.</li>
               <li>
@@ -88,7 +89,7 @@ const RulesPage = () => {
             <h4 className="my-4">Fully blindfolded events</h4>
             <ul className="list-inline lh-lg">
               <li>
-                F1. A fully blindfolded attempt proceeds like a normal blindfolded attempt (see{' '}
+                F1. A fully blindfolded attempt proceeds like a normal blindfolded attempt (see{" "}
                 <a href="https://www.worldcubeassociation.org/regulations/full#article-B-blindfolded" target="_blank">
                   Article B of the WCA Regulations
                 </a>
@@ -108,7 +109,7 @@ const RulesPage = () => {
             </ul>
           </>
         )}
-        {activeTab === 'unofficial' && (
+        {activeTab === "unofficial" && (
           <>
             <p>
               These rules only apply to unofficial competitions, and they supplement the general rules, with some points
@@ -124,7 +125,7 @@ const RulesPage = () => {
             </ul>
           </>
         )}
-        {activeTab === 'meetups' && (
+        {activeTab === "meetups" && (
           <>
             <p>
               These rules only apply to meetups, and they supplement the general rules, with some points being
@@ -154,8 +155,8 @@ const RulesPage = () => {
               These rules apply to each event individually. If an event is not listed here, it must follow the most
               relevant WCA Regulations, based on the nature of the event.
             </p>
-            {events.map((event) => {
-              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat);
+            {events.map((event: IFeEvent) => {
+              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
               const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
 
               return (
@@ -179,8 +180,8 @@ const RulesPage = () => {
         <hr />
         <h3>License</h3>
         <p>
-          The contents of this page are available under the{' '}
-          <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC Attribution-ShareAlike 4.0 International</a>{' '}
+          The contents of this page are available under the{" "}
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC Attribution-ShareAlike 4.0 International</a>{" "}
           license.
         </p>
       </div>

@@ -1,40 +1,44 @@
-'use client';
+"use client";
 
-import { useContext, useState } from 'react';
-import { useMyFetch } from '~/helpers/customHooks';
-import Form from '@c/form/Form';
-import FormTextInput from '@c/form/FormTextInput';
-import { MainContext } from '~/helpers/contexts';
+import { useContext, useState } from "react";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import Form from "~/app/components/form/Form.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import { MainContext } from "~/helpers/contexts.ts";
 
-const ResetPasswordPage = ({ params: { code } }: { params: { code: string } }) => {
+type Props = {
+  params: { code: string };
+};
+
+const ResetPasswordPage = ({ params: { code } }: Props) => {
   const myFetch = useMyFetch();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordRepeat, setPasswordRepeat] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
 
   const handleSubmit = async () => {
     const tempErrors: string[] = [];
 
-    if (!password) tempErrors.push('Please enter a password');
-    else if (!passwordRepeat) tempErrors.push('Please confirm your password');
-    else if (passwordRepeat !== password) tempErrors.push('The entered passwords do not match');
+    if (!password) tempErrors.push("Please enter a password");
+    else if (!passwordRepeat) tempErrors.push("Please confirm your password");
+    else if (passwordRepeat !== password) tempErrors.push("The entered passwords do not match");
 
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
     } else {
       const { errors } = await myFetch.post(
-        '/auth/reset-password',
+        "/auth/reset-password",
         { email, code, newPassword: password },
-        { authorize: false, loadingId: 'form_submit_button' },
+        { authorize: false, loadingId: "form_submit_button" },
       );
 
       if (!errors) {
-        changeSuccessMessage('Your password has been successfully reset');
+        changeSuccessMessage("Your password has been successfully reset");
 
         setTimeout(() => {
-          window.location.href = '/login';
+          window.location.href = "/login";
         }, 1000);
       }
     }

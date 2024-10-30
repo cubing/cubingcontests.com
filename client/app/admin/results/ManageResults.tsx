@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil } from '@fortawesome/free-solid-svg-icons';
-import { useMyFetch } from '~/helpers/customHooks';
-import { IFeResult, IRecordType } from '@sh/types';
-import { getFormattedDate, shortenEventName } from '~/helpers/utilityFunctions';
-import ToastMessages from '@c/UI/ToastMessages';
-import Time from '@c/Time';
-import Solves from '@c/Solves';
-import Competitors from '@c/Competitors';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencil } from "@fortawesome/free-solid-svg-icons";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import { IFeResult, IRecordType } from "~/shared_helpers/types.ts";
+import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import Time from "~/app/components/Time.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import Competitors from "~/app/components/Competitors.tsx";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const myFetch = useMyFetch();
-  const parentRef = useRef();
+  const parentRef = useRef<Element>(null);
 
   const [results, setResults] = useState<IFeResult[]>([]);
 
@@ -27,7 +27,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   });
 
   useEffect(() => {
-    myFetch.get('/results/submission-based', { authorize: true }).then(({ payload, errors }) => {
+    myFetch.get("/results/submission-based", { authorize: true }).then(({ payload, errors }) => {
       if (!errors) setResults(payload);
     });
   }, []);
@@ -40,10 +40,10 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
       <p className="px-3">
         Total submitted results:&nbsp;<b>{results.length}</b>
         &#8194;|&#8194;Unapproved:&nbsp;
-        <b>{results.filter((r) => r.unapproved).length}</b>
+        <b>{results.filter((r: IFeResult) => r.unapproved).length}</b>
       </p>
 
-      <div ref={parentRef} className="mt-3 table-responsive overflow-y-auto" style={{ height: '600px' }}>
+      <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "700px" }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
             <thead>
@@ -71,20 +71,29 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                       transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
                     }}
                   >
-                    <td>{result.event ? shortenEventName(result.event.name) : 'EVENT NOT FOUND'}</td>
                     <td>
-                      {result.persons.length > 0 ? (
-                        <Competitors persons={result.persons} vertical />
-                      ) : (
-                        'COMPETITOR NOT FOUND'
+                      {result.event ? shortenEventName(result.event.name) : "EVENT NOT FOUND"}
+                    </td>
+                    <td>
+                      {result.persons.length > 0 ? <Competitors persons={result.persons} vertical /> : (
+                        "COMPETITOR NOT FOUND"
                       )}
                     </td>
                     <td>
-                      <Time result={result} event={result.event} recordTypes={recordTypes} />
+                      <Time
+                        result={result}
+                        event={result.event}
+                        recordTypes={recordTypes}
+                      />
                     </td>
                     <td>
                       {result.attempts.length >= 3 && (
-                        <Time result={result} event={result.event} recordTypes={recordTypes} average />
+                        <Time
+                          result={result}
+                          event={result.event}
+                          recordTypes={recordTypes}
+                          average
+                        />
                       )}
                     </td>
                     <td>
@@ -92,11 +101,9 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                     </td>
                     <td>{getFormattedDate(result.date)}</td>
                     <td>
-                      {result.unapproved ? (
-                        <span className="badge bg-danger">No</span>
-                      ) : (
-                        <span className="badge bg-success">Yes</span>
-                      )}
+                      {result.unapproved
+                        ? <span className="badge bg-danger">No</span>
+                        : <span className="badge bg-success">Yes</span>}
                     </td>
                     <td>
                       <Link

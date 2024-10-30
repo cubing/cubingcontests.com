@@ -1,21 +1,29 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
-import Country from '@c/Country';
-import Competitor from '@c/Competitor';
-import ContestName from '@c/ContestName';
-import Solves from '@c/Solves';
-import RankingLinks from '@c/RankingLinks';
-import Competitors from '@c/Competitors';
-import { IEvent, IPerson, IRanking } from '@sh/types';
-import { getFormattedTime } from '@sh/sharedFunctions';
-import { getFormattedDate } from '~/helpers/utilityFunctions';
+import { useState } from "react";
+import { capitalize } from "lodash";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
+import Country from "~/app/components/Country.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
+import ContestName from "~/app/components/ContestName.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import RankingLinks from "~/app/components/RankingLinks.tsx";
+import Competitors from "~/app/components/Competitors.tsx";
+import { IEvent, IPerson, IRanking, type ResultRankingType } from "~/shared_helpers/types.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
-// THIS IS A TEMPORARY SOLUTION UNTIL I18N IS ADDED. The records page has this same function too.
-const getRecordType = (type: 'single' | 'average' | 'mean'): string => {
-  return type[0].toUpperCase() + type.slice(1);
+type Props = {
+  isTiedRanking?: boolean;
+  onlyKeepPerson?: boolean;
+  event: IEvent;
+  ranking: IRanking;
+  person: IPerson; // the person being ranked
+  showAllTeammates: boolean;
+  showTeamColumn?: boolean;
+  showDetailsColumn: boolean;
+  forRecordsTable?: boolean;
 };
 
 const RankingRow = ({
@@ -28,19 +36,9 @@ const RankingRow = ({
   showTeamColumn = false,
   showDetailsColumn,
   forRecordsTable = false,
-}: {
-  isTiedRanking?: boolean;
-  onlyKeepPerson?: boolean;
-  event: IEvent;
-  ranking: IRanking;
-  person: IPerson; // the person being ranked
-  showAllTeammates: boolean;
-  showTeamColumn?: boolean;
-  showDetailsColumn: boolean;
-  forRecordsTable?: boolean;
-}) => {
+}: Props) => {
   const [teamExpanded, setTeamExpanded] = useState(false);
-  const firstColumnValue = ranking.ranking || getRecordType(ranking.type);
+  const firstColumnValue = ranking.ranking ?? capitalize(ranking.type as ResultRankingType);
   const personsToDisplay = showAllTeammates ? ranking.persons : [person];
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +47,7 @@ const RankingRow = ({
 
   return (
     <tr>
-      <td>{!onlyKeepPerson && <span className={isTiedRanking ? 'text-secondary' : ''}>{firstColumnValue}</span>}</td>
+      <td>{!onlyKeepPerson && <span className={isTiedRanking ? "text-secondary" : ""}>{firstColumnValue}</span>}</td>
       <td>
         <Competitors persons={personsToDisplay} noFlag={!showAllTeammates} />
       </td>
@@ -68,8 +66,8 @@ const RankingRow = ({
         <td>
           <div className="d-flex flex-column align-items-start gap-2 fs-6">
             <span className="text-white">
-              <u style={{ cursor: 'pointer' }} onClick={() => setTeamExpanded(!teamExpanded)}>
-                {teamExpanded ? 'Close' : 'Open'}
+              <u style={{ cursor: "pointer" }} onClick={() => setTeamExpanded(!teamExpanded)}>
+                {teamExpanded ? "Close" : "Open"}
               </u>
               <span className="ms-2">
                 {teamExpanded ? <FontAwesomeIcon icon={faCaretDown} /> : <FontAwesomeIcon icon={faCaretRight} />}
@@ -83,13 +81,11 @@ const RankingRow = ({
       {showDetailsColumn && (
         <td>
           {!onlyKeepPerson &&
-            (ranking.attempts ? (
-              <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
-            ) : (
-              ranking.memo && (
-                <span>[{getFormattedTime(ranking.memo, { showDecimals: false, alwaysShowMinutes: true })}]</span>
-              )
-            ))}
+            (ranking.attempts
+              ? <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
+              : ranking.memo
+              ? getFormattedTime(ranking.memo, { showDecimals: false, alwaysShowMinutes: true })
+              : "")}
         </td>
       )}
     </tr>

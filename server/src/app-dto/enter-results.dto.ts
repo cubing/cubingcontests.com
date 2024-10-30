@@ -10,12 +10,12 @@ import {
   Min,
   Validate,
   ValidateNested,
-} from 'class-validator';
-import { AttemptDto } from '../modules/results/dto/create-result.dto';
-import { Type } from 'class-transformer';
-import { IAttempt } from '@sh/types';
-import C from '@sh/constants';
-import { ContestAttempts } from '~/src/helpers/customValidators';
+} from "class-validator";
+import { AttemptDto } from "../modules/results/dto/create-result.dto";
+import { Type } from "class-transformer";
+import { IAttempt } from "@sh/types";
+import C from "@sh/constants";
+import { ContestAttempts } from "~/src/helpers/customValidators";
 
 export class EnterResultsDto {
   @IsString()
@@ -41,7 +41,7 @@ export class ExternalResultDto {
   registrantId?: number;
 
   @IsOptional()
-  @Matches(C.wcaIdRegexLoose, { message: '$value is not a valid WCA ID.' })
+  @Matches(C.wcaIdRegexLoose, { message: "$value is not a valid WCA ID." })
   @IsString()
   wcaId?: string;
 

@@ -1,0 +1,39 @@
+{
+  // When updating this, remember to also update it in .vscode/settings.json (but leave ./bin there)
+  "workspace": ["./client", "./server2"],
+  "exclude": ["./client/.next", "./server"],
+  // "workspace": ["./client", "./server2", "./server"],
+  // "exclude": ["./client/.next", "./server/dist", "./server/shared_helpers"],
+  "nodeModulesDir": "auto",
+
+  "lint": {
+    "include": ["*.ts", "*.tsx"],
+    "exclude": ["*.d.ts"],
+    "rules": {
+      "tags": ["recommended"],
+      "include": [],
+      "exclude": [
+        "no-window",
+        "no-window-prefix",
+        "no-process-globals",
+        "no-explicit-any"
+      ]
+    }
+  },
+
+  "fmt": {
+    "include": ["*.ts", "*.tsx"],
+    "exclude": ["*.d.ts"],
+    "lineWidth": 120
+  },
+
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "deno.ns"
+    ],
+    "jsx": "react-jsx"
+  }
+}

@@ -1,6 +1,6 @@
-import Tabs from '@c/UI/Tabs';
-import Link from 'next/link';
-import { tabs } from '~/app/moderator-instructions/tabs';
+import Tabs from "~/app/components/UI/Tabs.tsx";
+import Link from "next/link";
+import { tabs } from "~/app/moderator-instructions/tabs.ts";
 
 const page = () => {
   return (
@@ -9,8 +9,8 @@ const page = () => {
 
       <div className="mt-4">
         <p>
-          C1. If you are holding a speedcuber meetup, select the <b className="hl">Meetup</b> contest type and fill out
-          the meetup details.
+          C1. If you are holding a speedcuber meetup, select the <b className="hl">Meetup</b>{" "}
+          contest type and fill out the meetup details.
         </p>
         <p>
           C2. Instead of a schedule, meetups require a start time, and there is no end date, since meetups can only be

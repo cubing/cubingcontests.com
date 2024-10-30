@@ -1,14 +1,18 @@
-import Link from 'next/link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircle, faDiamond, faSquare, faUserGroup } from '@fortawesome/free-solid-svg-icons';
-import { IContest } from '@sh/types';
-import { ContestType } from '@sh/enums';
-import { getBSClassFromColor, getFormattedDate } from '~/helpers/utilityFunctions';
-import { contestTypeOptions } from '~/helpers/multipleChoiceOptions';
-import ContestTypeBadge from '@c/ContestTypeBadge';
-import Country from '@c/Country';
+import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircle, faDiamond, faSquare, faUserGroup } from "@fortawesome/free-solid-svg-icons";
+import { IContest } from "~/shared_helpers/types.ts";
+import { ContestType } from "~/shared_helpers/enums.ts";
+import { getBSClassFromColor, getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
+import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
+import Country from "~/app/components/Country.tsx";
 
-const ContestsTable = ({ contests }: { contests: IContest[] }) => {
+type Props = {
+  contests: IContest[];
+};
+
+const ContestsTable = ({ contests }: Props) => {
   const getShapeIcon = (type: ContestType) =>
     type === ContestType.Competition ? faSquare : type === ContestType.Meetup ? faDiamond : faCircle;
 
@@ -21,16 +25,16 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
           {contests.map((contest: IContest, index: number) => (
             <li
               key={contest.competitionId}
-              className={`list-group-item ps-2 ${index % 2 === 1 ? ' list-group-item-secondary' : ''}`}
+              className={`list-group-item ps-2 ${index % 2 === 1 ? " list-group-item-secondary" : ""}`}
             >
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex align-items-center gap-2">
                   <FontAwesomeIcon
                     icon={getShapeIcon(contest.type)}
-                    className={`text-${getBSClassFromColor(
-                      contestTypeOptions.find((el) => el.value === contest.type).color,
-                    )}`}
-                    style={{ minWidth: '0.5rem', width: '0.5rem' }}
+                    className={`text-${
+                      getBSClassFromColor(contestTypeOptions.find((el) => el.value === contest.type)?.color)
+                    }`}
+                    style={{ minWidth: "0.5rem", width: "0.5rem" }}
                   />
 
                   <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
@@ -91,7 +95,7 @@ const ContestsTable = ({ contests }: { contests: IContest[] }) => {
                 <td>
                   <ContestTypeBadge type={contest.type} />
                 </td>
-                <td>{contest.participants || ''}</td>
+                <td>{contest.participants || ""}</td>
               </tr>
             ))}
           </tbody>

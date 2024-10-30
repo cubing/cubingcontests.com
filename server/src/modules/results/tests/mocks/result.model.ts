@@ -1,6 +1,6 @@
-import { ResultDocument } from '~/src/models/result.model';
-import { IResult } from '@sh/types';
-import { resultsStub } from '../stubs/results.stub';
+import { ResultDocument } from "~/src/models/result.model";
+import { IResult } from "@sh/types";
+import { resultsStub } from "../stubs/results.stub";
 
 export const ResultModelMock = (): any => ({
   tempOutput: undefined,
@@ -31,9 +31,11 @@ export const ResultModelMock = (): any => ({
     this.tempOutput = resultsStub();
 
     if (query?._id) {
-      if (query._id.$ne)
+      if (query._id.$ne) {
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el._id.toString() !== query._id.$ne);
-      else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el._id.toString() === query._id.toString());
+      } else {this.tempOutput = this.tempOutput.filter((el: ResultDocument) =>
+          el._id.toString() === query._id.toString()
+        );}
     }
     if (query?.eventId) this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.eventId === query.eventId);
     if (query?.regionalSingleRecord) {
@@ -57,22 +59,23 @@ export const ResultModelMock = (): any => ({
       }
     }
     if (query?.attempts) {
-      if (query.attempts.$size !== undefined)
+      if (query.attempts.$size !== undefined) {
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.attempts.length === query.attempts.$size);
+      }
     }
     if (query?.best) {
-      if (query.best.$gt !== undefined)
+      if (query.best.$gt !== undefined) {
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best > query.best.$gt);
-      else if (query.best.$lte !== undefined)
+      } else if (query.best.$lte !== undefined) {
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best <= query.best.$lte);
-      else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best === query.best);
+      } else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.best === query.best);
     }
     if (query?.average) {
-      if (query.average.$gt !== undefined)
+      if (query.average.$gt !== undefined) {
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average > query.average.$gt);
-      else if (query.average.$lte !== undefined)
+      } else if (query.average.$lte !== undefined) {
         this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average <= query.average.$lte);
-      else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average === query.average);
+      } else this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.average === query.average);
     }
 
     return this;

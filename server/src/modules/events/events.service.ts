@@ -1,18 +1,18 @@
-import { Injectable, InternalServerErrorException, BadRequestException, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { EventDocument } from '~/src/models/event.model';
-import { CreateEventDto } from './dto/create-event.dto';
-import { eventsSeed } from '~/src/seeds/events.seed';
-import { excl } from '~/src/helpers/dbHelpers';
-import { EventGroup } from '@sh/enums';
-import { IFeEvent } from '@sh/types';
-import { UpdateEventDto } from './dto/update-event.dto';
-import { RoundDocument } from '~/src/models/round.model';
-import { ResultDocument } from '~/src/models/result.model';
-import { ScheduleDocument } from '~/src/models/schedule.model';
-import { EventRuleDocument } from '~/src/models/event-rule.model';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { EventDocument } from "~/src/models/event.model";
+import { CreateEventDto } from "./dto/create-event.dto";
+import { eventsSeed } from "~/src/seeds/events.seed";
+import { excl } from "~/src/helpers/dbHelpers";
+import { EventGroup } from "@sh/enums";
+import { IFeEvent } from "@sh/types";
+import { UpdateEventDto } from "./dto/update-event.dto";
+import { RoundDocument } from "~/src/models/round.model";
+import { ResultDocument } from "~/src/models/result.model";
+import { ScheduleDocument } from "~/src/models/schedule.model";
+import { EventRuleDocument } from "~/src/models/event-rule.model";
 
 interface IGetEventsOptions {
   eventIds?: string[];
@@ -25,18 +25,18 @@ interface IGetEventsOptions {
 export class EventsService {
   constructor(
     private readonly logger: MyLogger,
-    @InjectModel('Event') private readonly eventModel: Model<EventDocument>,
-    @InjectModel('EventRule') private readonly eventRuleModel: Model<EventRuleDocument>,
-    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Schedule') private readonly scheduleModel: Model<ScheduleDocument>,
+    @InjectModel("Event") private readonly eventModel: Model<EventDocument>,
+    @InjectModel("EventRule") private readonly eventRuleModel: Model<EventRuleDocument>,
+    @InjectModel("Round") private readonly roundModel: Model<RoundDocument>,
+    @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
+    @InjectModel("Schedule") private readonly scheduleModel: Model<ScheduleDocument>,
   ) {}
 
   async onModuleInit() {
     const anyEvent = await this.eventModel.findOne().exec();
 
     if (!anyEvent) {
-      this.logger.log('Seeding the events collection...');
+      this.logger.log("Seeding the events collection...");
 
       // Add new events from events seed
       for (const event of eventsSeed) {
@@ -60,7 +60,7 @@ export class EventsService {
     if (eventIds) queryFilter.eventId = { $in: eventIds };
 
     let query = this.eventModel.find(queryFilter, excl);
-    if (populateRules) query = query.populate({ path: 'rule', model: 'EventRule' });
+    if (populateRules) query = query.populate({ path: "rule", model: "EventRule" });
 
     return await query.sort({ rank: 1 }).exec();
   }
@@ -99,7 +99,7 @@ export class EventsService {
     if (event) throw new BadRequestException(`Event with ID ${createEventDto.eventId} already exists`);
 
     const eventWithSameName = await this.eventModel
-      .findOne({ name: { $regex: createEventDto.name, $options: 'i' } })
+      .findOne({ name: { $regex: createEventDto.name, $options: "i" } })
       .exec();
     if (eventWithSameName) throw new BadRequestException(`Event with name ${createEventDto.name} already exists`);
 
@@ -109,9 +109,7 @@ export class EventsService {
     const { ruleText, ...newEvent }: IFeEvent = createEventDto;
     let eventRule: EventRuleDocument;
 
-    if (ruleText) {
-      eventRule = await this.eventRuleModel.create({ eventId: newEvent.eventId, rule: ruleText });
-    }
+    if (ruleText) eventRule = await this.eventRuleModel.create({ eventId: newEvent.eventId, rule: ruleText });
 
     await this.eventModel.create({ ...newEvent, rule: eventRule });
 
@@ -139,10 +137,10 @@ export class EventsService {
       event.rule = await this.eventRuleModel.create({ eventId: updateEventDto.eventId, rule: updateEventDto.ruleText });
     } else if (updateEventDto.ruleText && event.rule) {
       await this.eventRuleModel
-        .updateOne(
-          { eventId: updateEventDto.eventId },
-          { eventId: updateEventDto.eventId, rule: updateEventDto.ruleText },
-        )
+        .updateOne({ eventId: updateEventDto.eventId }, {
+          eventId: updateEventDto.eventId,
+          rule: updateEventDto.ruleText,
+        })
         .exec();
     }
 
@@ -165,7 +163,7 @@ export class EventsService {
 
           if (res.matchedCount > 0) {
             // TO-DO: UPDATE CHILD ACTIVITIES' CODES TOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            const schedules = await this.scheduleModel.find({ 'venues.rooms.activities.activityCode': roundId }).exec();
+            const schedules = await this.scheduleModel.find({ "venues.rooms.activities.activityCode": roundId }).exec();
 
             for (const schedule of schedules) {
               // Keep in mind that one schedule can only have one occurrence of the same activity code

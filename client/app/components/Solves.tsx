@@ -1,5 +1,5 @@
-import { IAttempt, IEvent } from '@sh/types';
-import { getFormattedTime } from '@sh/sharedFunctions';
+import { IAttempt, IEvent } from "~/shared_helpers/types.ts";
+import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
 
 const Solves = ({
   event,

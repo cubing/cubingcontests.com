@@ -1,9 +1,9 @@
-import { Role } from '@sh/enums';
-import { IPerson } from '@sh/types';
+import { Role } from "../enums.ts";
+import { IPerson } from "../types.ts";
 
 export interface IFeUser {
   username: string;
   email: string;
-  roles?: Role[];
+  roles: Role[];
   person?: IPerson;
 }

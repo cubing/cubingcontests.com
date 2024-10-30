@@ -1,1 +1,1 @@
-export type ListPageMode = 'view' | 'add' | 'edit';
+export type ListPageMode = "view" | "add" | "edit";

@@ -1,9 +1,9 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
-import { ResultDocument } from './result.model';
-import { ICutoff, IRound, ITimeLimit } from '@sh/types';
-import { RoundFormat, RoundProceed, RoundType } from '@sh/enums';
-import { IProceed } from '@sh/types';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import mongoose, { HydratedDocument } from "mongoose";
+import { ResultDocument } from "./result.model";
+import { ICutoff, IRound, ITimeLimit } from "@sh/types";
+import { RoundFormat, RoundProceed, RoundType } from "@sh/enums";
+import { IProceed } from "@sh/types";
 
 @Schema({ _id: false })
 export class TimeLimit implements ITimeLimit {
@@ -39,7 +39,7 @@ export class Proceed implements IProceed {
 const ProceedSchema = SchemaFactory.createForClass(Proceed);
 
 @Schema({ timestamps: true })
-export class Round implements IRound {
+export class Round {
   @Prop({ required: true })
   roundId: string;
 
@@ -61,7 +61,7 @@ export class Round implements IRound {
   @Prop({ type: ProceedSchema })
   proceed?: Proceed;
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Result' }], required: true })
+  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Result" }], required: true })
   results: ResultDocument[];
 }
 

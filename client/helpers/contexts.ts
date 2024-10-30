@@ -1,8 +1,10 @@
-import { createContext } from 'react';
+import { createContext } from "react";
+import { QueryClient } from "@tanstack/react-query";
 
-export type Theme = 'dark' | 'light';
+export type Theme = "dark" | "light";
 
 export interface IMainContext {
+  queryClient: QueryClient;
   theme: Theme;
   setTheme: (value: Theme) => void;
   errorMessages: string[];
@@ -18,13 +20,14 @@ export interface IMainContext {
 }
 
 export const MainContext = createContext<IMainContext>({
-  theme: 'dark',
+  queryClient: undefined as any,
+  theme: "dark",
   setTheme: () => {},
   errorMessages: [],
   changeErrorMessages: () => {},
-  successMessage: '',
+  successMessage: "",
   changeSuccessMessage: () => {},
-  loadingId: '',
+  loadingId: "",
   changeLoadingId: () => {},
   resetMessagesAndLoadingId: () => {},
   resetMessages: () => {},

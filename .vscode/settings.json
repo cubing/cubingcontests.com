@@ -1,0 +1,8 @@
+{
+  "deno.enable": true,
+  "deno.enablePaths": [
+    "./client",
+    "./server2",
+    "./bin"
+  ]
+}

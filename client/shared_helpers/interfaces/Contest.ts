@@ -1,5 +1,5 @@
-import { ContestType, ContestState } from '../enums';
-import { IEvent, IRound, IPerson, ISchedule, IRecordType, IEventRecordPairs, IFeUser } from '../types';
+import { ContestState, ContestType } from "../enums.ts";
+import { IEvent, IEventRecordPairs, IFeUser, IPerson, IRecordType, IRound, ISchedule } from "../types.ts";
 
 /**
  * IMPORTANT: when updating this interface, also update:
@@ -31,7 +31,7 @@ export interface IContest {
   timezone?: string; // meetup-only; not needed on creation
   organizers: IPerson[]; // stored as references
   contact?: string;
-  description?: string;
+  description: string;
   competitorLimit?: number; // required for competitions
   events: IContestEvent[];
   participants: number;
@@ -41,7 +41,7 @@ export interface IContest {
   meetupDetails?: IMeetupDetails; // meetup-only
 }
 
-export type IContestDto = Omit<IContest, 'createdBy' | 'state' | 'participants'>;
+export type IContestDto = Omit<IContest, "createdBy" | "state" | "participants">;
 
 // IMPORTANT: if this is ever to be changed, pay attention to the updateContestEvents function in the contests service
 export interface IContestEvent {

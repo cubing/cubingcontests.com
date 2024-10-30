@@ -1,7 +1,7 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { IUser } from '~/src/helpers/interfaces/User';
-import { Role } from '@sh/enums';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { HydratedDocument } from "mongoose";
+import { IUser } from "~/src/helpers/interfaces/User";
+import { Role } from "@sh/enums";
 
 @Schema({ timestamps: true })
 class User implements IUser {
@@ -17,7 +17,7 @@ class User implements IUser {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ type: [{ type: String, enum: Role }] })
+  @Prop({ required: true, type: [{ type: String, enum: Role }] })
   roles: Role[];
 
   @Prop()

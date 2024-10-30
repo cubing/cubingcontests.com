@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import RoundResultsTable from './RoundResultsTable';
-import { IContestEvent, IPerson, IRecordType } from '@sh/types';
-import { useEffect, useState } from 'react';
-import { roundTypes } from '~/helpers/roundTypes';
-import EventTitle from './EventTitle';
-import FormSelect from './form/FormSelect';
+import RoundResultsTable from "./RoundResultsTable.tsx";
+import { IContestEvent, IPerson, IRecordType, type IRound } from "~/shared_helpers/types.ts";
+import { useEffect, useState } from "react";
+import { roundTypes } from "~/helpers/roundTypes.ts";
+import EventTitle from "./EventTitle.tsx";
+import FormSelect from "./form/FormSelect.tsx";
 
 const EventResultsTable = ({
   contestEvent,
@@ -13,13 +13,13 @@ const EventResultsTable = ({
   recordTypes,
   onDeleteResult,
 }: {
-  contestEvent: IContestEvent | null;
+  contestEvent: IContestEvent;
   persons: IPerson[];
   recordTypes: IRecordType[];
   onDeleteResult?: (resultId: string) => void;
 }) => {
   // Display finals by default
-  const [currRound, setCurrRound] = useState(contestEvent.rounds[contestEvent.rounds.length - 1]);
+  const [currRound, setCurrRound] = useState<IRound>(contestEvent.rounds[contestEvent.rounds.length - 1]);
 
   useEffect(() => {
     setCurrRound(contestEvent.rounds[contestEvent.rounds.length - 1]);
@@ -32,14 +32,14 @@ const EventResultsTable = ({
       </div>
 
       {contestEvent.rounds.length > 1 && (
-        <div className="mb-4 px-2" style={{ maxWidth: '450px' }}>
+        <div className="mb-4 px-2" style={{ maxWidth: "450px" }}>
           <FormSelect
             options={contestEvent.rounds.map((el) => ({
               label: roundTypes[el.roundTypeId].label,
               value: el.roundTypeId,
             }))}
             selected={currRound.roundTypeId}
-            setSelected={(val) => setCurrRound(contestEvent.rounds.find((el) => el.roundTypeId === val))}
+            setSelected={(val) => setCurrRound(contestEvent.rounds.find((r) => r.roundTypeId === val) as IRound)}
           />
         </div>
       )}

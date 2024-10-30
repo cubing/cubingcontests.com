@@ -1,18 +1,18 @@
-import { RoundFormat, RoundType } from '@sh/enums';
-import { RoundDocument } from '~/src/models/round.model';
+import { RoundFormat, RoundType } from "@sh/enums";
+import { RoundDocument } from "~/src/models/round.model";
 
 export const unrankedRoundsStub = (): RoundDocument[] =>
   [
     {
-      roundId: '333-r1',
-      competitionId: 'Munich19022023',
+      roundId: "333-r1",
+      competitionId: "Munich19022023",
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
-          competitionId: 'Munich19022023',
-          eventId: '333',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [4],
           ranking: 0,
           attempts: [{ result: 1003 }, { result: 1399 }, { result: 1379 }, { result: 1404 }, { result: 1142 }],
@@ -21,9 +21,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           save() {},
         },
         {
-          competitionId: 'Munich19022023',
-          eventId: '333',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [1],
           ranking: 0,
           attempts: [{ result: 990 }, { result: 1385 }, { result: 1189 }, { result: 1294 }, { result: 1028 }],
@@ -32,9 +32,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           save() {},
         },
         {
-          competitionId: 'Munich19022023',
-          eventId: '333',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [2],
           ranking: 0,
           attempts: [{ result: 1722 }, { result: 1733 }, { result: 1418 }, { result: 1164 }, { result: 1884 }],
@@ -43,9 +43,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           save() {},
         },
         {
-          competitionId: 'Munich19022023',
-          eventId: '333',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [3],
           ranking: 0,
           attempts: [{ result: 1278 }, { result: 1404 }, { result: 1341 }, { result: 1307 }, { result: 1471 }],
@@ -56,16 +56,16 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
       ],
     },
     {
-      roundId: '333fm-r1',
-      competitionId: 'Munich19022023',
+      roundId: "333fm-r1",
+      competitionId: "Munich19022023",
       roundTypeId: RoundType.Final,
       format: RoundFormat.Mean,
       results: [
         // Tied mean with single tie-breaker
         {
-          competitionId: 'Munich19022023',
-          eventId: '333fm',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333fm",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [3],
           ranking: 0,
           attempts: [{ result: 39 }, { result: 43 }, { result: 47 }],
@@ -75,9 +75,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
         },
         // This result is tied
         {
-          competitionId: 'Munich19022023',
-          eventId: '333fm',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333fm",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [2],
           ranking: 0,
           attempts: [{ result: 37 }, { result: 41 }, { result: 42 }],
@@ -87,9 +87,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
         },
         // Tied mean with single tie-breaker
         {
-          competitionId: 'Munich19022023',
-          eventId: '333fm',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333fm",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [4],
           ranking: 0,
           attempts: [{ result: 40 }, { result: 43 }, { result: 46 }],
@@ -99,9 +99,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
         },
         // This result is tied
         {
-          competitionId: 'Munich19022023',
-          eventId: '333fm',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333fm",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [1],
           ranking: 0,
           attempts: [{ result: 37 }, { result: 40 }, { result: 43 }],
@@ -112,15 +112,15 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
       ],
     },
     {
-      roundId: '333bf-r1',
-      competitionId: 'Munich19022023',
+      roundId: "333bf-r1",
+      competitionId: "Munich19022023",
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3,
       results: [
         {
-          competitionId: 'Munich19022023',
-          eventId: '333bf',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333bf",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [4],
           ranking: 0,
           attempts: [{ result: 4124 }, { result: -1 }, { result: -1 }],
@@ -130,9 +130,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
         },
         // This result is tied
         {
-          competitionId: 'Munich19022023',
-          eventId: '333bf',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333bf",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [2],
           ranking: 0,
           attempts: [{ result: 2482 }, { result: -1 }, { result: 3011 }],
@@ -142,9 +142,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
         },
         // Tied with the other triple DNF
         {
-          competitionId: 'Munich19022023',
-          eventId: '333bf',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333bf",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [6],
           ranking: 0,
           attempts: [{ result: -1 }, { result: -1 }, { result: -1 }],
@@ -154,9 +154,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
         },
         // This result is tied
         {
-          competitionId: 'Munich19022023',
-          eventId: '333bf',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333bf",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [3],
           ranking: 0,
           attempts: [{ result: 2856 }, { result: 2482 }, { result: 2744 }],
@@ -165,9 +165,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           save() {},
         },
         {
-          competitionId: 'Munich19022023',
-          eventId: '333bf',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333bf",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [1],
           ranking: 0,
           attempts: [{ result: 2142 }, { result: 1938 }, { result: -1 }],
@@ -177,9 +177,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
         },
         // Tied with the other triple DNF
         {
-          competitionId: 'Munich19022023',
-          eventId: '333bf',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "333bf",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [5],
           ranking: 0,
           attempts: [{ result: -1 }, { result: -1 }, { result: -1 }],
@@ -190,15 +190,15 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
       ],
     },
     {
-      roundId: '222-r1',
-      competitionId: 'Munich19022023',
+      roundId: "222-r1",
+      competitionId: "Munich19022023",
       roundTypeId: RoundType.Final,
       format: RoundFormat.BestOf3, // ATYPICAL FORMAT
       results: [
         {
-          competitionId: 'Munich19022023',
-          eventId: '222',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "222",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [1],
           ranking: 0,
           attempts: [{ result: 221 }, { result: 428 }, { result: 374 }],
@@ -207,9 +207,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           save() {},
         },
         {
-          competitionId: 'Munich19022023',
-          eventId: '222',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "222",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [2],
           ranking: 0,
           attempts: [{ result: 335 }, { result: 417 }, { result: 725 }],
@@ -218,9 +218,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           save() {},
         },
         {
-          competitionId: 'Munich19022023',
-          eventId: '222',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "222",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [3],
           ranking: 0,
           attempts: [{ result: 449 }, { result: 516 }, { result: 593 }],
@@ -231,15 +231,15 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
       ],
     },
     {
-      roundId: '555-r1',
-      competitionId: 'Munich19022023',
+      roundId: "555-r1",
+      competitionId: "Munich19022023",
       roundTypeId: RoundType.Final,
       format: RoundFormat.Average,
       results: [
         {
-          competitionId: 'Munich19022023',
-          eventId: '555',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "555",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [2],
           ranking: 0,
           attempts: [{ result: 5012 }, { result: 4913 }, { result: -1 }, { result: 5314 }, { result: -1 }],
@@ -248,9 +248,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           save() {},
         },
         {
-          competitionId: 'Munich19022023',
-          eventId: '555',
-          date: new Date('2023-02-19T00:00:00Z'),
+          competitionId: "Munich19022023",
+          eventId: "555",
+          date: new Date("2023-02-19T00:00:00Z"),
           personIds: [1],
           ranking: 0,
           attempts: [{ result: 3845 }, { result: -1 }, { result: 5011 }, { result: 4576 }, { result: -1 }],

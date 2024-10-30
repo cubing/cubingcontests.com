@@ -4,21 +4,21 @@ This is a place for hosting unofficial Rubik's Cube competitions, unofficial eve
 
 ## Screenshots
 
-<img src="https://cubingcontests.com/api/cubing_contests_1.jpg" width="500"/>
+<img src="https://cubingcontests.com/api2/static/cubing_contests_1.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api/cubing_contests_2.jpg" width="500"/>
+<img src="https://cubingcontests.com/api2/static/cubing_contests_2.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api/cubing_contests_3.jpg" width="500"/>
+<img src="https://cubingcontests.com/api2/static/cubing_contests_3.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api/cubing_contests_4.jpg" width="500"/>
+<img src="https://cubingcontests.com/api2/static/cubing_contests_4.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api/cubing_contests_5.jpg" width="500"/>
+<img src="https://cubingcontests.com/api2/static/cubing_contests_5.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api/cubing_contests_6.jpg" width="500"/>
+<img src="https://cubingcontests.com/api2/static/cubing_contests_6.jpg" width="500"/>
 
 <div style="display: flex; flex-wrap: wrap; gap: 2rem;">
-  <img src="https://cubingcontests.com/api/cubing_contests_7.jpg" width="300"/>
-  <img src="https://cubingcontests.com/api/cubing_contests_8.jpg" width="300"/>
+  <img src="https://cubingcontests.com/api2/static/cubing_contests_7.jpg" width="300"/>
+  <img src="https://cubingcontests.com/api2/static/cubing_contests_8.jpg" width="300"/>
 </div>
 
 ## API for entering attempts

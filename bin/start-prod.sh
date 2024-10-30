@@ -11,6 +11,11 @@
 # $2 - (optional, required if $1 = --use-version) version
 # $2 - (optional) --cleanup - only used when $1 = --dev/-d
 
+if [ "$(pwd | tail -c 5)" == "/bin" ]; then
+  echo "Please run this script from the root directory"
+  exit 1
+fi
+
 restart_containers() {
   # Remove all images that contain "denimint"
   echo -e "\nRemoving old images...\n"
@@ -19,46 +24,46 @@ restart_containers() {
   sudo docker compose -f docker-compose-prod.yml up -d
 }
 
-set_version_in_env() {
-  mv .env .env.bak
-  sudo bash -c "sed -E \"s/export VERSION=[^ #]*/export VERSION=$1/\" .env.bak > .env"
-  sudo rm .env.bak
-}
+# set_version_in_env() {
+#   mv .env .env.bak
+#   sudo bash -c "sed -E \"s/export VERSION=[^ #]*/export VERSION=$1/\" .env.bak > .env"
+#   sudo rm .env.bak
+# }
 
 if [ "$1" == "--use-version" ]; then
+  echo "This flag is no longer maintained!"
+  exit
 
   ######  USE OLDER VERSION (THIS IS NOT ALWAYS SAFE!)  ######
 
   # Check that a version argument was passed
-  if [ -z "$2" ]; then
-    echo "Please provide a version as the first argument"
-    exit
-  else
-    # If it was, make sure a tag for that version exists
-    VERSION=$(git tag | grep -x "^$2$")
+  # if [ -z "$2" ]; then
+  #   echo "Please provide a version as the first argument"
+  #   exit
+  # else
+  #   # If it was, make sure a tag for that version exists
+  #   VERSION=$(git tag | grep -x "^$2$")
     
-    if [ -z "$VERSION" ]; then
-      echo "Version tag $2 does not exist"
-      exit
-    fi
-  fi
+  #   if [ -z "$VERSION" ]; then
+  #     echo "Version tag $2 does not exist"
+  #     exit
+  #   fi
+  # fi
 
-  echo "Reverting to version $VERSION (press ENTER to continue...)"
-  read
+  # echo "Reverting to version $VERSION (press ENTER to continue...)"
+  # read
 
-  ./bin/dump-db.sh /dump
+  # ./bin/dump-db.sh /dump
 
-  # Stop Docker containers
-  sudo docker compose -f docker-compose-prod.yml down &&
+  # # Stop Docker containers
+  # sudo docker compose -f docker-compose-prod.yml down &&
 
-  # Revert to previous version
-  git reset --hard $VERSION &&
-  set_version_in_env $VERSION
+  # # Revert to previous version
+  # git reset --hard $VERSION &&
+  # set_version_in_env $VERSION
 
-  restart_containers
-
+  # restart_containers
 elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
-
   ######  PRODUCTION  ######
 
   if [ "$1" != "--restart" ]; then  
@@ -76,12 +81,10 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   git pull
 
   # Set the VERSION variable back to latest, in case it was set to an older version
-  set_version_in_env latest
+  # set_version_in_env latest
 
   restart_containers
-
 else
-  
   ######  DEVELOPMENT  ######
 
   # Stop Docker containers
@@ -89,15 +92,20 @@ else
   docker compose down &&
 
   # Remove all images that contain "denimint"
-  echo -e "\nRemoving old images\n"
-  docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
+  # echo -e "\nRemoving old images\n"
+  # docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
 
   if [ "$2" != "--cleanup" ]; then
     # Build frontend and API containers
-    docker build --build-arg API_BASE_URL=http://localhost:5000/api -t cubingcontests-client --file client.Dockerfile . &&
-    docker build -t cubingcontests-api --file server.Dockerfile . &&
+    source .env # needed for the build args
+    docker build --build-arg API_BASE_URL="$API_BASE_URL_DEV" \
+                 --build-arg API_BASE_URL_SERVER_SIDE="$CLIENT_ARG_API_BASE_URL_SERVER_SIDE" \
+                 --build-arg API_BASE_URL2="$API_BASE_URL2_DEV" \
+                 --build-arg API_BASE_URL2_SERVER_SIDE="$CLIENT_ARG_API_BASE_URL2_SERVER_SIDE" \
+      -t cubingcontests-client --file client.Dockerfile . &&
+    docker build -t cubingcontests-server --file server.Dockerfile . &&
+    docker build -t cubingcontests-server2 --file server2.Dockerfile . &&
 
     docker compose -f docker-compose-prod.yml up
   fi
-
 fi

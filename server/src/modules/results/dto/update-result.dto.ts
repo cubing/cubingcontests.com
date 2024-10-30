@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -9,15 +9,16 @@ import {
   IsUrl,
   Validate,
   ValidateNested,
-} from 'class-validator';
-import { DATE_VALIDATION_MSG, DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from '~/src/helpers/messages';
-import { AttemptDto } from './create-result.dto';
-import { IAttempt, IUpdateResultDto } from '@sh/types';
-import { ContestAttempts } from '~/src/helpers/customValidators';
+} from "class-validator";
+import { DATE_VALIDATION_MSG, DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from "~/src/helpers/messages";
+import { AttemptDto } from "./create-result.dto";
+import { IAttempt, IUpdateResultDto } from "@sh/types";
+import { ContestAttempts } from "~/src/helpers/customValidators";
 
 export class UpdateResultDto implements IUpdateResultDto {
+  @IsOptional()
   @IsDateString({}, { message: DATE_VALIDATION_MSG })
-  date: Date;
+  date?: Date;
 
   @IsOptional()
   @IsBoolean()

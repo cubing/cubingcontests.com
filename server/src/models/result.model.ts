@@ -1,7 +1,7 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
-import { IAttempt, IResult } from '@sh/types';
-import { UserDocument } from './user.model';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import mongoose, { HydratedDocument } from "mongoose";
+import { IAttempt } from "@sh/types";
+import { UserDocument } from "./user.model";
 
 @Schema({ _id: false })
 export class Attempt implements IAttempt {
@@ -15,7 +15,7 @@ export class Attempt implements IAttempt {
 const AttemptSchema = SchemaFactory.createForClass(Attempt);
 
 @Schema({ timestamps: true })
-export class Result implements IResult {
+export class Result {
   @Prop()
   competitionId?: string;
 
@@ -55,7 +55,7 @@ export class Result implements IResult {
   @Prop()
   discussionLink?: string;
 
-  @Prop({ type: mongoose.Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Types.ObjectId, ref: "User" })
   createdBy: UserDocument;
 }
 

@@ -1,18 +1,13 @@
 #!/bin/bash
 
+if [ "$(pwd | tail -c 5)" == "/bin" ]; then
+  echo "Please run this script from the root directory"
+  exit 1
+fi
+
 if [ ! -f ".env" ]; then
   cp .env.example .env
   echo -e "Environment variables copied from .env.example to .env\n"
-fi
-
-if [ -z "$(git config core.hooksPath)" ]; then
-  git config core.hooksPath ./.githooks
-  echo -e "Set git hooks path to $(git config core.hooksPath)\n"
-fi
-
-if [ ! -x "$(command -v nest)" ]; then
-  echo "Please install the Nest JS CLI and Concurrently globally! (e.g. npm install -g @nestjs/cli concurrently)"
-  exit 1
 fi
 
 if [ ! -x "$(command -v concurrently)" ]; then
@@ -20,20 +15,25 @@ if [ ! -x "$(command -v concurrently)" ]; then
   exit 2
 fi
 
-# Install NPM packages
-cd client
-npm install
-cd ../server
+# Install dependencies
+deno install
+
+# Copy required environment variables from .env to client/.env.development
+deno run --allow-read --allow-write ./bin/copy-env-vars.ts
+
+# This stuff is temporary. It can be removed when the backend migration is done.
+cp -r client/shared_helpers server/
+find server/shared_helpers -type f -exec sed -i 's/\.ts";$/";/g' {} \;
+cd server
 npm install
 cd ..
+cp .env server/.env.dev
 
-# Copy the .env file to server/.env.dev, but change NODE_ENV from production to development
-cat .env | sed -E "s/NODE_ENV=production$/NODE_ENV=development$/" > ./server/.env.dev
-
-# Start the frontent (c), backend (s) and database (d)
-concurrently -kc blue,yellow,green -n c,s,d \
-  "cd client && npm run dev" \
-  "cd server && sleep 2 && npm run dev" \
+# Start the frontent (c), legacy backend (l), new backend (s) and database (d)
+concurrently -kc blue,red,yellow,green -n c,l,s,d \
+  "cd client && deno task dev" \
+  "cd server && npm run dev" \
+  "cd server2 && deno task dev" \
   "docker compose up"
 
 docker compose down

@@ -1,5 +1,5 @@
-import { PersonDocument } from '~/src/models/person.model';
-import { personsStub } from '../stubs/persons.stub';
+import { PersonDocument } from "~/src/models/person.model";
+import { personsStub } from "../stubs/persons.stub";
 
 export const PersonsServiceMock = (): any => ({
   getPersonsByPersonIds(personIds: number[]) {

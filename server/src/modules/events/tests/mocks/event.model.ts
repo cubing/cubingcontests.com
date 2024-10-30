@@ -1,5 +1,5 @@
-import { EventDocument } from '~/src/models/event.model';
-import { eventsStub } from '../stubs/events.stub';
+import { EventDocument } from "~/src/models/event.model";
+import { eventsStub } from "../stubs/events.stub";
 
 export const mockEventModel = (): any => ({
   tempOutput: undefined,
@@ -7,7 +7,7 @@ export const mockEventModel = (): any => ({
     this.tempOutput = eventsStub();
 
     if (query?.eventId) {
-      if (typeof query.eventId === 'object') {
+      if (typeof query.eventId === "object") {
         this.tempOutput = this.tempOutput.filter((el: EventDocument) => query.eventId.$in.includes(el.eventId));
       } else {
         this.tempOutput = this.tempOutput.filter((el: EventDocument) => el.eventId === query.eventId);

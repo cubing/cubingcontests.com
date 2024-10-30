@@ -1,29 +1,27 @@
-'use client';
+"use client";
 
-import { IEvent } from '@sh/types';
+import { IEvent } from "~/shared_helpers/types.ts";
 
-const FormEventSelect = ({
-  title = 'Event',
-  noMargin = false,
-  events,
-  eventId,
-  setEventId,
-  disabled = false,
-}: {
+type Props = {
   title?: string;
   noMargin?: boolean;
   events: IEvent[];
   eventId: string;
   setEventId: (val: string) => void;
   disabled?: boolean;
-}) => {
+};
+
+const FormEventSelect = ({
+  title = "Event",
+  noMargin = false,
+  events,
+  eventId,
+  setEventId,
+  disabled = false,
+}: Props) => {
   return (
-    <div className={'fs-5' + (noMargin ? '' : ' mb-3')}>
-      {title && (
-        <label htmlFor="event_select" className="form-label">
-          {title}
-        </label>
-      )}
+    <div className={"fs-5" + (noMargin ? "" : " mb-3")}>
+      {title && <label htmlFor="event_select" className="form-label">{title}</label>}
       <select
         id="event_select"
         className="form-select"
@@ -31,11 +29,7 @@ const FormEventSelect = ({
         onChange={(e) => setEventId(e.target.value)}
         disabled={disabled || !events.some((e) => e.eventId === eventId)}
       >
-        {events.map((el: IEvent) => (
-          <option key={el.eventId} value={el.eventId}>
-            {el.name}
-          </option>
-        ))}
+        {events.map((e: IEvent) => <option key={e.eventId} value={e.eventId}>{e.name}</option>)}
       </select>
     </div>
   );

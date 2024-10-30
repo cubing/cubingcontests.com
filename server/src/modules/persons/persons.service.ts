@@ -4,54 +4,55 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { mongo, Model } from 'mongoose';
-import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from '~/src/helpers/dbHelpers';
-import { PersonDocument } from '~/src/models/person.model';
-import { RoundDocument } from '~/src/models/round.model';
-import { ContestDocument, ContestEvent } from '~/src/models/contest.model';
-import { PersonDto } from './dto/person.dto';
-import { IFePerson, IPersonDto, IWcaPersonDto } from '@sh/types';
-import { fetchWcaPerson, getSimplifiedString } from '@sh/sharedFunctions';
-import { Role } from '@sh/enums';
-import { IPartialUser } from '~/src/helpers/interfaces/User';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { LogType } from '~/src/helpers/enums';
-import { ResultDocument } from '~/src/models/result.model';
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, mongo } from "mongoose";
+import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from "~/src/helpers/dbHelpers";
+import { PersonDocument } from "~/src/models/person.model";
+import { RoundDocument } from "~/src/models/round.model";
+import { ContestDocument, ContestEvent } from "~/src/models/contest.model";
+import { PersonDto } from "./dto/person.dto";
+import { IFePerson, IPersonDto, IWcaPersonDto } from "@sh/types";
+import { fetchWcaPerson, getSimplifiedString } from "@sh/sharedFunctions";
+import { Role } from "@sh/enums";
+import { IPartialUser } from "~/src/helpers/interfaces/User";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { LogType } from "~/src/helpers/enums";
+import { ResultDocument } from "~/src/models/result.model";
 
 @Injectable()
 export class PersonsService {
   constructor(
     private readonly logger: MyLogger,
-    @InjectModel('Person') private readonly personModel: Model<PersonDocument>,
-    @InjectModel('Round') private readonly roundModel: Model<RoundDocument>,
-    @InjectModel('Result') private readonly resultModel: Model<ResultDocument>,
-    @InjectModel('Competition') private readonly contestModel: Model<ContestDocument>,
+    @InjectModel("Person") private readonly personModel: Model<PersonDocument>,
+    @InjectModel("Round") private readonly roundModel: Model<RoundDocument>,
+    @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
+    @InjectModel("Competition") private readonly contestModel: Model<ContestDocument>,
   ) {}
 
   async onModuleInit() {
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== "production") {
       const anyPerson = await this.personModel.findOne().exec();
 
       if (!anyPerson) {
-        this.logger.log('Creating test competitors for development...');
+        this.logger.log("Creating test competitors for development...");
 
-        await this.personModel.create({ name: 'Test Admin', countryIso2: 'CH', personId: 1 });
-        await this.personModel.create({ name: 'Test Moderator', countryIso2: 'NR', personId: 2 });
+        await this.personModel.create({ name: "Test Admin", countryIso2: "CH", personId: 1 });
+        await this.personModel.create({ name: "Test Moderator", countryIso2: "NR", personId: 2 });
       }
     }
 
-    if (process.env.DO_DB_CONSISTENCY_CHECKS === 'true') {
-      this.logger.log('Checking persons inconsistencies in the DB...');
+    if (process.env.DO_DB_CONSISTENCY_CHECKS === "true") {
+      this.logger.log("Checking persons inconsistencies in the DB...");
 
       // Look for persons with the same name
       const persons = await this.personModel.find().exec();
 
       for (let i = 0; i < persons.length; i++) {
         const person = persons[i];
-        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name))
+        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name)) {
           this.logger.error(`Error: multiple persons found with the name ${person.name}`);
+        }
       }
     }
   }
@@ -82,8 +83,8 @@ export class PersonsService {
         .aggregate([
           { $project: { ...exclSysButKeepCreatedBy } },
           // Keep in mind creator and creatorPerson end up as arrays with one element (or none if not found)
-          { $lookup: { from: 'users', localField: 'createdBy', foreignField: '_id', as: 'creator' } },
-          { $lookup: { from: 'people', localField: 'creator.personId', foreignField: 'personId', as: 'crtrPerson' } },
+          { $lookup: { from: "users", localField: "createdBy", foreignField: "_id", as: "creator" } },
+          { $lookup: { from: "people", localField: "creator.personId", foreignField: "personId", as: "crtrPerson" } },
           { $sort: { personId: -1 } },
         ])
         .exec();
@@ -99,7 +100,7 @@ export class PersonsService {
             person: creatorPerson ? { name: creatorPerson.name, wcaId: creatorPerson.wcaId } : undefined,
           };
         } else if (person.createdBy === undefined) {
-          person.creator = 'EXT_DEVICE';
+          person.creator = "EXT_DEVICE";
         } else {
           person.creator = undefined;
         }
@@ -117,12 +118,12 @@ export class PersonsService {
   }
 
   async getPersonsByName(name: string): Promise<IFePerson[]> {
-    const simplifiedParts = getSimplifiedString(name).split(' ');
-    const nameQuery = { $and: simplifiedParts.map((part) => ({ name: { $regex: part, $options: 'i' } })) };
-    const locNameQuery = { $and: simplifiedParts.map((part) => ({ localizedName: { $regex: part, $options: 'i' } })) };
+    const simplifiedParts = getSimplifiedString(name).split(" ");
+    const nameQuery = { $and: simplifiedParts.map((part) => ({ name: { $regex: part, $options: "i" } })) };
+    const locNameQuery = { $and: simplifiedParts.map((part) => ({ localizedName: { $regex: part, $options: "i" } })) };
     // To-do: replace this with a search that would match by sanitizing the diacritics in the name/localizedName too,
     // so that Lukasz (query) also matches Łukasz (db) without TEMP_QUERY
-    const TEMP_QUERY = { name: { $regex: name, $options: 'i' } };
+    const TEMP_QUERY = { name: { $regex: name, $options: "i" } };
 
     return await this.personModel
       .find({ $or: [nameQuery, locNameQuery, TEMP_QUERY] }, excl)
@@ -136,7 +137,7 @@ export class PersonsService {
 
   async getOrCreatePersonByWcaId(
     wcaId: string,
-    { user }: { user: IPartialUser | 'EXT_DEVICE' },
+    { user }: { user: IPartialUser | "EXT_DEVICE" },
   ): Promise<IWcaPersonDto> {
     wcaId = wcaId.toUpperCase();
 
@@ -164,13 +165,13 @@ export class PersonsService {
     const personIds: number[] = [];
     let compRounds: RoundDocument[] = [];
 
-    if (contestEvents) for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds);
+    if (contestEvents) { for (const compEvent of contestEvents) compRounds.push(...compEvent.rounds); }
     else compRounds = await this.roundModel.find({ competitionId }).populate(resultPopulateOptions).exec();
 
     for (const round of compRounds) {
       for (const result of round.results) {
         if (!result.personIds) {
-          this.logger.error('Round results are not populated');
+          this.logger.error("Round results are not populated");
           throw new InternalServerErrorException();
         }
 
@@ -189,10 +190,10 @@ export class PersonsService {
 
   async createPerson(
     personDto: PersonDto,
-    { user }: { user: IPartialUser | 'EXT_DEVICE' },
+    { user }: { user: IPartialUser | "EXT_DEVICE" },
   ): Promise<PersonDocument | IFePerson> {
     this.logger.logAndSave(
-      `Creating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : 'no WCA ID'}`,
+      `Creating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : "no WCA ID"}`,
       LogType.CreatePerson,
     );
 
@@ -203,7 +204,7 @@ export class PersonsService {
       ...personDto,
       unapproved: true,
       personId: newestPerson ? newestPerson.personId + 1 : 1,
-      createdBy: user !== 'EXT_DEVICE' ? new mongo.ObjectId(user._id as string) : undefined,
+      createdBy: user !== "EXT_DEVICE" ? new mongo.ObjectId(user._id as string) : undefined,
     });
 
     return this.getFrontendPerson(createdPerson, { user });
@@ -211,19 +212,20 @@ export class PersonsService {
 
   async updatePerson(id: string, personDto: PersonDto, user: IPartialUser): Promise<IFePerson> {
     this.logger.logAndSave(
-      `Updating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : 'no WCA ID'}`,
+      `Updating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : "no WCA ID"}`,
       LogType.UpdatePerson,
     );
 
     await this.validateAndCleanUpPerson(personDto, { excludeId: id });
 
     const person = await this.personModel.findById(id).exec();
-    if (!person) throw new NotFoundException('Person not found');
+    if (!person) throw new NotFoundException("Person not found");
 
     const isAdmin = user.roles.includes(Role.Admin);
 
-    if (!isAdmin && !person.unapproved)
-      throw new BadRequestException('You may not edit a person who has competed in a published contest');
+    if (!isAdmin && !person.unapproved) {
+      throw new BadRequestException("You may not edit a person who has competed in a published contest");
+    }
 
     if (personDto.wcaId) {
       const wcaPerson: IPersonDto = await fetchWcaPerson(personDto.wcaId);
@@ -249,20 +251,22 @@ export class PersonsService {
     this.logger.logAndSave(`Deleting person with ID ${id}`, LogType.DeletePerson);
 
     const person = await this.personModel.findById(id).exec();
-    if (!person) throw new NotFoundException('Person not found');
-    if (!person.unapproved) throw new BadRequestException('You may not delete an approved person');
+    if (!person) throw new NotFoundException("Person not found");
+    if (!person.unapproved) throw new BadRequestException("You may not delete an approved person");
 
     const result = await this.resultModel.findOne({ personIds: person.personId }).exec();
-    if (result)
+    if (result) {
       throw new BadRequestException(
         `You may not delete a person who has a result. This person has a result in ${result.eventId} at ${result.competitionId}.`,
       );
+    }
 
     const organizedContest = await this.contestModel.findOne({ organizers: person._id }).exec();
-    if (organizedContest)
+    if (organizedContest) {
       throw new BadRequestException(
         `You may not delete a person who has organized a contest. This person was an organizer at ${organizedContest.competitionId}.`,
       );
+    }
 
     await person.deleteOne();
   }
@@ -271,7 +275,7 @@ export class PersonsService {
     this.logger.logAndSave(`Approving person with ID ${id}`, LogType.ApprovePersons);
 
     const person = await this.personModel.findById(id).exec();
-    if (!person) throw new NotFoundException('Person not found');
+    if (!person) throw new NotFoundException("Person not found");
     if (!person.unapproved) throw new BadRequestException(`${person.name} has already been approved`);
 
     person.unapproved = undefined;
@@ -290,16 +294,14 @@ export class PersonsService {
     competitionId?: string;
     wcaCompData?: unknown[];
   }) {
-    this.logger.logAndSave(
-      `Approving ${
-        competitionId ? `unapproved persons from contest with ID ${competitionId}` : 'persons'
-      } with person IDs: ${personIds.join(', ')}`,
-      LogType.ApprovePersons,
-    );
-
     const competitors = personIds
       ? await this.getPersonsByPersonIds(personIds)
       : await this.getContestParticipants({ competitionId, unapprovedOnly: true });
+    const message = competitionId
+      ? `Approving unapproved persons from contest with ID ${competitionId}`
+      : `Approving persons with person IDs: ${personIds.join(", ")}`;
+
+    this.logger.logAndSave(message, LogType.ApprovePersons);
 
     for (const competitor of competitors) {
       if (competitor.unapproved) {
@@ -333,20 +335,20 @@ export class PersonsService {
     if (personDto.wcaId?.trim()) {
       personDto.wcaId = personDto.wcaId.trim().toUpperCase();
       const sameWcaIdPerson = await this.personModel.findOne({ ...queryBase, wcaId: personDto.wcaId }).exec();
-      if (sameWcaIdPerson) throw new ConflictException('A person with the same WCA ID already exists');
+      if (sameWcaIdPerson) throw new ConflictException("A person with the same WCA ID already exists");
     }
 
     const sameNamePerson = await this.personModel.findOne({ ...queryBase, name: personDto.name }).exec();
-    if (sameNamePerson) throw new ConflictException('A person with the same name already exists');
+    if (sameNamePerson) throw new ConflictException("A person with the same name already exists");
   }
 
-  private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | 'EXT_DEVICE' } = {}): IFePerson {
+  private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | "EXT_DEVICE" } = {}): IFePerson {
     const fePerson: IFePerson = person.toObject();
 
     // Remove system fields
     Object.keys(excl).forEach((key) => delete (fePerson as any)[key]);
 
-    if (user && user !== 'EXT_DEVICE') fePerson.creator = { username: user.username, email: '' };
+    if (user && user !== "EXT_DEVICE") fePerson.creator = { username: user.username, email: "", roles: [] };
 
     return fePerson;
   }

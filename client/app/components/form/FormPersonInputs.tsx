@@ -1,16 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useLimitRequests, useMyFetch } from '~/helpers/customHooks';
-import Loading from '@c/UI/Loading';
-import FormTextInput from './FormTextInput';
-import Competitor from '@c/Competitor';
-import { IWcaPersonDto, IPerson } from '@sh/types';
-import C from '@sh/constants';
-import { getUserInfo } from '~/helpers/utilityFunctions';
-import { IUserInfo } from '~/helpers/interfaces/UserInfo';
+import { useCallback, useContext, useState } from "react";
+import { debounce } from "lodash";
+import { useMyFetch } from "~/helpers/customHooks.ts";
+import Loading from "~/app/components/UI/Loading.tsx";
+import FormTextInput from "./FormTextInput.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
+import { IPerson, IWcaPersonDto } from "~/shared_helpers/types.ts";
+import C from "~/shared_helpers/constants.ts";
+import { getUserInfo } from "~/helpers/utilityFunctions.ts";
+import { type InputPerson, UserInfo } from "~/helpers/types.ts";
+import { MainContext } from "~/helpers/contexts.ts";
 
-const userInfo: IUserInfo = getUserInfo();
+const userInfo: UserInfo = getUserInfo();
 const MAX_MATCHES = 6;
 const personInputTooltip =
   "Enter the competitor's name if they are already on Cubing Contests. If not, enter their full WCA ID to add them.";
@@ -21,36 +23,59 @@ const FormPersonInputs = ({
   setPersonNames,
   persons,
   setPersons,
+  onSelectPerson,
   infiniteInputs,
   nextFocusTargetId,
   disabled,
   addNewPersonFromNewTab,
-  checkCustomErrors,
-  redirectToOnAddPerson = '',
+  redirectToOnAddPerson = "",
   noGrid,
 }: {
   title: string;
   personNames: string[];
   setPersonNames: (val: string[]) => void;
-  persons: IPerson[];
-  setPersons: (val: IPerson[]) => void;
+  persons: InputPerson[];
+  setPersons: (val: InputPerson[]) => void;
+  onSelectPerson?: (val: IPerson) => void;
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
   disabled?: boolean;
   addNewPersonFromNewTab?: boolean;
-  checkCustomErrors?: (newSelectedPerson: IPerson) => boolean;
   redirectToOnAddPerson?: string;
   noGrid?: boolean;
 }) => {
   const myFetch = useMyFetch();
-  const [limitMatchedPersonsRequests, isLoadingMatchedPersons] = useLimitRequests();
+  const { loadingId, changeLoadingId } = useContext(MainContext);
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
-  const defaultMatchedPersons: IPerson[] = userInfo.isMod ? [null] : [];
+  const defaultMatchedPersons: (IPerson | null)[] = userInfo?.isMod ? [null] : [];
 
-  const [matchedPersons, setMatchedPersons] = useState<IPerson[]>(defaultMatchedPersons);
+  const [matchedPersons, setMatchedPersons] = useState<(IPerson | null)[]>(defaultMatchedPersons);
   const [personSelection, setPersonSelection] = useState(0);
-  const [focusedInput, setFocusedInput] = useState<number>(null);
+  const [focusedInput, setFocusedInput] = useState<number | null>(null);
+
+  const getMatchedPersons = useCallback(
+    debounce(async (value: string) => {
+      if (!C.wcaIdRegexLoose.test(value)) {
+        const { payload, errors } = await myFetch.get(`/persons?name=${value}`, { loadingId: null });
+
+        if (!errors && payload.length > 0) {
+          const newMatchedPersons = [...payload.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
+          setMatchedPersons(newMatchedPersons);
+          if (newMatchedPersons.length < personSelection) setPersonSelection(0);
+        }
+      } else {
+        const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, {
+          authorize: true,
+          loadingId: null,
+        });
+
+        if (payload && !errors) setMatchedPersons([payload.person]);
+      }
+      changeLoadingId("");
+    }, C.fetchDebounceTimeout),
+    [personSelection],
+  );
 
   const queryMatchedPersons = (value: string) => {
     setMatchedPersons(defaultMatchedPersons);
@@ -59,38 +84,26 @@ const FormPersonInputs = ({
     value = value.trim();
 
     if (value) {
-      limitMatchedPersonsRequests(async () => {
-        if (!C.wcaIdRegexLoose.test(value)) {
-          const { payload, errors } = await myFetch.get(`/persons?name=${value}`);
-
-          if (!errors && payload.length > 0) {
-            const newMatchedPersons = [...payload.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
-            setMatchedPersons(newMatchedPersons);
-            if (newMatchedPersons.length < personSelection) setPersonSelection(0);
-          }
-        } else {
-          const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, {
-            authorize: true,
-          });
-
-          if (!errors) setMatchedPersons([payload.person]);
-        }
-      });
+      getMatchedPersons(value);
+      changeLoadingId("MATCHED_PERSONS");
+    } else {
+      getMatchedPersons.cancel();
+      changeLoadingId("");
     }
   };
 
   // This is called first on focus leave for the previous input and then on focus for the new input
-  const changeFocusedInput = (inputIndex: number | null, inputValue = '') => {
+  const changeFocusedInput = (inputIndex: number | null, inputValue = "") => {
     setFocusedInput(inputIndex);
     setPersonSelection(0);
     queryMatchedPersons(inputValue);
   };
 
   // Returns true if an input was added
-  const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: IPerson[]): boolean => {
+  const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: InputPerson[]): boolean => {
     // Add new empty input if there isn't an empty one left
     if (infiniteInputs && !newPersons.some((el) => el === null)) {
-      newPersonNames.push('');
+      newPersonNames.push("");
       newPersons.push(null);
       return true;
     }
@@ -103,10 +116,10 @@ const FormPersonInputs = ({
     else setFocusedInput(null);
 
     // Update person name and reset the person object for that organizer
-    const newPersonNames = personNames.map((el, i) => (i === index ? value : el));
+    const newPersonNames = personNames.map((name, i) => (i === index ? value : name));
     // This is done so that setPersons is only called if one of the persons actually had to be reset to null
     let personsUpdated = false;
-    const newPersons: IPerson[] = persons.map((el, i) => {
+    const newPersons: InputPerson[] = persons.map((el, i) => {
       if (i === index) {
         if (persons[i] !== null) personsUpdated = true;
         return null;
@@ -114,14 +127,14 @@ const FormPersonInputs = ({
       return el;
     });
 
-    personsUpdated = addEmptyInputIfRequired(newPersonNames, newPersons) || personsUpdated;
+    personsUpdated = personsUpdated || addEmptyInputIfRequired(newPersonNames, newPersons);
 
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
     queryMatchedPersons(value);
   };
 
-  const focusNext = (newPersons: IPerson[]) => {
+  const focusNext = (newPersons: InputPerson[]) => {
     setFocusedInput(null);
     setMatchedPersons(defaultMatchedPersons);
     setPersonSelection(0);
@@ -136,41 +149,34 @@ const FormPersonInputs = ({
     }
   };
 
-  const selectCompetitor = async (inputIndex: number, selectionIndex: number) => {
+  const selectPerson = (inputIndex: number, selectionIndex: number) => {
     if (matchedPersons[selectionIndex] === null) {
       // Only mods are allowed to open the add new competitor page
-      if (userInfo.isMod) {
+      if (userInfo?.isMod) {
         setFocusedInput(null);
 
-        if (addNewPersonFromNewTab) {
-          open('/mod/competitors', '_blank');
-        } else {
-          if (!redirectToOnAddPerson) window.location.href = '/mod/competitors';
-          else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
-        }
+        if (addNewPersonFromNewTab) open("/mod/competitors", "_blank");
+        else if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
+        else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
       }
     } else {
       const newSelectedPerson = matchedPersons[selectionIndex];
-
-      if (!checkCustomErrors || !checkCustomErrors(newSelectedPerson)) {
-        const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
-        const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
-        setPersons(newPersons);
-        setPersonNames(newPersonNames);
-        addEmptyInputIfRequired(newPersonNames, newPersons);
-        // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
-        setTimeout(() => focusNext(newPersons), 0);
-      }
+      const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
+      const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
+      setPersons(newPersons);
+      setPersonNames(newPersonNames);
+      addEmptyInputIfRequired(newPersonNames, newPersons);
+      if (onSelectPerson) onSelectPerson(newSelectedPerson);
+      // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
+      setTimeout(() => focusNext(newPersons), 0);
     }
   };
 
-  const onPersonKeyDown = async (inputIndex: number, e: any) => {
-    if (e.key === 'Enter') {
+  const onPersonKeyDown = (inputIndex: number, e: any) => {
+    if (e.key === "Enter") {
       // Make sure the focused input is not empty
-      if (personNames[inputIndex]) {
-        selectCompetitor(inputIndex, personSelection);
-      }
-    } else if (e.key === 'ArrowDown') {
+      if (personNames[inputIndex]) selectPerson(inputIndex, personSelection);
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
 
       if (personSelection + 1 <= matchedPersons.length - defaultMatchedPersons.length) {
@@ -178,13 +184,12 @@ const FormPersonInputs = ({
       } else {
         setPersonSelection(0);
       }
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
 
       if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
       else setPersonSelection(matchedPersons.length - defaultMatchedPersons.length);
-    }
-    // Disallow entering certain characters
+    } // Disallow entering certain characters
     else if (/[()_/\\[\]]/.test(e.key)) {
       e.preventDefault();
     }
@@ -193,42 +198,48 @@ const FormPersonInputs = ({
   return (
     <div className="row">
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? 'col-md-6' : ''}>
+        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? "col-md-6" : ""}>
           <FormTextInput
             id={`${title}_${inputIndex + 1}`}
             title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
             tooltip={inputIndex === 0 ? personInputTooltip : undefined}
             value={personName}
-            setValue={(val: string) => changePersonName(inputIndex, val)}
-            onKeyDown={(e: any) => onPersonKeyDown(inputIndex, e)}
+            setValue={(val: string) =>
+              changePersonName(inputIndex, val)}
+            onKeyDown={(e: any) =>
+              onPersonKeyDown(inputIndex, e)}
             onFocus={() => changeFocusedInput(inputIndex, personName)}
             onBlur={() => changeFocusedInput(null)}
             disabled={disabled}
+            className="mb-3"
           />
           {inputIndex === focusedInput && personName && (
             <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
-              {isLoadingMatchedPersons ? (
-                <li className="list-group-item">
-                  <div style={{ width: '200px' }}>
-                    <Loading small />
-                  </div>
-                </li>
-              ) : matchedPersons.length > 0 ? (
-                matchedPersons.map((person: IPerson, matchIndex) => (
-                  <li
-                    key={matchIndex}
-                    className={'list-group-item' + (matchIndex === personSelection ? ' active' : '')}
-                    style={{ cursor: 'pointer' }}
-                    aria-current={matchIndex === personSelection}
-                    onMouseEnter={() => setPersonSelection(matchIndex)}
-                    onMouseDown={() => selectCompetitor(inputIndex, matchIndex)}
-                  >
-                    {person !== null ? <Competitor person={person} showLocalizedName noLink /> : '(add new person)'}
+              {loadingId === "MATCHED_PERSONS"
+                ? (
+                  <li className="list-group-item">
+                    <div style={{ width: "200px" }}>
+                      <Loading small />
+                    </div>
                   </li>
-                ))
-              ) : (
-                '(competitor not found)'
-              )}
+                )
+                : matchedPersons.length > 0
+                ? (
+                  matchedPersons.map((person: IPerson | null, matchIndex: number) => (
+                    <li
+                      key={matchIndex}
+                      className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}
+                      style={{ cursor: "pointer" }}
+                      aria-current={matchIndex === personSelection}
+                      onMouseEnter={() => setPersonSelection(matchIndex)}
+                      onMouseDown={() =>
+                        selectPerson(inputIndex, matchIndex)}
+                    >
+                      {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
+                    </li>
+                  ))
+                )
+                : "(competitor not found)"}
             </ul>
           )}
         </div>

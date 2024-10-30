@@ -1,4 +1,15 @@
-import { MultiChoiceOption } from '~/helpers/interfaces/MultiChoiceOption';
+import { MultiChoiceOption } from "~/helpers/types.ts";
+
+type Props = {
+  id?: string;
+  title: string;
+  options: MultiChoiceOption[];
+  selected: any;
+  setSelected: (val: any) => void;
+  disabled?: boolean;
+  oneLine?: boolean;
+  small?: boolean;
+};
 
 const FormRadio = ({
   id,
@@ -9,23 +20,14 @@ const FormRadio = ({
   disabled = false,
   oneLine = false,
   small = false,
-}: {
-  id?: string;
-  title: string;
-  options: MultiChoiceOption[];
-  selected: any;
-  setSelected: (val: any) => void;
-  disabled?: boolean;
-  oneLine?: boolean;
-  small?: boolean;
-}) => {
+}: Props) => {
   return (
     <div
-      className={`${oneLine ? 'd-flex flex-wrap align-items-center gap-3 gap-md-5' : ''}  ${small ? 'fs-6' : 'fs-5'}`}
+      className={`${oneLine ? "d-flex flex-wrap align-items-center gap-3 gap-md-5" : ""}  ${small ? "fs-6" : "fs-5"}`}
     >
-      <h5 className={`${oneLine ? 'm-0' : ''}  ${small ? 'fs-6' : 'fs-5'}`}>{title}</h5>
+      <h5 className={`${oneLine ? "m-0" : ""}  ${small ? "fs-6" : "fs-5"}`}>{title}</h5>
 
-      <div className={`d-flex flex-wrap gap-3 gap-md-4 ${oneLine ? '' : 'my-3'}`}>
+      <div className={`d-flex flex-wrap gap-3 gap-md-4 ${oneLine ? "" : "my-3"}`}>
         {options.map((option) => {
           const uniqueId = `radio_${id || title}_${option.value}`;
 
@@ -39,9 +41,7 @@ const FormRadio = ({
                 disabled={disabled || option.disabled}
                 className="form-check-input"
               />
-              <label className="form-check-label" htmlFor={uniqueId}>
-                {option.label}
-              </label>
+              <label className="form-check-label" htmlFor={uniqueId}>{option.label}</label>
             </div>
           );
         })}

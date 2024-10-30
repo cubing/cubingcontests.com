@@ -1,15 +1,15 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
-import { MyLogger } from '@m/my-logger/my-logger.service';
-import { EventsService } from './events.service';
-import { AuthenticatedGuard } from '~/src/guards/authenticated.guard';
-import { RolesGuard } from '~/src/guards/roles.guard';
-import { Roles } from '~/src/helpers/roles.decorator';
-import { Role } from '@sh/enums';
-import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
-import { LogType } from '~/src/helpers/enums';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, ValidationPipe } from "@nestjs/common";
+import { MyLogger } from "@m/my-logger/my-logger.service";
+import { EventsService } from "./events.service";
+import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
+import { RolesGuard } from "~/src/guards/roles.guard";
+import { Roles } from "~/src/helpers/roles.decorator";
+import { Role } from "@sh/enums";
+import { CreateEventDto } from "./dto/create-event.dto";
+import { UpdateEventDto } from "./dto/update-event.dto";
+import { LogType } from "~/src/helpers/enums";
 
-@Controller('events')
+@Controller("events")
 export class EventsController {
   constructor(private readonly logger: MyLogger, private readonly eventsService: EventsService) {}
 
@@ -20,10 +20,10 @@ export class EventsController {
   }
 
   // GET /events/mod(?withRules=true)
-  @Get('mod')
+  @Get("mod")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModEvents(@Query('withRules') withRules = false) {
+  async getModEvents(@Query("withRules") withRules = false) {
     return await this.eventsService.getFrontendEvents({ includeHidden: true, populateRules: withRules });
   }
 
@@ -38,17 +38,17 @@ export class EventsController {
   }
 
   // PATCH /events/:eventId
-  @Patch(':eventId')
+  @Patch(":eventId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async updateEvent(@Param('eventId') eventId: string, @Body(new ValidationPipe()) updateEventDto: UpdateEventDto) {
+  async updateEvent(@Param("eventId") eventId: string, @Body(new ValidationPipe()) updateEventDto: UpdateEventDto) {
     this.logger.logAndSave(`Updating event with ID ${eventId}`, LogType.UpdateEvent);
 
     return await this.eventsService.updateEvent(eventId, updateEventDto);
   }
 
   // GET /events/with-rules
-  @Get('with-rules')
+  @Get("with-rules")
   async getEventsWithRules() {
     return await this.eventsService.getEventsWithRules();
   }

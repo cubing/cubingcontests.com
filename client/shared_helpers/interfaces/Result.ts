@@ -1,5 +1,5 @@
-import { WcaRecordType } from '@sh/enums';
-import { IContest, IEvent, IFeUser, IPerson, IRecordType } from '@sh/types';
+import { WcaRecordType } from "../enums.ts";
+import { IContest, IEvent, IFeUser, IPerson, IRecordType, type ResultRankingType } from "../types.ts";
 
 export interface IAttempt {
   /**
@@ -15,22 +15,52 @@ export interface IAttempt {
   memo?: number; // memorization time in centiseconds (optional and only used for BLD events)
 }
 
+// This allows null values for when the inputs are empty on the frontend
+export interface IFeAttempt {
+  result: number | null;
+  memo?: number | null;
+}
+
 export interface IResult {
-  competitionId?: string; // not needed for submitted results
+  competitionId: string;
   eventId: string;
   date: Date;
   unapproved?: true;
   // This is an array, because for team events (e.g. Team-Blind) it stores multiple IDs
   personIds: number[];
-  ranking?: number; // not needed for submitted results
+  ranking: number;
   attempts: IAttempt[];
   best: number;
   average: number; // for FMC it's 100 times the mean (to avoid decimals)
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
-  videoLink?: string; // required for submitted results (but admins may leave this empty)
-  discussionLink?: string; // only used for submitted results (still optional though)
-  createdBy?: unknown; // user ID of the user who created the result (only used for submitted results)
+}
+
+export type ISubmittedResult = Omit<IResult, "competitionId" | "ranking"> & {
+  videoLink: string;
+  discussionLink?: string;
+  createdBy?: unknown; // user ID of the user who created the result
+};
+
+export interface IResultDto {
+  eventId: string;
+  personIds: number[];
+  attempts: IFeAttempt[];
+}
+
+export interface ISubmittedResultDto extends IResultDto {
+  date: Date;
+  videoLink: string;
+  discussionLink?: string;
+}
+
+export interface IUpdateResultDto {
+  date?: Date; // only used for submitted results
+  unapproved?: true; // only needed for updating submitted results, because they can be approved at the same time
+  personIds: number[];
+  attempts: IFeAttempt[];
+  videoLink?: string; // required for submitted results
+  discussionLink?: string; // only used for submitted results
 }
 
 export interface IFeResult extends IResult {
@@ -38,17 +68,8 @@ export interface IFeResult extends IResult {
   persons: IPerson[];
 }
 
-export interface IUpdateResultDto {
-  date: Date;
-  unapproved?: true; // only needed for updating submitted results, because they can be approved at the same time
-  personIds: number[];
-  attempts: IAttempt[];
-  videoLink?: string; // required for submitted results
-  discussionLink?: string; // only used for submitted results
-}
-
 export interface IRanking {
-  type?: 'single' | 'average' | 'mean'; // only set for the records page
+  type?: ResultRankingType; // only set for the records page
   ranking?: number; // only set for the rankings page
   persons: IPerson[];
   resultId: string;
@@ -84,8 +105,11 @@ export interface IResultsSubmissionInfo {
   events: IEvent[];
   recordPairsByEvent: IEventRecordPairs[];
   activeRecordTypes: IRecordType[];
-  // These are only used for the edit result page, so this information is admin-only
-  result?: IResult;
-  persons?: IPerson[];
-  creator?: IFeUser;
+}
+
+// These are only used for the edit result page, so this information is admin-only
+export interface IAdminResultsSubmissionInfo extends IResultsSubmissionInfo {
+  result: ISubmittedResult;
+  persons: IPerson[];
+  creator: IFeUser;
 }

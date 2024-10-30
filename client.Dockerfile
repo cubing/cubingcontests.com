@@ -1,18 +1,21 @@
-FROM node:20-alpine
+FROM denoland/deno:2.0.3
 
-RUN apk update && apk upgrade
+# Expose port
+EXPOSE $FRONTEND_PORT
 
-COPY client /home/app/client
+COPY client /app/client
 
-WORKDIR /home/app/client
+WORKDIR /app/client
+
+# Prefer not to run as root (THIS DOESN'T WORK FOR SOME REASON!)
+# USER deno
 
 ARG API_BASE_URL
+ARG API_BASE_URL_SERVER_SIDE
+ARG API_BASE_URL2
+ARG API_BASE_URL2_SERVER_SIDE
 
-ENV ENVIRONMENT=production
+RUN deno install
+RUN deno task build
 
-RUN npm install
-RUN npm run build
-
-EXPOSE 3000
-
-CMD [ "npm", "start" ]
+CMD [ "deno", "task", "start" ]

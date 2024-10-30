@@ -1,0 +1,13 @@
+{
+  "imports": {
+    "@std/expect": "jsr:@std/expect@^1.0.6",
+    "@std/testing": "jsr:@std/testing@^1.0.3",
+    "~/": "./"
+  },
+  "tasks": {
+    "dev": "next dev",
+    "build": "deno run --unstable-unsafe-proto -A npm:next build",
+    // "build": "next build",
+    "start": "next start"
+  }
+}

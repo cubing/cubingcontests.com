@@ -12,17 +12,17 @@ export const excl = {
 };
 
 const rounds = {
-  path: 'events.rounds',
-  model: 'Round',
+  path: "events.rounds",
+  model: "Round",
 };
 
 export const resultPopulateOptions = {
-  path: 'results',
-  model: 'Result',
+  path: "results",
+  model: "Result",
 };
 
 export const eventPopulateOptions = {
-  event: { path: 'events.event', model: 'Event' },
+  event: { path: "events.event", model: "Event" },
   rounds,
   roundsAndResults: {
     ...rounds,
@@ -30,6 +30,6 @@ export const eventPopulateOptions = {
   },
 };
 
-export const orgPopulateOptions = { path: 'organizers', model: 'Person' };
+export const orgPopulateOptions = { path: "organizers", model: "Person" };
 
-export const schedulePopulateOptions = { path: 'compDetails.schedule', model: 'Schedule' };
+export const schedulePopulateOptions = { path: "compDetails.schedule", model: "Schedule" };

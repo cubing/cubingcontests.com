@@ -1,18 +1,18 @@
-import Loading from '@c/UI/Loading';
+import Loading from "~/app/components/UI/Loading.tsx";
 
 const Button = ({
   children,
   id,
-  type = 'button',
+  type = "button",
   onClick,
   loadingId,
   disabled,
-  className = '',
+  className = "",
   style,
   ariaLabel,
 }: {
   children: React.ReactNode;
-  type?: 'button' | 'submit';
+  type?: "button" | "submit";
   loadingId?: string;
   disabled?: boolean;
   ariaLabel?: string;
@@ -33,7 +33,7 @@ const Button = ({
       <span style={isLoading ? { opacity: 0 } : {}}>{children}</span>
       <div
         className={`${
-          isLoading ? '' : 'd-none'
+          isLoading ? "" : "d-none"
         } position-absolute top-0 start-0 h-100 w-100 d-flex justify-content-center align-items-center`}
       >
         <Loading small />

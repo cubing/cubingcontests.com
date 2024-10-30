@@ -1,5 +1,5 @@
-import { IResult } from '../types';
-import { RoundFormat, RoundType, RoundProceed } from '../enums';
+import { IResult } from "../types.ts";
+import { RoundFormat, RoundProceed, RoundType } from "../enums.ts";
 
 export interface ITimeLimit {
   centiseconds: number;
@@ -28,4 +28,12 @@ export interface IRound {
   // This is only set if it's not the final round
   proceed?: IProceed;
   results: IResult[]; // this is an empty array until results are posted
+}
+
+export interface IRoundFormat {
+  value: RoundFormat;
+  label: string;
+  shortLabel: string;
+  attempts: number;
+  isAverage: boolean;
 }

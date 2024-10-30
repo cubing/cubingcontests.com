@@ -15,12 +15,12 @@ const FormCheckbox = ({
   noMargin?: boolean;
   small?: boolean;
 }) => {
-  if (!id && !title) throw new Error('Neither title nor id are set in FormCheckbox!');
+  if (!id && !title) throw new Error("Neither title nor id are set in FormCheckbox!");
 
   const inputId = `${id || title}_checkbox`;
 
   return (
-    <div className={`form-check ${noMargin ? '' : ' mb-3'}`}>
+    <div className={`form-check ${noMargin ? "" : " mb-3"}`}>
       <input
         className="form-check-input"
         id={inputId}
@@ -28,12 +28,12 @@ const FormCheckbox = ({
         checked={selected}
         onChange={() => setSelected(!selected)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') e.preventDefault();
+          if (e.key === "Enter") e.preventDefault();
         }}
         disabled={disabled}
       />
       {title && (
-        <label className={`form-check-label ${small ? 'fs-6' : 'fs-5'}`} htmlFor={inputId}>
+        <label className={`form-check-label ${small ? "fs-6" : "fs-5"}`} htmlFor={inputId}>
           {title}
         </label>
       )}

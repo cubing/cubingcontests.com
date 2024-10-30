@@ -1,34 +1,43 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "plugins": [
       {
         "name": "next"
       }
     ],
     "allowJs": true,
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
     "noImplicitAny": true,
-    "strictNullChecks": false,
     "baseUrl": "./",
     "paths": {
-      "~/*": ["./*"],
-      "@/*": ["./app/*"],
-      "@sh/*": ["./shared_helpers/*"],
-      "@c/*": ["./app/components/*"]
+      "~/*": [
+        "./*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "react-datepicker.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "react-datepicker.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
