@@ -27,25 +27,20 @@ const ModeratorDashboardPage = () => {
   const [adminStats, setAdminStats] = useState<IAdminStats>();
   const [showAnalytics, setShowAnalytics] = useState(false);
 
-  const pendingContests = contests?.filter(
-    (c: IContest) =>
-      c.state === ContestState.Created ||
-      (c.state > ContestState.Approved && c.state < ContestState.Published),
+  const pendingContests = contests?.filter((c: IContest) =>
+    c.state === ContestState.Created ||
+    (c.state > ContestState.Approved && c.state < ContestState.Published)
   ).length ?? 0;
 
   useEffect(() => {
-    myFetch.get("/competitions/mod", { authorize: true }).then(
-      ({ payload, errors }) => {
-        if (!errors) setContests(payload);
-      },
-    );
+    myFetch.get("/competitions/mod", { authorize: true }).then(({ payload, errors }) => {
+      if (!errors) setContests(payload);
+    });
 
     if (userInfo?.isAdmin) {
-      myFetch.get("/admin-stats", { authorize: true }).then(
-        ({ payload, errors }) => {
-          if (!errors) setAdminStats(payload);
-        },
-      );
+      myFetch.get("/admin-stats", { authorize: true }).then(({ payload, errors }) => {
+        if (!errors) setAdminStats(payload);
+      });
     }
   }, []);
 
@@ -60,9 +55,7 @@ const ModeratorDashboardPage = () => {
       { loadingId: `set_state_${newState}_${competitionId}_button` },
     );
 
-    if (!errors) {
-      setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
-    }
+    if (!errors) setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
   };
 
   return (
@@ -73,47 +66,27 @@ const ModeratorDashboardPage = () => {
 
       <div className="px-2">
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">
-          <Link
-            href="/mod/competition"
-            className="btn btn-success btn-sm btn-lg-md"
-          >
+          <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
             Create new contest
           </Link>
-          <Link
-            href="/mod/competitors"
-            className="btn btn-warning btn-sm btn-lg-md"
-          >
+          <Link href="/mod/competitors" className="btn btn-warning btn-sm btn-lg-md">
             Manage competitors
           </Link>
           {userInfo?.isAdmin && (
             <>
-              <Link
-                href="/admin/results"
-                className="btn btn-warning btn-sm btn-lg-md"
-              >
+              <Link href="/admin/results" className="btn btn-warning btn-sm btn-lg-md">
                 Manage results
               </Link>
-              <Link
-                href="/admin/users"
-                className="btn btn-warning btn-sm btn-lg-md"
-              >
+              <Link href="/admin/users" className="btn btn-warning btn-sm btn-lg-md">
                 Manage users
               </Link>
-              {
-                /* <Link href="/admin/import-export" className="btn btn-warning btn-sm btn-lg-md">
-                Import/Export
-              </Link> */
-              }
-              <Link
-                href="/admin/events"
-                className="btn btn-secondary btn-sm btn-lg-md"
-              >
+              <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure events
               </Link>
               {
                 /* <Link href="/admin/record-types" className="btn btn-secondary btn-sm btn-lg-md">
-                Configure record types
-              </Link> */
+                  Configure record types
+                </Link> */
               }
             </>
           )}
@@ -198,9 +171,7 @@ const ModeratorDashboardPage = () => {
 
                   return (
                     <tr key={contest.competitionId}>
-                      <td>
-                        {getFormattedDate(contest.startDate, contest.endDate)}
-                      </td>
+                      <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                       <td>
                         <Link
                           href={`/competitions/${contest.competitionId}`}
@@ -217,7 +188,6 @@ const ModeratorDashboardPage = () => {
                         <ContestTypeBadge type={contest.type} brief />
                       </td>
                       <td>{contest.participants || ""}</td>
-
                       <td>
                         {contest.state === ContestState.Removed
                           ? <span className="text-danger">Removed</span>

@@ -27,7 +27,11 @@ export const metadata = {
   },
 };
 
-const RecordsPage = async ({ params }: { params: { category: string } }) => {
+type Props = {
+  params: { category: string };
+};
+
+const RecordsPage = async ({ params }: Props) => {
   const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await ssrFetch("/results/records/WR", {
     revalidate: C.rankingsRev,
   });
@@ -51,7 +55,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
     <div>
       <h2 className="mb-4 text-center">Records</h2>
 
-      {!recordsByEvent || recordsByEvent.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
+      {recordsByEvent.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
         <>
           <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
 
@@ -71,12 +75,7 @@ const RecordsPage = async ({ params }: { params: { category: string } }) => {
               ({ event, rankings }: IEventRankings) => {
                 return (
                   <div key={event.eventId} className="mb-3">
-                    <EventTitle
-                      event={event}
-                      showIcon
-                      linkToRankings
-                      showDescription
-                    />
+                    <EventTitle event={event} showIcon linkToRankings showDescription />
 
                     {/* MOBILE VIEW */}
                     <div className="d-lg-none mt-2 mb-4 border-top border-bottom">

@@ -1,6 +1,5 @@
 import { MultiChoiceOption } from "./types.ts";
 import { Color, ContestType, EventFormat, RoundProceed } from "~/shared_helpers/enums.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 import { eventCategories } from "./eventCategories.ts";
 
 export const colorOptions: MultiChoiceOption[] = [
@@ -84,11 +83,9 @@ export const eventFormatOptions: MultiChoiceOption[] = [
   },
 ];
 
-export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((
-  el,
-) => ({
-  label: el.title,
-  value: el.group,
+export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((ec) => ({
+  label: ec.title,
+  value: ec.group,
 }));
 
 export const cutoffAttemptsOptions: MultiChoiceOption[] = [

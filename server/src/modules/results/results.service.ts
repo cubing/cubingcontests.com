@@ -624,12 +624,10 @@ export class ResultsService {
 
       await this.updateFutureRecords(createdResult, event, recordPairs, { mode: "create" });
     } else {
-      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${
-        getFormattedTime(
-          createdResult.best,
-          { event, showMultiPoints: true, showDecimals: true },
-        )
-      }`;
+      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${getFormattedTime(
+        createdResult.best,
+        { event, showMultiPoints: true, showDecimals: true },
+      )}`;
       if (createdResult.regionalSingleRecord) text += ` (${createdResult.regionalSingleRecord})`;
       if (createdResult.average > 0) {
         text += `, average: ${getFormattedTime(createdResult.average)}`;

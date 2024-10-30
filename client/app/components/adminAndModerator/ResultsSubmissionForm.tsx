@@ -83,9 +83,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
         { authorize: true, loadingId: null },
       );
 
-      if (!errors) {
-        setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload } as IResultsSubmissionInfo);
-      }
+      if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload } as IResultsSubmissionInfo);
       changeLoadingId("");
     }, C.fetchDebounceTimeout),
     [submissionInfo],
@@ -276,11 +274,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
               <div className="alert alert-warning mb-4" role="alert">
                 Some events now require evidence of the scramble being applied. Please make sure you follow rule 5!
               </div>
-              <button
-                type="button"
-                className="btn btn-success btn-sm"
-                onClick={() => setShowRules(!showRules)}
-              >
+              <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? "Hide rules" : "Show rules"}
               </button>
               {showRules && (
@@ -299,9 +293,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
                     time (an exception can be made for team events with 5+ participants). Penalty for an early start:
                     +2.
                   </p>
-                  <p>
-                    4. If you're submitting a Mean of 3, there must be no cuts between the solves.
-                  </p>
+                  <p>4. If you're submitting a Mean of 3, there must be no cuts between the solves.</p>
                   <p>
                     5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was
                     generated and applied. Scrambles must be generated with <ExternalLink to="cstimer" /> or{" "}

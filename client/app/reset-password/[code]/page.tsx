@@ -6,9 +6,11 @@ import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 
-const ResetPasswordPage = (
-  { params: { code } }: { params: { code: string } },
-) => {
+type Props = {
+  params: { code: string };
+};
+
+const ResetPasswordPage = ({ params: { code } }: Props) => {
   const myFetch = useMyFetch();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
 
@@ -21,9 +23,7 @@ const ResetPasswordPage = (
 
     if (!password) tempErrors.push("Please enter a password");
     else if (!passwordRepeat) tempErrors.push("Please confirm your password");
-    else if (passwordRepeat !== password) {
-      tempErrors.push("The entered passwords do not match");
-    }
+    else if (passwordRepeat !== password) tempErrors.push("The entered passwords do not match");
 
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);

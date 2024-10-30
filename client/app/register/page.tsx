@@ -23,9 +23,7 @@ const RegisterPage = () => {
     if (!email) tempErrors.push("Please enter an email address");
     if (!password) tempErrors.push("Please enter a password");
     else if (!passwordRepeat) tempErrors.push("Please confirm your password");
-    else if (passwordRepeat !== password) {
-      tempErrors.push("The entered passwords do not match");
-    }
+    else if (passwordRepeat !== password) tempErrors.push("The entered passwords do not match");
 
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
@@ -36,9 +34,7 @@ const RegisterPage = () => {
         { authorize: false, loadingId: "form_submit_button" },
       );
 
-      if (!errors) {
-        window.location.href = `/register/confirm-email?username=${username}`;
-      }
+      if (!errors) window.location.href = `/register/confirm-email?username=${username}`;
     }
   };
 
@@ -47,20 +43,8 @@ const RegisterPage = () => {
       <h2 className="mb-4 text-center">Register</h2>
 
       <Form buttonText="Register" onSubmit={handleSubmit}>
-        <FormTextInput
-          title="Username"
-          value={username}
-          setValue={setUsername}
-          nextFocusTargetId="email"
-          autoFocus
-        />
-        <FormTextInput
-          id="email"
-          title="Email"
-          value={email}
-          setValue={setEmail}
-          nextFocusTargetId="password"
-        />
+        <FormTextInput title="Username" value={username} setValue={setUsername} nextFocusTargetId="email" autoFocus />
+        <FormTextInput id="email" title="Email" value={email} setValue={setEmail} nextFocusTargetId="password" />
         <FormTextInput
           id="password"
           title="Password"
@@ -79,10 +63,7 @@ const RegisterPage = () => {
         />
       </Form>
 
-      <div
-        className="container mt-4 mx-auto px-3 fs-5"
-        style={{ maxWidth: "768px" }}
-      >
+      <div className="container mt-4 mx-auto px-3 fs-5" style={{ maxWidth: "768px" }}>
         <Link href="/login">Log in</Link>
       </div>
     </div>

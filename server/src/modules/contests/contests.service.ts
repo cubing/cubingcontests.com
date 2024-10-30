@@ -21,7 +21,7 @@ import {
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "@sh/types";
+import { IContest, IContestData, IContestDto, IContestEvent, IResult, ISchedule } from "@sh/types";
 import { ContestState, ContestType, EventGroup } from "@sh/enums";
 import { Role } from "@sh/enums";
 import { getDateOnly, getIsCompType, getIsOtherActivity, getTotalRounds } from "@sh/sharedFunctions";
@@ -70,10 +70,9 @@ export class ContestsService {
           this.logger.error(`Error: schedule has no contest: ${JSON.stringify(s)}`);
         } else if (contests.length > 1) {
           this.logger.error(
-            `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${
-              contests
-                .map((c) => c.competitionId)
-                .join(", ")
+            `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${contests
+              .map((c) => c.competitionId)
+              .join(", ")
             }`,
           );
         } else {
@@ -110,10 +109,8 @@ export class ContestsService {
 
                 // Check that no activity is outside of the date range of the contest
                 if (startTime < contest.startDate || endTime >= addDays(contest.endDate, 1)) {
-                  this.logger.error(
-                    `Error: activity ${
-                      JSON.stringify(activity)
-                    } is outside of the date range of the contest ${contest.competitionId}`,
+                  this.logger.error(`Error: activity ${JSON.stringify(activity)} is outside of the date range of the contest ${
+                    contest.competitionId}`,
                   );
                 }
 

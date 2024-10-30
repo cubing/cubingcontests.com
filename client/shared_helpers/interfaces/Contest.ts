@@ -41,10 +41,7 @@ export interface IContest {
   meetupDetails?: IMeetupDetails; // meetup-only
 }
 
-export type IContestDto = Omit<
-  IContest,
-  "createdBy" | "state" | "participants"
->;
+export type IContestDto = Omit<IContest, "createdBy" | "state" | "participants">;
 
 // IMPORTANT: if this is ever to be changed, pay attention to the updateContestEvents function in the contests service
 export interface IContestEvent {

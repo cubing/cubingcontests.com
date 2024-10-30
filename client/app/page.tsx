@@ -21,25 +21,13 @@ const Home = () => {
       </p>
 
       <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
-        <Link
-          href="/competitions"
-          prefetch={false}
-          className="cc-homepage-link btn btn-primary"
-        >
+        <Link href="/competitions" prefetch={false} className="cc-homepage-link btn btn-primary">
           See all contests
         </Link>
-        <Link
-          href="/records"
-          prefetch={false}
-          className="cc-homepage-link btn btn-primary"
-        >
+        <Link href="/records" prefetch={false} className="cc-homepage-link btn btn-primary">
           See current records
         </Link>
-        <Link
-          href="/rankings"
-          prefetch={false}
-          className="cc-homepage-link btn btn-primary"
-        >
+        <Link href="/rankings" prefetch={false} className="cc-homepage-link btn btn-primary">
           See rankings
         </Link>
       </div>

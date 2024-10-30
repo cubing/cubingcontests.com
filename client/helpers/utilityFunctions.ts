@@ -31,10 +31,10 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
 // Returns null if the time is invalid
 const getCentiseconds = (
   time: string, // the time string without formatting (e.g. 1:35.97 should be "13597")
-  { round = true, throwErrorWhenInvalidTime = false }: {
-    round?: boolean;
-    throwErrorWhenInvalidTime?: boolean;
-  } = { round: true, throwErrorWhenInvalidTime: false },
+  { round = true, throwErrorWhenInvalidTime = false }: { round?: boolean; throwErrorWhenInvalidTime?: boolean } = {
+    round: true,
+    throwErrorWhenInvalidTime: false,
+  },
 ): number | null => {
   if (time === "") return 0;
 
@@ -72,13 +72,7 @@ export const getAttempt = (
   attempt: IFeAttempt,
   event: IEvent,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
-  {
-    roundTime = false,
-    roundMemo = false,
-    solved,
-    attempted,
-    memo,
-  }: {
+  { roundTime = false, roundMemo = false, solved, attempted, memo }: {
     roundTime?: boolean;
     roundMemo?: boolean;
     // These three parameters are optional if the event format is Number
@@ -110,11 +104,8 @@ export const getAttempt = (
     const maxTime = Math.min(attempted, 6) * 60000 + attempted * 200; // accounts for +2s
 
     // Disallow submitting multi times > max time, and <= 1 hour for old style
-    if (event.eventId === "333mbf" && newAttempt.result > maxTime) {
-      return { ...newAttempt, result: null };
-    } else if (event.eventId === "333mbo" && newAttempt.result <= 360000) {
-      return { ...newAttempt, result: null };
-    }
+    if (event.eventId === "333mbf" && newAttempt.result > maxTime) return { ...newAttempt, result: null };
+    else if (event.eventId === "333mbo" && newAttempt.result <= 360000) return { ...newAttempt, result: null };
 
     // See the IResult interface for information about how this works
     let multiOutput = ""; // DDDDTTTTTTTMMMM
@@ -192,18 +183,11 @@ export const getContestIdFromName = (name: string): string => {
   return output;
 };
 
-export const genericOnKeyDown = (
-  e: any,
-  {
-    nextFocusTargetId,
-    onKeyDown,
-    submitOnEnter,
-  }: {
-    nextFocusTargetId?: string;
-    onKeyDown?: (e: any) => void;
-    submitOnEnter?: boolean;
-  },
-) => {
+export const genericOnKeyDown = (e: any, { nextFocusTargetId, onKeyDown, submitOnEnter }: {
+  nextFocusTargetId?: string;
+  onKeyDown?: (e: any) => void;
+  submitOnEnter?: boolean;
+}) => {
   if (e.key === "Enter") {
     if (!submitOnEnter) e.preventDefault();
     if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
@@ -245,7 +229,7 @@ export const getIsWebglSupported = (): boolean => {
     const webglContext = canvas.getContext("webgl");
     const webglExperimentalContext = canvas.getContext("experimental-webgl");
 
-    return !!(window.WebGLRenderingContext && webglContext && webglExperimentalContext);
+    return !!window.WebGLRenderingContext && !!webglContext && !!webglExperimentalContext;
   } catch (_e) {
     return false;
   }

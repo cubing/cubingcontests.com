@@ -62,9 +62,7 @@ export const doFetch = async <T = any>(
     res = await fetch(url, options);
   } catch (err: any) {
     console.error(err);
-    return {
-      errors: [err?.message || `Unknown error while fetching from ${url}`],
-    };
+    return { errors: [err?.message || `Unknown error while fetching from ${url}`] };
   }
 
   // Get JSON, if it was returned. KEEP IN MIND THAT THE .json ENDPOINTS RETURN TEXT AND DON'T SET 400 STATUSES.

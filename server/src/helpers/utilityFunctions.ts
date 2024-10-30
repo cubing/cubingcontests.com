@@ -22,9 +22,7 @@ export const setRoundRankings = async (
 ): Promise<ResultDocument[]> => {
   if (results.length === 0) return results;
 
-  const sortedResults = results.sort(
-    ranksWithAverage ? compareAvgs : compareSingles,
-  );
+  const sortedResults = results.sort(ranksWithAverage ? compareAvgs : compareSingles);
   let prevResult = sortedResults[0];
   let ranking = 1;
 
@@ -46,10 +44,7 @@ export const setRoundRankings = async (
   return sortedResults;
 };
 
-export const setRankings = async (
-  results: ResultDocument[],
-  ranksWithAverage: boolean,
-): Promise<ResultDocument[]> => {
+export const setRankings = async (results: ResultDocument[], ranksWithAverage: boolean): Promise<ResultDocument[]> => {
   if (results.length === 0) return results;
 
   let prevResult = results[0];
@@ -59,10 +54,7 @@ export const setRankings = async (
     // If the previous result was not tied with this one, increase ranking
     if (
       i > 0 &&
-      ((ranksWithAverage &&
-        compareAvgs({ average: prevResult.average }, {
-            average: results[i].average,
-          }) < 0) ||
+      ((ranksWithAverage && compareAvgs({ average: prevResult.average }, { average: results[i].average }) < 0) ||
         (!ranksWithAverage && compareSingles(prevResult, results[i]) < 0))
     ) {
       ranking = i + 1;
@@ -81,19 +73,14 @@ export const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => {
 };
 
 export const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => {
-  const output: any = {
-    eventId: event.eventId,
-    average,
-    attempts: { $size: getDefaultAverageAttempts(event) },
-  };
+  const output: any = { eventId: event.eventId, average, attempts: { $size: getDefaultAverageAttempts(event) } };
   return output;
 };
 
 export const getUserEmailVerified = (user: IUser) => user.confirmationCodeHash === undefined && !user.cooldownStarted;
 
-export const importEsmModule = async <T = any>(
-  moduleName: string,
-): Promise<T> => await (eval(`import('${moduleName}')`) as Promise<T>);
+export const importEsmModule = async <T = any>(moduleName: string): Promise<T> =>
+  await (eval(`import('${moduleName}')`) as Promise<T>);
 
 export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
   formatVersion: "1.0",
@@ -116,10 +103,7 @@ const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
     {
       id: "TEMPORARY",
       specUrl: "",
-      data: {
-        name: contestEvent.event.name,
-        participants: contestEvent.event.participants,
-      },
+      data: { name: contestEvent.event.name, participants: contestEvent.event.participants },
     },
   ],
 });

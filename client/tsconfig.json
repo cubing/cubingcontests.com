@@ -14,7 +14,6 @@
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "strict": true,
-    "noImplicitAny": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -23,6 +22,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "noImplicitAny": true,
     "baseUrl": "./",
     "paths": {
       "~/*": [

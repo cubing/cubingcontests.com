@@ -8,11 +8,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 
 const RequestPasswordResetPage = () => {
   const myFetch = useMyFetch();
-  const {
-    changeErrorMessages,
-    changeSuccessMessage,
-    resetMessagesAndLoadingId,
-  } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [email, setEmail] = useState("");
 

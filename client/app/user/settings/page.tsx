@@ -20,11 +20,9 @@ const UserSettingsPage = () => {
   const filteredRoles: Role[] = user?.roles.filter((r: Role) => r !== Role.User) ?? [];
 
   useEffect(() => {
-    myFetch.get("/users/details", { authorize: true }).then(
-      ({ payload, errors }) => {
-        if (!errors) setUser(payload);
-      },
-    );
+    myFetch.get("/users/details", { authorize: true }).then(({ payload, errors }) => {
+      if (!errors) setUser(payload);
+    });
   }, []);
 
   const deleteUser = async () => {
@@ -73,11 +71,7 @@ const UserSettingsPage = () => {
             </p>
           )}
 
-          <Button
-            id="delete_account_button"
-            onClick={deleteUser}
-            className="mt-4 btn-danger btn-sm"
-          >
+          <Button id="delete_account_button" onClick={deleteUser} className="mt-4 btn-danger btn-sm">
             Delete Account
           </Button>
           <p className="mt-2" style={{ fontSize: "0.85rem" }}>

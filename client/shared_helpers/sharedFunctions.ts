@@ -64,9 +64,7 @@ export const setResultRecords = (
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
-      if (
-        result.attempts.length === roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.attempts
-      ) {
+      if (result.attempts.length === roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.attempts) {
         const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average });
 
         if (result.average > 0 && comparisonToRecordAvg <= 0) {
@@ -154,8 +152,7 @@ export const getFormattedTime = (
     // Only times under ten minutes can have decimals, or if noFormatting = true, or if it's an event that always
     // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
     if (
-      ((hours === 0 && minutes < 10) || noFormatting ||
-        (event && getAlwaysShowDecimals(event) && time < 360000)) &&
+      ((hours === 0 && minutes < 10) || noFormatting || (event && getAlwaysShowDecimals(event) && time < 360000)) &&
       showDecimals
     ) {
       output += seconds.toFixed(2);
@@ -169,8 +166,7 @@ export const getFormattedTime = (
     } else {
       if (time < 0) timeStr = timeStr.replace("-", "");
 
-      const points = (time < 0 ? -1 : 1) *
-        (9999 - parseInt(timeStr.slice(0, -11)));
+      const points = (time < 0 ? -1 : 1) * (9999 - parseInt(timeStr.slice(0, -11)));
       const missed = parseInt(timeStr.slice(timeStr.length - 4));
       const solved = points + missed;
 
@@ -220,9 +216,7 @@ export const getBestAndAverage = (
 
   if (!makesCutoff || expectedAttempts < 3 || enteredAttempts < expectedAttempts) {
     average = 0;
-  } else if (
-    dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== RoundFormat.Average)
-  ) {
+  } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== RoundFormat.Average)) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
@@ -241,14 +235,12 @@ export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean =>
   [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
 
 export const getDefaultAverageAttempts = (event: IEvent) => {
-  const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat);
-  if (!roundFormat) throw new Error("Round format not found");
+  const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
   return roundFormat.attempts === 5 ? 5 : 3;
 };
 
 export const getAlwaysShowDecimals = (event: IEvent): boolean =>
-  event.groups.includes(EventGroup.ExtremeBLD) &&
-  event.format !== EventFormat.Multi;
+  event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
 
 export const getIsCompType = (contestType: ContestType): boolean =>
   [ContestType.WcaComp, ContestType.Competition].includes(contestType);
@@ -271,9 +263,7 @@ export const getRoleLabel = (role: Role): string => {
   }
 };
 
-export const fetchWcaPerson = async (
-  wcaId: string,
-): Promise<IPersonDto | undefined> => {
+export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefined> => {
   const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
 
   if (response.ok) {
@@ -296,9 +286,6 @@ export const fetchWcaPerson = async (
 export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
 
 export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
-  contestEvents.map((ce) => ce.rounds.length).reduce(
-    (prev, curr) => prev + curr,
-    0,
-  );
+  contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
 
 export const getSimplifiedString = (input: string): string => removeAccents(input.toLocaleLowerCase());
