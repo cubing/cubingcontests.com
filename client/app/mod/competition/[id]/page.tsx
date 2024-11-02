@@ -14,10 +14,10 @@ type Props = {
 const PostResultsPage = ({ params: { id }, searchParams: { eventId } }: Props) => {
   const myFetch = useMyFetch();
 
-  const [contestData, setContestData] = useState<IContestData>();
+  const [contestData, setContestData] = useState<IContestData | undefined>();
 
   useEffect(() => {
-    setContestData();
+    setContestData(undefined);
     myFetch.get(`/competitions/mod/${id}?eventId=${eventId ?? "FIRST_EVENT"}`, { authorize: true })
       .then(({ payload, errors }) => {
         if (!errors) setContestData(payload as IContestData);
