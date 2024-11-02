@@ -16,8 +16,8 @@ fi
 if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   echo -e "\nPushing to Dockerhub"
   docker login -u denimint
-  # Remove all images that contain "cubingcontests" (DISABLING THIS TO SEE IF IT WOULD JUST DO AN OVERWRITE CORRECTLY!)
-  # docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
+  # Remove old images
+  docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
   docker build --build-arg API_BASE_URL="$CLIENT_ARG_API_BASE_URL" \
                --build-arg API_BASE_URL_SERVER_SIDE="$CLIENT_ARG_API_BASE_URL_SERVER_SIDE" \
