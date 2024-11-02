@@ -17,15 +17,16 @@ const PostResultsPage = ({ params: { id }, searchParams: { eventId } }: Props) =
   const [contestData, setContestData] = useState<IContestData>();
 
   useEffect(() => {
+    setContestData();
     myFetch.get(`/competitions/mod/${id}?eventId=${eventId ?? "FIRST_EVENT"}`, { authorize: true })
       .then(({ payload, errors }) => {
         if (!errors) setContestData(payload as IContestData);
       });
-  }, [id]);
+  }, [id, eventId]);
 
-  if (contestData) return <DataEntryScreen compData={contestData} />;
+  if (!contestData) return <Loading />;
 
-  return <Loading />;
+  return <DataEntryScreen compData={contestData} />;
 };
 
 export default PostResultsPage;

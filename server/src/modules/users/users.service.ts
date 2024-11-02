@@ -249,6 +249,7 @@ export class UsersService {
   }
 
   async resetPassword(email: string, code: string, newPassword: string) {
+    // email = 
     const user = await this.userModel.findOne({ email, passwordResetCodeHash: { $exists: true } }).exec();
 
     if (user) {

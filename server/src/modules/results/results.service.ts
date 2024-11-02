@@ -1001,7 +1001,7 @@ export class ResultsService {
     }
     // There is a time zone that's 14 hours ahead of UTC, hence the 15 hour margin here
     if (differenceInHours(result.date, new Date()) > 15) {
-      throw new BadRequestException("The date cannot be in the future");
+      throw new BadRequestException(round ? "You may not enter results for a round in the future" : "The date cannot be in the future");
     }
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,

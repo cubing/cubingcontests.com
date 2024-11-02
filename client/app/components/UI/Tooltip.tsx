@@ -13,6 +13,8 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
   const [isBelowTarget, setIsBelowTarget] = useState(true);
 
   useEffect(() => {
+    repositionTooltip();
+
     window.addEventListener("resize", repositionTooltip);
     window.addEventListener("scrollend", repositionTooltip);
 
@@ -22,14 +24,14 @@ const Tooltip = ({ id, text }: { id: string; text: string }) => {
     };
   }, []);
 
-  useEffect(() => {
-    repositionTooltip();
-  }, []);
-
   // Limits the tooltip's horizontal position so that it doesn't go beyond the edge of the screen
   const repositionTooltip = () => {
     const tooltipDiv = document.getElementById(id);
-    if (!tooltipDiv?.parentElement) throw new Error(`Unable to find the parent of element with id ${id}`);
+
+    if (!tooltipDiv?.parentElement) {
+      console.error(`Unable to find the parent of element with id ${id}`);
+      return;
+    }
 
     // The parent has no width, so it's a good reference point to do the calculations off of
     const parentBounds = tooltipDiv.parentElement.getBoundingClientRect();
