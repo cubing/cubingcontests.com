@@ -999,8 +999,7 @@ export class ResultsService {
     if (result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2))) {
       throw new BadRequestException("You cannot enter the same person twice in the same result");
     }
-    // There is a time zone that's 14 hours ahead of UTC, hence the 15 hour margin here
-    if (differenceInHours(result.date, new Date()) > 15) {
+    if (differenceInHours(result.date, new Date()) > 36) {
       throw new BadRequestException(round ? "You may not enter results for a round in the future" : "The date cannot be in the future");
     }
 
