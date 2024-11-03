@@ -16,6 +16,7 @@ import Country from "~/app/components/Country.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
+import ExternalLink from "~/app/components/ExternalLink.tsx";
 
 const userInfo: UserInfo = getUserInfo();
 
@@ -63,6 +64,11 @@ const ModeratorDashboardPage = () => {
       <h2 className="mb-4 text-center">Moderator Dashboard</h2>
 
       <ToastMessages />
+
+      <div className="alert alert-secondary mb-4" role="alert">
+        We now have a Cubing Contests Discord server!{" "}
+        <a href="https://discord.gg/h2ByZhac" target="_blank">Click here to join</a>.
+      </div>
 
       <div className="px-2">
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">

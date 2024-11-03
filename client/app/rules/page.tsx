@@ -41,7 +41,7 @@ const RulesPage = () => {
           <>
             <ol className="ps-3 lh-lg">
               <li>
-                The <ExternalLink to="wca-regulations" /> must be followed wherever possible.
+                The <ExternalLink href="wca-regulations" /> must be followed wherever possible.
               </li>
               <li>
                 Judges and equipment (i.e. timers, stopwatches, sight blockers, etc.) are required for unofficial events
@@ -49,7 +49,7 @@ const RulesPage = () => {
               </li>
               <li>Gen 2 timers are allowed in addition to the timers allowed for WCA competitions.</li>
               <li>
-                <ExternalLink to="cubingjs" /> or <ExternalLink to="cstimer" />{" "}
+                <ExternalLink href="cubingjs" /> or <ExternalLink href="cstimer" />{" "}
                 scrambles must be used for twisty puzzle events. In particular, random-state scrambles must be used for
                 a puzzle, if available.
               </li>

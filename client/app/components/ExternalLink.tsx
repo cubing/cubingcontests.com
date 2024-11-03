@@ -1,21 +1,21 @@
 type Props = {
-  to: "wca" | "wca-regulations" | "cubingjs" | "cstimer";
+  href: "wca" | "wca-regulations" | "cubingjs" | "cstimer";
 };
 
-const ExternalLink = ({ to }: Props) => {
-  if (to === "wca") {
+const ExternalLink = ({ href }: Props) => {
+  if (href === "wca") {
     return <a href="https://www.worldcubeassociation.org/" target="_blank">WCA</a>;
   }
 
-  if (to === "wca-regulations") {
+  if (href === "wca-regulations") {
     return <a href="https://www.worldcubeassociation.org/regulations/full/" target="_blank">WCA Regulations</a>;
   }
 
-  if (to === "cubingjs") {
+  if (href === "cubingjs") {
     return <a href="https://experiments.cubing.net/cubing.js/mark3/" target="_blank">cubing.js</a>;
   }
 
-  if (to === "cstimer") {
+  if (href === "cstimer") {
     return <a href="https://cstimer.net/" target="_blank">csTimer</a>;
   }
 };
