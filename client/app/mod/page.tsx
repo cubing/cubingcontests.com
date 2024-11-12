@@ -61,16 +61,16 @@ const ModeratorDashboardPage = () => {
 
   return (
     <div>
-      <h2 className="mb-4 text-center">Moderator Dashboard</h2>
-
-      <ToastMessages />
-
-      <div className="alert alert-secondary mb-4" role="alert">
-        We now have a Cubing Contests Discord server!{" "}
-        <a href="https://discord.gg/h2ByZhac" target="_blank">Click here to join</a>.
-      </div>
-
       <div className="px-2">
+        <h2 className="mb-4 text-center">Moderator Dashboard</h2>
+
+        <ToastMessages />
+
+        <div className="alert alert-secondary mb-4" role="alert">
+          We now have a Cubing Contests Discord server!{" "}
+          <a href="https://discord.gg/7rRMQA8jnU" target="_blank">Click here to join</a>.
+        </div>
+
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">
           <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
             Create new contest
@@ -151,6 +151,7 @@ const ModeratorDashboardPage = () => {
           </>
         )}
       </div>
+
       {!contests
         ? <Loading />
         : contests.length === 0
