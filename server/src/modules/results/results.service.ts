@@ -289,7 +289,7 @@ export class ResultsService {
           .exec();
 
         for (const pr of prSingles) {
-          const result = await this.resultModel.findOne({ personIds: pr._id.personId, best: pr.best }, excl).exec();
+          const result = await this.resultModel.findOne({ ...$match, personIds: pr._id.personId, best: pr.best }, excl).exec();
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
@@ -343,7 +343,7 @@ export class ResultsService {
           .exec();
 
         for (const pr of prAverages) {
-          const result = await this.resultModel.findOne({ personIds: pr._id.personId, average: pr.average }).exec();
+          const result = await this.resultModel.findOne({ ...$match, personIds: pr._id.personId, average: pr.average }).exec();
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
