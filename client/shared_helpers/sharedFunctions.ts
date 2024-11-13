@@ -64,7 +64,7 @@ export const setResultRecords = (
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
-      if (result.attempts.length === roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.attempts) {
+      if (result.attempts.length === getDefaultAverageAttempts(event)) {
         const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average });
 
         if (result.average > 0 && comparisonToRecordAvg <= 0) {
