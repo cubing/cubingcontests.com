@@ -13,7 +13,7 @@ import { RoundDocument } from "~/src/models/round.model";
 import { ContestDocument, ContestEvent } from "~/src/models/contest.model";
 import { PersonDto } from "./dto/person.dto";
 import { IFePerson, IPersonDto, IWcaPersonDto } from "@sh/types";
-import { fetchWcaPerson, getSimplifiedString } from "@sh/sharedFunctions";
+import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "@sh/sharedFunctions";
 import { Role } from "@sh/enums";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import { MyLogger } from "@m/my-logger/my-logger.service";
@@ -278,24 +278,20 @@ export class PersonsService {
     if (!person) throw new NotFoundException("Person not found");
     if (!person.unapproved) throw new BadRequestException(`${person.name} has already been approved`);
 
-    person.unapproved = undefined;
-    await person.save();
-
+    await this.setPersonToApproved(person, true);
     return this.getFrontendPerson(person);
   }
 
-  // Returns array of competitors who couldn't be approved
+  // Returns array of persons who couldn't be approved
   async approvePersons({
     personIds,
     competitionId,
-    wcaCompData,
   }: {
     personIds?: number[];
     competitionId?: string;
-    wcaCompData?: unknown[];
   }) {
-    const competitors = personIds
-      ? await this.getPersonsByPersonIds(personIds)
+    const persons = personIds
+      ? await this.getPersonsByPersonIds(personIds, { unapprovedOnly: true })
       : await this.getContestParticipants({ competitionId, unapprovedOnly: true });
     const message = competitionId
       ? `Approving unapproved persons from contest with ID ${competitionId}`
@@ -303,29 +299,31 @@ export class PersonsService {
 
     this.logger.logAndSave(message, LogType.ApprovePersons);
 
-    for (const competitor of competitors) {
-      if (competitor.unapproved) {
-        if (!competitor.wcaId && wcaCompData) {
-          const res = await fetch(
-            `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${competitor.name}`,
-          );
-          if (res.ok) {
-            const { result: wcaPersons } = await res.json();
-            if (
-              wcaPersons?.length === 1 &&
-              wcaPersons[0].name === competitor.name &&
-              wcaPersons[0].country_iso2 === competitor.countryIso2
-            ) {
-              competitor.wcaId = wcaPersons[0].wca_id;
-            }
+    await Promise.allSettled(persons.filter(p => p.unapproved).map(p => this.setPersonToApproved(p, false)));
+  }
+
+  private async setPersonToApproved(person: PersonDocument, expectNoWcaId: boolean) {
+    if (!person.wcaId) {
+      const res = await fetch(`https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`);
+      if (res.ok) {
+        const { result: wcaPersons } = await res.json();
+        if (wcaPersons?.length === 1) {
+          const wcaPerson = wcaPersons[0];
+          const [name, localizedName] = getNameAndLocalizedName(wcaPerson.name);
+
+          if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
+            if (expectNoWcaId)
+              throw new BadRequestException(`There is an exact name match with the WCA competitor with WCA ID ${wcaPerson.wca_id}`);
+            person.wcaId = wcaPerson.wca_id;
+            person.localizedName = localizedName;
           }
         }
-
-        if (competitor.wcaId) {
-          competitor.unapproved = undefined;
-          await competitor.save();
-        }
       }
+    }
+
+    if (expectNoWcaId || person.wcaId) {
+      person.unapproved = undefined;
+      await person.save();
     }
   }
 
@@ -339,7 +337,7 @@ export class PersonsService {
     }
 
     const sameNamePerson = await this.personModel.findOne({ ...queryBase, name: personDto.name }).exec();
-    if (sameNamePerson) throw new ConflictException("A person with the same name already exists");
+    if (sameNamePerson) throw new ConflictException("A person with the same name already exists. If it's actually a different competitor with the same name, please contact the admin team.");
   }
 
   private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | "EXT_DEVICE" } = {}): IFePerson {

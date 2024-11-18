@@ -263,20 +263,20 @@ export const getRoleLabel = (role: Role): string => {
   }
 };
 
+export const getNameAndLocalizedName = (wcaName: string): [string, string | undefined] => {
+  let [name, localizedName] = wcaName.split(" (");
+  if (localizedName) localizedName = localizedName.slice(0, -1); // remove the closing parenthesis
+  return [name, localizedName];
+};
+
 export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefined> => {
   const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
 
   if (response.ok) {
     const payload = await response.json();
 
-    const parts = payload.name.split(" (");
-    const newPerson: IPersonDto = {
-      name: parts[0],
-      localizedName: parts.length > 1 ? parts[1].slice(0, -1) : undefined,
-      wcaId,
-      countryIso2: payload.country,
-    };
-
+    const [name, localizedName] = getNameAndLocalizedName(payload.name);
+    const newPerson: IPersonDto = { name, localizedName, wcaId, countryIso2: payload.country };
     return newPerson;
   }
 
@@ -288,4 +288,4 @@ export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activ
 export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
   contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
 
-export const getSimplifiedString = (input: string): string => removeAccents(input.toLocaleLowerCase());
+export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());

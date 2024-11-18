@@ -39,7 +39,9 @@ const CreatePersonPage = () => {
 
     return persons.filter((p: IFePerson) => {
       const passesNameFilter = getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
-        (p.localizedName && getSimplifiedString(p.localizedName).includes(simplifiedSearch)); // search by localized name
+        (p.localizedName && getSimplifiedString(p.localizedName).includes(simplifiedSearch)) || // search by localized name
+        p.personId.toString() === simplifiedSearch || // search by person ID
+        (p.creator && typeof p.creator !== "string" && p.creator.username === simplifiedSearch); // search by creator username
       const passesApprovedFilter = approvedFilter === "" || (approvedFilter === "approved" && !p.unapproved) ||
         (approvedFilter === "unapproved" && p.unapproved);
       return passesNameFilter && passesApprovedFilter;
@@ -101,6 +103,8 @@ const CreatePersonPage = () => {
     );
 
     if (!errors) {
+      // CODE SMELL!!! it shouldn't be necessary to keep the old creator values, they should just be set
+      // properly in the returned array. Same issue below in updateCompetitors.
       setPersons(
         persons.map((p: IFePerson) => (p.personId === person.personId ? { ...payload, creator: p.creator } : p)),
       );
@@ -141,11 +145,13 @@ const CreatePersonPage = () => {
       {mode !== "add-once" && (
         <>
           {/* Same styling as the filters on the manage users page */}
-          <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 px-3">
+          <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 mb-3 px-3">
             <FormTextInput
               title="Search"
               value={search}
               setValue={setSearch}
+              tooltip={"Search by name, localized name, or CC ID" +
+                (userInfo?.isAdmin ? ". Admins can also search by the username of the creator." : "")}
               oneLine
             />
             <FormSelect

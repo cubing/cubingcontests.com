@@ -19,7 +19,7 @@ const FormNumberInput = ({
   min = -Infinity,
   max = Infinity,
   invalid = false,
-  noMargin = false,
+  className = "",
 }: {
   id?: string;
   title?: string;
@@ -34,8 +34,7 @@ const FormNumberInput = ({
   min?: number;
   max?: number;
   invalid?: boolean;
-  noMargin?: boolean;
-}) => {
+} & React.HTMLAttributes<HTMLElement>) => {
   if (!id && !title) {
     throw new Error("Neither title nor id are set in FormNumberInput");
   }
@@ -77,7 +76,7 @@ const FormNumberInput = ({
   };
 
   return (
-    <div className={`fs-5 ${noMargin ? "" : "mb-3"}`}>
+    <div className={`fs-5 ${className}`}>
       <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
 
       <input

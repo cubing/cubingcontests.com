@@ -319,6 +319,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
           selected={roundFormat.value}
           setSelected={(val: RoundFormat) => changeRoundFormat(val)}
           disabled={resultId !== undefined}
+          className="mb-3"
         />
         <FormPersonInputs
           title="Competitor"

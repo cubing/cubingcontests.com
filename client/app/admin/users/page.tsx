@@ -17,6 +17,7 @@ import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { InputPerson } from "~/helpers/types.ts";
+import Competitor from "~/app/components/Competitor.tsx";
 
 const ManageUsersPage = () => {
   const myFetch = useMyFetch();
@@ -172,7 +173,9 @@ const ManageUsersPage = () => {
                     <td>{virtualItem.index + 1}</td>
                     <td>{user.username}</td>
                     <td>{user.email}</td>
-                    <td>{user.person?.name}</td>
+                    <td>
+                      {user.person && <Competitor person={user.person} noFlag />}
+                    </td>
                     <td>{user.roles.map((r: Role) => capitalize(getRoleLabel(r))).join(", ")}</td>
                     <td>
                       <Button

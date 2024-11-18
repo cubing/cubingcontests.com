@@ -39,7 +39,7 @@ const UserSettingsPage = () => {
   };
 
   return (
-    <div>
+    <div className="px-2">
       <h2 className="mb-4 text-center">Settings</h2>
 
       <ToastMessages />
@@ -55,8 +55,12 @@ const UserSettingsPage = () => {
           </p>
           {user.person
             ? (
-              <p className="d-flex gap-2">
-                Your competitor profile: <Competitor person={user.person} showLocalizedName />
+              <p className="d-flex flex-wrap gap-2">
+                <span>Your competitor profile:</span>
+                <Competitor person={user.person} showLocalizedName />
+                <span>
+                  (CC ID: <b>{user.person.personId}</b>)
+                </span>
               </p>
             )
             : <p>There is no competitor profile tied to your account.</p>}
@@ -64,7 +68,7 @@ const UserSettingsPage = () => {
             <p>
               Your roles: {filteredRoles.map((r, i) => (
                 <span key={r}>
-                  {i !== 0 && <span>,</span>}
+                  {i !== 0 && <span>,&nbsp;</span>}
                   <b>{capitalize(getRoleLabel(r))}</b>
                 </span>
               ))}

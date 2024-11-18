@@ -133,7 +133,7 @@ const CreateEditEventPage = () => {
               disabled={loadingId !== ""}
               className="mb-3"
             />
-            <div className="row">
+            <div className="row mb-3">
               <div className="col">
                 <FormTextInput
                   id="event_id"
@@ -142,7 +142,6 @@ const CreateEditEventPage = () => {
                   setValue={setNewEventId}
                   nextFocusTargetId="rank"
                   disabled={(mode === "edit" && !eventIdUnlocked) || loadingId !== ""}
-                  className="mb-3"
                 />
               </div>
               <div className="col">
@@ -162,7 +161,7 @@ const CreateEditEventPage = () => {
             {mode === "edit" && (
               <FormCheckbox title="Unlock event ID" selected={eventIdUnlocked} setSelected={setEventIdUnlocked} />
             )}
-            <div className="row">
+            <div className="row mb-3">
               <div className="col">
                 <FormSelect
                   id="default_format"

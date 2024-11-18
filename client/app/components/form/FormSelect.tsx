@@ -27,14 +27,13 @@ const FormSelect = ({
   else if (title) inputId = `${title.toLowerCase().replaceAll(" ", "_")}_select`;
 
   return (
-    <div className={`fs-5 ${className || "mb-3"} ${oneLine ? "d-flex align-items-center gap-3" : ""}`} style={style}>
+    <div className={`fs-5 ${oneLine ? "d-flex align-items-center gap-3" : ""} ${className}`} style={style}>
       <FormInputLabel text={title} inputId={inputId} />
 
       <select
         id={inputId}
         value={selected}
-        onChange={(e) =>
-          setSelected(typeof selected === "string" ? e.target.value : Number(e.target.value))}
+        onChange={(e) => setSelected(typeof selected === "string" ? e.target.value : Number(e.target.value))}
         disabled={disabled}
         className={`form-select ${oneLine ? "mb-2" : ""}`} // mb-2 is to offset the bottom margin of the label
       >

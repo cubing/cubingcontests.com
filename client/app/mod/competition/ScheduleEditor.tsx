@@ -185,7 +185,7 @@ const ScheduleEditor = ({
 
         <h3 className="mb-3">Schedule</h3>
 
-        <div className="row">
+        <div className="row mb-3">
           <div className="col">
             <FormSelect
               title="Room"

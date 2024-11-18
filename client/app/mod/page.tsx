@@ -17,6 +17,7 @@ import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ExternalLink from "~/app/components/ExternalLink.tsx";
+import C from "~/shared_helpers/constants.ts";
 
 const userInfo: UserInfo = getUserInfo();
 
@@ -68,7 +69,8 @@ const ModeratorDashboardPage = () => {
 
         <div className="alert alert-secondary mb-4" role="alert">
           We now have a Cubing Contests Discord server!{" "}
-          <a href="https://discord.gg/7rRMQA8jnU" target="_blank">Click here to join</a>.
+          <a href="https://discord.gg/7rRMQA8jnU" target="_blank">Click here to join</a>. Then send your Discord
+          username in an email to {C.contactEmail} so you can be given the moderator role on the server.
         </div>
 
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">

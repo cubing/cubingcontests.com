@@ -845,7 +845,7 @@ export class ContestsService {
     // Unset unapproved from the results so that they can be included in the rankings
     await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: "" } });
 
-    await this.personsService.approvePersons({ competitionId: contest.competitionId, wcaCompData });
+    await this.personsService.approvePersons({ competitionId: contest.competitionId });
 
     // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);

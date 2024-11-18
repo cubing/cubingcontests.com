@@ -164,6 +164,7 @@ const PersonForm = ({
         setValue={changeWcaId}
         autoFocus
         disabled={loadingId !== "" || !hasWcaId}
+        className="mb-2"
       />
       <FormCheckbox
         title="Competitor doesn't have a WCA ID"
@@ -178,6 +179,7 @@ const PersonForm = ({
         setValue={setName}
         nextFocusTargetId="localized_name"
         disabled={loadingId !== "" || hasWcaId}
+        className="mb-3"
       />
       <FormTextInput
         title="Localized Name (optional)"
@@ -186,6 +188,7 @@ const PersonForm = ({
         setValue={setLocalizedName}
         nextFocusTargetId="country_iso_2"
         disabled={loadingId !== "" || hasWcaId}
+        className="mb-3"
       />
       <FormCountrySelect
         countryIso2={countryIso2}

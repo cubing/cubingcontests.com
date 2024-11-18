@@ -260,6 +260,7 @@ const DataEntryScreen = ({
               setSelected={(val: RoundType) =>
                 changeRound(currContestEvent.rounds.find((r) => r.roundTypeId === val) as IRound)}
               disabled={resultUnderEdit !== null}
+              className="mb-3"
             />
             <FormPersonInputs
               title="Competitor"

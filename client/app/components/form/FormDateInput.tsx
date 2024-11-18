@@ -22,7 +22,7 @@ const FormDateInput = ({
   setValue,
   disabled,
   nextFocusTargetId,
-  className,
+  className = "",
 }: Props & React.HTMLAttributes<HTMLElement>) => {
   const [dateText, setDateText] = useState("");
   const [position, setPosition] = useState(0);

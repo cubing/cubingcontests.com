@@ -269,7 +269,6 @@ const ContestEvents = ({
                     setSelected={(val: string) =>
                       changeRoundFormat(eventIndex, roundIndex, val as RoundFormat)}
                     disabled={round.results.length > 0}
-                    className="mb-0"
                   />
                 </div>
               </div>
@@ -344,7 +343,6 @@ const ContestEvents = ({
                     setSelected={(val: number) =>
                       changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff as ICutoff, numberOfAttempts: val })}
                     disabled={!round.cutoff || round.results.length > 0}
-                    className="mb-0"
                   />
                 </div>
               </div>
@@ -368,7 +366,6 @@ const ContestEvents = ({
                       integer
                       min={round.proceed.type === RoundProceed.Percentage ? 1 : C.minProceedNumber}
                       max={round.proceed.type === RoundProceed.Percentage ? C.maxProceedPercentage : Infinity}
-                      noMargin
                     />
                   </div>
                 </div>

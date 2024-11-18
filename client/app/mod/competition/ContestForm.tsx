@@ -602,7 +602,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 />
               </div>
               <div className="col-12 col-md-6">
-                <div className="row">
+                <div className="row mb-3">
                   <div className="col-6">
                     <FormNumberInput
                       title="Latitude"
