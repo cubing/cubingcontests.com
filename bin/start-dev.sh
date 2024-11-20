@@ -21,7 +21,8 @@ deno install
 # Copy required environment variables from .env to client/.env.development
 deno run --allow-read --allow-write ./bin/copy-env-vars.ts
 
-# This stuff is temporary. It can be removed when the backend migration is done.
+# This stuff is temporary. It can be removed when the backend migration is done. THE FIRST THREE LINES ARE THE SAME AS IN publish-new-version.sh.
+rm -rf server/shared_helpers
 cp -r client/shared_helpers server/
 find server/shared_helpers -type f -exec sed -i 's/\.ts";$/";/g' {} \;
 cd server

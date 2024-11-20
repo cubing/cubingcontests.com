@@ -32,7 +32,10 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker tag denimint/cubingcontests-server2:$new_version denimint/cubingcontests-server2:latest &&
   docker push denimint/cubingcontests-server2:$new_version &&
   docker push denimint/cubingcontests-server2:latest
-  # Legacy server container
+  # Legacy server container (first three lines copied from start-dev.sh)
+  rm -rf server/shared_helpers
+  cp -r client/shared_helpers server/
+  find server/shared_helpers -type f -exec sed -i 's/\.ts";$/";/g' {} \;
   docker build -t denimint/cubingcontests-server:$new_version --file server.Dockerfile . &&
   docker tag denimint/cubingcontests-server:$new_version denimint/cubingcontests-server:latest &&
   docker push denimint/cubingcontests-server:$new_version &&
