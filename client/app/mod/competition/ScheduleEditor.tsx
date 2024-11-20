@@ -262,6 +262,8 @@ const ScheduleEditor = ({
       <div className="d-flex justify-content-center">
         <div className="min-vw-100">
           <div className="container-md">
+            <h1 className="mb-4 text-center">Schedule</h1>
+
             <Schedule
               rooms={rooms}
               contestEvents={contestEvents}

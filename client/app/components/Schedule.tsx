@@ -93,8 +93,6 @@ const Schedule = ({
 
   return (
     <section className="fs-6">
-      <h1 className="mb-4 text-center">Schedule</h1>
-
       {days.length === 0
         ? <h5 className="text-center fst-italic">The schedule is currently empty</h5>
         : (

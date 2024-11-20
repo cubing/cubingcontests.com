@@ -307,13 +307,20 @@ export class PersonsService {
       const res = await fetch(`https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`);
       if (res.ok) {
         const { result: wcaPersons } = await res.json();
-        if (wcaPersons?.length === 1) {
+
+        if (expectNoWcaId) {
+          for (const wcaPerson of wcaPersons) {
+            const [name] = getNameAndLocalizedName(wcaPerson.name);
+            if (name === person.name && wcaPerson.country_iso2 === person.countryIso2)
+              throw new BadRequestException(
+                `There is an exact name match with the WCA competitor with WCA ID ${wcaPerson.wca_id}. Check if these are the same person and contact an administrator to approve them if not.`
+              );
+          }
+        } else if (wcaPersons?.length === 1) {
           const wcaPerson = wcaPersons[0];
           const [name, localizedName] = getNameAndLocalizedName(wcaPerson.name);
 
           if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
-            if (expectNoWcaId)
-              throw new BadRequestException(`There is an exact name match with the WCA competitor with WCA ID ${wcaPerson.wca_id}`);
             person.wcaId = wcaPerson.wca_id;
             person.localizedName = localizedName;
           }
@@ -336,8 +343,8 @@ export class PersonsService {
       if (sameWcaIdPerson) throw new ConflictException("A person with the same WCA ID already exists");
     }
 
-    const sameNamePerson = await this.personModel.findOne({ ...queryBase, name: personDto.name }).exec();
-    if (sameNamePerson) throw new ConflictException("A person with the same name already exists. If it's actually a different competitor with the same name, please contact the admin team.");
+    const sameNamePerson = await this.personModel.findOne({ ...queryBase, name: personDto.name, countryIso2: personDto.countryIso2 }).exec();
+    if (sameNamePerson) throw new ConflictException("A person with the same name and country already exists. If it's actually a different competitor with the same name, please contact the admin team.");
   }
 
   private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | "EXT_DEVICE" } = {}): IFePerson {
