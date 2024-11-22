@@ -22,7 +22,7 @@ import { AuthTokenSchema } from "~/src/models/auth-token.model";
       // The fallback is the same as in .env.dev. It's necessary, because that file isn't
       // loaded until the Nest JS dependencies are initialized.
       secret: process.env.JWT_SECRET || "jwt_secret",
-      signOptions: { expiresIn: "86400s" }, // 24 hours
+      signOptions: { expiresIn: "604800s" }, // 1 week
     }),
   ],
   controllers: [AuthController],

@@ -153,7 +153,7 @@ const RulesPage = () => {
             <h3>Event rules</h3>
             <p>
               These rules apply to each event individually. If an event is not listed here, it must follow the most
-              relevant WCA Regulations, based on the nature of the event.
+              relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F).
             </p>
             {events.map((event: IFeEvent) => {
               const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
