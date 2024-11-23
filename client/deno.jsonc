@@ -1,7 +1,7 @@
 {
   "imports": {
     "@std/expect": "jsr:@std/expect@^1.0.6",
-    "@std/testing": "jsr:@std/testing@^1.0.3",
+    "@std/testing": "jsr:@std/testing@^1.0.5",
     "~/": "./"
   },
   "tasks": {

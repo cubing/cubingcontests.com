@@ -1,4 +1,4 @@
-FROM denoland/deno:2.0.6
+FROM denoland/deno:2.1.1
 
 # Expose port
 EXPOSE $BACKEND2_PORT

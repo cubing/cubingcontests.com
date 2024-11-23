@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Markdown from "react-markdown";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { type IFeEvent, type IRoundFormat } from "~/shared_helpers/types.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
@@ -8,7 +9,6 @@ import { RoundFormat } from "~/shared_helpers/enums.ts";
 import { INavigationItem } from "~/helpers/types.ts";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import MarkdownDescription from "~/app/components/MarkdownDescription.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import ExternalLink from "~/app/components/ExternalLink.tsx";
 
@@ -162,7 +162,7 @@ const RulesPage = () => {
               return (
                 <div key={event.eventId} className="mt-4">
                   <EventTitle event={event} fontSize="4" showIcon linkToRankings />
-                  <MarkdownDescription>{event.ruleText}</MarkdownDescription>
+                  <Markdown>{event.ruleText}</Markdown>
                   <p className="mb-1">
                     The ranked average format is <b>{rankedFormat.label}</b>
                   </p>

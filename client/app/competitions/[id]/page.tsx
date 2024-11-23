@@ -1,10 +1,10 @@
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import Markdown from "react-markdown";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
-import MarkdownDescription from "~/app/components/MarkdownDescription.tsx";
 import { IContest, IContestData } from "~/shared_helpers/types.ts";
 import { ContestState, ContestType } from "~/shared_helpers/enums.ts";
 import { getDateOnly } from "~/shared_helpers/sharedFunctions.ts";
@@ -106,7 +106,7 @@ const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
             {contest.description && (
               <>
                 <p className="fw-bold">Description:</p>
-                <MarkdownDescription>{contest.description}</MarkdownDescription>
+                <Markdown>{contest.description}</Markdown>
                 {contest.queuePosition && (
                   <p className="mt-5">
                     Current position in queue: <b>{contest.queuePosition}</b>

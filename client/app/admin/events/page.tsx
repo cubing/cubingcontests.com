@@ -227,16 +227,12 @@ const CreateEditEventPage = () => {
               disabled={loadingId !== ""}
             />
             <FormTextArea
-              title="Rules (optional)"
+              title="Rules (optional, Markdown supported)"
               value={rule}
               setValue={setRule}
               rows={5}
               disabled={loadingId !== ""}
             />
-            <p className="fs-6" style={{ whiteSpace: "pre-wrap" }}>
-              You can use bullet characters (•, ◦, ▪), in the rules to mark each point, along with the tab character (
-              {"\t"}) for indentation in sub-points.
-            </p>
           </Form>
         )}
 

@@ -696,7 +696,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
               className="mb-3"
             />
             <FormTextArea
-              title="Description (optional)"
+              title="Description (optional, Markdown supported)"
               value={description}
               setValue={setDescription}
               disabled={disableIfContestPublished}
