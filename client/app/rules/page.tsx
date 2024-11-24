@@ -73,7 +73,8 @@ const RulesPage = () => {
             <h4 className="my-4">Team events</h4>
             <ul className="list-inline lh-lg">
               <li>
-                T1. There must be no physical contact between any members of a team during an attempt. Penalty: DNF.
+                T1. There must be no physical contact below the elbow between any members of a team during an attempt.
+                Penalty: DNF.
               </li>
               <li>T2. All members of a team may communicate with each other and with the judge.</li>
               <li>
