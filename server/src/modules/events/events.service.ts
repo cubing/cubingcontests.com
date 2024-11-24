@@ -88,9 +88,7 @@ export class EventsService {
 
   async getEventById(eventId: string): Promise<EventDocument> {
     const event = await this.eventModel.findOne({ eventId }, excl).exec();
-
     if (!event) throw new NotFoundException(`Event with ID ${eventId} not found`);
-
     return event;
   }
 

@@ -128,8 +128,6 @@ export class AppService {
 
     if (result) {
       await this.resultsService.updateResult((result as any)._id.toString(), {
-        // TO-DO: MAKE THE updateResult FUNCTION DO THIS AUTOMATICALLY FOR EXTERNALLY-ENTERED RESULTS(?)
-        unapproved: true,
         // TO-DO: ADD PROPER SUPPORT FOR TEAM EVENTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         personIds: [person.personId],
         attempts,
@@ -158,7 +156,6 @@ export class AppService {
 
       if (result) {
         await this.resultsService.updateResult((result as any)._id.toString(), {
-          unapproved: true,
           personIds: [person.personId],
           attempts: externalResultDto.attempts,
         });

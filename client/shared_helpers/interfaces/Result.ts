@@ -36,7 +36,7 @@ export interface IResult {
   regionalAverageRecord?: string;
 }
 
-export type ISubmittedResult = Omit<IResult, "competitionId" | "ranking"> & {
+export type IVideoBasedResult = Omit<IResult, "competitionId" | "ranking"> & {
   videoLink: string;
   discussionLink?: string;
   createdBy?: unknown; // user ID of the user who created the result
@@ -48,19 +48,22 @@ export interface IResultDto {
   attempts: IFeAttempt[];
 }
 
-export interface ISubmittedResultDto extends IResultDto {
+export interface IUpdateResultDto {
+  personIds: number[];
+  attempts: IFeAttempt[];
+}
+
+export interface IVideoBasedResultDto extends IResultDto {
   date: Date;
   videoLink: string;
   discussionLink?: string;
 }
 
-export interface IUpdateResultDto {
-  date?: Date; // only used for submitted results
-  unapproved?: true; // only needed for updating submitted results, because they can be approved at the same time
-  personIds: number[];
-  attempts: IFeAttempt[];
-  videoLink?: string; // required for submitted results
-  discussionLink?: string; // only used for submitted results
+export interface IUpdateVideoBasedResultDto extends IUpdateResultDto {
+  date: Date;
+  unapproved?: true;
+  videoLink: string;
+  discussionLink?: string;
 }
 
 export interface IFeResult extends IResult {
@@ -109,7 +112,7 @@ export interface IResultsSubmissionInfo {
 
 // These are only used for the edit result page, so this information is admin-only
 export interface IAdminResultsSubmissionInfo extends IResultsSubmissionInfo {
-  result: ISubmittedResult;
+  result: IVideoBasedResult;
   persons: IPerson[];
   creator: IFeUser;
 }
