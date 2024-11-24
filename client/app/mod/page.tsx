@@ -16,7 +16,6 @@ import Country from "~/app/components/Country.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
-import ExternalLink from "~/app/components/ExternalLink.tsx";
 import C from "~/shared_helpers/constants.ts";
 
 const userInfo: UserInfo = getUserInfo();
@@ -191,7 +190,13 @@ const ModeratorDashboardPage = () => {
                         </Link>
                       </td>
                       <td>
-                        {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
+                        <div className="d-flex align-items-center">
+                          <span className="d-inline-block m-0 text-truncate" style={{ maxWidth: "18rem" }}>
+                            {contest.city}
+                          </span>
+                          <span className="me-1">,</span>
+                          <Country countryIso2={contest.countryIso2} swapPositions shorten />
+                        </div>
                       </td>
                       <td>
                         <ContestTypeBadge type={contest.type} brief />
