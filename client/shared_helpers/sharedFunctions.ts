@@ -11,7 +11,7 @@ import {
   type IRecordPair,
   type IResult,
   type IRoundFormat,
-  type ISubmittedResult,
+  type IVideoBasedResult,
 } from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
 
@@ -49,11 +49,11 @@ export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
 // and includes unapproved results
 export const setResultRecords = (
-  result: IResult | ISubmittedResult,
+  result: IResult | IVideoBasedResult,
   event: IEvent,
   recordPairs: IRecordPair[],
   noConsoleLog = false,
-): IResult | ISubmittedResult => {
+): IResult | IVideoBasedResult => {
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {

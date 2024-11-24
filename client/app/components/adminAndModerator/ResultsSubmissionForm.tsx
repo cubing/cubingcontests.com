@@ -33,7 +33,7 @@ import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
-import type { IRecordPair, ISubmittedResultDto } from "~/shared_helpers/interfaces/Result.ts";
+import type { IRecordPair, IVideoBasedResultDto } from "~/shared_helpers/interfaces/Result.ts";
 
 const userInfo: UserInfo = getUserInfo();
 const allowedRoundFormats: IRoundFormat[] = roundFormats.filter((rf) => rf.value !== RoundFormat.BestOf3);
@@ -141,7 +141,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
       return;
     }
 
-    const newResult: ISubmittedResultDto = {
+    const newResult: IVideoBasedResultDto = {
       eventId: event.eventId,
       date: date as Date,
       personIds: competitors.map((p: InputPerson) => (p as IPerson).personId),
@@ -174,7 +174,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
       };
       if (!approve) updateResultDto.unapproved = (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved;
 
-      const { errors } = await myFetch.patch(`/results/${resultId}`, updateResultDto, {
+      const { errors } = await myFetch.patch(`/results/video-based/${resultId}`, updateResultDto, {
         loadingId,
         keepLoadingOnSuccess: true,
       });

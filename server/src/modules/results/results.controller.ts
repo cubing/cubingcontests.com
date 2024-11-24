@@ -23,6 +23,7 @@ import { SubmitResultDto } from "./dto/submit-result.dto";
 import { UpdateResultDto } from "./dto/update-result.dto";
 import { LogType } from "~/src/helpers/enums";
 import { getDateOnly } from "@sh/sharedFunctions";
+import { UpdateVideoBasedResultDto } from "~/src/modules/results/dto/update-video-based-result.dto";
 
 @Controller("results")
 export class ResultsController {
@@ -110,14 +111,6 @@ export class ResultsController {
     return await this.service.createResult(competitionId, roundId, createResultDto, req.user);
   }
 
-  // POST /results
-  @Post()
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.User)
-  async submitResult(@Body(new ValidationPipe()) submitResultDto: SubmitResultDto, @Request() req: any) {
-    return await this.service.submitResult(submitResultDto, req.user);
-  }
-
   // PATCH /results/:id
   @Patch(":id")
   @UseGuards(AuthenticatedGuard, RolesGuard)
@@ -128,6 +121,22 @@ export class ResultsController {
     @Request() req: any,
   ) {
     return await this.service.updateResult(id, updateResultDto, { user: req.user });
+  }
+
+  // POST /results
+  @Post()
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.User)
+  async submitResult(@Body(new ValidationPipe()) submitResultDto: SubmitResultDto, @Request() req: any) {
+    return await this.service.submitResult(submitResultDto, req.user);
+  }
+
+  // PATCH /results/video-based/:id
+  @Patch("video-based/:id")
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin)
+  async updateVideoBasedResult(@Param("id") id: string, @Body(new ValidationPipe()) updateResultDto: UpdateVideoBasedResultDto) {
+    return await this.service.updateVideoBasedResult(id, updateResultDto);
   }
 
   // DELETE /results/:id

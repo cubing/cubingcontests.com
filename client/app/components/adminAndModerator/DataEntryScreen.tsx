@@ -19,9 +19,9 @@ import {
   type IRoundFormat,
   type IUpdateResultDto,
 } from "~/shared_helpers/types.ts";
-import { ContestState, RoundType } from "~/shared_helpers/enums.ts";
-import { getBlankCompetitors, getUserInfo, shortenEventName } from "~/helpers/utilityFunctions.ts";
-import { type InputPerson, type MultiChoiceOption, UserInfo } from "~/helpers/types.ts";
+import { RoundType } from "~/shared_helpers/enums.ts";
+import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
+import { type InputPerson, type MultiChoiceOption } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getBestAndAverage, getMakesCutoff } from "~/shared_helpers/sharedFunctions.ts";
 import type { IFeAttempt, IRecordPair, IResultDto } from "~/shared_helpers/interfaces/Result.ts";
@@ -33,8 +33,6 @@ import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.ts
 import Loading from "~/app/components/UI/Loading.tsx";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
-
-const userInfo: UserInfo = getUserInfo();
 
 const DataEntryScreen = ({
   compData: {
@@ -79,20 +77,10 @@ const DataEntryScreen = ({
     [recordPairsByEvent, currEvent],
   );
 
-  const isEditable = userInfo?.isAdmin || [ContestState.Approved, ContestState.Ongoing].includes(contest.state);
+  const isEditable = round._id === (currContestEvent.rounds[0] as any)._id || resultUnderEdit;
   const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
     ? attempts.length
     : (round.cutoff as ICutoff).numberOfAttempts;
-
-  useEffect(() => {
-    if (!isEditable) {
-      if (contest.state < ContestState.Approved) {
-        changeErrorMessages(["This contest hasn't been approved yet. Submitting results is disabled."]);
-      } else if (contest.state >= ContestState.Finished) {
-        changeErrorMessages(["This contest is over. Submitting results is disabled."]);
-      }
-    }
-  }, [contest, recordPairsByEvent, isEditable]);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
@@ -104,54 +92,52 @@ const DataEntryScreen = ({
   //////////////////////////////////////////////////////////////////////////////
 
   const submitResult = async () => {
-    if (isEditable) {
-      if (currentPersons.some((p: InputPerson) => !p)) {
-        changeErrorMessages(["Invalid person(s)"]);
-        return;
-      }
+    if (currentPersons.some((p: InputPerson) => !p)) {
+      changeErrorMessages(["Invalid person(s)"]);
+      return;
+    }
 
-      const resultDto: IResultDto = {
-        eventId,
-        personIds: currentPersons.map((p: InputPerson) => (p as IPerson).personId),
-        attempts,
-      };
-      let updatedRound: IRound, errors: string[] | undefined;
+    const resultDto: IResultDto = {
+      eventId,
+      personIds: currentPersons.map((p: InputPerson) => (p as IPerson).personId),
+      attempts,
+    };
+    let updatedRound: IRound, errors: string[] | undefined;
 
-      if (resultUnderEdit === null) {
-        const { payload, errors: err } = await myFetch.post(
-          `/results/${contest.competitionId}/${round.roundId}`,
-          resultDto,
-          { loadingId: "submit_attempt_button" },
-        );
-        updatedRound = payload;
-        if (err) errors = err;
-      } else {
-        const updateResultDto: IUpdateResultDto = { personIds: resultDto.personIds, attempts: resultDto.attempts };
-        const { payload, errors: err } = await myFetch.patch(
-          `/results/${(resultUnderEdit as any)._id}`,
-          updateResultDto,
-          { loadingId: "submit_attempt_button" },
-        );
-        updatedRound = payload;
-        if (err) errors = err;
-        setResultUnderEdit(null);
-      }
+    if (resultUnderEdit === null) {
+      const { payload, errors: err } = await myFetch.post(
+        `/results/${contest.competitionId}/${round.roundId}`,
+        resultDto,
+        { loadingId: "submit_attempt_button" },
+      );
+      updatedRound = payload;
+      if (err) errors = err;
+    } else {
+      const updateResultDto: IUpdateResultDto = { personIds: resultDto.personIds, attempts: resultDto.attempts };
+      const { payload, errors: err } = await myFetch.patch(
+        `/results/${(resultUnderEdit as any)._id}`,
+        updateResultDto,
+        { loadingId: "submit_attempt_button" },
+      );
+      updatedRound = payload;
+      if (err) errors = err;
+      setResultUnderEdit(null);
+    }
 
-      if (!errors) {
-        // Add new persons to list of persons
-        const newPersons: IPerson[] = [
-          ...persons,
-          ...currentPersons.filter((cp: InputPerson) =>
-            !persons.some((p: IPerson) => p.personId === (cp as IPerson).personId)
-          ) as IPerson[],
-        ];
-        setPersons(newPersons);
-        setPersonNames(newPersons.map((p) => p.name));
-        changeRound(updatedRound);
-        // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
-        updateRecordPairs({ ...resultDto, best, average } as IResult);
-      }
+    if (!errors) {
+      // Add new persons to list of persons
+      const newPersons: IPerson[] = [
+        ...persons,
+        ...currentPersons.filter((cp: InputPerson) =>
+          !persons.some((p: IPerson) => p.personId === (cp as IPerson).personId)
+        ) as IPerson[],
+      ];
+      setPersons(newPersons);
+      setPersonNames(newPersons.map((p) => p.name));
+      changeRound(updatedRound);
+      // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
+      updateRecordPairs({ ...resultDto, best, average } as IResult);
     }
   };
 
@@ -204,30 +190,26 @@ const DataEntryScreen = ({
   };
 
   const editResult = (result: IResult) => {
-    if (isEditable) {
-      resetMessagesAndLoadingId();
-      setResultUnderEdit(result);
-      setAttempts(result.attempts);
-      const newCurrentPersons: IPerson[] = result.personIds.map((pid) =>
-        persons.find((p: IPerson) => p.personId === pid) as IPerson
-      );
-      setCurrentPersons(newCurrentPersons);
-      setPersonNames(newCurrentPersons.map((p) => p.name));
-      window.scrollTo(0, 0);
-    }
+    resetMessagesAndLoadingId();
+    setResultUnderEdit(result);
+    setAttempts(result.attempts);
+    const newCurrentPersons: IPerson[] = result.personIds.map((pid) =>
+      persons.find((p: IPerson) => p.personId === pid) as IPerson
+    );
+    setCurrentPersons(newCurrentPersons);
+    setPersonNames(newCurrentPersons.map((p) => p.name));
+    window.scrollTo(0, 0);
   };
 
   const deleteResult = async (resultId: string) => {
-    if (isEditable) {
-      const answer = confirm("Are you sure you want to delete this result?");
+    const answer = confirm("Are you sure you want to delete this result?");
 
-      if (answer) {
-        const { payload, errors } = await myFetch.delete(`/results/${resultId}`, {
-          loadingId: `delete_result_${resultId}_button`,
-        });
+    if (answer) {
+      const { payload, errors } = await myFetch.delete(`/results/${resultId}`, {
+        loadingId: `delete_result_${resultId}_button`,
+      });
 
-        if (!errors) changeRound(payload);
-      }
+      if (!errors) changeRound(payload);
     }
   };
 
@@ -271,6 +253,7 @@ const DataEntryScreen = ({
               setPersons={setCurrentPersons}
               nextFocusTargetId="attempt_1"
               redirectToOnAddPerson={window.location.pathname}
+              disabled={!isEditable}
               noGrid
             />
             {attempts.map((attempt: IFeAttempt, i: number) => (
@@ -282,7 +265,7 @@ const DataEntryScreen = ({
                 event={currEvent}
                 nextFocusTargetId={i + 1 === lastActiveAttempt ? "submit_attempt_button" : undefined}
                 timeLimit={round.timeLimit}
-                disabled={i + 1 > lastActiveAttempt}
+                disabled={i + 1 > lastActiveAttempt || !isEditable}
               />
             ))}
             {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (

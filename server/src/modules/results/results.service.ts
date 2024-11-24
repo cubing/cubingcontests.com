@@ -27,7 +27,6 @@ import C from "@sh/constants";
 import { ContestState, Role, RoundFormat, WcaRecordType } from "@sh/enums";
 import { roundFormats } from "@sh/roundFormats";
 import {
-  IActivity,
   IAdminResultsSubmissionInfo,
   IEvent,
   IEventRankings,
@@ -39,7 +38,7 @@ import {
   IResult,
   IResultsSubmissionInfo,
   IRound,
-  ISubmittedResult,
+  IVideoBasedResult,
 } from "@sh/types";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import {
@@ -57,6 +56,7 @@ import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings, setRoundRankings 
 import { EmailService } from "~/src/modules/email/email.service";
 import { LogType } from "~/src/helpers/enums";
 import { differenceInHours } from "date-fns";
+import { UpdateVideoBasedResultDto } from "~/src/modules/results/dto/update-video-based-result.dto";
 
 @Injectable()
 export class ResultsService {
@@ -456,7 +456,7 @@ export class ResultsService {
 
   async getEditingInfo(resultId: string): Promise<IAdminResultsSubmissionInfo> {
     const result = await this.resultModel.findOne({ _id: resultId }, exclSysButKeepCreatedBy)
-      .exec() as ISubmittedResult;
+      .exec() as IVideoBasedResult;
     if (!result) throw new NotFoundException("Result not found");
 
     const event = await this.eventsService.getEventById(result.eventId);
@@ -522,10 +522,14 @@ export class ResultsService {
 
     const round = await this.roundModel.findOne({ competitionId, roundId }).populate(resultPopulateOptions).exec();
     if (!round) throw new BadRequestException("Round not found");
-    if (round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid)))) {
-      throw new BadRequestException("The competitor(s) already has a result in this round");
-    }
     const event = await this.eventsService.getEventById(createResultDto.eventId);
+    const contestEvent = contest.events.find(e => (e.event as any).toString() === event._id.toString());
+    const isFirstRound = contestEvent.rounds.find(r => (r as any).toString() === round._id.toString()) === contestEvent.rounds[0];
+    if (!isFirstRound)
+      throw new BadRequestException("You may not create a new result for a subsequent round. Instead, you should edit an empty result for a competitor who proceeded to this round.");
+    if (round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid))))
+      throw new BadRequestException("The competitor(s) already has a result in this round");
+
     const newResult: IResult = {
       ...createResultDto,
       competitionId,
@@ -542,28 +546,8 @@ export class ResultsService {
       newResult.date = contest.startDate;
     } else {
       const schedule = await this.scheduleModel.findOne({ competitionId }).exec();
-
-      if (!schedule) {
-        throw new InternalServerErrorException(`No schedule found for contest with ID ${competitionId}`);
-      }
-
-      let activity: IActivity;
-
-      scheduleLoop: {
-        for (const venue of schedule.venues) {
-          for (const room of venue.rooms) {
-            for (const act of room.activities) {
-              if (act.activityCode === round.roundId) {
-                activity = act;
-                newResult.date = getDateOnly(toZonedTime(activity.endTime, venue.timezone));
-                break scheduleLoop;
-              }
-            }
-          }
-        }
-      }
-
-      if (!activity) throw new InternalServerErrorException(`No schedule activity found for round ${round.roundId}`);
+      if (!schedule) throw new InternalServerErrorException(`No schedule found for contest with ID ${competitionId}`);
+      newResult.date = this.getRoundDate(schedule, round.roundId);
     }
 
     await this.validateAndCleanUpResult(newResult, event, { mode: "create", round: round as IRound });
@@ -586,6 +570,52 @@ export class ResultsService {
     return updatedRound;
   }
 
+  // The user can be left undefined when this is called from enterAttemptFromExternalDevice()
+  async updateResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
+    this.logger.logAndSave(
+      `Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
+      LogType.UpdateResult,
+    );
+
+    const result = await this.getResultById(resultId);
+    const event = await this.eventsService.getEventById(result.eventId);
+    const contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
+    const round = await this.roundModel
+      .findOne({ results: new mongo.ObjectId(resultId) })
+      .populate(resultPopulateOptions)
+      .exec();
+    if (!round) throw new BadRequestException("Round not found");
+    const previousBest = result.best;
+    const previousAvg = result.average;
+
+    result.personIds = updateResultDto.personIds;
+    result.attempts = updateResultDto.attempts; // the best and average get updated in validateAndCleanUpResult
+    result.regionalSingleRecord = undefined;
+    result.regionalAverageRecord = undefined;
+
+    await this.validateAndCleanUpResult(result as IResult, event, { mode: "edit", round: round as IRound });
+
+    const recordPairs = await this.getEventRecordPairs(event, {
+      recordsUpTo: result.date,
+      excludeResultId: result._id.toString(),
+    });
+
+    setResultRecords(result as IResult, event, recordPairs);
+    await result.save();
+    await this.updateFutureRecords(result, event, recordPairs, { mode: "edit", previousBest, previousAvg });
+
+    round.results = round.results.map((r) => (r._id.toString() === resultId ? result : r));
+    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.save();
+    await this.updateContestParticipants(contest);
+
+    const updatedRound = await this.roundModel
+      .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
+      .populate(resultPopulateOptions)
+      .exec();
+    return updatedRound;
+  }
+
   async submitResult(submitResultDto: SubmitResultDto, user: IPartialUser) {
     this.logger.logAndSave(
       `Submitting new video-based result: ${JSON.stringify(submitResultDto)}`,
@@ -597,15 +627,14 @@ export class ResultsService {
     // Disallow admin-only features
     if (!isAdmin) {
       if (submitResultDto.videoLink === "") throw new UnauthorizedException("Please enter a video link");
-      if (submitResultDto.attempts.some((a) => a.result === C.maxTime)) {
+      if (submitResultDto.attempts.some((a) => a.result === C.maxTime))
         throw new UnauthorizedException("You are not authorized to set unknown time");
-      }
     }
 
     const event = await this.eventsService.getEventById(submitResultDto.eventId);
 
     // The best and average get set in validateAndCleanUpResult
-    const newResult: ISubmittedResult = {
+    const newResult: IVideoBasedResult = {
       ...submitResultDto,
       unapproved: isAdmin ? undefined : true,
       date: new Date(submitResultDto.date),
@@ -639,53 +668,33 @@ export class ResultsService {
     return createdResult;
   }
 
-  // The user can be left undefined when this is called from enterAttemptFromExternalDevice() or when editing a submitted result
-  async updateResult(resultId: string, updateResultDto: UpdateResultDto, { user }: { user?: IPartialUser } = {}) {
+  async updateVideoBasedResult(resultId: string, updateResultDto: UpdateVideoBasedResultDto) {
     this.logger.logAndSave(
-      `Updating result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
+      `Updating video-based result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
       LogType.UpdateResult,
     );
 
-    const result = await this.resultModel.findOne({ _id: resultId }).exec();
-    if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
+    const result = await this.getResultById(resultId);
     const event = await this.eventsService.getEventById(result.eventId);
-
-    let contest: ContestDocument, round: RoundDocument;
-    if (result.competitionId) {
-      contest = await this.getContestAndCheckAccessRights(result.competitionId, { user });
-      round = await this.roundModel
-        .findOne({ results: new mongo.ObjectId(resultId) })
-        .populate(resultPopulateOptions)
-        .exec();
-      if (!round) throw new BadRequestException("Round not found");
-    }
-
     const previousBest = result.best;
     const previousAvg = result.average;
 
-    if (!result.competitionId) {
-      if (updateResultDto.date && result.unapproved) result.date = new Date(updateResultDto.date);
-      result.videoLink = updateResultDto.videoLink;
-      result.discussionLink = updateResultDto.discussionLink;
-    }
-
+    if (updateResultDto.date && result.unapproved) result.date = new Date(updateResultDto.date);
+    result.videoLink = updateResultDto.videoLink;
+    result.discussionLink = updateResultDto.discussionLink;
     result.personIds = updateResultDto.personIds;
     result.attempts = updateResultDto.attempts; // the best and average get updated in validateAndCleanUpResult
     result.regionalSingleRecord = undefined;
     result.regionalAverageRecord = undefined;
 
-    await this.validateAndCleanUpResult(result as IResult | ISubmittedResult, event, {
-      mode: "edit",
-      round: round as IRound,
-    });
+    await this.validateAndCleanUpResult(result as IVideoBasedResult, event, { mode: "edit" });
 
     const recordPairs = await this.getEventRecordPairs(event, {
       recordsUpTo: result.date,
       excludeResultId: result._id.toString(),
     });
-    setResultRecords(result as IResult | ISubmittedResult, event, recordPairs);
+    setResultRecords(result as IVideoBasedResult, event, recordPairs);
 
-    // This is only relevant for video-based results
     if (result.unapproved && !updateResultDto.unapproved) {
       result.unapproved = undefined;
       await result.save();
@@ -702,21 +711,6 @@ export class ResultsService {
       await result.save();
       await this.updateFutureRecords(result, event, recordPairs, { mode: "edit", previousBest, previousAvg });
     }
-
-    // Update round rankings, if it's a contest result
-    if (contest) {
-      round.results = round.results.map((r) => (r._id.toString() === resultId ? result : r));
-      round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
-      round.save();
-      await this.updateContestParticipants(contest);
-
-      const updatedRound = await this.roundModel
-        .findOne({ competitionId: result.competitionId, roundId: round.roundId }, excl)
-        .populate(resultPopulateOptions)
-        .exec();
-      return updatedRound;
-    }
-    return undefined;
   }
 
   async deleteResult(resultId: string, user: IPartialUser): Promise<RoundDocument> {
@@ -952,39 +946,8 @@ export class ResultsService {
     }
   }
 
-  private async getContestAndCheckAccessRights(
-    competitionId: string,
-    { user }: { user?: IPartialUser },
-  ): Promise<ContestDocument> {
-    const contest = await this.contestModel
-      .findOne({ competitionId })
-      .populate(orgPopulateOptions) // needed for access rights checking
-      .exec();
-
-    if (!contest) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
-    if (user) this.authService.checkAccessRightsToContest(user, contest);
-
-    return contest;
-  }
-
-  private async updateContestParticipants(contest: ContestDocument) {
-    if (contest.state < ContestState.Ongoing) contest.state = ContestState.Ongoing;
-    contest.participants = (
-      await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
-    ).length;
-    await contest.save();
-  }
-
-  // Sets the person being ranked as the first person in the list, if it's a team event
-  private setRankedPersonAsFirst(personId: number, personIds: number[]) {
-    if (personIds.length > 1) {
-      // Sort the person IDs in the result, so that the person, whose PR this result is, is first
-      personIds.sort((a) => (a === personId ? -1 : 0));
-    }
-  }
-
   async validateAndCleanUpResult(
-    result: IResult | ISubmittedResult,
+    result: IResult | IVideoBasedResult,
     event: IEvent,
     { round, mode }: {
       round?: IRound; // if round is defined, that means it's a contest result, not a submitted one
@@ -1100,9 +1063,58 @@ export class ResultsService {
       }
     } // Video-based results validation
     else {
-      if ((result as ISubmittedResult).videoLink === undefined) {
+      if ((result as IVideoBasedResult).videoLink === undefined) {
         throw new BadRequestException("Please enter a video link");
       }
     }
+  }
+
+  private async getResultById(resultId: string) {
+    const result = await this.resultModel.findOne({ _id: resultId }).exec();
+    if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
+    return result
+  }
+
+  private async getContestAndCheckAccessRights(
+    competitionId: string,
+    { user }: { user?: IPartialUser },
+  ): Promise<ContestDocument> {
+    const contest = await this.contestModel
+      .findOne({ competitionId })
+      .populate(orgPopulateOptions) // needed for access rights checking
+      .exec();
+
+    if (!contest) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
+    if (user) this.authService.checkAccessRightsToContest(user, contest);
+
+    return contest;
+  }
+
+  private async updateContestParticipants(contest: ContestDocument) {
+    if (contest.state < ContestState.Ongoing) contest.state = ContestState.Ongoing;
+    contest.participants = (
+      await this.personsService.getContestParticipants({ competitionId: contest.competitionId })
+    ).length;
+    await contest.save();
+  }
+
+  // Sets the person being ranked as the first person in the list, if it's a team event
+  private setRankedPersonAsFirst(personId: number, personIds: number[]) {
+    if (personIds.length > 1) {
+      // Sort the person IDs in the result, so that the person, whose PR this result is, is first
+      personIds.sort((a) => (a === personId ? -1 : 0));
+    }
+  }
+
+  private getRoundDate(schedule: ScheduleDocument, roundId: string) {
+    for (const venue of schedule.venues) {
+      for (const room of venue.rooms) {
+        for (const act of room.activities) {
+          if (act.activityCode === roundId) return getDateOnly(toZonedTime(act.endTime, venue.timezone));
+        }
+      }
+    }
+
+    throw new InternalServerErrorException(`No schedule activity found for round ${roundId}`);
   }
 }

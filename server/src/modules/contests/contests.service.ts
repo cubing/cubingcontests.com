@@ -197,7 +197,8 @@ export class ContestsService {
   ): Promise<IContestData> {
     const contest = await this.getFullContest(competitionId);
 
-    if (user) this.authService.checkAccessRightsToContest(user, contest);
+    // If the user and the eventId are defined, that means it's for the data entry page
+    if (user) this.authService.checkAccessRightsToContest(user, contest, eventId === undefined);
 
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     const output: IContestData = {
