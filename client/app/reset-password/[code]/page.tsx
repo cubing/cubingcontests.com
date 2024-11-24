@@ -56,6 +56,7 @@ const ResetPasswordPage = ({ params: { code } }: Props) => {
           setValue={setEmail}
           nextFocusTargetId="password"
           autoFocus
+          className="mb-2"
         />
         <FormTextInput
           id="password"
@@ -64,6 +65,7 @@ const ResetPasswordPage = ({ params: { code } }: Props) => {
           setValue={setPassword}
           nextFocusTargetId="password_repeat"
           password
+          className="mb-2"
         />
         <FormTextInput
           id="password_repeat"

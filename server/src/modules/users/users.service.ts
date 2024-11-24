@@ -109,7 +109,7 @@ export class UsersService {
   async createUser(newUser: IUser) {
     this.logger.logAndSave(`Creating new user with username ${newUser.username}`, LogType.CreateUser);
 
-    newUser.email = newUser.email.toLowerCase();
+    newUser.email = newUser.email.trim().toLowerCase();
 
     const sameUsernameUser: UserDocument = await this.userModel.findOne({ username: newUser.username }).exec();
     if (sameUsernameUser) throw new BadRequestException(`User with username ${newUser.username} already exists`);
@@ -131,7 +131,7 @@ export class UsersService {
 
     await this.validateUserObject(updateUserDto);
 
-    user.email = updateUserDto.email.toLowerCase();
+    user.email = updateUserDto.email.trim().toLowerCase();
 
     let newRole: Role;
     if (!user.roles.includes(Role.Admin) && updateUserDto.roles.includes(Role.Admin)) newRole = Role.Admin;
@@ -249,7 +249,7 @@ export class UsersService {
   }
 
   async resetPassword(email: string, code: string, newPassword: string) {
-    // email = 
+    email = email.trim().toLowerCase()
     const user = await this.userModel.findOne({ email, passwordResetCodeHash: { $exists: true } }).exec();
 
     if (user) {

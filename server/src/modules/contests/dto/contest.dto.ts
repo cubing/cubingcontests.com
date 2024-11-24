@@ -51,6 +51,7 @@ import {
   ProceedValueMinMax,
   RoundHasValidTimeLimitAndCutoff,
 } from "~/src/helpers/customValidators";
+import { INVALID_EMAIL_MSG } from "~/src/helpers/messages";
 
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
@@ -112,7 +113,7 @@ export class ContestDto implements IContestDto {
   organizers: IPerson[];
 
   @IsOptional()
-  @IsEmail()
+  @IsEmail({}, { message: INVALID_EMAIL_MSG })
   contact?: string;
 
   @IsString()

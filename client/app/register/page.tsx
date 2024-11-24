@@ -43,8 +43,22 @@ const RegisterPage = () => {
       <h2 className="mb-4 text-center">Register</h2>
 
       <Form buttonText="Register" onSubmit={handleSubmit}>
-        <FormTextInput title="Username" value={username} setValue={setUsername} nextFocusTargetId="email" autoFocus />
-        <FormTextInput id="email" title="Email" value={email} setValue={setEmail} nextFocusTargetId="password" />
+        <FormTextInput
+          title="Username"
+          value={username}
+          setValue={setUsername}
+          nextFocusTargetId="email"
+          autoFocus
+          className="mb-2"
+        />
+        <FormTextInput
+          id="email"
+          title="Email"
+          value={email}
+          setValue={setEmail}
+          nextFocusTargetId="password"
+          className="mb-2"
+        />
         <FormTextInput
           id="password"
           title="Password"
@@ -52,6 +66,7 @@ const RegisterPage = () => {
           setValue={setPassword}
           nextFocusTargetId="password_repeat"
           password
+          className="mb-2"
         />
         <FormTextInput
           id="password_repeat"

@@ -3,7 +3,8 @@ import { getMaxLengthOpts } from "~/src/helpers/validation";
 import { INVALID_EMAIL_MSG, PASSWORD_VALIDATION_MSG } from "~/src/helpers/messages";
 
 export class ResetUserPasswordDto {
-  @IsEmail({}, { message: INVALID_EMAIL_MSG })
+  @IsString()
+  @IsNotEmpty()
   email: string;
 
   @IsString()
