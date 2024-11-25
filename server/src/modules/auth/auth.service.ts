@@ -153,11 +153,12 @@ export class AuthService {
   checkAccessRightsToContest(user: IPartialUser, contest: ContestDocument, allowNotApproved = false) {
     if (contest.state === ContestState.Removed) throw new BadRequestException("This contest has been removed");
 
-    const hasAccessRights = user.roles.includes(Role.Admin) ||
-      (user.roles.includes(Role.Moderator) &&
-        contest.organizers.some((el) => el.personId === user.personId) &&
-        (allowNotApproved || contest.state >= ContestState.Approved) &&
-        contest.state < ContestState.Finished);
+    const hasAccessRights = (allowNotApproved || contest.state >= ContestState.Approved) &&
+      contest.state < ContestState.Published &&
+      (user.roles.includes(Role.Admin) ||
+        (user.roles.includes(Role.Moderator) &&
+          contest.organizers.some((el) => el.personId === user.personId) &&
+          contest.state < ContestState.Finished));
 
     if (!hasAccessRights) {
       this.logger.logAndSave(

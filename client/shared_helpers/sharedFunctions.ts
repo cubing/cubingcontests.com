@@ -10,6 +10,7 @@ import {
   type IPersonDto,
   type IRecordPair,
   type IResult,
+  IRound,
   type IRoundFormat,
   type IVideoBasedResult,
 } from "./types.ts";
@@ -289,3 +290,16 @@ export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
   contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
 
 export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
+
+export const getMaxAllowedRounds = (rounds: IRound[]): number => {
+  if (rounds.length === 1 || rounds[0].results.length < C.minResultsForOneMoreRound) return 1;
+  if (
+    rounds.length === 2 || rounds[0].results.length < C.minResultsForTwoMoreRounds ||
+    rounds[1].results.length < C.minResultsForOneMoreRound
+  ) return 2;
+  if (
+    rounds.length === 3 || rounds[0].results.length < C.minResultsForThreeMoreRounds ||
+    rounds[1].results.length < C.minResultsForTwoMoreRounds || rounds[2].results.length < C.minResultsForOneMoreRound
+  ) return 3;
+  return 4;
+};
