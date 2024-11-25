@@ -23,7 +23,7 @@ import { RoundType } from "~/shared_helpers/enums.ts";
 import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import { type InputPerson, type MultiChoiceOption } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getBestAndAverage, getMakesCutoff } from "~/shared_helpers/sharedFunctions.ts";
+import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/shared_helpers/sharedFunctions.ts";
 import type { IFeAttempt, IRecordPair, IResultDto } from "~/shared_helpers/interfaces/Result.ts";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
@@ -48,14 +48,14 @@ const DataEntryScreen = ({
   const myFetch = useMyFetch();
   const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
+  const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
+  const [recordPairsByEvent, setRecordPairsByEvent] = useState(initialRecordPairs as IEventRecordPairs[]);
+  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
+
   const eventId = searchParams.get("eventId") ?? contest.events[0].event.eventId;
-  const currContestEvent = contest.events.find((ev) => ev.event.eventId === eventId) as IContestEvent;
+  const currContestEvent = contestEvents.find((ev: IContestEvent) => ev.event.eventId === eventId) as IContestEvent;
   const currEvent = currContestEvent.event;
 
-  const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
-  const [recordPairsByEvent, setRecordPairsByEvent] = useState<IEventRecordPairs[]>(
-    initialRecordPairs as IEventRecordPairs[],
-  );
   const [round, setRound] = useState<IRound>(currContestEvent.rounds[0]);
 
   const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
@@ -64,7 +64,6 @@ const DataEntryScreen = ({
   const [personNames, setPersonNames] = useState(new Array(currEvent.participants).fill(""));
   const [attempts, setAttempts] = useState<IFeAttempt[]>(new Array(roundFormat.attempts).fill({ result: 0 }));
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
-  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
   const [queuePosition, setQueuePosition] = useState(contest.queuePosition);
 
   const roundOptions = useMemo<MultiChoiceOption[]>(
@@ -77,7 +76,10 @@ const DataEntryScreen = ({
     [recordPairsByEvent, currEvent],
   );
 
-  const isEditable = round._id === (currContestEvent.rounds[0] as any)._id || resultUnderEdit;
+  const roundNumber = currContestEvent.rounds.findIndex((r) => (r as any)._id === round._id) + 1;
+  const isEditable = roundNumber === 1 || resultUnderEdit;
+  const maxAllowedRounds = getMaxAllowedRounds(currContestEvent.rounds);
+  const isOpenableRound = roundNumber > 1 && round.results.length === 0 && maxAllowedRounds >= roundNumber;
   const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
     ? attempts.length
     : (round.cutoff as ICutoff).numberOfAttempts;
@@ -125,15 +127,7 @@ const DataEntryScreen = ({
     }
 
     if (!errors) {
-      // Add new persons to list of persons
-      const newPersons: IPerson[] = [
-        ...persons,
-        ...currentPersons.filter((cp: InputPerson) =>
-          !persons.some((p: IPerson) => p.personId === (cp as IPerson).personId)
-        ) as IPerson[],
-      ];
-      setPersons(newPersons);
-      setPersonNames(newPersons.map((p) => p.name));
+      addNewPersonsToList();
       changeRound(updatedRound);
       // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
@@ -141,13 +135,26 @@ const DataEntryScreen = ({
     }
   };
 
+  const addNewPersonsToList = (currPersons = currentPersons) => {
+    const newPersons: IPerson[] = [
+      ...persons,
+      ...currPersons.filter((cp: InputPerson) =>
+        !persons.some((p: IPerson) => p.personId === (cp as IPerson).personId)
+      ) as IPerson[],
+    ];
+    setPersons(newPersons);
+    setPersonNames(newPersons.map((p) => p.name));
+  };
+
   const changeRound = (updatedRound: IRound) => {
     setRound(updatedRound);
     setContestEvents(contestEvents.map((ce: IContestEvent) =>
-      ce.event.eventId !== eventId ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((r) => (r.roundId !== updatedRound.roundId ? r : updatedRound)),
-      }
+      ce.event.eventId === eventId
+        ? {
+          ...ce,
+          rounds: ce.rounds.map((r) => (r.roundId === updatedRound.roundId ? updatedRound : r)),
+        }
+        : ce
     ));
     setAttempts(
       new Array((roundFormats.find((rf) => rf.value === updatedRound.format) as IRoundFormat).attempts)
@@ -223,6 +230,43 @@ const DataEntryScreen = ({
     if (!errors) setQueuePosition(payload);
   };
 
+  const openRound = () => {
+  };
+
+  const submitMockResult = async () => {
+    let firstUnusedPersonId =
+      persons.reduce((acc: IPerson, person: IPerson) => !acc || person.personId > acc.personId ? person : acc)
+        .personId + 1;
+    const resultPersons: IPerson[] = [];
+    for (let i = 0; i < currEvent.participants; i++) {
+      while (resultPersons.length === i) {
+        const { payload, errors } = await myFetch.get(`/persons?personId=${firstUnusedPersonId}`, { loadingId: null });
+        if (errors) firstUnusedPersonId++;
+        else resultPersons.push(payload);
+      }
+      firstUnusedPersonId++;
+    }
+    const resultDto = {
+      eventId,
+      personIds: resultPersons.map((p) => p.personId),
+      attempts: new Array(round.cutoff ? round.cutoff.numberOfAttempts : roundFormat.attempts).fill({ result: -1 }),
+    };
+
+    const { payload: updatedRound, errors } = await myFetch.post(
+      `/results/${contest.competitionId}/${round.roundId}`,
+      resultDto,
+      { loadingId: "submit_attempt_button" },
+    );
+
+    if (!errors) {
+      addNewPersonsToList(resultPersons);
+      changeRound(updatedRound);
+      // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
+      updateRecordPairs({ ...resultDto, best, average } as IResult);
+    }
+  };
+
   return (
     <div className="px-2">
       <ToastMessages />
@@ -283,7 +327,7 @@ const DataEntryScreen = ({
               onClick={submitResult}
               disabled={!isEditable}
               loadingId={loadingId}
-              className="mt-3"
+              className="d-block mt-3"
             >
               Submit
             </Button>
@@ -321,22 +365,38 @@ const DataEntryScreen = ({
                 </div>
               </>
             )}
+            {process.env.NODE_ENV !== "production" && (
+              <Button
+                id="set_mock_comp_button"
+                onClick={submitMockResult}
+                disabled={!isEditable}
+                className="mt-4 btn-secondary"
+              >
+                Submit Mock Result
+              </Button>
+            )}
           </div>
         </div>
 
         <div className="col-lg-9">
           <h3 className="mt-2 mb-4 text-center">{contest.shortName} &ndash; {shortenEventName(currEvent.name)}</h3>
 
-          <RoundResultsTable
-            round={round}
-            event={currEvent}
-            persons={persons}
-            recordTypes={activeRecordTypes}
-            onEditResult={editResult}
-            onDeleteResult={deleteResult}
-            disableEditAndDelete={!isEditable || resultUnderEdit !== null}
-            loadingId={loadingId}
-          />
+          {isEditable
+            ? (
+              <RoundResultsTable
+                round={round}
+                event={currEvent}
+                persons={persons}
+                recordTypes={activeRecordTypes}
+                onEditResult={editResult}
+                onDeleteResult={deleteResult}
+                disableEditAndDelete={resultUnderEdit !== null}
+                loadingId={loadingId}
+              />
+            )
+            : isOpenableRound
+            ? <Button onClick={openRound} className="d-block mx-auto">Open Round</Button>
+            : <p className="text-center fst-italic">This round cannot be opened yet</p>}
         </div>
       </div>
     </div>

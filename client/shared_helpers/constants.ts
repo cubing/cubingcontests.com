@@ -7,7 +7,10 @@ const C = {
   // Timeouts before revalidating a request in seconds
   rankingsRev: 120, //  2 minutes
   contestsRev: 60, // 1 minute
-  maxRounds: 10, // maximum number of rounds allowed
+  maxRounds: 4,
+  minResultsForThreeMoreRounds: 100,
+  minResultsForTwoMoreRounds: 16,
+  minResultsForOneMoreRound: 8,
   maxTime: 24 * 60 * 60 * 100, // 24 hours (IF THIS IS EVER UPDATED, ALSO CONSIDER THE LINES WITH 24000000 IN AttemptInput)
   maxFmMoves: 999,
   maxTimeLimit: 60 * 60 * 100, // 1 hour

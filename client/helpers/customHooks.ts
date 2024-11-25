@@ -31,7 +31,7 @@ export const useMyFetch = () => {
         authorize = false,
         redirect,
         fileName,
-        loadingId, // set loadingId to null to prevent automatic loading behavior
+        loadingId, // set loadingId to null to prevent automatic loading and error handling behavior
         keepLoadingOnSuccess = false,
       }: FetchOptions & {
         redirect?: string; // this can only be set if authorize is set too
