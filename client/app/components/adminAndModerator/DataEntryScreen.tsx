@@ -230,7 +230,15 @@ const DataEntryScreen = ({
     if (!errors) setQueuePosition(payload);
   };
 
-  const openRound = () => {
+  const openRound = async () => {
+    const { payload, errors } = await myFetch.post(
+      `/competitions/${contest.competitionId}/open-round/${round.roundId}`,
+      {},
+    );
+
+    if (!errors) {
+      console.log("yay!", payload);
+    }
   };
 
   const submitMockResult = async () => {

@@ -8,6 +8,7 @@ export enum LogType {
   GetContest = "get_contest",
   GetModContest = "get_mod_contest",
   CreateContest = "create_contest",
+  OpenRound = 'open_round',
   UpdateContest = "update_contest",
   UpdateContestState = "update_contest_state",
   RemoveContest = "remove_contest",

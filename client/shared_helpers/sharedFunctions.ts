@@ -232,8 +232,8 @@ export const getBestAndAverage = (
   return { best, average };
 };
 
-export const getRoundRanksWithAverage = (roundFormat: RoundFormat): boolean =>
-  [RoundFormat.Average, RoundFormat.Mean].includes(roundFormat);
+export const getIsProceedableResult = (result: IResult, roundFormat: IRoundFormat): boolean =>
+  (roundFormat.attempts >= 3 && result.average > 0) || result.best > 0;
 
 export const getDefaultAverageAttempts = (event: IEvent) => {
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;

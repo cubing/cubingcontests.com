@@ -50,6 +50,9 @@ export class Result {
   regionalAverageRecord?: string;
 
   @Prop()
+  proceeds?: true;
+
+  @Prop()
   videoLink?: string;
 
   @Prop()

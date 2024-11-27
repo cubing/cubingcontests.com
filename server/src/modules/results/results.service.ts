@@ -49,7 +49,6 @@ import {
   getFormattedTime,
   getIsCompType,
   getMakesCutoff,
-  getRoundRanksWithAverage,
   setResultRecords,
 } from "@sh/sharedFunctions";
 import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings, setRoundRankings } from "~/src/helpers/utilityFunctions";
@@ -561,7 +560,7 @@ export class ResultsService {
     await this.updateFutureRecords(createdResult, event, recordPairs, { mode: "create" });
 
     round.results.push(createdResult);
-    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRoundRankings(round);
     await round.save();
     await this.updateContestParticipants(contest);
 
@@ -605,7 +604,7 @@ export class ResultsService {
     await this.updateFutureRecords(result, event, recordPairs, { mode: "edit", previousBest, previousAvg });
 
     round.results = round.results.map((r) => (r._id.toString() === resultId ? result : r));
-    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRoundRankings(round);
     round.save();
     await this.updateContestParticipants(contest);
 
@@ -737,7 +736,7 @@ export class ResultsService {
 
     if (contest) {
       round.results = round.results.filter((el) => el._id.toString() !== resultId);
-      round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+      round.results = await setRoundRankings(round);
       round.save();
       await this.updateContestParticipants(contest);
 

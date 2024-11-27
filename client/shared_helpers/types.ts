@@ -22,7 +22,9 @@ export type {
   IResult,
   IResultsSubmissionInfo,
   IUpdateResultDto,
+  IUpdateVideoBasedResultDto,
   IVideoBasedResult,
+  IVideoBasedResultDto,
 } from "./interfaces/Result.ts";
 export type { ICutoff, IProceed, IRound, IRoundFormat, ITimeLimit } from "./interfaces/Round.ts";
 export type { IActivity, IRoom, ISchedule, IVenue } from "./interfaces/Schedule.ts";

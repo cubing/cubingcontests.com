@@ -80,6 +80,16 @@ export class ContestsController {
     return await this.service.createContest(contestDto, req.user, saveResults && req.user.roles.includes(Role.Admin));
   }
 
+  // POST /competitions/:competitionId/open-round/:roundId
+  @Post(':competitionId/open-round/:roundId')
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @Roles(Role.Admin, Role.Moderator)
+  async openRound(@Param('competitionId') competitionId: string, @Param('roundId') roundId: string) {
+    this.logger.logAndSave(`Opening round ${roundId} for contest ${competitionId}`, LogType.OpenRound);
+
+    return await this.service.openRound(competitionId, roundId);
+  }
+
   // PATCH /competitions/:competitionId
   @Patch(":competitionId")
   @UseGuards(AuthenticatedGuard, RolesGuard)

@@ -5,8 +5,8 @@ import Solves from "~/app/components/Solves.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { IEvent, IPerson, IRecordType, IResult, IRound, type IRoundFormat } from "~/shared_helpers/types.ts";
-import { RoundFormat, RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
-import { getRoundRanksWithAverage } from "~/shared_helpers/sharedFunctions.ts";
+import { RoundFormat, RoundType } from "~/shared_helpers/enums.ts";
+import { getIsProceedableResult } from "~/shared_helpers/sharedFunctions.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
 
 type Props = {
@@ -33,22 +33,21 @@ const RoundResultsTable = ({
 }: Props) => {
   const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
   const roundCanHaveAverage = roundFormat.attempts >= 3;
-  const roundRanksWithAverage = getRoundRanksWithAverage(round.format);
   let lastRanking = 0;
+  //     // This is necessary to account for rounding down to 0 (see Math.floor() below)
+  //     (result.ranking === 1 ||
+  //       // Final round and the ranking is in the top 3
+  //       // Non-final round and the ranking satisfies the proceed parameters
+  //       (round.proceed && result.ranking <=
+  //           (round.proceed.type === RoundProceed.Number
+  //             ? round.proceed.value
+  //             : Math.floor((round.results.length * round.proceed.value) / 100))))
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {
     if (
-      ((roundRanksWithAverage && result.average > 0) || (!roundRanksWithAverage && result.best > 0)) &&
-      // This is necessary to account for rounding down to 0 (see Math.floor() below)
-      (result.ranking === 1 ||
-        // Final round and the ranking is in the top 3
-        (round.roundTypeId === RoundType.Final && result.ranking <= 3) ||
-        // Non-final round and the ranking satisfies the proceed parameters
-        (round.proceed && result.ranking <=
-            (round.proceed.type === RoundProceed.Number
-              ? round.proceed.value
-              : Math.floor((round.results.length * round.proceed.value) / 100))))
+      result.proceeds ||
+      (round.roundTypeId === RoundType.Final && result.ranking <= 3 && getIsProceedableResult(result, roundFormat))
     ) {
       return { color: "black", background: "#10c010" };
     }

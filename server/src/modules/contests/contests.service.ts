@@ -21,10 +21,10 @@ import {
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IResult, ISchedule } from "@sh/types";
+import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRoundFormat, ISchedule } from "@sh/types";
 import { ContestState, ContestType, EventGroup } from "@sh/enums";
 import { Role } from "@sh/enums";
-import { getDateOnly, getIsCompType, getIsOtherActivity, getTotalRounds } from "@sh/sharedFunctions";
+import { getDateOnly, getIsCompType, getIsOtherActivity, getIsProceedableResult, getTotalRounds } from "@sh/sharedFunctions";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { ResultsService } from "@m/results/results.service";
 import { EventsService } from "@m/events/events.service";
@@ -37,6 +37,7 @@ import { RoundDocument } from "~/src/models/round.model";
 import { ResultDocument } from "~/src/models/result.model";
 import { ScheduleDocument } from "~/src/models/schedule.model";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
+import { roundFormats } from "~/shared_helpers/roundFormats";
 
 const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
 
@@ -161,6 +162,23 @@ export class ContestsService {
         }
       }
     }
+
+    // TEMPORARY
+    const multiRoundEventContests = await this.contestModel.find({'events.rounds.proceed': {$exists: true}})
+      .populate(eventPopulateOptions.roundsAndResults).exec()
+    
+    for (const contest of multiRoundEventContests) {
+      for (const event of contest.events.filter(ce => ce.rounds.length > 1)) {
+        for (let i = 0; i < event.rounds.length - 1; i++) {
+          for (const result of event.rounds[i].results) {
+            if (!result.proceeds && event.rounds[i + 1].results.some(r => r.personIds.some(p => result.personIds.includes(p)))) {
+              result.proceeds = true;
+              await result.save()
+            }
+          }
+        }
+      }
+    }
   }
 
   async getContests(region?: string, eventId?: string) {
@@ -208,21 +226,13 @@ export class ContestsService {
     };
 
     if (eventId) {
-      // TEMP SOLUTION! (figure out the results population below instead of doing this workaround)
-      output.contest = contest.toObject() as IContest;
       const contestEvent = eventId === "FIRST_EVENT"
-        ? output.contest.events[0]
-        : output.contest.events.find((ce) => ce.event.eventId === eventId);
+        ? contest.events[0]
+        : contest.events.find((ce) => ce.event.eventId === eventId);
       if (!contestEvent) throw new BadRequestException("Event not found");
 
       // Populate the results of all rounds for this event
-      for (const round of contestEvent.rounds) {
-        // round.populate(resultPopulateOptions);
-
-        for (let i = 0; i < round.results.length; i++) {
-          round.results[i] = await this.resultModel.findById(round.results[i].toString());
-        }
-      }
+      for (const round of contestEvent.rounds) await round.populate(resultPopulateOptions);
     }
 
     // Get mod contest
@@ -313,6 +323,16 @@ export class ContestsService {
 
       throw new InternalServerErrorException(err.message);
     }
+  }
+
+  async openRound(competitionId: string, roundId: string) {
+    const contest = await this.getFullContest(competitionId, { populateResults: true });
+    const round = await this.roundModel.findOne({competitionId, roundId}).populate(resultPopulateOptions).exec();
+    if (!round) throw new NotFoundException('Round not found');
+    if (round.results.length > 0) throw new BadRequestException('The specified round is already open');
+
+    let numberOfAttempts = round.cutoff?.numberOfAttempts ??
+      (roundFormats.find((rf) => rf.value === round.format) as IRoundFormat).attempts;
   }
 
   async updateContest(competitionId: string, contestDto: ContestDto, user: IPartialUser) {
@@ -478,7 +498,7 @@ export class ContestsService {
     competitionId: string,
     {
       exclude = true,
-      populateResults,
+      populateResults = false,
     }: {
       exclude?: boolean; // whether or not to exclude internal fields
       populateResults?: boolean;

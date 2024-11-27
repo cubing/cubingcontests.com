@@ -15,14 +15,14 @@ import {
 import { IUser } from "~/src/helpers/interfaces/User";
 import { formatInTimeZone } from "date-fns-tz";
 import { differenceInDays } from "date-fns";
+import { RoundDocument } from "~/src/models/round.model";
+import { RoundFormat } from "~/shared_helpers/enums";
 
-export const setRoundRankings = async (
-  results: ResultDocument[],
-  ranksWithAverage: boolean,
-): Promise<ResultDocument[]> => {
-  if (results.length === 0) return results;
+export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocument[]> => {
+  if (round.results.length === 0) return round.results;
 
-  const sortedResults = results.sort(ranksWithAverage ? compareAvgs : compareSingles);
+  const ranksWithAverage = [RoundFormat.Mean, RoundFormat.Average].includes(round.format);
+  const sortedResults = round.results.sort(ranksWithAverage ? compareAvgs : compareSingles);
   let prevResult = sortedResults[0];
   let ranking = 1;
 

@@ -34,6 +34,7 @@ export interface IResult {
   average: number; // for FMC it's 100 times the mean (to avoid decimals)
   regionalSingleRecord?: string;
   regionalAverageRecord?: string;
+  proceeds?: true;
 }
 
 export type IVideoBasedResult = Omit<IResult, "competitionId" | "ranking"> & {
