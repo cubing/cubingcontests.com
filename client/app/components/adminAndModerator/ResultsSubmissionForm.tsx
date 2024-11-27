@@ -17,9 +17,11 @@ import {
   type IEventRecordPairs,
   type IFeAttempt,
   type IPerson,
+  type IRecordPair,
   type IResultsSubmissionInfo,
   type IRoundFormat,
-  type IUpdateResultDto,
+  type IUpdateVideoBasedResultDto,
+  type IVideoBasedResultDto,
 } from "~/shared_helpers/types.ts";
 import { EventFormat, RoundFormat } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
@@ -33,7 +35,6 @@ import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
-import type { IRecordPair, IVideoBasedResultDto } from "~/shared_helpers/interfaces/Result.ts";
 
 const userInfo: UserInfo = getUserInfo();
 const allowedRoundFormats: IRoundFormat[] = roundFormats.filter((rf) => rf.value !== RoundFormat.BestOf3);
@@ -165,7 +166,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
         if (!keepCompetitors) document.getElementById("Competitor_1")?.focus();
       }
     } else {
-      const updateResultDto: IUpdateResultDto = {
+      const updateResultDto: IUpdateVideoBasedResultDto = {
         date: newResult.date,
         personIds: newResult.personIds,
         attempts: newResult.attempts,

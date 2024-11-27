@@ -5,7 +5,7 @@ import {
   IsUrl,
 } from "class-validator";
 import { DATE_VALIDATION_MSG, DISCUSSION_LINK_VALIDATION_MSG, VIDEO_LINK_VALIDATION_MSG } from "~/src/helpers/messages";
-import { IUpdateVideoBasedResultDto } from "~/shared_helpers/interfaces/Result";
+import { IUpdateVideoBasedResultDto } from "~/shared_helpers/types";
 import { UpdateResultDto } from "~/src/modules/results/dto/update-result.dto";
 
 export class UpdateVideoBasedResultDto extends UpdateResultDto implements IUpdateVideoBasedResultDto {
