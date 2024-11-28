@@ -1,6 +1,7 @@
 import { RoundDocument } from "~/src/models/round.model";
 import { IRound } from "@sh/types";
 import { contestsStub } from "../stubs/competitions.stub";
+import { parseRoundId } from "~/shared_helpers/sharedFunctions";
 
 export const RoundModelMock = (): any => ({
   tempOutput: undefined,
@@ -16,7 +17,7 @@ export const RoundModelMock = (): any => ({
     return this;
   },
   findOne({ competitionId, roundId }: { competitionId: string; roundId: string }): RoundDocument {
-    const eventId = roundId.split("-")[0];
+    const [eventId] = parseRoundId(roundId);
 
     this.tempOutput = contestsStub()
       .find((c) => c.competitionId === competitionId)

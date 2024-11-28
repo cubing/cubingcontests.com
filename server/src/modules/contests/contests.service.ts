@@ -21,10 +21,10 @@ import {
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRoundFormat, ISchedule } from "@sh/types";
+import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, IRoundFormat, ISchedule } from "@sh/types";
 import { ContestState, ContestType, EventGroup } from "@sh/enums";
 import { Role } from "@sh/enums";
-import { getDateOnly, getIsCompType, getIsOtherActivity, getIsProceedableResult, getTotalRounds } from "@sh/sharedFunctions";
+import { getDateOnly, getIsCompType, getIsOtherActivity, getIsProceedableResult, getMaxAllowedRounds, getTotalRounds, parseRoundId } from "@sh/sharedFunctions";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { ResultsService } from "@m/results/results.service";
 import { EventsService } from "@m/events/events.service";
@@ -153,7 +153,7 @@ export class ContestsService {
       for (const contest of contests) {
         for (const contestEvent of contest.events) {
           for (const round of contestEvent.rounds) {
-            if (round.roundId.split("-")[0] !== contestEvent.event.eventId) {
+            if (parseRoundId(round.roundId)[0] !== contestEvent.event.eventId) {
               this.logger.error(
                 `Round ${round.roundId} is inconsistent with event ${contestEvent.event.eventId} in contest ${contest.competitionId}`,
               );
@@ -326,13 +326,26 @@ export class ContestsService {
   }
 
   async openRound(competitionId: string, roundId: string) {
+    const [eventId, roundNumber] = parseRoundId(roundId);
     const contest = await this.getFullContest(competitionId, { populateResults: true });
-    const round = await this.roundModel.findOne({competitionId, roundId}).populate(resultPopulateOptions).exec();
-    if (!round) throw new NotFoundException('Round not found');
-    if (round.results.length > 0) throw new BadRequestException('The specified round is already open');
+    
+    const round = await this.roundModel.findOne({competitionId, roundId}).exec();
+    if (!round) throw new NotFoundException("Round not found");
+    if (round.open) throw new BadRequestException("The specified round is already open");
 
-    let numberOfAttempts = round.cutoff?.numberOfAttempts ??
-      (roundFormats.find((rf) => rf.value === round.format) as IRoundFormat).attempts;
+    const maxAllowedRounds = getMaxAllowedRounds(contest.events.find(ce => ce.event.eventId === eventId).rounds as IRound[]);
+    if (maxAllowedRounds < roundNumber)
+      throw new BadRequestException("Previous rounds do not have enough competitors (see WCA regulation 9m)");
+
+    round.open = true;
+    await round.save();
+
+    if (roundNumber > 1) {
+      const prevRound = await this.roundModel.findOne({ competitionId, roundId: eventId + `-r${roundNumber - 1}` }).exec();
+      if (!prevRound) throw new InternalServerErrorException("Previous round not found");
+      prevRound.open = undefined;
+      await prevRound.save();
+    }
   }
 
   async updateContest(competitionId: string, contestDto: ContestDto, user: IPartialUser) {
@@ -535,7 +548,9 @@ export class ContestsService {
     const eventRounds: RoundDocument[] = [];
 
     try {
-      for (const round of contestEvent.rounds) {
+      for (let i = 0; i < contestEvent.rounds.length; i++) {
+        const round = contestEvent.rounds[i];
+
         // This is only used for the import contest feature and can only be used by an admin
         if (saveResults) {
           round.results = await this.resultModel.create(
@@ -543,6 +558,10 @@ export class ContestsService {
           ) as IResult[];
         }
 
+        // Automatically open the first round (TEMPORARY)
+        if (i === 0) round.open = true;
+
+        // The id needs to be reset in case the contest was created using the clone feature
         eventRounds.push(await this.roundModel.create({ ...round, _id: undefined }));
       }
     } catch (err) {
@@ -810,9 +829,9 @@ export class ContestsService {
       .exec();
 
     if (zeroResultsRound) {
-      const [eventId, roundNumber] = zeroResultsRound.roundId.split("-");
+      const [eventId, roundNumber] = parseRoundId(zeroResultsRound.roundId);
       const event = await this.eventsService.getEventById(eventId);
-      throw new BadRequestException(`${event.name} round ${roundNumber.slice(1)} has no results`);
+      throw new BadRequestException(`${event.name} round ${roundNumber} has no results`);
     }
 
     // Check there are no incomplete results

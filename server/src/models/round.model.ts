@@ -63,6 +63,9 @@ export class Round {
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Result" }], required: true })
   results: ResultDocument[];
+
+  @Prop()
+  open?: true;
 }
 
 export type RoundDocument = HydratedDocument<Round>;
