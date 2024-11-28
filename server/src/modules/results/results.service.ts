@@ -522,10 +522,6 @@ export class ResultsService {
     const round = await this.roundModel.findOne({ competitionId, roundId }).populate(resultPopulateOptions).exec();
     if (!round) throw new BadRequestException("Round not found");
     const event = await this.eventsService.getEventById(createResultDto.eventId);
-    const contestEvent = contest.events.find(e => (e.event as any).toString() === event._id.toString());
-    const isFirstRound = contestEvent.rounds.find(r => (r as any).toString() === round._id.toString()) === contestEvent.rounds[0];
-    if (!isFirstRound)
-      throw new BadRequestException("You may not create a new result for a subsequent round. Instead, you should edit an empty result for a competitor who proceeded to this round.");
     if (round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid))))
       throw new BadRequestException("The competitor(s) already has a result in this round");
 

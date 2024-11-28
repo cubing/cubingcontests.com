@@ -34,14 +34,6 @@ const RoundResultsTable = ({
   const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
   const roundCanHaveAverage = roundFormat.attempts >= 3;
   let lastRanking = 0;
-  //     // This is necessary to account for rounding down to 0 (see Math.floor() below)
-  //     (result.ranking === 1 ||
-  //       // Final round and the ranking is in the top 3
-  //       // Non-final round and the ranking satisfies the proceed parameters
-  //       (round.proceed && result.ranking <=
-  //           (round.proceed.type === RoundProceed.Number
-  //             ? round.proceed.value
-  //             : Math.floor((round.results.length * round.proceed.value) / 100))))
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
   const getRankingHighlight = (result: IResult) => {

@@ -233,7 +233,7 @@ export const getBestAndAverage = (
 };
 
 export const getIsProceedableResult = (result: IResult, roundFormat: IRoundFormat): boolean =>
-  (roundFormat.attempts >= 3 && result.average > 0) || result.best > 0;
+  (roundFormat.isAverage && result.average > 0) || result.best > 0;
 
 export const getDefaultAverageAttempts = (event: IEvent) => {
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;

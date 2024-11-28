@@ -1,11 +1,13 @@
 import { ResultDocument } from "~/src/models/result.model";
-import { compareAvgs, compareSingles, getDefaultAverageAttempts } from "@sh/sharedFunctions";
+import { compareAvgs, compareSingles, getDefaultAverageAttempts, getIsProceedableResult } from "@sh/sharedFunctions";
 import {
   IActivity,
   IContest,
   IContestEvent,
   IEvent,
+  IResult,
   IRound,
+  IRoundFormat,
   IWcifActivity,
   IWcifCompetition,
   IWcifEvent,
@@ -16,13 +18,14 @@ import { IUser } from "~/src/helpers/interfaces/User";
 import { formatInTimeZone } from "date-fns-tz";
 import { differenceInDays } from "date-fns";
 import { RoundDocument } from "~/src/models/round.model";
-import { RoundFormat } from "~/shared_helpers/enums";
+import { RoundProceed } from "~/shared_helpers/enums";
+import { roundFormats } from "~/shared_helpers/roundFormats";
 
 export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocument[]> => {
-  if (round.results.length === 0) return round.results;
+  if (round.results.length === 0) return [];
 
-  const ranksWithAverage = [RoundFormat.Mean, RoundFormat.Average].includes(round.format);
-  const sortedResults = round.results.sort(ranksWithAverage ? compareAvgs : compareSingles);
+  const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
+  const sortedResults = round.results.sort(roundFormat.isAverage ? compareAvgs : compareSingles);
   let prevResult = sortedResults[0];
   let ranking = 1;
 
@@ -30,14 +33,28 @@ export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocu
     // If the previous result was not tied with this one, increase ranking
     if (
       i > 0 &&
-      ((ranksWithAverage && compareAvgs(prevResult, sortedResults[i]) < 0) ||
-        (!ranksWithAverage && compareSingles(prevResult, sortedResults[i]) < 0))
+      ((roundFormat.isAverage && compareAvgs(prevResult, sortedResults[i]) < 0) ||
+        (!roundFormat.isAverage && compareSingles(prevResult, sortedResults[i]) < 0))
     ) {
       ranking = i + 1;
     }
 
     sortedResults[i].ranking = ranking;
     prevResult = sortedResults[i];
+
+    // Set proceeds if it's a non-final round and the result proceeds to the next round
+    if (round.proceed &&
+      getIsProceedableResult(sortedResults[i] as IResult, roundFormat) &&
+      sortedResults[i].ranking <= Math.floor(round.results.length * 0.75) && // extra check for top 75%
+      sortedResults[i].ranking <= (round.proceed.type === RoundProceed.Number
+        ? round.proceed.value
+        : Math.floor((round.results.length * round.proceed.value) / 100))
+    ) {
+      sortedResults[i].proceeds = true;
+    } else if (sortedResults[i].proceeds) {
+      sortedResults[i].proceeds = undefined;
+    }
+
     await sortedResults[i].save(); // update the result in the DB
   }
 
@@ -45,7 +62,7 @@ export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocu
 };
 
 export const setRankings = async (results: ResultDocument[], ranksWithAverage: boolean): Promise<ResultDocument[]> => {
-  if (results.length === 0) return results;
+  if (results.length === 0) return [];
 
   let prevResult = results[0];
   let ranking = 1;
