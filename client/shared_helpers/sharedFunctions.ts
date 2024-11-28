@@ -292,14 +292,30 @@ export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
 export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
 
 export const getMaxAllowedRounds = (rounds: IRound[]): number => {
-  if (rounds.length === 1 || rounds[0].results.length < C.minResultsForOneMoreRound) return 1;
+  const getRoundHasEnoughResults = (roundIndex: number) =>
+    rounds[roundIndex].results.length >= C.minResultsForOneMoreRound &&
+    rounds[roundIndex].results.filter((r) => r.proceeds).length >= C.minProceedNumber;
+
+  if (!getRoundHasEnoughResults(0)) return 1;
+
+  if (rounds[0].results.length < C.minResultsForTwoMoreRounds || !getRoundHasEnoughResults(1)) return 2;
+
   if (
-    rounds.length === 2 || rounds[0].results.length < C.minResultsForTwoMoreRounds ||
-    rounds[1].results.length < C.minResultsForOneMoreRound
-  ) return 2;
-  if (
-    rounds.length === 3 || rounds[0].results.length < C.minResultsForThreeMoreRounds ||
-    rounds[1].results.length < C.minResultsForTwoMoreRounds || rounds[2].results.length < C.minResultsForOneMoreRound
+    rounds[0].results.length < C.minResultsForThreeMoreRounds ||
+    rounds[1].results.length < C.minResultsForTwoMoreRounds || !getRoundHasEnoughResults(2)
   ) return 3;
+
   return 4;
+};
+
+export const parseRoundId = (roundId: string): [string, number] => {
+  const [eventPart, roundPart] = roundId.split("-");
+  if (!eventPart || !roundPart) throw new Error(`Invalid round ID: ${roundId}`);
+
+  const roundNumber = parseInt(roundPart.slice(1));
+  if (isNaN(roundNumber) || roundNumber < 1 || roundNumber > C.maxRounds) {
+    throw new Error(`Round ID has invalid round number: ${roundId}`);
+  }
+
+  return [eventPart, roundNumber];
 };

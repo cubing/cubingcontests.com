@@ -49,6 +49,7 @@ import {
   getFormattedTime,
   getIsCompType,
   getMakesCutoff,
+  parseRoundId,
   setResultRecords,
 } from "@sh/sharedFunctions";
 import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings, setRoundRankings } from "~/src/helpers/utilityFunctions";
@@ -517,11 +518,29 @@ export class ResultsService {
       LogType.CreateResult,
     );
 
+    const [eventId, roundNumber] = parseRoundId(roundId);
+    if (eventId !== createResultDto.eventId) throw new BadRequestException("The event ID and the round ID do not match");
+
     const contest = await this.getContestAndCheckAccessRights(competitionId, { user });
 
     const round = await this.roundModel.findOne({ competitionId, roundId }).populate(resultPopulateOptions).exec();
     if (!round) throw new BadRequestException("Round not found");
-    const event = await this.eventsService.getEventById(createResultDto.eventId);
+    if (!round.open) throw new BadRequestException("The round is not open");
+    const event = await this.eventsService.getEventById(eventId);
+    // Check that all of the participants have proceeded to the round
+    if (roundNumber > 1) {
+      const prevRound = await this.roundModel.findOne({ competitionId, roundId: eventId + `-r${roundNumber - 1}` })
+        .populate(resultPopulateOptions)
+        .exec();
+      if (!prevRound) throw new InternalServerErrorException("Previous round not found");
+      const notProceededCompetitor = createResultDto.personIds
+        .findIndex(pid => !prevRound.results.some(r => r.proceeds && r.personIds.includes(pid)));
+
+      if (notProceededCompetitor >= 0)
+        throw new BadRequestException(
+          `Competitor${event.participants > 1 ? ` ${notProceededCompetitor + 1}` : ""} has not proceeded to this round`
+        );
+    }
     if (round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid))))
       throw new BadRequestException("The competitor(s) already has a result in this round");
 
@@ -580,6 +599,7 @@ export class ResultsService {
       .populate(resultPopulateOptions)
       .exec();
     if (!round) throw new BadRequestException("Round not found");
+    if (!round.open) throw new BadRequestException("The round is not open");
     const previousBest = result.best;
     const previousAvg = result.average;
 
@@ -712,8 +732,6 @@ export class ResultsService {
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new BadRequestException(`Result with ID ${resultId} not found`);
 
-    this.logger.logAndSave(`Deleting result: ${JSON.stringify(result)}`, LogType.DeleteResult);
-
     const event = await this.eventsService.getEventById(result.eventId);
 
     let contest: ContestDocument, round: RoundDocument;
@@ -724,7 +742,10 @@ export class ResultsService {
         .populate(resultPopulateOptions)
         .exec();
       if (!round) throw new BadRequestException("Round not found");
+      if (!round.open) throw new BadRequestException("The round is not open");
     }
+
+    this.logger.logAndSave(`Deleting result: ${JSON.stringify(result)}`, LogType.DeleteResult);
 
     await this.resultModel.deleteOne({ _id: resultId }).exec();
     const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: result.date, excludeResultId: resultId });

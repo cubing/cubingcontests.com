@@ -28,6 +28,7 @@ export interface IRound {
   // This is only set if it's not the final round
   proceed?: IProceed;
   results: IResult[]; // this is an empty array until results are posted
+  open?: true; // this is only set in ongoing contests for the last open round
 }
 
 export interface IRoundFormat {

@@ -17,7 +17,7 @@ const C = {
   minCompetitorLimit: 5,
   minCompetitorsForNonWca: 3,
   maxConfirmationCodeAttempts: 3,
-  minProceedNumber: 3,
+  minProceedNumber: 2,
   maxProceedPercentage: 75,
   maxMeetupRounds: 15,
   confirmationCodeCooldown: 5 * 60 * 1000, // in milliseconds (5 minutes)

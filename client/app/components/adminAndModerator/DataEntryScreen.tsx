@@ -77,9 +77,9 @@ const DataEntryScreen = ({
   );
 
   const roundNumber = currContestEvent.rounds.findIndex((r) => (r as any)._id === round._id) + 1;
-  const isEditable = roundNumber === 1 || resultUnderEdit;
+  const isEditable = round.open;
   const maxAllowedRounds = getMaxAllowedRounds(currContestEvent.rounds);
-  const isOpenableRound = roundNumber > 1 && round.results.length === 0 && maxAllowedRounds >= roundNumber;
+  const isOpenableRound = !round.open && maxAllowedRounds >= roundNumber;
   const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
     ? attempts.length
     : (round.cutoff as ICutoff).numberOfAttempts;
@@ -389,21 +389,30 @@ const DataEntryScreen = ({
         <div className="col-lg-9">
           <h3 className="mt-2 mb-4 text-center">{contest.shortName} &ndash; {shortenEventName(currEvent.name)}</h3>
 
-          {isEditable
+          {round.open || round.results.length > 0
             ? (
               <RoundResultsTable
                 round={round}
                 event={currEvent}
                 persons={persons}
                 recordTypes={activeRecordTypes}
-                onEditResult={editResult}
-                onDeleteResult={deleteResult}
+                onEditResult={round.open ? editResult : undefined}
+                onDeleteResult={round.open ? deleteResult : undefined}
                 disableEditAndDelete={resultUnderEdit !== null}
                 loadingId={loadingId}
               />
             )
             : isOpenableRound
-            ? <Button onClick={openRound} className="d-block mx-auto">Open Round</Button>
+            ? (
+              <div>
+                <Button onClick={openRound} className="d-block mt-5 mx-auto">Open Round</Button>
+                <p className="mt-4 text-center text-danger fst-italic">
+                  Do NOT begin this round before opening it using the button, which checks that the round may be opened.
+                  Also, please mind that manually adding/removing competitors to/from a subsequent round hasn't been
+                  implemented yet.
+                </p>
+              </div>
+            )
             : <p className="text-center fst-italic">This round cannot be opened yet</p>}
         </div>
       </div>
