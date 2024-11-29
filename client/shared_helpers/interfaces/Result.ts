@@ -43,7 +43,7 @@ export type IVideoBasedResult = Omit<IResult, "competitionId" | "ranking"> & {
   createdBy?: unknown; // user ID of the user who created the result
 };
 
-export interface IResultDto {
+export interface ICreateResultDto {
   eventId: string;
   personIds: number[];
   attempts: IFeAttempt[];
@@ -54,7 +54,7 @@ export interface IUpdateResultDto {
   attempts: IFeAttempt[];
 }
 
-export interface IVideoBasedResultDto extends IResultDto {
+export interface ICreateVideoBasedResultDto extends ICreateResultDto {
   date: Date;
   videoLink: string;
   discussionLink?: string;

@@ -15,9 +15,9 @@ import { Type } from "class-transformer";
 import { IAttempt } from "@sh/types";
 import C from "@sh/constants";
 import { ContestAttempts } from "~/src/helpers/customValidators";
-import { IResultDto } from "~/shared_helpers/interfaces/Result";
+import { ICreateResultDto } from "~/shared_helpers/interfaces/Result";
 
-export class CreateResultDto implements IResultDto {
+export class CreateResultDto implements ICreateResultDto {
   @IsString()
   @IsNotEmpty()
   eventId: string;

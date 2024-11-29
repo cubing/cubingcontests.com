@@ -19,7 +19,7 @@ import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
 import { Role } from "@sh/enums";
-import { SubmitResultDto } from "./dto/submit-result.dto";
+import { CreateVideoBasedResultDto } from "./dto/create-video-based-result.dto";
 import { UpdateResultDto } from "./dto/update-result.dto";
 import { LogType } from "~/src/helpers/enums";
 import { getDateOnly } from "@sh/sharedFunctions";
@@ -127,8 +127,8 @@ export class ResultsController {
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
-  async submitResult(@Body(new ValidationPipe()) submitResultDto: SubmitResultDto, @Request() req: any) {
-    return await this.service.submitResult(submitResultDto, req.user);
+  async createVideoBasedResult(@Body(new ValidationPipe()) createResultDto: CreateVideoBasedResultDto, @Request() req: any) {
+    return await this.service.createVideoBasedResult(createResultDto, req.user);
   }
 
   // PATCH /results/video-based/:id

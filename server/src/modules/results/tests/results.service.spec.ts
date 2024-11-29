@@ -29,7 +29,7 @@ import { RoundModelMock } from "~/src/modules/contests/tests/mocks/round.model";
 import { ContestModelMock } from "~/src/modules/contests/tests/mocks/contest.model";
 import { AuthServiceMock } from "@m/auth/tests/mocks/auth.service";
 import { CreateResultDto } from "../dto/create-result.dto";
-import { SubmitResultDto } from "~/src/modules/results/dto/submit-result.dto";
+import { CreateVideoBasedResultDto } from "~/src/modules/results/dto/create-video-based-result.dto";
 import { resultsStub } from "~/src/modules/results/tests/stubs/results.stub";
 import { eventsStub } from "~/src/modules/events/tests/stubs/events.stub";
 
@@ -184,7 +184,7 @@ describe("ResultsService", () => {
 
     describe("submitResult", () => {
       it("submits new 4x4x4 Blindfolded result", async () => {
-        const newResult: SubmitResultDto = {
+        const newResult: CreateVideoBasedResultDto = {
           eventId: "444bf",
           date: new Date("2024-08-11T00:00:00Z"),
           personIds: [99],
@@ -192,7 +192,7 @@ describe("ResultsService", () => {
           videoLink: "link.com",
         };
 
-        const createdResult = await resultsService.submitResult(newResult, adminUser);
+        const createdResult = await resultsService.createVideoBasedResult(newResult, adminUser);
 
         expect(createdResult.regionalSingleRecord).toBeUndefined();
         expect(createdResult.regionalAverageRecord).toBeUndefined();
@@ -200,7 +200,7 @@ describe("ResultsService", () => {
 
       it("throws an error when there is no video link", async () => {
         await expect(
-          resultsService.submitResult(
+          resultsService.createVideoBasedResult(
             {
               eventId: "444bf",
               date: new Date(),
@@ -215,7 +215,7 @@ describe("ResultsService", () => {
 
       it("throws an error when a non-admin submits a result with an empty video link", async () => {
         await expect(
-          resultsService.submitResult(
+          resultsService.createVideoBasedResult(
             {
               eventId: "444bf",
               date: new Date(),
@@ -230,7 +230,7 @@ describe("ResultsService", () => {
 
       it("throws an error when a non-admin submits a result with unknown time", async () => {
         await expect(
-          resultsService.submitResult(
+          resultsService.createVideoBasedResult(
             {
               eventId: "444bf",
               date: new Date(),

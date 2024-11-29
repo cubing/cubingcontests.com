@@ -20,7 +20,7 @@ import { AuthService } from "@m/auth/auth.service";
 import { UsersService } from "@m/users/users.service";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { CreateResultDto } from "./dto/create-result.dto";
-import { SubmitResultDto } from "./dto/submit-result.dto";
+import { CreateVideoBasedResultDto } from "./dto/create-video-based-result.dto";
 import { UpdateResultDto } from "./dto/update-result.dto";
 import { excl, exclSysButKeepCreatedBy, orgPopulateOptions, resultPopulateOptions } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
@@ -631,9 +631,9 @@ export class ResultsService {
     return updatedRound;
   }
 
-  async submitResult(submitResultDto: SubmitResultDto, user: IPartialUser) {
+  async createVideoBasedResult(createResultDto: CreateVideoBasedResultDto, user: IPartialUser) {
     this.logger.logAndSave(
-      `Submitting new video-based result: ${JSON.stringify(submitResultDto)}`,
+      `Creating new video-based result: ${JSON.stringify(createResultDto)}`,
       LogType.SubmitResult,
     );
 
@@ -641,24 +641,24 @@ export class ResultsService {
 
     // Disallow admin-only features
     if (!isAdmin) {
-      if (submitResultDto.videoLink === "") throw new UnauthorizedException("Please enter a video link");
-      if (submitResultDto.attempts.some((a) => a.result === C.maxTime))
+      if (createResultDto.videoLink === "") throw new UnauthorizedException("Please enter a video link");
+      if (createResultDto.attempts.some((a) => a.result === C.maxTime))
         throw new UnauthorizedException("You are not authorized to set unknown time");
     }
 
-    const event = await this.eventsService.getEventById(submitResultDto.eventId);
+    const event = await this.eventsService.getEventById(createResultDto.eventId);
 
     // The best and average get set in validateAndCleanUpResult
     const newResult: IVideoBasedResult = {
-      ...submitResultDto,
+      ...createResultDto,
       unapproved: isAdmin ? undefined : true,
-      date: new Date(submitResultDto.date),
+      date: new Date(createResultDto.date),
       best: 0,
       average: 0,
       createdBy: new mongo.ObjectId(user._id as string),
     };
     await this.validateAndCleanUpResult(newResult, event, { mode: "submit" });
-    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: submitResultDto.date });
+    const recordPairs = await this.getEventRecordPairs(event, { recordsUpTo: createResultDto.date });
     const createdResult = await this.resultModel.create(setResultRecords(newResult, event, recordPairs, !isAdmin));
 
     if (isAdmin) {
