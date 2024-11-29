@@ -13,6 +13,7 @@ export type { IRecordType } from "./interfaces/RecordType.ts";
 export type {
   IAdminResultsSubmissionInfo,
   IAttempt,
+  ICreateVideoBasedResultDto,
   IEventRankings,
   IEventRecordPairs,
   IFeAttempt,
@@ -24,7 +25,6 @@ export type {
   IUpdateResultDto,
   IUpdateVideoBasedResultDto,
   IVideoBasedResult,
-  IVideoBasedResultDto,
 } from "./interfaces/Result.ts";
 export type { ICutoff, IProceed, IRound, IRoundFormat, ITimeLimit } from "./interfaces/Round.ts";
 export type { IActivity, IRoom, ISchedule, IVenue } from "./interfaces/Schedule.ts";

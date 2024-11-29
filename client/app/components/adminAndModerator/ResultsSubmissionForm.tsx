@@ -13,6 +13,7 @@ import Button from "~/app/components/UI/Button.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import {
   type IAdminResultsSubmissionInfo,
+  type ICreateVideoBasedResultDto,
   type IEvent,
   type IEventRecordPairs,
   type IFeAttempt,
@@ -21,7 +22,6 @@ import {
   type IResultsSubmissionInfo,
   type IRoundFormat,
   type IUpdateVideoBasedResultDto,
-  type IVideoBasedResultDto,
 } from "~/shared_helpers/types.ts";
 import { EventFormat, RoundFormat } from "~/shared_helpers/enums.ts";
 import { roundFormats } from "~/shared_helpers/roundFormats.ts";
@@ -142,7 +142,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
       return;
     }
 
-    const newResult: IVideoBasedResultDto = {
+    const newResult: ICreateVideoBasedResultDto = {
       eventId: event.eventId,
       date: date as Date,
       personIds: competitors.map((p: InputPerson) => (p as IPerson).personId),

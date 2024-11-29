@@ -360,6 +360,8 @@ export class ContestsService {
       prevRound.open = undefined;
       await prevRound.save();
     }
+
+    return round;
   }
 
   async updateContest(competitionId: string, contestDto: ContestDto, user: IPartialUser) {
@@ -835,15 +837,15 @@ export class ContestsService {
       );
     }
 
-    // Check there are no rounds with no results
+    // Check there are no rounds with fewer than the minimum number of results for a round
     const zeroResultsRound = await this.roundModel
-      .findOne({ competitionId: contest.competitionId, results: { $size: 0 } })
+      .findOne({ competitionId: contest.competitionId, results: { $size: C.minProceedNumber } })
       .exec();
 
     if (zeroResultsRound) {
       const [eventId, roundNumber] = parseRoundId(zeroResultsRound.roundId);
       const event = await this.eventsService.getEventById(eventId);
-      throw new BadRequestException(`${event.name} round ${roundNumber} has no results`);
+      throw new BadRequestException(`${event.name} round ${roundNumber} has fewer than ${C.minProceedNumber} results (see WCA guideline 9q+)`);
     }
 
     // Check there are no incomplete results

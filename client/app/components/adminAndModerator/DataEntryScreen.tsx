@@ -24,7 +24,7 @@ import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunction
 import { type InputPerson, type MultiChoiceOption } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/shared_helpers/sharedFunctions.ts";
-import type { IFeAttempt, IRecordPair, IResultDto } from "~/shared_helpers/interfaces/Result.ts";
+import type { ICreateResultDto, IFeAttempt, IRecordPair } from "~/shared_helpers/interfaces/Result.ts";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
@@ -77,7 +77,6 @@ const DataEntryScreen = ({
   );
 
   const roundNumber = currContestEvent.rounds.findIndex((r) => (r as any)._id === round._id) + 1;
-  const isEditable = round.open;
   const maxAllowedRounds = getMaxAllowedRounds(currContestEvent.rounds);
   const isOpenableRound = !round.open && maxAllowedRounds >= roundNumber;
   const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
@@ -99,7 +98,7 @@ const DataEntryScreen = ({
       return;
     }
 
-    const resultDto: IResultDto = {
+    const resultDto: ICreateResultDto = {
       eventId,
       personIds: currentPersons.map((p: InputPerson) => (p as IPerson).personId),
       attempts,
@@ -209,9 +208,7 @@ const DataEntryScreen = ({
   };
 
   const deleteResult = async (resultId: string) => {
-    const answer = confirm("Are you sure you want to delete this result?");
-
-    if (answer) {
+    if (confirm("Are you sure you want to delete this result?")) {
       const { payload, errors } = await myFetch.delete(`/results/${resultId}`, {
         loadingId: `delete_result_${resultId}_button`,
       });
@@ -236,9 +233,7 @@ const DataEntryScreen = ({
       {},
     );
 
-    if (!errors) {
-      console.log("yay!", payload);
-    }
+    if (!errors) changeRound(payload);
   };
 
   const submitMockResult = async () => {
@@ -305,7 +300,7 @@ const DataEntryScreen = ({
               setPersons={setCurrentPersons}
               nextFocusTargetId="attempt_1"
               redirectToOnAddPerson={window.location.pathname}
-              disabled={!isEditable}
+              disabled={!round.open}
               noGrid
             />
             {attempts.map((attempt: IFeAttempt, i: number) => (
@@ -317,7 +312,7 @@ const DataEntryScreen = ({
                 event={currEvent}
                 nextFocusTargetId={i + 1 === lastActiveAttempt ? "submit_attempt_button" : undefined}
                 timeLimit={round.timeLimit}
-                disabled={i + 1 > lastActiveAttempt || !isEditable}
+                disabled={i + 1 > lastActiveAttempt || !round.open}
               />
             ))}
             {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
@@ -333,7 +328,7 @@ const DataEntryScreen = ({
             <Button
               id="submit_attempt_button"
               onClick={submitResult}
-              disabled={!isEditable}
+              disabled={!round.open}
               loadingId={loadingId}
               className="d-block mt-3"
             >
@@ -377,7 +372,7 @@ const DataEntryScreen = ({
               <Button
                 id="set_mock_comp_button"
                 onClick={submitMockResult}
-                disabled={!isEditable}
+                disabled={!round.open}
                 className="mt-4 btn-secondary"
               >
                 Submit Mock Result
@@ -402,18 +397,22 @@ const DataEntryScreen = ({
                 loadingId={loadingId}
               />
             )
-            : isOpenableRound
-            ? (
-              <div>
-                <Button onClick={openRound} className="d-block mt-5 mx-auto">Open Round</Button>
-                <p className="mt-4 text-center text-danger fst-italic">
-                  Do NOT begin this round before opening it using the button, which checks that the round may be opened.
-                  Also, please mind that manually adding/removing competitors to/from a subsequent round hasn't been
-                  implemented yet.
-                </p>
+            : (
+              <div className="mt-5">
+                {isOpenableRound
+                  ? (
+                    <>
+                      <Button onClick={openRound} className="d-block mx-auto">Open Round</Button>
+                      <p className="mt-4 text-center text-danger fst-italic">
+                        Do NOT begin this round before opening it using the button, which checks that the round may be
+                        opened. Also, please mind that manually adding/removing competitors to/from a subsequent round
+                        hasn't been implemented yet.
+                      </p>
+                    </>
+                  )
+                  : <p className="text-center fst-italic">This round cannot be opened yet</p>}
               </div>
-            )
-            : <p className="text-center fst-italic">This round cannot be opened yet</p>}
+            )}
         </div>
       </div>
     </div>
