@@ -179,6 +179,20 @@ export class ContestsService {
         }
       }
     }
+
+    const allContests = await this.contestModel.find({ state: {$lt: ContestState.Finished} }).populate(eventPopulateOptions.rounds).exec();
+
+    for (const contest of allContests) {
+      for (const event of contest.events) {
+        for (let i = event.rounds.length - 1; i >= 0; i--) {
+          if (i === 0 || event.rounds[i].results.length > 0) {
+            event.rounds[i].open = true;
+            await event.rounds[i].save();
+            i = 0;
+          }
+        }
+      }
+    }
   }
 
   async getContests(region?: string, eventId?: string) {
@@ -329,7 +343,7 @@ export class ContestsService {
     const [eventId, roundNumber] = parseRoundId(roundId);
     const contest = await this.getFullContest(competitionId, { populateResults: true });
     
-    const round = await this.roundModel.findOne({competitionId, roundId}).exec();
+    const round = await this.roundModel.findOne({ competitionId, roundId }).exec();
     if (!round) throw new NotFoundException("Round not found");
     if (round.open) throw new BadRequestException("The specified round is already open");
 
@@ -403,16 +417,14 @@ export class ContestsService {
 
   async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
     // The organizers are needed for access rights checking below
-    const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions);
+    const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
     await this.authService.checkAccessRightsToContest(user, contest);
-    if (getIsCompType(contest.type) && !contest.compDetails) {
+    if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException("A competition without a schedule cannot be approved");
-    }
-    if (contest.state === newState) {
+    if (contest.state === newState)
       throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
-    }
 
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
@@ -856,6 +868,7 @@ export class ContestsService {
 
     // If there are no issues, finish the contest and send the admins an email
     contest.queuePosition = undefined;
+    await this.roundModel.updateMany({ competitionId: contest.competitionId }, { open: undefined }).exec();
 
     // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);
