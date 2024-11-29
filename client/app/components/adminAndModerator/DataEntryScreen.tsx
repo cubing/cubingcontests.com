@@ -122,7 +122,7 @@ const DataEntryScreen = ({
       );
       updatedRound = payload;
       if (err) errors = err;
-      setResultUnderEdit(null);
+      else setResultUnderEdit(null);
     }
 
     if (!errors) {
@@ -198,7 +198,11 @@ const DataEntryScreen = ({
   const editResult = (result: IResult) => {
     resetMessagesAndLoadingId();
     setResultUnderEdit(result);
-    setAttempts(result.attempts);
+    setAttempts(
+      getMakesCutoff(result.attempts, round.cutoff)
+        ? result.attempts
+        : [...result.attempts, ...new Array(roundFormat.attempts - round.cutoff.numberOfAttempts).fill({ result: 0 })],
+    );
     const newCurrentPersons: IPerson[] = result.personIds.map((pid) =>
       persons.find((p: IPerson) => p.personId === pid) as IPerson
     );
