@@ -57,7 +57,7 @@ const ModeratorDashboardPage = () => {
       : newState === ContestState.Published
       ? "publish"
       : "ERROR";
-    const contest = contests.find((c: IContest) => c.competitionId === competitionId) as IContest;
+    const contest = contests?.find((c: IContest) => c.competitionId === competitionId) as IContest;
 
     if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
       const { payload, errors } = await myFetch.patch(
