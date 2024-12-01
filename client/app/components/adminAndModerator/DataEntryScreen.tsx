@@ -76,9 +76,11 @@ const DataEntryScreen = ({
     [recordPairsByEvent, currEvent],
   );
 
-  const roundNumber = currContestEvent.rounds.findIndex((r) => (r as any)._id === round._id) + 1;
+  const roundNumber = currContestEvent.rounds.findIndex((r) => r.roundId === round.roundId) + 1;
   const maxAllowedRounds = getMaxAllowedRounds(currContestEvent.rounds);
   const isOpenableRound = !round.open && maxAllowedRounds >= roundNumber;
+  // TEMPORARY!!!!!!!!!!!!!!!!
+  console.log(roundNumber, maxAllowedRounds, isOpenableRound, round);
   const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
     ? attempts.length
     : (round.cutoff as ICutoff).numberOfAttempts;

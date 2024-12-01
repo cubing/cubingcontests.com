@@ -50,13 +50,24 @@ const ModeratorDashboardPage = () => {
   //////////////////////////////////////////////////////////////////////////////
 
   const changeState = async (competitionId: string, newState: ContestState) => {
-    const { payload, errors } = await myFetch.patch(
-      `/competitions/set-state/${competitionId}`,
-      { newState },
-      { loadingId: `set_state_${newState}_${competitionId}_button` },
-    );
+    const verb = newState === ContestState.Approved
+      ? "approve"
+      : newState === ContestState.Finished
+      ? "finish"
+      : newState === ContestState.Published
+      ? "publish"
+      : "ERROR";
+    const contest = contests.find((c: IContest) => c.competitionId === competitionId) as IContest;
 
-    if (!errors) setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
+    if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
+      const { payload, errors } = await myFetch.patch(
+        `/competitions/set-state/${competitionId}`,
+        { newState },
+        { loadingId: `set_state_${newState}_${competitionId}_button` },
+      );
+
+      if (!errors) setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
+    }
   };
 
   return (

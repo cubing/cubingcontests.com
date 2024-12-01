@@ -162,37 +162,6 @@ export class ContestsService {
         }
       }
     }
-
-    // TEMPORARY
-    const multiRoundEventContests = await this.contestModel.find({'events.rounds.proceed': {$exists: true}})
-      .populate(eventPopulateOptions.roundsAndResults).exec()
-    
-    for (const contest of multiRoundEventContests) {
-      for (const event of contest.events.filter(ce => ce.rounds.length > 1)) {
-        for (let i = 0; i < event.rounds.length - 1; i++) {
-          for (const result of event.rounds[i].results) {
-            if (!result.proceeds && event.rounds[i + 1].results.some(r => r.personIds.some(p => result.personIds.includes(p)))) {
-              result.proceeds = true;
-              await result.save()
-            }
-          }
-        }
-      }
-    }
-
-    const allContests = await this.contestModel.find({ state: {$lt: ContestState.Finished} }).populate(eventPopulateOptions.rounds).exec();
-
-    for (const contest of allContests) {
-      for (const event of contest.events) {
-        for (let i = event.rounds.length - 1; i >= 0; i--) {
-          if (i === 0 || event.rounds[i].results.length > 0) {
-            event.rounds[i].open = true;
-            await event.rounds[i].save();
-            i = 0;
-          }
-        }
-      }
-    }
   }
 
   async getContests(region?: string, eventId?: string) {
