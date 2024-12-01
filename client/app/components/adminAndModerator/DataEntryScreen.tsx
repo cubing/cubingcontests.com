@@ -79,8 +79,6 @@ const DataEntryScreen = ({
   const roundNumber = currContestEvent.rounds.findIndex((r) => r.roundId === round.roundId) + 1;
   const maxAllowedRounds = getMaxAllowedRounds(currContestEvent.rounds);
   const isOpenableRound = !round.open && maxAllowedRounds >= roundNumber;
-  // TEMPORARY!!!!!!!!!!!!!!!!
-  console.log(roundNumber, maxAllowedRounds, isOpenableRound, round);
   const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
     ? attempts.length
     : (round.cutoff as ICutoff).numberOfAttempts;
@@ -201,9 +199,10 @@ const DataEntryScreen = ({
     resetMessagesAndLoadingId();
     setResultUnderEdit(result);
     setAttempts(
-      getMakesCutoff(result.attempts, round.cutoff)
-        ? result.attempts
-        : [...result.attempts, ...new Array(roundFormat.attempts - round.cutoff.numberOfAttempts).fill({ result: 0 })],
+      getMakesCutoff(result.attempts, round.cutoff) ? result.attempts : [
+        ...result.attempts,
+        ...new Array(roundFormat.attempts - (round.cutoff as ICutoff).numberOfAttempts).fill({ result: 0 }),
+      ],
     );
     const newCurrentPersons: IPerson[] = result.personIds.map((pid) =>
       persons.find((p: IPerson) => p.personId === pid) as IPerson
