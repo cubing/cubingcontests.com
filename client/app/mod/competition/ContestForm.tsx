@@ -41,6 +41,7 @@ import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 import type { InputPerson } from "~/helpers/types.ts";
+import Tooltip from "~/app/components/UI/Tooltip.tsx";
 
 const userInfo = getUserInfo();
 
@@ -422,7 +423,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
   };
 
   const enableQueue = async () => {
-    const { errors } = await myFetch.patch(`/competitions/enable-queue/${contest?.competitionId}`, {}, {
+    const { errors } = await myFetch.patch(`/competitions/queue-reset/${(contest as IContest).competitionId}`, {}, {
       loadingId: "enable_queue_button",
     });
 
@@ -507,25 +508,37 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 >
                   Scorecards
                 </Button>
-                <Button
-                  id="enable_queue_button"
-                  onClick={enableQueue}
-                  loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished ||
-                    queueEnabled}
-                  className="btn-secondary"
-                >
-                  {queueEnabled ? "Queue Enabled" : "Enable Queue"}
-                </Button>
-                <Button
-                  id="get_access_token_button"
-                  onClick={createAuthToken}
-                  loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
-                  className="btn-secondary"
-                >
-                  Get Access Token
-                </Button>
+                <div className="d-flex align-items-center gap-1">
+                  <Button
+                    id="enable_queue_button"
+                    onClick={enableQueue}
+                    loadingId={loadingId}
+                    disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished ||
+                      queueEnabled}
+                    className="btn-secondary"
+                  >
+                    {queueEnabled ? "Queue Enabled" : "Enable Queue"}
+                  </Button>
+                  <Tooltip
+                    id="queue_tooltip"
+                    text="This can be used for contests where there are not enough solving stations. In such cases random scrambles must be used for every competitor."
+                  />
+                </div>
+                <div className="d-flex align-items-center gap-1">
+                  <Button
+                    id="get_access_token_button"
+                    onClick={createAuthToken}
+                    loadingId={loadingId}
+                    disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
+                    className="btn-secondary"
+                  >
+                    Get Access Token
+                  </Button>
+                  <Tooltip
+                    id="access_token_tooltip"
+                    text="Used for external data entry (e.g. using a paperless scoretaking system or a third-party tool)"
+                  />
+                </div>
               </div>
             )}
             <FormTextInput

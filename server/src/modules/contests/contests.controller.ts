@@ -132,18 +132,10 @@ export class ContestsController {
   @Delete(":competitionId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async deleteContest(@Param("competitionId") competitionId: string, @Request() req: any) {
+  async deleteContest(@Param("competitionId") competitionId: string) {
     this.logger.logAndSave(`Removing contest ${competitionId}`, LogType.RemoveContest);
 
-    return await this.service.deleteContest(competitionId, req.user);
-  }
-
-  // PATCH /competitions/enable-queue/:competitionId
-  @Patch("enable-queue/:competitionId")
-  @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Roles(Role.Admin, Role.Moderator)
-  async enableQueue(@Param("competitionId") competitionId: string, @Request() req: any) {
-    return await this.service.enableQueue(competitionId, req.user);
+    return await this.service.deleteContest(competitionId);
   }
 
   // PATCH /competitions/queue-increment/:competitionId

@@ -38,6 +38,7 @@ import { ResultDocument } from "~/src/models/result.model";
 import { ScheduleDocument } from "~/src/models/schedule.model";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import { roundFormats } from "~/shared_helpers/roundFormats";
+import { getResultProceeds } from "~/src/helpers/utilityFunctions";
 
 const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
 
@@ -338,7 +339,7 @@ export class ContestsService {
     const contest = await this.getFullContest(competitionId, { exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
-    this.authService.checkAccessRightsToContest(user, contest);
+    this.authService.checkAccessRightsToContest(user, contest, true);
     this.validateAndCleanUpContest(contestDto, user);
 
     if (contestDto.competitionId !== contest.competitionId) {
@@ -391,7 +392,7 @@ export class ContestsService {
     const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
-    await this.authService.checkAccessRightsToContest(user, contest);
+    await this.authService.checkAccessRightsToContest(user, contest, true);
     if (getIsCompType(contest.type) && !contest.compDetails)
       throw new BadRequestException("A competition without a schedule cannot be approved");
     if (contest.state === newState)
@@ -429,9 +430,9 @@ export class ContestsService {
     return await this.contestModel.findOne({ competitionId }, excl).exec();
   }
 
-  async deleteContest(competitionId: string, user: IPartialUser) {
-    const contest = await this.getPartialContestAndCheckAccessRights(competitionId, user);
-
+  async deleteContest(competitionId: string) {
+    const contest = await this.contestModel.findOne({ competitionId }).exec();
+    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
     if (contest.participants > 0) throw new BadRequestException("You may not remove a contest that has results");
 
     contest.state = ContestState.Removed;
@@ -440,9 +441,8 @@ export class ContestsService {
 
     await contest.save();
 
-    if (getIsCompType(contest.type)) {
+    if (getIsCompType(contest.type))
       await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
-    }
     await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     await this.authService.deleteAuthToken(competitionId);
 
@@ -452,18 +452,14 @@ export class ContestsService {
     });
   }
 
-  async enableQueue(competitionId: string, user: IPartialUser) {
-    const contest = await this.getPartialContestAndCheckAccessRights(competitionId, user);
-    contest.queuePosition = 1;
-    await contest.save();
-  }
-
   async changeQueuePosition(
     competitionId: string,
     user: IPartialUser,
     { newPosition, difference }: { newPosition?: number; difference?: 1 | -1 },
   ) {
-    const contest = await this.getPartialContestAndCheckAccessRights(competitionId, user);
+    const contest = await this.contestModel.findOne({ competitionId }).exec();
+    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    this.authService.checkAccessRightsToContest(user, contest, false);
 
     if (newPosition !== undefined) contest.queuePosition = newPosition;
     else contest.queuePosition += difference;
@@ -517,15 +513,6 @@ export class ContestsService {
   /////////////////////////////////////////////////////////////////////////////////////
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
-
-  private async getPartialContestAndCheckAccessRights(competitionId: string, user: IPartialUser) {
-    const contest = await this.contestModel.findOne({ competitionId }).exec();
-
-    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
-    this.authService.checkAccessRightsToContest(user, contest);
-
-    return contest;
-  }
 
   private async getNewContestEvent(contestEvent: IContestEvent, saveResults = false): Promise<ContestEvent> {
     const eventRounds: RoundDocument[] = [];
@@ -616,10 +603,32 @@ export class ContestsService {
             // meaning that the round became the final round due to a deletion
             if (round.proceed) sameRoundInContest.proceed = round.proceed;
             else sameRoundInContest.proceed = undefined;
+            
+            if (round.open && !sameRoundInContest.open) {
+              sameRoundInContest.open = true;
+              await sameRoundInContest.populate(resultPopulateOptions);
+              for (const result of sameRoundInContest.results) {
+                if (result.proceeds) {
+                  result.proceeds = undefined;
+                  await result.save();
+                }
+              }
+            }
 
             await sameRoundInContest.save();
           } // If it's a new round, add it
           else {
+            // Set the proceeds values for the previous round first
+            const prevRound = sameEventInContest.rounds.at(-1);
+            await prevRound.populate(resultPopulateOptions);
+            const roundFormat = roundFormats.find(rf => rf.value === prevRound.format);
+            for (const result of prevRound.results) {
+              if (getResultProceeds(result as IResult, prevRound as IRound, roundFormat)) {
+                result.proceeds = true;
+                await result.save();
+              }
+            }
+
             const newRound = await this.roundModel.create(round);
             // For WHATEVER REASON simply doing rounds.push() doesn't work here since some version of Mongoose
             sameEventInContest.rounds = [...sameEventInContest.rounds, newRound];

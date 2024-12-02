@@ -10,6 +10,10 @@ const Home = () => {
     <div className="px-3">
       <h1 className="mb-4 text-center">Cubing Contests</h1>
 
+      <div className="alert alert-secondary mb-4" role="alert">
+        We now have a Cubing Contests <a href="https://discord.gg/7rRMQA8jnU" target="_blank">Discord server</a>!
+      </div>
+
       <p>
         This is a place for hosting unofficial Rubik's Cube competitions, unofficial events held at{" "}
         <ExternalLink href="wca" /> competitions, speedcuber meetups, and other unofficial events.

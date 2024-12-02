@@ -1100,8 +1100,8 @@ export class ResultsService {
       .populate(orgPopulateOptions) // needed for access rights checking
       .exec();
 
-    if (!contest) throw new BadRequestException(`Competition with ID ${competitionId} not found`);
-    if (user) this.authService.checkAccessRightsToContest(user, contest);
+    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    if (user) this.authService.checkAccessRightsToContest(user, contest, false);
 
     return contest;
   }

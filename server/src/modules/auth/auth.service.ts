@@ -150,7 +150,7 @@ export class AuthService {
   }
 
   // THE CONTEST MUST ALREADY BE POPULATED!
-  checkAccessRightsToContest(user: IPartialUser, contest: ContestDocument, allowNotApproved = false) {
+  checkAccessRightsToContest(user: IPartialUser, contest: ContestDocument, allowNotApproved: boolean) {
     if (contest.state === ContestState.Removed) throw new BadRequestException("This contest has been removed");
 
     const hasAccessRights = (allowNotApproved || contest.state >= ContestState.Approved) &&

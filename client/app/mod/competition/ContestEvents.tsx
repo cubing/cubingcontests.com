@@ -114,12 +114,14 @@ const ContestEvents = ({
 
   const deleteRound = (eventId: string) => {
     const contestEvent = contestEvents.find((el) => el.event.eventId === eventId) as IContestEvent;
+    const wasOpenRound = contestEvent.rounds.at(-1) as IRound;
     contestEvent.rounds = contestEvent.rounds.slice(0, -1);
 
     // Update new final round
     const newLastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
     delete newLastRound.proceed;
     newLastRound.roundTypeId = RoundType.Final;
+    if (wasOpenRound.open) newLastRound.open = true;
 
     // Update new semi final round
     if (contestEvent.rounds.length > 2) {
@@ -385,7 +387,7 @@ const ContestEvents = ({
             {ce.rounds.length > 1 && (
               <Button
                 onClick={() => deleteRound(ce.event.eventId)}
-                disabled={(ce.rounds.find((r) => r.roundTypeId === RoundType.Final) as IRound).results.length > 0}
+                disabled={(ce.rounds.at(-1) as IRound).results.length > 0}
                 className="btn-danger btn-sm"
               >
                 Remove Round

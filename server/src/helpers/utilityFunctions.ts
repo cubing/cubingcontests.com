@@ -21,6 +21,13 @@ import { RoundDocument } from "~/src/models/round.model";
 import { RoundProceed } from "~/shared_helpers/enums";
 import { roundFormats } from "~/shared_helpers/roundFormats";
 
+export const getResultProceeds = (result: IResult, round: IRound, roundFormat: IRoundFormat) =>
+  getIsProceedableResult(result, roundFormat) &&
+  result.ranking <= Math.floor(round.results.length * 0.75) && // extra check for top 75%
+  result.ranking <= (round.proceed.type === RoundProceed.Number
+    ? round.proceed.value
+    : Math.floor((round.results.length * round.proceed.value) / 100));
+
 export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocument[]> => {
   if (round.results.length === 0) return [];
 
@@ -43,13 +50,7 @@ export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocu
     prevResult = sortedResults[i];
 
     // Set proceeds if it's a non-final round and the result proceeds to the next round
-    if (round.proceed &&
-      getIsProceedableResult(sortedResults[i] as IResult, roundFormat) &&
-      sortedResults[i].ranking <= Math.floor(round.results.length * 0.75) && // extra check for top 75%
-      sortedResults[i].ranking <= (round.proceed.type === RoundProceed.Number
-        ? round.proceed.value
-        : Math.floor((round.results.length * round.proceed.value) / 100))
-    ) {
+    if (round.proceed && getResultProceeds(sortedResults[i] as IResult, round as IRound, roundFormat)) {
       sortedResults[i].proceeds = true;
     } else if (sortedResults[i].proceeds) {
       sortedResults[i].proceeds = undefined;

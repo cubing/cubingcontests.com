@@ -55,7 +55,7 @@ export class AppController {
   async getContestScorecards(@Param("competitionId") competitionId: string, @Request() req: any, @Res() res: any) {
     const contest = await this.contestsService.getFullContest(competitionId);
 
-    await this.authService.checkAccessRightsToContest(req.user, contest);
+    await this.authService.checkAccessRightsToContest(req.user, contest, false);
 
     const buffer = await getScorecards(getWcifCompetition(contest as IContest));
 
@@ -76,7 +76,7 @@ export class AppController {
     const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
     if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
 
-    this.authService.checkAccessRightsToContest(req.user, contest);
+    this.authService.checkAccessRightsToContest(req.user, contest, false);
 
     return await this.authService.createAuthToken(contest);
   }
