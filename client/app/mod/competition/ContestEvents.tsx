@@ -243,9 +243,16 @@ const ContestEvents = ({
 
   return (
     <section>
-      <p className="my-4">Total events: {contestEvents.length} | Total rounds: {totalRounds}</p>
+      <p className="mb-3 fs-6 text-danger fst-italic">
+        Make sure{" "}
+        <a href="https://www.worldcubeassociation.org/regulations/full/#9m" target="_blank">WCA Regulation 9m</a>{" "}
+        is followed, when opening subsequent rounds. Not having enough competitors will make you unable to open up the
+        next round. In such cases all subsequent rounds are to be cancelled and removed.
+      </p>
 
-      <div className="my-4 d-flex align-items-center gap-3">
+      <p className="mb-4">Total events: {contestEvents.length} | Total rounds: {totalRounds}</p>
+
+      <div className="mb-4 d-flex align-items-center gap-3">
         <Button onClick={addContestEvent} disabled={disableNewEvents} className="btn-success">Add Event</Button>
         <div className="flex-grow-1">
           <FormEventSelect

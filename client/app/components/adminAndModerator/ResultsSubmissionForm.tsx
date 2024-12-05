@@ -297,8 +297,8 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
                   <p>4. If you're submitting a Mean of 3, there must be no cuts between the solves.</p>
                   <p>
                     5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was
-                    generated and applied. Scrambles must be generated with <ExternalLink href="cstimer" /> or{" "}
-                    <ExternalLink href="cubingjs" />.
+                    generated and applied. Scrambles must be generated with <ExternalLink to="cstimer" /> or{" "}
+                    <ExternalLink to="cubingjs" />.
                   </p>
                 </div>
               )}
