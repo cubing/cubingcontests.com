@@ -229,7 +229,7 @@ const ModeratorDashboardPage = () => {
                                   <FontAwesomeIcon icon={faPencil} />
                                 </Link>
                               )}
-                              {(contest.state < ContestState.Published &&
+                              {(contest.state > ContestState.Approved && contest.state < ContestState.Published &&
                                 (contest.state < ContestState.Finished || userInfo?.isAdmin)) && (
                                 <Link
                                   href={`/mod/competition/${contest.competitionId}`}

@@ -165,9 +165,9 @@ const ContestEvents = ({
           i !== roundIndex ? round : {
             ...round,
             timeLimit: {
-              ...round.timeLimit,
+              ...round.timeLimit as ITimeLimit,
               cumulativeRoundIds: (round.timeLimit as ITimeLimit).cumulativeRoundIds.length > 0 ? [] : [round.roundId],
-            } as ITimeLimit,
+            },
           }
         ),
       }
@@ -194,11 +194,27 @@ const ContestEvents = ({
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundCutoff = (eventIndex: number, roundIndex: number, value: ICutoff) => {
+  const changeRoundCutoff = (eventIndex: number, roundIndex: number, value: IFeAttempt) => {
     const newContestEvents = contestEvents.map((ce, i) =>
       i !== eventIndex ? ce : {
         ...ce,
-        rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, cutoff: value })),
+        rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : {
+          ...round,
+          cutoff: { ...round.cutoff, attemptResult: value.result } as ICutoff,
+        })),
+      }
+    );
+    setContestEvents(newContestEvents);
+  };
+
+  const changeRoundCutoffNumberOfAttempts = (eventIndex: number, roundIndex: number, value: number) => {
+    const newContestEvents = contestEvents.map((ce, i) =>
+      i !== eventIndex ? ce : {
+        ...ce,
+        rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : {
+          ...round,
+          cutoff: { ...round.cutoff as ICutoff, numberOfAttempts: value },
+        })),
       }
     );
     setContestEvents(newContestEvents);
@@ -282,7 +298,7 @@ const ContestEvents = ({
                     <div style={{ maxWidth: "8rem" }}>
                       <AttemptInput
                         attNumber={0}
-                        attempt={{ result: (round.timeLimit as ITimeLimit).centiseconds }}
+                        attempt={{ result: round.timeLimit ? round.timeLimit.centiseconds : 0 }}
                         setAttempt={(val) =>
                           changeRoundTimeLimit(eventIndex, roundIndex, val)}
                         event={ce.event}
@@ -323,12 +339,8 @@ const ContestEvents = ({
                 <div style={{ maxWidth: "8rem" }}>
                   <AttemptInput
                     attNumber={0}
-                    attempt={{ result: round.cutoff?.attemptResult ?? 0 }}
-                    setAttempt={(val: IFeAttempt) =>
-                      changeRoundCutoff(eventIndex, roundIndex, {
-                        ...round.cutoff,
-                        attemptResult: val.result,
-                      } as ICutoff)}
+                    attempt={{ result: round.cutoff ? round.cutoff.attemptResult : 0 }}
+                    setAttempt={(val: IFeAttempt) => changeRoundCutoff(eventIndex, roundIndex, val)}
                     event={ce.event}
                     maxTime={C.maxTimeLimit}
                     disabled={!round.cutoff || round.results.length > 0}
@@ -342,8 +354,7 @@ const ContestEvents = ({
                     title=""
                     options={cutoffAttemptsOptions}
                     selected={round.cutoff?.numberOfAttempts || 2}
-                    setSelected={(val: number) =>
-                      changeRoundCutoff(eventIndex, roundIndex, { ...round.cutoff as ICutoff, numberOfAttempts: val })}
+                    setSelected={(val: number) => changeRoundCutoffNumberOfAttempts(eventIndex, roundIndex, val)}
                     disabled={!round.cutoff || round.results.length > 0}
                   />
                 </div>
