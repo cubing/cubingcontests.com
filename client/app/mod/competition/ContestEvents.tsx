@@ -114,14 +114,14 @@ const ContestEvents = ({
 
   const deleteRound = (eventId: string) => {
     const contestEvent = contestEvents.find((el) => el.event.eventId === eventId) as IContestEvent;
-    const wasOpenRound = contestEvent.rounds.at(-1) as IRound;
+    const wasOpenRound = (contestEvent.rounds.at(-1) as IRound).open;
     contestEvent.rounds = contestEvent.rounds.slice(0, -1);
 
     // Update new final round
-    const newLastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
+    const newLastRound = contestEvent.rounds.at(-1) as IRound;
     delete newLastRound.proceed;
     newLastRound.roundTypeId = RoundType.Final;
-    if (wasOpenRound.open) newLastRound.open = true;
+    if (wasOpenRound) newLastRound.open = true;
 
     // Update new semi final round
     if (contestEvent.rounds.length > 2) {

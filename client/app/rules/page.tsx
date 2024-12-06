@@ -49,7 +49,7 @@ const RulesPage = () => {
               </li>
               <li>Gen 2 timers are allowed in addition to the timers allowed for WCA competitions.</li>
               <li>
-                <ExternalLink to="cubingjs" /> or <ExternalLink href="cstimer" />{" "}
+                <ExternalLink to="cubingjs" /> or <ExternalLink to="cstimer" />{" "}
                 scrambles must be used for twisty puzzle events. In particular, random-state scrambles must be used for
                 a puzzle, if available.
               </li>

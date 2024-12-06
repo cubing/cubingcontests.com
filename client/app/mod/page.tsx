@@ -229,15 +229,12 @@ const ModeratorDashboardPage = () => {
                                   <FontAwesomeIcon icon={faPencil} />
                                 </Link>
                               )}
-                              {(contest.state > ContestState.Approved && contest.state < ContestState.Published &&
+                              {(contest.state >= ContestState.Approved && contest.state < ContestState.Published &&
                                 (contest.state < ContestState.Finished || userInfo?.isAdmin)) && (
                                 <Link
                                   href={`/mod/competition/${contest.competitionId}`}
                                   prefetch={false}
-                                  // Mods should be able to see this button even before approval, it should just be disabled
-                                  className={`btn btn-xs ${
-                                    contest.state < ContestState.Finished ? "btn-success" : "btn-secondary"
-                                  } ${!userInfo?.isAdmin && contest.state < ContestState.Approved ? "disabled" : ""}`}
+                                  className="btn btn-xs btn-success"
                                 >
                                   Results
                                 </Link>

@@ -22,7 +22,7 @@ import {
 } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
 import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, IRoundFormat, ISchedule } from "@sh/types";
-import { ContestState, ContestType, EventGroup } from "@sh/enums";
+import { ContestState, ContestType, EventGroup, RoundType } from "@sh/enums";
 import { Role } from "@sh/enums";
 import { getDateOnly, getIsCompType, getIsOtherActivity, getIsProceedableResult, getMaxAllowedRounds, getTotalRounds, parseRoundId } from "@sh/sharedFunctions";
 import { MyLogger } from "@m/my-logger/my-logger.service";
@@ -587,12 +587,10 @@ export class ContestsService {
 
       if (sameEventInContest) {
         for (const round of newEvent.rounds) {
-          const sameRoundInContest = sameEventInContest.rounds.find((el) => el.roundId === round.roundId);
+          const sameRoundInContest = sameEventInContest.rounds.find((r) => r.roundId === round.roundId);
 
           // If the contest already has this round, update the permitted fields
           if (sameRoundInContest) {
-            sameRoundInContest.roundTypeId = round.roundTypeId;
-
             if (sameRoundInContest.results.length === 0) {
               sameRoundInContest.format = round.format;
               sameRoundInContest.timeLimit = round.timeLimit;
@@ -604,16 +602,22 @@ export class ContestsService {
             if (round.proceed) sameRoundInContest.proceed = round.proceed;
             else sameRoundInContest.proceed = undefined;
             
-            if (round.open && !sameRoundInContest.open) {
+            if (round.open) {
               sameRoundInContest.open = true;
-              await sameRoundInContest.populate(resultPopulateOptions);
-              for (const result of sameRoundInContest.results) {
-                if (result.proceeds) {
-                  result.proceeds = undefined;
-                  await result.save();
+
+              if (round.roundTypeId === RoundType.Final && sameRoundInContest.roundTypeId !== RoundType.Final) {
+                await sameRoundInContest.populate(resultPopulateOptions);
+
+                for (const result of sameRoundInContest.results) {
+                  if (result.proceeds) {
+                    result.proceeds = undefined;
+                    await result.save();
+                  }
                 }
               }
             }
+
+            sameRoundInContest.roundTypeId = round.roundTypeId;
 
             await sameRoundInContest.save();
           } // If it's a new round, add it
