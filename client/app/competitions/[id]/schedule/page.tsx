@@ -9,7 +9,7 @@ type Props = {
 
 const CompetitionSchedulePage = async ({ params }: Props) => {
   const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
-  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
+  if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   const { contest }: { contest: IContest } = contestData;
 
   return (

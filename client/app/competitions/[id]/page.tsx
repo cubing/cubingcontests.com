@@ -12,9 +12,9 @@ import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 
 const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload } = await ssrFetch(`/competitions/${params.id}`);
-  if (!payload) return <h3 className="mt-4 text-center">Contest not found</h3>;
-  const { contest }: { contest: IContest } = payload as IContestData;
+  const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
+  if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
+  const { contest }: { contest: IContest } = contestData as IContestData;
 
   const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests

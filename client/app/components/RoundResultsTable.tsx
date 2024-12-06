@@ -66,7 +66,7 @@ const RoundResultsTable = ({
             lastRanking = result.ranking;
 
             return (
-              <tr key={result.personIds[0]}>
+              <tr key={(result as any)._id}>
                 <td className="ps-2" style={getRankingHighlight(result)}>
                   <span className={isTie ? "text-secondary" : ""}>{result.ranking}</span>
                 </td>

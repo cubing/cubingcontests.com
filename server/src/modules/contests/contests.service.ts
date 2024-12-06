@@ -125,7 +125,7 @@ export class ContestsService {
 
                   if (!round) {
                     this.logger.error(
-                      `Round for activity ${activity.activityCode} at contest ${contest.competitionId} not found`,
+                      `Error: round for activity ${activity.activityCode} at contest ${contest.competitionId} not found`,
                     );
                   } else {
                     const activityDate = getDateOnly(endTime);
@@ -133,7 +133,7 @@ export class ContestsService {
                     for (const result of round.results) {
                       if (result.date.getTime() !== activityDate.getTime()) {
                         this.logger.error(
-                          `Result ${result} from round ${round.roundId} at ${contest.competitionId} has a date different from the schedule activity, which is ${activityDate.toUTCString()}`,
+                          `Error: result ${result} from round ${round.roundId} at ${contest.competitionId} has a date different from the schedule activity, which is ${activityDate.toUTCString()}`,
                         );
                       }
                     }
@@ -147,18 +147,69 @@ export class ContestsService {
 
       const contests = await this.contestModel
         .find()
+        .sort({ startDate: 1 })
         .populate(eventPopulateOptions.event)
         .populate(eventPopulateOptions.roundsAndResults)
         .exec();
 
       for (const contest of contests) {
         for (const contestEvent of contest.events) {
-          for (const round of contestEvent.rounds) {
-            if (parseRoundId(round.roundId)[0] !== contestEvent.event.eventId) {
+          if (contestEvent.rounds.filter(r => r.open).length > 1)
+            this.logger.error(`Error: event ${contest.competitionId}/${contestEvent.event.eventId} has multiple open rounds`);
+
+          for (let i = 0; i < contestEvent.rounds.length; i++) {
+            const round = contestEvent.rounds[i];
+
+            if (round.roundId.split('-')[0] !== contestEvent.event.eventId) {
               this.logger.error(
-                `Round ${round.roundId} is inconsistent with event ${contestEvent.event.eventId} in contest ${contest.competitionId}`,
+                `Error: round ${contest.competitionId}/${round.roundId} is inconsistent with event ${contestEvent.event.eventId}`,
               );
             }
+
+            if (round.open && contest.state >= ContestState.Finished)
+              this.logger.error(`Error: round ${contest.competitionId}/${round.roundId} is open despite the contest being finished`);
+
+            if (round.roundTypeId === RoundType.Final && round.results.some(r => r.proceeds))
+              this.logger.error(`Error: final round ${contest.competitionId}/${round.roundId} has a result with result.proceeds = true`);
+            
+            for (const result of round.results) {
+              if (round.results.find(r => r.personIds.some(p => result.personIds.includes(p)) && r.ranking !== result.ranking))
+                this.logger.error(`Error: round ${contest.competitionId}/${round.roundId} has results with overlapping persons`);
+
+              if (round.roundTypeId !== RoundType.Final) {
+                const proceeds = getResultProceeds(result as IResult, round as IRound, roundFormats.find(rf => rf.value === round.format));
+
+                if (result.proceeds && !proceeds) {
+                  this.logger.error(`Error: round ${contest.competitionId}/${round.roundId} has results that shouldn't have proceeded to the next round`);
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // TEMPORARY
+    const contests = await this.contestModel.find()
+      .populate(eventPopulateOptions.roundsAndResults)
+      .exec();
+    
+    for (const contest of contests) {
+      for (const event of contest.events) {
+        for (let i = 0; i < event.rounds.length; i++) {
+          if (event.rounds[i].roundTypeId !== RoundType.Final) {
+            for (const result of event.rounds[i].results) {
+              if (!result.proceeds && event.rounds[i + 1].results.some(r => r.personIds.some(p => result.personIds.includes(p)))) {
+                result.proceeds = true;
+                await result.save();
+              }
+            }
+          }
+
+          if (contest.state >= ContestState.Finished && event.rounds[i].open) {
+            event.rounds[i].open = undefined;
+            await event.rounds[i].save();
           }
         }
       }
@@ -852,7 +903,7 @@ export class ContestsService {
 
     // If there are no issues, finish the contest and send the admins an email
     contest.queuePosition = undefined;
-    await this.roundModel.updateMany({ competitionId: contest.competitionId }, { open: undefined }).exec();
+    await this.roundModel.updateMany({ competitionId: contest.competitionId }, { $unset: { open: '' } }).exec();
 
     // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);

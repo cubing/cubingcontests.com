@@ -66,7 +66,9 @@ const ModeratorDashboardPage = () => {
         { loadingId: `set_state_${newState}_${competitionId}_button` },
       );
 
-      if (!errors) setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
+      if (!errors) {
+        setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
+      }
     }
   };
 

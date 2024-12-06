@@ -45,14 +45,17 @@ export class PersonsService {
     if (process.env.DO_DB_CONSISTENCY_CHECKS === "true") {
       this.logger.log("Checking persons inconsistencies in the DB...");
 
-      // Look for persons with the same name
       const persons = await this.personModel.find().exec();
-
+      
       for (let i = 0; i < persons.length; i++) {
         const person = persons[i];
-        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name)) {
+
+        // Look for persons with the same name
+        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name))
           this.logger.error(`Error: multiple persons found with the name ${person.name}`);
-        }
+        
+        if (person.name.includes('(') || person.name.includes(')'))
+          this.logger.error(`Error: person has parentheses in the name: ${person.name} (CC ID: ${person.personId})`);
       }
     }
   }

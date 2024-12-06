@@ -9,10 +9,8 @@ type Props = {
 };
 
 const ContestResultsPage = async ({ params: { id }, searchParams: { eventId } }: Props) => {
-  const { payload: contestData }: { payload?: IContestData } = await ssrFetch(
-    `/competitions/${id}?eventId=${eventId ?? "FIRST_EVENT"}`,
-  );
-  if (!contestData) return <h3 className="mt-4 text-center">Contest not found</h3>;
+  const { payload: contestData } = await ssrFetch(`/competitions/${id}?eventId=${eventId ?? "FIRST_EVENT"}`);
+  if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
 
   return (
     <ContestLayout contest={contestData.contest} activeTab="results">

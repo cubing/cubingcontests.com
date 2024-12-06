@@ -248,7 +248,9 @@ const DataEntryScreen = ({
     const resultPersons: IPerson[] = [];
     for (let i = 0; i < currEvent.participants; i++) {
       while (resultPersons.length === i) {
-        const { payload, errors } = await myFetch.get(`/persons?personId=${firstUnusedPersonId}`, { loadingId: null });
+        const { payload, errors } = await myFetch.get(`/persons?personId=${firstUnusedPersonId}`, {
+          loadingId: null,
+        });
         if (errors) firstUnusedPersonId++;
         else resultPersons.push(payload);
       }
