@@ -289,7 +289,8 @@ export class ResultsService {
           .exec();
 
         for (const pr of prSingles) {
-          const result = await this.resultModel.findOne({ ...$match, personIds: pr._id.personId, best: pr.best }, excl).exec();
+          const result = await this.resultModel.findOne({ ...$match, personIds: pr._id.personId, best: pr.best }, excl)
+            .exec();
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
@@ -343,7 +344,8 @@ export class ResultsService {
           .exec();
 
         for (const pr of prAverages) {
-          const result = await this.resultModel.findOne({ ...$match, personIds: pr._id.personId, average: pr.average }).exec();
+          const result = await this.resultModel.findOne({ ...$match, personIds: pr._id.personId, average: pr.average })
+            .exec();
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
@@ -519,7 +521,9 @@ export class ResultsService {
     );
 
     const [eventId, roundNumber] = parseRoundId(roundId);
-    if (eventId !== createResultDto.eventId) throw new BadRequestException("The event ID and the round ID do not match");
+    if (eventId !== createResultDto.eventId) {
+      throw new BadRequestException("The event ID and the round ID do not match");
+    }
 
     const contest = await this.getContestAndCheckAccessRights(competitionId, { user });
 
@@ -534,15 +538,17 @@ export class ResultsService {
         .exec();
       if (!prevRound) throw new InternalServerErrorException("Previous round not found");
       const notProceededCompetitor = createResultDto.personIds
-        .findIndex(pid => !prevRound.results.some(r => r.proceeds && r.personIds.includes(pid)));
+        .findIndex((pid) => !prevRound.results.some((r) => r.proceeds && r.personIds.includes(pid)));
 
-      if (notProceededCompetitor >= 0)
+      if (notProceededCompetitor >= 0) {
         throw new BadRequestException(
-          `Competitor${event.participants > 1 ? ` ${notProceededCompetitor + 1}` : ""} has not proceeded to this round`
+          `Competitor${event.participants > 1 ? ` ${notProceededCompetitor + 1}` : ""} has not proceeded to this round`,
         );
+      }
     }
-    if (round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid))))
+    if (round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid)))) {
       throw new BadRequestException("The competitor(s) already has a result in this round");
+    }
 
     const newResult: IResult = {
       ...createResultDto,
@@ -642,8 +648,9 @@ export class ResultsService {
     // Disallow admin-only features
     if (!isAdmin) {
       if (createResultDto.videoLink === "") throw new UnauthorizedException("Please enter a video link");
-      if (createResultDto.attempts.some((a) => a.result === C.maxTime))
+      if (createResultDto.attempts.some((a) => a.result === C.maxTime)) {
         throw new UnauthorizedException("You are not authorized to set unknown time");
+      }
     }
 
     const event = await this.eventsService.getEventById(createResultDto.eventId);
@@ -666,10 +673,12 @@ export class ResultsService {
 
       await this.updateFutureRecords(createdResult, event, recordPairs, { mode: "create" });
     } else {
-      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${getFormattedTime(
-        createdResult.best,
-        { event, showMultiPoints: true, showDecimals: true },
-      )}`;
+      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${
+        getFormattedTime(
+          createdResult.best,
+          { event, showMultiPoints: true, showDecimals: true },
+        )
+      }`;
       if (createdResult.regionalSingleRecord) text += ` (${createdResult.regionalSingleRecord})`;
       if (createdResult.average > 0) {
         text += `, average: ${getFormattedTime(createdResult.average)}`;
@@ -979,7 +988,9 @@ export class ResultsService {
       throw new BadRequestException("You cannot enter the same person twice in the same result");
     }
     if (differenceInHours(result.date, new Date()) > 36) {
-      throw new BadRequestException(round ? "You may not enter results for a round in the future" : "The date cannot be in the future");
+      throw new BadRequestException(
+        round ? "You may not enter results for a round in the future" : "The date cannot be in the future",
+      );
     }
 
     // This wouldn't be affected by empty attempts, because video-based results don't allow empty attempts,
@@ -1088,7 +1099,7 @@ export class ResultsService {
   private async getResultById(resultId: string) {
     const result = await this.resultModel.findOne({ _id: resultId }).exec();
     if (!result) throw new NotFoundException(`Result with ID ${resultId} not found`);
-    return result
+    return result;
   }
 
   private async getContestAndCheckAccessRights(

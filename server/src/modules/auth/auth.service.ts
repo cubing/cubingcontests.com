@@ -61,7 +61,7 @@ export class AuthService {
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {
-    const query = username.includes('@') ? { email: username.trim().toLowerCase() } : { username }
+    const query = username.includes("@") ? { email: username.trim().toLowerCase() } : { username };
     const user = await this.usersService.getUserWithQuery(query);
 
     if (user) {

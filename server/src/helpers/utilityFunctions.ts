@@ -24,9 +24,10 @@ import { roundFormats } from "~/shared_helpers/roundFormats";
 export const getResultProceeds = (result: IResult, round: IRound, roundFormat: IRoundFormat) =>
   getIsProceedableResult(result, roundFormat) &&
   result.ranking <= Math.floor(round.results.length * 0.75) && // extra check for top 75%
-  result.ranking <= (round.proceed.type === RoundProceed.Number
-    ? round.proceed.value
-    : Math.floor((round.results.length * round.proceed.value) / 100));
+  result.ranking <=
+    (round.proceed.type === RoundProceed.Number
+      ? round.proceed.value
+      : Math.floor((round.results.length * round.proceed.value) / 100));
 
 export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocument[]> => {
   if (round.results.length === 0) return [];

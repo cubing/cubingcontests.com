@@ -1,14 +1,12 @@
 {
   // When updating this, remember to also update it in .vscode/settings.json (but leave ./bin there)
   "workspace": ["./client", "./server2"],
-  "exclude": ["./client/.next", "./server"],
-  // "workspace": ["./client", "./server2", "./server"],
-  // "exclude": ["./client/.next", "./server/dist", "./server/shared_helpers"],
+  "exclude": ["./client/.next", "./server/dist", "./server/shared_helpers"],
   "nodeModulesDir": "auto",
 
   "lint": {
-    "include": ["*.ts", "*.tsx"],
-    "exclude": ["*.d.ts"],
+    "include": ["**/*.ts", "**/*.tsx"],
+    "exclude": ["**/*.d.ts", "./server"],
     "rules": {
       "tags": ["recommended"],
       "include": [],
@@ -22,8 +20,8 @@
   },
 
   "fmt": {
-    "include": ["*.ts", "*.tsx"],
-    "exclude": ["*.d.ts"],
+    "include": ["**/*.ts", "**/*.tsx"],
+    "exclude": ["**/*.d.ts"],
     "lineWidth": 120
   },
 

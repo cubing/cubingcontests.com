@@ -46,16 +46,18 @@ export class PersonsService {
       this.logger.log("Checking persons inconsistencies in the DB...");
 
       const persons = await this.personModel.find().exec();
-      
+
       for (let i = 0; i < persons.length; i++) {
         const person = persons[i];
 
         // Look for persons with the same name
-        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name))
+        if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name)) {
           this.logger.error(`Error: multiple persons found with the name ${person.name}`);
-        
-        if (person.name.includes('(') || person.name.includes(')'))
+        }
+
+        if (person.name.includes("(") || person.name.includes(")")) {
           this.logger.error(`Error: person has parentheses in the name: ${person.name} (CC ID: ${person.personId})`);
+        }
       }
     }
   }
@@ -302,22 +304,25 @@ export class PersonsService {
 
     this.logger.logAndSave(message, LogType.ApprovePersons);
 
-    await Promise.allSettled(persons.filter(p => p.unapproved).map(p => this.setPersonToApproved(p, false)));
+    await Promise.allSettled(persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, false)));
   }
 
   private async setPersonToApproved(person: PersonDocument, expectNoWcaId: boolean) {
     if (!person.wcaId) {
-      const res = await fetch(`https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`);
+      const res = await fetch(
+        `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`,
+      );
       if (res.ok) {
         const { result: wcaPersons } = await res.json();
 
         if (expectNoWcaId) {
           for (const wcaPerson of wcaPersons) {
             const [name] = getNameAndLocalizedName(wcaPerson.name);
-            if (name === person.name && wcaPerson.country_iso2 === person.countryIso2)
+            if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
               throw new BadRequestException(
-                `There is an exact name match with the WCA competitor with WCA ID ${wcaPerson.wca_id}. Check if these are the same person and contact an administrator to approve them if not.`
+                `There is an exact name match with the WCA competitor with WCA ID ${wcaPerson.wca_id}. Check if these are the same person and contact an administrator to approve them if not.`,
               );
+            }
           }
         } else if (wcaPersons?.length === 1) {
           const wcaPerson = wcaPersons[0];
@@ -346,8 +351,16 @@ export class PersonsService {
       if (sameWcaIdPerson) throw new ConflictException("A person with the same WCA ID already exists");
     }
 
-    const sameNamePerson = await this.personModel.findOne({ ...queryBase, name: personDto.name, countryIso2: personDto.countryIso2 }).exec();
-    if (sameNamePerson) throw new ConflictException("A person with the same name and country already exists. If it's actually a different competitor with the same name, please contact the admin team.");
+    const sameNamePerson = await this.personModel.findOne({
+      ...queryBase,
+      name: personDto.name,
+      countryIso2: personDto.countryIso2,
+    }).exec();
+    if (sameNamePerson) {
+      throw new ConflictException(
+        "A person with the same name and country already exists. If it's actually a different competitor with the same name, please contact the admin team.",
+      );
+    }
   }
 
   private getFrontendPerson(person: PersonDocument, { user }: { user?: IPartialUser | "EXT_DEVICE" } = {}): IFePerson {

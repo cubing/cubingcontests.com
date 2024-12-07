@@ -1,11 +1,5 @@
 import { Type } from "class-transformer";
-import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  IsInt,
-  Validate,
-  ValidateNested,
-} from "class-validator";
+import { ArrayMaxSize, ArrayMinSize, IsInt, Validate, ValidateNested } from "class-validator";
 import { AttemptDto } from "./create-result.dto";
 import { IAttempt, IUpdateResultDto } from "@sh/types";
 import { ContestAttempts } from "~/src/helpers/customValidators";

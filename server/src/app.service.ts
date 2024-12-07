@@ -31,7 +31,8 @@ export class AppService {
       totalUsers: await this.usersService.getTotalUsers(),
       unapprovedUsers: await this.usersService.getTotalUsers({ confirmationCodeHash: { $exists: true } }),
       totalResults: await this.resultsService.getTotalResults(),
-      totalUnapprovedSubmittedResults: await this.resultsService.getTotalResults({competitionId: { $exists: false },
+      totalUnapprovedSubmittedResults: await this.resultsService.getTotalResults({
+        competitionId: { $exists: false },
         unapproved: true,
       }),
       analytics: [],

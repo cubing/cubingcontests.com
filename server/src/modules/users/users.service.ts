@@ -198,9 +198,11 @@ export class UsersService {
         await user.save();
 
         throw new BadRequestException(
-          `The entered code is incorrect and you have no more attempts left. Please request a new code after the ${Math.round(
-            C.confirmationCodeCooldown / 60000,
-          )} minute cooldown is over.`,
+          `The entered code is incorrect and you have no more attempts left. Please request a new code after the ${
+            Math.round(
+              C.confirmationCodeCooldown / 60000,
+            )
+          } minute cooldown is over.`,
         );
       }
     }
@@ -249,7 +251,7 @@ export class UsersService {
   }
 
   async resetPassword(email: string, code: string, newPassword: string) {
-    email = email.trim().toLowerCase()
+    email = email.trim().toLowerCase();
     const user = await this.userModel.findOne({ email, passwordResetCodeHash: { $exists: true } }).exec();
 
     if (user) {
@@ -331,9 +333,11 @@ export class UsersService {
 
       if (remainingCooldownTime > 0) {
         throw new BadRequestException(
-          `You have an active cooldown, please try again later. Remaining time: ${getFormattedTime(
-            Math.round(remainingCooldownTime / 10),
-          )}`,
+          `You have an active cooldown, please try again later. Remaining time: ${
+            getFormattedTime(
+              Math.round(remainingCooldownTime / 10),
+            )
+          }`,
         );
       }
     }

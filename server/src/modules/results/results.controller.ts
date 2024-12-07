@@ -127,7 +127,10 @@ export class ResultsController {
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
-  async createVideoBasedResult(@Body(new ValidationPipe()) createResultDto: CreateVideoBasedResultDto, @Request() req: any) {
+  async createVideoBasedResult(
+    @Body(new ValidationPipe()) createResultDto: CreateVideoBasedResultDto,
+    @Request() req: any,
+  ) {
     return await this.service.createVideoBasedResult(createResultDto, req.user);
   }
 
@@ -135,7 +138,10 @@ export class ResultsController {
   @Patch("video-based/:id")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async updateVideoBasedResult(@Param("id") id: string, @Body(new ValidationPipe()) updateResultDto: UpdateVideoBasedResultDto) {
+  async updateVideoBasedResult(
+    @Param("id") id: string,
+    @Body(new ValidationPipe()) updateResultDto: UpdateVideoBasedResultDto,
+  ) {
     return await this.service.updateVideoBasedResult(id, updateResultDto);
   }
 

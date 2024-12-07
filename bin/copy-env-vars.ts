@@ -15,9 +15,9 @@ for (const line of clientEnvProdFile.split("\n").filter(getIsLineWithVar)) {
     for (const envLine of envLines) {
       const [envVar, envValue] = envLine.replace(/#.*$/, "").split("=");
 
-      if ('$' + envVar.replace(/_DEV$/, "") === envProdValue) {
-         output += `${envProdVar}=${envValue}\n`;
-         break;
+      if ("$" + envVar.replace(/_DEV$/, "") === envProdValue) {
+        output += `${envProdVar}=${envValue}\n`;
+        break;
       }
     }
   }

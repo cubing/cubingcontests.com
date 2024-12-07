@@ -26,8 +26,9 @@ async function bootstrap() {
   app.enableCors(corsOptions);
   app.setGlobalPrefix("api"); // add global /api prefix to all routes
 
-  await app.listen(process.env.BACKEND_PORT, () =>
-    logger.log(`Server is listening on port ${process.env.BACKEND_PORT}`),
+  await app.listen(
+    process.env.BACKEND_PORT,
+    () => logger.log(`Server is listening on port ${process.env.BACKEND_PORT}`),
   );
 }
 

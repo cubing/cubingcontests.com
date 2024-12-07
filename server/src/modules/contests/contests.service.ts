@@ -21,10 +21,27 @@ import {
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, IRoundFormat, ISchedule } from "@sh/types";
+import {
+  IContest,
+  IContestData,
+  IContestDto,
+  IContestEvent,
+  IResult,
+  IRound,
+  IRoundFormat,
+  ISchedule,
+} from "@sh/types";
 import { ContestState, ContestType, EventGroup, RoundType } from "@sh/enums";
 import { Role } from "@sh/enums";
-import { getDateOnly, getIsCompType, getIsOtherActivity, getIsProceedableResult, getMaxAllowedRounds, getTotalRounds, parseRoundId } from "@sh/sharedFunctions";
+import {
+  getDateOnly,
+  getIsCompType,
+  getIsOtherActivity,
+  getIsProceedableResult,
+  getMaxAllowedRounds,
+  getTotalRounds,
+  parseRoundId,
+} from "@sh/sharedFunctions";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { ResultsService } from "@m/results/results.service";
 import { EventsService } from "@m/events/events.service";
@@ -72,9 +89,10 @@ export class ContestsService {
           this.logger.error(`Error: schedule has no contest: ${JSON.stringify(s)}`);
         } else if (contests.length > 1) {
           this.logger.error(
-            `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${contests
-              .map((c) => c.competitionId)
-              .join(", ")
+            `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${
+              contests
+                .map((c) => c.competitionId)
+                .join(", ")
             }`,
           );
         } else {
@@ -111,8 +129,10 @@ export class ContestsService {
 
                 // Check that no activity is outside of the date range of the contest
                 if (startTime < contest.startDate || endTime >= addDays(contest.endDate, 1)) {
-                  this.logger.error(`Error: activity ${JSON.stringify(activity)} is outside of the date range of the contest ${
-                    contest.competitionId}`,
+                  this.logger.error(
+                    `Error: activity ${
+                      JSON.stringify(activity)
+                    } is outside of the date range of the contest ${contest.competitionId}`,
                   );
                 }
 
@@ -154,33 +174,55 @@ export class ContestsService {
 
       for (const contest of contests) {
         for (const contestEvent of contest.events) {
-          if (contestEvent.rounds.filter(r => r.open).length > 1)
-            this.logger.error(`Error: event ${contest.competitionId}/${contestEvent.event.eventId} has multiple open rounds`);
+          if (contestEvent.rounds.filter((r) => r.open).length > 1) {
+            this.logger.error(
+              `Error: event ${contest.competitionId}/${contestEvent.event.eventId} has multiple open rounds`,
+            );
+          }
 
           for (let i = 0; i < contestEvent.rounds.length; i++) {
             const round = contestEvent.rounds[i];
 
-            if (round.roundId.split('-')[0] !== contestEvent.event.eventId) {
+            if (round.roundId.split("-")[0] !== contestEvent.event.eventId) {
               this.logger.error(
                 `Error: round ${contest.competitionId}/${round.roundId} is inconsistent with event ${contestEvent.event.eventId}`,
               );
             }
 
-            if (round.open && contest.state >= ContestState.Finished)
-              this.logger.error(`Error: round ${contest.competitionId}/${round.roundId} is open despite the contest being finished`);
+            if (round.open && contest.state >= ContestState.Finished) {
+              this.logger.error(
+                `Error: round ${contest.competitionId}/${round.roundId} is open despite the contest being finished`,
+              );
+            }
 
-            if (round.roundTypeId === RoundType.Final && round.results.some(r => r.proceeds))
-              this.logger.error(`Error: final round ${contest.competitionId}/${round.roundId} has a result with result.proceeds = true`);
-            
+            if (round.roundTypeId === RoundType.Final && round.results.some((r) => r.proceeds)) {
+              this.logger.error(
+                `Error: final round ${contest.competitionId}/${round.roundId} has a result with result.proceeds = true`,
+              );
+            }
+
             for (const result of round.results) {
-              if (round.results.find(r => r.personIds.some(p => result.personIds.includes(p)) && r.ranking !== result.ranking))
-                this.logger.error(`Error: round ${contest.competitionId}/${round.roundId} has results with overlapping persons`);
+              if (
+                round.results.find((r) =>
+                  r.personIds.some((p) => result.personIds.includes(p)) && r.ranking !== result.ranking
+                )
+              ) {
+                this.logger.error(
+                  `Error: round ${contest.competitionId}/${round.roundId} has results with overlapping persons`,
+                );
+              }
 
               if (round.roundTypeId !== RoundType.Final) {
-                const proceeds = getResultProceeds(result as IResult, round as IRound, roundFormats.find(rf => rf.value === round.format));
+                const proceeds = getResultProceeds(
+                  result as IResult,
+                  round as IRound,
+                  roundFormats.find((rf) => rf.value === round.format),
+                );
 
                 if (result.proceeds && !proceeds) {
-                  this.logger.error(`Error: round ${contest.competitionId}/${round.roundId} has results that shouldn't have proceeded to the next round`);
+                  this.logger.error(
+                    `Error: round ${contest.competitionId}/${round.roundId} has results that shouldn't have proceeded to the next round`,
+                  );
                   break;
                 }
               }
@@ -338,20 +380,24 @@ export class ContestsService {
   async openRound(competitionId: string, roundId: string) {
     const [eventId, roundNumber] = parseRoundId(roundId);
     const contest = await this.getFullContest(competitionId, { populateResults: true });
-    
+
     const round = await this.roundModel.findOne({ competitionId, roundId }).exec();
     if (!round) throw new NotFoundException("Round not found");
     if (round.open) throw new BadRequestException("The specified round is already open");
 
-    const maxAllowedRounds = getMaxAllowedRounds(contest.events.find(ce => ce.event.eventId === eventId).rounds as IRound[]);
-    if (maxAllowedRounds < roundNumber)
+    const maxAllowedRounds = getMaxAllowedRounds(
+      contest.events.find((ce) => ce.event.eventId === eventId).rounds as IRound[],
+    );
+    if (maxAllowedRounds < roundNumber) {
       throw new BadRequestException("Previous rounds do not have enough competitors (see WCA regulation 9m)");
+    }
 
     round.open = true;
     await round.save();
 
     if (roundNumber > 1) {
-      const prevRound = await this.roundModel.findOne({ competitionId, roundId: eventId + `-r${roundNumber - 1}` }).exec();
+      const prevRound = await this.roundModel.findOne({ competitionId, roundId: eventId + `-r${roundNumber - 1}` })
+        .exec();
       if (!prevRound) throw new InternalServerErrorException("Previous round not found");
       prevRound.open = undefined;
       await prevRound.save();
@@ -419,10 +465,12 @@ export class ContestsService {
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
     await this.authService.checkAccessRightsToContest(user, contest, true);
-    if (getIsCompType(contest.type) && !contest.compDetails)
+    if (getIsCompType(contest.type) && !contest.compDetails) {
       throw new BadRequestException("A competition without a schedule cannot be approved");
-    if (contest.state === newState)
+    }
+    if (contest.state === newState) {
       throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
+    }
 
     const resultFromContest = await this.resultModel.findOne({ competitionId });
     const isAdmin = user.roles.includes(Role.Admin);
@@ -467,8 +515,9 @@ export class ContestsService {
 
     await contest.save();
 
-    if (getIsCompType(contest.type))
+    if (getIsCompType(contest.type)) {
       await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
+    }
     await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     await this.authService.deleteAuthToken(competitionId);
 
@@ -627,7 +676,7 @@ export class ContestsService {
             // meaning that the round became the final round due to a deletion
             if (round.proceed) sameRoundInContest.proceed = round.proceed;
             else sameRoundInContest.proceed = undefined;
-            
+
             if (round.open) {
               sameRoundInContest.open = true;
 
@@ -651,7 +700,7 @@ export class ContestsService {
             // Set the proceeds values for the previous round first
             const prevRound = sameEventInContest.rounds.at(-1);
             await prevRound.populate(resultPopulateOptions);
-            const roundFormat = roundFormats.find(rf => rf.value === prevRound.format);
+            const roundFormat = roundFormats.find((rf) => rf.value === prevRound.format);
             for (const result of prevRound.results) {
               if (getResultProceeds(result as IResult, prevRound as IRound, roundFormat)) {
                 result.proceeds = true;
@@ -853,7 +902,9 @@ export class ContestsService {
     if (zeroResultsRound) {
       const [eventId, roundNumber] = parseRoundId(zeroResultsRound.roundId);
       const event = await this.eventsService.getEventById(eventId);
-      throw new BadRequestException(`${event.name} round ${roundNumber} has fewer than ${C.minProceedNumber} results (see WCA guideline 9q+)`);
+      throw new BadRequestException(
+        `${event.name} round ${roundNumber} has fewer than ${C.minProceedNumber} results (see WCA guideline 9q+)`,
+      );
     }
 
     // Check there are no incomplete results
@@ -878,7 +929,7 @@ export class ContestsService {
 
     // If there are no issues, finish the contest and send the admins an email
     contest.queuePosition = undefined;
-    await this.roundModel.updateMany({ competitionId: contest.competitionId }, { $unset: { open: '' } }).exec();
+    await this.roundModel.updateMany({ competitionId: contest.competitionId }, { $unset: { open: "" } }).exec();
 
     // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);

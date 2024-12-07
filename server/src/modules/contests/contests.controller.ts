@@ -81,10 +81,10 @@ export class ContestsController {
   }
 
   // POST /competitions/:competitionId/open-round/:roundId
-  @Post(':competitionId/open-round/:roundId')
+  @Post(":competitionId/open-round/:roundId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async openRound(@Param('competitionId') competitionId: string, @Param('roundId') roundId: string) {
+  async openRound(@Param("competitionId") competitionId: string, @Param("roundId") roundId: string) {
     this.logger.logAndSave(`Opening round ${roundId} for contest ${competitionId}`, LogType.OpenRound);
 
     return await this.service.openRound(competitionId, roundId);

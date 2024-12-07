@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# First make sure there are no lint errors and that the frontend builds successfully
+deno lint
+if [ $? -gt 0 ]; then
+  echo -e "\n\nPlease fix all linting errors before publishing a new version"
+  exit
+fi
+cd client ; deno task build
+if [ $? -gt 0 ]; then
+  echo -e "\n\nPlease make sure the frontend builds successfully before publishing a new version"
+  exit
+fi
+
 git tag | sort -t "." -k1,1n -k2,2n -k3,3n -k4,4n | tail
 echo "Please give the new version tag:"
 read new_version
