@@ -10,12 +10,6 @@ import { MakeMoveDto } from "@m/collective-solution/dto/make-move.dto";
 export class CollectiveSolutionController {
   constructor(private readonly service: CollectiveSolutionService) {}
 
-  // GET /collective-solution
-  @Get()
-  async getCollectiveSolution() {
-    return await this.service.getCollectiveSolution();
-  }
-
   // POST /collective-solution
   @Post()
   @UseGuards(AuthenticatedGuard, RolesGuard)

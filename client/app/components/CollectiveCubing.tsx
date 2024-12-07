@@ -2,7 +2,6 @@
 
 import { useContext, useEffect, useState } from "react";
 import { TwistyPlayer } from "cubing/twisty";
-// import { keyToMove } from 'cubing/alg';
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { FetchObj, IFeCollectiveSolution, IMakeMoveDto, NxNMove } from "~/shared_helpers/types.ts";
 import { nxnMoves } from "~/shared_helpers/types/NxNMove.ts";
@@ -11,6 +10,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 import { getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 
 const addTwistyPlayerElement = (alg = "") => {
   const twistyPlayerElements = document.getElementsByTagName("twisty-player");
@@ -33,9 +33,19 @@ const getCubeState = (colSol: IFeCollectiveSolution): string => `${colSol.scramb
 
 const CollectiveCubing = () => {
   const myFetch = useMyFetch();
-  const { changeErrorMessages, loadingId, changeLoadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const { queryClient, changeErrorMessages, loadingId, changeLoadingId, resetMessagesAndLoadingId } = useContext(
+    MainContext,
+  );
 
-  const [collectiveSolution, setCollectiveSolution] = useState<IFeCollectiveSolution>();
+  const { data: collectiveSolution } = useQuery<IFeCollectiveSolution>({
+    queryKey: ["collectiveSolution"],
+    queryFn: () =>
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL2}/collective-solution`).then((res) => res.json()).then((res) => {
+        if (res) addTwistyPlayerElement(getCubeState(res));
+        else addTwistyPlayerElement();
+        return res;
+      }),
+  });
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
   const isSolved = !collectiveSolution || collectiveSolution.state === 20;
@@ -48,27 +58,6 @@ const CollectiveCubing = () => {
       changeErrorMessages(["Please enable WebGL to render the cube"]);
       return;
     }
-
-    // const doMoveWithKeyboard = (e: KeyboardEvent) => {
-    //   const move = keyToMove(e)?.toString();
-    //   console.log(move);
-    // selectMoveWithKeyboard(move as NxNMove);
-    // };
-
-    myFetch.get("/collective-solution").then(({ payload, errors }: FetchObj<IFeCollectiveSolution>) => {
-      if (!errors) {
-        if (payload) {
-          setCollectiveSolution(payload);
-          addTwistyPlayerElement(getCubeState(payload));
-        } else {
-          addTwistyPlayerElement();
-        }
-
-        // addEventListener('keypress', doMoveWithKeyboard);
-      }
-    });
-
-    // return () => removeEventListener('keypress', doMoveWithKeyboard);
   }, []);
 
   const update = ({ payload, errors, errorData }: FetchObj<IFeCollectiveSolution>) => {
@@ -78,7 +67,7 @@ const CollectiveCubing = () => {
       changeErrorMessages(errors);
     } else if (newCollectiveSolution) {
       resetMessagesAndLoadingId();
-      setCollectiveSolution(newCollectiveSolution);
+      (queryClient as QueryClient).setQueryData(["collectiveSolution"], newCollectiveSolution);
       addTwistyPlayerElement(getCubeState(newCollectiveSolution));
     }
 

@@ -16,14 +16,6 @@ export class CollectiveSolutionService {
     @InjectModel("CollectiveSolution") private readonly collectiveSolutionModel: Model<CollectiveSolutionDocument>,
   ) {}
 
-  public async getCollectiveSolution(): Promise<IFeCollectiveSolution> {
-    const currentSolution = await this.getCurrentSolution();
-
-    if (!currentSolution) return;
-
-    return this.mapCollectiveSolution(currentSolution);
-  }
-
   public async startNewSolution(user: IPartialUser): Promise<IFeCollectiveSolution> {
     const alreadyScrambledSolution = await this.collectiveSolutionModel.findOne({ state: 10 }).exec();
     if (alreadyScrambledSolution) {

@@ -1,10 +1,39 @@
 import { type Context, Hono } from "hono";
 import { serveStatic } from "hono/deno";
+import { cors } from "hono/cors";
 import { zValidator } from "@hono/zod-validator";
+import mongoose from "mongoose";
 import { z } from "zod";
 import { find as findTimezone } from "geo-tz";
+import { CollectiveSolutionModel } from "./models/collective-solution.model.ts";
+
+const nodeEnv = Deno.env.get("NODE_ENV");
+const mongoDevUsername = Deno.env.get("MONGO_DEV_USERNAME");
+const mongoDevPassword = Deno.env.get("MONGO_DEV_PASSWORD");
+
+if (!mongoDevUsername) throw new Error("MONGO DB USERNAME NOT SET!");
+if (!mongoDevPassword) throw new Error("MONGO DB PASSWORD NOT SET!");
+if (!Deno.env.has("BASE_URL")) throw new Error("BASE URL NOT SET!");
+if (!Deno.env.has("FRONTEND_PORT")) throw new Error("FRONTEND PORT NOT SET!");
 
 const app = new Hono().basePath("/api2");
+let mongoUri = `mongodb://${mongoDevUsername}:${mongoDevPassword}`;
+
+if (nodeEnv === "production") {
+  const corsOptions = {
+    origin: [Deno.env.get("BASE_URL") as string, `http://cc-client:${Deno.env.get("FRONTEND_PORT")}`],
+  };
+  console.log(`Setting CORS origin policy for ${corsOptions.origin.join(", ")}`);
+  app.use(cors(corsOptions));
+
+  mongoUri += "@cc-mongo:27017/cubingcontests";
+} else {
+  app.use(cors());
+  mongoUri += "@127.0.0.1:27017/cubingcontests";
+}
+
+// This is a temporary hack due to Deno being unable to read the type
+(mongoose as any).connect(mongoUri).then(() => console.log("DB connection established"));
 
 app.use(
   "/static/*",
@@ -26,6 +55,22 @@ app.get(
     return c.json({ timeZone: findTimezone(latitude, longitude)[0] });
   },
 );
+
+app.get("collective-solution", async (c: Context) => {
+  const currentSolution = await CollectiveSolutionModel.findOne({ state: { $lt: 30 } }).exec();
+
+  if (!currentSolution) return;
+
+  return c.json({
+    eventId: currentSolution.eventId,
+    attemptNumber: currentSolution.attemptNumber,
+    scramble: currentSolution.scramble,
+    solution: currentSolution.solution,
+    state: currentSolution.state,
+    lastUserWhoInteractedId: currentSolution.lastUserWhoInteracted.toString(),
+    totalUsersWhoMadeMoves: currentSolution.usersWhoMadeMoves.length,
+  });
+});
 
 const port = parseInt(Deno.env.get("BACKEND2_PORT") as string);
 if (!port) throw new Error("Please provide a BACKEND2_PORT environment variable");
