@@ -189,31 +189,6 @@ export class ContestsService {
         }
       }
     }
-
-    // TEMPORARY
-    const contests = await this.contestModel.find()
-      .populate(eventPopulateOptions.roundsAndResults)
-      .exec();
-    
-    for (const contest of contests) {
-      for (const event of contest.events) {
-        for (let i = 0; i < event.rounds.length; i++) {
-          if (event.rounds[i].roundTypeId !== RoundType.Final) {
-            for (const result of event.rounds[i].results) {
-              if (!result.proceeds && event.rounds[i + 1].results.some(r => r.personIds.some(p => result.personIds.includes(p)))) {
-                result.proceeds = true;
-                await result.save();
-              }
-            }
-          }
-
-          if (contest.state >= ContestState.Finished && event.rounds[i].open) {
-            event.rounds[i].open = undefined;
-            await event.rounds[i].save();
-          }
-        }
-      }
-    }
   }
 
   async getContests(region?: string, eventId?: string) {
