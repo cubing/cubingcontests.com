@@ -11,6 +11,7 @@ if [ $? -gt 0 ]; then
   echo -e "\n\nPlease make sure the frontend builds successfully before publishing a new version"
   exit
 fi
+cd ..
 
 git tag | sort -t "." -k1,1n -k2,2n -k3,3n -k4,4n | tail
 echo "Please give the new version tag:"
