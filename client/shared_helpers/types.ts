@@ -52,3 +52,5 @@ export type {
 // Random types
 
 export type ResultRankingType = "single" | "average" | "mean";
+
+export type PageSize = "A4" | "A6";

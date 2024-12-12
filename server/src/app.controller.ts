@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Request,
   Res,
   UseGuards,
@@ -29,7 +30,7 @@ import { LogType } from "~/src/helpers/enums";
 import { EmailService } from "@m/email/email.service";
 import { ContestsService } from "@m/contests/contests.service";
 import { EnterResultsDto } from "./app-dto/enter-results.dto";
-import { IContest } from "~/shared_helpers/types";
+import { IContest, PageSize } from "~/shared_helpers/types";
 
 @Controller()
 export class AppController {
@@ -49,15 +50,22 @@ export class AppController {
     return await this.service.getAdminStats();
   }
 
+  // GET /scorecards/:competitionId?pageSize=...
   @Get("scorecards/:competitionId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getContestScorecards(@Param("competitionId") competitionId: string, @Request() req: any, @Res() res: any) {
+  async getContestScorecards(
+    @Param("competitionId") competitionId: string,
+    @Query("pageSize") pageSize: PageSize,
+    @Request() req: any,
+    @Res() res: any,
+  ) {
     const contest = await this.contestsService.getFullContest(competitionId);
 
     await this.authService.checkAccessRightsToContest(req.user, contest, false);
 
-    const buffer = await getScorecards(getWcifCompetition(contest as IContest));
+    const wcifCompetition = getWcifCompetition(contest as IContest);
+    const buffer = await getScorecards(wcifCompetition, pageSize);
 
     res.set({
       "Content-Type": "application/pdf",

@@ -18,6 +18,7 @@ import {
   IRoom,
   type IRound,
   NumberInputValue,
+  PageSize,
 } from "~/shared_helpers/types.ts";
 import { Color, ContestState, ContestType } from "~/shared_helpers/enums.ts";
 import { getDateOnly, getIsCompType } from "~/shared_helpers/sharedFunctions.ts";
@@ -414,11 +415,11 @@ You have a round with a default time limit of 10:00. A round with a high time li
     }
   };
 
-  const downloadScorecards = async () => {
-    await myFetch.get(`/scorecards/${contest?.competitionId}`, {
+  const downloadScorecards = async (pageSize: PageSize) => {
+    await myFetch.get(`/scorecards/${contest?.competitionId}?pageSize=${pageSize}`, {
       authorize: true,
       fileName: `${contest?.competitionId}_Scorecards.pdf`,
-      loadingId: "download_scorecards_button",
+      loadingId: `download_scorecards_${pageSize.toLowerCase()}_button`,
     });
   };
 
@@ -477,69 +478,83 @@ You have a round with a default time limit of 10:00. A round with a high time li
               </div>
             )}
             {mode === "edit" && contest && (
-              <div className="d-flex flex-wrap gap-3 mt-3 mb-4">
-                {contest.type !== ContestType.WcaComp && (
-                  // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
+              <>
+                <div className="d-flex flex-wrap gap-3 mt-3 mb-3">
+                  {contest.type !== ContestType.WcaComp && (
+                    // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
+                    <Button
+                      id="clone_contest_button"
+                      onClick={cloneContest}
+                      loadingId={loadingId}
+                    >
+                      Clone
+                    </Button>
+                  )}
+                  {userInfo?.isAdmin && (
+                    <Button
+                      id="delete_contest_button"
+                      onClick={removeContest}
+                      loadingId={loadingId}
+                      disabled={contest.participants > 0}
+                      className="btn-danger"
+                    >
+                      Remove Contest
+                    </Button>
+                  )}
                   <Button
-                    id="clone_contest_button"
-                    onClick={cloneContest}
+                    id="download_scorecards_a4_button"
+                    onClick={() => downloadScorecards("A4")}
                     loadingId={loadingId}
+                    disabled={contest.state < ContestState.Approved}
+                    className="btn-success"
                   >
-                    Clone
+                    Scorecards (A4)
                   </Button>
-                )}
-                {userInfo?.isAdmin && (
                   <Button
-                    id="delete_contest_button"
-                    onClick={removeContest}
+                    id="download_scorecards_a6_button"
+                    onClick={() => downloadScorecards("A6")}
                     loadingId={loadingId}
-                    disabled={contest.participants > 0}
-                    className="btn-danger"
+                    disabled={contest.state < ContestState.Approved}
+                    className="btn-success"
                   >
-                    Remove Contest
+                    Scorecards (A6)
                   </Button>
-                )}
-                <Button
-                  id="download_scorecards_button"
-                  onClick={downloadScorecards}
-                  loadingId={loadingId}
-                  disabled={contest.state < ContestState.Approved}
-                  className="btn-success"
-                >
-                  Scorecards
-                </Button>
-                <div className="d-flex align-items-center gap-1">
-                  <Button
-                    id="enable_queue_button"
-                    onClick={enableQueue}
-                    loadingId={loadingId}
-                    disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished ||
-                      queueEnabled}
-                    className="btn-secondary"
-                  >
-                    {queueEnabled ? "Queue Enabled" : "Enable Queue"}
-                  </Button>
-                  <Tooltip
-                    id="queue_tooltip"
-                    text="This can be used for contests where there are not enough solving stations. In such cases random scrambles must be used for every competitor."
-                  />
+                  <div className="d-flex align-items-center gap-1">
+                    <Button
+                      id="enable_queue_button"
+                      onClick={enableQueue}
+                      loadingId={loadingId}
+                      disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished ||
+                        queueEnabled}
+                      className="btn-secondary"
+                    >
+                      {queueEnabled ? "Queue Enabled" : "Enable Queue"}
+                    </Button>
+                    <Tooltip
+                      id="queue_tooltip"
+                      text="This can be used for contests where there are not enough solving stations. In such cases random scrambles must be used for every competitor."
+                    />
+                  </div>
+                  <div className="d-flex align-items-center gap-1">
+                    <Button
+                      id="get_access_token_button"
+                      onClick={createAuthToken}
+                      loadingId={loadingId}
+                      disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
+                      className="btn-secondary"
+                    >
+                      Get Access Token
+                    </Button>
+                    <Tooltip
+                      id="access_token_tooltip"
+                      text="Used for external data entry (e.g. using a paperless scoretaking system or a third-party tool)"
+                    />
+                  </div>
                 </div>
-                <div className="d-flex align-items-center gap-1">
-                  <Button
-                    id="get_access_token_button"
-                    onClick={createAuthToken}
-                    loadingId={loadingId}
-                    disabled={contest.state < ContestState.Approved || contest.state >= ContestState.Finished}
-                    className="btn-secondary"
-                  >
-                    Get Access Token
-                  </Button>
-                  <Tooltip
-                    id="access_token_tooltip"
-                    text="Used for external data entry (e.g. using a paperless scoretaking system or a third-party tool)"
-                  />
-                </div>
-              </div>
+                <p className="mb-3 fs-6 fst-italic">
+                  If the scorecards aren't generating correctly, please report this to the admins!
+                </p>
+              </>
             )}
             <FormTextInput
               title="Contest name"
