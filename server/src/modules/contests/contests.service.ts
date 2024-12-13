@@ -260,15 +260,22 @@ export class ContestsService {
     return contests;
   }
 
-  // If eventId is defined, this will include the results for that event in the response
+  // If user is defined, that means the request is for a moderator page.
+  // If eventId is defined, this will include the results for that event in the response.
   async getContest(
     competitionId: string,
     { user, eventId }: { user?: IPartialUser; eventId?: string },
   ): Promise<IContestData> {
     const contest = await this.getFullContest(competitionId);
 
-    // If the user and the eventId are defined, that means it's for the data entry page
-    if (user) this.authService.checkAccessRightsToContest(user, contest, eventId === undefined);
+    // If the user and the eventId are defined, that means it's for the data entry page,
+    // which should be inaccessible until contest approval and after publication
+    if (user) {
+      this.authService.checkAccessRightsToContest(user, contest, {
+        allowNotApproved: eventId === undefined,
+        allowPublished: eventId === undefined,
+      });
+    }
 
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
     const output: IContestData = {
@@ -411,7 +418,7 @@ export class ContestsService {
     const contest = await this.getFullContest(competitionId, { exclude: false });
     const isAdmin = user.roles.includes(Role.Admin);
 
-    this.authService.checkAccessRightsToContest(user, contest, true);
+    this.authService.checkAccessRightsToContest(user, contest, { allowNotApproved: true });
     this.validateAndCleanUpContest(contestDto, user);
 
     if (contestDto.competitionId !== contest.competitionId) {
@@ -464,7 +471,7 @@ export class ContestsService {
     const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
 
-    await this.authService.checkAccessRightsToContest(user, contest, true);
+    await this.authService.checkAccessRightsToContest(user, contest, { allowNotApproved: true });
     if (getIsCompType(contest.type) && !contest.compDetails) {
       throw new BadRequestException("A competition without a schedule cannot be approved");
     }
@@ -534,7 +541,7 @@ export class ContestsService {
   ) {
     const contest = await this.contestModel.findOne({ competitionId }).exec();
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
-    this.authService.checkAccessRightsToContest(user, contest, false);
+    this.authService.checkAccessRightsToContest(user, contest);
 
     if (newPosition !== undefined) contest.queuePosition = newPosition;
     else contest.queuePosition += difference;
@@ -714,7 +721,7 @@ export class ContestsService {
           }
         }
       } // If it's a new event and the user is authorized, add the event. If unauthorized, just ignore the addition.
-      else if (isAdmin || contest.state < ContestState.Approved || contest.type === ContestType.Meetup) {
+      else if (isAdmin || contest.state < ContestState.Approved) {
         contest.events.push(await this.getNewContestEvent(newEvent));
       } else {
         this.logger.error(

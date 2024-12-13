@@ -561,14 +561,14 @@ You have a round with a default time limit of 10:00. A round with a high time li
               value={name}
               setValue={changeName}
               autoFocus
-              disabled={disableIfDetailsImported}
+              disabled={disableIfDetailsImported || disableIfContestPublished}
               className="mb-3"
             />
             <FormTextInput
               title="Short name"
               value={shortName}
               setValue={changeShortName}
-              disabled={disableIfDetailsImported}
+              disabled={disableIfDetailsImported || disableIfContestPublished}
               className="mb-3"
             />
             <FormTextInput
@@ -602,7 +602,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   title="City"
                   value={city}
                   setValue={setCity}
-                  disabled={disableIfDetailsImported}
+                  disabled={disableIfDetailsImported || disableIfContestPublished}
                 />
               </div>
               <div className="col">
@@ -617,7 +617,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
               title="Address"
               value={address}
               setValue={setAddress}
-              disabled={disableIfDetailsImported}
+              disabled={disableIfDetailsImported || disableIfContestPublished}
               className="mb-3"
             />
             <div className="row">
@@ -626,7 +626,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                   title="Venue"
                   value={venue}
                   setValue={setVenue}
-                  disabled={disableIfDetailsImported}
+                  disabled={disableIfDetailsImported || disableIfContestPublished}
                 />
               </div>
               <div className="col-12 col-md-6">
@@ -710,7 +710,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
                 setPersons={setOrganizers}
                 infiniteInputs
                 nextFocusTargetId="contact"
-                disabled={disableIfContestApproved && !userInfo?.isAdmin}
+                disabled={(disableIfContestApproved && !userInfo?.isAdmin) || disableIfContestPublished}
                 addNewPersonFromNewTab
               />
             </div>
@@ -747,7 +747,8 @@ You have a round with a default time limit of 10:00. A round with a high time li
               title={"Competitor limit" + (!getIsCompType(type) ? " (optional)" : "")}
               value={competitorLimit}
               setValue={setCompetitorLimit}
-              disabled={(disableIfContestApproved && !userInfo?.isAdmin) || disableIfDetailsImported}
+              disabled={(disableIfContestApproved && !userInfo?.isAdmin) || disableIfDetailsImported ||
+                disableIfContestPublished}
               integer
               min={C.minCompetitorLimit}
             />
@@ -760,7 +761,8 @@ You have a round with a default time limit of 10:00. A round with a high time li
             contestEvents={contestEvents}
             setContestEvents={setContestEvents}
             contestType={type}
-            disableNewEvents={!userInfo?.isAdmin && disableIfContestApproved && type !== ContestType.Meetup}
+            disabled={disableIfContestPublished}
+            disableNewEvents={disableIfContestApproved && !userInfo?.isAdmin}
           />
         )}
 

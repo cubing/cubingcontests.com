@@ -1112,7 +1112,7 @@ export class ResultsService {
       .exec();
 
     if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
-    if (user) this.authService.checkAccessRightsToContest(user, contest, false);
+    if (user) this.authService.checkAccessRightsToContest(user, contest);
 
     return contest;
   }

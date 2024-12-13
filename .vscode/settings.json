@@ -1,5 +1,6 @@
 {
   "deno.enable": true,
+  // This just determines which paths should have Deno LSP enabled. Formatting and linting paths are defined in the root deno.jsonc.
   "deno.enablePaths": [
     "./client",
     "./server2",

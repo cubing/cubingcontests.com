@@ -32,6 +32,7 @@ type Props = {
   contestEvents: IContestEvent[];
   setContestEvents: (val: IContestEvent[]) => void;
   contestType: ContestType;
+  disabled: boolean;
   disableNewEvents: boolean;
 };
 
@@ -40,6 +41,7 @@ const ContestEvents = ({
   contestEvents,
   setContestEvents,
   contestType,
+  disabled,
   disableNewEvents,
 }: Props) => {
   const [newEventId, setNewEventId] = useState(events[0].eventId);
@@ -50,7 +52,7 @@ const ContestEvents = ({
     [contestEvents],
   );
 
-  const disableNewRounds = contestType === ContestType.Meetup && totalRounds >= 15;
+  const disableNewRounds = disabled || (contestType === ContestType.Meetup && totalRounds >= 15);
   const filteredEvents: IEvent[] = events.filter((ev) =>
     contestType !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA)
   );
@@ -60,7 +62,7 @@ const ContestEvents = ({
   // Fix new event ID, if it's not in the list of remaining events
   if (!remainingEvents.some((e) => e.eventId === newEventId)) setNewEventId(remainingEvents[0].eventId);
   // Also disable new events if new rounds are disabled or if there are no more events to add
-  disableNewEvents = disableNewEvents || disableNewRounds || contestEvents.length === filteredEvents.length;
+  disableNewEvents = disabled || disableNewEvents || disableNewRounds || contestEvents.length === filteredEvents.length;
 
   const getNewRound = (event: IEvent, roundNumber: number): IRound => {
     return {

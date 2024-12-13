@@ -62,7 +62,7 @@ export class AppController {
   ) {
     const contest = await this.contestsService.getFullContest(competitionId);
 
-    await this.authService.checkAccessRightsToContest(req.user, contest, false);
+    await this.authService.checkAccessRightsToContest(req.user, contest, { allowPublished: true });
 
     const wcifCompetition = getWcifCompetition(contest as IContest);
     const buffer = await getScorecards(wcifCompetition, pageSize);
@@ -84,7 +84,7 @@ export class AppController {
     const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
     if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
 
-    this.authService.checkAccessRightsToContest(req.user, contest, false);
+    this.authService.checkAccessRightsToContest(req.user, contest);
 
     return await this.authService.createAuthToken(contest);
   }
