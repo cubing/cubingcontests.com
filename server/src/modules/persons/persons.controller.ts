@@ -85,7 +85,7 @@ export class PersonsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async approvePerson(@Param("id") id: string) {
-    return await this.personsService.approvePerson(id);
+    return await this.personsService.approvePerson({ id });
   }
 
   // DELETE /persons/:id

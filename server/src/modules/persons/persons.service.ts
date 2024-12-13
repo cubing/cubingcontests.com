@@ -318,17 +318,28 @@ export class PersonsService {
     await person.deleteOne();
   }
 
-  async approvePerson(id: string) {
-    this.logger.logAndSave(`Approving person with ID ${id}`, LogType.ApprovePersons);
-
-    const person = await this.personModel.findById(id).exec();
+  async approvePerson(
+    { id, personId, allowUnapprovedAndNoResults = false }: {
+      id?: string;
+      personId?: number;
+      allowUnapprovedAndNoResults?: boolean;
+    },
+  ) {
+    const person = id
+      ? await this.personModel.findById(id).exec()
+      : await this.personModel.findOne({ personId }).exec();
     if (!person) throw new NotFoundException("Person not found");
-    if (!person.unapproved) throw new BadRequestException(`${person.name} has already been approved`);
 
-    const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
-    if (!result) {
-      throw new BadRequestException(`${person.name} has no results. They could have been added by accident.`);
+    if (!allowUnapprovedAndNoResults) {
+      if (!person.unapproved) throw new BadRequestException(`${person.name} has already been approved`);
+
+      const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
+      if (!result) {
+        throw new BadRequestException(`${person.name} has no results. They could have been added by accident.`);
+      }
     }
+
+    this.logger.logAndSave(`Approving person with person ID ${person.personId}`, LogType.ApprovePersons);
 
     await this.setPersonToApproved(person, true);
     return this.getFrontendPerson(person);
