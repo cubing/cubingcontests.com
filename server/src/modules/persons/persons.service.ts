@@ -44,22 +44,6 @@ export class PersonsService {
       }
     }
 
-    // TEMPORARY
-    const persons = await this.personModel.find().exec();
-    for (const person of persons) {
-      const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
-      if (!result) {
-        const contest = await this.contestModel.findOne({ organizers: person._id }, { _id: 1 }).exec();
-        if (!contest) {
-          const user = await this.userModel.findOne({ personId: person.personId }, { _id: 1 }).exec();
-          if (!user) {
-            await person.deleteOne();
-            console.error(`DELETED ${person.name} (${person.personId})`);
-          }
-        }
-      }
-    }
-
     if (process.env.DO_DB_CONSISTENCY_CHECKS === "true") {
       this.logger.log("Checking persons inconsistencies in the DB...");
 
