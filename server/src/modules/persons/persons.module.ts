@@ -7,6 +7,7 @@ import { RoundSchema } from "~/src/models/round.model";
 import { LoggerModule } from "@m/my-logger/my-logger.module";
 import { ResultSchema } from "~/src/models/result.model";
 import { ContestSchema } from "~/src/models/contest.model";
+import { UserSchema } from "~/src/models/user.model";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ContestSchema } from "~/src/models/contest.model";
       { name: "Round", schema: RoundSchema },
       { name: "Result", schema: ResultSchema },
       { name: "Competition", schema: ContestSchema },
+      { name: "User", schema: UserSchema },
     ]),
   ],
   controllers: [PersonsController],

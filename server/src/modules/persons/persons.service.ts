@@ -19,6 +19,7 @@ import { IPartialUser } from "~/src/helpers/interfaces/User";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
 import { ResultDocument } from "~/src/models/result.model";
+import { UserDocument } from "~/src/models/user.model";
 
 @Injectable()
 export class PersonsService {
@@ -28,6 +29,7 @@ export class PersonsService {
     @InjectModel("Round") private readonly roundModel: Model<RoundDocument>,
     @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
     @InjectModel("Competition") private readonly contestModel: Model<ContestDocument>,
+    @InjectModel("User") private readonly userModel: Model<UserDocument>,
   ) {}
 
   async onModuleInit() {
@@ -42,6 +44,22 @@ export class PersonsService {
       }
     }
 
+    // TEMPORARY
+    const persons = await this.personModel.find().exec();
+    for (const person of persons) {
+      const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
+      if (!result) {
+        const contest = await this.contestModel.findOne({ organizers: person._id }, { _id: 1 }).exec();
+        if (!contest) {
+          const user = await this.userModel.findOne({ personId: person.personId }, { _id: 1 }).exec();
+          if (!user) {
+            await person.deleteOne();
+            console.error(`DELETED ${person.name} (${person.personId})`);
+          }
+        }
+      }
+    }
+
     if (process.env.DO_DB_CONSISTENCY_CHECKS === "true") {
       this.logger.log("Checking persons inconsistencies in the DB...");
 
@@ -49,14 +67,30 @@ export class PersonsService {
 
       for (let i = 0; i < persons.length; i++) {
         const person = persons[i];
+        const identifier = `${person.name} (CC ID: ${person.personId})`;
 
         // Look for persons with the same name
         if (persons.some((p, index) => index > i && p.personId !== person.personId && p.name === person.name)) {
           this.logger.error(`Error: multiple persons found with the name ${person.name}`);
         }
 
+        // Look for persons with parentheses in the name
         if (person.name.includes("(") || person.name.includes(")")) {
-          this.logger.error(`Error: person has parentheses in the name: ${person.name} (CC ID: ${person.personId})`);
+          this.logger.error(`Error: person has parentheses in the name: ${identifier}`);
+        }
+
+        // Look for persons with no results or organized contests and who aren't tied to a user
+        const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
+        if (!result) {
+          const contest = await this.contestModel.findOne({ organizers: person._id }, { _id: 1 }).exec();
+          if (!contest) {
+            const user = await this.userModel.findOne({ personId: person.personId }, { _id: 1 }).exec();
+            if (!user) {
+              this.logger.error(
+                `Error: person has no results or organized contests and isn't tied to a user: ${identifier}`,
+              );
+            }
+          }
         }
       }
     }
@@ -259,14 +293,22 @@ export class PersonsService {
     if (!person) throw new NotFoundException("Person not found");
     if (!person.unapproved) throw new BadRequestException("You may not delete an approved person");
 
-    const result = await this.resultModel.findOne({ personIds: person.personId }).exec();
+    const user = await this.userModel.findOne({ personId: person.personId }, { username: 1 }).exec();
+    if (user) {
+      throw new BadRequestException(
+        `You may not delete a person tied to a user. This person is tied to user ${user.username}.`,
+      );
+    }
+
+    const result = await this.resultModel.findOne({ personIds: person.personId }, { eventId: 1, competitionId: 1 })
+      .exec();
     if (result) {
       throw new BadRequestException(
         `You may not delete a person who has a result. This person has a result in ${result.eventId} at ${result.competitionId}.`,
       );
     }
 
-    const organizedContest = await this.contestModel.findOne({ organizers: person._id }).exec();
+    const organizedContest = await this.contestModel.findOne({ organizers: person._id }, { competitionId: 1 }).exec();
     if (organizedContest) {
       throw new BadRequestException(
         `You may not delete a person who has organized a contest. This person was an organizer at ${organizedContest.competitionId}.`,
@@ -282,6 +324,11 @@ export class PersonsService {
     const person = await this.personModel.findById(id).exec();
     if (!person) throw new NotFoundException("Person not found");
     if (!person.unapproved) throw new BadRequestException(`${person.name} has already been approved`);
+
+    const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
+    if (!result) {
+      throw new BadRequestException(`${person.name} has no results. They could have been added by accident.`);
+    }
 
     await this.setPersonToApproved(person, true);
     return this.getFrontendPerson(person);
