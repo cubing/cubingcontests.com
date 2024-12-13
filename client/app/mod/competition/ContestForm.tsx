@@ -263,10 +263,10 @@ You have a round with a default time limit of 10:00. A round with a high time li
       setLatitude(1.314663);
       setLongitude(103.845409);
       queryClient.setQueryData(timeZoneQueryKey, { timeZone: "Asia/Singapore" });
-      setOrganizerNames([payload.name]);
-      setOrganizers([payload]);
+      setOrganizerNames([payload.name, ""]);
+      setOrganizers([payload, null]);
       setContact(`${userInfo?.username}@cc.com`);
-      setDescription("THIS IS A MOCK CONTEST!");
+      setDescription("THIS IS A MOCK CONTEST FOR TESTING!");
       setCompetitorLimit(100);
 
       if (mockContestType === ContestType.Meetup) {

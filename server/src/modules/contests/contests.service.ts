@@ -493,6 +493,11 @@ export class ContestsService {
       contest.state = newState;
 
       if (newState === ContestState.Approved) {
+        await this.personsService.approvePersons({
+          personIds: contest.organizers.map((o) => o.personId),
+          allowNoWcaId: true,
+        });
+
         await this.emailService.sendEmail(
           contestCreatorEmail,
           `Your contest <a href="${contestUrl}">${contest.name}</a> has been approved and is now public on the website.`,

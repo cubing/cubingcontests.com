@@ -339,8 +339,6 @@ export class PersonsService {
       }
     }
 
-    this.logger.logAndSave(`Approving person with person ID ${person.personId}`, LogType.ApprovePersons);
-
     await this.setPersonToApproved(person, true);
     return this.getFrontendPerson(person);
   }
@@ -349,9 +347,11 @@ export class PersonsService {
   async approvePersons({
     personIds,
     competitionId,
+    allowNoWcaId = false,
   }: {
     personIds?: number[];
     competitionId?: string;
+    allowNoWcaId?: boolean;
   }) {
     const persons = personIds
       ? await this.getPersonsByPersonIds(personIds, { unapprovedOnly: true })
@@ -362,10 +362,10 @@ export class PersonsService {
 
     this.logger.logAndSave(message, LogType.ApprovePersons);
 
-    await Promise.allSettled(persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, false)));
+    await Promise.allSettled(persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, allowNoWcaId)));
   }
 
-  private async setPersonToApproved(person: PersonDocument, expectNoWcaId: boolean) {
+  private async setPersonToApproved(person: PersonDocument, allowNoWcaId: boolean) {
     if (!person.wcaId) {
       const res = await fetch(
         `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`,
@@ -373,7 +373,7 @@ export class PersonsService {
       if (res.ok) {
         const { result: wcaPersons } = await res.json();
 
-        if (expectNoWcaId) {
+        if (allowNoWcaId) {
           for (const wcaPerson of wcaPersons) {
             const [name] = getNameAndLocalizedName(wcaPerson.name);
             if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
@@ -394,7 +394,9 @@ export class PersonsService {
       }
     }
 
-    if (expectNoWcaId || person.wcaId) {
+    if (allowNoWcaId || person.wcaId) {
+      this.logger.logAndSave(`Approving person ${person.name} (CC ID: ${person.personId})`, LogType.ApprovePersons);
+
       person.unapproved = undefined;
       await person.save();
     }
