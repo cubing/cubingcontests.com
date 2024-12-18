@@ -906,17 +906,28 @@ export class ContestsService {
       );
     }
 
-    // Check there are no rounds with fewer than the minimum number of results for a round
-    const zeroResultsRound = await this.roundModel
-      .findOne({ competitionId: contest.competitionId, results: { $size: C.minProceedNumber } })
+    // Check there are no rounds with no results or subsequent rounds with fewer results than the minimum proceed number
+    const tooFewResultsRound = await this.roundModel
+      .findOne({
+        competitionId: contest.competitionId,
+        // If it's the first round, we only care about rounds with 0 results, otherwise we also care about < C.minProceedNumber
+        $or: new Array(C.minProceedNumber).fill(null).map((_, i) => (
+          i === 0 ? { results: { $size: 0 } } : { results: { $size: i }, roundId: { $regex: /-r([2-9]|[1-9][0-9])$/ } }
+        )),
+      })
       .exec();
 
-    if (zeroResultsRound) {
-      const [eventId, roundNumber] = parseRoundId(zeroResultsRound.roundId);
+    if (tooFewResultsRound) {
+      const [eventId, roundNumber] = parseRoundId(tooFewResultsRound.roundId);
       const event = await this.eventsService.getEventById(eventId);
-      throw new BadRequestException(
-        `${event.name} round ${roundNumber} has fewer than ${C.minProceedNumber} results (see WCA guideline 9q+)`,
-      );
+
+      if (tooFewResultsRound.results.length === 0) {
+        throw new BadRequestException(`${event.name} round ${roundNumber} has no results`);
+      } else {
+        throw new BadRequestException(
+          `${event.name} round ${roundNumber} has fewer than ${C.minProceedNumber} results (see WCA guideline 9q+)`,
+        );
+      }
     }
 
     // Check there are no incomplete results
