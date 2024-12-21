@@ -85,9 +85,7 @@ const NavbarItems = () => {
               >
                 Results
               </button>
-              <ul
-                className={`dropdown-menu py-0 px-3 px-lg-2 ${resultsExpanded ? "show" : ""}`}
-              >
+              <ul className={`dropdown-menu py-0 px-3 px-lg-2 ${resultsExpanded ? "show" : ""}`}>
                 <li>
                   <Link
                     className={`nav-link ${/^\/records\//.test(pathname) ? " active" : ""}`}

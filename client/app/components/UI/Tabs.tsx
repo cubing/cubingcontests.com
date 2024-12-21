@@ -19,7 +19,7 @@ const Tabs = ({
   forServerSidePage,
 }: Props) => {
   if (prefetch && !forServerSidePage) {
-    throw new Error("The Tabs component only supports prefetch when forServerSidePage is set");
+    throw new Error("The Tabs component only supports prefetch when forServerSidePage is true");
   }
 
   return (

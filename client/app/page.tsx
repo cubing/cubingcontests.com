@@ -3,7 +3,6 @@ import C from "~/shared_helpers/constants.ts";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import ExternalLink from "~/app/components/ExternalLink.tsx";
 
 const Home = () => {
   return (
@@ -16,7 +15,8 @@ const Home = () => {
 
       <p>
         This is a place for hosting unofficial Rubik's Cube competitions, unofficial events held at{" "}
-        <ExternalLink to="wca" /> competitions, speedcuber meetups, and other unofficial events.
+        <a href="https://www.worldcubeassociation.org/" target="_blank">WCA</a>{" "}
+        competitions, speedcuber meetups, and other unofficial events.
       </p>
       <p>
         The events are split up into multiple categories: Unofficial, WCA, Extreme BLD, and Miscellaneous. Extreme BLD
@@ -46,7 +46,7 @@ const Home = () => {
       <div className="mt-4 mx-3 p-3 border rounded-3 fw-bold">
         <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
         Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
-        held as an official <ExternalLink to="wca" /> competition.
+        held as an official <a href="https://www.worldcubeassociation.org/" target="_blank">WCA</a> competition.
       </div>
       <Link href="/moderator-instructions" className="btn btn-secondary mt-4">
         Moderator instructions

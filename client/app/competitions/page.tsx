@@ -33,7 +33,7 @@ const ContestsPage = async ({ searchParams: { eventId } }: Props) => {
 
       {contests?.length > 0
         ? <ContestsTable contests={contests} />
-        : <p className="mx-2 fs-5">No contests have been held yet</p>}
+        : <p className="mx-3 fs-5">No contests have been held yet</p>}
     </div>
   );
 };

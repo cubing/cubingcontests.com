@@ -3,6 +3,7 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { debounce } from "lodash";
+import Markdown from "react-markdown";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Form from "~/app/components/form/Form.tsx";
@@ -29,12 +30,12 @@ import C from "~/shared_helpers/constants.ts";
 import { getBlankCompetitors, getRoundFormatOptions, getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import ExternalLink from "~/app/components/ExternalLink.tsx";
 import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
+import rules from "./video-based-results-rules.md";
 
 const userInfo: UserInfo = getUserInfo();
 const allowedRoundFormats: IRoundFormat[] = roundFormats.filter((rf) => rf.value !== RoundFormat.BestOf3);
@@ -278,30 +279,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
               <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? "Hide rules" : "Show rules"}
               </button>
-              {showRules && (
-                <div className="mt-4">
-                  <p>
-                    1. For blindfolded events, your face must be visible during the entire solve (it must be visible
-                    that your mask is on during the solving phase).
-                  </p>
-                  <p>
-                    2. The final time must be visible at the end of the video with no cuts after the end of the solve.
-                    Having the time always visible is preferable.
-                  </p>
-                  <p>
-                    3. For team events, every participant must use a different scramble, be in the same place, not touch
-                    the puzzle while waiting for other participants (penalty: +2), and be visible on video at the same
-                    time (an exception can be made for team events with 5+ participants). Penalty for an early start:
-                    +2.
-                  </p>
-                  <p>4. If you're submitting a Mean of 3, there must be no cuts between the solves.</p>
-                  <p>
-                    5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was
-                    generated and applied. Scrambles must be generated with <ExternalLink to="cstimer" /> or{" "}
-                    <ExternalLink to="cubingjs" />.
-                  </p>
-                </div>
-              )}
+              {showRules && <Markdown className="mt-4 lh-lg">{rules}</Markdown>}
             </>
           )}
       </div>
