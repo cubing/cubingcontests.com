@@ -12,6 +12,8 @@ type Props = {
 const RulesLayout = async ({ children }: Props) => {
   const { payload: events } = await ssrFetch("/events/with-rules");
 
+  if (!events) return <h4 className="mt-4 text-center">Error while loading events</h4>;
+
   return (
     <div>
       <h2 className="mb-4 text-center">Rules</h2>
