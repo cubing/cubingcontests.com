@@ -20,8 +20,8 @@ free to inspect any of the puzzles in any order during this phase.
 
 #### Team events
 
-T1. There must be no physical contact below the elbow between any members of a team during an attempt. Penalty:
-**DNF**.\
+T1. There must be no physical contact with arms below the elbow between any members of a team during a solve
+(specifically solve, not the full attempt). Penalty: **DNF**.\
 T2. All members of a team may communicate with each other and with the judge.\
 T3. A team must consist of the same members for all attempts across all rounds of an event. Exception: Some events may
 have specific allowances for this.\

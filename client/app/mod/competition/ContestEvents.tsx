@@ -245,11 +245,11 @@ const ContestEvents = ({
 
   return (
     <section>
-      <p className="mb-3 fs-6 text-danger fst-italic">
-        Make sure{" "}
-        <a href="https://www.worldcubeassociation.org/regulations/full/#9m" target="_blank">WCA Regulation 9m</a>{" "}
+      <p className="mb-3 fs-6 fw-bold fst-italic text-danger">
+        Make sure <a href="https://www.worldcubeassociation.org/regulations/full/#9m" target="_blank">Regulation 9m</a>
+        {" "}
         is followed, when opening subsequent rounds. Not having enough competitors will make you unable to open up the
-        next round. In such cases all subsequent rounds are to be cancelled and removed.
+        next round. In such cases all subsequent rounds must be cancelled and removed.
       </p>
 
       <p className="mb-4">Total events: {contestEvents.length} | Total rounds: {totalRounds}</p>

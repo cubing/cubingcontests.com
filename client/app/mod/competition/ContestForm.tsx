@@ -457,25 +457,32 @@ You have a round with a default time limit of 10:00. A round with a high time li
 
         {activeTab === "details" && (
           <>
-            {process.env.NODE_ENV !== "production" &&
-              mode === "new" && (
-              <div className="d-flex gap-3 mt-3 mb-4">
-                <Button
-                  id="set_mock_comp_button"
-                  onClick={() => fillWithMockData()}
-                  disabled={detailsImported}
-                  className="btn-secondary"
-                >
-                  Set Mock Competition
-                </Button>
-                <Button
-                  onClick={() => fillWithMockData(ContestType.Meetup)}
-                  disabled={detailsImported}
-                  className="btn-secondary"
-                >
-                  Set Mock Meetup
-                </Button>
-              </div>
+            {mode === "new" && (
+              <>
+                {process.env.NODE_ENV !== "production" && (
+                  <div className="d-flex flex-wrap gap-3 my-3">
+                    <Button
+                      id="set_mock_comp_button"
+                      onClick={() => fillWithMockData()}
+                      disabled={detailsImported}
+                      className="btn-secondary"
+                    >
+                      Set Mock Competition
+                    </Button>
+                    <Button
+                      onClick={() => fillWithMockData(ContestType.Meetup)}
+                      disabled={detailsImported}
+                      className="btn-secondary"
+                    >
+                      Set Mock Meetup
+                    </Button>
+                  </div>
+                )}
+
+                <p className="mb-4 fs-6 fw-bold fst-italic text-info">
+                  Come back here after the contest gets approved to generate the scorecards!
+                </p>
+              </>
             )}
             {mode === "edit" && contest && (
               <>

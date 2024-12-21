@@ -21,23 +21,13 @@ import {
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
 import C from "@sh/constants";
-import {
-  IContest,
-  IContestData,
-  IContestDto,
-  IContestEvent,
-  IResult,
-  IRound,
-  IRoundFormat,
-  ISchedule,
-} from "@sh/types";
+import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "@sh/types";
 import { ContestState, ContestType, EventGroup, RoundType } from "@sh/enums";
 import { Role } from "@sh/enums";
 import {
   getDateOnly,
   getIsCompType,
   getIsOtherActivity,
-  getIsProceedableResult,
   getMaxAllowedRounds,
   getTotalRounds,
   parseRoundId,
@@ -202,13 +192,16 @@ export class ContestsService {
             }
 
             for (const result of round.results) {
-              if (
-                round.results.find((r) =>
-                  r.personIds.some((p) => result.personIds.includes(p)) && r.ranking !== result.ranking
-                )
-              ) {
+              const overlappingPersonsResult = round.results.find((r) =>
+                r._id.toString() !== result._id.toString() && r.ranking >= result.ranking &&
+                r.personIds.some((p) => result.personIds.includes(p))
+              );
+              if (overlappingPersonsResult) {
+                const overlappingPersonId = overlappingPersonsResult.personIds.find((p) =>
+                  result.personIds.includes(p)
+                );
                 this.logger.error(
-                  `Error: round ${contest.competitionId}/${round.roundId} has results with overlapping persons`,
+                  `Error: round ${contest.competitionId}/${round.roundId} has results with overlapping persons (CC ID: ${overlappingPersonId})`,
                 );
               }
 
