@@ -323,7 +323,7 @@ export class PersonsService {
       }
     }
 
-    await this.setPersonToApproved(person, true);
+    await this.setPersonToApproved(person, false);
     return this.getFrontendPerson(person);
   }
 
