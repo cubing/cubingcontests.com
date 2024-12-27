@@ -486,10 +486,7 @@ export class ContestsService {
       contest.state = newState;
 
       if (newState === ContestState.Approved) {
-        await this.personsService.approvePersons({
-          personIds: contest.organizers.map((o) => o.personId),
-          allowNoWcaId: true,
-        });
+        await this.personsService.approvePersons({ personIds: contest.organizers.map((o) => o.personId) });
 
         await this.emailService.sendEmail(
           contestCreatorEmail,
@@ -975,7 +972,10 @@ export class ContestsService {
     // Unset unapproved from the results so that they can be included in the rankings
     await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: "" } });
 
-    await this.personsService.approvePersons({ competitionId: contest.competitionId });
+    await this.personsService.approvePersons({
+      competitionId: contest.competitionId,
+      requireWcaId: contest.type === ContestType.WcaComp,
+    });
 
     // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);

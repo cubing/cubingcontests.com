@@ -331,11 +331,11 @@ export class PersonsService {
   async approvePersons({
     personIds,
     competitionId,
-    allowNoWcaId = false,
+    requireWcaId = false,
   }: {
     personIds?: number[];
     competitionId?: string;
-    allowNoWcaId?: boolean;
+    requireWcaId?: boolean;
   }) {
     const persons = personIds
       ? await this.getPersonsByPersonIds(personIds, { unapprovedOnly: true })
@@ -346,10 +346,10 @@ export class PersonsService {
 
     this.logger.logAndSave(message, LogType.ApprovePersons);
 
-    await Promise.allSettled(persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, allowNoWcaId)));
+    await Promise.allSettled(persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, requireWcaId)));
   }
 
-  private async setPersonToApproved(person: PersonDocument, allowNoWcaId: boolean) {
+  private async setPersonToApproved(person: PersonDocument, requireWcaId: boolean) {
     if (!person.wcaId) {
       const res = await fetch(
         `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`,
@@ -357,7 +357,7 @@ export class PersonsService {
       if (res.ok) {
         const { result: wcaPersons } = await res.json();
 
-        if (allowNoWcaId) {
+        if (!requireWcaId) {
           for (const wcaPerson of wcaPersons) {
             const [name] = getNameAndLocalizedName(wcaPerson.name);
             if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
@@ -378,7 +378,7 @@ export class PersonsService {
       }
     }
 
-    if (allowNoWcaId || person.wcaId) {
+    if (!requireWcaId || person.wcaId) {
       this.logger.logAndSave(`Approving person ${person.name} (CC ID: ${person.personId})`, LogType.ApprovePersons);
 
       person.unapproved = undefined;
