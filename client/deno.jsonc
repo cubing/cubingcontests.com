@@ -5,7 +5,7 @@
     "~/": "./"
   },
   "tasks": {
-    "dev": "next dev",
+    "dev": "next dev -p $(cat .env.development | grep -E '^PORT=' | sed -r 's/^PORT=//')",
     "build": "deno run --unstable-unsafe-proto -A npm:next build",
     // "build": "next build",
     "start": "next start"

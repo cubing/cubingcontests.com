@@ -32,11 +32,7 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   # Remove old images
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
-  docker build --build-arg API_BASE_URL="$CLIENT_ARG_API_BASE_URL" \
-               --build-arg API_BASE_URL_SERVER_SIDE="$CLIENT_ARG_API_BASE_URL_SERVER_SIDE" \
-               --build-arg API_BASE_URL2="$CLIENT_ARG_API_BASE_URL2" \
-               --build-arg API_BASE_URL2_SERVER_SIDE="$CLIENT_ARG_API_BASE_URL2_SERVER_SIDE" \
-    -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
+  docker build --build-arg API_BASE_URL="$CLIENT_ARG_API_BASE_URL" --build-arg API_BASE_URL2="$CLIENT_ARG_API_BASE_URL2" -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$new_version denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$new_version &&
   docker push denimint/cubingcontests-client:latest &&

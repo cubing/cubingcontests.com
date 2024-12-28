@@ -7,7 +7,7 @@ import { z } from "zod";
 import { find as findTimezone } from "geo-tz";
 import { CollectiveSolutionModel } from "./models/collective-solution.model.ts";
 
-const nodeEnv = Deno.env.get("NODE_ENV");
+const environment = Deno.env.get("ENVIRONMENT");
 const mongoDevUsername = Deno.env.get("MONGO_DEV_USERNAME");
 const mongoDevPassword = Deno.env.get("MONGO_DEV_PASSWORD");
 
@@ -19,7 +19,7 @@ if (!Deno.env.has("FRONTEND_PORT")) throw new Error("FRONTEND PORT NOT SET!");
 const app = new Hono().basePath("/api2");
 let mongoUri = `mongodb://${mongoDevUsername}:${mongoDevPassword}`;
 
-if (nodeEnv === "production") {
+if (environment === "production") {
   const corsOptions = {
     origin: [Deno.env.get("BASE_URL") as string, `http://cc-client:${Deno.env.get("FRONTEND_PORT")}`],
   };

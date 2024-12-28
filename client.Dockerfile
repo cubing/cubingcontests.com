@@ -1,4 +1,4 @@
-FROM denoland/deno:2.1.3
+FROM denoland/deno:2.1.4
 
 # Expose port
 EXPOSE $FRONTEND_PORT
@@ -11,9 +11,7 @@ WORKDIR /app/client
 # USER deno
 
 ARG API_BASE_URL
-ARG API_BASE_URL_SERVER_SIDE
 ARG API_BASE_URL2
-ARG API_BASE_URL2_SERVER_SIDE
 
 RUN deno install
 RUN deno task build
