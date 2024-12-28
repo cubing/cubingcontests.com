@@ -258,7 +258,13 @@ const CreateEditEventPage = () => {
                   <EventTitle fontSize="6" event={event} showIcon linkToRankings noMargin />
                 </td>
                 <td>{event.eventId}</td>
-                <td>{event.rank}</td>
+                <td
+                  className={events.some((e: IFeEvent) => e.eventId !== event.eventId && e.rank === event.rank)
+                    ? "text-danger fw-bold"
+                    : ""}
+                >
+                  {event.rank}
+                </td>
                 <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}</td>
                 <td>{eventCategories.find((ec) => event.groups.includes(ec.group))?.title}</td>
                 {/* <td>{event.groups}</td> */}
