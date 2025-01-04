@@ -142,7 +142,7 @@ export class UsersService {
     user.roles = updateUserDto.roles;
     if (updateUserDto.person) {
       user.personId = updateUserDto.person.personId;
-      await this.personsService.approvePerson({ personId: user.personId, allowUnapprovedAndNoResults: true });
+      await this.personsService.approvePerson({ personId: user.personId, skipValidation: true });
     } else {
       user.personId = undefined;
     }

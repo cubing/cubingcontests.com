@@ -303,10 +303,10 @@ export class PersonsService {
   }
 
   async approvePerson(
-    { id, personId, allowUnapprovedAndNoResults = false }: {
+    { id, personId, skipValidation = false }: {
       id?: string;
       personId?: number;
-      allowUnapprovedAndNoResults?: boolean;
+      skipValidation?: boolean;
     },
   ) {
     const person = id
@@ -314,12 +314,17 @@ export class PersonsService {
       : await this.personModel.findOne({ personId }).exec();
     if (!person) throw new NotFoundException("Person not found");
 
-    if (!allowUnapprovedAndNoResults) {
+    if (!skipValidation) {
       if (!person.unapproved) throw new BadRequestException(`${person.name} has already been approved`);
 
       const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
       if (!result) {
-        throw new BadRequestException(`${person.name} has no results. They could have been added by accident.`);
+        const organizedContest = await this.contestModel.findOne({ organizers: person._id }).exec();
+        if (!organizedContest) {
+          throw new BadRequestException(
+            `${person.name} has no results and hasn't organized any contests. They could have been added by accident.`,
+          );
+        }
       }
     }
 
