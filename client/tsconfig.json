@@ -25,9 +25,9 @@
     "noImplicitAny": true,
     "baseUrl": "./",
     "paths": {
-      "~/*": [
-        "./*"
-      ]
+      "~/*": ["./*"],
+      // This is needed for the production build
+      "@cc/shared": ["../shared/main.ts"]
     }
   },
   "include": [

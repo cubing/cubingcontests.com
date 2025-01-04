@@ -2,16 +2,16 @@
 
 // import { useContext, useEffect, useState } from 'react';
 // import { useMyFetch, useFetchPerson, useFetchWcaCompDetails } from '~/helpers/customHooks.ts';
-// import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from '~/shared_helpers/enums.ts';
-// import { IContestDto, IEvent, IPerson, IRecordPair, IRecordType, IResult, IRound } from '~/shared_helpers/types.ts';
+// import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from "@cc/shared";
+// import { IContestDto, Event, IPerson, IRecordPair, IRecordType, IResult, IRound } from "@cc/shared";
 // import {
 //   compareAvgs,
 //   compareSingles,
 //   getDefaultAverageAttempts,
 //   getRoundRanksWithAverage,
 //   getBestAndAverage,
-// } from '~/shared_helpers/sharedFunctions';
-// import { roundFormats } from '~/shared_helpers/roundFormats.ts';
+// } from "@cc/shared";
+// import { roundFormats } from "@cc/shared";
 // import { MainContext } from '~/helpers/contexts.ts';
 // import { getContestIdFromName } from '~/helpers/utilityFunctions.ts';
 // import Button from '~/app/components/UI/Button.tsx';
@@ -21,7 +21,7 @@
 
 // const setRankingsAndRecords = (
 //   results: IResult[],
-//   event: IEvent,
+//   event: Event,
 //   ranksWithAverage: boolean,
 //   recordPairs: IRecordPair[],
 // ): IResult[] => {
@@ -129,7 +129,7 @@ const ImportExportPage = () => {
   // const fetchWcaCompDetails = useFetchWcaCompDetails();
   // const { changeErrorMessages, changeSuccessMessage, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
-  // const [events, setEvents] = useState<IEvent[]>();
+  // const [events, setEvents] = useState<Event[]>();
   // const [activeRecordTypes, setActiveRecordTypes] = useState<IRecordType[]>();
 
   // const [competitionIdText, setCompetitionIdText] = useState('');

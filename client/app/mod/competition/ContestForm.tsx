@@ -7,24 +7,24 @@ import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { debounce } from "lodash";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
 import {
-  ICompetitionDetails,
+  type Event,
+  type ICompetitionDetails,
   type IContest,
-  IContestDto,
-  IContestEvent,
-  IEvent,
-  IFePerson,
+  type IContestDto,
+  type IContestEvent,
+  type IFePerson,
   type IFeUser,
-  IMeetupDetails,
-  IRoom,
+  type IMeetupDetails,
+  type IRoom,
   type IRound,
-  NumberInputValue,
-  PageSize,
-} from "~/shared_helpers/types.ts";
-import { Color, ContestState, ContestType } from "~/shared_helpers/enums.ts";
-import { getDateOnly, getIsCompType } from "~/shared_helpers/sharedFunctions.ts";
+  type NumberInputValue,
+  type PageSize,
+} from "@cc/shared";
+import { Color, ContestState, ContestType } from "@cc/shared";
+import { getDateOnly, getIsCompType } from "@cc/shared";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getContestIdFromName, getTimeLimit, getUserInfo } from "~/helpers/utilityFunctions.ts";
-import C from "~/shared_helpers/constants.ts";
+import { C } from "@cc/shared";
 import { MainContext } from "~/helpers/contexts.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
@@ -52,7 +52,7 @@ const ContestForm = ({
   contest,
   creator,
 }: {
-  events: IEvent[];
+  events: Event[];
   mode: "new" | "edit" | "copy";
   contest?: IContest;
   creator?: IFeUser;

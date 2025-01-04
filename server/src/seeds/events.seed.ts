@@ -1,5 +1,5 @@
-import { EventFormat, EventGroup, RoundFormat } from "@sh/enums";
-import { IEvent } from "@sh/types";
+import { EventFormat, EventGroup, RoundFormat } from "~/shared/enums";
+import { Event } from "~/shared/types";
 
 ///////////////////////////////////////////////////////////////////
 // The event IDs are the same as the official WCA event IDs, or
@@ -7,7 +7,7 @@ import { IEvent } from "@sh/types";
 // the ID is chosen specifically for Cubing Contests.
 ///////////////////////////////////////////////////////////////////
 
-export const eventsSeed: IEvent[] = [
+export const eventsSeed: Event[] = [
   ///////////////////////////////////////////////////////////////////
   // WCA
   ///////////////////////////////////////////////////////////////////

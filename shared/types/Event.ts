@@ -1,7 +1,7 @@
 import { IEventRule } from "../types.ts";
 import { EventFormat, EventGroup, RoundFormat } from "../enums.ts";
 
-export type IEvent = {
+export type Event = {
   eventId: string;
   name: string;
   rank: number;
@@ -13,6 +13,6 @@ export type IEvent = {
   rule?: IEventRule;
 };
 
-export type IFeEvent = Omit<IEvent, "rule"> & {
+export type FeEvent = Omit<Event, "rule"> & {
   ruleText?: string;
 };

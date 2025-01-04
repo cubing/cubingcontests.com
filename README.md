@@ -79,27 +79,23 @@ POST https://cubingcontests.com/api/enter-results
 
 ## Deployment
 
-Please do **NOT** try to deploy your own instance until this project is ready for that (you will find instructions in this section).
+Please contact us at cubing-contests-admin@googlegroups.com if you want to set up your own instance of Cubing Contests. Please do **NOT** try to deploy your own instance until this project is ready for that (you will find instructions in this section).
 
 ## Development
 
-This project uses Next JS for the frontend and Nest JS (confusing, I know) with MongoDB for the backend. To set up the development environment, install Node, NPM and Docker, clone this repository, and then run this command from the root of the project:
+This project uses Next JS for the frontend, Hono for the backend, and Mongo DB as the database. To set up the development environment, install Deno, Node & NPM (won't be required once the legacy Nest JS backend is fully migrated to Hono), Concurrently, and Docker, clone this repository, and then run this command from the root of the project:
 
 ```sh
 ./bin/start-dev.sh
 ```
 
-That is the script you can always run when developing Cubing Contests. It starts the frontend [c], backend [s], and database [d] in parallel using concurrently (the [c/s/d] prefix indicates where the logs are coming from). This script also checks that you have the Nest JS CLI and Concurrently installed globally (with NPM), sets up the pre-commit hook, sets up the .env files, and installs the NPM packages in both the `client` and the `server` directories.
+That is the script you can always run when developing Cubing Contests. It starts the Next JS frontend [c], Hono backend [s], legacy Nest JS backend [l], and database [d] in parallel using concurrently (the [c/s/l/d] prefix indicates where the logs are coming from). This script also checks that you have the Nest JS CLI and Concurrently installed globally (with NPM), sets up the .env files, and installs the NPM packages in both the `client` and the `server` directories.
 
-The pre-commit hook runs all tests, ESLint, and a test build of the frontend. If there are tests that don't pass, any linting errors, or an error during the build of the frontend, the commit will **not** be successful. You can avoid this behavior by adding the -n flag when committing. Please use this hook if you plan on opening up a PR.
-
-The code in this repo has been formatted with Prettier (a VS Code extension). It would be best for you to use this extension too, while developing for this repo. Make sure it's enabled, set as your formatter, it formats on save (or whatever behavior you prefer), and that it's using the `.prettierrc` config file in the root of this project.
+The code in this repo has been formatted with `deno format`. It would be best for you to use this too while developing for this repo. You can install the Deno VS Code extension, set up Deno as your default formatter, and set it up to format on save (or whatever behavior you prefer).
 
 Keep in mind that when Handlebars files (the `.hbs` files used for the email templates) are edited, the dev environment has to be restarted for those changes to take effect.
 
-Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo Express (makes it much easier to work with the database). The username is `admin` and the password is `cc`. `localhost:5000` is used by the backend. The default ports can be overridden.
-
-There is an important `shared_helpers` directory in the `client` directory that is used in both `client` and `server`. They both have a `@sh` path alias to it in their respective `tsconfig.json` files. The reason it's in the `client` directory is that Next JS does not support importing files from outside of its root directory, but Nest JS does. You can also find other path aliases in `client/tsconfig.json` and `server/tsconfig.json`.
+Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo Express (makes it much easier to work with the database). The username is `admin` and the password is `cc`. `localhost:5000` is used by the legacy Nest JS backend, and `localhost:8000` is used by the Hono backend. The default ports can be overridden in the environment variables (see below).
 
 ### Testing data
 
@@ -113,16 +109,16 @@ Environment variables are specified in `.env` in the root of the project, and ar
 
 **Keep in mind that the `TZ` environment variable is crucial for date processing (i.e. validating dates, schedules, etc.). The timezone being set to UTC on the backend simplifies some of the date-related code (Note: all dates are stored in UTC in the DB). Code running in the browser does not have this benefit and must account for the user's local time zone, since the Javascript Date object does not.**
 
-In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `start-dev.sh` script copies `.env` to `server/.env.dev` automatically and changes the value of `NODE_ENV` to `development`. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
+In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `start-dev.sh` script copies `.env` to `server/.env.dev` automatically. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 
-Frontend environment variables are specified in the `client/.env.local` file. This file is automatically read by Next JS. See that file for more details. The values are taken from the frontend container's environment variables. These must be set during the container's build process when deploying, because that is when Next JS sets the variables in `.env.local`.
+Frontend environment variables are specified in the `client/.env.[environment]` file. This file is automatically read by Next JS. See that file for more details. Some of the environment variables must be set during the container's build process as build arguments.
 
 ### Starting all containers
 
 To start all containers locally, including the frontend, the backend and the database, run this command:
 
 ```sh
-./script/start-prod.sh --dev
+./script/start-prod.sh --dev # -d also works
 ```
 
 To clean up everything, run this command:
@@ -132,6 +128,8 @@ To clean up everything, run this command:
 ```
 
 ### Data structure
+
+**THIS INFORMATION IS OUTDATED! IT WILL BE UPDATED AFTER THE MIGRATION AWAY FROM NEST JS IS COMPLETED!**
 
 The structure of the different kinds of data (e.g. competitions, rounds, events, etc.) that is stored in the database is determined by the following:
 

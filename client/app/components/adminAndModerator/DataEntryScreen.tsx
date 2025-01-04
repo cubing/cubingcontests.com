@@ -18,13 +18,13 @@ import {
   type IRound,
   type IRoundFormat,
   type IUpdateResultDto,
-} from "~/shared_helpers/types.ts";
-import { RoundType } from "~/shared_helpers/enums.ts";
+} from "@cc/shared";
+import { RoundType } from "@cc/shared";
 import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
-import { type InputPerson, type MultiChoiceOption } from "~/helpers/types.ts";
+import type { InputPerson, MultiChoiceOption } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/shared_helpers/sharedFunctions.ts";
-import type { ICreateResultDto, IFeAttempt, IRecordPair } from "~/shared_helpers/interfaces/Result.ts";
+import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "@cc/shared";
+import type { ICreateResultDto, IFeAttempt, IRecordPair } from "@cc/shared";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
@@ -32,7 +32,7 @@ import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { roundFormats } from "@cc/shared";
 
 const DataEntryScreen = ({
   compData: {

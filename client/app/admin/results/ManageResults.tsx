@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeResult, IRecordType } from "~/shared_helpers/types.ts";
+import { IFeResult, IRecordType } from "@cc/shared";
 import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Time from "~/app/components/Time.tsx";

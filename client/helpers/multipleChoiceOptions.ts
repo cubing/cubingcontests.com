@@ -1,5 +1,5 @@
 import { MultiChoiceOption } from "./types.ts";
-import { Color, ContestType, EventFormat, RoundProceed } from "~/shared_helpers/enums.ts";
+import { Color, ContestType, EventFormat, RoundProceed } from "@cc/shared";
 import { eventCategories } from "./eventCategories.ts";
 
 export const colorOptions: MultiChoiceOption[] = [

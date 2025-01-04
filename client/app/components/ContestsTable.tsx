@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircle, faDiamond, faSquare, faUserGroup } from "@fortawesome/free-solid-svg-icons";
-import { IContest } from "~/shared_helpers/types.ts";
-import { ContestType } from "~/shared_helpers/enums.ts";
+import { IContest } from "@cc/shared";
+import { ContestType } from "@cc/shared";
 import { getBSClassFromColor, getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";

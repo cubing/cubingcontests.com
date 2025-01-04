@@ -7,7 +7,7 @@ import { RecordTypeDocument } from "~/src/models/record-type.model";
 import { ResultDocument } from "~/src/models/result.model";
 import { EventDocument } from "~/src/models/event.model";
 import { MyLogger } from "@m/my-logger/my-logger.service";
-import { WcaRecordType } from "@sh/enums";
+import { WcaRecordType } from "~/shared/enums";
 import { UpdateRecordTypeDto } from "./dto/update-record-type.dto";
 import { recordTypesSeed } from "~/src/seeds/record-types.seed";
 import { getBaseAvgsFilter, getBaseSinglesFilter } from "~/src/helpers/utilityFunctions";

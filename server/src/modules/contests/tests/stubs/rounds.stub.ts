@@ -1,5 +1,5 @@
 import { RoundDocument } from "~/src/models/round.model";
-import { RoundFormat, RoundType, WcaRecordType } from "@sh/enums";
+import { RoundFormat, RoundType, WcaRecordType } from "~/shared/enums";
 
 export const roundsStub = (): RoundDocument[] =>
   [

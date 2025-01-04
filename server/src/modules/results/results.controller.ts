@@ -18,11 +18,11 @@ import { CreateResultDto } from "./dto/create-result.dto";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { CreateVideoBasedResultDto } from "./dto/create-video-based-result.dto";
 import { UpdateResultDto } from "./dto/update-result.dto";
 import { LogType } from "~/src/helpers/enums";
-import { getDateOnly } from "@sh/sharedFunctions";
+import { getDateOnly } from "~/shared/sharedFunctions";
 import { UpdateVideoBasedResultDto } from "~/src/modules/results/dto/update-video-based-result.dto";
 
 @Controller("results")

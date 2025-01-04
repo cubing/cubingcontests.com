@@ -6,7 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFePerson, ListPageMode } from "~/shared_helpers/types.ts";
+import { IFePerson, ListPageMode } from "@cc/shared";
 import { getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { UserInfo } from "~/helpers/types.ts";
@@ -19,7 +19,7 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import PersonForm from "./PersonForm.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import { getSimplifiedString } from "~/shared_helpers/sharedFunctions.ts";
+import { getSimplifiedString } from "@cc/shared";
 
 const userInfo: UserInfo = getUserInfo();
 

@@ -3,9 +3,9 @@ import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import RankingsTable from "~/app/components/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { IEvent, IEventRankings } from "~/shared_helpers/types.ts";
-import { EventGroup, RoundFormat } from "~/shared_helpers/enums.ts";
-import C from "~/shared_helpers/constants.ts";
+import { type Event, type IEventRankings } from "@cc/shared";
+import { EventGroup, RoundFormat } from "@cc/shared";
+import { C } from "@cc/shared";
 
 // SEO
 export const metadata = {
@@ -29,7 +29,7 @@ const RankingsPage = async ({ params: { eventId, singleOrAvg }, searchParams: { 
     `/results/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`,
     { revalidate: C.rankingsRev },
   );
-  const { payload: events }: { payload?: IEvent[] } = await ssrFetch("/events", { revalidate: C.rankingsRev });
+  const { payload: events }: { payload?: Event[] } = await ssrFetch("/events", { revalidate: C.rankingsRev });
 
   const currEvent = events?.find((el) => el.eventId === eventId);
 

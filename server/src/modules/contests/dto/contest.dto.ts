@@ -20,15 +20,15 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import Countries from "@sh/Countries";
-import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from "@sh/enums";
+import { Countries } from "~/shared/Countries";
+import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from "~/shared/enums";
 import {
+  Event,
   IActivity,
   ICompetitionDetails,
   IContestDto,
   IContestEvent,
   ICutoff,
-  IEvent,
   IMeetupDetails,
   IPerson,
   IProceed,
@@ -38,13 +38,13 @@ import {
   ISchedule,
   ITimeLimit,
   IVenue,
-} from "@sh/types";
+} from "~/shared/types";
 import { CreateEventDto } from "@m/events/dto/create-event.dto";
 import { PersonDto } from "@m/persons/dto/person.dto";
 import { CreateResultDto } from "@m/results/dto/create-result.dto";
 import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from "~/src/helpers/validation";
-import C from "@sh/constants";
-import { getFormattedTime, getIsCompType } from "@sh/sharedFunctions";
+import { C } from "~/shared/constants";
+import { getFormattedTime, getIsCompType } from "~/shared/sharedFunctions";
 import {
   EventWithoutTimeFormatHasNoLimitsOrCutoffs,
   EventWithTimeFormatHasTimeLimits,
@@ -249,7 +249,7 @@ class ActivityDto implements IActivity {
 class ContestEventDto implements IContestEvent {
   @ValidateNested()
   @Type(() => CreateEventDto)
-  event: IEvent;
+  event: Event;
 
   @ArrayMinSize(1, { message: "Please enter at least one round for each event" })
   @ArrayMaxSize(C.maxRounds, { message: `You cannot hold more than ${C.maxRounds} rounds for one event` })

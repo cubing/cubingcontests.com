@@ -1,11 +1,11 @@
 "use client";
 
-import { IEvent } from "~/shared_helpers/types.ts";
+import { Event } from "@cc/shared";
 
 type Props = {
   title?: string;
   noMargin?: boolean;
-  events: IEvent[];
+  events: Event[];
   eventId: string;
   setEventId: (val: string) => void;
   disabled?: boolean;
@@ -29,7 +29,7 @@ const FormEventSelect = ({
         onChange={(e) => setEventId(e.target.value)}
         disabled={disabled || !events.some((e) => e.eventId === eventId)}
       >
-        {events.map((e: IEvent) => <option key={e.eventId} value={e.eventId}>{e.name}</option>)}
+        {events.map((e: Event) => <option key={e.eventId} value={e.eventId}>{e.name}</option>)}
       </select>
     </div>
   );

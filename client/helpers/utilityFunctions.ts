@@ -1,11 +1,11 @@
-import jwtDecode from "jwt-decode";
+import { decodeJwt } from "jose";
 import { isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
-import { Color, EventFormat, Role } from "~/shared_helpers/enums.ts";
-import C from "~/shared_helpers/constants.ts";
-import { IEvent, IFeAttempt, type IRoundFormat, ITimeLimit, type NumberInputValue } from "~/shared_helpers/types.ts";
-import { type InputPerson, type MultiChoiceOption, UserInfo } from "./types.ts";
+import { Color, EventFormat, Role } from "@cc/shared";
+import { C } from "@cc/shared";
+import { type Event, type IFeAttempt, type IRoundFormat, type ITimeLimit, type NumberInputValue } from "@cc/shared";
+import { type InputPerson, type MultiChoiceOption, type UserInfo } from "./types.ts";
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
   if (!startDate) throw new Error("Start date missing!");
@@ -70,7 +70,7 @@ const getCentiseconds = (
 // solved and attempted are only required for the Multi event format.
 export const getAttempt = (
   attempt: IFeAttempt,
-  event: IEvent,
+  event: Event,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
   { roundTime = false, roundMemo = false, solved, attempted, memo }: {
     roundTime?: boolean;
@@ -134,7 +134,7 @@ export const getUserInfo = (): UserInfo => {
 
     if (token) {
       // Decode the JWT (only take the part after "Bearer ")
-      const authorizedUser: any = jwtDecode(token.split(" ")[1]);
+      const authorizedUser: any = decodeJwt(token.split(" ")[1]);
 
       const userInfo: UserInfo = {
         id: authorizedUser.sub,

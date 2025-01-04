@@ -1,6 +1,6 @@
 // See https://www.countrycallingcodes.com/iso-country-codes/
 
-const Countries = [
+export const Countries = [
   { name: "Afghanistan", code: "AF", continentId: "AS" },
   { name: "Albania", code: "AL", continentId: "EU" },
   { name: "Algeria", code: "DZ", continentId: "AF" },
@@ -201,5 +201,3 @@ const Countries = [
   { name: "Zambia", code: "ZM", continentId: "AF" },
   { name: "Zimbabwe", code: "ZW", continentId: "AF" },
 ];
-
-export default Countries;

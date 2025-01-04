@@ -1,4 +1,4 @@
-import type { IRoundFormat } from "~/shared_helpers/types.ts";
+import type { IRoundFormat } from "./types.ts";
 import { RoundFormat } from "./enums.ts";
 
 export const roundFormats: IRoundFormat[] = [

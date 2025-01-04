@@ -23,12 +23,12 @@ import { CreateResultDto } from "./dto/create-result.dto";
 import { CreateVideoBasedResultDto } from "./dto/create-video-based-result.dto";
 import { UpdateResultDto } from "./dto/update-result.dto";
 import { excl, exclSysButKeepCreatedBy, orgPopulateOptions, resultPopulateOptions } from "~/src/helpers/dbHelpers";
-import C from "@sh/constants";
-import { ContestState, Role, RoundFormat, WcaRecordType } from "@sh/enums";
-import { roundFormats } from "@sh/roundFormats";
+import { C } from "~/shared/constants";
+import { ContestState, Role, RoundFormat, WcaRecordType } from "~/shared/enums";
+import { roundFormats } from "~/shared/roundFormats";
 import {
+  Event,
   IAdminResultsSubmissionInfo,
-  IEvent,
   IEventRankings,
   IEventRecordPairs,
   IFeResult,
@@ -39,7 +39,7 @@ import {
   IResultsSubmissionInfo,
   IRound,
   IVideoBasedResult,
-} from "@sh/types";
+} from "~/shared/types";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import {
   compareAvgs,
@@ -51,7 +51,7 @@ import {
   getMakesCutoff,
   parseRoundId,
   setResultRecords,
-} from "@sh/sharedFunctions";
+} from "~/shared/sharedFunctions";
 import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings, setRoundRankings } from "~/src/helpers/utilityFunctions";
 import { EmailService } from "~/src/modules/email/email.service";
 import { LogType } from "~/src/helpers/enums";
@@ -781,7 +781,7 @@ export class ResultsService {
 
   // Gets record pairs for multiple events
   async getRecordPairs(
-    events: IEvent[],
+    events: Event[],
     recordsUpTo: Date,
     { activeRecordTypes, excludeResultId }: { activeRecordTypes?: IRecordType[]; excludeResultId?: string } = {},
   ): Promise<IEventRecordPairs[]> {
@@ -800,7 +800,7 @@ export class ResultsService {
   }
 
   async getEventRecordPairs(
-    event: IEvent,
+    event: Event,
     {
       recordsUpTo = new Date(8640000000000000),
       activeRecordTypes,
@@ -973,7 +973,7 @@ export class ResultsService {
 
   async validateAndCleanUpResult(
     result: IResult | IVideoBasedResult,
-    event: IEvent,
+    event: Event,
     { round, mode }: {
       round?: IRound; // if round is defined, that means it's a contest result, not a submitted one
       mode: "create" | "submit" | "edit";

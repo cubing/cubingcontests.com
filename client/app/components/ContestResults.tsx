@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import EventResultsTable from "~/app/components/EventResultsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
-import { IContest, IContestDto, IPerson, IRecordType } from "~/shared_helpers/types.ts";
+import { IContest, IContestDto, IPerson, IRecordType } from "@cc/shared";
 
 const ContestResults = ({
   contest,

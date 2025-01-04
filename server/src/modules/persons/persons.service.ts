@@ -10,11 +10,11 @@ import { Model, mongo } from "mongoose";
 import { excl, exclSysButKeepCreatedBy, resultPopulateOptions } from "~/src/helpers/dbHelpers";
 import { PersonDocument } from "~/src/models/person.model";
 import { RoundDocument } from "~/src/models/round.model";
-import { ContestDocument, ContestEvent } from "~/src/models/contest.model";
+import { ContestDocument, ContestEventModel } from "~/src/models/contest.model";
 import { PersonDto } from "./dto/person.dto";
-import { IFePerson, IPersonDto, IWcaPersonDto } from "@sh/types";
-import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "@sh/sharedFunctions";
-import { Role } from "@sh/enums";
+import { IFePerson, IPersonDto, IWcaPersonDto } from "~/shared/types";
+import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "~/shared/sharedFunctions";
+import { Role } from "~/shared/enums";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
@@ -182,7 +182,7 @@ export class PersonsService {
     unapprovedOnly,
   }: {
     competitionId?: string;
-    contestEvents?: ContestEvent[];
+    contestEvents?: ContestEventModel[];
     unapprovedOnly?: boolean;
   }): Promise<PersonDocument[]> {
     const personIds: number[] = [];

@@ -1,15 +1,15 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
-import { IAttempt, type IContestEvent, type IEvent } from "~/shared_helpers/types.ts";
-import { getBestAndAverage } from "~/shared_helpers/sharedFunctions.ts";
+import { type Event, IAttempt, type IContestEvent } from "@cc/shared";
+import { getBestAndAverage } from "@cc/shared";
 import { eventsStub } from "~/__mocks__/events.stub.ts";
-import { RoundFormat } from "~/shared_helpers/enums.ts";
-import { compareAvgs, compareSingles, setResultRecords } from "~/shared_helpers/sharedFunctions.ts";
-import { IRecordPair } from "~/shared_helpers/types.ts";
-import { WcaRecordType } from "~/shared_helpers/enums.ts";
+import { RoundFormat } from "@cc/shared";
+import { compareAvgs, compareSingles, setResultRecords } from "@cc/shared";
+import { IRecordPair } from "@cc/shared";
+import { WcaRecordType } from "@cc/shared";
 import { newContestEventsStub, newFakeContestEventsStub } from "~/__mocks__/new-competition-events.stub.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as IEvent;
+const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as Event;
 
 describe("getBestAndAverage", () => {
   it("Sets average to 0 when there is only one attempt", () => {

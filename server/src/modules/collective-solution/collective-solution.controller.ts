@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Request, UseGuards, ValidationPipe } from "@nestjs/common";
 import { CollectiveSolutionService } from "@m/collective-solution/collective-solution.service";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { Roles } from "~/src/helpers/roles.decorator";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";

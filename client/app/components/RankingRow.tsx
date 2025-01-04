@@ -10,14 +10,14 @@ import ContestName from "~/app/components/ContestName.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import { IEvent, IPerson, IRanking, type ResultRankingType } from "~/shared_helpers/types.ts";
-import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import { Event, IPerson, IRanking, type ResultRankingType } from "@cc/shared";
+import { getFormattedTime } from "@cc/shared";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
 type Props = {
   isTiedRanking?: boolean;
   onlyKeepPerson?: boolean;
-  event: IEvent;
+  event: Event;
   ranking: IRanking;
   person: IPerson; // the person being ranked
   showAllTeammates: boolean;

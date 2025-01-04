@@ -1,7 +1,7 @@
 "use client";
 
 import RoundResultsTable from "./RoundResultsTable.tsx";
-import { IContestEvent, IPerson, IRecordType, type IRound } from "~/shared_helpers/types.ts";
+import { IContestEvent, IPerson, IRecordType, type IRound } from "@cc/shared";
 import { useEffect, useState } from "react";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import EventTitle from "./EventTitle.tsx";

@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IContestData, IEvent } from "~/shared_helpers/types.ts";
+import { type Event, type IContestData } from "@cc/shared";
 import { MainContext } from "~/helpers/contexts.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ContestForm from "./ContestForm.tsx";
@@ -12,7 +12,7 @@ const CreateEditContestPage = () => {
   const myFetch = useMyFetch();
   const { changeErrorMessages } = useContext(MainContext);
 
-  const [events, setEvents] = useState<IEvent[]>();
+  const [events, setEvents] = useState<Event[]>();
   const [contestData, setContestData] = useState<IContestData | undefined>();
 
   const searchParams = useSearchParams();

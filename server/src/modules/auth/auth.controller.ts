@@ -19,7 +19,7 @@ import { LocalAuthGuard } from "~/src/guards/local-auth.guard";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { LogType } from "~/src/helpers/enums";
 import { ResetUserPasswordDto } from "~/src/modules/users/dto/reset-user-password.dto";
 

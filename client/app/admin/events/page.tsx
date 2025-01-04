@@ -4,9 +4,9 @@ import { useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeEvent, ListPageMode, type NumberInputValue } from "~/shared_helpers/types.ts";
-import { EventFormat, EventGroup, RoundFormat } from "~/shared_helpers/enums.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { FeEvent, ListPageMode, type NumberInputValue } from "@cc/shared";
+import { EventFormat, EventGroup, RoundFormat } from "@cc/shared";
+import { roundFormats } from "@cc/shared";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -26,7 +26,7 @@ const CreateEditEventPage = () => {
   const myFetch = useMyFetch();
   const { loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
-  const [events, setEvents] = useState<IFeEvent[]>([]);
+  const [events, setEvents] = useState<FeEvent[]>([]);
   const [mode, setMode] = useState<ListPageMode>("view");
   const [eventIdUnlocked, setEventIdUnlocked] = useState(false);
 
@@ -60,7 +60,7 @@ const CreateEditEventPage = () => {
   //////////////////////////////////////////////////////////////////////////////
 
   const handleSubmit = async () => {
-    const newEvent: IFeEvent = {
+    const newEvent: FeEvent = {
       eventId: newEventId,
       name,
       rank: rank as number,
@@ -87,7 +87,7 @@ const CreateEditEventPage = () => {
     }
   };
 
-  const onEditEvent = (event: IFeEvent) => {
+  const onEditEvent = (event: FeEvent) => {
     window.scrollTo(0, 0);
     resetMessagesAndLoadingId();
     setMode("edit");
@@ -251,7 +251,7 @@ const CreateEditEventPage = () => {
             </tr>
           </thead>
           <tbody>
-            {events.map((event: IFeEvent, index: number) => (
+            {events.map((event: FeEvent, index: number) => (
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>
@@ -259,7 +259,7 @@ const CreateEditEventPage = () => {
                 </td>
                 <td>{event.eventId}</td>
                 <td
-                  className={events.some((e: IFeEvent) => e.eventId !== event.eventId && e.rank === event.rank)
+                  className={events.some((e: FeEvent) => e.eventId !== event.eventId && e.rank === event.rank)
                     ? "text-danger fw-bold"
                     : ""}
                 >

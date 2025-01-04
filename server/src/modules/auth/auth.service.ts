@@ -15,8 +15,8 @@ import { JwtService } from "@nestjs/jwt";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { UsersService } from "@m/users/users.service";
 import { CreateUserDto } from "@m/users/dto/create-user.dto";
-import { ContestState, Role } from "@sh/enums";
-import C from "@sh/constants";
+import { ContestState, Role } from "~/shared/enums";
+import { C } from "~/shared/constants";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import { ContestDocument } from "~/src/models/contest.model";
 import { AuthTokenDocument } from "~/src/models/auth-token.model";
@@ -53,11 +53,7 @@ export class AuthService {
       roles: user.roles,
     };
 
-    try {
-      return { accessToken: this.jwtService.sign(payload) };
-    } catch (err) {
-      throw new InternalServerErrorException(err.message);
-    }
+    return { accessToken: this.jwtService.sign(payload) };
   }
 
   async validateUser(username: string, password: string): Promise<IPartialUser> {

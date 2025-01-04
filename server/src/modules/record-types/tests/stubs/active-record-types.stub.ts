@@ -1,5 +1,5 @@
 import { RecordTypeDocument } from "~/src/models/record-type.model";
-import { Color, WcaRecordType } from "@sh/enums";
+import { Color, WcaRecordType } from "~/shared/enums";
 
 export const activeRecordTypesStub = (): RecordTypeDocument[] => {
   return [

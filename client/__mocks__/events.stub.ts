@@ -1,8 +1,8 @@
-import { IEvent } from "~/shared_helpers/types.ts";
-import { EventFormat, EventGroup, RoundFormat } from "~/shared_helpers/enums.ts";
+import { Event } from "@cc/shared";
+import { EventFormat, EventGroup, RoundFormat } from "@cc/shared";
 
 // COPIED FROM THE EVENTS SEED IN THE SERVER SEEDS DIRECTORY
-export const eventsStub = (): IEvent[] => [
+export const eventsStub = (): Event[] => [
   ///////////////////////////////////////////////////////////////////
   // WCA
   ///////////////////////////////////////////////////////////////////

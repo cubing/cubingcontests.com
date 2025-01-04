@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { IEventRule } from "@sh/types";
+import { IEventRule } from "~/shared/types";
 
 @Schema({ timestamps: true })
-export class EventRule implements IEventRule {
+export class EventRuleModel implements IEventRule {
   @Prop({ required: true })
   eventId: string;
 
@@ -11,6 +11,6 @@ export class EventRule implements IEventRule {
   rule: string;
 }
 
-export type EventRuleDocument = HydratedDocument<EventRule>;
+export type EventRuleDocument = HydratedDocument<EventRuleModel>;
 
-export const EventRuleSchema = SchemaFactory.createForClass(EventRule);
+export const EventRuleSchema = SchemaFactory.createForClass(EventRuleModel);

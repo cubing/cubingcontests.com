@@ -1,9 +1,9 @@
 import { ArrayMinSize, IsEnum, IsInt, IsOptional, IsString, Matches, Max, Min, MinLength } from "class-validator";
-import { IFeEvent } from "@sh/types";
-import { EventFormat, EventGroup, RoundFormat } from "@sh/enums";
+import { FeEvent } from "~/shared/types";
+import { EventFormat, EventGroup, RoundFormat } from "~/shared/enums";
 import { getMinLengthOpts } from "~/src/helpers/validation";
 
-export class CreateEventDto implements IFeEvent {
+export class CreateEventDto implements FeEvent {
   @IsString()
   @MinLength(3, getMinLengthOpts("event ID", 3))
   @Matches(/^[a-z0-9_]*$/)

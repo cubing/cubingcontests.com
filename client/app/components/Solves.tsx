@@ -1,12 +1,12 @@
-import { IAttempt, IEvent } from "~/shared_helpers/types.ts";
-import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import { Event, IAttempt } from "@cc/shared";
+import { getFormattedTime } from "@cc/shared";
 
 const Solves = ({
   event,
   attempts,
   showMultiPoints = false,
 }: {
-  event: IEvent;
+  event: Event;
   attempts: IAttempt[];
   showMultiPoints?: boolean;
 }) => {

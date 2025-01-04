@@ -1,10 +1,15 @@
 import { ResultDocument } from "~/src/models/result.model";
-import { compareAvgs, compareSingles, getDefaultAverageAttempts, getIsProceedableResult } from "@sh/sharedFunctions";
 import {
+  compareAvgs,
+  compareSingles,
+  getDefaultAverageAttempts,
+  getIsProceedableResult,
+} from "~/shared/sharedFunctions";
+import {
+  Event,
   IActivity,
   IContest,
   IContestEvent,
-  IEvent,
   IResult,
   IRound,
   IRoundFormat,
@@ -13,13 +18,13 @@ import {
   IWcifEvent,
   IWcifRound,
   IWcifSchedule,
-} from "@sh/types";
+} from "~/shared/types";
 import { IUser } from "~/src/helpers/interfaces/User";
 import { formatInTimeZone } from "date-fns-tz";
 import { differenceInDays } from "date-fns";
 import { RoundDocument } from "~/src/models/round.model";
-import { RoundProceed } from "~/shared_helpers/enums";
-import { roundFormats } from "~/shared_helpers/roundFormats";
+import { RoundProceed } from "~/shared/enums";
+import { roundFormats } from "~/shared/roundFormats";
 
 export const getResultProceeds = (result: IResult, round: IRound, roundFormat: IRoundFormat) =>
   getIsProceedableResult(result, roundFormat) &&
@@ -86,12 +91,12 @@ export const setRankings = async (results: ResultDocument[], ranksWithAverage: b
   return results;
 };
 
-export const getBaseSinglesFilter = (event: IEvent, best: any = { $gt: 0 }) => {
+export const getBaseSinglesFilter = (event: Event, best: any = { $gt: 0 }) => {
   const output: any = { eventId: event.eventId, best };
   return output;
 };
 
-export const getBaseAvgsFilter = (event: IEvent, average: any = { $gt: 0 }) => {
+export const getBaseAvgsFilter = (event: Event, average: any = { $gt: 0 }) => {
   const output: any = { eventId: event.eventId, average, attempts: { $size: getDefaultAverageAttempts(event) } };
   return output;
 };
@@ -145,9 +150,9 @@ const getWcifSchedule = (contest: IContest): IWcifSchedule => ({
     rooms: v.rooms.map((r) => ({
       ...r,
       activities: r.activities.map((a) => getWcifActivity(a)),
-      extensions: [],
+      extensions: [] as any[],
     })),
-    extensions: [],
+    extensions: [] as any[],
   })),
 });
 

@@ -1,4 +1,4 @@
-import { FetchObj, HttpMethod } from "~/shared_helpers/types.ts";
+import { FetchObj, HttpMethod } from "~/helpers/types.ts";
 
 const apiBaseUrl = process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL; // server side one won't be available client-side
 

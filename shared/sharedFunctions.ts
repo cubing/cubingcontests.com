@@ -1,16 +1,16 @@
 import { remove as removeAccents } from "remove-accents";
-import C from "./constants.ts";
+import { C } from "./constants.ts";
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
 import {
+  type Event,
   type IAttempt,
   type IContestEvent,
   type ICutoff,
-  type IEvent,
   type IFeAttempt,
   type IPersonDto,
   type IRecordPair,
   type IResult,
-  IRound,
+  type IRound,
   type IRoundFormat,
   type IVideoBasedResult,
 } from "./types.ts";
@@ -51,7 +51,7 @@ export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
 // and includes unapproved results
 export const setResultRecords = (
   result: IResult | IVideoBasedResult,
-  event: IEvent,
+  event: Event,
   recordPairs: IRecordPair[],
   noConsoleLog = false,
 ): IResult | IVideoBasedResult => {
@@ -97,7 +97,7 @@ export const getFormattedTime = (
     showDecimals = true,
     alwaysShowMinutes = false,
   }: {
-    event?: IEvent;
+    event?: Event;
     noFormatting?: boolean;
     showMultiPoints?: boolean;
     showDecimals?: boolean; // if the time is >= 1 hour, they won't be shown regardless of this value
@@ -189,7 +189,7 @@ export const getFormattedTime = (
 // Returns the best and average times
 export const getBestAndAverage = (
   attempts: IAttempt[] | IFeAttempt[],
-  event: IEvent,
+  event: Event,
   roundFormat: RoundFormat,
   { cutoff }: { cutoff?: ICutoff } = {},
 ): { best: number; average: number } => {
@@ -235,12 +235,12 @@ export const getBestAndAverage = (
 export const getIsProceedableResult = (result: IResult, roundFormat: IRoundFormat): boolean =>
   (roundFormat.isAverage && result.average > 0) || result.best > 0;
 
-export const getDefaultAverageAttempts = (event: IEvent) => {
+export const getDefaultAverageAttempts = (event: Event) => {
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
   return roundFormat.attempts === 5 ? 5 : 3;
 };
 
-export const getAlwaysShowDecimals = (event: IEvent): boolean =>
+export const getAlwaysShowDecimals = (event: Event): boolean =>
   event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
 
 export const getIsCompType = (contestType: ContestType): boolean =>

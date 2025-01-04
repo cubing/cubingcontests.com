@@ -1,8 +1,8 @@
 import { IsIn, IsOptional, IsString, Matches, MinLength } from "class-validator";
-import Countries from "@sh/Countries";
+import { Countries } from "~/shared/Countries";
 import { getMinLengthOpts, invalidCountryOpts } from "~/src/helpers/validation";
-import C from "@sh/constants";
-import { IPersonDto } from "@sh/types";
+import { C } from "~/shared/constants";
+import { IPersonDto } from "~/shared/types";
 
 export class PersonDto implements IPersonDto {
   @IsString()

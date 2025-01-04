@@ -1,5 +1,5 @@
-import { IRanking } from "~/shared_helpers/types.ts";
-import C from "~/shared_helpers/constants.ts";
+import { IRanking } from "@cc/shared";
+import { C } from "@cc/shared";
 
 const RankingLinks = ({ ranking }: { ranking: IRanking }) => {
   return (

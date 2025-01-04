@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { addHours } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import { Color, ContestType } from "~/shared_helpers/enums.ts";
-import { IActivity, IContestEvent, IRoom } from "~/shared_helpers/types.ts";
+import { Color, ContestType } from "@cc/shared";
+import { IActivity, IContestEvent, IRoom } from "@cc/shared";
 import { MultiChoiceOption } from "~/helpers/types.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";

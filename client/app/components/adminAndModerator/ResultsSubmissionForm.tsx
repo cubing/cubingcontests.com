@@ -13,9 +13,9 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import {
+  type Event,
   type IAdminResultsSubmissionInfo,
   type ICreateVideoBasedResultDto,
-  type IEvent,
   type IEventRecordPairs,
   type IFeAttempt,
   type IPerson,
@@ -23,10 +23,10 @@ import {
   type IResultsSubmissionInfo,
   type IRoundFormat,
   type IUpdateVideoBasedResultDto,
-} from "~/shared_helpers/types.ts";
-import { EventFormat, RoundFormat } from "~/shared_helpers/enums.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
-import C from "~/shared_helpers/constants.ts";
+} from "@cc/shared";
+import { EventFormat, RoundFormat } from "@cc/shared";
+import { roundFormats } from "@cc/shared";
+import { C } from "@cc/shared";
 import { getBlankCompetitors, getRoundFormatOptions, getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -58,7 +58,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   const [showRules, setShowRules] = useState(false);
   const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo | IAdminResultsSubmissionInfo>();
   // TO-DO: make it so that some of the submission info including the event is prefetched server-side and clean this up
-  const [event, setEvent] = useState<IEvent>({} as IEvent);
+  const [event, setEvent] = useState<Event>({} as Event);
   const [roundFormat, setRoundFormat] = useState<IRoundFormat>(allowedRoundFormats[0]);
   const [competitors, setCompetitors] = useState<InputPerson[]>([null]);
   const [personNames, setPersonNames] = useState([""]);
@@ -77,7 +77,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   const updateRecordPairs = useCallback(
     debounce(async (date: Date) => {
-      const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((e: IEvent) => e.eventId).join(",");
+      const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((e: Event) => e.eventId).join(",");
       const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
 
       const { payload, errors } = await myFetch.get(
@@ -103,7 +103,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
             if (payload && !errors) {
               setSubmissionInfo(payload);
 
-              const event = payload.events.find((el: IEvent) => el.eventId === searchParams.get("eventId")) ??
+              const event = payload.events.find((el: Event) => el.eventId === searchParams.get("eventId")) ??
                 payload.events[0];
               setEvent(event);
               resetCompetitors(event.participants);
@@ -192,9 +192,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   };
 
   const changeEvent = (newEventId: string) => {
-    const newEvent = (submissionInfo as IResultsSubmissionInfo).events.find((e: IEvent) =>
+    const newEvent = (submissionInfo as IResultsSubmissionInfo).events.find((e: Event) =>
       e.eventId === newEventId
-    ) as IEvent;
+    ) as Event;
     setEvent(newEvent);
     resetAttempts();
 

@@ -3,7 +3,7 @@ import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { Roles } from "~/src/helpers/roles.decorator";
 import { RecordTypesService } from "./record-types.service";
 import { UpdateRecordTypeDto } from "./dto/update-record-type.dto";

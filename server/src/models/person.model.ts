@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { IPerson } from "@sh/types";
+import { IPerson } from "~/shared/types";
 import { UserDocument } from "./user.model";
 
 @Schema({ timestamps: true })
-export class Person implements IPerson {
+export class PersonModel implements IPerson {
   @Prop({ required: true, immutable: true, unique: true })
   personId: number;
 
@@ -27,6 +27,6 @@ export class Person implements IPerson {
   unapproved?: true;
 }
 
-export type PersonDocument = HydratedDocument<Person>;
+export type PersonDocument = HydratedDocument<PersonModel>;
 
-export const PersonSchema = SchemaFactory.createForClass(Person);
+export const PersonSchema = SchemaFactory.createForClass(PersonModel);

@@ -4,6 +4,7 @@
   "deno.enablePaths": [
     "./client",
     "./server2",
+    "./shared",
     "./bin"
   ]
 }

@@ -1,5 +1,5 @@
-import { RoundFormat, RoundType } from "~/shared_helpers/enums.ts";
-import { IContestEvent, type IEvent } from "~/shared_helpers/types.ts";
+import { RoundFormat, RoundType } from "@cc/shared";
+import { type Event, IContestEvent } from "@cc/shared";
 import { eventsStub } from "./events.stub.ts";
 
 const eventsSeed = eventsStub();
@@ -7,7 +7,7 @@ const eventsSeed = eventsStub();
 export const newContestEventsStub = (): IContestEvent[] => {
   return [
     {
-      event: eventsSeed.find((el) => el.eventId === "333") as IEvent,
+      event: eventsSeed.find((el) => el.eventId === "333") as Event,
       rounds: [
         {
           roundId: "333-r1",
@@ -61,7 +61,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333fm") as IEvent,
+      event: eventsSeed.find((el) => el.eventId === "333fm") as Event,
       rounds: [
         {
           roundId: "333fm-r1",
@@ -109,7 +109,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
 export const newFakeContestEventsStub = (): IContestEvent[] => {
   return [
     {
-      event: eventsSeed.find((el) => el.eventId === "222") as IEvent,
+      event: eventsSeed.find((el) => el.eventId === "222") as Event,
       rounds: [
         {
           roundId: "222-r1",
@@ -201,7 +201,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333fm") as IEvent,
+      event: eventsSeed.find((el) => el.eventId === "333fm") as Event,
       rounds: [
         {
           roundId: "333fm-r1",
@@ -364,7 +364,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333bf") as IEvent,
+      event: eventsSeed.find((el) => el.eventId === "333bf") as Event,
       rounds: [
         {
           roundId: "333bf-r1",

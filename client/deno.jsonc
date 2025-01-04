@@ -1,11 +1,12 @@
 {
   "imports": {
-    "@std/expect": "jsr:@std/expect@^1.0.6",
-    "@std/testing": "jsr:@std/testing@^1.0.5",
     "~/": "./"
   },
   "tasks": {
+    // Starts Next JS with the port specified in .env.development
     "dev": "next dev -p $(cat .env.development | grep -E '^PORT=' | sed -r 's/^PORT=//')",
+    // --unstable-unsafe-proto is required for building Next JS projects for now, because they still rely on __proto__.
+    // For more, see https://github.com/denoland/docs/pull/1255.
     "build": "deno run --unstable-unsafe-proto -A npm:next build",
     // "build": "next build",
     "start": "next start"

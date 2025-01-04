@@ -13,6 +13,13 @@ if [ $? -gt 0 ]; then
 fi
 cd ..
 
+# Check that the tests run successfully
+cd client
+deno test &&
+cd ../server
+npm run test &&
+cd ..
+
 git tag | sort -t "." -k1,1n -k2,2n -k3,3n -k4,4n | tail
 echo "Please give the new version tag:"
 read new_version
@@ -41,10 +48,8 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker tag denimint/cubingcontests-server2:$new_version denimint/cubingcontests-server2:latest &&
   docker push denimint/cubingcontests-server2:$new_version &&
   docker push denimint/cubingcontests-server2:latest
-  # Legacy server container (first three lines copied from start-dev.sh)
-  rm -rf server/shared_helpers
-  cp -r client/shared_helpers server/
-  find server/shared_helpers -type f -exec sed -i 's/\.ts";$/";/g' {} \;
+  # Legacy server container
+  ./bin/copy-shared-to-server.sh
   docker build -t denimint/cubingcontests-server:$new_version --file server.Dockerfile . &&
   docker tag denimint/cubingcontests-server:$new_version denimint/cubingcontests-server:latest &&
   docker push denimint/cubingcontests-server:$new_version &&

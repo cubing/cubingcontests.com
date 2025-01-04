@@ -20,7 +20,6 @@
     "baseUrl": "./",
     "paths": {
       "~/*": ["./*"],
-      "@sh/*": ["./shared_helpers/*"],
       "@m/*": ["./src/modules/*"]
     }
   }

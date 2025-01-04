@@ -1,4 +1,4 @@
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 
 export interface IPartialUser {
   _id?: unknown;

@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { AuthService } from "@m/auth/auth.service";
 
 @Injectable()

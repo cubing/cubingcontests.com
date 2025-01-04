@@ -1,8 +1,16 @@
 {
   // When updating this, remember to also update it in .vscode/settings.json (but leave ./bin there)
-  "workspace": ["./client", "./server2"],
-  "exclude": ["./client/.next", "./server/dist", "./server/shared_helpers"],
+  "workspace": ["./client", "./server2", "./shared"],
+  "exclude": ["./client/.next", "./server/dist", "./server/shared"],
   "nodeModulesDir": "auto",
+
+  "imports": {
+    "@std/expect": "jsr:@std/expect@^1.0.10",
+    "@std/testing": "jsr:@std/testing@^1.0.8",
+    "@wca/helpers": "npm:@wca/helpers@^1.1.5",
+    "cubing": "npm:cubing@^0.53.8",
+    "remove-accents": "npm:remove-accents@^0.5.0"
+  },
 
   "lint": {
     "include": ["**/*.ts", "**/*.tsx"],

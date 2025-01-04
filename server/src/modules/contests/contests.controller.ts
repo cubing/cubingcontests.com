@@ -18,7 +18,7 @@ import { ContestDto } from "./dto/contest.dto";
 import { ContestsService } from "./contests.service";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { ContestState, Role } from "@sh/enums";
+import { ContestState, Role } from "~/shared/enums";
 import { RolesGuard } from "~/src/guards/roles.guard";
 
 @Controller("competitions")

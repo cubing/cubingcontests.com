@@ -13,6 +13,7 @@ export type { IRecordType } from "./interfaces/RecordType.ts";
 export type {
   IAdminResultsSubmissionInfo,
   IAttempt,
+  ICreateResultDto,
   ICreateVideoBasedResultDto,
   IEventRankings,
   IEventRecordPairs,
@@ -32,13 +33,10 @@ export type { IFeUser } from "./interfaces/User.ts";
 export type { IAdminStats } from "./interfaces/AdminStats.ts";
 
 // Types
-export type { IEvent, IFeEvent } from "./types/Event.ts";
-export type { ICollectiveSolution, IFeCollectiveSolution, IMakeMoveDto } from "./types/CollectiveSolution.ts";
-export type { ListPageMode } from "./types/ListPageMode.ts";
-export type { HttpMethod } from "./types/HttpMethod.ts";
-export type { FetchObj } from "./types/FetchObj.ts";
-export type { NumberInputValue } from "./types/NumberInputValue.ts";
+export type { Event, FeEvent } from "./types/Event.ts";
+export type { CollectiveSolution, FeCollectiveSolution, IMakeMoveDto } from "./types/CollectiveSolution.ts";
 export type { NxNMove } from "./types/NxNMove.ts";
+export { nxnMoves } from "./types/NxNMove.ts";
 
 // WCIF types
 export type {
@@ -54,3 +52,8 @@ export type {
 export type ResultRankingType = "single" | "average" | "mean";
 
 export type PageSize = "A4" | "A6";
+
+export type ListPageMode = "view" | "add" | "edit";
+
+// undefined is the empty value, null is the invalid value
+export type NumberInputValue = number | null | undefined;

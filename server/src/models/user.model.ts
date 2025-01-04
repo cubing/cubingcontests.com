@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
 import { IUser } from "~/src/helpers/interfaces/User";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 
 @Schema({ timestamps: true })
-class User implements IUser {
+class UserModel implements IUser {
   @Prop()
   personId?: number;
 
@@ -36,6 +36,6 @@ class User implements IUser {
   passwordResetStarted?: Date;
 }
 
-export type UserDocument = HydratedDocument<User>;
+export type UserDocument = HydratedDocument<UserModel>;
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const UserSchema = SchemaFactory.createForClass(UserModel);

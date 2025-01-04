@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import DataEntryScreen from "~/app/components/adminAndModerator/DataEntryScreen.tsx";
-import { IContestData } from "~/shared_helpers/types.ts";
+import { IContestData } from "@cc/shared";
 
 type Props = {
   params: { id: string };

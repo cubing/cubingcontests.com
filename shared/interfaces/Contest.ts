@@ -1,5 +1,5 @@
 import { ContestState, ContestType } from "../enums.ts";
-import { IEvent, IEventRecordPairs, IFeUser, IPerson, IRecordType, IRound, ISchedule } from "../types.ts";
+import { Event, IEventRecordPairs, IFeUser, IPerson, IRecordType, IRound, ISchedule } from "../types.ts";
 
 /**
  * IMPORTANT: when updating this interface, also update:
@@ -45,7 +45,7 @@ export type IContestDto = Omit<IContest, "createdBy" | "state" | "participants">
 
 // IMPORTANT: if this is ever to be changed, pay attention to the updateContestEvents function in the contests service
 export interface IContestEvent {
-  event: IEvent; // stored as a reference
+  event: Event; // stored as a reference
   rounds: IRound[]; // stored as references
 }
 

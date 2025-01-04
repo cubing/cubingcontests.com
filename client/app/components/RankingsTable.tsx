@@ -1,5 +1,5 @@
 import RankingRow from "./RankingRow.tsx";
-import { IEvent, IRanking } from "~/shared_helpers/types.ts";
+import { Event, IRanking } from "@cc/shared";
 
 const RankingsTable = ({
   rankings,
@@ -9,7 +9,7 @@ const RankingsTable = ({
   topResultsRankings = false,
 }: {
   rankings: IRanking[];
-  event: IEvent;
+  event: Event;
   forAverage?: boolean;
   // These two parameters are mutually-exclusive
   recordsTable?: boolean;

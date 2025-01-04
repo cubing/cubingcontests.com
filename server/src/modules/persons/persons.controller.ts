@@ -17,7 +17,7 @@ import { MyLogger } from "@m/my-logger/my-logger.service";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { PersonDto } from "./dto/person.dto";
 import { LogType } from "~/src/helpers/enums";
 

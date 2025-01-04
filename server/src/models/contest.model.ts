@@ -1,15 +1,15 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { ICompetitionDetails, IMeetupDetails } from "@sh/types";
+import { ICompetitionDetails, IMeetupDetails } from "~/shared/types";
 import { RoundDocument } from "./round.model";
 import { PersonDocument } from "./person.model";
-import { ContestState, ContestType } from "@sh/enums";
+import { ContestState, ContestType } from "~/shared/enums";
 import { EventDocument } from "./event.model";
 import { ScheduleDocument } from "./schedule.model";
 import { UserDocument } from "./user.model";
 
 @Schema({ _id: false })
-export class ContestEvent {
+export class ContestEventModel {
   @Prop({ type: mongoose.Types.ObjectId, ref: "Event", required: true })
   event: EventDocument;
 
@@ -17,26 +17,26 @@ export class ContestEvent {
   rounds: RoundDocument[];
 }
 
-const ContestEventSchema = SchemaFactory.createForClass(ContestEvent);
+const ContestEventSchema = SchemaFactory.createForClass(ContestEventModel);
 
 @Schema({ _id: false })
-export class CompetitionDetails implements ICompetitionDetails {
+export class CompetitionDetailsModel implements ICompetitionDetails {
   @Prop({ type: mongoose.Types.ObjectId, ref: "Schedule", required: true })
   schedule: ScheduleDocument;
 }
 
-const CompetitionDetailsSchema = SchemaFactory.createForClass(CompetitionDetails);
+const CompetitionDetailsSchema = SchemaFactory.createForClass(CompetitionDetailsModel);
 
 @Schema({ _id: false })
-export class MeetupDetails implements IMeetupDetails {
+export class MeetupDetailsModel implements IMeetupDetails {
   @Prop({ required: true })
   startTime: Date;
 }
 
-const MeetupDetailsSchema = SchemaFactory.createForClass(MeetupDetails);
+const MeetupDetailsSchema = SchemaFactory.createForClass(MeetupDetailsModel);
 
 @Schema({ timestamps: true })
-class Competition {
+class ContestModel {
   @Prop({ required: true, unique: true })
   competitionId: string;
 
@@ -95,7 +95,7 @@ class Competition {
   competitorLimit?: number;
 
   @Prop({ type: [ContestEventSchema] })
-  events: ContestEvent[];
+  events: ContestEventModel[];
 
   @Prop({ default: 0 })
   participants: number;
@@ -104,12 +104,12 @@ class Competition {
   queuePosition?: number;
 
   @Prop({ type: CompetitionDetailsSchema })
-  compDetails?: CompetitionDetails;
+  compDetails?: CompetitionDetailsModel;
 
   @Prop({ type: MeetupDetailsSchema })
-  meetupDetails?: MeetupDetails;
+  meetupDetails?: MeetupDetailsModel;
 }
 
-export type ContestDocument = HydratedDocument<Competition>;
+export type ContestDocument = HydratedDocument<ContestModel>;
 
-export const ContestSchema = SchemaFactory.createForClass(Competition);
+export const ContestSchema = SchemaFactory.createForClass(ContestModel);

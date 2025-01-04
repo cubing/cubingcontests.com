@@ -1,4 +1,4 @@
-import { RoundFormat, RoundType } from "@sh/enums";
+import { RoundFormat, RoundType } from "~/shared/enums";
 import { RoundDocument } from "~/src/models/round.model";
 
 export const unrankedRoundsStub = (): RoundDocument[] =>

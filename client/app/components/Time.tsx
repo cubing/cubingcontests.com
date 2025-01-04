@@ -1,10 +1,10 @@
-import { IEvent, IRecordType, IResult, type IVideoBasedResult } from "~/shared_helpers/types.ts";
+import { Event, IRecordType, IResult, type IVideoBasedResult } from "@cc/shared";
 import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
-import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import { getFormattedTime } from "@cc/shared";
 
 type Props = {
   result: IResult | IVideoBasedResult;
-  event: IEvent;
+  event: Event;
   recordTypes: IRecordType[];
   average?: boolean;
 };

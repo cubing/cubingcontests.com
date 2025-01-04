@@ -11,7 +11,7 @@ import { find as findTimezone } from "geo-tz";
 import { ContestDto } from "./dto/contest.dto";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, mongo } from "mongoose";
-import { ContestDocument, ContestEvent } from "~/src/models/contest.model";
+import { ContestDocument, ContestEventModel } from "~/src/models/contest.model";
 import {
   eventPopulateOptions,
   excl,
@@ -20,10 +20,10 @@ import {
   resultPopulateOptions,
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
-import C from "@sh/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "@sh/types";
-import { ContestState, ContestType, EventGroup, RoundType } from "@sh/enums";
-import { Role } from "@sh/enums";
+import { C } from "~/shared/constants";
+import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "~/shared/types";
+import { ContestState, ContestType, EventGroup, RoundType } from "~/shared/enums";
+import { Role } from "~/shared/enums";
 import {
   getDateOnly,
   getIsCompType,
@@ -31,7 +31,7 @@ import {
   getMaxAllowedRounds,
   getTotalRounds,
   parseRoundId,
-} from "@sh/sharedFunctions";
+} from "~/shared/sharedFunctions";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { ResultsService } from "@m/results/results.service";
 import { EventsService } from "@m/events/events.service";
@@ -44,7 +44,7 @@ import { RoundDocument } from "~/src/models/round.model";
 import { ResultDocument } from "~/src/models/result.model";
 import { ScheduleDocument } from "~/src/models/schedule.model";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
-import { roundFormats } from "~/shared_helpers/roundFormats";
+import { roundFormats } from "~/shared/roundFormats";
 import { getResultProceeds } from "~/src/helpers/utilityFunctions";
 
 const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
@@ -320,7 +320,7 @@ export class ContestsService {
     this.validateAndCleanUpContest(contestDto, user);
 
     // First save all of the rounds in the DB (without any results until they get posted)
-    const contestEvents: ContestEvent[] = [];
+    const contestEvents: ContestEventModel[] = [];
 
     for (const contestEvent of contestDto.events) {
       contestEvents.push(await this.getNewContestEvent(contestEvent, saveResults));
@@ -591,7 +591,7 @@ export class ContestsService {
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
-  private async getNewContestEvent(contestEvent: IContestEvent, saveResults = false): Promise<ContestEvent> {
+  private async getNewContestEvent(contestEvent: IContestEvent, saveResults = false): Promise<ContestEventModel> {
     const eventRounds: RoundDocument[] = [];
 
     try {
@@ -628,7 +628,7 @@ export class ContestsService {
     contest: ContestDocument,
     newEvents: IContestEvent[],
     isAdmin: boolean,
-  ): Promise<ContestEvent[]> {
+  ): Promise<ContestEventModel[]> {
     // Remove deleted rounds and events
     for (const contestEvent of contest.events) {
       const sameEventInNew = newEvents.find((el) => el.event.eventId === contestEvent.event.eventId);

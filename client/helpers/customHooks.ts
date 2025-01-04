@@ -2,10 +2,11 @@
 
 import { useContext } from "react";
 import { doFetch } from "~/helpers/fetchUtils.ts";
-import { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "~/shared_helpers/types.ts";
-import { ContestType } from "~/shared_helpers/enums.ts";
-import C from "~/shared_helpers/constants.ts";
+import { IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "@cc/shared";
+import { ContestType } from "@cc/shared";
+import { C } from "@cc/shared";
 import { MainContext } from "~/helpers/contexts.ts";
+import { FetchObj } from "~/helpers/types.ts";
 
 type FetchOptions = {
   authorize?: boolean;

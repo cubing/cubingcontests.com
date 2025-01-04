@@ -1,7 +1,7 @@
 import { mongo } from "mongoose";
 import { ContestDocument } from "~/src/models/contest.model";
-import { ContestState, ContestType, RoundFormat, RoundType, WcaRecordType } from "@sh/enums";
-import { IRound } from "@sh/types";
+import { ContestState, ContestType, RoundFormat, RoundType, WcaRecordType } from "~/shared/enums";
+import { IRound } from "~/shared/types";
 import { eventsSeed } from "~/src/seeds/events.seed";
 
 export const contestsStub = (): ContestDocument[] => {
@@ -30,6 +30,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich19022023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   // There should be an _id here too, but whatever, this is just a stub
@@ -73,6 +74,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich19022023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich19022023",
@@ -109,6 +111,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich19022023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich19022023",
@@ -167,6 +170,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich19022023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.BestOf3,
+              open: true,
               results: [
                 {
                   competitionId: "Munich19022023",
@@ -232,6 +236,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich14062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich14062023",
@@ -301,6 +306,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich14062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich14062023",
@@ -354,6 +360,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich14062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.BestOf3,
+              open: true,
               results: [
                 {
                   competitionId: "Munich14062023",
@@ -412,6 +419,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich14062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Mean,
+              open: true,
               results: [
                 {
                   competitionId: "Munich14062023",
@@ -459,6 +467,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich14062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich14062023",
@@ -517,6 +526,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich14062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich14062023",
@@ -586,6 +596,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich14062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich14062023",
@@ -673,6 +684,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Mean,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -732,6 +744,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -769,6 +782,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -849,6 +863,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -930,6 +945,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -1000,6 +1016,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -1058,6 +1075,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.BestOf3,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -1105,6 +1123,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -1142,6 +1161,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Average,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",
@@ -1212,6 +1232,7 @@ export const contestsStub = (): ContestDocument[] => {
               competitionId: "Munich27062023",
               roundTypeId: RoundType.Final,
               format: RoundFormat.Mean,
+              open: true,
               results: [
                 {
                   competitionId: "Munich27062023",

@@ -6,8 +6,8 @@ import { EventDocument } from "~/src/models/event.model";
 import { CreateEventDto } from "./dto/create-event.dto";
 import { eventsSeed } from "~/src/seeds/events.seed";
 import { excl } from "~/src/helpers/dbHelpers";
-import { EventGroup } from "@sh/enums";
-import { IFeEvent } from "@sh/types";
+import { EventGroup } from "~/shared/enums";
+import { FeEvent } from "~/shared/types";
 import { UpdateEventDto } from "./dto/update-event.dto";
 import { RoundDocument } from "~/src/models/round.model";
 import { ResultDocument } from "~/src/models/result.model";
@@ -67,7 +67,7 @@ export class EventsService {
 
   async getFrontendEvents(
     options: IGetEventsOptions = { includeHidden: false, populateRules: false },
-  ): Promise<IFeEvent[]> {
+  ): Promise<FeEvent[]> {
     const events = await this.getEvents(options);
 
     const frontendEvents = events.map((event) => {
@@ -92,7 +92,7 @@ export class EventsService {
     return event;
   }
 
-  async createEvent(createEventDto: CreateEventDto): Promise<IFeEvent[]> {
+  async createEvent(createEventDto: CreateEventDto): Promise<FeEvent[]> {
     const event = await this.eventModel.findOne({ eventId: createEventDto.eventId }).exec();
     if (event) throw new BadRequestException(`Event with ID ${createEventDto.eventId} already exists`);
 
@@ -101,7 +101,7 @@ export class EventsService {
       .exec();
     if (eventWithSameName) throw new BadRequestException(`Event with name ${createEventDto.name} already exists`);
 
-    const { ruleText, ...newEvent }: IFeEvent = createEventDto;
+    const { ruleText, ...newEvent }: FeEvent = createEventDto;
     let eventRule: EventRuleDocument;
 
     if (ruleText) eventRule = await this.eventRuleModel.create({ eventId: newEvent.eventId, rule: ruleText });
@@ -111,7 +111,7 @@ export class EventsService {
     return await this.getFrontendEvents({ includeHidden: true, populateRules: true });
   }
 
-  async updateEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<IFeEvent[]> {
+  async updateEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<FeEvent[]> {
     const event = await this.eventModel.findOne({ eventId }).exec();
     if (!event) throw new BadRequestException(`Event with ID ${eventId} does not exist`);
 
@@ -189,7 +189,7 @@ export class EventsService {
     return await this.getFrontendEvents({ includeHidden: true, populateRules: true });
   }
 
-  async getEventsWithRules(): Promise<IFeEvent[]> {
+  async getEventsWithRules(): Promise<FeEvent[]> {
     const eventRules = await this.eventRuleModel.find();
 
     return await this.getFrontendEvents({

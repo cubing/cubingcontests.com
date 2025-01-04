@@ -21,7 +21,7 @@ import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { AuthTokenGuard } from "~/src/guards/auth-token.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { orgPopulateOptions } from "~/src/helpers/dbHelpers";
 import { getWcifCompetition } from "~/src/helpers/utilityFunctions";
 import { ContestDocument } from "~/src/models/contest.model";
@@ -30,7 +30,7 @@ import { LogType } from "~/src/helpers/enums";
 import { EmailService } from "@m/email/email.service";
 import { ContestsService } from "@m/contests/contests.service";
 import { EnterResultsDto } from "./app-dto/enter-results.dto";
-import { IContest, PageSize } from "~/shared_helpers/types";
+import { IContest, PageSize } from "~/shared/types";
 
 @Controller()
 export class AppController {

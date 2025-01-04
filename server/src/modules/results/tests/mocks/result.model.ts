@@ -1,5 +1,5 @@
 import { ResultDocument } from "~/src/models/result.model";
-import { IResult } from "@sh/types";
+import { IResult } from "~/shared/types";
 import { resultsStub } from "../stubs/results.stub";
 
 export const ResultModelMock = (): any => ({

@@ -1,5 +1,5 @@
 import * as Flags from "country-flag-icons/react/3x2";
-import Countries from "~/shared_helpers/Countries.ts";
+import { Countries } from "@cc/shared";
 
 type Props = {
   countryIso2: string;

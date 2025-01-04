@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { Role } from "~/shared_helpers/enums.ts";
+import { Role } from "@cc/shared";
 
 type Props = {
   role: Role;

@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { IActivity, IRoom, ISchedule, IVenue } from "@sh/types";
-import { Color } from "@sh/enums";
+import { IActivity, IRoom, ISchedule, IVenue } from "~/shared/types";
+import { Color } from "~/shared/enums";
 
 @Schema({ _id: false })
-class Activity implements IActivity {
+class ActivityModel implements IActivity {
   @Prop({ required: true })
   id: number;
 
@@ -20,14 +20,14 @@ class Activity implements IActivity {
   @Prop({ required: true })
   endTime: Date;
 
-  @Prop({ type: [SchemaFactory.createForClass(Activity)], required: true })
-  childActivities: Activity[];
+  @Prop({ type: [SchemaFactory.createForClass(ActivityModel)], required: true })
+  childActivities: ActivityModel[];
 }
 
-const ActivitySchema = SchemaFactory.createForClass(Activity);
+const ActivitySchema = SchemaFactory.createForClass(ActivityModel);
 
 @Schema({ _id: false })
-class Room implements IRoom {
+class RoomModel implements IRoom {
   @Prop({ required: true })
   id: number;
 
@@ -38,13 +38,13 @@ class Room implements IRoom {
   color: Color;
 
   @Prop({ type: [ActivitySchema], required: true })
-  activities: Activity[];
+  activities: ActivityModel[];
 }
 
-const RoomSchema = SchemaFactory.createForClass(Room);
+const RoomSchema = SchemaFactory.createForClass(RoomModel);
 
 @Schema({ _id: false })
-class Venue implements IVenue {
+class VenueModel implements IVenue {
   @Prop({ required: true })
   id: number;
 
@@ -64,20 +64,20 @@ class Venue implements IVenue {
   timezone: string;
 
   @Prop({ type: [RoomSchema], required: true })
-  rooms: Room[];
+  rooms: RoomModel[];
 }
 
-const VenueSchema = SchemaFactory.createForClass(Venue);
+const VenueSchema = SchemaFactory.createForClass(VenueModel);
 
 @Schema({ timestamps: true })
-export class Schedule implements ISchedule {
+export class ScheduleModel implements ISchedule {
   @Prop({ required: true, unique: true })
   competitionId: string;
 
   @Prop({ type: [VenueSchema], required: true })
-  venues: Venue[];
+  venues: VenueModel[];
 }
 
-export type ScheduleDocument = HydratedDocument<Schedule>;
+export type ScheduleDocument = HydratedDocument<ScheduleModel>;
 
-export const ScheduleSchema = SchemaFactory.createForClass(Schedule);
+export const ScheduleSchema = SchemaFactory.createForClass(ScheduleModel);

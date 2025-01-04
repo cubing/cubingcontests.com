@@ -1,7 +1,7 @@
 import { RoundDocument } from "~/src/models/round.model";
-import { IRound } from "@sh/types";
+import { IRound } from "~/shared/types";
 import { contestsStub } from "../stubs/competitions.stub";
-import { parseRoundId } from "~/shared_helpers/sharedFunctions";
+import { parseRoundId } from "~/shared/sharedFunctions";
 
 export const RoundModelMock = (): any => ({
   tempOutput: undefined,

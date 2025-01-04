@@ -92,7 +92,6 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^~/(.*)": "<rootDir>/$1",
-      "^@sh/(.*)": "<rootDir>/shared_helpers/$1",
       "^@m/(.*)": "<rootDir>/src/modules/$1"
     },
     "modulePathIgnorePatterns": [

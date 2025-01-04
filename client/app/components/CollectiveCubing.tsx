@@ -3,9 +3,9 @@
 import { useContext, useEffect, useState } from "react";
 import { TwistyPlayer } from "cubing/twisty";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { FetchObj, IFeCollectiveSolution, IMakeMoveDto, NxNMove } from "~/shared_helpers/types.ts";
-import { nxnMoves } from "~/shared_helpers/types/NxNMove.ts";
-import { Color } from "~/shared_helpers/enums.ts";
+import type { FetchObj } from "~/helpers/types.ts";
+import { Color, type FeCollectiveSolution, type IMakeMoveDto, type NxNMove } from "@cc/shared";
+import { nxnMoves } from "@cc/shared";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
@@ -29,7 +29,7 @@ const addTwistyPlayerElement = (alg = "") => {
   if (containerDiv) containerDiv.appendChild(twistyPlayer);
 };
 
-const getCubeState = (colSol: IFeCollectiveSolution): string => `${colSol.scramble} z2 ${colSol.solution}`.trim();
+const getCubeState = (colSol: FeCollectiveSolution): string => `${colSol.scramble} z2 ${colSol.solution}`.trim();
 
 const CollectiveCubing = () => {
   const myFetch = useMyFetch();
@@ -37,7 +37,7 @@ const CollectiveCubing = () => {
     MainContext,
   );
 
-  const { data: collectiveSolution } = useQuery<IFeCollectiveSolution>({
+  const { data: collectiveSolution } = useQuery<FeCollectiveSolution>({
     queryKey: ["collectiveSolution"],
     queryFn: () =>
       fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL2}/collective-solution`).then((res) => res.json()).then((res) => {
@@ -60,7 +60,7 @@ const CollectiveCubing = () => {
     }
   }, []);
 
-  const update = ({ payload, errors, errorData }: FetchObj<IFeCollectiveSolution>) => {
+  const update = ({ payload, errors, errorData }: FetchObj<FeCollectiveSolution>) => {
     const newCollectiveSolution = payload ?? errorData?.collectiveSolution;
 
     if (errors) {

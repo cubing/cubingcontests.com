@@ -6,8 +6,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { ContestState } from "~/shared_helpers/enums.ts";
-import { IAdminStats, IContest } from "~/shared_helpers/types.ts";
+import { ContestState } from "@cc/shared";
+import { IAdminStats, IContest } from "@cc/shared";
 import { UserInfo } from "~/helpers/types.ts";
 import { getFormattedDate, getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -16,7 +16,7 @@ import Country from "~/app/components/Country.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
-import C from "~/shared_helpers/constants.ts";
+import { C } from "@cc/shared";
 
 const userInfo: UserInfo = getUserInfo();
 

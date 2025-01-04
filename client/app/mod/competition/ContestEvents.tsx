@@ -1,18 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import C from "~/shared_helpers/constants.ts";
-import { ContestType, EventFormat, EventGroup, RoundFormat, RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
+import { C } from "@cc/shared";
+import { ContestType, EventFormat, EventGroup, RoundFormat, RoundProceed, RoundType } from "@cc/shared";
 import {
+  type Event,
   type IContestEvent,
   type ICutoff,
-  type IEvent,
   type IFeAttempt,
   type IProceed,
   type IRound,
   type ITimeLimit,
   type NumberInputValue,
-} from "~/shared_helpers/types.ts";
+} from "@cc/shared";
 import { cutoffAttemptsOptions, roundProceedOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import EventTitle from "~/app/components/EventTitle.tsx";
@@ -24,11 +24,11 @@ import FormSelect from "~/app/components/form/FormSelect.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
 import { getRoundFormatOptions, getTimeLimit } from "~/helpers/utilityFunctions.ts";
-import { getTotalRounds } from "~/shared_helpers/sharedFunctions.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { getTotalRounds } from "@cc/shared";
+import { roundFormats } from "@cc/shared";
 
 type Props = {
-  events: IEvent[];
+  events: Event[];
   contestEvents: IContestEvent[];
   setContestEvents: (val: IContestEvent[]) => void;
   contestType: ContestType;
@@ -53,10 +53,10 @@ const ContestEvents = ({
   );
 
   const disableNewRounds = disabled || (contestType === ContestType.Meetup && totalRounds >= 15);
-  const filteredEvents: IEvent[] = events.filter((ev) =>
+  const filteredEvents: Event[] = events.filter((ev) =>
     contestType !== ContestType.WcaComp || !ev.groups.includes(EventGroup.WCA)
   );
-  const remainingEvents: IEvent[] = filteredEvents.filter((ev) =>
+  const remainingEvents: Event[] = filteredEvents.filter((ev) =>
     !contestEvents.some((ce) => ce.event.eventId === ev.eventId)
   );
   // Fix new event ID, if it's not in the list of remaining events
@@ -64,19 +64,19 @@ const ContestEvents = ({
   // Also disable new events if new rounds are disabled or if there are no more events to add
   disableNewEvents = disabled || disableNewEvents || disableNewRounds || contestEvents.length === filteredEvents.length;
 
-  const getNewRound = (event: IEvent, roundNumber: number): IRound => {
+  const getNewRound = (event: Event, roundNumber: number): IRound => {
     return {
       roundId: `${event.eventId}-r${roundNumber}`,
       competitionId: "TEMPORARY", // this gets replaced for all rounds on submit
       roundTypeId: RoundType.Final,
-      format: (events.find((el) => el.eventId === event.eventId) as IEvent).defaultRoundFormat,
+      format: (events.find((el) => el.eventId === event.eventId) as Event).defaultRoundFormat,
       timeLimit: getTimeLimit(event.format),
       results: [],
     };
   };
 
   const addContestEvent = () => {
-    const event = events.find((e) => e.eventId === newEventId) as IEvent;
+    const event = events.find((e) => e.eventId === newEventId) as Event;
 
     setContestEvents(
       [...contestEvents, { event, rounds: [getNewRound(event, 1)] }].sort((a: IContestEvent, b: IContestEvent) =>
@@ -85,7 +85,7 @@ const ContestEvents = ({
     );
 
     if (remainingEvents.length > 1) {
-      const newId = (remainingEvents.find((event) => event.eventId !== newEventId) as IEvent).eventId;
+      const newId = (remainingEvents.find((event) => event.eventId !== newEventId) as Event).eventId;
       setNewEventId(newId);
     }
   };

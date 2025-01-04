@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import Time from "~/app/components/Time.tsx";
-import type { ICutoff, IEvent, IFeAttempt, IRecordPair, IRecordType, IResult } from "~/shared_helpers/types.ts";
-import { getBestAndAverage, setResultRecords } from "~/shared_helpers/sharedFunctions.ts";
-import type { RoundFormat } from "~/shared_helpers/enums.ts";
+import type { Event, ICutoff, IFeAttempt, IRecordPair, IRecordType, IResult } from "@cc/shared";
+import { getBestAndAverage, setResultRecords } from "@cc/shared";
+import type { RoundFormat } from "@cc/shared";
 
 type Props = {
-  event: IEvent;
+  event: Event;
   roundFormat: RoundFormat;
   attempts: IFeAttempt[];
   recordPairs: IRecordPair[] | undefined;

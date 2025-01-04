@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { IRecordType } from "@sh/types";
-import { Color, WcaRecordType } from "@sh/enums";
+import { IRecordType } from "~/shared/types";
+import { Color, WcaRecordType } from "~/shared/enums";
 
 @Schema({ timestamps: true })
-class RecordType implements IRecordType {
+class RecordTypeModel implements IRecordType {
   @Prop({ required: true, unique: true })
   label: string;
 
@@ -21,6 +21,6 @@ class RecordType implements IRecordType {
   color: Color;
 }
 
-export type RecordTypeDocument = HydratedDocument<RecordType>;
+export type RecordTypeDocument = HydratedDocument<RecordTypeModel>;
 
-export const RecordTypeSchema = SchemaFactory.createForClass(RecordType);
+export const RecordTypeSchema = SchemaFactory.createForClass(RecordTypeModel);

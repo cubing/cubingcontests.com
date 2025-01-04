@@ -1,11 +1,11 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { IContest, type IProceed } from "~/shared_helpers/types.ts";
-import { RoundProceed, RoundType } from "~/shared_helpers/enums.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { IContest, type IProceed } from "@cc/shared";
+import { RoundProceed, RoundType } from "@cc/shared";
+import { roundFormats } from "@cc/shared";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import { getFormattedTime } from "@cc/shared";
 
 type Props = {
   params: { id: string };

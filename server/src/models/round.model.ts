@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
 import { ResultDocument } from "./result.model";
-import { ICutoff, IRound, ITimeLimit } from "@sh/types";
-import { RoundFormat, RoundProceed, RoundType } from "@sh/enums";
-import { IProceed } from "@sh/types";
+import { ICutoff, ITimeLimit } from "~/shared/types";
+import { RoundFormat, RoundProceed, RoundType } from "~/shared/enums";
+import { IProceed } from "~/shared/types";
 
 @Schema({ _id: false })
-export class TimeLimit implements ITimeLimit {
+export class TimeLimitModel implements ITimeLimit {
   @Prop({ required: true })
   centiseconds: number;
 
@@ -14,10 +14,10 @@ export class TimeLimit implements ITimeLimit {
   cumulativeRoundIds: string[];
 }
 
-const TimeLimitSchema = SchemaFactory.createForClass(TimeLimit);
+const TimeLimitSchema = SchemaFactory.createForClass(TimeLimitModel);
 
 @Schema({ _id: false })
-export class Cutoff implements ICutoff {
+export class CutoffModel implements ICutoff {
   @Prop({ required: true })
   attemptResult: number;
 
@@ -25,10 +25,10 @@ export class Cutoff implements ICutoff {
   numberOfAttempts: number;
 }
 
-const CutoffSchema = SchemaFactory.createForClass(Cutoff);
+const CutoffSchema = SchemaFactory.createForClass(CutoffModel);
 
 @Schema({ _id: false })
-export class Proceed implements IProceed {
+export class ProceedModel implements IProceed {
   @Prop({ required: true })
   type: RoundProceed;
 
@@ -36,10 +36,10 @@ export class Proceed implements IProceed {
   value: number;
 }
 
-const ProceedSchema = SchemaFactory.createForClass(Proceed);
+const ProceedSchema = SchemaFactory.createForClass(ProceedModel);
 
 @Schema({ timestamps: true })
-export class Round {
+export class RoundModel {
   @Prop({ required: true })
   roundId: string;
 
@@ -53,13 +53,13 @@ export class Round {
   format: RoundFormat;
 
   @Prop({ type: TimeLimitSchema })
-  timeLimit?: TimeLimit;
+  timeLimit?: TimeLimitModel;
 
   @Prop({ type: CutoffSchema })
-  cutoff?: Cutoff;
+  cutoff?: CutoffModel;
 
   @Prop({ type: ProceedSchema })
-  proceed?: Proceed;
+  proceed?: ProceedModel;
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Result" }], required: true })
   results: ResultDocument[];
@@ -68,6 +68,6 @@ export class Round {
   open?: true;
 }
 
-export type RoundDocument = HydratedDocument<Round>;
+export type RoundDocument = HydratedDocument<RoundModel>;
 
-export const RoundSchema = SchemaFactory.createForClass(Round);
+export const RoundSchema = SchemaFactory.createForClass(RoundModel);

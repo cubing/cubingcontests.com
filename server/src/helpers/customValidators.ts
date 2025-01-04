@@ -1,7 +1,7 @@
 import { ValidatorConstraint, ValidatorConstraintInterface } from "class-validator";
-import { IAttempt, IContestEvent, IProceed, IRound } from "@sh/types";
-import { EventFormat, RoundProceed } from "@sh/enums";
-import C from "@sh/constants";
+import { IAttempt, IContestEvent, IProceed, IRound } from "~/shared/types";
+import { EventFormat, RoundProceed } from "~/shared/enums";
+import { C } from "~/shared/constants";
 
 @ValidatorConstraint({ name: "EventWithTimeFormatHasTimeLimits", async: false })
 export class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInterface {

@@ -1,7 +1,7 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import Schedule from "~/app/components/Schedule.tsx";
-import { type ICompetitionDetails, IContest } from "~/shared_helpers/types.ts";
+import { type ICompetitionDetails, IContest } from "@cc/shared";
 
 type Props = {
   params: { id: string };

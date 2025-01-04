@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { z } from "zod";
 import { find as findTimezone } from "geo-tz";
 import { CollectiveSolutionModel } from "./models/collective-solution.model.ts";
+import { CollectiveSolution } from "@cc/shared";
 
 const environment = Deno.env.get("ENVIRONMENT");
 const mongoDevUsername = Deno.env.get("MONGO_DEV_USERNAME");
@@ -57,7 +58,7 @@ app.get(
 );
 
 app.get("collective-solution", async (c: Context) => {
-  const currentSolution = await CollectiveSolutionModel.findOne({ state: { $lt: 30 } }).exec();
+  const currentSolution: CollectiveSolution = await CollectiveSolutionModel.findOne({ state: { $lt: 30 } }).exec();
 
   if (!currentSolution) return;
 
@@ -67,7 +68,7 @@ app.get("collective-solution", async (c: Context) => {
     scramble: currentSolution.scramble,
     solution: currentSolution.solution,
     state: currentSolution.state,
-    lastUserWhoInteractedId: currentSolution.lastUserWhoInteracted.toString(),
+    lastUserWhoInteractedId: (currentSolution.lastUserWhoInteracted as any).toString(),
     totalUsersWhoMadeMoves: currentSolution.usersWhoMadeMoves.length,
   });
 });

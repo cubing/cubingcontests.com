@@ -5,9 +5,9 @@ import Handlebars from "handlebars";
 import { Injectable } from "@nestjs/common";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
-import { IContest } from "@sh/types";
-import { getRoleLabel } from "@sh/sharedFunctions";
-import { ContestType, Role } from "@sh/enums";
+import { IContest } from "~/shared/types";
+import { getRoleLabel } from "~/shared/sharedFunctions";
+import { ContestType, Role } from "~/shared/enums";
 
 // The fileName is the name of a file inside of the templates directory
 const getEmailContents = async (fileName: string, context: any): Promise<string> => {

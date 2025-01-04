@@ -1,5 +1,5 @@
 import { eventsStub } from "../stubs/events.stub";
-import { EventGroup } from "@sh/enums";
+import { EventGroup } from "~/shared/enums";
 
 export const EventsServiceMock = (): any => ({
   getEvents({ eventIds, includeHidden }: { eventIds?: string[]; includeHidden?: boolean } = { includeHidden: false }) {

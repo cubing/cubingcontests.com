@@ -3,7 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model, mongo } from "mongoose";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { CollectiveSolutionDocument } from "~/src/models/collective-solution.model";
-import { ICollectiveSolution, IFeCollectiveSolution } from "@sh/types";
+import { CollectiveSolution, FeCollectiveSolution } from "~/shared/types";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import { LogType } from "~/src/helpers/enums";
 import { MakeMoveDto } from "~/src/modules/collective-solution/dto/make-move.dto";
@@ -16,7 +16,7 @@ export class CollectiveSolutionService {
     @InjectModel("CollectiveSolution") private readonly collectiveSolutionModel: Model<CollectiveSolutionDocument>,
   ) {}
 
-  public async startNewSolution(user: IPartialUser): Promise<IFeCollectiveSolution> {
+  public async startNewSolution(user: IPartialUser): Promise<FeCollectiveSolution> {
     const alreadyScrambledSolution = await this.collectiveSolutionModel.findOne({ state: 10 }).exec();
     if (alreadyScrambledSolution) {
       throw new BadRequestException({
@@ -32,7 +32,7 @@ export class CollectiveSolutionService {
     const currentSolution = await this.getCurrentSolution();
     const eventId = "333";
     const scramble = await randomScrambleForEvent(eventId);
-    const newCollectiveSolution: ICollectiveSolution = {
+    const newCollectiveSolution: CollectiveSolution = {
       eventId,
       attemptNumber: (currentSolution?.attemptNumber ?? 0) + 1,
       scramble,
@@ -55,7 +55,7 @@ export class CollectiveSolutionService {
     return this.mapCollectiveSolution(newSolution);
   }
 
-  public async makeMove(makeMoveDto: MakeMoveDto, user: IPartialUser): Promise<IFeCollectiveSolution> {
+  public async makeMove(makeMoveDto: MakeMoveDto, user: IPartialUser): Promise<FeCollectiveSolution> {
     const currentSolution = await this.getCurrentSolution();
 
     if (!currentSolution) {
@@ -93,8 +93,8 @@ export class CollectiveSolutionService {
     return await this.collectiveSolutionModel.findOne({ state: { $lt: 30 } }).exec();
   }
 
-  mapCollectiveSolution(collectiveSolution: CollectiveSolutionDocument): IFeCollectiveSolution {
-    const mappedCollectiveSolution: IFeCollectiveSolution = {
+  mapCollectiveSolution(collectiveSolution: CollectiveSolutionDocument): FeCollectiveSolution {
+    const mappedCollectiveSolution: FeCollectiveSolution = {
       eventId: collectiveSolution.eventId,
       attemptNumber: collectiveSolution.attemptNumber,
       scramble: collectiveSolution.scramble,

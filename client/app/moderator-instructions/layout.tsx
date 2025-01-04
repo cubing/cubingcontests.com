@@ -1,6 +1,6 @@
 import Link from "next/link";
 import "./moderator-instructions.css";
-import C from "~/shared_helpers/constants.ts";
+import { C } from "@cc/shared";
 
 const ModeratorInstructions = ({ children }: { children: React.ReactNode }) => {
   return (

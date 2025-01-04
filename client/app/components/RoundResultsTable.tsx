@@ -4,14 +4,14 @@ import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { IEvent, IPerson, IRecordType, IResult, IRound, type IRoundFormat } from "~/shared_helpers/types.ts";
-import { RoundFormat, RoundType } from "~/shared_helpers/enums.ts";
-import { getIsProceedableResult } from "~/shared_helpers/sharedFunctions.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
+import { Event, IPerson, IRecordType, IResult, IRound, type IRoundFormat } from "@cc/shared";
+import { RoundFormat, RoundType } from "@cc/shared";
+import { getIsProceedableResult } from "@cc/shared";
+import { roundFormats } from "@cc/shared";
 
 type Props = {
   round: IRound;
-  event: IEvent;
+  event: Event;
   persons: IPerson[];
   recordTypes: IRecordType[];
   onEditResult?: (result: IResult) => void;

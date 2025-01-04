@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { IAttempt } from "@sh/types";
+import { IAttempt } from "~/shared/types";
 import { UserDocument } from "./user.model";
 
 @Schema({ _id: false })
-export class Attempt implements IAttempt {
+export class AttemptModel implements IAttempt {
   @Prop({ required: true })
   result: number;
 
@@ -12,10 +12,10 @@ export class Attempt implements IAttempt {
   memo?: number;
 }
 
-const AttemptSchema = SchemaFactory.createForClass(Attempt);
+const AttemptSchema = SchemaFactory.createForClass(AttemptModel);
 
 @Schema({ timestamps: true })
-export class Result {
+export class ResultModel {
   @Prop()
   competitionId?: string;
 
@@ -35,7 +35,7 @@ export class Result {
   ranking?: number;
 
   @Prop({ type: [AttemptSchema], required: true })
-  attempts: Attempt[];
+  attempts: AttemptModel[];
 
   @Prop({ required: true })
   best: number;
@@ -62,6 +62,6 @@ export class Result {
   createdBy: UserDocument;
 }
 
-export type ResultDocument = HydratedDocument<Result>;
+export type ResultDocument = HydratedDocument<ResultModel>;
 
-export const ResultSchema = SchemaFactory.createForClass(Result);
+export const ResultSchema = SchemaFactory.createForClass(ResultModel);

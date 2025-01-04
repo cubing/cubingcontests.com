@@ -1,5 +1,12 @@
 import { WcaRecordType } from "../enums.ts";
-import { IContest, IEvent, IFeUser, IPerson, IRecordType, type ResultRankingType } from "../types.ts";
+import {
+  Event,
+  type IContest,
+  type IFeUser,
+  type IPerson,
+  type IRecordType,
+  type ResultRankingType,
+} from "../types.ts";
 
 export interface IAttempt {
   /**
@@ -68,7 +75,7 @@ export interface IUpdateVideoBasedResultDto extends IUpdateResultDto {
 }
 
 export interface IFeResult extends IResult {
-  event: IEvent;
+  event: Event;
   persons: IPerson[];
 }
 
@@ -89,7 +96,7 @@ export interface IRanking {
 
 // Used for storing rankings for a specific event
 export interface IEventRankings {
-  event: IEvent;
+  event: Event;
   rankings: IRanking[];
 }
 
@@ -106,7 +113,7 @@ export interface IEventRecordPairs {
 }
 
 export interface IResultsSubmissionInfo {
-  events: IEvent[];
+  events: Event[];
   recordPairsByEvent: IEventRecordPairs[];
   activeRecordTypes: IRecordType[];
 }

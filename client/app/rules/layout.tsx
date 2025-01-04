@@ -1,7 +1,7 @@
 import Markdown from "react-markdown";
-import { type IFeEvent, type IRoundFormat } from "~/shared_helpers/types.ts";
-import { roundFormats } from "~/shared_helpers/roundFormats.ts";
-import { RoundFormat } from "~/shared_helpers/enums.ts";
+import { type FeEvent, type IRoundFormat } from "@cc/shared";
+import { roundFormats } from "@cc/shared";
+import { RoundFormat } from "@cc/shared";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 
@@ -29,7 +29,7 @@ const RulesLayout = async ({ children }: Props) => {
               These rules apply to each event individually. If an event is not listed here, it must follow the most
               relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F).
             </p>
-            {events.map((event: IFeEvent) => {
+            {events.map((event: FeEvent) => {
               const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
               const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
 

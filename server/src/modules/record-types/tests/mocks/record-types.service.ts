@@ -1,4 +1,4 @@
-import { WcaRecordType } from "@sh/enums";
+import { WcaRecordType } from "~/shared/enums";
 import { getBaseAvgsFilter, getBaseSinglesFilter } from "~/src/helpers/utilityFunctions";
 import { recordTypesStub } from "../stubs/record-types.stub";
 import { EventDocument } from "~/src/models/event.model";

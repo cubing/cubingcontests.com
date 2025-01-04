@@ -2,14 +2,13 @@ import { setRankings, setRoundRankings } from "./utilityFunctions";
 import { RoundDocument } from "../models/round.model";
 import { ResultDocument } from "../models/result.model";
 import { unrankedRoundsStub } from "../modules/contests/tests/stubs/unranked-rounds";
-import { getRoundRanksWithAverage } from "@sh/sharedFunctions";
 
 describe("setRoundRankings works correctly", () => {
   const unrankedRounds = unrankedRoundsStub() as RoundDocument[];
 
   it("sets rankings for 3x3x3 round correctly", async () => {
     const round = unrankedRounds[0];
-    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRoundRankings(round);
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].average).toBe(1170);
@@ -23,7 +22,7 @@ describe("setRoundRankings works correctly", () => {
 
   it("sets rankings for 3x3x3 FM round correctly", async () => {
     const round = unrankedRounds[1];
-    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRoundRankings(round);
 
     // The first two results are tied, the last two have tied means, but there is a tie-breaker
     expect(round.results[0].ranking).toBe(1);
@@ -42,7 +41,7 @@ describe("setRoundRankings works correctly", () => {
 
   it("sets rankings for 3x3x3 BLD round correctly", async () => {
     const round = unrankedRounds[2];
-    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRoundRankings(round);
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(1938);
@@ -62,7 +61,7 @@ describe("setRoundRankings works correctly", () => {
 
   it("sets rankings for 2x2x2 round with Bo3 format correctly", async () => {
     const round = unrankedRounds[3];
-    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRoundRankings(round);
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(221);
@@ -74,7 +73,7 @@ describe("setRoundRankings works correctly", () => {
 
   it("sets rankings for 5x5x5 round with only DNF averages correctly", async () => {
     const round = unrankedRounds[4];
-    round.results = await setRoundRankings(round.results, getRoundRanksWithAverage(round.format));
+    round.results = await setRoundRankings(round);
 
     expect(round.results[0].ranking).toBe(1);
     expect(round.results[0].best).toBe(3845);

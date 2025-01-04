@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { ICollectiveSolution } from "@sh/types";
+import { CollectiveSolution } from "~/shared/types";
 
 @Schema({ timestamps: true })
-export class CollectiveSolution implements ICollectiveSolution {
+export class CollectiveSolutionModel implements CollectiveSolution {
   @Prop({ required: true })
   eventId: string;
 
@@ -26,6 +26,6 @@ export class CollectiveSolution implements ICollectiveSolution {
   state: 10 | 20 | 30;
 }
 
-export type CollectiveSolutionDocument = HydratedDocument<CollectiveSolution>;
+export type CollectiveSolutionDocument = HydratedDocument<CollectiveSolutionModel>;
 
-export const CollectiveSolutionSchema = SchemaFactory.createForClass(CollectiveSolution);
+export const CollectiveSolutionSchema = SchemaFactory.createForClass(CollectiveSolutionModel);

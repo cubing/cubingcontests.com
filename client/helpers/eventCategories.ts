@@ -1,4 +1,4 @@
-import { EventGroup } from "~/shared_helpers/enums.ts";
+import { EventGroup } from "@cc/shared";
 import type { EventCategory } from "~/helpers/types.ts";
 
 export const eventCategories: EventCategory[] = [

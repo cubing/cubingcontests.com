@@ -3,14 +3,14 @@
 import { useContext, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFePerson, IWcaPersonDto } from "~/shared_helpers/types.ts";
+import { IFePerson, IWcaPersonDto } from "@cc/shared";
 import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
-import { fetchWcaPerson } from "~/shared_helpers/sharedFunctions.ts";
+import { fetchWcaPerson } from "@cc/shared";
 
 type Props = {
   personUnderEdit: IFePerson | undefined;

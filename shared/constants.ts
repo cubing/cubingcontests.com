@@ -1,7 +1,4 @@
-// IMPORT THIS FILE LIKE THIS:
-// import C from "~/shared_helpers/constants.ts";
-
-const C = {
+export const C = {
   contactEmail: "cubing-contests-admin@googlegroups.com",
   fetchDebounceTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
   // Timeouts before revalidating a request in seconds
@@ -31,5 +28,3 @@ const C = {
     "8AaML2et9RQKmZp4NYm9STKbjhfFB4h81ZxeGV166oapNzPFUTneaRmakwE61cyHr1ZUYreEU7eHF8XmMBykG8TpAwM6SVq",
   videoNoLongerAvailableMsg: "Video no longer available",
 };
-
-export default C;

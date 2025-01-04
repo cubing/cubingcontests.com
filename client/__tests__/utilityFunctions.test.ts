@@ -1,13 +1,13 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { EventFormat, EventGroup } from "~/shared_helpers/enums.ts";
-import { IEvent } from "~/shared_helpers/types.ts";
-import C from "~/shared_helpers/constants.ts";
-import { getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
+import { EventFormat, EventGroup } from "@cc/shared";
+import { Event } from "@cc/shared";
+import { C } from "@cc/shared";
+import { getFormattedTime } from "@cc/shared";
 import { eventsStub } from "~/__mocks__/events.stub.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as IEvent;
+const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as Event;
 const roundOpts = {
   roundTime: true,
   roundMemo: true,
@@ -66,19 +66,19 @@ const mockNumberEvent = {
   eventId: "333fm",
   format: EventFormat.Number,
   groups: [EventGroup.WCA],
-} as IEvent;
+} as Event;
 
 const mockMultiEvent = {
   eventId: "333mbf",
   format: EventFormat.Multi,
   groups: [EventGroup.WCA],
-} as IEvent;
+} as Event;
 
 const mockOldStyleEvent = {
   eventId: "333mbo",
   format: EventFormat.Multi,
   groups: [EventGroup.ExtremeBLD],
-} as IEvent;
+} as Event;
 
 const multiBlindExamples = [
   {

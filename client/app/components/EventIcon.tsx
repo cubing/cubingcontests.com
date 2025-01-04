@@ -1,6 +1,6 @@
 import "@cubing/icons";
-import { IEvent } from "~/shared_helpers/types.ts";
-import { EventGroup } from "~/shared_helpers/enums.ts";
+import { Event } from "@cc/shared";
+import { EventGroup } from "@cc/shared";
 import { shortenEventName } from "~/helpers/utilityFunctions.ts";
 
 const unofficialEventIcons = [
@@ -42,7 +42,7 @@ const unofficialEventIcons = [
 ];
 
 type Props = {
-  event: IEvent;
+  event: Event;
   onClick?: () => void;
   isActive?: boolean;
 };

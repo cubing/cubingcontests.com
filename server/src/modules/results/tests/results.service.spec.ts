@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { BadRequestException } from "@nestjs/common";
 import { getModelToken } from "@nestjs/mongoose";
-import C from "@sh/constants";
+import { C } from "~/shared/constants";
 import { MyLogger } from "~/src/modules/my-logger/my-logger.service";
 import { EventsService } from "@m/events/events.service";
 import { ResultsService } from "@m/results/results.service";
@@ -10,8 +10,8 @@ import { PersonsService } from "@m/persons/persons.service";
 import { AuthService } from "@m/auth/auth.service";
 import { UsersService } from "@m/users/users.service";
 import { EmailService } from "@m/email/email.service";
-import { Role, WcaRecordType } from "@sh/enums";
-import { IEventRankings } from "@sh/types";
+import { Role, WcaRecordType } from "~/shared/enums";
+import { IEventRankings } from "~/shared/types";
 import { IPartialUser } from "~/src/helpers/interfaces/User";
 import { ResultDocument } from "~/src/models/result.model";
 
@@ -167,7 +167,7 @@ describe("ResultsService", () => {
             { eventId: "333" } as CreateResultDto,
             { user: adminUser },
           ),
-        ).rejects.toThrow(new BadRequestException("Round not found"));
+        ).rejects.toThrow(new BadRequestException("Round ID has invalid round number: 333-INVALID_ROUND_NUMBER"));
       });
 
       it("throws an error when the number of competitors in the result is wrong", async () => {

@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import FormTextInput from "./form/FormTextInput.tsx";
 import FormNumberInput from "./form/FormNumberInput.tsx";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { EventFormat, EventGroup } from "~/shared_helpers/enums.ts";
-import { IEvent, type IFeAttempt, ITimeLimit, type NumberInputValue } from "~/shared_helpers/types.ts";
-import { getAlwaysShowDecimals, getFormattedTime } from "~/shared_helpers/sharedFunctions.ts";
-import C from "~/shared_helpers/constants.ts";
+import { EventFormat, EventGroup } from "@cc/shared";
+import { Event, type IFeAttempt, ITimeLimit, type NumberInputValue } from "@cc/shared";
+import { getAlwaysShowDecimals, getFormattedTime } from "@cc/shared";
+import { C } from "@cc/shared";
 
 const DNFKeys = ["f", "F", "d", "D", "/"];
 const DNSKeys = ["s", "S", "*"];
@@ -43,7 +43,7 @@ type Props = {
   attNumber: number; // number of the attempt (use 0 if the input is used for a time limit or cutoff)
   attempt: IFeAttempt;
   setAttempt: (val: IFeAttempt) => void;
-  event: IEvent;
+  event: Event;
   timeLimit?: ITimeLimit;
   memoInputForBld?: boolean;
   allowUnknownTime?: boolean;

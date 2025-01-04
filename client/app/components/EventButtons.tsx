@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { IEvent } from "~/shared_helpers/types.ts";
+import { Event } from "@cc/shared";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import EventIcon from "~/app/components/EventIcon.tsx";
 
 type Props = {
   eventId: string | undefined;
-  events: IEvent[];
+  events: Event[];
   forPage: "results" | "rankings" | "competitions" | "data-entry";
 };
 
@@ -29,7 +29,7 @@ const EventButtons = ({
   );
 
   // If hideCategories = true, just show all events that were passed in
-  const filteredEvents = useMemo<IEvent[]>(
+  const filteredEvents = useMemo<Event[]>(
     () =>
       !["rankings", "competitions"].includes(forPage)
         ? events
@@ -75,7 +75,7 @@ const EventButtons = ({
       )}
 
       <div className="d-flex flex-wrap mb-3 fs-3">
-        {filteredEvents.map((event: IEvent) => (
+        {filteredEvents.map((event: Event) => (
           <EventIcon
             key={event.eventId}
             event={event}

@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import Competitor from "~/app/components/Competitor.tsx";
-import { IFeUser } from "~/shared_helpers/types.ts";
+import { IFeUser } from "@cc/shared";
 import { UserInfo } from "~/helpers/types.ts";
 
 const CreatorDetails = ({

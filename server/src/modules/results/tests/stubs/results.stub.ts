@@ -1,6 +1,6 @@
 import { mongo } from "mongoose";
 import { ResultDocument } from "~/src/models/result.model";
-import { WcaRecordType } from "@sh/enums";
+import { WcaRecordType } from "~/shared/enums";
 
 export const resultsStub = (): ResultDocument[] => {
   return [

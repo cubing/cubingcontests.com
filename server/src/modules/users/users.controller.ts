@@ -5,7 +5,7 @@ import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
 import { LogType } from "~/src/helpers/enums";
-import { Role } from "@sh/enums";
+import { Role } from "~/shared/enums";
 import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("users")

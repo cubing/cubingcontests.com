@@ -3,7 +3,7 @@ import { HydratedDocument } from "mongoose";
 import { LogType } from "../helpers/enums";
 
 @Schema({ timestamps: true })
-export class Log {
+export class LogModel {
   @Prop({ required: true })
   message: string;
 
@@ -11,6 +11,6 @@ export class Log {
   type: LogType;
 }
 
-export type LogDocument = HydratedDocument<Log>;
+export type LogDocument = HydratedDocument<LogModel>;
 
-export const LogSchema = SchemaFactory.createForClass(Log);
+export const LogSchema = SchemaFactory.createForClass(LogModel);
