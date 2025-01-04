@@ -4,7 +4,7 @@ import { tabs } from "~/app/moderator-instructions/tabs.ts";
 
 const page = () => {
   return (
-    <div>
+    <>
       <Tabs tabs={tabs} activeTab="unofficial" forServerSidePage prefetch />
 
       <div className="mt-4">
@@ -23,7 +23,7 @@ const page = () => {
           that it could be held as a WCA competition instead.
         </p>
       </div>
-    </div>
+    </>
   );
 };
 
