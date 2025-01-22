@@ -83,13 +83,13 @@ Please contact us at cubing-contests-admin@googlegroups.com if you want to set u
 
 ## Development
 
-This project uses Next JS for the frontend, Hono for the backend, and Mongo DB as the database. To set up the development environment, install Deno, Node & NPM (won't be required once the legacy Nest JS backend is fully migrated to Hono), Concurrently, and Docker, clone this repository, and then run this command from the root of the project:
+This project uses Next JS for the frontend, Hono for the backend, and Mongo DB as the database. To set up the development environment, install Deno, Node & NPM (won't be required once the legacy Nest JS backend is fully migrated to Hono) and Docker, clone this repository, and then run this command from the root of the project:
 
 ```sh
 ./bin/start-dev.sh
 ```
 
-That is the script you can always run when developing Cubing Contests. It starts the Next JS frontend [c], Hono backend [s], legacy Nest JS backend [l], and database [d] in parallel using concurrently (the [c/s/l/d] prefix indicates where the logs are coming from). This script also checks that you have the Nest JS CLI and Concurrently installed globally (with NPM), sets up the .env files, and installs the NPM packages in both the `client` and the `server` directories.
+That is the script you can always run when developing Cubing Contests. It starts the Next JS frontend [c], Hono backend [s], legacy Nest JS backend [l], and database [d] in parallel using concurrently (the [c/s/l/d] prefix indicates where the logs are coming from). This script also checks that you have the Nest JS CLI installed globally (with NPM), sets up the .env files, and installs the NPM packages in both the `client` and the `server` directories.
 
 The code in this repo has been formatted with `deno format`. It would be best for you to use this too while developing for this repo. You can install the Deno VS Code extension, set up Deno as your default formatter, and set it up to format on save (or whatever behavior you prefer).
 

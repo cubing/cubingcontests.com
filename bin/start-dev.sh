@@ -10,11 +10,6 @@ if [ ! -f ".env" ]; then
   echo -e "Environment variables copied from .env.example to .env\n"
 fi
 
-if [ ! -x "$(command -v concurrently)" ]; then
-  echo "Please install Concurrently globally! (e.g. npm install -g concurrently)"
-  exit 2
-fi
-
 # Install dependencies
 deno install
 
@@ -29,7 +24,7 @@ cd ..
 cp .env server/.env.dev
 
 # Start the frontent (c), legacy backend (l), new backend (s) and database (d)
-concurrently -kc blue,red,yellow,green -n c,l,s,d \
+deno run -A npm:concurrently -kc blue,red,yellow,green -n c,l,s,d \
   "cd client && deno task dev" \
   "cd server && npm run dev" \
   "cd server2 && deno task dev" \

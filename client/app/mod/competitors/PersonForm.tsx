@@ -37,7 +37,6 @@ const PersonForm = ({
   // This is set to true when the user is an admin, and they attempted to set a person with a duplicate name/country combination.
   // If the person is submitted again with no changes, the request will be sent with ignoreDuplicate=true.
   const isConfirmation = useRef(false);
-  console.log(isConfirmation.current);
 
   useEffect(() => {
     if (nextFocusTarget) {
