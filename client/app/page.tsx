@@ -9,7 +9,7 @@ const Home = () => {
     <div className="px-3">
       <h1 className="mb-4 text-center">Cubing Contests</h1>
 
-      <div className="alert alert-secondary mb-4" role="alert">
+      <div className="alert alert-light mb-4" role="alert">
         We now have a Cubing Contests <a href="https://discord.gg/7rRMQA8jnU" target="_blank">Discord server</a>!
       </div>
 
