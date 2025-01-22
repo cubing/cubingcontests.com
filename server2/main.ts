@@ -34,7 +34,7 @@ if (environment === "production") {
 }
 
 // This is a temporary hack due to Deno being unable to read the type
-(mongoose as any).connect(mongoUri).then(() => console.log("DB connection established"));
+mongoose.connect(mongoUri).then(() => console.log("DB connection established"));
 
 app.use(
   "/static/*",
@@ -58,7 +58,8 @@ app.get(
 );
 
 app.get("collective-solution", async (c: Context) => {
-  const currentSolution: CollectiveSolution = await CollectiveSolutionModel.findOne({ state: { $lt: 30 } }).exec();
+  const currentSolution: CollectiveSolution | null = await CollectiveSolutionModel.findOne({ state: { $lt: 30 } })
+    .exec();
 
   if (!currentSolution) return;
 

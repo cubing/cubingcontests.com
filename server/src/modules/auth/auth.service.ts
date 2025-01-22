@@ -64,7 +64,7 @@ export class AuthService {
       const passwordsMatch = await bcrypt.compare(password, user.password);
 
       if (passwordsMatch) {
-        if (!getUserEmailVerified(user)) throw new BadRequestException("UNCONFIRMED");
+        if (!getUserEmailVerified(user)) throw new BadRequestException("NOT_VERIFIED_EMAIL_ERROR");
 
         return {
           _id: user._id,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { IFePerson, IWcaPersonDto } from "@cc/shared";
@@ -34,6 +34,9 @@ const PersonForm = ({
   const [wcaId, setWcaId] = useState(personUnderEdit?.wcaId ?? "");
   const [hasWcaId, setHasWcaId] = useState<boolean>(personUnderEdit === undefined || !!personUnderEdit.wcaId);
   const [countryIso2, setCountryIso2] = useState(personUnderEdit?.countryIso2 ?? "NOT_SELECTED");
+  // This is set to true when the user is an admin, and they attempted to set a person with a duplicate name/country combination.
+  // If the person is submitted again with no changes, the request will be sent with ignoreDuplicate=true.
+  const isConfirmation = useRef();
 
   useEffect(() => {
     if (nextFocusTarget) {
@@ -43,6 +46,10 @@ const PersonForm = ({
     // These dependencies are required so that it focuses AFTER everything has been rerendered
   }, [nextFocusTarget, wcaId, name, localizedName, countryIso2, hasWcaId]);
 
+  useEffect(() => {
+    if (isConfirmation.value) isConfirmation.value = false;
+  }, [name, countryIso2]);
+
   const handleSubmit = async () => {
     const newPerson = {
       name: name.trim(),
@@ -50,15 +57,24 @@ const PersonForm = ({
       wcaId: hasWcaId ? wcaId : undefined,
       countryIso2,
     };
+    const extra = isConfirmation.value ? "?ignoreDuplicate=true" : "";
+
     const { payload, errors } = personUnderEdit
       ? await myFetch.patch(
-        `/persons/${(personUnderEdit as any)._id}`,
+        `/persons/${(personUnderEdit as any)._id}${extra}`,
         newPerson,
         { loadingId: "form_submit_button" },
       )
-      : await myFetch.post("/persons/no-wcaid", newPerson, { loadingId: "form_submit_button" });
+      : await myFetch.post(`/persons/no-wcaid${extra}`, newPerson, { loadingId: "form_submit_button" });
 
-    if (!errors) afterSubmit(payload);
+    if (!errors) {
+      afterSubmit(payload);
+    } else if (errors[0] === "DUPLICATE_PERSON_ERROR") {
+      isConfirmation.value = true;
+      changeErrorMessages([
+        "A person with the same name and country already exists. If it's actually a different competitor with the same name, simply submit them again.",
+      ]);
+    }
   };
 
   const afterSubmit = (newPerson: IFePerson) => {

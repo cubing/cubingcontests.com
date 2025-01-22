@@ -37,10 +37,7 @@ const LoginPage = () => {
         { authorize: false, loadingId: "form_submit_button" },
       );
 
-      if (errors && errors[0] === "UNCONFIRMED") {
-        window.location.href = `/register/confirm-email?username=${username}`;
-        return;
-      } else if (payload) {
+      if (!errors) {
         if (!payload.accessToken) {
           changeErrorMessages(["Access token not received"]);
         } else {
@@ -51,6 +48,9 @@ const LoginPage = () => {
           if (redirectUrl) window.location.replace(redirectUrl);
           else window.location.href = "/";
         }
+      } else if (errors[0] === "NOT_VERIFIED_EMAIL_ERROR") {
+        window.location.href = `/register/confirm-email?username=${username}`;
+        return;
       }
     }
   };

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { getUserInfo, logOutUser } from "~/helpers/utilityFunctions.ts";
@@ -43,7 +44,9 @@ const NavbarItems = () => {
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-md position-relative">
-        <Link className="navbar-brand fs-3" href="/">Cubing Contests</Link>
+        <Link className="navbar-brand" href="/">
+          <Image src="/favicon.png" height={45} width={45} alt="Home" />
+        </Link>
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
@@ -54,15 +57,6 @@ const NavbarItems = () => {
         </button>
         <div className={"navbar-collapse justify-content-end" + (expanded ? "" : " collapse")}>
           <ul className="navbar-nav align-items-start align-items-lg-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${pathname === "/" ? " active" : ""}`}
-                href="/"
-                onClick={collapseAll}
-              >
-                Home
-              </Link>
-            </li>
             <li className="nav-item">
               <Link
                 className={`nav-link ${pathname === "/competitions" ? " active" : ""}`}

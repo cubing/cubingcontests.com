@@ -1,6 +1,7 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
-import EventButtons from "../components/EventButtons.tsx";
+import EventButtons from "~/app/components/EventButtons.tsx";
+import DonateAlert from "~/app/components/DonateAlert.tsx";
 
 // SEO
 export const metadata = {
@@ -26,6 +27,8 @@ const ContestsPage = async ({ searchParams: { eventId } }: Props) => {
   return (
     <div>
       <h2 className="mb-4 text-center">All contests</h2>
+
+      <DonateAlert />
 
       <div className="px-2">
         {events && <EventButtons key={eventId} eventId={eventId} events={events} forPage="competitions" />}

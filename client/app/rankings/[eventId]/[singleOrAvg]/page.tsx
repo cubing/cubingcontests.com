@@ -6,6 +6,7 @@ import EventTitle from "~/app/components/EventTitle.tsx";
 import { type Event, type IEventRankings } from "@cc/shared";
 import { EventGroup, RoundFormat } from "@cc/shared";
 import { C } from "@cc/shared";
+import DonateAlert from "~/app/components/DonateAlert.tsx";
 
 // SEO
 export const metadata = {
@@ -38,6 +39,8 @@ const RankingsPage = async ({ params: { eventId, singleOrAvg }, searchParams: { 
   return (
     <div>
       <h2 className="mb-3 text-center">Rankings</h2>
+
+      <DonateAlert />
 
       <div className="mb-3 px-2">
         <h4>Event</h4>

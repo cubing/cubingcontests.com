@@ -213,14 +213,17 @@ export class PersonsService {
 
   async createPerson(
     personDto: PersonDto,
-    { user }: { user: IPartialUser | "EXT_DEVICE" },
+    { user, ignoreDuplicate }: { user: IPartialUser | "EXT_DEVICE"; ignoreDuplicate?: boolean },
   ): Promise<PersonDocument | IFePerson> {
     this.logger.logAndSave(
       `Creating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : "no WCA ID"}`,
       LogType.CreatePerson,
     );
 
-    await this.validateAndCleanUpPerson(personDto);
+    await this.validateAndCleanUpPerson(personDto, {
+      ignoreDuplicate,
+      isAdmin: user !== "EXT_DEVICE" && user.roles.includes(Role.Admin),
+    });
 
     const [newestPerson] = await this.personModel.find({}, { personId: 1 }).sort({ personId: -1 }).limit(1).exec();
     const createdPerson = await this.personModel.create({
@@ -233,18 +236,23 @@ export class PersonsService {
     return this.getFrontendPerson(createdPerson, { user });
   }
 
-  async updatePerson(id: string, personDto: PersonDto, user: IPartialUser): Promise<IFePerson> {
+  async updatePerson(
+    id: string,
+    personDto: PersonDto,
+    user: IPartialUser,
+    { ignoreDuplicate }: { ignoreDuplicate?: boolean } = {},
+  ): Promise<IFePerson> {
     this.logger.logAndSave(
       `Updating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : "no WCA ID"}`,
       LogType.UpdatePerson,
     );
 
-    await this.validateAndCleanUpPerson(personDto, { excludeId: id });
+    const isAdmin = user.roles.includes(Role.Admin);
+
+    await this.validateAndCleanUpPerson(personDto, { excludeId: id, ignoreDuplicate, isAdmin });
 
     const person = await this.personModel.findById(id).exec();
     if (!person) throw new NotFoundException("Person not found");
-
-    const isAdmin = user.roles.includes(Role.Admin);
 
     if (!isAdmin && !person.unapproved) {
       throw new BadRequestException("You may not edit a person who has competed in a published contest");
@@ -391,7 +399,10 @@ export class PersonsService {
     }
   }
 
-  private async validateAndCleanUpPerson(personDto: PersonDto, { excludeId }: { excludeId?: string } = {}) {
+  private async validateAndCleanUpPerson(
+    personDto: PersonDto,
+    { ignoreDuplicate, excludeId, isAdmin }: { ignoreDuplicate?: boolean; excludeId?: string; isAdmin?: boolean } = {},
+  ) {
     const queryBase: any = excludeId ? { _id: { $ne: excludeId } } : {};
 
     if (personDto.wcaId?.trim()) {
@@ -400,15 +411,19 @@ export class PersonsService {
       if (sameWcaIdPerson) throw new ConflictException("A person with the same WCA ID already exists");
     }
 
-    const sameNamePerson = await this.personModel.findOne({
-      ...queryBase,
-      name: personDto.name,
-      countryIso2: personDto.countryIso2,
-    }).exec();
-    if (sameNamePerson) {
-      throw new ConflictException(
-        "A person with the same name and country already exists. If it's actually a different competitor with the same name, please contact the admin team.",
-      );
+    if (!ignoreDuplicate) {
+      const sameNamePerson = await this.personModel.findOne({
+        ...queryBase,
+        name: personDto.name,
+        countryIso2: personDto.countryIso2,
+      }).exec();
+      if (sameNamePerson) {
+        throw new ConflictException(
+          isAdmin
+            ? "DUPLICATE_PERSON_ERROR"
+            : "A person with the same name and country already exists. If it's actually a different competitor with the same name, please contact the admin team. For now, simply add (2) at the end of their name to do data entry.",
+        );
+      }
     }
   }
 

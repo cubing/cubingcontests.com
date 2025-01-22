@@ -86,7 +86,7 @@ const DataEntryScreen = ({
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
     document.getElementById("Competitor_1")?.focus();
-  }, [round.roundId]);
+  }, [round]);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS

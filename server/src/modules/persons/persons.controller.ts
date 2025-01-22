@@ -20,6 +20,7 @@ import { Roles } from "~/src/helpers/roles.decorator";
 import { Role } from "~/shared/enums";
 import { PersonDto } from "./dto/person.dto";
 import { LogType } from "~/src/helpers/enums";
+import { IPartialUser } from "~/src/helpers/interfaces/User";
 
 @Controller("persons")
 export class PersonsController {
@@ -62,22 +63,34 @@ export class PersonsController {
     return await this.personsService.getOrCreatePersonByWcaId(wcaId, { user: req.user });
   }
 
-  // POST /persons/no-wcaid
+  // POST /persons/no-wcaid(?ignoreDuplicate=true)
   @Post("no-wcaid")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async createNoWcaIdPerson(@Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
+  async createNoWcaIdPerson(
+    @Body(new ValidationPipe()) personDto: PersonDto,
+    @Request() req: any,
+    @Query("ignoreDuplicate") ignoreDuplicate?: boolean,
+  ) {
     if (personDto.wcaId) throw new BadRequestException("This endpoint is only for creating persons without a WCA ID");
+    this.checkCanIgnoreDuplicate(req.user, ignoreDuplicate);
 
-    return await this.personsService.createPerson(personDto, { user: req.user });
+    return await this.personsService.createPerson(personDto, { user: req.user, ignoreDuplicate });
   }
 
-  // PATCH /persons/:id
+  // PATCH /persons/:id(?ignoreDuplicate=true)
   @Patch(":id")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async updatePerson(@Param("id") id: string, @Body(new ValidationPipe()) personDto: PersonDto, @Request() req: any) {
-    return await this.personsService.updatePerson(id, personDto, req.user);
+  async updatePerson(
+    @Param("id") id: string,
+    @Body(new ValidationPipe()) personDto: PersonDto,
+    @Request() req: any,
+    @Query("ignoreDuplicate") ignoreDuplicate?: boolean,
+  ) {
+    this.checkCanIgnoreDuplicate(req.user, ignoreDuplicate);
+
+    return await this.personsService.updatePerson(id, personDto, req.user, { ignoreDuplicate });
   }
 
   // PATCH /persons/:id/approve
@@ -94,5 +107,11 @@ export class PersonsController {
   @Roles(Role.Admin)
   async deletePerson(@Param("id") id: string) {
     return await this.personsService.deletePerson(id);
+  }
+
+  private checkCanIgnoreDuplicate(user: IPartialUser, ignoreDuplicate?: boolean) {
+    if (!user.roles.includes(Role.Admin) && ignoreDuplicate) {
+      throw new BadRequestException("You are unauthorized to create duplicate competitors");
+    }
   }
 }
