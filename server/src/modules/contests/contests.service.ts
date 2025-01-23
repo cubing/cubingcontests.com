@@ -439,6 +439,8 @@ export class ContestsService {
       contest.meetupDetails = contestDto.meetupDetails;
     }
 
+    // This block is dumb, cause it doesn't actually check that the new values aren't empty (it's only checked for
+    // the venue field in validateAndCleanUpContest). I don't think it's checked thoroughly on contest creation either, actually.
     if (isAdmin || contest.state < ContestState.Approved) {
       contest.name = contestDto.name;
       contest.shortName = contestDto.shortName;
@@ -466,13 +468,14 @@ export class ContestsService {
 
     await this.authService.checkAccessRightsToContest(user, contest, { allowNotApproved: true });
     if (getIsCompType(contest.type) && !contest.compDetails) {
+      // Legacy thing from when we used the import contest feature, which left the schedule empty, requiring it to be entered manually
       throw new BadRequestException("A competition without a schedule cannot be approved");
     }
     if (contest.state === newState) {
       throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
     }
 
-    const resultFromContest = await this.resultModel.findOne({ competitionId });
+    const resultFromContest = await this.resultModel.findOne({ competitionId }).exec();
     const isAdmin = user.roles.includes(Role.Admin);
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
     const contestUrl = getContestUrl(competitionId);
@@ -483,8 +486,6 @@ export class ContestsService {
       contest.state = ContestState.Ongoing;
     } // Allow mods only to finish an ongoing contest
     else if (isAdmin || (contest.state === ContestState.Ongoing && newState === ContestState.Finished)) {
-      contest.state = newState;
-
       if (newState === ContestState.Approved) {
         await this.personsService.approvePersons({ personIds: contest.organizers.map((o) => o.personId) });
 
@@ -493,11 +494,21 @@ export class ContestsService {
           `Your contest <a href="${contestUrl}">${contest.name}</a> has been approved and is now public on the website.`,
           { subject: `Contest approved: ${contest.shortName}` },
         );
+      } else if (contest.state === ContestState.Finished && newState === ContestState.Ongoing) {
+        await contest.populate(eventPopulateOptions.rounds);
+
+        for (const event of contest.events) {
+          const lastRound = event.rounds.at(-1);
+          lastRound.open = true;
+          await lastRound.save();
+        }
       } else if (newState === ContestState.Finished) {
         await this.finishContest(contest);
       } else if (isAdmin && newState === ContestState.Published) {
         await this.publishContest(contest, contestCreatorEmail);
       }
+
+      contest.state = newState;
     }
 
     await contest.save();
@@ -779,8 +790,14 @@ export class ContestsService {
   }
 
   private validateAndCleanUpContest(contest: IContestDto, user: IPartialUser) {
+    const isAdmin = user.roles.includes(Role.Admin);
+
     if (contest.startDate > contest.endDate) {
       throw new BadRequestException("The start date must be before the end date");
+    }
+    // This check is done like this, because admins can actually leave the venue empty, but not null or undefined
+    if (!contest.venue && (!isAdmin || typeof contest.venue !== "string")) {
+      throw new BadRequestException("The venue field is required");
     }
 
     // Validation for WCA competitions and unofficial competitions
@@ -880,7 +897,7 @@ export class ContestsService {
     }
 
     // Disallow mods to make admin-only edits
-    if (!user.roles.includes(Role.Admin)) {
+    if (!isAdmin) {
       if (!contest.address) throw new BadRequestException("Please enter an address");
       if (!contest.venue) throw new BadRequestException("Please enter the venue name");
       if (!contest.organizers.some((o) => o.personId === user.personId)) {

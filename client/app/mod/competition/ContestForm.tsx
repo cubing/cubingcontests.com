@@ -402,8 +402,22 @@ You have a round with a default time limit of 10:00. A round with a high time li
     window.location.href = `/mod/competition?copy_id=${contest?.competitionId}`;
   };
 
+  const unfinishContest = async () => {
+    const answer = confirm(`Are you sure you would like to set ${(contest as IContest).name} back to ongoing?`);
+
+    if (answer) {
+      const { errors } = await myFetch.patch(
+        `/competitions/set-state/${competitionId}`,
+        { newState: ContestState.Ongoing },
+        { loadingId: "unfinish_contest_button", keepLoadingOnSuccess: true },
+      );
+
+      if (!errors) window.location.href = "/mod";
+    }
+  };
+
   const removeContest = async () => {
-    const answer = confirm(`Are you sure you would like to remove ${contest?.name}?`);
+    const answer = confirm(`Are you sure you would like to remove ${(contest as IContest).name}?`);
 
     if (answer) {
       const { errors } = await myFetch.delete(
@@ -498,15 +512,27 @@ You have a round with a default time limit of 10:00. A round with a high time li
                     </Button>
                   )}
                   {userInfo?.isAdmin && (
-                    <Button
-                      id="delete_contest_button"
-                      onClick={removeContest}
-                      loadingId={loadingId}
-                      disabled={contest.participants > 0}
-                      className="btn-danger"
-                    >
-                      Remove Contest
-                    </Button>
+                    <>
+                      {contest.state === ContestState.Finished && (
+                        <Button
+                          id="unfinish_contest_button"
+                          onClick={unfinishContest}
+                          loadingId={loadingId}
+                          className="btn-warning"
+                        >
+                          Un-finish Contest
+                        </Button>
+                      )}
+                      <Button
+                        id="delete_contest_button"
+                        onClick={removeContest}
+                        loadingId={loadingId}
+                        disabled={contest.participants > 0}
+                        className="btn-danger"
+                      >
+                        Remove Contest
+                      </Button>
+                    </>
                   )}
                   <Button
                     id="download_scorecards_a4_button"

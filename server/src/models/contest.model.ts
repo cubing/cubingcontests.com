@@ -61,7 +61,8 @@ class ContestModel {
   @Prop({ required: true, immutable: true })
   countryIso2: string;
 
-  @Prop({ required: true })
+  // This is actually required, but admins may set venue to an empty string
+  @Prop()
   venue: string;
 
   @Prop({ required: true })
