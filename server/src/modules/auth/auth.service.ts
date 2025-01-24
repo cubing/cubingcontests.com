@@ -141,7 +141,7 @@ export class AuthService {
     return authToken && (await bcrypt.compare(token, authToken.token));
   }
 
-  async deleteAuthToken(competitionId: string) {
+  async deleteAuthTokens(competitionId: string) {
     await this.authTokenModel.deleteMany({ competitionId }).exec();
   }
 

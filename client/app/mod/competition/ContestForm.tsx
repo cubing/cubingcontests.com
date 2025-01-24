@@ -219,11 +219,18 @@ const ContestForm = ({
       processedCompEvents.some((ce: IContestEvent) =>
         ce.rounds.some((r) => r.timeLimit?.centiseconds === 60000 && r.timeLimit?.cumulativeRoundIds.length === 0)
       );
-    const doSubmit = mode === "edit" || // this check isn't needed when editing a contest
-      !getRoundWithDefaultTimeLimitExists() ||
-      confirm(`
-You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?
-`);
+    const confirmDefaultTimeLimitMsg =
+      "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
+    console.log(competitionId, contest?.competitionId);
+    const doSubmit = mode !== "edit"
+      ? (
+        !getRoundWithDefaultTimeLimitExists() ||
+        confirm(confirmDefaultTimeLimitMsg)
+      )
+      : (competitionId === contest?.competitionId ||
+        confirm(
+          `Are you sure you would like to change the contest ID from ${contest?.competitionId} to ${competitionId}?`,
+        ));
 
     if (doSubmit) {
       // Validation
@@ -234,6 +241,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
       if (type === ContestType.WcaComp && !detailsImported) {
         tempErrors.push('You must use the "Get WCA competition details" feature');
       }
+
       if (tempErrors.length > 0) {
         changeErrorMessages(tempErrors);
       } else {
@@ -608,7 +616,7 @@ You have a round with a default time limit of 10:00. A round with a high time li
               title="Contest ID"
               value={competitionId}
               setValue={setCompetitionId}
-              disabled={mode === "edit" || disableIfDetailsImported}
+              disabled={disableIfContestApproved || disableIfDetailsImported || (mode === "edit" && !userInfo?.isAdmin)}
               className="mb-3"
             />
             <FormRadio

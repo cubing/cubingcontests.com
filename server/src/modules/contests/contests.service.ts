@@ -306,14 +306,14 @@ export class ContestsService {
 
   async createContest(contestDto: ContestDto, user: IPartialUser, saveResults = false) {
     // No need to check that the state is not removed, because removed contests have _REMOVED at the end anyways
-    const sameIdC = await this.contestModel.findOne({ competitionId: contestDto.competitionId }).exec();
+    const sameIdC = await this.contestModel.exists({ competitionId: contestDto.competitionId }).exec();
     if (sameIdC) throw new ConflictException(`A contest with the ID ${contestDto.competitionId} already exists`);
     const sameNameC = await this.contestModel
-      .findOne({ name: contestDto.name, state: { $ne: ContestState.Removed } })
+      .exists({ name: contestDto.name, state: { $ne: ContestState.Removed } })
       .exec();
     if (sameNameC) throw new ConflictException(`A contest with the name ${contestDto.name} already exists`);
     const sameShortC = await this.contestModel
-      .findOne({ shortName: contestDto.shortName, state: { $ne: ContestState.Removed } })
+      .exists({ shortName: contestDto.shortName, state: { $ne: ContestState.Removed } })
       .exec();
     if (sameShortC) throw new ConflictException(`A contest with the short name ${contestDto.shortName} already exists`);
 
@@ -412,14 +412,16 @@ export class ContestsService {
     const isAdmin = user.roles.includes(Role.Admin);
 
     this.authService.checkAccessRightsToContest(user, contest, { allowNotApproved: true });
+    if (contestDto.competitionId !== competitionId) {
+      const newCompetitionIdClashes = await this.contestModel.exists({
+        _id: { $ne: contest._id },
+        competitionId: contestDto.competitionId,
+      }).exec();
+      if (newCompetitionIdClashes) {
+        throw new ConflictException(`A contest with the ID ${contestDto.competitionId} already exists`);
+      }
+    }
     this.validateAndCleanUpContest(contestDto, user);
-
-    if (contestDto.competitionId !== contest.competitionId) {
-      throw new BadRequestException("Changing the contest ID is not allowed");
-    }
-    if (contestDto.countryIso2 !== contest.countryIso2) {
-      throw new BadRequestException("Changing the country is not allowed");
-    }
 
     contest.organizers = await this.personsService.getPersonsByPersonIds(
       contestDto.organizers.map((org) => org.personId),
@@ -439,6 +441,17 @@ export class ContestsService {
       contest.meetupDetails = contestDto.meetupDetails;
     }
 
+    if (isAdmin && contest.state < ContestState.Approved) {
+      contest.competitionId = contestDto.competitionId;
+      await this.resultModel.updateMany({ competitionId }, { $set: { competitionId: contestDto.competitionId } })
+        .exec();
+      await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contestDto.competitionId } }).exec();
+      await this.authService.deleteAuthTokens(competitionId);
+      if (getIsCompType(contest.type)) {
+        await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contestDto.competitionId } })
+          .exec();
+      }
+    }
     // This block is dumb, cause it doesn't actually check that the new values aren't empty (it's only checked for
     // the venue field in validateAndCleanUpContest). I don't think it's checked thoroughly on contest creation either, actually.
     if (isAdmin || contest.state < ContestState.Approved) {
@@ -532,7 +545,7 @@ export class ContestsService {
       await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     }
     await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
-    await this.authService.deleteAuthToken(competitionId);
+    await this.authService.deleteAuthTokens(competitionId);
 
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
     await this.emailService.sendEmail(contestCreatorEmail, `Your contest ${contest.name} has been removed.`, {
