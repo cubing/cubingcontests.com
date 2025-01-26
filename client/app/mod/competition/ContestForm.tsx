@@ -277,14 +277,16 @@ const ContestForm = ({
       setDescription("THIS IS A MOCK CONTEST FOR TESTING!");
       setCompetitorLimit(100);
 
+      const year = new Date().getFullYear();
+
       if (mockContestType === ContestType.Meetup) {
-        setName("New Meetup 2024");
-        setShortName("New Meetup 2024");
-        setCompetitionId("NewMeetup2024");
+        setName(`New Meetup ${year}`);
+        setShortName(`New Meetup ${year}`);
+        setCompetitionId(`NewMeetup${year}`);
       } else {
-        setName("New Competition 2024");
-        setShortName("New Competition 2024");
-        setCompetitionId("NewCompetition2024");
+        setName(`New Competition ${year}`);
+        setShortName(`New Competition ${year}`);
+        setCompetitionId(`NewCompetition${year}`);
         setRooms([{ id: 1, name: "Main", color: Color.White, activities: [] }]);
       }
     }
@@ -752,7 +754,7 @@ const ContestForm = ({
                 infiniteInputs
                 nextFocusTargetId="contact"
                 disabled={(disableIfContestApproved && !userInfo?.isAdmin) || disableIfContestPublished}
-                addNewPersonFromNewTab
+                addNewPersonMode="from-new-tab"
               />
             </div>
             <FormTextInput
@@ -780,7 +782,7 @@ const ContestForm = ({
                   The following text will be displayed above the description on the contest page:
                 </p>
                 <div className="mx-2">
-                  <WcaCompAdditionalDetails name={name || "[CONTEST NAME]"} competitionId={competitionId} />
+                  <WcaCompAdditionalDetails name={name || "CONTEST NAME"} competitionId={competitionId} />
                 </div>
               </div>
             )}

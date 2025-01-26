@@ -33,14 +33,14 @@ export class ContestsController {
     return await this.service.getContests(region, eventId);
   }
 
-  // GET /competitions/mod
+  // GET /competitions/mod(?organizerId=[personId])
   @Get("mod")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModContests(@Request() req: any) {
+  async getModContests(@Request() req: any, @Query("organizerId") organizerId?: number) {
     this.logger.logAndSave("Getting mod contests", LogType.GetModContests);
 
-    return await this.service.getModContests(req.user);
+    return await this.service.getModContests(req.user, { organizerId });
   }
 
   // GET /competitions/:competitionId(?eventId=...)

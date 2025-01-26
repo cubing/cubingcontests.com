@@ -1,5 +1,5 @@
-import Tabs from "~/app/components/UI/Tabs.tsx";
 import Link from "next/link";
+import Tabs from "~/app/components/UI/Tabs.tsx";
 import { tabs } from "~/app/moderator-instructions/tabs.ts";
 
 const page = () => {
@@ -16,13 +16,25 @@ const page = () => {
           <b className="hl">WCA Competition</b> contest type, and click{" "}
           <b className="hl">Get WCA competition details</b>. The website may return an error, saying that the
           competition is not found, if not enough time has passed after it got published on the WCA website. In that
-          case, simply try again the following day.
+          case, simply try again the next day.
         </p>
+        <p className="ms-3">
+          A1.1. If you are holding unofficial events at one of the locations of a WCA competition with multiple
+          locations, you must instead use the <b className="hl">Competition</b>{" "}
+          contest type. The name must be set like this: [WCA competition name without the year] ([Location]) [Year]
+          (e.g. FMC (Prague) 2024). The short name can be reasonably chosen, as long as it contains most of the same
+          information. The contest ID must match the full CC contest name. The description must include links to both
+          the WCA page and the location website (if applicable) at the top, using this Markdown template:
+        </p>
+        <div className="alert alert-light mx-3" role="alert">
+          Unofficial events from <strong>WCA COMPETITION NAME</strong> (location{" "}
+          <strong>LOCATION</strong>). For official events see the official [WCA competition page](link to WCA page). For
+          information about this location see [the location page](link to location website).
+        </div>
         <p>
           A2. Edit the editable fields, if necessary. All users with moderator privileges who are listed as organizers
           on the contest page will have access to edit it and do data entry. Use the description input to add additional
-          details, if necessary. The description supports Markdown links, so you can add them using this syntax:
-          [display text](link).
+          details, if necessary. The description supports Markdown syntax.
         </p>
         <p>
           A3. Go to the Events tab and select all unofficial events and rounds you would like to hold. Please think this

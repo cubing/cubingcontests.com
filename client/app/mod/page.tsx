@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { ContestState } from "@cc/shared";
+import { ContestState, IPerson } from "@cc/shared";
 import { IAdminStats, IContest } from "@cc/shared";
 import { UserInfo } from "~/helpers/types.ts";
 import { getFormattedDate, getUserInfo } from "~/helpers/utilityFunctions.ts";
@@ -17,11 +17,15 @@ import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { C } from "@cc/shared";
+import { useRouter, useSearchParams } from "next/navigation";
+import ModFilters from "~/app/mod/ModFilters";
 
 const userInfo: UserInfo = getUserInfo();
 
 const ModeratorDashboardPage = () => {
   const myFetch = useMyFetch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { loadingId } = useContext(MainContext);
 
   const [contests, setContests] = useState<IContest[]>();
@@ -33,10 +37,18 @@ const ModeratorDashboardPage = () => {
     (c.state > ContestState.Approved && c.state < ContestState.Published)
   ).length ?? 0;
 
+  const fetchContests = async (newOrganizerId?: string | number) => {
+    const { payload } = await myFetch.get(
+      `/competitions/mod${newOrganizerId ? `?organizerId=${newOrganizerId}` : ""}`,
+      { authorize: true },
+    );
+
+    if (payload) setContests(payload);
+  };
+
   useEffect(() => {
-    myFetch.get("/competitions/mod", { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setContests(payload);
-    });
+    const organizerId = searchParams.get("organizerId");
+    fetchContests(typeof organizerId === "string" ? organizerId : undefined);
 
     if (userInfo?.isAdmin) {
       myFetch.get("/admin-stats", { authorize: true }).then(({ payload, errors }) => {
@@ -70,6 +82,16 @@ const ModeratorDashboardPage = () => {
         setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
       }
     }
+  };
+
+  const selectPerson = (person: IPerson) => {
+    router.replace(`/mod?organizerId=${person.personId}`);
+    fetchContests(person.personId);
+  };
+
+  const resetFilters = () => {
+    router.replace("/mod");
+    fetchContests();
   };
 
   return (
@@ -165,6 +187,8 @@ const ModeratorDashboardPage = () => {
           </>
         )}
       </div>
+
+      <ModFilters onSelectPerson={selectPerson} onResetFilters={resetFilters} disabled={!contests} />
 
       {!contests
         ? <Loading />

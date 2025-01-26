@@ -27,9 +27,9 @@ const FormPersonInputs = ({
   infiniteInputs,
   nextFocusTargetId,
   disabled,
-  addNewPersonFromNewTab,
+  addNewPersonMode,
   redirectToOnAddPerson = "",
-  noGrid,
+  display = "grid",
 }: {
   title: string;
   personNames: string[];
@@ -40,15 +40,15 @@ const FormPersonInputs = ({
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
   disabled?: boolean;
-  addNewPersonFromNewTab?: boolean;
+  addNewPersonMode?: "default" | "from-new-tab" | "disabled";
   redirectToOnAddPerson?: string;
-  noGrid?: boolean;
+  display?: "basic" | "grid" | "one-line";
 }) => {
   const myFetch = useMyFetch();
   const { loadingId, changeLoadingId } = useContext(MainContext);
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
-  const defaultMatchedPersons: (IPerson | null)[] = userInfo?.isMod ? [null] : [];
+  const defaultMatchedPersons: (IPerson | null)[] = userInfo?.isMod && addNewPersonMode !== "disabled" ? [null] : [];
 
   const [matchedPersons, setMatchedPersons] = useState<(IPerson | null)[]>(defaultMatchedPersons);
   const [personSelection, setPersonSelection] = useState(0);
@@ -155,7 +155,7 @@ const FormPersonInputs = ({
       if (userInfo?.isMod) {
         setFocusedInput(null);
 
-        if (addNewPersonFromNewTab) open("/mod/competitors", "_blank");
+        if (addNewPersonMode === "from-new-tab") open("/mod/competitors", "_blank");
         else if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
         else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
       }
@@ -196,52 +196,58 @@ const FormPersonInputs = ({
   };
 
   return (
-    <div className="row">
+    <div className={display === "grid" ? "row" : ""}>
       {personNames.map((personName: string, inputIndex: number) => (
-        <div key={inputIndex} className={personNames.length > 1 && !noGrid ? "col-md-6" : ""}>
-          <FormTextInput
-            id={`${title}_${inputIndex + 1}`}
-            title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
-            tooltip={inputIndex === 0 ? personInputTooltip : undefined}
-            value={personName}
-            setValue={(val: string) =>
-              changePersonName(inputIndex, val)}
-            onKeyDown={(e: any) =>
-              onPersonKeyDown(inputIndex, e)}
-            onFocus={() => changeFocusedInput(inputIndex, personName)}
-            onBlur={() => changeFocusedInput(null)}
-            disabled={disabled}
-            className="mb-3"
-          />
-          {inputIndex === focusedInput && personName && (
-            <ul className="position-absolute list-group" style={{ zIndex: 10 }}>
-              {loadingId === "MATCHED_PERSONS"
-                ? (
-                  <li className="list-group-item">
-                    <div style={{ width: "200px" }}>
-                      <Loading small />
-                    </div>
-                  </li>
-                )
-                : matchedPersons.length > 0
-                ? (
-                  matchedPersons.map((person: IPerson | null, matchIndex: number) => (
-                    <li
-                      key={matchIndex}
-                      className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}
-                      style={{ cursor: "pointer" }}
-                      aria-current={matchIndex === personSelection}
-                      onMouseEnter={() => setPersonSelection(matchIndex)}
-                      onMouseDown={() =>
-                        selectPerson(inputIndex, matchIndex)}
-                    >
-                      {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
+        <div
+          key={inputIndex}
+          className={personNames.length > 1 && display === "grid" ? "col-md-6" : ""}
+        >
+          <div className="position-relative">
+            <FormTextInput
+              id={`${title}_${inputIndex + 1}`}
+              title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
+              tooltip={inputIndex === 0 ? personInputTooltip : undefined}
+              value={personName}
+              setValue={(val: string) => changePersonName(inputIndex, val)}
+              onKeyDown={(e: any) => onPersonKeyDown(inputIndex, e)}
+              onFocus={() => changeFocusedInput(inputIndex, personName)}
+              onBlur={() => changeFocusedInput(null)}
+              oneLine={display === "one-line"}
+              disabled={disabled}
+              className={display === "one-line" ? "" : "mb-3"}
+            />
+            {inputIndex === focusedInput && personName && (
+              <ul
+                className={`position-absolute list-group ${display === "one-line" ? "end-0" : ""}`}
+                style={{ zIndex: 10, minWidth: display === "one-line" ? "initial" : "100%" }}
+              >
+                {loadingId === "MATCHED_PERSONS"
+                  ? (
+                    <li className="list-group-item">
+                      <div style={{ minWidth: "200px" }}>
+                        <Loading small />
+                      </div>
                     </li>
-                  ))
-                )
-                : "(competitor not found)"}
-            </ul>
-          )}
+                  )
+                  : matchedPersons.length > 0
+                  ? (
+                    matchedPersons.map((person: IPerson | null, matchIndex: number) => (
+                      <li
+                        key={matchIndex}
+                        className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}
+                        style={{ cursor: "pointer" }}
+                        aria-current={matchIndex === personSelection}
+                        onMouseEnter={() => setPersonSelection(matchIndex)}
+                        onMouseDown={() => selectPerson(inputIndex, matchIndex)}
+                      >
+                        {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
+                      </li>
+                    ))
+                  )
+                  : <li className="list-group-item">(competitor not found)</li>}
+              </ul>
+            )}
+          </div>
         </div>
       ))}
     </div>

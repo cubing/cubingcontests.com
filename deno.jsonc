@@ -1,5 +1,5 @@
 {
-  // When updating this, remember to also update it in .vscode/settings.json (but leave ./bin there)
+  // When editing this, also consider .vscode/settings.json
   "workspace": ["./client", "./server2", "./shared"],
   "exclude": ["./client/.next", "./server/dist", "./server/shared"],
   "nodeModulesDir": "auto",

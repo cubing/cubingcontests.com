@@ -130,7 +130,7 @@ const CreatePersonPage = () => {
 
       {mode === "view"
         ? (
-          <Button onClick={onAddCompetitor} className="btn-success btn-sm ms-3" style={{ width: "fit-content" }}>
+          <Button onClick={onAddCompetitor} className="btn-success btn-sm mx-2" style={{ width: "fit-content" }}>
             Add competitor
           </Button>
         )
@@ -145,7 +145,7 @@ const CreatePersonPage = () => {
       {mode !== "add-once" && (
         <>
           {/* Same styling as the filters on the manage users page */}
-          <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 mb-3 px-3">
+          <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 mb-3 px-2">
             <FormTextInput
               title="Search"
               value={search}
@@ -164,7 +164,7 @@ const CreatePersonPage = () => {
             />
           </div>
 
-          <p className="mb-2 px-3">
+          <p className="mb-2 px-2">
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 

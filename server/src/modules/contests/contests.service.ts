@@ -238,19 +238,28 @@ export class ContestsService {
     return contests;
   }
 
-  async getModContests(user: IPartialUser) {
+  async getModContests(user: IPartialUser, { organizerId }: { organizerId?: number } = {}) {
     let queryFilter: any = {};
+    let organizerFilter: any;
 
-    // Check access rights
-    if (!user.roles.includes(Role.Admin)) {
+    if (organizerId) {
+      const organizer = await this.personsService.getPersonByPersonId(organizerId);
+      organizerFilter = { organizers: (organizer as any)._id };
+    }
+
+    if (user.roles.includes(Role.Admin)) {
+      if (organizerId) {
+        const user = await this.usersService.getPartialUserWithQuery({ personId: organizerId });
+        queryFilter = { $or: [user ? { createdBy: user._id } : undefined, organizerFilter].filter((x) => !!x) };
+      }
+    } else {
       const person = await this.personsService.getPersonByPersonId(user.personId, {
         customError: "Your profile must be tied to your account before you can use moderator features",
       });
-      queryFilter = { organizers: (person as any)._id };
+      queryFilter = { $and: [{ organizers: (person as any)._id }, organizerFilter].filter((x) => !!x) };
     }
 
-    const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
-    return contests;
+    return await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
   }
 
   // If user is defined, that means the request is for a moderator page.

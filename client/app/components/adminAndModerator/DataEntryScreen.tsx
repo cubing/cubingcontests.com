@@ -308,7 +308,7 @@ const DataEntryScreen = ({
               nextFocusTargetId="attempt_1"
               redirectToOnAddPerson={window.location.pathname}
               disabled={!round.open}
-              noGrid
+              display="basic"
             />
             {attempts.map((attempt: IFeAttempt, i: number) => (
               <AttemptInput

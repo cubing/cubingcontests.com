@@ -6,4 +6,6 @@ M2. Judges and scramblers are not required.\
 those that don't, random move scrambles must be used. The scrambles must be generated ahead of time.\
 M3. A meetup may not have fewer than three competitors in total. Such meetups will be removed without the results being
 published.\
-M4. A meetup may not be held at a private residence.
+M4. A meetup may not be held at a private residence.\
+M5. A meetup may be restricted to members of a particular group, at the discretion of the admin team (e.g. speedcubing
+club members at a university or students of a specific school).
