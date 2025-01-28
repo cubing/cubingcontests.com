@@ -8,4 +8,4 @@ M3. A meetup may not have fewer than three competitors in total. Such meetups wi
 published.\
 M4. A meetup may not be held at a private residence.\
 M5. A meetup may be restricted to members of a particular group, at the discretion of the admin team (e.g. speedcubing
-club members at a university or students of a specific school).
+club members at a university, or students of a specific school).
