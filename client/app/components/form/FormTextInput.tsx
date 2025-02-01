@@ -70,10 +70,9 @@ const FormTextInput = ({
 
   return (
     <div className={`fs-5 ${oneLine ? "d-flex align-items-center gap-3" : ""} ${className}`}>
-      <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
+      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
 
-      {/* mb-2 is to offset the bottom margin of the label */}
-      <div className={`d-flex justify-content-between align-items-center gap-3 ${oneLine ? "mb-2" : ""}`}>
+      <div className={`d-flex justify-content-between align-items-center gap-3 ${oneLine ? "" : "mt-2"}`}>
         <input
           type={hidePassword ? "password" : "text"}
           id={inputId}

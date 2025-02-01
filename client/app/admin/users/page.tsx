@@ -18,6 +18,7 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { InputPerson } from "~/helpers/types.ts";
 import Competitor from "~/app/components/Competitor.tsx";
+import FiltersContainer from "~/app/components/FiltersContainer";
 
 const ManageUsersPage = () => {
   const myFetch = useMyFetch();
@@ -135,10 +136,9 @@ const ManageUsersPage = () => {
         </Form>
       )}
 
-      {/* Same styling as the filters on the manage competitors page */}
-      <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 mb-3 px-3">
+      <FiltersContainer className="mt-4">
         <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
-      </div>
+      </FiltersContainer>
 
       <p className="mb-2 px-3">
         Number of users:&nbsp;<b>{filteredUsers.length}</b>

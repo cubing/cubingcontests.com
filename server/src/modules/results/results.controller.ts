@@ -90,12 +90,12 @@ export class ResultsController {
     return await this.service.getRecordPairs(events, recordsUpToDate, { excludeResultId });
   }
 
-  // GET /results/submission-based
-  @Get("submission-based")
+  // GET /results/video-based
+  @Get("video-based")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
-  async getSubmissionBasedResults() {
-    return await this.service.getSubmissionBasedResults();
+  async getVideoBasedResults() {
+    return await this.service.getVideoBasedResults();
   }
 
   // POST /results/:roundId

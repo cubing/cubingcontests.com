@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
@@ -12,35 +12,71 @@ import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs";
+import FiltersContainer from "~/app/components/FiltersContainer";
+import { InputPerson } from "~/helpers/types";
+import Button from "~/app/components/UI/Button";
 
 const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const myFetch = useMyFetch();
   const parentRef = useRef<Element>(null);
 
   const [results, setResults] = useState<IFeResult[]>([]);
+  const [persons, setPersons] = useState<InputPerson[]>([null]);
+  const [personNames, setPersonNames] = useState([""]);
+
+  const filteredResults = useMemo(() =>
+    results.filter((r) => {
+      const passesCompetitorFilter = !persons[0] || r.personIds.includes(persons[0].personId);
+      return passesCompetitorFilter;
+    }), [results, persons]);
 
   const rowVirtualizer = useVirtualizer({
-    count: results.length,
+    count: filteredResults.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 43.4167, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
     overscan: 20,
   });
 
   useEffect(() => {
-    myFetch.get("/results/submission-based", { authorize: true }).then(({ payload, errors }) => {
+    myFetch.get("/results/video-based", { authorize: true }).then(({ payload, errors }) => {
       if (!errors) setResults(payload);
     });
   }, []);
+
+  const resetFilters = () => {
+    setPersons([null]);
+    setPersonNames([""]);
+  };
 
   return (
     <section>
       <h2 className="mb-4 text-center">Results</h2>
       <ToastMessages />
 
+      <FiltersContainer>
+        <FormPersonInputs
+          title="Competitor"
+          persons={persons}
+          setPersons={setPersons}
+          personNames={personNames}
+          setPersonNames={setPersonNames}
+          disabled={results.length === 0}
+          addNewPersonMode="disabled"
+          display="one-line"
+        />
+        {persons.at(0) &&
+          (
+            <Button onClick={resetFilters} className="btn btn-secondary btn-md">
+              Reset
+            </Button>
+          )}
+      </FiltersContainer>
+
       <p className="px-3">
-        Total submitted results:&nbsp;<b>{results.length}</b>
+        Number of video-based results:&nbsp;<b>{filteredResults.length}</b>
         &#8194;|&#8194;Unapproved:&nbsp;
-        <b>{results.filter((r: IFeResult) => r.unapproved).length}</b>
+        <b>{filteredResults.filter((r: IFeResult) => r.unapproved).length}</b>
       </p>
 
       <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "700px" }}>
@@ -60,8 +96,8 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
             </thead>
             <tbody>
               {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
-                if (results?.length === 0) return;
-                const result = results[virtualItem.index];
+                if (filteredResults?.length === 0) return;
+                const result = filteredResults[virtualItem.index];
 
                 return (
                   <tr

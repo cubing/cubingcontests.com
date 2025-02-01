@@ -202,7 +202,7 @@ const FormPersonInputs = ({
           key={inputIndex}
           className={personNames.length > 1 && display === "grid" ? "col-md-6" : ""}
         >
-          <div className="position-relative">
+          <div className={`position-relative ${display === "one-line" ? "" : "mb-3"}`}>
             <FormTextInput
               id={`${title}_${inputIndex + 1}`}
               title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
@@ -214,11 +214,10 @@ const FormPersonInputs = ({
               onBlur={() => changeFocusedInput(null)}
               oneLine={display === "one-line"}
               disabled={disabled}
-              className={display === "one-line" ? "" : "mb-3"}
             />
             {inputIndex === focusedInput && personName && (
               <ul
-                className={`position-absolute list-group ${display === "one-line" ? "end-0" : ""}`}
+                className={`position-absolute list-group mt-3 ${display === "one-line" ? "end-0" : ""}`}
                 style={{ zIndex: 10, minWidth: display === "one-line" ? "initial" : "100%" }}
               >
                 {loadingId === "MATCHED_PERSONS"

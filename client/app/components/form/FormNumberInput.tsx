@@ -77,7 +77,7 @@ const FormNumberInput = ({
 
   return (
     <div className={`fs-5 ${className}`}>
-      <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
+      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
 
       <input
         type="text"
@@ -87,7 +87,7 @@ const FormNumberInput = ({
         onChange={(e: any) => validateAndChange(e.target.value)}
         onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId, onKeyDown })}
         disabled={disabled}
-        className={`form-control ${value === null || invalid ? "is-invalid" : ""}`}
+        className={`form-control mt-2 ${value === null || invalid ? "is-invalid" : ""}`}
       />
     </div>
   );

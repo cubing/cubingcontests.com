@@ -444,7 +444,7 @@ export class ResultsService {
   }
 
   async getSubmissionInfo(recordsUpTo: Date): Promise<IResultsSubmissionInfo> {
-    const submissionBasedEvents = await this.eventsService.getSubmissionBasedEvents();
+    const submissionBasedEvents = await this.eventsService.getVideoBasedEvents();
     const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
 
     const resultsSubmissionInfo: IResultsSubmissionInfo = {
@@ -483,7 +483,7 @@ export class ResultsService {
     return await this.resultModel.countDocuments(queryFilter).exec();
   }
 
-  async getSubmissionBasedResults(): Promise<IFeResult[]> {
+  async getVideoBasedResults(): Promise<IFeResult[]> {
     try {
       let frontendResults: IFeResult[] = await this.resultModel
         .aggregate([
@@ -504,7 +504,7 @@ export class ResultsService {
 
       return frontendResults;
     } catch (err) {
-      throw new InternalServerErrorException(`Error while getting submission-based results: ${err.message}`);
+      throw new InternalServerErrorException(`Error while getting video-based results: ${err.message}`);
     }
   }
 

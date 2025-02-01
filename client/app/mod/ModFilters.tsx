@@ -1,6 +1,7 @@
 import { IFePerson, IPerson } from "@cc/shared";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import FiltersContainer from "~/app/components/FiltersContainer";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs";
 import Button from "~/app/components/UI/Button";
 import { useMyFetch } from "~/helpers/customHooks";
@@ -42,7 +43,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
   };
 
   return (
-    <div className="d-flex flex-wrap align-items-start column-gap-3 mb-3 px-2">
+    <FiltersContainer>
       <FormPersonInputs
         title={userInfo?.isAdmin ? "Organizer/creator" : "Organizer"}
         persons={persons}
@@ -60,7 +61,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
             Reset
           </Button>
         )}
-    </div>
+    </FiltersContainer>
   );
 };
 

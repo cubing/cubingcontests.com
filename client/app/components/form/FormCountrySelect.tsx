@@ -1,6 +1,7 @@
 "use client";
 
 import { Countries } from "@cc/shared";
+import FormInputLabel from "~/app/components/form/FormInputLabel";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
 
 const countryOptions = [
@@ -21,16 +22,15 @@ const FormCountrySelect = ({
 }) => {
   return (
     <div className="mb-3 fs-5">
-      <label htmlFor="country_iso_2" className="form-label">
-        Country
-      </label>
+      <FormInputLabel text="Country" inputId="country_iso_2" />
+
       <select
         id="country_iso_2"
-        className="form-select"
         value={countryIso2}
         onChange={(e) => setCountryIso2(e.target.value)}
         onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId })}
         disabled={disabled}
+        className="form-select mt-2"
       >
         {countryOptions.map((el) => (
           <option key={el.code} value={el.code}>

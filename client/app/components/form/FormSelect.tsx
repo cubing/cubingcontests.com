@@ -28,14 +28,14 @@ const FormSelect = ({
 
   return (
     <div className={`fs-5 ${oneLine ? "d-flex align-items-center gap-3" : ""} ${className}`} style={style}>
-      <FormInputLabel text={title} inputId={inputId} />
+      {title && <FormInputLabel text={title} inputId={inputId} />}
 
       <select
         id={inputId}
         value={selected}
         onChange={(e) => setSelected(typeof selected === "string" ? e.target.value : Number(e.target.value))}
         disabled={disabled}
-        className={`form-select ${oneLine ? "mb-2" : ""}`} // mb-2 is to offset the bottom margin of the label
+        className={`form-select ${oneLine ? "" : "mt-2"}`}
       >
         {options.map((option: MultiChoiceOption) => (
           <option key={option.value} value={option.value}>{option.label}</option>

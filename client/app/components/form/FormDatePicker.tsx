@@ -53,7 +53,7 @@ const FormDatePicker = ({
 
   return (
     <div className="mb-3">
-      <FormInputLabel text={title} inputId={inputId} />
+      {title && <FormInputLabel text={title} inputId={inputId} />}
 
       <DatePicker
         id={inputId}
@@ -66,7 +66,7 @@ const FormDatePicker = ({
         showTimeSelectOnly={dateFormat === "HH:mm"}
         locale="en-GB"
         disabled={disabled}
-        className="form-control"
+        className="form-control mt-2"
       />
 
       {showUTCTime && (

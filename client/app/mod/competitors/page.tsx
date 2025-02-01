@@ -20,6 +20,7 @@ import PersonForm from "./PersonForm.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { getSimplifiedString } from "@cc/shared";
+import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 
 const userInfo: UserInfo = getUserInfo();
 
@@ -144,8 +145,7 @@ const CreatePersonPage = () => {
 
       {mode !== "add-once" && (
         <>
-          {/* Same styling as the filters on the manage users page */}
-          <div className="d-flex flex-wrap align-items-center column-gap-3 mt-4 mb-3 px-2">
+          <FiltersContainer className="mt-4">
             <FormTextInput
               title="Search"
               value={search}
@@ -162,7 +162,7 @@ const CreatePersonPage = () => {
               oneLine
               style={{ maxWidth: "15rem" }}
             />
-          </div>
+          </FiltersContainer>
 
           <p className="mb-2 px-2">
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>

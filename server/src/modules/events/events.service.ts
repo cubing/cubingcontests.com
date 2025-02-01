@@ -79,7 +79,7 @@ export class EventsService {
     return frontendEvents;
   }
 
-  async getSubmissionBasedEvents(): Promise<EventDocument[]> {
+  async getVideoBasedEvents(): Promise<EventDocument[]> {
     return await this.eventModel
       .find({ groups: { $in: [EventGroup.ExtremeBLD, EventGroup.SubmissionsAllowed] } }, excl)
       .sort({ rank: 1 })
