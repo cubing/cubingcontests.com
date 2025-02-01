@@ -64,18 +64,18 @@ export class PersonsService {
         }
 
         // Look for persons with no results or organized contests and who aren't tied to a user
-        const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
-        if (!result) {
-          const contest = await this.contestModel.findOne({ organizers: person._id }, { _id: 1 }).exec();
-          if (!contest) {
-            const user = await this.userModel.findOne({ personId: person.personId }, { _id: 1 }).exec();
-            if (!user) {
-              this.logger.error(
-                `Error: person has no results or organized contests and isn't tied to a user: ${identifier}`,
-              );
-            }
-          }
-        }
+        // const result = await this.resultModel.findOne({ personIds: person.personId }, { _id: 1 }).exec();
+        // if (!result) {
+        //   const contest = await this.contestModel.findOne({ organizers: person._id }, { _id: 1 }).exec();
+        //   if (!contest) {
+        //     const user = await this.userModel.findOne({ personId: person.personId }, { _id: 1 }).exec();
+        //     if (!user) {
+        //       this.logger.error(
+        //         `Error: person has no results or organized contests and isn't tied to a user: ${identifier}`,
+        //       );
+        //     }
+        //   }
+        // }
       }
     }
   }

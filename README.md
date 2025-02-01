@@ -97,7 +97,7 @@ Keep in mind that when Handlebars files (the `.hbs` files used for the email tem
 
 Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo Express (makes it much easier to work with the database). The username is `admin` and the password is `cc`. `localhost:5000` is used by the legacy Nest JS backend, and `localhost:8000` is used by the Hono backend. The default ports can be overridden in the environment variables (see below).
 
-### Testing data
+### Mock data
 
 If your DB is empty, the backend will fill the events collection with official WCA events, some unofficial events, including the removed WCA events, some Extreme BLD events, and some miscellaneous events.
 

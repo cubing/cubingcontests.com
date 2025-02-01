@@ -1,4 +1,4 @@
-// import RecordTypesForm from './RecordTypesForm.tsx';
+import RecordTypesForm from "./RecordTypesForm.tsx";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 
 const ConfigureRecordTypesPage = async () => {
@@ -11,8 +11,8 @@ const ConfigureRecordTypesPage = async () => {
   return (
     <div>
       <h2 className="mb-4 text-center">Record Types</h2>
-      TEMPORARILY REMOVED
-      {/* <RecordTypesForm recordTypes={recordTypes} /> */}
+
+      <RecordTypesForm recordTypes={recordTypes} />
     </div>
   );
 };

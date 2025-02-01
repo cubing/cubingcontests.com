@@ -553,7 +553,10 @@ export class ContestsService {
     if (getIsCompType(contest.type)) {
       await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
     }
-    await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
+    await this.roundModel.updateMany({ competitionId }, {
+      $set: { competitionId: contest.competitionId },
+      $unset: { open: "" },
+    }).exec();
     await this.authService.deleteAuthTokens(competitionId);
 
     const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });

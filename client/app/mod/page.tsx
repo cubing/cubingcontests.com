@@ -125,11 +125,9 @@ const ModeratorDashboardPage = () => {
               <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure events
               </Link>
-              {
-                /* <Link href="/admin/record-types" className="btn btn-secondary btn-sm btn-lg-md">
-                  Configure record types
-                </Link> */
-              }
+              <Link href="/admin/record-types" className="btn btn-secondary btn-sm btn-lg-md">
+                Configure record types
+              </Link>
             </>
           )}
         </div>

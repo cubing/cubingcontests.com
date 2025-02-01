@@ -12,11 +12,10 @@ import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const myFetch = useMyFetch();
 
-  // Temporary record types
-  const [tRecordTypes, setTRecordTypes] = useState<IRecordType[]>(recordTypes);
+  const [temporaryRTs, setTemporaryRTs] = useState<IRecordType[]>(recordTypes);
 
   const handleSubmit = async () => {
-    const { errors } = await myFetch.post("/record-types", tRecordTypes, {
+    const { errors } = await myFetch.post("/record-types", temporaryRTs, {
       loadingId: "form_submit_button",
       keepLoadingOnSuccess: true,
     });
@@ -24,26 +23,26 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   };
 
   const changeLabel = (wcaEquivalent: WcaRecordType, value: string) => {
-    setTRecordTypes(
-      tRecordTypes.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, label: value } : rt)),
+    setTemporaryRTs(
+      temporaryRTs.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, label: value } : rt)),
     );
   };
 
   const changeActive = (wcaEquivalent: WcaRecordType) => {
-    setTRecordTypes(
-      tRecordTypes.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, active: !rt.active } : rt)),
+    setTemporaryRTs(
+      temporaryRTs.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, active: !rt.active } : rt)),
     );
   };
 
   const changeColor = (wcaEquivalent: WcaRecordType, color: Color) => {
-    setTRecordTypes(
-      tRecordTypes.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, color } : rt)),
+    setTemporaryRTs(
+      temporaryRTs.map((rt: IRecordType) => (rt.wcaEquivalent === wcaEquivalent ? { ...rt, color } : rt)),
     );
   };
 
   return (
-    <Form buttonText={recordTypes?.length > 0 ? "Edit" : "Create"} onSubmit={handleSubmit}>
-      {tRecordTypes.map((rt: IRecordType) => (
+    <Form buttonText="Save" onSubmit={handleSubmit}>
+      {temporaryRTs.map((rt: IRecordType) => (
         <div key={rt.wcaEquivalent} className="row align-items-center mb-3 text-nowrap">
           <div className="d-none d-md-block col-2">
             <label htmlFor={rt.wcaEquivalent + "_label_input"} className="form-label mb-0">
@@ -57,6 +56,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               value={rt.label}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 changeLabel(rt.wcaEquivalent, e.target.value)}
+              disabled={rt.wcaEquivalent !== WcaRecordType.WR} // TEMPORARY
               className="form-control"
             />
           </div>
@@ -67,6 +67,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               selected={rt.active}
               setSelected={() =>
                 changeActive(rt.wcaEquivalent)}
+              disabled={rt.wcaEquivalent !== WcaRecordType.WR} // TEMPORARY
               noMargin
             />
           </div>
@@ -79,6 +80,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                 className="form-select"
                 value={rt.color}
                 onChange={(e) => changeColor(rt.wcaEquivalent, e.target.value as Color)}
+                disabled={rt.wcaEquivalent !== WcaRecordType.WR} // TEMPORARY
               >
                 {colorOptions
                   .filter((el) => ![Color.White, Color.Magenta].includes(el.value as any))
