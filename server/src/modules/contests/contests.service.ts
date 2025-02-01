@@ -461,8 +461,7 @@ export class ContestsService {
           .exec();
       }
     }
-    // This block is dumb, cause it doesn't actually check that the new values aren't empty (it's only checked for
-    // the venue field in validateAndCleanUpContest). I don't think it's checked thoroughly on contest creation either, actually.
+
     if (isAdmin || contest.state < ContestState.Approved) {
       contest.name = contestDto.name;
       contest.shortName = contestDto.shortName;
@@ -820,10 +819,6 @@ export class ContestsService {
     if (contest.startDate > contest.endDate) {
       throw new BadRequestException("The start date must be before the end date");
     }
-    // This check is done like this, because admins can actually leave the venue empty, but not null or undefined
-    if (!contest.venue && (!isAdmin || typeof contest.venue !== "string")) {
-      throw new BadRequestException("The venue field is required");
-    }
 
     // Validation for WCA competitions and unofficial competitions
     if (contest.compDetails) {
@@ -924,7 +919,6 @@ export class ContestsService {
     // Disallow mods to make admin-only edits
     if (!isAdmin) {
       if (!contest.address) throw new BadRequestException("Please enter an address");
-      if (!contest.venue) throw new BadRequestException("Please enter the venue name");
       if (!contest.organizers.some((o) => o.personId === user.personId)) {
         throw new BadRequestException("You cannot create a contest which you are not organizing");
       }

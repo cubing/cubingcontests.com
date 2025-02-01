@@ -86,6 +86,7 @@ export class ContestDto implements IContestDto {
   venue: string;
 
   @IsString()
+  @IsNotEmpty({ message: "Please enter the address" })
   address: string;
 
   @IsInt({ message: "Please enter a valid latitude" })

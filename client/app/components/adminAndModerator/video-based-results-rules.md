@@ -1,7 +1,7 @@
 1. For blindfolded events, your face must be visible during the entire solve (it must be visible that your mask is on
    during the solving phase).
-2. The final time must be visible at the end of the video with no cuts after the end of the solve. Having the time
-   always visible is preferable.
+2. The final time must be visible at the end of the video with no cuts after the end of the solve. If the video is sped
+   up, the time must be visible throughout the entire attempt.
 3. For team events, every participant must use a different scramble, be in the same place, not touch the puzzle while
    waiting for other participants (penalty: **+2**), and be visible on video at the same time (an exception can be made
    for team events with 5 or more participants). Penalty for an early start: **+2**.
