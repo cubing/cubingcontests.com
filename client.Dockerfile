@@ -17,7 +17,7 @@ ARG API_BASE_URL2
 
 # Create mock project for Hono backend to avoid the Deno "project not found" error
 RUN mkdir /app/server2 && echo "{}" > /app/server2/deno.jsonc
-RUN deno install
+RUN deno install --allow-scripts
 RUN deno task build
 RUN deno run -A npm:next telemetry disable
 

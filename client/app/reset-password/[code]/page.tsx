@@ -5,13 +5,11 @@ import { useMyFetch } from "~/helpers/customHooks.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
+import { useParams } from "next/navigation";
 
-type Props = {
-  params: { code: string };
-};
-
-const ResetPasswordPage = ({ params: { code } }: Props) => {
+const ResetPasswordPage = () => {
   const myFetch = useMyFetch();
+  const { code } = useParams();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
 
   const [email, setEmail] = useState("");

@@ -20,11 +20,13 @@ export const metadata = {
 };
 
 type Props = {
-  params: { eventId: string; singleOrAvg: "single" | "average" };
-  searchParams: { show: "results" };
+  params: Promise<{ eventId: string; singleOrAvg: "single" | "average" }>;
+  searchParams: Promise<{ show: "results" }>;
 };
 
-const RankingsPage = async ({ params: { eventId, singleOrAvg }, searchParams: { show } }: Props) => {
+const RankingsPage = async ({ params, searchParams }: Props) => {
+  const { eventId, singleOrAvg } = await params;
+  const { show } = await searchParams;
   // Refreshes rankings every 5 minutes
   const { payload: eventRankings }: { payload?: IEventRankings } = await ssrFetch(
     `/results/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`,

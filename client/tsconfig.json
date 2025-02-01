@@ -25,10 +25,15 @@
     "noImplicitAny": true,
     "baseUrl": "./",
     "paths": {
-      "~/*": ["./*"],
+      "~/*": [
+        "./*"
+      ],
       // This is needed for the production build
-      "@cc/shared": ["../shared/main.ts"]
-    }
+      "@cc/shared": [
+        "../shared/main.ts"
+      ]
+    },
+    "target": "ES2017"
   },
   "include": [
     "next-env.d.ts",

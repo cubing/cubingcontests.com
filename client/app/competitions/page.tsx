@@ -17,10 +17,11 @@ export const metadata = {
 };
 
 type Props = {
-  searchParams: { eventId?: string };
+  searchParams: Promise<{ eventId?: string }>;
 };
 
-const ContestsPage = async ({ searchParams: { eventId } }: Props) => {
+const ContestsPage = async ({ searchParams }: Props) => {
+  const { eventId } = await searchParams;
   const { payload: events } = await ssrFetch("/events");
   const { payload: contests } = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ""}`);
 

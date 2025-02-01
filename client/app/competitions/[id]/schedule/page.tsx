@@ -4,11 +4,12 @@ import Schedule from "~/app/components/Schedule.tsx";
 import { type ICompetitionDetails, IContest } from "@cc/shared";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 const CompetitionSchedulePage = async ({ params }: Props) => {
-  const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
+  const { id } = await params;
+  const { payload: contestData } = await ssrFetch(`/competitions/${id}`);
   if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   const { contest }: { contest: IContest } = contestData;
 

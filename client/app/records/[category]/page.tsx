@@ -28,10 +28,11 @@ export const metadata = {
 };
 
 type Props = {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 };
 
 const RecordsPage = async ({ params }: Props) => {
+  const { category } = await params;
   const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await ssrFetch("/results/records/WR", {
     revalidate: C.rankingsRev,
   });
@@ -40,9 +41,9 @@ const RecordsPage = async ({ params }: Props) => {
 
   // Gets just the events for the current records category
   const filteredEventRecords = recordsByEvent.filter((er) =>
-    er.event.groups.includes((eventCategories.find((ec) => ec.value === params.category) as EventCategory).group)
+    er.event.groups.includes((eventCategories.find((ec) => ec.value === category) as EventCategory).group)
   );
-  const selectedCat = eventCategories.find((ec) => ec.value === params.category) as EventCategory;
+  const selectedCat = eventCategories.find((ec) => ec.value === category) as EventCategory;
   const tabs: INavigationItem[] = eventCategories.map((cat) => ({
     title: cat.title,
     shortTitle: cat.shortTitle,
@@ -57,11 +58,11 @@ const RecordsPage = async ({ params }: Props) => {
 
       {recordsByEvent.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
         <>
-          <Tabs tabs={tabs} activeTab={params.category} forServerSidePage />
+          <Tabs tabs={tabs} activeTab={category} forServerSidePage />
 
           {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
 
-          {params.category === "extremebld" && (
+          {category === "extremebld" && (
             <Link
               href={"/user/submit-results"}
               className="btn btn-success btn ms-2"

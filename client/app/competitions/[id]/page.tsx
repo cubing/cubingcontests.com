@@ -11,8 +11,13 @@ import { getDateOnly } from "@cc/shared";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 
-const ContestDetailsPage = async ({ params }: { params: { id: string } }) => {
-  const { payload: contestData } = await ssrFetch(`/competitions/${params.id}`);
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+const ContestDetailsPage = async ({ params }: Props) => {
+  const { id } = await params;
+  const { payload: contestData } = await ssrFetch(`/competitions/${id}`);
   if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   const { contest }: { contest: IContest } = contestData as IContestData;
 
