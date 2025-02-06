@@ -3,14 +3,18 @@
 import { useContext, useEffect, useState } from "react";
 import { TwistyPlayer } from "cubing/twisty";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import type { FetchObj } from "~/helpers/types.ts";
-import { Color, type FeCollectiveSolution, type IMakeMoveDto, type NxNMove } from "@cc/shared";
-import { nxnMoves } from "@cc/shared";
+import type {
+  FeCollectiveSolution,
+  FetchObj,
+  IMakeMoveDto,
+  NxNMove,
+} from "~/helpers/types.ts";
+import { nxnMoves } from "~/helpers/types.ts";
+import { Color } from "~/helpers/enums.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { QueryClient, useQuery } from "@tanstack/react-query";
 
 const addTwistyPlayerElement = (alg = "") => {
   const twistyPlayerElements = document.getElementsByTagName("twisty-player");
@@ -29,23 +33,27 @@ const addTwistyPlayerElement = (alg = "") => {
   if (containerDiv) containerDiv.appendChild(twistyPlayer);
 };
 
-const getCubeState = (colSol: FeCollectiveSolution): string => `${colSol.scramble} z2 ${colSol.solution}`.trim();
+const getCubeState = (colSol: FeCollectiveSolution): string =>
+  `${colSol.scramble} z2 ${colSol.solution}`.trim();
 
-const CollectiveCubing = () => {
+type Props = {
+  collectiveSolution: FeCollectiveSolution | null | undefined;
+};
+
+const CollectiveCubing = (props: Props) => {
   const myFetch = useMyFetch();
-  const { queryClient, changeErrorMessages, loadingId, changeLoadingId, resetMessagesAndLoadingId } = useContext(
+  const {
+    changeErrorMessages,
+    loadingId,
+    changeLoadingId,
+    resetMessagesAndLoadingId,
+  } = useContext(
     MainContext,
   );
 
-  const { data: collectiveSolution } = useQuery<FeCollectiveSolution>({
-    queryKey: ["collectiveSolution"],
-    queryFn: () =>
-      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL2}/collective-solution`).then((res) => res.json()).then((res) => {
-        if (res) addTwistyPlayerElement(getCubeState(res));
-        else addTwistyPlayerElement();
-        return res;
-      }),
-  });
+  const [collectiveSolution, setCollectiveSolution] = useState(
+    props.collectiveSolution,
+  );
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
   const isSolved = !collectiveSolution || collectiveSolution.state === 20;
@@ -58,16 +66,26 @@ const CollectiveCubing = () => {
       changeErrorMessages(["Please enable WebGL to render the cube"]);
       return;
     }
+
+    if (collectiveSolution) {
+      addTwistyPlayerElement(getCubeState(collectiveSolution));
+    } else if (collectiveSolution === null) {
+      changeErrorMessages(["Unknown error"]);
+    } else {
+      addTwistyPlayerElement();
+    }
   }, []);
 
-  const update = ({ payload, errors, errorData }: FetchObj<FeCollectiveSolution>) => {
-    const newCollectiveSolution = payload ?? errorData?.collectiveSolution;
+  const update = (res: FetchObj<FeCollectiveSolution>) => {
+    const newCollectiveSolution = res.success
+      ? res.data
+      : res.errorData?.collectiveSolution;
 
-    if (errors) {
-      changeErrorMessages(errors);
+    if (!res.success) {
+      changeErrorMessages(res.errors);
     } else if (newCollectiveSolution) {
       resetMessagesAndLoadingId();
-      (queryClient as QueryClient).setQueryData(["collectiveSolution"], newCollectiveSolution);
+      setCollectiveSolution(newCollectiveSolution);
       addTwistyPlayerElement(getCubeState(newCollectiveSolution));
     }
 
@@ -76,8 +94,10 @@ const CollectiveCubing = () => {
 
   const scrambleCube = async () => {
     changeLoadingId("scramble_button");
-    const fetchData = await myFetch.post("/collective-solution", {}, { loadingId: null });
-    update(fetchData);
+    const res = await myFetch.post("/collective-solution", {}, {
+      loadingId: null,
+    });
+    update(res);
   };
 
   const selectMove = (move: NxNMove) => {
@@ -88,9 +108,16 @@ const CollectiveCubing = () => {
   const confirmMove = async () => {
     if (collectiveSolution && selectedMove) {
       changeLoadingId("confirm_button");
-      const makeMoveDto: IMakeMoveDto = { move: selectedMove, lastSeenSolution: collectiveSolution.solution };
-      const fetchData = await myFetch.post("/collective-solution/make-move", makeMoveDto, { loadingId: null });
-      update(fetchData);
+      const makeMoveDto: IMakeMoveDto = {
+        move: selectedMove,
+        lastSeenSolution: collectiveSolution.solution,
+      };
+      const res = await myFetch.post(
+        "/collective-solution/make-move",
+        makeMoveDto,
+        { loadingId: null },
+      );
+      update(res);
     }
   };
 
@@ -100,23 +127,36 @@ const CollectiveCubing = () => {
     <>
       <p>
         Let's solve Rubik's Cubes together! Simply log in and make a turn.{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>U</b> is the{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>yellow</b> face and{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>F</b> is{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>green</b>. You may not make two turns in a
-        row.
+        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
+          U
+        </b>{" "}
+        is the{" "}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
+          yellow
+        </b>{" "}
+        face and{" "}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>
+          F
+        </b>{" "}
+        is{" "}
+        <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>
+          green
+        </b>. You may not make two turns in a row.
       </p>
 
       <ToastMessages />
 
-      {collectiveSolution && (
+      {collectiveSolution !== null && (
         <>
           {collectiveSolution && <p>Scramble: {collectiveSolution.scramble}</p>}
 
           <div className="row gap-3">
             <div className="col-md-4">
               <div className="d-flex flex-column align-items-center">
-                <div id="twisty_player_container" style={{ maxWidth: "100%" }} />
+                <div
+                  id="twisty_player_container"
+                  style={{ maxWidth: "100%" }}
+                />
                 {isSolved && (
                   <Button
                     id="scramble_button"
@@ -137,14 +177,19 @@ const CollectiveCubing = () => {
                 <>
                   <div
                     className="gap-1 gap-md-3 mt-1 mt-md-4"
-                    style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)" }}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(6, 1fr)",
+                    }}
                   >
                     {nxnMoves.map((move) => (
                       <div key={move} className="p-0">
                         <button
                           type="button"
                           onClick={() => selectMove(move)}
-                          className={`btn btn-primary ${selectedMove === move ? "active" : ""} w-100`}
+                          className={`btn btn-primary ${
+                            selectedMove === move ? "active" : ""
+                          } w-100`}
                         >
                           {move}
                         </button>
@@ -165,7 +210,10 @@ const CollectiveCubing = () => {
                   <p className="my-2">
                     Moves used:{" "}
                     <b>
-                      {collectiveSolution?.solution ? (collectiveSolution.solution.match(/ /g)?.length ?? 0) + 1 : 0}
+                      {collectiveSolution?.solution
+                        ? (collectiveSolution.solution.match(/ /g)?.length ??
+                          0) + 1
+                        : 0}
                     </b>
                   </p>
                 </>

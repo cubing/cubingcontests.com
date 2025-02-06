@@ -1,3 +1,3 @@
-import type { IPerson } from "@cc/shared";
+import type { IPerson } from "~/helpers/types.ts";
 
 export type InputPerson = IPerson | null;

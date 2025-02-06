@@ -17,14 +17,17 @@ import { MyLogger } from "@m/my-logger/my-logger.service";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "~/shared/enums";
+import { Role } from "~/helpers/enums";
 import { PersonDto } from "./dto/person.dto";
 import { LogType } from "~/src/helpers/enums";
-import { IPartialUser } from "~/src/helpers/interfaces/User";
+import { IPartialUser } from "~/helpers/types";
 
 @Controller("persons")
 export class PersonsController {
-  constructor(private readonly logger: MyLogger, private readonly personsService: PersonsService) {}
+  constructor(
+    private readonly logger: MyLogger,
+    private readonly personsService: PersonsService,
+  ) {}
 
   // GET /persons?(name=...)(&exactMatch=true)(&personId=...)
   @Get()
@@ -40,7 +43,9 @@ export class PersonsController {
       return await this.personsService.getPersonByPersonId(personId);
     }
 
-    throw new BadRequestException("Please provide a full name, part of a name, or a person ID.");
+    throw new BadRequestException(
+      "Please provide a full name, part of a name, or a person ID.",
+    );
   }
 
   // GET /persons/mod
@@ -57,10 +62,15 @@ export class PersonsController {
   @Get(":wcaId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
-  async getOrCreatePersonByWcaId(@Param("wcaId") wcaId: string, @Request() req: any) {
+  async getOrCreatePersonByWcaId(
+    @Param("wcaId") wcaId: string,
+    @Request() req: any,
+  ) {
     this.logger.log(`Getting or creating person with WCA ID ${wcaId}`);
 
-    return await this.personsService.getOrCreatePersonByWcaId(wcaId, { user: req.user });
+    return await this.personsService.getOrCreatePersonByWcaId(wcaId, {
+      user: req.user,
+    });
   }
 
   // POST /persons/no-wcaid(?ignoreDuplicate=true)
@@ -72,10 +82,17 @@ export class PersonsController {
     @Request() req: any,
     @Query("ignoreDuplicate") ignoreDuplicate?: boolean,
   ) {
-    if (personDto.wcaId) throw new BadRequestException("This endpoint is only for creating persons without a WCA ID");
+    if (personDto.wcaId) {
+      throw new BadRequestException(
+        "This endpoint is only for creating persons without a WCA ID",
+      );
+    }
     this.checkCanIgnoreDuplicate(req.user, ignoreDuplicate);
 
-    return await this.personsService.createPerson(personDto, { user: req.user, ignoreDuplicate });
+    return await this.personsService.createPerson(personDto, {
+      user: req.user,
+      ignoreDuplicate,
+    });
   }
 
   // PATCH /persons/:id(?ignoreDuplicate=true)
@@ -90,7 +107,9 @@ export class PersonsController {
   ) {
     this.checkCanIgnoreDuplicate(req.user, ignoreDuplicate);
 
-    return await this.personsService.updatePerson(id, personDto, req.user, { ignoreDuplicate });
+    return await this.personsService.updatePerson(id, personDto, req.user, {
+      ignoreDuplicate,
+    });
   }
 
   // PATCH /persons/:id/approve
@@ -109,9 +128,14 @@ export class PersonsController {
     return await this.personsService.deletePerson(id);
   }
 
-  private checkCanIgnoreDuplicate(user: IPartialUser, ignoreDuplicate?: boolean) {
+  private checkCanIgnoreDuplicate(
+    user: IPartialUser,
+    ignoreDuplicate?: boolean,
+  ) {
     if (!user.roles.includes(Role.Admin) && ignoreDuplicate) {
-      throw new BadRequestException("You are unauthorized to create duplicate competitors");
+      throw new BadRequestException(
+        "You are unauthorized to create duplicate competitors",
+      );
     }
   }
 }

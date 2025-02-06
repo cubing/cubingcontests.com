@@ -6,10 +6,10 @@ import { useMyFetch } from "~/helpers/customHooks.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
-import { C } from "@cc/shared";
-import { IFeUser } from "@cc/shared";
-import { getRoleLabel } from "@cc/shared";
-import { Role } from "@cc/shared";
+import { C } from "~/helpers/constants.ts";
+import { IFeUser } from "~/helpers/types.ts";
+import { getRoleLabel } from "~/helpers/sharedFunctions.ts";
+import { Role } from "~/helpers/enums.ts";
 import { logOutUser } from "~/helpers/utilityFunctions.ts";
 
 const UserSettingsPage = () => {
@@ -20,21 +20,23 @@ const UserSettingsPage = () => {
   const filteredRoles: Role[] = user?.roles.filter((r: Role) => r !== Role.User) ?? [];
 
   useEffect(() => {
-    myFetch.get("/users/details", { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setUser(payload);
+    myFetch.get("/users/details", { authorize: true }).then((res) => {
+      if (res.success) setUser(res.data);
     });
   }, []);
 
   const deleteUser = async () => {
-    const answer = confirm("Are you CERTAIN you would like to delete your account? This action is permanent!");
+    const answer = confirm(
+      "Are you CERTAIN you would like to delete your account? This action is permanent!",
+    );
 
     if (answer) {
-      const { errors } = await myFetch.delete("/users", {
+      const res = await myFetch.delete("/users", {
         loadingId: "delete_account_button",
         keepLoadingOnSuccess: true,
       });
 
-      if (!errors) logOutUser();
+      if (res.success) logOutUser();
     }
   };
 
@@ -75,7 +77,11 @@ const UserSettingsPage = () => {
             </p>
           )}
 
-          <Button id="delete_account_button" onClick={deleteUser} className="mt-4 btn-danger btn-sm">
+          <Button
+            id="delete_account_button"
+            onClick={deleteUser}
+            className="mt-4 btn-danger btn-sm"
+          >
             Delete Account
           </Button>
           <p className="mt-2" style={{ fontSize: "0.85rem" }}>

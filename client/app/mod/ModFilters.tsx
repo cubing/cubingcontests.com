@@ -1,4 +1,4 @@
-import { IFePerson, IPerson } from "@cc/shared";
+import { IFePerson, IPerson } from "~/helpers/types.ts";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import FiltersContainer from "~/app/components/FiltersContainer";
@@ -27,10 +27,10 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
 
   useEffect(() => {
     if (organizerId) {
-      myFetch.get<IFePerson>(`/persons?personId=${organizerId}`).then(({ payload }) => {
-        if (payload) {
-          setPersons([payload]);
-          setPersonNames([payload.name]);
+      myFetch.get<IFePerson>(`/persons?personId=${organizerId}`).then((res) => {
+        if (res.success) {
+          setPersons([res.data]);
+          setPersonNames([res.data.name]);
         }
       });
     }

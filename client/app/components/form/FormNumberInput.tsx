@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import FormInputLabel from "./FormInputLabel.tsx";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
-import { NumberInputValue } from "@cc/shared";
+import { NumberInputValue } from "~/helpers/types.ts";
 
 const FormNumberInput = ({
   id,

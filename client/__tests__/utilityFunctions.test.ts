@@ -1,10 +1,10 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { EventFormat, EventGroup } from "@cc/shared";
-import { Event } from "@cc/shared";
-import { C } from "@cc/shared";
-import { getFormattedTime } from "@cc/shared";
+import { EventFormat, EventGroup } from "~/helpers/enums.ts";
+import { Event } from "~/helpers/types.ts";
+import { C } from "~/helpers/constants.ts";
+import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { eventsStub } from "~/__mocks__/events.stub.ts";
 
 const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as Event;

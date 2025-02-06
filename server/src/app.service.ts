@@ -2,8 +2,8 @@ import { Injectable, NotImplementedException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, RootFilterQuery } from "mongoose";
 import { addMonths } from "date-fns";
-import { IAdminStats, IAttempt, IResult } from "~/shared/types";
-import { roundFormats } from "~/shared/roundFormats";
+import { IAdminStats, IAttempt, IResult } from "~/helpers/types";
+import { roundFormats } from "~/helpers/roundFormats";
 import { LogDocument } from "~/src/models/log.model";
 import { ContestsService } from "@m/contests/contests.service";
 import { UsersService } from "@m/users/users.service";
@@ -27,79 +27,118 @@ export class AppService {
 
     const adminStats: IAdminStats = {
       totalPersons: await this.personsService.getTotalPersons(),
-      unapprovedPersons: await this.personsService.getTotalPersons({ unapproved: true }),
-      totalUsers: await this.usersService.getTotalUsers(),
-      unapprovedUsers: await this.usersService.getTotalUsers({ confirmationCodeHash: { $exists: true } }),
-      totalResults: await this.resultsService.getTotalResults(),
-      totalUnapprovedSubmittedResults: await this.resultsService.getTotalResults({
-        competitionId: { $exists: false },
+      unapprovedPersons: await this.personsService.getTotalPersons({
         unapproved: true,
       }),
+      totalUsers: await this.usersService.getTotalUsers(),
+      unapprovedUsers: await this.usersService.getTotalUsers({
+        confirmationCodeHash: { $exists: true },
+      }),
+      totalResults: await this.resultsService.getTotalResults(),
+      totalUnapprovedSubmittedResults: await this.resultsService
+        .getTotalResults({
+          competitionId: { $exists: false },
+          unapproved: true,
+        }),
       analytics: [],
     };
 
     adminStats.analytics.push({
       label: "Contests list views",
-      value: await this.logModel.countDocuments({ type: "get_contests", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "get_contests", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Contest page views",
-      value: await this.logModel.countDocuments({ type: "get_contest", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "get_contest", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Rankings views",
-      value: await this.logModel.countDocuments({ type: "get_rankings", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "get_rankings", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Records views",
-      value: await this.logModel.countDocuments({ type: "get_records", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "get_records", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Users registered",
-      value: await this.logModel.countDocuments({ type: "create_user", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "create_user", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Mod dashboard views",
-      value: await this.logModel.countDocuments({ type: "get_mod_contests", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "get_mod_contests", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Edit contest / data entry page views",
-      value: await this.logModel.countDocuments({ type: "get_mod_contest", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "get_mod_contest", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Contests created",
-      value: await this.logModel.countDocuments({ type: "create_contest", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "create_contest", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Persons created",
-      value: await this.logModel.countDocuments({ type: "create_person", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "create_person", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Events created",
-      value: await this.logModel.countDocuments({ type: "create_event", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "create_event", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Event updates",
-      value: await this.logModel.countDocuments({ type: "update_event", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "update_event", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Results created",
-      value: await this.logModel.countDocuments({ type: "create_result", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "create_result", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Results submitted",
-      value: await this.logModel.countDocuments({ type: "submit_result", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "submit_result", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Results deleted",
-      value: await this.logModel.countDocuments({ type: "delete_result", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "delete_result", createdAt } as any,
+      ).exec(),
     });
     adminStats.analytics.push({
       label: "Record types updates",
-      value: await this.logModel.countDocuments({ type: "update_record_types", createdAt } as any).exec(),
+      value: await this.logModel.countDocuments(
+        { type: "update_record_types", createdAt } as any,
+      ).exec(),
     });
 
-    await this.logModel.deleteMany({ createdAt: { $lt: addMonths(new Date(), -1) } } as RootFilterQuery<LogDocument>);
+    await this.logModel.deleteMany(
+      { createdAt: { $lt: addMonths(new Date(), -1) } } as RootFilterQuery<
+        LogDocument
+      >,
+    );
 
     return adminStats;
   }
@@ -118,12 +157,15 @@ export class AppService {
     const attempts: IAttempt[] = [];
 
     if (result && result.personIds.length > 1) {
-      throw new NotImplementedException("External data entry for team events is not supported yet");
+      throw new NotImplementedException(
+        "External data entry for team events is not supported yet",
+      );
     }
 
     for (let i = 0; i < roundFormat.attempts; i++) {
-      if (i === enterAttemptDto.attemptNumber - 1) attempts.push({ result: enterAttemptDto.attemptResult });
-      else if (result?.attempts[i]) attempts.push(result.attempts[i]);
+      if (i === enterAttemptDto.attemptNumber - 1) {
+        attempts.push({ result: enterAttemptDto.attemptResult });
+      } else if (result?.attempts[i]) attempts.push(result.attempts[i]);
       else attempts.push({ result: 0 });
     }
 
@@ -134,11 +176,15 @@ export class AppService {
         attempts,
       });
     } else {
-      await this.resultsService.createResult(enterAttemptDto.competitionWcaId, round.roundId, {
-        personIds: [person.personId],
-        attempts,
-        eventId: enterAttemptDto.eventId,
-      });
+      await this.resultsService.createResult(
+        enterAttemptDto.competitionWcaId,
+        round.roundId,
+        {
+          personIds: [person.personId],
+          attempts,
+          eventId: enterAttemptDto.eventId,
+        },
+      );
     }
   }
 
@@ -150,7 +196,9 @@ export class AppService {
     );
 
     for (const externalResultDto of enterResultsDto.results) {
-      const person = await this.getPersonForExtDeviceDataEntry(externalResultDto);
+      const person = await this.getPersonForExtDeviceDataEntry(
+        externalResultDto,
+      );
       const result = round.results.find(
         (r) => r.personIds.length === 1 && r.personIds[0] === person.personId,
       ) as IResult | undefined;
@@ -161,18 +209,27 @@ export class AppService {
           attempts: externalResultDto.attempts,
         });
       } else {
-        await this.resultsService.createResult(enterResultsDto.competitionWcaId, round.roundId, {
-          eventId: enterResultsDto.eventId,
-          personIds: [person.personId],
-          attempts: externalResultDto.attempts,
-        });
+        await this.resultsService.createResult(
+          enterResultsDto.competitionWcaId,
+          round.roundId,
+          {
+            eventId: enterResultsDto.eventId,
+            personIds: [person.personId],
+            attempts: externalResultDto.attempts,
+          },
+        );
       }
     }
   }
 
-  private async getPersonForExtDeviceDataEntry({ wcaId, registrantId }: EnterAttemptDto | ExternalResultDto) {
+  private async getPersonForExtDeviceDataEntry(
+    { wcaId, registrantId }: EnterAttemptDto | ExternalResultDto,
+  ) {
     if (wcaId) {
-      const res = await this.personsService.getOrCreatePersonByWcaId(wcaId.toUpperCase(), { user: "EXT_DEVICE" });
+      const res = await this.personsService.getOrCreatePersonByWcaId(
+        wcaId.toUpperCase(),
+        { user: "EXT_DEVICE" },
+      );
       return res.person;
     } else {
       return await this.personsService.getPersonByPersonId(registrantId);

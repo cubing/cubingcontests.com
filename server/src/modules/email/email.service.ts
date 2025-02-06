@@ -5,14 +5,20 @@ import Handlebars from "handlebars";
 import { Injectable } from "@nestjs/common";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
-import { IContest } from "~/shared/types";
-import { getRoleLabel } from "~/shared/sharedFunctions";
-import { ContestType, Role } from "~/shared/enums";
+import { IContest } from "~/helpers/types";
+import { getRoleLabel } from "~/helpers/sharedFunctions";
+import { ContestType, Role } from "~/helpers/enums";
 
 // The fileName is the name of a file inside of the templates directory
-const getEmailContents = async (fileName: string, context: any): Promise<string> => {
+const getEmailContents = async (
+  fileName: string,
+  context: any,
+): Promise<string> => {
   // The path is like this cause of the dist structure after the Nest build step
-  const templateFile = await readFile(join("./dist/modules/email/templates", fileName), "utf-8");
+  const templateFile = await readFile(
+    join("./dist/modules/email/templates", fileName),
+    "utf-8",
+  );
   const template = Handlebars.compile(templateFile, { strict: true });
 
   return template(context);
@@ -34,7 +40,11 @@ export class EmailService {
   constructor(private readonly logger: MyLogger) {}
 
   // The recipient can either be specified with the email or the username
-  async sendEmail(to: string, text: string, { subject = "" }: { subject?: string }) {
+  async sendEmail(
+    to: string,
+    text: string,
+    { subject = "" }: { subject?: string },
+  ) {
     const contents = await getEmailContents("default.hbs", { text });
 
     try {
@@ -45,7 +55,10 @@ export class EmailService {
         html: contents,
       });
     } catch (err) {
-      this.logger.logAndSave(`Error while sending email:, ${err}`, LogType.Error);
+      this.logger.logAndSave(
+        `Error while sending email:, ${err}`,
+        LogType.Error,
+      );
     }
   }
 
@@ -63,7 +76,10 @@ export class EmailService {
         html: contents,
       });
     } catch (err) {
-      this.logger.logAndSave(`Error while sending email confirmation code:, ${err}`, LogType.Error);
+      this.logger.logAndSave(
+        `Error while sending email confirmation code:, ${err}`,
+        LogType.Error,
+      );
     }
   }
 
@@ -81,12 +97,17 @@ export class EmailService {
         html: contents,
       });
     } catch (err) {
-      this.logger.logAndSave(`Error while sending password reset link:, ${err}`, LogType.Error);
+      this.logger.logAndSave(
+        `Error while sending password reset link:, ${err}`,
+        LogType.Error,
+      );
     }
   }
 
   async sendPasswordChangedNotification(to: string) {
-    const contents = await getEmailContents("password-changed.hbs", { ccUrl: process.env.BASE_URL });
+    const contents = await getEmailContents("password-changed.hbs", {
+      ccUrl: process.env.BASE_URL,
+    });
 
     try {
       await this.transporter.sendMail({
@@ -96,11 +117,18 @@ export class EmailService {
         html: contents,
       });
     } catch (err) {
-      this.logger.logAndSave(`Error while sending password changed notification:, ${err}`, LogType.Error);
+      this.logger.logAndSave(
+        `Error while sending password changed notification:, ${err}`,
+        LogType.Error,
+      );
     }
   }
 
-  async sendContestSubmittedNotification(to: string, contest: IContest, contestUrl: string) {
+  async sendContestSubmittedNotification(
+    to: string,
+    contest: IContest,
+    contestUrl: string,
+  ) {
     const contents = await getEmailContents("contest-submitted.hbs", {
       competitionId: contest.competitionId,
       wcaCompetition: contest.type === ContestType.WcaComp,
@@ -110,7 +138,12 @@ export class EmailService {
     });
 
     try {
-      await this.transporter.sendMail({ from: this.sender, to, subject: "Contest submitted", html: contents });
+      await this.transporter.sendMail({
+        from: this.sender,
+        to,
+        subject: "Contest submitted",
+        html: contents,
+      });
     } catch (err) {
       this.logger.logAndSave(
         `Error while sending contest submitted notification for contest ${contest.name}:, ${err}`,
@@ -126,9 +159,17 @@ export class EmailService {
     });
 
     try {
-      await this.transporter.sendMail({ from: this.sender, to, subject: "Privileges granted", html: contents });
+      await this.transporter.sendMail({
+        from: this.sender,
+        to,
+        subject: "Privileges granted",
+        html: contents,
+      });
     } catch (err) {
-      this.logger.logAndSave(`Error while sending contest submitted notification for contest:, ${err}`, LogType.Error);
+      this.logger.logAndSave(
+        `Error while sending contest submitted notification for contest:, ${err}`,
+        LogType.Error,
+      );
     }
   }
 }

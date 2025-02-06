@@ -1,4 +1,5 @@
-import { Role } from "~/shared/enums";
+import { Role } from "~/helpers/enums.ts";
+import { IPerson } from "~/helpers/types.ts";
 
 export interface IPartialUser {
   _id?: unknown;
@@ -15,4 +16,11 @@ export interface IUser extends IPartialUser {
   cooldownStarted?: Date;
   passwordResetCodeHash?: string;
   passwordResetStarted?: Date;
+}
+
+export interface IFeUser {
+  username: string;
+  email: string;
+  roles: Role[];
+  person?: IPerson;
 }

@@ -1,12 +1,21 @@
 import { eventsStub } from "../stubs/events.stub";
-import { EventGroup } from "~/shared/enums";
+import { EventGroup } from "~/helpers/enums";
 
 export const EventsServiceMock = (): any => ({
-  getEvents({ eventIds, includeHidden }: { eventIds?: string[]; includeHidden?: boolean } = { includeHidden: false }) {
+  getEvents(
+    { eventIds, includeHidden }: {
+      eventIds?: string[];
+      includeHidden?: boolean;
+    } = { includeHidden: false },
+  ) {
     let tempOutput = eventsStub();
 
-    if (eventIds) tempOutput = tempOutput.filter((el) => eventIds.includes(el.eventId));
-    if (!includeHidden) tempOutput = tempOutput.filter((el) => !el.groups.includes(EventGroup.Hidden));
+    if (eventIds) {
+      tempOutput = tempOutput.filter((el) => eventIds.includes(el.eventId));
+    }
+    if (!includeHidden) {
+      tempOutput = tempOutput.filter((el) => !el.groups.includes(EventGroup.Hidden));
+    }
 
     return tempOutput;
   },

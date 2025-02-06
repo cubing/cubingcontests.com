@@ -21,7 +21,7 @@ import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { AuthTokenGuard } from "~/src/guards/auth-token.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "~/shared/enums";
+import { Role } from "~/helpers/enums";
 import { orgPopulateOptions } from "~/src/helpers/dbHelpers";
 import { getWcifCompetition } from "~/src/helpers/utilityFunctions";
 import { ContestDocument } from "~/src/models/contest.model";
@@ -30,7 +30,7 @@ import { LogType } from "~/src/helpers/enums";
 import { EmailService } from "@m/email/email.service";
 import { ContestsService } from "@m/contests/contests.service";
 import { EnterResultsDto } from "./app-dto/enter-results.dto";
-import { IContest, PageSize } from "~/shared/types";
+import { IContest, PageSize } from "~/helpers/types";
 
 @Controller()
 export class AppController {
@@ -40,7 +40,9 @@ export class AppController {
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
     private readonly contestsService: ContestsService,
-    @InjectModel("Competition") private readonly contestModel: Model<ContestDocument>,
+    @InjectModel("Competition") private readonly contestModel: Model<
+      ContestDocument
+    >,
   ) {}
 
   @Get("admin-stats")
@@ -62,7 +64,9 @@ export class AppController {
   ) {
     const contest = await this.contestsService.getFullContest(competitionId);
 
-    await this.authService.checkAccessRightsToContest(req.user, contest, { allowPublished: true });
+    await this.authService.checkAccessRightsToContest(req.user, contest, {
+      allowPublished: true,
+    });
 
     const wcifCompetition = getWcifCompetition(contest as IContest);
     const buffer = await getScorecards(wcifCompetition, pageSize);
@@ -80,9 +84,18 @@ export class AppController {
   @Get("create-auth-token/:competitionId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async createAuthToken(@Param("competitionId") competitionId: string, @Request() req: any) {
-    const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
-    if (!contest) throw new BadRequestException(`Contest with ID ${competitionId} not found`);
+  async createAuthToken(
+    @Param("competitionId") competitionId: string,
+    @Request() req: any,
+  ) {
+    const contest = await this.contestModel.findOne({ competitionId }).populate(
+      orgPopulateOptions,
+    ).exec();
+    if (!contest) {
+      throw new BadRequestException(
+        `Contest with ID ${competitionId} not found`,
+      );
+    }
 
     this.authService.checkAccessRightsToContest(req.user, contest);
 
@@ -91,7 +104,9 @@ export class AppController {
 
   @Post("enter-attempt")
   @UseGuards(AuthTokenGuard)
-  async enterAttemptFromExternalDevice(@Body(new ValidationPipe()) enterAttemptDto: EnterAttemptDto) {
+  async enterAttemptFromExternalDevice(
+    @Body(new ValidationPipe()) enterAttemptDto: EnterAttemptDto,
+  ) {
     this.logger.logAndSave(
       `Entering attempt from external device: ${JSON.stringify(enterAttemptDto)}`,
       LogType.EnterAttemptFromExtDevice,
@@ -102,7 +117,9 @@ export class AppController {
 
   @Post("enter-results")
   @UseGuards(AuthTokenGuard)
-  async enterResultsFromExternalDevice(@Body(new ValidationPipe()) enterResultsDto: EnterResultsDto) {
+  async enterResultsFromExternalDevice(
+    @Body(new ValidationPipe()) enterResultsDto: EnterResultsDto,
+  ) {
     this.logger.logAndSave(
       `Entering multiple results from external device: ${JSON.stringify(enterResultsDto)}`,
       LogType.EnterResultsFromExtDevice,
@@ -115,8 +132,13 @@ export class AppController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async debugSendingEmail(@Body() { email }: { email: string }) {
-    this.logger.logAndSave(`Sending debug email to ${email}`, LogType.DebugEmail);
+    this.logger.logAndSave(
+      `Sending debug email to ${email}`,
+      LogType.DebugEmail,
+    );
 
-    await this.emailService.sendEmail(email, "This is a debug email.", { subject: "DEBUG" });
+    await this.emailService.sendEmail(email, "This is a debug email.", {
+      subject: "DEBUG",
+    });
   }
 }

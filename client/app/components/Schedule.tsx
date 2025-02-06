@@ -2,9 +2,9 @@ import { isSameDay } from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { roundFormats } from "@cc/shared";
-import { IActivity, IContestEvent, IRoom, IRound } from "@cc/shared";
-import { getIsOtherActivity } from "@cc/shared";
+import { roundFormats } from "~/helpers/roundFormats.ts";
+import { IActivity, IContestEvent, IRoom, IRound } from "~/helpers/types.ts";
+import { getIsOtherActivity } from "~/helpers/sharedFunctions.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import EventTitle from "./EventTitle.tsx";
 import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
@@ -66,7 +66,11 @@ const Schedule = ({
     const isMultiDayActivity = !isSameDay(zonedStartTime, zonedEndTime);
     const dayActivity: DayActivity = {
       ...activity,
-      formattedStartTime: formatInTimeZone(activity.startTime, timeZone, "HH:mm"),
+      formattedStartTime: formatInTimeZone(
+        activity.startTime,
+        timeZone,
+        "HH:mm",
+      ),
       formattedEndTime: (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, "dd MMM")} ` : "") +
         formatInTimeZone(activity.endTime, timeZone, "HH:mm"),
       isEditable: true,
@@ -94,7 +98,11 @@ const Schedule = ({
   return (
     <section className="fs-6">
       {days.length === 0
-        ? <h5 className="text-center fst-italic">The schedule is currently empty</h5>
+        ? (
+          <h5 className="text-center fst-italic">
+            The schedule is currently empty
+          </h5>
+        )
         : (
           <div className="d-flex flex-column gap-5">
             {days.map((day) => (
@@ -132,12 +140,20 @@ const Schedule = ({
                                       linkToRankings
                                     />
                                   )}
-                                  {a.round ? <span>{roundTypes[a.round.roundTypeId].label}</span> : (
-                                    <>
-                                      <span className="text-danger fw-bold">ERROR</span>
-                                      <span>({a.activityCode})</span>
-                                    </>
-                                  )}
+                                  {a.round
+                                    ? (
+                                      <span>
+                                        {roundTypes[a.round.roundTypeId].label}
+                                      </span>
+                                    )
+                                    : (
+                                      <>
+                                        <span className="text-danger fw-bold">
+                                          ERROR
+                                        </span>
+                                        <span>({a.activityCode})</span>
+                                      </>
+                                    )}
                                 </span>
                               )
                               : a.name}
@@ -146,7 +162,11 @@ const Schedule = ({
                             <span className="d-flex gap-3">
                               <ColorSquare
                                 color={a.room.color}
-                                style={{ height: "1.5rem", width: "1.8rem", margin: 0 }}
+                                style={{
+                                  height: "1.5rem",
+                                  width: "1.8rem",
+                                  margin: 0,
+                                }}
                               />
                               {a.room.name}
                             </span>

@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { addHours } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import { Color, ContestType } from "@cc/shared";
-import { IActivity, IContestEvent, IRoom } from "@cc/shared";
+import { Color, ContestType } from "~/helpers/enums.ts";
+import { IActivity, IContestEvent, IRoom } from "~/helpers/types.ts";
 import { MultiChoiceOption } from "~/helpers/types.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
@@ -39,13 +39,19 @@ const ScheduleEditor = ({
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
 
   // Activity stuff
-  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(null);
+  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(
+    null,
+  );
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
   const [activityCode, setActivityCode] = useState("");
   const [customActivity, setCustomActivity] = useState("");
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
-  const [activityStartTime, setActivityStartTime] = useState(fromZonedTime(addHours(startDate, 12), venueTimeZone));
-  const [activityEndTime, setActivityEndTime] = useState(fromZonedTime(addHours(startDate, 13), venueTimeZone));
+  const [activityStartTime, setActivityStartTime] = useState(
+    fromZonedTime(addHours(startDate, 12), venueTimeZone),
+  );
+  const [activityEndTime, setActivityEndTime] = useState(
+    fromZonedTime(addHours(startDate, 13), venueTimeZone),
+  );
 
   const roomOptions = useMemo<MultiChoiceOption<number>[]>(
     () => rooms.map((room) => ({ label: room.name, value: room.id })),
@@ -76,15 +82,19 @@ const ScheduleEditor = ({
   }, [contestEvents, rooms, activityUnderEdit]);
 
   const selectedRoomExists = roomOptions.some((r: MultiChoiceOption) => r.value === selectedRoom);
-  if (!selectedRoomExists && roomOptions.length > 0) setSelectedRoom(roomOptions[0].value);
-  const isValidActivity = activityCode && (activityCode !== "other-misc" || customActivity) && roomOptions.length > 0;
+  if (!selectedRoomExists && roomOptions.length > 0) {
+    setSelectedRoom(roomOptions[0].value);
+  }
+  const isValidActivity = activityCode &&
+    (activityCode !== "other-misc" || customActivity) && roomOptions.length > 0;
 
   const addRoom = () => {
     setRoomName("");
     setRooms([
       ...rooms,
       {
-        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
+        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id +
+          1,
         name: roomName.trim(),
         color: roomColor,
         activities: [],
@@ -97,7 +107,8 @@ const ScheduleEditor = ({
 
     if (newTime) {
       // Change the activity end time too
-      const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
+      const activityLength = activityEndTime.getTime() -
+        activityStartTime.getTime();
       setActivityEndTime(new Date(newTime.getTime() + activityLength));
     }
   };
@@ -118,7 +129,10 @@ const ScheduleEditor = ({
           ? room.activities.map((a) => (a.id === activityUnderEdit.id ? { id: a.id, ...getFieldsFromInputs() } : a))
           : [
             ...room.activities,
-            { id: Math.max(...room.activities.map((a) => a.id), 0) + 1, ...getFieldsFromInputs() },
+            {
+              id: Math.max(...room.activities.map((a) => a.id), 0) + 1,
+              ...getFieldsFromInputs(),
+            },
           ],
       }
     );
@@ -163,7 +177,12 @@ const ScheduleEditor = ({
 
         <div className="row">
           <div className="col-8">
-            <FormTextInput title="Room name" value={roomName} setValue={setRoomName} disabled={disabled} />
+            <FormTextInput
+              title="Room name"
+              value={roomName}
+              setValue={setRoomName}
+              disabled={disabled}
+            />
           </div>
           <div className="col-4 d-flex justify-content-between align-items-end gap-3">
             <div className="flex-grow-1">
@@ -178,7 +197,11 @@ const ScheduleEditor = ({
             <ColorSquare color={roomColor} />
           </div>
         </div>
-        <Button onClick={addRoom} disabled={disabled || !roomName.trim()} className="btn-success mt-3 mb-2">
+        <Button
+          onClick={addRoom}
+          disabled={disabled || !roomName.trim()}
+          className="btn-success mt-3 mb-2"
+        >
           Create
         </Button>
         <hr />
@@ -192,7 +215,8 @@ const ScheduleEditor = ({
               options={roomOptions}
               selected={selectedRoom}
               setSelected={setSelectedRoom}
-              disabled={disabled || rooms.length === 0 || activityUnderEdit !== null}
+              disabled={disabled || rooms.length === 0 ||
+                activityUnderEdit !== null}
             />
           </div>
           <div className="col">

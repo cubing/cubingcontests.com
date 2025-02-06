@@ -1,12 +1,15 @@
 import { ValidatorConstraint, ValidatorConstraintInterface } from "class-validator";
-import { IAttempt, IContestEvent, IProceed, IRound } from "~/shared/types";
-import { EventFormat, RoundProceed } from "~/shared/enums";
-import { C } from "~/shared/constants";
+import { IAttempt, IContestEvent, IProceed, IRound } from "~/helpers/types";
+import { EventFormat, RoundProceed } from "~/helpers/enums";
+import { C } from "~/helpers/constants";
 
 @ValidatorConstraint({ name: "EventWithTimeFormatHasTimeLimits", async: false })
 export class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInterface {
   validate(events: IContestEvent[]) {
-    return !events.some((ce) => ce.event.format === EventFormat.Time && ce.rounds.some((r) => !r.timeLimit));
+    return !events.some((ce) =>
+      ce.event.format === EventFormat.Time &&
+      ce.rounds.some((r) => !r.timeLimit)
+    );
   }
 
   defaultMessage() {
@@ -14,10 +17,16 @@ export class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInte
   }
 }
 
-@ValidatorConstraint({ name: "EventWithoutTimeFormatHasNoLimitsOrCutoffs", async: false })
+@ValidatorConstraint({
+  name: "EventWithoutTimeFormatHasNoLimitsOrCutoffs",
+  async: false,
+})
 export class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintInterface {
   validate(events: IContestEvent[]) {
-    return !events.some((ce) => ce.event.format !== EventFormat.Time && ce.rounds.some((r) => r.timeLimit || r.cutoff));
+    return !events.some((ce) =>
+      ce.event.format !== EventFormat.Time &&
+      ce.rounds.some((r) => r.timeLimit || r.cutoff)
+    );
   }
 
   defaultMessage() {
@@ -28,7 +37,10 @@ export class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorCons
 @ValidatorConstraint({ name: "RoundHasValidTimeLimitAndCutoff", async: false })
 export class RoundHasValidTimeLimitAndCutoff implements ValidatorConstraintInterface {
   validate(rounds: IRound[]) {
-    return !rounds.some((r) => r.timeLimit && r.cutoff && r.cutoff.attemptResult >= r.timeLimit.centiseconds);
+    return !rounds.some((r) =>
+      r.timeLimit && r.cutoff &&
+      r.cutoff.attemptResult >= r.timeLimit.centiseconds
+    );
   }
 
   defaultMessage() {
@@ -40,8 +52,10 @@ export class RoundHasValidTimeLimitAndCutoff implements ValidatorConstraintInter
 export class ProceedValueMinMax implements ValidatorConstraintInterface {
   validate(proceed: IProceed) {
     return (
-      (proceed.type === RoundProceed.Number && proceed.value >= C.minProceedNumber) ||
-      (proceed.type === RoundProceed.Percentage && proceed.value <= C.maxProceedPercentage)
+      (proceed.type === RoundProceed.Number &&
+        proceed.value >= C.minProceedNumber) ||
+      (proceed.type === RoundProceed.Percentage &&
+        proceed.value <= C.maxProceedPercentage)
     );
   }
 
@@ -53,7 +67,8 @@ export class ProceedValueMinMax implements ValidatorConstraintInterface {
 @ValidatorConstraint({ name: "SubmittedAttempts", async: false })
 export class SubmittedAttempts implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
-    return attempts.some((a) => a.result > 0) && !attempts.some((a) => a.result === 0);
+    return attempts.some((a) => a.result > 0) &&
+      !attempts.some((a) => a.result === 0);
   }
 
   defaultMessage() {
@@ -64,7 +79,8 @@ export class SubmittedAttempts implements ValidatorConstraintInterface {
 @ValidatorConstraint({ name: "ContestAttempts", async: false })
 export class ContestAttempts implements ValidatorConstraintInterface {
   validate(attempts: IAttempt[]) {
-    return attempts.some((a) => a.result !== -2) && attempts.some((a) => a.result !== 0);
+    return attempts.some((a) => a.result !== -2) &&
+      attempts.some((a) => a.result !== 0);
   }
 
   defaultMessage() {

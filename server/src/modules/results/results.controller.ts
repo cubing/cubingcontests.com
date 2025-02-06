@@ -18,11 +18,11 @@ import { CreateResultDto } from "./dto/create-result.dto";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "~/shared/enums";
+import { Role } from "~/helpers/enums";
 import { CreateVideoBasedResultDto } from "./dto/create-video-based-result.dto";
 import { UpdateResultDto } from "./dto/update-result.dto";
 import { LogType } from "~/src/helpers/enums";
-import { getDateOnly } from "~/shared/sharedFunctions";
+import { getDateOnly } from "~/helpers/sharedFunctions";
 import { UpdateVideoBasedResultDto } from "~/src/modules/results/dto/update-video-based-result.dto";
 
 @Controller("results")
@@ -40,15 +40,25 @@ export class ResultsController {
     @Param("singleOrAvg") singleOrAvg: "single" | "average",
     @Query("show") show?: "results",
   ) {
-    this.logger.logAndSave(`Getting ${singleOrAvg} rankings for ${eventId}`, LogType.GetRankings);
+    this.logger.logAndSave(
+      `Getting ${singleOrAvg} rankings for ${eventId}`,
+      LogType.GetRankings,
+    );
 
-    return await this.service.getRankings(eventId, singleOrAvg === "average", show);
+    return await this.service.getRankings(
+      eventId,
+      singleOrAvg === "average",
+      show,
+    );
   }
 
   // GET /results/records/:wcaEquivalent
   @Get("records/:wcaEquivalent")
   async getRecords(@Param("wcaEquivalent") wcaEquivalent: string) {
-    this.logger.logAndSave(`Getting ${wcaEquivalent} records`, LogType.GetRecords);
+    this.logger.logAndSave(
+      `Getting ${wcaEquivalent} records`,
+      LogType.GetRecords,
+    );
 
     return await this.service.getRecords(wcaEquivalent);
   }
@@ -59,7 +69,9 @@ export class ResultsController {
   @Roles(Role.User)
   async getSubmissionInfo(@Param("recordsUpTo") recordsUpTo: string) {
     const recordsUpToDate = getDateOnly(new Date(recordsUpTo));
-    this.logger.log(`Getting results submission info with records up to ${recordsUpToDate.toUTCString()}`);
+    this.logger.log(
+      `Getting results submission info with records up to ${recordsUpToDate.toUTCString()}`,
+    );
 
     return await this.service.getSubmissionInfo(recordsUpToDate);
   }
@@ -69,7 +81,9 @@ export class ResultsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async getEditingInfo(@Param("resultId") resultId: string) {
-    this.logger.log(`Getting results editing info for result with ID ${resultId}`);
+    this.logger.log(
+      `Getting results editing info for result with ID ${resultId}`,
+    );
 
     return await this.service.getEditingInfo(resultId);
   }
@@ -84,10 +98,16 @@ export class ResultsController {
     @Query("excludeResultId") excludeResultId: string,
   ) {
     const recordsUpToDate = getDateOnly(new Date(recordsUpTo));
-    this.logger.log(`Getting record pair with records up to ${recordsUpToDate.toUTCString()}`);
+    this.logger.log(
+      `Getting record pair with records up to ${recordsUpToDate.toUTCString()}`,
+    );
 
-    const events = await this.eventsService.getEvents({ eventIds: eventIds.split(",") });
-    return await this.service.getRecordPairs(events, recordsUpToDate, { excludeResultId });
+    const events = await this.eventsService.getEvents({
+      eventIds: eventIds.split(","),
+    });
+    return await this.service.getRecordPairs(events, recordsUpToDate, {
+      excludeResultId,
+    });
   }
 
   // GET /results/video-based
@@ -108,7 +128,12 @@ export class ResultsController {
     @Body(new ValidationPipe()) createResultDto: CreateResultDto,
     @Request() req: any,
   ) {
-    return await this.service.createResult(competitionId, roundId, createResultDto, req.user);
+    return await this.service.createResult(
+      competitionId,
+      roundId,
+      createResultDto,
+      req.user,
+    );
   }
 
   // PATCH /results/:id
@@ -120,7 +145,9 @@ export class ResultsController {
     @Body(new ValidationPipe()) updateResultDto: UpdateResultDto,
     @Request() req: any,
   ) {
-    return await this.service.updateResult(id, updateResultDto, { user: req.user });
+    return await this.service.updateResult(id, updateResultDto, {
+      user: req.user,
+    });
   }
 
   // POST /results

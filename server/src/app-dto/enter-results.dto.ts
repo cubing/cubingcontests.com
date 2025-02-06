@@ -13,8 +13,8 @@ import {
 } from "class-validator";
 import { AttemptDto } from "../modules/results/dto/create-result.dto";
 import { Type } from "class-transformer";
-import { IAttempt } from "~/shared/types";
-import { C } from "~/shared/constants";
+import { IAttempt } from "~/helpers/types";
+import { C } from "~/helpers/constants";
 import { ContestAttempts } from "~/src/helpers/customValidators";
 
 export class EnterResultsDto {

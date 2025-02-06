@@ -10,15 +10,16 @@ type Props = {
 const ContestResultsPage = async ({ params, searchParams }: Props) => {
   const { id } = await params;
   const { eventId } = await searchParams;
-  const { payload: contestData } = await ssrFetch(`/competitions/${id}?eventId=${eventId ?? "FIRST_EVENT"}`);
-  if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
+  const contestDataResponse = await ssrFetch(`/competitions/${id}?eventId=${eventId ?? "FIRST_EVENT"}`);
+  if (!contestDataResponse.success) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
+  const { contest, persons, activeRecordTypes } = contestDataResponse.data;
 
   return (
-    <ContestLayout contest={contestData.contest} activeTab="results">
+    <ContestLayout contest={contest} activeTab="results">
       <ContestResults
-        contest={contestData.contest}
-        persons={contestData.persons}
-        activeRecordTypes={contestData.activeRecordTypes}
+        contest={contest}
+        persons={persons}
+        activeRecordTypes={activeRecordTypes}
       />
     </ContestLayout>
   );

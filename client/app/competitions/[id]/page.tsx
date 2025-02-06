@@ -5,9 +5,9 @@ import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
-import { IContest, IContestData } from "@cc/shared";
-import { ContestState, ContestType } from "@cc/shared";
-import { getDateOnly } from "@cc/shared";
+import { IContestData } from "~/helpers/types.ts";
+import { ContestState, ContestType } from "~/helpers/enums.ts";
+import { getDateOnly } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 
@@ -17,27 +17,44 @@ type Props = {
 
 const ContestDetailsPage = async ({ params }: Props) => {
   const { id } = await params;
-  const { payload: contestData } = await ssrFetch(`/competitions/${id}`);
-  if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
-  const { contest }: { contest: IContest } = contestData as IContestData;
+  const contestDataResponse = await ssrFetch<IContestData>(
+    `/competitions/${id}`,
+  );
+  if (!contestDataResponse.success) {
+    return <h3 className="mt-4 text-center">Error while loading contest</h3>;
+  }
+  const { contest } = contestDataResponse.data;
 
-  const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
+  const formattedDate = getFormattedDate(
+    contest.startDate,
+    contest.endDate || null,
+  );
   // Not used for competition type contests
   const formattedTime = contest.meetupDetails
-    ? formatInTimeZone(contest.meetupDetails.startTime, contest.timezone as string, "H:mm")
+    ? formatInTimeZone(
+      contest.meetupDetails.startTime,
+      contest.meetupDetails.timeZone,
+      "H:mm",
+    )
     : null;
-  const startOfDayInLocalTZ = getDateOnly(toZonedTime(new Date(), contest.timezone ?? "UTC")) as Date;
+  const startOfDayInLocalTZ = getDateOnly(
+    toZonedTime(new Date(), contest.meetupDetails?.timeZone ?? "UTC"),
+  ) as Date;
   const start = new Date(contest.startDate);
   const isOngoing = contest.state < ContestState.Finished &&
     ((!contest.endDate && start.getTime() === startOfDayInLocalTZ.getTime()) ||
-      (contest.endDate && start <= startOfDayInLocalTZ && new Date(contest.endDate) >= startOfDayInLocalTZ));
+      (contest.endDate && start <= startOfDayInLocalTZ &&
+        new Date(contest.endDate) >= startOfDayInLocalTZ));
 
   const getFormattedCoords = () => {
     const latitude = (contest.latitudeMicrodegrees / 1000000).toFixed(6);
     const longitude = (contest.longitudeMicrodegrees / 1000000).toFixed(6);
 
     return (
-      <a href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`} target="_blank">
+      <a
+        href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`}
+        target="_blank"
+      >
         {latitude}, {longitude}
       </a>
     );
@@ -95,17 +112,32 @@ const ContestDetailsPage = async ({ params }: Props) => {
         <div className="col-md-7 px-0">
           <div className="px-2">
             {contest.state === ContestState.Created
-              ? <p className="mb-4">This contest is currently awaiting approval</p>
+              ? (
+                <p className="mb-4">
+                  This contest is currently awaiting approval
+                </p>
+              )
               : isOngoing
               ? <p className="mb-4">This contest is currently ongoing</p>
               : contest.state === ContestState.Finished
-              ? <p className="mb-4">The results for this contest are currently being checked</p>
+              ? (
+                <p className="mb-4">
+                  The results for this contest are currently being checked
+                </p>
+              )
               : contest.state === ContestState.Removed
-              ? <p className="mb-4 text-danger">THIS CONTEST HAS BEEN REMOVED!</p>
+              ? (
+                <p className="mb-4 text-danger">
+                  THIS CONTEST HAS BEEN REMOVED!
+                </p>
+              )
               : undefined}
 
             {contest.type === ContestType.WcaComp && (
-              <WcaCompAdditionalDetails name={contest.name} competitionId={contest.competitionId} />
+              <WcaCompAdditionalDetails
+                name={contest.name}
+                competitionId={contest.competitionId}
+              />
             )}
 
             {contest.description && (

@@ -27,10 +27,6 @@
     "paths": {
       "~/*": [
         "./*"
-      ],
-      // This is needed for the production build
-      "@cc/shared": [
-        "../shared/main.ts"
       ]
     },
     "target": "ES2017"

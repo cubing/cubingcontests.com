@@ -1,4 +1,4 @@
-import { WcaRecordType } from "~/shared/enums";
+import { WcaRecordType } from "~/helpers/enums";
 import { getBaseAvgsFilter, getBaseSinglesFilter } from "~/src/helpers/utilityFunctions";
 import { recordTypesStub } from "../stubs/record-types.stub";
 import { EventDocument } from "~/src/models/event.model";
@@ -23,7 +23,11 @@ export const RecordTypesServiceMock = () => ({
   ) {
     setEventSingleRecordsMock(event, wcaEquiv, queryFilter);
   },
-  async setEventAvgRecords(event: EventDocument, wcaEquiv: WcaRecordType, queryFilter: any = getBaseAvgsFilter(event)) {
+  async setEventAvgRecords(
+    event: EventDocument,
+    wcaEquiv: WcaRecordType,
+    queryFilter: any = getBaseAvgsFilter(event),
+  ) {
     setEventAvgRecordsMock(event, wcaEquiv, queryFilter);
   },
 });

@@ -31,26 +31,28 @@ const LoginPage = () => {
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
     } else {
-      const { payload, errors } = await myFetch.post(
+      const res = await myFetch.post(
         "/auth/login",
         { username, password },
         { authorize: false, loadingId: "form_submit_button" },
       );
 
-      if (!errors) {
-        if (!payload.accessToken) {
+      if (!res.success) {
+        if (res.errors[0] === "NOT_VERIFIED_EMAIL_ERROR") {
+          window.location.href = `/register/confirm-email?username=${username}`;
+          return;
+        }
+      } else {
+        if (!res.data.accessToken) {
           changeErrorMessages(["Access token not received"]);
         } else {
-          localStorage.setItem("jwtToken", `Bearer ${payload.accessToken}`);
+          localStorage.setItem("jwtToken", `Bearer ${res.data.accessToken}`);
 
           const redirectUrl = searchParams.get("redirect");
 
           if (redirectUrl) window.location.replace(redirectUrl);
           else window.location.href = "/";
         }
-      } else if (errors[0] === "NOT_VERIFIED_EMAIL_ERROR") {
-        window.location.href = `/register/confirm-email?username=${username}`;
-        return;
       }
     }
   };

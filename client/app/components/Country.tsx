@@ -1,5 +1,5 @@
 import * as Flags from "country-flag-icons/react/3x2";
-import { Countries } from "@cc/shared";
+import { Countries } from "~/helpers/Countries.ts";
 
 type Props = {
   countryIso2: string;
@@ -14,7 +14,11 @@ const Country = ({
   noText,
   shorten,
 }: Props) => {
-  if (noText && shorten) throw new Error("Country does not support the noText and shorten arguments at the same time");
+  if (noText && shorten) {
+    throw new Error(
+      "Country does not support the noText and shorten arguments at the same time",
+    );
+  }
 
   const FlagComponent = (Flags as any)[countryIso2];
 
@@ -32,7 +36,11 @@ const Country = ({
     <span className="d-inline-flex align-items-center gap-2">
       {!noText && swapPositions && getCountry(countryIso2)}
       {FlagComponent &&
-        FlagComponent({ title: getCountry(countryIso2), className: "cc-flag-icon", style: { height: "1.16rem" } })}
+        FlagComponent({
+          title: getCountry(countryIso2),
+          className: "cc-flag-icon",
+          style: { height: "1.16rem" },
+        })}
       {!noText && !swapPositions && getCountry(countryIso2)}
     </span>
   );

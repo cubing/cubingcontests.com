@@ -4,10 +4,10 @@ import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { Event, IPerson, IRecordType, IResult, IRound, type IRoundFormat } from "@cc/shared";
-import { RoundFormat, RoundType } from "@cc/shared";
-import { getIsProceedableResult } from "@cc/shared";
-import { roundFormats } from "@cc/shared";
+import { Event, IPerson, IRecordType, IResult, IRound, type IRoundFormat } from "~/helpers/types.ts";
+import { RoundFormat, RoundType } from "~/helpers/enums.ts";
+import { getIsProceedableResult } from "~/helpers/sharedFunctions.ts";
+import { roundFormats } from "~/helpers/roundFormats.ts";
 
 type Props = {
   round: IRound;
@@ -39,7 +39,8 @@ const RoundResultsTable = ({
   const getRankingHighlight = (result: IResult) => {
     if (
       result.proceeds ||
-      (round.roundTypeId === RoundType.Final && result.ranking <= 3 && getIsProceedableResult(result, roundFormat))
+      (round.roundTypeId === RoundType.Final && result.ranking <= 3 &&
+        getIsProceedableResult(result, roundFormat))
     ) {
       return { color: "black", background: "#10c010" };
     }
@@ -55,7 +56,11 @@ const RoundResultsTable = ({
             <th scope="col">#</th>
             <th scope="col">Name</th>
             <th scope="col">Best</th>
-            {roundCanHaveAverage && <th scope="col">{round.format === RoundFormat.Average ? "Average" : "Mean"}</th>}
+            {roundCanHaveAverage && (
+              <th scope="col">
+                {round.format === RoundFormat.Average ? "Average" : "Mean"}
+              </th>
+            )}
             <th scope="col">Attempts</th>
             {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
@@ -68,13 +73,17 @@ const RoundResultsTable = ({
             return (
               <tr key={(result as any)._id}>
                 <td className="ps-2" style={getRankingHighlight(result)}>
-                  <span className={isTie ? "text-secondary" : ""}>{result.ranking}</span>
+                  <span className={isTie ? "text-secondary" : ""}>
+                    {result.ranking}
+                  </span>
                 </td>
                 <td>
                   <div className="d-flex flex-wrap gap-2">
                     {result.personIds.map((personId, i) => {
                       const person = persons.find((p: IPerson) => p.personId === personId);
-                      if (!person) return <span key={personId}>(name not found)</span>;
+                      if (!person) {
+                        return <span key={personId}>(name not found)</span>;
+                      }
                       return (
                         <span key={person.personId} className="d-flex gap-2">
                           <Competitor person={person} showLocalizedName />
@@ -85,11 +94,22 @@ const RoundResultsTable = ({
                   </div>
                 </td>
                 <td>
-                  <Time result={result} event={event} recordTypes={recordTypes} />
+                  <Time
+                    result={result}
+                    event={event}
+                    recordTypes={recordTypes}
+                  />
                 </td>
                 {roundCanHaveAverage && (
                   <td>
-                    {result.average !== 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}
+                    {result.average !== 0 && (
+                      <Time
+                        result={result}
+                        event={event}
+                        recordTypes={recordTypes}
+                        average
+                      />
+                    )}
                   </td>
                 )}
                 <td>

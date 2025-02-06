@@ -4,7 +4,7 @@ import {
   compareSingles,
   getDefaultAverageAttempts,
   getIsProceedableResult,
-} from "~/shared/sharedFunctions";
+} from "~/helpers/sharedFunctions";
 import {
   Event,
   IActivity,
@@ -18,15 +18,19 @@ import {
   IWcifEvent,
   IWcifRound,
   IWcifSchedule,
-} from "~/shared/types";
-import { IUser } from "~/src/helpers/interfaces/User";
+} from "~/helpers/types";
+import { IUser } from "~/helpers/types";
 import { formatInTimeZone } from "date-fns-tz";
 import { differenceInDays } from "date-fns";
 import { RoundDocument } from "~/src/models/round.model";
-import { RoundProceed } from "~/shared/enums";
-import { roundFormats } from "~/shared/roundFormats";
+import { RoundProceed } from "~/helpers/enums";
+import { roundFormats } from "~/helpers/roundFormats";
 
-export const getResultProceeds = (result: IResult, round: IRound, roundFormat: IRoundFormat) =>
+export const getResultProceeds = (
+  result: IResult,
+  round: IRound,
+  roundFormat: IRoundFormat,
+) =>
   getIsProceedableResult(result, roundFormat) &&
   result.ranking <= Math.floor(round.results.length * 0.75) && // extra check for top 75%
   result.ranking <=
@@ -34,11 +38,15 @@ export const getResultProceeds = (result: IResult, round: IRound, roundFormat: I
       ? round.proceed.value
       : Math.floor((round.results.length * round.proceed.value) / 100));
 
-export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocument[]> => {
+export const setRoundRankings = async (
+  round: RoundDocument,
+): Promise<ResultDocument[]> => {
   if (round.results.length === 0) return [];
 
   const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
-  const sortedResults = round.results.sort(roundFormat.isAverage ? compareAvgs : compareSingles);
+  const sortedResults = round.results.sort(
+    roundFormat.isAverage ? compareAvgs : compareSingles,
+  );
   let prevResult = sortedResults[0];
   let ranking = 1;
 
@@ -46,8 +54,10 @@ export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocu
     // If the previous result was not tied with this one, increase ranking
     if (
       i > 0 &&
-      ((roundFormat.isAverage && compareAvgs(prevResult, sortedResults[i]) < 0) ||
-        (!roundFormat.isAverage && compareSingles(prevResult, sortedResults[i]) < 0))
+      ((roundFormat.isAverage &&
+        compareAvgs(prevResult, sortedResults[i]) < 0) ||
+        (!roundFormat.isAverage &&
+          compareSingles(prevResult, sortedResults[i]) < 0))
     ) {
       ranking = i + 1;
     }
@@ -56,7 +66,14 @@ export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocu
     prevResult = sortedResults[i];
 
     // Set proceeds if it's a non-final round and the result proceeds to the next round
-    if (round.proceed && getResultProceeds(sortedResults[i] as IResult, round as IRound, roundFormat)) {
+    if (
+      round.proceed &&
+      getResultProceeds(
+        sortedResults[i] as IResult,
+        round as IRound,
+        roundFormat,
+      )
+    ) {
       sortedResults[i].proceeds = true;
     } else if (sortedResults[i].proceeds) {
       sortedResults[i].proceeds = undefined;
@@ -68,7 +85,10 @@ export const setRoundRankings = async (round: RoundDocument): Promise<ResultDocu
   return sortedResults;
 };
 
-export const setRankings = async (results: ResultDocument[], ranksWithAverage: boolean): Promise<ResultDocument[]> => {
+export const setRankings = async (
+  results: ResultDocument[],
+  ranksWithAverage: boolean,
+): Promise<ResultDocument[]> => {
   if (results.length === 0) return [];
 
   let prevResult = results[0];
@@ -78,7 +98,10 @@ export const setRankings = async (results: ResultDocument[], ranksWithAverage: b
     // If the previous result was not tied with this one, increase ranking
     if (
       i > 0 &&
-      ((ranksWithAverage && compareAvgs({ average: prevResult.average }, { average: results[i].average }) < 0) ||
+      ((ranksWithAverage &&
+        compareAvgs({ average: prevResult.average }, {
+            average: results[i].average,
+          }) < 0) ||
         (!ranksWithAverage && compareSingles(prevResult, results[i]) < 0))
     ) {
       ranking = i + 1;
@@ -97,14 +120,19 @@ export const getBaseSinglesFilter = (event: Event, best: any = { $gt: 0 }) => {
 };
 
 export const getBaseAvgsFilter = (event: Event, average: any = { $gt: 0 }) => {
-  const output: any = { eventId: event.eventId, average, attempts: { $size: getDefaultAverageAttempts(event) } };
+  const output: any = {
+    eventId: event.eventId,
+    average,
+    attempts: { $size: getDefaultAverageAttempts(event) },
+  };
   return output;
 };
 
 export const getUserEmailVerified = (user: IUser) => user.confirmationCodeHash === undefined && !user.cooldownStarted;
 
-export const importEsmModule = async <T = any>(moduleName: string): Promise<T> =>
-  await (eval(`import('${moduleName}')`) as Promise<T>);
+export const importEsmModule = async <T = any>(
+  moduleName: string,
+): Promise<T> => await (eval(`import('${moduleName}')`) as Promise<T>);
 
 export const getWcifCompetition = (contest: IContest): IWcifCompetition => ({
   formatVersion: "1.0",
@@ -127,7 +155,10 @@ const getWcifCompEvent = (contestEvent: IContestEvent): IWcifEvent => ({
     {
       id: "TEMPORARY",
       specUrl: "",
-      data: { name: contestEvent.event.name, participants: contestEvent.event.participants },
+      data: {
+        name: contestEvent.event.name,
+        participants: contestEvent.event.participants,
+      },
     },
   ],
 });

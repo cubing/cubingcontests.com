@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Event } from "@cc/shared";
+import { Event } from "~/helpers/types.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import EventIcon from "~/app/components/EventIcon.tsx";
 
@@ -42,10 +42,13 @@ const EventButtons = ({
       router.replace(`/competitions/${id}/results?eventId=${newEventId}`);
     } else if (forPage === "rankings") {
       const show = searchParams.get("show");
-      router.push(`/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`);
+      router.push(
+        `/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`,
+      );
     } else if (forPage === "competitions") {
-      if (searchParams.get("eventId") === newEventId) router.replace("/competitions");
-      else router.replace(`/competitions?eventId=${newEventId}`);
+      if (searchParams.get("eventId") === newEventId) {
+        router.replace("/competitions");
+      } else router.replace(`/competitions?eventId=${newEventId}`);
     } else {
       router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
     }
@@ -61,11 +64,14 @@ const EventButtons = ({
               <button
                 key={cat.value}
                 type="button"
-                className={"btn btn-primary" + (cat === selectedCat ? " active" : "")}
+                className={"btn btn-primary" +
+                  (cat === selectedCat ? " active" : "")}
                 onClick={() => setSelectedCat(cat)}
               >
                 <span className="d-none d-md-inline">{cat.title}</span>
-                <span className="d-inline d-md-none">{cat.shortTitle || cat.title}</span>
+                <span className="d-inline d-md-none">
+                  {cat.shortTitle || cat.title}
+                </span>
               </button>
             ))}
           </div>

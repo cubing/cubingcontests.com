@@ -1,4 +1,4 @@
-import { Role } from "~/shared/enums";
+import { Role } from "~/helpers/enums.ts";
 
 export interface IJwtPayload {
   sub: string; // user id

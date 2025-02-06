@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { IAuthToken } from "~/src/helpers/interfaces/AuthToken";
+import { IAuthToken } from "~/helpers/types";
 
 @Schema({ timestamps: true })
 export class AuthTokenModel implements IAuthToken {

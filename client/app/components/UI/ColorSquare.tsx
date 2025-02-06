@@ -1,4 +1,4 @@
-import { Color } from "@cc/shared";
+import { Color } from "~/helpers/enums.ts";
 
 type Props = {
   color: Color;

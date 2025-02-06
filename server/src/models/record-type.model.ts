@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { IRecordType } from "~/shared/types";
-import { Color, WcaRecordType } from "~/shared/enums";
+import { IRecordType } from "~/helpers/types";
+import { Color, WcaRecordType } from "~/helpers/enums";
 
 @Schema({ timestamps: true })
 class RecordTypeModel implements IRecordType {

@@ -28,25 +28,6 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=production
-      - PORT=$BACKEND_PORT
-      - MONGO_DEV_USERNAME=$MONGO_DEV_USERNAME
-      - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
-      - JWT_SECRET=$JWT_SECRET
-      - BASE_URL=$BASE_URL
-    depends_on:
-      - mongo
-    restart: always
-
-  server2:
-    container_name: cc-server2 # if this is changed, make sure to update all references to the old container name in .env
-    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server2:${VERSION}'
-    networks:
-      - cubingcontests
-    ports:
-      - 127.0.0.1:$BACKEND2_PORT:$BACKEND2_PORT
-    env_file: .env
-    environment:
-      - ENVIRONMENT=production
     depends_on:
       - mongo
     restart: always
@@ -57,15 +38,11 @@ services:
     networks:
       - cubingcontests
     ports:
-      - 127.0.0.1:$FRONTEND_PORT:$FRONTEND_PORT
-    environment:
-      - PORT=$FRONTEND_PORT
-      - API_BASE_URL_SERVER_SIDE=$API_BASE_URL_SERVER_SIDE
-      - API_BASE_URL2_SERVER_SIDE=$API_BASE_URL2_SERVER_SIDE
+      - 127.0.0.1:$PORT:$PORT
+    env_file: .env
     depends_on:
       - mongo
       - server
-      - server2
     restart: always
 
 networks:

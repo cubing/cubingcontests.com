@@ -1,5 +1,5 @@
 import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Min, NotEquals } from "class-validator";
-import { C } from "~/shared/constants";
+import { C } from "~/helpers/constants";
 
 export class EnterAttemptDto {
   @IsString()

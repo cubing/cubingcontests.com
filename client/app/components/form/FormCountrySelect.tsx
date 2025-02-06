@@ -1,6 +1,6 @@
 "use client";
 
-import { Countries } from "@cc/shared";
+import { Countries } from "~/helpers/Countries.ts";
 import FormInputLabel from "~/app/components/form/FormInputLabel";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
 

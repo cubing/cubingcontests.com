@@ -1,4 +1,4 @@
-import { C } from "@cc/shared";
+import { C } from "~/helpers/constants.ts";
 
 const DonatePage = () => {
   return (

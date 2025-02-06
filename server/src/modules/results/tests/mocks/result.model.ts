@@ -1,12 +1,15 @@
 import { ResultDocument } from "~/src/models/result.model";
-import { IResult } from "~/shared/types";
+import { IResult } from "~/helpers/types";
 import { resultsStub } from "../stubs/results.stub";
 
 export const ResultModelMock = (): any => ({
   tempOutput: undefined,
   create(results: IResult | IResult[]): ResultDocument | ResultDocument[] {
     if (Array.isArray(results)) {
-      return results.map((result) => ({ ...result, save() {} })) as ResultDocument[];
+      return results.map((result) => ({
+        ...result,
+        save() {},
+      })) as ResultDocument[];
     } else {
       return {
         ...results,
@@ -37,7 +40,9 @@ export const ResultModelMock = (): any => ({
           el._id.toString() === query._id.toString()
         );}
     }
-    if (query?.eventId) this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.eventId === query.eventId);
+    if (query?.eventId) {
+      this.tempOutput = this.tempOutput.filter((el: ResultDocument) => el.eventId === query.eventId);
+    }
     if (query?.regionalSingleRecord) {
       this.tempOutput = this.tempOutput.filter(
         (el: ResultDocument) => el.regionalSingleRecord === query.regionalSingleRecord,

@@ -2,12 +2,21 @@ import { decodeJwt } from "jose";
 import { isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
-import { Color, EventFormat, Role } from "@cc/shared";
-import { C } from "@cc/shared";
-import { type Event, type IFeAttempt, type IRoundFormat, type ITimeLimit, type NumberInputValue } from "@cc/shared";
+import { Color, EventFormat, Role } from "~/helpers/enums.ts";
+import { C } from "~/helpers/constants.ts";
+import {
+  type Event,
+  type IFeAttempt,
+  type IRoundFormat,
+  type ITimeLimit,
+  type NumberInputValue,
+} from "~/helpers/types.ts";
 import { type InputPerson, type MultiChoiceOption, type UserInfo } from "./types.ts";
 
-export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
+export const getFormattedDate = (
+  startDate: Date | string,
+  endDate?: Date | string | null,
+): string => {
   if (!startDate) throw new Error("Start date missing!");
 
   if (typeof startDate === "string") startDate = new Date(startDate);
@@ -31,7 +40,10 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
 // Returns null if the time is invalid
 const getCentiseconds = (
   time: string, // the time string without formatting (e.g. 1:35.97 should be "13597")
-  { round = true, throwErrorWhenInvalidTime = false }: { round?: boolean; throwErrorWhenInvalidTime?: boolean } = {
+  { round = true, throwErrorWhenInvalidTime = false }: {
+    round?: boolean;
+    throwErrorWhenInvalidTime?: boolean;
+  } = {
     round: true,
     throwErrorWhenInvalidTime: false,
   },
@@ -54,7 +66,10 @@ const getCentiseconds = (
   }
 
   // Disallow >60 minutes, >60 seconds, and times more than 24 hours long
-  if (minutes >= 60 || centiseconds >= 6000 || hours > 24 || (hours === 24 && minutes > 0 && centiseconds > 0)) {
+  if (
+    minutes >= 60 || centiseconds >= 6000 || hours > 24 ||
+    (hours === 24 && minutes > 0 && centiseconds > 0)
+  ) {
     if (throwErrorWhenInvalidTime) {
       throw new Error(
         `Invalid time: ${time}. Debug info: hours = ${hours}, minutes = ${minutes}, centiseconds = ${centiseconds}, time = ${time}, round = ${round}`,
@@ -81,31 +96,48 @@ export const getAttempt = (
     memo?: string; // only used for events with the event group HasMemo
   } = { roundTime: false, roundMemo: false },
 ): IFeAttempt => {
-  if (time.length > 8 || (memo && memo.length > 8)) throw new Error("Times longer than 8 digits are not supported");
+  if (time.length > 8 || (memo && memo.length > 8)) {
+    throw new Error("Times longer than 8 digits are not supported");
+  }
 
   const maxFmResultDigits = C.maxFmMoves.toString().length;
   if (time.length > maxFmResultDigits && event.format === EventFormat.Number) {
-    throw new Error(`Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`);
+    throw new Error(
+      `Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`,
+    );
   }
 
-  if (event.format === EventFormat.Number) return { ...attempt, result: time ? parseInt(time) : 0 };
+  if (event.format === EventFormat.Number) {
+    return { ...attempt, result: time ? parseInt(time) : 0 };
+  }
 
-  const newAttempt: IFeAttempt = { result: getCentiseconds(time, { round: roundTime }) };
+  const newAttempt: IFeAttempt = {
+    result: getCentiseconds(time, { round: roundTime }),
+  };
   if (memo) {
     newAttempt.memo = getCentiseconds(memo, { round: roundMemo });
-    if (newAttempt.memo && newAttempt.result && newAttempt.memo >= newAttempt.result) {
+    if (
+      newAttempt.memo && newAttempt.result &&
+      newAttempt.memo >= newAttempt.result
+    ) {
       return { ...newAttempt, result: null };
     }
   }
 
   if (event.format === EventFormat.Multi && newAttempt.result) {
-    if (typeof solved !== "number" || typeof attempted !== "number" || solved > attempted) return { result: null };
+    if (
+      typeof solved !== "number" || typeof attempted !== "number" ||
+      solved > attempted
+    ) return { result: null };
 
     const maxTime = Math.min(attempted, 6) * 60000 + attempted * 200; // accounts for +2s
 
     // Disallow submitting multi times > max time, and <= 1 hour for old style
-    if (event.eventId === "333mbf" && newAttempt.result > maxTime) return { ...newAttempt, result: null };
-    else if (event.eventId === "333mbo" && newAttempt.result <= 360000) return { ...newAttempt, result: null };
+    if (event.eventId === "333mbf" && newAttempt.result > maxTime) {
+      return { ...newAttempt, result: null };
+    } else if (event.eventId === "333mbo" && newAttempt.result <= 360000) {
+      return { ...newAttempt, result: null };
+    }
 
     // See the IResult interface for information about how this works
     let multiOutput = ""; // DDDDTTTTTTTMMMM
@@ -118,8 +150,10 @@ export const getAttempt = (
     }
 
     multiOutput += 9999 - points;
-    multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") + newAttempt.result;
-    multiOutput += new Array(4 - missed.toString().length).fill("0").join("") + missed;
+    multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") +
+      newAttempt.result;
+    multiOutput += new Array(4 - missed.toString().length).fill("0").join("") +
+      missed;
 
     newAttempt.result = parseInt(multiOutput);
   }
@@ -183,11 +217,14 @@ export const getContestIdFromName = (name: string): string => {
   return output;
 };
 
-export const genericOnKeyDown = (e: any, { nextFocusTargetId, onKeyDown, submitOnEnter }: {
-  nextFocusTargetId?: string;
-  onKeyDown?: (e: any) => void;
-  submitOnEnter?: boolean;
-}) => {
+export const genericOnKeyDown = (
+  e: any,
+  { nextFocusTargetId, onKeyDown, submitOnEnter }: {
+    nextFocusTargetId?: string;
+    onKeyDown?: (e: any) => void;
+    submitOnEnter?: boolean;
+  },
+) => {
   if (e.key === "Enter") {
     if (!submitOnEnter) e.preventDefault();
     if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
@@ -229,19 +266,25 @@ export const getIsWebglSupported = (): boolean => {
     const webglContext = canvas.getContext("webgl");
     const webglExperimentalContext = canvas.getContext("experimental-webgl");
 
-    return !!window.WebGLRenderingContext && !!webglContext && !!webglExperimentalContext;
+    return !!window.WebGLRenderingContext && !!webglContext &&
+      !!webglExperimentalContext;
   } catch (_e) {
     return false;
   }
 };
 
-export const getTimeLimit = (eventFormat: EventFormat): ITimeLimit | undefined =>
+export const getTimeLimit = (
+  eventFormat: EventFormat,
+): ITimeLimit | undefined =>
   eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
 
-export const getRoundFormatOptions = (roundFormats: IRoundFormat[]): MultiChoiceOption[] =>
-  roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
+export const getRoundFormatOptions = (
+  roundFormats: IRoundFormat[],
+): MultiChoiceOption[] => roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
 
-export const getBlankCompetitors = (participants: number): [InputPerson[], string[]] => {
+export const getBlankCompetitors = (
+  participants: number,
+): [InputPerson[], string[]] => {
   const persons = new Array(participants).fill(null);
   const personNames = new Array(participants).fill("");
   return [persons, personNames];

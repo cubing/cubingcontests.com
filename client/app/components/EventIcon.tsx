@@ -1,6 +1,7 @@
 import "@cubing/icons";
 import { CubingIcons } from "@cubing/icons/js";
-import { Event, EventGroup } from "@cc/shared";
+import { Event } from "~/helpers/types.ts";
+import { EventGroup } from "~/helpers/enums.ts";
 import { shortenEventName } from "~/helpers/utilityFunctions.ts";
 
 type Props = {
@@ -10,7 +11,8 @@ type Props = {
 };
 
 const EventIcon = ({ event, onClick, isActive }: Props) => {
-  const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) || event.groups.includes(EventGroup.RemovedWCA);
+  const isOrWasWCAEvent = event.groups.includes(EventGroup.WCA) ||
+    event.groups.includes(EventGroup.RemovedWCA);
   const availableIcons = Object.values(CubingIcons).map((iconId) =>
     (iconId as string).replace("event-", "").replace("unofficial-", "")
   );
@@ -20,17 +22,32 @@ const EventIcon = ({ event, onClick, isActive }: Props) => {
     if (!onClick) return <></>;
 
     return (
-      <button type="button" onClick={onClick} className={"btn btn-lightdark btn-sm m-1" + (isActive ? " active" : "")}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={"btn btn-lightdark btn-sm m-1" + (isActive ? " active" : "")}
+      >
         {shortenEventName(event.name)}
       </button>
     );
   }
 
-  if (!onClick) return <span className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`} />;
+  if (!onClick) {
+    return (
+      <span
+        className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`}
+      />
+    );
+  }
 
   return (
-    <button onClick={onClick} className={"cc-icon-button" + (isActive ? " cc-icon-button--active" : "")}>
-      <span className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`} />
+    <button
+      onClick={onClick}
+      className={"cc-icon-button" + (isActive ? " cc-icon-button--active" : "")}
+    >
+      <span
+        className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`}
+      />
     </button>
   );
 };

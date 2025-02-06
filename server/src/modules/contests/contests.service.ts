@@ -20,10 +20,10 @@ import {
   resultPopulateOptions,
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
-import { C } from "~/shared/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "~/shared/types";
-import { ContestState, ContestType, EventGroup, RoundType } from "~/shared/enums";
-import { Role } from "~/shared/enums";
+import { C } from "~/helpers/constants";
+import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "~/helpers/types";
+import { ContestState, ContestType, EventGroup, RoundType } from "~/helpers/enums";
+import { Role } from "~/helpers/enums";
 import {
   getDateOnly,
   getIsCompType,
@@ -31,7 +31,7 @@ import {
   getMaxAllowedRounds,
   getTotalRounds,
   parseRoundId,
-} from "~/shared/sharedFunctions";
+} from "~/helpers/sharedFunctions";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { ResultsService } from "@m/results/results.service";
 import { EventsService } from "@m/events/events.service";
@@ -43,8 +43,8 @@ import { UsersService } from "@m/users/users.service";
 import { RoundDocument } from "~/src/models/round.model";
 import { ResultDocument } from "~/src/models/result.model";
 import { ScheduleDocument } from "~/src/models/schedule.model";
-import { IPartialUser } from "~/src/helpers/interfaces/User";
-import { roundFormats } from "~/shared/roundFormats";
+import { IPartialUser } from "~/helpers/types";
+import { roundFormats } from "~/helpers/roundFormats";
 import { getResultProceeds } from "~/src/helpers/utilityFunctions";
 
 const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
@@ -60,10 +60,14 @@ export class ContestsService {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
-    @InjectModel("Competition") private readonly contestModel: Model<ContestDocument>,
+    @InjectModel("Competition") private readonly contestModel: Model<
+      ContestDocument
+    >,
     @InjectModel("Round") private readonly roundModel: Model<RoundDocument>,
     @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
-    @InjectModel("Schedule") private readonly scheduleModel: Model<ScheduleDocument>,
+    @InjectModel("Schedule") private readonly scheduleModel: Model<
+      ScheduleDocument
+    >,
   ) {}
 
   async onModuleInit() {
@@ -73,10 +77,14 @@ export class ContestsService {
       const schedules = await this.scheduleModel.find().exec();
 
       for (const s of schedules) {
-        const contests = await this.contestModel.find({ "compDetails.schedule": s._id }).exec();
+        const contests = await this.contestModel.find({
+          "compDetails.schedule": s._id,
+        }).exec();
 
         if (contests.length === 0) {
-          this.logger.error(`Error: schedule has no contest: ${JSON.stringify(s)}`);
+          this.logger.error(
+            `Error: schedule has no contest: ${JSON.stringify(s)}`,
+          );
         } else if (contests.length > 1) {
           this.logger.error(
             `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${
@@ -93,32 +101,49 @@ export class ContestsService {
 
             // Check for duplicate ID venues
             if (s.venues.some((v, index) => index > i && v.id === venue.id)) {
-              this.logger.error(`Error: contest ${contest.competitionId} has duplicate venue ID - ${venue.id}`);
+              this.logger.error(
+                `Error: contest ${contest.competitionId} has duplicate venue ID - ${venue.id}`,
+              );
             }
 
             for (let j = 0; j < venue.rooms.length; j++) {
               const room = venue.rooms[j];
 
               // Check for duplicate ID rooms
-              if (venue.rooms.some((r, index) => index > j && r.id === room.id)) {
-                this.logger.error(`Error: contest ${contest.competitionId} has duplicate room ID - ${room.id}`);
+              if (
+                venue.rooms.some((r, index) => index > j && r.id === room.id)
+              ) {
+                this.logger.error(
+                  `Error: contest ${contest.competitionId} has duplicate room ID - ${room.id}`,
+                );
               }
 
               for (let k = 0; k < s.venues[i].rooms[j].activities.length; k++) {
                 const activity = room.activities[k];
 
                 // Check for duplicate ID rooms
-                if (room.activities.some((a, index) => index > k && a.id === activity.id)) {
+                if (
+                  room.activities.some((a, index) => index > k && a.id === activity.id)
+                ) {
                   this.logger.error(
                     `Error: contest ${contest.competitionId} has duplicate activity ID - ${activity.id}`,
                   );
                 }
 
-                const startTime = toZonedTime(activity.startTime, s.venues[i].timezone);
-                const endTime = toZonedTime(activity.endTime, s.venues[i].timezone);
+                const startTime = toZonedTime(
+                  activity.startTime,
+                  s.venues[i].timezone,
+                );
+                const endTime = toZonedTime(
+                  activity.endTime,
+                  s.venues[i].timezone,
+                );
 
                 // Check that no activity is outside of the date range of the contest
-                if (startTime < contest.startDate || endTime >= addDays(contest.endDate, 1)) {
+                if (
+                  startTime < contest.startDate ||
+                  endTime >= addDays(contest.endDate, 1)
+                ) {
                   this.logger.error(
                     `Error: activity ${
                       JSON.stringify(activity)
@@ -129,7 +154,10 @@ export class ContestsService {
                 if (!getIsOtherActivity(activity.activityCode)) {
                   // Check that all results for this schedule activity have the right date
                   const round = await this.roundModel
-                    .findOne({ competitionId: contest.competitionId, roundId: activity.activityCode })
+                    .findOne({
+                      competitionId: contest.competitionId,
+                      roundId: activity.activityCode,
+                    })
                     .populate(resultPopulateOptions)
                     .exec();
 
@@ -185,7 +213,10 @@ export class ContestsService {
               );
             }
 
-            if (round.roundTypeId === RoundType.Final && round.results.some((r) => r.proceeds)) {
+            if (
+              round.roundTypeId === RoundType.Final &&
+              round.results.some((r) => r.proceeds)
+            ) {
               this.logger.error(
                 `Error: final round ${contest.competitionId}/${round.roundId} has a result with result.proceeds = true`,
               );
@@ -193,13 +224,13 @@ export class ContestsService {
 
             for (const result of round.results) {
               const overlappingPersonsResult = round.results.find((r) =>
-                r._id.toString() !== result._id.toString() && r.ranking >= result.ranking &&
+                r._id.toString() !== result._id.toString() &&
+                r.ranking >= result.ranking &&
                 r.personIds.some((p) => result.personIds.includes(p))
               );
               if (overlappingPersonsResult) {
-                const overlappingPersonId = overlappingPersonsResult.personIds.find((p) =>
-                  result.personIds.includes(p)
-                );
+                const overlappingPersonId = overlappingPersonsResult.personIds
+                  .find((p) => result.personIds.includes(p));
                 this.logger.error(
                   `Error: round ${contest.competitionId}/${round.roundId} has results with overlapping persons (CC ID: ${overlappingPersonId})`,
                 );
@@ -224,42 +255,81 @@ export class ContestsService {
         }
       }
     }
+
+    // TEMPORARY
+    const contests = await this.contestModel.find({ type: ContestType.Meetup })
+      .exec();
+    for (const contest of contests) {
+      if (contest.timezone) {
+        contest.meetupDetails.timeZone = (contest as any).timezone;
+        (contest as any).timezone = undefined;
+      } else {
+        contest.meetupDetails.timeZone = findTimezone(
+          contest.latitudeMicrodegrees / 1000000,
+          contest.longitudeMicrodegrees / 1000000,
+        )[0];
+      }
+      await contest.save();
+    }
   }
 
   async getContests(region?: string, eventId?: string) {
-    const queryFilter: any = { state: { $gt: ContestState.Created, $lt: ContestState.Removed } };
+    const queryFilter: any = {
+      state: { $gt: ContestState.Created, $lt: ContestState.Removed },
+    };
     if (region) queryFilter.countryIso2 = region;
     if (eventId) {
       const event = await this.eventsService.getEventById(eventId);
       queryFilter["events.event"] = event._id;
     }
 
-    const contests = await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+    const contests = await this.contestModel.find(queryFilter, excl).sort({
+      startDate: -1,
+    }).exec();
     return contests;
   }
 
-  async getModContests(user: IPartialUser, { organizerId }: { organizerId?: number } = {}) {
+  async getModContests(
+    user: IPartialUser,
+    { organizerId }: { organizerId?: number } = {},
+  ) {
     let queryFilter: any = {};
     let organizerFilter: any;
 
     if (organizerId) {
-      const organizer = await this.personsService.getPersonByPersonId(organizerId);
+      const organizer = await this.personsService.getPersonByPersonId(
+        organizerId,
+      );
       organizerFilter = { organizers: (organizer as any)._id };
     }
 
     if (user.roles.includes(Role.Admin)) {
       if (organizerId) {
-        const user = await this.usersService.getPartialUserWithQuery({ personId: organizerId });
-        queryFilter = { $or: [user ? { createdBy: user._id } : undefined, organizerFilter].filter((x) => !!x) };
+        const user = await this.usersService.getPartialUserWithQuery({
+          personId: organizerId,
+        });
+        queryFilter = {
+          $or: [user ? { createdBy: user._id } : undefined, organizerFilter]
+            .filter((x) => !!x),
+        };
       }
     } else {
-      const person = await this.personsService.getPersonByPersonId(user.personId, {
-        customError: "Your profile must be tied to your account before you can use moderator features",
-      });
-      queryFilter = { $and: [{ organizers: (person as any)._id }, organizerFilter].filter((x) => !!x) };
+      const person = await this.personsService.getPersonByPersonId(
+        user.personId,
+        {
+          customError: "Your profile must be tied to your account before you can use moderator features",
+        },
+      );
+      queryFilter = {
+        $and: [{ organizers: (person as any)._id }, organizerFilter].filter((
+          x,
+        ) => !!x),
+      };
     }
 
-    return await this.contestModel.find(queryFilter, excl).sort({ startDate: -1 }).exec();
+    return await this.contestModel.find(queryFilter, excl).sort({
+      startDate: -1,
+    }).exec();
   }
 
   // If user is defined, that means the request is for a moderator page.
@@ -279,10 +349,14 @@ export class ContestsService {
       });
     }
 
-    const activeRecordTypes = await this.recordTypesService.getRecordTypes({ active: true });
+    const activeRecordTypes = await this.recordTypesService.getRecordTypes({
+      active: true,
+    });
     const output: IContestData = {
       contest: contest as IContest,
-      persons: await this.personsService.getContestParticipants({ competitionId }),
+      persons: await this.personsService.getContestParticipants({
+        competitionId,
+      }),
       activeRecordTypes,
     };
 
@@ -293,7 +367,9 @@ export class ContestsService {
       if (!contestEvent) throw new BadRequestException("Event not found");
 
       // Populate the results of all rounds for this event
-      for (const round of contestEvent.rounds) await round.populate(resultPopulateOptions);
+      for (const round of contestEvent.rounds) {
+        await round.populate(resultPopulateOptions);
+      }
     }
 
     // Get mod contest
@@ -306,25 +382,49 @@ export class ContestsService {
 
       // Show admins the info about the creator of the contest
       if (user.roles.includes(Role.Admin)) {
-        output.creator = await this.usersService.getUserDetails(contest.createdBy.toString(), false);
+        output.creator = await this.usersService.getUserDetails(
+          contest.createdBy.toString(),
+          false,
+        );
       }
     }
 
     return output;
   }
 
-  async createContest(contestDto: ContestDto, user: IPartialUser, saveResults = false) {
+  async createContest(
+    contestDto: ContestDto,
+    user: IPartialUser,
+    saveResults = false,
+  ) {
     // No need to check that the state is not removed, because removed contests have _REMOVED at the end anyways
-    const sameIdC = await this.contestModel.exists({ competitionId: contestDto.competitionId }).exec();
-    if (sameIdC) throw new ConflictException(`A contest with the ID ${contestDto.competitionId} already exists`);
+    const sameIdC = await this.contestModel.exists({
+      competitionId: contestDto.competitionId,
+    }).exec();
+    if (sameIdC) {
+      throw new ConflictException(
+        `A contest with the ID ${contestDto.competitionId} already exists`,
+      );
+    }
     const sameNameC = await this.contestModel
       .exists({ name: contestDto.name, state: { $ne: ContestState.Removed } })
       .exec();
-    if (sameNameC) throw new ConflictException(`A contest with the name ${contestDto.name} already exists`);
+    if (sameNameC) {
+      throw new ConflictException(
+        `A contest with the name ${contestDto.name} already exists`,
+      );
+    }
     const sameShortC = await this.contestModel
-      .exists({ shortName: contestDto.shortName, state: { $ne: ContestState.Removed } })
+      .exists({
+        shortName: contestDto.shortName,
+        state: { $ne: ContestState.Removed },
+      })
       .exec();
-    if (sameShortC) throw new ConflictException(`A contest with the short name ${contestDto.shortName} already exists`);
+    if (sameShortC) {
+      throw new ConflictException(
+        `A contest with the short name ${contestDto.shortName} already exists`,
+      );
+    }
 
     this.validateAndCleanUpContest(contestDto, user);
 
@@ -332,7 +432,9 @@ export class ContestsService {
     const contestEvents: ContestEventModel[] = [];
 
     for (const contestEvent of contestDto.events) {
-      contestEvents.push(await this.getNewContestEvent(contestEvent, saveResults));
+      contestEvents.push(
+        await this.getNewContestEvent(contestEvent, saveResults),
+      );
     }
 
     // Create new contest
@@ -341,22 +443,18 @@ export class ContestsService {
       events: contestEvents as IContestEvent[],
       createdBy: new mongo.ObjectId(user._id as string),
       state: ContestState.Created,
-      participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents })).length,
+      participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents }))
+        .length,
     };
 
     newContest.organizers = await this.personsService.getPersonsByPersonIds(
       contestDto.organizers.map((org) => org.personId),
     );
 
-    if (contestDto.type === ContestType.Meetup) {
-      newContest.timezone = findTimezone(
-        contestDto.latitudeMicrodegrees / 1000000,
-        contestDto.longitudeMicrodegrees / 1000000,
-      )[0];
-    }
-
     if (contestDto.compDetails?.schedule) {
-      newContest.compDetails.schedule = await this.scheduleModel.create(contestDto.compDetails.schedule);
+      newContest.compDetails.schedule = await this.scheduleModel.create(
+        contestDto.compDetails.schedule,
+      );
     }
 
     try {
@@ -364,22 +462,40 @@ export class ContestsService {
 
       // Email the creator
       const contestUrl = getContestUrl(contestDto.competitionId);
-      await this.emailService.sendContestSubmittedNotification(user.email, newContest, contestUrl);
+      await this.emailService.sendContestSubmittedNotification(
+        user.email,
+        newContest,
+        contestUrl,
+      );
 
       // Email the admins
-      const difference = Math.abs(differenceInDays(newContest.startDate, new Date()));
+      const difference = Math.abs(
+        differenceInDays(newContest.startDate, new Date()),
+      );
       await this.emailService.sendEmail(
         C.contactEmail,
         `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newContest.name}</a>.`,
-        { subject: `${difference <= 7 ? "URGENT! " : ""}New contest: ${newContest.shortName}` },
+        {
+          subject: `${difference <= 7 ? "URGENT! " : ""}New contest: ${newContest.shortName}`,
+        },
       );
     } catch (err) {
       // Remove created contest, rounds, results and schedule
-      await this.contestModel.deleteOne({ competitionId: contestDto.competitionId }).exec();
-      await this.roundModel.deleteMany({ competitionId: contestDto.competitionId }).exec();
-      if (saveResults) await this.resultModel.deleteMany({ competitionId: contestDto.competitionId }).exec();
+      await this.contestModel.deleteOne({
+        competitionId: contestDto.competitionId,
+      }).exec();
+      await this.roundModel.deleteMany({
+        competitionId: contestDto.competitionId,
+      }).exec();
+      if (saveResults) {
+        await this.resultModel.deleteMany({
+          competitionId: contestDto.competitionId,
+        }).exec();
+      }
       if (contestDto.compDetails) {
-        await this.scheduleModel.deleteOne({ competitionId: contestDto.competitionId }).exec();
+        await this.scheduleModel.deleteOne({
+          competitionId: contestDto.competitionId,
+        }).exec();
       }
 
       throw new InternalServerErrorException(err.message);
@@ -388,26 +504,39 @@ export class ContestsService {
 
   async openRound(competitionId: string, roundId: string) {
     const [eventId, roundNumber] = parseRoundId(roundId);
-    const contest = await this.getFullContest(competitionId, { populateResults: true });
+    const contest = await this.getFullContest(competitionId, {
+      populateResults: true,
+    });
 
-    const round = await this.roundModel.findOne({ competitionId, roundId }).exec();
+    const round = await this.roundModel.findOne({ competitionId, roundId })
+      .exec();
     if (!round) throw new NotFoundException("Round not found");
-    if (round.open) throw new BadRequestException("The specified round is already open");
+    if (round.open) {
+      throw new BadRequestException("The specified round is already open");
+    }
 
     const maxAllowedRounds = getMaxAllowedRounds(
-      contest.events.find((ce) => ce.event.eventId === eventId).rounds as IRound[],
+      contest.events.find((ce) => ce.event.eventId === eventId)
+        .rounds as IRound[],
     );
     if (maxAllowedRounds < roundNumber) {
-      throw new BadRequestException("Previous rounds do not have enough competitors (see WCA regulation 9m)");
+      throw new BadRequestException(
+        "Previous rounds do not have enough competitors (see WCA regulation 9m)",
+      );
     }
 
     round.open = true;
     await round.save();
 
     if (roundNumber > 1) {
-      const prevRound = await this.roundModel.findOne({ competitionId, roundId: eventId + `-r${roundNumber - 1}` })
+      const prevRound = await this.roundModel.findOne({
+        competitionId,
+        roundId: eventId + `-r${roundNumber - 1}`,
+      })
         .exec();
-      if (!prevRound) throw new InternalServerErrorException("Previous round not found");
+      if (!prevRound) {
+        throw new InternalServerErrorException("Previous round not found");
+      }
       prevRound.open = undefined;
       await prevRound.save();
     }
@@ -415,19 +544,29 @@ export class ContestsService {
     return round;
   }
 
-  async updateContest(competitionId: string, contestDto: ContestDto, user: IPartialUser) {
+  async updateContest(
+    competitionId: string,
+    contestDto: ContestDto,
+    user: IPartialUser,
+  ) {
     // Do not exclude internal fields so that the contest can be saved below
-    const contest = await this.getFullContest(competitionId, { exclude: false });
+    const contest = await this.getFullContest(competitionId, {
+      exclude: false,
+    });
     const isAdmin = user.roles.includes(Role.Admin);
 
-    this.authService.checkAccessRightsToContest(user, contest, { allowNotApproved: true });
+    this.authService.checkAccessRightsToContest(user, contest, {
+      allowNotApproved: true,
+    });
     if (contestDto.competitionId !== competitionId) {
       const newCompetitionIdClashes = await this.contestModel.exists({
         _id: { $ne: contest._id },
         competitionId: contestDto.competitionId,
       }).exec();
       if (newCompetitionIdClashes) {
-        throw new ConflictException(`A contest with the ID ${contestDto.competitionId} already exists`);
+        throw new ConflictException(
+          `A contest with the ID ${contestDto.competitionId} already exists`,
+        );
       }
     }
     this.validateAndCleanUpContest(contestDto, user);
@@ -437,14 +576,22 @@ export class ContestsService {
     );
     contest.contact = contestDto.contact;
     contest.description = contestDto.description;
-    contest.events = await this.updateContestEvents(contest, contestDto.events, isAdmin);
+    contest.events = await this.updateContestEvents(
+      contest,
+      contestDto.events,
+      isAdmin,
+    );
 
     if (contestDto.compDetails) {
       if (contest.compDetails) {
         await this.updateSchedule(contest, contestDto.compDetails.schedule);
       } else {
         // compDetails might be undefined if the contest was imported
-        contest.compDetails = { schedule: await this.scheduleModel.create(contestDto.compDetails.schedule) };
+        contest.compDetails = {
+          schedule: await this.scheduleModel.create(
+            contestDto.compDetails.schedule,
+          ),
+        };
       }
     } else if (contestDto.meetupDetails) {
       contest.meetupDetails = contestDto.meetupDetails;
@@ -452,12 +599,18 @@ export class ContestsService {
 
     if (isAdmin && contest.state < ContestState.Approved) {
       contest.competitionId = contestDto.competitionId;
-      await this.resultModel.updateMany({ competitionId }, { $set: { competitionId: contestDto.competitionId } })
+      await this.resultModel.updateMany({ competitionId }, {
+        $set: { competitionId: contestDto.competitionId },
+      })
         .exec();
-      await this.roundModel.updateMany({ competitionId }, { $set: { competitionId: contestDto.competitionId } }).exec();
+      await this.roundModel.updateMany({ competitionId }, {
+        $set: { competitionId: contestDto.competitionId },
+      }).exec();
       await this.authService.deleteAuthTokens(competitionId);
       if (getIsCompType(contest.type)) {
-        await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contestDto.competitionId } })
+        await this.scheduleModel.updateOne({ competitionId }, {
+          $set: { competitionId: contestDto.competitionId },
+        })
           .exec();
       }
     }
@@ -482,40 +635,69 @@ export class ContestsService {
     await contest.save();
   }
 
-  async updateState(competitionId: string, newState: ContestState, user: IPartialUser) {
+  async updateState(
+    competitionId: string,
+    newState: ContestState,
+    user: IPartialUser,
+  ) {
     // The organizers are needed for access rights checking below
-    const contest = await this.contestModel.findOne({ competitionId }).populate(orgPopulateOptions).exec();
-    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    const contest = await this.contestModel.findOne({ competitionId }).populate(
+      orgPopulateOptions,
+    ).exec();
+    if (!contest) {
+      throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    }
 
-    await this.authService.checkAccessRightsToContest(user, contest, { allowNotApproved: true });
+    await this.authService.checkAccessRightsToContest(user, contest, {
+      allowNotApproved: true,
+    });
     if (getIsCompType(contest.type) && !contest.compDetails) {
       // Legacy thing from when we used the import contest feature, which left the schedule empty, requiring it to be entered manually
-      throw new BadRequestException("A competition without a schedule cannot be approved");
+      throw new BadRequestException(
+        "A competition without a schedule cannot be approved",
+      );
     }
     if (contest.state === newState) {
-      throw new BadRequestException(`The contest already has the state ${ContestState[newState]}`);
+      throw new BadRequestException(
+        `The contest already has the state ${ContestState[newState]}`,
+      );
     }
 
-    const resultFromContest = await this.resultModel.findOne({ competitionId }).exec();
+    const resultFromContest = await this.resultModel.findOne({ competitionId })
+      .exec();
     const isAdmin = user.roles.includes(Role.Admin);
-    const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
+    const contestCreatorEmail = await this.usersService.getUserEmail({
+      _id: contest.createdBy,
+    });
     const contestUrl = getContestUrl(competitionId);
 
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
     // A contest can have results before being approved if it's an imported contest.
-    if (isAdmin && resultFromContest && contest.state < ContestState.Ongoing && newState === ContestState.Approved) {
+    if (
+      isAdmin && resultFromContest && contest.state < ContestState.Ongoing &&
+      newState === ContestState.Approved
+    ) {
       contest.state = ContestState.Ongoing;
     } // Allow mods only to finish an ongoing contest
-    else if (isAdmin || (contest.state === ContestState.Ongoing && newState === ContestState.Finished)) {
+    else if (
+      isAdmin ||
+      (contest.state === ContestState.Ongoing &&
+        newState === ContestState.Finished)
+    ) {
       if (newState === ContestState.Approved) {
-        await this.personsService.approvePersons({ personIds: contest.organizers.map((o) => o.personId) });
+        await this.personsService.approvePersons({
+          personIds: contest.organizers.map((o) => o.personId),
+        });
 
         await this.emailService.sendEmail(
           contestCreatorEmail,
           `Your contest <a href="${contestUrl}">${contest.name}</a> has been approved and is now public on the website.`,
           { subject: `Contest approved: ${contest.shortName}` },
         );
-      } else if (contest.state === ContestState.Finished && newState === ContestState.Ongoing) {
+      } else if (
+        contest.state === ContestState.Finished &&
+        newState === ContestState.Ongoing
+      ) {
         await contest.populate(eventPopulateOptions.rounds);
 
         for (const event of contest.events) {
@@ -540,8 +722,14 @@ export class ContestsService {
 
   async deleteContest(competitionId: string) {
     const contest = await this.contestModel.findOne({ competitionId }).exec();
-    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
-    if (contest.participants > 0) throw new BadRequestException("You may not remove a contest that has results");
+    if (!contest) {
+      throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    }
+    if (contest.participants > 0) {
+      throw new BadRequestException(
+        "You may not remove a contest that has results",
+      );
+    }
 
     contest.state = ContestState.Removed;
     contest.competitionId += "_REMOVED";
@@ -550,7 +738,9 @@ export class ContestsService {
     await contest.save();
 
     if (getIsCompType(contest.type)) {
-      await this.scheduleModel.updateOne({ competitionId }, { $set: { competitionId: contest.competitionId } }).exec();
+      await this.scheduleModel.updateOne({ competitionId }, {
+        $set: { competitionId: contest.competitionId },
+      }).exec();
     }
     await this.roundModel.updateMany({ competitionId }, {
       $set: { competitionId: contest.competitionId },
@@ -558,10 +748,16 @@ export class ContestsService {
     }).exec();
     await this.authService.deleteAuthTokens(competitionId);
 
-    const contestCreatorEmail = await this.usersService.getUserEmail({ _id: contest.createdBy });
-    await this.emailService.sendEmail(contestCreatorEmail, `Your contest ${contest.name} has been removed.`, {
-      subject: "Contest removed",
+    const contestCreatorEmail = await this.usersService.getUserEmail({
+      _id: contest.createdBy,
     });
+    await this.emailService.sendEmail(
+      contestCreatorEmail,
+      `Your contest ${contest.name} has been removed.`,
+      {
+        subject: "Contest removed",
+      },
+    );
   }
 
   async changeQueuePosition(
@@ -570,29 +766,49 @@ export class ContestsService {
     { newPosition, difference }: { newPosition?: number; difference?: 1 | -1 },
   ) {
     const contest = await this.contestModel.findOne({ competitionId }).exec();
-    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    if (!contest) {
+      throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    }
     this.authService.checkAccessRightsToContest(user, contest);
 
     if (newPosition !== undefined) contest.queuePosition = newPosition;
     else contest.queuePosition += difference;
 
-    if (contest.queuePosition < 0) throw new BadRequestException("Queue position may not be lower than 0");
+    if (contest.queuePosition < 0) {
+      throw new BadRequestException("Queue position may not be lower than 0");
+    }
 
     await contest.save();
     return contest.queuePosition;
   }
 
   // Used by external APIs, so access rights aren't checked here, they're checked in app.service.ts with an API key
-  async getContestRound(competitionId: string, eventId: string, roundNumber: number) {
-    const contest = await this.getFullContest(competitionId, { populateResults: true });
-    if (contest.state === ContestState.Removed) throw new BadRequestException("This contest has been removed");
-    if (contest.state > ContestState.Ongoing) throw new BadRequestException("The contest is finished");
+  async getContestRound(
+    competitionId: string,
+    eventId: string,
+    roundNumber: number,
+  ) {
+    const contest = await this.getFullContest(competitionId, {
+      populateResults: true,
+    });
+    if (contest.state === ContestState.Removed) {
+      throw new BadRequestException("This contest has been removed");
+    }
+    if (contest.state > ContestState.Ongoing) {
+      throw new BadRequestException("The contest is finished");
+    }
 
     const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
-    if (!contestEvent) throw new NotFoundException(`Event with ID ${eventId} not found for the given competition`);
+    if (!contestEvent) {
+      throw new NotFoundException(
+        `Event with ID ${eventId} not found for the given competition`,
+      );
+    }
 
     const round = contestEvent.rounds[roundNumber - 1];
-    if (!round) throw new BadRequestException(`Round number ${roundNumber} not found`);
+    if (!round) {
+      throw new BadRequestException(`Round number ${roundNumber} not found`);
+    }
 
     return round;
   }
@@ -611,11 +827,15 @@ export class ContestsService {
     const contest = await this.contestModel
       .findOne({ competitionId }, exclude ? exclSysButKeepCreatedBy : {})
       .populate(eventPopulateOptions.event)
-      .populate(populateResults ? eventPopulateOptions.roundsAndResults : eventPopulateOptions.rounds)
+      .populate(
+        populateResults ? eventPopulateOptions.roundsAndResults : eventPopulateOptions.rounds,
+      )
       .populate(orgPopulateOptions)
       .exec();
 
-    if (!contest) throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    if (!contest) {
+      throw new NotFoundException(`Contest with ID ${competitionId} not found`);
+    }
 
     if (contest.compDetails) await contest.populate(schedulePopulateOptions);
 
@@ -626,7 +846,10 @@ export class ContestsService {
   // HELPERS
   /////////////////////////////////////////////////////////////////////////////////////
 
-  private async getNewContestEvent(contestEvent: IContestEvent, saveResults = false): Promise<ContestEventModel> {
+  private async getNewContestEvent(
+    contestEvent: IContestEvent,
+    saveResults = false,
+  ): Promise<ContestEventModel> {
     const eventRounds: RoundDocument[] = [];
 
     try {
@@ -644,10 +867,14 @@ export class ContestsService {
         if (i === 0) round.open = true;
 
         // The id needs to be reset in case the contest was created using the clone feature
-        eventRounds.push(await this.roundModel.create({ ...round, _id: undefined }));
+        eventRounds.push(
+          await this.roundModel.create({ ...round, _id: undefined }),
+        );
       }
     } catch (err) {
-      throw new InternalServerErrorException(`Error while creating rounds for contest: ${err.message}`);
+      throw new InternalServerErrorException(
+        `Error while creating rounds for contest: ${err.message}`,
+      );
     }
 
     return {
@@ -717,7 +944,10 @@ export class ContestsService {
             if (round.open) {
               sameRoundInContest.open = true;
 
-              if (round.roundTypeId === RoundType.Final && sameRoundInContest.roundTypeId !== RoundType.Final) {
+              if (
+                round.roundTypeId === RoundType.Final &&
+                sameRoundInContest.roundTypeId !== RoundType.Final
+              ) {
                 await sameRoundInContest.populate(resultPopulateOptions);
 
                 for (const result of sameRoundInContest.results) {
@@ -739,7 +969,13 @@ export class ContestsService {
             await prevRound.populate(resultPopulateOptions);
             const roundFormat = roundFormats.find((rf) => rf.value === prevRound.format);
             for (const result of prevRound.results) {
-              if (getResultProceeds(result as IResult, prevRound as IRound, roundFormat)) {
+              if (
+                getResultProceeds(
+                  result as IResult,
+                  prevRound as IRound,
+                  roundFormat,
+                )
+              ) {
                 result.proceeds = true;
                 await result.save();
               }
@@ -747,7 +983,10 @@ export class ContestsService {
 
             const newRound = await this.roundModel.create(round);
             // For WHATEVER REASON simply doing rounds.push() doesn't work here since some version of Mongoose
-            sameEventInContest.rounds = [...sameEventInContest.rounds, newRound];
+            sameEventInContest.rounds = [
+              ...sameEventInContest.rounds,
+              newRound,
+            ];
           }
         }
       } // If it's a new event and the user is authorized, add the event. If unauthorized, just ignore the addition.
@@ -767,10 +1006,17 @@ export class ContestsService {
   }
 
   // Assumes no invalid operations were attempted (they will be ignored here anyways)
-  private async updateSchedule(contest: ContestDocument, newSchedule: ISchedule) {
+  private async updateSchedule(
+    contest: ContestDocument,
+    newSchedule: ISchedule,
+  ) {
     for (const venue of newSchedule.venues) {
       const sameVenueInContest = contest.compDetails.schedule.venues.find((v) => v.id === venue.id);
-      if (!sameVenueInContest) throw new BadRequestException(`Schedule venue with ID ${venue.id} not found`);
+      if (!sameVenueInContest) {
+        throw new BadRequestException(
+          `Schedule venue with ID ${venue.id} not found`,
+        );
+      }
 
       sameVenueInContest.name = venue.name;
       sameVenueInContest.latitudeMicrodegrees = venue.latitudeMicrodegrees;
@@ -794,8 +1040,9 @@ export class ContestsService {
 
             if (sameActivity) {
               sameActivity.activityCode = activity.activityCode;
-              if (sameActivity.activityCode === "other-misc") sameActivity.name = activity.name;
-              else sameActivity.name = undefined;
+              if (sameActivity.activityCode === "other-misc") {
+                sameActivity.name = activity.name;
+              } else sameActivity.name = undefined;
               sameActivity.startTime = activity.startTime;
               sameActivity.endTime = activity.endTime;
             } else {
@@ -817,7 +1064,9 @@ export class ContestsService {
     const isAdmin = user.roles.includes(Role.Admin);
 
     if (contest.startDate > contest.endDate) {
-      throw new BadRequestException("The start date must be before the end date");
+      throw new BadRequestException(
+        "The start date must be before the end date",
+      );
     }
 
     // Validation for WCA competitions and unofficial competitions
@@ -825,7 +1074,10 @@ export class ContestsService {
       const roundIds = new Set<string>();
 
       for (const contestEvent of contest.events) {
-        if (contest.type === ContestType.WcaComp && contestEvent.event.groups.includes(EventGroup.WCA)) {
+        if (
+          contest.type === ContestType.WcaComp &&
+          contestEvent.event.groups.includes(EventGroup.WCA)
+        ) {
           throw new BadRequestException(
             "WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.",
           );
@@ -837,9 +1089,17 @@ export class ContestsService {
             isRoundActivityFound = venue.rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId));
             if (isRoundActivityFound) break;
           }
-          if (!isRoundActivityFound) throw new BadRequestException("Please add all rounds to the schedule");
+          if (!isRoundActivityFound) {
+            throw new BadRequestException(
+              "Please add all rounds to the schedule",
+            );
+          }
 
-          if (roundIds.has(round.roundId)) throw new BadRequestException(`Duplicate round found: ${round.roundId}`);
+          if (roundIds.has(round.roundId)) {
+            throw new BadRequestException(
+              `Duplicate round found: ${round.roundId}`,
+            );
+          }
           roundIds.add(round.roundId); // used below in schedule validation
         }
       }
@@ -852,54 +1112,87 @@ export class ContestsService {
 
       for (const venue of contest.compDetails.schedule.venues) {
         if (venue.countryIso2 !== contest.countryIso2) {
-          throw new BadRequestException("The schedule may not have a country different from the contest country");
+          throw new BadRequestException(
+            "The schedule may not have a country different from the contest country",
+          );
         }
 
-        if (venues.has(venue.id)) throw new BadRequestException(`Duplicate venue ID found: ${venue.id}`);
+        if (venues.has(venue.id)) {
+          throw new BadRequestException(
+            `Duplicate venue ID found: ${venue.id}`,
+          );
+        }
         venues.add(venue.id);
 
         // Set the time zone based on the contest's coordinates
-        venue.timezone = findTimezone(venue.latitudeMicrodegrees / 1000000, venue.longitudeMicrodegrees / 1000000)[0];
+        venue.timezone = findTimezone(
+          venue.latitudeMicrodegrees / 1000000,
+          venue.longitudeMicrodegrees / 1000000,
+        )[0];
 
         for (const room of venue.rooms) {
-          if (rooms.has(room.id)) throw new BadRequestException(`Duplicate room ID found: ${room.id}`);
+          if (rooms.has(room.id)) {
+            throw new BadRequestException(
+              `Duplicate room ID found: ${room.id}`,
+            );
+          }
           rooms.add(room.id);
 
           for (const activity of room.activities) {
             if (activity.activityCode !== "other-misc" && activity.name) {
-              throw new BadRequestException("A non-custom activity may not have a custom title");
+              throw new BadRequestException(
+                "A non-custom activity may not have a custom title",
+              );
             }
 
             if (activities.has(activity.id)) {
-              throw new BadRequestException(`Duplicate activity ID found: ${activity.id}`);
+              throw new BadRequestException(
+                `Duplicate activity ID found: ${activity.id}`,
+              );
             }
             activities.add(activity.id);
 
             if (!getIsOtherActivity(activity.activityCode)) {
               if (!roundIds.has(activity.activityCode)) {
-                throw new BadRequestException(`Activity ${activity.activityCode} does not have a corresponding round`);
+                throw new BadRequestException(
+                  `Activity ${activity.activityCode} does not have a corresponding round`,
+                );
               }
 
               if (activityCodes.has(activity.activityCode)) {
-                throw new BadRequestException(`Duplicate activity code found: ${activity.activityCode}`);
+                throw new BadRequestException(
+                  `Duplicate activity code found: ${activity.activityCode}`,
+                );
               }
             }
 
             activityCodes.add(activity.activityCode);
 
-            const zonedStartTime = toZonedTime(activity.startTime, venue.timezone).getTime();
+            const zonedStartTime = toZonedTime(
+              activity.startTime,
+              venue.timezone,
+            ).getTime();
             if (zonedStartTime < new Date(contest.startDate).getTime()) {
-              throw new BadRequestException("An activity may not start before the start date");
+              throw new BadRequestException(
+                "An activity may not start before the start date",
+              );
             }
-            const zonedEndTime = toZonedTime(activity.endTime, venue.timezone).getTime();
+            const zonedEndTime = toZonedTime(activity.endTime, venue.timezone)
+              .getTime();
             if (zonedEndTime > endOfDay(new Date(contest.endDate)).getTime()) {
-              throw new BadRequestException("An activity may not end after the end date");
+              throw new BadRequestException(
+                "An activity may not end after the end date",
+              );
             }
             if (zonedStartTime === zonedEndTime) {
-              throw new BadRequestException("An activity may not start and end at the same time");
+              throw new BadRequestException(
+                "An activity may not start and end at the same time",
+              );
             }
             if (zonedStartTime > zonedEndTime) {
-              throw new BadRequestException("An activity start time may not be after the end time");
+              throw new BadRequestException(
+                "An activity start time may not be after the end time",
+              );
             }
           }
 
@@ -912,21 +1205,35 @@ export class ContestsService {
     } // Validation of meetups
     else if (contest.type === ContestType.Meetup) {
       if (getTotalRounds(contest.events) > C.maxMeetupRounds) {
-        throw new BadRequestException("You may not hold more than 15 rounds at a meetup");
+        throw new BadRequestException(
+          "You may not hold more than 15 rounds at a meetup",
+        );
       }
+
+      contest.meetupDetails.timeZone = findTimezone(
+        contest.latitudeMicrodegrees / 1000000,
+        contest.longitudeMicrodegrees / 1000000,
+      )[0];
     }
 
     // Disallow mods to make admin-only edits
     if (!isAdmin) {
-      if (!contest.address) throw new BadRequestException("Please enter an address");
+      if (!contest.address) {
+        throw new BadRequestException("Please enter an address");
+      }
       if (!contest.organizers.some((o) => o.personId === user.personId)) {
-        throw new BadRequestException("You cannot create a contest which you are not organizing");
+        throw new BadRequestException(
+          "You cannot create a contest which you are not organizing",
+        );
       }
     }
   }
 
   private async finishContest(contest: ContestDocument) {
-    if (contest.type !== ContestType.WcaComp && contest.participants < C.minCompetitorsForNonWca) {
+    if (
+      contest.type !== ContestType.WcaComp &&
+      contest.participants < C.minCompetitorsForNonWca
+    ) {
       throw new BadRequestException(
         `A meetup or unofficial competition may not have fewer than ${C.minCompetitorsForNonWca} competitors`,
       );
@@ -938,7 +1245,10 @@ export class ContestsService {
         competitionId: contest.competitionId,
         // If it's the first round, we only care about rounds with 0 results, otherwise we also care about < C.minProceedNumber
         $or: new Array(C.minProceedNumber).fill(null).map((_, i) => (
-          i === 0 ? { results: { $size: 0 } } : { results: { $size: i }, roundId: { $regex: /-r([2-9]|[1-9][0-9])$/ } }
+          i === 0 ? { results: { $size: 0 } } : {
+            results: { $size: i },
+            roundId: { $regex: /-r([2-9]|[1-9][0-9])$/ },
+          }
         )),
       })
       .exec();
@@ -948,7 +1258,9 @@ export class ContestsService {
       const event = await this.eventsService.getEventById(eventId);
 
       if (tooFewResultsRound.results.length === 0) {
-        throw new BadRequestException(`${event.name} round ${roundNumber} has no results`);
+        throw new BadRequestException(
+          `${event.name} round ${roundNumber} has no results`,
+        );
       } else {
         throw new BadRequestException(
           `${event.name} round ${roundNumber} has fewer than ${C.minProceedNumber} results (see WCA guideline 9q+)`,
@@ -961,12 +1273,19 @@ export class ContestsService {
       .findOne({ competitionId: contest.competitionId, "attempts.result": 0 })
       .exec();
     if (incompleteResult) {
-      const event = await this.eventsService.getEventById(incompleteResult.eventId);
-      throw new BadRequestException(`This contest has an unentered attempt in ${event.name}`);
+      const event = await this.eventsService.getEventById(
+        incompleteResult.eventId,
+      );
+      throw new BadRequestException(
+        `This contest has an unentered attempt in ${event.name}`,
+      );
     }
 
     const dnsOnlyResult = await this.resultModel
-      .findOne({ competitionId: contest.competitionId, attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } } })
+      .findOne({
+        competitionId: contest.competitionId,
+        attempts: { $not: { $elemMatch: { result: { $ne: -2 } } } },
+      })
       .exec();
     if (dnsOnlyResult) {
       throw new BadRequestException(
@@ -978,7 +1297,9 @@ export class ContestsService {
 
     // If there are no issues, finish the contest and send the admins an email
     contest.queuePosition = undefined;
-    await this.roundModel.updateMany({ competitionId: contest.competitionId }, { $unset: { open: "" } }).exec();
+    await this.roundModel.updateMany({ competitionId: contest.competitionId }, {
+      $unset: { open: "" },
+    }).exec();
 
     // Email the admins
     const contestUrl = getContestUrl(contest.competitionId);
@@ -989,7 +1310,10 @@ export class ContestsService {
     );
   }
 
-  private async publishContest(contest: ContestDocument, contestCreatorEmail: string) {
+  private async publishContest(
+    contest: ContestDocument,
+    contestCreatorEmail: string,
+  ) {
     this.logger.log(`Publishing contest ${contest.competitionId}...`);
 
     let wcaCompData: unknown[];
@@ -1006,7 +1330,10 @@ export class ContestsService {
     }
 
     // Unset unapproved from the results so that they can be included in the rankings
-    await this.resultModel.updateMany({ competitionId: contest.competitionId }, { $unset: { unapproved: "" } });
+    await this.resultModel.updateMany(
+      { competitionId: contest.competitionId },
+      { $unset: { unapproved: "" } },
+    );
 
     await this.personsService.approvePersons({
       competitionId: contest.competitionId,

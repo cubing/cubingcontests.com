@@ -23,10 +23,10 @@ import {
   type IResultsSubmissionInfo,
   type IRoundFormat,
   type IUpdateVideoBasedResultDto,
-} from "@cc/shared";
-import { EventFormat, RoundFormat } from "@cc/shared";
-import { roundFormats } from "@cc/shared";
-import { C } from "@cc/shared";
+} from "~/helpers/types.ts";
+import { EventFormat, RoundFormat } from "~/helpers/enums.ts";
+import { roundFormats } from "~/helpers/roundFormats.ts";
+import { C } from "~/helpers/constants.ts";
 import { getBlankCompetitors, getRoundFormatOptions, getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -49,17 +49,28 @@ type Props = {
 };
 
 const ResultsSubmissionForm = ({ resultId }: Props) => {
-  if (resultId && !userInfo?.isAdmin) throw new Error("Only an admin can edit results");
+  if (resultId && !userInfo?.isAdmin) {
+    throw new Error("Only an admin can edit results");
+  }
 
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId } = useContext(MainContext);
+  const {
+    changeErrorMessages,
+    changeSuccessMessage,
+    loadingId,
+    changeLoadingId,
+  } = useContext(MainContext);
 
   const [showRules, setShowRules] = useState(false);
-  const [submissionInfo, setSubmissionInfo] = useState<IResultsSubmissionInfo | IAdminResultsSubmissionInfo>();
+  const [submissionInfo, setSubmissionInfo] = useState<
+    IResultsSubmissionInfo | IAdminResultsSubmissionInfo
+  >();
   // TO-DO: make it so that some of the submission info including the event is prefetched server-side and clean this up
   const [event, setEvent] = useState<Event>({} as Event);
-  const [roundFormat, setRoundFormat] = useState<IRoundFormat>(allowedRoundFormats[0]);
+  const [roundFormat, setRoundFormat] = useState<IRoundFormat>(
+    allowedRoundFormats[0],
+  );
   const [competitors, setCompetitors] = useState<InputPerson[]>([null]);
   const [personNames, setPersonNames] = useState([""]);
   const [keepCompetitors, setKeepCompetitors] = useState(false);
@@ -77,34 +88,46 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   const updateRecordPairs = useCallback(
     debounce(async (date: Date) => {
-      const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((e: Event) => e.eventId).join(",");
+      const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((
+        e: Event,
+      ) => e.eventId).join(",");
       const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
 
-      const { payload, errors } = await myFetch.get(
+      const res = await myFetch.get(
         `/results/record-pairs/${date}/${eventsStr}${queryParams}`,
         { authorize: true, loadingId: null },
       );
 
-      if (!errors) setSubmissionInfo({ ...submissionInfo, recordPairsByEvent: payload } as IResultsSubmissionInfo);
+      if (res.success) {
+        setSubmissionInfo(
+          {
+            ...submissionInfo,
+            recordPairsByEvent: res.data,
+          } as IResultsSubmissionInfo,
+        );
+      }
       changeLoadingId("");
     }, C.fetchDebounceTimeout),
     [submissionInfo],
   );
 
-  const isDateDisabled = !!resultId && (submissionInfo as any)?.result && !(submissionInfo as any).result.unapproved;
+  const isDateDisabled = !!resultId && (submissionInfo as any)?.result &&
+    !(submissionInfo as any).result.unapproved;
 
   useEffect(() => {
     // If submitting results
     if (!resultId) {
       myFetch
-        .get(`/results/submission-info/${new Date()}`, { authorize: true })
+        .get<IResultsSubmissionInfo>(`/results/submission-info/${new Date()}`, {
+          authorize: true,
+        })
         .then(
-          ({ payload, errors }: { payload?: IResultsSubmissionInfo; errors?: string[] }) => {
-            if (payload && !errors) {
-              setSubmissionInfo(payload);
+          (res) => {
+            if (res.success && res.data) {
+              setSubmissionInfo(res.data);
 
-              const event = payload.events.find((el: Event) => el.eventId === searchParams.get("eventId")) ??
-                payload.events[0];
+              const event = res.data.events.find((el: Event) => el.eventId === searchParams.get("eventId")) ??
+                res.data.events[0];
               setEvent(event);
               resetCompetitors(event.participants);
               resetAttempts();
@@ -115,13 +138,16 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
     } // If editing a result
     else {
       myFetch.get(`/results/editing-info/${resultId}`, { authorize: true })
-        .then(({ payload, errors }) => {
-          if (payload && !errors) {
-            setSubmissionInfo(payload);
-            const { result, persons, events } = payload as IAdminResultsSubmissionInfo;
+        .then((res) => {
+          if (res.success && res.data) {
+            setSubmissionInfo(res.data);
+            const { result, persons, events } = res
+              .data as IAdminResultsSubmissionInfo;
 
             setEvent(events[0]);
-            setRoundFormat(allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length) as IRoundFormat);
+            setRoundFormat(
+              allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length) as IRoundFormat,
+            );
             setAttempts(result.attempts);
             setDate(new Date(result.date));
             setCompetitors(persons);
@@ -155,9 +181,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
     const loadingId = approve ? "approve_button" : "submit_button";
 
     if (!resultId) {
-      const { errors } = await myFetch.post("/results", newResult, { loadingId });
+      const res = await myFetch.post("/results", newResult, { loadingId });
 
-      if (!errors) {
+      if (res.success) {
         changeSuccessMessage("Result successfully submitted");
         setDate(undefined);
         setVideoLink("");
@@ -174,15 +200,23 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
         videoLink: newResult.videoLink,
         discussionLink: newResult.discussionLink,
       };
-      if (!approve) updateResultDto.unapproved = (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved;
+      if (!approve) {
+        updateResultDto.unapproved = (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved;
+      }
 
-      const { errors } = await myFetch.patch(`/results/video-based/${resultId}`, updateResultDto, {
-        loadingId,
-        keepLoadingOnSuccess: true,
-      });
+      const res = await myFetch.patch(
+        `/results/video-based/${resultId}`,
+        updateResultDto,
+        {
+          loadingId,
+          keepLoadingOnSuccess: true,
+        },
+      );
 
-      if (!errors) {
-        changeSuccessMessage(approve ? "Result successfully approved" : "Result successfully updated");
+      if (res.success) {
+        changeSuccessMessage(
+          approve ? "Result successfully approved" : "Result successfully updated",
+        );
 
         setTimeout(() => {
           window.location.href = "/admin/results";
@@ -192,9 +226,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   };
 
   const changeEvent = (newEventId: string) => {
-    const newEvent = (submissionInfo as IResultsSubmissionInfo).events.find((e: Event) =>
-      e.eventId === newEventId
-    ) as Event;
+    const newEvent = (submissionInfo as IResultsSubmissionInfo).events.find((
+      e: Event,
+    ) => e.eventId === newEventId) as Event;
     setEvent(newEvent);
     resetAttempts();
 
@@ -218,7 +252,12 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   };
 
   const changeAttempt = (index: number, newAttempt: IFeAttempt) => {
-    setAttempts(attempts.map((a: IFeAttempt, i: number) => (i !== index ? a : newAttempt)));
+    setAttempts(
+      attempts.map((
+        a: IFeAttempt,
+        i: number,
+      ) => (i !== index ? a : newAttempt)),
+    );
   };
 
   const changeDate = (newDate: Date | null | undefined) => {
@@ -252,7 +291,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   return (
     <div>
-      <h2 className="text-center">{resultId ? "Edit Result" : "Submit Result"}</h2>
+      <h2 className="text-center">
+        {resultId ? "Edit Result" : "Submit Result"}
+      </h2>
 
       <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: "900px" }}>
         {resultId
@@ -276,7 +317,11 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
               <div className="alert alert-warning mb-4" role="alert">
                 Rule 2 has been updated!
               </div>
-              <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
+              <button
+                type="button"
+                className="btn btn-success btn-sm"
+                onClick={() => setShowRules(!showRules)}
+              >
                 {showRules ? "Hide rules" : "Show rules"}
               </button>
               {showRules && <Markdown className="mt-4 lh-lg">{rules}</Markdown>}
@@ -285,7 +330,11 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
       </div>
 
       <Form hideButton>
-        {resultId && <CreatorDetails creator={(submissionInfo as IAdminResultsSubmissionInfo).creator} />}
+        {resultId && (
+          <CreatorDetails
+            creator={(submissionInfo as IAdminResultsSubmissionInfo).creator}
+          />
+        )}
         <FormEventSelect
           events={submissionInfo.events}
           eventId={event.eventId}
@@ -309,7 +358,11 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
           nextFocusTargetId={event.format !== EventFormat.Multi ? "attempt_1" : "attempt_1_solved"}
           redirectToOnAddPerson={window.location.pathname}
         />
-        <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
+        <FormCheckbox
+          title="Don't clear competitors"
+          selected={keepCompetitors}
+          setSelected={setKeepCompetitors}
+        />
         {attempts.map((attempt: IFeAttempt, i: number) => (
           <AttemptInput
             key={i}
@@ -319,7 +372,9 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
             event={event}
             memoInputForBld
             allowUnknownTime={userInfo?.isAdmin &&
-              [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(roundFormat.value)}
+              [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(
+                roundFormat.value,
+              )}
             nextFocusTargetId={i + 1 === attempts.length ? isDateDisabled ? "video_link" : "date" : undefined}
           />
         ))}
@@ -358,7 +413,11 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
             setSelected={setVideoUnavailable}
           />
         )}
-        {videoLink && <a href={videoLink} target="_blank" className="d-block mb-3">Video link</a>}
+        {videoLink && (
+          <a href={videoLink} target="_blank" className="d-block mb-3">
+            Video link
+          </a>
+        )}
         <FormTextInput
           id="discussion_link"
           title="Link to discussion (optional)"
@@ -368,11 +427,21 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
           nextFocusTargetId="submit_button"
           className="mb-3"
         />
-        {discussionLink && <a href={discussionLink} target="_blank" className="d-block">Discussion link</a>}
-        <Button id="submit_button" onClick={() => submitResult()} loadingId={loadingId} className="mt-3">
+        {discussionLink && (
+          <a href={discussionLink} target="_blank" className="d-block">
+            Discussion link
+          </a>
+        )}
+        <Button
+          id="submit_button"
+          onClick={() => submitResult()}
+          loadingId={loadingId}
+          className="mt-3"
+        >
           Submit
         </Button>
-        {resultId && (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved && (
+        {resultId &&
+          (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved && (
           <Button
             id="approve_button"
             onClick={() => submitResult(true)}

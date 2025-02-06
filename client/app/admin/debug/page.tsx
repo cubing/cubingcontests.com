@@ -33,11 +33,11 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
   const sendEmail = async () => {
     setDebugOutput("");
 
-    const { errors } = await myFetch.post("/debug-sending-email", { email }, {
+    const res = await myFetch.post("/debug-sending-email", { email }, {
       loadingId: "send_email_button",
     });
 
-    if (!errors) setDebugOutput("Successfully sent email!");
+    if (res.success) setDebugOutput("Successfully sent email!");
   };
 
   return (

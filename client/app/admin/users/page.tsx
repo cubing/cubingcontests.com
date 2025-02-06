@@ -5,9 +5,9 @@ import { capitalize } from "lodash";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
-import { Role } from "@cc/shared";
-import { IFeUser } from "@cc/shared";
-import { getRoleLabel, getSimplifiedString } from "@cc/shared";
+import { Role } from "~/helpers/enums.ts";
+import { IFeUser } from "~/helpers/types.ts";
+import { getRoleLabel, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
@@ -41,7 +41,8 @@ const ManageUsersPage = () => {
     return users.filter(
       (u: IFeUser) =>
         u.username.toLocaleLowerCase().includes(simplifiedSearch) ||
-        (u.person && getSimplifiedString(u.person.name).includes(simplifiedSearch)),
+        (u.person &&
+          getSimplifiedString(u.person.name).includes(simplifiedSearch)),
     );
   }, [users, search]);
 
@@ -53,8 +54,8 @@ const ManageUsersPage = () => {
   });
 
   useEffect(() => {
-    myFetch.get("/users", { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setUsers(payload);
+    myFetch.get("/users", { authorize: true }).then((res) => {
+      if (res.success) setUsers(res.data);
     });
   }, []);
 
@@ -64,21 +65,34 @@ const ManageUsersPage = () => {
 
   const handleSubmit = async () => {
     if (persons[0] === null && personNames[0].trim() !== "") {
-      changeErrorMessages(["The competitor has not been entered. Either enter them or clear the input."]);
+      changeErrorMessages([
+        "The competitor has not been entered. Either enter them or clear the input.",
+      ]);
       return;
     }
 
-    const newUser: IFeUser = { username, email, person: persons[0] ?? undefined, roles: [] };
+    const newUser: IFeUser = {
+      username,
+      email,
+      person: persons[0] ?? undefined,
+      roles: [],
+    };
 
     if (isUser) newUser.roles.push(Role.User);
     if (isMod) newUser.roles.push(Role.Moderator);
     if (isAdmin) newUser.roles.push(Role.Admin);
 
-    const { payload, errors } = await myFetch.patch("/users", newUser, { loadingId: "form_submit_button" });
+    const res = await myFetch.patch("/users", newUser, {
+      loadingId: "form_submit_button",
+    });
 
-    if (!errors) {
+    if (res.success) {
       setUsername("");
-      setUsers(users.map((u: IFeUser) => (u.username === newUser.username ? payload : u)));
+      setUsers(
+        users.map((
+          u: IFeUser,
+        ) => (u.username === newUser.username ? res.data : u)),
+      );
     }
   };
 
@@ -130,21 +144,45 @@ const ManageUsersPage = () => {
             setPersonNames={setPersonNames}
           />
           <h5 className="mb-4">Roles</h5>
-          <FormCheckbox title="User" selected={isUser} setSelected={setIsUser} disabled={loadingId !== ""} />
-          <FormCheckbox title="Moderator" selected={isMod} setSelected={setIsMod} disabled={loadingId !== ""} />
-          <FormCheckbox title="Admin" selected={isAdmin} setSelected={setIsAdmin} disabled />
+          <FormCheckbox
+            title="User"
+            selected={isUser}
+            setSelected={setIsUser}
+            disabled={loadingId !== ""}
+          />
+          <FormCheckbox
+            title="Moderator"
+            selected={isMod}
+            setSelected={setIsMod}
+            disabled={loadingId !== ""}
+          />
+          <FormCheckbox
+            title="Admin"
+            selected={isAdmin}
+            setSelected={setIsAdmin}
+            disabled
+          />
         </Form>
       )}
 
       <FiltersContainer className="mt-4">
-        <FormTextInput title="Search" value={search} setValue={setSearch} oneLine />
+        <FormTextInput
+          title="Search"
+          value={search}
+          setValue={setSearch}
+          oneLine
+        />
       </FiltersContainer>
 
       <p className="mb-2 px-3">
         Number of users:&nbsp;<b>{filteredUsers.length}</b>
       </p>
 
-      <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "650px" }}>
+      <div
+        ref={parentRef as any}
+        className="mt-3 table-responsive overflow-y-auto"
+        style={{ height: "650px" }}
+      >
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
             <thead>
@@ -176,7 +214,10 @@ const ManageUsersPage = () => {
                     <td>
                       {user.person && <Competitor person={user.person} noFlag />}
                     </td>
-                    <td>{user.roles.map((r: Role) => capitalize(getRoleLabel(r))).join(", ")}</td>
+                    <td>
+                      {user.roles.map((r: Role) => capitalize(getRoleLabel(r)))
+                        .join(", ")}
+                    </td>
                     <td>
                       <Button
                         id={`edit_${user.username}_button`}

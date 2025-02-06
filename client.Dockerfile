@@ -1,22 +1,18 @@
-FROM denoland/deno:2.1.7
+FROM denoland/deno:2.1.9
 
 # Expose port
-EXPOSE $FRONTEND_PORT
+EXPOSE $PORT
 
 COPY client /app/client
-COPY shared /app/shared
-COPY deno.jsonc /app
+RUN rm /app/client/.env.development
 
 WORKDIR /app/client
 
 # Prefer not to run as root (THIS DOESN'T WORK FOR SOME REASON!)
 # USER deno
 
-ARG API_BASE_URL
-ARG API_BASE_URL2
+ARG NEXT_PUBLIC_API_BASE_URL
 
-# Create mock project for Hono backend to avoid the Deno "project not found" error
-RUN mkdir /app/server2 && echo "{}" > /app/server2/deno.jsonc
 RUN deno install --allow-scripts
 RUN deno task build
 RUN deno run -A npm:next telemetry disable

@@ -21,7 +21,10 @@ type AvgCompareObj = { best?: number; average: number };
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
-export const compareSingles = (a: BestCompareObj, b: BestCompareObj): number => {
+export const compareSingles = (
+  a: BestCompareObj,
+  b: BestCompareObj,
+): number => {
   if (a.best <= 0 && b.best > 0) return 1;
   else if (a.best > 0 && b.best <= 0) return -1;
   else if (a.best <= 0 && b.best <= 0) return 0;
@@ -31,7 +34,8 @@ export const compareSingles = (a: BestCompareObj, b: BestCompareObj): number => 
 // Same logic as above, except the single can also be used as a tie breaker if the averages are equivalent
 export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
   // If a.best or b.best is left undefined, the tie breaker will not be used
-  const useTieBreaker = typeof a.best === "number" && typeof b.best === "number";
+  const useTieBreaker = typeof a.best === "number" &&
+    typeof b.best === "number";
   const breakTie = () => compareSingles({ best: a.best as number }, { best: b.best as number });
 
   if (a.average <= 0) {
@@ -58,18 +62,27 @@ export const setResultRecords = (
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
-      const comparisonToRecordSingle = compareSingles(result, { best: recordPair.best } as IResult);
+      const comparisonToRecordSingle = compareSingles(
+        result,
+        { best: recordPair.best } as IResult,
+      );
 
       if (result.best > 0 && comparisonToRecordSingle <= 0) {
-        if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
+        if (!noConsoleLog) {
+          console.log(`New ${result.eventId} single WR: ${result.best}`);
+        }
         result.regionalSingleRecord = recordPair.wcaEquivalent;
       }
 
       if (result.attempts.length === getDefaultAverageAttempts(event)) {
-        const comparisonToRecordAvg = compareAvgs(result, { average: recordPair.average });
+        const comparisonToRecordAvg = compareAvgs(result, {
+          average: recordPair.average,
+        });
 
         if (result.average > 0 && comparisonToRecordAvg <= 0) {
-          if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
+          if (!noConsoleLog) {
+            console.log(`New ${result.eventId} average WR: ${result.average}`);
+          }
           result.regionalAverageRecord = recordPair.wcaEquivalent;
         }
       }
@@ -85,7 +98,9 @@ export const getDateOnly = (date: Date | null): Date | null => {
     return null;
   }
 
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
 };
 
 export const getFormattedTime = (
@@ -153,7 +168,8 @@ export const getFormattedTime = (
     // Only times under ten minutes can have decimals, or if noFormatting = true, or if it's an event that always
     // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
     if (
-      ((hours === 0 && minutes < 10) || noFormatting || (event && getAlwaysShowDecimals(event) && time < 360000)) &&
+      ((hours === 0 && minutes < 10) || noFormatting ||
+        (event && getAlwaysShowDecimals(event) && time < 360000)) &&
       showDecimals
     ) {
       output += seconds.toFixed(2);
@@ -167,7 +183,8 @@ export const getFormattedTime = (
     } else {
       if (time < 0) timeStr = timeStr.replace("-", "");
 
-      const points = (time < 0 ? -1 : 1) * (9999 - parseInt(timeStr.slice(0, -11)));
+      const points = (time < 0 ? -1 : 1) *
+        (9999 - parseInt(timeStr.slice(0, -11)));
       const missed = parseInt(timeStr.slice(timeStr.length - 4));
       const solved = points + missed;
 
@@ -197,7 +214,8 @@ export const getBestAndAverage = (
   let sum = 0;
   let dnfDnsCount = 0;
   const makesCutoff = getMakesCutoff(attempts, cutoff);
-  const expectedAttempts = (roundFormats.find((rf) => rf.value === roundFormat) as IRoundFormat).attempts;
+  const expectedAttempts = (roundFormats.find((rf) => rf.value === roundFormat) as IRoundFormat)
+    .attempts;
   const enteredAttempts = attempts.filter((a) => a.result !== 0).length;
 
   // This actually follows the rule that the lower the attempt value is - the better
@@ -215,9 +233,13 @@ export const getBestAndAverage = (
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (!makesCutoff || expectedAttempts < 3 || enteredAttempts < expectedAttempts) {
+  if (
+    !makesCutoff || expectedAttempts < 3 || enteredAttempts < expectedAttempts
+  ) {
     average = 0;
-  } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== RoundFormat.Average)) {
+  } else if (
+    dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== RoundFormat.Average)
+  ) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
@@ -226,14 +248,18 @@ export const getBestAndAverage = (
       if (dnfDnsCount === 0) sum -= Math.max(...convertedAttempts);
     }
 
-    average = Math.round((sum / 3) * (event.format === EventFormat.Number ? 100 : 1));
+    average = Math.round(
+      (sum / 3) * (event.format === EventFormat.Number ? 100 : 1),
+    );
   }
 
   return { best, average };
 };
 
-export const getIsProceedableResult = (result: IResult, roundFormat: IRoundFormat): boolean =>
-  (roundFormat.isAverage && result.average > 0) || result.best > 0;
+export const getIsProceedableResult = (
+  result: IResult,
+  roundFormat: IRoundFormat,
+): boolean => (roundFormat.isAverage && result.average > 0) || result.best > 0;
 
 export const getDefaultAverageAttempts = (event: Event) => {
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
@@ -241,15 +267,22 @@ export const getDefaultAverageAttempts = (event: Event) => {
 };
 
 export const getAlwaysShowDecimals = (event: Event): boolean =>
-  event.groups.includes(EventGroup.ExtremeBLD) && event.format !== EventFormat.Multi;
+  event.groups.includes(EventGroup.ExtremeBLD) &&
+  event.format !== EventFormat.Multi;
 
 export const getIsCompType = (contestType: ContestType): boolean =>
   [ContestType.WcaComp, ContestType.Competition].includes(contestType);
 
 // If the round has no cutoff (undefined), return true
-export const getMakesCutoff = (attempts: IAttempt[] | IFeAttempt[], cutoff: ICutoff | undefined): boolean =>
+export const getMakesCutoff = (
+  attempts: IAttempt[] | IFeAttempt[],
+  cutoff: ICutoff | undefined,
+): boolean =>
   !cutoff ||
-  attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result && a.result > 0 && a.result < cutoff.attemptResult);
+  attempts.some((a, i) =>
+    i < cutoff.numberOfAttempts && a.result && a.result > 0 &&
+    a.result < cutoff.attemptResult
+  );
 
 export const getRoleLabel = (role: Role): string => {
   switch (role) {
@@ -264,20 +297,29 @@ export const getRoleLabel = (role: Role): string => {
   }
 };
 
-export const getNameAndLocalizedName = (wcaName: string): [string, string | undefined] => {
+export const getNameAndLocalizedName = (
+  wcaName: string,
+): [string, string | undefined] => {
   let [name, localizedName] = wcaName.split(" (");
   if (localizedName) localizedName = localizedName.slice(0, -1); // remove the closing parenthesis
   return [name, localizedName];
 };
 
-export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefined> => {
+export const fetchWcaPerson = async (
+  wcaId: string,
+): Promise<IPersonDto | undefined> => {
   const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
 
   if (response.ok) {
     const payload = await response.json();
 
     const [name, localizedName] = getNameAndLocalizedName(payload.name);
-    const newPerson: IPersonDto = { name, localizedName, wcaId, countryIso2: payload.country };
+    const newPerson: IPersonDto = {
+      name,
+      localizedName,
+      wcaId,
+      countryIso2: payload.country,
+    };
     return newPerson;
   }
 
@@ -287,22 +329,30 @@ export const fetchWcaPerson = async (wcaId: string): Promise<IPersonDto | undefi
 export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
 
 export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
-  contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
+  contestEvents.map((ce) => ce.rounds.length).reduce(
+    (prev, curr) => prev + curr,
+    0,
+  );
 
 export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
 
 export const getMaxAllowedRounds = (rounds: IRound[]): number => {
   const getRoundHasEnoughResults = (roundIndex: number) =>
     rounds[roundIndex].results.length >= C.minResultsForOneMoreRound &&
-    rounds[roundIndex].results.filter((r) => r.proceeds).length >= C.minProceedNumber;
+    rounds[roundIndex].results.filter((r) => r.proceeds).length >=
+      C.minProceedNumber;
 
   if (!getRoundHasEnoughResults(0)) return 1;
 
-  if (rounds[0].results.length < C.minResultsForTwoMoreRounds || !getRoundHasEnoughResults(1)) return 2;
+  if (
+    rounds[0].results.length < C.minResultsForTwoMoreRounds ||
+    !getRoundHasEnoughResults(1)
+  ) return 2;
 
   if (
     rounds[0].results.length < C.minResultsForThreeMoreRounds ||
-    rounds[1].results.length < C.minResultsForTwoMoreRounds || !getRoundHasEnoughResults(2)
+    rounds[1].results.length < C.minResultsForTwoMoreRounds ||
+    !getRoundHasEnoughResults(2)
   ) return 3;
 
   return 4;

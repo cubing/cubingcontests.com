@@ -20,8 +20,8 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { Countries } from "~/shared/Countries";
-import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from "~/shared/enums";
+import { Countries } from "~/helpers/Countries";
+import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from "~/helpers/enums";
 import {
   Event,
   IActivity,
@@ -38,13 +38,13 @@ import {
   ISchedule,
   ITimeLimit,
   IVenue,
-} from "~/shared/types";
+} from "~/helpers/types";
 import { CreateEventDto } from "@m/events/dto/create-event.dto";
 import { PersonDto } from "@m/persons/dto/person.dto";
 import { CreateResultDto } from "@m/results/dto/create-result.dto";
 import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from "~/src/helpers/validation";
-import { C } from "~/shared/constants";
-import { getFormattedTime, getIsCompType } from "~/shared/sharedFunctions";
+import { C } from "~/helpers/constants";
+import { getFormattedTime, getIsCompType } from "~/helpers/sharedFunctions";
 import {
   EventWithoutTimeFormatHasNoLimitsOrCutoffs,
   EventWithTimeFormatHasTimeLimits,
@@ -58,18 +58,24 @@ const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 export class ContestDto implements IContestDto {
   @IsString()
   @MinLength(5, getMinLengthOpts("contest ID", 5))
-  @Matches(/^[a-zA-Z0-9]*$/, { message: "The contest ID must only contain alphanumeric characters" })
+  @Matches(/^[a-zA-Z0-9]*$/, {
+    message: "The contest ID must only contain alphanumeric characters",
+  })
   competitionId: string;
 
   @IsString()
   @MinLength(10, getMinLengthOpts("contest name", 10))
-  @Matches(/.* [0-9]{4}$/, { message: "The contest name must have the year at the end, separated by a space" })
+  @Matches(/.* [0-9]{4}$/, {
+    message: "The contest name must have the year at the end, separated by a space",
+  })
   name: string;
 
   @IsString()
   @MinLength(8, getMinLengthOpts("short name", 8))
   @MaxLength(32, getMaxLengthOpts("short name", 32))
-  @Matches(/.* [0-9]{4}$/, { message: "The short name must have the year at the end, separated by a space" })
+  @Matches(/.* [0-9]{4}$/, {
+    message: "The short name must have the year at the end, separated by a space",
+  })
   shortName: string;
 
   @IsEnum(ContestType)
@@ -96,7 +102,9 @@ export class ContestDto implements IContestDto {
   latitudeMicrodegrees: number;
 
   @IsInt({ message: "Please enter a valid longitude" })
-  @Min(-180000000, { message: "The longitude cannot be less than -180 degrees" })
+  @Min(-180000000, {
+    message: "The longitude cannot be less than -180 degrees",
+  })
   @Max(180000000, { message: "The longitude cannot be more than 180 degrees" })
   @NotEquals(0, { message: "Please enter the venue longitude" })
   longitudeMicrodegrees: number;
@@ -122,7 +130,9 @@ export class ContestDto implements IContestDto {
 
   @ValidateIf((obj) => getIsCompType(obj.type) || obj.competitorLimit)
   @IsInt({ message: "Please enter a valid competitor limit" })
-  @Min(C.minCompetitorLimit, { message: `The competitor limit cannot be less than ${C.minCompetitorLimit}` })
+  @Min(C.minCompetitorLimit, {
+    message: `The competitor limit cannot be less than ${C.minCompetitorLimit}`,
+  })
   competitorLimit?: number;
 
   @ArrayMinSize(1, { message: "Please select at least one event" })
@@ -156,6 +166,10 @@ class CompetitionDetailsDto implements ICompetitionDetails {
 class MeetupDetailsDto implements IMeetupDetails {
   @IsDateString({}, { message: "Please enter a valid start time" })
   startTime: Date;
+
+  @IsString()
+  @IsNotEmpty()
+  timeZone: string;
 }
 
 class ScheduleDto implements ISchedule {
@@ -252,8 +266,12 @@ class ContestEventDto implements IContestEvent {
   @Type(() => CreateEventDto)
   event: Event;
 
-  @ArrayMinSize(1, { message: "Please enter at least one round for each event" })
-  @ArrayMaxSize(C.maxRounds, { message: `You cannot hold more than ${C.maxRounds} rounds for one event` })
+  @ArrayMinSize(1, {
+    message: "Please enter at least one round for each event",
+  })
+  @ArrayMaxSize(C.maxRounds, {
+    message: `You cannot hold more than ${C.maxRounds} rounds for one event`,
+  })
   @Validate(RoundHasValidTimeLimitAndCutoff)
   @ValidateNested({ each: true })
   @Type(() => RoundDto)

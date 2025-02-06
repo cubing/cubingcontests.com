@@ -3,14 +3,14 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFePerson, IWcaPersonDto } from "@cc/shared";
+import { IFePerson, IWcaPersonDto } from "~/helpers/types.ts";
 import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
-import { fetchWcaPerson } from "@cc/shared";
+import { fetchWcaPerson } from "~/helpers/sharedFunctions.ts";
 
 type Props = {
   personUnderEdit: IFePerson | undefined;
@@ -25,15 +25,26 @@ const PersonForm = ({
 }: Props) => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeErrorMessages, changeSuccessMessage, loadingId, changeLoadingId, resetMessagesAndLoadingId } =
-    useContext(MainContext);
+  const {
+    changeErrorMessages,
+    changeSuccessMessage,
+    loadingId,
+    changeLoadingId,
+    resetMessagesAndLoadingId,
+  } = useContext(MainContext);
 
   const [nextFocusTarget, setNextFocusTarget] = useState("");
   const [name, setName] = useState(personUnderEdit?.name ?? "");
-  const [localizedName, setLocalizedName] = useState(personUnderEdit?.localizedName ?? "");
+  const [localizedName, setLocalizedName] = useState(
+    personUnderEdit?.localizedName ?? "",
+  );
   const [wcaId, setWcaId] = useState(personUnderEdit?.wcaId ?? "");
-  const [hasWcaId, setHasWcaId] = useState<boolean>(personUnderEdit === undefined || !!personUnderEdit.wcaId);
-  const [countryIso2, setCountryIso2] = useState(personUnderEdit?.countryIso2 ?? "NOT_SELECTED");
+  const [hasWcaId, setHasWcaId] = useState<boolean>(
+    personUnderEdit === undefined || !!personUnderEdit.wcaId,
+  );
+  const [countryIso2, setCountryIso2] = useState(
+    personUnderEdit?.countryIso2 ?? "NOT_SELECTED",
+  );
   // This is set to true when the user is an admin, and they attempted to set a person with a duplicate name/country combination.
   // If the person is submitted again with no changes, the request will be sent with ignoreDuplicate=true.
   const isConfirmation = useRef(false);
@@ -59,21 +70,25 @@ const PersonForm = ({
     };
     const extra = isConfirmation.current ? "?ignoreDuplicate=true" : "";
 
-    const { payload, errors } = personUnderEdit
+    const res = personUnderEdit
       ? await myFetch.patch(
         `/persons/${(personUnderEdit as any)._id}${extra}`,
         newPerson,
         { loadingId: "form_submit_button" },
       )
-      : await myFetch.post(`/persons/no-wcaid${extra}`, newPerson, { loadingId: "form_submit_button" });
+      : await myFetch.post(`/persons/no-wcaid${extra}`, newPerson, {
+        loadingId: "form_submit_button",
+      });
 
-    if (!errors) {
-      afterSubmit(payload);
-    } else if (errors[0] === "DUPLICATE_PERSON_ERROR") {
-      isConfirmation.current = true;
-      changeErrorMessages([
-        "A person with the same name and country already exists. If it's actually a different competitor with the same name, simply submit them again.",
-      ]);
+    if (!res.success) {
+      if (res.errors[0] === "DUPLICATE_PERSON_ERROR") {
+        isConfirmation.current = true;
+        changeErrorMessages([
+          "A person with the same name and country already exists. If it's actually a different competitor with the same name, simply submit them again.",
+        ]);
+      }
+    } else {
+      afterSubmit(res.data);
     }
   };
 
@@ -108,16 +123,20 @@ const PersonForm = ({
 
       if (newWcaId.length === 10) {
         if (!personUnderEdit) {
-          const { payload } = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, { authorize: true });
+          const res = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, {
+            authorize: true,
+          });
 
-          if (payload) {
-            if (payload.isNew) {
-              afterSubmit(payload.person);
+          if (res.success) {
+            if (res.data.isNew) {
+              afterSubmit(res.data.person);
             } else {
-              changeErrorMessages(["A competitor with this WCA ID already exists"]);
-              setName(payload.person.name);
-              setLocalizedName(payload.person.localizedName ?? "");
-              setCountryIso2(payload.person.countryIso2);
+              changeErrorMessages([
+                "A competitor with this WCA ID already exists",
+              ]);
+              setName(res.data.person.name);
+              setLocalizedName(res.data.person.localizedName ?? "");
+              setCountryIso2(res.data.person.countryIso2);
             }
           }
 

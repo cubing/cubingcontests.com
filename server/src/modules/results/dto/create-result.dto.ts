@@ -12,10 +12,10 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { IAttempt } from "~/shared/types";
-import { C } from "~/shared/constants";
+import { IAttempt } from "~/helpers/types";
+import { C } from "~/helpers/constants";
 import { ContestAttempts } from "~/src/helpers/customValidators";
-import { ICreateResultDto } from "~/shared/interfaces/Result";
+import { ICreateResultDto } from "~/helpers/interfaces/Result";
 
 export class CreateResultDto implements ICreateResultDto {
   @IsString()

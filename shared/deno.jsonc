@@ -1,5 +1,0 @@
-// See how this works: https://docs.deno.com/runtime/fundamentals/workspaces/
-{
-  "name": "@cc/shared",
-  "exports": "./main.ts"
-}

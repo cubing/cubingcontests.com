@@ -1,6 +1,6 @@
 "use client";
 
-import { Event } from "@cc/shared";
+import { Event } from "~/helpers/types.ts";
 
 type Props = {
   title?: string;

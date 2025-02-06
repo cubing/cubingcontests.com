@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { ArrayMaxSize, ArrayMinSize, IsInt, Validate, ValidateNested } from "class-validator";
 import { AttemptDto } from "./create-result.dto";
-import { IAttempt, IUpdateResultDto } from "~/shared/types";
+import { IAttempt, IUpdateResultDto } from "~/helpers/types";
 import { ContestAttempts } from "~/src/helpers/customValidators";
 
 export class UpdateResultDto implements IUpdateResultDto {

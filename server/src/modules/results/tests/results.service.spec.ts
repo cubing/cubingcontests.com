@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { BadRequestException } from "@nestjs/common";
 import { getModelToken } from "@nestjs/mongoose";
-import { C } from "~/shared/constants";
+import { C } from "~/helpers/constants";
 import { MyLogger } from "~/src/modules/my-logger/my-logger.service";
 import { EventsService } from "@m/events/events.service";
 import { ResultsService } from "@m/results/results.service";
@@ -10,10 +10,9 @@ import { PersonsService } from "@m/persons/persons.service";
 import { AuthService } from "@m/auth/auth.service";
 import { UsersService } from "@m/users/users.service";
 import { EmailService } from "@m/email/email.service";
-import { Role, WcaRecordType } from "~/shared/enums";
-import { IEventRankings } from "~/shared/types";
-import { IPartialUser } from "~/src/helpers/interfaces/User";
-import { ResultDocument } from "~/src/models/result.model";
+import { Role, WcaRecordType } from "~/helpers/enums";
+import { IEventRankings } from "~/helpers/types";
+import { IPartialUser } from "~/helpers/types";
 
 // Mocks and stubs
 import { MyLoggerMock } from "~/src/modules/my-logger/tests/my-logger.service";
@@ -140,23 +139,45 @@ describe("ResultsService", () => {
         const new333Result: CreateResultDto = {
           eventId: "333",
           personIds: [1],
-          attempts: [{ result: 1568 }, { result: 2054 }, { result: 1911 }, { result: 1723 }, { result: 1489 }],
+          attempts: [{ result: 1568 }, { result: 2054 }, { result: 1911 }, {
+            result: 1723,
+          }, { result: 1489 }],
         };
 
-        await expect(resultsService.createResult("Munich19022023", "333-r1", new333Result, { user: adminUser })).rejects
+        await expect(
+          resultsService.createResult(
+            "Munich19022023",
+            "333-r1",
+            new333Result,
+            { user: adminUser },
+          ),
+        ).rejects
           .toThrow(
-            new BadRequestException("The competitor(s) already has a result in this round"),
+            new BadRequestException(
+              "The competitor(s) already has a result in this round",
+            ),
           );
 
         const newTeamBldResult: CreateResultDto = {
           eventId: "333_team_bld",
           personIds: [99, 2],
-          attempts: [{ result: 4085 }, { result: 5942 }, { result: 3309 }, { result: 3820 }, { result: 4255 }],
+          attempts: [{ result: 4085 }, { result: 5942 }, { result: 3309 }, {
+            result: 3820,
+          }, { result: 4255 }],
         };
 
         await expect(
-          resultsService.createResult("Munich19022023", "333_team_bld-r1", newTeamBldResult, { user: adminUser }),
-        ).rejects.toThrow(new BadRequestException("The competitor(s) already has a result in this round"));
+          resultsService.createResult(
+            "Munich19022023",
+            "333_team_bld-r1",
+            newTeamBldResult,
+            { user: adminUser },
+          ),
+        ).rejects.toThrow(
+          new BadRequestException(
+            "The competitor(s) already has a result in this round",
+          ),
+        );
       });
 
       it("throws an error when the round is not found", async () => {
@@ -167,7 +188,11 @@ describe("ResultsService", () => {
             { eventId: "333" } as CreateResultDto,
             { user: adminUser },
           ),
-        ).rejects.toThrow(new BadRequestException("Round ID has invalid round number: 333-INVALID_ROUND_NUMBER"));
+        ).rejects.toThrow(
+          new BadRequestException(
+            "Round ID has invalid round number: 333-INVALID_ROUND_NUMBER",
+          ),
+        );
       });
 
       it("throws an error when the number of competitors in the result is wrong", async () => {
@@ -178,7 +203,9 @@ describe("ResultsService", () => {
             { eventId: "333", personIds: [123, 124, 125] } as CreateResultDto,
             { user: adminUser },
           ),
-        ).rejects.toThrow(new BadRequestException("This event must have 1 participant"));
+        ).rejects.toThrow(
+          new BadRequestException("This event must have 1 participant"),
+        );
       });
     });
 
@@ -192,7 +219,10 @@ describe("ResultsService", () => {
           videoLink: "link.com",
         };
 
-        const createdResult = await resultsService.createVideoBasedResult(newResult, adminUser);
+        const createdResult = await resultsService.createVideoBasedResult(
+          newResult,
+          adminUser,
+        );
 
         expect(createdResult.regionalSingleRecord).toBeUndefined();
         expect(createdResult.regionalAverageRecord).toBeUndefined();
@@ -240,7 +270,9 @@ describe("ResultsService", () => {
             },
             modUser,
           ),
-        ).rejects.toThrow(new BadRequestException("You are not authorized to set unknown time"));
+        ).rejects.toThrow(
+          new BadRequestException("You are not authorized to set unknown time"),
+        );
       });
     });
 
@@ -272,15 +304,23 @@ describe("ResultsService", () => {
           eventId: "333_team_bld",
         };
 
-        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          best: { $gt: 0, $lte: 3546 },
-        });
-        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          attempts: { $size: 5 },
-          average: { $gt: 0, $lte: 4178 },
-        });
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            best: { $gt: 0, $lte: 3546 },
+          },
+        );
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            attempts: { $size: 5 },
+            average: { $gt: 0, $lte: 4178 },
+          },
+        );
       });
 
       it("sets future records after editing a Team-Blind result with records to be worse", async () => {
@@ -306,15 +346,23 @@ describe("ResultsService", () => {
           eventId: "333_team_bld",
         };
 
-        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          best: { $gt: 0, $lte: 2148 }, // 21.48 was the single record at the time
-        });
-        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          attempts: { $size: 5 },
-          average: { $gt: 0, $lte: 3157 }, // 31.57 was the average record at the time
-        });
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            best: { $gt: 0, $lte: 2148 }, // 21.48 was the single record at the time
+          },
+        );
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            attempts: { $size: 5 },
+            average: { $gt: 0, $lte: 3157 }, // 31.57 was the average record at the time
+          },
+        );
       });
 
       it("sets future records after editing a Team-Blind result with records to be worse, but still better than the old records", async () => {
@@ -340,15 +388,23 @@ describe("ResultsService", () => {
           eventId: "333_team_bld",
         };
 
-        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          best: { $gt: 0, $lte: 2130 },
-        });
-        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          attempts: { $size: 5 },
-          average: { $gt: 0, $lte: 2697 },
-        });
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            best: { $gt: 0, $lte: 2130 },
+          },
+        );
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            attempts: { $size: 5 },
+            average: { $gt: 0, $lte: 2697 },
+          },
+        );
       });
 
       it("sets future records after deletion of a Team-Blind result with records", async () => {
@@ -359,7 +415,9 @@ describe("ResultsService", () => {
           excludeResultId: result._id.toString(),
         });
 
-        await resultsService.updateFutureRecords(result, event, recordPairs, { mode: "delete" });
+        await resultsService.updateFutureRecords(result, event, recordPairs, {
+          mode: "delete",
+        });
 
         const baseQuery = {
           _id: { $ne: result._id },
@@ -367,15 +425,23 @@ describe("ResultsService", () => {
           eventId: "333_team_bld",
         };
 
-        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          best: { $gt: 0, $lte: 5059 },
-        });
-        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(event, WcaRecordType.WR, {
-          ...baseQuery,
-          attempts: { $size: 5 },
-          average: { $gt: 0, $lte: 11740 },
-        });
+        expect(setEventSingleRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            best: { $gt: 0, $lte: 5059 },
+          },
+        );
+        expect(setEventAvgRecordsMock).toHaveBeenCalledWith(
+          event,
+          WcaRecordType.WR,
+          {
+            ...baseQuery,
+            attempts: { $size: 5 },
+            average: { $gt: 0, $lte: 11740 },
+          },
+        );
       });
     });
   });

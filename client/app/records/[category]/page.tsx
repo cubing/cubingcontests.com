@@ -6,9 +6,9 @@ import RankingLinks from "~/app/components/RankingLinks.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import { C } from "@cc/shared";
-import { IEventRankings, type ResultRankingType } from "@cc/shared";
-import { getFormattedTime } from "@cc/shared";
+import { C } from "~/helpers/constants.ts";
+import { type IEventRankings, type ResultRankingType } from "~/helpers/types.ts";
+import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { type EventCategory, INavigationItem } from "~/helpers/types.ts";
@@ -33,15 +33,21 @@ type Props = {
 
 const RecordsPage = async ({ params }: Props) => {
   const { category } = await params;
-  const { payload: recordsByEvent }: { payload?: IEventRankings[] } = await ssrFetch("/results/records/WR", {
-    revalidate: C.rankingsRev,
-  });
+  const recordsByEventResponse = await ssrFetch<IEventRankings[]>(
+    "/results/records/WR",
+    { revalidate: C.rankingsRev },
+  );
 
-  if (!recordsByEvent) return <p className="mt-5 text-center fs-4">Records not found</p>;
+  if (!recordsByEventResponse.success) {
+    return <p className="mt-5 text-center fs-4">Records not found</p>;
+  }
 
   // Gets just the events for the current records category
-  const filteredEventRecords = recordsByEvent.filter((er) =>
-    er.event.groups.includes((eventCategories.find((ec) => ec.value === category) as EventCategory).group)
+  const filteredEventRecords = recordsByEventResponse.data.filter((er) =>
+    er.event.groups.includes(
+      (eventCategories.find((ec) => ec.value === category) as EventCategory)
+        .group,
+    )
   );
   const selectedCat = eventCategories.find((ec) => ec.value === category) as EventCategory;
   const tabs: INavigationItem[] = eventCategories.map((cat) => ({
@@ -49,14 +55,14 @@ const RecordsPage = async ({ params }: Props) => {
     shortTitle: cat.shortTitle,
     value: cat.value,
     route: `/records/${cat.value}`,
-    hidden: !recordsByEvent?.some((er) => er.event.groups.includes(cat.group)),
+    hidden: !recordsByEventResponse.data.some((er) => er.event.groups.includes(cat.group)),
   }));
 
   return (
     <div>
       <h2 className="mb-4 text-center">Records</h2>
 
-      {recordsByEvent.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
+      {recordsByEventResponse.data.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
         <>
           <Tabs tabs={tabs} activeTab={category} forServerSidePage />
 
@@ -76,7 +82,12 @@ const RecordsPage = async ({ params }: Props) => {
               ({ event, rankings }: IEventRankings) => {
                 return (
                   <div key={event.eventId} className="mb-3">
-                    <EventTitle event={event} showIcon linkToRankings showDescription />
+                    <EventTitle
+                      event={event}
+                      showIcon
+                      linkToRankings
+                      showDescription
+                    />
 
                     {/* MOBILE VIEW */}
                     <div className="d-lg-none mt-2 mb-4 border-top border-bottom">
@@ -89,11 +100,16 @@ const RecordsPage = async ({ params }: Props) => {
                             <div className="d-flex justify-content-between">
                               <span>
                                 <b>{getFormattedTime(r.result, { event })}</b>
-                                &#8194;{capitalize(r.type as ResultRankingType)}
+                                &#8194;{capitalize(
+                                  r.type as ResultRankingType,
+                                )}
                               </span>
                               {r.contest
                                 ? (
-                                  <Link href={`/competitions/${r.contest.competitionId}`} prefetch={false}>
+                                  <Link
+                                    href={`/competitions/${r.contest.competitionId}`}
+                                    prefetch={false}
+                                  >
                                     {getFormattedDate(r.date)}
                                   </Link>
                                 )
@@ -109,7 +125,11 @@ const RecordsPage = async ({ params }: Props) => {
 
                     {/* DESKTOP VIEW */}
                     <div className="d-none d-lg-block">
-                      <RankingsTable rankings={rankings} event={event} recordsTable />
+                      <RankingsTable
+                        rankings={rankings}
+                        event={event}
+                        recordsTable
+                      />
                     </div>
                   </div>
                 );

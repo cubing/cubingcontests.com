@@ -1,9 +1,13 @@
 import { FetchObj, HttpMethod } from "~/helpers/types.ts";
 
-const apiBaseUrl = process.env.API_BASE_URL_SERVER_SIDE || process.env.NEXT_PUBLIC_API_BASE_URL; // server side one won't be available client-side
+// Server-side one won't be available client-side
+const apiBaseUrl = process.env.NODE_ENV === "production"
+  ? (process.env.API_BASE_URL_SERVER_SIDE ||
+    process.env.NEXT_PUBLIC_API_BASE_URL)
+  : process.env.NEXT_PUBLIC_API_BASE_URL_DEV;
 
 // This must only be called with authorize = true on the client side.
-// Returns { payload } if request was successful and a payload was received,
+// Returns { data } if request was successful and a data was received,
 // { errors } if there were errors, or {}.
 export const doFetch = async <T = any>(
   url: string,
@@ -34,7 +38,7 @@ export const doFetch = async <T = any>(
       options.body = JSON.stringify(body);
     } else {
       console.error("Body cannot be empty");
-      return { errors: ["Body cannot be empty"] };
+      return { success: false, errors: ["Body cannot be empty"] };
     }
   } else if (method !== "DELETE") {
     throw new Error(`Not implemented HTTP method: ${method}`);
@@ -51,7 +55,7 @@ export const doFetch = async <T = any>(
     } else {
       if (!redirect) window.location.href = "/login";
       else window.location.href = `/login?redirect=${redirect}`;
-      return {};
+      return { success: false, errors: ["Unauthorized"] };
     }
   }
 
@@ -62,7 +66,10 @@ export const doFetch = async <T = any>(
     res = await fetch(url, options);
   } catch (err: any) {
     console.error(err);
-    return { errors: [err?.message || `Unknown error while fetching from ${url}`] };
+    return {
+      success: false,
+      errors: [err?.message || `Unknown error while fetching from ${url}`],
+    };
   }
 
   // Get JSON, if it was returned. KEEP IN MIND THAT THE .json ENDPOINTS RETURN TEXT AND DON'T SET 400 STATUSES.
@@ -75,7 +82,10 @@ export const doFetch = async <T = any>(
         json = await res.json();
       } catch (err: any) {
         console.error(err);
-        return { errors: [err?.message || "Unknown error while parsing JSON"] };
+        return {
+          success: false,
+          errors: [err?.message || "Unknown error while parsing JSON"],
+        };
       }
     } else if (url.slice(url.length - 5) === ".json") {
       try {
@@ -88,11 +98,10 @@ export const doFetch = async <T = any>(
 
   // Handle bad requests/server errors
   if (res.status >= 400 || is404) {
-    // If unauthorized or forbidden, delete jwt token from localstorage and go to login page
     if ([401, 403].includes(res.status)) {
       if (!redirect) window.location.href = "/login";
       else window.location.replace(`/login?redirect=${redirect}`);
-      return {};
+      return { success: false, errors: ["Unauthorized"] };
     } else {
       let errors: string[];
       let errorData: any;
@@ -110,10 +119,10 @@ export const doFetch = async <T = any>(
         errors = ["Unknown error"];
       }
 
-      return { errors, errorData };
+      return { success: false, errors, errorData };
     }
   } else if (!fileName && json) {
-    return { payload: json };
+    return { success: true, data: json };
   } else if (fileName) {
     const anchor = document.createElement("a");
     document.body.appendChild(anchor);
@@ -125,11 +134,11 @@ export const doFetch = async <T = any>(
     anchor.click();
 
     window.URL.revokeObjectURL(objectUrl);
-    return {};
+    return { success: true, data: {} as any };
   }
 
   // If no JSON payload or error was returned, just get the response text
-  return { payload: await res.text() } as FetchObj;
+  return { success: true, data: await res.text() as any };
 };
 
 export const ssrFetch = async <T = any>(

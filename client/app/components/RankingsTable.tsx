@@ -1,5 +1,5 @@
 import RankingRow from "./RankingRow.tsx";
-import { Event, IRanking } from "@cc/shared";
+import { Event, IRanking } from "~/helpers/types.ts";
 
 const RankingsTable = ({
   rankings,

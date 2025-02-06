@@ -1,4 +1,4 @@
-import { RoundFormat, RoundType } from "~/shared/enums";
+import { RoundFormat, RoundType } from "~/helpers/enums";
 import { RoundDocument } from "~/src/models/round.model";
 
 export const unrankedRoundsStub = (): RoundDocument[] =>
@@ -15,7 +15,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           date: new Date("2023-02-19T00:00:00Z"),
           personIds: [4],
           ranking: 0,
-          attempts: [{ result: 1003 }, { result: 1399 }, { result: 1379 }, { result: 1404 }, { result: 1142 }],
+          attempts: [{ result: 1003 }, { result: 1399 }, { result: 1379 }, {
+            result: 1404,
+          }, { result: 1142 }],
           best: 1003,
           average: 1307,
           save() {},
@@ -26,7 +28,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           date: new Date("2023-02-19T00:00:00Z"),
           personIds: [1],
           ranking: 0,
-          attempts: [{ result: 990 }, { result: 1385 }, { result: 1189 }, { result: 1294 }, { result: 1028 }],
+          attempts: [{ result: 990 }, { result: 1385 }, { result: 1189 }, {
+            result: 1294,
+          }, { result: 1028 }],
           best: 990,
           average: 1170,
           save() {},
@@ -37,7 +41,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           date: new Date("2023-02-19T00:00:00Z"),
           personIds: [2],
           ranking: 0,
-          attempts: [{ result: 1722 }, { result: 1733 }, { result: 1418 }, { result: 1164 }, { result: 1884 }],
+          attempts: [{ result: 1722 }, { result: 1733 }, { result: 1418 }, {
+            result: 1164,
+          }, { result: 1884 }],
           best: 1164,
           average: 1624,
           save() {},
@@ -48,7 +54,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           date: new Date("2023-02-19T00:00:00Z"),
           personIds: [3],
           ranking: 0,
-          attempts: [{ result: 1278 }, { result: 1404 }, { result: 1341 }, { result: 1307 }, { result: 1471 }],
+          attempts: [{ result: 1278 }, { result: 1404 }, { result: 1341 }, {
+            result: 1307,
+          }, { result: 1471 }],
           best: 1278,
           average: 1351,
           save() {},
@@ -242,7 +250,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           date: new Date("2023-02-19T00:00:00Z"),
           personIds: [2],
           ranking: 0,
-          attempts: [{ result: 5012 }, { result: 4913 }, { result: -1 }, { result: 5314 }, { result: -1 }],
+          attempts: [{ result: 5012 }, { result: 4913 }, { result: -1 }, {
+            result: 5314,
+          }, { result: -1 }],
           best: 4913,
           average: -1,
           save() {},
@@ -253,7 +263,9 @@ export const unrankedRoundsStub = (): RoundDocument[] =>
           date: new Date("2023-02-19T00:00:00Z"),
           personIds: [1],
           ranking: 0,
-          attempts: [{ result: 3845 }, { result: -1 }, { result: 5011 }, { result: 4576 }, { result: -1 }],
+          attempts: [{ result: 3845 }, { result: -1 }, { result: 5011 }, {
+            result: 4576,
+          }, { result: -1 }],
           best: 3845,
           average: -1,
           save() {},

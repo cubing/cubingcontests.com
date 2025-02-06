@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { type Event, type IContestData } from "@cc/shared";
+import { type Event, type IContestData } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ContestForm from "./ContestForm.tsx";
@@ -30,13 +30,13 @@ const CreateEditContestPage = () => {
   useEffect(() => {
     // CODE SMELL!!!
     (async () => {
-      const { payload: eventsData, errors: errors1 } = await myFetch.get(
+      const { data: eventsData, errors: errors1 } = await myFetch.get(
         "/events/mod",
         { authorize: true, loadingId: null },
       );
-      const { payload: contestData, errors: errors2 } = competitionId
+      const { data: contestData, errors: errors2 } = competitionId
         ? await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true, loadingId: null })
-        : { payload: undefined, errors: undefined };
+        : { data: undefined, errors: undefined };
 
       if (errors1 ?? errors2) {
         changeErrorMessages(["Error while fetching contest data"]);

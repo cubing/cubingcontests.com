@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
 import { ResultDocument } from "./result.model";
-import { ICutoff, ITimeLimit } from "~/shared/types";
-import { RoundFormat, RoundProceed, RoundType } from "~/shared/enums";
-import { IProceed } from "~/shared/types";
+import { ICutoff, ITimeLimit } from "~/helpers/types";
+import { RoundFormat, RoundProceed, RoundType } from "~/helpers/enums";
+import { IProceed } from "~/helpers/types";
 
 @Schema({ _id: false })
 export class TimeLimitModel implements ITimeLimit {
@@ -61,7 +61,10 @@ export class RoundModel {
   @Prop({ type: ProceedSchema })
   proceed?: ProceedModel;
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Result" }], required: true })
+  @Prop({
+    type: [{ type: mongoose.Types.ObjectId, ref: "Result" }],
+    required: true,
+  })
   results: ResultDocument[];
 
   @Prop()
