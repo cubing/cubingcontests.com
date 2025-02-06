@@ -1,5 +1,5 @@
-import { Event } from "@cc/shared";
-import { EventFormat, EventGroup, RoundFormat } from "@cc/shared";
+import { Event } from "~/helpers/types.ts";
+import { EventFormat, EventGroup, RoundFormat } from "~/helpers/enums.ts";
 
 // COPIED FROM THE EVENTS SEED IN THE SERVER SEEDS DIRECTORY
 export const eventsStub = (): Event[] => [

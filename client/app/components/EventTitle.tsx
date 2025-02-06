@@ -1,6 +1,6 @@
 import Link from "next/link";
 import EventIcon from "./EventIcon.tsx";
-import { Event } from "@cc/shared";
+import { Event } from "~/helpers/types.ts";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
 
 const EventTitle = ({

@@ -1,6 +1,6 @@
 import Tabs from "~/app/components/UI/Tabs.tsx";
-import { IContest } from "@cc/shared";
-import { getIsCompType } from "@cc/shared";
+import { IContest } from "~/helpers/types.ts";
+import { getIsCompType } from "~/helpers/sharedFunctions.ts";
 
 const ContestLayout = ({
   contest,

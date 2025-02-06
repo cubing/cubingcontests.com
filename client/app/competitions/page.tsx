@@ -22,8 +22,8 @@ type Props = {
 
 const ContestsPage = async ({ searchParams }: Props) => {
   const { eventId } = await searchParams;
-  const { payload: events } = await ssrFetch("/events");
-  const { payload: contests } = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ""}`);
+  const eventsResponse = await ssrFetch("/events");
+  const contestsResponse = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ""}`);
 
   return (
     <div>
@@ -31,13 +31,19 @@ const ContestsPage = async ({ searchParams }: Props) => {
 
       <DonateAlert />
 
-      <div className="px-2">
-        {events && <EventButtons key={eventId} eventId={eventId} events={events} forPage="competitions" />}
-      </div>
+      {!eventsResponse.success || !contestsResponse.success
+        ? <h3 className="mt-4 text-center">Error while fetching contests</h3>
+        : (
+          <>
+            <div className="px-2">
+              <EventButtons key={eventId} eventId={eventId} events={eventsResponse.data} forPage="competitions" />
+            </div>
 
-      {contests?.length > 0
-        ? <ContestsTable contests={contests} />
-        : <p className="mx-3 fs-5">No contests have been held yet</p>}
+            {contestsResponse.data.length > 0
+              ? <ContestsTable contests={contestsResponse.data} />
+              : <p className="mx-3 fs-5">No contests have been held yet</p>}
+          </>
+        )}
     </div>
   );
 };

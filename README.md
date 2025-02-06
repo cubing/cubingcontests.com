@@ -4,21 +4,21 @@ This is a place for hosting unofficial Rubik's Cube competitions, unofficial eve
 
 ## Screenshots
 
-<img src="https://cubingcontests.com/api2/static/cubing_contests_1.jpg" width="500"/>
+<img src="https://cubingcontests.com/screenshots/cubing_contests_1.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api2/static/cubing_contests_2.jpg" width="500"/>
+<img src="https://cubingcontests.com/screenshots/cubing_contests_2.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api2/static/cubing_contests_3.jpg" width="500"/>
+<img src="https://cubingcontests.com/screenshots/cubing_contests_3.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api2/static/cubing_contests_4.jpg" width="500"/>
+<img src="https://cubingcontests.com/screenshots/cubing_contests_4.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api2/static/cubing_contests_5.jpg" width="500"/>
+<img src="https://cubingcontests.com/screenshots/cubing_contests_5.jpg" width="500"/>
 
-<img src="https://cubingcontests.com/api2/static/cubing_contests_6.jpg" width="500"/>
+<img src="https://cubingcontests.com/screenshots/cubing_contests_6.jpg" width="500"/>
 
 <div style="display: flex; flex-wrap: wrap; gap: 2rem;">
-  <img src="https://cubingcontests.com/api2/static/cubing_contests_7.jpg" width="300"/>
-  <img src="https://cubingcontests.com/api2/static/cubing_contests_8.jpg" width="300"/>
+  <img src="https://cubingcontests.com/screenshots/cubing_contests_7.jpg" width="300"/>
+  <img src="https://cubingcontests.com/screenshots/cubing_contests_8.jpg" width="300"/>
 </div>
 
 ## API for entering attempts
@@ -107,7 +107,7 @@ It will also create an admin user with the username `admin`, a moderator with th
 
 Environment variables are specified in `.env` in the root of the project, and are automatically sourced by Docker. Simply copy the `.env.example` file, rename it to `.env` (which is not tracked by git in this repo), and change the values of the variables. This works the same way in production and in development.
 
-**Keep in mind that the `TZ` environment variable is crucial for date processing (i.e. validating dates, schedules, etc.). The timezone being set to UTC on the backend simplifies some of the date-related code (Note: all dates are stored in UTC in the DB). Code running in the browser does not have this benefit and must account for the user's local time zone, since the Javascript Date object does not.**
+**Keep in mind that the `TZ` environment variable is crucial for date processing (i.e. validating dates, schedules, etc.). The time zone being set to UTC on the backend simplifies some of the date-related code (Note: all dates are stored in UTC in the DB). Code running in the browser does not have this benefit and must account for the user's local time zone, since the Javascript Date object does not.**
 
 In development the `server/.env.dev` file is used for environment variables; it is automatically read by Nest JS. The `start-dev.sh` script copies `.env` to `server/.env.dev` automatically. In production this file is ignored, and the container's environment variables (coming from the `.env` file) are used instead.
 

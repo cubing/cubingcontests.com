@@ -6,8 +6,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { ContestState, IPerson } from "@cc/shared";
-import { IAdminStats, IContest } from "@cc/shared";
+import { ContestState } from "~/helpers/enums.ts";
+import { IAdminStats, IContest, IPerson } from "~/helpers/types.ts";
 import { UserInfo } from "~/helpers/types.ts";
 import { getFormattedDate, getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -16,7 +16,7 @@ import Country from "~/app/components/Country.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { C } from "@cc/shared";
+import { C } from "~/helpers/constants.ts";
 import { useRouter, useSearchParams } from "next/navigation";
 import ModFilters from "~/app/mod/ModFilters";
 
@@ -38,12 +38,12 @@ const ModeratorDashboardPage = () => {
   ).length ?? 0;
 
   const fetchContests = async (newOrganizerId?: string | number) => {
-    const { payload } = await myFetch.get(
+    const res = await myFetch.get(
       `/competitions/mod${newOrganizerId ? `?organizerId=${newOrganizerId}` : ""}`,
       { authorize: true },
     );
 
-    if (payload) setContests(payload);
+    if (res.success) setContests(res.data);
   };
 
   useEffect(() => {
@@ -51,8 +51,8 @@ const ModeratorDashboardPage = () => {
     fetchContests(typeof organizerId === "string" ? organizerId : undefined);
 
     if (userInfo?.isAdmin) {
-      myFetch.get("/admin-stats", { authorize: true }).then(({ payload, errors }) => {
-        if (!errors) setAdminStats(payload);
+      myFetch.get("/admin-stats", { authorize: true }).then((res) => {
+        if (res.success) setAdminStats(res.data);
       });
     }
   }, []);
@@ -72,14 +72,18 @@ const ModeratorDashboardPage = () => {
     const contest = contests?.find((c: IContest) => c.competitionId === competitionId) as IContest;
 
     if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
-      const { payload, errors } = await myFetch.patch(
+      const res = await myFetch.patch(
         `/competitions/set-state/${competitionId}`,
         { newState },
         { loadingId: `set_state_${newState}_${competitionId}_button` },
       );
 
-      if (!errors) {
-        setContests((contests as IContest[]).map((c) => (c.competitionId === competitionId ? payload : c)));
+      if (res.success) {
+        setContests(
+          (contests as IContest[]).map((
+            c,
+          ) => (c.competitionId === competitionId ? res.data : c)),
+        );
       }
     }
   };
@@ -103,29 +107,49 @@ const ModeratorDashboardPage = () => {
 
         <div className="alert alert-light mb-4" role="alert">
           We now have a Cubing Contests Discord server!{" "}
-          <a href="https://discord.gg/7rRMQA8jnU" target="_blank">Click here to join</a>. Then send your Discord
-          username in an email to {C.contactEmail} so you can be given the moderator role on the server.
+          <a href="https://discord.gg/7rRMQA8jnU" target="_blank">
+            Click here to join
+          </a>. Then send your Discord username in an email to {C.contactEmail}{" "}
+          so you can be given the moderator role on the server.
         </div>
 
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">
-          <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
+          <Link
+            href="/mod/competition"
+            className="btn btn-success btn-sm btn-lg-md"
+          >
             Create new contest
           </Link>
-          <Link href="/mod/competitors" className="btn btn-warning btn-sm btn-lg-md">
+          <Link
+            href="/mod/competitors"
+            className="btn btn-warning btn-sm btn-lg-md"
+          >
             Manage competitors
           </Link>
           {userInfo?.isAdmin && (
             <>
-              <Link href="/admin/results" className="btn btn-warning btn-sm btn-lg-md">
+              <Link
+                href="/admin/results"
+                className="btn btn-warning btn-sm btn-lg-md"
+              >
                 Manage results
               </Link>
-              <Link href="/admin/users" className="btn btn-warning btn-sm btn-lg-md">
+              <Link
+                href="/admin/users"
+                className="btn btn-warning btn-sm btn-lg-md"
+              >
                 Manage users
               </Link>
-              <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
+              <Link
+                href="/admin/events"
+                className="btn btn-secondary btn-sm btn-lg-md"
+              >
                 Configure events
               </Link>
-              <Link href="/admin/record-types" className="btn btn-secondary btn-sm btn-lg-md">
+              <Link
+                href="/admin/record-types"
+                className="btn btn-secondary btn-sm btn-lg-md"
+              >
                 Configure record types
               </Link>
             </>
@@ -186,7 +210,11 @@ const ModeratorDashboardPage = () => {
         )}
       </div>
 
-      <ModFilters onSelectPerson={selectPerson} onResetFilters={resetFilters} disabled={!contests} />
+      <ModFilters
+        onSelectPerson={selectPerson}
+        onResetFilters={resetFilters}
+        disabled={!contests}
+      />
 
       {!contests
         ? <Loading />
@@ -202,19 +230,25 @@ const ModeratorDashboardPage = () => {
                   <th scope="col">Place</th>
                   <th scope="col">Type</th>
                   <th scope="col">
-                    <FontAwesomeIcon icon={faUserGroup} aria-label="Number of participants" />
+                    <FontAwesomeIcon
+                      icon={faUserGroup}
+                      aria-label="Number of participants"
+                    />
                   </th>
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {contests.map((contest: IContest) => {
-                  const showApproveButton = contest.state === ContestState.Created && userInfo?.isAdmin &&
+                  const showApproveButton = contest.state === ContestState.Created &&
+                    userInfo?.isAdmin &&
                     (contest.meetupDetails || contest.compDetails);
 
                   return (
                     <tr key={contest.competitionId}>
-                      <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
+                      <td>
+                        {getFormattedDate(contest.startDate, contest.endDate)}
+                      </td>
                       <td>
                         <Link
                           href={`/competitions/${contest.competitionId}`}
@@ -226,11 +260,18 @@ const ModeratorDashboardPage = () => {
                       </td>
                       <td>
                         <div className="d-flex align-items-center">
-                          <span className="d-inline-block m-0 text-truncate" style={{ maxWidth: "18rem" }}>
+                          <span
+                            className="d-inline-block m-0 text-truncate"
+                            style={{ maxWidth: "18rem" }}
+                          >
                             {contest.city}
                           </span>
                           <span className="me-1">,</span>
-                          <Country countryIso2={contest.countryIso2} swapPositions shorten />
+                          <Country
+                            countryIso2={contest.countryIso2}
+                            swapPositions
+                            shorten
+                          />
                         </div>
                       </td>
                       <td>
@@ -253,8 +294,10 @@ const ModeratorDashboardPage = () => {
                                   <FontAwesomeIcon icon={faPencil} />
                                 </Link>
                               )}
-                              {(contest.state >= ContestState.Approved && contest.state < ContestState.Published &&
-                                (contest.state < ContestState.Finished || userInfo?.isAdmin)) && (
+                              {(contest.state >= ContestState.Approved &&
+                                contest.state < ContestState.Published &&
+                                (contest.state < ContestState.Finished ||
+                                  userInfo?.isAdmin)) && (
                                 <Link
                                   href={`/mod/competition/${contest.competitionId}`}
                                   prefetch={false}
@@ -267,7 +310,11 @@ const ModeratorDashboardPage = () => {
                                 <Button
                                   id={`set_state_${ContestState.Approved}_${contest.competitionId}_button`}
                                   type="button"
-                                  onClick={() => changeState(contest.competitionId, ContestState.Approved)}
+                                  onClick={() =>
+                                    changeState(
+                                      contest.competitionId,
+                                      ContestState.Approved,
+                                    )}
                                   loadingId={loadingId}
                                   className="btn btn-warning btn-xs"
                                 >
@@ -278,7 +325,11 @@ const ModeratorDashboardPage = () => {
                                 <Button
                                   id={`set_state_${ContestState.Finished}_${contest.competitionId}_button`}
                                   type="button"
-                                  onClick={() => changeState(contest.competitionId, ContestState.Finished)}
+                                  onClick={() =>
+                                    changeState(
+                                      contest.competitionId,
+                                      ContestState.Finished,
+                                    )}
                                   loadingId={loadingId}
                                   className="btn btn-warning btn-xs"
                                 >
@@ -291,14 +342,23 @@ const ModeratorDashboardPage = () => {
                                     <Button
                                       id={`set_state_${ContestState.Published}_${contest.competitionId}_button`}
                                       type="button"
-                                      onClick={() => changeState(contest.competitionId, ContestState.Published)}
+                                      onClick={() =>
+                                        changeState(
+                                          contest.competitionId,
+                                          ContestState.Published,
+                                        )}
                                       loadingId={loadingId}
                                       className="btn btn-warning btn-xs"
                                     >
                                       Publish
                                     </Button>
                                   )
-                                  : <FontAwesomeIcon icon={faClock} className="my-1 fs-5" />)}
+                                  : (
+                                    <FontAwesomeIcon
+                                      icon={faClock}
+                                      className="my-1 fs-5"
+                                    />
+                                  ))}
                             </div>
                           )}
                       </td>

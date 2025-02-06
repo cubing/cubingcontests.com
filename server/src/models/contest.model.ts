@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { ICompetitionDetails, IMeetupDetails } from "~/shared/types";
+import { ICompetitionDetails, IMeetupDetails } from "~/helpers/types";
 import { RoundDocument } from "./round.model";
 import { PersonDocument } from "./person.model";
-import { ContestState, ContestType } from "~/shared/enums";
+import { ContestState, ContestType } from "~/helpers/enums";
 import { EventDocument } from "./event.model";
 import { ScheduleDocument } from "./schedule.model";
 import { UserDocument } from "./user.model";
@@ -13,7 +13,10 @@ export class ContestEventModel {
   @Prop({ type: mongoose.Types.ObjectId, ref: "Event", required: true })
   event: EventDocument;
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Round" }], required: true })
+  @Prop({
+    type: [{ type: mongoose.Types.ObjectId, ref: "Round" }],
+    required: true,
+  })
   rounds: RoundDocument[];
 }
 
@@ -25,12 +28,17 @@ export class CompetitionDetailsModel implements ICompetitionDetails {
   schedule: ScheduleDocument;
 }
 
-const CompetitionDetailsSchema = SchemaFactory.createForClass(CompetitionDetailsModel);
+const CompetitionDetailsSchema = SchemaFactory.createForClass(
+  CompetitionDetailsModel,
+);
 
 @Schema({ _id: false })
 export class MeetupDetailsModel implements IMeetupDetails {
   @Prop({ required: true })
   startTime: Date;
+
+  @Prop({ required: true })
+  timeZone: string;
 }
 
 const MeetupDetailsSchema = SchemaFactory.createForClass(MeetupDetailsModel);
@@ -61,11 +69,15 @@ class ContestModel {
   @Prop({ required: true, immutable: true })
   countryIso2: string;
 
+  @Prop() // TEMPORARY
+  timezone?: string;
+
   // This is actually required, but it may be set to an empty string
   @Prop()
   venue: string;
 
-  @Prop({ required: true })
+  // Same thing here
+  @Prop()
   address: string;
 
   @Prop({ required: true })
@@ -80,10 +92,10 @@ class ContestModel {
   @Prop()
   endDate?: Date;
 
-  @Prop()
-  timezone?: string;
-
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: "Person" }], required: true })
+  @Prop({
+    type: [{ type: mongoose.Types.ObjectId, ref: "Person" }],
+    required: true,
+  })
   organizers: PersonDocument[];
 
   @Prop()

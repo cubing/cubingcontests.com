@@ -10,7 +10,7 @@ client/.next/
 client/out/
 client/build
 server/dist
-server/shared
+server/helpers
 
 # misc
 .DS_Store

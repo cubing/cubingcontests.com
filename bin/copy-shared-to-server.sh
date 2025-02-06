@@ -1,9 +1,11 @@
 #!/bin/bash
 
-rm -rf server/shared
-cp -r shared server/
-rm server/shared/deno.jsonc
+rm -rf server/helpers
+cp -r client/helpers server
+rm server/helpers/customHooks.ts
+rm server/helpers/utilityFunctions.ts
+rm server/helpers/contexts.ts
 # Remove all .ts extensions in imports
-find server/shared -type f -exec sed -i.bak 's/\.ts";$/";/g' {} \;
+find server/helpers -type f -exec sed -i.bak 's/\.ts";$/";/g' {} \;
 # Delete the backup files created by sed
-find server/shared -type f -name "*.bak" -delete
+find server/helpers -type f -name "*.bak" -delete

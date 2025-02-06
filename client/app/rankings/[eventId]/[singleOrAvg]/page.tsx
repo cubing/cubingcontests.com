@@ -3,9 +3,9 @@ import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import RankingsTable from "~/app/components/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { type Event, type IEventRankings } from "@cc/shared";
-import { EventGroup, RoundFormat } from "@cc/shared";
-import { C } from "@cc/shared";
+import { type Event, type IEventRankings } from "~/helpers/types.ts";
+import { EventGroup, RoundFormat } from "~/helpers/enums.ts";
+import { C } from "~/helpers/constants.ts";
 import DonateAlert from "~/app/components/DonateAlert.tsx";
 
 // SEO
@@ -28,15 +28,19 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
   const { eventId, singleOrAvg } = await params;
   const { show } = await searchParams;
   // Refreshes rankings every 5 minutes
-  const { payload: eventRankings }: { payload?: IEventRankings } = await ssrFetch(
+  const eventRankingsResponse = await ssrFetch<IEventRankings>(
     `/results/rankings/${eventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`,
     { revalidate: C.rankingsRev },
   );
-  const { payload: events }: { payload?: Event[] } = await ssrFetch("/events", { revalidate: C.rankingsRev });
+  const eventsResponse = await ssrFetch<Event[]>("/events", {
+    revalidate: C.rankingsRev,
+  });
 
-  const currEvent = events?.find((el) => el.eventId === eventId);
+  const currEvent = eventsResponse.success ? eventsResponse.data.find((e) => e.eventId === eventId) : undefined;
 
-  if (!eventRankings || !events || !currEvent) return <p className="mt-5 text-center fs-4">Event not found</p>;
+  if (!eventRankingsResponse.success || !eventsResponse.success || !currEvent) {
+    return <p className="mt-5 text-center fs-4">Event not found</p>;
+  }
 
   return (
     <div>
@@ -46,23 +50,33 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
 
       <div className="mb-3 px-2">
         <h4>Event</h4>
-        <EventButtons eventId={eventId} events={events} forPage="rankings" />
+        <EventButtons
+          eventId={eventId}
+          events={eventsResponse.data}
+          forPage="rankings"
+        />
 
         <div className="d-flex flex-wrap gap-3 mb-4">
           <div>
             <h4>Type</h4>
-            <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
+            <div
+              className="btn-group btn-group-sm mt-2"
+              role="group"
+              aria-label="Type"
+            >
               <Link
                 href={`/rankings/${eventId}/single${show ? "?show=results" : ""}`}
                 prefetch={false}
-                className={"btn btn-primary" + (singleOrAvg === "single" ? " active" : "")}
+                className={"btn btn-primary" +
+                  (singleOrAvg === "single" ? " active" : "")}
               >
                 Single
               </Link>
               <Link
                 href={`/rankings/${eventId}/average${show ? "?show=results" : ""}`}
                 prefetch={false}
-                className={"btn btn-primary" + (singleOrAvg === "average" ? " active" : "")}
+                className={"btn btn-primary" +
+                  (singleOrAvg === "average" ? " active" : "")}
               >
                 {currEvent.defaultRoundFormat === RoundFormat.Average ? "Average" : "Mean"}
               </Link>
@@ -71,7 +85,11 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
 
           <div>
             <h4>Show</h4>
-            <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
+            <div
+              className="btn-group btn-group-sm mt-2"
+              role="group"
+              aria-label="Type"
+            >
               <Link
                 href={`/rankings/${eventId}/${singleOrAvg}`}
                 prefetch={false}
@@ -91,7 +109,10 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
         </div>
 
         {currEvent.groups.some((g) => [EventGroup.SubmissionsAllowed, EventGroup.ExtremeBLD].includes(g)) && (
-          <Link href={`/user/submit-results?eventId=${eventId}`} className="btn btn-success btn-sm">
+          <Link
+            href={`/user/submit-results?eventId=${eventId}`}
+            className="btn btn-success btn-sm"
+          >
             Submit a result
           </Link>
         )}
@@ -100,8 +121,8 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
       <EventTitle event={currEvent} showDescription />
 
       <RankingsTable
-        rankings={eventRankings.rankings}
-        event={eventRankings.event}
+        rankings={eventRankingsResponse.data.rankings}
+        event={eventRankingsResponse.data.event}
         forAverage={singleOrAvg === "average"}
         topResultsRankings={show === "results"}
       />

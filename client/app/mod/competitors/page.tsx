@@ -6,7 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFePerson, ListPageMode } from "@cc/shared";
+import { IFePerson, ListPageMode } from "~/helpers/types.ts";
 import { getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { UserInfo } from "~/helpers/types.ts";
@@ -19,7 +19,7 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import PersonForm from "./PersonForm.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import { getSimplifiedString } from "@cc/shared";
+import { getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 
 const userInfo: UserInfo = getUserInfo();
@@ -29,10 +29,14 @@ const CreatePersonPage = () => {
   const myFetch = useMyFetch();
   const { changeSuccessMessage, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
   const parentRef = useRef<Element>(null);
-  const [mode, setMode] = useState<ListPageMode | "add-once">(searchParams.get("redirect") ? "add-once" : "view");
+  const [mode, setMode] = useState<ListPageMode | "add-once">(
+    searchParams.get("redirect") ? "add-once" : "view",
+  );
   const [persons, setPersons] = useState<IFePerson[]>([]);
   const [personUnderEdit, setPersonUnderEdit] = useState<IFePerson>();
-  const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
+  const [approvedFilter, setApprovedFilter] = useState<
+    "approved" | "unapproved" | ""
+  >("");
   const [search, setSearch] = useState("");
 
   const filteredPersons = useMemo(() => {
@@ -40,10 +44,13 @@ const CreatePersonPage = () => {
 
     return persons.filter((p: IFePerson) => {
       const passesNameFilter = getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
-        (p.localizedName && getSimplifiedString(p.localizedName).includes(simplifiedSearch)) || // search by localized name
+        (p.localizedName &&
+          getSimplifiedString(p.localizedName).includes(simplifiedSearch)) || // search by localized name
         p.personId.toString() === simplifiedSearch || // search by person ID
-        (p.creator && typeof p.creator !== "string" && p.creator.username === simplifiedSearch); // search by creator username
-      const passesApprovedFilter = approvedFilter === "" || (approvedFilter === "approved" && !p.unapproved) ||
+        (p.creator && typeof p.creator !== "string" &&
+          p.creator.username === simplifiedSearch); // search by creator username
+      const passesApprovedFilter = approvedFilter === "" ||
+        (approvedFilter === "approved" && !p.unapproved) ||
         (approvedFilter === "unapproved" && p.unapproved);
       return passesNameFilter && passesApprovedFilter;
     });
@@ -63,8 +70,8 @@ const CreatePersonPage = () => {
   });
 
   useEffect(() => {
-    myFetch.get("/persons/mod", { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setPersons(payload);
+    myFetch.get("/persons/mod", { authorize: true }).then((res) => {
+      if (res.success) setPersons(res.data);
     });
   }, []);
 
@@ -87,29 +94,37 @@ const CreatePersonPage = () => {
   };
 
   const deleteCompetitor = async (person: IFePerson) => {
-    const { errors } = await myFetch.delete(`/persons/${(person as any)._id}`, {
+    const res = await myFetch.delete(`/persons/${(person as any)._id}`, {
       loadingId: `delete_person_${person.personId}_button`,
     });
 
-    if (!errors) {
-      setPersons(persons.filter((p: IFePerson) => (p as any)._id !== (person as any)._id));
-      changeSuccessMessage(`Successfully deleted ${person.name} (CC ID: ${person.personId})`);
+    if (res.success) {
+      setPersons(
+        persons.filter((p: IFePerson) => (p as any)._id !== (person as any)._id),
+      );
+      changeSuccessMessage(
+        `Successfully deleted ${person.name} (CC ID: ${person.personId})`,
+      );
     }
   };
 
   const approveCompetitor = async (person: IFePerson) => {
-    const { payload, errors } = await myFetch.patch(
+    const res = await myFetch.patch(
       `/persons/${(person as any)._id}/approve`,
       { loadingId: `approve_person_${person.personId}_button` },
     );
 
-    if (!errors) {
+    if (res.success) {
       // CODE SMELL!!! it shouldn't be necessary to keep the old creator values, they should just be set
       // properly in the returned array. Same issue below in updateCompetitors.
       setPersons(
-        persons.map((p: IFePerson) => (p.personId === person.personId ? { ...payload, creator: p.creator } : p)),
+        persons.map((
+          p: IFePerson,
+        ) => (p.personId === person.personId ? { ...res.data, creator: p.creator } : p)),
       );
-      changeSuccessMessage(`Successfully approved ${person.name} (CC ID: ${person.personId})`);
+      changeSuccessMessage(
+        `Successfully approved ${person.name} (CC ID: ${person.personId})`,
+      );
     }
   };
 
@@ -118,7 +133,9 @@ const CreatePersonPage = () => {
       setPersons([person, ...persons]);
     } else {
       setPersons(
-        persons.map((p: IFePerson) => (p.personId === person.personId ? { ...person, creator: p.creator } : p)),
+        persons.map((
+          p: IFePerson,
+        ) => (p.personId === person.personId ? { ...person, creator: p.creator } : p)),
       );
       setMode("view");
     }
@@ -131,7 +148,11 @@ const CreatePersonPage = () => {
 
       {mode === "view"
         ? (
-          <Button onClick={onAddCompetitor} className="btn-success btn-sm mx-2" style={{ width: "fit-content" }}>
+          <Button
+            onClick={onAddCompetitor}
+            className="btn-success btn-sm mx-2"
+            style={{ width: "fit-content" }}
+          >
             Add competitor
           </Button>
         )
@@ -168,7 +189,11 @@ const CreatePersonPage = () => {
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "600px" }}>
+          <div
+            ref={parentRef as any}
+            className="mt-3 table-responsive overflow-y-auto"
+            style={{ height: "600px" }}
+          >
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               <table className="table table-hover text-nowrap">
                 <thead>
@@ -184,80 +209,86 @@ const CreatePersonPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
-                    if (filteredPersons.length === 0) return;
-                    const person = filteredPersons[virtualItem.index];
+                  {rowVirtualizer.getVirtualItems().map(
+                    (virtualItem, index) => {
+                      if (filteredPersons.length === 0) return;
+                      const person = filteredPersons[virtualItem.index];
 
-                    return (
-                      <tr
-                        key={virtualItem.key as React.Key}
-                        style={{
-                          height: `${virtualItem.size}px`,
-                          transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
-                        }}
-                      >
-                        <td>{person.personId}</td>
-                        <td>
-                          <Competitor person={person} noFlag />
-                        </td>
-                        <td>{person.localizedName}</td>
-                        <td>{person.wcaId}</td>
-                        <td>
-                          <Country countryIso2={person.countryIso2} shorten />
-                        </td>
-                        {userInfo?.isAdmin && (
+                      return (
+                        <tr
+                          key={virtualItem.key as React.Key}
+                          style={{
+                            height: `${virtualItem.size}px`,
+                            transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                          }}
+                        >
+                          <td>{person.personId}</td>
                           <td>
-                            <CreatorDetails creator={person.creator} small loggedInUser={userInfo} />
+                            <Competitor person={person} noFlag />
                           </td>
-                        )}
-                        <td>
-                          <FontAwesomeIcon
-                            icon={person.unapproved ? faXmark : faCheck}
-                            className={person.unapproved ? "text-danger" : ""}
-                            style={{ height: "1.3rem" }}
-                          />
-                        </td>
-                        <td>
-                          <div className="d-flex gap-2">
-                            {userInfo?.isAdmin && person.unapproved && (
-                              <Button
-                                id={`approve_person_${person.personId}_button`}
-                                onClick={() => approveCompetitor(person)}
-                                loadingId={loadingId}
-                                disabled={mode !== "view"}
-                                className="btn-xs btn-success"
-                                ariaLabel="Approve"
-                              >
-                                <FontAwesomeIcon icon={faCheck} />
-                              </Button>
-                            )}
-                            {(userInfo?.isAdmin || person.unapproved) && (
-                              <Button
-                                onClick={() => onEditCompetitor(person)}
-                                disabled={mode !== "view"}
-                                className="btn-xs"
-                                ariaLabel="Edit"
-                              >
-                                <FontAwesomeIcon icon={faPencil} />
-                              </Button>
-                            )}
-                            {userInfo?.isAdmin && person.unapproved && (
-                              <Button
-                                id={`delete_person_${person.personId}_button`}
-                                onClick={() => deleteCompetitor(person)}
-                                loadingId={loadingId}
-                                disabled={mode !== "view"}
-                                className="btn-xs btn-danger"
-                                ariaLabel="Delete"
-                              >
-                                <FontAwesomeIcon icon={faTrash} />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          <td>{person.localizedName}</td>
+                          <td>{person.wcaId}</td>
+                          <td>
+                            <Country countryIso2={person.countryIso2} shorten />
+                          </td>
+                          {userInfo?.isAdmin && (
+                            <td>
+                              <CreatorDetails
+                                creator={person.creator}
+                                small
+                                loggedInUser={userInfo}
+                              />
+                            </td>
+                          )}
+                          <td>
+                            <FontAwesomeIcon
+                              icon={person.unapproved ? faXmark : faCheck}
+                              className={person.unapproved ? "text-danger" : ""}
+                              style={{ height: "1.3rem" }}
+                            />
+                          </td>
+                          <td>
+                            <div className="d-flex gap-2">
+                              {userInfo?.isAdmin && person.unapproved && (
+                                <Button
+                                  id={`approve_person_${person.personId}_button`}
+                                  onClick={() => approveCompetitor(person)}
+                                  loadingId={loadingId}
+                                  disabled={mode !== "view"}
+                                  className="btn-xs btn-success"
+                                  ariaLabel="Approve"
+                                >
+                                  <FontAwesomeIcon icon={faCheck} />
+                                </Button>
+                              )}
+                              {(userInfo?.isAdmin || person.unapproved) && (
+                                <Button
+                                  onClick={() => onEditCompetitor(person)}
+                                  disabled={mode !== "view"}
+                                  className="btn-xs"
+                                  ariaLabel="Edit"
+                                >
+                                  <FontAwesomeIcon icon={faPencil} />
+                                </Button>
+                              )}
+                              {userInfo?.isAdmin && person.unapproved && (
+                                <Button
+                                  id={`delete_person_${person.personId}_button`}
+                                  onClick={() => deleteCompetitor(person)}
+                                  loadingId={loadingId}
+                                  disabled={mode !== "view"}
+                                  className="btn-xs btn-danger"
+                                  ariaLabel="Delete"
+                                >
+                                  <FontAwesomeIcon icon={faTrash} />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    },
+                  )}
                 </tbody>
               </table>
             </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import DataEntryScreen from "~/app/components/adminAndModerator/DataEntryScreen.tsx";
-import { IContestData } from "@cc/shared";
+import { IContestData } from "~/helpers/types.ts";
 import { useParams, useSearchParams } from "next/navigation";
 
 const PostResultsPage = () => {
@@ -17,8 +17,8 @@ const PostResultsPage = () => {
   useEffect(() => {
     setContestData(undefined);
     myFetch.get(`/competitions/mod/${id}?eventId=${searchParams.get("eventId") ?? "FIRST_EVENT"}`, { authorize: true })
-      .then(({ payload, errors }) => {
-        if (!errors) setContestData(payload as IContestData);
+      .then((res) => {
+        if (res.success) setContestData(res.data as IContestData);
       });
   }, [id, searchParams]);
 

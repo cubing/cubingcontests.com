@@ -1,13 +1,23 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
-import { type Event, IAttempt, type IContestEvent } from "@cc/shared";
-import { getBestAndAverage } from "@cc/shared";
+import {
+  type Event,
+  IAttempt,
+  type IContestEvent,
+  type IRecordPair,
+} from "~/helpers/types.ts";
+import {
+  compareAvgs,
+  compareSingles,
+  getBestAndAverage,
+  setResultRecords,
+} from "~/helpers/sharedFunctions.ts";
 import { eventsStub } from "~/__mocks__/events.stub.ts";
-import { RoundFormat } from "@cc/shared";
-import { compareAvgs, compareSingles, setResultRecords } from "@cc/shared";
-import { IRecordPair } from "@cc/shared";
-import { WcaRecordType } from "@cc/shared";
-import { newContestEventsStub, newFakeContestEventsStub } from "~/__mocks__/new-competition-events.stub.ts";
+import { RoundFormat, WcaRecordType } from "~/helpers/enums.ts";
+import {
+  newContestEventsStub,
+  newFakeContestEventsStub,
+} from "~/__mocks__/new-competition-events.stub.ts";
 
 const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as Event;
 
@@ -15,7 +25,11 @@ describe("getBestAndAverage", () => {
   it("Sets average to 0 when there is only one attempt", () => {
     const attempts: IAttempt[] = [{ result: 1234 }];
 
-    const { best, average } = getBestAndAverage(attempts, mockTimeEvent, RoundFormat.BestOf1);
+    const { best, average } = getBestAndAverage(
+      attempts,
+      mockTimeEvent,
+      RoundFormat.BestOf1,
+    );
 
     expect(best).toBe(1234);
     expect(average).toBe(0);
@@ -24,7 +38,11 @@ describe("getBestAndAverage", () => {
   it("Sets average to 0 when there are only 2 attempts", () => {
     const attempts: IAttempt[] = [{ result: 1234 }, { result: 2345 }];
 
-    const { best, average } = getBestAndAverage(attempts, mockTimeEvent, RoundFormat.BestOf2);
+    const { best, average } = getBestAndAverage(
+      attempts,
+      mockTimeEvent,
+      RoundFormat.BestOf2,
+    );
 
     expect(best).toBe(1234);
     expect(average).toBe(0);
@@ -72,7 +90,9 @@ describe("compareSingles", () => {
     });
 
     it("compares Multi-Blind singles correctly when a is 3/3 59.68 and b is 3/3 1:05.57", () => {
-      expect(compareSingles({ best: 999600059680000 }, { best: 999600065570000 })).toBeLessThan(
+      expect(
+        compareSingles({ best: 999600059680000 }, { best: 999600065570000 }),
+      ).toBeLessThan(
         0,
       );
     });
@@ -84,7 +104,9 @@ describe("compareSingles", () => {
     });
 
     it("compares Multi-Blind singles correctly when a is DNF (6/15) and b is DNF (1/2)", () => {
-      expect(compareSingles({ best: -999603161000009 }, { best: -999900516420001 })).toBe(0);
+      expect(
+        compareSingles({ best: -999603161000009 }, { best: -999900516420001 }),
+      ).toBe(0);
     });
   });
 });
@@ -107,15 +129,18 @@ describe("compareAvgs", () => {
   });
 
   it("compares averages correctly when a and b are DNF", () => {
-    expect(compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 })).toBeLessThan(0);
+    expect(compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 }))
+      .toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are different", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 })).toBeLessThan(0);
+    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 }))
+      .toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are the same", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 })).toBe(0);
+    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 }))
+      .toBe(0);
   });
 });
 
@@ -145,8 +170,14 @@ describe("setResultRecords", () => {
   ];
 
   it("sets new 3x3x3 records correctly", () => {
-    const contestEvent = newContestEventsStub().find((el) => el.event.eventId === "333") as IContestEvent;
-    const result = setResultRecords(contestEvent.rounds[0].results[0], contestEvent.event, mock333RecordPairs());
+    const contestEvent = newContestEventsStub().find((el) =>
+      el.event.eventId === "333"
+    ) as IContestEvent;
+    const result = setResultRecords(
+      contestEvent.rounds[0].results[0],
+      contestEvent.event,
+      mock333RecordPairs(),
+    );
 
     // 6.86 single and 8.00 average WRs
     expect(result.regionalAverageRecord).toBe("WR");
@@ -154,16 +185,28 @@ describe("setResultRecords", () => {
   });
 
   it("updates 3x3x3 BLD single record correctly", () => {
-    const contestEvent = newFakeContestEventsStub().find((el) => el.event.eventId === "333bf") as IContestEvent;
-    const result = setResultRecords(contestEvent.rounds[0].results[0], contestEvent.event, mockBLDRecordPairs());
+    const contestEvent = newFakeContestEventsStub().find((el) =>
+      el.event.eventId === "333bf"
+    ) as IContestEvent;
+    const result = setResultRecords(
+      contestEvent.rounds[0].results[0],
+      contestEvent.event,
+      mockBLDRecordPairs(),
+    );
 
     expect(result.regionalSingleRecord).toBe("WR");
     expect(result.regionalAverageRecord).toBeUndefined();
   });
 
   it("doesn't set avg records when the # of attempts doesn't match the default format's # of attempts", () => {
-    const contestEvent = newFakeContestEventsStub().find((el) => el.event.eventId === "222") as IContestEvent;
-    const result = setResultRecords(contestEvent.rounds[2].results[0], contestEvent.event, mock222RecordPairs());
+    const contestEvent = newFakeContestEventsStub().find((el) =>
+      el.event.eventId === "222"
+    ) as IContestEvent;
+    const result = setResultRecords(
+      contestEvent.rounds[2].results[0],
+      contestEvent.event,
+      mock222RecordPairs(),
+    );
 
     expect(result.regionalSingleRecord).toBe("WR");
     expect(result.best).toBe(100);

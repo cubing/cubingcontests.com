@@ -18,16 +18,22 @@ import { ContestDto } from "./dto/contest.dto";
 import { ContestsService } from "./contests.service";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { ContestState, Role } from "~/shared/enums";
+import { ContestState, Role } from "~/helpers/enums";
 import { RolesGuard } from "~/src/guards/roles.guard";
 
 @Controller("competitions")
 export class ContestsController {
-  constructor(private readonly logger: MyLogger, private readonly service: ContestsService) {}
+  constructor(
+    private readonly logger: MyLogger,
+    private readonly service: ContestsService,
+  ) {}
 
   // GET /competitions?region=...&eventId=...
   @Get()
-  async getContests(@Query("region") region?: string, @Query("eventId") eventId?: string) {
+  async getContests(
+    @Query("region") region?: string,
+    @Query("eventId") eventId?: string,
+  ) {
     this.logger.logAndSave("Getting contests", LogType.GetContests);
 
     return await this.service.getContests(region, eventId);
@@ -37,7 +43,10 @@ export class ContestsController {
   @Get("mod")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async getModContests(@Request() req: any, @Query("organizerId") organizerId?: number) {
+  async getModContests(
+    @Request() req: any,
+    @Query("organizerId") organizerId?: number,
+  ) {
     this.logger.logAndSave("Getting mod contests", LogType.GetModContests);
 
     return await this.service.getModContests(req.user, { organizerId });
@@ -45,8 +54,14 @@ export class ContestsController {
 
   // GET /competitions/:competitionId(?eventId=...)
   @Get(":competitionId")
-  async getContest(@Param("competitionId") competitionId: string, @Query("eventId") eventId: string) {
-    this.logger.logAndSave(`Getting contest with ID ${competitionId}`, LogType.GetContest);
+  async getContest(
+    @Param("competitionId") competitionId: string,
+    @Query("eventId") eventId: string,
+  ) {
+    this.logger.logAndSave(
+      `Getting contest with ID ${competitionId}`,
+      LogType.GetContest,
+    );
 
     return await this.service.getContest(competitionId, { eventId });
   }
@@ -60,9 +75,15 @@ export class ContestsController {
     @Query("eventId") eventId: string,
     @Request() req: any,
   ) {
-    this.logger.logAndSave(`Getting contest with ID ${competitionId} with moderator info`, LogType.GetModContest);
+    this.logger.logAndSave(
+      `Getting contest with ID ${competitionId} with moderator info`,
+      LogType.GetModContest,
+    );
 
-    return await this.service.getContest(competitionId, { eventId, user: req.user });
+    return await this.service.getContest(competitionId, {
+      eventId,
+      user: req.user,
+    });
   }
 
   // POST /competitions(?saveResults=true)
@@ -74,18 +95,31 @@ export class ContestsController {
     @Body(new ValidationPipe()) contestDto: ContestDto,
     @Query("saveResults") saveResults = false,
   ) {
-    this.logger.logAndSave(`Creating contest ${contestDto.competitionId}`, LogType.CreateContest);
+    this.logger.logAndSave(
+      `Creating contest ${contestDto.competitionId}`,
+      LogType.CreateContest,
+    );
 
     // Only admins are allowed to import contests and have the results immediately saved
-    return await this.service.createContest(contestDto, req.user, saveResults && req.user.roles.includes(Role.Admin));
+    return await this.service.createContest(
+      contestDto,
+      req.user,
+      saveResults && req.user.roles.includes(Role.Admin),
+    );
   }
 
   // POST /competitions/:competitionId/open-round/:roundId
   @Post(":competitionId/open-round/:roundId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async openRound(@Param("competitionId") competitionId: string, @Param("roundId") roundId: string) {
-    this.logger.logAndSave(`Opening round ${roundId} for contest ${competitionId}`, LogType.OpenRound);
+  async openRound(
+    @Param("competitionId") competitionId: string,
+    @Param("roundId") roundId: string,
+  ) {
+    this.logger.logAndSave(
+      `Opening round ${roundId} for contest ${competitionId}`,
+      LogType.OpenRound,
+    );
 
     return await this.service.openRound(competitionId, roundId);
   }
@@ -99,9 +133,16 @@ export class ContestsController {
     @Body(new ValidationPipe()) contestDto: ContestDto,
     @Request() req: any, // this is passed in by the guards
   ) {
-    this.logger.logAndSave(`Updating contest ${competitionId}`, LogType.UpdateContest);
+    this.logger.logAndSave(
+      `Updating contest ${competitionId}`,
+      LogType.UpdateContest,
+    );
 
-    return await this.service.updateContest(competitionId, contestDto, req.user);
+    return await this.service.updateContest(
+      competitionId,
+      contestDto,
+      req.user,
+    );
   }
 
   // PATCH /competitions/set-state/:competitionId
@@ -114,7 +155,9 @@ export class ContestsController {
     @Request() req: any,
   ) {
     const parsedState = parseInt(newState);
-    if (isNaN(parsedState) || !Object.values(ContestState).includes(parsedState)) {
+    if (
+      isNaN(parsedState) || !Object.values(ContestState).includes(parsedState)
+    ) {
       throw new BadRequestException("Please provide a valid state");
     }
     if (parsedState === ContestState.Removed) {
@@ -123,9 +166,16 @@ export class ContestsController {
       );
     }
 
-    this.logger.logAndSave(`Setting state ${newState} for contest ${competitionId}`, LogType.UpdateContestState);
+    this.logger.logAndSave(
+      `Setting state ${newState} for contest ${competitionId}`,
+      LogType.UpdateContestState,
+    );
 
-    return await this.service.updateState(competitionId, parseInt(newState) as ContestState, req.user);
+    return await this.service.updateState(
+      competitionId,
+      parseInt(newState) as ContestState,
+      req.user,
+    );
   }
 
   // DELETE /competitions/:competitionId
@@ -133,7 +183,10 @@ export class ContestsController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async deleteContest(@Param("competitionId") competitionId: string) {
-    this.logger.logAndSave(`Removing contest ${competitionId}`, LogType.RemoveContest);
+    this.logger.logAndSave(
+      `Removing contest ${competitionId}`,
+      LogType.RemoveContest,
+    );
 
     return await this.service.deleteContest(competitionId);
   }
@@ -142,23 +195,38 @@ export class ContestsController {
   @Patch("queue-increment/:competitionId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async incrementQueuePosition(@Param("competitionId") competitionId: string, @Request() req: any) {
-    return await this.service.changeQueuePosition(competitionId, req.user, { difference: 1 });
+  async incrementQueuePosition(
+    @Param("competitionId") competitionId: string,
+    @Request() req: any,
+  ) {
+    return await this.service.changeQueuePosition(competitionId, req.user, {
+      difference: 1,
+    });
   }
 
   // PATCH /competitions/queue-decrement/:competitionId
   @Patch("queue-decrement/:competitionId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async decrementQueuePosition(@Param("competitionId") competitionId: string, @Request() req: any) {
-    return await this.service.changeQueuePosition(competitionId, req.user, { difference: -1 });
+  async decrementQueuePosition(
+    @Param("competitionId") competitionId: string,
+    @Request() req: any,
+  ) {
+    return await this.service.changeQueuePosition(competitionId, req.user, {
+      difference: -1,
+    });
   }
 
   // PATCH /competitions/queue-reset/:competitionId
   @Patch("queue-reset/:competitionId")
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin, Role.Moderator)
-  async resetQueue(@Param("competitionId") competitionId: string, @Request() req: any) {
-    return await this.service.changeQueuePosition(competitionId, req.user, { newPosition: 1 });
+  async resetQueue(
+    @Param("competitionId") competitionId: string,
+    @Request() req: any,
+  ) {
+    return await this.service.changeQueuePosition(competitionId, req.user, {
+      newPosition: 1,
+    });
   }
 }

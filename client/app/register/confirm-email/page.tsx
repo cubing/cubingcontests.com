@@ -17,13 +17,13 @@ const ConfirmEmailPage = () => {
 
   const handleSubmit = async () => {
     const username = searchParams.get("username");
-    const { errors } = await myFetch.post(
+    const res = await myFetch.post(
       "/auth/confirm-email",
       { username, code },
       { authorize: false, loadingId: "form_submit_button" },
     );
 
-    if (errors) {
+    if (!res.success) {
       document.getElementById("confirmation_code")?.focus();
     } else {
       changeSuccessMessage("Your account has been verified");
@@ -35,13 +35,13 @@ const ConfirmEmailPage = () => {
   };
 
   const resendCode = async () => {
-    const { errors } = await myFetch.post(
+    const res = await myFetch.post(
       "/auth/resend-confirmation-code",
       { username: searchParams.get("username") },
       { authorize: false, loadingId: "resend_code_button" },
     );
 
-    if (!errors) {
+    if (res.success) {
       changeSuccessMessage("A new confirmation code has been sent");
       setCode("");
     }

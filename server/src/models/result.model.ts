@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { IAttempt } from "~/shared/types";
+import { IAttempt } from "~/helpers/types";
 import { UserDocument } from "./user.model";
 
 @Schema({ _id: false })

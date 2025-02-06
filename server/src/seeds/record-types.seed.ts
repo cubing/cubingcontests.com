@@ -1,5 +1,5 @@
-import { IRecordType } from "~/shared/types";
-import { Color, WcaRecordType } from "~/shared/enums";
+import { IRecordType } from "~/helpers/types";
+import { Color, WcaRecordType } from "~/helpers/enums";
 
 export const recordTypesSeed: IRecordType[] = [
   {

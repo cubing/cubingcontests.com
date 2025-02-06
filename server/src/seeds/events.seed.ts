@@ -1,5 +1,5 @@
-import { EventFormat, EventGroup, RoundFormat } from "~/shared/enums";
-import { Event } from "~/shared/types";
+import { EventFormat, EventGroup, RoundFormat } from "~/helpers/enums";
+import { Event } from "~/helpers/types";
 
 ///////////////////////////////////////////////////////////////////
 // The event IDs are the same as the official WCA event IDs, or

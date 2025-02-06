@@ -28,7 +28,6 @@ export interface IContest {
   // These are stored as ISO date strings in the DB, but are date objects everywhere else
   startDate: Date;
   endDate?: Date; // competition-only
-  timezone?: string; // meetup-only; not needed on creation
   organizers: IPerson[]; // stored as references
   contact?: string;
   description: string;
@@ -37,8 +36,8 @@ export interface IContest {
   participants: number;
   queuePosition?: number; // optional, used for the queue feature
   // IMPORTANT: this is not set when importing a competition and must be set manually by an admin
-  compDetails?: ICompetitionDetails; // competition-only
-  meetupDetails?: IMeetupDetails; // meetup-only
+  compDetails?: ICompetitionDetails;
+  meetupDetails?: IMeetupDetails;
 }
 
 export type IContestDto = Omit<IContest, "createdBy" | "state" | "participants">;
@@ -54,7 +53,8 @@ export interface ICompetitionDetails {
 }
 
 export interface IMeetupDetails {
-  startTime: Date; // start time in UTC
+  startTime: Date; // in UTC
+  timeZone: string;
 }
 
 // CONTEST DATA (just used for sending full contest information to the frontend)

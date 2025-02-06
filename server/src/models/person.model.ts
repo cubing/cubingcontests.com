@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { IPerson } from "~/shared/types";
+import { IPerson } from "~/helpers/types";
 import { UserDocument } from "./user.model";
 
 @Schema({ timestamps: true })

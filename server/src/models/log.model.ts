@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { LogType } from "../helpers/enums";
+import { LogType } from "~/src/helpers/enums";
 
 @Schema({ timestamps: true })
 export class LogModel {

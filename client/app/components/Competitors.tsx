@@ -1,5 +1,5 @@
 import Competitor from "~/app/components/Competitor.tsx";
-import { IPerson } from "@cc/shared";
+import { IPerson } from "~/helpers/types.ts";
 
 type Props = {
   persons: IPerson[];

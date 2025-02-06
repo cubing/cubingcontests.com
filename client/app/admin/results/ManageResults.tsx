@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeResult, IRecordType } from "@cc/shared";
+import { IFeResult, IRecordType } from "~/helpers/types.ts";
 import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Time from "~/app/components/Time.tsx";
@@ -39,8 +39,8 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   });
 
   useEffect(() => {
-    myFetch.get("/results/video-based", { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setResults(payload);
+    myFetch.get("/results/video-based", { authorize: true }).then((res) => {
+      if (res.success) setResults(res.data);
     });
   }, []);
 

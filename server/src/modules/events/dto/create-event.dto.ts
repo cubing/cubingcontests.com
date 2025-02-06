@@ -1,6 +1,6 @@
 import { ArrayMinSize, IsEnum, IsInt, IsOptional, IsString, Matches, Max, Min, MinLength } from "class-validator";
-import { FeEvent } from "~/shared/types";
-import { EventFormat, EventGroup, RoundFormat } from "~/shared/enums";
+import { FeEvent } from "~/helpers/types";
+import { EventFormat, EventGroup, RoundFormat } from "~/helpers/enums";
 import { getMinLengthOpts } from "~/src/helpers/validation";
 
 export class CreateEventDto implements FeEvent {

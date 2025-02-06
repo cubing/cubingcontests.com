@@ -2,16 +2,16 @@
 
 // import { useContext, useEffect, useState } from 'react';
 // import { useMyFetch, useFetchPerson, useFetchWcaCompDetails } from '~/helpers/customHooks.ts';
-// import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from "@cc/shared";
-// import { IContestDto, Event, IPerson, IRecordPair, IRecordType, IResult, IRound } from "@cc/shared";
+// import { RoundFormat, RoundProceed, RoundType, WcaRecordType } from "~/helpers/enums.ts";
+// import { IContestDto, Event, IPerson, IRecordPair, IRecordType, IResult, IRound } from "~/helpers/types.ts";
 // import {
 //   compareAvgs,
 //   compareSingles,
 //   getDefaultAverageAttempts,
 //   getRoundRanksWithAverage,
 //   getBestAndAverage,
-// } from "@cc/shared";
-// import { roundFormats } from "@cc/shared";
+// } from "~/helpers/sharedFunctions.ts";
+// import { roundFormats } from "~/helpers/roundFormats.ts";
 // import { MainContext } from '~/helpers/contexts.ts';
 // import { getContestIdFromName } from '~/helpers/utilityFunctions.ts';
 // import Button from '~/app/components/UI/Button.tsx';
@@ -138,13 +138,13 @@ const ImportExportPage = () => {
   // const [contestJSON, setContestJSON] = useState('');
 
   //   useEffect(() => {
-  //     myFetch.get('/events/mod', { authorize: true }).then(({ payload, errors }) => {
-  //       if (!errors) setEvents(payload);
+  //     myFetch.get('/events/mod', { authorize: true }).then(({ data, errors }) => {
+  //       if (!errors) setEvents(data);
   //     });
 
   // This endpoint used to require authorization, but the {authorize: true} can be removed now
-  //     myFetch.get('/record-types?active=true', { authorize: true }).then(({ payload, errors }) => {
-  //       if (!errors) setActiveRecordTypes(payload);
+  //     myFetch.get('/record-types?active=true', { authorize: true }).then(({ data, errors }) => {
+  //       if (!errors) setActiveRecordTypes(data);
   //     });
   //   }, []);
 
@@ -183,7 +183,7 @@ const ImportExportPage = () => {
   //       return;
   //     }
 
-  //     const { payload: unofficialCompData, errors } = await myFetch.get(
+  //     const { data: unofficialCompData, errors } = await myFetch.get(
   //       `https://raw.githubusercontent.com/cubing/unofficial.cubing.net/main/data/competitions/${competitionId}/competition-info.json`,
   //       { loadingId: 'preview_button' },
   //     );
@@ -211,7 +211,7 @@ const ImportExportPage = () => {
   //         }
 
   //         const format = convertRoundFormat(roundsInfo[i].roundFormatID);
-  //         const { payload: recordPairsByEvent, errors: e1 } = await myFetch.get(
+  //         const { data: recordPairsByEvent, errors: e1 } = await myFetch.get(
   //           `/results/record-pairs/${date}/${ccEventId}`,
   //           { authorize: true, loadingId: null },
   //         );
@@ -227,7 +227,7 @@ const ImportExportPage = () => {
   //           throw new Error(message);
   //         }
 
-  //         const { payload: roundData, errors: e2 } = await myFetch.get(
+  //         const { data: roundData, errors: e2 } = await myFetch.get(
   //           `https://raw.githubusercontent.com/cubing/unofficial.cubing.net/main/data/competitions/${competitionId}/round-results/${key}-round${
   //             i + 1
   //           }.csv`,

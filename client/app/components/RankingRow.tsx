@@ -10,8 +10,8 @@ import ContestName from "~/app/components/ContestName.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import { Event, IPerson, IRanking, type ResultRankingType } from "@cc/shared";
-import { getFormattedTime } from "@cc/shared";
+import { type Event, type IPerson, type IRanking, type ResultRankingType } from "~/helpers/types.ts";
+import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
 type Props = {
@@ -38,7 +38,8 @@ const RankingRow = ({
   forRecordsTable = false,
 }: Props) => {
   const [teamExpanded, setTeamExpanded] = useState(false);
-  const firstColumnValue = ranking.ranking ?? capitalize(ranking.type as ResultRankingType);
+  const firstColumnValue = ranking.ranking ??
+    capitalize(ranking.type as ResultRankingType);
   const personsToDisplay = showAllTeammates ? ranking.persons : [person];
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -47,11 +48,23 @@ const RankingRow = ({
 
   return (
     <tr>
-      <td>{!onlyKeepPerson && <span className={isTiedRanking ? "text-secondary" : ""}>{firstColumnValue}</span>}</td>
+      <td>
+        {!onlyKeepPerson && (
+          <span className={isTiedRanking ? "text-secondary" : ""}>
+            {firstColumnValue}
+          </span>
+        )}
+      </td>
       <td>
         <Competitors persons={personsToDisplay} noFlag={!showAllTeammates} />
       </td>
-      <td>{!onlyKeepPerson && getFormattedTime(ranking.result, { event, showMultiPoints: !forRecordsTable })}</td>
+      <td>
+        {!onlyKeepPerson &&
+          getFormattedTime(ranking.result, {
+            event,
+            showMultiPoints: !forRecordsTable,
+          })}
+      </td>
       {!showAllTeammates && (
         <td>
           <Country countryIso2={person.countryIso2} shorten />
@@ -66,7 +79,10 @@ const RankingRow = ({
         <td>
           <div className="d-flex flex-column align-items-start gap-2 fs-6">
             <span className="text-white">
-              <u style={{ cursor: "pointer" }} onClick={() => setTeamExpanded(!teamExpanded)}>
+              <u
+                style={{ cursor: "pointer" }}
+                onClick={() => setTeamExpanded(!teamExpanded)}
+              >
                 {teamExpanded ? "Close" : "Open"}
               </u>
               <span className="ms-2">
@@ -74,7 +90,8 @@ const RankingRow = ({
               </span>
             </span>
 
-            {teamExpanded && ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
+            {teamExpanded &&
+              ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
           </div>
         </td>
       )}
@@ -82,9 +99,18 @@ const RankingRow = ({
         <td>
           {!onlyKeepPerson &&
             (ranking.attempts
-              ? <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
+              ? (
+                <Solves
+                  event={event}
+                  attempts={ranking.attempts}
+                  showMultiPoints={!forRecordsTable}
+                />
+              )
               : ranking.memo
-              ? getFormattedTime(ranking.memo, { showDecimals: false, alwaysShowMinutes: true })
+              ? getFormattedTime(ranking.memo, {
+                showDecimals: false,
+                alwaysShowMinutes: true,
+              })
               : "")}
         </td>
       )}

@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
-import { Event } from "~/shared/types";
-import { EventFormat, EventGroup, RoundFormat } from "~/shared/enums";
+import { Event } from "~/helpers/types";
+import { EventFormat, EventGroup, RoundFormat } from "~/helpers/enums";
 import { EventRuleDocument } from "~/src/models/event-rule.model";
 
 @Schema({ timestamps: true })

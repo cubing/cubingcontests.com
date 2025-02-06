@@ -1,7 +1,8 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   redirects() {
-    return [
+    return Promise.resolve([
       {
         source: "/records",
         destination: "/records/unofficial",
@@ -17,7 +18,7 @@ const nextConfig = {
         destination: "/moderator-instructions/wca",
         permanent: true,
       },
-    ];
+    ]);
   },
   webpack: (config) => {
     config.module.rules.push(

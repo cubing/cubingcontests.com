@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
-import { IActivity, IRoom, ISchedule, IVenue } from "~/shared/types";
-import { Color } from "~/shared/enums";
+import { IActivity, IRoom, ISchedule, IVenue } from "~/helpers/types";
+import { Color } from "~/helpers/enums";
 
 @Schema({ _id: false })
 class ActivityModel implements IActivity {

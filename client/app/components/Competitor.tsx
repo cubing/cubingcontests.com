@@ -1,5 +1,5 @@
 import Country from "./Country.tsx";
-import { IFePerson, IPerson } from "@cc/shared";
+import { IFePerson, IPerson } from "~/helpers/types.ts";
 
 type Props = {
   person: IPerson | IFePerson | undefined;

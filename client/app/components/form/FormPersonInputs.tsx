@@ -6,8 +6,8 @@ import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import FormTextInput from "./FormTextInput.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
-import { IPerson, IWcaPersonDto } from "@cc/shared";
-import { C } from "@cc/shared";
+import { IPerson, IWcaPersonDto } from "~/helpers/types.ts";
+import { C } from "~/helpers/constants.ts";
 import { getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { type InputPerson, UserInfo } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -57,20 +57,17 @@ const FormPersonInputs = ({
   const getMatchedPersons = useCallback(
     debounce(async (value: string) => {
       if (!C.wcaIdRegexLoose.test(value)) {
-        const { payload, errors } = await myFetch.get(`/persons?name=${value}`, { loadingId: null });
+        const res = await myFetch.get(`/persons?name=${value}`, { loadingId: null });
 
-        if (!errors && payload.length > 0) {
-          const newMatchedPersons = [...payload.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
+        if (res.success && res.data.length > 0) {
+          const newMatchedPersons = [...res.data.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
           setMatchedPersons(newMatchedPersons);
           if (newMatchedPersons.length < personSelection) setPersonSelection(0);
         }
       } else {
-        const { payload, errors } = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, {
-          authorize: true,
-          loadingId: null,
-        });
+        const res = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, { authorize: true, loadingId: null });
 
-        if (payload && !errors) setMatchedPersons([payload.person]);
+        if (res.success) setMatchedPersons([res.data.person]);
       }
       changeLoadingId("");
     }, C.fetchDebounceTimeout),

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { isValid, parseISO } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { C } from "@cc/shared";
+import { C } from "~/helpers/constants.ts";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
 
 type Props = {

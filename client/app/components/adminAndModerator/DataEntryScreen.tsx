@@ -18,13 +18,13 @@ import {
   type IRound,
   type IRoundFormat,
   type IUpdateResultDto,
-} from "@cc/shared";
-import { RoundType } from "@cc/shared";
+} from "~/helpers/types.ts";
+import { RoundType } from "~/helpers/enums.ts";
 import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import type { InputPerson, MultiChoiceOption } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "@cc/shared";
-import type { ICreateResultDto, IFeAttempt, IRecordPair } from "@cc/shared";
+import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/helpers/sharedFunctions.ts";
+import type { ICreateResultDto, IFeAttempt, IRecordPair } from "~/helpers/types.ts";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
@@ -32,7 +32,7 @@ import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { roundFormats } from "@cc/shared";
+import { roundFormats } from "~/helpers/roundFormats.ts";
 
 const DataEntryScreen = ({
   compData: {
@@ -49,10 +49,15 @@ const DataEntryScreen = ({
   const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
-  const [recordPairsByEvent, setRecordPairsByEvent] = useState(initialRecordPairs as IEventRecordPairs[]);
-  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
+  const [recordPairsByEvent, setRecordPairsByEvent] = useState(
+    initialRecordPairs as IEventRecordPairs[],
+  );
+  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(
+    contest.events,
+  );
 
-  const eventId = searchParams.get("eventId") ?? contest.events[0].event.eventId;
+  const eventId = searchParams.get("eventId") ??
+    contest.events[0].event.eventId;
   const currContestEvent = contestEvents.find((ev: IContestEvent) => ev.event.eventId === eventId) as IContestEvent;
   const currEvent = currContestEvent.event;
 
@@ -60,15 +65,24 @@ const DataEntryScreen = ({
 
   const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
 
-  const [currentPersons, setCurrentPersons] = useState<InputPerson[]>(new Array(currEvent.participants).fill(null));
-  const [personNames, setPersonNames] = useState(new Array(currEvent.participants).fill(""));
-  const [attempts, setAttempts] = useState<IFeAttempt[]>(new Array(roundFormat.attempts).fill({ result: 0 }));
+  const [currentPersons, setCurrentPersons] = useState<InputPerson[]>(
+    new Array(currEvent.participants).fill(null),
+  );
+  const [personNames, setPersonNames] = useState(
+    new Array(currEvent.participants).fill(""),
+  );
+  const [attempts, setAttempts] = useState<IFeAttempt[]>(
+    new Array(roundFormat.attempts).fill({ result: 0 }),
+  );
   const [persons, setPersons] = useState<IPerson[]>(prevPersons);
   const [queuePosition, setQueuePosition] = useState(contest.queuePosition);
 
   const roundOptions = useMemo<MultiChoiceOption[]>(
     () =>
-      currContestEvent.rounds.map((r: IRound) => ({ label: roundTypes[r.roundTypeId].label, value: r.roundTypeId })),
+      currContestEvent.rounds.map((r: IRound) => ({
+        label: roundTypes[r.roundTypeId].label,
+        value: r.roundTypeId,
+      })),
     [currContestEvent],
   );
   const recordPairs = useMemo<IRecordPair[] | undefined>(
@@ -103,33 +117,45 @@ const DataEntryScreen = ({
       personIds: currentPersons.map((p: InputPerson) => (p as IPerson).personId),
       attempts,
     };
-    let updatedRound: IRound, errors: string[] | undefined;
+    let updatedRound: IRound;
+    let errors: string[] | undefined;
 
     if (resultUnderEdit === null) {
-      const { payload, errors: err } = await myFetch.post(
+      const res = await myFetch.post(
         `/results/${contest.competitionId}/${round.roundId}`,
         resultDto,
         { loadingId: "submit_attempt_button" },
       );
-      updatedRound = payload;
-      if (err) errors = err;
+      if (!res.success) errors = res.errors;
+      else updatedRound = res.data;
     } else {
-      const updateResultDto: IUpdateResultDto = { personIds: resultDto.personIds, attempts: resultDto.attempts };
-      const { payload, errors: err } = await myFetch.patch(
+      const updateResultDto: IUpdateResultDto = {
+        personIds: resultDto.personIds,
+        attempts: resultDto.attempts,
+      };
+      const res = await myFetch.patch(
         `/results/${(resultUnderEdit as any)._id}`,
         updateResultDto,
         { loadingId: "submit_attempt_button" },
       );
-      updatedRound = payload;
-      if (err) errors = err;
-      else setResultUnderEdit(null);
+      if (!res.success) {
+        errors = res.errors;
+      } else {
+        setResultUnderEdit(null);
+        updatedRound = res.data;
+      }
     }
 
     if (!errors) {
       addNewPersonsToList();
-      changeRound(updatedRound);
+      changeRound(updatedRound as any);
       // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
+      const { best, average } = getBestAndAverage(
+        attempts,
+        currEvent,
+        round.format,
+        { cutoff: round.cutoff },
+      );
       updateRecordPairs({ ...resultDto, best, average } as IResult);
     }
   };
@@ -147,16 +173,22 @@ const DataEntryScreen = ({
 
   const changeRound = (updatedRound: IRound) => {
     setRound(updatedRound);
-    setContestEvents(contestEvents.map((ce: IContestEvent) =>
-      ce.event.eventId === eventId
-        ? {
-          ...ce,
-          rounds: ce.rounds.map((r) => (r.roundId === updatedRound.roundId ? updatedRound : r)),
-        }
-        : ce
-    ));
+    setContestEvents(
+      contestEvents.map((ce: IContestEvent) =>
+        ce.event.eventId === eventId
+          ? {
+            ...ce,
+            rounds: ce.rounds.map((
+              r,
+            ) => (r.roundId === updatedRound.roundId ? updatedRound : r)),
+          }
+          : ce
+      ),
+    );
     setAttempts(
-      new Array((roundFormats.find((rf) => rf.value === updatedRound.format) as IRoundFormat).attempts)
+      new Array(
+        (roundFormats.find((rf) => rf.value === updatedRound.format) as IRoundFormat).attempts,
+      )
         .fill({ result: 0 }),
     );
     const [persons, personNames] = getBlankCompetitors(currEvent.participants);
@@ -165,7 +197,12 @@ const DataEntryScreen = ({
   };
 
   const changeAttempt = (index: number, newAttempt: IFeAttempt) => {
-    setAttempts(attempts.map((a: IFeAttempt, i: number) => (i !== index ? a : newAttempt)));
+    setAttempts(
+      attempts.map((
+        a: IFeAttempt,
+        i: number,
+      ) => (i !== index ? a : newAttempt)),
+    );
   };
 
   const updateRecordPairs = async (newResult: IResult) => {
@@ -176,22 +213,25 @@ const DataEntryScreen = ({
     // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (
       eventRP.recordPairs.length > 0 &&
-      (newResult.best < eventRP.recordPairs[0].best || newResult.average < eventRP.recordPairs[0].average)
+      (newResult.best < eventRP.recordPairs[0].best ||
+        newResult.average < eventRP.recordPairs[0].average)
     ) {
-      const { payload, errors } = await myFetch.get(
+      const res = await myFetch.get(
         `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(",")}`,
         { authorize: true, loadingId: null },
       );
 
-      if (errors) changeErrorMessages(errors);
-      else setRecordPairsByEvent(payload);
+      if (!res.success) changeErrorMessages(res.errors);
+      else setRecordPairsByEvent(res.data);
     }
   };
 
   const onSelectPerson = (person: IPerson) => {
     if (currentPersons.every((p: InputPerson) => p === null)) {
       const existingResultForSelectedPerson = round.results.find((r: IResult) => r.personIds.includes(person.personId));
-      if (existingResultForSelectedPerson) editResult(existingResultForSelectedPerson);
+      if (existingResultForSelectedPerson) {
+        editResult(existingResultForSelectedPerson);
+      }
     }
   };
 
@@ -201,7 +241,9 @@ const DataEntryScreen = ({
     setAttempts(
       getMakesCutoff(result.attempts, round.cutoff) ? result.attempts : [
         ...result.attempts,
-        ...new Array(roundFormat.attempts - (round.cutoff as ICutoff).numberOfAttempts).fill({ result: 0 }),
+        ...new Array(
+          roundFormat.attempts - (round.cutoff as ICutoff).numberOfAttempts,
+        ).fill({ result: 0 }),
       ],
     );
     const newCurrentPersons: IPerson[] = result.personIds.map((pid) =>
@@ -214,31 +256,33 @@ const DataEntryScreen = ({
 
   const deleteResult = async (resultId: string) => {
     if (confirm("Are you sure you want to delete this result?")) {
-      const { payload, errors } = await myFetch.delete(`/results/${resultId}`, {
+      const res = await myFetch.delete(`/results/${resultId}`, {
         loadingId: `delete_result_${resultId}_button`,
       });
 
-      if (!errors) changeRound(payload);
+      if (res.success) changeRound(res.data);
     }
   };
 
-  const updateQueuePosition = async (mode: "decrement" | "increment" | "reset") => {
-    const { payload, errors } = await myFetch.patch(
+  const updateQueuePosition = async (
+    mode: "decrement" | "increment" | "reset",
+  ) => {
+    const res = await myFetch.patch(
       `/competitions/queue-${mode}/${contest.competitionId}`,
       {},
       { loadingId: `queue_${mode}_button` },
     );
 
-    if (!errors) setQueuePosition(payload);
+    if (res.success) setQueuePosition(res.data);
   };
 
   const openRound = async () => {
-    const { payload, errors } = await myFetch.post(
+    const res = await myFetch.post(
       `/competitions/${contest.competitionId}/open-round/${round.roundId}`,
       {},
     );
 
-    if (!errors) changeRound(payload);
+    if (res.success) changeRound(res.data);
   };
 
   const submitMockResult = async () => {
@@ -248,31 +292,41 @@ const DataEntryScreen = ({
     const resultPersons: IPerson[] = [];
     for (let i = 0; i < currEvent.participants; i++) {
       while (resultPersons.length === i) {
-        const { payload, errors } = await myFetch.get(`/persons?personId=${firstUnusedPersonId}`, {
-          loadingId: null,
-        });
-        if (errors) firstUnusedPersonId++;
-        else resultPersons.push(payload);
+        const res = await myFetch.get(
+          `/persons?personId=${firstUnusedPersonId}`,
+          {
+            loadingId: null,
+          },
+        );
+        if (!res.success) firstUnusedPersonId++;
+        else resultPersons.push(res.data);
       }
       firstUnusedPersonId++;
     }
     const resultDto = {
       eventId,
       personIds: resultPersons.map((p) => p.personId),
-      attempts: new Array(round.cutoff ? round.cutoff.numberOfAttempts : roundFormat.attempts).fill({ result: -1 }),
+      attempts: new Array(
+        round.cutoff ? round.cutoff.numberOfAttempts : roundFormat.attempts,
+      ).fill({ result: -1 }),
     };
 
-    const { payload: updatedRound, errors } = await myFetch.post(
+    const res = await myFetch.post(
       `/results/${contest.competitionId}/${round.roundId}`,
       resultDto,
       { loadingId: "submit_attempt_button" },
     );
 
-    if (!errors) {
+    if (res.success) {
       addNewPersonsToList(resultPersons);
-      changeRound(updatedRound);
+      changeRound(res.data);
       // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
+      const { best, average } = getBestAndAverage(
+        attempts,
+        currEvent,
+        round.format,
+        { cutoff: round.cutoff },
+      );
       updateRecordPairs({ ...resultDto, best, average } as IResult);
     }
   };
@@ -389,7 +443,9 @@ const DataEntryScreen = ({
         </div>
 
         <div className="col-lg-9">
-          <h3 className="mt-2 mb-4 text-center">{contest.shortName} &ndash; {shortenEventName(currEvent.name)}</h3>
+          <h3 className="mt-2 mb-4 text-center">
+            {contest.shortName} &ndash; {shortenEventName(currEvent.name)}
+          </h3>
 
           {round.open || round.results.length > 0
             ? (
@@ -409,7 +465,9 @@ const DataEntryScreen = ({
                 {isOpenableRound
                   ? (
                     <>
-                      <Button onClick={openRound} className="d-block mx-auto">Open Round</Button>
+                      <Button onClick={openRound} className="d-block mx-auto">
+                        Open Round
+                      </Button>
                       <p className="mt-4 text-center text-danger fst-italic">
                         Do NOT begin this round before opening it using the button, which checks that the round may be
                         opened. Also, please mind that manually adding/removing competitors to/from a subsequent round
@@ -417,7 +475,11 @@ const DataEntryScreen = ({
                       </p>
                     </>
                   )
-                  : <p className="text-center fst-italic">This round cannot be opened yet</p>}
+                  : (
+                    <p className="text-center fst-italic">
+                      This round cannot be opened yet
+                    </p>
+                  )}
               </div>
             )}
         </div>

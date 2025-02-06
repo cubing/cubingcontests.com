@@ -1,11 +1,11 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { IContest, type IProceed } from "@cc/shared";
-import { RoundProceed, RoundType } from "@cc/shared";
-import { roundFormats } from "@cc/shared";
+import { IContest, IContestData, type IProceed } from "~/helpers/types.ts";
+import { RoundProceed, RoundType } from "~/helpers/enums.ts";
+import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { getFormattedTime } from "@cc/shared";
+import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -13,9 +13,13 @@ type Props = {
 
 const ContestEventsPage = async ({ params }: Props) => {
   const { id } = await params;
-  const { payload: contestData } = await ssrFetch(`/competitions/${id}`);
-  if (!contestData) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
-  const { contest }: { contest: IContest } = contestData;
+  const contestDataResponse = await ssrFetch<IContestData>(
+    `/competitions/${id}`,
+  );
+  if (!contestDataResponse.success) {
+    return <h3 className="mt-4 text-center">Error while loading contest</h3>;
+  }
+  const { contest } = contestDataResponse.data;
 
   const hasNonFinalRound = contest.events.some((ev) => ev.rounds.some((r) => r.proceed));
 
@@ -39,11 +43,18 @@ const ContestEventsPage = async ({ params }: Props) => {
                 const cutoffText = round.cutoff
                   ? `${round.cutoff.numberOfAttempts} ${
                     round.cutoff.numberOfAttempts === 1 ? "attempt" : "attempts"
-                  } to get < ${getFormattedTime(round.cutoff.attemptResult, { event: compEvent.event })}`
+                  } to get < ${
+                    getFormattedTime(round.cutoff.attemptResult, {
+                      event: compEvent.event,
+                    })
+                  }`
                   : "";
 
                 return (
-                  <tr key={round.roundId} className={roundIndex !== 0 ? "table-active" : ""}>
+                  <tr
+                    key={round.roundId}
+                    className={roundIndex !== 0 ? "table-active" : ""}
+                  >
                     <td>
                       {roundIndex === 0 && (
                         <EventTitle
@@ -57,10 +68,15 @@ const ContestEventsPage = async ({ params }: Props) => {
                       )}
                     </td>
                     <td>{roundTypes[round.roundTypeId].label}</td>
-                    <td>{roundFormats.find((rf) => rf.value === round.format)?.label}</td>
+                    <td>
+                      {roundFormats.find((rf) => rf.value === round.format)
+                        ?.label}
+                    </td>
                     <td>
                       {round.timeLimit
-                        ? getFormattedTime(round.timeLimit.centiseconds, { event: compEvent.event }) +
+                        ? getFormattedTime(round.timeLimit.centiseconds, {
+                          event: compEvent.event,
+                        }) +
                           (round.timeLimit.cumulativeRoundIds.length > 0 ? " cumulative" : "")
                         : ""}
                     </td>
@@ -69,7 +85,10 @@ const ContestEventsPage = async ({ params }: Props) => {
                       <td>
                         {round.roundTypeId !== RoundType.Final &&
                           `Top ${(round.proceed as IProceed).value}${
-                            (round.proceed as IProceed).type === RoundProceed.Percentage ? "%" : ""
+                            (round.proceed as IProceed).type ===
+                                RoundProceed.Percentage
+                              ? "%"
+                              : ""
                           } advance to next round`}
                       </td>
                     )}

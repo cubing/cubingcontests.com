@@ -1,5 +1,5 @@
 import { RoundDocument } from "~/src/models/round.model";
-import { RoundFormat, RoundType, WcaRecordType } from "~/shared/enums";
+import { RoundFormat, RoundType, WcaRecordType } from "~/helpers/enums";
 
 export const sameDayBLDRoundsStub = (): RoundDocument[] => {
   return [

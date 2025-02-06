@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Country from "./Country.tsx";
-import { IContest } from "@cc/shared";
+import { IContest } from "~/helpers/types.ts";
 
 const ContestName = ({ contest }: { contest: IContest }) => {
   return (

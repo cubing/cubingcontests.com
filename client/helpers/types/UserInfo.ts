@@ -1,4 +1,4 @@
-import { Role } from "@cc/shared";
+import { Role } from "~/helpers/enums.ts";
 
 export type UserInfo = undefined | {
   id: string;

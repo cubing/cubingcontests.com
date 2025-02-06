@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { Role } from "@cc/shared";
+import { Role } from "~/helpers/enums.ts";
 
 type Props = {
   role: Role;
@@ -17,10 +17,13 @@ const AuthorizedLayout = ({ role, children }: Props) => {
 
   useEffect(() => {
     myFetch
-      .get(`/auth/validate/${role}`, { authorize: true, redirect: window.location.pathname })
-      .then(({ payload }) => {
-        if (payload) {
-          localStorage.setItem("jwtToken", `Bearer ${payload.accessToken}`);
+      .get(`/auth/validate/${role}`, {
+        authorize: true,
+        redirect: window.location.pathname,
+      })
+      .then((res) => {
+        if (res.success) {
+          localStorage.setItem("jwtToken", `Bearer ${res.data.accessToken}`);
           setAuthorized(true);
         }
       });

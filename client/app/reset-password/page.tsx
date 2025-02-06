@@ -22,13 +22,13 @@ const RequestPasswordResetPage = () => {
       changeErrorMessages(["Please enter an email address"]);
       document.getElementById("email")?.focus();
     } else {
-      const { errors } = await myFetch.post(
+      const res = await myFetch.post(
         "/auth/request-password-reset",
         { email },
         { authorize: false, loadingId: "form_submit_button" },
       );
 
-      if (!errors) {
+      if (res.success) {
         changeSuccessMessage(
           "A password reset link will be sent to your email if the entered email address is correct",
         );

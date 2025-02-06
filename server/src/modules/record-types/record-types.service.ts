@@ -7,7 +7,7 @@ import { RecordTypeDocument } from "~/src/models/record-type.model";
 import { ResultDocument } from "~/src/models/result.model";
 import { EventDocument } from "~/src/models/event.model";
 import { MyLogger } from "@m/my-logger/my-logger.service";
-import { WcaRecordType } from "~/shared/enums";
+import { WcaRecordType } from "~/helpers/enums";
 import { UpdateRecordTypeDto } from "./dto/update-record-type.dto";
 import { recordTypesSeed } from "~/src/seeds/record-types.seed";
 import { getBaseAvgsFilter, getBaseSinglesFilter } from "~/src/helpers/utilityFunctions";
@@ -16,14 +16,17 @@ import { getBaseAvgsFilter, getBaseSinglesFilter } from "~/src/helpers/utilityFu
 export class RecordTypesService {
   constructor(
     private readonly logger: MyLogger,
-    @InjectModel("RecordType") private readonly recordTypeModel: Model<RecordTypeDocument>,
+    @InjectModel("RecordType") private readonly recordTypeModel: Model<
+      RecordTypeDocument
+    >,
     @InjectModel("Result") private readonly resultModel: Model<ResultDocument>,
     @InjectModel("Event") private readonly eventModel: Model<EventDocument>,
   ) {}
 
   // Executed before the app is bootstrapped
   async onModuleInit() {
-    const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find().exec();
+    const recordTypes: RecordTypeDocument[] = await this.recordTypeModel.find()
+      .exec();
 
     if (recordTypes.length === 0) {
       this.logger.log("Seeding the record types collection...");
@@ -37,7 +40,8 @@ export class RecordTypesService {
   }
 
   async getRecordTypes(query?: any): Promise<RecordTypeDocument[]> {
-    return await this.recordTypeModel.find(query, excl).sort({ order: 1 }).exec();
+    return await this.recordTypeModel.find(query, excl).sort({ order: 1 })
+      .exec();
   }
 
   async updateRecordTypes(updateRTsDtoArr: UpdateRecordTypeDto[]) {
@@ -49,14 +53,26 @@ export class RecordTypesService {
       events = await this.eventModel.find().exec();
 
       for (const newRecordType of updateRTsDtoArr) {
-        await this.recordTypeModel.updateOne({ wcaEquivalent: newRecordType.wcaEquivalent }, newRecordType).exec();
+        await this.recordTypeModel.updateOne({
+          wcaEquivalent: newRecordType.wcaEquivalent,
+        }, newRecordType).exec();
       }
     } catch (err) {
-      throw new InternalServerErrorException(`Error while creating record types: ${err.message}`);
+      throw new InternalServerErrorException(
+        `Error while creating record types: ${err.message}`,
+      );
     }
 
-    if (!recordTypes) throw new InternalServerErrorException("Unable to find existing record types");
-    if (!events) throw new InternalServerErrorException("Unable to find events while updating record types");
+    if (!recordTypes) {
+      throw new InternalServerErrorException(
+        "Unable to find existing record types",
+      );
+    }
+    if (!events) {
+      throw new InternalServerErrorException(
+        "Unable to find events while updating record types",
+      );
+    }
 
     // Set the records
     for (let i = 0; i < updateRTsDtoArr.length; i++) {
@@ -70,12 +86,16 @@ export class RecordTypesService {
 
           // Remove single records
           await this.resultModel
-            .updateMany({ regionalSingleRecord: wcaEquiv }, { $unset: { regionalSingleRecord: "" } })
+            .updateMany({ regionalSingleRecord: wcaEquiv }, {
+              $unset: { regionalSingleRecord: "" },
+            })
             .exec();
 
           // Remove average records
           await this.resultModel
-            .updateMany({ regionalAverageRecord: wcaEquiv }, { $unset: { regionalAverageRecord: "" } })
+            .updateMany({ regionalAverageRecord: wcaEquiv }, {
+              $unset: { regionalAverageRecord: "" },
+            })
             .exec();
         } else if (updateRTsDtoArr[i].active && !recordTypes[i].active) {
           try {
@@ -84,7 +104,9 @@ export class RecordTypesService {
               await this.setEventAvgRecords(event, wcaEquiv);
             }
           } catch (err) {
-            throw new InternalServerErrorException(`Error while setting initial ${wcaEquiv} records: ${err.message}`);
+            throw new InternalServerErrorException(
+              `Error while setting initial ${wcaEquiv} records: ${err.message}`,
+            );
           }
         }
       }
@@ -112,20 +134,28 @@ export class RecordTypesService {
         currentSingleRecord = result.best;
 
         const date = formatInTimeZone(result._id, "UTC", "d MMM yyyy"); // _id is the date from the group stage
-        this.logger.log(`New single ${wcaEquiv} for ${event.eventId}: ${result.best} (${date})`);
+        this.logger.log(
+          `New single ${wcaEquiv} for ${event.eventId}: ${result.best} (${date})`,
+        );
 
         const sameDayTiedRecordsFilter: any = queryFilter;
         sameDayTiedRecordsFilter.date = result._id;
         sameDayTiedRecordsFilter.best = result.best;
 
         await this.resultModel
-          .updateMany(sameDayTiedRecordsFilter, { $set: { regionalSingleRecord: wcaEquiv } })
+          .updateMany(sameDayTiedRecordsFilter, {
+            $set: { regionalSingleRecord: wcaEquiv },
+          })
           .exec();
       }
     }
   }
 
-  async setEventAvgRecords(event: EventDocument, wcaEquiv: WcaRecordType, queryFilter: any = getBaseAvgsFilter(event)) {
+  async setEventAvgRecords(
+    event: EventDocument,
+    wcaEquiv: WcaRecordType,
+    queryFilter: any = getBaseAvgsFilter(event),
+  ) {
     const bestAvgResultsByDay = await this.resultModel
       .aggregate([
         { $match: queryFilter },
@@ -142,14 +172,18 @@ export class RecordTypesService {
         currentAvgRecord = result.average;
 
         const date = formatInTimeZone(result._id, "UTC", "d MMM yyyy"); // _id is the date from the group stage
-        this.logger.log(`New average ${wcaEquiv} for ${event.eventId}: ${result.average} (${date})`);
+        this.logger.log(
+          `New average ${wcaEquiv} for ${event.eventId}: ${result.average} (${date})`,
+        );
 
         const sameDayTiedRecordsFilter: any = queryFilter;
         sameDayTiedRecordsFilter.date = result._id;
         sameDayTiedRecordsFilter.average = result.average;
 
         await this.resultModel
-          .updateMany(sameDayTiedRecordsFilter, { $set: { regionalAverageRecord: wcaEquiv } })
+          .updateMany(sameDayTiedRecordsFilter, {
+            $set: { regionalAverageRecord: wcaEquiv },
+          })
           .exec();
       }
     }

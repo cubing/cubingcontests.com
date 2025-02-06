@@ -19,7 +19,7 @@ import { LocalAuthGuard } from "~/src/guards/local-auth.guard";
 import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
-import { Role } from "~/shared/enums";
+import { Role } from "~/helpers/enums";
 import { LogType } from "~/src/helpers/enums";
 import { ResetUserPasswordDto } from "~/src/modules/users/dto/reset-user-password.dto";
 
@@ -41,7 +41,12 @@ export class AuthController {
 
   // POST /auth/confirm-email
   @Post("confirm-email")
-  async confirmEmail(@Body(new ValidationPipe()) { username, code }: { username: string; code: string }) {
+  async confirmEmail(
+    @Body(new ValidationPipe()) { username, code }: {
+      username: string;
+      code: string;
+    },
+  ) {
     this.logger.logAndSave("Confirming user email", LogType.ConfirmEmail);
 
     return await this.usersService.verifyEmail(username, code);
@@ -49,7 +54,9 @@ export class AuthController {
 
   // POST /auth/resend-confirmation-code
   @Post("resend-confirmation-code")
-  async resendConfirmationCode(@Body(new ValidationPipe()) { username }: { username: string }) {
+  async resendConfirmationCode(
+    @Body(new ValidationPipe()) { username }: { username: string },
+  ) {
     this.logger.log(`Resending confirmation code for user ${username}`);
 
     return await this.usersService.resendConfirmationCode(username);
@@ -57,16 +64,26 @@ export class AuthController {
 
   // POST /users/request-password-reset
   @Post("request-password-reset")
-  async requestPasswordReset(@Body(new ValidationPipe()) { email }: { email: string }) {
-    this.logger.logAndSave(`Requesting password reset for user with email ${email}`, LogType.RequestPasswordReset);
+  async requestPasswordReset(
+    @Body(new ValidationPipe()) { email }: { email: string },
+  ) {
+    this.logger.logAndSave(
+      `Requesting password reset for user with email ${email}`,
+      LogType.RequestPasswordReset,
+    );
 
     return await this.usersService.requestPasswordReset(email);
   }
 
   // POST /users/reset-password
   @Post("reset-password")
-  async resetPassword(@Body(new ValidationPipe()) { email, code, newPassword }: ResetUserPasswordDto) {
-    this.logger.logAndSave(`Resetting password for user with email ${email}`, LogType.ResetPassword);
+  async resetPassword(
+    @Body(new ValidationPipe()) { email, code, newPassword }: ResetUserPasswordDto,
+  ) {
+    this.logger.logAndSave(
+      `Resetting password for user with email ${email}`,
+      LogType.ResetPassword,
+    );
 
     return await this.usersService.resetPassword(email, code, newPassword);
   }
@@ -85,7 +102,9 @@ export class AuthController {
   @Roles(Role.Admin, Role.Moderator, Role.User)
   async validate(@Param("role") role: Role, @Request() req: any) {
     // Return refreshed JWT
-    if (req.user.roles.includes(role)) return await this.authService.revalidate(req.user);
+    if (req.user.roles.includes(role)) {
+      return await this.authService.revalidate(req.user);
+    }
 
     throw new UnauthorizedException();
   }

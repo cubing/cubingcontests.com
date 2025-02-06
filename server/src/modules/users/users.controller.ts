@@ -5,12 +5,15 @@ import { AuthenticatedGuard } from "~/src/guards/authenticated.guard";
 import { RolesGuard } from "~/src/guards/roles.guard";
 import { Roles } from "~/src/helpers/roles.decorator";
 import { LogType } from "~/src/helpers/enums";
-import { Role } from "~/shared/enums";
+import { Role } from "~/helpers/enums";
 import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("users")
 export class UsersController {
-  constructor(private readonly logger: MyLogger, private readonly usersService: UsersService) {}
+  constructor(
+    private readonly logger: MyLogger,
+    private readonly usersService: UsersService,
+  ) {}
 
   // GET /users
   @Get()
@@ -25,7 +28,10 @@ export class UsersController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.Admin)
   async updateUser(@Body(new ValidationPipe()) user: UpdateUserDto) {
-    this.logger.logAndSave(`Updating user with username: ${user.username}`, LogType.UpdateUser);
+    this.logger.logAndSave(
+      `Updating user with username: ${user.username}`,
+      LogType.UpdateUser,
+    );
 
     return await this.usersService.updateUser(user);
   }
@@ -43,7 +49,10 @@ export class UsersController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Roles(Role.User)
   async deleteUser(@Request() req: any) {
-    this.logger.logAndSave(`Deleting user with username: ${req.user.username}`, LogType.DeleteUser);
+    this.logger.logAndSave(
+      `Deleting user with username: ${req.user.username}`,
+      LogType.DeleteUser,
+    );
 
     return await this.usersService.deleteUser(req.user._id);
   }

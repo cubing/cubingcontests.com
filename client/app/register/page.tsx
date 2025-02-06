@@ -28,13 +28,13 @@ const RegisterPage = () => {
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
     } else {
-      const { errors } = await myFetch.post(
+      const res = await myFetch.post(
         "/auth/register",
         { username, email, password },
         { authorize: false, loadingId: "form_submit_button" },
       );
 
-      if (!errors) window.location.href = `/register/confirm-email?username=${username}`;
+      if (res.success) window.location.href = `/register/confirm-email?username=${username}`;
     }
   };
 

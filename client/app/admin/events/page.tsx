@@ -4,9 +4,9 @@ import { useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { FeEvent, ListPageMode, type NumberInputValue } from "@cc/shared";
-import { EventFormat, EventGroup, RoundFormat } from "@cc/shared";
-import { roundFormats } from "@cc/shared";
+import { FeEvent, ListPageMode, type NumberInputValue } from "~/helpers/types.ts";
+import { EventFormat, EventGroup, RoundFormat } from "~/helpers/enums.ts";
+import { roundFormats } from "~/helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -35,7 +35,9 @@ const CreateEditEventPage = () => {
   const [newEventId, setNewEventId] = useState("");
   const [rank, setRank] = useState<number | null | undefined>();
   const [format, setFormat] = useState(EventFormat.Time);
-  const [defaultRoundFormat, setDefaultRoundFormat] = useState(RoundFormat.Average);
+  const [defaultRoundFormat, setDefaultRoundFormat] = useState(
+    RoundFormat.Average,
+  );
   const [participants, setParticipants] = useState<NumberInputValue>(1);
   const [category, setCategory] = useState(EventGroup.Miscellaneous);
   const [submissionsAllowed, setSubmissionsAllowed] = useState(false);
@@ -46,9 +48,11 @@ const CreateEditEventPage = () => {
   const [rule, setRule] = useState("");
 
   useEffect(() => {
-    myFetch.get("/events/mod?withRules=true", { authorize: true }).then(({ payload, errors }) => {
-      if (!errors) setEvents(payload);
-    });
+    myFetch.get("/events/mod?withRules=true", { authorize: true }).then(
+      (res) => {
+        if (res.success) setEvents(res.data);
+      },
+    );
   }, []);
 
   useEffect(() => {
@@ -77,12 +81,16 @@ const CreateEditEventPage = () => {
     if (hasMemo) newEvent.groups.push(EventGroup.HasMemo);
     if (hidden) newEvent.groups.push(EventGroup.Hidden);
 
-    const { payload, errors } = mode === "add"
-      ? await myFetch.post("/events", newEvent, { loadingId: "form_submit_button" })
-      : await myFetch.patch(`/events/${eventId}`, newEvent, { loadingId: "form_submit_button" });
+    const res = mode === "add"
+      ? await myFetch.post("/events", newEvent, {
+        loadingId: "form_submit_button",
+      })
+      : await myFetch.patch(`/events/${eventId}`, newEvent, {
+        loadingId: "form_submit_button",
+      });
 
-    if (!errors) {
-      setEvents(payload);
+    if (res.success) {
+      setEvents(res.data);
       setMode("view");
     }
   };
@@ -100,7 +108,9 @@ const CreateEditEventPage = () => {
     setFormat(event.format);
     setDefaultRoundFormat(event.defaultRoundFormat);
     setParticipants(event.participants);
-    setCategory(event.groups.find((g: EventGroup) => eventCategories.some((ec) => ec.group === g)) as EventGroup);
+    setCategory(
+      event.groups.find((g: EventGroup) => eventCategories.some((ec) => ec.group === g)) as EventGroup,
+    );
     setSubmissionsAllowed(event.groups.includes(EventGroup.SubmissionsAllowed));
     setRemovedWCA(event.groups.includes(EventGroup.RemovedWCA));
     setHasMemo(event.groups.includes(EventGroup.HasMemo));
@@ -115,7 +125,14 @@ const CreateEditEventPage = () => {
       <ToastMessages />
 
       {mode === "view"
-        ? <Button onClick={() => setMode("add")} className="btn-success btn-sm ms-3">Add event</Button>
+        ? (
+          <Button
+            onClick={() => setMode("add")}
+            className="btn-success btn-sm ms-3"
+          >
+            Add event
+          </Button>
+        )
         : (
           <Form
             buttonText="Submit"
@@ -141,7 +158,8 @@ const CreateEditEventPage = () => {
                   value={newEventId}
                   setValue={setNewEventId}
                   nextFocusTargetId="rank"
-                  disabled={(mode === "edit" && !eventIdUnlocked) || loadingId !== ""}
+                  disabled={(mode === "edit" && !eventIdUnlocked) ||
+                    loadingId !== ""}
                 />
               </div>
               <div className="col">
@@ -159,7 +177,11 @@ const CreateEditEventPage = () => {
               </div>
             </div>
             {mode === "edit" && (
-              <FormCheckbox title="Unlock event ID" selected={eventIdUnlocked} setSelected={setEventIdUnlocked} />
+              <FormCheckbox
+                title="Unlock event ID"
+                selected={eventIdUnlocked}
+                setSelected={setEventIdUnlocked}
+              />
             )}
             <div className="row mb-3">
               <div className="col">
@@ -218,7 +240,12 @@ const CreateEditEventPage = () => {
               setSelected={setHasMemo}
               disabled={loadingId !== ""}
             />
-            <FormCheckbox title="Hidden" selected={hidden} setSelected={setHidden} disabled={loadingId !== ""} />
+            <FormCheckbox
+              title="Hidden"
+              selected={hidden}
+              setSelected={setHidden}
+              disabled={loadingId !== ""}
+            />
             <FormTextArea
               title="Description (optional)"
               value={description}
@@ -255,7 +282,13 @@ const CreateEditEventPage = () => {
               <tr key={event.eventId}>
                 <td>{index + 1}</td>
                 <td>
-                  <EventTitle fontSize="6" event={event} showIcon linkToRankings noMargin />
+                  <EventTitle
+                    fontSize="6"
+                    event={event}
+                    showIcon
+                    linkToRankings
+                    noMargin
+                  />
                 </td>
                 <td>{event.eventId}</td>
                 <td
@@ -265,11 +298,20 @@ const CreateEditEventPage = () => {
                 >
                   {event.rank}
                 </td>
-                <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}</td>
-                <td>{eventCategories.find((ec) => event.groups.includes(ec.group))?.title}</td>
+                <td>
+                  {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}
+                </td>
+                <td>
+                  {eventCategories.find((ec) => event.groups.includes(ec.group))
+                    ?.title}
+                </td>
                 {/* <td>{event.groups}</td> */}
                 <td>
-                  <Button onClick={() => onEditEvent(event)} className="btn-xs" ariaLabel="Edit">
+                  <Button
+                    onClick={() => onEditEvent(event)}
+                    className="btn-xs"
+                    ariaLabel="Edit"
+                  >
                     <FontAwesomeIcon icon={faPencil} />
                   </Button>
                 </td>

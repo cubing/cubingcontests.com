@@ -1,6 +1,6 @@
-import { Event, IRecordType, IResult, type IVideoBasedResult } from "@cc/shared";
+import { Event, IRecordType, IResult, type IVideoBasedResult } from "~/helpers/types.ts";
 import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
-import { getFormattedTime } from "@cc/shared";
+import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 
 type Props = {
   result: IResult | IVideoBasedResult;
@@ -11,15 +11,23 @@ type Props = {
 
 const Time = ({ result, event, recordTypes, average }: Props) => {
   const recordType = recordTypes.find(
-    (rt) => (average ? result.regionalAverageRecord : result.regionalSingleRecord) === rt.wcaEquivalent,
+    (rt) =>
+      (average ? result.regionalAverageRecord : result.regionalSingleRecord) ===
+        rt.wcaEquivalent,
   ) as IRecordType;
 
   return (
     <div className="d-inline-flex align-items-center gap-2">
-      {getFormattedTime(average ? result.average : result.best, { event, showMultiPoints: true })}
+      {getFormattedTime(average ? result.average : result.best, {
+        event,
+        showMultiPoints: true,
+      })}
 
       {recordType && (
-        <span className={`badge bg-${getBSClassFromColor(recordType.color)}`} style={{ fontSize: "0.7rem" }}>
+        <span
+          className={`badge bg-${getBSClassFromColor(recordType.color)}`}
+          style={{ fontSize: "0.7rem" }}
+        >
           {recordType.label}
         </span>
       )}

@@ -1,6 +1,6 @@
 import { IsBoolean, IsEnum, IsInt, IsString, Matches, Min } from "class-validator";
-import { IRecordType } from "~/shared/types";
-import { Color, WcaRecordType } from "~/shared/enums";
+import { IRecordType } from "~/helpers/types";
+import { Color, WcaRecordType } from "~/helpers/enums";
 
 export class UpdateRecordTypeDto implements IRecordType {
   @IsString()

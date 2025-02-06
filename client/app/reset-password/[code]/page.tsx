@@ -26,13 +26,13 @@ const ResetPasswordPage = () => {
     if (tempErrors.length > 0) {
       changeErrorMessages(tempErrors);
     } else {
-      const { errors } = await myFetch.post(
+      const res = await myFetch.post(
         "/auth/reset-password",
         { email, code, newPassword: password },
         { authorize: false, loadingId: "form_submit_button" },
       );
 
-      if (!errors) {
+      if (res.success) {
         changeSuccessMessage("Your password has been successfully reset");
 
         setTimeout(() => {
