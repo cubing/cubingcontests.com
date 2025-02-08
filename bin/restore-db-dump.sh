@@ -16,62 +16,62 @@ elif [ ! -d "$1" ]; then
   exit 2
 fi
 
-OVERWRITE=false
+overwrite=false
 if [ "$2" == "--overwrite" ]; then
-  OVERWRITE=true
+  overwrite=true
 fi
 
 if [ -n "$3" ]; then
-  DB_CONTAINER=$3
+  db_container=$3
 elif [ -n "$2" ] && [ "$2" != "--overwrite" ]; then
-  DB_CONTAINER=$2
+  db_container=$2
 else
-  DB_CONTAINER=cc-mongo-dev
+  db_container=cc-mongo-dev
 fi
 
 # Check that the container with the DB is running
-if [ -z "$(docker ps | grep "$DB_CONTAINER$")" ]; then
-  echo "Error: Container $DB_CONTAINER not found"
+if [ -z "$(docker ps | grep "$db_container$")" ]; then
+  echo "Error: Container $db_container not found"
   exit 3
 fi
 
 # Directory that contains the DB dumps
-DUMP_PATH=$(echo "$1" | sed -E 's/\/$//')
+dump_path=$(echo "$1" | sed -E 's/\/$//')
 # Gets the newest dump
-FILENAME=$(ls "$DUMP_PATH" | sort | tail -n 1)
+filename=$(ls "$dump_path" | sort | tail -n 1)
 
-if [ $OVERWRITE != true ]; then
-  echo -e "\nRestoring from $DUMP_PATH/$FILENAME. Continue? (y/N)"
+if [ $overwrite != true ]; then
+  echo -e "\nRestoring from $dump_path/$filename. Continue? (y/N)"
 else
-  echo -e "\nWARNING! Restoring from $DUMP_PATH/$FILENAME WITH OVERWRITE! Continue? (y/N)"
+  echo -e "\nWARNING! Restoring from $dump_path/$filename WITH OVERWRITE! Continue? (y/N)"
 fi
 
-read ANSWER
+read answer
 
-if [ "$ANSWER" == "y" ] || [ "$ANSWER" == "Y" ]; then
+if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
   source .env
   collections=( "competitions" "people" "rounds" "results" "recordtypes" "events" "schedules" "eventrules" "collectivesolutions" )
 
   # Copy dump to Docker container and extract it
-  docker cp "$DUMP_PATH/$FILENAME" $DB_CONTAINER:/$FILENAME
-  docker exec $DB_CONTAINER sh -c "tar -xvzf /$FILENAME"
+  docker cp "$dump_path/$filename" $db_container:/$filename
+  docker exec $db_container sh -c "tar -xvzf /$filename"
   # Delete the archive with the dump
-  docker exec $DB_CONTAINER sh -c "rm -f /$FILENAME"
+  docker exec $db_container sh -c "rm -f /$filename"
 
   for col in "${collections[@]}"; do
-    if [ $OVERWRITE == true ]; then
+    if [ $overwrite == true ]; then
       # Drop collection (if it returns true, that means it successfully dropped the collection)
-      docker exec $DB_CONTAINER mongosh --eval "db.$col.drop()" \
-        "mongodb://$MONGO_DEV_USERNAME:$MONGO_DEV_PASSWORD@localhost:27017/cubingcontests"
+      docker exec $db_container mongosh --eval "db.$col.drop()" \
+        "mongodb://$DB_USERNAME:$DB_PASSWORD@localhost:27017/$DB_NAME"
     fi
 
     # Restore collection
-    docker exec $DB_CONTAINER mongorestore -u $MONGO_DEV_USERNAME -p $MONGO_DEV_PASSWORD \
-      --db cubingcontests -c $col /dump/cubingcontests/$col.bson
+    docker exec "$db_container" mongorestore -u $DB_USERNAME -p $DB_PASSWORD \
+      --db "$DB_NAME" -c "$col" "/dump/$DB_NAME/$col.bson"
   done
 
   # Delete dump directory
-  docker exec $DB_CONTAINER sh -c "rm -rf /dump"
+  docker exec "$db_container" sh -c "rm -rf /dump"
 
   echo -e "\nDone!"
 else
