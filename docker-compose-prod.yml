@@ -7,20 +7,39 @@ services:
     ports:
       - 127.0.0.1:27017:27017
     volumes:
-      - cubingcontests-db:/data/db:rw
-      - cubingcontests-configdb:/data/configdb:rw
-      # The scripts in docker-entrypoint-initdb.d are run when the container and volume are first created
-      - mongo-init:/docker-entrypoint-initdb.d:ro
+      - mongo:/data/db:rw
+      - mongo-configdb:/data/configdb:rw
+      - ${PWD}/db_utils/mongo_init:/docker-entrypoint-initdb.d:ro
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=$MONGO_ADMIN_USERNAME
-      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_ADMIN_PASSWORD
-      - MONGO_DEV_USERNAME=$MONGO_DEV_USERNAME
-      - MONGO_DEV_PASSWORD=$MONGO_DEV_PASSWORD
+      - MONGO_INITDB_ROOT_USERNAME=$DB_ADMIN_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$DB_ADMIN_PASSWORD
+      - DB_USERNAME=$DB_USERNAME
+      - DB_PASSWORD=$DB_PASSWORD
+      - DB_NAME=$DB_NAME
     restart: always
 
+  postgres:
+    container_name: cc-postgres
+    image: postgres:17-alpine
+    networks:
+      - cubingcontests
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - pg:/var/lib/postgresql/data:rw
+      - ${PWD}/db_utils/pg_init:/docker-entrypoint-initdb.d:ro
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=$DB_ADMIN_USERNAME
+      - POSTGRES_PASSWORD=$DB_ADMIN_PASSWORD
+      - DB_USERNAME=$DB_USERNAME
+      - DB_PASSWORD=$DB_PASSWORD
+      - DB_NAME=$DB_NAME
+    restart: unless-stopped
+
   server:
-    container_name: cc-server # if this is ever changed, make sure to update all references to the old container name in the code
-    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server:${VERSION}'
+    container_name: cc-server # if this is ever changed, make sure to update all references to the old container name
+    image: '${DOCKER_IMAGE_PREFIX}server:${VERSION}'
     networks:
       - cubingcontests
     ports:
@@ -33,8 +52,8 @@ services:
     restart: always
 
   client:
-    container_name: cc-client
-    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-client:${VERSION}'
+    container_name: cc-client # if this is ever changed, make sure to update all references to the old container name
+    image: '${DOCKER_IMAGE_PREFIX}client:${VERSION}'
     networks:
       - cubingcontests
     ports:
@@ -42,19 +61,16 @@ services:
     env_file: .env
     depends_on:
       - mongo
+      - postgres
       - server
     restart: always
 
 networks:
   cubingcontests:
 volumes:
-  cubingcontests-db:
+  mongo:
     driver: local
-  cubingcontests-configdb:
+  mongo-configdb:
     driver: local
-  mongo-init:
+  pg:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./mongo_init
