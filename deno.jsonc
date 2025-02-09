@@ -1,4 +1,7 @@
 {
+  "imports": {
+    "concurrently": "npm:concurrently@^9.1.2"
+  },
   "fmt": {
     "include": ["**/*.ts", "**/*.tsx"],
     "exclude": ["**/*.d.ts"],

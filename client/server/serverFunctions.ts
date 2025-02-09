@@ -3,6 +3,7 @@ import { z } from "zod";
 import { find as findTimezone } from "geo-tz";
 import { FetchObj } from "~/helpers/types";
 import { NumberInputValue } from "~/helpers/types.ts";
+import db from "~/server/db/index.ts";
 
 export const getTimeZoneFromCoords = async (
   latitude: NumberInputValue,
@@ -19,6 +20,8 @@ export const getTimeZoneFromCoords = async (
       errors: parsed.error.errors.map((e) => e.message),
     };
   }
+
+  console.log("TEST", await db.execute("select * from users"));
 
   return {
     success: true,

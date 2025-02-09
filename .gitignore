@@ -20,10 +20,12 @@ server/helpers
 npm-debug.log*
 *.log
 
-# local env files
-*.env*
-!*.env.example
-!client/.env.production
+# env files
+.env*
+!.env.example
+!client/.env*
+client/.env
+client/.env*.local
 
 # typescript
 *.tsbuildinfo

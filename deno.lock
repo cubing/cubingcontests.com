@@ -1,7 +1,8 @@
 {
   "version": "4",
   "specifiers": {
-    "npm:concurrently@*": "9.1.2"
+    "npm:concurrently@*": "9.1.2",
+    "npm:concurrently@^9.1.2": "9.1.2"
   },
   "npm": {
     "ansi-regex@5.0.1": {
@@ -137,5 +138,10 @@
         "yargs-parser"
       ]
     }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:concurrently@^9.1.2"
+    ]
   }
 }

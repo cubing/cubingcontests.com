@@ -1,20 +1,19 @@
 #!/bin/bash
 
 # First make sure there are no lint errors and that the frontend builds successfully
-deno lint
+cd client ; deno task lint
 if [ $? -gt 0 ]; then
   echo -e "\n\nPlease fix all linting errors before publishing a new version"
   exit
 fi
-cd client ; deno task build
+
+deno task build
 if [ $? -gt 0 ]; then
   echo -e "\n\nPlease make sure the frontend builds successfully before publishing a new version"
   exit
 fi
-cd ..
 
 # Check that the tests run successfully
-cd client
 deno test &&
 cd ../server
 npm run test &&
@@ -39,12 +38,12 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
   source .env
-  docker build --build-arg NEXT_PUBLIC_API_BASE_URL="$NEXT_PUBLIC_API_BASE_URL" -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
+  docker build --build-arg NEXT_PUBLIC_API_BASE_URL="$PROD_API_BASE_URL" -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$new_version denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$new_version &&
   docker push denimint/cubingcontests-client:latest &&
   # Legacy server container
-  ./bin/copy-shared-to-server.sh
+  ./bin/copy-helpers-to-server.sh
   docker build -t denimint/cubingcontests-server:$new_version --file server.Dockerfile . &&
   docker tag denimint/cubingcontests-server:$new_version denimint/cubingcontests-server:latest &&
   docker push denimint/cubingcontests-server:$new_version &&

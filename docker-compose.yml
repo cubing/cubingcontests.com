@@ -5,7 +5,7 @@ services:
     networks:
       - cubingcontests-dev
     ports:
-      - 127.0.0.1:27017:27017
+      - 127.0.0.1:27017:27017 # if this is ever changed, make sure to update all references to the old port
     volumes:
       - mongo:/data/db:rw
       - mongo-configdb:/data/configdb:rw
@@ -38,12 +38,12 @@ services:
     restart: unless-stopped
 
   postgres:
-    container_name: cc-postgres-dev
+    container_name: cc-postgres-dev # if this is ever changed, make sure to update all references to the old container name
     image: postgres:17-alpine
     networks:
       - cubingcontests-dev
     ports:
-      - 127.0.0.1:5432:5432
+      - 127.0.0.1:5432:5432 # if this is ever changed, make sure to update all references to the old port
     volumes:
       - pg:/var/lib/postgresql/data:rw
       - ${PWD}/db_utils/pg_init:/docker-entrypoint-initdb.d:ro
@@ -56,24 +56,6 @@ services:
       - DB_NAME=$DB_NAME # used in the pg_init/create_users.sh script
     restart: unless-stopped
 
-  pgadmin:
-    container_name: cc-pgadmin
-    image: dpage/pgadmin4
-    networks:
-      - cubingcontests-dev
-    ports:
-      - 127.0.0.1:8080:80
-    volumes:
-      - pgadmin:/var/lib/pgadmin
-      - ${PWD}/db_utils/servers.json:/pgadmin4/servers.json:ro
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@fake.com
-      - PGADMIN_DEFAULT_PASSWORD=cc
-      - PGADMIN_DISABLE_POSTFIX=true
-    depends_on:
-      - postgres
-    restart: unless-stopped
-
 
 networks:
   cubingcontests-dev:
@@ -83,6 +65,4 @@ volumes:
   mongo-configdb:
     driver: local
   pg:
-    driver: local
-  pgadmin:
     driver: local

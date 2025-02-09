@@ -21,6 +21,10 @@ async function bootstrap() {
   app.useLogger(logger); // use custom logger
 
   if (process.env.NODE_ENV === "production") {
+    if (!process.env.MONGODB_HOSTNAME) {
+      throw new Error("MONGO DB HOSTNAME NOT SET!");
+    }
+
     corsOptions = {
       origin: [process.env.BASE_URL, `http://cc-client:${process.env.PORT}`],
     };
