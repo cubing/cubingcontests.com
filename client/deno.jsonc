@@ -6,13 +6,18 @@
   },
 
   "tasks": {
-    // Starts Next JS with the port specified in .env.development
-    "dev": "next dev -p $(cat .env.development | grep -E '^PORT=' | sed -r 's/^PORT=//')",
+    // Starts Next JS with the port specified in the environment variables
+    "dev": "next dev -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
     // --unstable-unsafe-proto is required for building Next JS projects for now, because they still rely on __proto__.
     // For more, see https://github.com/denoland/docs/pull/1255.
     "build": "deno run --unstable-unsafe-proto -A npm:next build",
     // "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio"
   },
 
   "lint": {

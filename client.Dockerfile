@@ -4,7 +4,7 @@ FROM denoland/deno:2.1.9
 EXPOSE $PORT
 
 COPY client /app/client
-RUN rm /app/client/.env.development
+RUN rm /app/client/.env.local
 
 WORKDIR /app/client
 

@@ -17,9 +17,9 @@ import { RoundSchema } from "~/src/models/round.model";
 import { EmailModule } from "~/src/modules/email/email.module";
 import { CollectiveSolutionModule } from "./modules/collective-solution/collective-solution.module";
 
-const mongoUri = process.env.NODE_ENV === "production"
-  ? `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cc-mongo:27017/${process.env.DB_NAME}`
-  : `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@127.0.0.1:27017/${process.env.DB_NAME}`;
+const hostName = process.env.MONGODB_HOSTNAME ?? "127.0.0.1";
+const mongoUri =
+  `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${hostName}:27017/${process.env.DB_NAME}`;
 
 @Module({
   imports: [

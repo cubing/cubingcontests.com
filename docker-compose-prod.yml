@@ -1,11 +1,11 @@
 services:
   mongo:
-    container_name: cc-mongo
+    container_name: cc-mongo # if this is ever changed, make sure to update all references to the old container name
     image: mongo
     networks:
       - cubingcontests
     ports:
-      - 127.0.0.1:27017:27017
+      - 127.0.0.1:27017:27017 # if this is ever changed, make sure to update all references to the old port
     volumes:
       - mongo:/data/db:rw
       - mongo-configdb:/data/configdb:rw
@@ -19,12 +19,12 @@ services:
     restart: always
 
   postgres:
-    container_name: cc-postgres
+    container_name: cc-postgres # if this is ever changed, make sure to update all references to the old container name
     image: postgres:17-alpine
     networks:
       - cubingcontests
     ports:
-      - 127.0.0.1:5432:5432
+      - 127.0.0.1:5432:5432 # if this is ever changed, make sure to update all references to the old port
     volumes:
       - pg:/var/lib/postgresql/data:rw
       - ${PWD}/db_utils/pg_init:/docker-entrypoint-initdb.d:ro
@@ -47,6 +47,7 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=production
+      - MONGODB_HOSTNAME=cc-mongo
     depends_on:
       - mongo
     restart: always

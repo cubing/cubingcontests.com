@@ -26,7 +26,9 @@ const getEmailContents = async (
 
 @Injectable()
 export class EmailService {
-  private sender = `"No Reply" no-reply@${process.env.BASE_URL.split("://")[1]}`;
+  private sender = `"No Reply" no-reply@${
+    process.env.BASE_URL.split("://")[1]
+  }`;
   private transporter = createTransport({
     host: process.env.MAIL_URL,
     port: 587,

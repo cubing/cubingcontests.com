@@ -1,10 +1,8 @@
 import { FetchObj, HttpMethod } from "~/helpers/types.ts";
 
-// Server-side one won't be available client-side
-const apiBaseUrl = process.env.NODE_ENV === "production"
-  ? (process.env.API_BASE_URL_SERVER_SIDE ||
-    process.env.NEXT_PUBLIC_API_BASE_URL)
-  : process.env.NEXT_PUBLIC_API_BASE_URL_DEV;
+// Server-side one won't be available client-side or in development
+const apiBaseUrl = process.env.SERVER_SIDE_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // This must only be called with authorize = true on the client side.
 // Returns { data } if request was successful and a data was received,
