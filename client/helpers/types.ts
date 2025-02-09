@@ -86,5 +86,3 @@ export type ListPageMode = "view" | "add" | "edit";
 
 // undefined is the empty value, null is the invalid value
 export type NumberInputValue = number | null | undefined;
-
-export type Role = "user" | "admin" | "mod";
