@@ -5,8 +5,16 @@ import FormTextInput from "./form/FormTextInput.tsx";
 import FormNumberInput from "./form/FormNumberInput.tsx";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
 import { EventFormat, EventGroup } from "~/helpers/enums.ts";
-import { Event, type IFeAttempt, ITimeLimit, type NumberInputValue } from "~/helpers/types.ts";
-import { getAlwaysShowDecimals, getFormattedTime } from "~/helpers/sharedFunctions.ts";
+import {
+  Event,
+  type IFeAttempt,
+  ITimeLimit,
+  type NumberInputValue,
+} from "~/helpers/types.ts";
+import {
+  getAlwaysShowDecimals,
+  getFormattedTime,
+} from "~/helpers/sharedFunctions.ts";
 import { C } from "~/helpers/constants.ts";
 
 const DNFKeys = ["f", "F", "d", "D", "/"];
@@ -262,7 +270,9 @@ const AttemptInput = ({
 
         if (newCharacter === "0" && ["", "00"].includes(text)) return; // don't allow entering 0 as the first digit
 
-        const newText = !forMemo ? text + newCharacter : text.slice(0, -2) + newCharacter + "00";
+        const newText = !forMemo
+          ? text + newCharacter
+          : text.slice(0, -2) + newCharacter + "00";
 
         if (
           newText.length <= C.maxFmMoves.toString().length ||
@@ -396,7 +406,9 @@ const AttemptInput = ({
       <div className="col px-0">
         <FormTextInput
           id={`attempt_${attNumber}`}
-          title={attNumber === 1 ? (event.format !== EventFormat.Number ? "Time" : "Moves") : ""}
+          title={attNumber === 1
+            ? (event.format !== EventFormat.Number ? "Time" : "Moves")
+            : ""}
           tooltip={timeInputTooltip}
           value={formattedAttemptText}
           onChange={(e) => onTimeChange(e)}
@@ -406,7 +418,7 @@ const AttemptInput = ({
           onBlur={() => onTimeFocusOut()}
           invalid={isInvalidAttempt}
           disabled={disabled}
-          className={attNumber === 0 ? "" : "mb-3"}
+          className={attNumber === 0 ? "" : "mb-2"}
         />
       </div>
       {includeMemo && (
@@ -423,7 +435,6 @@ const AttemptInput = ({
             onBlur={() => onTimeFocusOut(true)}
             disabled={["DNF", "DNS", "Unknown"].includes(formattedAttemptText)}
             invalid={isInvalidAttempt}
-            className="mb-3"
           />
         </div>
       )}
