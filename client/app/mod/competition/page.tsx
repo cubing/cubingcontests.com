@@ -28,21 +28,28 @@ const CreateEditContestPage = () => {
   }
 
   useEffect(() => {
-    // CODE SMELL!!!
     (async () => {
-      const { data: eventsData, errors: errors1 } = await myFetch.get(
-        "/events/mod",
-        { authorize: true, loadingId: null },
-      );
-      const { data: contestData, errors: errors2 } = competitionId
-        ? await myFetch.get(`/competitions/mod/${competitionId}`, { authorize: true, loadingId: null })
-        : { data: undefined, errors: undefined };
+      const promises: Promise<any>[] = [myFetch.get<Event[]>("/events/mod", {
+        authorize: true,
+        loadingId: null,
+      })];
 
-      if (errors1 ?? errors2) {
+      if (competitionId) {
+        promises.push(
+          myFetch.get<IContestData>(`/competitions/mod/${competitionId}`, {
+            authorize: true,
+            loadingId: null,
+          }),
+        );
+      }
+
+      const settled = await Promise.allSettled(promises);
+
+      if (settled.some((p) => p.status === "rejected" || !p.value.success)) {
         changeErrorMessages(["Error while fetching contest data"]);
       } else {
-        setEvents(eventsData);
-        if (contestData) setContestData(contestData);
+        setEvents((settled[0] as any).value.data);
+        if (competitionId) setContestData((settled[1] as any).value.data);
       }
     })();
   }, []);
@@ -50,9 +57,16 @@ const CreateEditContestPage = () => {
   if (events && (mode === "new" || contestData)) {
     return (
       <div>
-        <h2 className="mb-4 text-center">{mode === "edit" ? "Edit Contest" : "Create Contest"}</h2>
+        <h2 className="mb-4 text-center">
+          {mode === "edit" ? "Edit Contest" : "Create Contest"}
+        </h2>
 
-        <ContestForm events={events} mode={mode} contest={contestData?.contest} creator={contestData?.creator} />
+        <ContestForm
+          events={events}
+          mode={mode}
+          contest={contestData?.contest}
+          creator={contestData?.creator}
+        />
       </div>
     );
   }

@@ -20,7 +20,7 @@ export const usersTable = pgTable("users", {
   username: varchar({ length: 30 }).unique().notNull(),
   email: varchar({ length: 100 }).unique().notNull(),
   password: text().notNull(),
-  // MAYBE I SHOULD REFACTOR HOW AUTHORIZATION WORKS
+  // REFACTOR AUTHORIZATION WITH BETTER AUTH!
   roles: roleEnum().array().notNull(),
   confirmationCodeHash: text(),
   confirmationCodeAttempts: smallint(),
