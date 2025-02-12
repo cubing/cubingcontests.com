@@ -39,7 +39,7 @@ services:
 
   server:
     container_name: cc-server # if this is ever changed, make sure to update all references to the old container name
-    image: '${DOCKER_IMAGE_PREFIX}server:${VERSION}'
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-server:${VERSION}'
     networks:
       - cubingcontests
     ports:
@@ -54,7 +54,7 @@ services:
 
   client:
     container_name: cc-client # if this is ever changed, make sure to update all references to the old container name
-    image: '${DOCKER_IMAGE_PREFIX}client:${VERSION}'
+    image: '${DOCKER_IMAGE_PREFIX}cubingcontests-client:${VERSION}'
     networks:
       - cubingcontests
     ports:

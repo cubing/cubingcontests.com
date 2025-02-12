@@ -1,0 +1,2 @@
+client/.env*.local
+server/.env.dev
