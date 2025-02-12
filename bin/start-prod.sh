@@ -98,7 +98,7 @@ else
   if [ "$2" != "--cleanup" ]; then
     # Build frontend and API containers
     source .env # needed for the build args
-    docker build --build-arg NEXT_PUBLIC_API_BASE_URL="$API_BASE_URL" -t cubingcontests-client --file client.Dockerfile . &&
+    docker build --build-arg NEXT_PUBLIC_API_BASE_URL="http://localhost:$BACKEND_PORT/api" -t cubingcontests-client --file client.Dockerfile . &&
     docker build -t cubingcontests-server --file server.Dockerfile . &&
 
     docker compose -f docker-compose-prod.yml up

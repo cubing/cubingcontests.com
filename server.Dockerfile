@@ -5,7 +5,6 @@ RUN apk update && apk upgrade
 EXPOSE $BACKEND_PORT
 
 COPY server /home/app/server
-RUN rm /home/app/server/.env.dev
 
 WORKDIR /home/app/server
 

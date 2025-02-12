@@ -15,7 +15,7 @@
     "npm:@fortawesome/free-regular-svg-icons@^6.7.2": "6.7.2",
     "npm:@fortawesome/free-solid-svg-icons@^6.7.2": "6.7.2",
     "npm:@fortawesome/react-fontawesome@~0.2.2": "0.2.2_@fortawesome+fontawesome-svg-core@6.7.2_react@19.0.0",
-    "npm:@next/env@^15.1.6": "15.1.6",
+    "npm:@next/env@^15.1.7": "15.1.7",
     "npm:@tanstack/react-virtual@^3.10.8": "3.13.0_react@19.0.0_react-dom@19.0.0__react@19.0.0",
     "npm:@types/lodash@^4.17.12": "4.17.15",
     "npm:@types/node@^22.13.1": "22.13.1",
@@ -23,16 +23,16 @@
     "npm:@types/react@^19.0.8": "19.0.8",
     "npm:@wca/helpers@^1.1.5": "1.1.5",
     "npm:bootstrap@^5.3.3": "5.3.3_@popperjs+core@2.11.8",
-    "npm:country-flag-icons@^1.5.14": "1.5.16",
+    "npm:country-flag-icons@1.5.15": "1.5.15",
     "npm:cubing@~0.54.1": "0.54.1",
     "npm:date-fns-tz@^3.1.3": "3.2.0_date-fns@4.1.0",
     "npm:date-fns@^4.1.0": "4.1.0",
     "npm:drizzle-kit@~0.30.4": "0.30.4_esbuild@0.19.12",
-    "npm:drizzle-orm@~0.39.2": "0.39.2_@types+react@19.0.8_postgres@3.4.5_react@19.0.0",
+    "npm:drizzle-orm@~0.39.3": "0.39.3_postgres@3.4.5",
     "npm:geo-tz@^8.1.3": "8.1.3",
     "npm:jose@^5.9.6": "5.9.6",
     "npm:lodash@^4.17.21": "4.17.21",
-    "npm:next@^15.1.6": "15.1.6_react@19.0.0_react-dom@19.0.0__react@19.0.0",
+    "npm:next@15.1.6": "15.1.6_react@19.0.0_react-dom@19.0.0__react@19.0.0",
     "npm:postgres@^3.4.5": "3.4.5",
     "npm:react-datepicker@8": "8.0.0_react@19.0.0_react-dom@19.0.0__react@19.0.0",
     "npm:react-dom@19": "19.0.0_react@19.0.0",
@@ -399,6 +399,9 @@
     "@next/env@15.1.6": {
       "integrity": "sha512-d9AFQVPEYNr+aqokIiPLNK/MTyt3DWa/dpKveiAaVccUadFbhFEvY6FXYX2LJO2Hv7PHnLBu2oWwB4uBuHjr/w=="
     },
+    "@next/env@15.1.7": {
+      "integrity": "sha512-d9jnRrkuOH7Mhi+LHav2XW91HOgTAWHxjMPkXMGBc9B2b7614P7kjt8tAplRvJpbSt4nbO1lugcT/kAaWzjlLQ=="
+    },
     "@next/swc-darwin-arm64@15.1.6": {
       "integrity": "sha512-u7lg4Mpl9qWpKgy6NzEkz/w0/keEHtOybmIl0ykgItBxEM5mYotS5PmqTpo+Rhg8FiOiWgwr8USxmKQkqLBCrw=="
     },
@@ -587,8 +590,8 @@
         "streamsearch"
       ]
     },
-    "caniuse-lite@1.0.30001698": {
-      "integrity": "sha512-xJ3km2oiG/MbNU8G6zIq6XRZ6HtAOVXsbOrP/blGazi52kc5Yy7b6sDA5O+FbROzRrV7BSTllLHuNvmawYUJjw=="
+    "caniuse-lite@1.0.30001699": {
+      "integrity": "sha512-b+uH5BakXZ9Do9iK+CkDmctUSEqZl+SP056vc5usa0PL+ev5OHw003rZXcnjNDv3L8P5j6rwT6C0BPKSikW08w=="
     },
     "ccount@2.0.1": {
       "integrity": "sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg=="
@@ -664,8 +667,8 @@
         "typedarray"
       ]
     },
-    "country-flag-icons@1.5.16": {
-      "integrity": "sha512-F9lNvhSrJ9D7Y2a6Tvbx2MFglZ9esNK76uTy4NqvdVzvgvy6/cKMGDYcnR1QOCgtmdc+akz2gqibZn3e3b6rQA=="
+    "country-flag-icons@1.5.15": {
+      "integrity": "sha512-zLYm68RR4k1HnLHfaJLW3hhM6gfJTZTILGZiM/SEFZSSHS6rnd6j2aWoz8tnamBUc0YD2w/ytzdJ0wFPXx4qQg=="
     },
     "csstype@3.1.3": {
       "integrity": "sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw=="
@@ -726,12 +729,10 @@
         "esbuild-register"
       ]
     },
-    "drizzle-orm@0.39.2_@types+react@19.0.8_postgres@3.4.5_react@19.0.0": {
-      "integrity": "sha512-cuopo+udkKEGGpSxCML9ZRQ43R01zYCTsbqCrb9kJkabx1QEwFlPIFoQfx6E6tuawtiX930Gwyrkwj4inlpzDg==",
+    "drizzle-orm@0.39.3_postgres@3.4.5": {
+      "integrity": "sha512-EZ8ZpYvDIvKU9C56JYLOmUskazhad+uXZCTCRN4OnRMsL+xAJ05dv1eCpAG5xzhsm1hqiuC5kAZUCS924u2DTw==",
       "dependencies": [
-        "@types/react",
-        "postgres",
-        "react"
+        "postgres"
       ]
     },
     "esbuild-register@3.6.0_esbuild@0.19.12": {
@@ -1190,7 +1191,7 @@
     "next@15.1.6_react@19.0.0_react-dom@19.0.0__react@19.0.0": {
       "integrity": "sha512-Hch4wzbaX0vKQtalpXvUiw5sYivBy4cm5rzUKrBnUB/y436LGrvOUqYvlSeNVCWFO/770gDlltR9gqZH62ct4Q==",
       "dependencies": [
-        "@next/env",
+        "@next/env@15.1.6",
         "@next/swc-darwin-arm64",
         "@next/swc-darwin-x64",
         "@next/swc-linux-arm64-gnu",
@@ -1579,6 +1580,7 @@
         "npm:@fortawesome/free-regular-svg-icons@^6.7.2",
         "npm:@fortawesome/free-solid-svg-icons@^6.7.2",
         "npm:@fortawesome/react-fontawesome@~0.2.2",
+        "npm:@next/env@^15.1.7",
         "npm:@tanstack/react-virtual@^3.10.8",
         "npm:@types/lodash@^4.17.12",
         "npm:@types/node@^22.13.1",
@@ -1586,16 +1588,16 @@
         "npm:@types/react@^19.0.8",
         "npm:@wca/helpers@^1.1.5",
         "npm:bootstrap@^5.3.3",
-        "npm:country-flag-icons@^1.5.14",
+        "npm:country-flag-icons@1.5.15",
         "npm:cubing@~0.54.1",
         "npm:date-fns-tz@^3.1.3",
         "npm:date-fns@^4.1.0",
         "npm:drizzle-kit@~0.30.4",
-        "npm:drizzle-orm@~0.39.2",
+        "npm:drizzle-orm@~0.39.3",
         "npm:geo-tz@^8.1.3",
         "npm:jose@^5.9.6",
         "npm:lodash@^4.17.21",
-        "npm:next@^15.1.6",
+        "npm:next@15.1.6",
         "npm:postgres@^3.4.5",
         "npm:react-datepicker@8",
         "npm:react-dom@19",

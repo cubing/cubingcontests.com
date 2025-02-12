@@ -11,7 +11,8 @@ config.autoAddCss = false;
 // SEO
 export const metadata = {
   title: "Cubing Contests",
-  description: "The best place for hosting unofficial Rubik's Cube competitions and speedcuber meetups.",
+  description:
+    "The best place for hosting unofficial Rubik's Cube competitions and speedcuber meetups.",
   keywords:
     "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: "/favicon.png" },
@@ -21,7 +22,9 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout(
+  { children }: { children: React.ReactNode },
+) {
   return (
     <html lang="en">
       <MainLayout>{children}</MainLayout>
