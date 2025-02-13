@@ -69,9 +69,6 @@ class ContestModel {
   @Prop({ required: true, immutable: true })
   countryIso2: string;
 
-  @Prop() // TEMPORARY
-  timezone?: string;
-
   // This is actually required, but it may be set to an empty string
   @Prop()
   venue: string;

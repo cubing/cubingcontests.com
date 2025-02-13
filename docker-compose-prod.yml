@@ -9,7 +9,7 @@ services:
     volumes:
       - mongo:/data/db:rw
       - mongo-configdb:/data/configdb:rw
-      - ${PWD}/db_utils/mongo_init:/docker-entrypoint-initdb.d:ro
+      - /home/dev/cubing-contests/db_utils/mongo_init:/docker-entrypoint-initdb.d:ro
     environment:
       - MONGO_INITDB_ROOT_USERNAME=$DB_ADMIN_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD=$DB_ADMIN_PASSWORD
@@ -27,7 +27,7 @@ services:
       - 127.0.0.1:5432:5432 # if this is ever changed, make sure to update all references to the old port
     volumes:
       - pg:/var/lib/postgresql/data:rw
-      - ${PWD}/db_utils/pg_init:/docker-entrypoint-initdb.d:ro
+      - /home/dev/cubing-contests/db_utils/pg_init:/docker-entrypoint-initdb.d:ro
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=$DB_ADMIN_USERNAME

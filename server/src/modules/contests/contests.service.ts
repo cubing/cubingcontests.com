@@ -21,8 +21,21 @@ import {
   schedulePopulateOptions,
 } from "~/src/helpers/dbHelpers";
 import { C } from "~/helpers/constants";
-import { IContest, IContestData, IContestDto, IContestEvent, IResult, IRound, ISchedule } from "~/helpers/types";
-import { ContestState, ContestType, EventGroup, RoundType } from "~/helpers/enums";
+import {
+  IContest,
+  IContestData,
+  IContestDto,
+  IContestEvent,
+  IResult,
+  IRound,
+  ISchedule,
+} from "~/helpers/types";
+import {
+  ContestState,
+  ContestType,
+  EventGroup,
+  RoundType,
+} from "~/helpers/enums";
 import { Role } from "~/helpers/enums";
 import {
   getDateOnly,
@@ -47,7 +60,8 @@ import { IPartialUser } from "~/helpers/types";
 import { roundFormats } from "~/helpers/roundFormats";
 import { getResultProceeds } from "~/src/helpers/utilityFunctions";
 
-const getContestUrl = (competitionId: string): string => `${process.env.BASE_URL}/competitions/${competitionId}`;
+const getContestUrl = (competitionId: string): string =>
+  `${process.env.BASE_URL}/competitions/${competitionId}`;
 
 @Injectable()
 export class ContestsService {
@@ -87,7 +101,9 @@ export class ContestsService {
           );
         } else if (contests.length > 1) {
           this.logger.error(
-            `Error: schedule ${JSON.stringify(s)} belongs to multiple contests: ${
+            `Error: schedule ${
+              JSON.stringify(s)
+            } belongs to multiple contests: ${
               contests
                 .map((c) => c.competitionId)
                 .join(", ")
@@ -123,7 +139,9 @@ export class ContestsService {
 
                 // Check for duplicate ID rooms
                 if (
-                  room.activities.some((a, index) => index > k && a.id === activity.id)
+                  room.activities.some((a, index) =>
+                    index > k && a.id === activity.id
+                  )
                 ) {
                   this.logger.error(
                     `Error: contest ${contest.competitionId} has duplicate activity ID - ${activity.id}`,
@@ -255,22 +273,6 @@ export class ContestsService {
         }
       }
     }
-
-    // TEMPORARY
-    const contests = await this.contestModel.find({ type: ContestType.Meetup })
-      .exec();
-    for (const contest of contests) {
-      if (contest.timezone) {
-        contest.meetupDetails.timeZone = (contest as any).timezone;
-        (contest as any).timezone = undefined;
-      } else {
-        contest.meetupDetails.timeZone = findTimezone(
-          contest.latitudeMicrodegrees / 1000000,
-          contest.longitudeMicrodegrees / 1000000,
-        )[0];
-      }
-      await contest.save();
-    }
   }
 
   async getContests(region?: string, eventId?: string) {
@@ -317,7 +319,8 @@ export class ContestsService {
       const person = await this.personsService.getPersonByPersonId(
         user.personId,
         {
-          customError: "Your profile must be tied to your account before you can use moderator features",
+          customError:
+            "Your profile must be tied to your account before you can use moderator features",
         },
       );
       queryFilter = {
@@ -443,8 +446,10 @@ export class ContestsService {
       events: contestEvents as IContestEvent[],
       createdBy: new mongo.ObjectId(user._id as string),
       state: ContestState.Created,
-      participants: !saveResults ? 0 : (await this.personsService.getContestParticipants({ contestEvents }))
-        .length,
+      participants: !saveResults
+        ? 0
+        : (await this.personsService.getContestParticipants({ contestEvents }))
+          .length,
     };
 
     newContest.organizers = await this.personsService.getPersonsByPersonIds(
@@ -476,7 +481,9 @@ export class ContestsService {
         C.contactEmail,
         `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newContest.name}</a>.`,
         {
-          subject: `${difference <= 7 ? "URGENT! " : ""}New contest: ${newContest.shortName}`,
+          subject: `${
+            difference <= 7 ? "URGENT! " : ""
+          }New contest: ${newContest.shortName}`,
         },
       );
     } catch (err) {
@@ -798,7 +805,9 @@ export class ContestsService {
       throw new BadRequestException("The contest is finished");
     }
 
-    const contestEvent = contest.events.find((e) => e.event.eventId === eventId);
+    const contestEvent = contest.events.find((e) =>
+      e.event.eventId === eventId
+    );
     if (!contestEvent) {
       throw new NotFoundException(
         `Event with ID ${eventId} not found for the given competition`,
@@ -828,7 +837,9 @@ export class ContestsService {
       .findOne({ competitionId }, exclude ? exclSysButKeepCreatedBy : {})
       .populate(eventPopulateOptions.event)
       .populate(
-        populateResults ? eventPopulateOptions.roundsAndResults : eventPopulateOptions.rounds,
+        populateResults
+          ? eventPopulateOptions.roundsAndResults
+          : eventPopulateOptions.rounds,
       )
       .populate(orgPopulateOptions)
       .exec();
@@ -893,7 +904,9 @@ export class ContestsService {
   ): Promise<ContestEventModel[]> {
     // Remove deleted rounds and events
     for (const contestEvent of contest.events) {
-      const sameEventInNew = newEvents.find((el) => el.event.eventId === contestEvent.event.eventId);
+      const sameEventInNew = newEvents.find((el) =>
+        el.event.eventId === contestEvent.event.eventId
+      );
 
       if (sameEventInNew) {
         for (const round of contestEvent.rounds) {
@@ -901,7 +914,9 @@ export class ContestsService {
           if (!sameEventInNew.rounds.some((r) => r.roundId === round.roundId)) {
             if (round.results.length === 0) {
               await round.deleteOne();
-              contestEvent.rounds = contestEvent.rounds.filter((el) => el !== round);
+              contestEvent.rounds = contestEvent.rounds.filter((el) =>
+                el !== round
+              );
             } else {
               this.logger.error(
                 `Ignoring invalid round deletion of ${round.roundId} at ${contest.competitionId} (round has results)`,
@@ -912,7 +927,9 @@ export class ContestsService {
       } // Delete event and all of its rounds if it has no results
       else if (!contestEvent.rounds.some((el) => el.results.length > 0)) {
         for (const round of contestEvent.rounds) await round.deleteOne();
-        contest.events = contest.events.filter((el) => el.event.eventId !== contestEvent.event.eventId);
+        contest.events = contest.events.filter((el) =>
+          el.event.eventId !== contestEvent.event.eventId
+        );
       } else {
         this.logger.error(
           `Ignoring invalid event deletion of ${contestEvent.event.eventId} at ${contest.competitionId} (one of the rounds has results)`,
@@ -922,11 +939,15 @@ export class ContestsService {
 
     // Update rounds and add new events
     for (const newEvent of newEvents) {
-      const sameEventInContest = contest.events.find((ce) => ce.event.eventId === newEvent.event.eventId);
+      const sameEventInContest = contest.events.find((ce) =>
+        ce.event.eventId === newEvent.event.eventId
+      );
 
       if (sameEventInContest) {
         for (const round of newEvent.rounds) {
-          const sameRoundInContest = sameEventInContest.rounds.find((r) => r.roundId === round.roundId);
+          const sameRoundInContest = sameEventInContest.rounds.find((r) =>
+            r.roundId === round.roundId
+          );
 
           // If the contest already has this round, update the permitted fields
           if (sameRoundInContest) {
@@ -967,7 +988,9 @@ export class ContestsService {
             // Set the proceeds values for the previous round first
             const prevRound = sameEventInContest.rounds.at(-1);
             await prevRound.populate(resultPopulateOptions);
-            const roundFormat = roundFormats.find((rf) => rf.value === prevRound.format);
+            const roundFormat = roundFormats.find((rf) =>
+              rf.value === prevRound.format
+            );
             for (const result of prevRound.results) {
               if (
                 getResultProceeds(
@@ -1011,7 +1034,9 @@ export class ContestsService {
     newSchedule: ISchedule,
   ) {
     for (const venue of newSchedule.venues) {
-      const sameVenueInContest = contest.compDetails.schedule.venues.find((v) => v.id === venue.id);
+      const sameVenueInContest = contest.compDetails.schedule.venues.find((v) =>
+        v.id === venue.id
+      );
       if (!sameVenueInContest) {
         throw new BadRequestException(
           `Schedule venue with ID ${venue.id} not found`,
@@ -1023,7 +1048,9 @@ export class ContestsService {
       sameVenueInContest.longitudeMicrodegrees = venue.longitudeMicrodegrees;
       sameVenueInContest.timezone = venue.timezone; // this is set in validateAndCleanUpContest
       // Remove deleted rooms
-      sameVenueInContest.rooms = sameVenueInContest.rooms.filter((r1) => venue.rooms.some((r2) => r2.id === r1.id));
+      sameVenueInContest.rooms = sameVenueInContest.rooms.filter((r1) =>
+        venue.rooms.some((r2) => r2.id === r1.id)
+      );
 
       for (const room of venue.rooms) {
         const sameRoom = sameVenueInContest.rooms.find((r) => r.id === room.id);
@@ -1032,11 +1059,15 @@ export class ContestsService {
           sameRoom.name = room.name;
           sameRoom.color = room.color;
           // Remove deleted activities
-          sameRoom.activities = sameRoom.activities.filter((a1) => room.activities.some((a2) => a2.id === a1.id));
+          sameRoom.activities = sameRoom.activities.filter((a1) =>
+            room.activities.some((a2) => a2.id === a1.id)
+          );
 
           // Update activities
           for (const activity of room.activities) {
-            const sameActivity = sameRoom.activities.find((a) => a.id === activity.id);
+            const sameActivity = sameRoom.activities.find((a) =>
+              a.id === activity.id
+            );
 
             if (sameActivity) {
               sameActivity.activityCode = activity.activityCode;
@@ -1086,7 +1117,9 @@ export class ContestsService {
         for (const round of contestEvent.rounds) {
           let isRoundActivityFound = false;
           for (const venue of contest.compDetails.schedule.venues) {
-            isRoundActivityFound = venue.rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId));
+            isRoundActivityFound = venue.rooms.some((r) =>
+              r.activities.some((a) => a.activityCode === round.roundId)
+            );
             if (isRoundActivityFound) break;
           }
           if (!isRoundActivityFound) {
