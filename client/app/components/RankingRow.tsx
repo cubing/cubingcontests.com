@@ -10,7 +10,12 @@ import ContestName from "~/app/components/ContestName.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import { type Event, type IPerson, type IRanking, type ResultRankingType } from "~/helpers/types.ts";
+import type {
+  Event,
+  IPerson,
+  IRanking,
+  ResultRankingType,
+} from "~/helpers/types.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
@@ -73,7 +78,9 @@ const RankingRow = ({
       <td>{!onlyKeepPerson && getFormattedDate(ranking.date)}</td>
       <td>
         {!onlyKeepPerson &&
-          (ranking.contest ? <ContestName contest={ranking.contest} /> : <RankingLinks ranking={ranking} />)}
+          (ranking.contest
+            ? <ContestName contest={ranking.contest} />
+            : <RankingLinks ranking={ranking} />)}
       </td>
       {showTeamColumn && (
         <td>
@@ -86,12 +93,16 @@ const RankingRow = ({
                 {teamExpanded ? "Close" : "Open"}
               </u>
               <span className="ms-2">
-                {teamExpanded ? <FontAwesomeIcon icon={faCaretDown} /> : <FontAwesomeIcon icon={faCaretRight} />}
+                {teamExpanded
+                  ? <FontAwesomeIcon icon={faCaretDown} />
+                  : <FontAwesomeIcon icon={faCaretRight} />}
               </span>
             </span>
 
             {teamExpanded &&
-              ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
+              ranking.persons.map((p) => (
+                <Competitor key={p.personId} person={p} />
+              ))}
           </div>
         </td>
       )}

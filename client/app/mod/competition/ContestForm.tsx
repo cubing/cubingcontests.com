@@ -468,7 +468,7 @@ const ContestForm = ({
 
     if (
       typeof newLongitude === "number" && newLongitude >= -180 &&
-      newLongitude <= 1800
+      newLongitude <= 180
     ) {
       updateTimeZone(latitude, newLongitude);
     }
@@ -793,7 +793,7 @@ const ContestForm = ({
                       disabled={disableIfContestApproved ||
                         disableIfDetailsImported}
                       min={-180}
-                      max={1800}
+                      max={180}
                     />
                   </div>
                 </div>
