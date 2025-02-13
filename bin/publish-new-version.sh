@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # First make sure there are no lint errors and that the frontend builds successfully
-cd client ; deno task lint
+cd client ; deno lint
 if [ $? -gt 0 ]; then
   echo -e "\n\nPlease fix all linting errors before publishing a new version"
   exit

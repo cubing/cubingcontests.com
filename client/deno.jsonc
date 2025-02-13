@@ -13,7 +13,6 @@
     "build": "deno run --unstable-unsafe-proto -A npm:next build",
     // "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
