@@ -20,8 +20,8 @@ export const getTimeZoneFromCoords = async (
     };
   }
 
-  return {
+  return await Promise.resolve({
     success: true,
     data: findTimezone(parsed.data.latitude, parsed.data.longitude)[0],
-  };
+  });
 };

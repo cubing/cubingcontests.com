@@ -141,42 +141,44 @@ const ContestForm = ({
   const [isTimeZonePending, startTimeZoneTransition] = useTransition();
 
   const updateTimeZone = useCallback(
-    debounce(async (lat: NumberInputValue, long: NumberInputValue) => {
-      startTimeZoneTransition(async () => {
-        changeErrorMessages([]);
-        const res = await getTimeZoneFromCoords(lat, long);
+    debounce(
+      (lat: NumberInputValue, long: NumberInputValue) =>
+        startTimeZoneTransition(async () => {
+          changeErrorMessages([]);
+          const res = await getTimeZoneFromCoords(lat, long);
 
-        if (!res.success) {
-          changeErrorMessages(res.errors);
-        } else {
-          // Adjust times
-          if (type === ContestType.Meetup) {
-            setStartTime(
-              fromZonedTime(toZonedTime(startTime, timeZone), res.data),
-            );
-          } else if (getIsCompType(type)) {
-            setRooms(
-              rooms.map((r: IRoom) => ({
-                ...r,
-                activities: r.activities.map((a) => ({
-                  ...a,
-                  startTime: fromZonedTime(
-                    toZonedTime(a.startTime, timeZone),
-                    res.data,
-                  ),
-                  endTime: fromZonedTime(
-                    toZonedTime(a.endTime, timeZone),
-                    res.data,
-                  ),
+          if (!res.success) {
+            changeErrorMessages(res.errors);
+          } else {
+            // Adjust times
+            if (type === ContestType.Meetup) {
+              setStartTime(
+                fromZonedTime(toZonedTime(startTime, timeZone), res.data),
+              );
+            } else if (getIsCompType(type)) {
+              setRooms(
+                rooms.map((r: IRoom) => ({
+                  ...r,
+                  activities: r.activities.map((a) => ({
+                    ...a,
+                    startTime: fromZonedTime(
+                      toZonedTime(a.startTime, timeZone),
+                      res.data,
+                    ),
+                    endTime: fromZonedTime(
+                      toZonedTime(a.endTime, timeZone),
+                      res.data,
+                    ),
+                  })),
                 })),
-              })),
-            );
-          }
+              );
+            }
 
-          setTimeZone(res.data);
-        }
-      });
-    }, C.fetchDebounceTimeout),
+            setTimeZone(res.data);
+          }
+        }),
+      C.fetchDebounceTimeout,
+    ),
     [timeZone, startTime, rooms, type],
   );
 

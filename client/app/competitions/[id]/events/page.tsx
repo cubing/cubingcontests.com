@@ -1,7 +1,7 @@
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { IContest, IContestData, type IProceed } from "~/helpers/types.ts";
+import type { IContestData, IProceed } from "~/helpers/types.ts";
 import { RoundProceed, RoundType } from "~/helpers/enums.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
@@ -21,7 +21,9 @@ const ContestEventsPage = async ({ params }: Props) => {
   }
   const { contest } = contestDataResponse.data;
 
-  const hasNonFinalRound = contest.events.some((ev) => ev.rounds.some((r) => r.proceed));
+  const hasNonFinalRound = contest.events.some((ev) =>
+    ev.rounds.some((r) => r.proceed)
+  );
 
   return (
     <ContestLayout contest={contest} activeTab="events">
@@ -77,7 +79,9 @@ const ContestEventsPage = async ({ params }: Props) => {
                         ? getFormattedTime(round.timeLimit.centiseconds, {
                           event: compEvent.event,
                         }) +
-                          (round.timeLimit.cumulativeRoundIds.length > 0 ? " cumulative" : "")
+                          (round.timeLimit.cumulativeRoundIds.length > 0
+                            ? " cumulative"
+                            : "")
                         : ""}
                     </td>
                     <td>{cutoffText}</td>
