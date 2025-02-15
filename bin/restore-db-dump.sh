@@ -38,7 +38,7 @@ fi
 # Directory that contains the DB dumps
 dump_path=$(echo "$1" | sed -E 's/\/$//')
 # Gets the newest dump
-filename=$(ls "$dump_path" | sort | tail -n 1)
+filename=$(ls "$dump_path" | grep ".tar.gz" | sort | tail -n 1)
 
 if [ $overwrite != true ]; then
   echo -e "\nRestoring from $dump_path/$filename. Continue? (y/N)"
