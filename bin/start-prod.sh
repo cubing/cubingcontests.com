@@ -68,9 +68,13 @@ elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
 
   if [ "$1" != "--restart" ]; then  
     sudo apt update &&
-    sudo apt dist-upgrade
+    sudo apt dist-upgrade &&
 
     ./bin/dump-db.sh /dump
+    
+    if [ "$?" -gt 0 ]; then
+      exit 2
+    fi
   fi
 
   # Stop Docker containers
