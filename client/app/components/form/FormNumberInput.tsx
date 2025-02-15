@@ -69,15 +69,17 @@ const FormNumberInput = ({
     ) {
       if (value !== numberValue) setValue(numberValue);
     } else if (newValue) {
-      if (value !== null) setValue(null);
-    } else if (value !== undefined) {
+      setValue(null);
+    } else {
       setValue(undefined);
     }
   };
 
   return (
     <div className={`fs-5 ${className}`}>
-      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
+      {title && (
+        <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
+      )}
 
       <input
         type="text"
@@ -85,9 +87,12 @@ const FormNumberInput = ({
         value={displayValue}
         placeholder={placeholder}
         onChange={(e: any) => validateAndChange(e.target.value)}
-        onKeyDown={(e: any) => genericOnKeyDown(e, { nextFocusTargetId, onKeyDown })}
+        onKeyDown={(e: any) =>
+          genericOnKeyDown(e, { nextFocusTargetId, onKeyDown })}
         disabled={disabled}
-        className={`form-control mt-2 ${value === null || invalid ? "is-invalid" : ""}`}
+        className={`form-control mt-2 ${
+          value === null || invalid ? "is-invalid" : ""
+        }`}
       />
     </div>
   );

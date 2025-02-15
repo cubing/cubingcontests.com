@@ -63,6 +63,7 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
           title="Email address"
           value={email}
           setValue={setEmail}
+          className="mb-3"
         />
 
         <Button

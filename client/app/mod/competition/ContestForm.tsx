@@ -47,6 +47,7 @@ import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.
 import type { InputPerson } from "~/helpers/types.ts";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
 import { getTimeZoneFromCoords } from "~/server/serverFunctions.ts";
+import { CoordinatesValidator } from "~/helpers/validators/coordinates.ts";
 
 const userInfo = getUserInfo();
 
@@ -142,7 +143,7 @@ const ContestForm = ({
 
   const updateTimeZone = useCallback(
     debounce(
-      (lat: NumberInputValue, long: NumberInputValue) =>
+      (lat: number, long: number) =>
         startTimeZoneTransition(async () => {
           changeErrorMessages([]);
           const res = await getTimeZoneFromCoords(lat, long);
@@ -442,8 +443,7 @@ const ContestForm = ({
       setOrganizerNames([...newContest.organizers.map((o) => o.name), ""]);
       setDescription(newContest.description);
       setCompetitorLimit(newContest.competitorLimit);
-      changeLatitude(latitude);
-      changeLongitude(longitude);
+      await changeCoordinates(latitude, longitude);
       setDetailsImported(true);
       resetMessagesAndLoadingId();
     } catch (err: any) {
@@ -455,24 +455,20 @@ const ContestForm = ({
     }
   };
 
-  const changeLatitude = (newLatitude: NumberInputValue) => {
-    setLatitude(newLatitude);
+  const changeCoordinates = (
+    newLat: NumberInputValue,
+    newLong: NumberInputValue,
+  ) => {
+    const parsed = CoordinatesValidator.safeParse({
+      latitude: newLat,
+      longitude: newLong,
+    });
 
-    if (
-      typeof newLatitude === "number" && newLatitude >= -90 && newLatitude <= 90
-    ) {
-      updateTimeZone(newLatitude, longitude);
-    }
-  };
+    setLatitude(newLat);
+    setLongitude(newLong);
 
-  const changeLongitude = (newLongitude: NumberInputValue) => {
-    setLongitude(newLongitude);
-
-    if (
-      typeof newLongitude === "number" && newLongitude >= -180 &&
-      newLongitude <= 180
-    ) {
-      updateTimeZone(latitude, newLongitude);
+    if (parsed.success) {
+      updateTimeZone(parsed.data.latitude, parsed.data.longitude);
     }
   };
 
@@ -780,7 +776,7 @@ const ContestForm = ({
                     <FormNumberInput
                       title="Latitude"
                       value={latitude}
-                      setValue={(val) => changeLatitude(val)}
+                      setValue={(val) => changeCoordinates(val, longitude)}
                       disabled={disableIfContestApproved ||
                         disableIfDetailsImported}
                       min={-90}
@@ -791,7 +787,7 @@ const ContestForm = ({
                     <FormNumberInput
                       title="Longitude"
                       value={longitude}
-                      setValue={(val) => changeLongitude(val)}
+                      setValue={(val) => changeCoordinates(latitude, val)}
                       disabled={disableIfContestApproved ||
                         disableIfDetailsImported}
                       min={-180}

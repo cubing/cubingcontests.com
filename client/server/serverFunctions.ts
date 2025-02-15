@@ -3,15 +3,13 @@ import { z } from "zod";
 import { find as findTimezone } from "geo-tz";
 import { FetchObj } from "~/helpers/types.ts";
 import { NumberInputValue } from "~/helpers/types.ts";
+import { CoordinatesValidator } from "~/helpers/validators/coordinates";
 
 export const getTimeZoneFromCoords = async (
   latitude: NumberInputValue,
   longitude: NumberInputValue,
 ): Promise<FetchObj<string>> => {
-  const parsed = z.object({
-    latitude: z.number().gte(-90).lte(90),
-    longitude: z.number().gte(-180).lte(180),
-  }).safeParse({ latitude, longitude });
+  const parsed = CoordinatesValidator.safeParse({ latitude, longitude });
 
   if (!parsed.success) {
     return {
@@ -20,8 +18,11 @@ export const getTimeZoneFromCoords = async (
     };
   }
 
-  return await Promise.resolve({
-    success: true,
-    data: findTimezone(parsed.data.latitude, parsed.data.longitude)[0],
-  });
+  const timeZone = findTimezone(parsed.data.latitude, parsed.data.longitude).at(
+    0,
+  );
+
+  if (!timeZone) return { success: false, errors: ["Time zone not found"] };
+
+  return await Promise.resolve({ success: true, data: timeZone });
 };
