@@ -1,6 +1,7 @@
 import "server-only";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle } from "drizzle-orm/node-postgres";
 
-const db = drizzle(process.env.POSTGRES_URI!);
-
-export default db;
+export const db = drizzle({
+  connection: process.env.POSTGRES_URI!,
+  casing: "snake_case",
+});

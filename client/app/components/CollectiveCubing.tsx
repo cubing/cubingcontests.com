@@ -3,12 +3,8 @@
 import { useContext, useEffect, useState } from "react";
 import { TwistyPlayer } from "cubing/twisty";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import type {
-  FeCollectiveSolution,
-  FetchObj,
-  IMakeMoveDto,
-  NxNMove,
-} from "~/helpers/types.ts";
+import type { FetchObj, IMakeMoveDto, NxNMove } from "~/helpers/types.ts";
+import type { SelectCollectiveSolution } from "~/helpers/dbTypes.ts";
 import { nxnMoves } from "~/helpers/types.ts";
 import { Color } from "~/helpers/enums.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -33,11 +29,11 @@ const addTwistyPlayerElement = (alg = "") => {
   if (containerDiv) containerDiv.appendChild(twistyPlayer);
 };
 
-const getCubeState = (colSol: FeCollectiveSolution): string =>
+const getCubeState = (colSol: SelectCollectiveSolution): string =>
   `${colSol.scramble} z2 ${colSol.solution}`.trim();
 
 type Props = {
-  collectiveSolution: FeCollectiveSolution | null | undefined;
+  collectiveSolution: SelectCollectiveSolution | null | undefined;
 };
 
 const CollectiveCubing = (props: Props) => {
@@ -56,9 +52,10 @@ const CollectiveCubing = (props: Props) => {
   );
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
-  const isSolved = !collectiveSolution || collectiveSolution.state === 20;
+  const isSolved = !collectiveSolution || collectiveSolution.state === "solved";
   const numberOfSolves = collectiveSolution
-    ? collectiveSolution.attemptNumber - (collectiveSolution.state < 20 ? 1 : 0)
+    ? collectiveSolution.attemptNumber -
+      (collectiveSolution.state === "ongoing" ? 1 : 0)
     : 0;
 
   useEffect(() => {
@@ -76,7 +73,7 @@ const CollectiveCubing = (props: Props) => {
     }
   }, []);
 
-  const update = (res: FetchObj<FeCollectiveSolution>) => {
+  const update = (res: FetchObj<SelectCollectiveSolution>) => {
     const newCollectiveSolution = res.success
       ? res.data
       : res.errorData?.collectiveSolution;
@@ -105,9 +102,10 @@ const CollectiveCubing = (props: Props) => {
     document.getElementById("confirm_button")?.focus();
   };
 
-  const confirmMove = async () => {
+  const submitMove = async () => {
     if (collectiveSolution && selectedMove) {
       changeLoadingId("confirm_button");
+
       const makeMoveDto: IMakeMoveDto = {
         move: selectedMove,
         lastSeenSolution: collectiveSolution.solution,
@@ -117,6 +115,7 @@ const CollectiveCubing = (props: Props) => {
         makeMoveDto,
         { loadingId: null },
       );
+
       update(res);
     }
   };
@@ -199,7 +198,7 @@ const CollectiveCubing = (props: Props) => {
                   <div className="my-3 my--md-4">
                     <Button
                       id="confirm_button"
-                      onClick={confirmMove}
+                      onClick={submitMove}
                       disabled={!selectedMove}
                       loadingId={loadingId}
                       className="btn-success w-100"

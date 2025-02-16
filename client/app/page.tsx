@@ -3,10 +3,17 @@ import { C } from "~/helpers/constants.ts";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import { ssrFetch } from "~/helpers/fetchUtils";
+import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import { db } from "~/server/db/provider.ts";
+import { collectiveSolutions } from "~/server/db/schema/collective-solutions.ts";
+import { ne } from "drizzle-orm";
 
 const Home = async () => {
-  const collectiveSolutionResponse = await ssrFetch("/collective-solution");
+  // const collectiveSolutionResponse = await ssrFetch("/collective-solution");
+  const [collectiveSolution] = await db.select().from(collectiveSolutions)
+    .where(ne(collectiveSolutions.state, "archived")).limit(1);
+
+  console.log(collectiveSolution);
 
   return (
     <div className="px-3">
@@ -92,11 +99,14 @@ const Home = async () => {
       <p>For general inquiries, send an email to {C.contactEmail}.</p>
 
       <h3 className="cc-basic-heading">Collective Cubing</h3>
-      <CollectiveCubing
+      {
+        /* <CollectiveCubing
         collectiveSolution={collectiveSolutionResponse.success
           ? collectiveSolutionResponse.data
           : null}
-      />
+      /> */
+      }
+      <CollectiveCubing collectiveSolution={collectiveSolution} />
     </div>
   );
 };

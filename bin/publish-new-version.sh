@@ -1,23 +1,27 @@
 #!/bin/bash
 
-# First make sure there are no lint errors and that the frontend builds successfully
-cd client ; deno lint
-if [ $? -gt 0 ]; then
-  echo -e "\n\nPlease fix all linting errors before publishing a new version"
-  exit
-fi
+# First, make sure there are no lint errors and that the frontend builds successfully
+if [ -z "$1" ] || [ "$1" != "--no-checks" ]; then
+  cd client ; deno lint
 
-deno task build
-if [ $? -gt 0 ]; then
-  echo -e "\n\nPlease make sure the frontend builds successfully before publishing a new version"
-  exit
-fi
+  if [ $? -gt 0 ]; then
+    echo -e "\n\nPlease fix all linting errors before publishing a new version"
+    exit
+  fi
 
-# Check that the tests run successfully
-deno test &&
-cd ../server
-npm run test &&
-cd ..
+  deno task build
+
+  if [ $? -gt 0 ]; then
+    echo -e "\n\nPlease make sure the frontend builds successfully before publishing a new version"
+    exit
+  fi
+
+  # Check that the tests run successfully
+  deno test &&
+  cd ../server
+  npm run test &&
+  cd ..
+fi
 
 git tag | sort -t "." -k1,1n -k2,2n -k3,3n -k4,4n | tail
 echo "Please give the new version tag:"
