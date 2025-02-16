@@ -2,7 +2,7 @@
 import { find as findTimezone } from "geo-tz";
 import { FetchObj } from "~/helpers/types.ts";
 import { NumberInputValue } from "~/helpers/types.ts";
-import { CoordinatesValidator } from "~/helpers/validators/coordinates";
+import { CoordinatesValidator } from "~/helpers/validators/coordinates.ts";
 
 export const getTimeZoneFromCoords = async (
   latitude: NumberInputValue,
