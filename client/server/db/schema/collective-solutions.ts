@@ -16,7 +16,6 @@ export const collectiveSolutionStateEnum = pgEnum("state", [
 ]);
 
 export const collectiveSolutions = table("collective_solutions", {
-  ...timestamps,
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   eventId: varchar({ length: 32 }).notNull(),
   attemptNumber: serial().notNull(),
@@ -25,4 +24,5 @@ export const collectiveSolutions = table("collective_solutions", {
   solution: text().default("").notNull(),
   lastUserWhoInteracted: text().references(() => users.id).notNull(),
   usersWhoMadeMoves: text().references(() => users.id).array().notNull(),
+  ...timestamps,
 });

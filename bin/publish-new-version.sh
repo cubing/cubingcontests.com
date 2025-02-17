@@ -42,7 +42,9 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
   source .env
-  docker build --build-arg NEXT_PUBLIC_API_BASE_URL="$PROD_API_BASE_URL" -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
+  docker build --build-arg NEXT_PUBLIC_BASE_URL="$PROD_BASE_URL" \
+               --build-arg NEXT_PUBLIC_API_BASE_URL="$PROD_BASE_URL/api" \
+               -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$new_version denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$new_version &&
   docker push denimint/cubingcontests-client:latest &&
