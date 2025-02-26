@@ -1,6 +1,9 @@
 * {
   word-wrap: break-word;
   word-break: break-word;
+
+  /* 768px corresponds to Bootstrap's md size */
+  --cc-md-width: 768px;
 }
 
 body[data-bs-theme="dark"] {
@@ -57,7 +60,7 @@ body[data-bs-theme="light"] {
   }
 }
 
-/* Custom class for Bootstrap buttons */
+/* Custom class for Bootstrap buttons. Bootstrap doesn't have this size. */
 .btn-xs {
   --bs-btn-padding-y: 0.2rem !important;
   --bs-btn-padding-x: 0.5rem !important;
@@ -113,8 +116,7 @@ body[data-bs-theme="light"] {
   width: 100%;
 }
 
-/* 768px corresponds to Bootstrap's md size (THIS IS USED IN OTHER PLACES TOO, REPLACE IT WITH A GLOBAL VARIABLE) */
-@media (max-width: 768px) {
+@media (max-width: var(--cc-md-width)) {
   .cc-homepage-link {
     width: 100%;
     max-width: 12rem;

@@ -1,13 +1,16 @@
 "use client";
 
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { Role } from "~/helpers/enums.ts";
 import { IFeUser } from "~/helpers/types.ts";
-import { getRoleLabel, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
+import {
+  getRoleLabel,
+  getSimplifiedString,
+} from "~/helpers/sharedFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
@@ -22,7 +25,8 @@ import FiltersContainer from "~/app/components/FiltersContainer";
 
 const ManageUsersPage = () => {
   const myFetch = useMyFetch();
-  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } =
+    useContext(MainContext);
   const parentRef = useRef<Element>(null);
 
   const [users, setUsers] = useState<IFeUser[]>([]);
@@ -205,17 +209,23 @@ const ManageUsersPage = () => {
                     key={virtualItem.key as React.Key}
                     style={{
                       height: `${virtualItem.size}px`,
-                      transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                      transform: `translateY(${
+                        virtualItem.start - index * virtualItem.size
+                      }px)`,
                     }}
                   >
                     <td>{virtualItem.index + 1}</td>
                     <td>{user.username}</td>
                     <td>{user.email}</td>
                     <td>
-                      {user.person && <Competitor person={user.person} noFlag />}
+                      {user.person && (
+                        <Competitor person={user.person} noFlag />
+                      )}
                     </td>
                     <td>
-                      {user.roles.map((r: Role) => capitalize(getRoleLabel(r)))
+                      {user.roles.map((r: Role) =>
+                        capitalize(getRoleLabel(r))
+                      )
                         .join(", ")}
                     </td>
                     <td>

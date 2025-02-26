@@ -1,3 +1,4 @@
+// import "server-only";
 import {
 	boolean,
 	pgTable as table,
@@ -8,6 +9,7 @@ import {
 export const users = table("users", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
+	username: text("username").notNull(),
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("email_verified").notNull(),
 	image: text("image"),

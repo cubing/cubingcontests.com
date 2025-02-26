@@ -1,15 +1,14 @@
 "use client";
 
 import { useCallback, useContext, useState } from "react";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import FormTextInput from "./FormTextInput.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import { IPerson, IWcaPersonDto } from "~/helpers/types.ts";
 import { C } from "~/helpers/constants.ts";
-import { getUserInfo } from "~/helpers/utilityFunctions.ts";
-import { type InputPerson, UserInfo } from "~/helpers/types.ts";
+import { type InputPerson } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 
 const userInfo: UserInfo = getUserInfo();
@@ -48,24 +47,35 @@ const FormPersonInputs = ({
   const { loadingId, changeLoadingId } = useContext(MainContext);
 
   // The null element represents the option "add new person" and is only an option given to an admin/moderator
-  const defaultMatchedPersons: (IPerson | null)[] = userInfo?.isMod && addNewPersonMode !== "disabled" ? [null] : [];
+  const defaultMatchedPersons: (IPerson | null)[] =
+    userInfo?.isMod && addNewPersonMode !== "disabled" ? [null] : [];
 
-  const [matchedPersons, setMatchedPersons] = useState<(IPerson | null)[]>(defaultMatchedPersons);
+  const [matchedPersons, setMatchedPersons] = useState<(IPerson | null)[]>(
+    defaultMatchedPersons,
+  );
   const [personSelection, setPersonSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
 
   const getMatchedPersons = useCallback(
     debounce(async (value: string) => {
       if (!C.wcaIdRegexLoose.test(value)) {
-        const res = await myFetch.get(`/persons?name=${value}`, { loadingId: null });
+        const res = await myFetch.get(`/persons?name=${value}`, {
+          loadingId: null,
+        });
 
         if (res.success && res.data.length > 0) {
-          const newMatchedPersons = [...res.data.slice(0, MAX_MATCHES), ...defaultMatchedPersons];
+          const newMatchedPersons = [
+            ...res.data.slice(0, MAX_MATCHES),
+            ...defaultMatchedPersons,
+          ];
           setMatchedPersons(newMatchedPersons);
           if (newMatchedPersons.length < personSelection) setPersonSelection(0);
         }
       } else {
-        const res = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, { authorize: true, loadingId: null });
+        const res = await myFetch.get<IWcaPersonDto>(`/persons/${value}`, {
+          authorize: true,
+          loadingId: null,
+        });
 
         if (res.success) setMatchedPersons([res.data.person]);
       }
@@ -97,7 +107,10 @@ const FormPersonInputs = ({
   };
 
   // Returns true if an input was added
-  const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: InputPerson[]): boolean => {
+  const addEmptyInputIfRequired = (
+    newPersonNames: string[],
+    newPersons: InputPerson[],
+  ): boolean => {
     // Add new empty input if there isn't an empty one left
     if (infiniteInputs && !newPersons.some((el) => el === null)) {
       newPersonNames.push("");
@@ -113,7 +126,10 @@ const FormPersonInputs = ({
     else setFocusedInput(null);
 
     // Update person name and reset the person object for that organizer
-    const newPersonNames = personNames.map((name, i) => (i === index ? value : name));
+    const newPersonNames = personNames.map((
+      name,
+      i,
+    ) => (i === index ? value : name));
     // This is done so that setPersons is only called if one of the persons actually had to be reset to null
     let personsUpdated = false;
     const newPersons: InputPerson[] = persons.map((el, i) => {
@@ -124,7 +140,8 @@ const FormPersonInputs = ({
       return el;
     });
 
-    personsUpdated = personsUpdated || addEmptyInputIfRequired(newPersonNames, newPersons);
+    personsUpdated = personsUpdated ||
+      addEmptyInputIfRequired(newPersonNames, newPersons);
 
     setPersonNames(newPersonNames);
     if (personsUpdated) setPersons(newPersons);
@@ -139,7 +156,9 @@ const FormPersonInputs = ({
     // Focus on the first attempt input, if all names have been entered, or the next person input,
     // if all names haven't been entered and the last person input is not currently focused
     if (!newPersons.includes(null)) {
-      if (nextFocusTargetId) document.getElementById(nextFocusTargetId)?.focus();
+      if (nextFocusTargetId) {
+        document.getElementById(nextFocusTargetId)?.focus();
+      }
     } else {
       const emptyInputIndex = newPersons.findIndex((el) => el === null);
       document.getElementById(`${title}_${emptyInputIndex + 1}`)?.focus();
@@ -152,14 +171,24 @@ const FormPersonInputs = ({
       if (userInfo?.isMod) {
         setFocusedInput(null);
 
-        if (addNewPersonMode === "from-new-tab") open("/mod/competitors", "_blank");
-        else if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
-        else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
+        if (addNewPersonMode === "from-new-tab") {
+          open("/mod/competitors", "_blank");
+        } else if (!redirectToOnAddPerson) {
+          window.location.href = "/mod/competitors";
+        } else {window.location.replace(
+            `/mod/competitors?redirect=${redirectToOnAddPerson}`,
+          );}
       }
     } else {
       const newSelectedPerson = matchedPersons[selectionIndex];
-      const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
-      const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
+      const newPersons = persons.map((
+        el,
+        i,
+      ) => (i !== inputIndex ? el : newSelectedPerson));
+      const newPersonNames = personNames.map((
+        el,
+        i,
+      ) => (i !== inputIndex ? el : newSelectedPerson.name));
       setPersons(newPersons);
       setPersonNames(newPersonNames);
       addEmptyInputIfRequired(newPersonNames, newPersons);
@@ -176,7 +205,10 @@ const FormPersonInputs = ({
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
 
-      if (personSelection + 1 <= matchedPersons.length - defaultMatchedPersons.length) {
+      if (
+        personSelection + 1 <=
+          matchedPersons.length - defaultMatchedPersons.length
+      ) {
         setPersonSelection(personSelection + 1);
       } else {
         setPersonSelection(0);
@@ -185,7 +217,9 @@ const FormPersonInputs = ({
       e.preventDefault();
 
       if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
-      else setPersonSelection(matchedPersons.length - defaultMatchedPersons.length);
+      else {setPersonSelection(
+          matchedPersons.length - defaultMatchedPersons.length,
+        );}
     } // Disallow entering certain characters
     else if (/[()_/\\[\]]/.test(e.key)) {
       e.preventDefault();
@@ -197,12 +231,20 @@ const FormPersonInputs = ({
       {personNames.map((personName: string, inputIndex: number) => (
         <div
           key={inputIndex}
-          className={personNames.length > 1 && display === "grid" ? "col-md-6" : ""}
+          className={personNames.length > 1 && display === "grid"
+            ? "col-md-6"
+            : ""}
         >
-          <div className={`position-relative ${display === "one-line" ? "" : "mb-3"}`}>
+          <div
+            className={`position-relative ${
+              display === "one-line" ? "" : "mb-3"
+            }`}
+          >
             <FormTextInput
               id={`${title}_${inputIndex + 1}`}
-              title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
+              title={personNames.length > 1
+                ? `${title} ${inputIndex + 1}`
+                : title}
               tooltip={inputIndex === 0 ? personInputTooltip : undefined}
               value={personName}
               setValue={(val: string) => changePersonName(inputIndex, val)}
@@ -214,8 +256,13 @@ const FormPersonInputs = ({
             />
             {inputIndex === focusedInput && personName && (
               <ul
-                className={`position-absolute list-group mt-3 ${display === "one-line" ? "end-0" : ""}`}
-                style={{ zIndex: 10, minWidth: display === "one-line" ? "initial" : "100%" }}
+                className={`position-absolute list-group mt-3 ${
+                  display === "one-line" ? "end-0" : ""
+                }`}
+                style={{
+                  zIndex: 10,
+                  minWidth: display === "one-line" ? "initial" : "100%",
+                }}
               >
                 {loadingId === "MATCHED_PERSONS"
                   ? (
@@ -227,16 +274,28 @@ const FormPersonInputs = ({
                   )
                   : matchedPersons.length > 0
                   ? (
-                    matchedPersons.map((person: IPerson | null, matchIndex: number) => (
+                    matchedPersons.map((
+                      person: IPerson | null,
+                      matchIndex: number,
+                    ) => (
                       <li
                         key={matchIndex}
-                        className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}
+                        className={"list-group-item" +
+                          (matchIndex === personSelection ? " active" : "")}
                         style={{ cursor: "pointer" }}
                         aria-current={matchIndex === personSelection}
                         onMouseEnter={() => setPersonSelection(matchIndex)}
                         onMouseDown={() => selectPerson(inputIndex, matchIndex)}
                       >
-                        {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
+                        {person !== null
+                          ? (
+                            <Competitor
+                              person={person}
+                              showLocalizedName
+                              noLink
+                            />
+                          )
+                          : "(add new person)"}
                       </li>
                     ))
                   )

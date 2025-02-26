@@ -6,7 +6,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { IFeResult, IRecordType } from "~/helpers/types.ts";
-import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
+import {
+  getFormattedDate,
+  shortenEventName,
+} from "~/helpers/utilityFunctions.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
@@ -27,7 +30,8 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
 
   const filteredResults = useMemo(() =>
     results.filter((r) => {
-      const passesCompetitorFilter = !persons[0] || r.personIds.includes(persons[0].personId);
+      const passesCompetitorFilter = !persons[0] ||
+        r.personIds.includes(persons[0].personId);
       return passesCompetitorFilter;
     }), [results, persons]);
 
@@ -79,7 +83,11 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
         <b>{filteredResults.filter((r: IFeResult) => r.unapproved).length}</b>
       </p>
 
-      <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "700px" }}>
+      <div
+        ref={parentRef as any}
+        className="mt-3 table-responsive overflow-y-auto"
+        style={{ height: "700px" }}
+      >
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
             <thead>
@@ -104,16 +112,22 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                     key={virtualItem.key as React.Key}
                     style={{
                       height: `${virtualItem.size}px`,
-                      transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                      transform: `translateY(${
+                        virtualItem.start - index * virtualItem.size
+                      }px)`,
                     }}
                   >
                     <td>
-                      {result.event ? shortenEventName(result.event.name) : "EVENT NOT FOUND"}
+                      {result.event
+                        ? shortenEventName(result.event.name)
+                        : "EVENT NOT FOUND"}
                     </td>
                     <td>
-                      {result.persons.length > 0 ? <Competitors persons={result.persons} vertical /> : (
-                        "COMPETITOR NOT FOUND"
-                      )}
+                      {result.persons.length > 0
+                        ? <Competitors persons={result.persons} vertical />
+                        : (
+                          "COMPETITOR NOT FOUND"
+                        )}
                     </td>
                     <td>
                       <Time

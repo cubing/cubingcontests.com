@@ -1,52 +1,55 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext, useState, useTransition } from "react";
 import Link from "next/link";
-import { useMyFetch } from "~/helpers/customHooks.ts";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { authClient } from "~/helpers/authClient.ts";
-import { useRouter } from "next/navigation";
+import { RegistrationFormValidator } from "~/helpers/validators/Auth";
+import { getFormattedValidationErrors } from "~/helpers/utilityFunctions";
 
 const RegisterPage = () => {
-  // const myFetch = useMyFetch();
-  const router = useRouter();
-  const { changeLoadingId, changeErrorMessages } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = async () => {
-    // REPLACE ALL OF THIS WITH A ZOD VALIDATOR
-    const tempErrors: string[] = [];
+  const [isPending, startTransition] = useTransition();
 
-    if (!username) tempErrors.push("Please enter a username");
-    if (!email) tempErrors.push("Please enter an email address");
-    if (!password) tempErrors.push("Please enter a password");
-    else if (!passwordRepeat) tempErrors.push("Please confirm your password");
-    else if (passwordRepeat !== password) {
-      tempErrors.push("The entered passwords do not match");
-    }
+  const handleSubmit = () => {
+    const parsed = RegistrationFormValidator.safeParse({
+      username,
+      email,
+      password,
+      passwordRepeat,
+    });
 
-    if (tempErrors.length > 0) {
-      changeErrorMessages(tempErrors);
+    if (!parsed.success) {
+      changeErrorMessages(getFormattedValidationErrors(parsed.error));
     } else {
-      changeLoadingId("form_submit_button");
-      const { data, error } = await authClient.signUp.email({
-        email,
-        password,
-        name: username,
-      });
+      startTransition(async () => {
+        const { error } = await authClient.signUp.email({
+          username: parsed.data.username,
+          email: parsed.data.email,
+          password: parsed.data.password,
+          name: "", // this field is not used for now
+          callbackURL: `/login?email=${email}`, // same as on the link-expired page
+        });
 
-      if (error) {
-        changeErrorMessages([error.message ?? error.statusText]);
-      } else {
-        console.log(data); // TEMPORARY
-        router.push(`/register/confirm-email?username=${username}`);
-      }
+        if (error) {
+          changeErrorMessages([error.message ?? error.statusText]);
+        } else {
+          changeSuccessMessage(
+            "A verification link has been sent to your email. Please click the link in the email to finish your registration.",
+          );
+          setIsSubmitted(true);
+          await authClient.signOut();
+        }
+      });
     }
   };
 
@@ -54,7 +57,12 @@ const RegisterPage = () => {
     <div>
       <h2 className="mb-4 text-center">Register</h2>
 
-      <Form buttonText="Register" onSubmit={handleSubmit}>
+      <Form
+        buttonText="Register"
+        onSubmit={handleSubmit}
+        isLoading={isPending}
+        disableControls={isSubmitted}
+      >
         <FormTextInput
           title="Username"
           value={username}
@@ -92,7 +100,7 @@ const RegisterPage = () => {
 
       <div
         className="container mt-4 mx-auto px-3 fs-5"
-        style={{ maxWidth: "768px" }}
+        style={{ maxWidth: "var(--cc-md-width)" }}
       >
         <Link href="/login">Log in</Link>
       </div>

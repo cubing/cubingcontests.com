@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import RankingsTable from "~/app/components/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
@@ -11,7 +11,8 @@ import DonateAlert from "~/app/components/DonateAlert.tsx";
 // SEO
 export const metadata = {
   title: "Rankings | Cubing Contests",
-  description: "Rankings for unofficial Rubik's Cube competitions and speedcuber meetups.",
+  description:
+    "Rankings for unofficial Rubik's Cube competitions and speedcuber meetups.",
   keywords:
     "rankings rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: "/favicon.png" },
@@ -36,7 +37,9 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
     revalidate: C.rankingsRev,
   });
 
-  const currEvent = eventsResponse.success ? eventsResponse.data.find((e) => e.eventId === eventId) : undefined;
+  const currEvent = eventsResponse.success
+    ? eventsResponse.data.find((e) => e.eventId === eventId)
+    : undefined;
 
   if (!eventRankingsResponse.success || !eventsResponse.success || !currEvent) {
     return <p className="mt-5 text-center fs-4">Event not found</p>;
@@ -65,7 +68,9 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
               aria-label="Type"
             >
               <Link
-                href={`/rankings/${eventId}/single${show ? "?show=results" : ""}`}
+                href={`/rankings/${eventId}/single${
+                  show ? "?show=results" : ""
+                }`}
                 prefetch={false}
                 className={"btn btn-primary" +
                   (singleOrAvg === "single" ? " active" : "")}
@@ -73,12 +78,16 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
                 Single
               </Link>
               <Link
-                href={`/rankings/${eventId}/average${show ? "?show=results" : ""}`}
+                href={`/rankings/${eventId}/average${
+                  show ? "?show=results" : ""
+                }`}
                 prefetch={false}
                 className={"btn btn-primary" +
                   (singleOrAvg === "average" ? " active" : "")}
               >
-                {currEvent.defaultRoundFormat === RoundFormat.Average ? "Average" : "Mean"}
+                {currEvent.defaultRoundFormat === RoundFormat.Average
+                  ? "Average"
+                  : "Mean"}
               </Link>
             </div>
           </div>
@@ -108,7 +117,9 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
           </div>
         </div>
 
-        {currEvent.groups.some((g) => [EventGroup.SubmissionsAllowed, EventGroup.ExtremeBLD].includes(g)) && (
+        {currEvent.groups.some((g) =>
+          [EventGroup.SubmissionsAllowed, EventGroup.ExtremeBLD].includes(g)
+        ) && (
           <Link
             href={`/user/submit-results?eventId=${eventId}`}
             className="btn btn-success btn-sm"

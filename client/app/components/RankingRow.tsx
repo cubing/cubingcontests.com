@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import Country from "~/app/components/Country.tsx";

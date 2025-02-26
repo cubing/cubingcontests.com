@@ -1,4 +1,4 @@
-import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import type { IContestData, IProceed } from "~/helpers/types.ts";

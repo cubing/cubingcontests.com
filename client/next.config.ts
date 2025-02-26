@@ -1,6 +1,8 @@
 import { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  serverExternalPackages: ["cubing"],
   redirects() {
     return Promise.resolve([
       {

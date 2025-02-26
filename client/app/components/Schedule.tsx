@@ -43,8 +43,12 @@ const Schedule = ({
       ...room.activities.map((activity) => ({
         ...activity,
         room,
-        startTime: typeof activity.startTime === "string" ? new Date(activity.startTime) : activity.startTime,
-        endTime: typeof activity.endTime === "string" ? new Date(activity.endTime) : activity.endTime,
+        startTime: typeof activity.startTime === "string"
+          ? new Date(activity.startTime)
+          : activity.startTime,
+        endTime: typeof activity.endTime === "string"
+          ? new Date(activity.endTime)
+          : activity.endTime,
       })),
     );
   }
@@ -71,19 +75,26 @@ const Schedule = ({
         timeZone,
         "HH:mm",
       ),
-      formattedEndTime: (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, "dd MMM")} ` : "") +
+      formattedEndTime: (isMultiDayActivity
+        ? `${formatInTimeZone(activity.endTime, timeZone, "dd MMM")} `
+        : "") +
         formatInTimeZone(activity.endTime, timeZone, "HH:mm"),
       isEditable: true,
     };
 
     if (!getIsOtherActivity(activity.activityCode)) {
       dayActivity.contestEvent = contestEvents.find(
-        (ce) => ce.event.eventId === dayActivity.activityCode.split("-")[0],
+        (ce) =>
+          ce.event.eventId === dayActivity.activityCode.split("-")[0],
       );
       if (dayActivity.contestEvent) {
-        dayActivity.round = dayActivity.contestEvent.rounds.find((r) => r.roundId === dayActivity.activityCode);
+        dayActivity.round = dayActivity.contestEvent.rounds.find((r) =>
+          r.roundId === dayActivity.activityCode
+        );
         if (dayActivity.round) {
-          dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === dayActivity.round?.format)?.label;
+          dayActivity.roundFormatLabel = roundFormats.find((rf) =>
+            rf.value === dayActivity.round?.format
+          )?.label;
         } else {
           dayActivity.isEditable = false;
         }
@@ -118,7 +129,9 @@ const Schedule = ({
                         <th scope="col">Activity</th>
                         <th scope="col">Room</th>
                         <th scope="col">Format</th>
-                        {(onEditActivity || onDeleteActivity) && <th scope="col">Actions</th>}
+                        {(onEditActivity || onDeleteActivity) && (
+                          <th scope="col">Actions</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -187,7 +200,8 @@ const Schedule = ({
                                 )}
                                 {onDeleteActivity && (
                                   <Button
-                                    onClick={() => onDeleteActivity(a.room.id, a.id)}
+                                    onClick={() =>
+                                      onDeleteActivity(a.room.id, a.id)}
                                     className="btn-danger btn-xs"
                                     ariaLabel="Delete"
                                   >

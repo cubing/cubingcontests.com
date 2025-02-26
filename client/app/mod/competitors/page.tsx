@@ -4,7 +4,12 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faPencil,
+  faTrash,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { IFePerson, ListPageMode } from "~/helpers/types.ts";
 import { getUserInfo } from "~/helpers/utilityFunctions.ts";
@@ -27,7 +32,8 @@ const userInfo: UserInfo = getUserInfo();
 const CreatePersonPage = () => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeSuccessMessage, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const { changeSuccessMessage, loadingId, resetMessagesAndLoadingId } =
+    useContext(MainContext);
   const parentRef = useRef<Element>(null);
   const [mode, setMode] = useState<ListPageMode | "add-once">(
     searchParams.get("redirect") ? "add-once" : "view",
@@ -43,7 +49,8 @@ const CreatePersonPage = () => {
     const simplifiedSearch = getSimplifiedString(search);
 
     return persons.filter((p: IFePerson) => {
-      const passesNameFilter = getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
+      const passesNameFilter =
+        getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
         (p.localizedName &&
           getSimplifiedString(p.localizedName).includes(simplifiedSearch)) || // search by localized name
         p.personId.toString() === simplifiedSearch || // search by person ID
@@ -100,7 +107,9 @@ const CreatePersonPage = () => {
 
     if (res.success) {
       setPersons(
-        persons.filter((p: IFePerson) => (p as any)._id !== (person as any)._id),
+        persons.filter((p: IFePerson) =>
+          (p as any)._id !== (person as any)._id
+        ),
       );
       changeSuccessMessage(
         `Successfully deleted ${person.name} (CC ID: ${person.personId})`,
@@ -120,7 +129,10 @@ const CreatePersonPage = () => {
       setPersons(
         persons.map((
           p: IFePerson,
-        ) => (p.personId === person.personId ? { ...res.data, creator: p.creator } : p)),
+        ) => (p.personId === person.personId
+          ? { ...res.data, creator: p.creator }
+          : p)
+        ),
       );
       changeSuccessMessage(
         `Successfully approved ${person.name} (CC ID: ${person.personId})`,
@@ -135,7 +147,10 @@ const CreatePersonPage = () => {
       setPersons(
         persons.map((
           p: IFePerson,
-        ) => (p.personId === person.personId ? { ...person, creator: p.creator } : p)),
+        ) => (p.personId === person.personId
+          ? { ...person, creator: p.creator }
+          : p)
+        ),
       );
       setMode("view");
     }
@@ -172,7 +187,9 @@ const CreatePersonPage = () => {
               value={search}
               setValue={setSearch}
               tooltip={"Search by name, localized name, or CC ID" +
-                (userInfo?.isAdmin ? ". Admins can also search by the username of the creator." : "")}
+                (userInfo?.isAdmin
+                  ? ". Admins can also search by the username of the creator."
+                  : "")}
               oneLine
             />
             <FormSelect
@@ -219,7 +236,9 @@ const CreatePersonPage = () => {
                           key={virtualItem.key as React.Key}
                           style={{
                             height: `${virtualItem.size}px`,
-                            transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                            transform: `translateY(${
+                              virtualItem.start - index * virtualItem.size
+                            }px)`,
                           }}
                         >
                           <td>{person.personId}</td>

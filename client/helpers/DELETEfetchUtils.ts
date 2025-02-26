@@ -1,4 +1,4 @@
-import { FetchObj, HttpMethod } from "~/helpers/types.ts";
+import { FetchErrorObj, FetchObj, HttpMethod } from "~/helpers/types.ts";
 
 // Server-side one won't be available client-side or in development
 const apiBaseUrl = process.env.SERVER_SIDE_API_BASE_URL ??
@@ -36,7 +36,10 @@ export const doFetch = async <T = any>(
       options.body = JSON.stringify(body);
     } else {
       console.error("Body cannot be empty");
-      return { success: false, errors: ["Body cannot be empty"] };
+      return {
+        success: false,
+        error: [{ code: "BAD_REQUEST", message: "Body cannot be empty" }],
+      };
     }
   } else if (method !== "DELETE") {
     throw new Error(`Not implemented HTTP method: ${method}`);
@@ -53,7 +56,7 @@ export const doFetch = async <T = any>(
     } else {
       if (!redirect) window.location.href = "/login";
       else window.location.href = `/login?redirect=${redirect}`;
-      return { success: false, errors: ["Unauthorized"] };
+      return { success: false, error: [{ code: "Unauthorized" }] };
     }
   }
 
@@ -66,7 +69,7 @@ export const doFetch = async <T = any>(
     console.error(err);
     return {
       success: false,
-      errors: [err?.message || `Unknown error while fetching from ${url}`],
+      error: [err?.message || `Unknown error while fetching from ${url}`],
     };
   }
 
@@ -82,7 +85,7 @@ export const doFetch = async <T = any>(
         console.error(err);
         return {
           success: false,
-          errors: [err?.message || "Unknown error while parsing JSON"],
+          error: [err?.message || "Unknown error while parsing JSON"],
         };
       }
     } else if (url.slice(url.length - 5) === ".json") {
@@ -99,25 +102,25 @@ export const doFetch = async <T = any>(
     if ([401, 403].includes(res.status)) {
       if (!redirect) window.location.href = "/login";
       else window.location.replace(`/login?redirect=${redirect}`);
-      return { success: false, errors: ["Unauthorized"] };
+      return { success: false, error: [{ code: "UNAUTHORIZED" }] };
     } else {
-      let errors: string[];
-      let errorData: any;
+      let errors: FetchErrorObj[];
+      let data: any;
 
       if (json?.message) {
         // Sometimes the server returns the message as a single string and sometimes as an array of messages
-        if (typeof json.message === "string") errors = [json.message];
-        else errors = json.message;
-
-        errors = errors.filter((err) => err.trim() !== "");
-        errorData = json.data;
+        // THIS IS NOT RIGHT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if (typeof json.message === "string") errors = [json];
+        else errors = json;
+        // errors = errors.filter((err) => err.trim() !== "");
+        data = json.data;
       } else if (res.status === 404 || is404) {
-        errors = [`Not found: ${url}`];
+        errors = [{ code: "NOT_FOUND", message: `Not found: ${url}` }];
       } else {
-        errors = ["Unknown error"];
+        errors = [{ code: "Unknown error" }];
       }
 
-      return { success: false, errors, errorData };
+      return { success: false, error: errors };
     }
   } else if (!fileName && json) {
     return { success: true, data: json };

@@ -3,7 +3,7 @@
 import { useCallback, useContext, useState, useTransition } from "react";
 import { addHours } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
 import {
   type Event,
@@ -25,7 +25,6 @@ import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import {
   getContestIdFromName,
   getTimeLimit,
-  getUserInfo,
 } from "~/helpers/utilityFunctions.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -47,9 +46,8 @@ import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.
 import type { InputPerson } from "~/helpers/types.ts";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
 import { getTimeZoneFromCoords } from "~/server/serverFunctions.ts";
-import { CoordinatesValidator } from "~/helpers/validators/coordinates.ts";
-
-const userInfo = getUserInfo();
+import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
+import { authClient } from "~/helpers/authClient.ts";
 
 const ContestForm = ({
   events,
@@ -63,6 +61,7 @@ const ContestForm = ({
   creator?: IFeUser;
 }) => {
   const myFetch = useMyFetch();
+  const { data: session } = authClient.useSession();
   const fetchWcaCompDetails = useFetchWcaCompDetails();
   const {
     changeErrorMessages,
@@ -146,10 +145,13 @@ const ContestForm = ({
       (lat: number, long: number) =>
         startTimeZoneTransition(async () => {
           changeErrorMessages([]);
-          const res = await getTimeZoneFromCoords(lat, long);
+          const res = await getTimeZoneFromCoords({
+            latitude: lat,
+            longitude: long,
+          });
 
           if (!res.success) {
-            changeErrorMessages(res.errors);
+            changeErrorMessages([res.error.message!]);
           } else {
             // Adjust times
             if (type === ContestType.Meetup) {
@@ -322,7 +324,7 @@ const ContestForm = ({
           )
           : await myFetch.post("/competitions", newComp, { loadingId: null });
 
-        if (!res.success) changeErrorMessages(res.errors);
+        if (!res.success) changeErrorMessages(res.error);
         else window.location.href = "/mod";
       }
     } else {
@@ -560,7 +562,7 @@ const ContestForm = ({
       <Form
         buttonText={mode === "edit" ? "Save Contest" : "Create Contest"}
         onSubmit={handleSubmit}
-        disableButton={disableIfContestPublished}
+        disableControls={disableIfContestPublished}
       >
         {mode === "edit" && creator && <CreatorDetails creator={creator} />}
 

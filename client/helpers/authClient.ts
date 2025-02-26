@@ -1,5 +1,14 @@
 import { createAuthClient } from "better-auth/react";
+import {
+  inferAdditionalFields,
+  usernameClient,
+} from "better-auth/client/plugins";
+import { auth } from "~/server/auth.ts";
 
 export const authClient = createAuthClient({
-  baseURL: `${process.env.NEXT_PUBLIC_BASE_URL}/api2/auth`, // the route is the same as in auth.ts
+  plugins: [
+    usernameClient(),
+  ],
 });
+
+inferAdditionalFields<typeof auth>();

@@ -4,11 +4,18 @@ import { useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
-import { FeEvent, ListPageMode, type NumberInputValue } from "~/helpers/types.ts";
+import {
+  FeEvent,
+  ListPageMode,
+  type NumberInputValue,
+} from "~/helpers/types.ts";
 import { EventFormat, EventGroup, RoundFormat } from "~/helpers/enums.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
-import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
+import {
+  eventCategoryOptions,
+  eventFormatOptions,
+} from "~/helpers/multipleChoiceOptions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Form from "~/app/components/form/Form.tsx";
@@ -109,7 +116,9 @@ const CreateEditEventPage = () => {
     setDefaultRoundFormat(event.defaultRoundFormat);
     setParticipants(event.participants);
     setCategory(
-      event.groups.find((g: EventGroup) => eventCategories.some((ec) => ec.group === g)) as EventGroup,
+      event.groups.find((g: EventGroup) =>
+        eventCategories.some((ec) => ec.group === g)
+      ) as EventGroup,
     );
     setSubmissionsAllowed(event.groups.includes(EventGroup.SubmissionsAllowed));
     setRemovedWCA(event.groups.includes(EventGroup.RemovedWCA));
@@ -292,17 +301,23 @@ const CreateEditEventPage = () => {
                 </td>
                 <td>{event.eventId}</td>
                 <td
-                  className={events.some((e: FeEvent) => e.eventId !== event.eventId && e.rank === event.rank)
+                  className={events.some((e: FeEvent) =>
+                      e.eventId !== event.eventId && e.rank === event.rank
+                    )
                     ? "text-danger fw-bold"
                     : ""}
                 >
                   {event.rank}
                 </td>
                 <td>
-                  {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}
+                  {roundFormats.find((rf) =>
+                    rf.value === event.defaultRoundFormat
+                  )?.shortLabel}
                 </td>
                 <td>
-                  {eventCategories.find((ec) => event.groups.includes(ec.group))
+                  {eventCategories.find((ec) =>
+                    event.groups.includes(ec.group)
+                  )
                     ?.title}
                 </td>
                 {/* <td>{event.groups}</td> */}

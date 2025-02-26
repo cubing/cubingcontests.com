@@ -148,7 +148,7 @@ const DataEntryScreen = ({
         resultDto,
         { loadingId: "submit_attempt_button" },
       );
-      if (!res.success) errors = res.errors;
+      if (!res.success) errors = res.error;
       else updatedRound = res.data;
     } else {
       const updateResultDto: IUpdateResultDto = {
@@ -161,7 +161,7 @@ const DataEntryScreen = ({
         { loadingId: "submit_attempt_button" },
       );
       if (!res.success) {
-        errors = res.errors;
+        errors = res.error;
       } else {
         setResultUnderEdit(null);
         updatedRound = res.data;
@@ -247,7 +247,7 @@ const DataEntryScreen = ({
         { authorize: true, loadingId: null },
       );
 
-      if (!res.success) changeErrorMessages(res.errors);
+      if (!res.success) changeErrorMessages(res.error);
       else setRecordPairsByEvent(res.data);
     }
   };

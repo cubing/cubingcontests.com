@@ -18,17 +18,9 @@ cd ..
 # Copy environment variables to Next JS project
 cp .env client/.env.local
 
-# This stuff is temporary. It can be removed when the migration away from Nest JS is done.
-./bin/copy-helpers-to-server.sh
-cd server
-npm install
-cd ..
-cp .env server/.env.dev
-
-# Start the frontent (c), legacy backend (s), database (d), and Drizzle Studio (ds)
-deno run -A npm:concurrently -kc blue,red,green,yellow -n c,s,d,ds \
+# Start the frontent (c), database (d), and Drizzle Studio (ds)
+deno run -A npm:concurrently -kc blue,green,yellow -n c,d,ds \
   "cd client && deno task dev" \
-  "cd server && npm run dev" \
   "docker compose up" \
   "cd client && npx drizzle-kit studio"
 

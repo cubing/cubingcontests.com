@@ -1,3 +1,5 @@
+import { users } from "~/server/db/schema/auth-schema.ts";
+
 // Interfaces
 export type {
   ICompetitionDetails,
@@ -53,19 +55,17 @@ export type { IFeUser, IPartialUser, IUser } from "./interfaces/User.ts";
 
 // Types
 export type { Event, FeEvent } from "./types/Event.ts";
-export type {
-  CollectiveSolution,
-  FeCollectiveSolution,
-  IMakeMoveDto,
-} from "./types/CollectiveSolution.ts";
 export type { NxNMove } from "./types/NxNMove.ts";
-export { nxnMoves } from "./types/NxNMove.ts";
 export type { InputPerson } from "./types/InputPerson.ts";
 export type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
-export type { UserInfo } from "./types/UserInfo.ts";
 export type { EventCategory } from "./types/EventCategory.ts";
-export type { FetchObj } from "./types/FetchObj.ts";
-export type { HttpMethod } from "./types/HttpMethod.ts";
+export type {
+  FetchError,
+  FetchErrorObj,
+  FetchObj,
+  FetchSuccess,
+} from "./types/FetchObj.ts";
+export type { HttpMethod } from "./types/DELETEHttpMethod.ts";
 
 // WCIF types
 export type {

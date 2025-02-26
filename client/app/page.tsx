@@ -3,17 +3,12 @@ import { C } from "~/helpers/constants.ts";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import { ssrFetch } from "~/helpers/fetchUtils.ts";
-import { db } from "~/server/db/provider.ts";
-import { collectiveSolutions } from "~/server/db/schema/collective-solutions.ts";
-import { ne } from "drizzle-orm";
+import { Suspense } from "react";
+import Loading from "~/app/components/UI/Loading";
+import { getCurrentCollectiveCubingSolution } from "~/server/serverFunctions";
 
 const Home = async () => {
-  // const collectiveSolutionResponse = await ssrFetch("/collective-solution");
-  const [collectiveSolution] = await db.select().from(collectiveSolutions)
-    .where(ne(collectiveSolutions.state, "archived")).limit(1);
-
-  console.log(collectiveSolution);
+  const res = await getCurrentCollectiveCubingSolution();
 
   return (
     <div className="px-3">
@@ -47,21 +42,21 @@ const Home = async () => {
           prefetch={false}
           className="cc-homepage-link btn btn-primary"
         >
-          See all contests
+          See All Contests
         </Link>
         <Link
           href="/records"
           prefetch={false}
           className="cc-homepage-link btn btn-primary"
         >
-          See current records
+          See Current Records
         </Link>
         <Link
           href="/rankings"
           prefetch={false}
           className="cc-homepage-link btn btn-primary"
         >
-          See rankings
+          See Rankings
         </Link>
       </div>
 
@@ -82,7 +77,7 @@ const Home = async () => {
         competition.
       </div>
       <Link href="/moderator-instructions" className="btn btn-secondary mt-4">
-        Moderator instructions
+        Moderator Instructions
       </Link>
 
       <h3 className="cc-basic-heading">Supporting the project</h3>
@@ -99,14 +94,10 @@ const Home = async () => {
       <p>For general inquiries, send an email to {C.contactEmail}.</p>
 
       <h3 className="cc-basic-heading">Collective Cubing</h3>
-      {
-        /* <CollectiveCubing
-        collectiveSolution={collectiveSolutionResponse.success
-          ? collectiveSolutionResponse.data
-          : null}
-      /> */
-      }
-      <CollectiveCubing collectiveSolution={collectiveSolution} />
+
+      <Suspense fallback={<Loading small />}>
+        <CollectiveCubing collectiveSolutionResponse={res} />
+      </Suspense>
     </div>
   );
 };

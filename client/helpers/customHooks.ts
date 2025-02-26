@@ -1,8 +1,13 @@
 "use client";
 
 import { useContext } from "react";
-import { doFetch } from "~/helpers/fetchUtils.ts";
-import { IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "~/helpers/types.ts";
+import { doFetch } from "~/helpers/DELETEfetchUtils";
+import {
+  IContestDto,
+  IPerson,
+  IPersonDto,
+  IWcaPersonDto,
+} from "~/helpers/types.ts";
 import { ContestType } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -25,7 +30,7 @@ export const useMyFetch = () => {
   } = useContext(MainContext);
 
   const reset = (response: FetchObj, keepLoadingOnSuccess: boolean) => {
-    if (!response.success) changeErrorMessages(response.errors);
+    if (!response.success) changeErrorMessages(response.error);
     else if (keepLoadingOnSuccess) resetMessages();
     else resetMessagesAndLoadingId();
   };
@@ -56,7 +61,8 @@ export const useMyFetch = () => {
     async post<T = any>(
       url: string,
       body: unknown,
-      { authorize = true, loadingId, keepLoadingOnSuccess = false }: FetchOptions = { authorize: true },
+      { authorize = true, loadingId, keepLoadingOnSuccess = false }:
+        FetchOptions = { authorize: true },
     ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || "_");
       const response = await doFetch<T>(url, "POST", { body, authorize });
@@ -105,7 +111,7 @@ export const useFetchWcaCompDetails = () => {
       { loadingId: null },
     );
 
-    if (!wcaCompResponse.success) throw new Error(wcaCompResponse.errors[0]);
+    if (!wcaCompResponse.success) throw new Error(wcaCompResponse.error[0]);
 
     // This is for getting the competitor limit, organizer WCA IDs, and delegate WCA IDs
     const wcaV0CompResponse = await myFetch.get(
@@ -114,7 +120,7 @@ export const useFetchWcaCompDetails = () => {
     );
 
     if (!wcaV0CompResponse.success) {
-      throw new Error(wcaV0CompResponse.errors[0]);
+      throw new Error(wcaV0CompResponse.error[0]);
     }
 
     // Sometimes the competitor limit does not exist
@@ -171,7 +177,9 @@ export const useFetchWcaCompDetails = () => {
 
     if (notFoundPersonNames.length > 0) {
       throw new Error(
-        `Organizers with these names were not found: ${notFoundPersonNames.join(", ")}`,
+        `Organizers with these names were not found: ${
+          notFoundPersonNames.join(", ")
+        }`,
       );
     }
 
@@ -192,7 +200,7 @@ export const useFetchPerson = () => {
         `/persons/${wcaId}`,
         { authorize: true, loadingId: null },
       );
-      if (!res.success) throw new Error(res.errors[0]);
+      if (!res.success) throw new Error(res.error[0]);
       return res.data.person;
     }
 
@@ -233,7 +241,7 @@ export const useFetchPerson = () => {
       const res = await myFetch.post("/persons/no-wcaid", newPerson, {
         loadingId: null,
       });
-      if (!res.success) throw new Error(res.errors[0]);
+      if (!res.success) throw new Error(res.error[0]);
       if (res.data) return res.data;
     }
 

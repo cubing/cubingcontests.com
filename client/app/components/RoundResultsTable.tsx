@@ -4,7 +4,14 @@ import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { Event, IPerson, IRecordType, IResult, IRound, type IRoundFormat } from "~/helpers/types.ts";
+import {
+  Event,
+  IPerson,
+  IRecordType,
+  IResult,
+  IRound,
+  type IRoundFormat,
+} from "~/helpers/types.ts";
 import { RoundFormat, RoundType } from "~/helpers/enums.ts";
 import { getIsProceedableResult } from "~/helpers/sharedFunctions.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
@@ -31,7 +38,9 @@ const RoundResultsTable = ({
   loadingId,
   disableEditAndDelete,
 }: Props) => {
-  const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
+  const roundFormat = roundFormats.find((rf) =>
+    rf.value === round.format
+  ) as IRoundFormat;
   const roundCanHaveAverage = roundFormat.attempts >= 3;
   let lastRanking = 0;
 
@@ -80,7 +89,9 @@ const RoundResultsTable = ({
                 <td>
                   <div className="d-flex flex-wrap gap-2">
                     {result.personIds.map((personId, i) => {
-                      const person = persons.find((p: IPerson) => p.personId === personId);
+                      const person = persons.find((p: IPerson) =>
+                        p.personId === personId
+                      );
                       if (!person) {
                         return <span key={personId}>(name not found)</span>;
                       }

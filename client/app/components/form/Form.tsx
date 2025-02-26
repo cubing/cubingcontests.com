@@ -1,7 +1,5 @@
 "use client";
 
-import { useContext } from "react";
-import { MainContext } from "~/helpers/contexts.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 
@@ -9,9 +7,10 @@ type Props = {
   children: React.ReactNode;
   buttonText?: string;
   hideToasts?: boolean;
-  hideButton?: boolean;
-  disableButton?: boolean;
+  hideControls?: boolean;
+  disableControls?: boolean;
   showCancelButton?: boolean;
+  isLoading?: boolean;
   onSubmit?: () => void;
   onCancel?: () => void;
 };
@@ -20,22 +19,31 @@ const Form = ({
   children,
   buttonText = "Submit",
   hideToasts,
-  hideButton,
-  disableButton,
+  hideControls,
+  disableControls,
   showCancelButton,
+  isLoading,
   onSubmit,
   onCancel,
 }: Props) => {
-  const showSubmitButton = !hideButton && buttonText;
-  if (showSubmitButton && !onSubmit) throw new Error("onSubmit cannot be undefined unless the submit button is hidden");
-  if (showCancelButton && !onCancel) throw new Error("onCancel cannot be undefined unless the cancel button is hidden");
+  const showSubmitButton = !hideControls && buttonText;
+  if (showSubmitButton && !onSubmit) {
+    throw new Error(
+      "onSubmit cannot be undefined unless the submit button is hidden",
+    );
+  }
+  if (showCancelButton && !onCancel) {
+    throw new Error(
+      "onCancel cannot be undefined unless the cancel button is hidden",
+    );
+  }
 
-  const { loadingId } = useContext(MainContext);
+  const controlsDisabled = disableControls || isLoading;
 
   return (
     <form
       className="container my-4 mx-auto px-3 fs-5"
-      style={{ maxWidth: "768px" }}
+      style={{ maxWidth: "var(--cc-md-width)" }}
       onSubmit={(e) => e.preventDefault()}
     >
       {!hideToasts && <ToastMessages />}
@@ -49,8 +57,8 @@ const Form = ({
               id="form_submit_button"
               type="submit"
               onClick={onSubmit}
-              loadingId={loadingId}
-              disabled={disableButton}
+              disabled={controlsDisabled}
+              isLoading={isLoading}
             >
               {buttonText}
             </Button>
@@ -59,8 +67,7 @@ const Form = ({
             <Button
               id="form_cancel_button"
               onClick={onCancel}
-              loadingId={loadingId}
-              disabled={disableButton}
+              disabled={controlsDisabled}
               className="btn-danger"
             >
               Cancel

@@ -81,7 +81,7 @@ const PersonForm = ({
       });
 
     if (!res.success) {
-      if (res.errors[0] === "DUPLICATE_PERSON_ERROR") {
+      if (res.error[0] === "DUPLICATE_PERSON_ERROR") {
         isConfirmation.current = true;
         changeErrorMessages([
           "A person with the same name and country already exists. If it's actually a different competitor with the same name, simply submit them again.",
@@ -97,7 +97,9 @@ const PersonForm = ({
 
     reset();
     changeSuccessMessage(
-      `${newPerson.name} successfully ${personUnderEdit ? "updated" : "added"}${redirect ? ". Going back..." : ""}`,
+      `${newPerson.name} successfully ${personUnderEdit ? "updated" : "added"}${
+        redirect ? ". Going back..." : ""
+      }`,
     );
 
     // Redirect if there is a redirect parameter in the URL, otherwise focus the first input
@@ -185,7 +187,7 @@ const PersonForm = ({
       buttonText="Submit"
       onSubmit={handleSubmit}
       hideToasts
-      hideButton={hasWcaId && !personUnderEdit}
+      hideControls={hasWcaId && !personUnderEdit}
       showCancelButton={onCancel !== undefined}
       onCancel={onCancel}
     >

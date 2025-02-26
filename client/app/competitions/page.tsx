@@ -1,4 +1,4 @@
-import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import DonateAlert from "~/app/components/DonateAlert.tsx";
@@ -6,7 +6,8 @@ import DonateAlert from "~/app/components/DonateAlert.tsx";
 // SEO
 export const metadata = {
   title: "All contests | Cubing Contests",
-  description: "List of unofficial Rubik's Cube competitions and speedcuber meetups.",
+  description:
+    "List of unofficial Rubik's Cube competitions and speedcuber meetups.",
   keywords:
     "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: "/favicon.png" },
@@ -23,7 +24,9 @@ type Props = {
 const ContestsPage = async ({ searchParams }: Props) => {
   const { eventId } = await searchParams;
   const eventsResponse = await ssrFetch("/events");
-  const contestsResponse = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ""}`);
+  const contestsResponse = await ssrFetch(
+    `/competitions${eventId ? `?eventId=${eventId}` : ""}`,
+  );
 
   return (
     <div>
@@ -36,7 +39,12 @@ const ContestsPage = async ({ searchParams }: Props) => {
         : (
           <>
             <div className="px-2">
-              <EventButtons key={eventId} eventId={eventId} events={eventsResponse.data} forPage="competitions" />
+              <EventButtons
+                key={eventId}
+                eventId={eventId}
+                events={eventsResponse.data}
+                forPage="competitions"
+              />
             </div>
 
             {contestsResponse.data.length > 0

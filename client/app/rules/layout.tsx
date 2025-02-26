@@ -3,7 +3,7 @@ import { type FeEvent, type IRoundFormat } from "~/helpers/types.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { RoundFormat } from "~/helpers/enums.ts";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 
 type Props = {
   children: React.ReactNode;
@@ -28,12 +28,18 @@ const RulesLayout = async ({ children }: Props) => {
             <hr />
             <h3>Event rules</h3>
             <p>
-              These rules apply to each event individually. If an event is not listed here, it must follow the most
-              relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F).
+              These rules apply to each event individually. If an event is not
+              listed here, it must follow the most relevant WCA Regulations,
+              based on the nature of the event (i.e. one of the articles from A
+              to F).
             </p>
             {eventsResponse.data.map((event: FeEvent) => {
-              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
-              const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
+              const roundFormat = roundFormats.find((rf) =>
+                rf.value === event.defaultRoundFormat
+              ) as IRoundFormat;
+              const rankedFormat = roundFormat.value === RoundFormat.Average
+                ? roundFormat
+                : roundFormats[3];
 
               return (
                 <div key={event.eventId} className="mt-4">

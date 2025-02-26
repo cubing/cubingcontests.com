@@ -1,23 +1,26 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useTransition } from "react";
 import { TwistyPlayer } from "cubing/twisty";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import type { FetchObj, IMakeMoveDto, NxNMove } from "~/helpers/types.ts";
-import type { SelectCollectiveSolution } from "~/helpers/dbTypes.ts";
-import { nxnMoves } from "~/helpers/types.ts";
-import { Color } from "~/helpers/enums.ts";
+import { Alg } from "cubing/alg";
+import type { FetchObj, NxNMove } from "~/helpers/types.ts";
+import { nxnMoves } from "~/helpers/types/NxNMove.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import {
+  makeCollectiveCubingMove,
+  startNewCollectiveCubingSolution,
+} from "~/server/serverFunctions";
+import { CollectiveSolutionResponse } from "~/server/db/schema/collective-solutions";
 
-const addTwistyPlayerElement = (alg = "") => {
+const addTwistyPlayerElement = (alg = new Alg()) => {
   const twistyPlayerElements = document.getElementsByTagName("twisty-player");
   if (twistyPlayerElements.length > 0) twistyPlayerElements[0].remove();
 
   const twistyPlayer = new TwistyPlayer({
-    puzzle: "3x3x3",
+    puzzle: "2x2x2",
     alg,
     hintFacelets: "none",
     controlPanel: "none",
@@ -29,28 +32,20 @@ const addTwistyPlayerElement = (alg = "") => {
   if (containerDiv) containerDiv.appendChild(twistyPlayer);
 };
 
-const getCubeState = (colSol: SelectCollectiveSolution): string =>
-  `${colSol.scramble} z2 ${colSol.solution}`.trim();
-
 type Props = {
-  collectiveSolution: SelectCollectiveSolution | null | undefined;
+  collectiveSolutionResponse: FetchObj<CollectiveSolutionResponse | null>;
 };
 
-const CollectiveCubing = (props: Props) => {
-  const myFetch = useMyFetch();
-  const {
-    changeErrorMessages,
-    loadingId,
-    changeLoadingId,
-    resetMessagesAndLoadingId,
-  } = useContext(
-    MainContext,
-  );
+const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
+  const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
-  const [collectiveSolution, setCollectiveSolution] = useState(
-    props.collectiveSolution,
-  );
+  // undefined means it's not been set during the page load yet; null means a solution has never been started
+  const [collectiveSolution, setCollectiveSolution] = useState<
+    CollectiveSolutionResponse | null | undefined
+  >(null);
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
+
+  const [isPending, startTransition] = useTransition();
 
   const isSolved = !collectiveSolution || collectiveSolution.state === "solved";
   const numberOfSolves = collectiveSolution
@@ -64,59 +59,66 @@ const CollectiveCubing = (props: Props) => {
       return;
     }
 
-    if (collectiveSolution) {
-      addTwistyPlayerElement(getCubeState(collectiveSolution));
-    } else if (collectiveSolution === null) {
+    if (!collectiveSolutionResponse.success) {
       changeErrorMessages(["Unknown error"]);
     } else {
-      addTwistyPlayerElement();
+      update(collectiveSolutionResponse.data);
     }
   }, []);
 
-  const update = (res: FetchObj<SelectCollectiveSolution>) => {
-    const newCollectiveSolution = res.success
-      ? res.data
-      : res.errorData?.collectiveSolution;
-
-    if (!res.success) {
-      changeErrorMessages(res.errors);
-    } else if (newCollectiveSolution) {
-      resetMessagesAndLoadingId();
-      setCollectiveSolution(newCollectiveSolution);
-      addTwistyPlayerElement(getCubeState(newCollectiveSolution));
-    }
-
-    setSelectedMove(null);
+  const update = (newSolution: CollectiveSolutionResponse | null) => {
+    setCollectiveSolution(newSolution);
+    addTwistyPlayerElement(
+      newSolution
+        ? new Alg(newSolution.scramble).concat(newSolution.solution)
+        : new Alg(),
+    );
   };
 
-  const scrambleCube = async () => {
-    changeLoadingId("scramble_button");
-    const res = await myFetch.post("/collective-solution", {}, {
-      loadingId: null,
+  const scramblePuzzle = () => {
+    startTransition(async () => {
+      const res = await startNewCollectiveCubingSolution();
+
+      if (!res.success) {
+        if (res.error.code === "CONFLICT") {
+          update(res.error.data!);
+          changeErrorMessages(["The cube has already been scrambled"]);
+        }
+      } else {
+        update(res.data);
+        resetMessages();
+      }
     });
-    update(res);
   };
 
-  const selectMove = (move: NxNMove) => {
-    setSelectedMove(move);
-    document.getElementById("confirm_button")?.focus();
-  };
-
-  const submitMove = async () => {
+  const submitMove = () => {
     if (collectiveSolution && selectedMove) {
-      changeLoadingId("confirm_button");
+      startTransition(async () => {
+        const res = await makeCollectiveCubingMove({
+          move: selectedMove,
+          lastSeenSolution: collectiveSolution.solution,
+        });
 
-      const makeMoveDto: IMakeMoveDto = {
-        move: selectedMove,
-        lastSeenSolution: collectiveSolution.solution,
-      };
-      const res = await myFetch.post(
-        "/collective-solution/make-move",
-        makeMoveDto,
-        { loadingId: null },
-      );
+        if (!res.success) {
+          if (res.error.code === "OUT_OF_DATE") {
+            update(res.error.data!);
+            changeErrorMessages([
+              "The state of the cube has changed before your move",
+            ]);
+          } else if (res.error.code === "NO_ONGOING_SOLUTION") {
+            changeErrorMessages(["The puzzle hasn't been scrambled yet"]);
+          } else if (
+            ["VALIDATION", "CANT_MAKE_MOVE"].includes(res.error.code)
+          ) {
+            changeErrorMessages([res.error.message!]);
+          }
+        } else {
+          update(res.data);
+          resetMessages();
+        }
 
-      update(res);
+        setSelectedMove(null);
+      });
     }
   };
 
@@ -125,8 +127,8 @@ const CollectiveCubing = (props: Props) => {
   return (
     <>
       <p>
-        Let's solve Rubik's Cubes together! Simply log in and make a turn.{" "}
-        <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
+        Let's solve Rubik's Cubes together! Simply log in and make a turn. {
+          /* <b className={coloredTextStyles} style={{ color: `#${Color.Yellow}` }}>
           U
         </b>{" "}
         is the{" "}
@@ -140,15 +142,15 @@ const CollectiveCubing = (props: Props) => {
         is{" "}
         <b className={coloredTextStyles} style={{ color: `#${Color.Green}` }}>
           green
-        </b>. You may not make two turns in a row.
+        </b>. */
+        }
+        You may not make two turns in a row.
       </p>
 
       <ToastMessages />
 
-      {collectiveSolution !== null && (
+      {collectiveSolution !== undefined && (
         <>
-          {collectiveSolution && <p>Scramble: {collectiveSolution.scramble}</p>}
-
           <div className="row gap-3">
             <div className="col-md-4">
               <div className="d-flex flex-column align-items-center">
@@ -159,8 +161,8 @@ const CollectiveCubing = (props: Props) => {
                 {isSolved && (
                   <Button
                     id="scramble_button"
-                    onClick={scrambleCube}
-                    loadingId={loadingId}
+                    onClick={scramblePuzzle}
+                    isLoading={isPending}
                     className="btn-success w-100 mt-2 mb-4"
                   >
                     Scramble
@@ -185,7 +187,7 @@ const CollectiveCubing = (props: Props) => {
                       <div key={move} className="p-0">
                         <button
                           type="button"
-                          onClick={() => selectMove(move)}
+                          onClick={() => setSelectedMove(move)}
                           className={`btn btn-primary ${
                             selectedMove === move ? "active" : ""
                           } w-100`}
@@ -200,21 +202,30 @@ const CollectiveCubing = (props: Props) => {
                       id="confirm_button"
                       onClick={submitMove}
                       disabled={!selectedMove}
-                      loadingId={loadingId}
+                      isLoading={isPending}
                       className="btn-success w-100"
                     >
                       Confirm
                     </Button>
                   </div>
-                  <p className="my-2">
-                    Moves used:{" "}
-                    <b>
-                      {collectiveSolution?.solution
-                        ? (collectiveSolution.solution.match(/ /g)?.length ??
-                          0) + 1
-                        : 0}
-                    </b>
-                  </p>
+                  <div className="d-flex justify-content-between align-items-center gap-3 my-3">
+                    <p className="m-0">
+                      Moves used:{" "}
+                      <b>
+                        {collectiveSolution?.solution
+                          ? (collectiveSolution.solution.match(/ /g)?.length ??
+                            0) + 1
+                          : 0}
+                      </b>
+                    </p>
+                    <Button
+                      onClick={() => update(collectiveSolution)}
+                      disabled={isPending}
+                      className="btn-xs btn-secondary"
+                    >
+                      Reset Orientation
+                    </Button>
+                  </div>
                 </>
               )}
             </div>

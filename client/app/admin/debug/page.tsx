@@ -42,7 +42,7 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
 
   return (
     <div>
-      <div className="mx-auto px-3" style={{ maxWidth: "768px" }}>
+      <div className="mx-auto px-3" style={{ maxWidth: "var(--cc-md-width)" }}>
         <h2 className="mb-5 text-center">Page for debugging</h2>
         <ToastMessages />
 

@@ -1,17 +1,18 @@
-import { decodeJwt } from "jose";
 import { isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
 import { Color, EventFormat, Role } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
-import {
-  type Event,
-  type IFeAttempt,
-  type IRoundFormat,
-  type ITimeLimit,
-  type NumberInputValue,
+import type {
+  Event,
+  IFeAttempt,
+  IRoundFormat,
+  ITimeLimit,
+  NumberInputValue,
 } from "~/helpers/types.ts";
-import { type InputPerson, type MultiChoiceOption, type UserInfo } from "./types.ts";
+import type { InputPerson, MultiChoiceOption } from "./types.ts";
+import { ZodError } from "zod";
+import capitalize from "lodash/capitalize";
 
 export const getFormattedDate = (
   startDate: Date | string,
@@ -33,7 +34,9 @@ export const getFormattedDate = (
     else if (!isSameMonth(startDate, endDate)) startFormat = "d MMM";
     else startFormat = "d";
 
-    return `${formatInTimeZone(startDate, "UTC", startFormat)} - ${formatInTimeZone(endDate, "UTC", fullFormat)}`;
+    return `${formatInTimeZone(startDate, "UTC", startFormat)} - ${
+      formatInTimeZone(endDate, "UTC", fullFormat)
+    }`;
   }
 };
 
@@ -150,7 +153,8 @@ export const getAttempt = (
     }
 
     multiOutput += 9999 - points;
-    multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") +
+    multiOutput +=
+      new Array(7 - newAttempt.result.toString().length).fill("0").join("") +
       newAttempt.result;
     multiOutput += new Array(4 - missed.toString().length).fill("0").join("") +
       missed;
@@ -159,29 +163,6 @@ export const getAttempt = (
   }
 
   return newAttempt;
-};
-
-// Returns the authenticated user's info
-export const getUserInfo = (): UserInfo => {
-  if (typeof localStorage !== "undefined") {
-    const token = localStorage.getItem("jwtToken");
-
-    if (token) {
-      // Decode the JWT (only take the part after "Bearer ")
-      const authorizedUser: any = decodeJwt(token.split(" ")[1]);
-
-      const userInfo: UserInfo = {
-        id: authorizedUser.sub,
-        username: authorizedUser.username,
-        personId: authorizedUser.personId,
-        roles: authorizedUser.roles,
-        isAdmin: authorizedUser.roles.includes(Role.Admin),
-        isMod: authorizedUser.roles.includes(Role.Moderator),
-      };
-
-      return userInfo;
-    }
-  }
 };
 
 export const getBSClassFromColor = (color: Color | undefined): string => {
@@ -212,7 +193,9 @@ export const getContestIdFromName = (name: string): string => {
   let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, "");
   const parts = output.split(" ");
 
-  output = parts.filter((el) => el !== "").map((el) => el[0].toUpperCase() + el.slice(1)).join("");
+  output = parts.filter((el) => el !== "").map((el) =>
+    el[0].toUpperCase() + el.slice(1)
+  ).join("");
 
   return output;
 };
@@ -255,11 +238,6 @@ export const shortenEventName = (name: string): string => {
     .replace("Three 3x3 Cubes", "3x 3x3");
 };
 
-export const logOutUser = () => {
-  localStorage.removeItem("jwtToken");
-  window.location.href = "/";
-};
-
 export const getIsWebglSupported = (): boolean => {
   try {
     const canvas = document.createElement("canvas");
@@ -276,11 +254,14 @@ export const getIsWebglSupported = (): boolean => {
 export const getTimeLimit = (
   eventFormat: EventFormat,
 ): ITimeLimit | undefined =>
-  eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
+  eventFormat === EventFormat.Time
+    ? { centiseconds: 60000, cumulativeRoundIds: [] }
+    : undefined;
 
 export const getRoundFormatOptions = (
   roundFormats: IRoundFormat[],
-): MultiChoiceOption[] => roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
+): MultiChoiceOption[] =>
+  roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
 
 export const getBlankCompetitors = (
   participants: number,
@@ -289,3 +270,9 @@ export const getBlankCompetitors = (
   const personNames = new Array(participants).fill("");
   return [persons, personNames];
 };
+
+export function getFormattedValidationErrors(error: ZodError) {
+  return error.errors.map((e) =>
+    `${capitalize(e.path.at(0)?.toString())}: ${e.message}`
+  );
+}

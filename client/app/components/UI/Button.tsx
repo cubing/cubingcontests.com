@@ -1,31 +1,31 @@
 import Loading from "~/app/components/UI/Loading.tsx";
 
+type Props = {
+  children: React.ReactNode;
+  type?: "button" | "submit";
+  isLoading?: boolean;
+  disabled?: boolean;
+  ariaLabel?: string;
+};
+
 const Button = ({
   children,
   id,
   type = "button",
   onClick,
-  loadingId,
+  isLoading,
   disabled,
   className = "",
   style,
   ariaLabel,
-}: {
-  children: React.ReactNode;
-  type?: "button" | "submit";
-  loadingId?: string;
-  disabled?: boolean;
-  ariaLabel?: string;
-} & React.HTMLAttributes<HTMLButtonElement>) => {
-  const isLoading = loadingId && loadingId === id;
-
+}: Props & React.HTMLAttributes<HTMLButtonElement>) => {
   return (
     <button
       id={id}
       type={type}
       onClick={onClick}
       onSubmit={(e) => e.preventDefault()}
-      disabled={disabled || !!loadingId}
+      disabled={disabled || isLoading}
       className={`position-relative btn btn-primary ${className}`}
       style={style}
       aria-label={ariaLabel}
