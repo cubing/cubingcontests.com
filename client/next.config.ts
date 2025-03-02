@@ -1,6 +1,7 @@
 import { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["geo-tz"],
   redirects() {
     return Promise.resolve([
       {

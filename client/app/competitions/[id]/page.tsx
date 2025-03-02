@@ -69,13 +69,20 @@ const ContestDetailsPage = async ({ params }: Props) => {
               <ContestTypeBadge type={contest.type} />
             </div>
             <p className="mb-2">Date:&#8194;{formattedDate}</p>
-            {formattedTime && <p className="mb-2">Starts at:&#8194;{formattedTime}</p>}
+            {formattedTime && (
+              <p className="mb-2">Starts at:&#8194;{formattedTime}</p>
+            )}
             <p className="mb-2">
-              City:&#8194;{contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
+              City:&#8194;{contest.city},{" "}
+              <Country countryIso2={contest.countryIso2} swapPositions />
             </p>
             {/* Venue and address may be undefined for some old WCA competitions */}
-            {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
-            {contest.address && <p className="mb-2">Address:&#8194;{contest.address}</p>}
+            {contest.venue && (
+              <p className="mb-2">Venue:&#8194;{contest.venue}</p>
+            )}
+            {contest.address && (
+              <p className="mb-2">Address:&#8194;{contest.address}</p>
+            )}
             <p className="mb-2">Coordinates:&#8194;{getFormattedCoords()}</p>
             {contest.contact && (
               <p className="mb-2">
@@ -83,10 +90,12 @@ const ContestDetailsPage = async ({ params }: Props) => {
               </p>
             )}
             <p className="mb-2">
-              {contest.organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
+              {contest.organizers.length > 1
+                ? "Organizers"
+                : "Organizer"}:&#8194;
               {contest.organizers.map((org, index) => (
                 <span key={org.personId} className="d-flex-inline">
-                  {index !== 0 && <span>,{" "}</span>}
+                  {index !== 0 && <span className="me-1">,</span>}
                   <Competitor person={org} noFlag />
                 </span>
               ))}

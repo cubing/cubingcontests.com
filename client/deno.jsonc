@@ -28,7 +28,7 @@
       "exclude": [
         "no-window",
         "no-window-prefix",
-        "no-process-globals",
+        "no-process-global",
         "no-explicit-any"
       ]
     }
