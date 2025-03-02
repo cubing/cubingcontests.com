@@ -22,7 +22,6 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "noImplicitAny": true,
     "baseUrl": "./",
     "paths": {
       "~/*": [
