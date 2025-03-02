@@ -7,10 +7,7 @@ import EventTitle from "~/app/components/EventTitle.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import { C } from "~/helpers/constants.ts";
-import {
-  type IEventRankings,
-  type ResultRankingType,
-} from "~/helpers/types.ts";
+import type { IEventRankings, ResultRankingType } from "~/helpers/types.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";

@@ -2,7 +2,7 @@ import { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["cubing"],
+  serverExternalPackages: ["cubing", "geo-tz"],
   redirects() {
     return Promise.resolve([
       {

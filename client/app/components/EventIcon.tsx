@@ -19,7 +19,7 @@ const EventIcon = ({ event, onClick, isActive }: Props) => {
   const iconExists = isOrWasWCAEvent || availableIcons.includes(event.eventId);
 
   if (!iconExists) {
-    if (!onClick) return <></>;
+    if (!onClick) return undefined;
 
     return (
       <button
@@ -35,18 +35,23 @@ const EventIcon = ({ event, onClick, isActive }: Props) => {
   if (!onClick) {
     return (
       <span
-        className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`}
+        className={`cubing-icon ${
+          isOrWasWCAEvent ? "event" : "unofficial"
+        }-${event.eventId}`}
       />
     );
   }
 
   return (
     <button
+      type="button"
       onClick={onClick}
       className={"cc-icon-button" + (isActive ? " cc-icon-button--active" : "")}
     >
       <span
-        className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`}
+        className={`cubing-icon ${
+          isOrWasWCAEvent ? "event" : "unofficial"
+        }-${event.eventId}`}
       />
     </button>
   );

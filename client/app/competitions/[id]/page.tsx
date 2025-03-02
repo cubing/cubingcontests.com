@@ -95,7 +95,7 @@ const ContestDetailsPage = async ({ params }: Props) => {
                 : "Organizer"}:&#8194;
               {contest.organizers.map((org, index) => (
                 <span key={org.personId} className="d-flex-inline">
-                  {index !== 0 && <span>,{" "}</span>}
+                  {index !== 0 && <span className="me-1">,</span>}
                   <Competitor person={org} noFlag />
                 </span>
               ))}
