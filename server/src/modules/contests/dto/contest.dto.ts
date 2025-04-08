@@ -21,7 +21,13 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { Countries } from "~/helpers/Countries";
-import { Color, ContestType, RoundFormat, RoundProceed, RoundType } from "~/helpers/enums";
+import {
+  Color,
+  ContestType,
+  RoundFormat,
+  RoundProceed,
+  RoundType,
+} from "~/helpers/enums";
 import {
   Event,
   IActivity,
@@ -42,7 +48,11 @@ import {
 import { CreateEventDto } from "@m/events/dto/create-event.dto";
 import { PersonDto } from "@m/persons/dto/person.dto";
 import { CreateResultDto } from "@m/results/dto/create-result.dto";
-import { getMaxLengthOpts, getMinLengthOpts, invalidCountryOpts } from "~/src/helpers/validation";
+import {
+  getMaxLengthOpts,
+  getMinLengthOpts,
+  invalidCountryOpts,
+} from "~/src/helpers/validation";
 import { C } from "~/helpers/constants";
 import { getFormattedTime, getIsCompType } from "~/helpers/sharedFunctions";
 import {
@@ -56,17 +66,25 @@ import { INVALID_EMAIL_MSG } from "~/src/helpers/messages";
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
 export class ContestDto implements IContestDto {
+  // TO-DO: ALSO ADD THE CHECK FOR MEETUPS NOT INCLUDING "open"
   @IsString()
   @MinLength(5, getMinLengthOpts("contest ID", 5))
   @Matches(/^[a-zA-Z0-9]*$/, {
     message: "The contest ID must only contain alphanumeric characters",
+  })
+  @Matches(/^(?!.*championship|.*national).*$/i, {
+    message: 'The contest ID must not contain "championship" or "national"',
   })
   competitionId: string;
 
   @IsString()
   @MinLength(10, getMinLengthOpts("contest name", 10))
   @Matches(/.* [0-9]{4}$/, {
-    message: "The contest name must have the year at the end, separated by a space",
+    message:
+      "The contest name must have the year at the end, separated by a space",
+  })
+  @Matches(/^(?!.*championship|.*national).*$/i, {
+    message: 'The contest name must not contain "championship" or "national"',
   })
   name: string;
 
@@ -74,7 +92,11 @@ export class ContestDto implements IContestDto {
   @MinLength(8, getMinLengthOpts("short name", 8))
   @MaxLength(32, getMaxLengthOpts("short name", 32))
   @Matches(/.* [0-9]{4}$/, {
-    message: "The short name must have the year at the end, separated by a space",
+    message:
+      "The short name must have the year at the end, separated by a space",
+  })
+  @Matches(/^(?!.*championship|.*national).*$/i, {
+    message: 'The short name must not contain "championship" or "national"',
   })
   shortName: string;
 
@@ -320,7 +342,9 @@ class TimeLimitDto implements ITimeLimit {
   @IsInt()
   @Min(1, { message: "Please enter a valid time limit" })
   @Max(C.maxTimeLimit, {
-    message: `The time limit cannot be higher than ${getFormattedTime(C.maxTimeLimit)}`,
+    message: `The time limit cannot be higher than ${
+      getFormattedTime(C.maxTimeLimit)
+    }`,
   })
   centiseconds: number;
 
