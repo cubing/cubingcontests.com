@@ -1,4 +1,5 @@
 {
+  "workspace": ["client"],
   "imports": {
     "concurrently": "npm:concurrently@^9.1.2"
   },

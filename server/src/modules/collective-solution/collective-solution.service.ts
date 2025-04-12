@@ -13,16 +13,13 @@ import { importEsmModule } from "~/src/helpers/utilityFunctions";
 export class CollectiveSolutionService {
   constructor(
     private readonly logger: MyLogger,
-    @InjectModel("CollectiveSolution") private readonly collectiveSolutionModel:
-      Model<CollectiveSolutionDocument>,
+    @InjectModel("CollectiveSolution") private readonly collectiveSolutionModel: Model<CollectiveSolutionDocument>,
   ) {}
 
   public async getCollectiveSolution(): Promise<FeCollectiveSolution> {
     const currentSolution = await this.getCurrentSolution();
 
-    return currentSolution
-      ? this.mapCollectiveSolution(currentSolution)
-      : undefined;
+    return currentSolution ? this.mapCollectiveSolution(currentSolution) : undefined;
   }
 
   public async startNewSolution(
@@ -113,9 +110,7 @@ export class CollectiveSolutionService {
       user._id as string,
     ) as any;
     if (
-      !currentSolution.usersWhoMadeMoves.some((usr) =>
-        usr.toString() === user._id
-      )
+      !currentSolution.usersWhoMadeMoves.some((usr) => usr.toString() === user._id)
     ) {
       currentSolution.usersWhoMadeMoves.push(
         currentSolution.lastUserWhoInteracted,
