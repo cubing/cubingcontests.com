@@ -31,10 +31,7 @@ const UserSettingsPage = () => {
     );
 
     if (answer) {
-      const res = await myFetch.delete("/users", {
-        loadingId: "delete_account_button",
-        keepLoadingOnSuccess: true,
-      });
+      const res = await myFetch.delete("/users", { loadingId: "delete_account_button", keepLoadingOnSuccess: true });
 
       if (res.success) logOutUser();
     }
@@ -77,11 +74,7 @@ const UserSettingsPage = () => {
             </p>
           )}
 
-          <Button
-            id="delete_account_button"
-            onClick={deleteUser}
-            className="mt-4 btn-danger btn-sm"
-          >
+          <Button id="delete_account_button" onClick={deleteUser} className="mt-4 btn-danger btn-sm">
             Delete Account
           </Button>
           <p className="mt-2" style={{ fontSize: "0.85rem" }}>

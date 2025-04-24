@@ -58,6 +58,7 @@ import { getFormattedTime, getIsCompType } from "~/helpers/sharedFunctions";
 import {
   EventWithoutTimeFormatHasNoLimitsOrCutoffs,
   EventWithTimeFormatHasTimeLimits,
+  LegalContestName,
   ProceedValueMinMax,
   RoundHasValidTimeLimitAndCutoff,
 } from "~/src/helpers/customValidators";
@@ -66,15 +67,12 @@ import { INVALID_EMAIL_MSG } from "~/src/helpers/messages";
 const activityCodeRegex = /^[a-z0-9][a-z0-9-_]{2,}$/;
 
 export class ContestDto implements IContestDto {
-  // TO-DO: ALSO ADD THE CHECK FOR MEETUPS NOT INCLUDING "open"
   @IsString()
   @MinLength(5, getMinLengthOpts("contest ID", 5))
   @Matches(/^[a-zA-Z0-9]*$/, {
     message: "The contest ID must only contain alphanumeric characters",
   })
-  @Matches(/^(?!.*championship|.*national).*$/i, {
-    message: 'The contest ID must not contain "championship" or "national"',
-  })
+  @Validate(LegalContestName)
   competitionId: string;
 
   @IsString()
@@ -83,9 +81,7 @@ export class ContestDto implements IContestDto {
     message:
       "The contest name must have the year at the end, separated by a space",
   })
-  @Matches(/^(?!.*championship|.*national).*$/i, {
-    message: 'The contest name must not contain "championship" or "national"',
-  })
+  @Validate(LegalContestName)
   name: string;
 
   @IsString()
@@ -95,9 +91,7 @@ export class ContestDto implements IContestDto {
     message:
       "The short name must have the year at the end, separated by a space",
   })
-  @Matches(/^(?!.*championship|.*national).*$/i, {
-    message: 'The short name must not contain "championship" or "national"',
-  })
+  @Validate(LegalContestName)
   shortName: string;
 
   @IsEnum(ContestType)

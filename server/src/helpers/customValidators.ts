@@ -1,10 +1,21 @@
-import { ValidatorConstraint, ValidatorConstraintInterface } from "class-validator";
-import { IAttempt, IContestEvent, IProceed, IRound } from "~/helpers/types";
-import { EventFormat, RoundProceed } from "~/helpers/enums";
+import {
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from "class-validator";
+import {
+  IAttempt,
+  IContest,
+  IContestEvent,
+  IProceed,
+  IRound,
+} from "~/helpers/types";
+import { ContestType, EventFormat, RoundProceed } from "~/helpers/enums";
 import { C } from "~/helpers/constants";
 
 @ValidatorConstraint({ name: "EventWithTimeFormatHasTimeLimits", async: false })
-export class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInterface {
+export class EventWithTimeFormatHasTimeLimits
+  implements ValidatorConstraintInterface {
   validate(events: IContestEvent[]) {
     return !events.some((ce) =>
       ce.event.format === EventFormat.Time &&
@@ -21,7 +32,8 @@ export class EventWithTimeFormatHasTimeLimits implements ValidatorConstraintInte
   name: "EventWithoutTimeFormatHasNoLimitsOrCutoffs",
   async: false,
 })
-export class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorConstraintInterface {
+export class EventWithoutTimeFormatHasNoLimitsOrCutoffs
+  implements ValidatorConstraintInterface {
   validate(events: IContestEvent[]) {
     return !events.some((ce) =>
       ce.event.format !== EventFormat.Time &&
@@ -35,7 +47,8 @@ export class EventWithoutTimeFormatHasNoLimitsOrCutoffs implements ValidatorCons
 }
 
 @ValidatorConstraint({ name: "RoundHasValidTimeLimitAndCutoff", async: false })
-export class RoundHasValidTimeLimitAndCutoff implements ValidatorConstraintInterface {
+export class RoundHasValidTimeLimitAndCutoff
+  implements ValidatorConstraintInterface {
   validate(rounds: IRound[]) {
     return !rounds.some((r) =>
       r.timeLimit && r.cutoff &&
@@ -85,5 +98,24 @@ export class ContestAttempts implements ValidatorConstraintInterface {
 
   defaultMessage() {
     return "You cannot submit only DNS attempts or only empty attempts";
+  }
+}
+
+@ValidatorConstraint({ name: "LegalContestName", async: false })
+export class LegalContestName implements ValidatorConstraintInterface {
+  validate(name: string, args: ValidationArguments) {
+    const type = (args.object as IContest).type;
+
+    return (type === ContestType.WcaComp ||
+      (!/championship/i.test(name) && !/national/i.test(name))) &&
+      (type !== ContestType.Meetup || !/open/i.test(name));
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    if (/open/i.test(args.value)) {
+      return `The ${args.property} must not contain "open" (only applies to meetups)`;
+    }
+
+    return `The ${args.property} must not contain "championship" or "national"`;
   }
 }

@@ -1,14 +1,10 @@
 {
   "deno.enable": true,
   // "deno.lint": true,
-  // This just determines which paths should have Deno LSP enabled. Formatting paths are defined in the root deno.jsonc.
+  // This just determines which paths should have Deno LSP enabled
   "deno.enablePaths": [
-    "./deno.jsonc",
     "./client/deno.jsonc",
     "./client/__tests__",
     "./client/__mocks__"
   ]
-  // "[typescript]": {
-  //   "editor.defaultFormatter": "denoland.vscode-deno"
-  // }
 }
