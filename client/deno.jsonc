@@ -1,4 +1,6 @@
 {
+  "nodeModulesDir": "auto",
+
   "imports": {
     "~/": "./",
     "@std/expect": "jsr:@std/expect@^1.0.13",
@@ -32,6 +34,12 @@
         "no-explicit-any"
       ]
     }
+  },
+
+  "fmt": {
+    "include": ["**/*.ts", "**/*.tsx"],
+    "exclude": ["**/*.d.ts"],
+    "lineWidth": 120
   },
 
   "compilerOptions": {

@@ -1,4 +1,4 @@
-FROM denoland/deno:2.2.2
+FROM denoland/deno:2.3.1
 
 # Expose port
 EXPOSE $PORT
