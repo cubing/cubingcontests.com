@@ -17,8 +17,8 @@
     "start": "next start",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
-    "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "drizzle-kit generate"
+    // "db:studio": "drizzle-kit studio"
   },
 
   "lint": {

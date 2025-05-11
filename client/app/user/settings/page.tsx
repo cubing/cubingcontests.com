@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import capitalize from "lodash/capitalize";
-import { useMyFetch } from "~/helpers/customHooks.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
@@ -10,30 +9,28 @@ import { C } from "~/helpers/constants.ts";
 import { IFeUser } from "~/helpers/types.ts";
 import { getRoleLabel } from "~/helpers/sharedFunctions.ts";
 import { Role } from "~/helpers/enums.ts";
+import { authClient } from "~/helpers/authClient";
 
 const UserSettingsPage = () => {
-  const myFetch = useMyFetch();
-
   const [user, setUser] = useState<IFeUser>();
 
-  const filteredRoles: Role[] =
-    user?.roles.filter((r: Role) => r !== Role.User) ?? [];
+  console.log(authClient.getSession());
 
-  useEffect(() => {
-    myFetch.get("/users/details", { authorize: true }).then((res) => {
-      if (res.success) setUser(res.data);
-    });
-  }, []);
+  const filteredRoles: Role[] = user?.roles.filter((r: Role) => r !== Role.User) ?? [];
+
+  // useEffect(() => {
+  //   myFetch.get("/users/details", { authorize: true }).then((res) => {
+  //     if (res.success) setUser(res.data);
+  //   });
+  // }, []);
 
   const deleteUser = async () => {
-    const answer = confirm(
-      "Are you CERTAIN you would like to delete your account? This action is permanent!",
-    );
+    const answer = confirm("Are you CERTAIN you would like to delete your account? This action is permanent!");
 
     if (answer) {
-      const res = await myFetch.delete("/users", { loadingId: "delete_account_button", keepLoadingOnSuccess: true });
+      // const res = await myFetch.delete("/users", { loadingId: "delete_account_button", keepLoadingOnSuccess: true });
 
-      if (res.success) logOutUser();
+      // if (res.success) logOutUser();
     }
   };
 
@@ -49,8 +46,8 @@ const UserSettingsPage = () => {
             Email address: <b>{user.email}</b>
           </p>
           <p className="mb-4" style={{ fontSize: "0.85rem" }}>
-            Changing your email address is currently not supported. Please send
-            an email to {C.contactEmail} if you would like to change your email.
+            Changing your email address is currently not supported. Please send an email to {C.contactEmail}{" "}
+            if you would like to change your email.
           </p>
           {user.person
             ? (
@@ -78,9 +75,8 @@ const UserSettingsPage = () => {
             Delete Account
           </Button>
           <p className="mt-2" style={{ fontSize: "0.85rem" }}>
-            This deletes all of your account data, but does not affect your
-            competitor data, even if your competitor profile is tied to your
-            account.
+            This deletes all of your account data, but does not affect your competitor data, even if your competitor
+            profile is tied to your account.
           </p>
         </>
       )}

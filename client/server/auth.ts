@@ -4,13 +4,8 @@ import * as bcrypt from "bcrypt";
 import { db } from "./db/provider.ts";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { username } from "better-auth/plugins";
-import {
-  accounts,
-  sessions,
-  users,
-  verifications,
-} from "~/server/db/schema/auth-schema.ts";
+import { admin, username } from "better-auth/plugins";
+import { accounts, sessions, users, verifications } from "~/server/db/schema/auth-schema.ts";
 import { C } from "~/helpers/constants.ts";
 import { sendResetPassword, sendVerificationCode } from "~/server/mailer.ts";
 
@@ -27,6 +22,7 @@ export const auth = betterAuth({
   plugins: [
     nextCookies(),
     username(),
+    admin(),
   ],
   emailAndPassword: {
     enabled: true,
@@ -34,13 +30,11 @@ export const auth = betterAuth({
     sendResetPassword: ({ user, url }) => sendResetPassword(user.email, url),
     password: {
       hash: (password: string) => bcrypt.hash(password, C.passwordSaltRounds),
-      verify: (data: { hash: string; password: string }) =>
-        bcrypt.compare(data.password, data.hash),
+      verify: (data: { hash: string; password: string }) => bcrypt.compare(data.password, data.hash),
     },
   },
   emailVerification: {
-    sendVerificationEmail: ({ user, url }) =>
-      sendVerificationCode(user.email, url),
+    sendVerificationEmail: ({ user, url }) => sendVerificationCode(user.email, url),
   },
   user: {
     additionalFields: {

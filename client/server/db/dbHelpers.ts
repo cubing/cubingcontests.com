@@ -1,4 +1,4 @@
-// import "server-only";
+import "server-only";
 import { timestamp } from "drizzle-orm/pg-core";
 
 export const timestamps = {

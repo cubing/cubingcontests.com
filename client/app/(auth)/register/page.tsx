@@ -37,7 +37,7 @@ const RegisterPage = () => {
           email: parsed.data.email,
           password: parsed.data.password,
           name: "", // this field is not used for now
-          callbackURL: `/login?email=${email}`, // same as on the link-expired page
+          callbackURL: `${process.env.NEXT_PUBLIC_BASE_URL}/login?email=${parsed.data.email}`, // same as on the link-expired page
         });
 
         if (error) {

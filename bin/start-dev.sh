@@ -18,10 +18,10 @@ cd ..
 # Copy environment variables to Next JS project
 cp .env client/.env.local
 
-# Start the frontent (c), database (d), and Drizzle Studio (ds)
-deno run -A npm:concurrently -kc blue,green,yellow -n c,d,ds \
+# Start the frontent (f), database (db), and Drizzle Studio (ds)
+deno run -A npm:concurrently -kc blue,green,yellow -n f,db,ds \
   "cd client && deno task dev" \
   "docker compose up" \
-  "cd client && npx drizzle-kit studio"
+  "cd client && NODE_OPTIONS="--conditions=react-server" npx drizzle-kit studio"
 
 docker compose down

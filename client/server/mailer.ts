@@ -1,15 +1,15 @@
 import "server-only";
 import { MailtrapClient } from "mailtrap";
+import { loadEnvConfig } from "@next/env";
 
-const client = process.env.NODE_ENV === "production"
-  ? new MailtrapClient({
-    token: process.env.EMAIL_TOKEN!,
-  })
-  : new MailtrapClient({
-    token: process.env.EMAIL_TOKEN!,
-    accountId: 1854211,
-    testInboxId: 2655545,
-  }).testing;
+// This is needed when running Better Auth DB migrations
+if (process.env.NODE_ENV !== "production") loadEnvConfig(".", true);
+
+const client = new MailtrapClient({
+  token: process.env.EMAIL_TOKEN!,
+  accountId: process.env.NODE_ENV === "production" ? undefined : 1854211,
+  testInboxId: process.env.NODE_ENV === "production" ? undefined : 2655545,
+});
 
 const from = {
   name: "Cubing Contests",

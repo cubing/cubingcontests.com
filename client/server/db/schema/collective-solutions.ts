@@ -1,13 +1,6 @@
-// import "server-only";
+import "server-only";
 import { getTableColumns } from "drizzle-orm";
-import {
-  integer,
-  pgEnum,
-  pgTable as table,
-  serial,
-  text,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable as table, serial, text, varchar } from "drizzle-orm/pg-core";
 import omit from "lodash/omit";
 import { timestamps } from "~/server/db/dbHelpers.ts";
 import { users } from "~/server/db/schema/auth-schema.ts";

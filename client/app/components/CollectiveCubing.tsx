@@ -9,10 +9,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 import { getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import {
-  makeCollectiveCubingMove,
-  startNewCollectiveCubingSolution,
-} from "~/server/serverFunctions";
+import { makeCollectiveCubingMove, startNewCollectiveCubingSolution } from "~/server/serverFunctions";
 import { CollectiveSolutionResponse } from "~/server/db/schema/collective-solutions";
 
 const addTwistyPlayerElement = (alg = new Alg()) => {
@@ -40,17 +37,14 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
   // undefined means it's not been set during the page load yet; null means a solution has never been started
-  const [collectiveSolution, setCollectiveSolution] = useState<
-    CollectiveSolutionResponse | null | undefined
-  >(null);
+  const [collectiveSolution, setCollectiveSolution] = useState<CollectiveSolutionResponse | null | undefined>(null);
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
 
   const [isPending, startTransition] = useTransition();
 
   const isSolved = !collectiveSolution || collectiveSolution.state === "solved";
   const numberOfSolves = collectiveSolution
-    ? collectiveSolution.attemptNumber -
-      (collectiveSolution.state === "ongoing" ? 1 : 0)
+    ? collectiveSolution.attemptNumber - (collectiveSolution.state === "ongoing" ? 1 : 0)
     : 0;
 
   useEffect(() => {
@@ -68,11 +62,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
 
   const update = (newSolution: CollectiveSolutionResponse | null) => {
     setCollectiveSolution(newSolution);
-    addTwistyPlayerElement(
-      newSolution
-        ? new Alg(newSolution.scramble).concat(newSolution.solution)
-        : new Alg(),
-    );
+    addTwistyPlayerElement(newSolution ? new Alg(newSolution.scramble).concat(newSolution.solution) : new Alg());
   };
 
   const scramblePuzzle = () => {
@@ -102,9 +92,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
         if (!res.success) {
           if (res.error.code === "OUT_OF_DATE") {
             update(res.error.data!);
-            changeErrorMessages([
-              "The state of the cube has changed before your move",
-            ]);
+            changeErrorMessages(["The state of the cube has changed before your move"]);
           } else if (res.error.code === "NO_ONGOING_SOLUTION") {
             changeErrorMessages(["The puzzle hasn't been scrambled yet"]);
           } else if (
@@ -122,7 +110,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
     }
   };
 
-  const coloredTextStyles = "px-1 bg-dark rounded";
+  // const coloredTextStyles = "px-1 bg-dark rounded";
 
   return (
     <>
@@ -154,10 +142,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
           <div className="row gap-3">
             <div className="col-md-4">
               <div className="d-flex flex-column align-items-center">
-                <div
-                  id="twisty_player_container"
-                  style={{ maxWidth: "100%" }}
-                />
+                <div id="twisty_player_container" style={{ maxWidth: "100%" }} />
                 {isSolved && (
                   <Button
                     id="scramble_button"
@@ -178,19 +163,14 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
                 <>
                   <div
                     className="gap-1 gap-md-3 mt-1 mt-md-4"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(6, 1fr)",
-                    }}
+                    style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)" }}
                   >
                     {nxnMoves.map((move) => (
                       <div key={move} className="p-0">
                         <button
                           type="button"
                           onClick={() => setSelectedMove(move)}
-                          className={`btn btn-primary ${
-                            selectedMove === move ? "active" : ""
-                          } w-100`}
+                          className={`btn btn-primary ${selectedMove === move ? "active" : ""} w-100`}
                         >
                           {move}
                         </button>
@@ -212,10 +192,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
                     <p className="m-0">
                       Moves used:{" "}
                       <b>
-                        {collectiveSolution?.solution
-                          ? (collectiveSolution.solution.match(/ /g)?.length ??
-                            0) + 1
-                          : 0}
+                        {collectiveSolution?.solution ? (collectiveSolution.solution.match(/ /g)?.length ?? 0) + 1 : 0}
                       </b>
                     </p>
                     <Button

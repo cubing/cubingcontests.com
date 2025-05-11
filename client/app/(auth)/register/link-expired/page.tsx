@@ -21,9 +21,7 @@ const VerificationLinkExpiredPage = () => {
     const parsed = z.string().email().safeParse(searchParams.get("email"));
 
     if (!parsed.success) {
-      changeErrorMessages([
-        "An unknown error has occurred. Please try to register again.",
-      ]);
+      changeErrorMessages(["An unknown error has occurred. Please try to register again."]);
       setIsDisabled(true);
     }
   }, [searchParams]);
@@ -40,15 +38,13 @@ const VerificationLinkExpiredPage = () => {
       const email = searchParams.get("email")!;
       const { error } = await authClient.sendVerificationEmail({
         email,
-        callbackURL: `/login?email=${email}`, // same as on the register page
+        callbackURL: `${process.env.NEXT_PUBLIC_BASE_URL}/login?email=${email}`, // same as on the register page
       });
 
       if (error) {
         changeErrorMessages([error.message ?? error.statusText]);
       } else {
-        changeSuccessMessage(
-          "A new verification link has been sent to your email",
-        );
+        changeSuccessMessage("A new verification link has been sent to your email");
         setIsDisabled(true);
       }
     });
@@ -61,8 +57,8 @@ const VerificationLinkExpiredPage = () => {
       <ToastMessages />
 
       <p className="mb-4 text-center">
-        The verification link has expired or isn't valid. Click the button below
-        to send a new verification link to your email.
+        The verification link has expired or isn't valid. Click the button below to send a new verification link to your
+        email.
       </p>
 
       <Button
