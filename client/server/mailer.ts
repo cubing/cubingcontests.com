@@ -7,8 +7,8 @@ if (process.env.NODE_ENV !== "production") loadEnvConfig(".", true);
 
 const client = new MailtrapClient({
   token: process.env.EMAIL_TOKEN!,
-  accountId: process.env.NODE_ENV === "production" ? undefined : 1854211,
   testInboxId: process.env.NODE_ENV === "production" ? undefined : 2655545,
+  sandbox: process.env.NODE_ENV !== "production",
 });
 
 const from = {

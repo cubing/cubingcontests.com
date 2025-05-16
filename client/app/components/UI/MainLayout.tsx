@@ -76,9 +76,7 @@ const MainLayout = ({ children, initSession }: Props) => {
           resetMessages,
         }}
       >
-        <Navbar
-          user={isPending ? initSession?.user : session?.user}
-        />
+        <Navbar user={isPending ? initSession?.user : session?.user} />
         <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">
           {children}
         </main>

@@ -86,8 +86,4 @@ export enum Color {
   Magenta = "f0f",
 }
 
-export enum Role {
-  User = "user",
-  Admin = "admin",
-  Moderator = "mod",
-}
+export type Role = "admin" | "mod" | "contest_reviewer" | "video_based_results_reviewer";

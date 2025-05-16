@@ -1,10 +1,11 @@
 import "server-only";
-import { boolean, pgTable as table, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable as table, text, timestamp } from "drizzle-orm/pg-core";
 
 export const users = table("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   username: text("username").notNull(),
+  personId: integer("person_id"),
   displayUsername: text("display_username"),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),

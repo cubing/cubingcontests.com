@@ -18,7 +18,7 @@ export const collectiveSolutions = table("collective_solutions", {
   state: collectiveSolutionStateEnum().default("ongoing").notNull(),
   scramble: text().notNull(),
   solution: text().default("").notNull(),
-  lastUserWhoInteracted: text().references(() => users.id).notNull(),
+  lastUserWhoInteracted: text().references(() => users.id, { onDelete: "set null" }), // this can be null if that user has been deleted
   usersWhoMadeMoves: text().references(() => users.id).array().notNull(),
   ...timestamps,
 });

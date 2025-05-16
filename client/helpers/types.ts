@@ -1,5 +1,3 @@
-import { users } from "~/server/db/schema/auth-schema.ts";
-
 // Interfaces
 export type {
   ICompetitionDetails,
@@ -10,12 +8,7 @@ export type {
   IMeetupDetails,
 } from "./interfaces/Contest.ts";
 export type { IEventRule } from "./interfaces/EventRule.ts";
-export type {
-  IFePerson,
-  IPerson,
-  IPersonDto,
-  IWcaPersonDto,
-} from "./interfaces/Person.ts";
+export type { IFePerson, IPerson, IPersonDto, IWcaPersonDto } from "./interfaces/Person.ts";
 export type { IRecordType } from "./interfaces/RecordType.ts";
 export type {
   IAdminResultsSubmissionInfo,
@@ -34,24 +27,13 @@ export type {
   IUpdateVideoBasedResultDto,
   IVideoBasedResult,
 } from "./interfaces/Result.ts";
-export type {
-  ICutoff,
-  IProceed,
-  IRound,
-  IRoundFormat,
-  ITimeLimit,
-} from "./interfaces/Round.ts";
-export type {
-  IActivity,
-  IRoom,
-  ISchedule,
-  IVenue,
-} from "./interfaces/Schedule.ts";
+export type { ICutoff, IProceed, IRound, IRoundFormat, ITimeLimit } from "./interfaces/Round.ts";
+export type { IActivity, IRoom, ISchedule, IVenue } from "./interfaces/Schedule.ts";
 export type { IAdminStats } from "./interfaces/AdminStats.ts";
 export type { INavigationItem } from "./interfaces/NavigationItem.ts";
 export type { IAuthToken } from "./interfaces/AuthToken.ts";
 export type { IJwtPayload } from "./interfaces/JwtPayload.ts";
-export type { IFeUser, IPartialUser, IUser } from "./interfaces/User.ts";
+export type { IPartialUser, IUser } from "./interfaces/User.ts";
 
 // Types
 export type { Event, FeEvent } from "./types/Event.ts";
@@ -59,12 +41,7 @@ export type { NxNMove } from "./types/NxNMove.ts";
 export type { InputPerson } from "./types/InputPerson.ts";
 export type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 export type { EventCategory } from "./types/EventCategory.ts";
-export type {
-  FetchError,
-  FetchErrorObj,
-  FetchObj,
-  FetchSuccess,
-} from "./types/FetchObj.ts";
+export type { FetchError, FetchErrorObj, FetchObj, FetchSuccess } from "./types/FetchObj.ts";
 export type { HttpMethod } from "./types/DELETEHttpMethod.ts";
 
 // WCIF types

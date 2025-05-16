@@ -97,9 +97,7 @@ const PersonForm = ({
 
     reset();
     changeSuccessMessage(
-      `${newPerson.name} successfully ${personUnderEdit ? "updated" : "added"}${
-        redirect ? ". Going back..." : ""
-      }`,
+      `${newPerson.name} successfully ${personUnderEdit ? "updated" : "added"}${redirect ? ". Going back..." : ""}`,
     );
 
     // Redirect if there is a redirect parameter in the URL, otherwise focus the first input
@@ -109,7 +107,7 @@ const PersonForm = ({
       if (hasWcaId) setNextFocusTarget("wca_id");
       else setNextFocusTarget("full_name");
     } else {
-      setTimeout(() => window.location.replace(redirect), 1000); // 1 second delay
+      setTimeout(() => window.location.replace(redirect), 1000);
     }
   };
 

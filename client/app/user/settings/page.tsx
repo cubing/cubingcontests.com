@@ -1,36 +1,40 @@
 "use client";
 
-import { useState } from "react";
 import capitalize from "lodash/capitalize";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import { C } from "~/helpers/constants.ts";
-import { IFeUser } from "~/helpers/types.ts";
-import { getRoleLabel } from "~/helpers/sharedFunctions.ts";
-import { Role } from "~/helpers/enums.ts";
 import { authClient } from "~/helpers/authClient";
+import { useContext, useEffect, useTransition } from "react";
+import { MainContext } from "~/helpers/contexts";
+import { useRouter } from "next/navigation";
 
 const UserSettingsPage = () => {
-  const [user, setUser] = useState<IFeUser>();
+  const router = useRouter();
+  const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
+  const { data: session, isPending } = authClient.useSession();
 
-  console.log(authClient.getSession());
+  const [isDeleting, startTransition] = useTransition();
 
-  const filteredRoles: Role[] = user?.roles.filter((r: Role) => r !== Role.User) ?? [];
-
-  // useEffect(() => {
-  //   myFetch.get("/users/details", { authorize: true }).then((res) => {
-  //     if (res.success) setUser(res.data);
-  //   });
-  // }, []);
+  useEffect(() => {
+    if (!isPending && !session) router.push("/login");
+  }, [isPending]);
 
   const deleteUser = async () => {
     const answer = confirm("Are you CERTAIN you would like to delete your account? This action is permanent!");
 
     if (answer) {
-      // const res = await myFetch.delete("/users", { loadingId: "delete_account_button", keepLoadingOnSuccess: true });
+      startTransition(async () => {
+        const { error } = await authClient.deleteUser();
 
-      // if (res.success) logOutUser();
+        if (error) {
+          changeErrorMessages([error.message ?? error.statusText]);
+        } else {
+          changeSuccessMessage("Your account has been successfully deleted");
+          setTimeout(() => router.push("/"), 2000);
+        }
+      });
     }
   };
 
@@ -40,38 +44,33 @@ const UserSettingsPage = () => {
 
       <ToastMessages />
 
-      {user && (
+      {session && (
         <>
           <p className="mb-2">
-            Email address: <b>{user.email}</b>
+            Email address: <b>{session.user.email}</b>
           </p>
           <p className="mb-4" style={{ fontSize: "0.85rem" }}>
             Changing your email address is currently not supported. Please send an email to {C.contactEmail}{" "}
             if you would like to change your email.
           </p>
-          {user.person
+          {session.user.personId
             ? (
               <p className="d-flex flex-wrap gap-2">
                 <span>Your competitor profile:</span>
-                <Competitor person={user.person} showLocalizedName />
+                {/* <Competitor person={user.person} showLocalizedName /> */}
                 <span>
-                  (CC ID: <b>{user.person.personId}</b>)
+                  (CC ID: <b>{session.user.personId}</b>)
                 </span>
               </p>
             )
             : <p>There is no competitor profile tied to your account.</p>}
-          {filteredRoles.length > 0 && (
+          {session.user.role && (
             <p>
-              Your roles: {filteredRoles.map((r, i) => (
-                <span key={r}>
-                  {i !== 0 && <span>,&nbsp;</span>}
-                  <b>{capitalize(getRoleLabel(r))}</b>
-                </span>
-              ))}
+              Your role: <strong>{capitalize(session.user.role)}</strong>.
             </p>
           )}
 
-          <Button id="delete_account_button" onClick={deleteUser} className="mt-4 btn-danger btn-sm">
+          <Button onClick={deleteUser} isLoading={isDeleting} className="mt-4 btn-danger btn-sm">
             Delete Account
           </Button>
           <p className="mt-2" style={{ fontSize: "0.85rem" }}>

@@ -1,5 +1,3 @@
-import { IFeUser } from "../types.ts";
-
 export type IPerson = {
   name: string;
   localizedName?: string; // name in the local language

@@ -42,6 +42,13 @@ export const auth = betterAuth({
         type: "string",
         required: true,
       },
+      personId: {
+        type: "number",
+        required: false,
+      },
+    },
+    deleteUser: {
+      enabled: true,
     },
   },
 });

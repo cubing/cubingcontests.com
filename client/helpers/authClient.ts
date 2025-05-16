@@ -6,7 +6,8 @@ export const authClient = createAuthClient({
   plugins: [
     usernameClient(),
     adminClient(),
+    inferAdditionalFields<typeof auth>(),
   ],
 });
 
-inferAdditionalFields<typeof auth>();
+// inferAdditionalFields<typeof auth>();
