@@ -25,9 +25,9 @@
 #### Relay events
 
 R1. The judge uncovers all puzzles at once.\
-R2. An attempt includes a normal 15-second inspection phase, regardless of the
-number of puzzles. The competitor(s) is free to inspect any of the puzzles in
-any order during this phase.
+R2. An attempt includes a normal 15 second inspection phase for events with up to three puzzles. The competitor(s) is free to inspect any of the puzzles in
+any order during this phase.\
+  R2.1. Events with four or more puzzles have a 30 second inspection phase. The judge calls out "16 SECONDS" and "24 SECONDS" during the inspection phase.
 
 #### Team events
 
