@@ -27,10 +27,7 @@ import {
 import { EventFormat, RoundFormat } from "~/helpers/enums.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { C } from "~/helpers/constants.ts";
-import {
-  getBlankCompetitors,
-  getRoundFormatOptions,
-} from "~/helpers/utilityFunctions.ts";
+import { getBlankCompetitors, getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
 import { type InputPerson } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
@@ -41,9 +38,7 @@ import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.ts
 import rules from "./video-based-results-rules.md";
 
 const userInfo: UserInfo = getUserInfo();
-const allowedRoundFormats: IRoundFormat[] = roundFormats.filter((rf) =>
-  rf.value !== RoundFormat.BestOf3
-);
+const allowedRoundFormats: IRoundFormat[] = roundFormats.filter((rf) => rf.value !== RoundFormat.BestOf3);
 
 /**
  * If resultId is defined, that means this component is for submitting new results.
@@ -87,9 +82,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
   const recordPairs = useMemo<IRecordPair[] | undefined>(
     () =>
-      submissionInfo?.recordPairsByEvent.find((erp: IEventRecordPairs) =>
-        erp.eventId === event?.eventId
-      )?.recordPairs,
+      submissionInfo?.recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === event?.eventId)?.recordPairs,
     [submissionInfo, event],
   );
 
@@ -133,9 +126,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
             if (res.success && res.data) {
               setSubmissionInfo(res.data);
 
-              const event = res.data.events.find((el: Event) =>
-                el.eventId === searchParams.get("eventId")
-              ) ??
+              const event = res.data.events.find((el: Event) => el.eventId === searchParams.get("eventId")) ??
                 res.data.events[0];
               setEvent(event);
               resetCompetitors(event.participants);
@@ -155,9 +146,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
             setEvent(events[0]);
             setRoundFormat(
-              allowedRoundFormats.find((rf) =>
-                rf.attempts === result.attempts.length
-              ) as IRoundFormat,
+              allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length) as IRoundFormat,
             );
             setAttempts(result.attempts);
             setDate(new Date(result.date));
@@ -212,8 +201,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
         discussionLink: newResult.discussionLink,
       };
       if (!approve) {
-        updateResultDto.unapproved =
-          (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved;
+        updateResultDto.unapproved = (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved;
       }
 
       const res = await myFetch.patch(
@@ -227,9 +215,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
 
       if (res.success) {
         changeSuccessMessage(
-          approve
-            ? "Result successfully approved"
-            : "Result successfully updated",
+          approve ? "Result successfully approved" : "Result successfully updated",
         );
 
         setTimeout(() => {
@@ -256,9 +242,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
   };
 
   const changeRoundFormat = (newFormat: RoundFormat) => {
-    const newRoundFormat = allowedRoundFormats.find((rf) =>
-      rf.value === newFormat
-    ) as IRoundFormat;
+    const newRoundFormat = allowedRoundFormats.find((rf) => rf.value === newFormat) as IRoundFormat;
     setRoundFormat(newRoundFormat);
     resetAttempts(newRoundFormat.attempts);
   };
@@ -315,49 +299,38 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
         {resultId
           ? (
             <p>
-              Once you submit the attempt, the backend will remove future
-              records that would have been cancelled by it.
+              Once you submit the attempt, the backend will remove future records that would have been cancelled by it.
             </p>
           )
           : (
             <>
               <p>
-                Here you can submit results for events that allow submissions.
-                You may submit other people's results too. New results will be
-                included in the rankings after an admin approves them. A result
-                can only be accepted if it has video evidence of the{" "}
-                <b>ENTIRE</b>{" "}
-                solve (including memorization, if applicable). The video date is
-                used as proof of when the solve was done, an earlier date cannot
-                be used. Make sure that you can be identified from the provided
-                video; if your channel name is not your real name, please
-                include your full name or WCA ID in the description of the
-                video. If you do not have a WCA ID, please contact the admins to
-                have a competitor profile created for you. If you have any
-                questions or suggestions, feel free to send an email to{" "}
-                {C.contactEmail}.
+                Here you can submit results for events that allow submissions. You may submit other people's results
+                too. New results will be included in the rankings after an admin approves them. A result can only be
+                accepted if it has video evidence of the <b>ENTIRE</b>{" "}
+                solve (including memorization, if applicable). The video date is used as proof of when the solve was
+                done, an earlier date cannot be used. Make sure that you can be identified from the provided video; if
+                your channel name is not your real name, please include your full name or WCA ID in the description of
+                the video. If you do not have a WCA ID, please contact the admins to have a competitor profile created
+                for you. If you have any questions or suggestions, feel free to send an email to {C.contactEmail}.
               </p>
               <div className="alert alert-warning mb-4" role="alert">
                 Rule 2 has been updated!
               </div>
-              <button
-                type="button"
-                className="btn btn-success btn-sm"
-                onClick={() => setShowRules(!showRules)}
-              >
+              <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? "Hide rules" : "Show rules"}
               </button>
-              {showRules && <Markdown className="mt-4 lh-lg">{rules}</Markdown>}
+              {showRules && (
+                <div className="mt-4 lh-lg">
+                  <Markdown>{rules}</Markdown>
+                </div>
+              )}
             </>
           )}
       </div>
 
       <Form hideControls>
-        {resultId && (
-          <CreatorDetails
-            creator={(submissionInfo as IAdminResultsSubmissionInfo).creator}
-          />
-        )}
+        {resultId && <CreatorDetails user={(submissionInfo as IAdminResultsSubmissionInfo).creator} />}
         <FormEventSelect
           events={submissionInfo.events}
           eventId={event.eventId}
@@ -378,9 +351,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
           setPersonNames={setPersonNames}
           persons={competitors}
           setPersons={setCompetitors}
-          nextFocusTargetId={event.format !== EventFormat.Multi
-            ? "attempt_1"
-            : "attempt_1_solved"}
+          nextFocusTargetId={event.format !== EventFormat.Multi ? "attempt_1" : "attempt_1_solved"}
           redirectToOnAddPerson={window.location.pathname}
         />
         <FormCheckbox
@@ -400,31 +371,25 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
               [RoundFormat.BestOf1, RoundFormat.BestOf2].includes(
                 roundFormat.value,
               )}
-            nextFocusTargetId={i + 1 === attempts.length
-              ? isDateDisabled ? "video_link" : "date"
-              : undefined}
+            nextFocusTargetId={i + 1 === attempts.length ? isDateDisabled ? "video_link" : "date" : undefined}
           />
         ))}
-        {loadingId === "RECORD_PAIRS"
-          ? <Loading small dontCenter />
-          : (
-            <BestAndAverage
-              event={event}
-              roundFormat={roundFormat.value}
-              attempts={attempts}
-              recordPairs={recordPairs}
-              recordTypes={submissionInfo.activeRecordTypes}
-            />
-          )}
+        {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
+          <BestAndAverage
+            event={event}
+            roundFormat={roundFormat.value}
+            attempts={attempts}
+            recordPairs={recordPairs}
+            recordTypes={submissionInfo.activeRecordTypes}
+          />
+        )}
         <FormDateInput
           id="date"
           title="Date (dd.mm.yyyy)"
           value={date}
           setValue={changeDate}
           disabled={isDateDisabled}
-          nextFocusTargetId={videoUnavailable
-            ? "discussion_link"
-            : "video_link"}
+          nextFocusTargetId={videoUnavailable ? "discussion_link" : "video_link"}
           className="my-3"
         />
         <FormTextInput

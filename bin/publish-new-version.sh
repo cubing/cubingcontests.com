@@ -2,7 +2,9 @@
 
 # First, make sure there are no lint errors and that the frontend builds successfully
 if [ -z "$1" ] || [ "$1" != "--no-checks" ]; then
-  cd client ; deno lint
+  cd client
+  deno lint
+  deno check
 
   if [ $? -gt 0 ]; then
     echo -e "\n\nPlease fix all linting errors before publishing a new version"
@@ -28,10 +30,10 @@ echo "Please give the new version tag:"
 read new_version
 
 if [ -z "$1" ] || [ "$1" != '--no-git' ]; then
-  echo "Pushing to Github..."
+  echo "Pushing version $new_version to Github..."
   git push origin main &&
   # git push origin dev &&
-  git tag --force --annotate $new_version -m "Version $new_version" &&
+  git tag --force --annotate "$new_version" -m "Version $new_version" &&
   git push --force origin --tags
 fi
 

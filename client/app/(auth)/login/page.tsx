@@ -7,9 +7,8 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { authClient } from "~/helpers/authClient.ts";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { LoginFormValidator } from "~/helpers/validators/Auth";
-import { getFormattedValidationErrors } from "~/helpers/utilityFunctions";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -18,14 +17,13 @@ const LoginPage = () => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const email = searchParams.get("email");
 
     if (email) {
-      const parsed = z.string().email().safeParse(email);
+      const parsed = z.email().safeParse(email);
 
       if (!parsed.success) {
         changeErrorMessages([
@@ -45,10 +43,10 @@ const LoginPage = () => {
     const parsed = LoginFormValidator.safeParse({ username, password });
 
     if (!parsed.success) {
-      changeErrorMessages(getFormattedValidationErrors(parsed.error));
+      changeErrorMessages([z.prettifyError(parsed.error)]);
     } else {
       startTransition(async () => {
-        const isEmailLogin = z.string().email().safeParse(username).success;
+        const isEmailLogin = z.email().safeParse(username).success;
         const { error } = isEmailLogin
           ? await authClient.signIn.email({ email: username, password })
           : await authClient.signIn.username({ username, password });

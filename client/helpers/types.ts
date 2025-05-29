@@ -1,56 +1,13 @@
-// Interfaces
-export type {
-  ICompetitionDetails,
-  IContest,
-  IContestData,
-  IContestDto,
-  IContestEvent,
-  IMeetupDetails,
-} from "./interfaces/Contest.ts";
-export type { IEventRule } from "./interfaces/EventRule.ts";
-export type { IFePerson, IPerson, IPersonDto, IWcaPersonDto } from "./interfaces/Person.ts";
-export type { IRecordType } from "./interfaces/RecordType.ts";
-export type {
-  IAdminResultsSubmissionInfo,
-  IAttempt,
-  ICreateResultDto,
-  ICreateVideoBasedResultDto,
-  IEventRankings,
-  IEventRecordPairs,
-  IFeAttempt,
-  IFeResult,
-  IRanking,
-  IRecordPair,
-  IResult,
-  IResultsSubmissionInfo,
-  IUpdateResultDto,
-  IUpdateVideoBasedResultDto,
-  IVideoBasedResult,
-} from "./interfaces/Result.ts";
-export type { ICutoff, IProceed, IRound, IRoundFormat, ITimeLimit } from "./interfaces/Round.ts";
-export type { IActivity, IRoom, ISchedule, IVenue } from "./interfaces/Schedule.ts";
-export type { IAdminStats } from "./interfaces/AdminStats.ts";
-export type { INavigationItem } from "./interfaces/NavigationItem.ts";
-export type { IAuthToken } from "./interfaces/AuthToken.ts";
-export type { IJwtPayload } from "./interfaces/JwtPayload.ts";
-export type { IPartialUser, IUser } from "./interfaces/User.ts";
-
-// Types
-export type { Event, FeEvent } from "./types/Event.ts";
-export type { NxNMove } from "./types/NxNMove.ts";
-export type { InputPerson } from "./types/InputPerson.ts";
-export type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
-export type { EventCategory } from "./types/EventCategory.ts";
-export type { FetchError, FetchErrorObj, FetchObj, FetchSuccess } from "./types/FetchObj.ts";
-export type { HttpMethod } from "./types/DELETEHttpMethod.ts";
+import { authClient } from "~/helpers/authClient.ts";
+import { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 
 // WCIF types
 export type {
-  Activity as IWcifActivity,
-  Competition as IWcifCompetition,
-  Event as IWcifEvent,
-  Round as IWcifRound,
-  Schedule as IWcifSchedule,
+  Activity as WcifActivity,
+  Competition as WcifCompetition,
+  Event as WcifEvent,
+  Round as WcifRound,
+  Schedule as WcifSchedule,
 } from "@wca/helpers";
 
 // Random types
@@ -63,3 +20,15 @@ export type ListPageMode = "view" | "add" | "edit";
 
 // undefined is the empty value, null is the invalid value
 export type NumberInputValue = number | null | undefined;
+
+export type Creator = Pick<typeof authClient.$Infer.Session.user, "id" | "username" | "email">;
+
+export type ModPersonsData = {
+  persons: (SelectPerson | PersonResponse)[];
+  users?: Creator[]; // only returned to admins
+};
+
+export type WcaPersonDto = {
+  person: PersonResponse;
+  isNew: boolean;
+};

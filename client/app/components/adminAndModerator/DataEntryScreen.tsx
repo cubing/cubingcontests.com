@@ -20,22 +20,11 @@ import {
   type IUpdateResultDto,
 } from "~/helpers/types.ts";
 import { RoundType } from "~/helpers/enums.ts";
-import {
-  getBlankCompetitors,
-  shortenEventName,
-} from "~/helpers/utilityFunctions.ts";
+import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import type { InputPerson, MultiChoiceOption } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import {
-  getBestAndAverage,
-  getMakesCutoff,
-  getMaxAllowedRounds,
-} from "~/helpers/sharedFunctions.ts";
-import type {
-  ICreateResultDto,
-  IFeAttempt,
-  IRecordPair,
-} from "~/helpers/types.ts";
+import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/helpers/sharedFunctions.ts";
+import type { ICreateResultDto, IFeAttempt, IRecordPair } from "~/helpers/types.ts";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
@@ -57,8 +46,7 @@ const DataEntryScreen = ({
 }) => {
   const searchParams = useSearchParams();
   const myFetch = useMyFetch();
-  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } =
-    useContext(MainContext);
+  const { changeErrorMessages, loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
 
   const [resultUnderEdit, setResultUnderEdit] = useState<IResult | null>(null);
   const [recordPairsByEvent, setRecordPairsByEvent] = useState(
@@ -70,16 +58,12 @@ const DataEntryScreen = ({
 
   const eventId = searchParams.get("eventId") ??
     contest.events[0].event.eventId;
-  const currContestEvent = contestEvents.find((ev: IContestEvent) =>
-    ev.event.eventId === eventId
-  ) as IContestEvent;
+  const currContestEvent = contestEvents.find((ev: IContestEvent) => ev.event.eventId === eventId) as IContestEvent;
   const currEvent = currContestEvent.event;
 
   const [round, setRound] = useState<IRound>(currContestEvent.rounds[0]);
 
-  const roundFormat = roundFormats.find((rf) =>
-    rf.value === round.format
-  ) as IRoundFormat;
+  const roundFormat = roundFormats.find((rf) => rf.value === round.format) as IRoundFormat;
 
   const [currentPersons, setCurrentPersons] = useState<InputPerson[]>(
     new Array(currEvent.participants).fill(null),
@@ -102,15 +86,11 @@ const DataEntryScreen = ({
     [currContestEvent],
   );
   const recordPairs = useMemo<IRecordPair[] | undefined>(
-    () =>
-      recordPairsByEvent.find((erp: IEventRecordPairs) =>
-        erp.eventId === eventId
-      )?.recordPairs,
+    () => recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === eventId)?.recordPairs,
     [recordPairsByEvent, currEvent],
   );
 
-  const roundNumber =
-    currContestEvent.rounds.findIndex((r) => r.roundId === round.roundId) + 1;
+  const roundNumber = currContestEvent.rounds.findIndex((r) => r.roundId === round.roundId) + 1;
   const maxAllowedRounds = getMaxAllowedRounds(currContestEvent.rounds);
   const isOpenableRound = !round.open && maxAllowedRounds >= roundNumber;
   const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
@@ -134,9 +114,7 @@ const DataEntryScreen = ({
 
     const resultDto: ICreateResultDto = {
       eventId,
-      personIds: currentPersons.map((p: InputPerson) =>
-        (p as IPerson).personId
-      ),
+      personIds: currentPersons.map((p: InputPerson) => (p as IPerson).personId),
       attempts,
     };
     let updatedRound: IRound;
@@ -209,9 +187,7 @@ const DataEntryScreen = ({
     );
     setAttempts(
       new Array(
-        (roundFormats.find((rf) =>
-          rf.value === updatedRound.format
-        ) as IRoundFormat).attempts,
+        (roundFormats.find((rf) => rf.value === updatedRound.format) as IRoundFormat).attempts,
       )
         .fill({ result: 0 }),
     );
@@ -237,13 +213,10 @@ const DataEntryScreen = ({
     // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (
       eventRP.recordPairs.length > 0 &&
-      (newResult.best < eventRP.recordPairs[0].best ||
-        newResult.average < eventRP.recordPairs[0].average)
+      (newResult.best < eventRP.recordPairs[0].best || newResult.average < eventRP.recordPairs[0].average)
     ) {
       const res = await myFetch.get(
-        `/results/record-pairs/${contest.startDate}/${
-          contest.events.map((e) => e.event.eventId).join(",")
-        }`,
+        `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(",")}`,
         { authorize: true, loadingId: null },
       );
 
@@ -254,9 +227,7 @@ const DataEntryScreen = ({
 
   const onSelectPerson = (person: IPerson) => {
     if (currentPersons.every((p: InputPerson) => p === null)) {
-      const existingResultForSelectedPerson = round.results.find((r: IResult) =>
-        r.personIds.includes(person.personId)
-      );
+      const existingResultForSelectedPerson = round.results.find((r: IResult) => r.personIds.includes(person.personId));
       if (existingResultForSelectedPerson) {
         editResult(existingResultForSelectedPerson);
       }
@@ -315,9 +286,7 @@ const DataEntryScreen = ({
 
   const submitMockResult = async () => {
     let firstUnusedPersonId =
-      persons.reduce((acc: IPerson, person: IPerson) =>
-        !acc || person.personId > acc.personId ? person : acc
-      )
+      persons.reduce((acc: IPerson, person: IPerson) => !acc || person.personId > acc.personId ? person : acc)
         .personId + 1;
     const resultPersons: IPerson[] = [];
     for (let i = 0; i < currEvent.participants; i++) {
@@ -378,9 +347,7 @@ const DataEntryScreen = ({
               options={roundOptions}
               selected={round.roundTypeId}
               setSelected={(val: RoundType) =>
-                changeRound(currContestEvent.rounds.find((r) =>
-                  r.roundTypeId === val
-                ) as IRound)}
+                changeRound(currContestEvent.rounds.find((r) => r.roundTypeId === val) as IRound)}
               disabled={resultUnderEdit !== null}
               className="mb-3"
             />
@@ -403,25 +370,21 @@ const DataEntryScreen = ({
                 attempt={attempt}
                 setAttempt={(val: IFeAttempt) => changeAttempt(i, val)}
                 event={currEvent}
-                nextFocusTargetId={i + 1 === lastActiveAttempt
-                  ? "submit_attempt_button"
-                  : undefined}
+                nextFocusTargetId={i + 1 === lastActiveAttempt ? "submit_attempt_button" : undefined}
                 timeLimit={round.timeLimit}
                 disabled={i + 1 > lastActiveAttempt || !round.open}
               />
             ))}
-            {loadingId === "RECORD_PAIRS"
-              ? <Loading small dontCenter />
-              : (
-                <BestAndAverage
-                  event={currEvent}
-                  roundFormat={round.format}
-                  attempts={attempts}
-                  recordPairs={recordPairs}
-                  recordTypes={activeRecordTypes}
-                  cutoff={round.cutoff}
-                />
-              )}
+            {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
+              <BestAndAverage
+                event={currEvent}
+                roundFormat={round.format}
+                attempts={attempts}
+                recordPairs={recordPairs}
+                recordTypes={activeRecordTypes}
+                cutoff={round.cutoff}
+              />
+            )}
             <Button
               id="submit_attempt_button"
               onClick={submitResult}
@@ -447,8 +410,7 @@ const DataEntryScreen = ({
                   <p className="mb-0 fs-5 fw-bold">{queuePosition}</p>
                   <Button
                     id="queue_increment_button"
-                    onClick={() =>
-                      updateQueuePosition("increment")}
+                    onClick={() => updateQueuePosition("increment")}
                     loadingId={loadingId}
                     className="btn-success btn-xs"
                     ariaLabel="Increment queue position"
@@ -506,10 +468,9 @@ const DataEntryScreen = ({
                         Open Round
                       </Button>
                       <p className="mt-4 text-center text-danger fst-italic">
-                        Do NOT begin this round before opening it using the
-                        button, which checks that the round may be opened. Also,
-                        please mind that manually adding/removing competitors
-                        to/from a subsequent round hasn't been implemented yet.
+                        Do NOT begin this round before opening it using the button, which checks that the round may be
+                        opened. Also, please mind that manually adding/removing competitors to/from a subsequent round
+                        hasn't been implemented yet.
                       </p>
                     </>
                   )

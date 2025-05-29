@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState, useTransition } from "react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages";
 import { authClient } from "~/helpers/authClient";
@@ -14,11 +14,10 @@ const VerificationLinkExpiredPage = () => {
   const { data: session } = authClient.useSession();
 
   const [isDisabled, setIsDisabled] = useState(false);
-
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    const parsed = z.string().email().safeParse(searchParams.get("email"));
+    const parsed = z.email().safeParse(searchParams.get("email"));
 
     if (!parsed.success) {
       changeErrorMessages(["An unknown error has occurred. Please try to register again."]);

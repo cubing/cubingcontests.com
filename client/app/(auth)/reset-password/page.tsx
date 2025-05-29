@@ -7,7 +7,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "~/helpers/authClient";
 import { ResetPasswordFormValidator } from "~/helpers/validators/Auth";
-import { getFormattedValidationErrors } from "~/helpers/utilityFunctions";
+import z from "zod/v4";
 
 const ResetPasswordPage = () => {
   const router = useRouter();
@@ -17,7 +17,6 @@ const ResetPasswordPage = () => {
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
   const [isDisabled, setIsDisabled] = useState(true);
-
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -37,7 +36,7 @@ const ResetPasswordPage = () => {
     });
 
     if (!parsed.success) {
-      changeErrorMessages(getFormattedValidationErrors(parsed.error));
+      changeErrorMessages([z.prettifyError(parsed.error)]);
     } else {
       startTransition(async () => {
         const { error } = await authClient.resetPassword({

@@ -18,9 +18,9 @@ export interface IUser extends IPartialUser {
   passwordResetStarted?: Date;
 }
 
-// export interface IFeUser {
-//   username: string;
-//   email: string;
-//   roles: Role[];
-//   person?: IPerson;
-// }
+export interface IFeUser {
+  username: string;
+  email: string;
+  roles: Role[];
+  person?: IPerson;
+}

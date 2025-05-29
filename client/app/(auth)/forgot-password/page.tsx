@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useState, useTransition } from "react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -12,11 +12,10 @@ const RequestPasswordResetPage = () => {
 
   const [email, setEmail] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
-
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = () => {
-    const parsed = z.string().email().safeParse(email);
+    const parsed = z.email().safeParse(email);
 
     if (!parsed.success) {
       changeErrorMessages(["Please enter a valid email address"]);

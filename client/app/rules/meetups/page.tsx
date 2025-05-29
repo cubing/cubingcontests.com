@@ -8,7 +8,9 @@ const MeetupRulesPage = () => {
     <>
       <Tabs activeTab="meetups" tabs={tabs} forServerSidePage prefetch />
 
-      <Markdown className="px-3 lh-lg">{rules}</Markdown>
+      <div className="px-3 lh-lg">
+        <Markdown>{rules}</Markdown>
+      </div>
     </>
   );
 };

@@ -5,10 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import { Suspense } from "react";
 import Loading from "~/app/components/UI/Loading";
-import { getCurrentCollectiveCubingSolution } from "~/server/serverFunctions";
+import { getCurrentCollectiveCubingSolutionSF } from "~/server/serverFunctions";
 
 const Home = async () => {
-  const res = await getCurrentCollectiveCubingSolution();
+  const res = await getCurrentCollectiveCubingSolutionSF();
 
   return (
     <div className="px-3">

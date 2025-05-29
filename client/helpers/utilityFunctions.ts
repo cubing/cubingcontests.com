@@ -3,16 +3,8 @@ import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
 import { Color, EventFormat, Role } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
-import type {
-  Event,
-  IFeAttempt,
-  IRoundFormat,
-  ITimeLimit,
-  NumberInputValue,
-} from "~/helpers/types.ts";
+import type { Event, IFeAttempt, IRoundFormat, ITimeLimit, NumberInputValue } from "~/helpers/types.ts";
 import type { InputPerson, MultiChoiceOption } from "./types.ts";
-import { ZodError } from "zod";
-import capitalize from "lodash/capitalize";
 
 export const getFormattedDate = (
   startDate: Date | string,
@@ -34,9 +26,7 @@ export const getFormattedDate = (
     else if (!isSameMonth(startDate, endDate)) startFormat = "d MMM";
     else startFormat = "d";
 
-    return `${formatInTimeZone(startDate, "UTC", startFormat)} - ${
-      formatInTimeZone(endDate, "UTC", fullFormat)
-    }`;
+    return `${formatInTimeZone(startDate, "UTC", startFormat)} - ${formatInTimeZone(endDate, "UTC", fullFormat)}`;
   }
 };
 
@@ -153,8 +143,7 @@ export const getAttempt = (
     }
 
     multiOutput += 9999 - points;
-    multiOutput +=
-      new Array(7 - newAttempt.result.toString().length).fill("0").join("") +
+    multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") +
       newAttempt.result;
     multiOutput += new Array(4 - missed.toString().length).fill("0").join("") +
       missed;
@@ -193,9 +182,7 @@ export const getContestIdFromName = (name: string): string => {
   let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, "");
   const parts = output.split(" ");
 
-  output = parts.filter((el) => el !== "").map((el) =>
-    el[0].toUpperCase() + el.slice(1)
-  ).join("");
+  output = parts.filter((el) => el !== "").map((el) => el[0].toUpperCase() + el.slice(1)).join("");
 
   return output;
 };
@@ -254,14 +241,11 @@ export const getIsWebglSupported = (): boolean => {
 export const getTimeLimit = (
   eventFormat: EventFormat,
 ): ITimeLimit | undefined =>
-  eventFormat === EventFormat.Time
-    ? { centiseconds: 60000, cumulativeRoundIds: [] }
-    : undefined;
+  eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
 
 export const getRoundFormatOptions = (
   roundFormats: IRoundFormat[],
-): MultiChoiceOption[] =>
-  roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
+): MultiChoiceOption[] => roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
 
 export const getBlankCompetitors = (
   participants: number,
@@ -270,9 +254,3 @@ export const getBlankCompetitors = (
   const personNames = new Array(participants).fill("");
   return [persons, personNames];
 };
-
-export function getFormattedValidationErrors(error: ZodError) {
-  return error.errors.map((e) =>
-    `${capitalize(e.path.at(0)?.toString())}: ${e.message}`
-  );
-}

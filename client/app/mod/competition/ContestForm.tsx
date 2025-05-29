@@ -22,10 +22,7 @@ import {
 import { Color, ContestState, ContestType } from "~/helpers/enums.ts";
 import { getDateOnly, getIsCompType } from "~/helpers/sharedFunctions.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
-import {
-  getContestIdFromName,
-  getTimeLimit,
-} from "~/helpers/utilityFunctions.ts";
+import { getContestIdFromName, getTimeLimit } from "~/helpers/utilityFunctions.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Form from "~/app/components/form/Form.tsx";
@@ -45,7 +42,7 @@ import ScheduleEditor from "./ScheduleEditor.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 import type { InputPerson } from "~/helpers/types.ts";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
-import { getTimeZoneFromCoords } from "~/server/serverFunctions.ts";
+import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions.ts";
 import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import { authClient } from "~/helpers/authClient.ts";
 
@@ -104,9 +101,7 @@ const ContestForm = ({
   );
   // Meetup-only; set 12:00 as initial start time
   const [startTime, setStartTime] = useState(
-    contest?.meetupDetails
-      ? new Date(contest.meetupDetails.startTime)
-      : addHours(getDateOnly(new Date()) as Date, 12),
+    contest?.meetupDetails ? new Date(contest.meetupDetails.startTime) : addHours(getDateOnly(new Date()) as Date, 12),
   );
   const [endDate, setEndDate] = useState(
     contest?.endDate ? new Date(contest.endDate as Date) : new Date(),
@@ -145,7 +140,7 @@ const ContestForm = ({
       (lat: number, long: number) =>
         startTimeZoneTransition(async () => {
           changeErrorMessages([]);
-          const res = await getTimeZoneFromCoords({
+          const res = await getTimeZoneFromCoordsSF({
             latitude: lat,
             longitude: long,
           });
@@ -212,9 +207,7 @@ const ContestForm = ({
 
     changeLoadingId("form_submit_button");
 
-    const selectedOrganizers = organizers.filter((o: InputPerson) =>
-      o !== null
-    );
+    const selectedOrganizers = organizers.filter((o: InputPerson) => o !== null);
     const latitudeMicrodegrees = Math.round(latitude * 1000000);
     const longitudeMicrodegrees = Math.round(longitude * 1000000);
 
@@ -492,9 +485,7 @@ const ContestForm = ({
 
   const unfinishContest = async () => {
     const answer = confirm(
-      `Are you sure you would like to set ${
-        (contest as IContest).name
-      } back to ongoing?`,
+      `Are you sure you would like to set ${(contest as IContest).name} back to ongoing?`,
     );
 
     if (answer) {
@@ -564,7 +555,7 @@ const ContestForm = ({
         onSubmit={handleSubmit}
         disableControls={disableIfContestPublished}
       >
-        {mode === "edit" && creator && <CreatorDetails creator={creator} />}
+        {mode === "edit" && <CreatorDetails user={creator} />}
 
         <Tabs
           tabs={tabs}
@@ -597,8 +588,7 @@ const ContestForm = ({
                 )}
 
                 <p className="mb-4 fs-6 fw-bold fst-italic text-info">
-                  Come back here after the contest gets approved to generate the
-                  scorecards!
+                  Come back here after the contest gets approved to generate the scorecards!
                 </p>
               </>
             )}
@@ -691,8 +681,7 @@ const ContestForm = ({
                   </div>
                 </div>
                 <p className="mb-3 fs-6 fst-italic">
-                  If the scorecards aren't generating correctly, please report
-                  this to the admins!
+                  If the scorecards aren't generating correctly, please report this to the admins!
                 </p>
               </>
             )}
@@ -799,14 +788,10 @@ const ContestForm = ({
                 </div>
                 <div className="row">
                   <div className="text-secondary fs-6 mb-2">
-                    Time zone:{" "}
-                    {isTimeZonePending
-                      ? <Loading small dontCenter />
-                      : timeZone}
+                    Time zone: {isTimeZonePending ? <Loading small dontCenter /> : timeZone}
                   </div>
                   <div className="text-danger fs-6">
-                    The coordinates must point to a building and match the
-                    address of the venue.
+                    The coordinates must point to a building and match the address of the venue.
                   </div>
                 </div>
               </div>
@@ -817,9 +802,7 @@ const ContestForm = ({
                   ? (
                     <FormDatePicker
                       id="start_date"
-                      title={`Start date and time (${
-                        isTimeZonePending ? "..." : timeZone
-                      })`}
+                      title={`Start date and time (${isTimeZonePending ? "..." : timeZone})`}
                       value={startTime}
                       setValue={changeStartDate}
                       timeZone={timeZone}
@@ -886,13 +869,11 @@ const ContestForm = ({
             {type === ContestType.WcaComp && (
               <div>
                 <p className="fs-6">
-                  The description must be available in English for WCA
-                  competitions. You may still include versions written in other
-                  languages, and the order doesn't matter.
+                  The description must be available in English for WCA competitions. You may still include versions
+                  written in other languages, and the order doesn't matter.
                 </p>
                 <p className="fs-6 fst-italic">
-                  The following text will be displayed above the description on
-                  the contest page:
+                  The following text will be displayed above the description on the contest page:
                 </p>
                 <div className="mx-2">
                   <WcaCompAdditionalDetails

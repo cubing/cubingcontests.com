@@ -7,9 +7,8 @@ import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { ContestState } from "~/helpers/enums.ts";
-import { IAdminStats, IContest, IPerson } from "~/helpers/types.ts";
-import { UserInfo } from "~/helpers/types.ts";
-import { getFormattedDate, getUserInfo } from "~/helpers/utilityFunctions.ts";
+// import { IAdminStats, IContest, IPerson } from "~/helpers/types.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Country from "~/app/components/Country.tsx";
@@ -20,83 +19,80 @@ import { C } from "~/helpers/constants.ts";
 import { useRouter, useSearchParams } from "next/navigation";
 import ModFilters from "~/app/mod/ModFilters";
 
-const userInfo: UserInfo = getUserInfo();
-
 const ModeratorDashboardPage = () => {
   const myFetch = useMyFetch();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { loadingId } = useContext(MainContext);
 
-  const [contests, setContests] = useState<IContest[]>();
-  const [adminStats, setAdminStats] = useState<IAdminStats>();
-  const [showAnalytics, setShowAnalytics] = useState(false);
+  // const [contests, setContests] = useState<IContest[]>();
+  // const [adminStats, setAdminStats] = useState<IAdminStats>();
+  // const [showAnalytics, setShowAnalytics] = useState(false);
 
-  const pendingContests = contests?.filter((c: IContest) =>
-    c.state === ContestState.Created ||
-    (c.state > ContestState.Approved && c.state < ContestState.Published)
-  ).length ?? 0;
+  // const pendingContests = contests?.filter((c: IContest) =>
+  //   c.state === ContestState.Created ||
+  //   (c.state > ContestState.Approved && c.state < ContestState.Published)
+  // ).length ?? 0;
 
-  const fetchContests = async (newOrganizerId?: string | number) => {
-    const res = await myFetch.get(
-      `/competitions/mod${newOrganizerId ? `?organizerId=${newOrganizerId}` : ""}`,
-      { authorize: true },
-    );
+  // const fetchContests = async (newOrganizerId?: string | number) => {
+  //   const res = await myFetch.get(
+  //     `/competitions/mod${newOrganizerId ? `?organizerId=${newOrganizerId}` : ""}`,
+  //     { authorize: true },
+  //   );
 
-    if (res.success) setContests(res.data);
-  };
+  //   if (res.success) setContests(res.data);
+  // };
 
-  useEffect(() => {
-    const organizerId = searchParams.get("organizerId");
-    fetchContests(typeof organizerId === "string" ? organizerId : undefined);
+  // useEffect(() => {
+  //   const organizerId = searchParams.get("organizerId");
+  //   fetchContests(typeof organizerId === "string" ? organizerId : undefined);
 
-    if (userInfo?.isAdmin) {
-      myFetch.get("/admin-stats", { authorize: true }).then((res) => {
-        if (res.success) setAdminStats(res.data);
-      });
-    }
-  }, []);
+  //   if (userInfo?.isAdmin) {
+  //     myFetch.get("/admin-stats", { authorize: true }).then((res) => {
+  //       if (res.success) setAdminStats(res.data);
+  //     });
+  //   }
+  // }, []);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
-  const changeState = async (competitionId: string, newState: ContestState) => {
-    const verb = newState === ContestState.Approved
-      ? "approve"
-      : newState === ContestState.Finished
-      ? "finish"
-      : newState === ContestState.Published
-      ? "publish"
-      : "ERROR";
-    const contest = contests?.find((c: IContest) => c.competitionId === competitionId) as IContest;
+  // const changeState = async (competitionId: string, newState: ContestState) => {
+  //   const verb = newState === ContestState.Approved
+  //     ? "approve"
+  //     : newState === ContestState.Finished
+  //     ? "finish"
+  //     : newState === ContestState.Published
+  //     ? "publish"
+  //     : "ERROR";
+  //   const contest = contests?.find((c: IContest) => c.competitionId === competitionId) as IContest;
 
-    if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
-      const res = await myFetch.patch(
-        `/competitions/set-state/${competitionId}`,
-        { newState },
-        { loadingId: `set_state_${newState}_${competitionId}_button` },
-      );
+  //   if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
+  //     const res = await myFetch.patch(
+  //       `/competitions/set-state/${competitionId}`,
+  //       { newState },
+  //       { loadingId: `set_state_${newState}_${competitionId}_button` },
+  //     );
 
-      if (res.success) {
-        setContests(
-          (contests as IContest[]).map((
-            c,
-          ) => (c.competitionId === competitionId ? res.data : c)),
-        );
-      }
-    }
-  };
+  //     if (res.success) {
+  //       setContests(
+  //         (contests as IContest[]).map((
+  //           c,
+  //         ) => (c.competitionId === competitionId ? res.data : c)),
+  //       );
+  //     }
+  //   }
+  // };
 
-  const selectPerson = (person: IPerson) => {
-    router.replace(`/mod?organizerId=${person.personId}`);
-    fetchContests(person.personId);
-  };
+  // const selectPerson = (person: IPerson) => {
+  //   router.replace(`/mod?organizerId=${person.personId}`);
+  //   fetchContests(person.personId);
+  // };
 
-  const resetFilters = () => {
-    router.replace("/mod");
-    fetchContests();
-  };
+  // const resetFilters = () => {
+  //   router.replace("/mod");
+  //   fetchContests();
+  // };
 
   return (
     <div>

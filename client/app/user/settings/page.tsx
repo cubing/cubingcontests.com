@@ -14,7 +14,6 @@ const UserSettingsPage = () => {
   const router = useRouter();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
   const { data: session, isPending } = authClient.useSession();
-
   const [isDeleting, startTransition] = useTransition();
 
   useEffect(() => {

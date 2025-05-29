@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +14,7 @@ type Props = {
 
 const NavbarItems = ({ user }: Props) => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [expanded, setExpanded] = useState(false);
   const [resultsExpanded, setResultsExpanded] = useState(false);
@@ -22,6 +23,7 @@ const NavbarItems = ({ user }: Props) => {
   const logOut = async () => {
     collapseAll();
     await authClient.signOut();
+    router.push("/");
   };
 
   const toggleDropdown = (
@@ -64,9 +66,7 @@ const NavbarItems = ({ user }: Props) => {
           <ul className="navbar-nav align-items-start align-items-lg-end gap-lg-4 mt-3 mt-lg-0 mx-2 fs-5">
             <li className="nav-item">
               <Link
-                className={`nav-link ${
-                  pathname === "/competitions" ? " active" : ""
-                }`}
+                className={`nav-link ${pathname === "/competitions" ? " active" : ""}`}
                 prefetch={false}
                 href="/competitions"
                 onClick={collapseAll}
@@ -81,23 +81,17 @@ const NavbarItems = ({ user }: Props) => {
             >
               <button
                 type="button"
-                className={`nav-link dropdown-toggle ${
-                  /^\/(rankings|records)\//.test(pathname) ? "active" : ""
-                }`}
+                className={`nav-link dropdown-toggle ${/^\/(rankings|records)\//.test(pathname) ? "active" : ""}`}
                 onClick={() => toggleDropdown("results")}
               >
                 Results
               </button>
               <ul
-                className={`dropdown-menu py-0 px-3 px-lg-2 ${
-                  resultsExpanded ? "show" : ""
-                }`}
+                className={`dropdown-menu py-0 px-3 px-lg-2 ${resultsExpanded ? "show" : ""}`}
               >
                 <li>
                   <Link
-                    className={`nav-link ${
-                      /^\/records\//.test(pathname) ? " active" : ""
-                    }`}
+                    className={`nav-link ${/^\/records\//.test(pathname) ? " active" : ""}`}
                     href="/records"
                     prefetch={false}
                     onClick={collapseAll}
@@ -107,9 +101,7 @@ const NavbarItems = ({ user }: Props) => {
                 </li>
                 <li>
                   <Link
-                    className={`nav-link ${
-                      /^\/rankings\//.test(pathname) ? " active" : ""
-                    }`}
+                    className={`nav-link ${/^\/rankings\//.test(pathname) ? " active" : ""}`}
                     href="/rankings"
                     prefetch={false}
                     onClick={collapseAll}
@@ -154,12 +146,10 @@ const NavbarItems = ({ user }: Props) => {
                     {user.username}
                   </button>
                   <ul
-                    className={`dropdown-menu end-0 py-0 px-3 px-lg-2 ${
-                      userExpanded ? "show" : ""
-                    }`}
+                    className={`dropdown-menu end-0 py-0 px-3 px-lg-2 ${userExpanded ? "show" : ""}`}
                   >
                     {
-                      /* {userInfo.isMod && (
+                      /* {canAccessModDashboard.data && (
                       <li>
                         <Link
                           className="nav-link"

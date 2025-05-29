@@ -1,27 +1,29 @@
 "use server";
 
 import { find as findTimezone } from "geo-tz";
-import { FetchObj, NxNMove } from "~/helpers/types.ts";
-import { NumberInputValue } from "~/helpers/types.ts";
-import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
+import type { FetchObj } from "~/helpers/types/FetchObj.ts";
+import type { NumberInputValue } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   CollectiveSolutionResponse,
-  collectiveSolutions,
-  collectiveSolutionsPublicColumns,
+  collectiveSolutions as csTable,
+  collectiveSolutionsPublicCols,
   InsertCollectiveSolution,
 } from "~/server/db/schema/collective-solutions.ts";
 import { eq, ne } from "drizzle-orm";
 import { randomScrambleForEvent } from "cubing/scramble";
 import { cube2x2x2 } from "cubing/puzzles";
 import { Alg } from "cubing/alg";
-import {
-  authorizeUser,
-  getValidationError,
-} from "~/server/serverUtilityFunctions.ts";
-import { MakeCollectiveCubingMoveValidator } from "~/helpers/validators/MakeCollectiveCubingMove";
+import { authorizeUser, getValidationError } from "~/server/utilityServerFunctions.ts";
+import { type NxNMove, nxnMoves } from "~/helpers/types/NxNMove.ts";
+import { z } from "zod/v4";
 
-export async function getTimeZoneFromCoords(
+const CoordinatesValidator = z.strictObject({
+  latitude: z.number().gte(-90).lte(90),
+  longitude: z.number().gte(-180).lte(180),
+});
+
+export async function getTimeZoneFromCoordsSF(
   dto: { latitude: NumberInputValue; longitude: NumberInputValue },
 ): Promise<FetchObj<string>> {
   const parsed = CoordinatesValidator.safeParse(dto);
@@ -35,23 +37,18 @@ export async function getTimeZoneFromCoords(
   return await Promise.resolve({ success: true, data: timeZone });
 }
 
-export async function getCurrentCollectiveCubingSolution(): Promise<
-  FetchObj<CollectiveSolutionResponse | null>
-> {
-  const [currentSolution] = await db.select(collectiveSolutionsPublicColumns)
-    .from(collectiveSolutions)
-    .where(ne(collectiveSolutions.state, "archived")).limit(1);
+export async function getCurrentCollectiveCubingSolutionSF(): Promise<FetchObj<CollectiveSolutionResponse | null>> {
+  const [currentSolution] = await db.select(collectiveSolutionsPublicCols).from(csTable).where(
+    ne(csTable.state, "archived"),
+  ).limit(1);
 
   return { success: true, data: currentSolution ?? null };
 }
 
-export async function startNewCollectiveCubingSolution(): Promise<
-  FetchObj<CollectiveSolutionResponse>
-> {
-  const user = await authorizeUser();
+export async function startNewCollectiveCubingSolutionSF(): Promise<FetchObj<CollectiveSolutionResponse>> {
+  const { user } = await authorizeUser();
 
-  const [ongoingSolution] = await db.select().from(collectiveSolutions)
-    .where(eq(collectiveSolutions.state, "ongoing")).limit(1);
+  const [ongoingSolution] = await db.select().from(csTable).where(eq(csTable.state, "ongoing")).limit(1);
 
   if (ongoingSolution) {
     return {
@@ -69,11 +66,8 @@ export async function startNewCollectiveCubingSolution(): Promise<
     usersWhoMadeMoves: [],
   };
   const [newSolution] = await db.transaction(async (tx) => {
-    await tx.update(collectiveSolutions).set({ state: "archived" }).where(
-      eq(collectiveSolutions.state, "solved"),
-    );
-    return await tx.insert(collectiveSolutions).values([newCollectiveSolution])
-      .returning(collectiveSolutionsPublicColumns);
+    await tx.update(csTable).set({ state: "archived" }).where(eq(csTable.state, "solved"));
+    return await tx.insert(csTable).values([newCollectiveSolution]).returning(collectiveSolutionsPublicCols);
   });
 
   return {
@@ -95,19 +89,20 @@ async function getIsSolved(currentState: Alg): Promise<boolean> {
   return isSolved;
 }
 
-export async function makeCollectiveCubingMove(
+const MakeCollectiveCubingMoveValidator = z.strictObject({
+  move: z.enum(nxnMoves),
+  lastSeenSolution: z.string(),
+});
+
+export async function makeCollectiveCubingMoveSF(
   dto: { move: NxNMove; lastSeenSolution: string },
-): Promise<
-  FetchObj<CollectiveSolutionResponse>
-> {
+): Promise<FetchObj<CollectiveSolutionResponse>> {
   const parsed = MakeCollectiveCubingMoveValidator.safeParse(dto);
   if (!parsed.success) return getValidationError(parsed.error);
   const { data: { move, lastSeenSolution } } = parsed;
+  const { user } = await authorizeUser();
 
-  const user = await authorizeUser();
-
-  const [ongoingSolution] = await db.select().from(collectiveSolutions)
-    .where(eq(collectiveSolutions.state, "ongoing")).limit(1);
+  const [ongoingSolution] = await db.select().from(csTable).where(eq(csTable.state, "ongoing")).limit(1);
 
   if (!ongoingSolution) {
     return { success: false, error: { code: "NO_ONGOING_SOLUTION" } };
@@ -131,18 +126,17 @@ export async function makeCollectiveCubingMove(
   }
 
   const solution = new Alg(ongoingSolution.solution).concat(move);
-  const currentState = new Alg(ongoingSolution.scramble).concat(solution);
+  const state = await getIsSolved(new Alg(ongoingSolution.scramble).concat(solution)) ? "solved" : "ongoing";
+  console.log(state, solution.toString());
 
-  const [newOngoingSolution] = await db.update(collectiveSolutions).set({
-    state: await getIsSolved(currentState) ? "solved" : "ongoing",
+  const [newOngoingSolution] = await db.update(csTable).set({
+    state,
     solution: solution.toString(),
     lastUserWhoInteracted: user.id,
     usersWhoMadeMoves: !ongoingSolution.usersWhoMadeMoves.includes(user.id)
       ? [...ongoingSolution.usersWhoMadeMoves, user.id]
       : ongoingSolution.usersWhoMadeMoves,
-  }).where(eq(collectiveSolutions.id, ongoingSolution.id)).returning(
-    collectiveSolutionsPublicColumns,
-  );
+  }).where(eq(csTable.id, ongoingSolution.id)).returning(collectiveSolutionsPublicCols);
 
   return { success: true, data: newOngoingSolution };
 }

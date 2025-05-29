@@ -85,5 +85,3 @@ export enum Color {
   Blue = "00f",
   Magenta = "f0f",
 }
-
-export type Role = "admin" | "mod" | "contest_reviewer" | "video_based_results_reviewer";

@@ -1,42 +1,4 @@
 services:
-  # mongo:
-  #   container_name: cc-mongo-dev
-  #   image: mongo
-  #   networks:
-  #     - cubingcontests-dev
-  #   ports:
-  #     - 127.0.0.1:27017:27017 # if this is ever changed, make sure to update all references to the old port
-  #   volumes:
-  #     - mongo:/data/db:rw
-  #     - mongo-configdb:/data/configdb:rw
-  #     # The scripts in docker-entrypoint-initdb.d are run when the container and volume are first created
-  #     - ${PWD}/db_utils/mongo_init:/docker-entrypoint-initdb.d:ro
-  #   environment:
-  #     - MONGO_INITDB_ROOT_USERNAME=$DB_ADMIN_USERNAME
-  #     - MONGO_INITDB_ROOT_PASSWORD=$DB_ADMIN_PASSWORD
-  #     - DB_USERNAME=$DB_USERNAME # used in the mongo_init/create-users.js script
-  #     - DB_PASSWORD=$DB_PASSWORD # used in the mongo_init/create-users.js script
-  #     - DB_NAME=$DB_NAME # used in the mongo_init/create-users.js script
-  #   restart: unless-stopped
-
-  # mongo-express:
-  #   container_name: cc-mongo-express
-  #   image: mongo-express
-  #   networks:
-  #     - cubingcontests-dev
-  #   ports:
-  #     - 127.0.0.1:8081:8081
-  #   environment:
-  #     - ME_CONFIG_MONGODB_SERVER=cc-mongo-dev # name of the other container
-  #     - ME_CONFIG_MONGODB_ADMINUSERNAME=$DB_ADMIN_USERNAME
-  #     - ME_CONFIG_MONGODB_ADMINPASSWORD=$DB_ADMIN_PASSWORD
-  #     # These credentials are just for Mongo Express; no relation to the DB admin user
-  #     - ME_CONFIG_BASICAUTH_USERNAME=admin
-  #     - ME_CONFIG_BASICAUTH_PASSWORD=cc
-  #   depends_on:
-  #     - mongo
-  #   restart: unless-stopped
-
   postgres:
     container_name: cc-postgres-dev # if this is ever changed, make sure to update all references to the old container name
     image: postgres:17-alpine
@@ -60,9 +22,5 @@ services:
 networks:
   cubingcontests-dev:
 volumes:
-  # mongo:
-  #   driver: local
-  # mongo-configdb:
-  #   driver: local
   pg:
     driver: local

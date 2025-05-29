@@ -1,9 +1,7 @@
 "use client";
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFePerson, IWcaPersonDto } from "~/helpers/types.ts";
 import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
@@ -11,40 +9,34 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
 import { fetchWcaPerson } from "~/helpers/sharedFunctions.ts";
+import { PersonResponse } from "~/server/db/schema/persons.ts";
+import { Creator } from "~/helpers/types.ts";
+import { getOrCreatePersonByWcaIdSF } from "~/server/persons/personsServerFunctions";
 
 type Props = {
-  personUnderEdit: IFePerson | undefined;
-  onSubmit: (person: IFePerson, isNew?: boolean) => void;
+  personUnderEdit: PersonResponse | undefined;
+  creator: Creator | undefined;
+  onSubmit: (person: PersonResponse, isNew?: boolean) => void;
   onCancel: (() => void) | undefined;
 };
 
 const PersonForm = ({
   personUnderEdit,
+  creator,
   onSubmit,
   onCancel,
 }: Props) => {
   const searchParams = useSearchParams();
-  const myFetch = useMyFetch();
-  const {
-    changeErrorMessages,
-    changeSuccessMessage,
-    loadingId,
-    changeLoadingId,
-    resetMessagesAndLoadingId,
-  } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const [nextFocusTarget, setNextFocusTarget] = useState("");
   const [name, setName] = useState(personUnderEdit?.name ?? "");
-  const [localizedName, setLocalizedName] = useState(
-    personUnderEdit?.localizedName ?? "",
-  );
+  const [localizedName, setLocalizedName] = useState(personUnderEdit?.localizedName ?? "");
   const [wcaId, setWcaId] = useState(personUnderEdit?.wcaId ?? "");
-  const [hasWcaId, setHasWcaId] = useState<boolean>(
-    personUnderEdit === undefined || !!personUnderEdit.wcaId,
-  );
-  const [countryIso2, setCountryIso2] = useState(
-    personUnderEdit?.countryIso2 ?? "NOT_SELECTED",
-  );
+  const [hasWcaId, setHasWcaId] = useState<boolean>(personUnderEdit === undefined || !!personUnderEdit.wcaId);
+  const [countryIso2, setCountryIso2] = useState(personUnderEdit?.countryIso2 ?? "NOT_SELECTED");
+  const [isSubmitting, startSubmitTransition] = useTransition();
+  const [isPendingWcaId, startWcaIdTransition] = useTransition();
   // This is set to true when the user is an admin, and they attempted to set a person with a duplicate name/country combination.
   // If the person is submitted again with no changes, the request will be sent with ignoreDuplicate=true.
   const isConfirmation = useRef(false);
@@ -62,37 +54,36 @@ const PersonForm = ({
   }, [name, countryIso2]);
 
   const handleSubmit = async () => {
-    const newPerson = {
-      name: name.trim(),
-      localizedName: localizedName.trim() || undefined,
-      wcaId: hasWcaId ? wcaId : undefined,
-      countryIso2,
-    };
-    const extra = isConfirmation.current ? "?ignoreDuplicate=true" : "";
+    // const newPerson = {
+    //   name: name.trim(),
+    //   localizedName: localizedName.trim() || undefined,
+    //   wcaId: hasWcaId ? wcaId : undefined,
+    //   countryIso2,
+    // };
+    // const extra = isConfirmation.current ? "?ignoreDuplicate=true" : "";
 
-    const res = personUnderEdit
-      ? await myFetch.patch(
-        `/persons/${(personUnderEdit as any)._id}${extra}`,
-        newPerson,
-        { loadingId: "form_submit_button" },
-      )
-      : await myFetch.post(`/persons/no-wcaid${extra}`, newPerson, {
-        loadingId: "form_submit_button",
-      });
+    // startSubmitTransition(async () => {
+    //   const res = personUnderEdit
+    //     ? await myFetch.patch(
+    //       `/persons/${(personUnderEdit as any)._id}${extra}`,
+    //       newPerson,
+    //     )
+    //     : await myFetch.post(`/persons/no-wcaid${extra}`, newPerson);
 
-    if (!res.success) {
-      if (res.error[0] === "DUPLICATE_PERSON_ERROR") {
-        isConfirmation.current = true;
-        changeErrorMessages([
-          "A person with the same name and country already exists. If it's actually a different competitor with the same name, simply submit them again.",
-        ]);
-      }
-    } else {
-      afterSubmit(res.data);
-    }
+    //   if (!res.success) {
+    //     if (res.error[0] === "DUPLICATE_PERSON_ERROR") {
+    //       isConfirmation.current = true;
+    //       changeErrorMessages([
+    //         "A person with the same name and country already exists. If it's actually a different competitor with the same name, simply submit them again.",
+    //       ]);
+    //     }
+    //   } else {
+    //     afterSubmit(res.data);
+    //   }
+    // });
   };
 
-  const afterSubmit = (newPerson: IFePerson) => {
+  const afterSubmit = (newPerson: PersonResponse) => {
     const redirect = searchParams.get("redirect");
 
     reset();
@@ -107,7 +98,8 @@ const PersonForm = ({
       if (hasWcaId) setNextFocusTarget("wca_id");
       else setNextFocusTarget("full_name");
     } else {
-      setTimeout(() => window.location.replace(redirect), 1000);
+      console.error("NOT IMPLEMENTED: ADD BUTTON THAT REDIRECTS BACK AND FOCUS IT");
+      // setTimeout(() => window.location.replace(redirect), 2000);
     }
   };
 
@@ -122,46 +114,48 @@ const PersonForm = ({
       if (!personUnderEdit) reset(true);
 
       if (newWcaId.length === 10) {
-        if (!personUnderEdit) {
-          const res = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, {
-            authorize: true,
-          });
+        startWcaIdTransition(async () => {
+          if (!personUnderEdit) {
+            const res = await getOrCreatePersonByWcaIdSF(newWcaId);
+            // const res = await myFetch.get<IWcaPersonDto>(`/persons/${newWcaId}`, { authorize: true });
 
-          if (res.success) {
-            if (res.data.isNew) {
-              afterSubmit(res.data.person);
-            } else {
-              changeErrorMessages([
-                "A competitor with this WCA ID already exists",
-              ]);
-              setName(res.data.person.name);
-              setLocalizedName(res.data.person.localizedName ?? "");
-              setCountryIso2(res.data.person.countryIso2);
+            if (!res.success) {
+              if (res.error.code === "NOT_FOUND") {
+                changeErrorMessages([`Person with WCA ID ${wcaId} not found`]);
+              }
+            } else if (res.success) {
+              if (res.data.isNew) {
+                afterSubmit(res.data.person);
+              } else {
+                changeErrorMessages(["A competitor with this WCA ID already exists"]);
+                setName(res.data.person.name);
+                setLocalizedName(res.data.person.localizedName ?? "");
+                setCountryIso2(res.data.person.countryIso2);
+              }
             }
-          }
 
-          setNextFocusTarget("wca_id");
-        } else {
-          changeLoadingId("...");
-          const wcaPerson = await fetchWcaPerson(newWcaId);
-
-          if (!wcaPerson) {
-            changeErrorMessages([`Person with WCA ID ${newWcaId} not found`]);
             setNextFocusTarget("wca_id");
           } else {
-            resetMessagesAndLoadingId();
-            setName(wcaPerson.name);
-            setLocalizedName(wcaPerson.localizedName ?? "");
-            setCountryIso2(wcaPerson.countryIso2);
-            setNextFocusTarget("form_submit_button");
+            const wcaPerson = await fetchWcaPerson(newWcaId);
+
+            if (!wcaPerson) {
+              changeErrorMessages([`Person with WCA ID ${newWcaId} not found`]);
+              setNextFocusTarget("wca_id");
+            } else {
+              resetMessages();
+              setName(wcaPerson.name);
+              setLocalizedName(wcaPerson.localizedName ?? "");
+              setCountryIso2(wcaPerson.countryIso2);
+              setNextFocusTarget("form_submit_button");
+            }
           }
-        }
+        });
       }
     }
   };
 
   const changeHasWcaId = (noWcaId: boolean) => {
-    resetMessagesAndLoadingId();
+    resetMessages();
     setHasWcaId(!noWcaId);
 
     if (noWcaId) {
@@ -184,12 +178,19 @@ const PersonForm = ({
     <Form
       buttonText="Submit"
       onSubmit={handleSubmit}
-      hideToasts
-      hideControls={hasWcaId && !personUnderEdit}
       showCancelButton={onCancel !== undefined}
       onCancel={onCancel}
+      hideToasts
+      hideControls={hasWcaId && !personUnderEdit}
+      isLoading={isSubmitting}
     >
-      {personUnderEdit && <CreatorDetails creator={personUnderEdit.creator} />}
+      {personUnderEdit && (
+        <CreatorDetails
+          user={creator}
+          person={personUnderEdit}
+          createdExternally={(personUnderEdit as any).createdExternally}
+        />
+      )}
       {personUnderEdit && <p>CC ID: {personUnderEdit.personId}</p>}
       <FormTextInput
         title="WCA ID"
@@ -198,14 +199,14 @@ const PersonForm = ({
         value={wcaId}
         setValue={changeWcaId}
         autoFocus
-        disabled={loadingId !== "" || !hasWcaId}
+        disabled={isPendingWcaId || !hasWcaId || isSubmitting}
         className="mb-2"
       />
       <FormCheckbox
         title="Competitor doesn't have a WCA ID"
         selected={!hasWcaId}
         setSelected={changeHasWcaId}
-        disabled={loadingId !== ""}
+        disabled={isPendingWcaId || isSubmitting}
       />
       <FormTextInput
         title="Full Name (name, last name)"
@@ -213,7 +214,7 @@ const PersonForm = ({
         value={name}
         setValue={setName}
         nextFocusTargetId="localized_name"
-        disabled={loadingId !== "" || hasWcaId}
+        disabled={isPendingWcaId || hasWcaId || isSubmitting}
         className="mb-3"
       />
       <FormTextInput
@@ -222,14 +223,14 @@ const PersonForm = ({
         value={localizedName}
         setValue={setLocalizedName}
         nextFocusTargetId="country_iso_2"
-        disabled={loadingId !== "" || hasWcaId}
+        disabled={isPendingWcaId || hasWcaId || isSubmitting}
         className="mb-3"
       />
       <FormCountrySelect
         countryIso2={countryIso2}
         setCountryIso2={setCountryIso2}
         nextFocusTargetId="form_submit_button"
-        disabled={loadingId !== "" || hasWcaId}
+        disabled={isPendingWcaId || hasWcaId || isSubmitting}
       />
     </Form>
   );

@@ -1,33 +1,16 @@
 "use client";
 
-import { useContext, useEffect, useState, useTransition } from "react";
+import { useContext, useEffect, useRef, useState, useTransition } from "react";
 import { TwistyPlayer } from "cubing/twisty";
 import { Alg } from "cubing/alg";
-import type { FetchObj, NxNMove } from "~/helpers/types.ts";
-import { nxnMoves } from "~/helpers/types/NxNMove.ts";
+import type { FetchObj } from "~/helpers/types/FetchObj.ts";
+import { NxNMove, nxnMoves } from "~/helpers/types/NxNMove.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { makeCollectiveCubingMove, startNewCollectiveCubingSolution } from "~/server/serverFunctions";
-import { CollectiveSolutionResponse } from "~/server/db/schema/collective-solutions";
-
-const addTwistyPlayerElement = (alg = new Alg()) => {
-  const twistyPlayerElements = document.getElementsByTagName("twisty-player");
-  if (twistyPlayerElements.length > 0) twistyPlayerElements[0].remove();
-
-  const twistyPlayer = new TwistyPlayer({
-    puzzle: "2x2x2",
-    alg,
-    hintFacelets: "none",
-    controlPanel: "none",
-    background: "none",
-    visualization: "PG3D", // makes the puzzle black
-  });
-
-  const containerDiv = document.getElementById("twisty_player_container");
-  if (containerDiv) containerDiv.appendChild(twistyPlayer);
-};
+import { makeCollectiveCubingMoveSF, startNewCollectiveCubingSolutionSF } from "~/server/serverFunctions.ts";
+import { CollectiveSolutionResponse } from "~/server/db/schema/collective-solutions.ts";
 
 type Props = {
   collectiveSolutionResponse: FetchObj<CollectiveSolutionResponse | null>;
@@ -39,8 +22,9 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
   // undefined means it's not been set during the page load yet; null means a solution has never been started
   const [collectiveSolution, setCollectiveSolution] = useState<CollectiveSolutionResponse | null | undefined>(null);
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
-
   const [isPending, startTransition] = useTransition();
+  const twistyPlayerContainerRef = useRef<HTMLDivElement | null>(null);
+  const twistyPlayerRef = useRef<TwistyPlayer | null>(null);
 
   const isSolved = !collectiveSolution || collectiveSolution.state === "solved";
   const numberOfSolves = collectiveSolution
@@ -62,12 +46,27 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
 
   const update = (newSolution: CollectiveSolutionResponse | null) => {
     setCollectiveSolution(newSolution);
-    addTwistyPlayerElement(newSolution ? new Alg(newSolution.scramble).concat(newSolution.solution) : new Alg());
+
+    console.log(newSolution, twistyPlayerRef.current, twistyPlayerContainerRef.current);
+    if (!twistyPlayerRef.current) {
+      twistyPlayerRef.current = new TwistyPlayer({
+        puzzle: "2x2x2",
+        alg: newSolution ? new Alg(newSolution.scramble).concat(newSolution.solution) : new Alg(),
+        hintFacelets: "none",
+        controlPanel: "none",
+        background: "none",
+        visualization: "PG3D", // makes the puzzle black
+      });
+
+      twistyPlayerContainerRef.current!.appendChild(twistyPlayerRef.current);
+    } else {
+      console.log("TEST");
+    }
   };
 
   const scramblePuzzle = () => {
     startTransition(async () => {
-      const res = await startNewCollectiveCubingSolution();
+      const res = await startNewCollectiveCubingSolutionSF();
 
       if (!res.success) {
         if (res.error.code === "CONFLICT") {
@@ -84,7 +83,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
   const submitMove = () => {
     if (collectiveSolution && selectedMove) {
       startTransition(async () => {
-        const res = await makeCollectiveCubingMove({
+        const res = await makeCollectiveCubingMoveSF({
           move: selectedMove,
           lastSeenSolution: collectiveSolution.solution,
         });
@@ -142,7 +141,8 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
           <div className="row gap-3">
             <div className="col-md-4">
               <div className="d-flex flex-column align-items-center">
-                <div id="twisty_player_container" style={{ maxWidth: "100%" }} />
+                <div ref={twistyPlayerContainerRef} style={{ maxWidth: "100%" }} />
+
                 {isSolved && (
                   <Button
                     id="scramble_button"

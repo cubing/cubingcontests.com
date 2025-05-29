@@ -1,17 +1,15 @@
 import "server-only";
-import { getTableColumns } from "drizzle-orm";
-import { integer, pgEnum, pgTable as table, serial, text, varchar } from "drizzle-orm/pg-core";
-import omit from "lodash/omit";
-import { timestamps } from "~/server/db/dbHelpers.ts";
+import { getTableColumns, sql } from "drizzle-orm";
+import { integer, pgEnum, pgTable as table, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { users } from "~/server/db/schema/auth-schema.ts";
 
-export const collectiveSolutionStateEnum = pgEnum("state", [
+const collectiveSolutionStateEnum = pgEnum("state", [
   "ongoing",
   "solved",
   "archived",
 ]);
 
-export const collectiveSolutions = table("collective_solutions", {
+const collectiveSolutions = table("collective_solutions", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   eventId: varchar({ length: 32 }).notNull(),
   attemptNumber: serial().notNull(),
@@ -20,25 +18,28 @@ export const collectiveSolutions = table("collective_solutions", {
   solution: text().default("").notNull(),
   lastUserWhoInteracted: text().references(() => users.id, { onDelete: "set null" }), // this can be null if that user has been deleted
   usersWhoMadeMoves: text().references(() => users.id).array().notNull(),
-  ...timestamps,
+  createdAt: timestamp().defaultNow().notNull(),
+  updatedAt: timestamp().defaultNow().notNull().$onUpdate(() => sql`now()`),
 });
 
-const privateColumns = [
-  "lastUserWhoInteracted",
-  "usersWhoMadeMoves",
-  "createdAt",
-  "updatedAt",
-] as const;
+type SelectCollectiveSolution = typeof collectiveSolutions.$inferSelect;
+type InsertCollectiveSolution = typeof collectiveSolutions.$inferInsert;
 
-export const collectiveSolutionsPublicColumns = omit(
-  getTableColumns(collectiveSolutions),
-  privateColumns,
-);
+const {
+  lastUserWhoInteracted: _,
+  usersWhoMadeMoves: _1,
+  createdAt: _2,
+  updatedAt: _3,
+  ...collectiveSolutionsPublicCols
+} = getTableColumns(collectiveSolutions);
 
-export type SelectCollectiveSolution = typeof collectiveSolutions.$inferSelect;
-export type InsertCollectiveSolution = typeof collectiveSolutions.$inferInsert;
+type CollectiveSolutionResponse = Pick<SelectCollectiveSolution, keyof typeof collectiveSolutionsPublicCols>;
 
-export type CollectiveSolutionResponse = Omit<
-  SelectCollectiveSolution,
-  (typeof privateColumns)[number]
->;
+export {
+  type CollectiveSolutionResponse,
+  collectiveSolutions,
+  collectiveSolutionsPublicCols,
+  collectiveSolutionStateEnum,
+  type InsertCollectiveSolution,
+  type SelectCollectiveSolution,
+};

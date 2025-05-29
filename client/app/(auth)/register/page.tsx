@@ -7,7 +7,7 @@ import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { authClient } from "~/helpers/authClient.ts";
 import { RegistrationFormValidator } from "~/helpers/validators/Auth";
-import { getFormattedValidationErrors } from "~/helpers/utilityFunctions";
+import z from "zod/v4";
 
 const RegisterPage = () => {
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
@@ -17,7 +17,6 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
-
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = () => {
@@ -29,7 +28,7 @@ const RegisterPage = () => {
     });
 
     if (!parsed.success) {
-      changeErrorMessages(getFormattedValidationErrors(parsed.error));
+      changeErrorMessages([z.prettifyError(parsed.error)]);
     } else {
       startTransition(async () => {
         const { error } = await authClient.signUp.email({

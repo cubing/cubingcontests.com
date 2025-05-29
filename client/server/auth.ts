@@ -4,10 +4,11 @@ import * as bcrypt from "bcrypt";
 import { db } from "./db/provider.ts";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { admin, username } from "better-auth/plugins";
+import { admin as adminPlugin, username } from "better-auth/plugins";
 import { accounts, sessions, users, verifications } from "~/server/db/schema/auth-schema.ts";
 import { C } from "~/helpers/constants.ts";
 import { sendResetPassword, sendVerificationCode } from "~/server/mailer.ts";
+import { ac, admin } from "~/server/permissions.ts";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -22,7 +23,12 @@ export const auth = betterAuth({
   plugins: [
     nextCookies(),
     username(),
-    admin(),
+    adminPlugin({
+      ac,
+      roles: {
+        admin,
+      },
+    }),
   ],
   emailAndPassword: {
     enabled: true,

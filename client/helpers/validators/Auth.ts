@@ -1,16 +1,16 @@
-import { CustomErrorParams, z } from "zod";
+import { z } from "zod/v4";
 
 const username = z.string().nonempty();
-const email = z.string().email();
+const email = z.email();
 const password = z.string().nonempty();
 const passwordRepeat = z.string().nonempty();
 
-const passwordsDontMatchError: CustomErrorParams = {
-  message: "The passwords do not match.",
+const passwordsDontMatchError = {
+  error: "The passwords do not match.",
   path: ["Password"],
 };
 
-export const RegistrationFormValidator = z.object({
+export const RegistrationFormValidator = z.strictObject({
   username,
   email,
   password,
@@ -20,12 +20,12 @@ export const RegistrationFormValidator = z.object({
   passwordsDontMatchError,
 );
 
-export const LoginFormValidator = z.object({
+export const LoginFormValidator = z.strictObject({
   username,
   password,
 });
 
-export const ResetPasswordFormValidator = z.object({
+export const ResetPasswordFormValidator = z.strictObject({
   password,
   passwordRepeat,
 }).refine(

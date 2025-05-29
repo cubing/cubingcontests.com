@@ -1,20 +1,8 @@
 import { remove as removeAccents } from "remove-accents";
 import { C } from "./constants.ts";
 import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
-import {
-  type Event,
-  type IAttempt,
-  type IContestEvent,
-  type ICutoff,
-  type IFeAttempt,
-  type IPersonDto,
-  type IRecordPair,
-  type IResult,
-  type IRound,
-  type IRoundFormat,
-  type IVideoBasedResult,
-} from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
+import { InsertPerson } from "~/server/db/schema/persons.ts";
 
 type BestCompareObj = { best: number };
 type AvgCompareObj = { best?: number; average: number };
@@ -256,10 +244,8 @@ export const getBestAndAverage = (
   return { best, average };
 };
 
-export const getIsProceedableResult = (
-  result: IResult,
-  roundFormat: IRoundFormat,
-): boolean => (roundFormat.isAverage && result.average > 0) || result.best > 0;
+export const getIsProceedableResult = (result: IResult, roundFormat: IRoundFormat): boolean =>
+  (roundFormat.isAverage && result.average > 0) || result.best > 0;
 
 export const getDefaultAverageAttempts = (event: Event) => {
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
@@ -284,24 +270,20 @@ export const getMakesCutoff = (
     a.result < cutoff.attemptResult
   );
 
-export const getNameAndLocalizedName = (
-  wcaName: string,
-): [string, string | undefined] => {
+export function getNameAndLocalizedName(wcaName: string): [string, string | undefined] {
   let [name, localizedName] = wcaName.split(" (");
   if (localizedName) localizedName = localizedName.slice(0, -1); // remove the closing parenthesis
   return [name, localizedName];
-};
+}
 
-export const fetchWcaPerson = async (
-  wcaId: string,
-): Promise<IPersonDto | undefined> => {
+export async function fetchWcaPerson(wcaId: string): Promise<InsertPerson | undefined> {
   const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
 
   if (response.ok) {
     const data = await response.json();
 
     const [name, localizedName] = getNameAndLocalizedName(data.name);
-    const newPerson: IPersonDto = {
+    const newPerson: InsertPerson = {
       name,
       localizedName,
       wcaId,
@@ -311,23 +293,19 @@ export const fetchWcaPerson = async (
   }
 
   return undefined;
-};
+}
 
 export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
 
 export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
-  contestEvents.map((ce) => ce.rounds.length).reduce(
-    (prev, curr) => prev + curr,
-    0,
-  );
+  contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
 
 export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
 
 export const getMaxAllowedRounds = (rounds: IRound[]): number => {
   const getRoundHasEnoughResults = (roundIndex: number) =>
     rounds[roundIndex].results.length >= C.minResultsForOneMoreRound &&
-    rounds[roundIndex].results.filter((r) => r.proceeds).length >=
-      C.minProceedNumber;
+    rounds[roundIndex].results.filter((r) => r.proceeds).length >= C.minProceedNumber;
 
   if (!getRoundHasEnoughResults(0)) return 1;
 
@@ -345,7 +323,7 @@ export const getMaxAllowedRounds = (rounds: IRound[]): number => {
   return 4;
 };
 
-export const parseRoundId = (roundId: string): [string, number] => {
+export function parseRoundId(roundId: string): [string, number] {
   const [eventPart, roundPart] = roundId.split("-");
   if (!eventPart || !roundPart) throw new Error(`Invalid round ID: ${roundId}`);
 
@@ -355,4 +333,4 @@ export const parseRoundId = (roundId: string): [string, number] => {
   }
 
   return [eventPart, roundNumber];
-};
+}
