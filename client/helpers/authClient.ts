@@ -15,5 +15,3 @@ export const authClient = createAuthClient({
     inferAdditionalFields<typeof auth>(),
   ],
 });
-
-// export const canAccessModDashboard = await authClient.admin.hasPermission({ permissions: { modDashboard: ["view"] } });

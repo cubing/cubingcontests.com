@@ -1,14 +1,10 @@
 import { IFePerson, IPerson } from "~/helpers/types.ts";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import FiltersContainer from "~/app/components/FiltersContainer";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs";
-import Button from "~/app/components/UI/Button";
-import { useMyFetch } from "~/helpers/customHooks";
-import { InputPerson, UserInfo } from "~/helpers/types";
-import { getUserInfo } from "~/helpers/utilityFunctions";
-
-const userInfo: UserInfo = getUserInfo();
+import FiltersContainer from "~/app/components/FiltersContainer.tsx";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import { useMyFetch } from "~/helpers/customHooks.ts";
 
 type Props = {
   onSelectPerson: (person: IPerson) => void;

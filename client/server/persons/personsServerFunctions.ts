@@ -1,75 +1,94 @@
 "use server";
 
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { fetchWcaPerson } from "~/helpers/sharedFunctions.ts";
-import { Creator, ModPersonsData, WcaPersonDto } from "~/helpers/types.ts";
-import { FetchObj } from "~/helpers/types/FetchObj.ts";
+import { CcActionError, WcaPersonDto } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
-import { users as usersTable } from "~/server/db/schema/auth-schema.ts";
-import { persons as table, personsPublicCols } from "~/server/db/schema/persons.ts";
-import { authorizeUser, checkUserPermissions } from "~/server/utilityServerFunctions.ts";
+import { InsertPerson, PersonResponse, personsPublicCols, personsTable as table } from "~/server/db/schema/persons.ts";
+import { actionClient } from "../safeAction.ts";
+import { z } from "zod/v4";
+import { checkUserPermissions } from "../serverUtilityFunctions.ts";
+import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 
-export async function getModPersonsSF(): Promise<FetchObj<ModPersonsData>> {
-  const { user } = await authorizeUser({ persons: ["create", "update", "delete"] });
-  const isAdmin = await checkUserPermissions(user.id, { persons: ["approve"] });
-
-  const selectPromise = isAdmin ? db.select() : db.select(personsPublicCols);
-  const persons = await selectPromise.from(table).orderBy(desc(table.personId));
-
-  let users: Creator[] | undefined;
-
-  if (isAdmin) {
-    const personIds = Array.from(new Set(persons.map((p) => p.personId)));
-    users = await db.select({ id: usersTable.id, username: usersTable.username, email: usersTable.email })
-      .from(usersTable).where(inArray(usersTable.personId, personIds));
-  }
-
-  return { success: true, data: { persons, users } };
-}
-
-export async function getOrCreatePersonByWcaIdSF(wcaId: string): Promise<FetchObj<WcaPersonDto>> {
-  await authorizeUser({ persons: ["create"] });
-  wcaId = wcaId.toUpperCase();
+export const getOrCreatePersonByWcaIdSF = actionClient.metadata({ permissions: { persons: ["create"] } }).inputSchema(
+  z.strictObject({
+    wcaId: WcaIdValidator,
+  }),
+).action<WcaPersonDto>(async ({ parsedInput }) => {
+  const wcaId = parsedInput.wcaId.toUpperCase();
 
   // Try to find existing person with the given WCA ID
   const [person] = await db.select(personsPublicCols).from(table).where(eq(table.wcaId, wcaId)).limit(1);
-  if (person) return { success: true, data: { person, isNew: false } };
+  if (person) return { person, isNew: false };
 
   // Create new person by fetching the person data from the WCA API
   const wcaPerson = await fetchWcaPerson(wcaId);
-  if (!wcaPerson) return { success: false, error: { code: "NOT_FOUND" } };
+  if (!wcaPerson) throw new CcActionError(`Person with WCA ID ${wcaId} not found`);
 
   return {
-    success: true,
-    data: {
-      person: await createPersonSF(wcaPerson, { user }),
-      isNew: true,
-    },
+    person: await createPersonSF({ newPerson: wcaPerson }),
+    isNew: true,
   };
-}
+});
 
-export async function createPersonSF(
-  personDto: PersonDto,
-  { user, ignoreDuplicate }: { user: IPartialUser | "EXT_DEVICE"; ignoreDuplicate?: boolean },
-): Promise<PersonDocument | IFePerson> {
-  this.logger.logAndSave(
-    `Creating person with name ${personDto.name} and ${personDto.wcaId ? `WCA ID ${personDto.wcaId}` : "no WCA ID"}`,
-    LogType.CreatePerson,
+// TO-DO: ADD SUPPORT FOR EXTERNAL DATA ENTRY and ADD LOGGING
+export const createPersonSF = actionClient.metadata({ permissions: ["create"] }).inputSchema(z.strictObject({
+  newPerson: z.strictObject<InsertPerson>({
+    name: z.string(),
+    localizedName: z.string().optional(),
+    countryIso2: z.string().length(2),
+    wcaId: WcaIdValidator.optional(),
+  }),
+  ignoreDuplicate: z.boolean().default(false),
+})).action<PersonResponse>(async ({ parsedInput: { newPerson }, ctx: { session } }) => {
+  const isAdmin = await checkUserPermissions(session.user.id, { persons: ["approve"] });
+
+  await validatePerson(newPerson, {
+    // ignoreDuplicate,
+    // isAdmin: user !== "EXT_DEVICE" && user.roles.includes(Role.Admin),
+    isAdmin,
+  });
+
+  const [createdPerson] = await db.insert(table).values([{ ...newPerson, createdBy: session.user.id }]).returning(
+    personsPublicCols,
   );
+  return createdPerson;
+});
 
-  await this.validateAndCleanUpPerson(personDto, {
-    ignoreDuplicate,
-    isAdmin: user !== "EXT_DEVICE" && user.roles.includes(Role.Admin),
-  });
+async function validatePerson(
+  newPerson: InsertPerson,
+  { ignoreDuplicate, excludeId, isAdmin }: {
+    ignoreDuplicate?: boolean;
+    excludeId?: string;
+    isAdmin?: boolean;
+  } = {},
+) {
+  // const queryBase: any = excludeId ? { _id: { $ne: excludeId } } : {};
 
-  const [newestPerson] = await this.personModel.find({}, { personId: 1 })
-    .sort({ personId: -1 }).limit(1).exec();
-  const createdPerson = await this.personModel.create({
-    ...personDto,
-    unapproved: true,
-    personId: newestPerson ? newestPerson.personId + 1 : 1,
-    createdBy: user !== "EXT_DEVICE" ? new mongo.ObjectId(user._id as string) : undefined,
-  });
+  if (newPerson.wcaId) {
+    // const sameWcaIdPerson = await this.personModel.findOne({ ...queryBase, wcaId: newPerson.wcaId }).exec();
+    const [sameWcaIdPerson] = await db.select().from(table).where(eq(table.wcaId, newPerson.wcaId)).limit(1);
 
-  return this.getFrontendPerson(createdPerson, { user });
+    if (sameWcaIdPerson) throw new CcActionError("A person with the same WCA ID already exists in the CC database");
+  } else if (!ignoreDuplicate) {
+    // const sameNamePerson = await this.personModel.findOne({
+    //   ...queryBase,
+    //   name: newPerson.name,
+    //   countryIso2: newPerson.countryIso2,
+    // }).exec();
+    const [sameNamePerson] = await db.select().from(table).where(
+      and(eq(table.name, newPerson.name), eq(table.countryIso2, newPerson.countryIso2)),
+    ).limit(1);
+
+    if (sameNamePerson) {
+      throw new CcActionError(
+        `A person with the same name and country already exists. If it's actually a different competitor with the same name, ${
+          isAdmin
+            ? "simply submit them again."
+            : "please contact the admin team. For now, simply add (2) at the end of their name to do data entry."
+        }`,
+        { data: { isDuplicatePerson: true } },
+      );
+    }
+  }
 }

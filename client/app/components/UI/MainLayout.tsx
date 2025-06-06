@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import Navbar from "~/app/components/UI/Navbar";
+import Navbar from "~/app/components/UI/Navbar.tsx";
 import Footer from "~/app/components/UI/Footer.tsx";
 import { MainContext, Theme } from "~/helpers/contexts.ts";
 import { authClient } from "~/helpers/authClient.ts";
@@ -14,7 +14,6 @@ type Props = {
 
 const MainLayout = ({ children, initSession }: Props) => {
   const pathname = usePathname();
-  const { data: session, isPending } = authClient.useSession();
 
   const [theme, setTheme] = useState<Theme>("dark");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -76,7 +75,7 @@ const MainLayout = ({ children, initSession }: Props) => {
           resetMessages,
         }}
       >
-        <Navbar user={isPending ? initSession?.user : session?.user} />
+        <Navbar initSession={initSession} />
         <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">
           {children}
         </main>

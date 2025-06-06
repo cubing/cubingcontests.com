@@ -1,4 +1,4 @@
-import ManageResults from "~/app/admin/results/ManageResults.tsx";
+import ManageResultsScreen from "./ManageResultsScreen.tsx";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
 
 const ManageResultsPage = async () => {
@@ -6,7 +6,7 @@ const ManageResultsPage = async () => {
 
   if (!res.success) return <h3 className="mt-4 text-center">Error while fetching record types</h3>;
 
-  return <ManageResults recordTypes={res.data} />;
+  return <ManageResultsScreen recordTypes={res.data} />;
 };
 
 export default ManageResultsPage;

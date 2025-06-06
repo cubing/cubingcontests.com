@@ -1,10 +1,11 @@
 {
   "deno.enable": true,
-  // "deno.lint": true,
+  "deno.lint": true,
   // This just determines which paths should have Deno LSP enabled
   "deno.enablePaths": [
     "./client/deno.jsonc",
-    "./client/__tests__",
-    "./client/__mocks__"
+    // "./client/__tests__",
+    // "./client/__mocks__"
+    "./client"
   ]
 }

@@ -9,14 +9,14 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 
 const DebugPage = () => {
   const myFetch = useMyFetch();
-  const { loadingId, resetMessagesAndLoadingId } = useContext(MainContext);
+  const { resetMessages } = useContext(MainContext);
 
   const [debugInputValue, setDebugInputValue] = useState("");
   const [debugOutput, setDebugOutput] = useState("");
   const [email, setEmail] = useState("");
 
   const onDebugInputKeyDown = (e: React.KeyboardEvent) => {
-    resetMessagesAndLoadingId();
+    resetMessages();
     setDebugOutput("");
 
     console.log("Event:", e);

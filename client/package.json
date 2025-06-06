@@ -1,5 +1,6 @@
 {
   "name": "cubing-contests-client",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@cubing/icons": "^3.0.4",
@@ -28,6 +29,7 @@
     "lodash": "^4.17.21",
     "mailtrap": "^4.1.0",
     "next": "^15.3.2",
+    "next-safe-action": "^8.0.0-beta.27",
     "pg": "^8.16.0",
     "react": "^19.1.0",
     "react-datepicker": "^8.4.0",

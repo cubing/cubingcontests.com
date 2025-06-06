@@ -21,7 +21,7 @@ cp .env client/.env.local
 # Start the frontent (f), database (db), and Drizzle Studio (ds)
 deno run -A npm:concurrently -kc green,yellow,blue -n db,ds,f \
   "docker compose up" \
-  "sleep 2 && cd client && NODE_OPTIONS=\"--conditions=react-server\" npx drizzle-kit push && NODE_OPTIONS=\"--conditions=react-server\" npx drizzle-kit studio" \
+  "sleep 2 && cd client && deno task db:push && deno task db:studio" \
   "sleep 2 && cd client && deno task dev"
 
 docker compose down

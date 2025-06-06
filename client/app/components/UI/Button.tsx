@@ -15,6 +15,7 @@ const Button = ({
   onClick,
   isLoading,
   disabled,
+  title,
   className = "",
   style,
   ariaLabel,
@@ -26,6 +27,7 @@ const Button = ({
       onClick={onClick}
       onSubmit={(e) => e.preventDefault()}
       disabled={disabled || isLoading}
+      title={title}
       className={`position-relative btn btn-primary ${className}`}
       style={style}
       aria-label={ariaLabel}

@@ -6,7 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { authClient } from "~/helpers/authClient.ts";
-import { Creator, ListPageMode, ModPersonsData } from "~/helpers/types.ts";
+import { Creator, ListPageMode } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import Button from "~/app/components/UI/Button.tsx";
@@ -22,19 +22,22 @@ import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 
 type Props = {
-  modPersonsData: ModPersonsData;
+  persons: (SelectPerson | PersonResponse)[];
+  users?: Creator[]; // only returned to admins
 };
 
-const ManageCompetitorsScreen = ({ modPersonsData: { persons: initialPersons, users } }: Props) => {
+const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
   const searchParams = useSearchParams();
   const { changeSuccessMessage, resetMessages } = useContext(MainContext);
   const { data: session } = authClient.useSession();
-  const parentRef = useRef<Element>(null);
+
   const [mode, setMode] = useState<ListPageMode | "add-once">(searchParams.get("redirect") ? "add-once" : "view");
-  const [persons, setPersons] = useState<(PersonResponse | SelectPerson)[]>(initialPersons);
+  // Mods only see public columns (PersonResponse[]), but admins can see all columns (SelectPerson[])
+  const [persons, setPersons] = useState<PersonResponse[] | SelectPerson[]>(initPersons);
   const [personUnderEdit, setPersonUnderEdit] = useState<PersonResponse | SelectPerson>();
   const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
   const [search, setSearch] = useState("");
+  const parentRef = useRef<Element>(null);
 
   const filteredPersons = useMemo(() => {
     const simplifiedSearch = getSimplifiedString(search);
@@ -120,17 +123,13 @@ const ManageCompetitorsScreen = ({ modPersonsData: { persons: initialPersons, us
     // }
   };
 
-  const updateCompetitors = (person: PersonResponse, isNew = false) => {
-    //   if (isNew) {
-    //     setPersons([person, ...persons]);
-    //   } else {
-    //     setPersons(
-    //       persons.map((
-    //         p: PersonResponse,
-    //       ) => (p.personId === person.personId ? { ...person, creator: p.creator } : p)),
-    //     );
-    //     setMode("view");
-    //   }
+  const updateCompetitors = (person: PersonResponse | SelectPerson, isNew = false) => {
+    if (isNew) {
+      setPersons([person, ...persons]);
+    } else {
+      setPersons(persons.map((p) => (p.personId === person.personId ? person : p)));
+      setMode("view");
+    }
   };
 
   return (

@@ -1,6 +1,6 @@
 import { remove as removeAccents } from "remove-accents";
 import { C } from "./constants.ts";
-import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
+import { ContestType, EventFormat, EventGroup, RoundFormat, WcaRecordType } from "./enums.ts";
 import { roundFormats } from "./roundFormats.ts";
 import { InsertPerson } from "~/server/db/schema/persons.ts";
 

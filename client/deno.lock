@@ -33,11 +33,15 @@
     "npm:cubing@0.56": "0.56.0",
     "npm:date-fns-tz@^3.1.3": "3.2.0_date-fns@4.1.0",
     "npm:date-fns@^4.1.0": "4.1.0",
+    "npm:drizzle-kit@*": "0.31.1_esbuild@0.25.5",
+    "npm:drizzle-kit@0.31.1": "0.31.1_esbuild@0.25.5",
     "npm:drizzle-kit@~0.31.1": "0.31.1_esbuild@0.25.5",
     "npm:drizzle-orm@0.44": "0.44.0_@types+pg@8.15.2_pg@8.16.0",
     "npm:geo-tz@^8.1.4": "8.1.4",
     "npm:lodash@^4.17.21": "4.17.21",
     "npm:mailtrap@^4.1.0": "4.1.0",
+    "npm:next-safe-action@^8.0.0-beta.27": "8.0.0-beta.27_next@15.3.2__react@19.1.0__react-dom@19.1.0___react@19.1.0_react@19.1.0_react-dom@19.1.0__react@19.1.0",
+    "npm:next@*": "15.3.2_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:next@15.3.2": "15.3.2_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:next@^15.3.2": "15.3.2_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:pg@^8.16.0": "8.16.0",
@@ -1653,6 +1657,14 @@
     "nanostores@0.11.4": {
       "integrity": "sha512-k1oiVNN4hDK8NcNERSZLQiMfRzEGtfnvZvdBvey3SQbgn8Dcrk0h1I6vpxApjb10PFUflZrgJ2WEZyJQ+5v7YQ=="
     },
+    "next-safe-action@8.0.0-beta.27_next@15.3.2__react@19.1.0__react-dom@19.1.0___react@19.1.0_react@19.1.0_react-dom@19.1.0__react@19.1.0": {
+      "integrity": "sha512-CLBAkxU+uae/VGiq6yhbi7mooOi1qQcgtsO1Om/fRsSCjf7grOngpv8gbyePYzVKZ81I08dFoYDZYZ8fytu3ZA==",
+      "dependencies": [
+        "next",
+        "react",
+        "react-dom"
+      ]
+    },
     "next@15.3.2_react@19.1.0_react-dom@19.1.0__react@19.1.0": {
       "integrity": "sha512-CA3BatMyHkxZ48sgOCLdVHjFU36N7TF1HhqAHLFOkV6buwZnvMI84Cug8xD56B9mCuKrqXnLn94417GrZ/jjCQ==",
       "dependencies": [
@@ -2215,6 +2227,7 @@
         "npm:geo-tz@^8.1.4",
         "npm:lodash@^4.17.21",
         "npm:mailtrap@^4.1.0",
+        "npm:next-safe-action@^8.0.0-beta.27",
         "npm:next@^15.3.2",
         "npm:pg@^8.16.0",
         "npm:react-datepicker@^8.4.0",

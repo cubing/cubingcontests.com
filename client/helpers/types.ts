@@ -1,5 +1,5 @@
 import { authClient } from "~/helpers/authClient.ts";
-import { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
+import { PersonResponse } from "~/server/db/schema/persons.ts";
 
 // WCIF types
 export type {
@@ -23,12 +23,20 @@ export type NumberInputValue = number | null | undefined;
 
 export type Creator = Pick<typeof authClient.$Infer.Session.user, "id" | "username" | "email">;
 
-export type ModPersonsData = {
-  persons: (SelectPerson | PersonResponse)[];
-  users?: Creator[]; // only returned to admins
-};
-
 export type WcaPersonDto = {
   person: PersonResponse;
   isNew: boolean;
 };
+
+export class CcActionError extends Error {
+  data?: any;
+
+  constructor(message: string, options?: { data: any }, ...rest: any[]) {
+    super(message, ...rest);
+
+    this.name = "CcActionError";
+    if (options) {
+      this.data = options.data;
+    }
+  }
+}

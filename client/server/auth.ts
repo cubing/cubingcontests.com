@@ -5,19 +5,19 @@ import { db } from "./db/provider.ts";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, username } from "better-auth/plugins";
-import { accounts, sessions, users, verifications } from "~/server/db/schema/auth-schema.ts";
+import { accountsTable, sessionsTable, usersTable, verificationsTable } from "~/server/db/schema/auth-schema.ts";
 import { C } from "~/helpers/constants.ts";
 import { sendResetPassword, sendVerificationCode } from "~/server/mailer.ts";
-import { ac, admin } from "~/server/permissions.ts";
+import { ac, admin, mod } from "~/server/permissions.ts";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
-      user: users,
-      session: sessions,
-      account: accounts,
-      verification: verifications,
+      user: usersTable,
+      session: sessionsTable,
+      account: accountsTable,
+      verification: verificationsTable,
     },
   }),
   plugins: [
@@ -27,6 +27,7 @@ export const auth = betterAuth({
       ac,
       roles: {
         admin,
+        mod,
       },
     }),
   ],

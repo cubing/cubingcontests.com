@@ -3,12 +3,17 @@ import { C } from "~/helpers/constants.ts";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import { Suspense } from "react";
-import Loading from "~/app/components/UI/Loading";
-import { getCurrentCollectiveCubingSolutionSF } from "~/server/serverFunctions";
+import {
+  collectiveSolutionsPublicCols,
+  collectiveSolutionsTable as csTable,
+} from "../server/db/schema/collective-solutions.ts";
+import { ne } from "drizzle-orm";
+import { db } from "~/server/db/provider.ts";
 
-const Home = async () => {
-  const res = await getCurrentCollectiveCubingSolutionSF();
+async function Home() {
+  const [collectiveSolution] = await db.select(collectiveSolutionsPublicCols).from(csTable).where(
+    ne(csTable.state, "archived"),
+  ).limit(1);
 
   return (
     <div className="px-3">
@@ -74,11 +79,9 @@ const Home = async () => {
 
       <h3 className="cc-basic-heading">Collective Cubing</h3>
 
-      <Suspense fallback={<Loading small />}>
-        <CollectiveCubing collectiveSolutionResponse={res} />
-      </Suspense>
+      <CollectiveCubing initCollectiveSolution={collectiveSolution ?? null} />
     </div>
   );
-};
+}
 
 export default Home;

@@ -1,10 +1,11 @@
 import { isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
-import { Color, EventFormat, Role } from "~/helpers/enums.ts";
+import { Color, EventFormat } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
-import type { Event, IFeAttempt, IRoundFormat, ITimeLimit, NumberInputValue } from "~/helpers/types.ts";
-import type { InputPerson, MultiChoiceOption } from "./types.ts";
+import type { CcActionError, Event, IFeAttempt, IRoundFormat, ITimeLimit, NumberInputValue } from "~/helpers/types.ts";
+import { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
+import { SafeActionResult } from "next-safe-action";
 
 export const getFormattedDate = (
   startDate: Date | string,
@@ -254,3 +255,28 @@ export const getBlankCompetitors = (
   const personNames = new Array(participants).fill("");
   return [persons, personNames];
 };
+
+export function getActionError<TActionResult extends SafeActionResult<CcActionError, any>>(
+  actionResult: TActionResult | undefined,
+) {
+  if (actionResult?.serverError?.message) return actionResult.serverError.message;
+
+  if (actionResult?.validationErrors) {
+    const getValidationError = (errorObject: any, currentErrors: string[], fieldName?: string) => {
+      for (const key in errorObject) {
+        if (key === "_errors" && fieldName) {
+          if (fieldName) currentErrors.push(...((errorObject._errors as string[]).map((e) => `${fieldName}: ${e}`)));
+          else currentErrors.push(...(errorObject._errors as string[]));
+        } else {
+          getValidationError(errorObject[key], currentErrors, key);
+        }
+      }
+    };
+
+    const validationErrors: string[] = [];
+    getValidationError(actionResult.validationErrors, validationErrors);
+    return validationErrors.join("\n");
+  }
+
+  return "Unknown error";
+}

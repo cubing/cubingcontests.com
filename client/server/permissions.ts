@@ -1,7 +1,7 @@
 import { createAccessControl } from "better-auth/plugins/access";
 import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 
-const modDashboard = ["view", "view-stats"];
+const modDashboard = ["view", "view-analytics"];
 const competitions = ["create", "update", "approve", "delete"];
 const meetups = ["create", "update", "approve", "delete"];
 const persons = ["create", "update", "approve", "delete"];
@@ -24,6 +24,13 @@ const permissions = {
   persons,
 };
 
-export type Permissions = Partial<typeof permissions>;
+export type CcPermissions = Partial<typeof permissions>;
 
 export const admin = ac.newRole(permissions);
+
+export const mod = ac.newRole({
+  modDashboard: ["view"],
+  competitions: ["create", "update"],
+  meetups: ["create", "update"],
+  persons: ["create", "update", "delete"],
+});

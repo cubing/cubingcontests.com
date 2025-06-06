@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { type auth as authType } from "~/server/auth.ts";
 import { type db as dbType } from "~/server/db/provider.ts";
-import { accounts, users } from "~/server/db/schema/auth-schema.ts";
+import { accountsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 
 export async function register() {
   // Seed test users for development
@@ -22,6 +22,7 @@ export async function register() {
         username: "mod",
         name: "",
         password: "Temporary_good_password123",
+        role: "mod",
       },
       {
         email: "user@cc.com",
@@ -32,26 +33,27 @@ export async function register() {
     ];
 
     for (const testUser of testUsers) {
-      const userExists = (await db.select().from(users).where(eq(users.email, testUser.email)).limit(1)).length > 0;
+      const userExists =
+        (await db.select().from(usersTable).where(eq(usersTable.email, testUser.email)).limit(1)).length > 0;
 
       if (!userExists) {
         const { role, ...body } = testUser;
         await auth.api.signUpEmail({ body });
 
         // Verify email
-        const [user] = await db.update(users)
+        const [user] = await db.update(usersTable)
           .set({ emailVerified: true })
-          .where(eq(users.email, testUser.email))
+          .where(eq(usersTable.email, testUser.email))
           .returning();
 
         // Set the password to "cc"
-        await db.update(accounts)
+        await db.update(accountsTable)
           .set({ password: "$2b$10$ZQ3h2HwwOgLTRveMw/NbFes0b.u6OOxYrnG10dwDkHiQBOMwx7M52" })
-          .where(eq(accounts.userId, user.id));
+          .where(eq(accountsTable.userId, user.id));
 
         // Set role
         if (role) {
-          await db.update(users).set({ role }).where(eq(users.id, user.id));
+          await db.update(usersTable).set({ role }).where(eq(usersTable.id, user.id));
         }
 
         console.log(`Seeded test user: ${testUser.username}`);

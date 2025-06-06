@@ -6,10 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { IFeResult, IRecordType } from "~/helpers/types.ts";
-import {
-  getFormattedDate,
-  shortenEventName,
-} from "~/helpers/utilityFunctions.ts";
+import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
@@ -20,7 +17,7 @@ import FiltersContainer from "~/app/components/FiltersContainer";
 import { InputPerson } from "~/helpers/types";
 import Button from "~/app/components/UI/Button";
 
-const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
+const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   const myFetch = useMyFetch();
   const parentRef = useRef<Element>(null);
 
@@ -30,8 +27,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
 
   const filteredResults = useMemo(() =>
     results.filter((r) => {
-      const passesCompetitorFilter = !persons[0] ||
-        r.personIds.includes(persons[0].personId);
+      const passesCompetitorFilter = !persons[0] || r.personIds.includes(persons[0].personId);
       return passesCompetitorFilter;
     }), [results, persons]);
 
@@ -112,22 +108,16 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                     key={virtualItem.key as React.Key}
                     style={{
                       height: `${virtualItem.size}px`,
-                      transform: `translateY(${
-                        virtualItem.start - index * virtualItem.size
-                      }px)`,
+                      transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
                     }}
                   >
                     <td>
-                      {result.event
-                        ? shortenEventName(result.event.name)
-                        : "EVENT NOT FOUND"}
+                      {result.event ? shortenEventName(result.event.name) : "EVENT NOT FOUND"}
                     </td>
                     <td>
-                      {result.persons.length > 0
-                        ? <Competitors persons={result.persons} vertical />
-                        : (
-                          "COMPETITOR NOT FOUND"
-                        )}
+                      {result.persons.length > 0 ? <Competitors persons={result.persons} vertical /> : (
+                        "COMPETITOR NOT FOUND"
+                      )}
                     </td>
                     <td>
                       <Time
@@ -176,4 +166,4 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
   );
 };
 
-export default ManageResults;
+export default ManageResultsScreen;

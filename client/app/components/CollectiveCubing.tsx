@@ -1,28 +1,31 @@
 "use client";
 
-import { useContext, useEffect, useRef, useState, useTransition } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { TwistyPlayer } from "cubing/twisty";
 import { Alg } from "cubing/alg";
-import type { FetchObj } from "~/helpers/types/FetchObj.ts";
 import { NxNMove, nxnMoves } from "~/helpers/types/NxNMove.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
+import { getActionError, getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { makeCollectiveCubingMoveSF, startNewCollectiveCubingSolutionSF } from "~/server/serverFunctions.ts";
 import { CollectiveSolutionResponse } from "~/server/db/schema/collective-solutions.ts";
+import { useAction } from "next-safe-action/hooks";
 
 type Props = {
-  collectiveSolutionResponse: FetchObj<CollectiveSolutionResponse | null>;
+  initCollectiveSolution: CollectiveSolutionResponse | null;
 };
 
-const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
+function CollectiveCubing({ initCollectiveSolution }: Props) {
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
-  // undefined means it's not been set during the page load yet; null means a solution has never been started
-  const [collectiveSolution, setCollectiveSolution] = useState<CollectiveSolutionResponse | null | undefined>(null);
+  const { executeAsync: startNewSolution, isPending: isScrambling } = useAction(startNewCollectiveCubingSolutionSF);
+  const { executeAsync: makeMove, isPending: isMakingMove } = useAction(makeCollectiveCubingMoveSF);
+  // null means a solution has never been started
+  const [collectiveSolution, setCollectiveSolution] = useState<CollectiveSolutionResponse | null>(
+    initCollectiveSolution,
+  );
   const [selectedMove, setSelectedMove] = useState<NxNMove | null>(null);
-  const [isPending, startTransition] = useTransition();
   const twistyPlayerContainerRef = useRef<HTMLDivElement | null>(null);
   const twistyPlayerRef = useRef<TwistyPlayer | null>(null);
 
@@ -34,24 +37,25 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
   useEffect(() => {
     if (!getIsWebglSupported()) {
       changeErrorMessages(["Please enable WebGL to render the cube"]);
-      return;
+    } else if (!twistyPlayerRef.current && twistyPlayerContainerRef.current) {
+      updatePuzzleState(collectiveSolution);
     }
+  }, [changeErrorMessages]);
 
-    if (!collectiveSolutionResponse.success) {
-      changeErrorMessages(["Unknown error"]);
-    } else {
-      update(collectiveSolutionResponse.data);
-    }
-  }, []);
-
-  const update = (newSolution: CollectiveSolutionResponse | null) => {
+  const updatePuzzleState = (newSolution: CollectiveSolutionResponse | null, reset = false) => {
     setCollectiveSolution(newSolution);
 
-    console.log(newSolution, twistyPlayerRef.current, twistyPlayerContainerRef.current);
+    const alg = newSolution ? new Alg(newSolution.scramble).concat(newSolution.solution) : new Alg();
+
+    if (reset) {
+      twistyPlayerContainerRef.current!.removeChild(twistyPlayerRef.current!);
+      twistyPlayerRef.current = null;
+    }
+
     if (!twistyPlayerRef.current) {
       twistyPlayerRef.current = new TwistyPlayer({
         puzzle: "2x2x2",
-        alg: newSolution ? new Alg(newSolution.scramble).concat(newSolution.solution) : new Alg(),
+        alg,
         hintFacelets: "none",
         controlPanel: "none",
         background: "none",
@@ -60,52 +64,41 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
 
       twistyPlayerContainerRef.current!.appendChild(twistyPlayerRef.current);
     } else {
-      console.log("TEST");
+      twistyPlayerRef.current.alg = alg;
     }
   };
 
-  const scramblePuzzle = () => {
-    startTransition(async () => {
-      const res = await startNewCollectiveCubingSolutionSF();
+  const scramblePuzzle = async () => {
+    const res = await startNewSolution();
 
-      if (!res.success) {
-        if (res.error.code === "CONFLICT") {
-          update(res.error.data!);
-          changeErrorMessages(["The cube has already been scrambled"]);
-        }
-      } else {
-        update(res.data);
-        resetMessages();
-      }
-    });
+    if (!res?.data) {
+      if (res?.serverError?.data) updatePuzzleState(res.serverError.data);
+      changeErrorMessages([getActionError(res)]);
+    } else {
+      updatePuzzleState(res.data);
+      resetMessages();
+    }
   };
 
-  const submitMove = () => {
+  const submitMove = async () => {
     if (collectiveSolution && selectedMove) {
-      startTransition(async () => {
-        const res = await makeCollectiveCubingMoveSF({
-          move: selectedMove,
-          lastSeenSolution: collectiveSolution.solution,
-        });
+      const res = await makeMove({ move: selectedMove, lastSeenSolution: collectiveSolution.solution });
 
-        if (!res.success) {
-          if (res.error.code === "OUT_OF_DATE") {
-            update(res.error.data!);
-            changeErrorMessages(["The state of the cube has changed before your move"]);
-          } else if (res.error.code === "NO_ONGOING_SOLUTION") {
-            changeErrorMessages(["The puzzle hasn't been scrambled yet"]);
-          } else if (
-            ["VALIDATION", "CANT_MAKE_MOVE"].includes(res.error.code)
-          ) {
-            changeErrorMessages([res.error.message!]);
-          }
-        } else {
-          update(res.data);
-          resetMessages();
-        }
+      if (!res?.data) {
+        if (res?.serverError?.data) updatePuzzleState(res.serverError.data);
+        changeErrorMessages([getActionError(res)]);
+      } else {
+        twistyPlayerRef.current!.experimentalAddMove(selectedMove);
+        resetMessages();
+      }
 
-        setSelectedMove(null);
-      });
+      setSelectedMove(null);
+    }
+  };
+
+  const onConfirmKeybind = (e: any) => {
+    if (e.key === "Enter" && e.ctrlKey) {
+      submitMove();
     }
   };
 
@@ -131,7 +124,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
           green
         </b>. */
         }
-        You may not make two turns in a row.
+        You may not make two turns in a row. Submit with Ctrl + Enter after selecting a move as a shortcut.
       </p>
 
       <ToastMessages />
@@ -147,7 +140,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
                   <Button
                     id="scramble_button"
                     onClick={scramblePuzzle}
-                    isLoading={isPending}
+                    isLoading={isScrambling}
                     className="btn-success w-100 mt-2 mb-4"
                   >
                     Scramble
@@ -170,6 +163,8 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
                         <button
                           type="button"
                           onClick={() => setSelectedMove(move)}
+                          disabled={isMakingMove}
+                          onKeyDown={selectedMove === move ? onConfirmKeybind : undefined}
                           className={`btn btn-primary ${selectedMove === move ? "active" : ""} w-100`}
                         >
                           {move}
@@ -182,7 +177,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
                       id="confirm_button"
                       onClick={submitMove}
                       disabled={!selectedMove}
-                      isLoading={isPending}
+                      isLoading={isMakingMove}
                       className="btn-success w-100"
                     >
                       Confirm
@@ -196,8 +191,7 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
                       </b>
                     </p>
                     <Button
-                      onClick={() => update(collectiveSolution)}
-                      disabled={isPending}
+                      onClick={() => updatePuzzleState(collectiveSolution, true)}
                       className="btn-xs btn-secondary"
                     >
                       Reset Orientation
@@ -211,6 +205,6 @@ const CollectiveCubing = ({ collectiveSolutionResponse }: Props) => {
       )}
     </>
   );
-};
+}
 
 export default CollectiveCubing;

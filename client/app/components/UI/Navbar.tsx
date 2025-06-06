@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,16 +9,28 @@ import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { authClient } from "~/helpers/authClient.ts";
 
 type Props = {
-  user: typeof authClient.$Infer.Session.user | undefined;
+  initSession: typeof authClient.$Infer.Session | null;
 };
 
-const NavbarItems = ({ user }: Props) => {
+const NavbarItems = ({ initSession }: Props) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
 
   const [expanded, setExpanded] = useState(false);
   const [resultsExpanded, setResultsExpanded] = useState(false);
   const [userExpanded, setUserExpanded] = useState(false);
+  const [canAccessModDashboard, setCanAccessModDashboard] = useState(false);
+
+  const user = isPending ? initSession?.user : session?.user;
+
+  useEffect(() => {
+    if (user) {
+      authClient.admin.hasPermission({ permissions: { modDashboard: ["view"] } }).then(({ data }) => {
+        if (data) setCanAccessModDashboard(data.success);
+      });
+    }
+  }, [session]);
 
   const logOut = async () => {
     collapseAll();
@@ -148,8 +160,7 @@ const NavbarItems = ({ user }: Props) => {
                   <ul
                     className={`dropdown-menu end-0 py-0 px-3 px-lg-2 ${userExpanded ? "show" : ""}`}
                   >
-                    {
-                      /* {canAccessModDashboard.data && (
+                    {canAccessModDashboard && (
                       <li>
                         <Link
                           className="nav-link"
@@ -159,8 +170,7 @@ const NavbarItems = ({ user }: Props) => {
                           Mod Dashboard
                         </Link>
                       </li>
-                    )} */
-                    }
+                    )}
                     <li>
                       <Link
                         className="nav-link"

@@ -1,7 +1,7 @@
 import "server-only";
 import { boolean, integer, pgTable as table, text, timestamp } from "drizzle-orm/pg-core";
 
-export const users = table("users", {
+export const usersTable = table("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   username: text("username").notNull(),
@@ -18,7 +18,7 @@ export const users = table("users", {
   updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const sessions = table("sessions", {
+export const sessionsTable = table("sessions", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
@@ -26,15 +26,15 @@ export const sessions = table("sessions", {
   updatedAt: timestamp("updated_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   impersonatedBy: text("impersonated_by"),
 });
 
-export const accounts = table("accounts", {
+export const accountsTable = table("accounts", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: text("user_id").notNull().references(() => users.id, {
+  userId: text("user_id").notNull().references(() => usersTable.id, {
     onDelete: "cascade",
   }),
   accessToken: text("access_token"),
@@ -48,7 +48,7 @@ export const accounts = table("accounts", {
   updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const verifications = table("verifications", {
+export const verificationsTable = table("verifications", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
