@@ -12,10 +12,10 @@
     "dev": "deno run -A npm:next dev --turbo -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
     "build": "deno run -A npm:next build --turbo",
     "start": "next start",
-    "db:push": "deno run --allow-env --allow-sys --allow-read --allow-run --unstable-node-conditions=react-server npm:drizzle-kit push",
+    "db:push": "deno run --allow-all --unstable-node-conditions=react-server npm:drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
-    "db:studio": "deno run --allow-env --allow-sys --allow-read --allow-run --unstable-node-conditions=react-server npm:drizzle-kit studio"
+    "db:studio": "deno run --allow-all --unstable-node-conditions=react-server npm:drizzle-kit studio"
   },
 
   "lint": {
