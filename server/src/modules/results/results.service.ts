@@ -22,9 +22,19 @@ import { MyLogger } from "@m/my-logger/my-logger.service";
 import { CreateResultDto } from "./dto/create-result.dto";
 import { CreateVideoBasedResultDto } from "./dto/create-video-based-result.dto";
 import { UpdateResultDto } from "./dto/update-result.dto";
-import { excl, exclSysButKeepCreatedBy, orgPopulateOptions, resultPopulateOptions } from "~/src/helpers/dbHelpers";
+import {
+  excl,
+  exclSysButKeepCreatedBy,
+  orgPopulateOptions,
+  resultPopulateOptions,
+} from "~/src/helpers/dbHelpers";
 import { C } from "~/helpers/constants";
-import { ContestState, Role, RoundFormat, WcaRecordType } from "~/helpers/enums";
+import {
+  ContestState,
+  Role,
+  RoundFormat,
+  WcaRecordType,
+} from "~/helpers/enums";
 import { roundFormats } from "~/helpers/roundFormats";
 import {
   Event,
@@ -52,7 +62,12 @@ import {
   parseRoundId,
   setResultRecords,
 } from "~/helpers/sharedFunctions";
-import { getBaseAvgsFilter, getBaseSinglesFilter, setRankings, setRoundRankings } from "~/src/helpers/utilityFunctions";
+import {
+  getBaseAvgsFilter,
+  getBaseSinglesFilter,
+  setRankings,
+  setRoundRankings,
+} from "~/src/helpers/utilityFunctions";
 import { EmailService } from "~/src/modules/email/email.service";
 import { LogType } from "~/src/helpers/enums";
 import { differenceInHours } from "date-fns";
@@ -175,7 +190,9 @@ export class ResultsService {
               );
             }
 
-            const roundFormat = roundFormats.find((rf) => rf.value === round.format);
+            const roundFormat = roundFormats.find((rf) =>
+              rf.value === round.format
+            );
             const makesCutoff = getMakesCutoff(result.attempts, round.cutoff);
             if (
               (makesCutoff &&
@@ -292,14 +309,44 @@ export class ResultsService {
     eventId: string,
     forAverage = false,
     show?: "results",
+    region?: string,
   ): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
-    const eventRankings: IEventRankings = {
-      event,
-      rankings: [],
-    };
+    const eventRankings: IEventRankings = { event, rankings: [] };
     let eventResults: ResultDocument[] = [];
+    const regionFilterForTopResults = region
+      ? [
+        {
+          $lookup: {
+            from: "people",
+            localField: "personIds",
+            foreignField: "personId",
+            as: "persons",
+          },
+        },
+        {
+          $match: {
+            persons: {
+              $not: { $elemMatch: { countryIso2: { $ne: region } } },
+            },
+          },
+        },
+      ]
+      : [];
+    const regionFilterForTopPersons = region
+      ? [
+        {
+          $lookup: {
+            from: "people",
+            localField: "_id.personId",
+            foreignField: "personId",
+            as: "person",
+          },
+        },
+        { $match: { "person.countryIso2": region } },
+      ]
+      : [];
 
     if (!forAverage) {
       const $match = {
@@ -312,6 +359,7 @@ export class ResultsService {
         eventResults = await this.resultModel
           .aggregate([
             { $match },
+            ...regionFilterForTopResults,
             {
               $unwind: {
                 path: "$attempts",
@@ -321,6 +369,7 @@ export class ResultsService {
             { $project: excl },
             { $match: { "attempts.result": { $gt: 0, $ne: C.maxTime } } },
             { $sort: { "attempts.result": 1 } },
+            { $limit: 1000 },
           ])
           .exec();
 
@@ -338,6 +387,7 @@ export class ResultsService {
                 best: { $min: "$best" },
               },
             },
+            ...regionFilterForTopPersons,
             { $sort: { best: 1 } },
           ])
           .exec();
@@ -347,8 +397,7 @@ export class ResultsService {
             ...$match,
             personIds: pr._id.personId,
             best: pr.best,
-          }, excl)
-            .exec();
+          }, excl).exec();
           this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
           eventResults.push(result);
         }
@@ -376,7 +425,9 @@ export class ResultsService {
         if (show === "results") {
           ranking.memo = (result.attempts as any).memo; // will be left undefined if there is no memo
         } else {
-          const tiedBestAttempts = result.attempts.filter((el) => el.result === result.best);
+          const tiedBestAttempts = result.attempts.filter((el) =>
+            el.result === result.best
+          );
           if (tiedBestAttempts.length === 1) {
             ranking.memo = tiedBestAttempts[0].memo;
           }
@@ -385,8 +436,7 @@ export class ResultsService {
         if (result.competitionId) {
           ranking.contest = await this.contestModel.findOne({
             competitionId: result.competitionId,
-          }, excl)
-            .exec() as any;
+          }, excl).exec() as any;
         }
 
         eventRankings.rankings.push(ranking);
@@ -399,8 +449,12 @@ export class ResultsService {
 
       if (show === "results") {
         // Get all top average results
-        eventResults = await this.resultModel.find($match).sort({ average: 1 })
-          .exec();
+        eventResults = await this.resultModel.aggregate([
+          { $match },
+          ...regionFilterForTopResults,
+          { $sort: { average: 1 } },
+          { $limit: 1000 },
+        ]).exec();
       } else {
         // Get top averages by person
         const prAverages = await this.resultModel
@@ -413,6 +467,7 @@ export class ResultsService {
                 average: { $min: "$average" },
               },
             },
+            ...regionFilterForTopPersons,
             { $sort: { average: 1 } },
           ])
           .exec();
@@ -633,7 +688,9 @@ export class ResultsService {
       // Fixes the lookup stage breaking the order of the competitors
       frontendResults = frontendResults.map((res) => ({
         ...res,
-        persons: res.personIds.map((pid) => res.persons.find((p) => p.personId === pid)),
+        persons: res.personIds.map((pid) =>
+          res.persons.find((p) => p.personId === pid)
+        ),
       }));
 
       return frontendResults;
@@ -652,7 +709,9 @@ export class ResultsService {
     { user }: { user?: IPartialUser } = {},
   ): Promise<RoundDocument> {
     this.logger.logAndSave(
-      `Creating new contest result: ${JSON.stringify(createResultDto)} (round ${roundId})`,
+      `Creating new contest result: ${
+        JSON.stringify(createResultDto)
+      } (round ${roundId})`,
       LogType.CreateResult,
     );
 
@@ -684,16 +743,24 @@ export class ResultsService {
         throw new InternalServerErrorException("Previous round not found");
       }
       const notProceededCompetitor = createResultDto.personIds
-        .findIndex((pid) => !prevRound.results.some((r) => r.proceeds && r.personIds.includes(pid)));
+        .findIndex((pid) =>
+          !prevRound.results.some((r) =>
+            r.proceeds && r.personIds.includes(pid)
+          )
+        );
 
       if (notProceededCompetitor >= 0) {
         throw new BadRequestException(
-          `Competitor${event.participants > 1 ? ` ${notProceededCompetitor + 1}` : ""} has not proceeded to this round`,
+          `Competitor${
+            event.participants > 1 ? ` ${notProceededCompetitor + 1}` : ""
+          } has not proceeded to this round`,
         );
       }
     }
     if (
-      round.results.find((r) => r.personIds.some((pid) => createResultDto.personIds.includes(pid)))
+      round.results.find((r) =>
+        r.personIds.some((pid) => createResultDto.personIds.includes(pid))
+      )
     ) {
       throw new BadRequestException(
         "The competitor(s) already has a result in this round",
@@ -883,12 +950,13 @@ export class ResultsService {
         mode: "create",
       });
     } else {
-      let text = `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${
-        getFormattedTime(
-          createdResult.best,
-          { event, showMultiPoints: true, showDecimals: true },
-        )
-      }`;
+      let text =
+        `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${
+          getFormattedTime(
+            createdResult.best,
+            { event, showMultiPoints: true, showDecimals: true },
+          )
+        }`;
       if (createdResult.regionalSingleRecord) {
         text += ` (${createdResult.regionalSingleRecord})`;
       }
@@ -913,7 +981,9 @@ export class ResultsService {
     updateResultDto: UpdateVideoBasedResultDto,
   ) {
     this.logger.logAndSave(
-      `Updating video-based result with ID ${resultId}: ${JSON.stringify(updateResultDto)}`,
+      `Updating video-based result with ID ${resultId}: ${
+        JSON.stringify(updateResultDto)
+      }`,
       LogType.UpdateResult,
     );
 
@@ -1006,7 +1076,9 @@ export class ResultsService {
     });
 
     if (contest) {
-      round.results = round.results.filter((el) => el._id.toString() !== resultId);
+      round.results = round.results.filter((el) =>
+        el._id.toString() !== resultId
+      );
       round.results = await setRoundRankings(round);
       round.save();
       await this.updateContestParticipants(contest);
@@ -1186,7 +1258,9 @@ export class ResultsService {
     // TO-DO: IT IS POSSIBLE THAT THERE WAS STILL A RECORD, JUST OF A DIFFERENT TYPE
     for (const rp of recordPairs) {
       try {
-        const singlesComparison = mode === "edit" ? compareSingles(result, { best: previousBest }) : 0;
+        const singlesComparison = mode === "edit"
+          ? compareSingles(result, { best: previousBest })
+          : 0;
         const singleGotWorse = singlesComparison > 0 ||
           (mode === "delete" && result.best > 0);
         const singleGotBetter = singlesComparison < 0 ||
@@ -1224,7 +1298,9 @@ export class ResultsService {
           }
         }
 
-        const avgsComparison = mode === "edit" ? compareAvgs(result, { average: previousAvg }) : 0;
+        const avgsComparison = mode === "edit"
+          ? compareAvgs(result, { average: previousAvg })
+          : 0;
         const avgGotWorse = avgsComparison > 0 ||
           (mode === "delete" && result.average > 0);
         const avgGotBetter = avgsComparison < 0 ||
@@ -1282,11 +1358,15 @@ export class ResultsService {
   ) {
     if (result.personIds.length !== event.participants) {
       throw new BadRequestException(
-        `This event must have ${event.participants} participant${event.participants > 1 ? "s" : ""}`,
+        `This event must have ${event.participants} participant${
+          event.participants > 1 ? "s" : ""
+        }`,
       );
     }
     if (
-      result.personIds.some((p1, i1) => result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2))
+      result.personIds.some((p1, i1) =>
+        result.personIds.some((p2, i2) => i1 !== i2 && p1 === p2)
+      )
     ) {
       throw new BadRequestException(
         "You cannot enter the same person twice in the same result",
@@ -1294,7 +1374,9 @@ export class ResultsService {
     }
     if (differenceInHours(result.date, new Date()) > 36) {
       throw new BadRequestException(
-        round ? "You may not enter results for a round in the future" : "The date cannot be in the future",
+        round
+          ? "You may not enter results for a round in the future"
+          : "The date cannot be in the future",
       );
     }
 
@@ -1339,7 +1421,9 @@ export class ResultsService {
           result.attempts.some((a) => a.result > round.timeLimit.centiseconds)
         ) {
           throw new BadRequestException(
-            `This round has a time limit of ${getFormattedTime(round.timeLimit.centiseconds)}`,
+            `This round has a time limit of ${
+              getFormattedTime(round.timeLimit.centiseconds)
+            }`,
           );
         }
 
@@ -1363,7 +1447,8 @@ export class ResultsService {
 
           for (const r of rounds) {
             const samePeoplesResult = r.results.find(
-              (res) => !res.personIds.some((pid) => !result.personIds.includes(pid)),
+              (res) =>
+                !res.personIds.some((pid) => !result.personIds.includes(pid)),
             ) as IResult;
 
             if (samePeoplesResult) {
@@ -1375,10 +1460,14 @@ export class ResultsService {
 
           if (total >= round.timeLimit.centiseconds) {
             throw new BadRequestException(
-              `This round has a cumulative time limit of ${getFormattedTime(round.timeLimit.centiseconds)}${
+              `This round has a cumulative time limit of ${
+                getFormattedTime(round.timeLimit.centiseconds)
+              }${
                 round.timeLimit.cumulativeRoundIds.length === 1
                   ? ""
-                  : ` for these rounds: ${round.timeLimit.cumulativeRoundIds.join(", ")}`
+                  : ` for these rounds: ${
+                    round.timeLimit.cumulativeRoundIds.join(", ")
+                  }`
               }`,
             );
           }
@@ -1396,10 +1485,14 @@ export class ResultsService {
             }
           } else if (result.attempts.length > round.cutoff.numberOfAttempts) {
             if (
-              result.attempts.slice(round.cutoff.numberOfAttempts).some((a) => a.result !== 0)
+              result.attempts.slice(round.cutoff.numberOfAttempts).some((a) =>
+                a.result !== 0
+              )
             ) {
               throw new BadRequestException(
-                `This round has a cutoff of ${getFormattedTime(round.cutoff.attemptResult)}`,
+                `This round has a cutoff of ${
+                  getFormattedTime(round.cutoff.attemptResult)
+                }`,
               );
             } else {
               result.attempts = result.attempts.slice(

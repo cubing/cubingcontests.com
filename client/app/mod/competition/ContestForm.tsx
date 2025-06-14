@@ -711,8 +711,8 @@ const ContestForm = ({
                   className="mb-3"
                 />
                 {ContestIdInput}
-                <div className="row mb-3">
-                  <div className="col">
+                <div className="row">
+                  <div className="col-12 col-md-6 mb-3">
                     <FormTextInput
                       title="City"
                       value={city}
@@ -720,7 +720,7 @@ const ContestForm = ({
                       disabled={disabledIfDetailsImported || disabledIfContestPublished}
                     />
                   </div>
-                  <div className="col">
+                  <div className="col-12 col-md-6 mb-3">
                     <FormCountrySelect
                       countryIso2={countryIso2}
                       setCountryIso2={setCountryIso2}

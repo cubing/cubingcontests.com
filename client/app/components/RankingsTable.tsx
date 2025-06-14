@@ -1,20 +1,20 @@
 import RankingRow from "./RankingRow.tsx";
 import { Event, IRanking } from "~/helpers/types.ts";
 
-const RankingsTable = ({
-  rankings,
-  event,
-  forAverage = false,
-  recordsTable = false,
-  topResultsRankings = false,
-}: {
+type Props = {
   rankings: IRanking[];
   event: Event;
-  forAverage?: boolean;
   // These two parameters are mutually-exclusive
   recordsTable?: boolean;
   topResultsRankings?: boolean;
-}) => {
+};
+
+function RankingsTable({
+  rankings,
+  event,
+  recordsTable = false,
+  topResultsRankings = false,
+}: Props) {
   if (topResultsRankings && recordsTable) {
     throw new Error("forAverage and topResultsRankings cannot both be true in RankingsTable");
   }
@@ -28,11 +28,7 @@ const RankingsTable = ({
   let lastRanking = 0;
 
   if (rankings.length === 0) {
-    return (
-      <p className="mt-4 mx-2 fs-5">
-        {forAverage ? "There are no average results for this event yet" : "There are no results for this event yet"}
-      </p>
-    );
+    return <p className="mt-4 mx-2 fs-5">Results not found</p>;
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -99,6 +95,6 @@ const RankingsTable = ({
       </table>
     </div>
   );
-};
+}
 
 export default RankingsTable;
