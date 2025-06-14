@@ -1,13 +1,6 @@
 import { remove as removeAccents } from "remove-accents";
 import { C } from "./constants.ts";
-import {
-  ContestType,
-  EventFormat,
-  EventGroup,
-  Role,
-  RoundFormat,
-  WcaRecordType,
-} from "./enums.ts";
+import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
 import {
   type Event,
   type IAttempt,
@@ -43,8 +36,7 @@ export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
   // If a.best or b.best is left undefined, the tie breaker will not be used
   const useTieBreaker = typeof a.best === "number" &&
     typeof b.best === "number";
-  const breakTie = () =>
-    compareSingles({ best: a.best as number }, { best: b.best as number });
+  const breakTie = () => compareSingles({ best: a.best as number }, { best: b.best as number });
 
   if (a.average <= 0) {
     if (b.average <= 0) {
@@ -106,9 +98,7 @@ export const getDateOnly = (date: Date | null): Date | null => {
     return null;
   }
 
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  );
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
 
 export const getFormattedTime = (
@@ -200,9 +190,7 @@ export const getFormattedTime = (
         if (noFormatting) return `${solved};${solved + missed};${output}`;
         // This includes an En space before the points part
         return (
-          `${solved}/${solved + missed} ${
-            centiseconds !== C.maxTime ? output : "Unknown time"
-          }` +
+          `${solved}/${solved + missed} ${centiseconds !== C.maxTime ? output : "Unknown time"}` +
           (showMultiPoints ? ` (${points})` : "")
         );
       } else {
@@ -224,9 +212,8 @@ export const getBestAndAverage = (
   let sum = 0;
   let dnfDnsCount = 0;
   const makesCutoff = getMakesCutoff(attempts, cutoff);
-  const expectedAttempts =
-    (roundFormats.find((rf) => rf.value === roundFormat) as IRoundFormat)
-      .attempts;
+  const expectedAttempts = (roundFormats.find((rf) => rf.value === roundFormat) as IRoundFormat)
+    .attempts;
   const enteredAttempts = attempts.filter((a) => a.result !== 0).length;
 
   // This actually follows the rule that the lower the attempt value is - the better
@@ -273,9 +260,7 @@ export const getIsProceedableResult = (
 ): boolean => (roundFormat.isAverage && result.average > 0) || result.best > 0;
 
 export const getDefaultAverageAttempts = (event: Event) => {
-  const roundFormat = roundFormats.find((rf) =>
-    rf.value === event.defaultRoundFormat
-  ) as IRoundFormat;
+  const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
   return roundFormat.attempts === 5 ? 5 : 3;
 };
 
@@ -283,8 +268,11 @@ export const getAlwaysShowDecimals = (event: Event): boolean =>
   event.groups.includes(EventGroup.ExtremeBLD) &&
   event.format !== EventFormat.Multi;
 
-export const getIsCompType = (contestType: ContestType): boolean =>
-  [ContestType.WcaComp, ContestType.Competition].includes(contestType);
+export const getIsCompType = (contestType: ContestType | undefined): boolean => {
+  if (!contestType) throw new Error("getIsCompType cannot accept undefined contestType");
+
+  return [ContestType.WcaComp, ContestType.Competition].includes(contestType);
+};
 
 // If the round has no cutoff (undefined), return true
 export const getMakesCutoff = (
@@ -339,8 +327,7 @@ export const fetchWcaPerson = async (
   return undefined;
 };
 
-export const getIsOtherActivity = (activityCode: string) =>
-  /^other-/.test(activityCode);
+export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
 
 export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
   contestEvents.map((ce) => ce.rounds.length).reduce(
@@ -348,8 +335,7 @@ export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
     0,
   );
 
-export const getSimplifiedString = (input: string): string =>
-  removeAccents(input.trim().toLocaleLowerCase());
+export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
 
 export const getMaxAllowedRounds = (rounds: IRound[]): number => {
   const getRoundHasEnoughResults = (roundIndex: number) =>

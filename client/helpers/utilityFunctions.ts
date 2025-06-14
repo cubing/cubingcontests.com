@@ -13,10 +13,7 @@ import {
 } from "~/helpers/types.ts";
 import { type InputPerson, type MultiChoiceOption, type UserInfo } from "./types.ts";
 
-export const getFormattedDate = (
-  startDate: Date | string,
-  endDate?: Date | string | null,
-): string => {
+export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
   if (!startDate) throw new Error("Start date missing!");
 
   if (typeof startDate === "string") startDate = new Date(startDate);

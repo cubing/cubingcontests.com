@@ -50,7 +50,7 @@ read answer
 
 if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
   source .env
-  collections=( "competitions" "people" "rounds" "results" "recordtypes" "events" "schedules" "eventrules" "collectivesolutions" )
+  collections=( "competitions" "people" "rounds" "results" "recordtypes" "events" "schedules" "eventrules" "collectivesolutions" "logs" )
 
   # Copy dump to Docker container and extract it
   docker cp "$dump_path/$filename" $db_container:/$filename

@@ -104,9 +104,7 @@ export class ContestsService {
             `Error: schedule ${
               JSON.stringify(s)
             } belongs to multiple contests: ${
-              contests
-                .map((c) => c.competitionId)
-                .join(", ")
+              contests.map((c) => c.competitionId).join(", ")
             }`,
           );
         } else {
@@ -209,6 +207,20 @@ export class ContestsService {
         .exec();
 
       for (const contest of contests) {
+        if (contest.type === ContestType.Meetup) {
+          const correctStartDate = getDateOnly(
+            toZonedTime(
+              contest.meetupDetails.startTime,
+              contest.meetupDetails.timeZone,
+            ),
+          );
+          if (contest.startDate.getTime() !== correctStartDate.getTime()) {
+            this.logger.error(
+              `Error: meetup ${contest.competitionId} has a mismatch between startDate and meetupDetails.startTime`,
+            );
+          }
+        }
+
         for (const contestEvent of contest.events) {
           if (contestEvent.rounds.filter((r) => r.open).length > 1) {
             this.logger.error(
@@ -1247,6 +1259,21 @@ export class ContestsService {
         contest.latitudeMicrodegrees / 1000000,
         contest.longitudeMicrodegrees / 1000000,
       )[0];
+
+      // This check is the same as in the DB consistency check
+      const correctStartDate = getDateOnly(
+        toZonedTime(
+          contest.meetupDetails.startTime,
+          contest.meetupDetails.timeZone,
+        ),
+      );
+      if (
+        new Date(contest.startDate).getTime() !== correctStartDate.getTime()
+      ) {
+        throw new BadRequestException(
+          "Meetup has a mismatch between startDate and startTime. Please report this to the admin team.",
+        );
+      }
     }
 
     // Disallow mods to make admin-only edits
