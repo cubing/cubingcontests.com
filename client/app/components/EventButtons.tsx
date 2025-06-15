@@ -12,11 +12,7 @@ type Props = {
   forPage: "results" | "rankings" | "competitions" | "data-entry";
 };
 
-const EventButtons = ({
-  eventId,
-  events,
-  forPage,
-}: Props) => {
+const EventButtons = ({ eventId, events, forPage }: Props) => {
   const router = useRouter();
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
@@ -41,14 +37,17 @@ const EventButtons = ({
     if (forPage === "results") {
       router.replace(`/competitions/${id}/results?eventId=${newEventId}`);
     } else if (forPage === "rankings") {
-      const show = searchParams.get("show");
-      router.push(
-        `/rankings/${newEventId}/${singleOrAvg}${show ? `?show=${show}` : ""}`,
-      );
+      let queryString = "";
+      searchParams.forEach((value, key) => {
+        queryString += `${queryString ? "&" : "?"}${key}=${value}`;
+      });
+      router.push(`/rankings/${newEventId}/${singleOrAvg}${queryString}`);
     } else if (forPage === "competitions") {
       if (searchParams.get("eventId") === newEventId) {
         router.replace("/competitions");
-      } else router.replace(`/competitions?eventId=${newEventId}`);
+      } else {
+        router.replace(`/competitions?eventId=${newEventId}`);
+      }
     } else {
       router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
     }
@@ -64,14 +63,11 @@ const EventButtons = ({
               <button
                 key={cat.value}
                 type="button"
-                className={"btn btn-primary" +
-                  (cat === selectedCat ? " active" : "")}
+                className={"btn btn-primary" + (cat === selectedCat ? " active" : "")}
                 onClick={() => setSelectedCat(cat)}
               >
                 <span className="d-none d-md-inline">{cat.title}</span>
-                <span className="d-inline d-md-none">
-                  {cat.shortTitle || cat.title}
-                </span>
+                <span className="d-inline d-md-none">{cat.shortTitle || cat.title}</span>
               </button>
             ))}
           </div>

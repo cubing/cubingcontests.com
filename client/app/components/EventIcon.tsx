@@ -32,15 +32,14 @@ const EventIcon = ({ event, onClick, isActive }: Props) => {
     );
   }
 
-  if (!onClick) {
-    return (
-      <span
-        className={`cubing-icon ${
-          isOrWasWCAEvent ? "event" : "unofficial"
-        }-${event.eventId}`}
-      />
-    );
-  }
+  const iconElement = (
+    <span
+      className={`cubing-icon ${isOrWasWCAEvent ? "event" : "unofficial"}-${event.eventId}`}
+      title={event.name}
+    />
+  );
+
+  if (!onClick) return iconElement;
 
   return (
     <button
@@ -48,11 +47,7 @@ const EventIcon = ({ event, onClick, isActive }: Props) => {
       onClick={onClick}
       className={"cc-icon-button" + (isActive ? " cc-icon-button--active" : "")}
     >
-      <span
-        className={`cubing-icon ${
-          isOrWasWCAEvent ? "event" : "unofficial"
-        }-${event.eventId}`}
-      />
+      {iconElement}
     </button>
   );
 };

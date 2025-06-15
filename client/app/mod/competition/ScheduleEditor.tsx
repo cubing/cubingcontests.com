@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { addHours } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
+import { getTimezoneOffset } from "date-fns-tz";
 import { Color, ContestType } from "~/helpers/enums.ts";
 import { IActivity, IContestEvent, IRoom } from "~/helpers/types.ts";
 import { MultiChoiceOption } from "~/helpers/types.ts";
@@ -39,18 +39,16 @@ const ScheduleEditor = ({
   const [roomColor, setRoomColor] = useState<Color>(Color.White);
 
   // Activity stuff
-  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(
-    null,
-  );
+  const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(null);
   const [selectedRoom, setSelectedRoom] = useState(1); // ID of the currently selected room
   const [activityCode, setActivityCode] = useState("");
   const [customActivity, setCustomActivity] = useState("");
-  // These are in UTC, but get displayed in the local time zone of the venue. Set to 12:00 - 13:00 by default.
+  // These are in UTC, but get displayed in the local time zone of the venue. Set to 12-13:00 by default.
   const [activityStartTime, setActivityStartTime] = useState(
-    fromZonedTime(addHours(startDate, 12), venueTimeZone),
+    new Date(addHours(startDate, 12).getTime() - getTimezoneOffset(venueTimeZone, startDate)),
   );
   const [activityEndTime, setActivityEndTime] = useState(
-    fromZonedTime(addHours(startDate, 13), venueTimeZone),
+    new Date(addHours(startDate, 13).getTime() - getTimezoneOffset(venueTimeZone, startDate)),
   );
 
   const roomOptions = useMemo<MultiChoiceOption<number>[]>(
@@ -93,8 +91,7 @@ const ScheduleEditor = ({
     setRooms([
       ...rooms,
       {
-        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id +
-          1,
+        id: rooms.length === 0 ? 1 : rooms.reduce((prev, curr) => (curr.id > prev.id ? curr : prev)).id + 1,
         name: roomName.trim(),
         color: roomColor,
         activities: [],
@@ -107,8 +104,7 @@ const ScheduleEditor = ({
 
     if (newTime) {
       // Change the activity end time too
-      const activityLength = activityEndTime.getTime() -
-        activityStartTime.getTime();
+      const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
       setActivityEndTime(new Date(newTime.getTime() + activityLength));
     }
   };
@@ -209,7 +205,7 @@ const ScheduleEditor = ({
         <h3 className="mb-3">Schedule</h3>
 
         <div className="row mb-3">
-          <div className="col">
+          <div className="col-12 col-md-6">
             <FormSelect
               title="Room"
               options={roomOptions}
@@ -219,7 +215,7 @@ const ScheduleEditor = ({
                 activityUnderEdit !== null}
             />
           </div>
-          <div className="col">
+          <div className="col-12 col-md-6">
             <FormSelect
               title="Activity"
               options={activityOptions}
@@ -239,7 +235,7 @@ const ScheduleEditor = ({
           />
         )}
         <div className="mb-3 row align-items-end">
-          <div className="col">
+          <div className="col-12 col-md-6">
             <FormDatePicker
               id="activity_start_time"
               title={`Start time (${venueTimeZone})`}
@@ -252,9 +248,10 @@ const ScheduleEditor = ({
               showUTCTime
             />
           </div>
-          <div className="col">
+          <div className="col-12 col-md-6">
             <FormDatePicker
               id="activity_end_time"
+              title="End time"
               value={activityEndTime}
               setValue={setActivityEndTime}
               timeZone={venueTimeZone}

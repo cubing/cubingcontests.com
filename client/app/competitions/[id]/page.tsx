@@ -17,44 +17,27 @@ type Props = {
 
 const ContestDetailsPage = async ({ params }: Props) => {
   const { id } = await params;
-  const contestDataResponse = await ssrFetch<IContestData>(
-    `/competitions/${id}`,
-  );
-  if (!contestDataResponse.success) {
-    return <h3 className="mt-4 text-center">Error while loading contest</h3>;
-  }
+  const contestDataResponse = await ssrFetch<IContestData>(`/competitions/${id}`);
+  if (!contestDataResponse.success) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   const { contest } = contestDataResponse.data;
 
-  const formattedDate = getFormattedDate(
-    contest.startDate,
-    contest.endDate || null,
-  );
+  const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests
   const formattedTime = contest.meetupDetails
-    ? formatInTimeZone(
-      contest.meetupDetails.startTime,
-      contest.meetupDetails.timeZone,
-      "H:mm",
-    )
+    ? formatInTimeZone(contest.meetupDetails.startTime, contest.meetupDetails.timeZone, "H:mm")
     : null;
-  const startOfDayInLocalTZ = getDateOnly(
-    toZonedTime(new Date(), contest.meetupDetails?.timeZone ?? "UTC"),
-  ) as Date;
+  const startOfDayInVenueTZ = getDateOnly(toZonedTime(new Date(), contest.meetupDetails?.timeZone ?? "UTC"))!;
   const start = new Date(contest.startDate);
   const isOngoing = contest.state < ContestState.Finished &&
-    ((!contest.endDate && start.getTime() === startOfDayInLocalTZ.getTime()) ||
-      (contest.endDate && start <= startOfDayInLocalTZ &&
-        new Date(contest.endDate) >= startOfDayInLocalTZ));
+    ((!contest.endDate && start.getTime() === startOfDayInVenueTZ.getTime()) ||
+      (contest.endDate && start <= startOfDayInVenueTZ && new Date(contest.endDate) >= startOfDayInVenueTZ));
 
   const getFormattedCoords = () => {
     const latitude = (contest.latitudeMicrodegrees / 1000000).toFixed(6);
     const longitude = (contest.longitudeMicrodegrees / 1000000).toFixed(6);
 
     return (
-      <a
-        href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`}
-        target="_blank"
-      >
+      <a href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`} target="_blank">
         {latitude}, {longitude}
       </a>
     );

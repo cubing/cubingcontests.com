@@ -1,6 +1,19 @@
 import { remove as removeAccents } from "remove-accents";
 import { C } from "./constants.ts";
-import { ContestType, EventFormat, EventGroup, RoundFormat, WcaRecordType } from "./enums.ts";
+import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
+import {
+  type Event,
+  type IAttempt,
+  type IContestEvent,
+  type ICutoff,
+  type IFeAttempt,
+  type IPersonDto,
+  type IRecordPair,
+  type IResult,
+  type IRound,
+  type IRoundFormat,
+  type IVideoBasedResult,
+} from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
 import { InsertPerson } from "~/server/db/schema/persons.ts";
 
@@ -86,9 +99,7 @@ export const getDateOnly = (date: Date | null): Date | null => {
     return null;
   }
 
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  );
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
 
 export const getFormattedTime = (
@@ -256,8 +267,11 @@ export const getAlwaysShowDecimals = (event: Event): boolean =>
   event.groups.includes(EventGroup.ExtremeBLD) &&
   event.format !== EventFormat.Multi;
 
-export const getIsCompType = (contestType: ContestType): boolean =>
-  [ContestType.WcaComp, ContestType.Competition].includes(contestType);
+export const getIsCompType = (contestType: ContestType | undefined): boolean => {
+  if (!contestType) throw new Error("getIsCompType cannot accept undefined contestType");
+
+  return [ContestType.WcaComp, ContestType.Competition].includes(contestType);
+};
 
 // If the round has no cutoff (undefined), return true
 export const getMakesCutoff = (

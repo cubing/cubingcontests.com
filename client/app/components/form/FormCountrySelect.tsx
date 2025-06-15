@@ -9,19 +9,21 @@ const countryOptions = [
   ...Countries,
 ];
 
+type Props = {
+  countryIso2: string;
+  setCountryIso2: any;
+  nextFocusTargetId?: string;
+  disabled?: boolean;
+};
+
 const FormCountrySelect = ({
   countryIso2,
   setCountryIso2,
   nextFocusTargetId,
   disabled = false,
-}: {
-  countryIso2: string;
-  setCountryIso2: any;
-  nextFocusTargetId?: string;
-  disabled?: boolean;
-}) => {
+}: Props) => {
   return (
-    <div className="mb-3 fs-5">
+    <div className="fs-5">
       <FormInputLabel text="Country" inputId="country_iso_2" />
 
       <select
@@ -32,11 +34,7 @@ const FormCountrySelect = ({
         disabled={disabled}
         className="form-select mt-2"
       >
-        {countryOptions.map((el) => (
-          <option key={el.code} value={el.code}>
-            {el.name}
-          </option>
-        ))}
+        {countryOptions.map((el) => <option key={el.code} value={el.code}>{el.name}</option>)}
       </select>
     </div>
   );

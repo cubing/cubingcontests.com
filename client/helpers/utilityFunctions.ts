@@ -7,10 +7,7 @@ import type { CcActionError, Event, IFeAttempt, IRoundFormat, ITimeLimit, Number
 import { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 import { SafeActionResult } from "next-safe-action";
 
-export const getFormattedDate = (
-  startDate: Date | string,
-  endDate?: Date | string | null,
-): string => {
+export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
   if (!startDate) throw new Error("Start date missing!");
 
   if (typeof startDate === "string") startDate = new Date(startDate);

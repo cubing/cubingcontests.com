@@ -33,12 +33,13 @@ export class ResultsController {
     private readonly eventsService: EventsService,
   ) {}
 
-  // GET /results/rankings/:eventId/:singleOrAvg(?show=results)
+  // GET /results/rankings/:eventId/:singleOrAvg
   @Get("rankings/:eventId/:singleOrAvg")
   async getRankings(
     @Param("eventId") eventId: string,
     @Param("singleOrAvg") singleOrAvg: "single" | "average",
     @Query("show") show?: "results",
+    @Query("region") region?: string,
   ) {
     this.logger.logAndSave(
       `Getting ${singleOrAvg} rankings for ${eventId}`,
@@ -49,6 +50,7 @@ export class ResultsController {
       eventId,
       singleOrAvg === "average",
       show,
+      region,
     );
   }
 

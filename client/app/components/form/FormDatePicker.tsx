@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { enGB } from "date-fns/locale/en-GB";
@@ -43,15 +42,13 @@ const FormDatePicker = ({
   const inputId = id || `${title}_date`;
   const showTimeSelect = dateFormat !== "P";
 
-  useEffect(() => {
-    if (!showTimeSelect) setValue(getDateOnly(value) as Date);
-  }, [showTimeSelect]);
-
   const onChange = (newDate: Date) => {
     // The time zone conversion is necessary, because otherwise JS uses the user's local time zone
     if (!showTimeSelect) {
-      setValue(getDateOnly(fromZonedTime(newDate, timeZone)) as Date);
-    } else setValue(fromZonedTime(newDate, timeZone));
+      setValue(getDateOnly(fromZonedTime(newDate, timeZone))!);
+    } else {
+      setValue(fromZonedTime(newDate, timeZone));
+    }
   };
 
   return (
@@ -74,7 +71,7 @@ const FormDatePicker = ({
 
       {showUTCTime && (
         <div className="mt-3 text-secondary fs-6">
-          UTC:&#8194;{value ? value.toUTCString().slice(0, -4) : "ERROR"}
+          UTC:&#8194;{value?.toUTCString().slice(0, -4) ?? "ERROR"}
         </div>
       )}
     </div>
