@@ -18,7 +18,6 @@ const personsTable = table("persons", {
 });
 
 type SelectPerson = typeof personsTable.$inferSelect;
-type InsertPerson = typeof personsTable.$inferInsert;
 
 const {
   createdBy: _,
@@ -30,4 +29,4 @@ const {
 
 type PersonResponse = Pick<SelectPerson, keyof typeof personsPublicCols>;
 
-export { type InsertPerson, type PersonResponse, personsPublicCols, personsTable, type SelectPerson };
+export { type PersonResponse, personsPublicCols, personsTable, type SelectPerson };

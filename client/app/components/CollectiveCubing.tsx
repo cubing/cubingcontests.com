@@ -71,11 +71,11 @@ function CollectiveCubing({ initCollectiveSolution }: Props) {
   const scramblePuzzle = async () => {
     const res = await startNewSolution();
 
-    if (!res?.data) {
-      if (res?.serverError?.data) updatePuzzleState(res.serverError.data);
+    if (res.serverError || res.validationErrors) {
+      if (res.serverError?.data) updatePuzzleState(res.serverError.data);
       changeErrorMessages([getActionError(res)]);
     } else {
-      updatePuzzleState(res.data);
+      updatePuzzleState(res.data!);
       resetMessages();
     }
   };
@@ -84,8 +84,8 @@ function CollectiveCubing({ initCollectiveSolution }: Props) {
     if (collectiveSolution && selectedMove) {
       const res = await makeMove({ move: selectedMove, lastSeenSolution: collectiveSolution.solution });
 
-      if (!res?.data) {
-        if (res?.serverError?.data) updatePuzzleState(res.serverError.data);
+      if (res.serverError || res.validationErrors) {
+        if (res.serverError?.data) updatePuzzleState(res.serverError.data.isSolved ? null : res.serverError.data);
         changeErrorMessages([getActionError(res)]);
       } else {
         twistyPlayerRef.current!.experimentalAddMove(selectedMove);

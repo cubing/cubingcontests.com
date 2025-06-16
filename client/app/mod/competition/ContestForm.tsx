@@ -127,10 +127,7 @@ const ContestForm = ({
       (lat: number, long: number) =>
         startTimeZoneTransition(async () => {
           changeErrorMessages([]);
-          const res = await getTimeZoneFromCoordsSF({
-            latitude: lat,
-            longitude: long,
-          });
+          const res = await getTimeZoneFromCoordsSF({ latitude: lat, longitude: long });
 
           if (!res.success) {
             changeErrorMessages([res.error.message!]);

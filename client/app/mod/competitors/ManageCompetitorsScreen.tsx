@@ -20,24 +20,32 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
+import { useAction } from "next-safe-action/hooks";
+import { approvePersonSF, deletePersonSF } from "~/server/persons/personsServerFunctions.ts";
+import { getActionError } from "~/helpers/utilityFunctions.ts";
 
 type Props = {
   persons: (SelectPerson | PersonResponse)[];
   users?: Creator[]; // only returned to admins
 };
 
-const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
+function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
   const searchParams = useSearchParams();
-  const { changeSuccessMessage, resetMessages } = useContext(MainContext);
+  const { changeSuccessMessage, changeErrorMessages, resetMessages } = useContext(MainContext);
   const { data: session } = authClient.useSession();
 
+  const { executeAsync: deletePerson, isPending: isDeleting } = useAction(deletePersonSF);
+  const { executeAsync: approvePerson, isPending: isApproving } = useAction(approvePersonSF);
   const [mode, setMode] = useState<ListPageMode | "add-once">(searchParams.get("redirect") ? "add-once" : "view");
   // Mods only see public columns (PersonResponse[]), but admins can see all columns (SelectPerson[])
   const [persons, setPersons] = useState<PersonResponse[] | SelectPerson[]>(initPersons);
   const [personUnderEdit, setPersonUnderEdit] = useState<PersonResponse | SelectPerson>();
   const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
   const [search, setSearch] = useState("");
+  const [loadingId, setLoadingId] = useState("");
   const parentRef = useRef<Element>(null);
+  // Only used for admins. Is used to confirm approval of person with exact name and country match with a WCA person.
+  const ignoredWcaMatches = useRef<{ personId: number; wcaMatches: string[] }>(undefined);
 
   const filteredPersons = useMemo(() => {
     const simplifiedSearch = getSimplifiedString(search);
@@ -57,6 +65,7 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
   }, [persons, approvedFilter, search]);
 
   const isAdmin = users !== undefined;
+  const buttonsDisabled = mode !== "view" || isDeleting || isApproving;
   const approvedFilterOptions: MultiChoiceOption[] = [
     { label: "Any", value: "" },
     { label: "Approved", value: "approved" },
@@ -76,12 +85,14 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
   };
 
   const onAddCompetitor = () => {
+    ignoredWcaMatches.current = undefined;
     setMode("add");
     setPersonUnderEdit(undefined);
     resetMessages();
   };
 
   const onEditCompetitor = (person: PersonResponse) => {
+    ignoredWcaMatches.current = undefined;
     resetMessages();
     setMode("edit");
     setPersonUnderEdit(person);
@@ -89,38 +100,41 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
   };
 
   const deleteCompetitor = async (person: PersonResponse) => {
-    // const res = await myFetch.delete(`/persons/${(person as any)._id}`, {
-    //   loadingId: `delete_person_${person.personId}_button`,
-    // });
+    ignoredWcaMatches.current = undefined;
+    setLoadingId(`delete_person_${person.personId}_button`);
+    const res = await deletePerson({ id: person.id });
+    setLoadingId("");
 
-    // if (res.success) {
-    //   setPersons(
-    //     persons.filter((p: PersonResponse) => (p as any)._id !== (person as any)._id),
-    //   );
-    //   changeSuccessMessage(
-    //     `Successfully deleted ${person.name} (CC ID: ${person.personId})`,
-    //   );
-    // }
+    if (res.serverError || res.validationErrors) {
+      changeErrorMessages([getActionError(res)]);
+    } else {
+      setPersons(persons.filter((p) => p.id !== person.id));
+      changeSuccessMessage(`Successfully deleted ${person.name} (CC ID: ${person.personId})`);
+    }
   };
 
   const approveCompetitor = async (person: PersonResponse) => {
-    // const res = await myFetch.patch(
-    //   `/persons/${(person as any)._id}/approve`,
-    //   { loadingId: `approve_person_${person.personId}_button` },
-    // );
+    if (ignoredWcaMatches.current && person.personId !== ignoredWcaMatches.current.personId) {
+      ignoredWcaMatches.current = undefined;
+    }
 
-    // if (res.success) {
-    //   // CODE SMELL!!! it shouldn't be necessary to keep the old creator values, they should just be set
-    //   // properly in the returned array. Same issue below in updateCompetitors.
-    //   setPersons(
-    //     persons.map((
-    //       p: PersonResponse,
-    //     ) => (p.personId === person.personId ? { ...res.data, creator: p.creator } : p)),
-    //   );
-    //   changeSuccessMessage(
-    //     `Successfully approved ${person.name} (CC ID: ${person.personId})`,
-    //   );
-    // }
+    setLoadingId(`approve_person_${person.personId}_button`);
+    const res = await approvePerson({
+      id: person.id,
+      ignoredWcaMatches: ignoredWcaMatches.current?.wcaMatches,
+    });
+    setLoadingId("");
+
+    if (res.serverError || res.validationErrors) {
+      if (res.serverError?.data) {
+        ignoredWcaMatches.current = { personId: person.personId, wcaMatches: res.serverError.data.wcaMatches };
+      }
+      changeErrorMessages([getActionError(res)]);
+    } else {
+      ignoredWcaMatches.current = undefined;
+      setPersons(persons.map((p) => p.id === person.id ? res.data! : p));
+      changeSuccessMessage(`Successfully approved ${person.name} (CC ID: ${person.personId})`);
+    }
   };
 
   const updateCompetitors = (person: PersonResponse | SelectPerson, isNew = false) => {
@@ -139,7 +153,12 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
 
       {mode === "view"
         ? (
-          <Button onClick={onAddCompetitor} className="btn-success btn-sm mx-2" style={{ width: "fit-content" }}>
+          <Button
+            onClick={onAddCompetitor}
+            disabled={isDeleting || isApproving}
+            className="btn-success btn-sm mx-2"
+            style={{ width: "fit-content" }}
+          >
             Add competitor
           </Button>
         )
@@ -245,8 +264,8 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
                                 <Button
                                   id={`approve_person_${person.personId}_button`}
                                   onClick={() => approveCompetitor(person)}
-                                  // loadingId={loadingId}
-                                  disabled={mode !== "view"}
+                                  disabled={buttonsDisabled}
+                                  loadingId={loadingId}
                                   className="btn-xs btn-success"
                                   ariaLabel="Approve"
                                 >
@@ -256,7 +275,7 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
                               {(isAdmin || !person.approved) && (
                                 <Button
                                   onClick={() => onEditCompetitor(person)}
-                                  disabled={mode !== "view"}
+                                  disabled={buttonsDisabled}
                                   className="btn-xs"
                                   ariaLabel="Edit"
                                 >
@@ -267,8 +286,8 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
                                 <Button
                                   id={`delete_person_${person.personId}_button`}
                                   onClick={() => deleteCompetitor(person)}
-                                  // loadingId={loadingId}
-                                  disabled={mode !== "view"}
+                                  disabled={buttonsDisabled}
+                                  loadingId={loadingId}
                                   className="btn-xs btn-danger"
                                   ariaLabel="Delete"
                                 >
@@ -289,6 +308,6 @@ const ManageCompetitorsScreen = ({ persons: initPersons, users }: Props) => {
       )}
     </section>
   );
-};
+}
 
 export default ManageCompetitorsScreen;

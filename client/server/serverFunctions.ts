@@ -1,13 +1,11 @@
 "use server";
 
 import { find as findTimezone } from "geo-tz";
-import { CcActionError } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   CollectiveSolutionResponse,
   collectiveSolutionsPublicCols,
   collectiveSolutionsTable as csTable,
-  InsertCollectiveSolution,
 } from "~/server/db/schema/collective-solutions.ts";
 import { eq } from "drizzle-orm";
 import { randomScrambleForEvent } from "cubing/scramble";
@@ -15,7 +13,7 @@ import { cube2x2x2 } from "cubing/puzzles";
 import { Alg } from "cubing/alg";
 import { nxnMoves } from "~/helpers/types/NxNMove.ts";
 import { z } from "zod/v4";
-import { actionClient } from "./safeAction.ts";
+import { actionClient, CcActionError } from "./safeAction.ts";
 
 // const CoordinatesValidator = z.strictObject({
 //   latitude: z.number().gte(-90).lte(90),
@@ -45,15 +43,15 @@ export const startNewCollectiveCubingSolutionSF = actionClient
 
     const eventId = "222";
     const scramble = await randomScrambleForEvent(eventId);
-    const newCollectiveSolution: InsertCollectiveSolution = {
-      eventId,
-      scramble: scramble.toString(),
-      lastUserWhoInteracted: session.user.id,
-      usersWhoMadeMoves: [],
-    };
+
     const [newSolution] = await db.transaction(async (tx) => {
       await tx.update(csTable).set({ state: "archived" }).where(eq(csTable.state, "solved"));
-      return await tx.insert(csTable).values([newCollectiveSolution]).returning(collectiveSolutionsPublicCols);
+      return await tx.insert(csTable).values([{
+        eventId,
+        scramble: scramble.toString(),
+        lastUserWhoInteracted: session.user.id,
+        usersWhoMadeMoves: [],
+      }]).returning(collectiveSolutionsPublicCols);
     });
 
     return newSolution;
@@ -69,8 +67,7 @@ async function getIsSolved(currentState: Alg): Promise<boolean> {
   return isSolved;
 }
 
-export const makeCollectiveCubingMoveSF = actionClient
-  .metadata({ permissions: null })
+export const makeCollectiveCubingMoveSF = actionClient.metadata({ permissions: null })
   .inputSchema(z.strictObject({
     move: z.enum(nxnMoves),
     lastSeenSolution: z.string(),
@@ -78,7 +75,9 @@ export const makeCollectiveCubingMoveSF = actionClient
   .action<CollectiveSolutionResponse>(async ({ parsedInput: { move, lastSeenSolution }, ctx: { session } }) => {
     const [ongoingSolution] = await db.select().from(csTable).where(eq(csTable.state, "ongoing")).limit(1);
 
-    if (!ongoingSolution) throw new CcActionError("The puzzle hasn't been scrambled yet");
+    if (!ongoingSolution) {
+      throw new CcActionError("The puzzle is already solved", { data: { isSolved: true } });
+    }
 
     if (session.user.id === ongoingSolution.lastUserWhoInteracted) {
       throw new CcActionError(

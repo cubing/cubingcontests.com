@@ -3,11 +3,7 @@ import { getTableColumns } from "drizzle-orm";
 import { integer, pgEnum, pgTable as table, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
 
-const collectiveSolutionStateEnum = pgEnum("state", [
-  "ongoing",
-  "solved",
-  "archived",
-]);
+const collectiveSolutionStateEnum = pgEnum("state", ["ongoing", "solved", "archived"]);
 
 const collectiveSolutionsTable = table("collective_solutions", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -23,7 +19,6 @@ const collectiveSolutionsTable = table("collective_solutions", {
 });
 
 type SelectCollectiveSolution = typeof collectiveSolutionsTable.$inferSelect;
-type InsertCollectiveSolution = typeof collectiveSolutionsTable.$inferInsert;
 
 const {
   lastUserWhoInteracted: _,
@@ -40,6 +35,5 @@ export {
   collectiveSolutionsPublicCols,
   collectiveSolutionsTable,
   collectiveSolutionStateEnum,
-  type InsertCollectiveSolution,
   type SelectCollectiveSolution,
 };

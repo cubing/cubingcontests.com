@@ -7,7 +7,7 @@ import { type Event, type IEventRankings } from "~/helpers/types.ts";
 import { EventGroup, RoundFormat } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
 import DonateAlert from "~/app/components/DonateAlert.tsx";
-import RegionSelect from "~/app/rankings/[eventId]/[singleOrAvg]/RegionSelect";
+import RegionSelect from "~/app/rankings/[eventId]/[singleOrAvg]/RegionSelect.tsx";
 import omitBy from "lodash/omitBy";
 
 // SEO

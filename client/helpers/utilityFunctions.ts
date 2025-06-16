@@ -3,7 +3,14 @@ import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
 import { Color, EventFormat } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
-import type { CcActionError, Event, IFeAttempt, IRoundFormat, ITimeLimit, NumberInputValue } from "~/helpers/types.ts";
+import type {
+  CcServerErrorObject,
+  Event,
+  IFeAttempt,
+  IRoundFormat,
+  ITimeLimit,
+  NumberInputValue,
+} from "~/helpers/types.ts";
 import { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 import { SafeActionResult } from "next-safe-action";
 
@@ -253,12 +260,10 @@ export const getBlankCompetitors = (
   return [persons, personNames];
 };
 
-export function getActionError<TActionResult extends SafeActionResult<CcActionError, any>>(
-  actionResult: TActionResult | undefined,
-) {
-  if (actionResult?.serverError?.message) return actionResult.serverError.message;
+export function getActionError(actionResult: SafeActionResult<CcServerErrorObject, any>) {
+  if (actionResult.serverError?.message) return actionResult.serverError.message;
 
-  if (actionResult?.validationErrors) {
+  if (actionResult.validationErrors) {
     const getValidationError = (errorObject: any, currentErrors: string[], fieldName?: string) => {
       for (const key in errorObject) {
         if (key === "_errors" && fieldName) {

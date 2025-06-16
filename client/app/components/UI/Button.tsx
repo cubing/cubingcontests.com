@@ -4,6 +4,7 @@ type Props = {
   children: React.ReactNode;
   type?: "button" | "submit";
   isLoading?: boolean;
+  loadingId?: string;
   disabled?: boolean;
   ariaLabel?: string;
 };
@@ -14,28 +15,31 @@ const Button = ({
   type = "button",
   onClick,
   isLoading,
+  loadingId,
   disabled,
   title,
   className = "",
   style,
   ariaLabel,
 }: Props & React.HTMLAttributes<HTMLButtonElement>) => {
+  const loading = isLoading || (loadingId && loadingId === id);
+
   return (
     <button
       id={id}
       type={type}
       onClick={onClick}
       onSubmit={(e) => e.preventDefault()}
-      disabled={disabled || isLoading}
+      disabled={disabled || isLoading || !!loadingId}
       title={title}
       className={`position-relative btn btn-primary ${className}`}
       style={style}
       aria-label={ariaLabel}
     >
-      <span style={isLoading ? { opacity: 0 } : {}}>{children}</span>
+      <span style={loading ? { opacity: 0 } : {}}>{children}</span>
       <div
         className={`${
-          isLoading ? "" : "d-none"
+          loading ? "" : "d-none"
         } position-absolute top-0 start-0 h-100 w-100 d-flex justify-content-center align-items-center`}
       >
         <Loading small />

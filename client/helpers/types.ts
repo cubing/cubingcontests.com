@@ -28,15 +28,7 @@ export type WcaPersonDto = {
   isNew: boolean;
 };
 
-export class CcActionError extends Error {
+export type CcServerErrorObject = {
+  message: string;
   data?: any;
-
-  constructor(message: string, options?: { data: any }, ...rest: any[]) {
-    super(message, ...rest);
-
-    this.name = "CcActionError";
-    if (options) {
-      this.data = options.data;
-    }
-  }
-}
+};

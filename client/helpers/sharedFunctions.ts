@@ -15,7 +15,7 @@ import {
   type IVideoBasedResult,
 } from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
-import { InsertPerson } from "~/server/db/schema/persons.ts";
+import { PersonDto } from "./validators/Person.ts";
 
 type BestCompareObj = { best: number };
 type AvgCompareObj = { best?: number; average: number };
@@ -285,19 +285,18 @@ export const getMakesCutoff = (
   );
 
 export function getNameAndLocalizedName(wcaName: string): [string, string | undefined] {
-  let [name, localizedName] = wcaName.split(" (");
-  if (localizedName) localizedName = localizedName.slice(0, -1); // remove the closing parenthesis
+  const [name, localizedName] = wcaName.replace(/\)$/, "").split(" (");
   return [name, localizedName];
 }
 
-export async function fetchWcaPerson(wcaId: string): Promise<InsertPerson | undefined> {
+export async function fetchWcaPerson(wcaId: string): Promise<PersonDto | undefined> {
   const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
 
   if (response.ok) {
     const data = await response.json();
 
     const [name, localizedName] = getNameAndLocalizedName(data.name);
-    const newPerson: InsertPerson = {
+    const newPerson: PersonDto = {
       name,
       localizedName,
       wcaId,
