@@ -1,6 +1,8 @@
 import { Color } from "~/helpers/enums.ts";
 
-export type MultiChoiceOption<T = string | number> = {
+export type OptionValueType = string | number;
+
+export type MultiChoiceOption<T = OptionValueType> = {
   label: string;
   shortLabel?: string;
   value: T;

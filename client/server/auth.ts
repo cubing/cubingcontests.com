@@ -7,8 +7,8 @@ import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, username } from "better-auth/plugins";
 import { accountsTable, sessionsTable, usersTable, verificationsTable } from "~/server/db/schema/auth-schema.ts";
 import { C } from "~/helpers/constants.ts";
-import { sendResetPassword, sendVerificationCode } from "~/server/mailer.ts";
-import { ac, admin, mod } from "~/server/permissions.ts";
+import { sendResetPasswordEmail, sendVerificationCodeEmail } from "~/server/mailer.ts";
+import { ac, admin, mod, user } from "~/server/permissions.ts";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -22,26 +22,26 @@ export const auth = betterAuth({
   }),
   plugins: [
     nextCookies(),
-    username(),
+    username({
+      maxUsernameLength: 40,
+      usernameValidator: (username) => /^[0-9a-zA-Z-_.]*$/.test(username),
+    }),
     adminPlugin({
       ac,
-      roles: {
-        admin,
-        mod,
-      },
+      roles: { admin, mod, user },
     }),
   ],
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    sendResetPassword: ({ user, url }) => sendResetPassword(user.email, url),
+    sendResetPassword: ({ user, url }) => sendResetPasswordEmail(user.email, url),
     password: {
       hash: (password: string) => bcrypt.hash(password, C.passwordSaltRounds),
       verify: (data: { hash: string; password: string }) => bcrypt.compare(data.password, data.hash),
     },
   },
   emailVerification: {
-    sendVerificationEmail: ({ user, url }) => sendVerificationCode(user.email, url),
+    sendVerificationEmail: ({ user, url }) => sendVerificationCodeEmail(user.email, url),
   },
   user: {
     additionalFields: {

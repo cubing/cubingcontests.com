@@ -13,9 +13,9 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=$DB_ADMIN_USERNAME
       - POSTGRES_PASSWORD=$DB_ADMIN_PASSWORD
-      - DB_USERNAME=$DB_USERNAME # used in the pg_init/create_users.sh script
-      - DB_PASSWORD=$DB_PASSWORD # used in the pg_init/create_users.sh script
-      - DB_NAME=$DB_NAME # used in the pg_init/create_users.sh script
+      - DB_USERNAME=$DB_USERNAME # used in ./pg_init scripts
+      - DB_PASSWORD=$DB_PASSWORD # used in ./pg_init scripts
+      - DB_NAME=$DB_NAME # used in ./pg_init scripts
     restart: unless-stopped
 
 

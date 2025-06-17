@@ -21,6 +21,8 @@ export type ListPageMode = "view" | "add" | "edit";
 // undefined is the empty value, null is the invalid value
 export type NumberInputValue = number | null | undefined;
 
+export type InputPerson = PersonResponse | null;
+
 export type Creator = Pick<typeof authClient.$Infer.Session.user, "id" | "username" | "email">;
 
 export type WcaPersonDto = {

@@ -1,7 +1,7 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
-import { fetchWcaPerson, getNameAndLocalizedName } from "~/helpers/sharedFunctions.ts";
+import { and, eq, ilike, ne, or, sql } from "drizzle-orm";
+import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import { WcaPersonDto } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
 import { PersonResponse, personsPublicCols, personsTable as table } from "~/server/db/schema/persons.ts";
@@ -11,6 +11,20 @@ import { checkUserPermissions } from "../serverUtilityFunctions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";
 import { usersTable } from "../db/schema/auth-schema.ts";
+import { C } from "~/helpers/constants.ts";
+
+export const getPersonsByNameSF = actionClient.metadata({ permissions: null })
+  .inputSchema(z.strictObject({
+    name: z.string().max(60),
+  })).action<PersonResponse[]>(async ({ parsedInput: { name } }) => {
+    const simplifiedParts = getSimplifiedString(name).split(" ").map((part) => `%${part}%`);
+    const nameQuery = and(...simplifiedParts.map((part) => sql`unaccent(${table.name}) ilike ${part}`));
+    const locNameQuery = and(...simplifiedParts.map((part) => ilike(table.localizedName, `%${part}%`)));
+
+    return await db.select(personsPublicCols).from(table)
+      .where(or(nameQuery, locNameQuery))
+      .limit(C.maxPersonMatches);
+  });
 
 export const getOrCreatePersonByWcaIdSF = actionClient.metadata({ permissions: { persons: ["create"] } })
   .inputSchema(z.strictObject({
@@ -76,14 +90,16 @@ export const updatePersonSF = actionClient.metadata({ permissions: { persons: ["
 export const deletePersonSF = actionClient.metadata({ permissions: { persons: ["delete"] } })
   .inputSchema(z.strictObject({
     id: z.int(),
-  })).action(async ({ parsedInput: { id } }) => {
+  })).action(async ({ parsedInput: { id }, ctx: { session } }) => {
+    const isAdmin = await checkUserPermissions(session.user.id, { persons: ["approve"] });
+
     const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person with the provided ID not found");
-    if (person.approved) throw new CcActionError("You may not delete an approved person");
+    if (!isAdmin && person.approved) throw new CcActionError("You may not delete an approved person");
 
-    const [user] = await db.select({ username: usersTable.username }).from(usersTable).where(
-      eq(usersTable.personId, person.personId),
-    ).limit(1);
+    const [user] = await db.select({ username: usersTable.username }).from(usersTable)
+      .where(eq(usersTable.personId, person.personId))
+      .limit(1);
     if (user) {
       throw new CcActionError(
         `You may not delete a person tied to a user. This person is tied to the user ${user.username}.`,
@@ -118,8 +134,7 @@ export const approvePersonSF = actionClient.metadata({ permissions: { persons: [
     id: z.int(),
     approveByPersonId: z.boolean().default(false),
     ignoredWcaMatches: z.array(z.string()).default([]),
-    skipValidation: z.boolean().default(false),
-  })).action<PersonResponse>(async ({ parsedInput: { id, approveByPersonId, ignoredWcaMatches, skipValidation } }) => {
+  })).action<PersonResponse>(async ({ parsedInput: { id, approveByPersonId, ignoredWcaMatches } }) => {
     const [person] = await db.select().from(table).where(eq(approveByPersonId ? table.personId : table.id, id))
       .limit(1);
     if (!person) throw new CcActionError("Person not found");
@@ -145,10 +160,10 @@ export const approvePersonSF = actionClient.metadata({ permissions: { persons: [
     return await setPersonToApproved(person, { requireWcaId: false, ignoredWcaMatches });
   });
 
-const setPersonToApproved = async (
+async function setPersonToApproved(
   person: PersonResponse,
   { requireWcaId, ignoredWcaMatches }: { requireWcaId: boolean; ignoredWcaMatches: string[] },
-) => {
+) {
   const updatePersonObject: Partial<PersonResponse> = {};
 
   if (!person.wcaId) {
@@ -199,7 +214,7 @@ const setPersonToApproved = async (
   }
 
   return person;
-};
+}
 
 async function validatePerson(
   newPerson: PersonDto,

@@ -42,7 +42,7 @@ import ScheduleEditor from "./ScheduleEditor.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 import type { InputPerson } from "~/helpers/types.ts";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
-import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions.ts";
+import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions/serverFunctions.ts";
 import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import { authClient } from "~/helpers/authClient.ts";
 
@@ -825,7 +825,7 @@ const ContestForm = ({
                     infiniteInputs
                     nextFocusTargetId="contact"
                     disabled={(disabledIfContestApproved && !userInfo?.isAdmin) || disabledIfContestPublished}
-                    addNewPersonMode="from-new-tab"
+                    // addNewPersonMode="from-new-tab"
                   />
                 </div>
                 <FormTextInput

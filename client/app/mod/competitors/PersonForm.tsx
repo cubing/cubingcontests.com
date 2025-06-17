@@ -12,7 +12,11 @@ import { fetchWcaPerson } from "~/helpers/sharedFunctions.ts";
 import { PersonResponse } from "~/server/db/schema/persons.ts";
 import { Creator } from "~/helpers/types.ts";
 import { useAction } from "next-safe-action/hooks";
-import { createPersonSF, getOrCreatePersonByWcaIdSF, updatePersonSF } from "~/server/persons/personsServerFunctions.ts";
+import {
+  createPersonSF,
+  getOrCreatePersonByWcaIdSF,
+  updatePersonSF,
+} from "~/server/serverFunctions/personsServerFunctions.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
 import { PersonDto } from "~/helpers/validators/Person.ts";
 
@@ -33,7 +37,9 @@ function PersonForm({
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { executeAsync: createPerson, isPending: isCreating } = useAction(createPersonSF);
-  const { executeAsync: createWcaPerson, isPending: isCreatingWcaPerson } = useAction(getOrCreatePersonByWcaIdSF);
+  const { executeAsync: getOrCreateWcaPerson, isPending: isGettingOrCreatingWcaPerson } = useAction(
+    getOrCreatePersonByWcaIdSF,
+  );
   const { executeAsync: updatePerson, isPending: isUpdating } = useAction(updatePersonSF);
   const [nextFocusTarget, setNextFocusTarget] = useState("");
   const [name, setName] = useState(personUnderEdit?.name ?? "");
@@ -46,7 +52,7 @@ function PersonForm({
   // If the person is submitted again with no changes, the request will be sent with ignoreDuplicate=true.
   const isConfirmation = useRef(false);
 
-  const isPending = isCreating || isCreatingWcaPerson || isUpdating || isFetchingWcaPerson;
+  const isPending = isCreating || isGettingOrCreatingWcaPerson || isUpdating || isFetchingWcaPerson;
 
   useEffect(() => {
     if (nextFocusTarget) {
@@ -98,7 +104,7 @@ function PersonForm({
       if (hasWcaId) setNextFocusTarget("wca_id");
       else setNextFocusTarget("full_name");
     } else {
-      console.error("NOT IMPLEMENTED: ADD BUTTON THAT REDIRECTS BACK AND FOCUS IT");
+      throw new Error("NOT IMPLEMENTED: ADD BUTTON THAT REDIRECTS BACK AND FOCUS IT");
       // setTimeout(() => window.location.replace(redirect), 2000);
     }
   };
@@ -115,7 +121,7 @@ function PersonForm({
 
       if (newWcaId.length === 10) {
         if (!personUnderEdit) {
-          const res = await createWcaPerson({ wcaId: newWcaId });
+          const res = await getOrCreateWcaPerson({ wcaId: newWcaId });
 
           if (res.serverError || res.validationErrors) {
             changeErrorMessages([getActionError(res)]);

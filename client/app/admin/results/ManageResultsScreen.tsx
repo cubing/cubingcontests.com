@@ -65,12 +65,7 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
           addNewPersonMode="disabled"
           display="one-line"
         />
-        {persons.at(0) &&
-          (
-            <Button onClick={resetFilters} className="btn btn-secondary btn-md">
-              Reset
-            </Button>
-          )}
+        {persons.at(0) && <Button onClick={resetFilters} className="btn btn-secondary btn-md">Reset</Button>}
       </FiltersContainer>
 
       <p className="px-3">

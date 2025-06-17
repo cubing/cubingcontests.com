@@ -1,10 +1,10 @@
-import { MultiChoiceOption } from "~/helpers/types.ts";
+import { MultiChoiceOption, OptionValueType } from "~/helpers/types/MultiChoiceOption.ts";
 import FormInputLabel from "./FormInputLabel.tsx";
 
 type Props = {
   title?: string;
   options: MultiChoiceOption[];
-  selected: string | number;
+  selected: OptionValueType;
   setSelected: (val: any) => void;
   disabled?: boolean;
   oneLine?: boolean;

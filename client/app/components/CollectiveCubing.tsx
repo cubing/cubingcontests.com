@@ -8,7 +8,10 @@ import { MainContext } from "~/helpers/contexts.ts";
 import { getActionError, getIsWebglSupported } from "~/helpers/utilityFunctions.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { makeCollectiveCubingMoveSF, startNewCollectiveCubingSolutionSF } from "~/server/serverFunctions.ts";
+import {
+  makeCollectiveCubingMoveSF,
+  startNewCollectiveCubingSolutionSF,
+} from "~/server/serverFunctions/serverFunctions.ts";
 import { CollectiveSolutionResponse } from "~/server/db/schema/collective-solutions.ts";
 import { useAction } from "next-safe-action/hooks";
 
