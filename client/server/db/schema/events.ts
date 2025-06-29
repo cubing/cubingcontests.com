@@ -1,0 +1,53 @@
+import "server-only";
+import { boolean, integer, pgEnum, pgTable as table, text } from "drizzle-orm/pg-core";
+import { tableTimestamps } from "../dbUtils.ts";
+import { getTableColumns } from "drizzle-orm/utils";
+
+export const eventFormatEnum = pgEnum("eventFormat", [
+  "time",
+  "number", // for Fewest Moves events
+  "multi",
+]);
+export type EventFormat = typeof eventFormatEnum.enumValues[number];
+
+export const roundFormatEnum = pgEnum("roundFormat", ["a", "m", "3", "2", "1"]);
+export type RoundFormat = typeof roundFormatEnum.enumValues[number];
+
+export const eventCategoryEnum = pgEnum("eventCategory", [
+  "unofficial",
+  "wca",
+  "extreme-bld",
+  "miscellaneous",
+  "removed",
+]);
+export type EventCategory = typeof eventCategoryEnum.enumValues[number];
+
+export const eventsTable = table("events", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  eventId: text().notNull().unique(),
+  name: text().notNull(),
+  category: eventCategoryEnum().notNull(),
+  rank: integer().notNull(),
+  format: eventFormatEnum().notNull(),
+  defaultRoundFormat: roundFormatEnum().notNull(),
+  participants: integer().notNull(),
+  submissionsAllowed: boolean().notNull(),
+  removedWca: boolean().notNull(),
+  hasMemo: boolean().notNull(),
+  hidden: boolean().notNull(),
+  description: text(),
+  rule: text(),
+  ...tableTimestamps,
+});
+
+export type SelectEvent = typeof eventsTable.$inferSelect;
+
+const {
+  rule: _, // technically not a private column, but it's not needed most of the time
+  createdAt: _1,
+  updatedAt: _2,
+  ...eventsPublicCols
+} = getTableColumns(eventsTable);
+export { eventsPublicCols };
+
+export type EventResponse = Pick<SelectEvent, keyof typeof eventsPublicCols>;

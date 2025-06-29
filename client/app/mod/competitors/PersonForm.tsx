@@ -16,7 +16,7 @@ import {
   createPersonSF,
   getOrCreatePersonByWcaIdSF,
   updatePersonSF,
-} from "~/server/serverFunctions/personsServerFunctions.ts";
+} from "~/server/serverFunctions/personServerFunctions.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
 import { PersonDto } from "~/helpers/validators/Person.ts";
 

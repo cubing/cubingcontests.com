@@ -21,7 +21,7 @@ import { getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 import { useAction } from "next-safe-action/hooks";
-import { approvePersonSF, deletePersonSF } from "~/server/serverFunctions/personsServerFunctions.ts";
+import { approvePersonSF, deletePersonSF } from "~/server/serverFunctions/personServerFunctions.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
 
 type Props = {

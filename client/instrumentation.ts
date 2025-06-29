@@ -4,6 +4,7 @@ import type { auth as authType } from "~/server/auth.ts";
 import type { db as dbType } from "~/server/db/provider.ts";
 import { accountsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { personsTable } from "./server/db/schema/persons.ts";
+import { eventsTable } from "./server/db/schema/events.ts";
 
 const message =
   "The EMAIL_TOKEN environment variable must be empty while seeding the DB to avoid sending lots of verification emails for the users being seeded. Remove it and comment out the sendVerificationEmail function in auth.ts, and then add them back after the DB has been seeded.";
@@ -76,7 +77,7 @@ export async function register() {
       console.log("Seeding users...");
 
       try {
-        const usersDump = (await fs.readFileSync("./users.json")) as any;
+        const usersDump = (await fs.readFileSync("./dump/users.json")) as any;
 
         for (const user of usersDump.filter((u: any) => !u.confirmationCodeHash)) {
           const res = await auth.api.signUpEmail({
@@ -112,7 +113,7 @@ export async function register() {
       console.log("Seeding persons...");
 
       try {
-        const personsDump = (await fs.readFileSync("./persons.json")) as any;
+        const personsDump = (await fs.readFileSync("./dump/persons.json")) as any;
 
         await db.insert(personsTable).values(personsDump.map((p: any) => ({
           personId: p.personId,
@@ -126,6 +127,21 @@ export async function register() {
         })));
       } catch {
         console.error("Unable to load persons dump");
+      }
+    }
+
+    if ((await db.select({ id: eventsTable.id }).from(eventsTable).limit(1)).length === 0) {
+      console.log("Seeding events...");
+
+      try {
+        const eventsDump = (await fs.readFileSync("./dump/events.json")) as any;
+
+        await db.insert(eventsTable).values(eventsDump.map((p: any) => ({
+          createdAt: new Date(p.createdAt.$date),
+          updatedAt: new Date(p.updatedAt.$date),
+        })));
+      } catch {
+        console.error("Unable to load events dump");
       }
     }
 

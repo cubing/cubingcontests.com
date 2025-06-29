@@ -5,6 +5,7 @@ const modDashboard = ["view", "view-analytics"];
 const competitions = ["create", "update", "approve", "delete"];
 const meetups = ["create", "update", "approve", "delete"];
 const persons = ["create", "update", "approve", "delete"];
+const events = ["create", "update", "delete"];
 const videoBasedResults = ["create", "update", "approve", "delete"];
 
 const statement = {
@@ -13,6 +14,7 @@ const statement = {
   competitions,
   meetups,
   persons,
+  events,
   videoBasedResults,
 } as const;
 
@@ -24,6 +26,7 @@ const permissions = {
   competitions,
   meetups,
   persons,
+  events,
   videoBasedResults,
 };
 

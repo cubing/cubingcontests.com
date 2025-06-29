@@ -1,11 +1,12 @@
 import "server-only";
 import { getTableColumns } from "drizzle-orm";
-import { integer, pgEnum, pgTable as table, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable as table, serial, text, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import { tableTimestamps } from "../dbUtils.ts";
 
-const collectiveSolutionStateEnum = pgEnum("state", ["ongoing", "solved", "archived"]);
+export const collectiveSolutionStateEnum = pgEnum("state", ["ongoing", "solved", "archived"]);
 
-const collectiveSolutionsTable = table("collective_solutions", {
+export const collectiveSolutionsTable = table("collective_solutions", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   eventId: varchar({ length: 32 }).notNull(),
   attemptNumber: serial().notNull(),
@@ -14,11 +15,10 @@ const collectiveSolutionsTable = table("collective_solutions", {
   solution: text().default("").notNull(),
   lastUserWhoInteracted: text().references(() => usersTable.id, { onDelete: "set null" }), // this can be null if that user has been deleted
   usersWhoMadeMoves: text().references(() => usersTable.id).array().notNull(),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp().defaultNow().notNull().$onUpdate(() => new Date()),
+  ...tableTimestamps,
 });
 
-type SelectCollectiveSolution = typeof collectiveSolutionsTable.$inferSelect;
+export type SelectCollectiveSolution = typeof collectiveSolutionsTable.$inferSelect;
 
 const {
   lastUserWhoInteracted: _,
@@ -27,13 +27,6 @@ const {
   updatedAt: _3,
   ...collectiveSolutionsPublicCols
 } = getTableColumns(collectiveSolutionsTable);
+export { collectiveSolutionsPublicCols };
 
-type CollectiveSolutionResponse = Pick<SelectCollectiveSolution, keyof typeof collectiveSolutionsPublicCols>;
-
-export {
-  type CollectiveSolutionResponse,
-  collectiveSolutionsPublicCols,
-  collectiveSolutionsTable,
-  collectiveSolutionStateEnum,
-  type SelectCollectiveSolution,
-};
+export type CollectiveSolutionResponse = Pick<SelectCollectiveSolution, keyof typeof collectiveSolutionsPublicCols>;

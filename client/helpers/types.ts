@@ -10,7 +10,7 @@ export type {
   Schedule as WcifSchedule,
 } from "@wca/helpers";
 
-// Random types
+// Other types
 
 export type ResultRankingType = "single" | "average" | "mean";
 

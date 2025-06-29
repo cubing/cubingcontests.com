@@ -1,9 +1,10 @@
 import "server-only";
 import { getTableColumns } from "drizzle-orm";
-import { boolean, integer, pgTable as table, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable as table, serial, text, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import { tableTimestamps } from "../dbUtils.ts";
 
-const personsTable = table("persons", {
+export const personsTable = table("persons", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   personId: serial().notNull(),
   name: text().notNull(),
@@ -13,11 +14,10 @@ const personsTable = table("persons", {
   approved: boolean(),
   createdBy: text().references(() => usersTable.id, { onDelete: "set null" }), // this can be null if that user has been deleted
   createdExternally: boolean(),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp().defaultNow().notNull().$onUpdate(() => new Date()),
+  ...tableTimestamps,
 });
 
-type SelectPerson = typeof personsTable.$inferSelect;
+export type SelectPerson = typeof personsTable.$inferSelect;
 
 const {
   createdBy: _,
@@ -26,7 +26,6 @@ const {
   updatedAt: _3,
   ...personsPublicCols
 } = getTableColumns(personsTable);
+export { personsPublicCols };
 
-type PersonResponse = Pick<SelectPerson, keyof typeof personsPublicCols>;
-
-export { type PersonResponse, personsPublicCols, personsTable, type SelectPerson };
+export type PersonResponse = Pick<SelectPerson, keyof typeof personsPublicCols>;

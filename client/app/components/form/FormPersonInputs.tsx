@@ -9,7 +9,7 @@ import type { InputPerson } from "~/helpers/types.ts";
 import { C } from "~/helpers/constants.ts";
 import { PersonResponse } from "~/server/db/schema/persons.ts";
 import { useAction } from "next-safe-action/hooks";
-import { getOrCreatePersonByWcaIdSF, getPersonsByNameSF } from "~/server/serverFunctions/personsServerFunctions.ts";
+import { getOrCreatePersonByWcaIdSF, getPersonsByNameSF } from "~/server/serverFunctions/personServerFunctions.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 

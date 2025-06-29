@@ -13,8 +13,8 @@
     "build": "deno run -A npm:next build --turbo",
     "start": "next start",
     "db:push": "deno run --allow-all --unstable-node-conditions=react-server npm:drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate",
-    "db:generate": "drizzle-kit generate",
+    "db:migrate": "deno run --allow-all --unstable-node-conditions=react-server npm:drizzle-kit migrate",
+    "db:generate": "deno run --allow-all --unstable-node-conditions=react-server npm:drizzle-kit generate",
     "db:studio": "deno run --allow-all --unstable-node-conditions=react-server npm:drizzle-kit studio"
   },
 

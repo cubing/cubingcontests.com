@@ -19,7 +19,7 @@ import { Roles } from "~/server/permissions.ts";
 import { headers } from "next/headers";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
 import { PersonResponse, personsPublicCols, personsTable } from "../db/schema/persons.ts";
-import { approvePersonSF } from "./personsServerFunctions.ts";
+import { approvePersonSF } from "./personServerFunctions.ts";
 import { sendEmail, sendRoleChangedEmail } from "~/server/mailer.ts";
 import { C } from "~/helpers/constants.ts";
 

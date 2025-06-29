@@ -1,5 +1,5 @@
 import { EventGroup } from "~/helpers/enums.ts";
-import type { EventCategory } from "~/helpers/types.ts";
+import type { EventCategory } from "~/helpers/types/EventCategory.ts";
 
 export const eventCategories: EventCategory[] = [
   {
