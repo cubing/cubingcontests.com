@@ -8,6 +8,9 @@ import { LogType } from "~/src/helpers/enums";
 import { IContest } from "~/helpers/types";
 import { getRoleLabel } from "~/helpers/sharedFunctions";
 import { ContestType, Role } from "~/helpers/enums";
+import { C } from "~/helpers/constants";
+import { differenceInDays } from "date-fns";
+import { Countries } from "~/helpers/Countries";
 
 // The fileName is the name of a file inside of the templates directory
 const getEmailContents = async (
@@ -131,20 +134,32 @@ export class EmailService {
     contest: IContest,
     contestUrl: string,
   ) {
+    const urgent = Math.abs(
+      differenceInDays(contest.startDate, new Date()),
+    ) <= 7;
     const contents = await getEmailContents("contest-submitted.hbs", {
       competitionId: contest.competitionId,
       wcaCompetition: contest.type === ContestType.WcaComp,
       contestName: contest.name,
       contestUrl,
       ccUrl: process.env.BASE_URL,
+      startDate: new Date(contest.startDate).toDateString(),
+      location: `${contest.city}, ${
+        Countries.find((c) => c.code === contest.countryIso2)?.name ??
+          "NOT FOUND"
+      }`,
+      urgent,
     });
 
     try {
       await this.transporter.sendMail({
         from: this.sender,
+        replyTo: C.contactEmail,
         to,
-        subject: "Contest submitted",
+        cc: C.contactEmail,
+        subject: `Contest submitted: ${contest.shortName}`,
         html: contents,
+        priority: urgent ? "high" : "normal",
       });
     } catch (err) {
       this.logger.logAndSave(

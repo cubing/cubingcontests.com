@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { addDays, differenceInDays, endOfDay } from "date-fns";
+import { addDays, endOfDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { find as findTimezone } from "geo-tz";
 import { ContestDto } from "./dto/contest.dto";
@@ -477,26 +477,12 @@ export class ContestsService {
     try {
       await this.contestModel.create(newContest);
 
-      // Email the creator
+      // Email the creator and admins
       const contestUrl = getContestUrl(contestDto.competitionId);
       await this.emailService.sendContestSubmittedNotification(
         user.email,
         newContest,
         contestUrl,
-      );
-
-      // Email the admins
-      const difference = Math.abs(
-        differenceInDays(newContest.startDate, new Date()),
-      );
-      await this.emailService.sendEmail(
-        C.contactEmail,
-        `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newContest.name}</a>.`,
-        {
-          subject: `${
-            difference <= 7 ? "URGENT! " : ""
-          }New contest: ${newContest.shortName}`,
-        },
       );
     } catch (err) {
       // Remove created contest, rounds, results and schedule
