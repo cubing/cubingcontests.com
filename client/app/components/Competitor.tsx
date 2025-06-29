@@ -1,8 +1,8 @@
 import Country from "./Country.tsx";
-import { IFePerson, IPerson } from "~/helpers/types.ts";
+import { PersonResponse } from "~/server/db/schema/persons.ts";
 
 type Props = {
-  person: IPerson | IFePerson | undefined;
+  person: PersonResponse | undefined;
   showLocalizedName?: boolean;
   noFlag?: boolean;
   noLink?: boolean;

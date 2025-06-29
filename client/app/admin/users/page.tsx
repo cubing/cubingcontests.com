@@ -10,7 +10,7 @@ async function ManageUsersPage() {
   await authorizeUser({ permissions: { user: ["list"] } });
 
   const res = await auth.api.listUsers({
-    query: { filterField: "emailVerified", filterValue: true, sortBy: "createdAt", limit: 100 },
+    query: { filterField: "emailVerified", filterValue: true, sortBy: "createdAt", limit: 10000 },
     headers: await headers(),
   });
 

@@ -49,6 +49,8 @@ export const updateUserSF = actionClient.metadata({ permissions: { user: ["set-r
     role: z.enum(Roles),
   })).action<{ user: typeof auth.$Infer.Session.user; person?: PersonResponse }>(
     async ({ parsedInput: { id, personId, role } }) => {
+      const hdrs = await headers();
+
       const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
       if (!user) throw new CcActionError("User not found");
       if (!user.emailVerified) throw new CcActionError("This user hasn't verified their email address yet");
@@ -71,7 +73,7 @@ export const updateUserSF = actionClient.metadata({ permissions: { user: ["set-r
       }
 
       if (user.role !== role) {
-        await auth.api.setRole({ body: { userId: id, role }, headers: await headers() });
+        await auth.api.setRole({ body: { userId: id, role }, headers: hdrs });
 
         if (role === "admin") {
           await sendEmail(
@@ -85,10 +87,11 @@ export const updateUserSF = actionClient.metadata({ permissions: { user: ["set-r
         await sendRoleChangedEmail(user.email, role);
       }
 
-      return {
-        user: (await db.update(usersTable).set({ personId }).where(eq(usersTable.id, id)).returning()).at(0)!,
-        person,
-      };
+      const [updatedUser] = await db.update(usersTable).set({ personId }).where(eq(usersTable.id, id)).returning();
+
+      await auth.api.revokeUserSessions({ body: { userId: id }, headers: hdrs });
+
+      return { user: updatedUser, person };
     },
   );
 
