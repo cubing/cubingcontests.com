@@ -525,17 +525,6 @@ const ContestForm = ({
     }
   };
 
-  const ContestIdInput = (
-    <FormTextInput
-      title="Contest ID"
-      value={competitionId}
-      setValue={setCompetitionId}
-      disabled={disabledIfDetailsImported || disabledIfContestApproved ||
-        (mode === "edit" && !userInfo?.isAdmin)}
-      className="mb-3"
-    />
-  );
-
   return (
     <div>
       <Form
@@ -679,14 +668,21 @@ const ContestForm = ({
             />
             {type === ContestType.WcaComp && disabled && mode === "new" && (
               <>
-                {ContestIdInput}
-
+                {/* Almost the same as the Contest ID element below */}
+                <FormTextInput
+                  title="Competition ID"
+                  value={competitionId}
+                  setValue={setCompetitionId}
+                  tooltip="You can get the Competition ID from the end of the link of the WCA competition page"
+                  disabled={disabledIfDetailsImported || disabledIfContestApproved}
+                  className="mb-3"
+                />
                 <Button
                   id="get_wca_comp_details_button"
                   onClick={getWcaCompDetails}
                   loadingId={loadingId}
                   className="mb-3"
-                  disabled={disabledIfDetailsImported}
+                  disabled={disabledIfDetailsImported || !competitionId}
                 >
                   Get WCA competition details
                 </Button>
@@ -710,7 +706,15 @@ const ContestForm = ({
                   disabled={disabledIfDetailsImported || disabledIfContestPublished}
                   className="mb-3"
                 />
-                {ContestIdInput}
+                {/* Almost the same as the Competition ID element above */}
+                <FormTextInput
+                  title="Contest ID"
+                  value={competitionId}
+                  setValue={setCompetitionId}
+                  disabled={disabledIfDetailsImported || disabledIfContestApproved ||
+                    (mode === "edit" && !userInfo?.isAdmin)}
+                  className="mb-3"
+                />
                 <div className="row">
                   <div className="col-12 col-md-6 mb-3">
                     <FormTextInput
