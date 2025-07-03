@@ -674,7 +674,6 @@ export class ContestsService {
     const contestCreatorEmail = await this.usersService.getUserEmail({
       _id: contest.createdBy,
     });
-    const contestUrl = getContestUrl(competitionId);
 
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
     // A contest can have results before being approved if it's an imported contest.
@@ -694,10 +693,9 @@ export class ContestsService {
           personIds: contest.organizers.map((o) => o.personId),
         });
 
-        await this.emailService.sendEmail(
+        await this.emailService.sendContestApprovedNotification(
           contestCreatorEmail,
-          `Your contest <a href="${contestUrl}">${contest.name}</a> has been approved and is now public on the website.`,
-          { subject: `Contest approved: ${contest.shortName}` },
+          contest as any,
         );
       } else if (
         contest.state === ContestState.Finished &&
@@ -1386,12 +1384,10 @@ export class ContestsService {
       requireWcaId: contest.type === ContestType.WcaComp,
     });
 
-    // Email the admins
-    const contestUrl = getContestUrl(contest.competitionId);
-    await this.emailService.sendEmail(
+    // Email the organizers
+    await this.emailService.sendContestPublishedNotification(
       contestCreatorEmail,
-      `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
-      { subject: `Contest published: ${contest.shortName}` },
+      contest as any,
     );
   }
 }

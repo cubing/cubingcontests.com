@@ -1372,7 +1372,10 @@ export class ResultsService {
         "You cannot enter the same person twice in the same result",
       );
     }
-    if (differenceInHours(result.date, new Date()) > 36) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      differenceInHours(result.date, new Date()) > 36
+    ) {
       throw new BadRequestException(
         round
           ? "You may not enter results for a round in the future"

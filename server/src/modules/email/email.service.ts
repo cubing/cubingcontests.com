@@ -30,8 +30,9 @@ const getEmailContents = async (
 @Injectable()
 export class EmailService {
   private sender = `"No Reply" no-reply@${
-    process.env.BASE_URL.split("://")[1]
+    process.env.BASE_URL.split("://").at(1)
   }`;
+  private contestsEmail = `contests@${process.env.BASE_URL.split("://").at(1)}`;
   private transporter = createTransport({
     host: process.env.MAIL_URL,
     port: 587,
@@ -153,7 +154,7 @@ export class EmailService {
 
     try {
       await this.transporter.sendMail({
-        from: this.sender,
+        from: this.contestsEmail,
         replyTo: C.contactEmail,
         to,
         cc: C.contactEmail,
@@ -163,7 +164,41 @@ export class EmailService {
       });
     } catch (err) {
       this.logger.logAndSave(
-        `Error while sending contest submitted notification for contest ${contest.name}:, ${err}`,
+        `Error while sending contest submitted notification for contest ${contest.name}: ${err}`,
+        LogType.Error,
+      );
+    }
+  }
+
+  async sendContestApprovedNotification(to: string, contest: IContest) {
+    try {
+      await this.transporter.sendMail({
+        from: this.contestsEmail,
+        to,
+        subject: `Contest approved: ${contest.shortName}`,
+        html:
+          `Your contest <a href="${process.env.BASE_URL}/competitions/${contest.competitionId}">${contest.name}</a> has been approved and is now public on the website.`,
+      });
+    } catch (err) {
+      this.logger.logAndSave(
+        `Error while sending contest approved notification for contest: ${err}`,
+        LogType.Error,
+      );
+    }
+  }
+
+  async sendContestPublishedNotification(to: string, contest: IContest) {
+    try {
+      await this.transporter.sendMail({
+        from: this.contestsEmail,
+        to,
+        subject: `Contest published: ${contest.shortName}`,
+        html:
+          `The results of <a href="${process.env.BASE_URL}/competitions/${contest.competitionId}">${contest.name}</a> have been published and will now enter the rankings.`,
+      });
+    } catch (err) {
+      this.logger.logAndSave(
+        `Error while sending contest published notification for contest: ${err}`,
         LogType.Error,
       );
     }
