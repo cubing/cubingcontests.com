@@ -43,7 +43,9 @@ const RulesLayout = async ({ children }: Props) => {
                     showIcon
                     linkToRankings
                   />
-                  <Markdown>{event.ruleText}</Markdown>
+                  <div style={{ overflowX: "auto" }}>
+                    <Markdown>{event.ruleText}</Markdown>
+                  </div>
                   <p className="mb-1">
                     The ranked average format is <b>{rankedFormat.label}</b>
                   </p>
