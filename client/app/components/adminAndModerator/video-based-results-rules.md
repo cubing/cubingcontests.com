@@ -9,3 +9,4 @@
 5. For 2x2x2, 3x3x3, 4x4x4, Square-1, and FTO puzzles, it must be visible that a new scramble was generated and applied.
    Scrambles must be generated with [cubing.js](https://experiments.cubing.net/cubing.js/mark3/),
    [csTimer](https://cstimer.net/), or [TNoodle](https://www.worldcubeassociation.org/regulations/scrambles/).
+6. Results from other websites (e.g. the WCA) are not accepted.
