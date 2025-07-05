@@ -369,7 +369,7 @@ export class ResultsService {
             { $project: excl },
             { $match: { "attempts.result": { $gt: 0, $ne: C.maxTime } } },
             { $sort: { "attempts.result": 1 } },
-            { $limit: 1000 },
+            { $limit: 100 },
           ])
           .exec();
 
@@ -389,6 +389,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { best: 1 } },
+            { $limit: 100 },
           ])
           .exec();
 
@@ -453,7 +454,7 @@ export class ResultsService {
           { $match },
           ...regionFilterForTopResults,
           { $sort: { average: 1 } },
-          { $limit: 1000 },
+          { $limit: 100 },
         ]).exec();
       } else {
         // Get top averages by person
@@ -469,6 +470,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { average: 1 } },
+            { $limit: 100 },
           ])
           .exec();
 
