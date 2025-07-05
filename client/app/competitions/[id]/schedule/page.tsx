@@ -9,7 +9,7 @@ type Props = {
 
 const CompetitionSchedulePage = async ({ params }: Props) => {
   const { id } = await params;
-  const contestDataResponse = await ssrFetch(`/competitions/${id}`);
+  const contestDataResponse = await ssrFetch(`/competitions/${id}`, { revalidate: 60 });
   if (!contestDataResponse.success) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   const { contest } = contestDataResponse.data;
 
