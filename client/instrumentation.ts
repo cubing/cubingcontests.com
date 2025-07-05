@@ -77,7 +77,7 @@ export async function register() {
       console.log("Seeding users...");
 
       try {
-        const usersDump = (await fs.readFileSync("./dump/users.json")) as any;
+        const usersDump = JSON.parse((await fs.readFileSync("./dump/users.json")) as any);
 
         for (const user of usersDump.filter((u: any) => !u.confirmationCodeHash)) {
           const res = await auth.api.signUpEmail({
@@ -113,7 +113,7 @@ export async function register() {
       console.log("Seeding persons...");
 
       try {
-        const personsDump = (await fs.readFileSync("./dump/persons.json")) as any;
+        const personsDump = JSON.parse((await fs.readFileSync("./dump/persons.json")) as any);
 
         await db.insert(personsTable).values(personsDump.map((p: any) => ({
           personId: p.personId,
@@ -134,9 +134,8 @@ export async function register() {
       console.log("Seeding events...");
 
       try {
-        const eventsDump = (await fs.readFileSync("./dump/events.json")) as any;
-        console.log();
-        const eventRulesDump = (await fs.readFileSync("./dump/eventrules.json")) as any;
+        const eventsDump = JSON.parse((await fs.readFileSync("./dump/events.json")) as any);
+        const eventRulesDump = JSON.parse((await fs.readFileSync("./dump/eventrules.json")) as any);
 
         await db.insert(eventsTable).values(eventsDump.map((e: any) => {
           const eventRule = eventRulesDump.find((er: any) => er.eventId === e.eventId);
@@ -161,8 +160,8 @@ export async function register() {
             removedWca: e.groups.includes(8),
             hasMemo: e.groups.includes(10),
             hidden: e.groups.includes(9),
-            description: e.description,
-            rule: eventRule.rule,
+            description: e.description || null,
+            rule: eventRule?.rule || null,
             createdAt: new Date(e.createdAt.$date),
             updatedAt: new Date(e.updatedAt.$date),
           });
