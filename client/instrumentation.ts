@@ -104,8 +104,8 @@ export async function register() {
             updatedAt: new Date(user.updatedAt.$date),
           }).where(eq(accountsTable.userId, res.user.id));
         }
-      } catch {
-        console.error("Unable to load users dump");
+      } catch (e) {
+        console.error("Unable to load users dump:", e);
       }
     }
 
@@ -125,8 +125,8 @@ export async function register() {
           createdAt: new Date(p.createdAt.$date),
           updatedAt: new Date(p.updatedAt.$date),
         })));
-      } catch {
-        console.error("Unable to load persons dump");
+      } catch (e) {
+        console.error("Unable to load persons dump:", e);
       }
     }
 
@@ -135,13 +135,40 @@ export async function register() {
 
       try {
         const eventsDump = (await fs.readFileSync("./dump/events.json")) as any;
+        console.log();
+        const eventRulesDump = (await fs.readFileSync("./dump/eventrules.json")) as any;
 
-        await db.insert(eventsTable).values(eventsDump.map((p: any) => ({
-          createdAt: new Date(p.createdAt.$date),
-          updatedAt: new Date(p.updatedAt.$date),
-        })));
-      } catch {
-        console.error("Unable to load events dump");
+        await db.insert(eventsTable).values(eventsDump.map((e: any) => {
+          const eventRule = eventRulesDump.find((er: any) => er.eventId === e.eventId);
+
+          return ({
+            eventId: e.eventId,
+            name: e.name,
+            category: e.groups.includes(1)
+              ? "wca"
+              : e.groups.includes(2)
+              ? "unofficial"
+              : e.groups.includes(3)
+              ? "extreme-bld"
+              : e.groups.includes(4)
+              ? "removed"
+              : "miscellaneous",
+            rank: e.rank,
+            format: e.format,
+            defaultRoundFormat: e.defaultRoundFormat,
+            participants: e.participants,
+            submissionsAllowed: e.groups.includes(6),
+            removedWca: e.groups.includes(8),
+            hasMemo: e.groups.includes(10),
+            hidden: e.groups.includes(9),
+            description: e.description,
+            rule: eventRule.rule,
+            createdAt: new Date(e.createdAt.$date),
+            updatedAt: new Date(e.updatedAt.$date),
+          });
+        }));
+      } catch (e) {
+        console.error("Unable to load events dump or event rules dump:", e);
       }
     }
 
