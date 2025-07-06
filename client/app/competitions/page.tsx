@@ -2,6 +2,7 @@ import { ssrFetch } from "~/helpers/fetchUtils.ts";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import DonateAlert from "~/app/components/DonateAlert.tsx";
+import { C } from "~/helpers/constants";
 
 // SEO
 export const metadata = {
@@ -23,7 +24,9 @@ type Props = {
 const ContestsPage = async ({ searchParams }: Props) => {
   const { eventId } = await searchParams;
   const eventsResponse = await ssrFetch("/events");
-  const contestsResponse = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ""}`);
+  const contestsResponse = await ssrFetch(`/competitions${eventId ? `?eventId=${eventId}` : ""}`, {
+    revalidate: C.contestsRev,
+  });
 
   return (
     <div>

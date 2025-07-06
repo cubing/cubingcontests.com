@@ -6,6 +6,7 @@ import { RoundProceed, RoundType } from "~/helpers/enums.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
+import { C } from "~/helpers/constants";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -15,7 +16,7 @@ const ContestEventsPage = async ({ params }: Props) => {
   const { id } = await params;
   const contestDataResponse = await ssrFetch<IContestData>(
     `/competitions/${id}`,
-    { revalidate: 60 },
+    { revalidate: C.contestsRev },
   );
   if (!contestDataResponse.success) {
     return <h3 className="mt-4 text-center">Error while loading contest</h3>;

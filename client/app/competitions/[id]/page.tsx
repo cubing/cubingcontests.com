@@ -10,6 +10,7 @@ import { ContestState, ContestType } from "~/helpers/enums.ts";
 import { getDateOnly } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
+import { C } from "~/helpers/constants";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -17,7 +18,7 @@ type Props = {
 
 const ContestDetailsPage = async ({ params }: Props) => {
   const { id } = await params;
-  const contestDataResponse = await ssrFetch<IContestData>(`/competitions/${id}`, { revalidate: 60 });
+  const contestDataResponse = await ssrFetch<IContestData>(`/competitions/${id}`, { revalidate: C.contestsRev });
   if (!contestDataResponse.success) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   const { contest } = contestDataResponse.data;
 
