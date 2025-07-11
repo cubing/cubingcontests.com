@@ -483,6 +483,8 @@ export class ContestsService {
         user.email,
         newContest,
         contestUrl,
+        newContest.organizers.find((o) => o.personId === user.personId)?.name ??
+          "ERROR",
       );
     } catch (err) {
       // Remove created contest, rounds, results and schedule

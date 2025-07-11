@@ -136,6 +136,7 @@ export class EmailService {
     to: string,
     contest: IContest,
     contestUrl: string,
+    creator: string,
   ) {
     const urgent = Math.abs(
       differenceInDays(contest.startDate, new Date()),
@@ -146,6 +147,7 @@ export class EmailService {
       contestName: contest.name,
       contestUrl,
       ccUrl: process.env.BASE_URL,
+      creator,
       startDate: new Date(contest.startDate).toDateString(),
       location: `${contest.city}, ${
         Countries.find((c) => c.code === contest.countryIso2)?.name ??
@@ -159,7 +161,6 @@ export class EmailService {
         from: this.contestsEmail,
         replyTo: C.contactEmail,
         to,
-        cc: C.contactEmail,
         subject: `Contest submitted: ${contest.shortName}`,
         html: contents,
         priority: urgent ? "high" : "normal",
