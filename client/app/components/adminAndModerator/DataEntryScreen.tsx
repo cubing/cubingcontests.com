@@ -323,7 +323,7 @@ function DataEntryScreen({
               persons={currentPersons}
               setPersons={setCurrentPersons}
               nextFocusTargetId="attempt_1"
-              redirectToOnAddPerson={window.location.pathname}
+              redirectToOnAddPerson={`${window.location.pathname}?eventId=${eventId}`}
               disabled={!round.open}
               display="basic"
             />
