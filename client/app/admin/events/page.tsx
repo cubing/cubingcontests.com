@@ -310,6 +310,7 @@ const CreateEditEventPage = () => {
                   <Button
                     onClick={() => onEditEvent(event)}
                     className="btn-xs"
+                    title="Edit"
                     ariaLabel="Edit"
                   >
                     <FontAwesomeIcon icon={faPencil} />

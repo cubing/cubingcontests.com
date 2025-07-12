@@ -89,6 +89,7 @@ const ContestsTable = ({ contests }: Props) => {
               <th scope="col">
                 <FontAwesomeIcon
                   icon={faUserGroup}
+                  title="Number of participants"
                   aria-label="Number of participants"
                 />
               </th>

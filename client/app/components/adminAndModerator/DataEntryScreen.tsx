@@ -367,6 +367,7 @@ function DataEntryScreen({
                     onClick={() => updateQueuePosition("decrement")}
                     loadingId={loadingId}
                     className="btn-success btn-xs"
+                    title="Decrement"
                     ariaLabel="Decrement queue position"
                   >
                     <FontAwesomeIcon icon={faMinus} />
@@ -377,6 +378,7 @@ function DataEntryScreen({
                     onClick={() => updateQueuePosition("increment")}
                     loadingId={loadingId}
                     className="btn-success btn-xs"
+                    title="Increment"
                     ariaLabel="Increment queue position"
                   >
                     <FontAwesomeIcon icon={faPlus} />

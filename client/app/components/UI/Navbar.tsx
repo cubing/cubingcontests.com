@@ -51,7 +51,8 @@ const NavbarItems = () => {
           type="button"
           onClick={() => setExpanded(!expanded)}
           className="cc-icon-button d-lg-none"
-          aria-label="Menu button"
+          title="Menu"
+          aria-label="Menu"
         >
           <FontAwesomeIcon icon={faBars} />
         </button>

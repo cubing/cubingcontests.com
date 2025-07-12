@@ -9,6 +9,7 @@ const Button = ({
   disabled,
   className = "",
   style,
+  title,
   ariaLabel,
 }: {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ const Button = ({
       disabled={disabled || !!loadingId}
       className={`position-relative btn btn-primary ${className}`}
       style={style}
+      title={title}
       aria-label={ariaLabel}
     >
       <span style={isLoading ? { opacity: 0 } : {}}>{children}</span>

@@ -90,7 +90,12 @@ const FormTextInput = ({
         />
 
         {password && (
-          <Button onClick={() => setHidePassword(!hidePassword)} className="px-2" aria-label="Toggle show password">
+          <Button
+            onClick={() => setHidePassword(!hidePassword)}
+            className="px-2"
+            title="Toggle show password"
+            ariaLabel="Toggle show password"
+          >
             <FontAwesomeIcon icon={hidePassword ? faEye : faEyeSlash} style={{ width: "1.3rem" }} />
           </Button>
         )}

@@ -146,6 +146,7 @@ const ManageResults = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                         href={`/admin/results/${(result as any)._id}`}
                         prefetch={false}
                         className="btn btn-primary btn-xs"
+                        title="Edit"
                         aria-label="Edit"
                       >
                         <FontAwesomeIcon icon={faPencil} />

@@ -180,6 +180,7 @@ const Schedule = ({
                                     onClick={() => onEditActivity(a.room.id, a)}
                                     disabled={!a.isEditable}
                                     className="btn-xs"
+                                    title="Edit"
                                     ariaLabel="Edit"
                                   >
                                     <FontAwesomeIcon icon={faPencil} />
@@ -189,6 +190,7 @@ const Schedule = ({
                                   <Button
                                     onClick={() => onDeleteActivity(a.room.id, a.id)}
                                     className="btn-danger btn-xs"
+                                    title="Delete"
                                     ariaLabel="Delete"
                                   >
                                     <FontAwesomeIcon icon={faTrash} />

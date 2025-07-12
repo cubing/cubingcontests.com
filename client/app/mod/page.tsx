@@ -1,16 +1,14 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
-import { faClock } from "@fortawesome/free-regular-svg-icons";
+import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { useMyFetch } from "~/helpers/customHooks.ts";
 import { ContestState } from "~/helpers/enums.ts";
 import { IAdminStats, IContest, IPerson } from "~/helpers/types.ts";
 import { UserInfo } from "~/helpers/types.ts";
 import { getFormattedDate, getUserInfo } from "~/helpers/utilityFunctions.ts";
-import { MainContext } from "~/helpers/contexts.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Country from "~/app/components/Country.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
@@ -19,6 +17,7 @@ import Loading from "~/app/components/UI/Loading.tsx";
 import { C } from "~/helpers/constants.ts";
 import { useRouter, useSearchParams } from "next/navigation";
 import ModFilters from "~/app/mod/ModFilters";
+import ContestControls from "~/app/mod/ContestControls";
 
 const userInfo: UserInfo = getUserInfo();
 
@@ -26,7 +25,6 @@ const ModeratorDashboardPage = () => {
   const myFetch = useMyFetch();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { loadingId } = useContext(MainContext);
 
   const [contests, setContests] = useState<IContest[]>();
   const [adminStats, setAdminStats] = useState<IAdminStats>();
@@ -61,31 +59,8 @@ const ModeratorDashboardPage = () => {
   // FUNCTIONS
   //////////////////////////////////////////////////////////////////////////////
 
-  const changeState = async (competitionId: string, newState: ContestState) => {
-    const verb = newState === ContestState.Approved
-      ? "approve"
-      : newState === ContestState.Finished
-      ? "finish"
-      : newState === ContestState.Published
-      ? "publish"
-      : "ERROR";
-    const contest = contests?.find((c: IContest) => c.competitionId === competitionId) as IContest;
-
-    if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
-      const res = await myFetch.patch(
-        `/competitions/set-state/${competitionId}`,
-        { newState },
-        { loadingId: `set_state_${newState}_${competitionId}_button` },
-      );
-
-      if (res.success) {
-        setContests(
-          (contests as IContest[]).map((
-            c,
-          ) => (c.competitionId === competitionId ? res.data : c)),
-        );
-      }
-    }
+  const updateContest = (newContest: IContest) => {
+    setContests((contests as IContest[]).map((c) => (c.competitionId === newContest.competitionId ? newContest : c)));
   };
 
   const selectPerson = (person: IPerson) => {
@@ -232,6 +207,7 @@ const ModeratorDashboardPage = () => {
                   <th scope="col">
                     <FontAwesomeIcon
                       icon={faUserGroup}
+                      title="Number of participants"
                       aria-label="Number of participants"
                     />
                   </th>
@@ -239,132 +215,54 @@ const ModeratorDashboardPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {contests.map((contest: IContest) => {
-                  const showApproveButton = contest.state === ContestState.Created &&
-                    userInfo?.isAdmin &&
-                    (contest.meetupDetails || contest.compDetails);
-
-                  return (
-                    <tr key={contest.competitionId}>
-                      <td>
-                        {getFormattedDate(contest.startDate, contest.endDate)}
-                      </td>
-                      <td>
-                        <Link
-                          href={`/competitions/${contest.competitionId}`}
-                          prefetch={false}
-                          className="link-primary"
+                {contests.map((contest: IContest) => (
+                  <tr key={contest.competitionId}>
+                    <td>
+                      {getFormattedDate(contest.startDate, contest.endDate)}
+                    </td>
+                    <td>
+                      <Link
+                        href={`/competitions/${contest.competitionId}`}
+                        prefetch={false}
+                        className="link-primary"
+                      >
+                        {contest.shortName}
+                      </Link>
+                    </td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <span
+                          className="d-inline-block m-0 text-truncate"
+                          style={{ maxWidth: "18rem" }}
                         >
-                          {contest.shortName}
-                        </Link>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          <span
-                            className="d-inline-block m-0 text-truncate"
-                            style={{ maxWidth: "18rem" }}
-                          >
-                            {contest.city}
-                          </span>
-                          <span className="me-1">,</span>
-                          <Country
-                            countryIso2={contest.countryIso2}
-                            swapPositions
-                            shorten
+                          {contest.city}
+                        </span>
+                        <span className="me-1">,</span>
+                        <Country
+                          countryIso2={contest.countryIso2}
+                          swapPositions
+                          shorten
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <ContestTypeBadge type={contest.type} brief />
+                    </td>
+                    <td>{contest.participants || ""}</td>
+                    <td>
+                      {contest.state === ContestState.Removed
+                        ? <span className="text-danger">Removed</span>
+                        : (
+                          <ContestControls
+                            contest={contest}
+                            updateContest={updateContest}
+                            isAdmin={userInfo?.isAdmin}
+                            smallButtons
                           />
-                        </div>
-                      </td>
-                      <td>
-                        <ContestTypeBadge type={contest.type} brief />
-                      </td>
-                      <td>{contest.participants || ""}</td>
-                      <td>
-                        {contest.state === ContestState.Removed
-                          ? <span className="text-danger">Removed</span>
-                          : (
-                            <div className="d-flex gap-2">
-                              {(contest.state < ContestState.Finished ||
-                                userInfo?.isAdmin) && (
-                                <Link
-                                  href={`/mod/competition?edit_id=${contest.competitionId}`}
-                                  prefetch={false}
-                                  className="btn btn-primary btn-xs"
-                                  aria-label="Edit"
-                                >
-                                  <FontAwesomeIcon icon={faPencil} />
-                                </Link>
-                              )}
-                              {(contest.state >= ContestState.Approved &&
-                                contest.state < ContestState.Published &&
-                                (contest.state < ContestState.Finished ||
-                                  userInfo?.isAdmin)) && (
-                                <Link
-                                  href={`/mod/competition/${contest.competitionId}`}
-                                  prefetch={false}
-                                  className="btn btn-xs btn-success"
-                                >
-                                  Results
-                                </Link>
-                              )}
-                              {showApproveButton && (
-                                <Button
-                                  id={`set_state_${ContestState.Approved}_${contest.competitionId}_button`}
-                                  type="button"
-                                  onClick={() =>
-                                    changeState(
-                                      contest.competitionId,
-                                      ContestState.Approved,
-                                    )}
-                                  loadingId={loadingId}
-                                  className="btn btn-warning btn-xs"
-                                >
-                                  Approve
-                                </Button>
-                              )}
-                              {contest.state === ContestState.Ongoing && (
-                                <Button
-                                  id={`set_state_${ContestState.Finished}_${contest.competitionId}_button`}
-                                  type="button"
-                                  onClick={() =>
-                                    changeState(
-                                      contest.competitionId,
-                                      ContestState.Finished,
-                                    )}
-                                  loadingId={loadingId}
-                                  className="btn btn-warning btn-xs"
-                                >
-                                  Finish
-                                </Button>
-                              )}
-                              {contest.state === ContestState.Finished &&
-                                (userInfo?.isAdmin
-                                  ? (
-                                    <Button
-                                      id={`set_state_${ContestState.Published}_${contest.competitionId}_button`}
-                                      type="button"
-                                      onClick={() =>
-                                        changeState(
-                                          contest.competitionId,
-                                          ContestState.Published,
-                                        )}
-                                      loadingId={loadingId}
-                                      className="btn btn-warning btn-xs"
-                                    >
-                                      Publish
-                                    </Button>
-                                  )
-                                  : (
-                                    <FontAwesomeIcon
-                                      icon={faClock}
-                                      className="my-1 fs-5"
-                                    />
-                                  ))}
-                            </div>
-                          )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                        )}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

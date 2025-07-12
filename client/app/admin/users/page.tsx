@@ -224,6 +224,7 @@ const ManageUsersPage = () => {
                         type="button"
                         onClick={() => onEditUser(user)}
                         className="btn-xs"
+                        title="Edit"
                         ariaLabel="Edit"
                       >
                         <FontAwesomeIcon icon={faPencil} />

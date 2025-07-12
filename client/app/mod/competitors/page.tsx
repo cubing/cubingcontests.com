@@ -256,6 +256,7 @@ const CreatePersonPage = () => {
                                   loadingId={loadingId}
                                   disabled={mode !== "view"}
                                   className="btn-xs btn-success"
+                                  title="Approve"
                                   ariaLabel="Approve"
                                 >
                                   <FontAwesomeIcon icon={faCheck} />
@@ -266,6 +267,7 @@ const CreatePersonPage = () => {
                                   onClick={() => onEditCompetitor(person)}
                                   disabled={mode !== "view"}
                                   className="btn-xs"
+                                  title="Edit"
                                   ariaLabel="Edit"
                                 >
                                   <FontAwesomeIcon icon={faPencil} />
@@ -278,6 +280,7 @@ const CreatePersonPage = () => {
                                   loadingId={loadingId}
                                   disabled={mode !== "view"}
                                   className="btn-xs btn-danger"
+                                  title="Delete"
                                   ariaLabel="Delete"
                                 >
                                   <FontAwesomeIcon icon={faTrash} />
