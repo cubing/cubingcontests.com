@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { addDays, differenceInDays, endOfDay } from "date-fns";
+import { addDays, endOfDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { find as findTimezone } from "geo-tz";
 import { ContestDto } from "./dto/contest.dto";
@@ -477,26 +477,14 @@ export class ContestsService {
     try {
       await this.contestModel.create(newContest);
 
-      // Email the creator
+      // Email the creator and admins
       const contestUrl = getContestUrl(contestDto.competitionId);
       await this.emailService.sendContestSubmittedNotification(
         user.email,
         newContest,
         contestUrl,
-      );
-
-      // Email the admins
-      const difference = Math.abs(
-        differenceInDays(newContest.startDate, new Date()),
-      );
-      await this.emailService.sendEmail(
-        C.contactEmail,
-        `A new contest has been submitted by user ${user.username}: <a href="${contestUrl}">${newContest.name}</a>.`,
-        {
-          subject: `${
-            difference <= 7 ? "URGENT! " : ""
-          }New contest: ${newContest.shortName}`,
-        },
+        newContest.organizers.find((o) => o.personId === user.personId)?.name ??
+          "ERROR",
       );
     } catch (err) {
       // Remove created contest, rounds, results and schedule
@@ -688,7 +676,6 @@ export class ContestsService {
     const contestCreatorEmail = await this.usersService.getUserEmail({
       _id: contest.createdBy,
     });
-    const contestUrl = getContestUrl(competitionId);
 
     // If the contest is set to approved and it already has a result, set it as ongoing, if it isn't already.
     // A contest can have results before being approved if it's an imported contest.
@@ -708,10 +695,9 @@ export class ContestsService {
           personIds: contest.organizers.map((o) => o.personId),
         });
 
-        await this.emailService.sendEmail(
+        await this.emailService.sendContestApprovedNotification(
           contestCreatorEmail,
-          `Your contest <a href="${contestUrl}">${contest.name}</a> has been approved and is now public on the website.`,
-          { subject: `Contest approved: ${contest.shortName}` },
+          contest as any,
         );
       } else if (
         contest.state === ContestState.Finished &&
@@ -1400,12 +1386,10 @@ export class ContestsService {
       requireWcaId: contest.type === ContestType.WcaComp,
     });
 
-    // Email the admins
-    const contestUrl = getContestUrl(contest.competitionId);
-    await this.emailService.sendEmail(
+    // Email the organizers
+    await this.emailService.sendContestPublishedNotification(
       contestCreatorEmail,
-      `The results of <a href="${contestUrl}">${contest.name}</a> have been published and will now enter the rankings.`,
-      { subject: `Contest published: ${contest.shortName}` },
+      contest as any,
     );
   }
 }

@@ -6,6 +6,7 @@ import { RoundProceed, RoundType } from "~/helpers/enums.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
+import { C } from "~/helpers/constants";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -15,15 +16,14 @@ const ContestEventsPage = async ({ params }: Props) => {
   const { id } = await params;
   const contestDataResponse = await ssrFetch<IContestData>(
     `/competitions/${id}`,
+    { revalidate: C.contestsRev },
   );
   if (!contestDataResponse.success) {
     return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   }
   const { contest } = contestDataResponse.data;
 
-  const hasNonFinalRound = contest.events.some((ev) =>
-    ev.rounds.some((r) => r.proceed)
-  );
+  const hasNonFinalRound = contest.events.some((ev) => ev.rounds.some((r) => r.proceed));
 
   return (
     <ContestLayout contest={contest} activeTab="events">
@@ -79,9 +79,7 @@ const ContestEventsPage = async ({ params }: Props) => {
                         ? getFormattedTime(round.timeLimit.centiseconds, {
                           event: compEvent.event,
                         }) +
-                          (round.timeLimit.cumulativeRoundIds.length > 0
-                            ? " cumulative"
-                            : "")
+                          (round.timeLimit.cumulativeRoundIds.length > 0 ? " cumulative" : "")
                         : ""}
                     </td>
                     <td>{cutoffText}</td>

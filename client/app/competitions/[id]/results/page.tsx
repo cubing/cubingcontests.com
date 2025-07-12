@@ -1,6 +1,7 @@
 import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import ContestResults from "~/app/components/ContestResults.tsx";
+import { C } from "~/helpers/constants";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -12,6 +13,7 @@ const ContestResultsPage = async ({ params, searchParams }: Props) => {
   const { eventId } = await searchParams;
   const contestDataResponse = await ssrFetch(
     `/competitions/${id}?eventId=${eventId ?? "FIRST_EVENT"}`,
+    { revalidate: C.contestsRev },
   );
   if (!contestDataResponse.success) {
     return <h3 className="mt-4 text-center">Error while loading contest</h3>;

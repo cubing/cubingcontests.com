@@ -369,7 +369,7 @@ export class ResultsService {
             { $project: excl },
             { $match: { "attempts.result": { $gt: 0, $ne: C.maxTime } } },
             { $sort: { "attempts.result": 1 } },
-            { $limit: 1000 },
+            { $limit: 100 },
           ])
           .exec();
 
@@ -389,6 +389,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { best: 1 } },
+            { $limit: 100 },
           ])
           .exec();
 
@@ -453,7 +454,7 @@ export class ResultsService {
           { $match },
           ...regionFilterForTopResults,
           { $sort: { average: 1 } },
-          { $limit: 1000 },
+          { $limit: 100 },
         ]).exec();
       } else {
         // Get top averages by person
@@ -469,6 +470,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { average: 1 } },
+            { $limit: 100 },
           ])
           .exec();
 
@@ -1372,7 +1374,10 @@ export class ResultsService {
         "You cannot enter the same person twice in the same result",
       );
     }
-    if (differenceInHours(result.date, new Date()) > 36) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      differenceInHours(result.date, new Date()) > 36
+    ) {
       throw new BadRequestException(
         round
           ? "You may not enter results for a round in the future"

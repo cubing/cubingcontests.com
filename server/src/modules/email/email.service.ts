@@ -8,6 +8,9 @@ import { LogType } from "~/src/helpers/enums";
 import { IContest } from "~/helpers/types";
 import { getRoleLabel } from "~/helpers/sharedFunctions";
 import { ContestType, Role } from "~/helpers/enums";
+import { C } from "~/helpers/constants";
+import { differenceInDays } from "date-fns";
+import { Countries } from "~/helpers/Countries";
 
 // The fileName is the name of a file inside of the templates directory
 const getEmailContents = async (
@@ -27,7 +30,10 @@ const getEmailContents = async (
 @Injectable()
 export class EmailService {
   private sender = `"No Reply" no-reply@${
-    process.env.BASE_URL.split("://")[1]
+    process.env.BASE_URL.split("://").at(1)
+  }`;
+  private contestsEmail = `"Contests" contests@${
+    process.env.BASE_URL.split("://").at(1)
   }`;
   private transporter = createTransport({
     host: process.env.MAIL_URL,
@@ -130,25 +136,72 @@ export class EmailService {
     to: string,
     contest: IContest,
     contestUrl: string,
+    creator: string,
   ) {
+    const urgent = Math.abs(
+      differenceInDays(contest.startDate, new Date()),
+    ) <= 7;
     const contents = await getEmailContents("contest-submitted.hbs", {
       competitionId: contest.competitionId,
       wcaCompetition: contest.type === ContestType.WcaComp,
       contestName: contest.name,
       contestUrl,
       ccUrl: process.env.BASE_URL,
+      creator,
+      startDate: new Date(contest.startDate).toDateString(),
+      location: `${contest.city}, ${
+        Countries.find((c) => c.code === contest.countryIso2)?.name ??
+          "NOT FOUND"
+      }`,
+      urgent,
     });
 
     try {
       await this.transporter.sendMail({
-        from: this.sender,
+        from: this.contestsEmail,
+        replyTo: C.contactEmail,
         to,
-        subject: "Contest submitted",
+        subject: `Contest submitted: ${contest.shortName}`,
         html: contents,
+        priority: urgent ? "high" : "normal",
       });
     } catch (err) {
       this.logger.logAndSave(
-        `Error while sending contest submitted notification for contest ${contest.name}:, ${err}`,
+        `Error while sending contest submitted notification for contest ${contest.name}: ${err}`,
+        LogType.Error,
+      );
+    }
+  }
+
+  async sendContestApprovedNotification(to: string, contest: IContest) {
+    try {
+      await this.transporter.sendMail({
+        from: this.contestsEmail,
+        to,
+        subject: `Contest approved: ${contest.shortName}`,
+        html:
+          `Your contest <a href="${process.env.BASE_URL}/competitions/${contest.competitionId}">${contest.name}</a> has been approved and is now public on the website.`,
+      });
+    } catch (err) {
+      this.logger.logAndSave(
+        `Error while sending contest approved notification for contest: ${err}`,
+        LogType.Error,
+      );
+    }
+  }
+
+  async sendContestPublishedNotification(to: string, contest: IContest) {
+    try {
+      await this.transporter.sendMail({
+        from: this.contestsEmail,
+        to,
+        subject: `Contest published: ${contest.shortName}`,
+        html:
+          `The results of <a href="${process.env.BASE_URL}/competitions/${contest.competitionId}">${contest.name}</a> have been published and will now enter the rankings.`,
+      });
+    } catch (err) {
+      this.logger.logAndSave(
+        `Error while sending contest published notification for contest: ${err}`,
         LogType.Error,
       );
     }

@@ -315,7 +315,7 @@ const ResultsSubmissionForm = ({ resultId }: Props) => {
                 for you. If you have any questions or suggestions, feel free to send an email to {C.contactEmail}.
               </p>
               <div className="alert alert-warning mb-4" role="alert">
-                Rule 2 has been updated!
+                Rule 6 has been added
               </div>
               <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
                 {showRules ? "Hide rules" : "Show rules"}
