@@ -2,7 +2,6 @@ import { ssrFetch } from "~/helpers/DELETEfetchUtils.ts";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import Schedule from "~/app/components/Schedule.tsx";
 import { type ICompetitionDetails } from "~/helpers/types.ts";
-import { C } from "~/helpers/constants";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -10,7 +9,7 @@ type Props = {
 
 const CompetitionSchedulePage = async ({ params }: Props) => {
   const { id } = await params;
-  const contestDataResponse = await ssrFetch(`/competitions/${id}`, { revalidate: C.contestsRev });
+  const contestDataResponse = await ssrFetch(`/competitions/${id}`);
   if (!contestDataResponse.success) {
     return <h3 className="mt-4 text-center">Error while loading contest</h3>;
   }

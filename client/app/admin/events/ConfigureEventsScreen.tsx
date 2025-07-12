@@ -270,7 +270,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
                 </td>
                 <td>{event.category}</td>
                 <td>
-                  <Button onClick={() => onEditEvent(event)} className="btn-xs" ariaLabel="Edit">
+                  <Button onClick={() => onEditEvent(event)} className="btn-xs" title="Edit" ariaLabel="Edit">
                     <FontAwesomeIcon icon={faPencil} />
                   </Button>
                 </td>

@@ -76,18 +76,12 @@ const FormTextInput = ({
 
   return (
     <div
-      className={`fs-5 ${
-        oneLine ? "d-flex align-items-center gap-3" : ""
-      } ${className}`}
+      className={`fs-5 ${oneLine ? "d-flex align-items-center gap-3" : ""} ${className}`}
     >
-      {title && (
-        <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />
-      )}
+      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
 
       <div
-        className={`d-flex justify-content-between align-items-center gap-3 ${
-          oneLine ? "" : "mt-2"
-        }`}
+        className={`d-flex justify-content-between align-items-center gap-3 ${oneLine ? "" : "mt-2"}`}
       >
         <input
           type={hidePassword ? "password" : "text"}
@@ -111,12 +105,10 @@ const FormTextInput = ({
           <Button
             onClick={() => setHidePassword(!hidePassword)}
             className="px-2"
+            title="Toggle show password"
             ariaLabel="Toggle show password"
           >
-            <FontAwesomeIcon
-              icon={hidePassword ? faEye : faEyeSlash}
-              style={{ width: "1.3rem" }}
-            />
+            <FontAwesomeIcon icon={hidePassword ? faEye : faEyeSlash} style={{ width: "1.3rem" }} />
           </Button>
         )}
       </div>

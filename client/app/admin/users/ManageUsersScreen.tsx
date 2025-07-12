@@ -169,6 +169,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
                       type="button"
                       onClick={() => onEditUser(user)}
                       className="btn-xs"
+                      title="Edit"
                       ariaLabel="Edit"
                     >
                       <FontAwesomeIcon icon={faPencil} />

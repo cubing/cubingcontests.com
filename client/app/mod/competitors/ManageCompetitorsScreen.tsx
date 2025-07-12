@@ -267,6 +267,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
                                   disabled={buttonsDisabled}
                                   loadingId={loadingId}
                                   className="btn-xs btn-success"
+                                  title="Approve"
                                   ariaLabel="Approve"
                                 >
                                   <FontAwesomeIcon icon={faCheck} />
@@ -277,6 +278,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
                                   onClick={() => onEditCompetitor(person)}
                                   disabled={buttonsDisabled}
                                   className="btn-xs"
+                                  title="Edit"
                                   ariaLabel="Edit"
                                 >
                                   <FontAwesomeIcon icon={faPencil} />
@@ -289,6 +291,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
                                   disabled={buttonsDisabled}
                                   loadingId={loadingId}
                                   className="btn-xs btn-danger"
+                                  title="Delete"
                                   ariaLabel="Delete"
                                 >
                                   <FontAwesomeIcon icon={faTrash} />

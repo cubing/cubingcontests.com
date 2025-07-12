@@ -20,6 +20,7 @@ const Button = ({
   title,
   className = "",
   style,
+  title,
   ariaLabel,
 }: Props & React.HTMLAttributes<HTMLButtonElement>) => {
   const loading = isLoading || (loadingId && loadingId === id);
@@ -34,6 +35,7 @@ const Button = ({
       title={title}
       className={`position-relative btn btn-primary ${className}`}
       style={style}
+      title={title}
       aria-label={ariaLabel}
     >
       <span style={loading ? { opacity: 0 } : {}}>{children}</span>
