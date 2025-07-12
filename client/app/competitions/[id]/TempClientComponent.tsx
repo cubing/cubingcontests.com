@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ToastMessages from "~/app/components/UI/ToastMessages";
 import ContestControls from "~/app/mod/ContestControls";
 import { Role } from "~/helpers/enums";
 import { IContest, UserInfo } from "~/helpers/types";
@@ -25,6 +26,7 @@ function TempClientComponent({ contest }: Props) {
 
   return (
     <div className="mb-3">
+      <ToastMessages />
       <ContestControls contest={contest} isAdmin={userInfo.isAdmin} />
     </div>
   );

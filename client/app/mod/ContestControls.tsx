@@ -44,6 +44,8 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
         } else {
           window.location.reload();
         }
+      } else {
+        setLoadingId("");
       }
     }
   };
