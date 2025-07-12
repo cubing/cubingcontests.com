@@ -17,10 +17,29 @@ services:
       - DB_PASSWORD=$DB_PASSWORD # used in ./pg_init scripts
       - DB_NAME=$DB_NAME # used in ./pg_init scripts
     restart: unless-stopped
+  dbgate:
+    image: dbgate/dbgate
+    networks:
+      - cubingcontests-dev
+    ports:
+      - 8080:3000
+    volumes:
+      - dbgate-data:/root/.dbgate
+    environment:
+      CONNECTIONS: con1
+      LABEL_con1: Postgres
+      SERVER_con1: postgres
+      USER_con1: $DB_USERNAME
+      PASSWORD_con1: $DB_PASSWORD
+      PORT_con1: 5432
+      ENGINE_con1: postgres@dbgate-plugin-postgres
+    restart: always
 
 
 networks:
   cubingcontests-dev:
 volumes:
   pg:
+    driver: local
+  dbgate-data:
     driver: local
