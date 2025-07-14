@@ -902,7 +902,7 @@ const ContestForm = ({
           />
         )}
 
-        {getIsCompType(type) && (
+        {!disabled && getIsCompType(type) && (
           <>
             <p className="mt-4 fs-6">
               As part of the Cubing Contests honorary dues system, you will be asked to{" "}
