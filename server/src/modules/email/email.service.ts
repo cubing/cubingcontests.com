@@ -161,6 +161,7 @@ export class EmailService {
         from: this.contestsEmail,
         replyTo: C.contactEmail,
         to,
+        cc: C.contactEmail,
         subject: `Contest submitted: ${contest.shortName}`,
         html: contents,
         priority: urgent ? "high" : "normal",
@@ -185,6 +186,33 @@ export class EmailService {
     } catch (err) {
       this.logger.logAndSave(
         `Error while sending contest approved notification for contest: ${err}`,
+        LogType.Error,
+      );
+    }
+  }
+
+  async sendContestFinishedNotification(
+    to: string,
+    contest: IContest,
+    contestUrl: string,
+  ) {
+    const contents = await getEmailContents("contest-finished.hbs", {
+      contestName: contest.name,
+      contestUrl,
+    });
+
+    try {
+      await this.transporter.sendMail({
+        from: this.contestsEmail,
+        replyTo: C.contactEmail,
+        to,
+        cc: C.contactEmail,
+        subject: `Contest finished: ${contest.shortName}`,
+        html: contents,
+      });
+    } catch (err) {
+      this.logger.logAndSave(
+        `Error while sending contest finished notification for contest ${contest.name}: ${err}`,
         LogType.Error,
       );
     }

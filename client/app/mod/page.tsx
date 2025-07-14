@@ -81,10 +81,10 @@ const ModeratorDashboardPage = () => {
         <ToastMessages />
 
         <div className="alert alert-light mb-4" role="alert">
-          We now have a Cubing Contests Discord server!{" "}
+          We have a Cubing Contests Discord server!{" "}
           <a href="https://discord.gg/7rRMQA8jnU" target="_blank">
             Click here to join
-          </a>. Then send your Discord username in an email to {C.contactEmail}{" "}
+          </a>, then send your CC username and your Discord username in an email to {C.contactEmail}{" "}
           so you can be given the moderator role on the server.
         </div>
 

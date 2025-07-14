@@ -44,6 +44,8 @@ import type { InputPerson } from "~/helpers/types.ts";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
 import { getTimeZoneFromCoords } from "~/server/serverFunctions.ts";
 import { CoordinatesValidator } from "~/helpers/validators/coordinates.ts";
+import Link from "next/link";
+import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 
 const userInfo = getUserInfo();
 
@@ -121,6 +123,7 @@ const ContestForm = ({
     contest?.compDetails?.schedule.venues[0].timezone ?? contest?.meetupDetails?.timeZone ?? "Etc/GMT",
   );
   const [isTimeZonePending, startTimeZoneTransition] = useTransition();
+  const [isUnderstood, setIsUnderstood] = useState(mode === "edit");
 
   const updateTimeZone = useCallback(
     debounce(
@@ -167,6 +170,7 @@ const ContestForm = ({
   const disabledIfContestPublished: boolean = mode === "edit" && !!contest &&
     contest.state >= ContestState.Published;
   const disabledIfDetailsImported = !userInfo?.isAdmin && detailsImported;
+  const disabledIfNotUnderstood = !isUnderstood && (!type || getIsCompType(type));
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -296,7 +300,7 @@ const ContestForm = ({
           : await myFetch.post("/competitions", newComp, { loadingId: null });
 
         if (!res.success) changeErrorMessages(res.errors);
-        else window.location.href = "/mod";
+        else window.history.back();
       }
     } else {
       changeLoadingId("");
@@ -476,7 +480,7 @@ const ContestForm = ({
         { loadingId: "unfinish_contest_button", keepLoadingOnSuccess: true },
       );
 
-      if (res.success) window.location.href = "/mod";
+      if (res.success) window.history.back();
     }
   };
 
@@ -489,7 +493,7 @@ const ContestForm = ({
         { loadingId: "delete_contest_button", keepLoadingOnSuccess: true },
       );
 
-      if (res.success) window.location.href = "/mod";
+      if (res.success) window.history.back();
     }
   };
 
@@ -530,7 +534,7 @@ const ContestForm = ({
       <Form
         buttonText={mode === "edit" ? "Save Contest" : "Create Contest"}
         onSubmit={handleSubmit}
-        disableButton={disabled || disabledIfContestPublished}
+        disableButton={disabled || disabledIfContestPublished || disabledIfNotUnderstood}
       >
         {mode === "edit" && creator && <CreatorDetails creator={creator} />}
 
@@ -896,6 +900,26 @@ const ContestForm = ({
             contestEvents={contestEvents}
             disabled={disabledIfContestPublished}
           />
+        )}
+
+        {getIsCompType(type) && (
+          <>
+            <p className="mt-4 fs-6">
+              As part of the Cubing Contests honorary dues system, you will be asked to{" "}
+              <Link href="/donate">donate</Link>{" "}
+              $0.10 (USD) per competitor to support the maintenance and continued development of cubingcontests.com,
+              after the contest is finished.{" "}
+              <strong>
+                For example, if this contest reaches the competitor limit, you will be asked to donate{" "}
+                <span className="text-success">
+                  ${competitorLimit ? (0.1 * competitorLimit).toFixed(2) : "?"}
+                </span>
+              </strong>. This donation is voluntary.
+            </p>
+            {mode !== "edit" && (
+              <FormCheckbox title="I understand" selected={isUnderstood} setSelected={setIsUnderstood} />
+            )}
+          </>
         )}
       </Form>
     </div>
