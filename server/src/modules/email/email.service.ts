@@ -201,7 +201,7 @@ export class EmailService {
       contestName: contest.name,
       contestUrl,
       ccUrl: process.env.BASE_URL,
-      duesAmount: getIsCompType(contest.type) && duesAmount >= 0.75
+      duesAmount: getIsCompType(contest.type) && duesAmount >= 1
         ? duesAmount.toFixed(2)
         : undefined,
     });

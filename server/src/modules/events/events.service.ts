@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { MyLogger } from "@m/my-logger/my-logger.service";
@@ -16,7 +21,6 @@ import { EventRuleDocument } from "~/src/models/event-rule.model";
 
 interface IGetEventsOptions {
   eventIds?: string[];
-  includeHidden?: boolean;
   excludeRemovedAndHidden?: boolean;
   populateRules?: boolean;
 }
@@ -51,17 +55,17 @@ export class EventsService {
   }
 
   async getEvents(
-    { eventIds, includeHidden, excludeRemovedAndHidden, populateRules = false }: IGetEventsOptions = {
-      includeHidden: false,
-      excludeRemovedAndHidden: false,
-      populateRules: false,
-    },
+    { eventIds, excludeRemovedAndHidden, populateRules = false }:
+      IGetEventsOptions = {
+        excludeRemovedAndHidden: false,
+        populateRules: false,
+      },
   ): Promise<EventDocument[]> {
     const queryFilter: any = {};
 
     if (excludeRemovedAndHidden) {
       queryFilter.groups = { $nin: [EventGroup.Removed, EventGroup.Hidden] };
-    } else if (!includeHidden) queryFilter.groups = { $ne: EventGroup.Hidden };
+    }
     if (eventIds) queryFilter.eventId = { $in: eventIds };
 
     let query = this.eventModel.find(queryFilter, excl);
@@ -73,7 +77,7 @@ export class EventsService {
   }
 
   async getFrontendEvents(
-    options: IGetEventsOptions = { includeHidden: false, populateRules: false },
+    options: IGetEventsOptions = { populateRules: false },
   ): Promise<FeEvent[]> {
     const events = await this.getEvents(options);
 
@@ -134,10 +138,7 @@ export class EventsService {
 
     await this.eventModel.create({ ...newEvent, rule: eventRule });
 
-    return await this.getFrontendEvents({
-      includeHidden: true,
-      populateRules: true,
-    });
+    return await this.getFrontendEvents({ populateRules: true });
   }
 
   async updateEvent(
@@ -240,10 +241,7 @@ export class EventsService {
 
     await event.save();
 
-    return await this.getFrontendEvents({
-      includeHidden: true,
-      populateRules: true,
-    });
+    return await this.getFrontendEvents({ populateRules: true });
   }
 
   async getEventsWithRules(): Promise<FeEvent[]> {
@@ -251,7 +249,6 @@ export class EventsService {
 
     return await this.getFrontendEvents({
       eventIds: eventRules.map((er) => er.eventId),
-      includeHidden: false,
       populateRules: true,
     });
   }
