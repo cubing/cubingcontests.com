@@ -912,9 +912,16 @@ const ContestForm = ({
               <strong>
                 For example, if this contest reaches the competitor limit, you will be asked to donate{" "}
                 <span className="text-success">
-                  ${competitorLimit ? (0.1 * competitorLimit).toFixed(2) : "?"}
+                  ${competitorLimit ? (C.duePerCompetitor * competitorLimit).toFixed(2) : "?"}
                 </span>
-              </strong>. This donation is voluntary.
+              </strong>. This donation is voluntary.{type === ContestType.WcaComp
+                ? (
+                  <em>
+                    {" "}Note: for WCA Competitions the honorary dues system only considers the number of competitors in
+                    unofficial events.
+                  </em>
+                )
+                : ""}
             </p>
             {mode !== "edit" && (
               <FormCheckbox title="I understand" selected={isUnderstood} setSelected={setIsUnderstood} />

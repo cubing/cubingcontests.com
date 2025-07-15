@@ -6,7 +6,7 @@ import { Injectable } from "@nestjs/common";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
 import { IContest } from "~/helpers/types";
-import { getRoleLabel } from "~/helpers/sharedFunctions";
+import { getIsCompType, getRoleLabel } from "~/helpers/sharedFunctions";
 import { ContestType, Role } from "~/helpers/enums";
 import { C } from "~/helpers/constants";
 import { differenceInDays } from "date-fns";
@@ -161,7 +161,7 @@ export class EmailService {
         from: this.contestsEmail,
         replyTo: C.contactEmail,
         to,
-        cc: C.contactEmail,
+        bcc: C.contactEmail,
         subject: `Contest submitted: ${contest.shortName}`,
         html: contents,
         priority: urgent ? "high" : "normal",
@@ -196,9 +196,14 @@ export class EmailService {
     contest: IContest,
     contestUrl: string,
   ) {
+    const duesAmount = C.duePerCompetitor * contest.participants;
     const contents = await getEmailContents("contest-finished.hbs", {
       contestName: contest.name,
       contestUrl,
+      ccUrl: process.env.BASE_URL,
+      duesAmount: getIsCompType(contest.type) && duesAmount >= 0.75
+        ? duesAmount.toFixed(2)
+        : undefined,
     });
 
     try {
@@ -206,7 +211,7 @@ export class EmailService {
         from: this.contestsEmail,
         replyTo: C.contactEmail,
         to,
-        cc: C.contactEmail,
+        bcc: C.contactEmail,
         subject: `Contest finished: ${contest.shortName}`,
         html: contents,
       });

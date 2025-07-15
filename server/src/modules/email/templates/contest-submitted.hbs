@@ -7,7 +7,7 @@
     </style>
   </head>
   <body>
-    <p>Contest <a href='{{contestUrl}}'>{{contestName}}</a> has been submitted and is pending approval by the admin team.</p>
+    <p>Contest <a href="{{contestUrl}}">{{contestName}}</a> has been submitted and is pending approval by the admin team.</p>
 
     <p>Created by: {{creator}}</p>
     {{#if urgent}}
@@ -20,12 +20,12 @@
     {{#if wcaCompetition}}
       <p>
         <b>Before the contest can be approved</b>, you have to add an "Unofficial Events" tab to the
-        <a href='https://www.worldcubeassociation.org/competitions/{{competitionId}}'>WCA competition page</a>
+        <a href="https://www.worldcubeassociation.org/competitions/{{competitionId}}">WCA competition page</a>
         with the content below, formatted in Markdown. If your local language is not English, translate the text to your
         local language and include the English version below that. You may edit the contents, but the links have to be
         included.
       </p>
-      <div class='unofficial-events-contents'>
+      <div class="unofficial-events-contents">
         <p>
           This competition will also hold unofficial events. The results will be recorded through [Cubing Contests]({{ccUrl}}),
           and will then be added to the rankings.
