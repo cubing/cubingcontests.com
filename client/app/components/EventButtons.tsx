@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Event } from "~/helpers/types.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import EventIcon from "~/app/components/EventIcon.tsx";
+import { EventGroup } from "~/helpers/enums";
 
 type Props = {
   eventId: string | undefined;
@@ -29,7 +30,7 @@ const EventButtons = ({ eventId, events, forPage }: Props) => {
     () =>
       !["rankings", "competitions"].includes(forPage)
         ? events
-        : events.filter((el) => el.groups.includes(selectedCat.group)),
+        : events.filter((e) => !e.groups.includes(EventGroup.Hidden) && e.groups.includes(selectedCat.group)),
     [events, selectedCat],
   );
 

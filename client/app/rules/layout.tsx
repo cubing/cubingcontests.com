@@ -1,7 +1,7 @@
 import Markdown from "react-markdown";
 import { type FeEvent, type IRoundFormat } from "~/helpers/types.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
-import { RoundFormat } from "~/helpers/enums.ts";
+import { EventGroup, RoundFormat } from "~/helpers/enums.ts";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 
@@ -10,11 +10,13 @@ type Props = {
 };
 
 const RulesLayout = async ({ children }: Props) => {
-  const eventsResponse = await ssrFetch("/events/with-rules");
+  const eventsResponse = await ssrFetch<FeEvent[]>("/events/with-rules");
 
   if (!eventsResponse.success) {
     return <h4 className="mt-4 text-center">Error while loading events</h4>;
   }
+
+  const events = eventsResponse.data.filter((e) => !e.groups.includes(EventGroup.Hidden));
 
   return (
     <div>
@@ -23,23 +25,17 @@ const RulesLayout = async ({ children }: Props) => {
       {children}
 
       <div className="px-3">
-        {eventsResponse.data.length > 0 && (
+        {events.length > 0 && (
           <>
             <hr />
             <h3>Event rules</h3>
             <p>
-              These rules apply to each event individually. If an event is not
-              listed here, it must follow the most relevant WCA Regulations,
-              based on the nature of the event (i.e. one of the articles from A
-              to F).
+              These rules apply to each event individually. If an event is not listed here, it must follow the most
+              relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F).
             </p>
-            {eventsResponse.data.map((event: FeEvent) => {
-              const roundFormat = roundFormats.find((rf) =>
-                rf.value === event.defaultRoundFormat
-              ) as IRoundFormat;
-              const rankedFormat = roundFormat.value === RoundFormat.Average
-                ? roundFormat
-                : roundFormats[3];
+            {events.map((event: FeEvent) => {
+              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
+              const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
 
               return (
                 <div key={event.eventId} className="mt-4">

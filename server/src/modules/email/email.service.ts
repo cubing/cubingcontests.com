@@ -6,7 +6,7 @@ import { Injectable } from "@nestjs/common";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
 import { IContest } from "~/helpers/types";
-import { getRoleLabel } from "~/helpers/sharedFunctions";
+import { getIsCompType, getRoleLabel } from "~/helpers/sharedFunctions";
 import { ContestType, Role } from "~/helpers/enums";
 import { C } from "~/helpers/constants";
 import { differenceInDays } from "date-fns";
@@ -161,6 +161,7 @@ export class EmailService {
         from: this.contestsEmail,
         replyTo: C.contactEmail,
         to,
+        bcc: C.contactEmail,
         subject: `Contest submitted: ${contest.shortName}`,
         html: contents,
         priority: urgent ? "high" : "normal",
@@ -185,6 +186,38 @@ export class EmailService {
     } catch (err) {
       this.logger.logAndSave(
         `Error while sending contest approved notification for contest: ${err}`,
+        LogType.Error,
+      );
+    }
+  }
+
+  async sendContestFinishedNotification(
+    to: string,
+    contest: IContest,
+    contestUrl: string,
+  ) {
+    const duesAmount = C.duePerCompetitor * contest.participants;
+    const contents = await getEmailContents("contest-finished.hbs", {
+      contestName: contest.name,
+      contestUrl,
+      ccUrl: process.env.BASE_URL,
+      duesAmount: getIsCompType(contest.type) && duesAmount >= 1
+        ? duesAmount.toFixed(2)
+        : undefined,
+    });
+
+    try {
+      await this.transporter.sendMail({
+        from: this.contestsEmail,
+        replyTo: C.contactEmail,
+        to,
+        bcc: C.contactEmail,
+        subject: `Contest finished: ${contest.shortName}`,
+        html: contents,
+      });
+    } catch (err) {
+      this.logger.logAndSave(
+        `Error while sending contest finished notification for contest ${contest.name}: ${err}`,
         LogType.Error,
       );
     }

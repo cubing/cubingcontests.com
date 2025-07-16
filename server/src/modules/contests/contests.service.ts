@@ -711,7 +711,7 @@ export class ContestsService {
           await lastRound.save();
         }
       } else if (newState === ContestState.Finished) {
-        await this.finishContest(contest);
+        await this.finishContest(contest, contestCreatorEmail);
       } else if (isAdmin && newState === ContestState.Published) {
         await this.publishContest(contest, contestCreatorEmail);
       }
@@ -1275,7 +1275,10 @@ export class ContestsService {
     }
   }
 
-  private async finishContest(contest: ContestDocument) {
+  private async finishContest(
+    contest: ContestDocument,
+    contestCreatorEmail: string,
+  ) {
     if (
       contest.type !== ContestType.WcaComp &&
       contest.participants < C.minCompetitorsForNonWca
@@ -1347,12 +1350,12 @@ export class ContestsService {
       $unset: { open: "" },
     }).exec();
 
-    // Email the admins
+    // Email the creator and the admins
     const contestUrl = getContestUrl(contest.competitionId);
-    await this.emailService.sendEmail(
-      C.contactEmail,
-      `Contest <a href="${contestUrl}">${contest.name}</a> has been finished. Review the results and publish them to have them included in the rankings.`,
-      { subject: `Contest finished: ${contest.shortName}` },
+    await this.emailService.sendContestFinishedNotification(
+      contestCreatorEmail,
+      contest as IContest,
+      contestUrl,
     );
   }
 

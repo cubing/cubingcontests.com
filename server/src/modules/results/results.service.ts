@@ -114,9 +114,7 @@ export class ResultsService {
       }
 
       // Look for records that are worse than a previous result
-      const events = await this.eventsService.getEvents({
-        includeHidden: true,
-      });
+      const events = await this.eventsService.getEvents();
       for (const event of events) {
         // Single records
         const singleRecordResults = await this.resultModel
