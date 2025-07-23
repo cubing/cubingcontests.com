@@ -72,7 +72,7 @@ import { EmailService } from "~/src/modules/email/email.service";
 import { LogType } from "~/src/helpers/enums";
 import { differenceInHours } from "date-fns";
 import { UpdateVideoBasedResultDto } from "~/src/modules/results/dto/update-video-based-result.dto";
-import { Countries } from "~/helpers/Countries";
+import { Continents, Countries } from "~/helpers/Countries";
 
 @Injectable()
 export class ResultsService {
@@ -314,10 +314,9 @@ export class ResultsService {
 
     const eventRankings: IEventRankings = { event, rankings: [] };
     let eventResults: ResultDocument[] = [];
-    const continentCountryCodes =
-      ["AF", "AS", "EU", "NA", "OC", "SA"].includes(region)
-        ? Countries.filter((c) => c.continentId === region).map((c) => c.code)
-        : undefined;
+    const continentCountryCodes = Continents.some((c) => c.code === region)
+      ? Countries.filter((c) => c.continentId === region).map((c) => c.code)
+      : undefined;
     const regionFilterForTopResults = region
       ? [
         {

@@ -1,13 +1,8 @@
 "use client";
 
-import { Countries } from "~/helpers/Countries.ts";
+import { Continents, Countries } from "~/helpers/Countries.ts";
 import FormInputLabel from "~/app/components/form/FormInputLabel";
 import { genericOnKeyDown } from "~/helpers/utilityFunctions.ts";
-
-const countryOptions = [
-  { name: "Select country", code: "NOT_SELECTED" },
-  ...Countries,
-];
 
 type Props = {
   countryIso2: string;
@@ -36,18 +31,16 @@ const FormCountrySelect = ({
         disabled={disabled}
         className="form-select mt-2"
       >
-        {continentOptions && (
-          <>
-            <option value="">All regions</option>
-            <option value="AF">Africa</option>
-            <option value="AS">Asia</option>
-            <option value="EU">Europe</option>
-            <option value="NA">North America</option>
-            <option value="OC">Oceania</option>
-            <option value="SA">South America</option>
-          </>
-        )}
-        {countryOptions.map((el) => <option key={el.code} value={el.code}>{el.name}</option>)}
+        {continentOptions
+          ? (
+            <>
+              <option value="NOT_SELECTED">All regions</option>
+              {Continents.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+            </>
+          )
+          : <option value="NOT_SELECTED">Select country</option>}
+
+        {Countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
       </select>
     </div>
   );
