@@ -11,7 +11,7 @@ function RegionSelect() {
 
   const onChangeCountryIso2 = (newRegion: string) => {
     if (newRegion !== region) {
-      let queryString = newRegion !== "NOT_SELECTED" ? `region=${newRegion}` : "";
+      let queryString = newRegion && newRegion !== "NOT_SELECTED" ? `region=${newRegion}` : "";
 
       searchParams.forEach((val, key) => {
         if (key !== "region") queryString += `${queryString ? "&" : ""}${key}=${val}`;
@@ -21,7 +21,7 @@ function RegionSelect() {
     }
   };
 
-  return <FormCountrySelect countryIso2={region} setCountryIso2={onChangeCountryIso2} />;
+  return <FormCountrySelect countryIso2={region} setCountryIso2={onChangeCountryIso2} continentOptions />;
 }
 
 export default RegionSelect;

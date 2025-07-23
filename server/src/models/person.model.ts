@@ -17,7 +17,7 @@ export class PersonModel implements IPerson {
   @Prop()
   localizedName?: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   countryIso2: string;
 
   @Prop({ type: mongoose.Types.ObjectId, ref: "User" })

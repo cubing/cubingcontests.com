@@ -1,6 +1,10 @@
-// See https://www.countrycallingcodes.com/iso-country-codes/
-
-export const Countries = [
+export const Countries: {
+  name: string;
+  shortName?: string;
+  // See https://www.countrycallingcodes.com/iso-country-codes/
+  code: string;
+  continentId: "AF" | "AS" | "EU" | "NA" | "OC" | "SA";
+}[] = [
   { name: "Afghanistan", code: "AF", continentId: "AS" },
   { name: "Albania", code: "AL", continentId: "EU" },
   { name: "Algeria", code: "DZ", continentId: "AF" },
