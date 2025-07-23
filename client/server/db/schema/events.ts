@@ -2,25 +2,11 @@ import "server-only";
 import { boolean, integer, pgEnum, pgTable as table, text } from "drizzle-orm/pg-core";
 import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm/utils";
+import { EventCategoryValues, EventFormatValues, RoundFormatValues } from "~/helpers/types.ts";
 
-export const eventFormatEnum = pgEnum("eventFormat", [
-  "time",
-  "number", // for Fewest Moves events
-  "multi",
-]);
-export type EventFormat = typeof eventFormatEnum.enumValues[number];
-
-export const roundFormatEnum = pgEnum("roundFormat", ["a", "m", "3", "2", "1"]);
-export type RoundFormat = typeof roundFormatEnum.enumValues[number];
-
-export const eventCategoryEnum = pgEnum("eventCategory", [
-  "unofficial",
-  "wca",
-  "extreme-bld",
-  "miscellaneous",
-  "removed",
-]);
-export type EventCategory = typeof eventCategoryEnum.enumValues[number];
+export const eventFormatEnum = pgEnum("eventFormat", EventFormatValues);
+export const roundFormatEnum = pgEnum("roundFormat", RoundFormatValues);
+export const eventCategoryEnum = pgEnum("eventCategory", EventCategoryValues);
 
 export const eventsTable = table("events", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

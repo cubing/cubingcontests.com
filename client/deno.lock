@@ -20,6 +20,7 @@
     "npm:@tanstack/react-virtual@^3.13.12": "3.13.12_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:@types/bcrypt@^5.0.2": "5.0.2",
     "npm:@types/lodash@^4.17.19": "4.17.19",
+    "npm:@types/node@*": "22.15.15",
     "npm:@types/node@^22.15.34": "22.15.34",
     "npm:@types/pg@^8.15.4": "8.15.4",
     "npm:@types/react-dom@^19.1.6": "19.1.6_@types+react@19.1.6",

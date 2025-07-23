@@ -34,3 +34,22 @@ export type CcServerErrorObject = {
   message: string;
   data?: any;
 };
+
+export const EventFormatValues = [
+  "time",
+  "number", // for Fewest Moves events
+  "multi",
+] as [string, ...string[]];
+export type EventFormat = typeof EventFormatValues[number];
+
+export const RoundFormatValues = ["a", "m", "3", "2", "1"] as [string, ...string[]];
+export type RoundFormat = typeof RoundFormatValues[number];
+
+export const EventCategoryValues = [
+  "unofficial",
+  "wca",
+  "extreme-bld",
+  "miscellaneous",
+  "removed",
+] as [string, ...string[]];
+export type EventCategory = typeof EventCategoryValues[number];

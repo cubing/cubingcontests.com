@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useState } from "react";
 import Button from "~/app/components/UI/Button";
 import { ContestState, ContestType } from "~/helpers/enums";
-import { IContest } from "~/helpers/types";
 
 type Props = {
   contest: IContest;
@@ -16,36 +15,36 @@ type Props = {
 };
 
 function ContestControls({ contest, updateContest, isAdmin = false, smallButtons }: Props) {
-  // const [loadingId, setLoadingId] = useState("");
+  const [loadingId, setLoadingId] = useState("");
 
-  // const showApproveButton = contest.state === ContestState.Created && isAdmin &&
-  //   (contest.meetupDetails || contest.compDetails);
+  const showApproveButton = contest.state === ContestState.Created && isAdmin &&
+    (contest.meetupDetails || contest.compDetails);
 
-  // const changeState = async (newState: ContestState) => {
-  //   const verb = newState === ContestState.Approved
-  //     ? "approve"
-  //     : newState === ContestState.Finished
-  //     ? "finish"
-  //     : newState === ContestState.Published
-  //     ? "publish"
-  //     : "ERROR";
+  const changeState = async (newState: ContestState) => {
+    //   const verb = newState === ContestState.Approved
+    //     ? "approve"
+    //     : newState === ContestState.Finished
+    //     ? "finish"
+    //     : newState === ContestState.Published
+    //     ? "publish"
+    //     : "ERROR";
 
-  //   if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
-  //     setLoadingId(`set_state_${newState}_${contest.competitionId}_button`);
-  //     const res = await myFetch.patch(`/competitions/set-state/${contest.competitionId}`, { newState });
+    //   if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
+    //     setLoadingId(`set_state_${newState}_${contest.competitionId}_button`);
+    //     const res = await myFetch.patch(`/competitions/set-state/${contest.competitionId}`, { newState });
 
-  //     if (res.success) {
-  //       if (updateContest) {
-  //         updateContest(res.data);
-  //         setLoadingId("");
-  //       } else {
-  //         window.location.reload();
-  //       }
-  //     } else {
-  //       setLoadingId("");
-  //     }
-  //   }
-  // };
+    //     if (res.success) {
+    //       if (updateContest) {
+    //         updateContest(res.data);
+    //         setLoadingId("");
+    //       } else {
+    //         window.location.reload();
+    //       }
+    //     } else {
+    //       setLoadingId("");
+    //     }
+    //   }
+  };
 
   return (
     <div className="d-flex gap-2">

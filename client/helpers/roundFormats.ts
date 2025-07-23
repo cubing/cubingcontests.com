@@ -1,37 +1,44 @@
-import type { IRoundFormat } from "./types.ts";
-import { RoundFormat } from "./enums.ts";
+import { RoundFormat } from "./types.ts";
 
-export const roundFormats: IRoundFormat[] = [
+export type RoundFormatObject = {
+  value: RoundFormat;
+  label: string;
+  shortLabel: string;
+  attempts: number;
+  isAverage: boolean;
+};
+
+export const roundFormats: RoundFormatObject[] = [
   {
-    value: RoundFormat.BestOf1,
+    value: "1",
     label: "Best of 1",
     shortLabel: "Bo1",
     attempts: 1,
     isAverage: false,
   },
   {
-    value: RoundFormat.BestOf2,
+    value: "2",
     label: "Best of 2",
     shortLabel: "Bo2",
     attempts: 2,
     isAverage: false,
   },
   {
-    value: RoundFormat.BestOf3,
+    value: "3",
     label: "Best of 3",
     shortLabel: "Bo3",
     attempts: 3,
     isAverage: false,
   },
   {
-    value: RoundFormat.Mean,
+    value: "m",
     label: "Mean of 3",
     shortLabel: "Mo3",
     attempts: 3,
     isAverage: true,
   },
   {
-    value: RoundFormat.Average,
+    value: "a",
     label: "Average of 5",
     shortLabel: "Ao5",
     attempts: 5,

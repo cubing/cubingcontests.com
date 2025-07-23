@@ -1,4 +1,4 @@
-import { MultiChoiceOption } from "~/helpers/types.ts";
+import { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 
 type Props = {
   id?: string;

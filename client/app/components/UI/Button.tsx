@@ -17,7 +17,6 @@ const Button = ({
   isLoading,
   loadingId,
   disabled,
-  title,
   className = "",
   style,
   title,
@@ -32,7 +31,6 @@ const Button = ({
       onClick={onClick}
       onSubmit={(e) => e.preventDefault()}
       disabled={disabled || isLoading || !!loadingId}
-      title={title}
       className={`position-relative btn btn-primary ${className}`}
       style={style}
       title={title}

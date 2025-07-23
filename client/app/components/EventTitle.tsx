@@ -1,7 +1,7 @@
 import Link from "next/link";
 import EventIcon from "./EventIcon.tsx";
-import { Event } from "~/helpers/types.ts";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
+import { EventResponse } from "~/server/db/schema/events.ts";
 
 const EventTitle = ({
   event,
@@ -11,7 +11,7 @@ const EventTitle = ({
   noMargin,
   fontSize = "3",
 }: {
-  event: Event;
+  event: EventResponse;
   showIcon?: boolean;
   showDescription?: boolean;
   linkToRankings?: boolean;

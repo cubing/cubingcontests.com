@@ -1,4 +1,4 @@
-import { MultiChoiceOption } from "./types.ts";
+import { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 import { Color, ContestType, EventFormat, RoundProceed } from "~/helpers/enums.ts";
 import { eventCategories } from "./eventCategories.ts";
 
@@ -83,11 +83,9 @@ export const eventFormatOptions: MultiChoiceOption[] = [
   },
 ];
 
-export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((
-  ec,
-) => ({
+export const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((ec) => ({
   label: ec.title,
-  value: ec.group,
+  value: ec.value,
 }));
 
 export const cutoffAttemptsOptions: MultiChoiceOption[] = [
