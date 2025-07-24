@@ -6,6 +6,7 @@ import { enGB } from "date-fns/locale/en-GB";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import FormInputLabel from "./FormInputLabel.tsx";
 import { getDateOnly } from "~/helpers/sharedFunctions.ts";
+import { isValid } from "date-fns";
 
 registerLocale("en-GB", enGB);
 setDefaultLocale("en-GB");
@@ -57,7 +58,7 @@ const FormDatePicker = ({
 
       <DatePicker
         id={inputId}
-        selected={value && toZonedTime(value, timeZone)}
+        selected={isValid(value) && toZonedTime(value!, timeZone)}
         onChange={onChange}
         dateFormat={dateFormat}
         timeFormat={timeFormat}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useContext, useState, useTransition } from "react";
-import { addYears } from "date-fns";
+import { addYears, isValid } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { debounce } from "lodash";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
@@ -132,9 +132,9 @@ const ContestForm = ({
             changeErrorMessages(res.errors);
           } else {
             // Adjust times
-            if (startDate && startTime) {
+            if (isValid(startDate) && isValid(startTime)) {
               if (type === ContestType.Meetup) {
-                setStartTime(fromZonedTime(toZonedTime(startTime, timeZone), res.data));
+                setStartTime(fromZonedTime(toZonedTime(startTime!, timeZone), res.data));
               } else if (getIsCompType(type)) {
                 setRooms(
                   rooms.map((r: IRoom) => ({
@@ -168,7 +168,7 @@ const ContestForm = ({
   const disabledIfContestPublished: boolean = mode === "edit" && !!contest &&
     contest.state >= ContestState.Published;
   const disabledIfDetailsImported = !userInfo?.isAdmin && detailsImported;
-  const urgent = startDate && getIsUrgent(startDate);
+  const urgent = isValid(startDate) && getIsUrgent(startDate!);
   const disabledIfNotUnderstood = (!isUnderstood && (!type || getIsCompType(type))) ||
     (!isTimelinessUnderstood && urgent);
 
@@ -178,7 +178,7 @@ const ContestForm = ({
 
   const handleSubmit = async () => {
     const isCompType = getIsCompType(type);
-    if (!startDate || (isCompType && !endDate) || (!isCompType && !startTime)) {
+    if (!isValid(startDate) || (isCompType && !isValid(endDate)) || (!isCompType && !isValid(startTime))) {
       changeErrorMessages(["Please enter valid dates"]);
       return;
     }
@@ -243,7 +243,7 @@ const ContestForm = ({
       address: address.trim(),
       latitudeMicrodegrees,
       longitudeMicrodegrees,
-      startDate,
+      startDate: startDate!,
       endDate: getIsCompType(type) ? endDate : undefined,
       organizers: selectedOrganizers,
       contact: contact.trim() || undefined,
@@ -446,20 +446,17 @@ const ContestForm = ({
   const changeStartDate = (newDate: Date | undefined) => {
     if (type === ContestType.Meetup) {
       setStartTime(newDate);
-      if (newDate) setStartDate(getDateOnly(toZonedTime(newDate, timeZone))!);
+      if (isValid(newDate)) setStartDate(getDateOnly(toZonedTime(newDate!, timeZone))!);
     } else {
       setStartDate(newDate);
-
-      if (newDate && endDate && newDate.getTime() > endDate.getTime()) {
-        setEndDate(newDate);
-      }
+      if (isValid(newDate) && isValid(endDate) && newDate!.getTime() > endDate!.getTime()) setEndDate(newDate);
     }
   };
 
   const changeEndDate = (newDate: Date | undefined) => {
     setEndDate(newDate);
 
-    if (newDate && startDate && newDate.getTime() < startDate.getTime()) {
+    if (isValid(newDate) && isValid(startDate) && newDate!.getTime() < startDate!.getTime()) {
       setStartDate(newDate);
     }
   };
@@ -543,7 +540,7 @@ const ContestForm = ({
           tabs={tabs}
           activeTab={activeTab}
           setActiveTab={changeActiveTab}
-          disabledTabs={startDate ? [] : ["schedule"]}
+          disabledTabs={isValid(startDate) ? [] : ["schedule"]}
         />
 
         {activeTab === "details" && (
