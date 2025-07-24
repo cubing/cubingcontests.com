@@ -15,6 +15,8 @@ import {
   type IVideoBasedResult,
 } from "./types.ts";
 import { roundFormats } from "./roundFormats.ts";
+import { differenceInDays, startOfDay } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 
 type BestCompareObj = { best: number };
 type AvgCompareObj = { best?: number; average: number };
@@ -370,3 +372,8 @@ export const parseRoundId = (roundId: string): [string, number] => {
 
   return [eventPart, roundNumber];
 };
+
+export function getIsUrgent(startDate: Date) {
+  const difference = differenceInDays(startDate, fromZonedTime(startOfDay(new Date()), "UTC"));
+  return difference >= 0 && difference <= 7;
+}

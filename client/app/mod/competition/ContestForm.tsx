@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useContext, useState, useTransition } from "react";
-import { addHours, addYears } from "date-fns";
+import { addYears } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { debounce } from "lodash";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
@@ -20,7 +20,7 @@ import {
   type PageSize,
 } from "~/helpers/types.ts";
 import { Color, ContestState, ContestType } from "~/helpers/enums.ts";
-import { getDateOnly, getIsCompType } from "~/helpers/sharedFunctions.ts";
+import { getDateOnly, getIsCompType, getIsUrgent } from "~/helpers/sharedFunctions.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getContestIdFromName, getTimeLimit, getUserInfo } from "~/helpers/utilityFunctions.ts";
 import { C } from "~/helpers/constants.ts";
@@ -90,16 +90,11 @@ const ContestForm = ({
   const [longitude, setLongitude] = useState<NumberInputValue>(
     contest ? contest.longitudeMicrodegrees / 1000000 : 0,
   );
-  const [startDate, setStartDate] = useState(
-    contest ? new Date(contest.startDate) : getDateOnly(new Date())!,
-  );
-  // Meetup-only; set 12:00 as initial start time
+  const [startDate, setStartDate] = useState(contest ? new Date(contest.startDate) : undefined);
   const [startTime, setStartTime] = useState(
-    contest?.meetupDetails ? new Date(contest.meetupDetails.startTime) : addHours(getDateOnly(new Date())!, 12),
+    contest?.meetupDetails ? new Date(contest.meetupDetails.startTime) : undefined,
   );
-  const [endDate, setEndDate] = useState(
-    contest?.endDate ? new Date(contest.endDate) : new Date(),
-  );
+  const [endDate, setEndDate] = useState(contest?.endDate ? new Date(contest.endDate) : undefined);
   const [organizerNames, setOrganizerNames] = useState<string[]>([
     ...(contest?.organizers.map((o) => o.name) ?? []),
     "",
@@ -124,6 +119,7 @@ const ContestForm = ({
   );
   const [isTimeZonePending, startTimeZoneTransition] = useTransition();
   const [isUnderstood, setIsUnderstood] = useState(mode === "edit");
+  const [isTimelinessUnderstood, setIsTimelinessUnderstood] = useState(mode === "edit");
 
   const updateTimeZone = useCallback(
     debounce(
@@ -136,19 +132,21 @@ const ContestForm = ({
             changeErrorMessages(res.errors);
           } else {
             // Adjust times
-            if (type === ContestType.Meetup) {
-              setStartTime(fromZonedTime(toZonedTime(startTime, timeZone), res.data));
-            } else if (getIsCompType(type)) {
-              setRooms(
-                rooms.map((r: IRoom) => ({
-                  ...r,
-                  activities: r.activities.map((a) => ({
-                    ...a,
-                    startTime: fromZonedTime(toZonedTime(a.startTime, timeZone), res.data),
-                    endTime: fromZonedTime(toZonedTime(a.endTime, timeZone), res.data),
+            if (startDate && startTime) {
+              if (type === ContestType.Meetup) {
+                setStartTime(fromZonedTime(toZonedTime(startTime, timeZone), res.data));
+              } else if (getIsCompType(type)) {
+                setRooms(
+                  rooms.map((r: IRoom) => ({
+                    ...r,
+                    activities: r.activities.map((a) => ({
+                      ...a,
+                      startTime: fromZonedTime(toZonedTime(a.startTime, timeZone), res.data),
+                      endTime: fromZonedTime(toZonedTime(a.endTime, timeZone), res.data),
+                    })),
                   })),
-                })),
-              );
+                );
+              }
             }
 
             setTimeZone(res.data);
@@ -170,7 +168,9 @@ const ContestForm = ({
   const disabledIfContestPublished: boolean = mode === "edit" && !!contest &&
     contest.state >= ContestState.Published;
   const disabledIfDetailsImported = !userInfo?.isAdmin && detailsImported;
-  const disabledIfNotUnderstood = !isUnderstood && (!type || getIsCompType(type));
+  const urgent = startDate && getIsUrgent(startDate);
+  const disabledIfNotUnderstood = (!isUnderstood && (!type || getIsCompType(type))) ||
+    (!isTimelinessUnderstood && urgent);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -227,7 +227,7 @@ const ContestForm = ({
       };
     } else {
       meetupDetails = {
-        startTime,
+        startTime: startTime!,
         timeZone: "TEMPORARY", // this is set on the backend
       };
     }
@@ -300,6 +300,7 @@ const ContestForm = ({
           : await myFetch.post("/competitions", newComp, { loadingId: null });
 
         if (!res.success) changeErrorMessages(res.errors);
+        else if (mode === "copy") window.location.href = "/mod";
         else window.history.back();
       }
     } else {
@@ -442,23 +443,23 @@ const ContestForm = ({
     }
   };
 
-  const changeStartDate = (newDate: Date) => {
+  const changeStartDate = (newDate: Date | undefined) => {
     if (type === ContestType.Meetup) {
       setStartTime(newDate);
-      setStartDate(getDateOnly(toZonedTime(newDate, timeZone))!);
+      if (newDate) setStartDate(getDateOnly(toZonedTime(newDate, timeZone))!);
     } else {
       setStartDate(newDate);
 
-      if (newDate.getTime() > endDate.getTime()) {
+      if (newDate && endDate && newDate.getTime() > endDate.getTime()) {
         setEndDate(newDate);
       }
     }
   };
 
-  const changeEndDate = (newDate: Date) => {
+  const changeEndDate = (newDate: Date | undefined) => {
     setEndDate(newDate);
 
-    if (newDate.getTime() < startDate.getTime()) {
+    if (newDate && startDate && newDate.getTime() < startDate.getTime()) {
       setStartDate(newDate);
     }
   };
@@ -542,7 +543,7 @@ const ContestForm = ({
           tabs={tabs}
           activeTab={activeTab}
           setActiveTab={changeActiveTab}
-          disabled={disabled}
+          disabledTabs={startDate ? [] : ["schedule"]}
         />
 
         {activeTab === "details" && (
@@ -895,7 +896,7 @@ const ContestForm = ({
             rooms={rooms}
             setRooms={setRooms}
             venueTimeZone={timeZone}
-            startDate={startDate}
+            startDate={startDate!}
             contestType={type!}
             contestEvents={contestEvents}
             disabled={disabledIfContestPublished}
@@ -924,8 +925,27 @@ const ContestForm = ({
                 : ""}
             </p>
             {mode !== "edit" && (
-              <FormCheckbox title="I understand" selected={isUnderstood} setSelected={setIsUnderstood} />
+              <FormCheckbox
+                id="understood"
+                title="I understand"
+                selected={isUnderstood}
+                setSelected={setIsUnderstood}
+              />
             )}
+          </>
+        )}
+        {!disabled && mode !== "edit" && urgent && (
+          <>
+            <p className="mt-4 fs-6">
+              You are submitting this contest within 7 days of the start date. In the future,{" "}
+              <strong>please submit contests at least a week in advance</strong>.
+            </p>
+            <FormCheckbox
+              id="timeliness_understood"
+              title="I understand"
+              selected={isTimelinessUnderstood}
+              setSelected={setIsTimelinessUnderstood}
+            />
           </>
         )}
       </Form>

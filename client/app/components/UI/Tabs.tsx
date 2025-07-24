@@ -8,7 +8,7 @@ type Props = {
   prefetch?: boolean;
   replace?: boolean;
   forServerSidePage?: boolean;
-  disabled?: boolean;
+  disabledTabs?: string[];
 };
 
 const Tabs = ({
@@ -18,7 +18,7 @@ const Tabs = ({
   prefetch = false,
   replace = false,
   forServerSidePage = false,
-  disabled = false,
+  disabledTabs = [],
 }: Props) => {
   if (prefetch && !forServerSidePage) {
     throw new Error("The Tabs component only supports prefetch when forServerSidePage is true");
@@ -35,7 +35,7 @@ const Tabs = ({
                 <button
                   type="button"
                   onClick={() => setActiveTab(tab.value)}
-                  disabled={disabled}
+                  disabled={disabledTabs.includes(tab.value)}
                   className={"nav-link" + (activeTab === tab.value ? " active" : "")}
                 >
                   <span className="d-none d-md-inline">{tab.title}</span>

@@ -13,8 +13,8 @@ setDefaultLocale("en-GB");
 type Props = {
   id?: string;
   title?: string;
-  value: Date;
-  setValue: (val: Date) => void;
+  value: Date | undefined;
+  setValue: (val: Date | undefined) => void;
   timeZone?: string;
   dateFormat?: string; // P is date select only, Pp is date and time select
   timeFormat?: string;
@@ -71,7 +71,7 @@ const FormDatePicker = ({
 
       {showUTCTime && (
         <div className="mt-3 text-secondary fs-6">
-          UTC:&#8194;{value?.toUTCString().slice(0, -4) ?? "ERROR"}
+          UTC:&#8194;{value?.toUTCString().slice(0, -4) ?? "?"}
         </div>
       )}
     </div>
