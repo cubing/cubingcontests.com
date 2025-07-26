@@ -34,14 +34,18 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    sendResetPassword: ({ user, url }) => sendResetPasswordEmail(user.email, url),
+    sendResetPassword: ({ user, url }) => {
+      if (process.env.EMAIL_TOKEN) return sendResetPasswordEmail(user.email, url);
+    },
     password: {
       hash: (password: string) => bcrypt.hash(password, C.passwordSaltRounds),
       verify: (data: { hash: string; password: string }) => bcrypt.compare(data.password, data.hash),
     },
   },
   emailVerification: {
-    sendVerificationEmail: ({ user, url }) => sendVerificationCodeEmail(user.email, url),
+    sendVerificationEmail: ({ user, url }) => {
+      if (process.env.EMAIL_TOKEN) return sendVerificationCodeEmail(user.email, url);
+    },
   },
   user: {
     additionalFields: {

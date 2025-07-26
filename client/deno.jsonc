@@ -8,15 +8,10 @@
   },
 
   "tasks": {
-    "dev": {
-      "dependencies": ["dev-client", "dev-db"]
-    },
-    // Starts Next JS with the port specified in the environment variables
-    "dev-client": "deno run -A npm:next dev --turbo -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
+    "dev": "deno run -A npm:next dev --turbo -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
     "build": "deno run -A npm:next build --turbo",
     "start": "next start",
-    "dev-db": "cd .. && docker compose up && docker compose down",
-    "db:push": "deno run --allow-all --conditions=react-server npm:drizzle-kit push",
+    "db:push": "deno run --allow-all --conditions=react-server npm:drizzle-kit push --strict",
     "db:migrate": "deno run --allow-all --conditions=react-server npm:drizzle-kit migrate",
     "db:generate": "deno run --allow-all --conditions=react-server npm:drizzle-kit generate"
   },

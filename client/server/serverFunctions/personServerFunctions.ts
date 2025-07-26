@@ -55,7 +55,7 @@ export const createPersonSF = actionClient.metadata({ permissions: { persons: ["
       isAdmin,
     });
 
-    const query = db.insert(table).values([{ ...newPerson, createdBy: session.user.id }]);
+    const query = db.insert(table).values({ ...newPerson, approved: false, createdBy: session.user.id });
     const [createdPerson] = await (isAdmin ? query.returning() : query.returning(personsPublicCols));
     return createdPerson;
   });

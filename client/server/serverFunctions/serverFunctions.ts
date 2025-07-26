@@ -106,12 +106,12 @@ export const startNewCollectiveCubingSolutionSF = actionClient.metadata({ permis
 
     const [createdSolution] = await db.transaction(async (tx) => {
       await tx.update(csTable).set({ state: "archived" }).where(eq(csTable.state, "solved"));
-      return await tx.insert(csTable).values([{
+      return await tx.insert(csTable).values({
         eventId,
         scramble: scramble.toString(),
         lastUserWhoInteracted: session.user.id,
         usersWhoMadeMoves: [],
-      }]).returning(collectiveSolutionsPublicCols);
+      }).returning(collectiveSolutionsPublicCols);
     });
 
     return createdSolution;

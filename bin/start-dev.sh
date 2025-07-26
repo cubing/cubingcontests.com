@@ -11,6 +11,14 @@ if [ ! -f ".env" ]; then
 fi
 
 cp .env client/.env.local
+
+docker compose up -d &&
+sleep 1 &&
 cd client
-deno install --allow-scripts
-deno task dev
+
+deno install --allow-scripts &&
+deno task db:push &&
+deno task dev ;
+cd ..
+
+docker compose down

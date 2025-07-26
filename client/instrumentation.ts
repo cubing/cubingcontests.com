@@ -5,6 +5,7 @@ import type { db as dbType } from "~/server/db/provider.ts";
 import { accountsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { personsTable } from "./server/db/schema/persons.ts";
 import { eventsTable } from "./server/db/schema/events.ts";
+import { resultsTable } from "./server/db/schema/results.ts";
 
 const message =
   "The EMAIL_TOKEN environment variable must be empty while seeding the DB to avoid sending lots of verification emails for the users being seeded. Remove it and comment out the sendVerificationEmail function in auth.ts, and then add them back after the DB has been seeded.";
@@ -15,6 +16,7 @@ export async function register() {
     const { db }: { db: typeof dbType } = await import("~/server/db/provider.ts");
     const { auth }: { auth: typeof authType } = await import("~/server/auth.ts");
     const fs: typeof fsType = await import("node:fs");
+    const usersDump = JSON.parse((await fs.readFileSync("./dump/users.json")) as any);
 
     const testUsers = [
       {
@@ -70,15 +72,12 @@ export async function register() {
     }
 
     // Seed database with old Mongo DB data.
-    // This assumes the local dev environment won't have 100 users.
+    // This assumes the local dev environment can't normally have 100 users.
     if ((await db.select({ id: usersTable.id }).from(usersTable).limit(100)).length < 100) {
       if (process.env.EMAIL_TOKEN) throw new Error(message);
-
       console.log("Seeding users...");
 
       try {
-        const usersDump = JSON.parse((await fs.readFileSync("./dump/users.json")) as any);
-
         for (const user of usersDump.filter((u: any) => !u.confirmationCodeHash)) {
           const res = await auth.api.signUpEmail({
             body: {
@@ -110,6 +109,7 @@ export async function register() {
     }
 
     if ((await db.select({ id: personsTable.id }).from(personsTable).limit(1)).length === 0) {
+      if (process.env.EMAIL_TOKEN) throw new Error(message);
       console.log("Seeding persons...");
 
       try {
@@ -131,6 +131,7 @@ export async function register() {
     }
 
     if ((await db.select({ id: eventsTable.id }).from(eventsTable).limit(1)).length === 0) {
+      if (process.env.EMAIL_TOKEN) throw new Error(message);
       console.log("Seeding events...");
 
       try {
@@ -168,6 +169,60 @@ export async function register() {
         }));
       } catch (e) {
         console.error("Unable to load events dump or event rules dump:", e);
+      }
+    }
+
+    if ((await db.select({ id: resultsTable.id }).from(resultsTable).limit(1)).length === 0) {
+      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      console.log("Seeding results...");
+
+      try {
+        const resultsDump = JSON.parse((await fs.readFileSync("./dump/results.json")) as any);
+
+        const getCreatorId = async (r: any): Promise<string> => {
+          const dumpUserObject = usersDump.find((u) => u._id.$oid === r.createdBy.$oid);
+          if (!dumpUserObject) throw new Error(`User with ID ${r.createdBy.$oid} not found in users dump!`);
+
+          const res = await db.select({ id: usersTable.id }).from(usersTable).where(
+            eq(usersTable.username, dumpUserObject.username),
+          );
+          if (res.length !== 1) throw new Error(`User with username ${dumpUserObject.username} not found in DB`);
+          return res[0].id;
+        };
+
+        let results = [];
+
+        for (const r of resultsDump) {
+          results.push({
+            eventId: r.eventId,
+            date: new Date(r.date.$date),
+            approved: !r.unapproved,
+            personIds: r.personIds,
+            attempts: r.attempts,
+            best: r.best,
+            average: r.average,
+            regionalSingleRecord: r.regionalSingleRecord ?? null,
+            regionalAverageRecord: r.regionalAverageRecord ?? null,
+            competitionId: r.competitionId ?? null,
+            ranking: r.ranking ?? null,
+            proceeds: r.proceeds ?? null,
+            videoLink: r.videoLink || null,
+            discussionLink: r.discussionLink || null,
+            createdBy: r.createdBy ? await getCreatorId(r) : null,
+            createdAt: new Date(r.createdAt.$date),
+            updatedAt: new Date(r.updatedAt.$date),
+          });
+
+          // Drizzle can't handle too many entries being inserted at once
+          if (results.length === 1000) {
+            await db.insert(resultsTable).values(results);
+            results = [];
+          }
+        }
+
+        await db.insert(resultsTable).values(results);
+      } catch (e) {
+        console.error("Unable to load results dump:", e);
       }
     }
 
