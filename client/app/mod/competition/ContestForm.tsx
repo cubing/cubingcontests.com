@@ -2,7 +2,7 @@
 
 import { useCallback, useContext, useState, useTransition } from "react";
 import { addYears, isValid } from "date-fns";
-import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { fromZonedTime, getTimezoneOffset, toZonedTime } from "date-fns-tz";
 import { debounce } from "lodash";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
 import {
@@ -446,7 +446,7 @@ const ContestForm = ({
   const changeStartDate = (newDate: Date | undefined) => {
     if (type === ContestType.Meetup) {
       setStartTime(newDate);
-      if (isValid(newDate)) setStartDate(getDateOnly(toZonedTime(newDate!, timeZone))!);
+      if (isValid(newDate)) setStartDate(getDateOnly(new Date(newDate!.getTime() + getTimezoneOffset(timeZone)))!);
     } else {
       setStartDate(newDate);
       if (isValid(newDate) && isValid(endDate) && newDate!.getTime() > endDate!.getTime()) setEndDate(newDate);
