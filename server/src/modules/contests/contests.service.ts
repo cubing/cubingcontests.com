@@ -1246,6 +1246,7 @@ export class ContestsService {
         contest.longitudeMicrodegrees / 1000000,
       )[0];
 
+      const startDate = new Date(contest.startDate);
       // This check is the same as in the DB consistency check
       const correctStartDate = getDateOnly(
         toZonedTime(
@@ -1253,11 +1254,9 @@ export class ContestsService {
           contest.meetupDetails.timeZone,
         ),
       );
-      if (
-        new Date(contest.startDate).getTime() !== correctStartDate.getTime()
-      ) {
+      if (startDate.getTime() !== correctStartDate.getTime()) {
         throw new BadRequestException(
-          "Meetup has a mismatch between startDate and startTime. Please report this to the admin team.",
+          `Meetup has a mismatch between startDate (${startDate.toDateString()}) and startTime (${correctStartDate.toDateString()}). Please report this to the admin team.`,
         );
       }
     }

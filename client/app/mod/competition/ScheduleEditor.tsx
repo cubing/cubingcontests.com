@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { addHours } from "date-fns";
+import { addHours, isValid } from "date-fns";
 import { getTimezoneOffset } from "date-fns-tz";
 import { Color, ContestType } from "~/helpers/enums.ts";
 import { IActivity, IContestEvent, IRoom } from "~/helpers/types.ts";
@@ -44,10 +44,10 @@ const ScheduleEditor = ({
   const [activityCode, setActivityCode] = useState("");
   const [customActivity, setCustomActivity] = useState("");
   // These are in UTC, but get displayed in the local time zone of the venue. Set to 12-13:00 by default.
-  const [activityStartTime, setActivityStartTime] = useState(
+  const [activityStartTime, setActivityStartTime] = useState<Date | undefined>(
     new Date(addHours(startDate, 12).getTime() - getTimezoneOffset(venueTimeZone, startDate)),
   );
-  const [activityEndTime, setActivityEndTime] = useState(
+  const [activityEndTime, setActivityEndTime] = useState<Date | undefined>(
     new Date(addHours(startDate, 13).getTime() - getTimezoneOffset(venueTimeZone, startDate)),
   );
 
@@ -84,7 +84,8 @@ const ScheduleEditor = ({
     setSelectedRoom(roomOptions[0].value);
   }
   const isValidActivity = activityCode &&
-    (activityCode !== "other-misc" || customActivity) && roomOptions.length > 0;
+    (activityCode !== "other-misc" || customActivity) && roomOptions.length > 0 && isValid(activityStartTime) &&
+    isValid(activityEndTime);
 
   const addRoom = () => {
     setRoomName("");
@@ -99,21 +100,21 @@ const ScheduleEditor = ({
     ]);
   };
 
-  const changeActivityStartTime = (newTime: Date) => {
+  const changeActivityStartTime = (newTime: Date | undefined) => {
     setActivityStartTime(newTime);
 
-    if (newTime) {
+    if (isValid(newTime) && isValid(activityStartTime) && isValid(activityEndTime)) {
       // Change the activity end time too
-      const activityLength = activityEndTime.getTime() - activityStartTime.getTime();
-      setActivityEndTime(new Date(newTime.getTime() + activityLength));
+      const activityLength = activityEndTime!.getTime() - activityStartTime!.getTime();
+      setActivityEndTime(new Date(newTime!.getTime() + activityLength));
     }
   };
 
   const saveActivity = () => {
     const getFieldsFromInputs = () => ({
       activityCode,
-      startTime: activityStartTime,
-      endTime: activityEndTime,
+      startTime: activityStartTime!,
+      endTime: activityEndTime!,
       name: activityCode === "other-misc" ? customActivity : undefined,
       childActivities: [] as IActivity[],
     });

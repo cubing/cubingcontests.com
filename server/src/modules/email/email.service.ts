@@ -6,10 +6,13 @@ import { Injectable } from "@nestjs/common";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
 import { IContest } from "~/helpers/types";
-import { getIsCompType, getRoleLabel } from "~/helpers/sharedFunctions";
+import {
+  getIsCompType,
+  getIsUrgent,
+  getRoleLabel,
+} from "~/helpers/sharedFunctions";
 import { ContestType, Role } from "~/helpers/enums";
 import { C } from "~/helpers/constants";
-import { differenceInDays } from "date-fns";
 import { Countries } from "~/helpers/Countries";
 
 // The fileName is the name of a file inside of the templates directory
@@ -138,9 +141,7 @@ export class EmailService {
     contestUrl: string,
     creator: string,
   ) {
-    const urgent = Math.abs(
-      differenceInDays(contest.startDate, new Date()),
-    ) <= 7;
+    const urgent = getIsUrgent(new Date(contest.startDate));
     const contents = await getEmailContents("contest-submitted.hbs", {
       competitionId: contest.competitionId,
       wcaCompetition: contest.type === ContestType.WcaComp,

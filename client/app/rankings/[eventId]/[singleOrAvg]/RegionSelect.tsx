@@ -21,7 +21,7 @@ function RegionSelect() {
     }
   };
 
-  return <FormCountrySelect countryIso2={region} setCountryIso2={onChangeCountryIso2} />;
+  return <FormCountrySelect countryIso2={region} setCountryIso2={onChangeCountryIso2} continentOptions />;
 }
 
 export default RegionSelect;

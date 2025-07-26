@@ -72,6 +72,7 @@ import { EmailService } from "~/src/modules/email/email.service";
 import { LogType } from "~/src/helpers/enums";
 import { differenceInHours } from "date-fns";
 import { UpdateVideoBasedResultDto } from "~/src/modules/results/dto/update-video-based-result.dto";
+import { Continents, Countries } from "~/helpers/Countries";
 
 @Injectable()
 export class ResultsService {
@@ -313,6 +314,9 @@ export class ResultsService {
 
     const eventRankings: IEventRankings = { event, rankings: [] };
     let eventResults: ResultDocument[] = [];
+    const continentCountryCodes = Continents.some((c) => c.code === region)
+      ? Countries.filter((c) => c.continentId === region).map((c) => c.code)
+      : undefined;
     const regionFilterForTopResults = region
       ? [
         {
@@ -326,7 +330,13 @@ export class ResultsService {
         {
           $match: {
             persons: {
-              $not: { $elemMatch: { countryIso2: { $ne: region } } },
+              $not: {
+                $elemMatch: {
+                  countryIso2: continentCountryCodes
+                    ? { $nin: continentCountryCodes }
+                    : { $ne: region },
+                },
+              },
             },
           },
         },
@@ -342,7 +352,13 @@ export class ResultsService {
             as: "person",
           },
         },
-        { $match: { "person.countryIso2": region } },
+        {
+          $match: {
+            "person.countryIso2": continentCountryCodes
+              ? { $in: continentCountryCodes }
+              : region,
+          },
+        },
       ]
       : [];
 
@@ -387,7 +403,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { best: 1 } },
-            { $limit: 100 },
+            // { $limit: 100 },
           ])
           .exec();
 
@@ -468,7 +484,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { average: 1 } },
-            { $limit: 100 },
+            // { $limit: 100 },
           ])
           .exec();
 
