@@ -7,12 +7,13 @@ import type { SelectEvent } from "~/server/db/schema/events.ts";
 import { db } from "~/server/db/provider.ts";
 import { eq, sql } from "drizzle-orm";
 import { eventsTable as table } from "~/server/db/schema/events.ts";
+import { collectiveSolutionsTable } from "../db/schema/collective-solutions.ts";
 
 export const createEventSF = actionClient.metadata({ permissions: { events: ["create"] } })
   .inputSchema(z.strictObject({
     newEvent: EventValidator,
   }))
-  .action<SelectEvent[]>(async ({ parsedInput: { newEvent } }) => {
+  .action<SelectEvent>(async ({ parsedInput: { newEvent } }) => {
     const [sameIdEvent] = await db.select().from(table).where(eq(table.eventId, newEvent.eventId)).limit(1);
     if (sameIdEvent) throw new CcActionError(`Event with ID ${newEvent.eventId} already exists`);
 
@@ -21,9 +22,8 @@ export const createEventSF = actionClient.metadata({ permissions: { events: ["cr
     ).limit(1);
     if (sameNameEvent) throw new CcActionError(`Event with name ${newEvent.name} already exists`);
 
-    await db.insert(table).values(newEvent);
-
-    return await db.select().from(table).orderBy(table.rank);
+    const [createdEvent] = await db.insert(table).values(newEvent).returning();
+    return createdEvent;
   });
 
 export const updateEventSF = actionClient.metadata({ permissions: { events: ["update"] } })
@@ -31,102 +31,73 @@ export const updateEventSF = actionClient.metadata({ permissions: { events: ["up
     newEvent: EventValidator,
     originalEventId: z.string(),
   }))
-  .action<SelectEvent[]>(async ({ parsedInput: { newEvent, originalEventId } }) => {
-    const event = await this.eventModel.findOne({ eventId }).exec();
-    if (!event) {
-      throw new BadRequestException(`Event with ID ${eventId} does not exist`);
-    }
+  .action<SelectEvent>(async ({ parsedInput: { newEvent, originalEventId } }) => {
+    const [event] = await db.select().from(table).where(eq(table.eventId, originalEventId)).limit(1);
+    if (!event) throw new CcActionError(`Event with ID ${originalEventId} not found`);
 
-    event.name = updateEventDto.name;
-    event.rank = updateEventDto.rank;
-    event.groups = updateEventDto.groups;
-    event.description = updateEventDto.description;
+    const [updatedEvent] = await db.transaction(async (tx) => {
+      if (newEvent.eventId !== originalEventId) {
+        const [sameIdEvent] = await tx.select().from(table).where(eq(table.eventId, newEvent.eventId)).limit(1);
+        if (sameIdEvent) throw new CcActionError(`Event with ID ${newEvent.eventId} already exists`);
 
-    if (!updateEventDto.ruleText && event?.rule) {
-      event.rule = undefined;
-      await this.eventRuleModel.deleteOne({ eventId: updateEventDto.eventId })
-        .exec();
-    } else if (updateEventDto.ruleText && !event?.rule) {
-      event.rule = await this.eventRuleModel.create({
-        eventId: updateEventDto.eventId,
-        rule: updateEventDto.ruleText,
-      });
-    } else if (updateEventDto.ruleText && event.rule) {
-      await this.eventRuleModel
-        .updateOne({ eventId: updateEventDto.eventId }, {
-          eventId: updateEventDto.eventId,
-          rule: updateEventDto.ruleText,
-        })
-        .exec();
-    }
-
-    const newId = updateEventDto.eventId;
-
-    if (newId !== eventId) {
-      const eventWithNewId = await this.eventModel.findOne({
-        eventId: updateEventDto.eventId,
-      }).exec();
-      if (eventWithNewId) {
-        throw new BadRequestException(
-          `Event with ID ${updateEventDto.eventId} already exists`,
-        );
-      }
-
-      event.eventId = newId;
-
-      try {
-        // Update rounds and schedules
-        this.logger.log(
-          `Updating rounds and schedules, changing event ID ${eventId} to ${newId}`,
+        await tx.update(collectiveSolutionsTable).set({ eventId: newEvent.eventId }).where(
+          eq(collectiveSolutionsTable.eventId, originalEventId),
         );
 
-        for (let i = 1; i <= 10; i++) {
-          const roundId = `${eventId}-r${i}`;
-          const newRoundId = `${newId}-r${i}`;
-          const res = await this.roundModel.updateMany({ roundId }, {
-            $set: { roundId: newRoundId },
-          }).exec();
+        console.log(`Updating rounds and schedules, changing event ID ${originalEventId} to ${newEvent.eventId}`);
 
-          if (res.matchedCount > 0) {
-            // TO-DO: UPDATE CHILD ACTIVITIES' CODES TOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            const schedules = await this.scheduleModel.find({
-              "venues.rooms.activities.activityCode": roundId,
-            }).exec();
+        // Update round IDs
+        // for (let i = 1; i <= 10; i++) {
+        //   const roundId = `${originalEventId}-r${i}`;
+        //   const newRoundId = `${newEvent.eventId}-r${i}`;
+        //   const res = await this.roundModel.updateMany({ roundId }, {
+        //     $set: { roundId: newRoundId },
+        //   }).exec();
 
-            for (const schedule of schedules) {
-              // Keep in mind that one schedule can only have one occurrence of the same activity code
-              venue_loop: for (const venue of schedule.venues) {
-                for (const room of venue.rooms) {
-                  for (const activity of room.activities) {
-                    if (activity.activityCode === roundId) {
-                      activity.activityCode = newRoundId;
-                      await schedule.save();
-                      break venue_loop;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        //   if (res.matchedCount > 0) {
+        //     // TO-DO: UPDATE CHILD ACTIVITIES' CODES TOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //     const schedules = await this.scheduleModel.find({
+        //       "venues.rooms.activities.activityCode": roundId,
+        //     }).exec();
+
+        //     for (const schedule of schedules) {
+        //       // Keep in mind that one schedule can only have one occurrence of the same activity code
+        //       venue_loop: for (const venue of schedule.venues) {
+        //         for (const room of venue.rooms) {
+        //           for (const activity of room.activities) {
+        //             if (activity.activityCode === roundId) {
+        //               activity.activityCode = newRoundId;
+        //               await schedule.save();
+        //               break venue_loop;
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
         // Update results
-        this.logger.log(
-          `Updating results, changing event ID ${eventId} to ${newId}`,
-        );
+        console.log(`Updating results, changing event ID ${originalEventId} to ${newEvent.eventId}`);
 
-        await this.resultModel.updateMany({ eventId }, {
-          $set: { eventId: newId },
-        }).exec();
-      } catch (err) {
-        throw new InternalServerErrorException(
-          `Error while updating other collections when changing event ID ${eventId} to ${newId}:`,
-          err.message,
-        );
+        // await this.resultModel.updateMany({ eventId }, {
+        //   $set: { eventId: newId },
+        // }).exec();
       }
-    }
 
-    await event.save();
+      return await tx.update(table).set({
+        eventId: newEvent.eventId,
+        name: newEvent.name,
+        rank: newEvent.rank,
+        category: newEvent.category,
+        submissionsAllowed: newEvent.submissionsAllowed,
+        removedWca: newEvent.removedWca,
+        hasMemo: newEvent.hasMemo,
+        hidden: newEvent.hidden,
+        description: newEvent.description,
+        rule: newEvent.rule,
+      }).where(eq(table.eventId, originalEventId)).returning();
+    });
 
-    return await this.getFrontendEvents({ populateRules: true });
+    return updatedEvent;
   });

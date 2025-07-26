@@ -21,7 +21,7 @@ import {
 } from "~/helpers/types.ts";
 import { RoundType } from "~/helpers/enums.ts";
 import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
-import type { InputPerson, MultiChoiceOption } from "~/helpers/types.ts";
+import type { InputPerson } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/helpers/sharedFunctions.ts";
 import type { ICreateResultDto, IFeAttempt, IRecordPair } from "~/helpers/types.ts";
@@ -33,6 +33,7 @@ import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.ts
 import Loading from "~/app/components/UI/Loading.tsx";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 
 type Props = {
   compData: IContestData;

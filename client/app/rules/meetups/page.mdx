@@ -1,3 +1,10 @@
+import Tabs from "~/app/components/UI/Tabs.tsx";
+import { tabs } from "../tabs.ts";
+
+<Tabs activeTab="meetups" tabs={tabs} forServerSidePage prefetch />
+
+<div className="px-3 lh-lg">
+
 These rules only apply to meetups, and they supplement the general rules, with
 some points being overridden.\
 M1. Timers, stopwatches and other official equipment is not required. Mobile
@@ -14,3 +21,5 @@ M5. A meetup may be restricted to members of a particular group, at the
 discretion of the admin team (e.g. speedcubing club members at a university, or
 students of a specific school).\
 M6. Meetup names and IDs may not include the word "open".
+
+</div>

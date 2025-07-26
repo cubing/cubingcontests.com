@@ -1,7 +1,7 @@
 import { Color, ContestType } from "~/helpers/enums.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getBSClassFromColor } from "~/helpers/utilityFunctions.ts";
-import type { MultiChoiceOption } from "~/helpers/types.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 
 type Props = {
   type: ContestType;

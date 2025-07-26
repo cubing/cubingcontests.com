@@ -5,7 +5,7 @@ import { addHours, isValid } from "date-fns";
 import { getTimezoneOffset } from "date-fns-tz";
 import { Color, ContestType } from "~/helpers/enums.ts";
 import { IActivity, IContestEvent, IRoom } from "~/helpers/types.ts";
-import { MultiChoiceOption } from "~/helpers/types.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
 import FormDatePicker from "~/app/components/form/FormDatePicker.tsx";

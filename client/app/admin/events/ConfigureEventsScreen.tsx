@@ -2,7 +2,7 @@
 
 import { useContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCopy, faPencil } from "@fortawesome/free-solid-svg-icons";
+import { faBrain, faCopy, faEyeSlash, faPencil, faVideo, faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { EventCategory, EventFormat, ListPageMode, NumberInputValue, RoundFormat } from "~/helpers/types.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
@@ -55,32 +55,42 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
   const isPending = isCreating || isUpdating;
 
   const handleSubmit = async () => {
-    const newEvent = {
-      eventId: newEventId,
-      name,
-      category,
-      rank: rank as number,
-      format,
-      defaultRoundFormat,
-      participants: participants as number,
-      submissionsAllowed,
-      removedWca,
-      hasMemo,
-      hidden,
-      description: description || undefined,
-      rule: rule || undefined,
-    } satisfies EventDto;
+    if (
+      mode !== "edit" || newEventId === eventIdUnderEdit ||
+      confirm(`Are you sure you would like to change the event ID from ${eventIdUnderEdit} to ${newEventId}?`)
+    ) {
+      const newEvent = {
+        eventId: newEventId,
+        name,
+        category,
+        rank: rank as number,
+        format,
+        defaultRoundFormat,
+        participants: participants as number,
+        submissionsAllowed,
+        removedWca,
+        hasMemo,
+        hidden,
+        description: description || undefined,
+        rule: rule || undefined,
+      } satisfies EventDto;
 
-    const res = mode === "add"
-      ? await createEvent({ newEvent })
-      : await updateEvent({ newEvent, originalEventId: eventIdUnderEdit });
+      const res = mode === "add"
+        ? await createEvent({ newEvent })
+        : await updateEvent({ newEvent, originalEventId: eventIdUnderEdit });
 
-    if (res.serverError || res.validationErrors) {
-      changeErrorMessages([getActionError(res)]);
-    } else {
-      changeSuccessMessage(`Event successfully ${mode === "add" ? "created" : "updated"}`);
-      setEvents(res.data);
-      setMode("view");
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
+      } else {
+        changeSuccessMessage(`Event successfully ${mode === "add" ? "created" : "updated"}`);
+        setMode("view");
+
+        const newEvents = mode === "add"
+          ? [...events, res.data]
+          : [...events.filter((e) => e.eventId !== eventIdUnderEdit), res.data];
+        newEvents.sort((a, b) => a.rank - b.rank);
+        setEvents(newEvents);
+      }
     }
   };
 
@@ -127,6 +137,11 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
     setRule(event.rule ?? "");
   };
 
+  const cancel = () => {
+    setMode("view");
+    resetMessages();
+  };
+
   return (
     <section>
       <h2 className="mb-4 text-center">Events</h2>
@@ -144,7 +159,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
             onSubmit={handleSubmit}
             hideToasts
             showCancelButton
-            onCancel={() => setMode("view")}
+            onCancel={cancel}
             isLoading={isPending}
           >
             <FormTextInput
@@ -224,7 +239,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
             </div>
             <h5 className="mb-4">Options</h5>
             <FormCheckbox
-              title="Allow submissions"
+              title="Allow video-based results"
               selected={submissionsAllowed}
               setSelected={setSubmissionsAllowed}
               disabled={isPending}
@@ -236,7 +251,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
               disabled={isPending}
             />
             <FormCheckbox
-              title="Has memorization"
+              title="Has memorization time input"
               selected={hasMemo}
               setSelected={setHasMemo}
               disabled={isPending}
@@ -274,6 +289,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
               <th scope="col">Rank</th>
               <th scope="col">Default format</th>
               <th scope="col">Category</th>
+              <th scope="col">Options</th>
               <th scope="col">Actions</th>
             </tr>
           </thead>
@@ -286,7 +302,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
                 </td>
                 <td>{event.eventId}</td>
                 <td
-                  className={events.some((e: SelectEvent) => e.eventId !== event.eventId && e.rank === event.rank)
+                  className={events.some((e) => e.eventId !== event.eventId && e.rank === event.rank)
                     ? "text-danger fw-bold"
                     : ""}
                 >
@@ -296,7 +312,46 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
                   {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel ?? "ERROR"}
                 </td>
                 <td>
-                  {eventCategories.find((ec) => event.category === ec.value)?.title}
+                  <span
+                    className={`badge ${
+                      event.category === "wca"
+                        ? "bg-danger"
+                        : event.category === "unofficial"
+                        ? "bg-warning text-dark"
+                        : event.category === "extreme-bld"
+                        ? "bg-primary"
+                        : event.category === "miscellaneous"
+                        ? "bg-light text-dark"
+                        : ""
+                    }`}
+                  >
+                    {eventCategories.find((ec) => event.category === ec.value)?.title}
+                  </span>
+                </td>
+                <td>
+                  <div className="d-flex gap-2">
+                    {/* For some reason FontAwesomeIcon doesn't like having title attributes (causes hydration errors) */}
+                    {event.submissionsAllowed && (
+                      <span title="Allow video-based results">
+                        <FontAwesomeIcon icon={faVideo} />
+                      </span>
+                    )}
+                    {event.removedWca && (
+                      <span title="Formerly WCA event">
+                        <FontAwesomeIcon icon={faXmark} />
+                      </span>
+                    )}
+                    {event.hasMemo && (
+                      <span title="Has memorization time input">
+                        <FontAwesomeIcon icon={faBrain} />
+                      </span>
+                    )}
+                    {event.hidden && (
+                      <span title="Hidden">
+                        <FontAwesomeIcon icon={faEyeSlash} />
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td>
                   <div className="d-flex gap-2">

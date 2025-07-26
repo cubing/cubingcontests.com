@@ -1,8 +1,12 @@
-import { NextConfig } from "next";
+import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 
-const nextConfig: NextConfig = {
+const withMDX = createMDX({});
+
+const nextConfig: NextConfig = withMDX({
   output: "standalone",
   serverExternalPackages: ["cubing", "geo-tz"],
+  pageExtensions: ["md", "mdx", "tsx", "ts", "jsx", "js", "mjs", "json"],
   redirects() {
     return Promise.resolve([
       {
@@ -22,15 +26,6 @@ const nextConfig: NextConfig = {
       },
     ]);
   },
-  // webpack: (config) => {
-  //   config.module.rules.push(
-  //     {
-  //       test: /\.md$/,
-  //       type: "asset/source",
-  //     },
-  //   );
-  //   return config;
-  // },
-};
+});
 
 export default nextConfig;

@@ -1,22 +1,16 @@
 import Markdown from "react-markdown";
-import { type FeEvent, type IRoundFormat } from "~/helpers/types.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
-import { EventGroup, RoundFormat } from "~/helpers/enums.ts";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { ssrFetch } from "~/helpers/DELETEfetchUtils";
+import { db } from "~/server/db/provider.ts";
+import { eventsTable as table } from "~/server/db/schema/events.ts";
+import { isNotNull } from "drizzle-orm";
 
 type Props = {
   children: React.ReactNode;
 };
 
-const RulesLayout = async ({ children }: Props) => {
-  const eventsResponse = await ssrFetch<FeEvent[]>("/events/with-rules");
-
-  if (!eventsResponse.success) {
-    return <h4 className="mt-4 text-center">Error while loading events</h4>;
-  }
-
-  const events = eventsResponse.data.filter((e) => !e.groups.includes(EventGroup.Hidden));
+async function RulesLayout({ children }: Props) {
+  const events = await db.select().from(table).where(isNotNull(table.rule)).orderBy(table.rank);
 
   return (
     <div>
@@ -25,17 +19,20 @@ const RulesLayout = async ({ children }: Props) => {
       {children}
 
       <div className="px-3">
-        {events.length > 0 && (
+        <hr />
+        <h3>Event rules</h3>
+
+        {events.length === 0 ? <p>No events found</p> : (
           <>
-            <hr />
-            <h3>Event rules</h3>
             <p>
               These rules apply to each event individually. If an event is not listed here, it must follow the most
               relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F).
             </p>
-            {events.map((event: FeEvent) => {
-              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
-              const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
+            {events.map((event) => {
+              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat)!;
+              const rankedFormat = roundFormat.value === "a"
+                ? roundFormat
+                : roundFormats.find((rf) => rf.value === "m");
 
               return (
                 <div key={event.eventId} className="mt-4">
@@ -46,16 +43,14 @@ const RulesLayout = async ({ children }: Props) => {
                     linkToRankings
                   />
                   <div style={{ overflowX: "auto" }}>
-                    <Markdown>{event.ruleText}</Markdown>
+                    <Markdown>{event.rule}</Markdown>
                   </div>
                   <p className="mb-1">
                     The ranked average format is <b>{rankedFormat.label}</b>
                   </p>
-                  {roundFormat.value !== rankedFormat.value && (
-                    <p>
-                      The default round format is <b>{roundFormat.label}</b>
-                    </p>
-                  )}
+                  <p>
+                    The default round format is <b>{roundFormat.label}</b>
+                  </p>
                 </div>
               );
             })}
@@ -74,6 +69,6 @@ const RulesLayout = async ({ children }: Props) => {
       </div>
     </div>
   );
-};
+}
 
 export default RulesLayout;

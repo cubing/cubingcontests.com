@@ -8,7 +8,7 @@ import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg
 import { authClient } from "~/helpers/authClient.ts";
 import { Creator, ListPageMode } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import Country from "~/app/components/Country.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";

@@ -10,7 +10,7 @@ import { ContestState, ContestType } from "~/helpers/enums.ts";
 import { getDateOnly } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
-import TempClientComponent from "~/app/competitions/[id]/TempClientComponent";
+import TempClientComponent from "~/app/competitions/[id]/TempClientComponent.tsx";
 
 type Props = {
   params: Promise<{ id: string }>;

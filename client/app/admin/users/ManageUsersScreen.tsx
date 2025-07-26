@@ -16,7 +16,7 @@ import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import { authClient } from "~/helpers/authClient.ts";
 import { PersonResponse } from "~/server/db/schema/persons.ts";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
-import { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import { useAction } from "next-safe-action/hooks";
 import { updateUserSF } from "~/server/serverFunctions/serverFunctions.ts";
 import { Roles } from "~/server/permissions.ts";

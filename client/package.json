@@ -8,7 +8,10 @@
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@mdx-js/loader": "^3.1.0",
+    "@mdx-js/react": "^3.1.0",
     "@next/env": "^15.3.4",
+    "@next/mdx": "^15.4.4",
     "@tanstack/react-virtual": "^3.13.12",
     "@types/lodash": "^4.17.19",
     "@types/node": "^22.15.34",
@@ -28,7 +31,7 @@
     "geo-tz": "^8.1.4",
     "lodash": "^4.17.21",
     "mailtrap": "^4.1.0",
-    "next": "^15.3.4",
+    "next": "^15.4.4",
     "next-safe-action": "^8.0.7",
     "pg": "^8.16.3",
     "react": "^19.1.0",
@@ -41,6 +44,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2"
+    "@types/bcrypt": "^5.0.2",
+    "@types/mdx": "^2.0.13"
   }
 }

@@ -11,7 +11,7 @@ import type {
   ITimeLimit,
   NumberInputValue,
 } from "~/helpers/types.ts";
-import { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
+import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 import { SafeActionResult } from "next-safe-action";
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {

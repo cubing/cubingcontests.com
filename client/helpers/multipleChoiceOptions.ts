@@ -1,4 +1,4 @@
-import { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
+import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 import { Color, ContestType, EventFormat, RoundProceed } from "~/helpers/enums.ts";
 import { eventCategories } from "./eventCategories.ts";
 

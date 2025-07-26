@@ -104,7 +104,7 @@ export const startNewCollectiveCubingSolutionSF = actionClient.metadata({ permis
     const eventId = "222";
     const scramble = await randomScrambleForEvent(eventId);
 
-    const [newSolution] = await db.transaction(async (tx) => {
+    const [createdSolution] = await db.transaction(async (tx) => {
       await tx.update(csTable).set({ state: "archived" }).where(eq(csTable.state, "solved"));
       return await tx.insert(csTable).values([{
         eventId,
@@ -114,7 +114,7 @@ export const startNewCollectiveCubingSolutionSF = actionClient.metadata({ permis
       }]).returning(collectiveSolutionsPublicCols);
     });
 
-    return newSolution;
+    return createdSolution;
   });
 
 async function getIsSolved(currentState: Alg): Promise<boolean> {
@@ -154,7 +154,7 @@ export const makeCollectiveCubingMoveSF = actionClient.metadata({ permissions: n
     const solution = new Alg(ongoingSolution.solution).concat(move);
     const state = await getIsSolved(new Alg(ongoingSolution.scramble).concat(solution)) ? "solved" : "ongoing";
 
-    const [newOngoingSolution] = await db.update(csTable).set({
+    const [updatedSolution] = await db.update(csTable).set({
       state,
       solution: solution.toString(),
       lastUserWhoInteracted: session.user.id,
@@ -163,5 +163,5 @@ export const makeCollectiveCubingMoveSF = actionClient.metadata({ permissions: n
         : ongoingSolution.usersWhoMadeMoves,
     }).where(eq(csTable.id, ongoingSolution.id)).returning(collectiveSolutionsPublicCols);
 
-    return newOngoingSolution;
+    return updatedSolution;
   });

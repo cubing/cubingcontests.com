@@ -1,4 +1,4 @@
-import { MultiChoiceOption, OptionValueType } from "~/helpers/types/MultiChoiceOption.ts";
+import type { MultiChoiceOption, OptionValueType } from "~/helpers/types/MultiChoiceOption.ts";
 import FormInputLabel from "./FormInputLabel.tsx";
 
 type Props = {
