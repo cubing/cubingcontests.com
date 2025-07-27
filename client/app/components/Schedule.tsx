@@ -53,7 +53,11 @@ const Schedule = ({
     );
   }
 
-  allActivities.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  allActivities.sort((a, b) => {
+    const startDiff = a.startTime.getTime() - b.startTime.getTime();
+    if (startDiff === 0) return a.endTime.getTime() - b.endTime.getTime();
+    return startDiff;
+  });
 
   const days: Day[] = [];
 

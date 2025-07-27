@@ -403,7 +403,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { best: 1 } },
-            // { $limit: 100 },
+            { $limit: 500 },
           ])
           .exec();
 
@@ -484,7 +484,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { average: 1 } },
-            // { $limit: 100 },
+            { $limit: 500 },
           ])
           .exec();
 
