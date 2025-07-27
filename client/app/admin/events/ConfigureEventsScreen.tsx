@@ -3,7 +3,7 @@
 import { useContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBrain, faCopy, faEyeSlash, faPencil, faVideo, faXmark } from "@fortawesome/free-solid-svg-icons";
-import type { EventCategory, EventFormat, ListPageMode, NumberInputValue, RoundFormat } from "~/helpers/types.ts";
+import type { EventCategory, EventFormat, ListPageMode, RoundFormat } from "~/helpers/types.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
@@ -41,10 +41,10 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
   const [newEventId, setNewEventId] = useState("");
   const [name, setName] = useState("");
   const [category, setCategory] = useState<EventCategory>("miscellaneous");
-  const [rank, setRank] = useState<NumberInputValue>();
+  const [rank, setRank] = useState<number | undefined>();
   const [format, setFormat] = useState<EventFormat>("time");
   const [defaultRoundFormat, setDefaultRoundFormat] = useState<RoundFormat>("a");
-  const [participants, setParticipants] = useState<NumberInputValue>(1);
+  const [participants, setParticipants] = useState<number | undefined>(1);
   const [submissionsAllowed, setSubmissionsAllowed] = useState(false);
   const [removedWca, setRemovedWca] = useState(false);
   const [hasMemo, setHasMemo] = useState(false);

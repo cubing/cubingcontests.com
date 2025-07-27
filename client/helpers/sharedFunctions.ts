@@ -1,23 +1,12 @@
 import { remove as removeAccents } from "remove-accents";
 import { C } from "./constants.ts";
-import { ContestType, EventFormat, EventGroup, Role, RoundFormat, WcaRecordType } from "./enums.ts";
-import {
-  type Event,
-  type IAttempt,
-  type IContestEvent,
-  type ICutoff,
-  type IFeAttempt,
-  type IPersonDto,
-  type IRecordPair,
-  type IResult,
-  type IRound,
-  type IRoundFormat,
-  type IVideoBasedResult,
-} from "./types.ts";
-import { roundFormats } from "./roundFormats.ts";
-import { PersonDto } from "./validators/Person.ts";
+import type { IContestEvent, ICutoff, IRecordPair, IRound, RoundFormat } from "./types.ts";
+import { RoundFormatObject, roundFormats } from "./roundFormats.ts";
+import type { PersonDto } from "./validators/Person.ts";
 import { differenceInDays, startOfDay } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
+import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
 
 type BestCompareObj = { best: number };
 type AvgCompareObj = { best?: number; average: number };
@@ -57,17 +46,17 @@ export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
 // and includes unapproved results
 export const setResultRecords = (
-  result: IResult | IVideoBasedResult,
-  event: Event,
+  result: ResultResponse,
+  event: EventResponse,
   recordPairs: IRecordPair[],
   noConsoleLog = false,
-): IResult | IVideoBasedResult => {
+): ResultResponse => {
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (recordPair.wcaEquivalent === WcaRecordType.WR) {
       const comparisonToRecordSingle = compareSingles(
         result,
-        { best: recordPair.best } as IResult,
+        { best: recordPair.best },
       );
 
       if (result.best > 0 && comparisonToRecordSingle <= 0) {
@@ -113,7 +102,7 @@ export const getFormattedTime = (
     showDecimals = true,
     alwaysShowMinutes = false,
   }: {
-    event?: Event;
+    event?: EventResponse;
     noFormatting?: boolean;
     showMultiPoints?: boolean;
     showDecimals?: boolean; // if the time is >= 1 hour, they won't be shown regardless of this value
@@ -133,7 +122,7 @@ export const getFormattedTime = (
     return "DNS";
   } else if (time === C.maxTime) {
     return "Unknown";
-  } else if (event?.format === EventFormat.Number) {
+  } else if (event?.format === "number") {
     // FM singles are limited to 999 moves, so if it's more than that, it must be the mean. Format it accordingly.
     if (time > C.maxFmMoves && !noFormatting) return (time / 100).toFixed(2);
     else return time.toString();
@@ -141,7 +130,7 @@ export const getFormattedTime = (
     let centiseconds: number;
     let timeStr = time.toString();
 
-    if (event?.format !== EventFormat.Multi) centiseconds = time;
+    if (event?.format !== "multi") centiseconds = time;
     else centiseconds = parseInt(timeStr.slice(timeStr.length - 11, -4));
 
     let output = "";
@@ -179,7 +168,7 @@ export const getFormattedTime = (
       output += Math.floor(seconds).toFixed(0); // remove the decimals
     }
 
-    if (event?.format !== EventFormat.Multi) {
+    if (event?.format !== "multi") {
       return output;
     } else {
       if (time < 0) timeStr = timeStr.replace("-", "");
@@ -205,18 +194,17 @@ export const getFormattedTime = (
 };
 
 // Returns the best and average times
-export const getBestAndAverage = (
-  attempts: IAttempt[] | IFeAttempt[],
-  event: Event,
+export function getBestAndAverage(
+  attempts: Attempt[],
+  event: EventResponse,
   roundFormat: RoundFormat,
   { cutoff }: { cutoff?: ICutoff } = {},
-): { best: number; average: number } => {
+): { best: number; average: number } {
   let best: number, average: number;
   let sum = 0;
   let dnfDnsCount = 0;
   const makesCutoff = getMakesCutoff(attempts, cutoff);
-  const expectedAttempts = (roundFormats.find((rf) => rf.value === roundFormat) as IRoundFormat)
-    .attempts;
+  const expectedAttempts = roundFormats.find((rf) => rf.value === roundFormat)!.attempts;
   const enteredAttempts = attempts.filter((a) => a.result !== 0).length;
 
   // This actually follows the rule that the lower the attempt value is - the better
@@ -239,7 +227,7 @@ export const getBestAndAverage = (
   ) {
     average = 0;
   } else if (
-    dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== RoundFormat.Average)
+    dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== "a")
   ) {
     average = -1;
   } else {
@@ -249,25 +237,22 @@ export const getBestAndAverage = (
       if (dnfDnsCount === 0) sum -= Math.max(...convertedAttempts);
     }
 
-    average = Math.round(
-      (sum / 3) * (event.format === EventFormat.Number ? 100 : 1),
-    );
+    average = Math.round((sum / 3) * (event.format === "number" ? 100 : 1));
   }
 
   return { best, average };
-};
+}
 
-export const getIsProceedableResult = (result: IResult, roundFormat: IRoundFormat): boolean =>
+export const getIsProceedableResult = (result: ResultResponse, roundFormat: RoundFormatObject): boolean =>
   (roundFormat.isAverage && result.average > 0) || result.best > 0;
 
-export const getDefaultAverageAttempts = (event: Event) => {
-  const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
+export const getDefaultAverageAttempts = (event: EventResponse) => {
+  const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat)!;
   return roundFormat.attempts === 5 ? 5 : 3;
 };
 
-export const getAlwaysShowDecimals = (event: Event): boolean =>
-  event.groups.includes(EventGroup.ExtremeBLD) &&
-  event.format !== EventFormat.Multi;
+export const getAlwaysShowDecimals = (event: EventResponse): boolean =>
+  event.category === "extreme-bld" && event.format !== "multi";
 
 export const getIsCompType = (contestType: ContestType | undefined): boolean => {
   if (!contestType) throw new Error("getIsCompType cannot accept undefined contestType");
@@ -276,10 +261,7 @@ export const getIsCompType = (contestType: ContestType | undefined): boolean => 
 };
 
 // If the round has no cutoff (undefined), return true
-export const getMakesCutoff = (
-  attempts: IAttempt[] | IFeAttempt[],
-  cutoff: ICutoff | undefined,
-): boolean =>
+export const getMakesCutoff = (attempts: Attempt[], cutoff: ICutoff | undefined): boolean =>
   !cutoff ||
   attempts.some((a, i) =>
     i < cutoff.numberOfAttempts && a.result && a.result > 0 &&

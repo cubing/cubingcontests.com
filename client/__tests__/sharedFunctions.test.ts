@@ -1,25 +1,12 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
-import {
-  type Event,
-  IAttempt,
-  type IContestEvent,
-  type IRecordPair,
-} from "~/helpers/types.ts";
-import {
-  compareAvgs,
-  compareSingles,
-  getBestAndAverage,
-  setResultRecords,
-} from "~/helpers/sharedFunctions.ts";
+import { IAttempt, type IContestEvent, type IRecordPair } from "~/helpers/types.ts";
+import { compareAvgs, compareSingles, getBestAndAverage, setResultRecords } from "~/helpers/sharedFunctions.ts";
 import { eventsStub } from "~/__mocks__/events.stub.ts";
-import { RoundFormat, WcaRecordType } from "~/helpers/enums.ts";
-import {
-  newContestEventsStub,
-  newFakeContestEventsStub,
-} from "~/__mocks__/new-competition-events.stub.ts";
+import { WcaRecordType } from "~/helpers/enums.ts";
+import { newContestEventsStub, newFakeContestEventsStub } from "~/__mocks__/new-competition-events.stub.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as Event;
+const mockTimeEvent = eventsStub().find((e) => e.eventId === "333")!;
 
 describe("getBestAndAverage", () => {
   it("Sets average to 0 when there is only one attempt", () => {
@@ -28,7 +15,7 @@ describe("getBestAndAverage", () => {
     const { best, average } = getBestAndAverage(
       attempts,
       mockTimeEvent,
-      RoundFormat.BestOf1,
+      "1",
     );
 
     expect(best).toBe(1234);
@@ -41,7 +28,7 @@ describe("getBestAndAverage", () => {
     const { best, average } = getBestAndAverage(
       attempts,
       mockTimeEvent,
-      RoundFormat.BestOf2,
+      "2",
     );
 
     expect(best).toBe(1234);
@@ -170,9 +157,7 @@ describe("setResultRecords", () => {
   ];
 
   it("sets new 3x3x3 records correctly", () => {
-    const contestEvent = newContestEventsStub().find((el) =>
-      el.event.eventId === "333"
-    ) as IContestEvent;
+    const contestEvent = newContestEventsStub().find((ce) => ce.event.eventId === "333")!;
     const result = setResultRecords(
       contestEvent.rounds[0].results[0],
       contestEvent.event,
@@ -185,9 +170,7 @@ describe("setResultRecords", () => {
   });
 
   it("updates 3x3x3 BLD single record correctly", () => {
-    const contestEvent = newFakeContestEventsStub().find((el) =>
-      el.event.eventId === "333bf"
-    ) as IContestEvent;
+    const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "333bf")!;
     const result = setResultRecords(
       contestEvent.rounds[0].results[0],
       contestEvent.event,
@@ -199,9 +182,7 @@ describe("setResultRecords", () => {
   });
 
   it("doesn't set avg records when the # of attempts doesn't match the default format's # of attempts", () => {
-    const contestEvent = newFakeContestEventsStub().find((el) =>
-      el.event.eventId === "222"
-    ) as IContestEvent;
+    const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "222")!;
     const result = setResultRecords(
       contestEvent.rounds[2].results[0],
       contestEvent.event,

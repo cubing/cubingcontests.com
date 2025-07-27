@@ -18,9 +18,6 @@ export type PageSize = "A4" | "A6";
 
 export type ListPageMode = "view" | "add" | "edit";
 
-// undefined is the empty value, null is the invalid value
-export type NumberInputValue = number | null | undefined;
-
 export type InputPerson = PersonResponse | null;
 
 export type Creator = Pick<typeof authClient.$Infer.Session.user, "id" | "username" | "email">;
@@ -39,11 +36,14 @@ export const EventFormatValues = [
   "time",
   "number", // for Fewest Moves events
   "multi",
-] as [string, ...string[]];
+] as const;
 export type EventFormat = typeof EventFormatValues[number];
 
-export const RoundFormatValues = ["a", "m", "3", "2", "1"] as [string, ...string[]];
+export const RoundFormatValues = ["a", "m", "3", "2", "1"] as const;
 export type RoundFormat = typeof RoundFormatValues[number];
+
+export const RoundTypeValues = ["1", "2", "3", "4", "5", "6", "7", "8", "s", "f"] as const;
+export type RoundType = typeof RoundTypeValues[number];
 
 export const EventCategoryValues = [
   "unofficial",
@@ -51,5 +51,5 @@ export const EventCategoryValues = [
   "extreme-bld",
   "miscellaneous",
   "removed",
-] as [string, ...string[]];
+] as const;
 export type EventCategory = typeof EventCategoryValues[number];

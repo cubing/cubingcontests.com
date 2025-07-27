@@ -4,27 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import FormTextInput from "./form/FormTextInput.tsx";
 import FormNumberInput from "./form/FormNumberInput.tsx";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { EventFormat, EventGroup } from "~/helpers/enums.ts";
-import {
-  Event,
-  type IFeAttempt,
-  ITimeLimit,
-  type NumberInputValue,
-} from "~/helpers/types.ts";
-import {
-  getAlwaysShowDecimals,
-  getFormattedTime,
-} from "~/helpers/sharedFunctions.ts";
+import { getAlwaysShowDecimals, getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { C } from "~/helpers/constants.ts";
+import { EventResponse } from "~/server/db/schema/events.ts";
+import { Attempt } from "~/server/db/schema/results.ts";
 
 const DNFKeys = ["f", "F", "d", "D", "/"];
 const DNSKeys = ["s", "S", "*"];
 const unknownTimeKeys = ["u", "U"];
 
-const getFormattedText = (
-  text: string,
-  { forMemo = false, isNumberFormat = false },
-): string => {
+const getFormattedText = (text: string, { forMemo = false, isNumberFormat = false }): string => {
   if (isNumberFormat) return text;
 
   let output = "";
@@ -52,9 +41,9 @@ const getFormattedText = (
 
 type Props = {
   attNumber: number; // number of the attempt (use 0 if the input is used for a time limit or cutoff)
-  attempt: IFeAttempt;
-  setAttempt: (val: IFeAttempt) => void;
-  event: Event;
+  attempt: Attempt;
+  setAttempt: (val: Attempt) => void;
+  event: EventResponse;
   timeLimit?: ITimeLimit;
   memoInputForBld?: boolean;
   allowUnknownTime?: boolean;
@@ -63,7 +52,7 @@ type Props = {
   nextFocusTargetId?: string;
 };
 
-const AttemptInput = ({
+function AttemptInput({
   attNumber,
   attempt,
   setAttempt,
@@ -74,32 +63,23 @@ const AttemptInput = ({
   maxTime,
   disabled = false,
   nextFocusTargetId,
-}: Props) => {
-  const [solved, setSolved] = useState<NumberInputValue>(undefined);
-  const [attempted, setAttempted] = useState<NumberInputValue>(undefined);
+}: Props) {
+  const [solved, setSolved] = useState<number | undefined>(undefined);
+  const [attempted, setAttempted] = useState<number | undefined>(undefined);
   const [attemptText, setAttemptText] = useState<string>("");
   const [memoText, setMemoText] = useState<string>("");
 
   const formattedAttemptText = useMemo(
-    () =>
-      getFormattedText(attemptText, {
-        isNumberFormat: event.format === EventFormat.Number,
-      }),
+    () => getFormattedText(attemptText, { isNumberFormat: event.format === "number" }),
     [attemptText, event],
   );
   const formattedMemoText = useMemo(
-    () =>
-      getFormattedText(memoText, {
-        forMemo: true,
-        isNumberFormat: event.format === EventFormat.Number,
-      }),
+    () => getFormattedText(memoText, { forMemo: true, isNumberFormat: event.format === "number" }),
     [memoText, event],
   );
 
-  const isInvalidAttempt = attempt.result === null || attempt.memo === null ||
-    (!!maxTime && attempt.result > maxTime);
-  const includeMemo = memoInputForBld &&
-    event.groups.includes(EventGroup.HasMemo);
+  const isInvalidAttempt = attempt.result === null || attempt.memo === null || (!!maxTime && attempt.result > maxTime);
+  const includeMemo = memoInputForBld && event.hasMemo;
 
   useEffect(() => {
     if (attempt.result !== null && attempt.memo !== null) {
@@ -113,18 +93,11 @@ const AttemptInput = ({
         // Attempt time
         if (attempt.result === 0) {
           setAttemptText("");
-        } else if (event.format !== EventFormat.Multi) {
-          setAttemptText(
-            getFormattedTime(attempt.result, { event, noFormatting: true }),
-          );
+        } else if (event.format !== "multi") {
+          setAttemptText(getFormattedTime(attempt.result, { event, noFormatting: true }));
         } else {
-          const formattedTime = getFormattedTime(attempt.result, {
-            event,
-            noFormatting: true,
-          });
-          const [newSolved, newAttempted, newAttText] = formattedTime.split(
-            ";",
-          );
+          const formattedTime = getFormattedTime(attempt.result, { event, noFormatting: true });
+          const [newSolved, newAttempted, newAttText] = formattedTime.split(";");
 
           setSolved(Number(newSolved));
           setAttempted(Number(newAttempted));
@@ -167,7 +140,7 @@ const AttemptInput = ({
     setMemoText("");
   };
 
-  const changeSolved = (newSolved: NumberInputValue) => {
+  const changeSolved = (newSolved: number | undefined) => {
     setSolved(newSolved);
     if (attemptText) {
       setAttempt(
@@ -180,7 +153,7 @@ const AttemptInput = ({
     }
   };
 
-  const changeAttempted = (newAttempted: NumberInputValue) => {
+  const changeAttempted = (newAttempted: number | undefined) => {
     setAttempted(newAttempted);
     if (attemptText) {
       setAttempt(
@@ -204,39 +177,26 @@ const AttemptInput = ({
     if (e.target.value.length < prevValue.length) {
       if (
         // For non-multi results we can erase DNF, DNS, and Unknown time
-        (event.format !== EventFormat.Multi && attempt.result !== null &&
-          (attempt.result < 0 || attempt.result === C.maxTime)) ||
+        (event.format !== "multi" && attempt.result !== null && (attempt.result < 0 || attempt.result === C.maxTime)) ||
         // For Multi format we can only erase a DNS, otherwise we must be erasing the time
-        (event.format === EventFormat.Multi && attempt.result === -2)
+        (event.format === "multi" && attempt.result === -2)
       ) {
         setAttempt({ ...attempt, result: 0 });
-        if (event.format === EventFormat.Multi) {
+        if (event.format === "multi") {
           document.getElementById(`attempt_${attNumber}_solved`)?.focus();
         }
       } else {
         if (!forMemo && attemptText !== "") {
           const newAttText = attemptText.slice(0, -1);
           setAttemptText(newAttText);
-          setAttempt(
-            getAttempt(attempt, event, newAttText, {
-              solved,
-              attempted,
-              memo: memoText,
-            }),
-          );
+          setAttempt(getAttempt(attempt, event, newAttText, { solved, attempted, memo: memoText }));
         } else if (forMemo && memoText) {
           // This is different, because the memo input has no decimals, but memo time is still stored as centiseconds
           let newMemoText: string = memoText.slice(0, -3);
           if (newMemoText) newMemoText += "00";
 
           setMemoText(newMemoText);
-          setAttempt(
-            getAttempt(attempt, event, attemptText, {
-              solved,
-              attempted,
-              memo: newMemoText,
-            }),
-          );
+          setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted, memo: newMemoText }));
         }
       }
     } // Add character
@@ -244,21 +204,19 @@ const AttemptInput = ({
       const newCharacter = e.target.value[e.target.selectionStart - 1];
 
       if (!forMemo && DNFKeys.includes(newCharacter)) {
-        if (event.format !== EventFormat.Multi) dnfTheAttempt();
+        if (event.format !== "multi") dnfTheAttempt();
       } else if (!forMemo && DNSKeys.includes(newCharacter)) {
         handleSetDNS(e);
       } else if (!forMemo && unknownTimeKeys.includes(newCharacter)) {
         // Multi-Blind doesn't allow unknown time, but Multi-Blind Old Style does
         if (allowUnknownTime && event.eventId !== "333mbf") {
-          if (event.format !== EventFormat.Multi) {
+          if (event.format !== "multi") {
             setAttempt({ result: C.maxTime });
             setAttemptText("Unknown");
             setMemoText("");
           } else {
             // C.maxTime is 24 hours
-            setAttempt(
-              getAttempt(attempt, event, "24000000", { solved, attempted }),
-            );
+            setAttempt(getAttempt(attempt, event, "24000000", { solved, attempted }));
           }
 
           focusNext();
@@ -270,23 +228,14 @@ const AttemptInput = ({
 
         if (newCharacter === "0" && ["", "00"].includes(text)) return; // don't allow entering 0 as the first digit
 
-        const newText = !forMemo
-          ? text + newCharacter
-          : text.slice(0, -2) + newCharacter + "00";
+        const newText = !forMemo ? text + newCharacter : text.slice(0, -2) + newCharacter + "00";
 
-        if (
-          newText.length <= C.maxFmMoves.toString().length ||
-          (newText.length <= 8 && event.format !== EventFormat.Number)
-        ) {
+        if (newText.length <= C.maxFmMoves.toString().length || (newText.length <= 8 && event.format !== "number")) {
           const newAttempt = getAttempt(
             attempt,
             event,
             forMemo ? attemptText : newText,
-            {
-              solved,
-              attempted,
-              memo: forMemo ? newText : memoText,
-            },
+            { solved, attempted, memo: forMemo ? newText : memoText },
           );
           setAttempt(newAttempt);
 
@@ -305,10 +254,7 @@ const AttemptInput = ({
       e.preventDefault();
 
       // If it's not the memo input and there is a time limit that wasn't met, DNF the attempt
-      if (
-        !forMemo && timeLimit && attempt.result !== null &&
-        attempt.result >= timeLimit.centiseconds
-      ) {
+      if (!forMemo && timeLimit && attempt.result !== null && attempt.result >= timeLimit.centiseconds) {
         dnfTheAttempt();
         focusNext();
       } else if (!forMemo && includeMemo) {
@@ -357,9 +303,8 @@ const AttemptInput = ({
   if (attNumber === 1) {
     const extraTip = allowUnknownTime ? "\nUse U for Unknown time." : "";
 
-    if (event.format !== EventFormat.Multi) {
-      timeInputTooltip = "Use D, F, or / for DNF.\nUse S or * for DNS." +
-        extraTip;
+    if (event.format !== "multi") {
+      timeInputTooltip = "Use D, F, or / for DNF.\nUse S or * for DNS." + extraTip;
     } else {
       timeInputTooltip =
         "Enter the result even for DNF attempts (they're treated as DNF, but the result is still shown).\nUse S or * for DNS." +
@@ -369,7 +314,7 @@ const AttemptInput = ({
 
   return (
     <div className={`${attNumber !== 0 ? "row px-3" : ""} gap-2 gap-md-3`}>
-      {event.format === EventFormat.Multi && (
+      {event.format === "multi" && (
         <>
           <div className={cubesInputClasses}>
             <FormNumberInput
@@ -406,9 +351,7 @@ const AttemptInput = ({
       <div className="col px-0">
         <FormTextInput
           id={`attempt_${attNumber}`}
-          title={attNumber === 1
-            ? (event.format !== EventFormat.Number ? "Time" : "Moves")
-            : ""}
+          title={attNumber === 1 ? (event.format !== "number" ? "Time" : "Moves") : ""}
           tooltip={timeInputTooltip}
           value={formattedAttemptText}
           onChange={(e) => onTimeChange(e)}
@@ -440,6 +383,6 @@ const AttemptInput = ({
       )}
     </div>
   );
-};
+}
 
 export default AttemptInput;

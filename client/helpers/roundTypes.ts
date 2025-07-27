@@ -1,14 +1,12 @@
-import { RoundType } from "~/helpers/enums.ts";
-
 export const roundTypes: any = {
-  [RoundType.First]: { id: RoundType.First, label: "First round" },
-  [RoundType.Second]: { id: RoundType.Second, label: "Second round" },
-  [RoundType.Third]: { id: RoundType.Third, label: "Third round" },
-  [RoundType.Fourth]: { id: RoundType.Fourth, label: "Fourth round" },
-  [RoundType.Fifth]: { id: RoundType.Fifth, label: "Fifth round" },
-  [RoundType.Sixth]: { id: RoundType.Sixth, label: "Sixth round" },
-  [RoundType.Seventh]: { id: RoundType.Seventh, label: "Seventh round" },
-  [RoundType.Eighth]: { id: RoundType.Eighth, label: "Eighth round" },
-  [RoundType.Semi]: { id: RoundType.Semi, label: "Semi Final" },
-  [RoundType.Final]: { id: RoundType.Final, label: "Final" },
+  "1": { id: "1", label: "First round" },
+  "2": { id: "2", label: "Second round" },
+  "3": { id: "3", label: "Third round" },
+  "4": { id: "4", label: "Fourth round" },
+  "5": { id: "5", label: "Fifth round" },
+  "6": { id: "6", label: "Sixth round" },
+  "7": { id: "7", label: "Seventh round" },
+  "8": { id: "8", label: "Eighth round" },
+  s: { id: "s", label: "Semi Final" },
+  f: { id: "f", label: "Final" },
 };

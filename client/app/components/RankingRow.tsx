@@ -10,23 +10,25 @@ import ContestName from "~/app/components/ContestName.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import type { Event, IPerson, IRanking, ResultRankingType } from "~/helpers/types.ts";
+import type { IRanking, ResultRankingType } from "~/helpers/types.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
 
 type Props = {
   isTiedRanking?: boolean;
   onlyKeepPerson?: boolean;
-  event: Event;
+  event: EventResponse;
   ranking: IRanking;
-  person: IPerson; // the person being ranked
+  person: PersonResponse; // the person being ranked
   showAllTeammates: boolean;
   showTeamColumn?: boolean;
   showDetailsColumn: boolean;
   forRecordsTable?: boolean;
 };
 
-const RankingRow = ({
+function RankingRow({
   isTiedRanking,
   onlyKeepPerson = false,
   event,
@@ -36,7 +38,7 @@ const RankingRow = ({
   showTeamColumn = false,
   showDetailsColumn,
   forRecordsTable = false,
-}: Props) => {
+}: Props) {
   const [teamExpanded, setTeamExpanded] = useState(false);
   const firstColumnValue = ranking.ranking ?? capitalize(ranking.type as ResultRankingType);
   const personsToDisplay = showAllTeammates ? ranking.persons : [person];
@@ -115,6 +117,6 @@ const RankingRow = ({
       )}
     </tr>
   );
-};
+}
 
 export default RankingRow;

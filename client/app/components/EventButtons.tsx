@@ -2,18 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Event } from "~/helpers/types.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import EventIcon from "~/app/components/EventIcon.tsx";
-import { EventGroup } from "~/helpers/enums";
+import { EventResponse } from "~/server/db/schema/events.ts";
 
 type Props = {
   eventId: string | undefined;
-  events: Event[];
+  events: EventResponse[];
   forPage: "results" | "rankings" | "competitions" | "data-entry";
 };
 
-const EventButtons = ({ eventId, events, forPage }: Props) => {
+function EventButtons({ eventId, events, forPage }: Props) {
   const router = useRouter();
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
@@ -21,16 +20,16 @@ const EventButtons = ({ eventId, events, forPage }: Props) => {
   const filteredCategories = eventCategories.filter((ec) => ec.value !== "removed");
 
   const [selectedCat, setSelectedCat] = useState(
-    filteredCategories.find((el) => events.find((e) => e.eventId === eventId)?.groups.includes(el.group)) ??
-      filteredCategories[0],
+    filteredCategories.find((ec) => events.find((e) => e.eventId === eventId)?.category === ec.value) ??
+      filteredCategories.at(0),
   );
 
   // If hideCategories = true, just show all events that were passed in
-  const filteredEvents = useMemo<Event[]>(
+  const filteredEvents = useMemo<EventResponse[]>(
     () =>
       !["rankings", "competitions"].includes(forPage)
         ? events
-        : events.filter((e) => !e.groups.includes(EventGroup.Hidden) && e.groups.includes(selectedCat.group)),
+        : events.filter((e) => !e.hidden && e.category === selectedCat.value),
     [events, selectedCat],
   );
 
@@ -78,7 +77,7 @@ const EventButtons = ({ eventId, events, forPage }: Props) => {
       )}
 
       <div className="d-flex flex-wrap mb-3 fs-3">
-        {filteredEvents.map((event: Event) => (
+        {filteredEvents.map((event) => (
           <EventIcon
             key={event.eventId}
             event={event}
@@ -89,6 +88,6 @@ const EventButtons = ({ eventId, events, forPage }: Props) => {
       </div>
     </div>
   );
-};
+}
 
 export default EventButtons;

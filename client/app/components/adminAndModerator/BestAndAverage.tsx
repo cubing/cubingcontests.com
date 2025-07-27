@@ -2,23 +2,22 @@
 
 import { useMemo } from "react";
 import Time from "~/app/components/Time.tsx";
-import type { Event, ICutoff, IFeAttempt, IRecordPair, IRecordType, IResult } from "~/helpers/types.ts";
 import { getBestAndAverage, setResultRecords } from "~/helpers/sharedFunctions.ts";
-import type { RoundFormat } from "~/helpers/enums.ts";
+import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
+import { RoundFormat } from "~/helpers/types.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
 
 type Props = {
-  event: Event;
+  event: EventResponse;
   roundFormat: RoundFormat;
-  attempts: IFeAttempt[];
+  attempts: Attempt[];
   recordPairs: IRecordPair[] | undefined;
   recordTypes: IRecordType[];
   cutoff?: ICutoff;
 };
 
-const BestAndAverage = (
-  { event, roundFormat, attempts, recordPairs, recordTypes, cutoff }: Props,
-) => {
-  const pseudoResult = useMemo<IResult>(() => {
+function BestAndAverage({ event, roundFormat, attempts, recordPairs, recordTypes, cutoff }: Props) {
+  const pseudoResult = useMemo<ResultResponse>(() => {
     const { best, average } = getBestAndAverage(attempts, event, roundFormat, {
       cutoff,
     });
@@ -27,14 +26,14 @@ const BestAndAverage = (
       average,
       attempts,
       eventId: event.eventId,
-    } as IResult;
+    } satisfies ResultResponse;
     if (recordPairs) {
       tempResult = setResultRecords(
         tempResult,
         event,
         recordPairs,
         true,
-      ) as IResult;
+      ) satisfies ResultResponse;
     }
     return tempResult;
   }, [attempts, event, roundFormat, recordPairs, cutoff]);
@@ -51,16 +50,11 @@ const BestAndAverage = (
       {attempts.length >= 3 && (
         <div className="mt-2">
           {attempts.length === 5 ? "Average:" : "Mean:"}&nbsp;
-          <Time
-            result={pseudoResult}
-            event={event}
-            recordTypes={recordTypes}
-            average
-          />
+          <Time result={pseudoResult} event={event} recordTypes={recordTypes} average />
         </div>
       )}
     </div>
   );
-};
+}
 
 export default BestAndAverage;

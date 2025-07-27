@@ -3,12 +3,11 @@ import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import RankingsTable from "~/app/components/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import { type Event, type IEventRankings } from "~/helpers/types.ts";
-import { EventGroup, RoundFormat } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
 import DonateAlert from "~/app/components/DonateAlert.tsx";
 import RegionSelect from "~/app/rankings/[eventId]/[singleOrAvg]/RegionSelect.tsx";
 import omitBy from "lodash/omitBy";
+import { EventResponse } from "~/server/db/schema/events.ts";
 
 // SEO
 export const metadata = {
@@ -26,7 +25,7 @@ type Props = {
   searchParams: Promise<{ show: "results"; region: string }>;
 };
 
-const RankingsPage = async ({ params, searchParams }: Props) => {
+async function RankingsPage({ params, searchParams }: Props) {
   const { eventId, singleOrAvg } = await params;
   const { show, region } = await searchParams;
   const urlSearchParams = new URLSearchParams(omitBy({ show, region }, (val) => !val));
@@ -39,7 +38,7 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
     `/results/rankings/${eventId}/${singleOrAvg}${queryString}`,
     { revalidate: C.rankingsRev },
   );
-  const eventsResponse = await ssrFetch<Event[]>("/events", { revalidate: C.rankingsRev });
+  const eventsResponse = await ssrFetch<EventResponse[]>("/events", { revalidate: C.rankingsRev });
 
   const currEvent = eventsResponse.success ? eventsResponse.data.find((e) => e.eventId === eventId) : undefined;
 
@@ -76,7 +75,7 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
                   prefetch={false}
                   className={"btn btn-primary" + (singleOrAvg === "average" ? " active" : "")}
                 >
-                  {currEvent.defaultRoundFormat === RoundFormat.Average ? "Average" : "Mean"}
+                  {currEvent.defaultRoundFormat === "a" ? "Average" : "Mean"}
                 </Link>
               </div>
             </div>
@@ -105,11 +104,8 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
           </div>
         </div>
 
-        {currEvent.groups.some((g) => [EventGroup.SubmissionsAllowed, EventGroup.ExtremeBLD].includes(g)) && (
-          <Link
-            href={`/user/submit-results?eventId=${eventId}`}
-            className="btn btn-success btn-sm"
-          >
+        {(currEvent.category === "extreme-bld" || currEvent.submissionsAllowed) && (
+          <Link href={`/user/submit-results?eventId=${eventId}`} className="btn btn-success btn-sm">
             Submit a result
           </Link>
         )}
@@ -124,6 +120,6 @@ const RankingsPage = async ({ params, searchParams }: Props) => {
       />
     </div>
   );
-};
+}
 
 export default RankingsPage;

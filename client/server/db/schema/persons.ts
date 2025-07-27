@@ -12,7 +12,7 @@ export const personsTable = table("persons", {
   countryIso2: varchar({ length: 2 }).notNull(),
   wcaId: varchar({ length: 10 }),
   approved: boolean().notNull(),
-  createdBy: text().references(() => usersTable.id, { onDelete: "set null" }), // this can be null if the user has been deleted
+  createdBy: text().references(() => usersTable.id, { onDelete: "set null" }),
   createdExternally: boolean(),
   ...tableTimestamps,
 });

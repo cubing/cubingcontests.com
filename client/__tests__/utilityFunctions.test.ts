@@ -1,13 +1,12 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { EventFormat, EventGroup } from "~/helpers/enums.ts";
-import { Event } from "~/helpers/types.ts";
 import { C } from "~/helpers/constants.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { eventsStub } from "~/__mocks__/events.stub.ts";
+import { EventResponse } from "../server/db/schema/events.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as Event;
+const mockTimeEvent = eventsStub().find((e) => e.eventId === "333")!;
 const roundOpts = {
   roundTime: true,
   roundMemo: true,
@@ -64,21 +63,21 @@ const timeExamples = [
 
 const mockNumberEvent = {
   eventId: "333fm",
-  format: EventFormat.Number,
-  groups: [EventGroup.WCA],
-} as Event;
+  format: "number",
+  category: "wca",
+} as EventResponse;
 
 const mockMultiEvent = {
   eventId: "333mbf",
-  format: EventFormat.Multi,
-  groups: [EventGroup.WCA],
-} as Event;
+  format: "multi",
+  category: "wca",
+} as EventResponse;
 
 const mockOldStyleEvent = {
   eventId: "333mbo",
-  format: EventFormat.Multi,
-  groups: [EventGroup.ExtremeBLD],
-} as Event;
+  format: "multi",
+  category: "wca",
+} as EventResponse;
 
 const multiBlindExamples = [
   {
@@ -432,9 +431,7 @@ describe("getFormattedTime", () => {
 
   it("formats Multi attempt with unknown time correctly", () => {
     const attempt = Number(`9995${C.maxTime}0001`);
-    expect(getFormattedTime(attempt, { event: mockMultiEvent })).toBe(
-      "5/6 Unknown time",
-    );
+    expect(getFormattedTime(attempt, { event: mockMultiEvent })).toBe("5/6 Unknown time");
   });
 
   it("formats 0:34 memo time correctly", () => {

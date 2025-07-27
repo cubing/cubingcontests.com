@@ -25,6 +25,7 @@ export async function register() {
         name: "",
         password: "Temporary_good_password123",
         role: "admin",
+        personId: 1,
       },
       {
         email: "mod@cc.com",
@@ -32,12 +33,14 @@ export async function register() {
         name: "",
         password: "Temporary_good_password123",
         role: "mod",
+        personId: 2,
       },
       {
         email: "user@cc.com",
         username: "user",
         name: "",
         password: "Temporary_good_password123",
+        personId: 3,
       },
     ];
 
@@ -51,9 +54,9 @@ export async function register() {
         const { role, ...body } = testUser;
         await auth.api.signUpEmail({ body });
 
-        // Verify email
+        // Verify email and set person ID
         const [user] = await db.update(usersTable)
-          .set({ emailVerified: true })
+          .set({ emailVerified: true, personId: testUser.personId })
           .where(eq(usersTable.email, testUser.email))
           .returning();
 

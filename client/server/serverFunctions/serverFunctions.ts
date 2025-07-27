@@ -29,7 +29,7 @@ import { C } from "~/helpers/constants.ts";
 // });
 
 // export async function getTimeZoneFromCoordsSF(
-//   dto: { latitude: NumberInputValue; longitude: NumberInputValue },
+//   dto: { latitude: number | undefined; longitude: number | undefined },
 // ): Promise<FetchObj<string>> {
 //   const parsed = CoordinatesValidator.safeParse(dto);
 //   if (!parsed.success) return getValidationError(parsed.error);

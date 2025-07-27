@@ -5,24 +5,20 @@ import { addYears, isValid } from "date-fns";
 import { fromZonedTime, getTimezoneOffset, toZonedTime } from "date-fns-tz";
 import debounce from "lodash/debounce";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
-import {
-  type Event,
-  type ICompetitionDetails,
-  type IContest,
-  type IContestDto,
-  type IContestEvent,
-  type IFePerson,
-  type IFeUser,
-  type IMeetupDetails,
-  type IRoom,
-  type IRound,
-  type NumberInputValue,
-  type PageSize,
+import type {
+  ICompetitionDetails,
+  IContest,
+  IContestDto,
+  IContestEvent,
+  IMeetupDetails,
+  IRoom,
+  IRound,
+  PageSize,
 } from "~/helpers/types.ts";
 import { Color, ContestState, ContestType } from "~/helpers/enums.ts";
 import { getDateOnly, getIsCompType, getIsUrgent } from "~/helpers/sharedFunctions.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
-import { getContestIdFromName, getTimeLimit, getUserInfo } from "~/helpers/utilityFunctions.ts";
+import { getContestIdFromName, getTimeLimit } from "~/helpers/utilityFunctions.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import Form from "~/app/components/form/Form.tsx";
@@ -47,6 +43,8 @@ import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import Link from "next/link";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import { authClient } from "~/helpers/authClient.ts";
+import { EventResponse } from "~/server/db/schema/events.ts";
+import { PersonResponse } from "~/server/db/schema/persons.ts";
 
 const ContestForm = ({
   events,
@@ -54,7 +52,7 @@ const ContestForm = ({
   contest,
   creator,
 }: {
-  events: Event[];
+  events: EventResponse[];
   mode: "new" | "edit" | "copy";
   contest?: IContest;
   creator?: IFeUser;
@@ -62,13 +60,7 @@ const ContestForm = ({
   const myFetch = useMyFetch();
   const { data: session } = authClient.useSession();
   const fetchWcaCompDetails = useFetchWcaCompDetails();
-  const {
-    changeErrorMessages,
-    changeSuccessMessage,
-    loadingId,
-    changeLoadingId,
-    resetMessagesAndLoadingId,
-  } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const [activeTab, setActiveTab] = useState("details");
   const [detailsImported, setDetailsImported] = useState(mode === "edit" && contest?.type === ContestType.WcaComp);
@@ -83,11 +75,11 @@ const ContestForm = ({
   const [venue, setVenue] = useState(contest?.venue ?? "");
   const [address, setAddress] = useState(contest?.address ?? "");
   // Vertical coordinate (Y); ranges from -90 to 90
-  const [latitude, setLatitude] = useState<NumberInputValue>(
+  const [latitude, setLatitude] = useState<number | undefined>(
     contest ? contest.latitudeMicrodegrees / 1000000 : 0,
   );
   // Horizontal coordinate (X); ranges from -180 to 180
-  const [longitude, setLongitude] = useState<NumberInputValue>(
+  const [longitude, setLongitude] = useState<number | undefined>(
     contest ? contest.longitudeMicrodegrees / 1000000 : 0,
   );
   const [startDate, setStartDate] = useState(contest ? new Date(contest.startDate) : undefined);
@@ -105,7 +97,7 @@ const ContestForm = ({
   ]);
   const [contact, setContact] = useState(contest?.contact ?? "");
   const [description, setDescription] = useState(contest?.description ?? "");
-  const [competitorLimit, setCompetitorLimit] = useState<NumberInputValue>(contest?.competitorLimit);
+  const [competitorLimit, setCompetitorLimit] = useState<number | undefined>(contest?.competitorLimit);
 
   // Event stuff
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest?.events ?? []);
@@ -309,7 +301,7 @@ const ContestForm = ({
   };
 
   const fillWithMockData = async (mockContestType = ContestType.Competition) => {
-    const res = await myFetch.get<IFePerson>(
+    const res = await myFetch.get<PersonResponse>(
       `/persons?personId=${userInfo?.personId}`,
       { loadingId: "set_mock_comp_button" },
     );
@@ -432,7 +424,7 @@ const ContestForm = ({
     }
   };
 
-  const changeCoordinates = (newLat: NumberInputValue, newLong: NumberInputValue) => {
+  const changeCoordinates = (newLat: number | undefined, newLong: number | undefined) => {
     const parsed = CoordinatesValidator.safeParse({ latitude: newLat, longitude: newLong });
 
     setLatitude(newLat);

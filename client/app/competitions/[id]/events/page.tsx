@@ -2,7 +2,7 @@ import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import type { IContestData, IProceed } from "~/helpers/types.ts";
-import { RoundProceed, RoundType } from "~/helpers/enums.ts";
+import { RoundProceed } from "~/helpers/enums.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
@@ -81,7 +81,7 @@ const ContestEventsPage = async ({ params }: Props) => {
                     <td>{cutoffText}</td>
                     {hasNonFinalRound && (
                       <td>
-                        {round.roundTypeId !== RoundType.Final &&
+                        {round.roundTypeId !== "f" &&
                           `Top ${(round.proceed as IProceed).value}${
                             (round.proceed as IProceed).type ===
                                 RoundProceed.Percentage

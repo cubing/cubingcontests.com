@@ -1,18 +1,14 @@
 import { isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
-import { Color, EventFormat } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
-import type {
-  CcServerErrorObject,
-  Event,
-  IFeAttempt,
-  IRoundFormat,
-  ITimeLimit,
-  NumberInputValue,
-} from "~/helpers/types.ts";
+import type { CcServerErrorObject, EventFormat, InputPerson, ITimeLimit } from "~/helpers/types.ts";
 import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 import { SafeActionResult } from "next-safe-action";
+import type { Attempt } from "~/server/db/schema/results.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import { Color } from "./enums.ts";
+import { type RoundFormatObject } from "./roundFormats.ts";
 
 export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
   if (!startDate) throw new Error("Start date missing!");
@@ -41,10 +37,7 @@ const getCentiseconds = (
   { round = true, throwErrorWhenInvalidTime = false }: {
     round?: boolean;
     throwErrorWhenInvalidTime?: boolean;
-  } = {
-    round: true,
-    throwErrorWhenInvalidTime: false,
-  },
+  } = { round: true, throwErrorWhenInvalidTime: false },
 ): number | null => {
   if (time === "") return 0;
 
@@ -64,10 +57,7 @@ const getCentiseconds = (
   }
 
   // Disallow >60 minutes, >60 seconds, and times more than 24 hours long
-  if (
-    minutes >= 60 || centiseconds >= 6000 || hours > 24 ||
-    (hours === 24 && minutes > 0 && centiseconds > 0)
-  ) {
+  if (minutes >= 60 || centiseconds >= 6000 || hours > 24 || (hours === 24 && minutes > 0 && centiseconds > 0)) {
     if (throwErrorWhenInvalidTime) {
       throw new Error(
         `Invalid time: ${time}. Debug info: hours = ${hours}, minutes = ${minutes}, centiseconds = ${centiseconds}, time = ${time}, round = ${round}`,
@@ -81,52 +71,42 @@ const getCentiseconds = (
 
 // Returns null if the time is invalid (e.g. 8145); returns 0 if it's empty.
 // solved and attempted are only required for the Multi event format.
-export const getAttempt = (
-  attempt: IFeAttempt,
-  event: Event,
+export function getAttempt(
+  attempt: Attempt,
+  event: EventResponse,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
   { roundTime = false, roundMemo = false, solved, attempted, memo }: {
     roundTime?: boolean;
     roundMemo?: boolean;
     // These three parameters are optional if the event format is Number
-    solved?: NumberInputValue;
-    attempted?: NumberInputValue;
-    memo?: string; // only used for events with the event group HasMemo
+    solved?: number | undefined;
+    attempted?: number | undefined;
+    memo?: string; // only used for events with hasMemo = true
   } = { roundTime: false, roundMemo: false },
-): IFeAttempt => {
+): Attempt {
   if (time.length > 8 || (memo && memo.length > 8)) {
     throw new Error("Times longer than 8 digits are not supported");
   }
 
   const maxFmResultDigits = C.maxFmMoves.toString().length;
-  if (time.length > maxFmResultDigits && event.format === EventFormat.Number) {
-    throw new Error(
-      `Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`,
-    );
+  if (time.length > maxFmResultDigits && event.format === "number") {
+    throw new Error(`Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`);
   }
 
-  if (event.format === EventFormat.Number) {
+  if (event.format === "number") {
     return { ...attempt, result: time ? parseInt(time) : 0 };
   }
 
-  const newAttempt: IFeAttempt = {
-    result: getCentiseconds(time, { round: roundTime }),
-  };
+  const newAttempt: Attempt = { result: getCentiseconds(time, { round: roundTime }) };
   if (memo) {
     newAttempt.memo = getCentiseconds(memo, { round: roundMemo });
-    if (
-      newAttempt.memo && newAttempt.result &&
-      newAttempt.memo >= newAttempt.result
-    ) {
+    if (newAttempt.memo && newAttempt.result && newAttempt.memo >= newAttempt.result) {
       return { ...newAttempt, result: null };
     }
   }
 
-  if (event.format === EventFormat.Multi && newAttempt.result) {
-    if (
-      typeof solved !== "number" || typeof attempted !== "number" ||
-      solved > attempted
-    ) return { result: null };
+  if (event.format === "multi" && newAttempt.result) {
+    if (typeof solved !== "number" || typeof attempted !== "number" || solved > attempted) return { result: null };
 
     const maxTime = Math.min(attempted, 6) * 60000 + attempted * 200; // accounts for +2s
 
@@ -148,16 +128,14 @@ export const getAttempt = (
     }
 
     multiOutput += 9999 - points;
-    multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") +
-      newAttempt.result;
-    multiOutput += new Array(4 - missed.toString().length).fill("0").join("") +
-      missed;
+    multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") + newAttempt.result;
+    multiOutput += new Array(4 - missed.toString().length).fill("0").join("") + missed;
 
     newAttempt.result = parseInt(multiOutput);
   }
 
   return newAttempt;
-};
+}
 
 export const getBSClassFromColor = (color: Color | undefined): string => {
   // THE MAGENTA OPTION IS SKIPPED FOR NOW
@@ -243,18 +221,13 @@ export const getIsWebglSupported = (): boolean => {
   }
 };
 
-export const getTimeLimit = (
-  eventFormat: EventFormat,
-): ITimeLimit | undefined =>
-  eventFormat === EventFormat.Time ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
+export const getTimeLimit = (eventFormat: EventFormat): ITimeLimit | undefined =>
+  eventFormat === "time" ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
 
-export const getRoundFormatOptions = (
-  roundFormats: IRoundFormat[],
-): MultiChoiceOption[] => roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
+export const getRoundFormatOptions = (roundFormats: RoundFormatObject[]): MultiChoiceOption[] =>
+  roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
 
-export const getBlankCompetitors = (
-  participants: number,
-): [InputPerson[], string[]] => {
+export const getBlankCompetitors = (participants: number): [InputPerson[], string[]] => {
   const persons = new Array(participants).fill(null);
   const personNames = new Array(participants).fill("");
   return [persons, personNames];

@@ -27,12 +27,7 @@ type Props = {
   onCancel: (() => void) | undefined;
 };
 
-function PersonForm({
-  personUnderEdit,
-  creator,
-  onSubmit,
-  onCancel,
-}: Props) {
+function PersonForm({ personUnderEdit, creator, onSubmit, onCancel }: Props) {
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
@@ -189,7 +184,7 @@ function PersonForm({
       {personUnderEdit && (
         <CreatorDetails
           user={creator}
-          person={personUnderEdit}
+          person={undefined} // TO-DO: FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           createdExternally={(personUnderEdit as any).createdExternally}
         />
       )}

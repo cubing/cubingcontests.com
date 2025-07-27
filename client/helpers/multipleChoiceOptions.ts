@@ -71,15 +71,15 @@ export const roundProceedOptions: MultiChoiceOption[] = [
 export const eventFormatOptions: MultiChoiceOption[] = [
   {
     label: "Time",
-    value: EventFormat.Time,
+    value: "time",
   },
   {
     label: "Number",
-    value: EventFormat.Number,
+    value: "number",
   },
   {
     label: "Multi-Blind",
-    value: EventFormat.Multi,
+    value: "multi",
   },
 ];
 

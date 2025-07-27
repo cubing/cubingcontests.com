@@ -11,13 +11,7 @@ type Props = {
   small?: boolean;
 };
 
-const CreatorDetails = ({
-  user,
-  person,
-  createdExternally: createdExternally = false,
-  isCurrentUser = false,
-  small = false,
-}: Props) => {
+function CreatorDetails({ user, person, createdExternally = false, isCurrentUser = false, small = false }: Props) {
   let specialCase: ReactElement | undefined;
   if (createdExternally) specialCase = <span className="text-warning">External device</span>;
   else if (!user) specialCase = <span>Deleted user</span>;
@@ -56,6 +50,6 @@ const CreatorDetails = ({
       }
     </div>
   );
-};
+}
 
 export default CreatorDetails;

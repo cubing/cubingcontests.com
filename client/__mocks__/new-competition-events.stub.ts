@@ -1,5 +1,3 @@
-import { RoundFormat, RoundType } from "~/helpers/enums.ts";
-import { type Event, IContestEvent } from "~/helpers/types.ts";
 import { eventsStub } from "./events.stub.ts";
 
 const eventsSeed = eventsStub();
@@ -7,13 +5,13 @@ const eventsSeed = eventsStub();
 export const newContestEventsStub = (): IContestEvent[] => {
   return [
     {
-      event: eventsSeed.find((el) => el.eventId === "333") as Event,
+      event: eventsSeed.find((el) => el.eventId === "333")!,
       rounds: [
         {
           roundId: "333-r1",
           competitionId: "Munich30062023",
-          roundTypeId: RoundType.Final,
-          format: RoundFormat.Average,
+          roundTypeId: "f",
+          format: "a",
           results: [
             {
               competitionId: "Munich30062023",
@@ -21,9 +19,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-06-30T00:00:00Z"),
               personIds: [9],
               ranking: 1,
-              attempts: [{ result: 876 }, { result: 989 }, { result: 812 }, {
-                result: 711,
-              }, { result: 686 }],
+              attempts: [{ result: 876 }, { result: 989 }, { result: 812 }, { result: 711 }, { result: 686 }],
               // Both single and average should be WRs
               best: 686,
               average: 800,
@@ -34,9 +30,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-06-30T00:00:00Z"),
               personIds: [1],
               ranking: 2,
-              attempts: [{ result: 1366 }, { result: 1153 }, { result: 1106 }, {
-                result: 1165,
-              }, { result: 1206 }],
+              attempts: [{ result: 1366 }, { result: 1153 }, { result: 1106 }, { result: 1165 }, { result: 1206 }],
               best: 1106,
               average: 1175,
             },
@@ -46,9 +40,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-06-30T00:00:00Z"),
               personIds: [4],
               ranking: 3,
-              attempts: [{ result: 1473 }, { result: 1122 }, { result: 1281 }, {
-                result: 995,
-              }, { result: 1366 }],
+              attempts: [{ result: 1473 }, { result: 1122 }, { result: 1281 }, { result: 995 }, { result: 1366 }],
               best: 995,
               average: 1256,
             },
@@ -58,9 +50,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-06-30T00:00:00Z"),
               personIds: [8],
               ranking: 4,
-              attempts: [{ result: 1463 }, { result: 2571 }, { result: 1370 }, {
-                result: 2124,
-              }, { result: 1632 }],
+              attempts: [{ result: 1463 }, { result: 2571 }, { result: 1370 }, { result: 2124 }, { result: 1632 }],
               best: 1370,
               average: 1740,
             },
@@ -69,13 +59,13 @@ export const newContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333fm") as Event,
+      event: eventsSeed.find((el) => el.eventId === "333fm")!,
       rounds: [
         {
           roundId: "333fm-r1",
           competitionId: "Munich30062023",
-          roundTypeId: RoundType.Final,
-          format: RoundFormat.Mean,
+          roundTypeId: "f",
+          format: "m",
           results: [
             {
               competitionId: "Munich30062023",
@@ -117,13 +107,13 @@ export const newContestEventsStub = (): IContestEvent[] => {
 export const newFakeContestEventsStub = (): IContestEvent[] => {
   return [
     {
-      event: eventsSeed.find((el) => el.eventId === "222") as Event,
+      event: eventsSeed.find((el) => el.eventId === "222")!,
       rounds: [
         {
           roundId: "222-r1",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.First,
-          format: RoundFormat.Average,
+          roundTypeId: "1",
+          format: "a",
           results: [
             {
               competitionId: "TestComp2023",
@@ -131,9 +121,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-07-01T00:00:00Z"),
               personIds: [100],
               ranking: 1,
-              attempts: [{ result: 372 }, { result: 389 }, { result: 149 }, {
-                result: 299,
-              }, { result: 361 }],
+              attempts: [{ result: 372 }, { result: 389 }, { result: 149 }, { result: 299 }, { result: 361 }],
               // The single is better than WR, but the next round on the same day has an even better result
               best: 149,
               average: 344,
@@ -144,9 +132,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-07-01T00:00:00Z"),
               personIds: [101],
               ranking: 2,
-              attempts: [{ result: 531 }, { result: 398 }, { result: 422 }, {
-                result: 601,
-              }, { result: 437 }],
+              attempts: [{ result: 531 }, { result: 398 }, { result: 422 }, { result: 601 }, { result: 437 }],
               best: 398,
               average: 463,
             },
@@ -156,9 +142,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-07-01T00:00:00Z"),
               personIds: [102],
               ranking: 3,
-              attempts: [{ result: 678 }, { result: 922 }, { result: 301 }, {
-                result: 529,
-              }, { result: 746 }],
+              attempts: [{ result: 678 }, { result: 922 }, { result: 301 }, { result: 529 }, { result: 746 }],
               best: 301,
               average: 651,
             },
@@ -167,8 +151,8 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: "222-r2",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.Final,
-          format: RoundFormat.Average,
+          roundTypeId: "f",
+          format: "a",
           results: [
             {
               competitionId: "TestComp2023",
@@ -176,9 +160,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-07-01T00:00:00Z"),
               personIds: [100],
               ranking: 1,
-              attempts: [{ result: 299 }, { result: 314 }, { result: 562 }, {
-                result: 135,
-              }, { result: 212 }],
+              attempts: [{ result: 299 }, { result: 314 }, { result: 562 }, { result: 135 }, { result: 212 }],
               // The single and average should be the new WRs
               best: 135,
               average: 275,
@@ -189,9 +171,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
               date: new Date("2023-07-01T00:00:00Z"),
               personIds: [101],
               ranking: 2,
-              attempts: [{ result: 408 }, { result: 332 }, { result: 569 }, {
-                result: 420,
-              }, { result: 421 }],
+              attempts: [{ result: 408 }, { result: 332 }, { result: 569 }, { result: 420 }, { result: 421 }],
               best: 332,
               average: 416,
             },
@@ -200,8 +180,8 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: "222-r3",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.Final,
-          format: RoundFormat.Mean,
+          roundTypeId: "f",
+          format: "m",
           results: [
             {
               competitionId: "TestComp2023",
@@ -219,13 +199,13 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333fm") as Event,
+      event: eventsSeed.find((el) => el.eventId === "333fm")!,
       rounds: [
         {
           roundId: "333fm-r1",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.First,
-          format: RoundFormat.Mean,
+          roundTypeId: "1",
+          format: "m",
           results: [
             {
               competitionId: "TestComp2023",
@@ -274,8 +254,8 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: "333fm-r2",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.Second,
-          format: RoundFormat.Mean,
+          roundTypeId: "2",
+          format: "m",
           results: [
             {
               competitionId: "TestComp2023",
@@ -314,8 +294,8 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: "333fm-r3",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.Semi,
-          format: RoundFormat.Mean,
+          roundTypeId: "s",
+          format: "m",
           results: [
             {
               competitionId: "TestComp2023",
@@ -354,8 +334,8 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
         {
           roundId: "333fm-r4",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.Final,
-          format: RoundFormat.Mean,
+          roundTypeId: "f",
+          format: "m",
           results: [
             {
               competitionId: "TestComp2023",
@@ -382,13 +362,13 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333bf") as Event,
+      event: eventsSeed.find((el) => el.eventId === "333bf")!,
       rounds: [
         {
           roundId: "333bf-r1",
           competitionId: "TestComp2023",
-          roundTypeId: RoundType.First,
-          format: RoundFormat.BestOf3,
+          roundTypeId: "1",
+          format: "3",
           results: [
             {
               competitionId: "TestComp2023",

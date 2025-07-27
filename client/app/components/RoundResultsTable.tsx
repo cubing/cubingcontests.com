@@ -4,24 +4,18 @@ import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import {
-  Event,
-  IPerson,
-  IRecordType,
-  IResult,
-  IRound,
-  type IRoundFormat,
-} from "~/helpers/types.ts";
-import { RoundFormat, RoundType } from "~/helpers/enums.ts";
 import { getIsProceedableResult } from "~/helpers/sharedFunctions.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { ResultResponse } from "~/server/db/schema/results.ts";
+import { PersonResponse } from "~/server/db/schema/persons.ts";
 
 type Props = {
   round: IRound;
-  event: Event;
-  persons: IPerson[];
+  event: EventResponse;
+  persons: PersonResponse[];
   recordTypes: IRecordType[];
-  onEditResult?: (result: IResult) => void;
+  onEditResult?: (result: ResultResponse) => void;
   onDeleteResult?: (resultId: string) => void;
   loadingId?: string;
   disableEditAndDelete?: boolean;
@@ -38,18 +32,15 @@ const RoundResultsTable = ({
   loadingId,
   disableEditAndDelete,
 }: Props) => {
-  const roundFormat = roundFormats.find((rf) =>
-    rf.value === round.format
-  ) as IRoundFormat;
+  const roundFormat = roundFormats.find((rf) => rf.value === round.format)!;
   const roundCanHaveAverage = roundFormat.attempts >= 3;
   let lastRanking = 0;
 
   // Gets green highlight styling if the result is not DNF/DNS and made podium or is good enough to proceed to the next round
-  const getRankingHighlight = (result: IResult) => {
+  const getRankingHighlight = (result: ResultResponse) => {
     if (
       result.proceeds ||
-      (round.roundTypeId === RoundType.Final && result.ranking <= 3 &&
-        getIsProceedableResult(result, roundFormat))
+      (round.roundTypeId === "f" && result.ranking <= 3 && getIsProceedableResult(result, roundFormat))
     ) {
       return { color: "black", background: "#10c010" };
     }
@@ -67,7 +58,7 @@ const RoundResultsTable = ({
             <th scope="col">Best</th>
             {roundCanHaveAverage && (
               <th scope="col">
-                {round.format === RoundFormat.Average ? "Average" : "Mean"}
+                {round.format === "a" ? "Average" : "Mean"}
               </th>
             )}
             <th scope="col">Attempts</th>
@@ -75,7 +66,7 @@ const RoundResultsTable = ({
           </tr>
         </thead>
         <tbody>
-          {round.results.map((result: IResult) => {
+          {round.results.map((result: ResultResponse) => {
             const isTie = result.ranking === lastRanking;
             lastRanking = result.ranking;
 
@@ -89,12 +80,8 @@ const RoundResultsTable = ({
                 <td>
                   <div className="d-flex flex-wrap gap-2">
                     {result.personIds.map((personId, i) => {
-                      const person = persons.find((p: IPerson) =>
-                        p.personId === personId
-                      );
-                      if (!person) {
-                        return <span key={personId}>(name not found)</span>;
-                      }
+                      const person = persons.find((p: PersonResponse) => p.personId === personId);
+                      if (!person) return <span key={personId}>(name not found)</span>;
                       return (
                         <span key={person.personId} className="d-flex gap-2">
                           <Competitor person={person} showLocalizedName />
@@ -113,14 +100,7 @@ const RoundResultsTable = ({
                 </td>
                 {roundCanHaveAverage && (
                   <td>
-                    {result.average !== 0 && (
-                      <Time
-                        result={result}
-                        event={event}
-                        recordTypes={recordTypes}
-                        average
-                      />
-                    )}
+                    {result.average !== 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}
                   </td>
                 )}
                 <td>

@@ -1,9 +1,10 @@
+import type { EventResponse } from "~/server/db/schema/events.ts";
 import RankingRow from "./RankingRow.tsx";
-import { Event, IRanking } from "~/helpers/types.ts";
+import { IRanking } from "~/helpers/types.ts";
 
 type Props = {
   rankings: IRanking[];
-  event: Event;
+  event: EventResponse;
   // These two parameters are mutually-exclusive
   recordsTable?: boolean;
   topResultsRankings?: boolean;
@@ -19,17 +20,15 @@ function RankingsTable({
     throw new Error("forAverage and topResultsRankings cannot both be true in RankingsTable");
   }
 
-  const hasComp = rankings.some((el) => el.contest);
-  const hasLink = rankings.some((el) => el.videoLink || el.discussionLink);
+  const hasComp = rankings.some((e) => e.contest);
+  const hasLink = rankings.some((e) => e.videoLink || e.discussionLink);
   const showAllTeammates = event && event.participants > 1 && topResultsRankings && !recordsTable;
   const showTeamColumn = event && event.participants > 1 && !showAllTeammates && !recordsTable;
-  const hasSolves = rankings.some((el) => el.attempts);
-  const showDetailsColumn = hasSolves || rankings.some((el) => el.memo);
+  const hasSolves = rankings.some((e) => e.attempts);
+  const showDetailsColumn = hasSolves || rankings.some((e) => e.memo);
   let lastRanking = 0;
 
-  if (rankings.length === 0) {
-    return <p className="mt-4 mx-2 fs-5">Results not found</p>;
-  }
+  if (rankings.length === 0) return <p className="mt-4 mx-2 fs-5">Results not found</p>;
 
   /////////////////////////////////////////////////////////////////////////////////////////
   // REMEMBER TO UPDATE THE MOBILE VIEW OF THE RECORDS PAGE WHEN CHANGING THIS

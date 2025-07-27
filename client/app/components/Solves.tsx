@@ -1,15 +1,18 @@
-import { Event, IAttempt } from "~/helpers/types.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { Attempt } from "~/server/db/schema/results.ts";
 
-const Solves = ({
+type Props = {
+  event: EventResponse;
+  attempts: Attempt[];
+  showMultiPoints?: boolean;
+};
+
+function Solves({
   event,
   attempts,
   showMultiPoints = false,
-}: {
-  event: Event;
-  attempts: IAttempt[];
-  showMultiPoints?: boolean;
-}) => {
+}: Props) {
   return (
     <div className="d-flex gap-2">
       {attempts.map((attempt, index) => (
@@ -19,6 +22,6 @@ const Solves = ({
       ))}
     </div>
   );
-};
+}
 
 export default Solves;
