@@ -53,7 +53,7 @@ export const setResultRecords = (
 ): ResultResponse => {
   for (const recordPair of recordPairs) {
     // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if (recordPair.wcaEquivalent === WcaRecordType.WR) {
+    if (recordPair.wcaEquivalent === "WR") {
       const comparisonToRecordSingle = compareSingles(
         result,
         { best: recordPair.best },

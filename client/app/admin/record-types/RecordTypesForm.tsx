@@ -5,8 +5,8 @@ import { useMyFetch } from "~/helpers/customHooks.ts";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
-import { IRecordType } from "~/helpers/types.ts";
-import { Color, WcaRecordType } from "~/helpers/enums.ts";
+import type { IRecordType, RegionalRecordType } from "~/helpers/types.ts";
+import { Color } from "~/helpers/enums.ts";
 import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
 
 const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
@@ -22,7 +22,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
     if (res.success) window.location.href = "/mod";
   };
 
-  const changeLabel = (wcaEquivalent: WcaRecordType, value: string) => {
+  const changeLabel = (wcaEquivalent: RegionalRecordType, value: string) => {
     setTemporaryRTs(
       temporaryRTs.map((
         rt: IRecordType,
@@ -30,7 +30,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
     );
   };
 
-  const changeActive = (wcaEquivalent: WcaRecordType) => {
+  const changeActive = (wcaEquivalent: RegionalRecordType) => {
     setTemporaryRTs(
       temporaryRTs.map((
         rt: IRecordType,
@@ -38,7 +38,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
     );
   };
 
-  const changeColor = (wcaEquivalent: WcaRecordType, color: Color) => {
+  const changeColor = (wcaEquivalent: RegionalRecordType, color: Color) => {
     setTemporaryRTs(
       temporaryRTs.map((
         rt: IRecordType,
@@ -67,7 +67,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               id={rt.wcaEquivalent + "_label_input"}
               value={rt.label}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => changeLabel(rt.wcaEquivalent, e.target.value)}
-              disabled={rt.wcaEquivalent !== WcaRecordType.WR} // TEMPORARY
+              disabled={rt.wcaEquivalent !== "WR"} // TEMPORARY
               className="form-control"
             />
           </div>
@@ -77,7 +77,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
               id={rt.wcaEquivalent}
               selected={rt.active}
               setSelected={() => changeActive(rt.wcaEquivalent)}
-              disabled={rt.wcaEquivalent !== WcaRecordType.WR} // TEMPORARY
+              disabled={rt.wcaEquivalent !== "WR"} // TEMPORARY
               noMargin
             />
           </div>
@@ -92,7 +92,7 @@ const RecordTypesForm = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
                 className="form-select"
                 value={rt.color}
                 onChange={(e) => changeColor(rt.wcaEquivalent, e.target.value as Color)}
-                disabled={rt.wcaEquivalent !== WcaRecordType.WR} // TEMPORARY
+                disabled={rt.wcaEquivalent !== "WR"} // TEMPORARY
               >
                 {colorOptions
                   .filter((el) => ![Color.White, Color.Magenta].includes(el.value as any))

@@ -526,7 +526,7 @@ const ContestForm = ({
         onSubmit={handleSubmit}
         disableControls={disabled || disabledIfContestPublished || disabledIfNotUnderstood}
       >
-        {mode === "edit" && <CreatorDetails user={creator} />}
+        {mode === "edit" && <CreatorDetails creator={creator} />}
 
         <Tabs
           tabs={tabs}

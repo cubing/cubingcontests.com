@@ -66,7 +66,10 @@ export const updateUserSF = actionClient.metadata({ permissions: { user: ["set-r
             .where(eq(personsTable.personId, personId)).limit(1)).at(0);
           if (!person) throw new CcActionError(`Person with ID ${personId} not found`);
 
-          if (!person.approved) await approvePersonSF({ id: personId, approveByPersonId: true });
+          if (!person.approved) {
+            const res = await approvePersonSF({ id: personId, approveByPersonId: true });
+            if (!res.data) throw new Error(res.serverError?.message || C.unknownErrorMsg);
+          }
         }
       } else if (role !== "user") {
         throw new CcActionError("Privileged users must have a person tied to their account");

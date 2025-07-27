@@ -29,5 +29,6 @@ export const C = {
   navigationKeys: ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"],
   moneroDonationAddress:
     "8AaML2et9RQKmZp4NYm9STKbjhfFB4h81ZxeGV166oapNzPFUTneaRmakwE61cyHr1ZUYreEU7eHF8XmMBykG8TpAwM6SVq",
+  unknownErrorMsg: "Unknown error",
   videoNoLongerAvailableMsg: "Video no longer available",
 };

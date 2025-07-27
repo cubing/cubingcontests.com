@@ -13,10 +13,12 @@ export const actionClient = createSafeActionClient({
     });
   },
   handleServerError(e): CcServerErrorObject {
+    if (e instanceof CcActionError) {
+      console.error("CC action error:", e.message);
+      return { message: e.message, data: e.data };
+    }
+
     console.error("Action error:", e.message);
-
-    if (e instanceof CcActionError) return { message: e.message, data: e.data };
-
     return { message: DEFAULT_SERVER_ERROR_MESSAGE };
   },
 }).use<{ session: typeof authClient.$Infer.Session }>(async ({ next, metadata }) => {

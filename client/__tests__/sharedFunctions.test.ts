@@ -1,10 +1,10 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
-import { IAttempt, type IContestEvent, type IRecordPair } from "~/helpers/types.ts";
+import { type IContestEvent, type IRecordPair } from "~/helpers/types.ts";
 import { compareAvgs, compareSingles, getBestAndAverage, setResultRecords } from "~/helpers/sharedFunctions.ts";
 import { eventsStub } from "~/__mocks__/events.stub.ts";
-import { WcaRecordType } from "~/helpers/enums.ts";
 import { newContestEventsStub, newFakeContestEventsStub } from "~/__mocks__/new-competition-events.stub.ts";
+import type { Attempt } from "~/server/db/schema/results.ts";
 
 const mockTimeEvent = eventsStub().find((e) => e.eventId === "333")!;
 
@@ -12,24 +12,16 @@ describe("getBestAndAverage", () => {
   it("Sets average to 0 when there is only one attempt", () => {
     const attempts: IAttempt[] = [{ result: 1234 }];
 
-    const { best, average } = getBestAndAverage(
-      attempts,
-      mockTimeEvent,
-      "1",
-    );
+    const { best, average } = getBestAndAverage(attempts, mockTimeEvent, "1");
 
     expect(best).toBe(1234);
     expect(average).toBe(0);
   });
 
   it("Sets average to 0 when there are only 2 attempts", () => {
-    const attempts: IAttempt[] = [{ result: 1234 }, { result: 2345 }];
+    const attempts: Attempt[] = [{ result: 1234 }, { result: 2345 }];
 
-    const { best, average } = getBestAndAverage(
-      attempts,
-      mockTimeEvent,
-      "2",
-    );
+    const { best, average } = getBestAndAverage(attempts, mockTimeEvent, "2");
 
     expect(best).toBe(1234);
     expect(average).toBe(0);
@@ -133,27 +125,15 @@ describe("compareAvgs", () => {
 
 describe("setResultRecords", () => {
   const mock333RecordPairs = (): IRecordPair[] => [
-    {
-      wcaEquivalent: WcaRecordType.WR,
-      best: 1000,
-      average: 1100,
-    },
+    { wcaEquivalent: "WR", best: 1000, average: 1100 },
   ];
 
   const mock222RecordPairs = (): IRecordPair[] => [
-    {
-      wcaEquivalent: WcaRecordType.WR,
-      best: 124,
-      average: 211,
-    },
+    { wcaEquivalent: "WR", best: 124, average: 211 },
   ];
 
   const mockBLDRecordPairs = (): IRecordPair[] => [
-    {
-      wcaEquivalent: WcaRecordType.WR,
-      best: 2217,
-      average: 2795,
-    },
+    { wcaEquivalent: "WR", best: 2217, average: 2795 },
   ];
 
   it("sets new 3x3x3 records correctly", () => {
@@ -171,11 +151,7 @@ describe("setResultRecords", () => {
 
   it("updates 3x3x3 BLD single record correctly", () => {
     const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "333bf")!;
-    const result = setResultRecords(
-      contestEvent.rounds[0].results[0],
-      contestEvent.event,
-      mockBLDRecordPairs(),
-    );
+    const result = setResultRecords(contestEvent.rounds[0].results[0], contestEvent.event, mockBLDRecordPairs());
 
     expect(result.regionalSingleRecord).toBe("WR");
     expect(result.regionalAverageRecord).toBeUndefined();
@@ -183,11 +159,7 @@ describe("setResultRecords", () => {
 
   it("doesn't set avg records when the # of attempts doesn't match the default format's # of attempts", () => {
     const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "222")!;
-    const result = setResultRecords(
-      contestEvent.rounds[2].results[0],
-      contestEvent.event,
-      mock222RecordPairs(),
-    );
+    const result = setResultRecords(contestEvent.rounds[2].results[0], contestEvent.event, mock222RecordPairs());
 
     expect(result.regionalSingleRecord).toBe("WR");
     expect(result.best).toBe(100);

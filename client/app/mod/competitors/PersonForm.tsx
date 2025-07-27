@@ -23,11 +23,12 @@ import { PersonDto } from "~/helpers/validators/Person.ts";
 type Props = {
   personUnderEdit: PersonResponse | undefined;
   creator: Creator | undefined;
+  creatorPerson: PersonResponse | undefined;
   onSubmit: (person: PersonResponse, isNew?: boolean) => void;
   onCancel: (() => void) | undefined;
 };
 
-function PersonForm({ personUnderEdit, creator, onSubmit, onCancel }: Props) {
+function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCancel }: Props) {
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
@@ -176,15 +177,15 @@ function PersonForm({ personUnderEdit, creator, onSubmit, onCancel }: Props) {
       onSubmit={handleSubmit}
       showCancelButton={onCancel !== undefined}
       onCancel={onCancel}
-      hideToasts
+      hideToasts // they're shown on the page itself
       hideControls={hasWcaId && !personUnderEdit}
       disableControls={isPending}
       isLoading={isCreating || isUpdating}
     >
       {personUnderEdit && (
         <CreatorDetails
-          user={creator}
-          person={undefined} // TO-DO: FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          creator={creator}
+          person={creatorPerson}
           createdExternally={(personUnderEdit as any).createdExternally}
         />
       )}

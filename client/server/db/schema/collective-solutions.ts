@@ -9,7 +9,7 @@ export const collectiveSolutionStateEnum = pgEnum("state", ["ongoing", "solved",
 export const collectiveSolutionsTable = table("collective_solutions", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   eventId: varchar({ length: 32 }).notNull(),
-  attemptNumber: serial().notNull(),
+  attemptNumber: serial().notNull().unique(),
   state: collectiveSolutionStateEnum().default("ongoing").notNull(),
   scramble: text().notNull(),
   solution: text().default("").notNull(),

@@ -12,16 +12,21 @@ async function CompetitorsPage() {
 
   try {
     let persons: SelectPerson[] | PersonResponse[];
-    const query = (isAdmin ? db.select() : db.select(personsPublicCols)).from(table);
-    if (!isAdmin) persons = await query.where(eq(table.createdBy, user.id)).orderBy(desc(table.personId));
-    else persons = await query.orderBy(desc(table.personId));
-
     let users: Creator[] | undefined;
 
     if (isAdmin) {
-      const personIds = Array.from(new Set(persons.map((p) => p.personId)));
-      users = await db.select({ id: usersTable.id, username: usersTable.username, email: usersTable.email })
-        .from(usersTable).where(inArray(usersTable.personId, personIds));
+      persons = await db.select().from(table).orderBy(desc(table.personId));
+      const userIds = Array.from(new Set(persons.map((p) => p.createdBy)));
+
+      users = await db.select({
+        id: usersTable.id,
+        username: usersTable.username,
+        email: usersTable.email,
+        personId: usersTable.personId,
+      }).from(usersTable).where(inArray(usersTable.id, userIds));
+    } else {
+      persons = await db.select(personsPublicCols).from(table)
+        .where(eq(table.createdBy, user.id)).orderBy(desc(table.personId));
     }
 
     return <ManageCompetitorsScreen persons={persons} users={users} />;

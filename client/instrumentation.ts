@@ -116,7 +116,7 @@ export async function register() {
       console.log("Seeding persons...");
 
       try {
-        const personsDump = JSON.parse((await fs.readFileSync("./dump/persons.json")) as any);
+        const personsDump = (JSON.parse((await fs.readFileSync("./dump/persons.json")) as any) as any[]).reverse();
 
         await db.insert(personsTable).values(personsDump.map((p: any) => ({
           personId: p.personId,

@@ -46,7 +46,10 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
   const parentRef = useRef<Element>(null);
   // Only used for admins. Is used to confirm approval of person with exact name and country match with a WCA person.
   const ignoredWcaMatches = useRef<{ personId: number; wcaMatches: string[] }>(undefined);
-
+  const creator = useMemo(
+    () => personUnderEdit ? users?.find((u) => u.id === (personUnderEdit as SelectPerson).createdBy) : undefined,
+    [personUnderEdit, users],
+  );
   const filteredPersons = useMemo(() => {
     const simplifiedSearch = getSimplifiedString(search);
 
@@ -119,10 +122,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
     }
 
     setLoadingId(`approve_person_${person.personId}_button`);
-    const res = await approvePerson({
-      id: person.id,
-      ignoredWcaMatches: ignoredWcaMatches.current?.wcaMatches,
-    });
+    const res = await approvePerson({ id: person.id, ignoredWcaMatches: ignoredWcaMatches.current?.wcaMatches });
     setLoadingId("");
 
     if (res.serverError || res.validationErrors) {
@@ -165,9 +165,8 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
         : (
           <PersonForm
             personUnderEdit={personUnderEdit}
-            creator={personUnderEdit
-              ? users?.find((u) => u.id === (personUnderEdit as SelectPerson).createdBy)
-              : undefined}
+            creator={creator}
+            creatorPerson={creator ? persons.find((p) => p.personId === creator.personId) : undefined}
             onSubmit={updateCompetitors}
             onCancel={mode !== "add-once" ? cancel : undefined}
           />
@@ -222,6 +221,9 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
                     (virtualItem, index) => {
                       if (filteredPersons.length === 0) return;
                       const person = filteredPersons[virtualItem.index];
+                      const personCreator = (person as SelectPerson).createdBy
+                        ? users.find((u) => u.id === (person as SelectPerson).createdBy)
+                        : undefined;
 
                       return (
                         <tr
@@ -243,8 +245,10 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
                           {users && (
                             <td>
                               <CreatorDetails
-                                user={users.find((c) => c.id === (person as SelectPerson).createdBy)}
-                                person={person}
+                                creator={personCreator}
+                                person={personCreator?.personId
+                                  ? persons.find((p) => p.personId === personCreator.personId)
+                                  : undefined}
                                 createdExternally={!!(person as SelectPerson).createdExternally}
                                 isCurrentUser={(person as SelectPerson).createdBy === session?.user.id}
                                 small

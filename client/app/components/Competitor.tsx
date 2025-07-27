@@ -8,12 +8,7 @@ type Props = {
   noLink?: boolean;
 };
 
-const Competitor = ({
-  person,
-  showLocalizedName,
-  noFlag,
-  noLink,
-}: Props) => {
+function Competitor({ person, showLocalizedName, noFlag, noLink }: Props) {
   if (!person) return <span className="text-danger">Not found</span>;
 
   let displayText = person.name;
@@ -28,6 +23,6 @@ const Competitor = ({
       {!noFlag && <Country countryIso2={person.countryIso2} noText />}
     </span>
   );
-};
+}
 
 export default Competitor;

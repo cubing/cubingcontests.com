@@ -20,7 +20,7 @@ export type ListPageMode = "view" | "add" | "edit";
 
 export type InputPerson = PersonResponse | null;
 
-export type Creator = Pick<typeof authClient.$Infer.Session.user, "id" | "username" | "email">;
+export type Creator = Pick<typeof authClient.$Infer.Session.user, "id" | "username" | "email" | "personId">;
 
 export type WcaPersonDto = {
   person: PersonResponse;
@@ -53,3 +53,6 @@ export const EventCategoryValues = [
   "removed",
 ] as const;
 export type EventCategory = typeof EventCategoryValues[number];
+
+export const RegionalRecordTypeValues = ["WR", "ER", "NAR", "SAR", "AsR", "AfR", "OcR", "NR", "PR"] as const;
+export type RegionalRecordType = typeof RegionalRecordTypeValues[number];

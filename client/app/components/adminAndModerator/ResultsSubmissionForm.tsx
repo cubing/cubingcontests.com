@@ -23,7 +23,7 @@ import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.ts
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
 import { authClient } from "~/helpers/authClient.ts";
-import type { SelectPerson } from "~/server/db/schema/persons.ts";
+import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
@@ -32,11 +32,12 @@ type Props = {
   // recordPairsByEvent: IEventRecordPairs[];
   // activeRecordTypes: IRecordType[];
   result?: SelectResult; // only defined when editing an existing result
-  persons?: SelectPerson[];
+  competitors?: SelectPerson[];
   creator?: Creator;
+  creatorPerson?: PersonResponse;
 };
 
-function ResultsSubmissionForm({ events, result, persons, creator }: Props) {
+function ResultsSubmissionForm({ events, result, competitors: initCompetitors, creator, creatorPerson }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
@@ -88,50 +89,50 @@ function ResultsSubmissionForm({ events, result, persons, creator }: Props) {
 
   const isAdmin = session?.user.role === "admin";
 
-  // useEffect(() => {
-  //   // If submitting results
-  //   if (!resultId) {
-  //     myFetch
-  //       .get<IResultsSubmissionInfo>(`/results/submission-info/${new Date()}`, {
-  //         authorize: true,
-  //       })
-  //       .then(
-  //         (res) => {
-  //           if (res.success && res.data) {
-  //             setSubmissionInfo(res.data);
+  useEffect(() => {
+    // If submitting results
+    if (!result) {
+      myFetch
+        .get<IResultsSubmissionInfo>(`/results/submission-info/${new Date()}`, {
+          authorize: true,
+        })
+        .then(
+          (res) => {
+            if (res.success && res.data) {
+              setSubmissionInfo(res.data);
 
-  //             const event = res.data.events.find((el: Event) => el.eventId === searchParams.get("eventId")) ??
-  //               res.data.events[0];
-  //             setEvent(event);
-  //             resetCompetitors(event.participants);
-  //             resetAttempts();
-  //             document.getElementById("Competitor_1")?.focus();
-  //           }
-  //         },
-  //       );
-  //   } // If editing a result
-  //   else {
-  //     myFetch.get(`/results/editing-info/${resultId}`, { authorize: true })
-  //       .then((res) => {
-  //         if (res.success && res.data) {
-  //           setSubmissionInfo(res.data);
-  //           const { result, persons, events } = res
-  //             .data as IAdminResultsSubmissionInfo;
+              const event = res.data.events.find((el: Event) => el.eventId === searchParams.get("eventId")) ??
+                res.data.events[0];
+              setEvent(event);
+              resetCompetitors(event.participants);
+              resetAttempts();
+              document.getElementById("Competitor_1")?.focus();
+            }
+          },
+        );
+    } // If editing a result
+    else {
+      myFetch.get(`/results/editing-info/${resultId}`, { authorize: true })
+        .then((res) => {
+          if (res.success && res.data) {
+            setSubmissionInfo(res.data);
+            const { result, persons, events } = res
+              .data as IAdminResultsSubmissionInfo;
 
-  //           setEvent(events[0]);
-  //           setRoundFormat(
-  //             allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length)!,
-  //           );
-  //           setAttempts(result.attempts);
-  //           setDate(new Date(result.date));
-  //           setCompetitors(persons);
-  //           setPersonNames(persons.map((p: IPerson) => p.name));
-  //           setVideoLink(result.videoLink);
-  //           if (result.discussionLink) setDiscussionLink(result.discussionLink);
-  //         }
-  //       });
-  //   }
-  // }, []);
+            setEvent(events[0]);
+            setRoundFormat(
+              allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length)!,
+            );
+            setAttempts(result.attempts);
+            setDate(new Date(result.date));
+            setCompetitors(persons);
+            setPersonNames(persons.map((p: IPerson) => p.name));
+            setVideoLink(result.videoLink);
+            if (result.discussionLink) setDiscussionLink(result.discussionLink);
+          }
+        });
+    }
+  }, []);
 
   const submitResult = async (approve = false) => {
     if (competitors.some((p: InputPerson) => !p)) {
@@ -291,8 +292,8 @@ function ResultsSubmissionForm({ events, result, persons, creator }: Props) {
       <Form hideControls>
         {result && (
           <CreatorDetails
-            user={creator}
-            person={undefined} // TO-DO: FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            creator={creator}
+            person={creatorPerson}
             createdExternally={result.createdExternally}
           />
         )}

@@ -4,23 +4,30 @@ import { Creator } from "~/helpers/types.ts";
 import { PersonResponse } from "~/server/db/schema/persons.ts";
 
 type Props = {
-  user: Creator | undefined;
+  creator: Creator | undefined;
   person: PersonResponse | undefined;
   createdExternally: boolean;
   isCurrentUser?: boolean;
   small?: boolean;
 };
 
-function CreatorDetails({ user, person, createdExternally = false, isCurrentUser = false, small = false }: Props) {
+function CreatorDetails({ creator, person, createdExternally = false, isCurrentUser = false, small = false }: Props) {
+  if (creator && person && creator.personId !== person.personId) {
+    throw new Error(
+      `Person ID doesn't match between creator object (${JSON.stringify(creator)}) and person object (${
+        JSON.stringify(person)
+      })`,
+    );
+  }
+
   let specialCase: ReactElement | undefined;
   if (createdExternally) specialCase = <span className="text-warning">External device</span>;
-  else if (!user) specialCase = <span>Deleted user</span>;
+  else if (!creator) specialCase = <span>Deleted user</span>;
   else if (isCurrentUser) specialCase = <span>Me</span>;
 
   if (specialCase) return small ? specialCase : <div className="mb-3">Created by:&#8194;{specialCase}</div>;
 
-  user = user as Creator;
-  const username = <a href={`mailto:${user.email}`}>{user.username}</a>;
+  const username = <a href={`mailto:${creator.email}`}>{creator.username}</a>;
   const competitor = <Competitor person={person} noFlag />;
 
   if (small) {
@@ -36,18 +43,14 @@ function CreatorDetails({ user, person, createdExternally = false, isCurrentUser
     <div className="d-flex flex-wrap align-items-center column-gap-2 mb-3">
       <span>Created by:</span>
 
-      {
-        /* {person
+      {person
         ? (
-          <> */
-      }
-      {competitor}
-      <span>(user: {username})</span>
-      {
-        /* </>
+          <>
+            {competitor}
+            <span>(user: {username})</span>
+          </>
         )
-        : <span>{username}</span>} */
-      }
+        : <span>{username}</span>}
     </div>
   );
 }

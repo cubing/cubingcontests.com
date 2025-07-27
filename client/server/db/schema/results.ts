@@ -1,13 +1,16 @@
 import "server-only";
-import { bigint, boolean, integer, jsonb, pgTable as table, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { bigint, boolean, integer, jsonb, pgEnum, pgTable as table, text, timestamp } from "drizzle-orm/pg-core";
 import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm/utils";
 import { usersTable } from "./auth-schema.ts";
+import { RegionalRecordTypeValues } from "~/helpers/types.ts";
 
 export type Attempt = {
   result: number;
   memo?: number;
 };
+
+export const regionalRecordTypeEnum = pgEnum("regionalRecordType", RegionalRecordTypeValues);
 
 export const resultsTable = table("results", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -18,8 +21,8 @@ export const resultsTable = table("results", {
   attempts: jsonb().$type<Attempt>().array().notNull(),
   best: bigint({ mode: "number" }).notNull(),
   average: bigint({ mode: "number" }).notNull(),
-  regionalSingleRecord: ,
-  regionalAverageRecord: ,
+  regionalSingleRecord: regionalRecordTypeEnum(),
+  regionalAverageRecord: regionalRecordTypeEnum(),
   competitionId: text(), // only used for contest results
   ranking: integer(), // only used for contest results
   proceeds: boolean(), // only used for contest results

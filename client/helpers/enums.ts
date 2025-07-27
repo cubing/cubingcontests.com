@@ -20,18 +20,6 @@ export enum ContestState {
   Removed = 100,
 }
 
-export enum WcaRecordType {
-  WR = "WR",
-  ER = "ER",
-  NAR = "NAR",
-  SAR = "SAR",
-  AsR = "AsR",
-  AfR = "AfR",
-  OcR = "OcR",
-  NR = "NR",
-  PR = "PR",
-}
-
 export enum Color {
   White = "fff",
   Black = "000",

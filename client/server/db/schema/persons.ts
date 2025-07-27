@@ -6,7 +6,7 @@ import { tableTimestamps } from "../dbUtils.ts";
 
 export const personsTable = table("persons", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  personId: serial().notNull(),
+  personId: serial().notNull().unique(),
   name: text().notNull(),
   localizedName: text(),
   countryIso2: varchar({ length: 2 }).notNull(),

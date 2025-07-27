@@ -37,8 +37,9 @@ export const getOrCreatePersonByWcaIdSF = actionClient.metadata({ permissions: {
     if (!wcaPerson) throw new CcActionError(`Person with WCA ID ${wcaId} not found`);
 
     const res = await createPersonSF({ newPerson: wcaPerson });
+    if (!res.data) throw new Error(res.serverError?.message || C.unknownErrorMsg);
 
-    return { person: res.data!, isNew: true };
+    return { person: res.data, isNew: true };
   });
 
 // TO-DO: ADD SUPPORT FOR EXTERNAL DATA ENTRY and ADD LOGGING
