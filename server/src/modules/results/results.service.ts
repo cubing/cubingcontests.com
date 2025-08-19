@@ -966,27 +966,12 @@ export class ResultsService {
         mode: "create",
       });
     } else {
-      let text =
-        `A new ${createdResult.eventId} result has been submitted by user ${user.username}: ${
-          getFormattedTime(
-            createdResult.best,
-            { event, showMultiPoints: true, showDecimals: true },
-          )
-        }`;
-      if (createdResult.regionalSingleRecord) {
-        text += ` (${createdResult.regionalSingleRecord})`;
-      }
-      if (createdResult.average > 0) {
-        text += `, average: ${getFormattedTime(createdResult.average)}`;
-        if (createdResult.regionalAverageRecord) {
-          text += ` (${createdResult.regionalAverageRecord})`;
-        }
-      }
-      text += `. Video link: ${newResult.videoLink}`;
-
-      await this.emailService.sendEmail(C.contactEmail, text, {
-        subject: "New Result Submission",
-      });
+      await this.emailService.sendVideoBasedResultSubmittedNotification(
+        user.email,
+        event,
+        createdResult as IVideoBasedResult,
+        user.username,
+      );
     }
 
     return createdResult;
