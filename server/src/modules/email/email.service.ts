@@ -5,15 +5,17 @@ import Handlebars from "handlebars";
 import { Injectable } from "@nestjs/common";
 import { MyLogger } from "@m/my-logger/my-logger.service";
 import { LogType } from "~/src/helpers/enums";
-import { IContest } from "~/helpers/types";
+import type { Event, IContest, IVideoBasedResult } from "~/helpers/types";
 import {
+  getFormattedTime,
   getIsCompType,
   getIsUrgent,
   getRoleLabel,
 } from "~/helpers/sharedFunctions";
-import { ContestType, Role } from "~/helpers/enums";
+import { ContestType, Role, RoundFormat } from "~/helpers/enums";
 import { C } from "~/helpers/constants";
 import { Countries } from "~/helpers/Countries";
+import { roundFormats } from "~/helpers/roundFormats";
 
 // The fileName is the name of a file inside of the templates directory
 const getEmailContents = async (
@@ -36,6 +38,9 @@ export class EmailService {
     process.env.BASE_URL.split("://").at(1)
   }`;
   private contestsEmail = `"Contests" contests@${
+    process.env.BASE_URL.split("://").at(1)
+  }`;
+  private resultsEmail = `"Results" results@${
     process.env.BASE_URL.split("://").at(1)
   }`;
   private transporter = createTransport({
@@ -236,6 +241,55 @@ export class EmailService {
     } catch (err) {
       this.logger.logAndSave(
         `Error while sending contest published notification for contest: ${err}`,
+        LogType.Error,
+      );
+    }
+  }
+
+  async sendVideoBasedResultSubmittedNotification(
+    to: string,
+    event: Event,
+    result: IVideoBasedResult,
+    creatorUsername: string,
+  ) {
+    const roundFormat =
+      roundFormats.filter((rf) => rf.value !== RoundFormat.BestOf3).find((rf) =>
+        rf.attempts === result.attempts.length
+      )!.label;
+    const contents = await getEmailContents(
+      "video-based-result-submitted.hbs",
+      {
+        ccUrl: process.env.BASE_URL,
+        eventName: event.name,
+        roundFormat,
+        best: getFormattedTime(result.best, { event, showMultiPoints: true }) +
+          (result.regionalSingleRecord
+            ? ` (${result.regionalSingleRecord})`
+            : ""),
+        average: result.average !== 0
+          ? (getFormattedTime(result.average, { event }) +
+            (result.regionalAverageRecord
+              ? ` (${result.regionalAverageRecord})`
+              : ""))
+          : "",
+        videoLink: result.videoLink,
+        discussionLink: result.discussionLink,
+        creatorUsername,
+      },
+    );
+
+    try {
+      await this.transporter.sendMail({
+        from: this.resultsEmail,
+        replyTo: C.contactEmail,
+        to,
+        bcc: C.contactEmail,
+        subject: `Result submitted: ${event.name}`,
+        html: contents,
+      });
+    } catch (err) {
+      this.logger.logAndSave(
+        `Error while sending video-based result submitted notification for event ${event.eventId}: ${err}`,
         LogType.Error,
       );
     }
