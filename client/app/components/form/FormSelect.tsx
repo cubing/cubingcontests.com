@@ -8,9 +8,9 @@ type Props = {
   setSelected: (val: any) => void;
   disabled?: boolean;
   oneLine?: boolean;
-};
+} & React.HTMLAttributes<HTMLElement>;
 
-const FormSelect = ({
+function FormSelect({
   id,
   title,
   options,
@@ -20,7 +20,7 @@ const FormSelect = ({
   oneLine,
   className = "",
   style,
-}: Props & React.HTMLAttributes<HTMLElement>) => {
+}: Props) {
   let inputId = "select";
 
   if (id) inputId = id;
@@ -43,6 +43,6 @@ const FormSelect = ({
       </select>
     </div>
   );
-};
+}
 
 export default FormSelect;

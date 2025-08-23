@@ -23,7 +23,7 @@ import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.ts
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
 import { authClient } from "~/helpers/authClient.ts";
-import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
@@ -32,7 +32,7 @@ type Props = {
   // recordPairsByEvent: IEventRecordPairs[];
   // activeRecordTypes: IRecordType[];
   result?: SelectResult; // only defined when editing an existing result
-  competitors?: SelectPerson[];
+  competitors?: PersonResponse[];
   creator?: Creator;
   creatorPerson?: PersonResponse;
 };
@@ -44,18 +44,21 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
   const { data: session } = authClient.useSession();
 
   const [showRules, setShowRules] = useState(false);
-  const [event, setEvent] = useState<EventResponse>(
-    events.find((e) => e.eventId === searchParams.get("eventId")) ?? events.at(0),
+  const [event, setEvent] = useState<EventResponse | undefined>(
+    events.find((e) => e.eventId === (result?.eventId ?? searchParams.get("eventId"))) ?? events[0],
   );
-  const [roundFormat, setRoundFormat] = useState<RoundFormatObject>(allowedRoundFormats[0]);
-  const [competitors, setCompetitors] = useState<InputPerson[]>([null]);
-  const [personNames, setPersonNames] = useState([""]);
+  const [roundFormat, setRoundFormat] = useState<RoundFormatObject>(
+    result ? allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length) : allowedRoundFormats[0],
+  );
+  const [competitors, setCompetitors] = useState<InputPerson[]>(initCompetitors ?? [null]);
+  const [personNames, setPersonNames] = useState(initCompetitors?.map((p) => p.name) ?? [""]);
   const [keepCompetitors, setKeepCompetitors] = useState(false);
-  const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [date, setDate] = useState<Date | null | undefined>(); // null means the date is invalid; undefined means it's empty
-  const [videoLink, setVideoLink] = useState("");
+  const [attempts, setAttempts] = useState<Attempt[]>(result?.attempts ?? []);
+  // null means the date is invalid; undefined means it's empty
+  const [date, setDate] = useState<Date | null | undefined>(result ? new Date(result.date) : undefined);
+  const [videoLink, setVideoLink] = useState(result?.videoLink ?? "");
   const [videoUnavailable, setVideoUnavailable] = useState(false);
-  const [discussionLink, setDiscussionLink] = useState("");
+  const [discussionLink, setDiscussionLink] = useState(result?.discussionLink ?? "");
 
   // const recordPairs = useMemo<IRecordPair[] | undefined>(
   //   () => recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === event?.eventId)?.recordPairs,
@@ -90,47 +93,9 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
   const isAdmin = session?.user.role === "admin";
 
   useEffect(() => {
-    // If submitting results
     if (!result) {
-      myFetch
-        .get<IResultsSubmissionInfo>(`/results/submission-info/${new Date()}`, {
-          authorize: true,
-        })
-        .then(
-          (res) => {
-            if (res.success && res.data) {
-              setSubmissionInfo(res.data);
-
-              const event = res.data.events.find((el: Event) => el.eventId === searchParams.get("eventId")) ??
-                res.data.events[0];
-              setEvent(event);
-              resetCompetitors(event.participants);
-              resetAttempts();
-              document.getElementById("Competitor_1")?.focus();
-            }
-          },
-        );
-    } // If editing a result
-    else {
-      myFetch.get(`/results/editing-info/${resultId}`, { authorize: true })
-        .then((res) => {
-          if (res.success && res.data) {
-            setSubmissionInfo(res.data);
-            const { result, persons, events } = res
-              .data as IAdminResultsSubmissionInfo;
-
-            setEvent(events[0]);
-            setRoundFormat(
-              allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length)!,
-            );
-            setAttempts(result.attempts);
-            setDate(new Date(result.date));
-            setCompetitors(persons);
-            setPersonNames(persons.map((p: IPerson) => p.name));
-            setVideoLink(result.videoLink);
-            if (result.discussionLink) setDiscussionLink(result.discussionLink);
-          }
-        });
+      resetCompetitors((events.find((e) => e.eventId === searchParams.get("eventId")) ?? events[0]).participants);
+      resetAttempts();
     }
   }, []);
 
@@ -225,7 +190,7 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
   };
 
   const changeDate = (newDate: Date | null | undefined) => {
-    // setDate(newDate);
+    setDate(newDate);
 
     // if (newDate) {
     //   updateRecordPairs(newDate);
@@ -299,7 +264,7 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
         )}
         <FormEventSelect
           events={events}
-          eventId={event.eventId}
+          eventId={event?.eventId}
           setEventId={(val) => changeEvent(val)}
           disabled={!!result}
         />
@@ -317,23 +282,25 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
           setPersonNames={setPersonNames}
           persons={competitors}
           setPersons={setCompetitors}
-          nextFocusTargetId={event.format !== "multi" ? "attempt_1" : "attempt_1_solved"}
+          nextFocusTargetId={event?.format !== "multi" ? "attempt_1" : "attempt_1_solved"}
           redirectToOnAddPerson={pathname}
           addNewPersonMode={isAdmin ? "default" : "disabled"}
         />
         <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
-        {attempts.map((attempt: Attempt, i: number) => (
-          <AttemptInput
-            key={i}
-            attNumber={i + 1}
-            attempt={attempt}
-            setAttempt={(val: Attempt) => changeAttempt(i, val)}
-            event={event}
-            memoInputForBld
-            allowUnknownTime={isAdmin && ["1", "2"].includes(roundFormat.value)}
-            nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
-          />
-        ))}
+        {!event
+          ? <AttemptInput attNumber={1} attempt={{ result: 0 }} setAttempt={() => {}} event={events.at(0)} disabled />
+          : attempts.map((attempt: Attempt, i: number) => (
+            <AttemptInput
+              key={i}
+              attNumber={i + 1}
+              attempt={attempt}
+              setAttempt={(val: Attempt) => changeAttempt(i, val)}
+              event={event}
+              memoInputForBld
+              allowUnknownTime={isAdmin && ["1", "2"].includes(roundFormat.value)}
+              nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
+            />
+          ))}
         {
           /* {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
           <BestAndAverage
