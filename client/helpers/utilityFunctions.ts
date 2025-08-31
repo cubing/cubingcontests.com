@@ -137,30 +137,6 @@ export function getAttempt(
   return newAttempt;
 }
 
-export const getBSClassFromColor = (color: Color | undefined): string => {
-  // THE MAGENTA OPTION IS SKIPPED FOR NOW
-  switch (color) {
-    case Color.Red:
-      return "danger";
-    case Color.Blue:
-      return "primary";
-    case Color.Green:
-      return "success";
-    case Color.Yellow:
-      return "warning";
-    case Color.White:
-      return "light";
-    case Color.Cyan:
-      return "info";
-    case Color.Black:
-      return "dark";
-    default: {
-      console.error(`Unknown color: ${color}`);
-      return "dark";
-    }
-  }
-};
-
 export const getContestIdFromName = (name: string): string => {
   let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, "");
   const parts = output.split(" ");

@@ -1,7 +1,8 @@
 import z from "zod";
+import { RecordTypeValues } from "~/helpers/types";
 
 export const RecordConfigValidator = z.strictObject({
-  recordTypeId: z.string().nonempty().max(4),
+  recordTypeId: z.enum(RecordTypeValues),
   label: z.string().nonempty(),
   active: z.boolean(),
   order: z.int().min(0),

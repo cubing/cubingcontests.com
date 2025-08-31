@@ -24,20 +24,23 @@ import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
 import { authClient } from "~/helpers/authClient.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
 type Props = {
   events: EventResponse[];
   // recordPairsByEvent: IEventRecordPairs[];
-  // activeRecordTypes: IRecordType[];
+  activeRecordConfigs: RecordConfigResponse[];
   result?: SelectResult; // only defined when editing an existing result
   competitors?: PersonResponse[];
   creator?: Creator;
   creatorPerson?: PersonResponse;
 };
 
-function ResultsSubmissionForm({ events, result, competitors: initCompetitors, creator, creatorPerson }: Props) {
+function ResultsSubmissionForm(
+  { events, activeRecordConfigs, result, competitors: initCompetitors, creator, creatorPerson }: Props,
+) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
@@ -48,7 +51,7 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
     events.find((e) => e.eventId === (result?.eventId ?? searchParams.get("eventId"))) ?? events[0],
   );
   const [roundFormat, setRoundFormat] = useState<RoundFormatObject>(
-    result ? allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length) : allowedRoundFormats[0],
+    result ? allowedRoundFormats.find((rf) => rf.attempts === result.attempts.length)! : allowedRoundFormats[0],
   );
   const [competitors, setCompetitors] = useState<InputPerson[]>(initCompetitors ?? [null]);
   const [personNames, setPersonNames] = useState(initCompetitors?.map((p) => p.name) ?? [""]);
@@ -169,7 +172,7 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
     if (!keepCompetitors) resetCompetitors(newEvent.participants);
   };
 
-  const resetCompetitors = (participants: number = event.participants) => {
+  const resetCompetitors = (participants: number = event!.participants) => {
     const [competitors, personNames] = getBlankCompetitors(participants);
     setCompetitors(competitors);
     setPersonNames(personNames);
@@ -288,7 +291,7 @@ function ResultsSubmissionForm({ events, result, competitors: initCompetitors, c
         />
         <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
         {!event
-          ? <AttemptInput attNumber={1} attempt={{ result: 0 }} setAttempt={() => {}} event={events.at(0)} disabled />
+          ? <AttemptInput attNumber={1} attempt={{ result: 0 }} setAttempt={() => {}} event={events.at(0)!} disabled />
           : attempts.map((attempt: Attempt, i: number) => (
             <AttemptInput
               key={i}

@@ -54,5 +54,5 @@ export const EventCategoryValues = [
 ] as const;
 export type EventCategory = typeof EventCategoryValues[number];
 
-export const RegionalRecordTypeValues = ["WR", "ER", "NAR", "SAR", "AsR", "AfR", "OcR", "NR", "PR"] as const;
-export type RegionalRecordType = typeof RegionalRecordTypeValues[number];
+export const RecordTypeValues = ["WR", "ER", "NAR", "SAR", "AsR", "AfR", "OcR", "NR", "PR"] as const;
+export type RecordType = typeof RecordTypeValues[number];

@@ -5,7 +5,7 @@ import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
 import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import { ListPageMode, RegionalRecordTypeValues } from "~/helpers/types.ts";
+import { ListPageMode, RecordType, RecordTypeValues } from "~/helpers/types.ts";
 import Button from "~/app/components/UI/Button.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -19,7 +19,7 @@ import { createRecordConfigSF } from "~/server/serverFunctions/recordConfigServe
 import { RecordConfigDto } from "~/helpers/validators/RecordConfig.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
 
-const recordTypeOptions: MultiChoiceOption[] = RegionalRecordTypeValues.map((v) => ({ value: v, label: v }));
+const recordTypeOptions: MultiChoiceOption[] = RecordTypeValues.map((v) => ({ value: v, label: v }));
 
 type Props = {
   recordConfigs: RecordConfigResponse[];
@@ -32,7 +32,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
   const [mode, setMode] = useState<ListPageMode>("view");
   const [recordConfigs, setRecordConfigs] = useState(initRecordConfigs);
 
-  const [recordTypeId, setRecordTypeId] = useState<string>(RegionalRecordTypeValues[0]);
+  const [recordTypeId, setRecordTypeId] = useState<RecordType>(RecordTypeValues[0]);
   const [label, setLabel] = useState("");
   const [active, setActive] = useState(true);
   const [order, setOrder] = useState<number | undefined>();
@@ -45,7 +45,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
       recordTypeId,
       label,
       active,
-      order,
+      order: order!,
       color,
     } satisfies RecordConfigDto;
 

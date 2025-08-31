@@ -2,12 +2,13 @@ import "server-only";
 import { boolean, integer, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
 import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm";
+import { recordTypeEnum } from "./results.ts";
 
 export const recordConfigsTable = table("record_configs", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   // @Prop({ enum: WcaRecordType, required: true, immutable: true, unique: true })
   // wcaEquivalent: WcaRecordType;
-  recordTypeId: varchar({ length: 4 }).notNull().unique(),
+  recordTypeId: recordTypeEnum().notNull().unique(),
   label: text().notNull().unique(),
   active: boolean().notNull(),
   order: integer().notNull().unique(),

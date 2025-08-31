@@ -3,14 +3,14 @@ import { bigint, boolean, integer, jsonb, pgEnum, pgTable as table, text, timest
 import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm/utils";
 import { usersTable } from "./auth-schema.ts";
-import { RegionalRecordTypeValues } from "~/helpers/types.ts";
+import { RecordTypeValues } from "~/helpers/types.ts";
 
 export type Attempt = {
   result: number;
   memo?: number;
 };
 
-export const regionalRecordTypeEnum = pgEnum("regional_record_type", RegionalRecordTypeValues);
+export const recordTypeEnum = pgEnum("record_type", RecordTypeValues);
 
 export const resultsTable = table("results", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -21,8 +21,8 @@ export const resultsTable = table("results", {
   attempts: jsonb().$type<Attempt>().array().notNull(),
   best: bigint({ mode: "number" }).notNull(),
   average: bigint({ mode: "number" }).notNull(),
-  regionalSingleRecord: regionalRecordTypeEnum(),
-  regionalAverageRecord: regionalRecordTypeEnum(),
+  singleRecordTypes: recordTypeEnum().array(),
+  averageRecordTypes: recordTypeEnum().array(),
   competitionId: text(), // only used for contest results
   ranking: integer(), // only used for contest results
   proceeds: boolean(), // only used for contest results
@@ -33,7 +33,9 @@ export const resultsTable = table("results", {
   ...tableTimestamps,
 });
 
-export type SelectResult = typeof resultsTable.$inferSelect;
+export type SelectResult = (Omit<typeof resultsTable.$inferSelect, "attempts">) & {
+  attempts: Attempt[];
+};
 
 const {
   createdBy: _,
