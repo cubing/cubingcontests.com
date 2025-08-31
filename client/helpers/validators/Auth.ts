@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 
 const username = z.string().nonempty();
 const email = z.email();

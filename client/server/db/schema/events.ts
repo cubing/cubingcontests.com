@@ -4,9 +4,9 @@ import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm/utils";
 import { EventCategoryValues, EventFormatValues, RoundFormatValues } from "~/helpers/types.ts";
 
-export const eventFormatEnum = pgEnum("eventFormat", EventFormatValues);
-export const roundFormatEnum = pgEnum("roundFormat", RoundFormatValues);
-export const eventCategoryEnum = pgEnum("eventCategory", EventCategoryValues);
+export const eventFormatEnum = pgEnum("event_format", EventFormatValues);
+export const roundFormatEnum = pgEnum("round_format", RoundFormatValues);
+export const eventCategoryEnum = pgEnum("event_category", EventCategoryValues);
 
 export const eventsTable = table("events", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

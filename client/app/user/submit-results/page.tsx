@@ -11,7 +11,13 @@ async function SubmitResultsPage() {
     or(eq(table.category, "extreme-bld"), eq(table.submissionsAllowed, true)),
   ).orderBy(table.rank);
 
-  return <ResultsSubmissionForm events={events} />;
+  return (
+    <section>
+      <h2 className="mb-4 text-center">Results</h2>
+
+      <ResultsSubmissionForm events={events} />;
+    </section>
+  );
 }
 
 export default SubmitResultsPage;

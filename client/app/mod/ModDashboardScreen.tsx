@@ -78,7 +78,7 @@ function ModDashboardScreen({ contests: initContests }: Props) {
   // };
 
   return (
-    <div>
+    <section>
       <div className="px-2">
         <h2 className="mb-4 text-center">Moderator Dashboard</h2>
 
@@ -126,10 +126,10 @@ function ModDashboardScreen({ contests: initContests }: Props) {
                 Configure events
               </Link>
               <Link
-                href="/admin/record-types"
+                href="/admin/records-configuration"
                 className="btn btn-secondary btn-sm btn-lg-md"
               >
-                Configure record types
+                Configure records
               </Link>
             </>
           )}
@@ -275,7 +275,7 @@ function ModDashboardScreen({ contests: initContests }: Props) {
             </table>
           </div>
         )}
-    </div>
+    </section>
   );
 }
 

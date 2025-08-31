@@ -8,7 +8,13 @@ async function ConfigureEventsPage() {
 
   const events = await db.select().from(table).orderBy(table.rank);
 
-  return <ConfigureEventsScreen events={events} />;
+  return (
+    <section>
+      <h2 className="mb-4 text-center">Events</h2>
+
+      <ConfigureEventsScreen events={events} />;
+    </section>
+  );
 }
 
 export default ConfigureEventsPage;

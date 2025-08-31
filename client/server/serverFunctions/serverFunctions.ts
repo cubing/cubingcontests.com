@@ -12,7 +12,7 @@ import { randomScrambleForEvent } from "cubing/scramble";
 import { cube2x2x2 } from "cubing/puzzles";
 import { Alg } from "cubing/alg";
 import { nxnMoves } from "~/helpers/types/NxNMove.ts";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { auth } from "~/server/auth.ts";
 import { Roles } from "~/server/permissions.ts";

@@ -1,11 +1,11 @@
 "use client";
 
 import { useContext, useState, useTransition } from "react";
-import { z } from "zod/v4";
+import { z } from "zod";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
-import { authClient } from "~/helpers/authClient";
+import { authClient } from "~/helpers/authClient.ts";
 
 const RequestPasswordResetPage = () => {
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);

@@ -18,20 +18,22 @@ const from = {
 };
 
 function getHtml(contents: string) {
-  return `
-    <!doctype html>
-    <html>
-      <head>
-        <title>Cubing Contests</title>
-        <style>
-          body { font-family: Arial, Helvetica, sans-serif; }
-        </style>
-      </head>
-      <body>
-        ${contents}
-      </body>
-    </html>
-`;
+  return contents;
+
+  //   return `
+  //     <!doctype html>
+  //     <html>
+  //       <head>
+  //         <title>Cubing Contests</title>
+  //         <style>
+  //           body { font-family: Arial, Helvetica, sans-serif; }
+  //         </style>
+  //       </head>
+  //       <body>
+  //         ${contents}
+  //       </body>
+  //     </html>
+  // `;
 }
 
 export async function sendEmail(to: string, subject: string, content: string) {

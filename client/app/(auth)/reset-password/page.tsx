@@ -5,9 +5,9 @@ import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authClient } from "~/helpers/authClient";
-import { ResetPasswordFormValidator } from "~/helpers/validators/Auth";
-import z from "zod/v4";
+import { authClient } from "~/helpers/authClient.ts";
+import { ResetPasswordFormValidator } from "~/helpers/validators/Auth.ts";
+import z from "zod";
 
 const ResetPasswordPage = () => {
   const router = useRouter();

@@ -1,6 +1,6 @@
 import "server-only";
 import { createSafeActionClient, DEFAULT_SERVER_ERROR_MESSAGE } from "next-safe-action";
-import z from "zod/v4";
+import z from "zod";
 import { authClient } from "~/helpers/authClient.ts";
 import { authorizeUser } from "./serverUtilityFunctions.ts";
 import { CcServerErrorObject } from "../helpers/types.ts";

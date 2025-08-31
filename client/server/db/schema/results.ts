@@ -10,7 +10,7 @@ export type Attempt = {
   memo?: number;
 };
 
-export const regionalRecordTypeEnum = pgEnum("regionalRecordType", RegionalRecordTypeValues);
+export const regionalRecordTypeEnum = pgEnum("regional_record_type", RegionalRecordTypeValues);
 
 export const resultsTable = table("results", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

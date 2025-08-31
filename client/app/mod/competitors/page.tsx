@@ -29,7 +29,13 @@ async function CompetitorsPage() {
         .where(eq(table.createdBy, user.id)).orderBy(desc(table.personId));
     }
 
-    return <ManageCompetitorsScreen persons={persons} users={users} />;
+    return (
+      <section>
+        <h2 className="mb-4 text-center">Competitors</h2>
+
+        <ManageCompetitorsScreen persons={persons} users={users} />;
+      </section>
+    );
   } catch {
     return <h3 className="mt-4 text-center">Error while fetching persons</h3>;
   }

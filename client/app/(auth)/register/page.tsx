@@ -7,7 +7,7 @@ import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { authClient } from "~/helpers/authClient.ts";
 import { RegistrationFormValidator } from "~/helpers/validators/Auth";
-import z from "zod/v4";
+import z from "zod";
 
 const RegisterPage = () => {
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);

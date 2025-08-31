@@ -5,7 +5,7 @@ import MainLayout from "~/app/components/UI/MainLayout.tsx";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 // Prevent FA from adding its CSS since we did it manually above
 import { config } from "@fortawesome/fontawesome-svg-core";
-import { auth } from "~/server/auth";
+import { auth } from "~/server/auth.ts";
 import { headers } from "next/headers";
 
 config.autoAddCss = false;
@@ -13,8 +13,7 @@ config.autoAddCss = false;
 // SEO
 export const metadata = {
   title: "Cubing Contests",
-  description:
-    "The best place for hosting unofficial Rubik's Cube competitions and speedcuber meetups.",
+  description: "The best place for hosting unofficial Rubik's Cube competitions and speedcuber meetups.",
   keywords:
     "rubik's rubiks cube contest contests competition competitions meetup meetups speedcubing speed cubing puzzle",
   icons: { icon: "/favicon.png" },

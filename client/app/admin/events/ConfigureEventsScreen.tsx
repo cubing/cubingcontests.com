@@ -86,8 +86,8 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
         setMode("view");
 
         const newEvents = mode === "add"
-          ? [...events, res.data]
-          : [...events.filter((e) => e.eventId !== eventIdUnderEdit), res.data];
+          ? [...events, res.data!]
+          : events.map((e) => e.eventId === eventIdUnderEdit ? res.data! : e);
         newEvents.sort((a, b) => a.rank - b.rank);
         setEvents(newEvents);
       }
@@ -143,8 +143,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
   };
 
   return (
-    <section>
-      <h2 className="mb-4 text-center">Events</h2>
+    <>
       <ToastMessages />
 
       {mode === "view"
@@ -155,7 +154,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
         )
         : (
           <Form
-            buttonText={mode === "add" ? "Create Event" : "Save Event"}
+            buttonText="Submit"
             onSubmit={handleSubmit}
             hideToasts
             showCancelButton
@@ -380,7 +379,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
           </tbody>
         </table>
       </div>
-    </section>
+    </>
   );
 }
 

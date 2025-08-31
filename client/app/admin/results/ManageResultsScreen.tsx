@@ -50,8 +50,7 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
   };
 
   return (
-    <section>
-      <h2 className="mb-4 text-center">Results</h2>
+    <>
       <ToastMessages />
 
       <FiltersContainer>
@@ -158,7 +157,7 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
           </table>
         </div>
       </div>
-    </section>
+    </>
   );
 };
 

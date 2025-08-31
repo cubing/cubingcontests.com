@@ -9,7 +9,13 @@ async function EditResultPage({ params }: Props) {
   await authorizeUser({ permissions: { videoBasedResults: ["update"] } });
   const { resultId } = await params;
 
-  return <ResultsSubmissionForm events={} result={} />;
+  return (
+    <section>
+      <h2 className="mb-4 text-center">Results</h2>
+
+      <ResultsSubmissionForm events={} result={} />;
+    </section>
+  )
 }
 
 export default EditResultPage;

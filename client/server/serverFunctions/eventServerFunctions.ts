@@ -1,6 +1,6 @@
 "use server";
 
-import { z } from "zod/v4";
+import { z } from "zod";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { EventValidator } from "~/helpers/validators/Event.ts";
 import type { SelectEvent } from "~/server/db/schema/events.ts";

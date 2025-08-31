@@ -99,8 +99,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
   };
 
   return (
-    <section>
-      <h2 className="mb-4 text-center">Users</h2>
+    <>
       <ToastMessages />
 
       {username && (
@@ -181,7 +180,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
           </tbody>
         </table>
       </div>
-    </section>
+    </>
   );
 }
 

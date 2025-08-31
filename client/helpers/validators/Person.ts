@@ -1,8 +1,8 @@
-import z from "zod/v4";
+import z from "zod";
 import { WcaIdValidator } from "./Validators.ts";
 
 export const PersonValidator = z.strictObject({
-  name: z.string(),
+  name: z.string().nonempty(),
   localizedName: z.string().optional(),
   countryIso2: z.string().length(2),
   wcaId: WcaIdValidator.optional(),

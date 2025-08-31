@@ -20,7 +20,13 @@ async function ManageUsersPage() {
   const persons = await db.select(personsPublicCols).from(personsTable)
     .where(inArray(personsTable.personId, personIds));
 
-  return <ManageUsersScreen users={res.users} userPersons={persons} />;
+  return (
+    <section>
+      <h2 className="mb-4 text-center">Users</h2>
+
+      <ManageUsersScreen users={res.users} userPersons={persons} />;
+    </section>
+  );
 }
 
 export default ManageUsersPage;

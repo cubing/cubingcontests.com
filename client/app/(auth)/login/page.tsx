@@ -7,7 +7,7 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { authClient } from "~/helpers/authClient.ts";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { LoginFormValidator } from "~/helpers/validators/Auth";
 
 const LoginPage = () => {

@@ -4,7 +4,7 @@ import { useContext, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { authClient } from "~/helpers/authClient.ts";
 import { Creator, ListPageMode } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -23,6 +23,7 @@ import { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 import { useAction } from "next-safe-action/hooks";
 import { approvePersonSF, deletePersonSF } from "~/server/serverFunctions/personServerFunctions.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
+import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
 
 type Props = {
   persons: (SelectPerson | PersonResponse)[];
@@ -147,8 +148,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
   };
 
   return (
-    <section>
-      <h2 className="mb-4 text-center">Competitors</h2>
+    <>
       <ToastMessages />
 
       {mode === "view"
@@ -256,11 +256,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
                             </td>
                           )}
                           <td>
-                            <FontAwesomeIcon
-                              icon={person.approved ? faCheck : faXmark}
-                              className={person.approved ? "" : "text-danger"}
-                              style={{ height: "1.3rem" }}
-                            />
+                            <ActiveInactiveIcon isActive={person.approved} />
                           </td>
                           <td>
                             <div className="d-flex gap-2">
@@ -313,7 +309,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
           </div>
         </>
       )}
-    </section>
+    </>
   );
 }
 

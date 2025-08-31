@@ -6,7 +6,7 @@ import { WcaPersonDto } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
 import { PersonResponse, personsPublicCols, personsTable as table } from "~/server/db/schema/persons.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { checkUserPermissions } from "../serverUtilityFunctions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";

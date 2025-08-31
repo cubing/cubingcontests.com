@@ -22,3 +22,9 @@ export async function authorizeUser({ permissions }: { permissions?: CcPermissio
 
   return session;
 }
+
+export async function authorizeAdmin() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session || session.user.role !== "admin") redirect("/login");
+}
