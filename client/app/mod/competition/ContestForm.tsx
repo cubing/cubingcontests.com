@@ -905,7 +905,7 @@ const ContestForm = ({
             <p className="mt-4 fs-6">
               As part of the Cubing Contests honorary dues system, you will be asked to{" "}
               <Link href="/donate">donate</Link>{" "}
-              $0.10 (USD) per competitor to support the maintenance and continued development of cubingcontests.com,
+              $0.10 (USD) per competitor to support the maintenance and continued development of cubingcontests.com
               after the contest is finished.{" "}
               <strong>
                 For example, if this contest reaches the competitor limit, you will be asked to donate{" "}

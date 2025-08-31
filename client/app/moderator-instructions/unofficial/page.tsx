@@ -22,6 +22,10 @@ const page = () => {
           attempt to use Cubing Contests as a substitute for the WCA. Your competition may be rejected if it is deemed
           that it could be held as a WCA competition instead.
         </p>
+        <p className="ms-3">
+          B3.1. After the competition, at least two photos of the setup (i.e. scrambling area, competition area, etc.)
+          should be provided in the contest finished email thread for verification of B3.
+        </p>
       </div>
     </>
   );

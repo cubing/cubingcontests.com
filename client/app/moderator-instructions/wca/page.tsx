@@ -92,8 +92,9 @@ const page = () => {
           competitions to <Link href="/donate">donate</Link>{" "}
           $0.10 (USD) per competitor to support the maintenance and continued development of cubingcontests.com, after
           the contest is finished. For example, if the contest reaches 100 competitors, the organizer will be asked to
-          donate $10. This donation is voluntary. Note: for WCA Competitions the honorary dues system only considers the
-          number of competitors in unofficial events.
+          donate $10. This donation is voluntary. Note: the honorary dues system only considers the number of
+          competitors on the Cubing Contests contest page; if there are more competitors in events held on another
+          website, they are not counted.
         </p>
       </div>
     </>

@@ -309,6 +309,7 @@ export class ResultsService {
     forAverage = false,
     show?: "results",
     region?: string,
+    topN = 100,
   ): Promise<IEventRankings> {
     const event = await this.eventsService.getEventById(eventId);
 
@@ -383,7 +384,7 @@ export class ResultsService {
             { $project: excl },
             { $match: { "attempts.result": { $gt: 0, $ne: C.maxTime } } },
             { $sort: { "attempts.result": 1 } },
-            { $limit: 100 },
+            { $limit: Math.min(topN, 200) },
           ])
           .exec();
 
@@ -403,7 +404,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { best: 1 } },
-            { $limit: 500 },
+            { $limit: topN },
           ])
           .exec();
 
@@ -468,7 +469,7 @@ export class ResultsService {
           { $match },
           ...regionFilterForTopResults,
           { $sort: { average: 1 } },
-          { $limit: 100 },
+          { $limit: Math.min(topN, 200) },
         ]).exec();
       } else {
         // Get top averages by person
@@ -484,7 +485,7 @@ export class ResultsService {
             },
             ...regionFilterForTopPersons,
             { $sort: { average: 1 } },
-            { $limit: 500 },
+            { $limit: topN },
           ])
           .exec();
 
