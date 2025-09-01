@@ -7,7 +7,12 @@
     </style>
   </head>
   <body>
-    <p>Contest <a href="{{contestUrl}}">{{contestName}}</a> has been finished and is pending review by the admin team.</p>
+    <p>
+      Contest <a href="{{contestUrl}}">{{contestName}}</a> has been finished and is pending review by the admin team.
+      {{#if isUnofficialCompetition}}
+        <strong>Please provide at least two photos of the competition setup</strong> (i.e. scrambling area, competition area, etc.) in response to this email.
+      {{/if}}
+    </p>
 
     <p>If you find an error in the results that needs to be corrected, please let the admin team know in a reply to this email. <strong>Make sure to use "Reply All"!</strong></p>
 

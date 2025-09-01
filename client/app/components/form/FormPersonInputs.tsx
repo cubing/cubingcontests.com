@@ -147,25 +147,27 @@ const FormPersonInputs = ({
   };
 
   const selectPerson = (inputIndex: number, selectionIndex: number) => {
-    if (matchedPersons[selectionIndex] === null) {
-      // Only mods are allowed to open the add new competitor page
-      if (userInfo?.isMod) {
-        setFocusedInput(null);
+    if (!loadingId) {
+      if (matchedPersons[selectionIndex] === null) {
+        // Only mods are allowed to open the add new competitor page
+        if (userInfo?.isMod) {
+          setFocusedInput(null);
 
-        if (addNewPersonMode === "from-new-tab") open("/mod/competitors", "_blank");
-        else if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
-        else window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
+          if (addNewPersonMode === "from-new-tab") open("/mod/competitors", "_blank");
+          else if (!redirectToOnAddPerson) window.location.href = "/mod/competitors";
+          else window.location.href = `/mod/competitors?redirect=${redirectToOnAddPerson}`;
+        }
+      } else {
+        const newSelectedPerson = matchedPersons[selectionIndex];
+        const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
+        const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
+        setPersons(newPersons);
+        setPersonNames(newPersonNames);
+        addEmptyInputIfRequired(newPersonNames, newPersons);
+        if (onSelectPerson) onSelectPerson(newSelectedPerson);
+        // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
+        setTimeout(() => focusNext(newPersons), 0);
       }
-    } else {
-      const newSelectedPerson = matchedPersons[selectionIndex];
-      const newPersons = persons.map((el, i) => (i !== inputIndex ? el : newSelectedPerson));
-      const newPersonNames = personNames.map((el, i) => (i !== inputIndex ? el : newSelectedPerson.name));
-      setPersons(newPersons);
-      setPersonNames(newPersonNames);
-      addEmptyInputIfRequired(newPersonNames, newPersons);
-      if (onSelectPerson) onSelectPerson(newSelectedPerson);
-      // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
-      setTimeout(() => focusNext(newPersons), 0);
     }
   };
 

@@ -107,7 +107,7 @@ const PersonForm = ({
       if (hasWcaId) setNextFocusTarget("wca_id");
       else setNextFocusTarget("full_name");
     } else {
-      setTimeout(() => window.location.replace(redirect), 1000); // 1 second delay
+      setTimeout(() => window.location.href = redirect, 1000); // 1 second delay
     }
   };
 
