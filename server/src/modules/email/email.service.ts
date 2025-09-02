@@ -210,6 +210,7 @@ export class EmailService {
       duesAmount: getIsCompType(contest.type) && duesAmount >= 1
         ? duesAmount.toFixed(2)
         : undefined,
+      isUnofficialCompetition: contest.type === ContestType.Competition,
     });
 
     try {

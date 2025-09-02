@@ -155,26 +155,28 @@ function FormPersonInputs({
   };
 
   const selectPerson = (inputIndex: number, selectionIndex: number) => {
-    if (matchedPersons[selectionIndex] === null) {
-      setFocusedInput(null);
+    if (!isPending) {
+      if (matchedPersons[selectionIndex] === null) {
+        setFocusedInput(null);
 
-      if (addNewPersonMode === "from-new-tab") {
-        open("/mod/competitors", "_blank");
-      } else if (!redirectToOnAddPerson) {
-        window.location.href = "/mod/competitors";
+        if (addNewPersonMode === "from-new-tab") {
+          open("/mod/competitors", "_blank");
+        } else if (!redirectToOnAddPerson) {
+          window.location.href = "/mod/competitors";
+        } else {
+          window.location.href = `/mod/competitors?redirect=${redirectToOnAddPerson}`;
+        }
       } else {
-        window.location.replace(`/mod/competitors?redirect=${redirectToOnAddPerson}`);
+        const newSelectedPerson = matchedPersons[selectionIndex];
+        const newPersons = persons.map((p, i) => (i !== inputIndex ? p : newSelectedPerson));
+        const newPersonNames = personNames.map((pn, i) => (i !== inputIndex ? pn : newSelectedPerson.name));
+        setPersons(newPersons);
+        setPersonNames(newPersonNames);
+        addEmptyInputIfRequired(newPersonNames, newPersons);
+        if (onSelectPerson) onSelectPerson(newSelectedPerson);
+        // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
+        setTimeout(() => focusNext(newPersons), 0);
       }
-    } else {
-      const newSelectedPerson = matchedPersons[selectionIndex];
-      const newPersons = persons.map((p, i) => (i !== inputIndex ? p : newSelectedPerson));
-      const newPersonNames = personNames.map((pn, i) => (i !== inputIndex ? pn : newSelectedPerson.name));
-      setPersons(newPersons);
-      setPersonNames(newPersonNames);
-      addEmptyInputIfRequired(newPersonNames, newPersons);
-      if (onSelectPerson) onSelectPerson(newSelectedPerson);
-      // Queue focus next until the next tick, because otherwise the input immediately loses focus when clicking
-      setTimeout(() => focusNext(newPersons), 0);
     }
   };
 

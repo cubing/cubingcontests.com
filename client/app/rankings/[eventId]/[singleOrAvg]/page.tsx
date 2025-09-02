@@ -22,13 +22,13 @@ export const metadata = {
 
 type Props = {
   params: Promise<{ eventId: string; singleOrAvg: "single" | "average" }>;
-  searchParams: Promise<{ show: "results"; region: string }>;
+  searchParams: Promise<{ show: "results"; region: string; topN: string }>;
 };
 
 async function RankingsPage({ params, searchParams }: Props) {
   const { eventId, singleOrAvg } = await params;
-  const { show, region } = await searchParams;
-  const urlSearchParams = new URLSearchParams(omitBy({ show, region }, (val) => !val));
+  const { show, region, topN } = await searchParams;
+  const urlSearchParams = new URLSearchParams(omitBy({ show, region, topN }, (val) => !val));
   const queryString = urlSearchParams.toString() ? `?${urlSearchParams}` : "";
   urlSearchParams.delete("show");
   const queryStringWithoutShow = urlSearchParams.toString() ? `?${urlSearchParams}` : "";

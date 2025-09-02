@@ -40,6 +40,7 @@ export class ResultsController {
     @Param("singleOrAvg") singleOrAvg: "single" | "average",
     @Query("show") show?: "results",
     @Query("region") region?: string,
+    @Query("topN") topN?: string,
   ) {
     this.logger.logAndSave(
       `Getting ${singleOrAvg} rankings for ${eventId}`,
@@ -51,6 +52,7 @@ export class ResultsController {
       singleOrAvg === "average",
       show,
       region,
+      topN ? Number(topN) : undefined,
     );
   }
 

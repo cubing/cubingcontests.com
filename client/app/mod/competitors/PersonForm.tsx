@@ -101,7 +101,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
       else setNextFocusTarget("full_name");
     } else {
       throw new Error("NOT IMPLEMENTED: ADD BUTTON THAT REDIRECTS BACK AND FOCUS IT");
-      // setTimeout(() => window.location.replace(redirect), 2000);
+      // setTimeout(() => window.location.href = redirect, 2000);
     }
   };
 
