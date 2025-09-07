@@ -56,3 +56,9 @@ export type EventCategory = typeof EventCategoryValues[number];
 
 export const RecordTypeValues = ["WR", "ER", "NAR", "SAR", "AsR", "AfR", "OcR", "NR", "PR"] as const;
 export type RecordType = typeof RecordTypeValues[number];
+
+export type EventWrPair = {
+  eventId: string;
+  best: number;
+  average: number;
+};

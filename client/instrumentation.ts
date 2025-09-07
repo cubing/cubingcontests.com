@@ -111,23 +111,48 @@ export async function register() {
       }
     }
 
+    const getCreatorId = async (obj: any): Promise<string | null> => {
+      const dumpUserObject = usersDump.find((u: any) => u._id.$oid === obj.createdBy.$oid);
+      // if (!dumpUserObject) throw new Error(`User with ID ${obj.createdBy.$oid} not found in users dump!`);
+      if (!dumpUserObject) return null;
+
+      const res = await db.select({ id: usersTable.id }).from(usersTable).where(
+        eq(usersTable.username, dumpUserObject.username),
+      );
+      if (res.length !== 1) throw new Error(`User with username ${dumpUserObject.username} not found in DB`);
+      return res[0].id;
+    };
+
     if ((await db.select({ id: personsTable.id }).from(personsTable).limit(1)).length === 0) {
       if (process.env.EMAIL_TOKEN) throw new Error(message);
       console.log("Seeding persons...");
 
       try {
         const personsDump = (JSON.parse((await fs.readFileSync("./dump/persons.json")) as any) as any[]).reverse();
+        let persons = [];
 
-        await db.insert(personsTable).values(personsDump.map((p: any) => ({
-          personId: p.personId,
-          wcaId: p.wcaId,
-          name: p.name,
-          localizedName: p.localizedName,
-          countryIso2: p.countryIso2,
-          approved: !p.unapproved,
-          createdAt: new Date(p.createdAt.$date),
-          updatedAt: new Date(p.updatedAt.$date),
-        })));
+        for (const p of personsDump) {
+          persons.push({
+            personId: p.personId,
+            wcaId: p.wcaId,
+            name: p.name,
+            localizedName: p.localizedName,
+            countryIso2: p.countryIso2,
+            approved: !p.unapproved,
+            createdBy: p.createdBy ? await getCreatorId(p) : null,
+            createdExternally: !p.createdBy,
+            createdAt: new Date(p.createdAt.$date),
+            updatedAt: new Date(p.updatedAt.$date),
+          });
+
+          // Drizzle can't handle too many entries being inserted at once
+          if (persons.length === 1000) {
+            await db.insert(personsTable).values(persons);
+            persons = [];
+          }
+        }
+
+        await db.insert(personsTable).values(persons);
       } catch (e) {
         console.error("Unable to load persons dump:", e);
       }
@@ -160,7 +185,7 @@ export async function register() {
             format: e.format,
             defaultRoundFormat: e.defaultRoundFormat,
             participants: e.participants,
-            submissionsAllowed: e.groups.includes(6),
+            submissionsAllowed: e.groups.includes(6) || e.groups.includes(3),
             removedWca: e.groups.includes(8),
             hasMemo: e.groups.includes(10),
             hidden: e.groups.includes(9),
@@ -181,18 +206,6 @@ export async function register() {
 
       try {
         const resultsDump = JSON.parse((await fs.readFileSync("./dump/results.json")) as any);
-
-        const getCreatorId = async (r: any): Promise<string> => {
-          const dumpUserObject = usersDump.find((u) => u._id.$oid === r.createdBy.$oid);
-          if (!dumpUserObject) throw new Error(`User with ID ${r.createdBy.$oid} not found in users dump!`);
-
-          const res = await db.select({ id: usersTable.id }).from(usersTable).where(
-            eq(usersTable.username, dumpUserObject.username),
-          );
-          if (res.length !== 1) throw new Error(`User with username ${dumpUserObject.username} not found in DB`);
-          return res[0].id;
-        };
-
         let results = [];
 
         for (const r of resultsDump) {
@@ -211,7 +224,9 @@ export async function register() {
             proceeds: r.proceeds ?? null,
             videoLink: r.videoLink || null,
             discussionLink: r.discussionLink || null,
+            // FIX THESE TWO FIELDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             createdBy: r.createdBy ? await getCreatorId(r) : null,
+            // createdExternally: ,
             createdAt: new Date(r.createdAt.$date),
             updatedAt: new Date(r.updatedAt.$date),
           });

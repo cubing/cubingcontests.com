@@ -11,26 +11,29 @@ import Button from "~/app/components/UI/Button.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import { type RoundFormatObject, roundFormats } from "~/helpers/roundFormats.ts";
 import { C } from "~/helpers/constants.ts";
-import { getBlankCompetitors, getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
-import { Creator, type InputPerson, RoundFormat } from "~/helpers/types.ts";
+import { getActionError, getBlankCompetitors, getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
+import type { Creator, EventWrPair, InputPerson, RoundFormat } from "~/helpers/types.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
-// import Rules from "./video-based-results-rules.mdx";
+import Rules from "./video-based-results-rules.mdx";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
 import { authClient } from "~/helpers/authClient.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
+import Loading from "~/app/components/UI/Loading.tsx";
+import { useAction } from "next-safe-action/hooks";
+import { getEventWrPairsUpToDateSF } from "~/server/serverFunctions/resultsServerFunctions.ts";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
 type Props = {
   events: EventResponse[];
-  // recordPairsByEvent: IEventRecordPairs[];
+  eventWrPairs: EventWrPair[];
   activeRecordConfigs: RecordConfigResponse[];
   result?: SelectResult; // only defined when editing an existing result
   competitors?: PersonResponse[];
@@ -38,14 +41,23 @@ type Props = {
   creatorPerson?: PersonResponse;
 };
 
-function ResultsSubmissionForm(
-  { events, activeRecordConfigs, result, competitors: initCompetitors, creator, creatorPerson }: Props,
-) {
+function ResultsSubmissionForm({
+  events,
+  eventWrPairs: initEventWrPairs,
+  activeRecordConfigs,
+  result,
+  competitors: initCompetitors,
+  creator,
+  creatorPerson,
+}: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
   const { data: session } = authClient.useSession();
 
+  const { executeAsync: getEventWrPairsUpToDate, isPending: isUpdatingWrPairs, reset: resetGetEventWrPairsUpToDate } =
+    useAction(getEventWrPairsUpToDateSF);
+  const [eventWrPairs, setEventWrPairs] = useState<EventWrPair[]>(initEventWrPairs);
   const [showRules, setShowRules] = useState(false);
   const [event, setEvent] = useState<EventResponse | undefined>(
     events.find((e) => e.eventId === (result?.eventId ?? searchParams.get("eventId"))) ?? events[0],
@@ -63,35 +75,23 @@ function ResultsSubmissionForm(
   const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [discussionLink, setDiscussionLink] = useState(result?.discussionLink ?? "");
 
-  // const recordPairs = useMemo<IRecordPair[] | undefined>(
-  //   () => recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === event?.eventId)?.recordPairs,
-  //   [recordPairsByEvent, event],
-  // );
+  const eventWrPair = useMemo<EventWrPair | undefined>(
+    () => eventWrPairs.find((ewp) => ewp.eventId === event?.eventId),
+    [eventWrPairs, event],
+  );
 
-  // const updateRecordPairs = useCallback(
-  //   debounce(async (date: Date) => {
-  //     const eventsStr = (submissionInfo as IResultsSubmissionInfo).events.map((
-  //       e: Event,
-  //     ) => e.eventId).join(",");
-  //     const queryParams = resultId ? `?excludeResultId=${resultId}` : "";
+  const updateWrPairs = useCallback(
+    debounce(async (recordsUpTo: Date) => {
+      const res = await getEventWrPairsUpToDate({ recordsUpTo, excludeResultId: result?.id });
 
-  //     const res = await myFetch.get(
-  //       `/results/record-pairs/${date}/${eventsStr}${queryParams}`,
-  //       { authorize: true, loadingId: null },
-  //     );
-
-  //     if (res.success) {
-  //       setSubmissionInfo(
-  //         {
-  //           ...submissionInfo,
-  //           recordPairsByEvent: res.data,
-  //         } as IResultsSubmissionInfo,
-  //       );
-  //     }
-  //     changeLoadingId("");
-  //   }, C.fetchDebounceTimeout),
-  //   [submissionInfo],
-  // );
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
+      } else {
+        setEventWrPairs(res.data!);
+      }
+    }, C.fetchDebounceTimeout),
+    [],
+  );
 
   const isAdmin = session?.user.role === "admin";
 
@@ -195,13 +195,12 @@ function ResultsSubmissionForm(
   const changeDate = (newDate: Date | null | undefined) => {
     setDate(newDate);
 
-    // if (newDate) {
-    //   updateRecordPairs(newDate);
-    //   changeLoadingId("RECORD_PAIRS");
-    // } else {
-    //   updateRecordPairs.cancel();
-    //   changeLoadingId("");
-    // }
+    if (newDate) {
+      updateWrPairs(newDate);
+    } else {
+      updateWrPairs.cancel();
+      resetGetEventWrPairsUpToDate();
+    }
   };
 
   const changeVideoLink = (newValue: string) => {
@@ -250,7 +249,7 @@ function ResultsSubmissionForm(
               </button>
               {showRules && (
                 <div className="mt-4 lh-lg">
-                  {/* <Rules /> */}
+                  <Rules />
                 </div>
               )}
             </>
@@ -262,12 +261,12 @@ function ResultsSubmissionForm(
           <CreatorDetails
             creator={creator}
             person={creatorPerson}
-            createdExternally={result.createdExternally}
+            createdExternally={!!result.createdExternally}
           />
         )}
         <FormEventSelect
           events={events}
-          eventId={event?.eventId}
+          eventId={event?.eventId ?? ""}
           setEventId={(val) => changeEvent(val)}
           disabled={!!result}
         />
@@ -304,17 +303,15 @@ function ResultsSubmissionForm(
               nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
             />
           ))}
-        {
-          /* {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
+        {isUpdatingWrPairs || !event ? <Loading small dontCenter /> : (
           <BestAndAverage
             event={event}
             roundFormat={roundFormat.value}
             attempts={attempts}
-            recordPairs={recordPairs}
-            recordTypes={submissionInfo.activeRecordTypes}
+            eventWrPair={eventWrPair}
+            recordConfigs={activeRecordConfigs}
           />
-        )} */
-        }
+        )}
         <FormDateInput
           id="date"
           title="Date (dd.mm.yyyy)"

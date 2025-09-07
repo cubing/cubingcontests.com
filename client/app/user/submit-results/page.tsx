@@ -1,25 +1,28 @@
 import ResultsSubmissionForm from "~/app/components/adminAndModerator/ResultsSubmissionForm.tsx";
-import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
-import { eventsPublicCols, eventsTable as table } from "~/server/db/schema/events.ts";
-import { recordConfigsPublicCols, recordConfigsTable } from "~/server/db/schema/record-configs.ts";
+import { authorizeUser, getEventWrPairs } from "~/server/serverUtilityFunctions.ts";
 import { db } from "~/server/db/provider.ts";
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
+import { recordConfigsPublicCols, recordConfigsTable } from "~/server/db/schema/record-configs.ts";
 
 async function SubmitResultsPage() {
-  await authorizeUser();
+  await authorizeUser({ permissions: { videoBasedResults: ["create"] } });
 
-  const events = await db.select(eventsPublicCols).from(table).where(
-    or(eq(table.category, "extreme-bld"), eq(table.submissionsAllowed, true)),
-  ).orderBy(table.rank);
-  const activeRecordConfigs = await db.select(recordConfigsPublicCols).from(recordConfigsTable).where(
-    eq(recordConfigsTable.active, true),
-  );
+  const events = await db.select(eventsPublicCols).from(eventsTable).where(eq(eventsTable.submissionsAllowed, true))
+    .orderBy(eventsTable.rank);
+  const activeRecordConfigs = await db.select(recordConfigsPublicCols).from(recordConfigsTable)
+    .where(eq(recordConfigsTable.active, true));
+  const eventWrPairs = await getEventWrPairs();
 
   return (
     <section>
       <h2 className="mb-4 text-center">Results</h2>
 
-      <ResultsSubmissionForm events={events} activeRecordConfigs={activeRecordConfigs} />;
+      <ResultsSubmissionForm
+        events={events}
+        eventWrPairs={eventWrPairs}
+        activeRecordConfigs={activeRecordConfigs}
+      />;
     </section>
   );
 }

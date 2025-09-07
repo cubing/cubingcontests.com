@@ -1,6 +1,6 @@
 import { remove as removeAccents } from "remove-accents";
 import { C } from "./constants.ts";
-import type { IContestEvent, ICutoff, IRecordPair, IRound, RoundFormat } from "./types.ts";
+import type { EventWrPair, RoundFormat } from "./types.ts";
 import { RoundFormatObject, roundFormats } from "./roundFormats.ts";
 import type { PersonDto } from "./validators/Person.ts";
 import { differenceInDays, startOfDay } from "date-fns";
@@ -43,41 +43,26 @@ export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
   return a.average - b.average;
 };
 
-// IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR)
-// and includes unapproved results
-export const setResultRecords = (
+// IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR) and includes unapproved results
+export const setResultWorldRecords = (
   result: ResultResponse,
   event: EventResponse,
-  recordPairs: IRecordPair[],
+  eventWrPair: EventWrPair,
   noConsoleLog = false,
 ): ResultResponse => {
-  for (const recordPair of recordPairs) {
-    // TO-DO: REMOVE HARD CODING TO WR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if (recordPair.wcaEquivalent === "WR") {
-      const comparisonToRecordSingle = compareSingles(
-        result,
-        { best: recordPair.best },
-      );
+  const comparisonToRecordSingle = compareSingles(result, { best: eventWrPair.best });
 
-      if (result.best > 0 && comparisonToRecordSingle <= 0) {
-        if (!noConsoleLog) {
-          console.log(`New ${result.eventId} single WR: ${result.best}`);
-        }
-        result.regionalSingleRecord = recordPair.wcaEquivalent;
-      }
+  if (result.best > 0 && comparisonToRecordSingle <= 0) {
+    if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
+    result.singleRecordTypes = ["WR"];
+  }
 
-      if (result.attempts.length === getDefaultAverageAttempts(event)) {
-        const comparisonToRecordAvg = compareAvgs(result, {
-          average: recordPair.average,
-        });
+  if (result.attempts.length === getDefaultAverageAttempts(event)) {
+    const comparisonToRecordAvg = compareAvgs(result, { average: eventWrPair.average });
 
-        if (result.average > 0 && comparisonToRecordAvg <= 0) {
-          if (!noConsoleLog) {
-            console.log(`New ${result.eventId} average WR: ${result.average}`);
-          }
-          result.regionalAverageRecord = recordPair.wcaEquivalent;
-        }
-      }
+    if (result.average > 0 && comparisonToRecordAvg <= 0) {
+      if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
+      result.averageRecordTypes = ["WR"];
     }
   }
 
@@ -193,6 +178,14 @@ export const getFormattedTime = (
   }
 };
 
+// If the round has no cutoff (undefined), return true
+export const getMakesCutoff = (attempts: Attempt[], cutoff: ICutoff | undefined): boolean =>
+  !cutoff ||
+  attempts.some((a, i) =>
+    i < cutoff.numberOfAttempts && a.result && a.result > 0 &&
+    a.result < cutoff.attemptResult
+  );
+
 // Returns the best and average times
 export function getBestAndAverage(
   attempts: Attempt[],
@@ -259,14 +252,6 @@ export const getIsCompType = (contestType: ContestType | undefined): boolean => 
 
   return [ContestType.WcaComp, ContestType.Competition].includes(contestType);
 };
-
-// If the round has no cutoff (undefined), return true
-export const getMakesCutoff = (attempts: Attempt[], cutoff: ICutoff | undefined): boolean =>
-  !cutoff ||
-  attempts.some((a, i) =>
-    i < cutoff.numberOfAttempts && a.result && a.result > 0 &&
-    a.result < cutoff.attemptResult
-  );
 
 export function getNameAndLocalizedName(wcaName: string): [string, string | undefined] {
   const [name, localizedName] = wcaName.replace(/\)$/, "").split(" (");

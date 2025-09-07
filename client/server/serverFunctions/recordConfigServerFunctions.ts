@@ -10,9 +10,10 @@ import {
 } from "../db/schema/record-configs.ts";
 import { db } from "../db/provider.ts";
 
-export const createRecordConfigSF = actionClient.metadata({}).inputSchema(z.strictObject({
-  newRecordConfig: RecordConfigValidator,
-})).action<RecordConfigResponse>(async ({ parsedInput: { newRecordConfig } }) => {
-  const [createdRecordConfig] = await db.insert(table).values(newRecordConfig).returning(recordConfigsPublicCols);
-  return createdRecordConfig;
-});
+export const createRecordConfigSF = actionClient.metadata({ permissions: { recordConfigs: ["create-and-update"] } })
+  .inputSchema(z.strictObject({
+    newRecordConfig: RecordConfigValidator,
+  })).action<RecordConfigResponse>(async ({ parsedInput: { newRecordConfig } }) => {
+    const [createdRecordConfig] = await db.insert(table).values(newRecordConfig).returning(recordConfigsPublicCols);
+    return createdRecordConfig;
+  });

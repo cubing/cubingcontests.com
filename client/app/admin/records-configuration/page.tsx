@@ -1,12 +1,12 @@
 import { db } from "~/server/db/provider.ts";
 import ConfigureRecordsScreen from "./ConfigureRecordsScreen.tsx";
-import { authorizeAdmin } from "~/server/serverUtilityFunctions.ts";
+import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
 import { recordConfigsPublicCols, recordConfigsTable as table } from "~/server/db/schema/record-configs.ts";
 
 async function RecordsConfigurationPage() {
-  await authorizeAdmin();
+  await authorizeUser({ permissions: { recordConfigs: ["create-and-update"] } });
 
-  const recordConfigs = await db.select(recordConfigsPublicCols).from(table);
+  const recordConfigs = await db.select(recordConfigsPublicCols).from(table).orderBy(table.order);
 
   return (
     <section>
