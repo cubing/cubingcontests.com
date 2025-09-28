@@ -26,6 +26,7 @@ import {
   IContestData,
   IContestDto,
   IContestEvent,
+  IFePerson,
   IResult,
   IRound,
   ISchedule,
@@ -711,7 +712,11 @@ export class ContestsService {
           await lastRound.save();
         }
       } else if (newState === ContestState.Finished) {
-        await this.finishContest(contest, contestCreatorEmail);
+        const creatorPerson = user.personId
+          ? await this.personsService.getPersonByPersonId(user.personId)
+          : undefined;
+
+        await this.finishContest(contest, contestCreatorEmail, creatorPerson);
       } else if (isAdmin && newState === ContestState.Published) {
         await this.publishContest(contest, contestCreatorEmail);
       }
@@ -1277,6 +1282,7 @@ export class ContestsService {
   private async finishContest(
     contest: ContestDocument,
     contestCreatorEmail: string,
+    contestCreatorPerson: IFePerson | undefined,
   ) {
     if (
       contest.type !== ContestType.WcaComp &&
@@ -1355,6 +1361,7 @@ export class ContestsService {
       contestCreatorEmail,
       contest as IContest,
       contestUrl,
+      contestCreatorPerson?.name ?? "Unknown",
     );
   }
 
