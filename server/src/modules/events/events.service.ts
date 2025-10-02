@@ -243,13 +243,4 @@ export class EventsService {
 
     return await this.getFrontendEvents({ populateRules: true });
   }
-
-  async getEventsWithRules(): Promise<FeEvent[]> {
-    const eventRules = await this.eventRuleModel.find();
-
-    return await this.getFrontendEvents({
-      eventIds: eventRules.map((er) => er.eventId),
-      populateRules: true,
-    });
-  }
 }

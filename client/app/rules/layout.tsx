@@ -1,9 +1,6 @@
-import Markdown from "react-markdown";
-import { type FeEvent, type IRoundFormat } from "~/helpers/types.ts";
-import { roundFormats } from "~/helpers/roundFormats.ts";
-import { EventGroup, RoundFormat } from "~/helpers/enums.ts";
-import EventTitle from "~/app/components/EventTitle.tsx";
+import type { FeEvent } from "~/helpers/types.ts";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import EventInformation from "~/app/rules/EventInformation";
 
 type Props = {
   children: React.ReactNode;
@@ -16,7 +13,13 @@ const RulesLayout = async ({ children }: Props) => {
     return <h4 className="mt-4 text-center">Error while loading events</h4>;
   }
 
-  const events = eventsResponse.data.filter((e) => !e.groups.includes(EventGroup.Hidden));
+  const eventsWithRules = [];
+  const eventsOnlyWithDescriptions = [];
+
+  for (const event of eventsResponse.data) {
+    if (event.ruleText) eventsWithRules.push(event);
+    else if (event.description) eventsOnlyWithDescriptions.push(event);
+  }
 
   return (
     <div>
@@ -25,40 +28,38 @@ const RulesLayout = async ({ children }: Props) => {
       {children}
 
       <div className="px-3">
-        {events.length > 0 && (
+        {eventsWithRules.length > 0 && (
           <>
             <hr />
-            <h3>Event rules</h3>
+            <a
+              id="event-rules"
+              href="#event-rules"
+              className="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"
+            >
+              <h3>Event rules</h3>
+            </a>
             <p>
               These rules apply to each event individually. If an event is not listed here, it must follow the most
               relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F).
             </p>
-            {events.map((event: FeEvent) => {
-              const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat) as IRoundFormat;
-              const rankedFormat = roundFormat.value === RoundFormat.Average ? roundFormat : roundFormats[3];
-
-              return (
-                <div key={event.eventId} className="mt-4">
-                  <EventTitle
-                    event={event}
-                    fontSize="4"
-                    showIcon
-                    linkToRankings
-                  />
-                  <div style={{ overflowX: "auto" }}>
-                    <Markdown>{event.ruleText}</Markdown>
-                  </div>
-                  <p className="mb-1">
-                    The ranked average format is <b>{rankedFormat.label}</b>
-                  </p>
-                  {roundFormat.value !== rankedFormat.value && (
-                    <p>
-                      The default round format is <b>{roundFormat.label}</b>
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+            {eventsWithRules.map((event) => <EventInformation key={event.eventId} event={event} />)}
+          </>
+        )}
+        {eventsOnlyWithDescriptions.length > 0 && (
+          <>
+            <hr />
+            <a
+              id="event-descriptions"
+              href="#event-descriptions"
+              className="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"
+            >
+              <h3>Event descriptions</h3>
+            </a>
+            <p>
+              These are all available event descriptions, excluding events that have rules. These can be used as
+              reference to ensure consistency in how these events are held.
+            </p>
+            {eventsOnlyWithDescriptions.map((event) => <EventInformation key={event.eventId} event={event} />)}
           </>
         )}
 

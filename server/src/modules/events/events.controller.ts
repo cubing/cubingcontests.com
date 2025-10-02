@@ -76,6 +76,9 @@ export class EventsController {
   // GET /events/with-rules
   @Get("with-rules")
   async getEventsWithRules() {
-    return await this.eventsService.getEventsWithRules();
+    return await this.eventsService.getFrontendEvents({
+      populateRules: true,
+      excludeRemovedAndHidden: true,
+    });
   }
 }
