@@ -13,6 +13,7 @@ import Competitors from "~/app/components/Competitors.tsx";
 import type { Event, IPerson, IRanking, ResultRankingType } from "~/helpers/types.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { ContestType, EventGroup } from "~/helpers/enums";
 
 type Props = {
   isTiedRanking?: boolean;
@@ -46,7 +47,12 @@ const RankingRow = ({
   /////////////////////////////////////////////////////////////////////////////////////////
 
   return (
-    <tr>
+    <tr
+      className={!event.groups.some((g) => [EventGroup.WCA, EventGroup.ExtremeBLD].includes(g)) &&
+          (!ranking.contest || ranking.contest.type === ContestType.Meetup)
+        ? "table-active"
+        : ""}
+    >
       <td>
         {!onlyKeepPerson && (
           <span className={isTiedRanking ? "text-secondary" : ""}>
