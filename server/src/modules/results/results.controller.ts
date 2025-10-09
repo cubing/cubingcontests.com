@@ -39,6 +39,7 @@ export class ResultsController {
     @Param("eventId") eventId: string,
     @Param("singleOrAvg") singleOrAvg: "single" | "average",
     @Query("show") show?: "results",
+    @Query("contestType") contestType?: "all",
     @Query("region") region?: string,
     @Query("topN") topN?: string,
   ) {
@@ -51,6 +52,7 @@ export class ResultsController {
       eventId,
       singleOrAvg === "average",
       show,
+      contestType,
       region,
       topN ? Number(topN) : undefined,
     );

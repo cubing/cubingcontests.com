@@ -15,6 +15,7 @@ import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import { ContestType } from "~/helpers/enums";
 
 type Props = {
   isTiedRanking?: boolean;
@@ -48,7 +49,12 @@ function RankingRow({
   /////////////////////////////////////////////////////////////////////////////////////////
 
   return (
-    <tr>
+    <tr
+      className={!["wca", "extreme-bld"].includes(event.category) &&
+          (!ranking.contest || ranking.contest.type === ContestType.Meetup)
+        ? "table-active"
+        : ""}
+    >
       <td>
         {!onlyKeepPerson && (
           <span className={isTiedRanking ? "text-secondary" : ""}>

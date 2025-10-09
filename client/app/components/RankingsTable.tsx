@@ -45,7 +45,7 @@ function RankingsTable({
             {!showAllTeammates && <th>Representing</th>}
             <th>Date</th>
             <th>
-              {hasComp ? "Competition" : ""}
+              {hasComp ? "Contest" : ""}
               {hasComp && hasLink ? " / " : ""}
               {hasLink ? "Links" : ""}
             </th>

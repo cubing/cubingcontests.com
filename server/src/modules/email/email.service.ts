@@ -201,12 +201,14 @@ export class EmailService {
     to: string,
     contest: IContest,
     contestUrl: string,
+    creator: string,
   ) {
     const duesAmount = C.duePerCompetitor * contest.participants;
     const contents = await getEmailContents("contest-finished.hbs", {
       contestName: contest.name,
       contestUrl,
       ccUrl: process.env.BASE_URL,
+      creator,
       duesAmount: getIsCompType(contest.type) && duesAmount >= 1
         ? duesAmount.toFixed(2)
         : undefined,

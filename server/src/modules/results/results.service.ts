@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
+import { omit, pick } from "lodash";
 import { toZonedTime } from "date-fns-tz";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, mongo } from "mongoose";
@@ -31,6 +32,8 @@ import {
 import { C } from "~/helpers/constants";
 import {
   ContestState,
+  ContestType,
+  EventGroup,
   Role,
   RoundFormat,
   WcaRecordType,
@@ -73,6 +76,25 @@ import { LogType } from "~/src/helpers/enums";
 import { differenceInHours } from "date-fns";
 import { UpdateVideoBasedResultDto } from "~/src/modules/results/dto/update-video-based-result.dto";
 import { Continents, Countries } from "~/helpers/Countries";
+
+const personsLookup = {
+  from: "people",
+  localField: "personIds",
+  foreignField: "personId",
+  as: "persons",
+};
+
+const contestsLookup = {
+  from: "competitions",
+  localField: "competitionId",
+  foreignField: "competitionId",
+  as: "contests",
+};
+
+const resultsContestTypeFilter = {
+  competitionId: { $exists: true },
+  "contests.0.type": { $ne: ContestType.Meetup },
+};
 
 @Injectable()
 export class ResultsService {
@@ -308,9 +330,12 @@ export class ResultsService {
     eventId: string,
     forAverage = false,
     show?: "results",
+    contestType?: "all",
     region?: string,
     topN = 100,
   ): Promise<IEventRankings> {
+    topN = Math.min(topN, 25000);
+
     const event = await this.eventsService.getEventById(eventId);
 
     const eventRankings: IEventRankings = { event, rankings: [] };
@@ -320,14 +345,6 @@ export class ResultsService {
       : undefined;
     const regionFilterForTopResults = region
       ? [
-        {
-          $lookup: {
-            from: "people",
-            localField: "personIds",
-            foreignField: "personId",
-            as: "persons",
-          },
-        },
         {
           $match: {
             persons: {
@@ -362,17 +379,51 @@ export class ResultsService {
         },
       ]
       : [];
+    const contestTypeFilter = contestType === "all" ||
+        event.groups.some((g) =>
+          [EventGroup.WCA, EventGroup.ExtremeBLD].includes(g)
+        )
+      ? {}
+      : resultsContestTypeFilter;
+    const contestFields = [
+      "competitionId",
+      "name",
+      "shortName",
+      "type",
+      "countryIso2",
+    ];
+
+    const getCleanTopPersonsRanking = (ranking: any) => {
+      const result: any = { ...omit(ranking.object, Object.keys(excl)) };
+      result.personIds = (result.persons as any[]).map((p) => p.personId);
+
+      // Sets the person being ranked as the first person in the list, if it's a team event
+      if (result.personIds.length > 1) {
+        // Sort the persons in the result, so that the person, whose PR this result is, is first
+        (result.personIds as number[]).sort((a) =>
+          a === ranking._id.personId ? -1 : 0
+        );
+        (result.persons as any[]).sort((a) =>
+          a.personId === ranking._id.personId ? -1 : 0
+        );
+      }
+
+      return result;
+    };
 
     if (!forAverage) {
       const $match = {
         ...getBaseSinglesFilter(event),
         unapproved: { $exists: false },
+        ...contestTypeFilter,
       };
 
       if (show === "results") {
         // Get all top single results
         eventResults = await this.resultModel
           .aggregate([
+            { $lookup: contestsLookup },
+            { $lookup: personsLookup },
             { $match },
             ...regionFilterForTopResults,
             {
@@ -384,7 +435,7 @@ export class ResultsService {
             { $project: excl },
             { $match: { "attempts.result": { $gt: 0, $ne: C.maxTime } } },
             { $sort: { "attempts.result": 1 } },
-            { $limit: Math.min(topN, 200) },
+            { $limit: topN },
           ])
           .exec();
 
@@ -394,28 +445,26 @@ export class ResultsService {
         // Get top singles by person
         const prSingles = await this.resultModel
           .aggregate([
+            { $lookup: contestsLookup },
+            { $lookup: personsLookup },
             { $match },
             { $unwind: "$personIds" },
+            { $sort: { best: 1 } },
             {
               $group: {
                 _id: { personId: "$personIds" },
                 best: { $min: "$best" },
+                object: { $first: "$$ROOT" },
               },
             },
             ...regionFilterForTopPersons,
-            { $sort: { best: 1 } },
+            { $sort: { best: 1 } }, // cause the group stage breaks sorting
             { $limit: topN },
           ])
           .exec();
 
         for (const pr of prSingles) {
-          const result = await this.resultModel.findOne({
-            ...$match,
-            personIds: pr._id.personId,
-            best: pr.best,
-          }, excl).exec();
-          this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
-          eventResults.push(result);
+          eventResults.push(getCleanTopPersonsRanking(pr));
         }
       }
 
@@ -424,15 +473,17 @@ export class ResultsService {
       for (const result of rankedResults) {
         const ranking: IRanking = {
           ranking: result.ranking,
-          persons: await this.personsService.getPersonsByPersonIds(
-            result.personIds,
-            { preserveOrder: true },
+          persons: (result as any).persons.map((p: any) =>
+            omit(p, Object.keys(excl))
           ),
           resultId: (result as any)._id.toString(),
           result: show ? (result.attempts as any).result : result.best,
           // Will be left undefined if the request wasn't for top single results
           attemptNumber: (result as any).attemptNumber,
           date: result.date,
+          contest: result.competitionId
+            ? pick((result as any).contests.at(0), contestFields) as any
+            : undefined,
           videoLink: result.videoLink,
           discussionLink: result.discussionLink,
         };
@@ -441,18 +492,12 @@ export class ResultsService {
         if (show === "results") {
           ranking.memo = (result.attempts as any).memo; // will be left undefined if there is no memo
         } else {
-          const tiedBestAttempts = result.attempts.filter((el) =>
-            el.result === result.best
+          const tiedBestAttempts = result.attempts.filter((a) =>
+            a.result === result.best
           );
           if (tiedBestAttempts.length === 1) {
             ranking.memo = tiedBestAttempts[0].memo;
           }
-        }
-
-        if (result.competitionId) {
-          ranking.contest = await this.contestModel.findOne({
-            competitionId: result.competitionId,
-          }, excl).exec() as any;
         }
 
         eventRankings.rankings.push(ranking);
@@ -461,43 +506,43 @@ export class ResultsService {
       const $match = {
         ...getBaseAvgsFilter(event),
         unapproved: { $exists: false },
+        ...contestTypeFilter,
       };
 
       if (show === "results") {
         // Get all top average results
         eventResults = await this.resultModel.aggregate([
+          { $lookup: contestsLookup },
+          { $lookup: personsLookup },
           { $match },
           ...regionFilterForTopResults,
           { $sort: { average: 1 } },
-          { $limit: Math.min(topN, 200) },
+          { $limit: topN },
         ]).exec();
       } else {
         // Get top averages by person
         const prAverages = await this.resultModel
           .aggregate([
+            { $lookup: contestsLookup },
+            { $lookup: personsLookup },
             { $match },
             { $unwind: "$personIds" },
+            { $sort: { average: 1 } },
             {
               $group: {
                 _id: { personId: "$personIds" },
                 average: { $min: "$average" },
+                object: { $first: "$$ROOT" },
               },
             },
             ...regionFilterForTopPersons,
-            { $sort: { average: 1 } },
+            { $sort: { average: 1 } }, // cause the group stage breaks sorting
             { $limit: topN },
           ])
           .exec();
 
         for (const pr of prAverages) {
-          const result = await this.resultModel.findOne({
-            ...$match,
-            personIds: pr._id.personId,
-            average: pr.average,
-          })
-            .exec();
-          this.setRankedPersonAsFirst(pr._id.personId, result.personIds);
-          eventResults.push(result);
+          eventResults.push(getCleanTopPersonsRanking(pr));
         }
       }
 
@@ -506,24 +551,19 @@ export class ResultsService {
       for (const result of rankedResults) {
         const ranking: IRanking = {
           ranking: result.ranking,
-          persons: await this.personsService.getPersonsByPersonIds(
-            result.personIds,
-            { preserveOrder: true },
+          persons: (result as any).persons.map((p: any) =>
+            omit(p, Object.keys(excl))
           ),
           resultId: result._id.toString(),
           result: result.average,
           attempts: result.attempts,
           date: result.date,
+          contest: result.competitionId
+            ? pick((result as any).contests.at(0), contestFields) as any
+            : undefined,
           videoLink: result.videoLink,
           discussionLink: result.discussionLink,
         };
-
-        if (result.competitionId) {
-          ranking.contest = await this.contestModel.findOne({
-            competitionId: result.competitionId,
-          }, excl)
-            .exec() as any;
-        }
 
         eventRankings.rankings.push(ranking);
       }
@@ -565,7 +605,7 @@ export class ResultsService {
         const eventRecords: IEventRankings = { event, rankings: [] };
 
         const [singleResults, averageResults] = await this
-          .getEventRecordResults(event.eventId, rt.wcaEquivalent);
+          .getEventRecordResults(event, rt.wcaEquivalent);
 
         for (const result of singleResults) {
           eventRecords.rankings.push({
@@ -1192,42 +1232,57 @@ export class ResultsService {
 
   // Returns array of single record results (all ties) and array of average record results (all ties)
   private async getEventRecordResults(
-    eventId: string,
+    event: EventDocument,
     wcaEquivalent: WcaRecordType,
   ): Promise<[ResultDocument[], ResultDocument[]]> {
     const output: [ResultDocument[], ResultDocument[]] = [[], []];
     const queryFilter: any = {
-      eventId,
+      eventId: event.eventId,
       regionalSingleRecord: wcaEquivalent,
       unapproved: { $exists: false },
     };
+    const contestTypeFilter =
+      event.groups.some((g) =>
+          [EventGroup.WCA, EventGroup.ExtremeBLD].includes(g)
+        )
+        ? {}
+        : resultsContestTypeFilter;
 
     // Get fastest single record result
-    const [singleRecordResult] = await this.resultModel.find(queryFilter, excl)
-      .sort({ best: 1 }).limit(1).exec();
+    const [singleRecordResult] = await this.resultModel.aggregate([
+      { $lookup: contestsLookup },
+      { $match: { ...queryFilter, ...contestTypeFilter } },
+      { $sort: { best: 1 } },
+      { $limit: 1 },
+      { $project: excl },
+    ]).exec();
 
     // If found, get all tied record results, with the oldest at the top
     if (singleRecordResult) {
-      queryFilter.best = singleRecordResult.best;
-      output[0] = await this.resultModel.find(queryFilter, excl).sort({
-        date: 1,
-      }).exec();
+      output[0] = await this.resultModel.find({
+        ...queryFilter,
+        best: singleRecordResult.best,
+      }, excl).sort({ date: 1 }).exec();
     }
 
     delete queryFilter.regionalSingleRecord;
-    delete queryFilter.best;
     queryFilter.regionalAverageRecord = wcaEquivalent;
 
     // Get fastest average record result
-    const [avgRecordResult] = await this.resultModel.find(queryFilter, excl)
-      .sort({ average: 1 }).limit(1).exec();
+    const [avgRecordResult] = await this.resultModel.aggregate([
+      { $lookup: contestsLookup },
+      { $match: { ...queryFilter, ...contestTypeFilter } },
+      { $sort: { average: 1 } },
+      { $limit: 1 },
+      { $project: excl },
+    ]).exec();
 
     // If found, get all tied record results, with the oldest at the top
     if (avgRecordResult) {
-      queryFilter.average = avgRecordResult.average;
-      output[1] = await this.resultModel.find(queryFilter, excl).sort({
-        date: 1,
-      }).exec();
+      output[1] = await this.resultModel.find({
+        ...queryFilter,
+        average: avgRecordResult.average,
+      }, excl).sort({ date: 1 }).exec();
     }
 
     return output;
@@ -1555,14 +1610,6 @@ export class ResultsService {
       })
     ).length;
     await contest.save();
-  }
-
-  // Sets the person being ranked as the first person in the list, if it's a team event
-  private setRankedPersonAsFirst(personId: number, personIds: number[]) {
-    if (personIds.length > 1) {
-      // Sort the person IDs in the result, so that the person, whose PR this result is, is first
-      personIds.sort((a) => (a === personId ? -1 : 0));
-    }
   }
 
   private getRoundDate(schedule: ScheduleDocument, roundId: string) {

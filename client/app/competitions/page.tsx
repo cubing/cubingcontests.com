@@ -35,7 +35,7 @@ const ContestsPage = async ({ searchParams }: Props) => {
       <DonateAlert />
 
       {!eventsResponse.success || !contestsResponse.success
-        ? <h3 className="mt-4 text-center">Error while fetching contests</h3>
+        ? <h3 className="mt-4 text-center">Error while loading contests</h3>
         : (
           <>
             <div className="px-2">
