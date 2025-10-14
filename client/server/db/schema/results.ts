@@ -16,7 +16,7 @@ export const resultsTable = table("results", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   eventId: text().notNull(),
   date: timestamp().notNull(),
-  approved: boolean().notNull(),
+  approved: boolean().default(false).notNull(),
   personIds: integer().array().notNull(),
   attempts: jsonb().$type<Attempt>().array().notNull(),
   best: bigint({ mode: "number" }).notNull(),
@@ -26,10 +26,10 @@ export const resultsTable = table("results", {
   competitionId: text(), // only used for contest results
   ranking: integer(), // only used for contest results
   proceeds: boolean(), // only used for contest results
-  videoLink: text(),
-  discussionLink: text(),
+  videoLink: text(), // only used for video-based results
+  discussionLink: text(), // only used for video-based results
   createdBy: text().references(() => usersTable.id, { onDelete: "set null" }),
-  createdExternally: boolean(),
+  createdExternally: boolean().default(false).notNull(),
   ...tableTimestamps,
 });
 

@@ -12,7 +12,7 @@ async function ConfigureEventsPage() {
     <section>
       <h2 className="mb-4 text-center">Events</h2>
 
-      <ConfigureEventsScreen events={events} />;
+      <ConfigureEventsScreen events={events} />
     </section>
   );
 }

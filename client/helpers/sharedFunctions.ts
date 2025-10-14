@@ -253,9 +253,9 @@ export const getIsCompType = (contestType: ContestType | undefined): boolean => 
   return [ContestType.WcaComp, ContestType.Competition].includes(contestType);
 };
 
-export function getNameAndLocalizedName(wcaName: string): [string, string | undefined] {
+export function getNameAndLocalizedName(wcaName: string): { name: string; localizedName: string | undefined } {
   const [name, localizedName] = wcaName.replace(/\)$/, "").split(" (");
-  return [name, localizedName];
+  return { name, localizedName };
 }
 
 export async function fetchWcaPerson(wcaId: string): Promise<PersonDto | undefined> {
@@ -264,7 +264,7 @@ export async function fetchWcaPerson(wcaId: string): Promise<PersonDto | undefin
   if (response.ok) {
     const data = await response.json();
 
-    const [name, localizedName] = getNameAndLocalizedName(data.name);
+    const { name, localizedName } = getNameAndLocalizedName(data.name);
     const newPerson: PersonDto = {
       name,
       localizedName,

@@ -27,7 +27,8 @@ import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { useAction } from "next-safe-action/hooks";
-import { getEventWrPairsUpToDateSF } from "~/server/serverFunctions/resultsServerFunctions.ts";
+import { getWrPairsUpToDateSF } from "../../../server/serverFunctions/resultServerFunctions.ts";
+import { VideoBasedResultDto } from "~/helpers/validators/Result.ts";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
@@ -55,11 +56,11 @@ function ResultsSubmissionForm({
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
   const { data: session } = authClient.useSession();
 
-  const { executeAsync: getEventWrPairsUpToDate, isPending: isUpdatingWrPairs, reset: resetGetEventWrPairsUpToDate } =
-    useAction(getEventWrPairsUpToDateSF);
-  const [eventWrPairs, setEventWrPairs] = useState<EventWrPair[]>(initEventWrPairs);
+  const { executeAsync: getWrPairsUpToDate, isPending: isUpdatingWrPairs, reset: resetGetEventWrPairsUpToDate } =
+    useAction(getWrPairsUpToDateSF);
+  const [wrPairs, setWrPairs] = useState<EventWrPair[]>(initEventWrPairs);
   const [showRules, setShowRules] = useState(false);
-  const [event, setEvent] = useState<EventResponse | undefined>(
+  const [event, setEvent] = useState<EventResponse>(
     events.find((e) => e.eventId === (result?.eventId ?? searchParams.get("eventId"))) ?? events[0],
   );
   const [roundFormat, setRoundFormat] = useState<RoundFormatObject>(
@@ -76,18 +77,18 @@ function ResultsSubmissionForm({
   const [discussionLink, setDiscussionLink] = useState(result?.discussionLink ?? "");
 
   const eventWrPair = useMemo<EventWrPair | undefined>(
-    () => eventWrPairs.find((ewp) => ewp.eventId === event?.eventId),
-    [eventWrPairs, event],
+    () => wrPairs.find((ewp) => ewp.eventId === event.eventId),
+    [wrPairs, event],
   );
 
   const updateWrPairs = useCallback(
     debounce(async (recordsUpTo: Date) => {
-      const res = await getEventWrPairsUpToDate({ recordsUpTo, excludeResultId: result?.id });
+      const res = await getWrPairsUpToDate({ recordsUpTo, excludeResultId: result?.id });
 
       if (res.serverError || res.validationErrors) {
         changeErrorMessages([getActionError(res)]);
       } else {
-        setEventWrPairs(res.data!);
+        setWrPairs(res.data!);
       }
     }, C.fetchDebounceTimeout),
     [],
@@ -108,60 +109,56 @@ function ResultsSubmissionForm({
       return;
     }
 
-    // const newResult: ICreateVideoBasedResultDto = {
-    //   eventId: event.eventId,
-    //   date: date as Date,
-    //   personIds: competitors.map((p: InputPerson) => (p as IPerson).personId),
-    //   attempts,
-    //   videoLink: videoUnavailable ? "" : videoLink,
-    //   discussionLink: discussionLink || undefined,
-    // };
+    const newResult: VideoBasedResultDto = {
+      eventId: event.eventId,
+      date: date as Date,
+      personIds: competitors.map((p: InputPerson) => p!.personId),
+      attempts,
+      videoLink: videoUnavailable ? "" : videoLink,
+      discussionLink: discussionLink || undefined,
+    };
 
     // const loadingId = approve ? "approve_button" : "submit_button";
 
-    // if (!resultId) {
-    //   const res = await myFetch.post("/results", newResult, { loadingId });
+    if (!result) {
+      const res = await myFetch.post("/results", newResult, { loadingId });
 
-    //   if (res.success) {
-    //     changeSuccessMessage("Result successfully submitted");
-    //     setDate(undefined);
-    //     setVideoLink("");
-    //     setDiscussionLink("");
-    //     resetCompetitors();
-    //     resetAttempts();
-    //     if (!keepCompetitors) document.getElementById("Competitor_1")?.focus();
-    //   }
-    // } else {
-    //   const updateResultDto: IUpdateVideoBasedResultDto = {
-    //     date: newResult.date,
-    //     personIds: newResult.personIds,
-    //     attempts: newResult.attempts,
-    //     videoLink: newResult.videoLink,
-    //     discussionLink: newResult.discussionLink,
-    //   };
-    //   if (!approve) {
-    //     updateResultDto.unapproved = (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved;
-    //   }
+      if (res.success) {
+        changeSuccessMessage("Result successfully submitted");
+        setDate(undefined);
+        setVideoLink("");
+        setDiscussionLink("");
+        resetAttempts();
+        if (!keepCompetitors) {
+          resetCompetitors();
+          document.getElementById("Competitor_1")?.focus();
+        }
+      }
+    } else {
+      throw new Error("NOT IMPLEMENTED!");
+      // const updateResultDto: IUpdateVideoBasedResultDto = {
+      //   date: newResult.date,
+      //   personIds: newResult.personIds,
+      //   attempts: newResult.attempts,
+      //   videoLink: newResult.videoLink,
+      //   discussionLink: newResult.discussionLink,
+      // };
+      // if (!approve) {
+      //   updateResultDto.unapproved = (submissionInfo as IAdminResultsSubmissionInfo).result.unapproved;
+      // }
 
-    //   const res = await myFetch.patch(
-    //     `/results/video-based/${resultId}`,
-    //     updateResultDto,
-    //     {
-    //       loadingId,
-    //       keepLoadingOnSuccess: true,
-    //     },
-    //   );
+      // const res = await myFetch.patch(
+      //   `/results/video-based/${resultId}`,
+      //   updateResultDto,
+      //   { loadingId, keepLoadingOnSuccess: true },
+      // );
 
-    //   if (res.success) {
-    //     changeSuccessMessage(
-    //       approve ? "Result successfully approved" : "Result successfully updated",
-    //     );
+      // if (res.success) {
+      //   changeSuccessMessage(approve ? "Result successfully approved" : "Result successfully updated");
 
-    //     setTimeout(() => {
-    //       window.location.href = "/admin/results";
-    //     }, 1000);
-    //   }
-    // }
+      //   setTimeout(() => { window.location.href = "/admin/results" }, 1000);
+      // }
+    }
   };
 
   const changeEvent = (newEventId: string) => {
@@ -172,7 +169,7 @@ function ResultsSubmissionForm({
     if (!keepCompetitors) resetCompetitors(newEvent.participants);
   };
 
-  const resetCompetitors = (participants: number = event!.participants) => {
+  const resetCompetitors = (participants: number = event.participants) => {
     const [competitors, personNames] = getBlankCompetitors(participants);
     setCompetitors(competitors);
     setPersonNames(personNames);
@@ -266,7 +263,7 @@ function ResultsSubmissionForm({
         )}
         <FormEventSelect
           events={events}
-          eventId={event?.eventId ?? ""}
+          eventId={event.eventId}
           setEventId={(val) => changeEvent(val)}
           disabled={!!result}
         />
@@ -284,26 +281,24 @@ function ResultsSubmissionForm({
           setPersonNames={setPersonNames}
           persons={competitors}
           setPersons={setCompetitors}
-          nextFocusTargetId={event?.format !== "multi" ? "attempt_1" : "attempt_1_solved"}
+          nextFocusTargetId={event.format !== "multi" ? "attempt_1" : "attempt_1_solved"}
           redirectToOnAddPerson={pathname}
           addNewPersonMode={isAdmin ? "default" : "disabled"}
         />
         <FormCheckbox title="Don't clear competitors" selected={keepCompetitors} setSelected={setKeepCompetitors} />
-        {!event
-          ? <AttemptInput attNumber={1} attempt={{ result: 0 }} setAttempt={() => {}} event={events.at(0)!} disabled />
-          : attempts.map((attempt: Attempt, i: number) => (
-            <AttemptInput
-              key={i}
-              attNumber={i + 1}
-              attempt={attempt}
-              setAttempt={(val: Attempt) => changeAttempt(i, val)}
-              event={event}
-              memoInputForBld
-              allowUnknownTime={isAdmin && ["1", "2"].includes(roundFormat.value)}
-              nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
-            />
-          ))}
-        {isUpdatingWrPairs || !event ? <Loading small dontCenter /> : (
+        {attempts.map((attempt: Attempt, i: number) => (
+          <AttemptInput
+            key={i}
+            attNumber={i + 1}
+            attempt={attempt}
+            setAttempt={(val: Attempt) => changeAttempt(i, val)}
+            event={event}
+            memoInputForBld
+            allowUnknownTime={isAdmin && ["1", "2"].includes(roundFormat.value)}
+            nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
+          />
+        ))}
+        {isUpdatingWrPairs ? <Loading small dontCenter /> : (
           <BestAndAverage
             event={event}
             roundFormat={roundFormat.value}

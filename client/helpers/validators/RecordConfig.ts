@@ -5,7 +5,7 @@ export const RecordConfigValidator = z.strictObject({
   recordTypeId: z.enum(RecordTypeValues),
   label: z.string().nonempty(),
   active: z.boolean(),
-  order: z.int().min(0),
+  order: z.int().min(1),
   color: z.string().regex(/^\#[0-9a-f]{6}$/),
 });
 

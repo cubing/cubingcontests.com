@@ -1,5 +1,5 @@
 import ResultsSubmissionForm from "~/app/components/adminAndModerator/ResultsSubmissionForm.tsx";
-import { authorizeUser, getEventWrPairs } from "~/server/serverUtilityFunctions.ts";
+import { authorizeUser, getWrPairs } from "~/server/serverUtilityFunctions.ts";
 import { db } from "~/server/db/provider.ts";
 import { eq } from "drizzle-orm";
 import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
@@ -12,7 +12,7 @@ async function SubmitResultsPage() {
     .orderBy(eventsTable.rank);
   const activeRecordConfigs = await db.select(recordConfigsPublicCols).from(recordConfigsTable)
     .where(eq(recordConfigsTable.active, true));
-  const eventWrPairs = await getEventWrPairs();
+  const eventWrPairs = await getWrPairs();
 
   return (
     <section>

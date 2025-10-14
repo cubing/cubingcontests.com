@@ -48,16 +48,16 @@ export const createPersonSF = actionClient.metadata({ permissions: { persons: ["
     newPerson: PersonValidator,
     ignoreDuplicate: z.boolean().default(false),
   })).action<PersonResponse>(async ({ parsedInput: { newPerson, ignoreDuplicate }, ctx: { session } }) => {
-    const isAdmin = await checkUserPermissions(session.user.id, { persons: ["approve"] });
+    const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     await validatePerson(newPerson, {
       ignoreDuplicate,
       // isAdmin: user !== "EXT_DEVICE" && user.roles.includes(Role.Admin),
-      isAdmin,
+      isAdmin: canApprove,
     });
 
     const query = db.insert(table).values({ ...newPerson, approved: false, createdBy: session.user.id });
-    const [createdPerson] = await (isAdmin ? query.returning() : query.returning(personsPublicCols));
+    const [createdPerson] = await (canApprove ? query.returning() : query.returning(personsPublicCols));
     return createdPerson;
   });
 
@@ -67,13 +67,13 @@ export const updatePersonSF = actionClient.metadata({ permissions: { persons: ["
     newPerson: PersonValidator,
     ignoreDuplicate: z.boolean().default(false),
   })).action<PersonResponse>(async ({ parsedInput: { id, newPerson, ignoreDuplicate }, ctx: { session } }) => {
-    const isAdmin = await checkUserPermissions(session.user.id, { persons: ["approve"] });
+    const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person with the provided ID not found");
-    if (!isAdmin && person.approved) throw new CcActionError("You may not edit a person who has been approved");
+    if (!canApprove && person.approved) throw new CcActionError("You may not edit a person who has been approved");
 
-    await validatePerson(newPerson, { excludeId: id, ignoreDuplicate, isAdmin });
+    await validatePerson(newPerson, { excludeId: id, ignoreDuplicate, isAdmin: canApprove });
 
     let personDto: PersonDto = newPerson;
 
@@ -84,7 +84,7 @@ export const updatePersonSF = actionClient.metadata({ permissions: { persons: ["
     }
 
     const query = db.update(table).set(personDto).where(eq(table.id, id));
-    const [updatedPerson] = await (isAdmin ? query.returning() : query.returning(personsPublicCols));
+    const [updatedPerson] = await (canApprove ? query.returning() : query.returning(personsPublicCols));
     return updatedPerson;
   });
 
@@ -92,11 +92,11 @@ export const deletePersonSF = actionClient.metadata({ permissions: { persons: ["
   .inputSchema(z.strictObject({
     id: z.int(),
   })).action(async ({ parsedInput: { id }, ctx: { session } }) => {
-    const isAdmin = await checkUserPermissions(session.user.id, { persons: ["approve"] });
+    const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person with the provided ID not found");
-    if (!isAdmin && person.approved) throw new CcActionError("You may not delete an approved person");
+    if (!canApprove && person.approved) throw new CcActionError("You may not delete an approved person");
 
     const [user] = await db.select({ username: usersTable.username }).from(usersTable)
       .where(eq(usersTable.personId, person.personId))
@@ -176,7 +176,7 @@ async function setPersonToApproved(
 
       if (!requireWcaId) {
         for (const wcaPerson of wcaPersons) {
-          const [name] = getNameAndLocalizedName(wcaPerson.name);
+          const { name } = getNameAndLocalizedName(wcaPerson.name);
 
           if (
             !ignoredWcaMatches.includes(wcaPerson.wca_id) && name === person.name &&
@@ -190,7 +190,7 @@ async function setPersonToApproved(
         }
       } else if (wcaPersons?.length === 1) {
         const wcaPerson = wcaPersons[0];
-        const [name, localizedName] = getNameAndLocalizedName(wcaPerson.name);
+        const { name, localizedName } = getNameAndLocalizedName(wcaPerson.name);
 
         if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
           updatePersonObject.wcaId = wcaPerson.wca_id;

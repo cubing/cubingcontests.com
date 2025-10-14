@@ -226,7 +226,7 @@ export async function register() {
             discussionLink: r.discussionLink || null,
             // FIX THESE TWO FIELDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             createdBy: r.createdBy ? await getCreatorId(r) : null,
-            // createdExternally: ,
+            createdExternally: false,
             createdAt: new Date(r.createdAt.$date),
             updatedAt: new Date(r.updatedAt.$date),
           });

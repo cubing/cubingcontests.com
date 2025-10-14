@@ -30,7 +30,7 @@ export async function authorizeUser({ permissions }: { permissions?: CcPermissio
   return session;
 }
 
-export async function getEventWrPairs(
+export async function getWrPairs(
   {
     recordsUpTo = getDateOnly(new Date())!,
     excludeResultId = 0,
@@ -72,4 +72,30 @@ FROM ${eventsTable} WHERE ${eventsTable.submissionsAllowed} IS TRUE;`))
     best: ewp.best ? parseInt(ewp.best) : -1,
     average: ewp.average ? parseInt(ewp.average) : -1,
   }));
+}
+
+export async function approvePersons({
+  personIds,
+  // competitionId,
+  requireWcaId = false,
+}: {
+  personIds?: number[];
+  // competitionId?: string;
+  requireWcaId?: boolean;
+}) {
+  // const persons = personIds
+  //   ? await this.getPersonsByPersonIds(personIds, { unapprovedOnly: true })
+  //   : await this.getContestParticipants({
+  //     competitionId,
+  //     unapprovedOnly: true,
+  //   });
+  // const message = competitionId
+  //   ? `Approving unapproved persons from contest with ID ${competitionId}`
+  //   : `Approving persons with person IDs: ${personIds.join(", ")}`;
+
+  // this.logger.logAndSave(message, LogType.ApprovePersons);
+
+  await Promise.allSettled(
+    persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, requireWcaId)),
+  );
 }
