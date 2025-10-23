@@ -361,6 +361,7 @@ export class ContestsService {
     if (user) {
       this.authService.checkAccessRightsToContest(user, contest, {
         allowNotApproved: eventId === undefined,
+        allowFinishedForMod: eventId === undefined,
         allowPublished: eventId === undefined,
       });
     }

@@ -1236,42 +1236,45 @@ export class ResultsService {
     wcaEquivalent: WcaRecordType,
   ): Promise<[ResultDocument[], ResultDocument[]]> {
     const output: [ResultDocument[], ResultDocument[]] = [[], []];
-    const queryFilter: any = {
-      eventId: event.eventId,
-      regionalSingleRecord: wcaEquivalent,
-      unapproved: { $exists: false },
-    };
     const contestTypeFilter =
       event.groups.some((g) =>
           [EventGroup.WCA, EventGroup.ExtremeBLD].includes(g)
         )
         ? {}
         : resultsContestTypeFilter;
+    const queryFilter: any = {
+      ...contestTypeFilter,
+      unapproved: { $exists: false },
+    };
 
     // Get fastest single record result
     const [singleRecordResult] = await this.resultModel.aggregate([
       { $lookup: contestsLookup },
-      { $match: { ...queryFilter, ...contestTypeFilter } },
+      { $match: { ...queryFilter, ...getBaseSinglesFilter(event) } },
       { $sort: { best: 1 } },
       { $limit: 1 },
-      { $project: excl },
     ]).exec();
 
     // If found, get all tied record results, with the oldest at the top
     if (singleRecordResult) {
-      output[0] = await this.resultModel.find({
-        ...queryFilter,
-        best: singleRecordResult.best,
-      }, excl).sort({ date: 1 }).exec();
+      output[0] = await this.resultModel.aggregate([
+        { $lookup: contestsLookup },
+        {
+          $match: {
+            ...queryFilter,
+            eventId: event.eventId,
+            best: singleRecordResult.best,
+          },
+        },
+        { $sort: { date: 1 } },
+        { $project: excl },
+      ]).exec();
     }
-
-    delete queryFilter.regionalSingleRecord;
-    queryFilter.regionalAverageRecord = wcaEquivalent;
 
     // Get fastest average record result
     const [avgRecordResult] = await this.resultModel.aggregate([
       { $lookup: contestsLookup },
-      { $match: { ...queryFilter, ...contestTypeFilter } },
+      { $match: { ...queryFilter, ...getBaseAvgsFilter(event) } },
       { $sort: { average: 1 } },
       { $limit: 1 },
       { $project: excl },
@@ -1279,10 +1282,18 @@ export class ResultsService {
 
     // If found, get all tied record results, with the oldest at the top
     if (avgRecordResult) {
-      output[1] = await this.resultModel.find({
-        ...queryFilter,
-        average: avgRecordResult.average,
-      }, excl).sort({ date: 1 }).exec();
+      output[1] = await this.resultModel.aggregate([
+        { $lookup: contestsLookup },
+        {
+          $match: {
+            ...queryFilter,
+            eventId: event.eventId,
+            average: avgRecordResult.average,
+          },
+        },
+        { $sort: { date: 1 } },
+        { $project: excl },
+      ]).exec();
     }
 
     return output;
