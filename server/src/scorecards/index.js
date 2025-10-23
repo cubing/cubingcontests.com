@@ -25,7 +25,7 @@ const getRoundAttempts = (format) => {
 };
 
 const getSingleScorecard = ({ round, roundNumber, event }, wcifCompetition) => {
-  const eventExt = event.extensions.find((e) => e.id === "TEMPORARY")?.data;
+  const eventExt = event?.extensions.find((e) => e.id === "TEMPORARY")?.data ?? { name: "", participants: 1 };
 
   return [
     { text: wcifCompetition.shortName, fontSize: 15, bold: true, alignment: "center", margin: [0, 0, 0, 10] },
@@ -36,12 +36,12 @@ const getSingleScorecard = ({ round, roundNumber, event }, wcifCompetition) => {
         widths: ["75%", "25%"],
         body: [
           [
-            { text: eventExt?.name, fontSize: 10 },
-            { text: `Round ${roundNumber}`, fontSize: 10 },
+            { text: eventExt.name || "Event:", fontSize: 10 },
+            { text: roundNumber ? `Round ${roundNumber}` : "Round:", fontSize: 10 },
           ],
         ],
       },
-      margin: [9, 0, 0, 4],
+      margin: [9, 0, 0, 3],
     },
     {
       table: {
@@ -78,7 +78,7 @@ const getSingleScorecard = ({ round, roundNumber, event }, wcifCompetition) => {
             { text: "Judge", style: "colHeader", border: [false, false, false, false] },
             { text: "Comp", style: "colHeader", border: [false, false, false, false] },
           ],
-          ...new Array(getRoundAttempts(round.format))
+          ...new Array(getRoundAttempts(round?.format ?? "a"))
             .fill("")
             .map((_, index) => [
               { text: (index + 1).toString(), style: "rowNumber", border: [false, false, false, false] },
@@ -92,7 +92,7 @@ const getSingleScorecard = ({ round, roundNumber, event }, wcifCompetition) => {
         ],
       },
     },
-    {
+    ...(round ? [{
       layout: "noBorders",
       table: {
         headerRows: 0,
@@ -111,8 +111,11 @@ const getSingleScorecard = ({ round, roundNumber, event }, wcifCompetition) => {
           ],
         ],
       },
-      margin: [22, eventExt.participants === 1 ? 20 : 8, 0, round.format === "a" ? 40 : 80],
-    },
+      margin: [22, eventExt.participants === 1 ? 16 : 8, 0, round.format === "a" ? 40 : 80],
+    }] : [{
+      text: "",
+      margin: [0, 70, 0, 0]
+    }]),
   ];
 };
 
@@ -134,6 +137,8 @@ const getScorecards = async (wcifCompetition, pageSize) => {
       });
     }
   }
+
+  roundObjects.push({roundNumber: undefined });
 
   const docDefinition = {
     content: roundObjects.map((roundObj, index) => ({

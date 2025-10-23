@@ -70,7 +70,9 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<IPartialUser> {
-    const query = username.includes("@") ? { email: username.trim().toLowerCase() } : { username };
+    const query = username.includes("@")
+      ? { email: username.trim().toLowerCase() }
+      : { username };
     const user = await this.usersService.getUserWithQuery(query);
 
     if (user) {
@@ -185,8 +187,13 @@ export class AuthService {
   checkAccessRightsToContest(
     user: IPartialUser,
     contest: ContestDocument,
-    { allowNotApproved = false, allowPublished = false }: {
+    {
+      allowNotApproved = false,
+      allowFinishedForMod = false,
+      allowPublished = false,
+    }: {
       allowNotApproved?: boolean;
+      allowFinishedForMod?: boolean;
       allowPublished?: boolean;
     } = {},
   ) {
@@ -194,12 +201,13 @@ export class AuthService {
       throw new BadRequestException("This contest has been removed");
     }
 
-    const hasAccessRights = (allowNotApproved || contest.state >= ContestState.Approved) &&
+    const hasAccessRights =
+      (allowNotApproved || contest.state >= ContestState.Approved) &&
       (allowPublished || contest.state < ContestState.Published) &&
       (user.roles.includes(Role.Admin) ||
         (user.roles.includes(Role.Moderator) &&
           contest.organizers.some((el) => el.personId === user.personId) &&
-          contest.state < ContestState.Finished));
+          (allowFinishedForMod || contest.state < ContestState.Finished)));
 
     if (!hasAccessRights) {
       this.logger.logAndSave(

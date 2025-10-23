@@ -120,6 +120,7 @@ const ContestForm = ({
   const [isTimeZonePending, startTimeZoneTransition] = useTransition();
   const [isUnderstood, setIsUnderstood] = useState(mode === "edit");
   const [isTimelinessUnderstood, setIsTimelinessUnderstood] = useState(mode === "edit");
+  const [isCompPhotosUnderstood, setIsCompPhotosUnderstood] = useState(mode === "edit");
 
   const updateTimeZone = useCallback(
     debounce(
@@ -931,18 +932,37 @@ const ContestForm = ({
             )}
           </>
         )}
-        {!disabled && mode !== "edit" && urgent && (
+        {!disabled && mode !== "edit" && (
           <>
-            <p className="mt-4 fs-6">
-              You are submitting this contest within 7 days of the start date. In the future,{" "}
-              <strong>please submit contests at least a week in advance</strong>.
-            </p>
-            <FormCheckbox
-              id="timeliness_understood"
-              title="I understand"
-              selected={isTimelinessUnderstood}
-              setSelected={setIsTimelinessUnderstood}
-            />
+            {type === ContestType.Competition && (
+              <>
+                <p className="mt-4 fs-6">
+                  This is an unofficial competition, which means that you should provide at least two photos of the
+                  setup (i.e. scrambling area, competition area, etc.) in the contest finished email thread after the
+                  competition, in accordance with moderator instruction B3.1.
+                </p>
+                <FormCheckbox
+                  id="comp_photos_understood"
+                  title="I understand"
+                  selected={isCompPhotosUnderstood}
+                  setSelected={setIsCompPhotosUnderstood}
+                />
+              </>
+            )}
+            {urgent && (
+              <>
+                <p className="mt-4 fs-6">
+                  You are submitting this contest within 7 days of the start date. In the future,{" "}
+                  <strong>please submit contests at least a week in advance</strong>.
+                </p>
+                <FormCheckbox
+                  id="timeliness_understood"
+                  title="I understand"
+                  selected={isTimelinessUnderstood}
+                  setSelected={setIsTimelinessUnderstood}
+                />
+              </>
+            )}
           </>
         )}
       </Form>
