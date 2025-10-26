@@ -1,10 +1,18 @@
-export const Continents = [
-  { name: "Africa", code: "AFRICA" },
-  { name: "Asia", code: "ASIA" },
-  { name: "Europe", code: "EUROPE" },
-  { name: "North America", code: "NORTH_AMERICA" },
-  { name: "Oceania", code: "OCEANIA" },
-  { name: "South America", code: "SOUTH_AMERICA" },
+import { RecordType } from "./types.ts";
+
+export type ContinentId = "AFRICA" | "ASIA" | "EUROPE" | "NORTH_AMERICA" | "OCEANIA" | "SOUTH_AMERICA";
+
+export const Continents: {
+  name: string;
+  code: ContinentId;
+  recordTypeId: RecordType;
+}[] = [
+  { name: "Africa", code: "AFRICA", recordTypeId: "AfR" },
+  { name: "Asia", code: "ASIA", recordTypeId: "AsR" },
+  { name: "Europe", code: "EUROPE", recordTypeId: "ER" },
+  { name: "North America", code: "NORTH_AMERICA", recordTypeId: "NAR" },
+  { name: "Oceania", code: "OCEANIA", recordTypeId: "OcR" },
+  { name: "South America", code: "SOUTH_AMERICA", recordTypeId: "SAR" },
 ];
 
 export const Countries: {
@@ -12,7 +20,7 @@ export const Countries: {
   shortName?: string;
   // See https://www.countrycallingcodes.com/iso-country-codes/
   code: string;
-  continentId: "AFRICA" | "ASIA" | "EUROPE" | "NORTH_AMERICA" | "OCEANIA" | "SOUTH_AMERICA";
+  continentId: ContinentId;
 }[] = [
   { name: "Afghanistan", code: "AF", continentId: "ASIA" },
   { name: "Albania", code: "AL", continentId: "EUROPE" },
@@ -214,3 +222,11 @@ export const Countries: {
   { name: "Zambia", code: "ZM", continentId: "AFRICA" },
   { name: "Zimbabwe", code: "ZW", continentId: "AFRICA" },
 ];
+
+export function getContinent(countryIso2: string): ContinentId {
+  const country = Countries.find((c) => c.code === countryIso2);
+
+  if (!country) throw new Error(`Unknown country code: ${countryIso2}`);
+
+  return country.continentId;
+}

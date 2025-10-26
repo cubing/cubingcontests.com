@@ -11,40 +11,40 @@ import { collectiveSolutionsTable } from "../db/schema/collective-solutions.ts";
 
 export const createEventSF = actionClient.metadata({ permissions: { events: ["create"] } })
   .inputSchema(z.strictObject({
-    newEvent: EventValidator,
+    newEventDto: EventValidator,
   }))
-  .action<SelectEvent>(async ({ parsedInput: { newEvent } }) => {
-    const [sameIdEvent] = await db.select().from(table).where(eq(table.eventId, newEvent.eventId)).limit(1);
-    if (sameIdEvent) throw new CcActionError(`Event with ID ${newEvent.eventId} already exists`);
+  .action<SelectEvent>(async ({ parsedInput: { newEventDto } }) => {
+    const [sameIdEvent] = await db.select().from(table).where(eq(table.eventId, newEventDto.eventId)).limit(1);
+    if (sameIdEvent) throw new CcActionError(`Event with ID ${newEventDto.eventId} already exists`);
 
     const [sameNameEvent] = await db.select().from(table).where(
-      eq(sql`lower(${table.name})`, newEvent.name.toLowerCase()),
+      eq(sql`lower(${table.name})`, newEventDto.name.toLowerCase()),
     ).limit(1);
-    if (sameNameEvent) throw new CcActionError(`Event with name ${newEvent.name} already exists`);
+    if (sameNameEvent) throw new CcActionError(`Event with name ${newEventDto.name} already exists`);
 
-    const [createdEvent] = await db.insert(table).values(newEvent).returning();
+    const [createdEvent] = await db.insert(table).values(newEventDto).returning();
     return createdEvent;
   });
 
 export const updateEventSF = actionClient.metadata({ permissions: { events: ["update"] } })
   .inputSchema(z.strictObject({
-    newEvent: EventValidator,
+    newEventDto: EventValidator,
     originalEventId: z.string(),
   }))
-  .action<SelectEvent>(async ({ parsedInput: { newEvent, originalEventId } }) => {
+  .action<SelectEvent>(async ({ parsedInput: { newEventDto, originalEventId } }) => {
     const [event] = await db.select().from(table).where(eq(table.eventId, originalEventId)).limit(1);
     if (!event) throw new CcActionError(`Event with ID ${originalEventId} not found`);
 
     const [updatedEvent] = await db.transaction(async (tx) => {
-      if (newEvent.eventId !== originalEventId) {
-        const [sameIdEvent] = await tx.select().from(table).where(eq(table.eventId, newEvent.eventId)).limit(1);
-        if (sameIdEvent) throw new CcActionError(`Event with ID ${newEvent.eventId} already exists`);
+      if (newEventDto.eventId !== originalEventId) {
+        const [sameIdEvent] = await tx.select().from(table).where(eq(table.eventId, newEventDto.eventId)).limit(1);
+        if (sameIdEvent) throw new CcActionError(`Event with ID ${newEventDto.eventId} already exists`);
 
-        await tx.update(collectiveSolutionsTable).set({ eventId: newEvent.eventId }).where(
+        await tx.update(collectiveSolutionsTable).set({ eventId: newEventDto.eventId }).where(
           eq(collectiveSolutionsTable.eventId, originalEventId),
         );
 
-        console.log(`Updating rounds and schedules, changing event ID ${originalEventId} to ${newEvent.eventId}`);
+        console.log(`Updating rounds and schedules, changing event ID ${originalEventId} to ${newEventDto.eventId}`);
 
         // Update round IDs
         // for (let i = 1; i <= 10; i++) {
@@ -78,7 +78,7 @@ export const updateEventSF = actionClient.metadata({ permissions: { events: ["up
         // }
 
         // Update results
-        console.log(`Updating results, changing event ID ${originalEventId} to ${newEvent.eventId}`);
+        console.log(`Updating results, changing event ID ${originalEventId} to ${newEventDto.eventId}`);
 
         // await this.resultModel.updateMany({ eventId }, {
         //   $set: { eventId: newId },
@@ -86,16 +86,16 @@ export const updateEventSF = actionClient.metadata({ permissions: { events: ["up
       }
 
       return await tx.update(table).set({
-        eventId: newEvent.eventId,
-        name: newEvent.name,
-        rank: newEvent.rank,
-        category: newEvent.category,
-        submissionsAllowed: newEvent.submissionsAllowed,
-        removedWca: newEvent.removedWca,
-        hasMemo: newEvent.hasMemo,
-        hidden: newEvent.hidden,
-        description: newEvent.description,
-        rule: newEvent.rule,
+        eventId: newEventDto.eventId,
+        name: newEventDto.name,
+        rank: newEventDto.rank,
+        category: newEventDto.category,
+        submissionsAllowed: newEventDto.submissionsAllowed,
+        removedWca: newEventDto.removedWca,
+        hasMemo: newEventDto.hasMemo,
+        hidden: newEventDto.hidden,
+        description: newEventDto.description,
+        rule: newEventDto.rule,
       }).where(eq(table.eventId, originalEventId)).returning();
     });
 

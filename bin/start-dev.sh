@@ -17,7 +17,9 @@ sleep 1 &&
 cd client
 
 deno install --allow-scripts &&
-deno task db:push &&
+# TEMPORARY FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+NODE_OPTIONS="--conditions=react-server" npx drizzle-kit push --strict &&
+# deno task db:push &&
 deno task dev ;
 cd ..
 

@@ -20,7 +20,10 @@ function Time({ result, event, recordConfigs, average }: Props) {
       {getFormattedTime(average ? result.average : result.best, { event, showMultiPoints: true })}
 
       {recordConfig && (
-        <span className="badge" style={{ fontSize: "0.7rem", backgroundColor: recordConfig.color }}>
+        <span
+          className={`badge ${recordConfig.color === "#ffc107" ? "text-black" : ""}`}
+          style={{ fontSize: "0.7rem", backgroundColor: recordConfig.color }}
+        >
           {recordConfig.label}
         </span>
       )}

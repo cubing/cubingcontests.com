@@ -9,11 +9,24 @@ import {
   recordConfigsTable as table,
 } from "../db/schema/record-configs.ts";
 import { db } from "../db/provider.ts";
+import { eq } from "drizzle-orm";
 
 export const createRecordConfigSF = actionClient.metadata({ permissions: { recordConfigs: ["create-and-update"] } })
   .inputSchema(z.strictObject({
-    newRecordConfig: RecordConfigValidator,
-  })).action<RecordConfigResponse>(async ({ parsedInput: { newRecordConfig } }) => {
-    const [createdRecordConfig] = await db.insert(table).values(newRecordConfig).returning(recordConfigsPublicCols);
+    newRecordConfigDto: RecordConfigValidator,
+  })).action<RecordConfigResponse>(async ({ parsedInput: { newRecordConfigDto } }) => {
+    const [createdRecordConfig] = await db.insert(table).values(newRecordConfigDto).returning(recordConfigsPublicCols);
     return createdRecordConfig;
+  });
+
+export const updateRecordConfigSF = actionClient.metadata({ permissions: { recordConfigs: ["create-and-update"] } })
+  .inputSchema(z.strictObject({
+    id: z.int(),
+    newRecordConfigDto: RecordConfigValidator,
+  })).action<RecordConfigResponse>(async ({ parsedInput: { id, newRecordConfigDto } }) => {
+    const [updatedRecordConfig] = await db.update(table)
+      .set(newRecordConfigDto)
+      .where(eq(table.id, id))
+      .returning(recordConfigsPublicCols);
+    return updatedRecordConfig;
   });

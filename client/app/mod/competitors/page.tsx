@@ -33,7 +33,7 @@ async function CompetitorsPage() {
       <section>
         <h2 className="mb-4 text-center">Competitors</h2>
 
-        <ManageCompetitorsScreen persons={persons} users={users} />;
+        <ManageCompetitorsScreen persons={persons} users={users} />
       </section>
     );
   } catch {

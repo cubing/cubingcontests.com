@@ -3,7 +3,7 @@
 import { useContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBrain, faCopy, faEyeSlash, faPencil, faVideo, faXmark } from "@fortawesome/free-solid-svg-icons";
-import type { EventCategory, EventFormat, ListPageMode, RoundFormat } from "~/helpers/types.ts";
+import type { EventFormat, ListPageMode, RoundFormat } from "~/helpers/types.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
@@ -40,7 +40,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
   const [eventIdUnderEdit, setEventIdUnderEdit] = useState("");
   const [newEventId, setNewEventId] = useState("");
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<EventCategory>("miscellaneous");
+  const [category, setCategory] = useState("miscellaneous");
   const [rank, setRank] = useState<number | undefined>();
   const [format, setFormat] = useState<EventFormat>("time");
   const [defaultRoundFormat, setDefaultRoundFormat] = useState<RoundFormat>("a");
@@ -59,7 +59,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
       mode !== "edit" || newEventId === eventIdUnderEdit ||
       confirm(`Are you sure you would like to change the event ID from ${eventIdUnderEdit} to ${newEventId}?`)
     ) {
-      const newEvent = {
+      const newEventDto = {
         eventId: newEventId,
         name,
         category,
@@ -76,8 +76,8 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
       } satisfies EventDto;
 
       const res = mode === "add"
-        ? await createEvent({ newEvent })
-        : await updateEvent({ newEvent, originalEventId: eventIdUnderEdit });
+        ? await createEvent({ newEventDto })
+        : await updateEvent({ newEventDto, originalEventId: eventIdUnderEdit });
 
       if (res.serverError || res.validationErrors) {
         changeErrorMessages([getActionError(res)]);
@@ -95,6 +95,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
   };
 
   const onAddEvent = () => {
+    window.scrollTo(0, 0);
     resetMessages();
     setMode("add");
     setEventIdUnlocked(false);
@@ -121,7 +122,7 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
     setMode(clone ? "add" : "edit");
     setEventIdUnlocked(false);
 
-    setEventIdUnderEdit(event.eventId);
+    setEventIdUnderEdit(clone ? "" : event.eventId);
     setNewEventId(event.eventId);
     setName(event.name);
     setCategory(event.category);

@@ -64,7 +64,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
 
   const handleSubmit = async () => {
     const baseRequest = {
-      newPerson: {
+      newPersonDto: {
         name: name.trim(),
         localizedName: localizedName.trim() || undefined,
         wcaId: hasWcaId ? wcaId.trim().toUpperCase() : undefined,

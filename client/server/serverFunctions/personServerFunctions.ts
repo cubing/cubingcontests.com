@@ -36,7 +36,7 @@ export const getOrCreatePersonByWcaIdSF = actionClient.metadata({ permissions: {
     const wcaPerson = await fetchWcaPerson(wcaId);
     if (!wcaPerson) throw new CcActionError(`Person with WCA ID ${wcaId} not found`);
 
-    const res = await createPersonSF({ newPerson: wcaPerson });
+    const res = await createPersonSF({ newPersonDto: wcaPerson });
     if (!res.data) throw new Error(res.serverError?.message || C.unknownErrorMsg);
 
     return { person: res.data, isNew: true };
@@ -45,18 +45,18 @@ export const getOrCreatePersonByWcaIdSF = actionClient.metadata({ permissions: {
 // TO-DO: ADD SUPPORT FOR EXTERNAL DATA ENTRY and ADD LOGGING
 export const createPersonSF = actionClient.metadata({ permissions: { persons: ["create"] } })
   .inputSchema(z.strictObject({
-    newPerson: PersonValidator,
+    newPersonDto: PersonValidator,
     ignoreDuplicate: z.boolean().default(false),
-  })).action<PersonResponse>(async ({ parsedInput: { newPerson, ignoreDuplicate }, ctx: { session } }) => {
+  })).action<PersonResponse>(async ({ parsedInput: { newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
     const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
-    await validatePerson(newPerson, {
+    await validatePerson(newPersonDto, {
       ignoreDuplicate,
       // isAdmin: user !== "EXT_DEVICE" && user.roles.includes(Role.Admin),
       isAdmin: canApprove,
     });
 
-    const query = db.insert(table).values({ ...newPerson, approved: false, createdBy: session.user.id });
+    const query = db.insert(table).values({ ...newPersonDto, approved: false, createdBy: session.user.id });
     const [createdPerson] = await (canApprove ? query.returning() : query.returning(personsPublicCols));
     return createdPerson;
   });
@@ -64,22 +64,22 @@ export const createPersonSF = actionClient.metadata({ permissions: { persons: ["
 export const updatePersonSF = actionClient.metadata({ permissions: { persons: ["update"] } })
   .inputSchema(z.strictObject({
     id: z.int(),
-    newPerson: PersonValidator,
+    newPersonDto: PersonValidator,
     ignoreDuplicate: z.boolean().default(false),
-  })).action<PersonResponse>(async ({ parsedInput: { id, newPerson, ignoreDuplicate }, ctx: { session } }) => {
+  })).action<PersonResponse>(async ({ parsedInput: { id, newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
     const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person with the provided ID not found");
     if (!canApprove && person.approved) throw new CcActionError("You may not edit a person who has been approved");
 
-    await validatePerson(newPerson, { excludeId: id, ignoreDuplicate, isAdmin: canApprove });
+    await validatePerson(newPersonDto, { excludeId: id, ignoreDuplicate, isAdmin: canApprove });
 
-    let personDto: PersonDto = newPerson;
+    let personDto: PersonDto = newPersonDto;
 
-    if (newPerson.wcaId) {
-      const wcaPerson = await fetchWcaPerson(newPerson.wcaId);
-      if (!wcaPerson) throw new CcActionError(`Person with WCA ID ${newPerson.wcaId} not found`);
+    if (newPersonDto.wcaId) {
+      const wcaPerson = await fetchWcaPerson(newPersonDto.wcaId);
+      if (!wcaPerson) throw new CcActionError(`Person with WCA ID ${newPersonDto.wcaId} not found`);
       personDto = wcaPerson;
     }
 
@@ -218,7 +218,7 @@ async function setPersonToApproved(
 }
 
 async function validatePerson(
-  newPerson: PersonDto,
+  newPersonDto: PersonDto,
   {
     ignoreDuplicate,
     excludeId,
@@ -231,17 +231,17 @@ async function validatePerson(
 ) {
   const excludeCondition = excludeId ? ne(table.id, excludeId) : undefined;
 
-  if (newPerson.wcaId) {
+  if (newPersonDto.wcaId) {
     const [sameWcaIdPerson] = await db.select().from(table).where(and(
-      eq(table.wcaId, newPerson.wcaId),
+      eq(table.wcaId, newPersonDto.wcaId),
       excludeCondition,
     )).limit(1);
 
     if (sameWcaIdPerson) throw new CcActionError("A person with the same WCA ID already exists in the CC database");
   } else if (!ignoreDuplicate || !isAdmin) {
     const [duplicatePerson] = await db.select().from(table).where(and(
-      eq(table.name, newPerson.name),
-      eq(table.countryIso2, newPerson.countryIso2),
+      eq(table.name, newPersonDto.name),
+      eq(table.countryIso2, newPersonDto.countryIso2),
       excludeCondition,
     )).limit(1);
 

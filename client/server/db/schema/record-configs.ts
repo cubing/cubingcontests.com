@@ -1,17 +1,19 @@
 import "server-only";
-import { boolean, integer, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
 import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm";
 import { recordTypeEnum } from "./results.ts";
+import { RecordCategoryValues } from "~/helpers/types.ts";
+
+export const recordCategoryEnum = pgEnum("record_category", RecordCategoryValues);
 
 export const recordConfigsTable = table("record_configs", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  // @Prop({ enum: WcaRecordType, required: true, immutable: true, unique: true })
-  // wcaEquivalent: WcaRecordType;
-  recordTypeId: recordTypeEnum().notNull().unique(),
+  recordTypeId: recordTypeEnum().notNull(),
+  category: recordCategoryEnum().notNull(),
   label: text().notNull().unique(),
   active: boolean().notNull(),
-  order: integer().notNull().unique(),
+  rank: integer().notNull(),
   color: varchar({ length: 7 }).notNull(),
   ...tableTimestamps,
 });

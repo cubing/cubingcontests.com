@@ -4,6 +4,8 @@ import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm/utils";
 import { usersTable } from "./auth-schema.ts";
 import { RecordTypeValues } from "~/helpers/types.ts";
+import { SelectEvent } from "./events.ts";
+import { SelectPerson } from "./persons.ts";
 
 export type Attempt = {
   result: number;
@@ -18,7 +20,7 @@ export const resultsTable = table("results", {
   date: timestamp().notNull(),
   approved: boolean().default(false).notNull(),
   personIds: integer().array().notNull(),
-  attempts: jsonb().$type<Attempt>().array().notNull(),
+  attempts: jsonb().array().notNull().$type<Attempt[]>(),
   best: bigint({ mode: "number" }).notNull(),
   average: bigint({ mode: "number" }).notNull(),
   singleRecordTypes: recordTypeEnum().array(),
@@ -33,8 +35,12 @@ export const resultsTable = table("results", {
   ...tableTimestamps,
 });
 
-export type SelectResult = (Omit<typeof resultsTable.$inferSelect, "attempts">) & {
-  attempts: Attempt[];
+export type InsertResult = typeof resultsTable.$inferInsert;
+export type SelectResult = typeof resultsTable.$inferSelect;
+export type FullResult = SelectResult & {
+  event: SelectEvent;
+  // contest: ??
+  persons: SelectPerson[];
 };
 
 const {

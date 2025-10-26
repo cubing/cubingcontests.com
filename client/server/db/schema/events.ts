@@ -12,7 +12,7 @@ export const eventsTable = table("events", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   eventId: text().notNull().unique(),
   name: text().notNull(),
-  category: eventCategoryEnum().notNull(),
+  category: text().notNull(),
   rank: integer().notNull(),
   format: eventFormatEnum().notNull(),
   defaultRoundFormat: roundFormatEnum().notNull(),

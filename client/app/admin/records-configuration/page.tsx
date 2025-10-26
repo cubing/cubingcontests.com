@@ -6,7 +6,7 @@ import { recordConfigsPublicCols, recordConfigsTable as table } from "~/server/d
 async function RecordsConfigurationPage() {
   await authorizeUser({ permissions: { recordConfigs: ["create-and-update"] } });
 
-  const recordConfigs = await db.select(recordConfigsPublicCols).from(table).orderBy(table.order);
+  const recordConfigs = await db.select(recordConfigsPublicCols).from(table).orderBy(table.rank);
 
   return (
     <section>

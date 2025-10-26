@@ -48,12 +48,12 @@ export const setResultWorldRecords = (
   result: ResultResponse,
   event: EventResponse,
   eventWrPair: EventWrPair,
-  noConsoleLog = false,
+  // noConsoleLog = false,
 ): ResultResponse => {
   const comparisonToRecordSingle = compareSingles(result, { best: eventWrPair.best });
 
   if (result.best > 0 && comparisonToRecordSingle <= 0) {
-    if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
+    // if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
     result.singleRecordTypes = ["WR"];
   }
 
@@ -61,7 +61,7 @@ export const setResultWorldRecords = (
     const comparisonToRecordAvg = compareAvgs(result, { average: eventWrPair.average });
 
     if (result.average > 0 && comparisonToRecordAvg <= 0) {
-      if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
+      // if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
       result.averageRecordTypes = ["WR"];
     }
   }

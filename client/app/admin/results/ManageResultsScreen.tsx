@@ -1,27 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import { IFeResult, IRecordType } from "~/helpers/types.ts";
 import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import Time from "~/app/components/Time.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs";
-import FiltersContainer from "~/app/components/FiltersContainer";
-import { InputPerson } from "~/helpers/types";
-import Button from "~/app/components/UI/Button";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import FiltersContainer from "~/app/components/FiltersContainer.tsx";
+import { InputPerson } from "~/helpers/types.ts";
+import Button from "~/app/components/UI/Button.tsx";
+import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
+import type { FullResult } from "~/server/db/schema/results.ts";
 
-const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) => {
-  const myFetch = useMyFetch();
+type Props = {
+  results: FullResult[];
+  activeRecordConfigs: RecordConfigResponse[];
+};
+
+function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
   const parentRef = useRef<Element>(null);
 
-  const [results, setResults] = useState<IFeResult[]>([]);
   const [persons, setPersons] = useState<InputPerson[]>([null]);
   const [personNames, setPersonNames] = useState([""]);
 
@@ -37,12 +40,6 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
     estimateSize: () => 43.4167, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
     overscan: 20,
   });
-
-  useEffect(() => {
-    myFetch.get("/results/video-based", { authorize: true }).then((res) => {
-      if (res.success) setResults(res.data);
-    });
-  }, []);
 
   const resetFilters = () => {
     setPersons([null]);
@@ -69,8 +66,8 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
 
       <p className="px-3">
         Number of video-based results:&nbsp;<b>{filteredResults.length}</b>
-        &#8194;|&#8194;Unapproved:&nbsp;
-        <b>{filteredResults.filter((r: IFeResult) => r.unapproved).length}</b>
+        &#8194;|&#8194;Not approved:&nbsp;
+        <b>{filteredResults.filter((r) => !r.approved).length}</b>
       </p>
 
       <div
@@ -110,14 +107,14 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
                     </td>
                     <td>
                       {result.persons.length > 0 ? <Competitors persons={result.persons} vertical /> : (
-                        "COMPETITOR NOT FOUND"
+                        "COMPETITOR(S) NOT FOUND"
                       )}
                     </td>
                     <td>
                       <Time
                         result={result}
                         event={result.event}
-                        recordTypes={recordTypes}
+                        recordConfigs={activeRecordConfigs}
                       />
                     </td>
                     <td>
@@ -125,7 +122,7 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
                         <Time
                           result={result}
                           event={result.event}
-                          recordTypes={recordTypes}
+                          recordConfigs={activeRecordConfigs}
                           average
                         />
                       )}
@@ -135,9 +132,9 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
                     </td>
                     <td>{getFormattedDate(result.date)}</td>
                     <td>
-                      {result.unapproved
-                        ? <span className="badge bg-danger">No</span>
-                        : <span className="badge bg-success">Yes</span>}
+                      {result.approved
+                        ? <span className="badge bg-success">Yes</span>
+                        : <span className="badge bg-danger">No</span>}
                     </td>
                     <td>
                       <Link
@@ -159,6 +156,6 @@ const ManageResultsScreen = ({ recordTypes }: { recordTypes: IRecordType[] }) =>
       </div>
     </>
   );
-};
+}
 
 export default ManageResultsScreen;

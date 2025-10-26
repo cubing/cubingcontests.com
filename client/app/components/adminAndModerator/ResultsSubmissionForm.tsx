@@ -27,14 +27,14 @@ import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { useAction } from "next-safe-action/hooks";
-import { getWrPairsUpToDateSF } from "../../../server/serverFunctions/resultServerFunctions.ts";
+import { createVideoBasedResultSF, getWrPairsUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
 import { VideoBasedResultDto } from "~/helpers/validators/Result.ts";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
 type Props = {
   events: EventResponse[];
-  eventWrPairs: EventWrPair[];
+  wrPairs: EventWrPair[];
   activeRecordConfigs: RecordConfigResponse[];
   result?: SelectResult; // only defined when editing an existing result
   competitors?: PersonResponse[];
@@ -44,7 +44,7 @@ type Props = {
 
 function ResultsSubmissionForm({
   events,
-  eventWrPairs: initEventWrPairs,
+  wrPairs: initWrPairs,
   activeRecordConfigs,
   result,
   competitors: initCompetitors,
@@ -58,7 +58,8 @@ function ResultsSubmissionForm({
 
   const { executeAsync: getWrPairsUpToDate, isPending: isUpdatingWrPairs, reset: resetGetEventWrPairsUpToDate } =
     useAction(getWrPairsUpToDateSF);
-  const [wrPairs, setWrPairs] = useState<EventWrPair[]>(initEventWrPairs);
+  const { executeAsync: createResult, isPending: isCreating } = useAction(createVideoBasedResultSF);
+  const [wrPairs, setWrPairs] = useState<EventWrPair[]>(initWrPairs);
   const [showRules, setShowRules] = useState(false);
   const [event, setEvent] = useState<EventResponse>(
     events.find((e) => e.eventId === (result?.eventId ?? searchParams.get("eventId"))) ?? events[0],
@@ -95,6 +96,7 @@ function ResultsSubmissionForm({
   );
 
   const isAdmin = session?.user.role === "admin";
+  const isPending = isCreating || isUpdatingWrPairs;
 
   useEffect(() => {
     if (!result) {
@@ -109,21 +111,21 @@ function ResultsSubmissionForm({
       return;
     }
 
-    const newResult: VideoBasedResultDto = {
+    const newResultDto: VideoBasedResultDto = {
       eventId: event.eventId,
-      date: date as Date,
-      personIds: competitors.map((p: InputPerson) => p!.personId),
+      date: date!,
+      personIds: competitors.map((p) => p!.personId),
       attempts,
       videoLink: videoUnavailable ? "" : videoLink,
       discussionLink: discussionLink || undefined,
     };
 
-    // const loadingId = approve ? "approve_button" : "submit_button";
-
     if (!result) {
-      const res = await myFetch.post("/results", newResult, { loadingId });
+      const res = await createResult({ newResultDto });
 
-      if (res.success) {
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
+      } else {
         changeSuccessMessage("Result successfully submitted");
         setDate(undefined);
         setVideoLink("");
@@ -347,7 +349,8 @@ function ResultsSubmissionForm({
         <Button
           id="submit_button"
           onClick={() => submitResult()}
-          // loadingId={loadingId}
+          disabled={isPending}
+          isLoading={isCreating}
           className="mt-3"
         >
           Submit
@@ -356,7 +359,8 @@ function ResultsSubmissionForm({
           <Button
             id="approve_button"
             onClick={() => submitResult(true)}
-            // loadingId={loadingId}
+            disabled={isPending}
+            // isLoading={isApproving}
             className="btn-success mt-3 ms-3"
           >
             Submit and approve
