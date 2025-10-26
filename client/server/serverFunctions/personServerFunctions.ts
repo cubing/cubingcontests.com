@@ -1,17 +1,18 @@
 "use server";
 
-import { and, eq, ilike, ne, or, sql } from "drizzle-orm";
-import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
+import { and, arrayContains, eq, ilike, ne, or, sql } from "drizzle-orm";
+import { fetchWcaPerson, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import { WcaPersonDto } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
-import { PersonResponse, personsPublicCols, personsTable as table } from "~/server/db/schema/persons.ts";
+import { PersonResponse, personsPublicCols, personsTable as table, SelectPerson } from "~/server/db/schema/persons.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { z } from "zod";
-import { checkUserPermissions } from "../serverUtilityFunctions.ts";
+import { checkUserPermissions, setPersonToApproved } from "../serverUtilityFunctions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";
 import { usersTable } from "../db/schema/auth-schema.ts";
 import { C } from "~/helpers/constants.ts";
+import { resultsTable } from "../db/schema/results.ts";
 
 export const getPersonsByNameSF = actionClient.metadata({ permissions: null })
   .inputSchema(z.strictObject({
@@ -107,16 +108,17 @@ export const deletePersonSF = actionClient.metadata({ permissions: { persons: ["
       );
     }
 
-    // const [result] = await db.select({}).from(resultsTable)
-    // const result = await this.resultModel.findOne({
-    //   personIds: person.personId,
-    // }, { eventId: 1, competitionId: 1 })
-    //   .exec();
-    // if (result) {
-    //   throw new BadRequestException(
-    //     `You may not delete a person who has a result. This person has a result in ${result.eventId} at ${result.competitionId}.`,
-    //   );
-    // }
+    const [result] = await db.select({ eventId: resultsTable.eventId, competitionId: resultsTable.competitionId })
+      .from(resultsTable)
+      .where(arrayContains(resultsTable.personIds, [person.personId]))
+      .limit(1);
+    if (result) {
+      throw new CcActionError(
+        `You may not delete a person who has a result. This person has a result in ${result.eventId}${
+          result.competitionId ? ` at ${result.competitionId}` : ""
+        }.`,
+      );
+    }
 
     // const organizedContest = await this.contestModel.findOne({
     //   organizers: person._id,
@@ -135,8 +137,9 @@ export const approvePersonSF = actionClient.metadata({ permissions: { persons: [
     id: z.int(),
     approveByPersonId: z.boolean().default(false),
     ignoredWcaMatches: z.array(z.string()).default([]),
-  })).action<PersonResponse>(async ({ parsedInput: { id, approveByPersonId, ignoredWcaMatches } }) => {
-    const [person] = await db.select().from(table).where(eq(approveByPersonId ? table.personId : table.id, id))
+  })).action<SelectPerson>(async ({ parsedInput: { id, approveByPersonId, ignoredWcaMatches } }) => {
+    const [person] = await db.select().from(table)
+      .where(eq(approveByPersonId ? table.personId : table.id, id))
       .limit(1);
     if (!person) throw new CcActionError("Person not found");
 
@@ -161,62 +164,6 @@ export const approvePersonSF = actionClient.metadata({ permissions: { persons: [
     return await setPersonToApproved(person, { requireWcaId: false, ignoredWcaMatches });
   });
 
-async function setPersonToApproved(
-  person: PersonResponse,
-  { requireWcaId, ignoredWcaMatches }: { requireWcaId: boolean; ignoredWcaMatches: string[] },
-) {
-  const updatePersonObject: Partial<PersonResponse> = {};
-
-  if (!person.wcaId) {
-    const res = await fetch(
-      `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`,
-    );
-    if (res.ok) {
-      const { result: wcaPersons } = await res.json();
-
-      if (!requireWcaId) {
-        for (const wcaPerson of wcaPersons) {
-          const { name } = getNameAndLocalizedName(wcaPerson.name);
-
-          if (
-            !ignoredWcaMatches.includes(wcaPerson.wca_id) && name === person.name &&
-            wcaPerson.country_iso2 === person.countryIso2
-          ) {
-            throw new CcActionError(
-              `There is an exact name and country match with the WCA competitor with WCA ID ${wcaPerson.wca_id}. If that is the same person, edit their profile, adding the WCA ID. If it's a different person, simply approve them again to confirm.`,
-              { data: { wcaMatches: [...ignoredWcaMatches, wcaPerson.wca_id] } },
-            );
-          }
-        }
-      } else if (wcaPersons?.length === 1) {
-        const wcaPerson = wcaPersons[0];
-        const { name, localizedName } = getNameAndLocalizedName(wcaPerson.name);
-
-        if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
-          updatePersonObject.wcaId = wcaPerson.wca_id;
-          if (localizedName) updatePersonObject.localizedName = localizedName;
-        }
-      }
-    }
-  }
-
-  if (!requireWcaId || person.wcaId) {
-    // this.logger.logAndSave(
-    //   `Approving person ${person.name} (CC ID: ${person.personId})`,
-    //   LogType.ApprovePersons,
-    // );
-
-    updatePersonObject.approved = true;
-  }
-
-  if (Object.keys(updatePersonObject).length > 0) {
-    const [updatedPerson] = await db.update(table).set(updatePersonObject).where(eq(table.id, person.id)).returning();
-    return updatedPerson;
-  }
-
-  return person;
-}
-
 async function validatePerson(
   newPersonDto: PersonDto,
   {
@@ -232,10 +179,9 @@ async function validatePerson(
   const excludeCondition = excludeId ? ne(table.id, excludeId) : undefined;
 
   if (newPersonDto.wcaId) {
-    const [sameWcaIdPerson] = await db.select().from(table).where(and(
-      eq(table.wcaId, newPersonDto.wcaId),
-      excludeCondition,
-    )).limit(1);
+    const [sameWcaIdPerson] = await db.select().from(table)
+      .where(and(eq(table.wcaId, newPersonDto.wcaId), excludeCondition))
+      .limit(1);
 
     if (sameWcaIdPerson) throw new CcActionError("A person with the same WCA ID already exists in the CC database");
   } else if (!ignoreDuplicate || !isAdmin) {

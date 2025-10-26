@@ -9,7 +9,9 @@ import { RecordConfigResponse, recordConfigsPublicCols, recordConfigsTable } fro
 import { and, eq, sql } from "drizzle-orm";
 import { eventsTable } from "./db/schema/events.ts";
 import { resultsTable } from "./db/schema/results.ts";
-import { getDateOnly } from "../helpers/sharedFunctions.ts";
+import { getDateOnly, getNameAndLocalizedName } from "../helpers/sharedFunctions.ts";
+import { personsTable, SelectPerson } from "./db/schema/persons.ts";
+import { CcActionError } from "./safeAction.ts";
 
 export async function checkUserPermissions(userId: string, permissions: CcPermissions) {
   const { success } = await auth.api.userHasPermission({ body: { userId, permissions } });
@@ -80,28 +82,57 @@ FROM ${eventsTable} WHERE ${eventsTable.submissionsAllowed} IS TRUE;`))
   }));
 }
 
-export async function approvePersons({
-  personIds,
-  // competitionId,
-  requireWcaId = false,
-}: {
-  personIds?: number[];
-  // competitionId?: string;
-  requireWcaId?: boolean;
-}) {
-  // const persons = personIds
-  //   ? await this.getPersonsByPersonIds(personIds, { unapprovedOnly: true })
-  //   : await this.getContestParticipants({
-  //     competitionId,
-  //     unapprovedOnly: true,
-  //   });
-  // const message = competitionId
-  //   ? `Approving unapproved persons from contest with ID ${competitionId}`
-  //   : `Approving persons with person IDs: ${personIds.join(", ")}`;
+export async function setPersonToApproved(
+  person: SelectPerson,
+  { requireWcaId, ignoredWcaMatches = [] }: { requireWcaId: boolean; ignoredWcaMatches?: string[] },
+): Promise<SelectPerson> {
+  const updatePersonObject: Partial<SelectPerson> = {};
 
-  // this.logger.logAndSave(message, LogType.ApprovePersons);
+  if (!person.wcaId) {
+    const res = await fetch(
+      `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`,
+    );
+    if (res.ok) {
+      const { result: wcaPersons } = await res.json();
 
-  await Promise.allSettled(
-    persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, requireWcaId)),
-  );
+      if (!requireWcaId) {
+        for (const wcaPerson of wcaPersons) {
+          const { name } = getNameAndLocalizedName(wcaPerson.name);
+
+          if (
+            !ignoredWcaMatches.includes(wcaPerson.wca_id) && name === person.name &&
+            wcaPerson.country_iso2 === person.countryIso2
+          ) {
+            throw new CcActionError(
+              `There is an exact name and country match with the WCA competitor with WCA ID ${wcaPerson.wca_id}. If that is the same person, edit their profile, adding the WCA ID. If it's a different person, simply approve them again to confirm.`,
+              { data: { wcaMatches: [...ignoredWcaMatches, wcaPerson.wca_id] } },
+            );
+          }
+        }
+      } else if (wcaPersons?.length === 1) {
+        const wcaPerson = wcaPersons[0];
+        const { name, localizedName } = getNameAndLocalizedName(wcaPerson.name);
+
+        if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
+          updatePersonObject.wcaId = wcaPerson.wca_id;
+          if (localizedName) updatePersonObject.localizedName = localizedName;
+        }
+      }
+    }
+  }
+
+  if (!requireWcaId || person.wcaId) {
+    console.log(`Approving person ${person.name} (CC ID: ${person.personId})`);
+
+    updatePersonObject.approved = true;
+  }
+
+  if (Object.keys(updatePersonObject).length > 0) {
+    const [updatedPerson] = await db.update(personsTable).set(updatePersonObject)
+      .where(eq(personsTable.id, person.id))
+      .returning();
+    return updatedPerson;
+  }
+
+  return person;
 }
