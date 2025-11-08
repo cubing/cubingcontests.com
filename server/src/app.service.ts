@@ -11,6 +11,7 @@ import { PersonsService } from "@m/persons/persons.service";
 import { ResultsService } from "@m/results/results.service";
 import { EnterAttemptDto } from "~/src/app-dto/enter-attempt.dto";
 import { EnterResultsDto, ExternalResultDto } from "./app-dto/enter-results.dto";
+import { LogType } from "./helpers/enums";
 
 @Injectable()
 export class AppService {
@@ -135,9 +136,10 @@ export class AppService {
     });
 
     await this.logModel.deleteMany(
-      { createdAt: { $lt: addMonths(new Date(), -1) } } as RootFilterQuery<
-        LogDocument
-      >,
+      {
+        type: { $ne: LogType.AffiliateLinkClick },
+        createdAt: { $lt: addMonths(new Date(), -1) },
+      } as RootFilterQuery<LogDocument>,
     );
 
     return adminStats;

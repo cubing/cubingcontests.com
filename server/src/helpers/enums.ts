@@ -45,4 +45,6 @@ export enum LogType {
   EnterResultsFromExtDevice = "enter_ext_results",
   DebugEmail = "debug_email",
   AccessDenied = "access_denied",
+  
+  AffiliateLinkClick = "affiliate_link_click",
 }

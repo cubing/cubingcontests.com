@@ -16,6 +16,7 @@ import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { type EventCategory, INavigationItem } from "~/helpers/types.ts";
 import { ssrFetch } from "~/helpers/fetchUtils.ts";
+import AffiliateLink from "~/app/components/AffiliateLink";
 
 // SEO
 export const metadata = {
@@ -69,6 +70,8 @@ const RecordsPage = async ({ params }: Props) => {
   return (
     <div>
       <h2 className="mb-4 text-center">Records</h2>
+
+      <AffiliateLink type={category === "unofficial" ? "fto" : category === "wca" ? "wca" : "other"} />
 
       {recordsByEventResponse.data.length === 0
         ? <p className="mx-2 fs-5">No records have been set yet</p>

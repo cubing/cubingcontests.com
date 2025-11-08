@@ -1,5 +1,6 @@
 export const C = {
   contactEmail: "cubing-contests-admin@googlegroups.com",
+  sourceCodeLink: "https://github.com/cubing/cubingcontests.com",
   fetchDebounceTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
   // Timeouts before revalidating a request in seconds
   rankingsRev: 300,

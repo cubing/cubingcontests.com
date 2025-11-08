@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { C } from "~/helpers/constants.ts";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import { ssrFetch } from "~/helpers/fetchUtils";
+import PartialHomePageDetails from "./components/PartialHomePageDetails";
 
-const Home = async () => {
+async function HomePage() {
   const collectiveSolutionResponse = await ssrFetch("/collective-solution");
 
   return (
@@ -30,7 +30,10 @@ const Home = async () => {
         with video evidence. Some other events also allow submitted results.
       </p>
 
-      <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
+      <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-4 fs-5">
+        <Link href="/about" className="cc-homepage-link btn btn-primary">
+          About us
+        </Link>
         <Link
           href="/competitions"
           prefetch={false}
@@ -70,18 +73,8 @@ const Home = async () => {
         Moderator instructions
       </Link>
 
-      <h3 className="cc-basic-heading">Supporting the project</h3>
-      <p>
-        Cubing Contests is fully free to use, open source, and has no ads. Community donations help with the ongoing
-        development and maintenance of the project.
-      </p>
-      <Link href="/donate" className="btn btn-success mt-2">
-        Donate
-      </Link>
-
-      <h3 className="cc-basic-heading">Contact</h3>
-      <p>For general inquiries, send an email to {C.contactEmail}.</p>
-
+      <PartialHomePageDetails />
+      
       <h3 className="cc-basic-heading">Collective Cubing</h3>
       <CollectiveCubing
         collectiveSolution={collectiveSolutionResponse.success ? collectiveSolutionResponse.data : null}
@@ -90,4 +83,4 @@ const Home = async () => {
   );
 };
 
-export default Home;
+export default HomePage;

@@ -30,7 +30,7 @@ import { LogType } from "~/src/helpers/enums";
 import { EmailService } from "@m/email/email.service";
 import { ContestsService } from "@m/contests/contests.service";
 import { EnterResultsDto } from "./app-dto/enter-results.dto";
-import { IContest, PageSize } from "~/helpers/types";
+import { AffiliateLinkType, IContest, PageSize } from "~/helpers/types";
 
 @Controller()
 export class AppController {
@@ -64,9 +64,7 @@ export class AppController {
   ) {
     const contest = await this.contestsService.getFullContest(competitionId);
 
-    await this.authService.checkAccessRightsToContest(req.user, contest, {
-      allowPublished: true,
-    });
+    this.authService.checkAccessRightsToContest(req.user, contest, { allowPublished: true });
 
     const wcifCompetition = getWcifCompetition(contest as IContest);
     const buffer = await getScorecards(wcifCompetition, pageSize);
@@ -140,5 +138,10 @@ export class AppController {
     await this.emailService.sendEmail(email, "This is a debug email.", {
       subject: "DEBUG",
     });
+  }
+  
+  @Get("log-affiliate-link-click/:type")
+  async logAffiliateLinkClick(@Param("type") type: AffiliateLinkType) {
+    this.logger.logAndSave(`Affiliate link clicked (type: ${type})`, LogType.AffiliateLinkClick);
   }
 }

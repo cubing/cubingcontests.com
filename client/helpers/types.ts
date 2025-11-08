@@ -86,3 +86,5 @@ export type ListPageMode = "view" | "add" | "edit";
 
 // undefined is the empty value, null is the invalid value
 export type NumberInputValue = number | null | undefined;
+
+export type AffiliateLinkType = "3x3" | "2x2" | "wca" | "fto" | "mirror" | "kilominx" | "other";
