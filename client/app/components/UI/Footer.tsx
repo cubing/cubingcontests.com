@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useContext } from "react";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
+import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 
 const Footer = () => {
@@ -10,11 +12,11 @@ const Footer = () => {
   return (
     <footer className="container d-flex flex-wrap gap-3 justify-content-center align-items-center min-vw-100 py-3 bg-body-tertiary text-center fs-5">
       <p className="m-0">
-        Made by
+        Created by
         <a href="https://denimintsaev.com/" className="ms-2 text-light-emphasis">Deni Mintsaev</a>
       </p>
       <a
-        href="https://github.com/cubing/cubingcontests.com"
+        href={C.sourceCodeLink}
         target="_blank"
         className="d-inline-flex justify-content-center align-items-center"
         style={{ width: "1.75rem", height: "1.75rem" }}
@@ -35,6 +37,7 @@ const Footer = () => {
           />
         </svg>
       </a>
+      <Link href="/about" className="text-light-emphasis">About</Link>
       <FormCheckbox
         title="Flashbang"
         selected={theme === "light"}

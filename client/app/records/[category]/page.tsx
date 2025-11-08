@@ -7,12 +7,13 @@ import EventTitle from "~/app/components/EventTitle.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import { C } from "~/helpers/constants.ts";
-import type { IEventRankings, ResultRankingType } from "~/helpers/types.ts";
+import type { EventCategory, ResultRankingType } from "~/helpers/types.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
-import { type EventCategory, INavigationItem } from "~/helpers/types.ts";
-import { ssrFetch } from "~/helpers/DELETEfetchUtils";
+import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
+import { ssrFetch } from "~/helpers/DELETEfetchUtils.ts";
+import AffiliateLink from "~/app/components/AffiliateLink";
 
 // SEO
 export const metadata = {
@@ -50,7 +51,7 @@ const RecordsPage = async ({ params }: Props) => {
     )
   );
   const selectedCat = eventCategories.find((ec) => ec.value === category) as EventCategory;
-  const tabs: INavigationItem[] = eventCategories.map((cat) => ({
+  const tabs: NavigationItem[] = eventCategories.map((cat) => ({
     title: cat.title,
     shortTitle: cat.shortTitle,
     value: cat.value,
@@ -62,9 +63,13 @@ const RecordsPage = async ({ params }: Props) => {
     <div>
       <h2 className="mb-4 text-center">Records</h2>
 
-      {recordsByEventResponse.data.length === 0 ? <p className="mx-2 fs-5">No records have been set yet</p> : (
-        <>
-          <Tabs tabs={tabs} activeTab={category} forServerSidePage />
+      <AffiliateLink type={category === "unofficial" ? "fto" : category === "wca" ? "wca" : "other"} />
+
+      {recordsByEventResponse.data.length === 0
+        ? <p className="mx-2 fs-5">No records have been set yet</p>
+        : (
+          <>
+            <Tabs tabs={tabs} activeTab={category} forServerSidePage />
 
           {selectedCat.description && <p className="mx-2">{selectedCat.description}</p>}
 

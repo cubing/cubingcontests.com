@@ -15,7 +15,7 @@ export class CreateVideoBasedResultDto extends CreateResultDto implements ICreat
   @Validate(SubmittedAttempts)
   @ValidateNested({ each: true })
   @Type(() => AttemptDto)
-  attempts: IAttempt[];
+  declare attempts: IAttempt[];
 
   @IsUrl({}, { message: VIDEO_LINK_VALIDATION_MSG })
   videoLink: string;

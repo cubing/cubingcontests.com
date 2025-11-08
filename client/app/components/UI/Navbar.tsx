@@ -133,6 +133,16 @@ const NavbarItems = ({ initSession }: Props) => {
                 Rules
               </Link>
             </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link ${pathname === "/about" ? " active" : ""}`}
+                prefetch={false}
+                href="/about"
+                onClick={collapseAll}
+              >
+                About
+              </Link>
+            </li>
             {!user
               ? (
                 <li className="nav-item">

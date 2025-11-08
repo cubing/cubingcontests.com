@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { C } from "~/helpers/constants.ts";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
@@ -9,6 +8,7 @@ import {
 } from "../server/db/schema/collective-solutions.ts";
 import { ne } from "drizzle-orm";
 import { db } from "~/server/db/provider.ts";
+import PartialHomePageDetails from "./components/PartialHomePageDetails";
 
 async function Home() {
   const [collectiveSolution] = await db.select(collectiveSolutionsPublicCols).from(csTable).where(
@@ -37,7 +37,10 @@ async function Home() {
         with video evidence. Some other events also allow submitted results.
       </p>
 
-      <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-5 fs-5">
+      <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-4 fs-5">
+        <Link href="/about" className="cc-homepage-link btn btn-primary">
+          About Us
+        </Link>
         <Link href="/competitions" prefetch={false} className="cc-homepage-link btn btn-primary">
           See All Contests
         </Link>
@@ -65,18 +68,8 @@ async function Home() {
         Moderator Instructions
       </Link>
 
-      <h3 className="cc-basic-heading">Supporting the project</h3>
-      <p>
-        Cubing Contests is fully free to use, open source, and has no ads. Community donations help with the ongoing
-        development and maintenance of the project.
-      </p>
-      <Link href="/donate" className="btn btn-success mt-2">
-        Donate
-      </Link>
-
-      <h3 className="cc-basic-heading">Contact</h3>
-      <p>For general inquiries, send an email to {C.contactEmail}.</p>
-
+      <PartialHomePageDetails />
+      
       <h3 className="cc-basic-heading">Collective Cubing</h3>
 
       <CollectiveCubing initCollectiveSolution={collectiveSolution ?? null} />
@@ -84,4 +77,4 @@ async function Home() {
   );
 }
 
-export default Home;
+export default HomePage;

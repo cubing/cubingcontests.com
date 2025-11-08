@@ -4,10 +4,9 @@ import RankingsTable from "~/app/components/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import { C } from "~/helpers/constants.ts";
-import DonateAlert from "~/app/components/DonateAlert.tsx";
 import RegionSelect from "~/app/rankings/[eventId]/[singleOrAvg]/RegionSelect.tsx";
 import omitBy from "lodash/omitBy";
-import { EventResponse } from "~/server/db/schema/events.ts";
+import AffiliateLink from "~/app/components/AffiliateLink";
 
 // SEO
 export const metadata = {
@@ -51,11 +50,51 @@ async function RankingsPage({ params, searchParams }: Props) {
     return <p className="mt-5 text-center fs-4">Event not found</p>;
   }
 
+  const affiliateLinkType =
+    /^333bf_[0-9]*_person_relay$/.test(currEvent.eventId) ||
+    [
+      "333",
+      "333oh",
+      "333bf",
+      "333fm",
+      "333mbf",
+      "333_oh_bld_team_relay",
+      "333_team_bld",
+      "333_team_bld_old",
+      "333_linear_fm",
+      "333_speed_bld",
+      "333mts",
+      "333ft",
+      "333mbo",
+      "333_team_factory",
+      "333_one_move_team_factory",
+      "333_inspectionless",
+      "333_scrambling",
+      "333oh_x2",
+      "333_oven_mitts",
+      "333_doubles",
+      "333_one_side",
+      "333_supersolve",
+      "333_cube_mile",
+    ].includes(currEvent.eventId)
+      ? "3x3"
+      : ["222", "222bf", "222fm", "222oh"].includes(currEvent.eventId)
+        ? "2x2"
+        : currEvent.groups.includes(EventGroup.WCA)
+          ? "wca"
+          : ["fto", "fto_bld", "fto_mbld", "mfto", "baby_fto"].includes(currEvent.eventId)
+            ? "fto"
+            : ["333_mirror_blocks", "333_mirror_blocks_bld", "222_mirror_blocks"].includes(currEvent.eventId)
+              ? "mirror"
+              : currEvent.eventId === "kilominx"
+                ? "kilominx"
+                : "other";
+
   return (
     <div>
       <h2 className="mb-3 text-center">Rankings</h2>
 
-      <DonateAlert />
+      <AffiliateLink type={affiliateLinkType} />
 
       <div className="mb-3 px-2">
         <h4>Event</h4>
