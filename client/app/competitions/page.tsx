@@ -1,8 +1,8 @@
 import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
-import DonateAlert from "~/app/components/DonateAlert.tsx";
 import { C } from "~/helpers/constants";
+import AffiliateLink from "../components/AffiliateLink";
 
 // SEO
 export const metadata = {
@@ -32,7 +32,7 @@ const ContestsPage = async ({ searchParams }: Props) => {
     <div>
       <h2 className="mb-4 text-center">All contests</h2>
 
-      <DonateAlert />
+      <AffiliateLink type="other" />
 
       {!eventsResponse.success || !contestsResponse.success
         ? <h3 className="mt-4 text-center">Error while loading contests</h3>

@@ -10,10 +10,12 @@ if [ ! -f ".env" ]; then
   echo -e "Environment variables copied from .env.example to .env\n"
 fi
 
-cp .env client/.env.local
-
 docker compose up -d &&
 sleep 1 &&
+
+# Copy port environment variables to Next JS project
+grep "^PORT=" .env > client/.env.local
+grep "^BACKEND_PORT=" .env >> client/.env.local
 cd client
 
 deno install --allow-scripts &&

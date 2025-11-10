@@ -66,4 +66,3 @@ export type EventWrPair = {
   average: number;
 };
 
-export type AffiliateLinkType = "3x3" | "2x2" | "wca" | "fto" | "mirror" | "kilominx" | "other";
