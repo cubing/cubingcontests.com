@@ -1,6 +1,6 @@
 import PartialHomePageDetails from "~/app/components/PartialHomePageDetails.tsx";
 
-async function AboutPage() {
+function AboutPage() {
   return (
     <section className="px-3 pb-4 lh-lg">
       <h2 className="mb-4 text-center">About</h2>

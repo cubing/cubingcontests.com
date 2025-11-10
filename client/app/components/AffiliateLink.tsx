@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useMyFetch } from "~/helpers/customHooks";
-import { AffiliateLinkType } from "~/helpers/types";
 
 const height = 192 / 2;
 const width = 1920 / 2;
@@ -10,23 +9,23 @@ const className = "d-flex justify-content-center w-100 max-w-100 mb-3";
 const style = { overflow: "clip", backgroundColor: "#151515" };
 
 type Props = {
-  type: AffiliateLinkType;
+  type: "3x3" | "2x2" | "wca" | "fto" | "mirror" | "kilominx" | "other";
 };
 
 function AffiliateLink({ type }: Props) {
   const myFetch = useMyFetch();
 
-  const logAffiliateLinkClick = async () => {
-    await myFetch.get(`/log-affiliate-link-click/${type}`);
+  const logAffiliateLinkClick = async (utmCampaign: string) => {
+    await myFetch.get(`/log-affiliate-link-click/${utmCampaign}`);
   };
 
   switch (type) {
     case "3x3":
       return (
         <a
-          href="https://cuboss.com/product-category/3x3-speedcubes"
+          href="https://cuboss.com/product-category/3x3-speedcubes/?r=cubingcontests&utm_source=cubingcontests&utm_campaign=3x31125"
           target="_blank"
-          onClick={() => logAffiliateLinkClick()}
+          onClick={() => logAffiliateLinkClick("3x31125")}
           className={className}
           style={style}
         >
@@ -36,9 +35,9 @@ function AffiliateLink({ type }: Props) {
     case "2x2":
       return (
         <a
-          href="https://cuboss.com/product-category/2x2-speedcubes"
+          href="https://cuboss.com/product-category/2x2-speedcubes/?r=cubingcontests&utm_source=cubingcontests&utm_campaign=2x21125"
           target="_blank"
-          onClick={() => logAffiliateLinkClick()}
+          onClick={() => logAffiliateLinkClick("2x21125")}
           className={className}
           style={style}
         >
@@ -48,10 +47,9 @@ function AffiliateLink({ type }: Props) {
     case "wca":
       return (
         <a
-          // href="https://cuboss.com/product-category/wca-puzzles?r=cubingcontests&utm_source=cubingcontests&utm_campaign=FTO"
-          href="https://cuboss.com/product-category/wca-puzzles"
+          href="https://cuboss.com/product-category/wca-puzzles/?r=cubingcontests&utm_source=cubingcontests&utm_campaign=WCA1125"
           target="_blank"
-          onClick={() => logAffiliateLinkClick()}
+          onClick={() => logAffiliateLinkClick("WCA1125")}
           className={className}
           style={style}
         >
@@ -61,10 +59,9 @@ function AffiliateLink({ type }: Props) {
     case "fto":
       return (
         <a
-          // href="https://cuboss.com/?s=fto&post_type=product&r=cubingcontests&utm_source=cubingcontests&utm_campaign=FTO"
-          href="https://cuboss.com/?s=fto&post_type=product"
+          href="https://cuboss.com/?s=fto&post_type=product&r=cubingcontests&utm_source=cubingcontests&utm_campaign=FTO1125"
           target="_blank"
-          onClick={() => logAffiliateLinkClick()}
+          onClick={() => logAffiliateLinkClick("FTO1125")}
           className={className}
           style={style}
         >
@@ -74,9 +71,9 @@ function AffiliateLink({ type }: Props) {
     case "mirror":
       return (
         <a
-          href="https://cuboss.com/?s=mirror&post_type=product"
+          href="https://cuboss.com/?s=mirror&post_type=product&r=cubingcontests&utm_source=cubingcontests&utm_campaign=MR1125"
           target="_blank"
-          onClick={() => logAffiliateLinkClick()}
+          onClick={() => logAffiliateLinkClick("MR1125")}
           className={className}
           style={style}
         >
@@ -86,9 +83,9 @@ function AffiliateLink({ type }: Props) {
     case "kilominx":
       return (
         <a
-          href="https://cuboss.com/?s=kilominx&post_type=product"
+          href="https://cuboss.com/?s=kilominx&post_type=product&r=cubingcontests&utm_source=cubingcontests&utm_campaign=KILO1125"
           target="_blank"
-          onClick={() => logAffiliateLinkClick()}
+          onClick={() => logAffiliateLinkClick("KILO1125")}
           className={className}
           style={style}
         >
@@ -98,10 +95,9 @@ function AffiliateLink({ type }: Props) {
     case "other":
       return (
         <a
-          // href="https://cuboss.com/?utm_source=cubingcontests"
-          href="https://cuboss.com/"
+          href="https://cuboss.com/?r=cubingcontests&utm_source=cubingcontests&utm_campaign=SC1125"
           target="_blank"
-          onClick={() => logAffiliateLinkClick()}
+          onClick={() => logAffiliateLinkClick("SC1125")}
           className={className}
           style={style}
         >

@@ -15,8 +15,9 @@ cd client
 deno install --allow-scripts
 cd ..
 
-# Copy environment variables to Next JS project
-cp .env client/.env.local
+# Copy port environment variables to Next JS project
+grep "^PORT=" .env > client/.env.local
+grep "^BACKEND_PORT=" .env >> client/.env.local
 
 # This stuff is temporary. It can be removed when the migration away from Nest JS is done.
 ./bin/copy-helpers-to-server.sh

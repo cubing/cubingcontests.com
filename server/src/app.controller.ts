@@ -30,7 +30,7 @@ import { LogType } from "~/src/helpers/enums";
 import { EmailService } from "@m/email/email.service";
 import { ContestsService } from "@m/contests/contests.service";
 import { EnterResultsDto } from "./app-dto/enter-results.dto";
-import { AffiliateLinkType, IContest, PageSize } from "~/helpers/types";
+import { IContest, PageSize } from "~/helpers/types";
 
 @Controller()
 export class AppController {
@@ -140,8 +140,8 @@ export class AppController {
     });
   }
   
-  @Get("log-affiliate-link-click/:type")
-  async logAffiliateLinkClick(@Param("type") type: AffiliateLinkType) {
-    this.logger.logAndSave(`Affiliate link clicked (type: ${type})`, LogType.AffiliateLinkClick);
+  @Get("log-affiliate-link-click/:utm_campaign")
+  async logAffiliateLinkClick(@Param("utm_campaign") utmCampaign: string) {
+    this.logger.logAndSave(`Affiliate link clicked (utm_campaign: ${utmCampaign})`, LogType.AffiliateLinkClick);
   }
 }

@@ -37,6 +37,7 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   # Remove old images
   docker images | grep cubingcontests | tr -s ' ' | cut -d ' ' -f 3 | xargs -tI % docker rmi % --force
   # Client container
+  rm client/.env.local
   source .env
   docker build --build-arg NEXT_PUBLIC_API_BASE_URL="$PROD_API_BASE_URL" -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$new_version denimint/cubingcontests-client:latest &&
@@ -44,6 +45,7 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   docker push denimint/cubingcontests-client:latest &&
   # Legacy server container
   ./bin/copy-helpers-to-server.sh
+  rm server/.env.dev
   docker build -t denimint/cubingcontests-server:$new_version --file server.Dockerfile . &&
   docker tag denimint/cubingcontests-server:$new_version denimint/cubingcontests-server:latest &&
   docker push denimint/cubingcontests-server:$new_version &&
