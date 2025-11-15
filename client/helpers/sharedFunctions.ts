@@ -164,21 +164,27 @@ export const getFormattedTime = (
 };
 
 // If the round has no cutoff (undefined), return true
-export const getMakesCutoff = (attempts: Attempt[], cutoff: ICutoff | undefined): boolean =>
-  !cutoff ||
-  attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result && a.result > 0 && a.result < cutoff.attemptResult);
+export const getMakesCutoff = (
+  attempts: Attempt[],
+  cutoffAttemptResult: number | null | undefined,
+  cutoffNumberOfAttempts: number | null | undefined,
+): boolean =>
+  !cutoffAttemptResult ||
+  !cutoffNumberOfAttempts ||
+  attempts.some((a, i) => i < cutoffNumberOfAttempts && a.result && a.result > 0 && a.result < cutoffAttemptResult);
 
 // Returns the best and average times
 export function getBestAndAverage(
   attempts: Attempt[],
   event: EventResponse,
   roundFormat: RoundFormat,
-  { cutoff }: { cutoff?: ICutoff } = {},
+  cutoffAttemptResult?: number | null,
+  cutoffNumberOfAttempts?: number | null,
 ): { best: number; average: number } {
   let best: number, average: number;
   let sum = 0;
   let dnfDnsCount = 0;
-  const makesCutoff = getMakesCutoff(attempts, cutoff);
+  const makesCutoff = getMakesCutoff(attempts, cutoffAttemptResult, cutoffNumberOfAttempts);
   const expectedAttempts = roundFormats.find((rf) => rf.value === roundFormat)!.attempts;
   const enteredAttempts = attempts.filter((a) => a.result !== 0).length;
 

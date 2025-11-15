@@ -1,36 +1,49 @@
 "use server";
 
 import { and, arrayContains, eq, ilike, ne, or, sql } from "drizzle-orm";
-import { fetchWcaPerson, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
-import { WcaPersonDto } from "~/helpers/types.ts";
-import { db } from "~/server/db/provider.ts";
-import { PersonResponse, personsPublicCols, personsTable as table, SelectPerson } from "~/server/db/schema/persons.ts";
-import { actionClient, CcActionError } from "../safeAction.ts";
 import { z } from "zod";
-import { checkUserPermissions, setPersonToApproved } from "../serverUtilityFunctions.ts";
-import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
-import { PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";
-import { usersTable } from "../db/schema/auth-schema.ts";
 import { C } from "~/helpers/constants.ts";
+import { fetchWcaPerson, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
+import type { WcaPersonDto } from "~/helpers/types.ts";
+import { type PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";
+import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
+import { db } from "~/server/db/provider.ts";
+import {
+  type PersonResponse,
+  personsPublicCols,
+  type SelectPerson,
+  personsTable as table,
+} from "~/server/db/schema/persons.ts";
+import { usersTable } from "../db/schema/auth-schema.ts";
 import { resultsTable } from "../db/schema/results.ts";
+import { actionClient, CcActionError } from "../safeAction.ts";
+import { checkUserPermissions, setPersonToApproved } from "../serverUtilityFunctions.ts";
 
-export const getPersonsByNameSF = actionClient.metadata({ permissions: null })
-  .inputSchema(z.strictObject({
-    name: z.string().max(60),
-  })).action<PersonResponse[]>(async ({ parsedInput: { name } }) => {
-    const simplifiedParts = getSimplifiedString(name).split(" ").map((part) => `%${part}%`);
+export const getPersonsByNameSF = actionClient
+  .metadata({ permissions: null })
+  .inputSchema(
+    z.strictObject({
+      name: z.string().max(60),
+    }),
+  )
+  .action<PersonResponse[]>(async ({ parsedInput: { name } }) => {
+    const simplifiedParts = getSimplifiedString(name)
+      .split(" ")
+      .map((part) => `%${part}%`);
     const nameQuery = and(...simplifiedParts.map((part) => sql`unaccent(${table.name}) ilike ${part}`));
     const locNameQuery = and(...simplifiedParts.map((part) => ilike(table.localizedName, `%${part}%`)));
 
-    return await db.select(personsPublicCols).from(table)
-      .where(or(nameQuery, locNameQuery))
-      .limit(C.maxPersonMatches);
+    return await db.select(personsPublicCols).from(table).where(or(nameQuery, locNameQuery)).limit(C.maxPersonMatches);
   });
 
-export const getOrCreatePersonByWcaIdSF = actionClient.metadata({ permissions: { persons: ["create"] } })
-  .inputSchema(z.strictObject({
-    wcaId: WcaIdValidator,
-  })).action<WcaPersonDto>(async ({ parsedInput: { wcaId } }) => {
+export const getOrCreatePersonByWcaIdSF = actionClient
+  .metadata({ permissions: { persons: ["create"] } })
+  .inputSchema(
+    z.strictObject({
+      wcaId: WcaIdValidator,
+    }),
+  )
+  .action<WcaPersonDto>(async ({ parsedInput: { wcaId } }) => {
     const [person] = await db.select(personsPublicCols).from(table).where(eq(table.wcaId, wcaId)).limit(1);
     if (person) return { person, isNew: false };
 
@@ -44,11 +57,15 @@ export const getOrCreatePersonByWcaIdSF = actionClient.metadata({ permissions: {
   });
 
 // TO-DO: ADD SUPPORT FOR EXTERNAL DATA ENTRY and ADD LOGGING
-export const createPersonSF = actionClient.metadata({ permissions: { persons: ["create"] } })
-  .inputSchema(z.strictObject({
-    newPersonDto: PersonValidator,
-    ignoreDuplicate: z.boolean().default(false),
-  })).action<PersonResponse>(async ({ parsedInput: { newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
+export const createPersonSF = actionClient
+  .metadata({ permissions: { persons: ["create"] } })
+  .inputSchema(
+    z.strictObject({
+      newPersonDto: PersonValidator,
+      ignoreDuplicate: z.boolean().default(false),
+    }),
+  )
+  .action<PersonResponse>(async ({ parsedInput: { newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
     const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     await validatePerson(newPersonDto, {
@@ -62,17 +79,25 @@ export const createPersonSF = actionClient.metadata({ permissions: { persons: ["
     return createdPerson;
   });
 
-export const updatePersonSF = actionClient.metadata({ permissions: { persons: ["update"] } })
-  .inputSchema(z.strictObject({
-    id: z.int(),
-    newPersonDto: PersonValidator,
-    ignoreDuplicate: z.boolean().default(false),
-  })).action<PersonResponse>(async ({ parsedInput: { id, newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
+export const updatePersonSF = actionClient
+  .metadata({ permissions: { persons: ["update"] } })
+  .inputSchema(
+    z.strictObject({
+      id: z.int(),
+      newPersonDto: PersonValidator,
+      ignoreDuplicate: z.boolean().default(false),
+    }),
+  )
+  .action<PersonResponse>(async ({ parsedInput: { id, newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
     const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person with the provided ID not found");
     if (!canApprove && person.approved) throw new CcActionError("You may not edit a person who has been approved");
+    if (person.countryIso2 !== newPersonDto.countryIso2)
+      throw new CcActionError(
+        "Changing a person's country is not currently supported. Please contact a developer regarding this.",
+      );
 
     await validatePerson(newPersonDto, { excludeId: id, ignoreDuplicate, isAdmin: canApprove });
 
@@ -89,17 +114,23 @@ export const updatePersonSF = actionClient.metadata({ permissions: { persons: ["
     return updatedPerson;
   });
 
-export const deletePersonSF = actionClient.metadata({ permissions: { persons: ["delete"] } })
-  .inputSchema(z.strictObject({
-    id: z.int(),
-  })).action(async ({ parsedInput: { id }, ctx: { session } }) => {
+export const deletePersonSF = actionClient
+  .metadata({ permissions: { persons: ["delete"] } })
+  .inputSchema(
+    z.strictObject({
+      id: z.int(),
+    }),
+  )
+  .action(async ({ parsedInput: { id }, ctx: { session } }) => {
     const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person with the provided ID not found");
     if (!canApprove && person.approved) throw new CcActionError("You may not delete an approved person");
 
-    const [user] = await db.select({ username: usersTable.username }).from(usersTable)
+    const [user] = await db
+      .select({ username: usersTable.username })
+      .from(usersTable)
       .where(eq(usersTable.personId, person.personId))
       .limit(1);
     if (user) {
@@ -108,7 +139,8 @@ export const deletePersonSF = actionClient.metadata({ permissions: { persons: ["
       );
     }
 
-    const [result] = await db.select({ eventId: resultsTable.eventId, competitionId: resultsTable.competitionId })
+    const [result] = await db
+      .select({ eventId: resultsTable.eventId, competitionId: resultsTable.competitionId })
       .from(resultsTable)
       .where(arrayContains(resultsTable.personIds, [person.personId]))
       .limit(1);
@@ -132,13 +164,19 @@ export const deletePersonSF = actionClient.metadata({ permissions: { persons: ["
     await db.delete(table).where(eq(table.id, id));
   });
 
-export const approvePersonSF = actionClient.metadata({ permissions: { persons: ["approve"] } })
-  .inputSchema(z.strictObject({
-    id: z.int(),
-    approveByPersonId: z.boolean().default(false),
-    ignoredWcaMatches: z.array(z.string()).default([]),
-  })).action<SelectPerson>(async ({ parsedInput: { id, approveByPersonId, ignoredWcaMatches } }) => {
-    const [person] = await db.select().from(table)
+export const approvePersonSF = actionClient
+  .metadata({ permissions: { persons: ["approve"] } })
+  .inputSchema(
+    z.strictObject({
+      id: z.int(),
+      approveByPersonId: z.boolean().default(false),
+      ignoredWcaMatches: z.array(z.string()).default([]),
+    }),
+  )
+  .action<SelectPerson>(async ({ parsedInput: { id, approveByPersonId, ignoredWcaMatches } }) => {
+    const [person] = await db
+      .select()
+      .from(table)
       .where(eq(approveByPersonId ? table.personId : table.id, id))
       .limit(1);
     if (!person) throw new CcActionError("Person not found");
@@ -179,17 +217,19 @@ async function validatePerson(
   const excludeCondition = excludeId ? ne(table.id, excludeId) : undefined;
 
   if (newPersonDto.wcaId) {
-    const [sameWcaIdPerson] = await db.select().from(table)
+    const [sameWcaIdPerson] = await db
+      .select()
+      .from(table)
       .where(and(eq(table.wcaId, newPersonDto.wcaId), excludeCondition))
       .limit(1);
 
     if (sameWcaIdPerson) throw new CcActionError("A person with the same WCA ID already exists in the CC database");
   } else if (!ignoreDuplicate || !isAdmin) {
-    const [duplicatePerson] = await db.select().from(table).where(and(
-      eq(table.name, newPersonDto.name),
-      eq(table.countryIso2, newPersonDto.countryIso2),
-      excludeCondition,
-    )).limit(1);
+    const [duplicatePerson] = await db
+      .select()
+      .from(table)
+      .where(and(eq(table.name, newPersonDto.name), eq(table.countryIso2, newPersonDto.countryIso2), excludeCondition))
+      .limit(1);
 
     if (duplicatePerson) {
       throw new CcActionError(

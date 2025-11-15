@@ -1,16 +1,12 @@
-import { expect } from "@std/expect";
-import { describe, it } from "@std/testing/bdd";
-import { getAttempt } from "~/helpers/utilityFunctions.ts";
+import { describe, expect, it } from "vitest";
+import { eventsStub } from "~/__mocks__/stubs/events.stub.ts";
 import { C } from "~/helpers/constants.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
-import { eventsStub } from "~/__mocks__/events.stub.ts";
-import { EventResponse } from "../server/db/schema/events.ts";
+import { getAttempt } from "~/helpers/utilityFunctions.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333")!;
-const roundOpts = {
-  roundTime: true,
-  roundMemo: true,
-};
+const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as any;
+const roundOpts = { roundTime: true, roundMemo: true };
 
 const timeExamples = [
   {
@@ -190,16 +186,15 @@ describe("getAttempt", () => {
       const { inputs, outputAtt } = example;
 
       it(`parses ${example.inputs.time}${example.inputs.memo ? ` with ${inputs.memo} memo` : ""} correctly`, () => {
-        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, {
-          ...roundOpts,
-          memo: inputs.memo,
-        });
-        const expectedResult = outputAtt.result !== null && outputAtt.result >= 60000
-          ? outputAtt.result - (outputAtt.result % 100)
-          : outputAtt.result;
-        const expectedMemo = outputAtt.memo !== null && outputAtt.memo && outputAtt.memo >= 60000
-          ? outputAtt.memo - (outputAtt.memo % 100)
-          : outputAtt.memo;
+        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, { ...roundOpts, memo: inputs.memo });
+        const expectedResult =
+          outputAtt.result !== null && outputAtt.result >= 60000
+            ? outputAtt.result - (outputAtt.result % 100)
+            : outputAtt.result;
+        const expectedMemo =
+          outputAtt.memo !== null && outputAtt.memo && outputAtt.memo >= 60000
+            ? outputAtt.memo - (outputAtt.memo % 100)
+            : outputAtt.memo;
 
         expect(output.result).toBe(expectedResult);
         expect(output.memo).toBe(expectedMemo);
@@ -286,9 +281,7 @@ describe("getAttempt", () => {
     }
 
     it("parses empty Multi-Blind attempt correctly", () => {
-      expect(getAttempt(dummyAtt, mockMultiEvent, "", roundOpts).result).toBe(
-        0,
-      );
+      expect(getAttempt(dummyAtt, mockMultiEvent, "", roundOpts).result).toBe(0);
     });
 
     it("disallows unknown time for Multi-Blind", () => {
@@ -306,9 +299,7 @@ describe("getAttempt", () => {
           solved: 36,
           attempted: 36,
         }).result,
-      ).toBe(
-        996386400000000,
-      );
+      ).toBe(996386400000000);
     });
   });
 });
@@ -385,17 +376,14 @@ describe("getFormattedTime", () => {
     });
 
     it("formats 39.66 without formatting correctly", () => {
-      expect(
-        getFormattedTime(3966, { event: mockNumberEvent, noFormatting: true }),
-      ).toBe("3966");
+      expect(getFormattedTime(3966, { event: mockNumberEvent, noFormatting: true })).toBe("3966");
     });
   });
 
   describe("format Multi-Blind attempts", () => {
     for (const example of multiBlindExamples) {
       it(`formats ${example.formatted} correctly`, () => {
-        expect(getFormattedTime(example.result, { event: mockMultiEvent }))
-          .toBe(example.formatted);
+        expect(getFormattedTime(example.result, { event: mockMultiEvent })).toBe(example.formatted);
       });
 
       it(`formats ${example.formatted} without formatting correctly`, () => {
@@ -404,16 +392,12 @@ describe("getFormattedTime", () => {
             event: mockMultiEvent,
             noFormatting: true,
           }),
-        ).toBe(
-          `${example.inputs.solved};${example.inputs.attempted};${example.inputs.time}`,
-        );
+        ).toBe(`${example.inputs.solved};${example.inputs.attempted};${example.inputs.time}`);
       });
     }
 
     it("formats Multi-Blind result with unknown time correctly", () => {
-      expect(getFormattedTime(996386400000000, { event: mockMultiEvent })).toBe(
-        "36/36 Unknown time",
-      );
+      expect(getFormattedTime(996386400000000, { event: mockMultiEvent })).toBe("36/36 Unknown time");
     });
   });
 
@@ -435,9 +419,7 @@ describe("getFormattedTime", () => {
   });
 
   it("formats 0:34 memo time correctly", () => {
-    expect(
-      getFormattedTime(3400, { alwaysShowMinutes: true, showDecimals: false }),
-    ).toBe("0:34");
+    expect(getFormattedTime(3400, { alwaysShowMinutes: true, showDecimals: false })).toBe("0:34");
   });
 
   it("formats 14:07 memo time correctly", () => {

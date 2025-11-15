@@ -1,11 +1,11 @@
 import { eventsStub } from "./events.stub.ts";
 
-const eventsSeed = eventsStub();
+const events = eventsStub();
 
 export const newContestEventsStub = (): IContestEvent[] => {
   return [
     {
-      event: eventsSeed.find((el) => el.eventId === "333")!,
+      event: events.find((el) => el.eventId === "333")!,
       rounds: [
         {
           roundId: "333-r1",
@@ -59,7 +59,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333fm")!,
+      event: events.find((el) => el.eventId === "333fm")!,
       rounds: [
         {
           roundId: "333fm-r1",
@@ -107,7 +107,7 @@ export const newContestEventsStub = (): IContestEvent[] => {
 export const newFakeContestEventsStub = (): IContestEvent[] => {
   return [
     {
-      event: eventsSeed.find((el) => el.eventId === "222")!,
+      event: events.find((el) => el.eventId === "222")!,
       rounds: [
         {
           roundId: "222-r1",
@@ -199,7 +199,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333fm")!,
+      event: events.find((el) => el.eventId === "333fm")!,
       rounds: [
         {
           roundId: "333fm-r1",
@@ -362,7 +362,7 @@ export const newFakeContestEventsStub = (): IContestEvent[] => {
       ],
     },
     {
-      event: eventsSeed.find((el) => el.eventId === "333bf")!,
+      event: events.find((el) => el.eventId === "333bf")!,
       rounds: [
         {
           roundId: "333bf-r1",

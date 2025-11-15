@@ -1,16 +1,16 @@
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { vi } from "vitest";
+import { eventsStub } from "~/__mocks__/stubs/events.stub.ts";
+import { personsStub } from "~/__mocks__/stubs/persons.stub.ts";
+import { recordConfigsStub } from "~/__mocks__/stubs/record-configs.stub.ts";
+import { resultsStub } from "~/__mocks__/stubs/results.stub.ts";
 import { relations } from "~/server/db/relations.ts";
 import { eventsTable } from "~/server/db/schema/events.ts";
 import { personsTable } from "~/server/db/schema/persons.ts";
 import { recordConfigsTable } from "~/server/db/schema/record-configs.ts";
 import { resultsTable } from "~/server/db/schema/results.ts";
 import * as schema from "~/server/db/schema/schema.ts";
-import { eventsStub } from "./stubs/events.stub.ts";
-import { personsStub } from "./stubs/persons.stub.ts";
-import { recordConfigsStub } from "./stubs/record-configs.stub.ts";
-import { resultsStub } from "./stubs/results.stub.ts";
 
 vi.mock("server-only", () => ({}));
 

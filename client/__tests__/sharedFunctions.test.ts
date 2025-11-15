@@ -1,11 +1,11 @@
-import { expect } from "@std/expect";
-import { describe, it } from "@std/testing/bdd";
-import { compareAvgs, compareSingles, getBestAndAverage } from "~/helpers/sharedFunctions.ts";
-import { eventsStub } from "~/__mocks__/events.stub.ts";
-import { newContestEventsStub, newFakeContestEventsStub } from "~/__mocks__/new-competition-events.stub.ts";
+import { describe, expect, it } from "vitest";
+import { eventsStub } from "~/__mocks__/stubs/events.stub.ts";
+import { newContestEventsStub, newFakeContestEventsStub } from "~/__mocks__/stubs/new-competition-events.stub.ts";
+import { compareAvgs, compareSingles, getBestAndAverage, setResultWorldRecords } from "~/helpers/sharedFunctions.ts";
+import type { EventWrPair } from "~/helpers/types.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333")!;
+const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as any;
 
 describe("getBestAndAverage", () => {
   it("sets average to 0 when there is only one attempt", () => {
@@ -62,29 +62,19 @@ describe("compareSingles", () => {
 
   describe("compare Multi-Blind singles", () => {
     it("compares Multi-Blind singles correctly when a is 2/2 and b is 9/10", () => {
-      expect(
-        compareSingles({ best: 999700043890000 }, { best: 999100774000001 }),
-      ).toBeGreaterThan(0);
+      expect(compareSingles({ best: 999700043890000 }, { best: 999100774000001 })).toBeGreaterThan(0);
     });
 
     it("compares Multi-Blind singles correctly when a is 3/3 59.68 and b is 3/3 1:05.57", () => {
-      expect(
-        compareSingles({ best: 999600059680000 }, { best: 999600065570000 }),
-      ).toBeLessThan(
-        0,
-      );
+      expect(compareSingles({ best: 999600059680000 }, { best: 999600065570000 })).toBeLessThan(0);
     });
 
     it("compares Multi-Blind singles correctly when a is 51/55 58:06 and b is 49/51 58:06", () => {
-      expect(
-        compareSingles({ best: 995203486000004 }, { best: 995203486000002 }),
-      ).toBeGreaterThan(0);
+      expect(compareSingles({ best: 995203486000004 }, { best: 995203486000002 })).toBeGreaterThan(0);
     });
 
     it("compares Multi-Blind singles correctly when a is DNF (6/15) and b is DNF (1/2)", () => {
-      expect(
-        compareSingles({ best: -999603161000009 }, { best: -999900516420001 }),
-      ).toBe(0);
+      expect(compareSingles({ best: -999603161000009 }, { best: -999900516420001 })).toBe(0);
     });
   });
 });
@@ -107,62 +97,48 @@ describe("compareAvgs", () => {
   });
 
   it("compares averages correctly when a and b are DNF", () => {
-    expect(compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 }))
-      .toBeLessThan(0);
+    expect(compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 })).toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are different", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 }))
-      .toBeLessThan(0);
+    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 })).toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are the same", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 }))
-      .toBe(0);
+    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 })).toBe(0);
   });
 });
 
-// describe("setResultRecords", () => {
-//   const mock333RecordPairs = (): IRecordPair[] => [
-//     { wcaEquivalent: "WR", best: 1000, average: 1100 },
-//   ];
+describe("setResultWorldRecords", () => {
+  const mock333WrPair: EventWrPair = { eventId: "333", best: 1000, average: 1100 };
+  const mock222WrPair: EventWrPair = { eventId: "222", best: 124, average: 211 };
+  const mockBLDWrPair: EventWrPair = { eventId: "333bf", best: 2217, average: 2795 };
 
-//   const mock222RecordPairs = (): IRecordPair[] => [
-//     { wcaEquivalent: "WR", best: 124, average: 211 },
-//   ];
+  it("sets new 3x3x3 records correctly", () => {
+    const contestEvent = newContestEventsStub().find((ce) => ce.event.eventId === "333")!;
+    const result = setResultWorldRecords(contestEvent.rounds[0].results[0], contestEvent.event, mock333WrPair);
 
-//   const mockBLDRecordPairs = (): IRecordPair[] => [
-//     { wcaEquivalent: "WR", best: 2217, average: 2795 },
-//   ];
+    expect(result.best).toBe(686);
+    expect(result.regionalSingleRecord).toBe("WR");
+    expect(result.average).toBe(800);
+    expect(result.regionalAverageRecord).toBe("WR");
+  });
 
-//   it("sets new 3x3x3 records correctly", () => {
-//     const contestEvent = newContestEventsStub().find((ce) => ce.event.eventId === "333")!;
-//     const result = setResultRecords(
-//       contestEvent.rounds[0].results[0],
-//       contestEvent.event,
-//       mock333RecordPairs(),
-//     );
+  it("updates 3x3x3 BLD single record correctly", () => {
+    const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "333bf")!;
+    const result = setResultWorldRecords(contestEvent.rounds[0].results[0], contestEvent.event, mockBLDWrPair);
 
-//     // 6.86 single and 8.00 average WRs
-//     expect(result.regionalAverageRecord).toBe("WR");
-//     expect(result.regionalSingleRecord).toBe("WR");
-//   });
+    expect(result.regionalSingleRecord).toBe("WR");
+    expect(result.regionalAverageRecord).toBeUndefined();
+  });
 
-//   it("updates 3x3x3 BLD single record correctly", () => {
-//     const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "333bf")!;
-//     const result = setResultRecords(contestEvent.rounds[0].results[0], contestEvent.event, mockBLDRecordPairs());
+  it("doesn't set avg records when the # of attempts doesn't match the default format's # of attempts", () => {
+    const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "222")!;
+    const result = setResultWorldRecords(contestEvent.rounds[2].results[0], contestEvent.event, mock222WrPair);
 
-//     expect(result.regionalSingleRecord).toBe("WR");
-//     expect(result.regionalAverageRecord).toBeUndefined();
-//   });
-
-//   it("doesn't set avg records when the # of attempts doesn't match the default format's # of attempts", () => {
-//     const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "222")!;
-//     const result = setResultRecords(contestEvent.rounds[2].results[0], contestEvent.event, mock222RecordPairs());
-
-//     expect(result.regionalSingleRecord).toBe("WR");
-//     expect(result.best).toBe(100);
-//     expect(result.regionalAverageRecord).toBeUndefined();
-//     expect(result.average).toBe(101);
-//   });
-// });
+    expect(result.best).toBe(100);
+    expect(result.regionalSingleRecord).toBe("WR");
+    expect(result.average).toBe(101);
+    expect(result.regionalAverageRecord).toBeUndefined();
+  });
+});
