@@ -1,9 +1,9 @@
 import "server-only";
 import { createSafeActionClient, DEFAULT_SERVER_ERROR_MESSAGE } from "next-safe-action";
 import z from "zod";
-import { authClient } from "~/helpers/authClient.ts";
+import type { authClient } from "~/helpers/authClient.ts";
+import type { CcServerErrorObject } from "../helpers/types.ts";
 import { authorizeUser } from "./serverUtilityFunctions.ts";
-import { CcServerErrorObject } from "../helpers/types.ts";
 
 export const actionClient = createSafeActionClient({
   defineMetadataSchema() {
@@ -14,7 +14,7 @@ export const actionClient = createSafeActionClient({
   },
   handleServerError(e): CcServerErrorObject {
     if (e instanceof CcActionError) {
-      console.error("CC action error:", e.message);
+      if (!process.env.VITEST) console.error("CC action error:", e.message);
       return { message: e.message, data: e.data };
     }
 
@@ -24,9 +24,12 @@ export const actionClient = createSafeActionClient({
 }).use<{ session: typeof authClient.$Infer.Session }>(async ({ next, metadata }) => {
   // We still want to check authentication when permissions = null
   if (metadata.permissions !== undefined) {
-    const session = await authorizeUser({ permissions: metadata.permissions });
-
-    return next({ ctx: { session } });
+    if (process.env.VITEST) {
+      return next({ ctx: { session: { user: { role: "admin" } } } });
+    } else {
+      const session = await authorizeUser({ permissions: metadata.permissions });
+      return next({ ctx: { session } });
+    }
   } else {
     return next();
   }

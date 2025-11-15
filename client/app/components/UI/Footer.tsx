@@ -18,10 +18,10 @@ const Footer = () => {
       <a
         href={C.sourceCodeLink}
         target="_blank"
+        rel="noopener noreferrer"
         className="d-inline-flex justify-content-center align-items-center"
         style={{ width: "1.75rem", height: "1.75rem" }}
       >
-        {/* Github logo */}
         <svg
           width="98"
           height="96"
@@ -29,6 +29,7 @@ const Footer = () => {
           className="flex-shrink-0"
           style={{ transform: "scale(0.25)" }}
         >
+          <title>Github Logo</title>
           <path
             fillRule="evenodd"
             clipRule="evenodd"
@@ -37,7 +38,9 @@ const Footer = () => {
           />
         </svg>
       </a>
-      <Link href="/about" className="text-light-emphasis">About</Link>
+      <Link href="/about" className="text-light-emphasis">
+        About
+      </Link>
       <FormCheckbox
         title="Flashbang"
         selected={theme === "light"}

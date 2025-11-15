@@ -1,16 +1,14 @@
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import Markdown from "react-markdown";
-import { ssrFetch } from "~/helpers/DELETEfetchUtils";
+import TempClientComponent from "~/app/competitions/[id]/TempClientComponent.tsx";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
+import Competitor from "~/app/components/Competitor.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
-import { IContestData } from "~/helpers/types.ts";
-import { ContestState, ContestType } from "~/helpers/enums.ts";
+import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
+import { ssrFetch } from "~/helpers/DELETEfetchUtils.ts";
 import { getDateOnly } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
-import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
-import TempClientComponent from "~/app/competitions/[id]/TempClientComponent.tsx";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -29,7 +27,8 @@ const ContestDetailsPage = async ({ params }: Props) => {
     : null;
   const startOfDayInVenueTZ = getDateOnly(toZonedTime(new Date(), contest.meetupDetails?.timeZone ?? "UTC"))!;
   const start = new Date(contest.startDate);
-  const isOngoing = contest.state < ContestState.Finished &&
+  const isOngoing =
+    ["approved", "ongoing"].includes(contest.state) &&
     ((!contest.endDate && start.getTime() === startOfDayInVenueTZ.getTime()) ||
       (contest.endDate && start <= startOfDayInVenueTZ && new Date(contest.endDate) >= startOfDayInVenueTZ));
 
@@ -38,7 +37,11 @@ const ContestDetailsPage = async ({ params }: Props) => {
     const longitude = (contest.longitudeMicrodegrees / 1000000).toFixed(6);
 
     return (
-      <a href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`} target="_blank">
+      <a
+        href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {latitude}, {longitude}
       </a>
     );
@@ -75,19 +78,17 @@ const ContestDetailsPage = async ({ params }: Props) => {
                 </span>
               ))}
             </p>
-            {contest.participants > 0
-              ? (
+            {contest.participants > 0 ? (
+              <p className="mb-2">
+                Number of participants:&#8194;<b>{contest.participants}</b>
+              </p>
+            ) : (
+              contest.competitorLimit && (
                 <p className="mb-2">
-                  Number of participants:&#8194;<b>{contest.participants}</b>
+                  Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
                 </p>
               )
-              : (
-                contest.competitorLimit && (
-                  <p className="mb-2">
-                    Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
-                  </p>
-                )
-              )}
+            )}
           </div>
         </div>
 
@@ -97,33 +98,18 @@ const ContestDetailsPage = async ({ params }: Props) => {
           <div className="px-2">
             <TempClientComponent contest={contest} />
 
-            {contest.state === ContestState.Created
-              ? (
-                <p className="mb-4">
-                  This contest is currently awaiting approval
-                </p>
-              )
-              : isOngoing
-              ? <p className="mb-4">This contest is currently ongoing</p>
-              : contest.state === ContestState.Finished
-              ? (
-                <p className="mb-4">
-                  The results for this contest are currently being checked
-                </p>
-              )
-              : contest.state === ContestState.Removed
-              ? (
-                <p className="mb-4 text-danger">
-                  THIS CONTEST HAS BEEN REMOVED!
-                </p>
-              )
-              : undefined}
+            {contest.state === "created" ? (
+              <p className="mb-4">This contest is currently awaiting approval</p>
+            ) : isOngoing ? (
+              <p className="mb-4">This contest is currently ongoing</p>
+            ) : contest.state === "finished" ? (
+              <p className="mb-4">The results for this contest are currently being checked</p>
+            ) : contest.state === "removed" ? (
+              <p className="mb-4 text-danger">THIS CONTEST HAS BEEN REMOVED!</p>
+            ) : undefined}
 
-            {contest.type === ContestType.WcaComp && (
-              <WcaCompAdditionalDetails
-                name={contest.name}
-                competitionId={contest.competitionId}
-              />
+            {contest.type === "wca-comp" && (
+              <WcaCompAdditionalDetails name={contest.name} competitionId={contest.competitionId} />
             )}
 
             {contest.description && (

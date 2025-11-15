@@ -1,34 +1,34 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
 import debounce from "lodash/debounce";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useAction } from "next-safe-action/hooks";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import AttemptInput from "~/app/components/AttemptInput.tsx";
+import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
+import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormDateInput from "~/app/components/form/FormDateInput.tsx";
+import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import CreatorDetails from "~/app/components/CreatorDetails.tsx";
-import { type RoundFormatObject, roundFormats } from "~/helpers/roundFormats.ts";
-import { C } from "~/helpers/constants.ts";
-import { getActionError, getBlankCompetitors, getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
-import type { Creator, EventWrPair, InputPerson, RoundFormat } from "~/helpers/types.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
-import FormSelect from "~/app/components/form/FormSelect.tsx";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
-import AttemptInput from "~/app/components/AttemptInput.tsx";
-import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
-import Rules from "./video-based-results-rules.mdx";
-import type { EventResponse } from "~/server/db/schema/events.ts";
-import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
-import { authClient } from "~/helpers/authClient.ts";
-import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { useAction } from "next-safe-action/hooks";
+import { authClient } from "~/helpers/authClient.ts";
+import { C } from "~/helpers/constants.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import { type RoundFormatObject, roundFormats } from "~/helpers/roundFormats.ts";
+import type { Creator, EventWrPair, InputPerson, RoundFormat } from "~/helpers/types.ts";
+import { getActionError, getBlankCompetitors, getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
+import type { VideoBasedResultDto } from "~/helpers/validators/Result.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
+import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
 import { createVideoBasedResultSF, getWrPairsUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
-import { VideoBasedResultDto } from "~/helpers/validators/Result.ts";
+import Rules from "./video-based-results-rules.mdx";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
@@ -56,8 +56,11 @@ function ResultsSubmissionForm({
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
   const { data: session } = authClient.useSession();
 
-  const { executeAsync: getWrPairsUpToDate, isPending: isUpdatingWrPairs, reset: resetGetEventWrPairsUpToDate } =
-    useAction(getWrPairsUpToDateSF);
+  const {
+    executeAsync: getWrPairsUpToDate,
+    isPending: isUpdatingWrPairs,
+    reset: resetGetEventWrPairsUpToDate,
+  } = useAction(getWrPairsUpToDateSF);
   const { executeAsync: createResult, isPending: isCreating } = useAction(createVideoBasedResultSF);
   const [wrPairs, setWrPairs] = useState<EventWrPair[]>(initWrPairs);
   const [showRules, setShowRules] = useState(false);

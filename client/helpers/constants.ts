@@ -31,4 +31,11 @@ export const C = {
     "8AaML2et9RQKmZp4NYm9STKbjhfFB4h81ZxeGV166oapNzPFUTneaRmakwE61cyHr1ZUYreEU7eHF8XmMBykG8TpAwM6SVq",
   unknownErrorMsg: "Unknown error",
   videoNoLongerAvailableMsg: "Video no longer available",
+  color: {
+    // These are the same as the Bootstrap colors
+    primary: "#0d6efd",
+    success: "#198754",
+    warning: "#ffc107",
+    danger: "#dc3545",
+  },
 };

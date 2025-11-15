@@ -1,30 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { C } from "~/helpers/constants.ts";
-import { ContestType, RoundProceed } from "~/helpers/enums.ts";
-import {
-  type IContestEvent,
-  type ICutoff,
-  type IProceed,
-  type IRound,
-  type ITimeLimit,
-  type RoundFormat,
-  RoundTypeValues,
-} from "~/helpers/types.ts";
-import { cutoffAttemptsOptions, roundProceedOptions } from "~/helpers/multipleChoiceOptions.ts";
-import { roundTypes } from "~/helpers/roundTypes.ts";
-import EventTitle from "~/app/components/EventTitle.tsx";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
+import EventTitle from "~/app/components/EventTitle.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
+import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
 import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
 import FormRadio from "~/app/components/form/FormRadio.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import FormEventSelect from "~/app/components/form/FormEventSelect.tsx";
-import { getRoundFormatOptions, getTimeLimit } from "~/helpers/utilityFunctions.ts";
-import { getTotalRounds } from "~/helpers/sharedFunctions.ts";
+import { C } from "~/helpers/constants.ts";
+import { cutoffAttemptsOptions, roundProceedOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
+import { roundTypes } from "~/helpers/roundTypes.ts";
+import { getTotalRounds } from "~/helpers/sharedFunctions.ts";
+import { type ContestType, type RoundFormat, type RoundProceed, RoundTypeValues } from "~/helpers/types.ts";
+import { getRoundFormatOptions, getTimeLimit } from "~/helpers/utilityFunctions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 
@@ -37,39 +28,26 @@ type Props = {
   disableNewEvents: boolean;
 };
 
-const ContestEvents = ({
-  events,
-  contestEvents,
-  setContestEvents,
-  contestType,
-  disabled,
-  disableNewEvents,
-}: Props) => {
+const ContestEvents = ({ events, contestEvents, setContestEvents, contestType, disabled, disableNewEvents }: Props) => {
   const [newEventId, setNewEventId] = useState(events[0].eventId);
 
-  const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [
-    contestEvents,
-  ]);
+  const totalRounds: number = useMemo(() => getTotalRounds(contestEvents), [contestEvents]);
   const totalResultsPerContestEvent: number[] = useMemo(
     () => contestEvents.map((ce) => ce.rounds.map((r) => r.results.length).reduce((prev, curr) => curr + prev)),
     [contestEvents],
   );
 
-  const disableNewRounds = disabled ||
-    (contestType === ContestType.Meetup && totalRounds >= 15);
-  const filteredEvents: EventResponse[] = events.filter((e) =>
-    contestType !== ContestType.WcaComp || e.category !== "wca"
-  );
-  const remainingEvents: EventResponse[] = filteredEvents.filter((e) =>
-    !contestEvents.some((ce) => ce.event.eventId === e.eventId)
+  const disableNewRounds = disabled || (contestType === "meetup" && totalRounds >= 15);
+  const filteredEvents: EventResponse[] = events.filter((e) => contestType !== "wca-comp" || e.category !== "wca");
+  const remainingEvents: EventResponse[] = filteredEvents.filter(
+    (e) => !contestEvents.some((ce) => ce.event.eventId === e.eventId),
   );
   // Fix new event ID, if it's not in the list of remaining events
   if (!remainingEvents.some((e) => e.eventId === newEventId)) {
     setNewEventId(remainingEvents[0].eventId);
   }
   // Also disable new events if new rounds are disabled or if there are no more events to add
-  disableNewEvents = disabled || disableNewEvents || disableNewRounds ||
-    contestEvents.length === filteredEvents.length;
+  disableNewEvents = disabled || disableNewEvents || disableNewRounds || contestEvents.length === filteredEvents.length;
 
   const getNewRound = (event: EventResponse, roundNumber: number): IRound => {
     return {
@@ -86,10 +64,9 @@ const ContestEvents = ({
     const event = events.find((e) => e.eventId === newEventId)!;
 
     setContestEvents(
-      [...contestEvents, { event, rounds: [getNewRound(event, 1)] }].sort((
-        a: IContestEvent,
-        b: IContestEvent,
-      ) => a.event.rank - b.event.rank),
+      [...contestEvents, { event, rounds: [getNewRound(event, 1)] }].sort(
+        (a: IContestEvent, b: IContestEvent) => a.event.rank - b.event.rank,
+      ),
     );
 
     if (remainingEvents.length > 1) {
@@ -99,9 +76,7 @@ const ContestEvents = ({
   };
 
   const deleteContestEvent = (eventId: string) => {
-    setContestEvents(
-      contestEvents.filter((ce) => ce.event.eventId !== eventId),
-    );
+    setContestEvents(contestEvents.filter((ce) => ce.event.eventId !== eventId));
   };
 
   const addRound = (eventId: string) => {
@@ -115,15 +90,13 @@ const ContestEvents = ({
 
     // Update the currently last round
     const lastRound = contestEvent.rounds[contestEvent.rounds.length - 1];
-    lastRound.proceed = { type: RoundProceed.Percentage, value: 50 };
+    lastRound.proceed = { type: "percentage", value: 50 };
     lastRound.roundTypeId = contestEvent.rounds.length > 1 ? "s" : "1";
 
     // Add new round
     contestEvent.rounds.push(getNewRound(contestEvent.event, contestEvent.rounds.length + 1));
 
-    setContestEvents(contestEvents.map((
-      ce,
-    ) => (ce.event.eventId === eventId ? contestEvent : ce)));
+    setContestEvents(contestEvents.map((ce) => (ce.event.eventId === eventId ? contestEvent : ce)));
   };
 
   const deleteRound = (eventId: string) => {
@@ -148,28 +121,34 @@ const ContestEvents = ({
 
   const changeRoundFormat = (eventIndex: number, roundIndex: number, value: RoundFormat) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, format: value })),
-      }
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : { ...round, format: value })),
+          },
     );
     setContestEvents(newContestEvents);
   };
 
   const changeRoundTimeLimit = (eventIndex: number, roundIndex: number, value: Attempt) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((round, i) =>
-          i !== roundIndex ? round : {
-            ...round,
-            timeLimit: {
-              ...round.timeLimit,
-              centiseconds: value.result,
-            } as ITimeLimit,
-          }
-        ),
-      }
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : {
+                    ...round,
+                    timeLimit: {
+                      ...round.timeLimit,
+                      centiseconds: value.result,
+                    } as ITimeLimit,
+                  },
+            ),
+          },
     );
 
     setContestEvents(newContestEvents);
@@ -177,18 +156,23 @@ const ContestEvents = ({
 
   const changeRoundTimeLimitCumulative = (eventIndex: number, roundIndex: number) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((round, i) =>
-          i !== roundIndex ? round : {
-            ...round,
-            timeLimit: {
-              ...round.timeLimit as ITimeLimit,
-              cumulativeRoundIds: (round.timeLimit as ITimeLimit).cumulativeRoundIds.length > 0 ? [] : [round.roundId],
-            },
-          }
-        ),
-      }
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : {
+                    ...round,
+                    timeLimit: {
+                      ...(round.timeLimit as ITimeLimit),
+                      cumulativeRoundIds:
+                        (round.timeLimit as ITimeLimit).cumulativeRoundIds.length > 0 ? [] : [round.roundId],
+                    },
+                  },
+            ),
+          },
     );
 
     setContestEvents(newContestEvents);
@@ -196,52 +180,62 @@ const ContestEvents = ({
 
   const changeRoundCutoffEnabled = (eventIndex: number, roundIndex: number) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((round, i) =>
-          i !== roundIndex ? round : {
-            ...round,
-            cutoff: round.cutoff ? undefined : {
-              attemptResult: 12000,
-              numberOfAttempts: round.format === "a" ? 2 : 1,
-            },
-          }
-        ),
-      }
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : {
+                    ...round,
+                    cutoff: round.cutoff
+                      ? undefined
+                      : {
+                          attemptResult: 12000,
+                          numberOfAttempts: round.format === "a" ? 2 : 1,
+                        },
+                  },
+            ),
+          },
     );
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundCutoff = (
-    eventIndex: number,
-    roundIndex: number,
-    value: Attempt,
-  ) => {
+  const changeRoundCutoff = (eventIndex: number, roundIndex: number, value: Attempt) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : {
-          ...round,
-          cutoff: { ...round.cutoff, attemptResult: value.result } as ICutoff,
-        })),
-      }
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : {
+                    ...round,
+                    cutoff: { ...round.cutoff, attemptResult: value.result } as ICutoff,
+                  },
+            ),
+          },
     );
     setContestEvents(newContestEvents);
   };
 
-  const changeRoundCutoffNumberOfAttempts = (
-    eventIndex: number,
-    roundIndex: number,
-    value: number,
-  ) => {
+  const changeRoundCutoffNumberOfAttempts = (eventIndex: number, roundIndex: number, value: number) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((round, i) => (i !== roundIndex ? round : {
-          ...round,
-          cutoff: { ...round.cutoff as ICutoff, numberOfAttempts: value },
-        })),
-      }
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : {
+                    ...round,
+                    cutoff: { ...(round.cutoff as ICutoff), numberOfAttempts: value },
+                  },
+            ),
+          },
     );
     setContestEvents(newContestEvents);
   };
@@ -253,18 +247,22 @@ const ContestEvents = ({
     newVal?: number | undefined,
   ) => {
     const newContestEvents = contestEvents.map((ce, i) =>
-      i !== eventIndex ? ce : {
-        ...ce,
-        rounds: ce.rounds.map((round, i) =>
-          i !== roundIndex ? round : {
-            ...round,
-            proceed: {
-              type,
-              value: newVal === undefined ? (round.proceed as IProceed).value : newVal,
-            } as IProceed,
-          }
-        ),
-      }
+      i !== eventIndex
+        ? ce
+        : {
+            ...ce,
+            rounds: ce.rounds.map((round, i) =>
+              i !== roundIndex
+                ? round
+                : {
+                    ...round,
+                    proceed: {
+                      type,
+                      value: newVal === undefined ? (round.proceed as IProceed).value : newVal,
+                    } as IProceed,
+                  },
+            ),
+          },
     );
 
     setContestEvents(newContestEvents);
@@ -274,10 +272,7 @@ const ContestEvents = ({
     <section>
       <p className="mb-3 fs-6 fw-bold fst-italic text-danger">
         Make sure{" "}
-        <a
-          href="https://www.worldcubeassociation.org/regulations/full/#9m"
-          target="_blank"
-        >
+        <a href="https://www.worldcubeassociation.org/regulations/full/#9m" target="_blank" rel="noopener">
           Regulation 9m
         </a>{" "}
         is followed, when opening subsequent rounds. Not having enough competitors will make you unable to open up the
@@ -289,11 +284,7 @@ const ContestEvents = ({
       </p>
 
       <div className="mb-4 d-flex align-items-center gap-3">
-        <Button
-          onClick={addContestEvent}
-          disabled={disableNewEvents}
-          className="btn-success"
-        >
+        <Button onClick={addContestEvent} disabled={disableNewEvents} className="btn-success">
           Add Event
         </Button>
         <div className="flex-grow-1">
@@ -308,36 +299,20 @@ const ContestEvents = ({
         </div>
       </div>
       {contestEvents.map((ce, eventIndex) => (
-        <div
-          key={ce.event.eventId}
-          className="mb-3 py-3 px-4 border rounded bg-body-tertiary"
-        >
+        <div key={ce.event.eventId} className="mb-3 py-3 px-4 border rounded bg-body-tertiary">
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-            <EventTitle
-              event={ce.event}
-              fontSize="4"
-              noMargin
-              showIcon
-              showDescription
-              linkToRankings
-            />
+            <EventTitle event={ce.event} fontSize="4" linkToRankings noMargin showDescription showIcon />
 
-            {totalResultsPerContestEvent[eventIndex] > 0
-              ? <p className="mb-0">Total results: {totalResultsPerContestEvent[eventIndex]}</p>
-              : (
-                <Button
-                  className="btn-danger btn-sm"
-                  onClick={() => deleteContestEvent(ce.event.eventId)}
-                >
-                  Remove Event
-                </Button>
-              )}
+            {totalResultsPerContestEvent[eventIndex] > 0 ? (
+              <p className="mb-0">Total results: {totalResultsPerContestEvent[eventIndex]}</p>
+            ) : (
+              <Button onClick={() => deleteContestEvent(ce.event.eventId)} className="btn-danger btn-sm">
+                Remove Event
+              </Button>
+            )}
           </div>
           {ce.rounds.map((round, roundIndex) => (
-            <div
-              key={round.roundId}
-              className="mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary"
-            >
+            <div key={round.roundId} className="mb-3 py-3 px-3 px-md-4 border rounded bg-body-secondary">
               <div className="flex-grow-1 d-flex align-items-center gap-3 gap-md-5">
                 <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
 
@@ -415,12 +390,7 @@ const ContestEvents = ({
                     title=""
                     options={cutoffAttemptsOptions}
                     selected={round.cutoff?.numberOfAttempts || 2}
-                    setSelected={(val: number) =>
-                      changeRoundCutoffNumberOfAttempts(
-                        eventIndex,
-                        roundIndex,
-                        val,
-                      )}
+                    setSelected={(val: number) => changeRoundCutoffNumberOfAttempts(eventIndex, roundIndex, val)}
                     disabled={!round.cutoff || round.results.length > 0}
                   />
                 </div>
@@ -441,15 +411,11 @@ const ContestEvents = ({
                       id="round_proceed_value"
                       value={round.proceed.value}
                       setValue={(val) =>
-                        changeRoundProceed(
-                          eventIndex,
-                          roundIndex,
-                          (round.proceed as IProceed).type,
-                          val,
-                        )}
+                        changeRoundProceed(eventIndex, roundIndex, (round.proceed as IProceed).type, val)
+                      }
                       integer
-                      min={round.proceed.type === RoundProceed.Percentage ? 1 : C.minProceedNumber}
-                      max={round.proceed.type === RoundProceed.Percentage ? C.maxProceedPercentage : Infinity}
+                      min={round.proceed.type === "percentage" ? 1 : C.minProceedNumber}
+                      max={round.proceed.type === "percentage" ? C.maxProceedPercentage : Infinity}
                     />
                   </div>
                 </div>

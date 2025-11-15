@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# First, make sure there are no lint errors and that the frontend builds successfully
+# First, make sure there are no errors and that the frontend builds successfully
 if [ -z "$1" ] || [ "$1" != "--no-checks" ]; then
   cd client
-  deno lint
-  deno check
+  deno task check
 
   if [ $? -gt 0 ]; then
-    echo -e "\n\nPlease fix all linting errors before publishing a new version"
+    echo -e "\n\nPlease fix all errors before publishing a new version"
     exit
   fi
 

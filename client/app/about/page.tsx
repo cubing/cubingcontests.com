@@ -21,7 +21,7 @@ function AboutPage() {
         Our mission is to provide the go-to place for unofficial speedcubing results and to give the community the tools
         it needs to host speedcubing events. We aim to serve the interests of the community alongside the World Cube
         Association, and we follow the{" "}
-        <a href="https://www.worldcubeassociation.org/about" target="_blank">
+        <a href="https://www.worldcubeassociation.org/about" target="_blank" rel="noopener">
           WCA Spirit
         </a>
         .

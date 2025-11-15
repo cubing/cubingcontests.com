@@ -1,6 +1,6 @@
 import "server-only";
 import { getTableColumns } from "drizzle-orm";
-import { boolean, integer, pgTable as table, serial, text, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, serial, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
 import { tableTimestamps } from "../dbUtils.ts";
 
@@ -17,6 +17,7 @@ export const personsTable = table("persons", {
   ...tableTimestamps,
 });
 
+export type InsertPerson = typeof personsTable.$inferInsert;
 export type SelectPerson = typeof personsTable.$inferSelect;
 
 const {

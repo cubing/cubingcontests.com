@@ -1,50 +1,50 @@
 "use client";
 
-import { useCallback, useContext, useState, useTransition } from "react";
 import { addYears, isValid } from "date-fns";
 import { fromZonedTime, getTimezoneOffset, toZonedTime } from "date-fns-tz";
 import debounce from "lodash/debounce";
+import Link from "next/link";
+import { useCallback, useContext, useState, useTransition } from "react";
+import CreatorDetails from "~/app/components/CreatorDetails.tsx";
+import Form from "~/app/components/form/Form.tsx";
+import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
+import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
+import FormDatePicker from "~/app/components/form/FormDatePicker.tsx";
+import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import FormRadio from "~/app/components/form/FormRadio.tsx";
+import FormTextArea from "~/app/components/form/FormTextArea.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
+import Tabs from "~/app/components/UI/Tabs.tsx";
+import Tooltip from "~/app/components/UI/Tooltip.tsx";
+import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
+import { authClient } from "~/helpers/authClient.ts";
+import { C } from "~/helpers/constants.ts";
+import { MainContext } from "~/helpers/contexts.ts";
 import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
+import { Color, ContestState, type ContestType } from "~/helpers/enums.ts";
+import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { getDateOnly, getIsCompType, getIsUrgent } from "~/helpers/sharedFunctions.ts";
 import type {
   ICompetitionDetails,
   IContest,
   IContestDto,
   IContestEvent,
   IMeetupDetails,
+  InputPerson,
   IRoom,
   IRound,
   PageSize,
 } from "~/helpers/types.ts";
-import { Color, ContestState, ContestType } from "~/helpers/enums.ts";
-import { getDateOnly, getIsCompType, getIsUrgent } from "~/helpers/sharedFunctions.ts";
-import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getContestIdFromName, getTimeLimit } from "~/helpers/utilityFunctions.ts";
-import { C } from "~/helpers/constants.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import Form from "~/app/components/form/Form.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
-import FormRadio from "~/app/components/form/FormRadio.tsx";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
-import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
-import FormTextArea from "~/app/components/form/FormTextArea.tsx";
-import FormDatePicker from "~/app/components/form/FormDatePicker.tsx";
-import Tabs from "~/app/components/UI/Tabs.tsx";
-import Loading from "~/app/components/UI/Loading.tsx";
-import Button from "~/app/components/UI/Button.tsx";
-import CreatorDetails from "~/app/components/CreatorDetails.tsx";
+import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions/serverFunctions.ts";
 import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
-import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
-import type { InputPerson } from "~/helpers/types.ts";
-import Tooltip from "~/app/components/UI/Tooltip.tsx";
-import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions/serverFunctions.ts";
-import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
-import Link from "next/link";
-import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
-import { authClient } from "~/helpers/authClient.ts";
-import { EventResponse } from "~/server/db/schema/events.ts";
-import { PersonResponse } from "~/server/db/schema/persons.ts";
 
 const ContestForm = ({
   events,
@@ -63,7 +63,7 @@ const ContestForm = ({
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const [activeTab, setActiveTab] = useState("details");
-  const [detailsImported, setDetailsImported] = useState(mode === "edit" && contest?.type === ContestType.WcaComp);
+  const [detailsImported, setDetailsImported] = useState(mode === "edit" && contest?.type === "wca-comp");
   const [queueEnabled, setQueueEnabled] = useState(contest?.queuePosition !== undefined);
 
   const [competitionId, setCompetitionId] = useState(contest?.competitionId ?? "");
@@ -75,13 +75,9 @@ const ContestForm = ({
   const [venue, setVenue] = useState(contest?.venue ?? "");
   const [address, setAddress] = useState(contest?.address ?? "");
   // Vertical coordinate (Y); ranges from -90 to 90
-  const [latitude, setLatitude] = useState<number | undefined>(
-    contest ? contest.latitudeMicrodegrees / 1000000 : 0,
-  );
+  const [latitude, setLatitude] = useState<number | undefined>(contest ? contest.latitudeMicrodegrees / 1000000 : 0);
   // Horizontal coordinate (X); ranges from -180 to 180
-  const [longitude, setLongitude] = useState<number | undefined>(
-    contest ? contest.longitudeMicrodegrees / 1000000 : 0,
-  );
+  const [longitude, setLongitude] = useState<number | undefined>(contest ? contest.longitudeMicrodegrees / 1000000 : 0);
   const [startDate, setStartDate] = useState(contest ? new Date(contest.startDate) : undefined);
   const [startTime, setStartTime] = useState(
     contest?.meetupDetails ? new Date(contest.meetupDetails.startTime) : undefined,
@@ -91,10 +87,7 @@ const ContestForm = ({
     ...(contest?.organizers.map((o) => o.name) ?? []),
     "",
   ]);
-  const [organizers, setOrganizers] = useState<InputPerson[]>([
-    ...(contest?.organizers ?? []),
-    null,
-  ]);
+  const [organizers, setOrganizers] = useState<InputPerson[]>([...(contest?.organizers ?? []), null]);
   const [contact, setContact] = useState(contest?.contact ?? "");
   const [description, setDescription] = useState(contest?.description ?? "");
   const [competitorLimit, setCompetitorLimit] = useState<number | undefined>(contest?.competitorLimit);
@@ -103,9 +96,7 @@ const ContestForm = ({
   const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest?.events ?? []);
 
   // Schedule stuff
-  const [rooms, setRooms] = useState<IRoom[]>(
-    contest?.compDetails ? contest.compDetails.schedule.venues[0].rooms : [],
-  );
+  const [rooms, setRooms] = useState<IRoom[]>(contest?.compDetails ? contest.compDetails.schedule.venues[0].rooms : []);
   const [timeZone, setTimeZone] = useState(
     contest?.compDetails?.schedule.venues[0].timezone ?? contest?.meetupDetails?.timeZone ?? "Etc/GMT",
   );
@@ -126,7 +117,7 @@ const ContestForm = ({
           } else {
             // Adjust times
             if (isValid(startDate) && isValid(startTime)) {
-              if (type === ContestType.Meetup) {
+              if (type === "meetup") {
                 setStartTime(fromZonedTime(toZonedTime(startTime!, timeZone), res.data));
               } else if (getIsCompType(type)) {
                 setRooms(
@@ -155,15 +146,13 @@ const ContestForm = ({
     { title: "Events", value: "events" },
     { title: "Schedule", value: "schedule", hidden: !type || !getIsCompType(type) },
   ];
-  const disabled = !type || (type === ContestType.WcaComp && !detailsImported);
-  const disabledIfContestApproved: boolean = mode === "edit" && !!contest &&
-    contest.state >= ContestState.Approved;
-  const disabledIfContestPublished: boolean = mode === "edit" && !!contest &&
-    contest.state >= ContestState.Published;
+  const disabled = !type || (type === "wca-comp" && !detailsImported);
+  const disabledIfContestApproved: boolean = mode === "edit" && !!contest && contest.state !== "created";
+  const disabledIfContestPublished: boolean = mode === "edit" && !!contest && contest.state === "published";
   const disabledIfDetailsImported = !userInfo?.isAdmin && detailsImported;
   const urgent = isValid(startDate) && getIsUrgent(startDate!);
-  const disabledIfNotUnderstood = (!isUnderstood && (!type || getIsCompType(type))) ||
-    (!isTimelinessUnderstood && urgent);
+  const disabledIfNotUnderstood =
+    (!isUnderstood && (!type || getIsCompType(type))) || (!isTimelinessUnderstood && urgent);
 
   //////////////////////////////////////////////////////////////////////////////
   // FUNCTIONS
@@ -249,48 +238,35 @@ const ContestForm = ({
 
     const getRoundWithDefaultTimeLimitExists = () =>
       processedCompEvents.some((ce: IContestEvent) =>
-        ce.rounds.some((r) =>
-          r.timeLimit?.centiseconds === 60000 &&
-          r.timeLimit?.cumulativeRoundIds.length === 0
-        )
+        ce.rounds.some((r) => r.timeLimit?.centiseconds === 60000 && r.timeLimit?.cumulativeRoundIds.length === 0),
       );
     const confirmDefaultTimeLimitMsg =
       "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
-    const doSubmit = mode !== "edit"
-      ? (
-        !getRoundWithDefaultTimeLimitExists() ||
-        confirm(confirmDefaultTimeLimitMsg)
-      )
-      : (competitionId === contest?.competitionId ||
-        confirm(
-          `Are you sure you would like to change the contest ID from ${contest?.competitionId} to ${competitionId}?`,
-        ));
+    const doSubmit =
+      mode !== "edit"
+        ? !getRoundWithDefaultTimeLimitExists() || confirm(confirmDefaultTimeLimitMsg)
+        : competitionId === contest?.competitionId ||
+          confirm(
+            `Are you sure you would like to change the contest ID from ${contest?.competitionId} to ${competitionId}?`,
+          );
 
     if (doSubmit) {
       // Validation
       const tempErrors: string[] = [];
-      if (
-        selectedOrganizers.length <
-          organizerNames.filter((on: string) => on !== "").length
-      ) {
+      if (selectedOrganizers.length < organizerNames.filter((on: string) => on !== "").length) {
         tempErrors.push("Please enter all organizers");
       }
-      if (type === ContestType.WcaComp && !detailsImported) {
-        tempErrors.push(
-          'You must use the "Get WCA competition details" feature',
-        );
+      if (type === "wca-comp" && !detailsImported) {
+        tempErrors.push('You must use the "Get WCA competition details" feature');
       }
 
       if (tempErrors.length > 0) {
         changeErrorMessages(tempErrors);
       } else {
-        const res = mode === "edit"
-          ? await myFetch.patch(
-            `/competitions/${contest?.competitionId}`,
-            newComp,
-            { loadingId: null },
-          )
-          : await myFetch.post("/competitions", newComp, { loadingId: null });
+        const res =
+          mode === "edit"
+            ? await myFetch.patch(`/competitions/${contest?.competitionId}`, newComp, { loadingId: null })
+            : await myFetch.post("/competitions", newComp, { loadingId: null });
 
         if (!res.success) changeErrorMessages(res.error);
         else if (mode === "copy") window.location.href = "/mod";
@@ -301,11 +277,10 @@ const ContestForm = ({
     }
   };
 
-  const fillWithMockData = async (mockContestType = ContestType.Competition) => {
-    const res = await myFetch.get<PersonResponse>(
-      `/persons?personId=${userInfo?.personId}`,
-      { loadingId: "set_mock_comp_button" },
-    );
+  const fillWithMockData = async (mockContestType = "comp") => {
+    const res = await myFetch.get<PersonResponse>(`/persons?personId=${userInfo?.personId}`, {
+      loadingId: "set_mock_comp_button",
+    });
 
     if (res.success) {
       setType(mockContestType);
@@ -325,7 +300,7 @@ const ContestForm = ({
 
       const year = new Date().getFullYear();
 
-      if (mockContestType === ContestType.Meetup) {
+      if (mockContestType === "meetup") {
         setName(`New Meetup ${year}`);
         setShortName(`New Meetup ${year}`);
         setCompetitionId(`NewMeetup${year}`);
@@ -335,16 +310,13 @@ const ContestForm = ({
         setShortName(`New Competition ${year}`);
         setCompetitionId(`NewCompetition${year}`);
         setEndDate(addYears(getDateOnly(new Date())!, 1));
-        setRooms([{ id: 1, name: "Main", color: Color.White, activities: [] }]);
+        setRooms([{ id: 1, name: "Main", color: "#fff", activities: [] }]);
       }
     }
   };
 
   const changeActiveTab = (newTab: string) => {
-    if (
-      newTab === "schedule" &&
-      (typeof latitude !== "number" || typeof longitude !== "number")
-    ) {
+    if (newTab === "schedule" && (typeof latitude !== "number" || typeof longitude !== "number")) {
       changeErrorMessages(["Please enter valid coordinates first"]);
     } else {
       setActiveTab(newTab);
@@ -394,12 +366,8 @@ const ContestForm = ({
       changeLoadingId("get_wca_comp_details_button");
       const newContest = await fetchWcaCompDetails(competitionId);
 
-      const latitude = Number(
-        (newContest.latitudeMicrodegrees / 1000000).toFixed(6),
-      );
-      const longitude = Number(
-        (newContest.longitudeMicrodegrees / 1000000).toFixed(6),
-      );
+      const latitude = Number((newContest.latitudeMicrodegrees / 1000000).toFixed(6));
+      const longitude = Number((newContest.longitudeMicrodegrees / 1000000).toFixed(6));
 
       setName(newContest.name);
       setShortName(newContest.shortName);
@@ -437,7 +405,7 @@ const ContestForm = ({
   };
 
   const changeStartDate = (newDate: Date | undefined) => {
-    if (type === ContestType.Meetup) {
+    if (type === "meetup") {
       setStartTime(newDate);
       if (isValid(newDate)) setStartDate(getDateOnly(new Date(newDate!.getTime() + getTimezoneOffset(timeZone)))!);
     } else {
@@ -460,14 +428,12 @@ const ContestForm = ({
   };
 
   const unfinishContest = async () => {
-    const answer = confirm(
-      `Are you sure you would like to set ${(contest as IContest).name} back to ongoing?`,
-    );
+    const answer = confirm(`Are you sure you would like to set ${(contest as IContest).name} back to ongoing?`);
 
     if (answer) {
       const res = await myFetch.patch(
         `/competitions/set-state/${competitionId}`,
-        { newState: ContestState.Ongoing },
+        { newState: "ongoing" },
         { loadingId: "unfinish_contest_button", keepLoadingOnSuccess: true },
       );
 
@@ -479,24 +445,21 @@ const ContestForm = ({
     const answer = confirm(`Are you sure you would like to remove ${(contest as IContest).name}?`);
 
     if (answer) {
-      const res = await myFetch.delete(
-        `/competitions/${competitionId}`,
-        { loadingId: "delete_contest_button", keepLoadingOnSuccess: true },
-      );
+      const res = await myFetch.delete(`/competitions/${competitionId}`, {
+        loadingId: "delete_contest_button",
+        keepLoadingOnSuccess: true,
+      });
 
       if (res.success) window.history.back();
     }
   };
 
   const downloadScorecards = (pageSize: PageSize) => {
-    myFetch.get(
-      `/scorecards/${contest?.competitionId}?pageSize=${pageSize}`,
-      {
-        authorize: true,
-        fileName: `${contest?.competitionId}_Scorecards.pdf`,
-        loadingId: `download_scorecards_${pageSize.toLowerCase()}_button`,
-      },
-    );
+    myFetch.get(`/scorecards/${contest?.competitionId}?pageSize=${pageSize}`, {
+      authorize: true,
+      fileName: `${contest?.competitionId}_Scorecards.pdf`,
+      loadingId: `download_scorecards_${pageSize.toLowerCase()}_button`,
+    });
   };
 
   const enableQueue = async () => {
@@ -510,10 +473,10 @@ const ContestForm = ({
   };
 
   const createAuthToken = async () => {
-    const res = await myFetch.get(
-      `/create-auth-token/${contest?.competitionId}`,
-      { authorize: true, loadingId: "get_access_token_button" },
-    );
+    const res = await myFetch.get(`/create-auth-token/${contest?.competitionId}`, {
+      authorize: true,
+      loadingId: "get_access_token_button",
+    });
 
     if (res.success) {
       changeSuccessMessage(`Your new access token is ${res.data}`);
@@ -551,7 +514,7 @@ const ContestForm = ({
                       Set Mock Competition
                     </Button>
                     <Button
-                      onClick={() => fillWithMockData(ContestType.Meetup)}
+                      onClick={() => fillWithMockData("meetup")}
                       disabled={type !== undefined}
                       className="btn-secondary"
                     >
@@ -568,7 +531,7 @@ const ContestForm = ({
             {mode === "edit" && contest && (
               <>
                 <div className="d-flex flex-wrap gap-3 mt-3 mb-3">
-                  {contest.type !== ContestType.WcaComp && (
+                  {contest.type !== "wca-comp" && (
                     // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
                     <Button id="clone_contest_button" onClick={cloneContest} loadingId={loadingId}>
                       Clone
@@ -576,7 +539,7 @@ const ContestForm = ({
                   )}
                   {userInfo?.isAdmin && (
                     <>
-                      {contest.state === ContestState.Finished && (
+                      {contest.state === "finished" && (
                         <Button
                           id="unfinish_contest_button"
                           onClick={unfinishContest}
@@ -601,7 +564,7 @@ const ContestForm = ({
                     id="download_scorecards_a4_button"
                     onClick={() => downloadScorecards("A4")}
                     loadingId={loadingId}
-                    disabled={contest.state < ContestState.Approved}
+                    disabled={contest.state === "created"}
                     className="btn-success"
                   >
                     Scorecards (A4)
@@ -610,7 +573,7 @@ const ContestForm = ({
                     id="download_scorecards_a6_button"
                     onClick={() => downloadScorecards("A6")}
                     loadingId={loadingId}
-                    disabled={contest.state < ContestState.Approved}
+                    disabled={contest.state === "created"}
                     className="btn-success"
                   >
                     Scorecards (A6)
@@ -620,9 +583,7 @@ const ContestForm = ({
                       id="enable_queue_button"
                       onClick={enableQueue}
                       loadingId={loadingId}
-                      disabled={contest.state < ContestState.Approved ||
-                        contest.state >= ContestState.Finished ||
-                        queueEnabled}
+                      disabled={!["approved", "ongoing"].includes(contest.state) || queueEnabled}
                       className="btn-secondary"
                     >
                       {queueEnabled ? "Queue Enabled" : "Enable Queue"}
@@ -637,8 +598,7 @@ const ContestForm = ({
                       id="get_access_token_button"
                       onClick={createAuthToken}
                       loadingId={loadingId}
-                      disabled={contest.state < ContestState.Approved ||
-                        contest.state >= ContestState.Finished}
+                      disabled={!["approved", "ongoing"].includes(contest.state)}
                       className="btn-secondary"
                     >
                       Get Access Token
@@ -661,7 +621,7 @@ const ContestForm = ({
               setSelected={setType}
               disabled={mode !== "new" || type !== undefined}
             />
-            {type === ContestType.WcaComp && disabled && mode === "new" && (
+            {type === "wca-comp" && disabled && mode === "new" && (
               <>
                 {/* Almost the same as the Contest ID element below */}
                 <FormTextInput
@@ -706,8 +666,9 @@ const ContestForm = ({
                   title="Contest ID"
                   value={competitionId}
                   setValue={setCompetitionId}
-                  disabled={disabledIfDetailsImported || disabledIfContestApproved ||
-                    (mode === "edit" && !userInfo?.isAdmin)}
+                  disabled={
+                    disabledIfDetailsImported || disabledIfContestApproved || (mode === "edit" && !userInfo?.isAdmin)
+                  }
                   className="mb-3"
                 />
                 <div className="row">
@@ -778,28 +739,26 @@ const ContestForm = ({
                 </div>
                 <div className="my-3 row">
                   <div className="col">
-                    {type === ContestType.Meetup
-                      ? (
-                        <FormDatePicker
-                          id="start_date"
-                          title={`Start date and time (${isTimeZonePending ? "..." : timeZone})`}
-                          value={startTime}
-                          setValue={changeStartDate}
-                          timeZone={timeZone}
-                          disabled={disabledIfContestApproved}
-                          dateFormat="Pp"
-                          showUTCTime
-                        />
-                      )
-                      : (
-                        <FormDatePicker
-                          id="start_date"
-                          title="Start date"
-                          value={startDate}
-                          setValue={changeStartDate}
-                          disabled={disabledIfContestApproved || disabledIfDetailsImported}
-                        />
-                      )}
+                    {type === "meetup" ? (
+                      <FormDatePicker
+                        id="start_date"
+                        title={`Start date and time (${isTimeZonePending ? "..." : timeZone})`}
+                        value={startTime}
+                        setValue={changeStartDate}
+                        timeZone={timeZone}
+                        disabled={disabledIfContestApproved}
+                        dateFormat="Pp"
+                        showUTCTime
+                      />
+                    ) : (
+                      <FormDatePicker
+                        id="start_date"
+                        title="Start date"
+                        value={startDate}
+                        setValue={changeStartDate}
+                        disabled={disabledIfContestApproved || disabledIfDetailsImported}
+                      />
+                    )}
                   </div>
                   {getIsCompType(type) && (
                     <div className="col">
@@ -842,7 +801,7 @@ const ContestForm = ({
                   setValue={setDescription}
                   disabled={disabledIfContestPublished}
                 />
-                {type === ContestType.WcaComp && (
+                {type === "wca-comp" && (
                   <div>
                     <p className="fs-6">
                       The description must be available in English for WCA competitions. You may still include versions
@@ -860,8 +819,11 @@ const ContestForm = ({
                   title={"Competitor limit" + (!getIsCompType(type) ? " (optional)" : "")}
                   value={competitorLimit}
                   setValue={setCompetitorLimit}
-                  disabled={(disabledIfContestApproved && !userInfo?.isAdmin) ||
-                    disabledIfDetailsImported || disabledIfContestPublished}
+                  disabled={
+                    (disabledIfContestApproved && !userInfo?.isAdmin) ||
+                    disabledIfDetailsImported ||
+                    disabledIfContestPublished
+                  }
                   integer
                   min={C.minCompetitorLimit}
                 />
@@ -897,22 +859,24 @@ const ContestForm = ({
           <>
             <p className="mt-4 fs-6">
               As part of the Cubing Contests honorary dues system, you will be asked to{" "}
-              <Link href="/donate">donate</Link>{" "}
-              $0.10 (USD) per competitor to support the maintenance and continued development of cubingcontests.com
-              after the contest is finished.{" "}
+              <Link href="/donate">donate</Link> $0.10 (USD) per competitor to support the maintenance and continued
+              development of cubingcontests.com after the contest is finished.{" "}
               <strong>
                 For example, if this contest reaches the competitor limit, you will be asked to donate{" "}
                 <span className="text-success">
                   ${competitorLimit ? (C.duePerCompetitor * competitorLimit).toFixed(2) : "?"}
                 </span>
-              </strong>. This donation is voluntary.{type === ContestType.WcaComp
-                ? (
-                  <em>
-                    {" "}Note: for WCA Competitions the honorary dues system only considers the number of competitors in
-                    unofficial events.
-                  </em>
-                )
-                : ""}
+              </strong>
+              . This donation is voluntary.
+              {type === "wca-comp" ? (
+                <em>
+                  {" "}
+                  Note: for WCA Competitions the honorary dues system only considers the number of competitors in
+                  unofficial events.
+                </em>
+              ) : (
+                ""
+              )}
             </p>
             {mode !== "edit" && (
               <FormCheckbox
@@ -926,7 +890,7 @@ const ContestForm = ({
         )}
         {!disabled && mode !== "edit" && (
           <>
-            {type === ContestType.Competition && (
+            {type === "comp" && (
               <>
                 <p className="mt-4 fs-6">
                   This is an unofficial competition, which means that you should provide at least two photos of the

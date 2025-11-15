@@ -3,51 +3,26 @@
 
   "imports": {
     "~/": "./",
-    "@std/expect": "jsr:@std/expect@^1.0.16",
-    "@std/testing": "jsr:@std/testing@^1.0.14"
   },
 
   "tasks": {
     "dev": "deno run -A npm:next dev --turbo -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
     "build": "deno run -A npm:next build --turbo",
     "start": "next start",
+    "check": "@biomejs/biome lint && @biomejs/biome check",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
     "db:push": "deno run --allow-all --conditions=react-server npm:drizzle-kit push --strict",
     "db:migrate": "deno run --allow-all --conditions=react-server npm:drizzle-kit migrate",
-    "db:generate": "deno run --allow-all --conditions=react-server npm:drizzle-kit generate"
-  },
-
-  "lint": {
-    "include": ["**/*.ts", "**/*.tsx"],
-    "exclude": ["**/*.d.ts"],
-    "rules": {
-      "tags": ["recommended"],
-      "include": [],
-      "exclude": [
-        "no-window",
-        "no-window-prefix",
-        "no-process-global",
-        "no-explicit-any"
-      ]
-    }
-  },
-
-  "fmt": {
-    "include": ["**/*.ts", "**/*.tsx"],
-    "exclude": ["**/*.d.ts"],
-    "lineWidth": 120
+    "db:generate": "deno run --allow-all --conditions=react-server npm:drizzle-kit generate",
   },
 
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "deno.ns"
-    ],
-    "jsx": "react-jsx"
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
   },
 
   // unsafe-proto is required for building Next JS projects for now, because they still rely on __proto__.
   // For more, see https://github.com/denoland/docs/pull/1255.
-  "unstable": ["unsafe-proto", "sloppy-imports"]
+  "unstable": ["unsafe-proto"],
 }

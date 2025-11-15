@@ -1,20 +1,20 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
-import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
-import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import Time from "~/app/components/Time.tsx";
-import Solves from "~/app/components/Solves.tsx";
-import Competitors from "~/app/components/Competitors.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import Link from "next/link";
+import { useMemo, useRef, useState } from "react";
+import Competitors from "~/app/components/Competitors.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
-import { InputPerson } from "~/helpers/types.ts";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import Time from "~/app/components/Time.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import type { InputPerson } from "~/helpers/types.ts";
+import { getFormattedDate, shortenEventName } from "~/helpers/utilityFunctions.ts";
+import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { FullResult } from "~/server/db/schema/results.ts";
 
 type Props = {
@@ -28,11 +28,14 @@ function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
   const [persons, setPersons] = useState<InputPerson[]>([null]);
   const [personNames, setPersonNames] = useState([""]);
 
-  const filteredResults = useMemo(() =>
-    results.filter((r) => {
-      const passesCompetitorFilter = !persons[0] || r.personIds.includes(persons[0].personId);
-      return passesCompetitorFilter;
-    }), [results, persons]);
+  const filteredResults = useMemo(
+    () =>
+      results.filter((r) => {
+        const passesCompetitorFilter = !persons[0] || r.personIds.includes(persons[0].personId);
+        return passesCompetitorFilter;
+      }),
+    [results, persons],
+  );
 
   const rowVirtualizer = useVirtualizer({
     count: filteredResults.length,
@@ -102,11 +105,11 @@ function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
                       transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
                     }}
                   >
+                    <td>{result.event ? shortenEventName(result.event.name) : "EVENT NOT FOUND"}</td>
                     <td>
-                      {result.event ? shortenEventName(result.event.name) : "EVENT NOT FOUND"}
-                    </td>
-                    <td>
-                      {result.persons.length > 0 ? <Competitors persons={result.persons} vertical /> : (
+                      {result.persons.length > 0 ? (
+                        <Competitors persons={result.persons} vertical />
+                      ) : (
                         "COMPETITOR(S) NOT FOUND"
                       )}
                     </td>
@@ -132,9 +135,11 @@ function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
                     </td>
                     <td>{getFormattedDate(result.date)}</td>
                     <td>
-                      {result.approved
-                        ? <span className="badge bg-success">Yes</span>
-                        : <span className="badge bg-danger">No</span>}
+                      {result.approved ? (
+                        <span className="badge bg-success">Yes</span>
+                      ) : (
+                        <span className="badge bg-danger">No</span>
+                      )}
                     </td>
                     <td>
                       <Link

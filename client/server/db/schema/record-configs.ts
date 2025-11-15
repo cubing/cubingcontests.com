@@ -1,9 +1,9 @@
 import "server-only";
-import { boolean, integer, pgEnum, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
-import { tableTimestamps } from "../dbUtils.ts";
 import { getTableColumns } from "drizzle-orm";
-import { recordTypeEnum } from "./results.ts";
+import { boolean, integer, pgEnum, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
 import { RecordCategoryValues } from "~/helpers/types.ts";
+import { tableTimestamps } from "../dbUtils.ts";
+import { recordTypeEnum } from "./results.ts";
 
 export const recordCategoryEnum = pgEnum("record_category", RecordCategoryValues);
 
@@ -18,13 +18,10 @@ export const recordConfigsTable = table("record_configs", {
   ...tableTimestamps,
 });
 
+export type InsertRecordConfig = typeof recordConfigsTable.$inferInsert;
 export type SelectRecordConfig = typeof recordConfigsTable.$inferSelect;
 
-const {
-  createdAt: _,
-  updatedAt: _1,
-  ...recordConfigsPublicCols
-} = getTableColumns(recordConfigsTable);
+const { createdAt: _, updatedAt: _1, ...recordConfigsPublicCols } = getTableColumns(recordConfigsTable);
 export { recordConfigsPublicCols };
 
 export type RecordConfigResponse = Pick<SelectRecordConfig, keyof typeof recordConfigsPublicCols>;

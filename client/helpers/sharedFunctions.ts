@@ -1,22 +1,19 @@
-import { remove as removeAccents } from "remove-accents";
-import { C } from "./constants.ts";
-import type { EventWrPair, RoundFormat } from "./types.ts";
-import { RoundFormatObject, roundFormats } from "./roundFormats.ts";
-import type { PersonDto } from "./validators/Person.ts";
 import { differenceInDays, startOfDay } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
+import { remove as removeAccents } from "remove-accents";
 import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
+import { C } from "./constants.ts";
+import { type RoundFormatObject, roundFormats } from "./roundFormats.ts";
+import type { ContestType, EventWrPair, RoundFormat } from "./types.ts";
+import type { PersonDto } from "./validators/Person.ts";
 
 type BestCompareObj = { best: number };
 type AvgCompareObj = { best?: number; average: number };
 
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
 // This means that this function (and the one below) can be used in the Array.sort() method.
-export const compareSingles = (
-  a: BestCompareObj,
-  b: BestCompareObj,
-): number => {
+export const compareSingles = (a: BestCompareObj, b: BestCompareObj): number => {
   if (a.best <= 0 && b.best > 0) return 1;
   else if (a.best > 0 && b.best <= 0) return -1;
   else if (a.best <= 0 && b.best <= 0) return 0;
@@ -26,8 +23,7 @@ export const compareSingles = (
 // Same logic as above, except the single can also be used as a tie breaker if the averages are equivalent
 export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
   // If a.best or b.best is left undefined, the tie breaker will not be used
-  const useTieBreaker = typeof a.best === "number" &&
-    typeof b.best === "number";
+  const useTieBreaker = typeof a.best === "number" && typeof b.best === "number";
   const breakTie = () => compareSingles({ best: a.best as number }, { best: b.best as number });
 
   if (a.average <= 0) {
@@ -48,22 +44,13 @@ export const setResultWorldRecords = (
   result: ResultResponse,
   event: EventResponse,
   eventWrPair: EventWrPair,
-  // noConsoleLog = false,
 ): ResultResponse => {
   const comparisonToRecordSingle = compareSingles(result, { best: eventWrPair.best });
-
-  if (result.best > 0 && comparisonToRecordSingle <= 0) {
-    // if (!noConsoleLog) console.log(`New ${result.eventId} single WR: ${result.best}`);
-    result.singleRecordTypes = ["WR"];
-  }
+  if (result.best > 0 && comparisonToRecordSingle <= 0) result.regionalSingleRecord = "WR";
 
   if (result.attempts.length === getDefaultAverageAttempts(event)) {
     const comparisonToRecordAvg = compareAvgs(result, { average: eventWrPair.average });
-
-    if (result.average > 0 && comparisonToRecordAvg <= 0) {
-      // if (!noConsoleLog) console.log(`New ${result.eventId} average WR: ${result.average}`);
-      result.averageRecordTypes = ["WR"];
-    }
+    if (result.average > 0 && comparisonToRecordAvg <= 0) result.regionalAverageRecord = "WR";
   }
 
   return result;
@@ -143,8 +130,7 @@ export const getFormattedTime = (
     // Only times under ten minutes can have decimals, or if noFormatting = true, or if it's an event that always
     // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
     if (
-      ((hours === 0 && minutes < 10) || noFormatting ||
-        (event && getAlwaysShowDecimals(event) && time < 360000)) &&
+      ((hours === 0 && minutes < 10) || noFormatting || (event && getAlwaysShowDecimals(event) && time < 360000)) &&
       showDecimals
     ) {
       output += seconds.toFixed(2);
@@ -158,8 +144,7 @@ export const getFormattedTime = (
     } else {
       if (time < 0) timeStr = timeStr.replace("-", "");
 
-      const points = (time < 0 ? -1 : 1) *
-        (9999 - parseInt(timeStr.slice(0, -11)));
+      const points = (time < 0 ? -1 : 1) * (9999 - parseInt(timeStr.slice(0, -11)));
       const missed = parseInt(timeStr.slice(timeStr.length - 4));
       const solved = points + missed;
 
@@ -181,10 +166,7 @@ export const getFormattedTime = (
 // If the round has no cutoff (undefined), return true
 export const getMakesCutoff = (attempts: Attempt[], cutoff: ICutoff | undefined): boolean =>
   !cutoff ||
-  attempts.some((a, i) =>
-    i < cutoff.numberOfAttempts && a.result && a.result > 0 &&
-    a.result < cutoff.attemptResult
-  );
+  attempts.some((a, i) => i < cutoff.numberOfAttempts && a.result && a.result > 0 && a.result < cutoff.attemptResult);
 
 // Returns the best and average times
 export function getBestAndAverage(
@@ -215,13 +197,9 @@ export function getBestAndAverage(
   best = Math.min(...convertedAttempts);
   if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS
 
-  if (
-    !makesCutoff || expectedAttempts < 3 || enteredAttempts < expectedAttempts
-  ) {
+  if (!makesCutoff || expectedAttempts < 3 || enteredAttempts < expectedAttempts) {
     average = 0;
-  } else if (
-    dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== "a")
-  ) {
+  } else if (dnfDnsCount > 1 || (dnfDnsCount > 0 && roundFormat !== "a")) {
     average = -1;
   } else {
     // Subtract best and worst results, if it's an Ao5 round
@@ -250,7 +228,7 @@ export const getAlwaysShowDecimals = (event: EventResponse): boolean =>
 export const getIsCompType = (contestType: ContestType | undefined): boolean => {
   if (!contestType) throw new Error("getIsCompType cannot accept undefined contestType");
 
-  return [ContestType.WcaComp, ContestType.Competition].includes(contestType);
+  return ["wca-comp", "comp"].includes(contestType);
 };
 
 export function getNameAndLocalizedName(wcaName: string): { name: string; localizedName: string | undefined } {
@@ -291,16 +269,14 @@ export const getMaxAllowedRounds = (rounds: IRound[]): number => {
 
   if (!getRoundHasEnoughResults(0)) return 1;
 
-  if (
-    rounds[0].results.length < C.minResultsForTwoMoreRounds ||
-    !getRoundHasEnoughResults(1)
-  ) return 2;
+  if (rounds[0].results.length < C.minResultsForTwoMoreRounds || !getRoundHasEnoughResults(1)) return 2;
 
   if (
     rounds[0].results.length < C.minResultsForThreeMoreRounds ||
     rounds[1].results.length < C.minResultsForTwoMoreRounds ||
     !getRoundHasEnoughResults(2)
-  ) return 3;
+  )
+    return 3;
 
   return 4;
 };

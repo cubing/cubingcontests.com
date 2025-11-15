@@ -1,6 +1,4 @@
-import { RecordType } from "./types.ts";
-
-export type ContinentId = "AFRICA" | "ASIA" | "EUROPE" | "NORTH_AMERICA" | "OCEANIA" | "SOUTH_AMERICA";
+import type { ContinentId, RecordType } from "./types.ts";
 
 export const Continents: {
   name: string;
@@ -14,6 +12,12 @@ export const Continents: {
   { name: "Oceania", code: "OCEANIA", recordTypeId: "OcR" },
   { name: "South America", code: "SOUTH_AMERICA", recordTypeId: "SAR" },
 ];
+
+export function getContinent(countryIso2: string): ContinentId {
+  const country = Countries.find((c) => c.code === countryIso2);
+  if (!country) throw new Error(`Unknown country code: ${countryIso2}`);
+  return country.continentId;
+}
 
 export const Countries: {
   name: string;
@@ -222,11 +226,3 @@ export const Countries: {
   { name: "Zambia", code: "ZM", continentId: "AFRICA" },
   { name: "Zimbabwe", code: "ZW", continentId: "AFRICA" },
 ];
-
-export function getContinent(countryIso2: string): ContinentId {
-  const country = Countries.find((c) => c.code === countryIso2);
-
-  if (!country) throw new Error(`Unknown country code: ${countryIso2}`);
-
-  return country.continentId;
-}

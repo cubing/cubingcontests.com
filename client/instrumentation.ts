@@ -3,9 +3,14 @@ import { eq } from "drizzle-orm";
 import type { auth as authType } from "~/server/auth.ts";
 import type { db as dbType } from "~/server/db/provider.ts";
 import { accountsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
-import { personsTable } from "./server/db/schema/persons.ts";
+import { getContinent } from "./helpers/Countries.ts";
+import type { Schedule } from "./helpers/types/Schedule.ts";
+import type { ContestState, ContestType } from "./helpers/types.ts";
+import { contestsTable } from "./server/db/schema/contests.ts";
 import { eventsTable } from "./server/db/schema/events.ts";
+import { personsTable } from "./server/db/schema/persons.ts";
 import { resultsTable } from "./server/db/schema/results.ts";
+import { roundsTable } from "./server/db/schema/rounds.ts";
 
 const message =
   "The EMAIL_TOKEN environment variable must be empty while seeding the DB to avoid sending lots of verification emails for the users being seeded. Remove it and comment out the sendVerificationEmail function in auth.ts, and then add them back after the DB has been seeded.";
@@ -16,7 +21,8 @@ export async function register() {
     const { db }: { db: typeof dbType } = await import("~/server/db/provider.ts");
     const { auth }: { auth: typeof authType } = await import("~/server/auth.ts");
     const fs: typeof fsType = await import("node:fs");
-    const usersDump = JSON.parse((await fs.readFileSync("./dump/users.json")) as any);
+    const usersDump = JSON.parse(fs.readFileSync("./dump/users.json") as any);
+    const roundsDump = (JSON.parse(fs.readFileSync("./dump/rounds.json") as any) as any[]).reverse();
 
     const testUsers = [
       {
@@ -55,14 +61,18 @@ export async function register() {
         await auth.api.signUpEmail({ body });
 
         // Verify email and set person ID
-        const [user] = await db.update(usersTable)
+        const [user] = await db
+          .update(usersTable)
           .set({ emailVerified: true, personId: testUser.personId })
           .where(eq(usersTable.email, testUser.email))
           .returning();
 
         // Set the password to "cc"
-        await db.update(accountsTable)
-          .set({ password: "$2b$10$ZQ3h2HwwOgLTRveMw/NbFes0b.u6OOxYrnG10dwDkHiQBOMwx7M52" })
+        await db
+          .update(accountsTable)
+          .set({
+            password: "$2b$10$ZQ3h2HwwOgLTRveMw/NbFes0b.u6OOxYrnG10dwDkHiQBOMwx7M52",
+          })
           .where(eq(accountsTable.userId, user.id));
 
         // Set role
@@ -93,34 +103,41 @@ export async function register() {
             },
           });
 
-          await db.update(usersTable).set({
-            emailVerified: true,
-            role: user.roles.includes("admin") ? "admin" : user.roles.includes("mod") ? "mod" : "user",
-            createdAt: new Date(user.createdAt.$date),
-            updatedAt: new Date(user.updatedAt.$date),
-          }).where(eq(usersTable.id, res.user.id));
+          await db
+            .update(usersTable)
+            .set({
+              emailVerified: true,
+              role: user.roles.includes("admin") ? "admin" : user.roles.includes("mod") ? "mod" : "user",
+              createdAt: new Date(user.createdAt.$date),
+              updatedAt: new Date(user.updatedAt.$date),
+            })
+            .where(eq(usersTable.id, res.user.id));
 
-          await db.update(accountsTable).set({
-            password: user.password,
-            createdAt: new Date(user.createdAt.$date),
-            updatedAt: new Date(user.updatedAt.$date),
-          }).where(eq(accountsTable.userId, res.user.id));
+          await db
+            .update(accountsTable)
+            .set({
+              password: user.password,
+              createdAt: new Date(user.createdAt.$date),
+              updatedAt: new Date(user.updatedAt.$date),
+            })
+            .where(eq(accountsTable.userId, res.user.id));
         }
       } catch (e) {
         console.error("Unable to load users dump:", e);
       }
     }
 
-    const getCreatorId = async (obj: any): Promise<string | null> => {
-      const dumpUserObject = usersDump.find((u: any) => u._id.$oid === obj.createdBy.$oid);
-      // if (!dumpUserObject) throw new Error(`User with ID ${obj.createdBy.$oid} not found in users dump!`);
+    const users = await db.select().from(usersTable);
+
+    const getCreatorId = ($oid: string): string | null => {
+      const dumpUserObject = usersDump.find((u: any) => u._id.$oid === $oid);
+      // if (!dumpUserObject) throw new Error(`User with ID ${$oid} not found in users dump!`);
       if (!dumpUserObject) return null;
 
-      const res = await db.select({ id: usersTable.id }).from(usersTable).where(
-        eq(usersTable.username, dumpUserObject.username),
-      );
-      if (res.length !== 1) throw new Error(`User with username ${dumpUserObject.username} not found in DB`);
-      return res[0].id;
+      const user = users.find((u) => u.username === dumpUserObject.username);
+      if (!user) throw new Error(`User with username ${dumpUserObject.username} not found in DB`);
+
+      return user.id;
     };
 
     if ((await db.select({ id: personsTable.id }).from(personsTable).limit(1)).length === 0) {
@@ -128,119 +145,281 @@ export async function register() {
       console.log("Seeding persons...");
 
       try {
-        const personsDump = (JSON.parse((await fs.readFileSync("./dump/persons.json")) as any) as any[]).reverse();
-        let persons = [];
+        const personsDump = (JSON.parse(fs.readFileSync("./dump/people.json") as any) as any[]).reverse();
+        let tempPersons = [];
 
         for (const p of personsDump) {
-          persons.push({
+          tempPersons.push({
             personId: p.personId,
             wcaId: p.wcaId,
             name: p.name,
             localizedName: p.localizedName,
             countryIso2: p.countryIso2,
             approved: !p.unapproved,
-            createdBy: p.createdBy ? await getCreatorId(p) : null,
+            createdBy: p.createdBy ? getCreatorId(p.createdBy.$oid) : null,
             createdExternally: !p.createdBy,
             createdAt: new Date(p.createdAt.$date),
             updatedAt: new Date(p.updatedAt.$date),
           });
 
           // Drizzle can't handle too many entries being inserted at once
-          if (persons.length === 1000) {
-            await db.insert(personsTable).values(persons);
-            persons = [];
+          if (tempPersons.length === 1000) {
+            await db.insert(personsTable).values(tempPersons);
+            tempPersons = [];
           }
         }
 
-        await db.insert(personsTable).values(persons);
+        await db.insert(personsTable).values(tempPersons);
       } catch (e) {
         console.error("Unable to load persons dump:", e);
       }
     }
+
+    const persons = await db.select().from(personsTable);
 
     if ((await db.select({ id: eventsTable.id }).from(eventsTable).limit(1)).length === 0) {
       if (process.env.EMAIL_TOKEN) throw new Error(message);
       console.log("Seeding events...");
 
       try {
-        const eventsDump = JSON.parse((await fs.readFileSync("./dump/events.json")) as any);
-        const eventRulesDump = JSON.parse((await fs.readFileSync("./dump/eventrules.json")) as any);
+        const eventsDump = JSON.parse(fs.readFileSync("./dump/events.json") as any);
+        const eventRulesDump = JSON.parse(fs.readFileSync("./dump/eventrules.json") as any);
 
-        await db.insert(eventsTable).values(eventsDump.map((e: any) => {
-          const eventRule = eventRulesDump.find((er: any) => er.eventId === e.eventId);
+        await db.insert(eventsTable).values(
+          eventsDump.map((e: any) => {
+            const eventRule = eventRulesDump.find((er: any) => er.eventId === e.eventId);
 
-          return ({
-            eventId: e.eventId,
-            name: e.name,
-            category: e.groups.includes(1)
-              ? "wca"
-              : e.groups.includes(2)
-              ? "unofficial"
-              : e.groups.includes(3)
-              ? "extreme-bld"
-              : e.groups.includes(4)
-              ? "removed"
-              : "miscellaneous",
-            rank: e.rank,
-            format: e.format,
-            defaultRoundFormat: e.defaultRoundFormat,
-            participants: e.participants,
-            submissionsAllowed: e.groups.includes(6) || e.groups.includes(3),
-            removedWca: e.groups.includes(8),
-            hasMemo: e.groups.includes(10),
-            hidden: e.groups.includes(9),
-            description: e.description || null,
-            rule: eventRule?.rule || null,
-            createdAt: new Date(e.createdAt.$date),
-            updatedAt: new Date(e.updatedAt.$date),
-          });
-        }));
+            return {
+              eventId: e.eventId,
+              name: e.name,
+              category: e.groups.includes(1)
+                ? "wca"
+                : e.groups.includes(2)
+                  ? "unofficial"
+                  : e.groups.includes(3)
+                    ? "extreme-bld"
+                    : e.groups.includes(4)
+                      ? "removed"
+                      : "miscellaneous",
+              rank: e.rank,
+              format: e.format,
+              defaultRoundFormat: e.defaultRoundFormat,
+              participants: e.participants,
+              submissionsAllowed: e.groups.includes(6) || e.groups.includes(3),
+              removedWca: e.groups.includes(8),
+              hasMemo: e.groups.includes(10),
+              hidden: e.groups.includes(9),
+              description: e.description || null,
+              rule: eventRule?.rule || null,
+              createdAt: new Date(e.createdAt.$date),
+              updatedAt: new Date(e.updatedAt.$date),
+            };
+          }),
+        );
       } catch (e) {
         console.error("Unable to load events dump or event rules dump:", e);
       }
     }
 
+    const getRoundId = ($oid: string): string => {
+      const dumpRoundObject = roundsDump.find((r: any) => r.results.some((res: any) => res.$oid === $oid));
+      if (!dumpRoundObject) throw new Error(`Round containing result with ID ${$oid} not found in rounds dump!`);
+      return dumpRoundObject.roundId;
+    };
+
     if ((await db.select({ id: resultsTable.id }).from(resultsTable).limit(1)).length === 0) {
       if (process.env.EMAIL_TOKEN) throw new Error(message);
       console.log("Seeding results...");
 
-      try {
-        const resultsDump = JSON.parse((await fs.readFileSync("./dump/results.json")) as any);
-        let results = [];
+      const resultsDump = JSON.parse(fs.readFileSync("./dump/results.json") as any);
+      const results: any[] = [];
+      let tempResults = [];
 
+      try {
         for (const r of resultsDump) {
-          results.push({
+          const participants = persons.filter((p) => r.personIds.includes(p.personId));
+          const isSameCountryParticipants = !participants.some((p) => p.countryIso2 !== participants[0].countryIso2);
+          const firstParticipantContinent = getContinent(participants[0].countryIso2);
+          const isSameContinentParticipants =
+            isSameCountryParticipants ||
+            !participants.slice(1).some((p) => getContinent(p.countryIso2) !== firstParticipantContinent);
+          const countryIso2 = isSameCountryParticipants ? participants[0].countryIso2 : null;
+          const continentId = isSameContinentParticipants ? firstParticipantContinent : null;
+
+          tempResults.push({
             eventId: r.eventId,
             date: new Date(r.date.$date),
             approved: !r.unapproved,
             personIds: r.personIds,
+            countryIso2,
+            continentId,
             attempts: r.attempts,
             best: r.best,
             average: r.average,
-            singleRecordTypes: r.regionalSingleRecord ? [r.regionalSingleRecord] : null,
-            averageRecordTypes: r.regionalAverageRecord ? [r.regionalAverageRecord] : null,
+            regionalSingleRecord: r.regionalSingleRecord ?? null,
+            regionalAverageRecord: r.regionalAverageRecord ?? null,
             competitionId: r.competitionId ?? null,
+            roundId: r.competitionId ? getRoundId(r._id.$oid) : null,
             ranking: r.ranking ?? null,
             proceeds: r.proceeds ?? null,
-            videoLink: r.videoLink || null,
-            discussionLink: r.discussionLink || null,
+            videoLink: r.competitionId ? null : r.videoLink || "",
+            discussionLink: r.competitionId ? null : r.discussionLink || null,
             // FIX THESE TWO FIELDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            createdBy: r.createdBy ? await getCreatorId(r) : null,
+            createdBy: r.createdBy ? getCreatorId(r) : null,
             createdExternally: false,
             createdAt: new Date(r.createdAt.$date),
             updatedAt: new Date(r.updatedAt.$date),
           });
 
           // Drizzle can't handle too many entries being inserted at once
-          if (results.length === 1000) {
-            await db.insert(resultsTable).values(results);
-            results = [];
+          if (tempResults.length === 1000) {
+            results.push(...(await db.insert(resultsTable).values(tempResults).returning()));
+            tempResults = [];
           }
         }
 
-        await db.insert(resultsTable).values(results);
+        results.push(...(await db.insert(resultsTable).values(tempResults).returning()));
       } catch (e) {
         console.error("Unable to load results dump:", e);
+      }
+
+      // const getResultId = ($oid: string): number => {
+      //   const dumpResultObject = resultsDump.find((r: any) => r._id.$oid === $oid);
+      //   if (!dumpResultObject) throw new Error(`Result with ID ${$oid} not found in results dump!`);
+
+      //   const result = results.find((r) =>
+      //     r.competitionId === (dumpResultObject.competitionId ?? null) &&
+      //     r.eventId === dumpResultObject.eventId &&
+      //     r.best === dumpResultObject.best &&
+      //     r.average === dumpResultObject.average &&
+      //     r.videoLink === (dumpResultObject.videoLink ?? null) &&
+      //     r.createdAt.getTime() === new Date(dumpResultObject.createdAt.$date).getTime() &&
+      //     r.updatedAt.getTime() === new Date(dumpResultObject.updatedAt.$date).getTime() &&
+      //     r.personIds.length === dumpResultObject.personIds.length &&
+      //     !r.personIds.some((pid: number, index: number) => pid !== dumpResultObject.personIds.at(index))
+      //   );
+
+      //   if (!result) throw new Error(`Result with Mongo ID ${$oid} not found in DB while converting round`);
+      //   return result.id;
+      // };
+
+      console.log("Seeding rounds...");
+
+      const rounds: any[] = [];
+      let tempRounds: any[] = [];
+
+      try {
+        for (const r of roundsDump) {
+          tempRounds.push({
+            roundId: r.roundId,
+            competitionId: r.competitionId,
+            roundTypeId: r.roundTypeId,
+            format: r.format,
+            timeLimitCentiseconds: r.timeLimit?.centiseconds ?? null,
+            timeLimitCumulativeRoundIds: r.timeLimit?.cumulativeRoundIds ?? null,
+            cutoffAttemptResult: r.cutoff?.attemptResult ?? null,
+            cutoffNumberOfAttempts: r.cutoff?.numberOfAttempts ?? null,
+            proceedType: r.proceed?.type === 1 ? "percentage" : r.proceed?.type === 2 ? "number" : null,
+            proceedValue: r.proceed?.value ?? null,
+            // results: r.results.map(({ $oid }: { $oid: string }) => getResultId($oid)),
+            open: !!r.open,
+            createdAt: new Date(r.createdAt.$date),
+            updatedAt: new Date(r.updatedAt.$date),
+          });
+
+          // Drizzle can't handle too many entries being inserted at once
+          if (tempRounds.length === 1000) {
+            rounds.push(...(await db.insert(roundsTable).values(tempRounds).returning()));
+            tempRounds = [];
+          }
+        }
+
+        rounds.push(...(await db.insert(roundsTable).values(tempRounds).returning()));
+      } catch (e) {
+        console.error("Unable to load rounds dump:", e);
+      }
+    }
+
+    if ((await db.select({ id: contestsTable.id }).from(contestsTable).limit(1)).length === 0) {
+      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      console.log("Seeding contests...");
+
+      const contestsDump = (JSON.parse(fs.readFileSync("./dump/competitions.json") as any) as any[]).reverse();
+      const schedulesDump = (JSON.parse(fs.readFileSync("./dump/schedules.json") as any) as any[]).reverse();
+      let tempContests: any[] = [];
+
+      try {
+        for (const c of contestsDump) {
+          const schedule: Schedule = schedulesDump.find((s: any) => s.competitionId === c.competitionId);
+
+          if (schedule) {
+            delete (schedule as any)._id;
+            delete (schedule as any).createdAt;
+            delete (schedule as any).updatedAt;
+            delete (schedule as any).__v;
+            schedule.venues = schedule.venues.map((v) => ({
+              ...v,
+              rooms: v.rooms.map((r) => ({
+                ...r,
+                color: `#${r.color[0]}${r.color[0]}${r.color[1]}${r.color[1]}${r.color[2]}${r.color[2]}`,
+                activities: r.activities.map((a: any) => ({
+                  ...a,
+                  startTime: new Date(a.startTime.$date),
+                  endTime: new Date(a.endTime.$date),
+                })),
+              })),
+            }));
+          }
+
+          tempContests.push({
+            competitionId: c.competitionId,
+            state: (c.state === 10
+              ? "created"
+              : c.state === 20
+                ? "approved"
+                : c.state === 30
+                  ? "ongoing"
+                  : c.state === 40
+                    ? "finished"
+                    : c.state === 50
+                      ? "published"
+                      : "removed") as ContestState,
+            name: c.name,
+            shortName: c.shortName,
+            type: (c.type === 1 ? "meetup" : c.type === 2 ? "wca-comp" : "comp") as ContestType,
+            city: c.city,
+            countryIso2: c.countryIso2,
+            venue: c.venue,
+            address: c.address,
+            latitudeMicrodegrees: c.latitudeMicrodegrees,
+            longitudeMicrodegrees: c.longitudeMicrodegrees,
+            startDate: new Date(c.startDate.$date),
+            endDate: c.endDate ? new Date(c.endDate.$date) : new Date(c.startDate.$date),
+            startTime: c.meetupDetails ? new Date(c.meetupDetails.startTime.$date) : null,
+            timeZone: c.meetupDetails?.timeZone ?? null,
+            // MAKE THIS FIELD WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            organizers: [],
+            contact: c.contact ?? null,
+            description: c.description,
+            competitorLimit: c.competitorLimit ?? null,
+            participants: c.participants,
+            queuePosition: c.queuePosition ?? null,
+            schedule: schedule ?? null,
+            createdBy: getCreatorId(c.createdBy.$oid),
+            createdAt: new Date(c.createdAt.$date),
+            updatedAt: new Date(c.updatedAt.$date),
+          });
+
+          // Drizzle can't handle too many entries being inserted at once
+          if (tempContests.length === 500) {
+            await db.insert(contestsTable).values(tempContests).returning();
+            tempContests = [];
+          }
+        }
+
+        await db.insert(contestsTable).values(tempContests).returning();
+      } catch (e) {
+        console.error("Unable to load contests dump:", e);
       }
     }
 

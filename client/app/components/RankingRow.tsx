@@ -1,21 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import capitalize from "lodash/capitalize";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
-import Country from "~/app/components/Country.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import capitalize from "lodash/capitalize";
+import { useState } from "react";
 import Competitor from "~/app/components/Competitor.tsx";
-import ContestName from "~/app/components/ContestName.tsx";
-import Solves from "~/app/components/Solves.tsx";
-import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
-import type { IRanking, ResultRankingType } from "~/helpers/types.ts";
+import ContestName from "~/app/components/ContestName.tsx";
+import Country from "~/app/components/Country.tsx";
+import RankingLinks from "~/app/components/RankingLinks.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import { ContestType } from "~/helpers/enums";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
+import type { IRanking, ResultRankingType } from "~/helpers/types.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import { ContestType } from "~/helpers/enums";
 
 type Props = {
   isTiedRanking?: boolean;
@@ -50,18 +50,13 @@ function RankingRow({
 
   return (
     <tr
-      className={!["wca", "extreme-bld"].includes(event.category) &&
-          (!ranking.contest || ranking.contest.type === ContestType.Meetup)
-        ? "table-active"
-        : ""}
+      className={
+        !["wca", "extreme-bld"].includes(event.category) && (!ranking.contest || ranking.contest.type === "meetup")
+          ? "table-active"
+          : ""
+      }
     >
-      <td>
-        {!onlyKeepPerson && (
-          <span className={isTiedRanking ? "text-secondary" : ""}>
-            {firstColumnValue}
-          </span>
-        )}
-      </td>
+      <td>{!onlyKeepPerson && <span className={isTiedRanking ? "text-secondary" : ""}>{firstColumnValue}</span>}</td>
       <td>
         <Competitors persons={personsToDisplay} noFlag={!showAllTeammates} />
       </td>
@@ -86,10 +81,7 @@ function RankingRow({
         <td>
           <div className="d-flex flex-column align-items-start gap-2 fs-6">
             <span className="text-white">
-              <u
-                style={{ cursor: "pointer" }}
-                onClick={() => setTeamExpanded(!teamExpanded)}
-              >
+              <u style={{ cursor: "pointer" }} onClick={() => setTeamExpanded(!teamExpanded)}>
                 {teamExpanded ? "Close" : "Open"}
               </u>
               <span className="ms-2">
@@ -97,28 +89,23 @@ function RankingRow({
               </span>
             </span>
 
-            {teamExpanded &&
-              ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
+            {teamExpanded && ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
           </div>
         </td>
       )}
       {showDetailsColumn && (
         <td>
           {!onlyKeepPerson &&
-            (ranking.attempts
-              ? (
-                <Solves
-                  event={event}
-                  attempts={ranking.attempts}
-                  showMultiPoints={!forRecordsTable}
-                />
-              )
-              : ranking.memo
-              ? getFormattedTime(ranking.memo, {
+            (ranking.attempts ? (
+              <Solves event={event} attempts={ranking.attempts} showMultiPoints={!forRecordsTable} />
+            ) : ranking.memo ? (
+              getFormattedTime(ranking.memo, {
                 showDecimals: false,
                 alwaysShowMinutes: true,
               })
-              : "")}
+            ) : (
+              ""
+            ))}
         </td>
       )}
     </tr>

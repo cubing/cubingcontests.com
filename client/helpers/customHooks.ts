@@ -1,17 +1,11 @@
 "use client";
 
 import { useContext } from "react";
-import { doFetch } from "~/helpers/DELETEfetchUtils";
-import {
-  IContestDto,
-  IPerson,
-  IPersonDto,
-  IWcaPersonDto,
-} from "~/helpers/types.ts";
-import { ContestType } from "~/helpers/enums.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { FetchObj } from "~/helpers/types.ts";
+import { doFetch } from "~/helpers/DELETEfetchUtils.ts";
+import { ContestType } from "~/helpers/enums.ts";
+import type { FetchObj, IContestDto, IPerson, IPersonDto, IWcaPersonDto } from "~/helpers/types.ts";
 
 type FetchOptions = {
   authorize?: boolean;
@@ -22,12 +16,7 @@ type FetchOptions = {
 };
 
 export const useMyFetch = () => {
-  const {
-    changeErrorMessages,
-    changeLoadingId,
-    resetMessagesAndLoadingId,
-    resetMessages,
-  } = useContext(MainContext);
+  const { changeErrorMessages, changeLoadingId, resetMessagesAndLoadingId, resetMessages } = useContext(MainContext);
 
   const reset = (response: FetchObj, keepLoadingOnSuccess: boolean) => {
     if (!response.success) changeErrorMessages(response.error);
@@ -61,8 +50,7 @@ export const useMyFetch = () => {
     async post<T = any>(
       url: string,
       body: unknown,
-      { authorize = true, loadingId, keepLoadingOnSuccess = false }:
-        FetchOptions = { authorize: true },
+      { authorize = true, loadingId, keepLoadingOnSuccess = false }: FetchOptions = { authorize: true },
     ): Promise<FetchObj<T>> {
       if (loadingId !== null) changeLoadingId(loadingId || "_");
       const response = await doFetch<T>(url, "POST", { body, authorize });
@@ -106,10 +94,9 @@ export const useFetchWcaCompDetails = () => {
   const fetchPerson = useFetchPerson();
 
   return async (competitionId: string): Promise<IContestDto> => {
-    const wcaCompResponse = await myFetch.get(
-      `${C.wcaApiBase}/competitions/${competitionId}.json`,
-      { loadingId: null },
-    );
+    const wcaCompResponse = await myFetch.get(`${C.wcaApiBase}/competitions/${competitionId}.json`, {
+      loadingId: null,
+    });
 
     if (!wcaCompResponse.success) throw new Error(wcaCompResponse.error[0]);
 
@@ -131,18 +118,14 @@ export const useFetchWcaCompDetails = () => {
       competitionId,
       name: wcaCompResponse.data.name,
       shortName: wcaV0CompResponse.data.short_name,
-      type: ContestType.WcaComp,
+      type: "wca-comp",
       city: wcaCompResponse.data.city,
       countryIso2: wcaCompResponse.data.country,
       // Gets rid of the link and just takes the venue name
       venue: wcaCompResponse.data.venue.name.split("]")[0].replace("[", ""),
       address: wcaCompResponse.data.venue.address,
-      latitudeMicrodegrees: Math.round(
-        wcaCompResponse.data.venue.coordinates.latitude * 1000000,
-      ),
-      longitudeMicrodegrees: Math.round(
-        wcaCompResponse.data.venue.coordinates.longitude * 1000000,
-      ),
+      latitudeMicrodegrees: Math.round(wcaCompResponse.data.venue.coordinates.latitude * 1000000),
+      longitudeMicrodegrees: Math.round(wcaCompResponse.data.venue.coordinates.longitude * 1000000),
       startDate,
       endDate,
       organizers: [], // this is set below
@@ -154,12 +137,7 @@ export const useFetchWcaCompDetails = () => {
     const notFoundPersonNames: string[] = [];
 
     // Set organizer objects
-    for (
-      const org of [
-        ...wcaV0CompResponse.data.organizers,
-        ...wcaV0CompResponse.data.delegates,
-      ]
-    ) {
+    for (const org of [...wcaV0CompResponse.data.organizers, ...wcaV0CompResponse.data.delegates]) {
       const name = org.name;
       let person: IPerson | undefined;
 
@@ -167,20 +145,14 @@ export const useFetchWcaCompDetails = () => {
       else person = await fetchPerson(name, { countryIso2: org.country_iso2 });
 
       if (person) {
-        if (
-          !newContest.organizers.some((el) => el.personId === person.personId)
-        ) newContest.organizers.push(person);
+        if (!newContest.organizers.some((el) => el.personId === person.personId)) newContest.organizers.push(person);
       } else if (!notFoundPersonNames.includes(org.name)) {
         notFoundPersonNames.push(org.name);
       }
     }
 
     if (notFoundPersonNames.length > 0) {
-      throw new Error(
-        `Organizers with these names were not found: ${
-          notFoundPersonNames.join(", ")
-        }`,
-      );
+      throw new Error(`Organizers with these names were not found: ${notFoundPersonNames.join(", ")}`);
     }
 
     return newContest;
@@ -196,22 +168,16 @@ export const useFetchPerson = () => {
     { wcaId, countryIso2 }: { wcaId?: string; countryIso2?: string },
   ): Promise<IPerson | undefined> => {
     if (wcaId) {
-      const res = await myFetch.get<IWcaPersonDto>(
-        `/persons/${wcaId}`,
-        { authorize: true, loadingId: null },
-      );
+      const res = await myFetch.get<IWcaPersonDto>(`/persons/${wcaId}`, { authorize: true, loadingId: null });
       if (!res.success) throw new Error(res.error[0]);
       return res.data.person;
     }
 
     // If a WCA ID wasn't provided, first try looking in the CC database
     const englishNameOnly = name.split("(")[0].trim(); // get rid of the ( and everything after it
-    const res = await myFetch.get(
-      `/persons?name=${englishNameOnly}&exactMatch=true`,
-      {
-        loadingId: null,
-      },
-    );
+    const res = await myFetch.get(`/persons?name=${englishNameOnly}&exactMatch=true`, {
+      loadingId: null,
+    });
     if (!res.success) {
       throw new Error(`Error while fetching person with the name ${name}`);
     }

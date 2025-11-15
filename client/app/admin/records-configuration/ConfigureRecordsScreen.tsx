@@ -1,26 +1,33 @@
 "use client";
 
+import { faCopy, faPencil } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useAction } from "next-safe-action/hooks";
 import { useContext, useState } from "react";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
-import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
-import { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import { ListPageMode, RecordCategory, RecordCategoryValues, RecordType, RecordTypeValues } from "~/helpers/types.ts";
-import Button from "~/app/components/UI/Button.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import { MainContext } from "~/helpers/contexts.ts";
-import FormSelect from "~/app/components/form/FormSelect.tsx";
-import { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
+import FormSelect from "~/app/components/form/FormSelect.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { useAction } from "next-safe-action/hooks";
-import { createRecordConfigSF, updateRecordConfigSF } from "~/server/serverFunctions/recordConfigServerFunctions.ts";
-import { RecordConfigDto } from "~/helpers/validators/RecordConfig.ts";
-import { getActionError } from "~/helpers/utilityFunctions.ts";
 import { Continents } from "~/helpers/Countries.ts";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCopy, faPencil } from "@fortawesome/free-solid-svg-icons";
+import { C } from "~/helpers/constants.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
+import {
+  type ListPageMode,
+  type RecordCategory,
+  RecordCategoryValues,
+  type RecordType,
+  RecordTypeValues,
+} from "~/helpers/types.ts";
+import { getActionError } from "~/helpers/utilityFunctions.ts";
+import type { RecordConfigDto } from "~/helpers/validators/RecordConfig.ts";
+import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
+import { createRecordConfigSF, updateRecordConfigSF } from "~/server/serverFunctions/recordConfigServerFunctions.ts";
 
 const recordForOptions: MultiChoiceOption[] = [
   {
@@ -56,7 +63,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
   const [label, setLabel] = useState("");
   const [active, setActive] = useState(true);
   const [rank, setRank] = useState<number | undefined>();
-  const [color, setColor] = useState("#dc3545");
+  const [color, setColor] = useState(C.color.danger);
 
   const isPending = isCreating || isUpdating;
 
@@ -70,9 +77,10 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
       color,
     } satisfies RecordConfigDto;
 
-    const res = mode === "add"
-      ? await createRecordConfig({ newRecordConfigDto })
-      : await updateRecordConfig({ id: recordConfigIdUnderEdit!, newRecordConfigDto });
+    const res =
+      mode === "add"
+        ? await createRecordConfig({ newRecordConfigDto })
+        : await updateRecordConfig({ id: recordConfigIdUnderEdit!, newRecordConfigDto });
 
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
@@ -80,9 +88,10 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
       changeSuccessMessage(`Record type successfully ${mode === "add" ? "created" : "updated"}`);
       setMode("view");
 
-      const newRecordConfigs = mode === "add"
-        ? [...recordConfigs, res.data!]
-        : recordConfigs.map((rc) => rc.id === recordConfigIdUnderEdit ? res.data! : rc);
+      const newRecordConfigs =
+        mode === "add"
+          ? [...recordConfigs, res.data!]
+          : recordConfigs.map((rc) => (rc.id === recordConfigIdUnderEdit ? res.data! : rc));
       newRecordConfigs.sort((a, b) => a.rank - b.rank);
       setRecordConfigs(newRecordConfigs);
     }
@@ -98,7 +107,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
     setLabel("");
     setActive(true);
     setRank(undefined);
-    setColor("#dc3545");
+    setColor(C.color.danger);
   };
 
   const onEditRecordConfig = (recordConfig: RecordConfigResponse, clone = false) => {
@@ -123,93 +132,88 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
   const changeRecordTypeId = (newRecordTypeId: RecordType) => {
     setRecordTypeId(newRecordTypeId);
 
-    if (newRecordTypeId === "WR") setColor("#dc3545");
-    else if (Continents.map((c) => c.recordTypeId).includes(newRecordTypeId)) setColor("#ffc107");
-    else if (newRecordTypeId === "NR") setColor("#198754");
-    else setColor("#0d6efd");
+    if (newRecordTypeId === "WR") setColor(C.color.danger);
+    else if (Continents.map((c) => c.recordTypeId).includes(newRecordTypeId)) setColor(C.color.warning);
+    else if (newRecordTypeId === "NR") setColor(C.color.success);
+    else setColor(C.color.primary);
   };
 
   return (
     <>
       <ToastMessages />
 
-      {mode === "view"
-        ? (
-          <Button onClick={onAddRecordConfig} className="btn-success btn-sm ms-3">
-            Create Record Type
-          </Button>
-        )
-        : (
-          <Form
-            buttonText="Submit"
-            onSubmit={handleSubmit}
-            onCancel={cancel}
-            hideToasts
-            showCancelButton
-            isLoading={isPending}
-          >
-            <div className="row mb-3">
-              <div className="col">
-                <FormSelect
-                  title="Record For"
-                  options={recordForOptions}
-                  selected={category}
-                  setSelected={setCategory}
-                  disabled={isPending}
-                />
-              </div>
-              <div className="col">
-                <FormSelect
-                  title="Record Type"
-                  options={recordTypeOptions}
-                  selected={recordTypeId}
-                  setSelected={changeRecordTypeId}
-                  disabled={isPending}
-                />
-              </div>
+      {mode === "view" ? (
+        <Button onClick={onAddRecordConfig} className="btn-success btn-sm ms-3">
+          Create Record Type
+        </Button>
+      ) : (
+        <Form
+          buttonText="Submit"
+          onSubmit={handleSubmit}
+          onCancel={cancel}
+          hideToasts
+          showCancelButton
+          isLoading={isPending}
+        >
+          <div className="row mb-3">
+            <div className="col">
+              <FormSelect
+                title="Record For"
+                options={recordForOptions}
+                selected={category}
+                setSelected={setCategory}
+                disabled={isPending}
+              />
             </div>
-            <div className="row mb-3">
-              <div className="col">
-                <FormTextInput
-                  id="record_config_label"
-                  title="Label"
-                  value={label}
-                  setValue={setLabel}
-                  disabled={isPending}
-                />
-              </div>
-              <div className="col">
-                <FormNumberInput
-                  title="Rank"
-                  tooltip="Only used for ordering the record types on this page"
-                  value={rank}
-                  setValue={setRank}
-                  disabled={isPending}
-                />
-              </div>
+            <div className="col">
+              <FormSelect
+                title="Record Type"
+                options={recordTypeOptions}
+                selected={recordTypeId}
+                setSelected={changeRecordTypeId}
+                disabled={isPending}
+              />
             </div>
-            <div className="row mb-3">
-              <div className="col">
-                <label htmlFor="color_input" className="form-label d-block mb-2">Color</label>
-                <input
-                  id="color_input"
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  disabled={isPending}
-                />
-              </div>
-              <div className="col">
-                <FormCheckbox
-                  title="Active"
-                  selected={active}
-                  setSelected={setActive}
-                  disabled={isPending}
-                />
-              </div>
+          </div>
+          <div className="row mb-3">
+            <div className="col">
+              <FormTextInput
+                id="record_config_label"
+                title="Label"
+                value={label}
+                setValue={setLabel}
+                disabled={isPending}
+              />
             </div>
-          </Form>
-        )}
+            <div className="col">
+              <FormNumberInput
+                title="Rank"
+                tooltip="Only used for ordering the record types on this page"
+                value={rank}
+                setValue={setRank}
+                disabled={isPending}
+              />
+            </div>
+          </div>
+          <div className="row mb-3">
+            <div className="col">
+              <label htmlFor="color_input" className="form-label d-block mb-2">
+                Color
+              </label>
+              <input
+                id="color_input"
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+            <div className="col">
+              <FormCheckbox title="Active" selected={active} setSelected={setActive} disabled={isPending} />
+            </div>
+          </div>
+        </Form>
+      )}
 
       <p className="mt-3">
         Note: the code assumes that if there is an active NR or CR record type, the WR record type and all CR record
@@ -271,63 +275,6 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
           </tbody>
         </table>
       </div>
-      {
-        /* <div
-          key={rc.recordTypeId}
-          className="row align-items-center mb-3 text-nowrap"
-        >
-          <div className="d-none d-md-block col-2">
-            <label
-              htmlFor={rc.recordTypeId + "_label_input"}
-              className="form-label mb-0"
-            >
-              {rc.recordTypeId}&#8194;label
-            </label>
-          </div>
-          <div className="col-3 col-md-2 pe-0">
-            <input
-              type="text"
-              id={rc.recordTypeId + "_label_input"}
-              value={rc.label}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => changeLabel(rc.recordTypeId, e.target.value)}
-              className="form-control"
-            />
-          </div>
-          <div className="col-3 col-md-3 ps-md-5 pe-0">
-            <FormCheckbox
-              title="Active"
-              id={rc.recordTypeId}
-              selected={rc.active}
-              setSelected={() => changeActive(rc.recordTypeId)}
-              noMargin
-            />
-          </div>
-          <div className="col-6 col-md-5">
-            <span className="d-flex align-items-center gap-2 gap-md-3">
-              <label htmlFor="color_select" className="form-label mb-0">
-                Color
-              </label>
-
-              <select
-                id="color_select"
-                className="form-select"
-                value={rc.color}
-                onChange={(e) => changeColor(rc.recordTypeId, e.target.value)}
-              >
-                {colorOptions
-                  // .filter((el) => ![Color.White, Color.Magenta].includes(el.value as any))
-                  .map((colorOption) => (
-                    <option key={colorOption.value} value={colorOption.value}>
-                      {colorOption.label}
-                    </option>
-                  ))}
-              </select>
-
-              <ColorSquare color={rc.color} style={{ minWidth: "2.1rem" }} />
-            </span>
-          </div>
-        </div> */
-      }
     </>
   );
 }

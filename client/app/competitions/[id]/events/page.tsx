@@ -1,8 +1,5 @@
-import { ssrFetch } from "~/helpers/DELETEfetchUtils";
 import ContestLayout from "~/app/competitions/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
-import type { IContestData, IProceed } from "~/helpers/types.ts";
-import { RoundProceed } from "~/helpers/enums.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
@@ -40,19 +37,14 @@ const ContestEventsPage = async ({ params }: Props) => {
               compEvent.rounds.map((round, roundIndex) => {
                 const cutoffText = round.cutoff
                   ? `${round.cutoff.numberOfAttempts} ${
-                    round.cutoff.numberOfAttempts === 1 ? "attempt" : "attempts"
-                  } to get < ${
-                    getFormattedTime(round.cutoff.attemptResult, {
+                      round.cutoff.numberOfAttempts === 1 ? "attempt" : "attempts"
+                    } to get < ${getFormattedTime(round.cutoff.attemptResult, {
                       event: compEvent.event,
-                    })
-                  }`
+                    })}`
                   : "";
 
                 return (
-                  <tr
-                    key={round.roundId}
-                    className={roundIndex !== 0 ? "table-active" : ""}
-                  >
+                  <tr key={round.roundId} className={roundIndex !== 0 ? "table-active" : ""}>
                     <td>
                       {roundIndex === 0 && (
                         <EventTitle
@@ -66,16 +58,12 @@ const ContestEventsPage = async ({ params }: Props) => {
                       )}
                     </td>
                     <td>{roundTypes[round.roundTypeId].label}</td>
-                    <td>
-                      {roundFormats.find((rf) => rf.value === round.format)
-                        ?.label}
-                    </td>
+                    <td>{roundFormats.find((rf) => rf.value === round.format)?.label}</td>
                     <td>
                       {round.timeLimit
                         ? getFormattedTime(round.timeLimit.centiseconds, {
-                          event: compEvent.event,
-                        }) +
-                          (round.timeLimit.cumulativeRoundIds.length > 0 ? " cumulative" : "")
+                            event: compEvent.event,
+                          }) + (round.timeLimit.cumulativeRoundIds.length > 0 ? " cumulative" : "")
                         : ""}
                     </td>
                     <td>{cutoffText}</td>
@@ -83,16 +71,13 @@ const ContestEventsPage = async ({ params }: Props) => {
                       <td>
                         {round.roundTypeId !== "f" &&
                           `Top ${(round.proceed as IProceed).value}${
-                            (round.proceed as IProceed).type ===
-                                RoundProceed.Percentage
-                              ? "%"
-                              : ""
+                            (round.proceed as IProceed).type === "percentage" ? "%" : ""
                           } advance to next round`}
                       </td>
                     )}
                   </tr>
                 );
-              })
+              }),
             )}
           </tbody>
         </table>

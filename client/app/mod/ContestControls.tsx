@@ -4,12 +4,13 @@ import { faClock, faCopy, faPencil } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useState } from "react";
-import Button from "~/app/components/UI/Button";
-import { ContestState, ContestType } from "~/helpers/enums";
+import Button from "~/app/components/UI/Button.tsx";
+import type { ContestState } from "~/helpers/types.ts";
+import type { ContestResponse } from "~/server/db/schema/contests.ts";
 
 type Props = {
-  contest: IContest;
-  updateContest?: (newContest: IContest) => void;
+  contest: ContestResponse;
+  updateContest?: (newContest: ContestResponse) => void;
   isAdmin?: boolean;
   smallButtons?: boolean;
 };
@@ -17,38 +18,39 @@ type Props = {
 function ContestControls({ contest, updateContest, isAdmin = false, smallButtons }: Props) {
   const [loadingId, setLoadingId] = useState("");
 
-  const showApproveButton = contest.state === ContestState.Created && isAdmin &&
-    (contest.meetupDetails || contest.compDetails);
+  const showApproveButton = contest.state === "created" && isAdmin;
 
   const changeState = async (newState: ContestState) => {
-    //   const verb = newState === ContestState.Approved
-    //     ? "approve"
-    //     : newState === ContestState.Finished
-    //     ? "finish"
-    //     : newState === ContestState.Published
-    //     ? "publish"
-    //     : "ERROR";
+    const verb =
+      newState === "approved"
+        ? "approve"
+        : newState === "finished"
+          ? "finish"
+          : newState === "published"
+            ? "publish"
+            : "ERROR";
 
-    //   if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
-    //     setLoadingId(`set_state_${newState}_${contest.competitionId}_button`);
-    //     const res = await myFetch.patch(`/competitions/set-state/${contest.competitionId}`, { newState });
+    if (confirm(`Are you sure you would like to ${verb} ${contest.name}?`)) {
+      // setLoadingId(`set_state_${newState}_${contest.competitionId}_button`);
+      // const res = await myFetch.patch(`/competitions/set-state/${contest.competitionId}`, { newState });
 
-    //     if (res.success) {
-    //       if (updateContest) {
-    //         updateContest(res.data);
-    //         setLoadingId("");
-    //       } else {
-    //         window.location.reload();
-    //       }
-    //     } else {
-    //       setLoadingId("");
-    //     }
-    //   }
+      // if (res.success) {
+      //   if (updateContest) {
+      //     updateContest(res.data);
+      //     setLoadingId("");
+      //   } else {
+      //     window.location.reload();
+      //   }
+      // } else {
+      //   setLoadingId("");
+      // }
+      throw new Error("NOT IMPLEMENTED!");
+    }
   };
 
   return (
     <div className="d-flex gap-2">
-      {(contest.state < ContestState.Finished || isAdmin) && (
+      {(["created", "approved", "ongoing"].includes(contest.state) || isAdmin) && (
         <Link
           href={`/mod/competition?edit_id=${contest.competitionId}`}
           prefetch={false}
@@ -59,7 +61,7 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
           <FontAwesomeIcon icon={faPencil} />
         </Link>
       )}
-      {contest.type !== ContestType.WcaComp && (
+      {contest.type !== "wca-comp" && (
         <Link
           href={`/mod/competition?copy_id=${contest?.competitionId}`}
           prefetch={false}
@@ -70,10 +72,7 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
           <FontAwesomeIcon icon={faCopy} />
         </Link>
       )}
-      {
-        /* {(contest.state >= ContestState.Approved &&
-        contest.state < ContestState.Published &&
-        (contest.state < ContestState.Finished || isAdmin)) && (
+      {(["approved", "ongoing"].includes(contest.state) || (isAdmin && contest.state === "finished")) && (
         <Link
           href={`/mod/competition/${contest.competitionId}`}
           prefetch={false}
@@ -84,48 +83,45 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
       )}
       {showApproveButton && (
         <Button
-          id={`set_state_${ContestState.Approved}_${contest.competitionId}_button`}
+          id={`set_state_approved_${contest.competitionId}_button`}
           type="button"
-          onClick={() => changeState(ContestState.Approved)}
+          onClick={() => changeState("approved")}
           loadingId={loadingId}
           className={`btn btn-warning ${smallButtons ? "btn-xs" : ""}`}
         >
           Approve
         </Button>
       )}
-      {contest.state === ContestState.Ongoing && (
+      {contest.state === "ongoing" && (
         <Button
-          id={`set_state_${ContestState.Finished}_${contest.competitionId}_button`}
+          id={`set_state_finished_${contest.competitionId}_button`}
           type="button"
-          onClick={() => changeState(ContestState.Finished)}
+          onClick={() => changeState("finished")}
           loadingId={loadingId}
           className={`btn btn-warning ${smallButtons ? "btn-xs" : ""}`}
         >
           Finish
         </Button>
       )}
-      {contest.state === ContestState.Finished &&
-        (isAdmin
-          ? (
-            <Button
-              id={`set_state_${ContestState.Published}_${contest.competitionId}_button`}
-              type="button"
-              onClick={() => changeState(ContestState.Published)}
-              loadingId={loadingId}
-              className={`btn btn-warning ${smallButtons ? "btn-xs" : ""}`}
-            >
-              Publish
-            </Button>
-          )
-          : (
-            <FontAwesomeIcon
-              icon={faClock}
-              title="Contest pending review"
-              aria-label="Contest pending review"
-              className="my-1 fs-5"
-            />
-          ))} */
-      }
+      {contest.state === "finished" &&
+        (isAdmin ? (
+          <Button
+            id={`set_state_published_${contest.competitionId}_button`}
+            type="button"
+            onClick={() => changeState("published")}
+            loadingId={loadingId}
+            className={`btn btn-warning ${smallButtons ? "btn-xs" : ""}`}
+          >
+            Publish
+          </Button>
+        ) : (
+          <FontAwesomeIcon
+            icon={faClock}
+            title="Contest pending review"
+            aria-label="Contest pending review"
+            className="fs-5 my-1"
+          />
+        ))}
     </div>
   );
 }

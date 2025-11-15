@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import { addHours, isValid } from "date-fns";
 import { getTimezoneOffset } from "date-fns-tz";
-import { Color, ContestType } from "~/helpers/enums.ts";
-import { IActivity, IContestEvent, IRoom } from "~/helpers/types.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { colorOptions } from "~/helpers/multipleChoiceOptions.ts";
@@ -14,6 +12,7 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
 import Schedule from "~/app/components/Schedule.tsx";
+import type { ContestType } from "~/helpers/types.ts";
 
 type Props = {
   rooms: IRoom[];
@@ -36,7 +35,7 @@ const ScheduleEditor = ({
 }: Props) => {
   // Room stuff
   const [roomName, setRoomName] = useState("");
-  const [roomColor, setRoomColor] = useState<Color>(Color.White);
+  const [roomColor, setRoomColor] = useState("#fff");
 
   // Activity stuff
   const [activityUnderEdit, setActivityUnderEdit] = useState<IActivity | null>(null);
@@ -273,7 +272,7 @@ const ScheduleEditor = ({
           </Button>
           {activityUnderEdit !== null && <Button onClick={cancelEdit} className="btn-danger">Cancel</Button>}
         </div>
-        {contestType === ContestType.WcaComp && (
+        {contestType === "wca-comp" && (
           <p className="text-center text-danger">
             Please make sure that the schedules match between CC and the WCA.
           </p>

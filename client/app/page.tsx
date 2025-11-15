@@ -1,19 +1,21 @@
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { ne } from "drizzle-orm";
 import Link from "next/link";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { db } from "~/server/db/provider.ts";
 import {
   collectiveSolutionsPublicCols,
   collectiveSolutionsTable as csTable,
 } from "../server/db/schema/collective-solutions.ts";
-import { ne } from "drizzle-orm";
-import { db } from "~/server/db/provider.ts";
-import PartialHomePageDetails from "./components/PartialHomePageDetails";
+import PartialHomePageDetails from "./components/PartialHomePageDetails.tsx";
 
-async function Home() {
-  const [collectiveSolution] = await db.select(collectiveSolutionsPublicCols).from(csTable).where(
-    ne(csTable.state, "archived"),
-  ).limit(1);
+async function HomePage() {
+  const [collectiveSolution] = await db
+    .select(collectiveSolutionsPublicCols)
+    .from(csTable)
+    .where(ne(csTable.state, "archived"))
+    .limit(1);
 
   return (
     <div className="px-3">
@@ -21,14 +23,17 @@ async function Home() {
 
       <div className="alert alert-light mb-4" role="alert">
         Join the Cubing Contests{" "}
-        <a href="https://discord.gg/7rRMQA8jnU" target="_blank">
+        <a href="https://discord.gg/7rRMQA8jnU" target="_blank" rel="noopener noreferrer">
           Discord server
-        </a>!
+        </a>
+        !
       </div>
 
       <p>
         This is a place for hosting unofficial Rubik's Cube competitions, unofficial events held at{" "}
-        <a href="https://www.worldcubeassociation.org/" target="_blank">WCA</a>{" "}
+        <a href="https://www.worldcubeassociation.org/" target="_blank" rel="noopener">
+          WCA
+        </a>{" "}
         competitions, speedcuber meetups, and other unofficial events.
       </p>
       <p>
@@ -62,14 +67,18 @@ async function Home() {
       <div className="mt-4 mx-3 p-3 border rounded-3 fw-bold">
         <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
         Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
-        held as an official <a href="https://www.worldcubeassociation.org/" target="_blank">WCA</a> competition.
+        held as an official{" "}
+        <a href="https://www.worldcubeassociation.org/" target="_blank" rel="noopener">
+          WCA
+        </a>{" "}
+        competition.
       </div>
       <Link href="/moderator-instructions" className="btn btn-secondary mt-4">
         Moderator Instructions
       </Link>
 
       <PartialHomePageDetails />
-      
+
       <h3 className="cc-basic-heading">Collective Cubing</h3>
 
       <CollectiveCubing initCollectiveSolution={collectiveSolution ?? null} />

@@ -1,20 +1,19 @@
-import Link from "next/link";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircle, faDiamond, faSquare, faUserGroup } from "@fortawesome/free-solid-svg-icons";
-import { IContest } from "~/helpers/types.ts";
-import { ContestType } from "~/helpers/enums.ts";
-import { getBSClassFromColor, getFormattedDate } from "~/helpers/utilityFunctions.ts";
-import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
+import type { ContestType } from "~/helpers/enums.ts";
+import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
+import type { IContest } from "~/helpers/types.ts";
+import { getBSClassFromColor, getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
 type Props = {
   contests: IContest[];
 };
 
 const ContestsTable = ({ contests }: Props) => {
-  const getShapeIcon = (type: ContestType) =>
-    type === ContestType.Competition ? faSquare : type === ContestType.Meetup ? faDiamond : faCircle;
+  const getShapeIcon = (type: ContestType) => (type === "comp" ? faSquare : type === "meetup" ? faDiamond : faCircle);
 
   return (
     <>
@@ -31,19 +30,13 @@ const ContestsTable = ({ contests }: Props) => {
                 <div className="d-flex align-items-center gap-2">
                   <FontAwesomeIcon
                     icon={getShapeIcon(contest.type)}
-                    className={`text-${
-                      getBSClassFromColor(
-                        contestTypeOptions.find((el) => el.value === contest.type)?.color,
-                      )
-                    }`}
+                    className={`text-${getBSClassFromColor(
+                      contestTypeOptions.find((el) => el.value === contest.type)?.color,
+                    )}`}
                     style={{ minWidth: "0.5rem", width: "0.5rem" }}
                   />
 
-                  <Link
-                    href={`/competitions/${contest.competitionId}`}
-                    prefetch={false}
-                    className="link-primary"
-                  >
+                  <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
                     {contest.shortName}
                   </Link>
                 </div>
@@ -55,12 +48,7 @@ const ContestsTable = ({ contests }: Props) => {
               <div className="d-flex justify-content-between gap-3">
                 <div className="ms-2">
                   <span>
-                    {contest.city},{" "}
-                    <Country
-                      countryIso2={contest.countryIso2}
-                      swapPositions
-                      shorten
-                    />
+                    {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
                   </span>
                 </div>
                 <div className="flex-shrink-0 text-end">
@@ -100,11 +88,7 @@ const ContestsTable = ({ contests }: Props) => {
               <tr key={contest.competitionId}>
                 <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                 <td>
-                  <Link
-                    href={`/competitions/${contest.competitionId}`}
-                    prefetch={false}
-                    className="link-primary"
-                  >
+                  <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
                     {contest.shortName}
                   </Link>
                 </td>

@@ -1,22 +1,21 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import Link from "next/link";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
-import { ContestState } from "~/helpers/enums.ts";
-import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import Country from "~/app/components/Country.tsx";
+import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
+import Country from "~/app/components/Country.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { C } from "~/helpers/constants.ts";
-import { useRouter, useSearchParams } from "next/navigation";
-import ModFilters from "~/app/mod/ModFilters";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import ModFilters from "~/app/mod/ModFilters.tsx";
 import { authClient } from "~/helpers/authClient.ts";
+import { C } from "~/helpers/constants.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import ContestControls from "./ContestControls.tsx";
 
 type Props = {
@@ -33,11 +32,7 @@ function ModDashboardScreen({ contests: initContests }: Props) {
   // const [showAnalytics, setShowAnalytics] = useState(false);
 
   const isAdmin = session?.user.role === "admin";
-
-  // const pendingContests = contests?.filter((c: IContest) =>
-  //   c.state === ContestState.Created ||
-  //   (c.state > ContestState.Approved && c.state < ContestState.Published)
-  // ).length ?? 0;
+  // const pendingContests = contests?.filter((c: IContest) => ["created", "ongoing", "finished"].includes(c.state)).length ?? 0;
 
   // const fetchContests = async (newOrganizerId?: string | number) => {
   //   const res = await myFetch.get(
@@ -86,56 +81,38 @@ function ModDashboardScreen({ contests: initContests }: Props) {
 
         <div className="alert alert-light mb-4" role="alert">
           We have a Cubing Contests Discord server!{" "}
-          <a href="https://discord.gg/7rRMQA8jnU" target="_blank">
+          <a href="https://discord.gg/7rRMQA8jnU" target="_blank" rel="noopener noreferrer">
             Click here to join
-          </a>, then send your CC username and your Discord username in an email to {C.contactEmail}{" "}
-          so you can be given the moderator role on the server.
+          </a>
+          , then send your CC username and your Discord username in an email to {C.contactEmail} so you can be given the
+          moderator role on the server.
         </div>
 
         <div className="my-4 d-flex flex-wrap gap-3 fs-5">
-          <Link
-            href="/mod/competition"
-            className="btn btn-success btn-sm btn-lg-md"
-          >
+          <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
             Create new contest
           </Link>
-          <Link
-            href="/mod/competitors"
-            className="btn btn-warning btn-sm btn-lg-md"
-          >
+          <Link href="/mod/competitors" className="btn btn-warning btn-sm btn-lg-md">
             Manage competitors
           </Link>
           {isAdmin && (
             <>
-              <Link
-                href="/admin/results"
-                className="btn btn-warning btn-sm btn-lg-md"
-              >
+              <Link href="/admin/results" className="btn btn-warning btn-sm btn-lg-md">
                 Manage results
               </Link>
-              <Link
-                href="/admin/users"
-                className="btn btn-warning btn-sm btn-lg-md"
-              >
+              <Link href="/admin/users" className="btn btn-warning btn-sm btn-lg-md">
                 Manage users
               </Link>
-              <Link
-                href="/admin/events"
-                className="btn btn-secondary btn-sm btn-lg-md"
-              >
+              <Link href="/admin/events" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure events
               </Link>
-              <Link
-                href="/admin/records-configuration"
-                className="btn btn-secondary btn-sm btn-lg-md"
-              >
+              <Link href="/admin/records-configuration" className="btn btn-secondary btn-sm btn-lg-md">
                 Configure records
               </Link>
             </>
           )}
         </div>
-        {
-          /* {adminStats && (
+        {/* {adminStats && (
           <>
             <p>
               Total contests:&nbsp;<b>
@@ -175,13 +152,13 @@ function ModDashboardScreen({ contests: initContests }: Props) {
               </div>
             )}
           </>
-        )} */
-        }
+        )} */}
         {!isAdmin && contests && (
           <>
-            {!contests.some((c) => c.state >= ContestState.Approved) && (
+            {!contests.some((c) => c.state !== "created") && (
               <p className="my-3 text-danger fw-bold">
-                Your contests will not be public and you will not be able to enter results until an admin approves them
+                Your contests will not be publicly visible and you will not be able to enter results until an admin
+                approves them
               </p>
             )}
             <p>
@@ -191,90 +168,75 @@ function ModDashboardScreen({ contests: initContests }: Props) {
         )}
       </div>
 
-      {
-        /* <ModFilters
+      {/* <ModFilters
         onSelectPerson={selectPerson}
         onResetFilters={resetFilters}
         disabled={!contests}
-      /> */
-      }
+      /> */}
 
-      {!contests
-        ? <Loading />
-        : contests.length === 0
-        ? <p className="px-2 fs-5">You haven't created any contests yet</p>
-        : (
-          <div className="mb-5 table-responsive">
-            <table className="table table-hover text-nowrap">
-              <thead>
-                <tr>
-                  <th scope="col">Date</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Place</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">
-                    <FontAwesomeIcon
-                      icon={faUserGroup}
-                      title="Number of participants"
-                      aria-label="Number of participants"
-                    />
-                  </th>
-                  <th scope="col">Actions</th>
+      {!contests ? (
+        <Loading />
+      ) : contests.length === 0 ? (
+        <p className="px-2 fs-5">You haven't created any contests yet</p>
+      ) : (
+        <div className="mb-5 table-responsive">
+          <table className="table table-hover text-nowrap">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Name</th>
+                <th scope="col">Place</th>
+                <th scope="col">Type</th>
+                <th scope="col">
+                  <FontAwesomeIcon
+                    icon={faUserGroup}
+                    title="Number of participants"
+                    aria-label="Number of participants"
+                  />
+                </th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {contests.map((contest) => (
+                <tr key={contest.competitionId}>
+                  <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
+                  <td>
+                    <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
+                      {contest.shortName}
+                    </Link>
+                  </td>
+                  <td>
+                    <div className="d-flex align-items-center">
+                      <span className="d-inline-block m-0 text-truncate" style={{ maxWidth: "18rem" }}>
+                        {contest.city}
+                      </span>
+                      <span className="me-1">,</span>
+                      <Country countryIso2={contest.countryIso2} swapPositions shorten />
+                    </div>
+                  </td>
+                  <td>
+                    <ContestTypeBadge type={contest.type} brief />
+                  </td>
+                  <td>{contest.participants || ""}</td>
+                  <td>
+                    {contest.state === "removed" ? (
+                      <span className="text-danger">Removed</span>
+                    ) : (
+                      <ContestControls
+                        contest={contest}
+                        // updateContest={updateContest}
+                        isAdmin={isAdmin}
+                        smallButtons
+                      />
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {contests.map((contest) => (
-                  <tr key={contest.competitionId}>
-                    <td>
-                      {getFormattedDate(contest.startDate, contest.endDate)}
-                    </td>
-                    <td>
-                      <Link
-                        href={`/competitions/${contest.competitionId}`}
-                        prefetch={false}
-                        className="link-primary"
-                      >
-                        {contest.shortName}
-                      </Link>
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span
-                          className="d-inline-block m-0 text-truncate"
-                          style={{ maxWidth: "18rem" }}
-                        >
-                          {contest.city}
-                        </span>
-                        <span className="me-1">,</span>
-                        <Country
-                          countryIso2={contest.countryIso2}
-                          swapPositions
-                          shorten
-                        />
-                      </div>
-                    </td>
-                    <td>
-                      <ContestTypeBadge type={contest.type} brief />
-                    </td>
-                    <td>{contest.participants || ""}</td>
-                    <td>
-                      {contest.state === ContestState.Removed
-                        ? <span className="text-danger">Removed</span>
-                        : (
-                          <ContestControls
-                            contest={contest}
-                            // updateContest={updateContest}
-                            isAdmin={isAdmin}
-                            smallButtons
-                          />
-                        )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }

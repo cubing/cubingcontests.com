@@ -1,23 +1,31 @@
+import { inArray } from "drizzle-orm";
+import { db } from "~/server/db/provider.ts";
+import { personsTable } from "~/server/db/schema/persons.ts";
+import type { FullResult } from "~/server/db/schema/results.ts";
 import { authorizeUser, getActiveRecordConfigs } from "~/server/serverUtilityFunctions.ts";
 import ManageResultsScreen from "./ManageResultsScreen.tsx";
-import { db } from "~/server/db/provider.ts";
-import { FullResult } from "~/server/db/schema/results.ts";
 
 async function ManageResultsPage() {
   await authorizeUser({ permissions: { videoBasedResults: ["approve"] } });
 
-  const results = await db.query.results.findMany({
+  const results = (await db.query.results.findMany({
     // with: { event: true, persons: true },
     with: { event: true },
     where: { competitionId: { isNull: true } },
     orderBy: { createdAt: "desc" },
-  }) as FullResult[];
+  })) as FullResult[];
+
   // This is a temporary hack until I figure out how to populate the persons in the first query directly
-  results.forEach(async (r) => {
-    const persons = await db.query.persons.findMany({ where: { personId: { in: r.personIds } } });
-    const sortedPersons = r.personIds.map((pid) => persons.find((p) => p.personId === pid) ?? null);
-    (r as any).persons = sortedPersons;
+  const allPersonIds = new Set<number>();
+  for (const r of results) for (const pid of r.personIds) allPersonIds.add(pid);
+  const persons = await db
+    .select()
+    .from(personsTable)
+    .where(inArray(personsTable.personId, Array.from(allPersonIds)));
+  results.forEach((r) => {
+    (r as any).persons = r.personIds.map((pid) => persons.find((p) => p.personId === pid) ?? null);
   });
+
   const activeRecordConfigs = await getActiveRecordConfigs("video-based-results");
 
   return (

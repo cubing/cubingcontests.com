@@ -1,70 +1,70 @@
-import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
-import { Color, ContestType, EventFormat, RoundProceed } from "~/helpers/enums.ts";
+import { C } from "./constants.ts";
 import { eventCategories } from "./eventCategories.ts";
+import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 
 export const colorOptions: MultiChoiceOption[] = [
   {
     label: "No color",
-    value: Color.White,
+    value: "#fff",
   },
   {
     label: "Black",
-    value: Color.Black,
+    value: "#000",
   },
   {
     label: "Red",
-    value: Color.Red,
+    value: "#f00",
   },
   {
     label: "Yellow",
-    value: Color.Yellow,
+    value: "#ff0",
   },
   {
     label: "Green",
-    value: Color.Green,
+    value: "#0f0",
   },
   {
     label: "Cyan",
-    value: Color.Cyan,
+    value: "#0ff",
   },
   {
     label: "Blue",
-    value: Color.Blue,
+    value: "#00f",
   },
   {
     label: "Magenta",
-    value: Color.Magenta,
+    value: "#f0f",
   },
 ];
 
 export const contestTypeOptions: MultiChoiceOption[] = [
   {
     label: "Meetup",
-    value: ContestType.Meetup,
-    color: Color.Green,
+    value: "meetup",
+    color: C.color.success,
   },
   {
     label: "WCA Competition",
     shortLabel: "WCA",
-    value: ContestType.WcaComp,
-    color: Color.Red,
+    value: "wca-comp",
+    color: C.color.danger,
   },
   {
     label: "Competition",
     shortLabel: "Comp",
-    value: ContestType.Competition,
-    color: Color.Yellow,
+    value: "competition",
+    color: C.color.warning,
   },
 ];
 
 export const roundProceedOptions: MultiChoiceOption[] = [
   {
     label: "Number",
-    value: RoundProceed.Number,
+    value: "number",
   },
   {
     label: "Percentage",
-    value: RoundProceed.Percentage,
+    value: "percentage",
   },
 ];
 
