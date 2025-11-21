@@ -1,42 +1,30 @@
-import { PGlite } from "@electric-sql/pglite";
-import { drizzle } from "drizzle-orm/pglite";
-import { vi } from "vitest";
+import { beforeEach, vi } from "vitest";
+import { apply, db } from "~/__mocks__/dbProvider.ts";
 import { eventsStub } from "~/__mocks__/stubs/events.stub.ts";
 import { personsStub } from "~/__mocks__/stubs/persons.stub.ts";
 import { recordConfigsStub } from "~/__mocks__/stubs/record-configs.stub.ts";
 import { resultsStub } from "~/__mocks__/stubs/results.stub.ts";
-import { relations } from "~/server/db/relations.ts";
 import { eventsTable } from "~/server/db/schema/events.ts";
 import { personsTable } from "~/server/db/schema/persons.ts";
 import { recordConfigsTable } from "~/server/db/schema/record-configs.ts";
 import { resultsTable } from "~/server/db/schema/results.ts";
-import * as schema from "~/server/db/schema/schema.ts";
 
 vi.mock("server-only", () => ({}));
 
-// Source: https://github.com/drizzle-team/drizzle-orm/discussions/4216
 vi.mock("~/server/db/provider.ts", async () => {
-  // Use require to defeat dynamic require error
-  // (https://github.com/drizzle-team/drizzle-orm/issues/2853#issuecomment-2668459509)
-  const { createRequire } = await vi.importActual<typeof import("node:module")>("node:module");
-  const require = createRequire(import.meta.url);
-  const { pushSchema } = require("drizzle-kit/api") as typeof import("drizzle-kit/api");
-
-  const client = new PGlite();
-  // This uses some of the same options from drizzle.config.ts
-  // pushSchema doesn't respect the casing parameter yet. See https://github.com/drizzle-team/drizzle-orm/pull/5018
-  // const db = drizzle({ client, schema, relations, casing: "snake_case" });
-  const db = drizzle({ client, schema, relations });
-
-  // Apply schema to db
-  const { apply } = await pushSchema(schema, db as any);
   await apply();
-
-  // Seed test data
-  await db.insert(personsTable).values(personsStub());
-  await db.insert(eventsTable).values(eventsStub());
-  await db.insert(resultsTable).values(resultsStub());
-  await db.insert(recordConfigsTable).values(recordConfigsStub());
-
   return { db };
+});
+
+// Re-seed test data
+beforeEach(async () => {
+  await db.delete(personsTable);
+  await db.delete(eventsTable);
+  await db.delete(resultsTable);
+  await db.delete(recordConfigsTable);
+
+  await db.insert(personsTable).values(personsStub);
+  await db.insert(eventsTable).values(eventsStub);
+  await db.insert(resultsTable).values(resultsStub);
+  await db.insert(recordConfigsTable).values(recordConfigsStub);
 });

@@ -13,7 +13,7 @@ async function EditResultPage({ params }: Props) {
     <section>
       <h2 className="mb-4 text-center">Results</h2>
 
-      <ResultsSubmissionForm events={} result={} />;
+      <ResultsSubmissionForm events={} result={} />
     </section>
   )
 }

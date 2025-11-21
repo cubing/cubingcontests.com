@@ -9,7 +9,7 @@
     "dev": "deno run -A npm:next dev --turbo -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
     "build": "deno run -A npm:next build --turbo",
     "start": "next start",
-    "check": "@biomejs/biome lint && @biomejs/biome check",
+    "check": "deno run -A npm:@biomejs/biome lint && deno run -A npm:@biomejs/biome check",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "db:push": "deno run --allow-all --conditions=react-server npm:drizzle-kit push --strict",

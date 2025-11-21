@@ -19,10 +19,10 @@ import type { FullResult } from "~/server/db/schema/results.ts";
 
 type Props = {
   results: FullResult[];
-  activeRecordConfigs: RecordConfigResponse[];
+  recordConfigs: RecordConfigResponse[];
 };
 
-function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
+function ManageResultsScreen({ results, recordConfigs }: Props) {
   const parentRef = useRef<Element>(null);
 
   const [persons, setPersons] = useState<InputPerson[]>([null]);
@@ -64,7 +64,11 @@ function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
           addNewPersonMode="disabled"
           display="one-line"
         />
-        {persons.at(0) && <Button onClick={resetFilters} className="btn btn-secondary btn-md">Reset</Button>}
+        {persons.at(0) && (
+          <Button onClick={resetFilters} className="btn btn-secondary btn-md">
+            Reset
+          </Button>
+        )}
       </FiltersContainer>
 
       <p className="px-3">
@@ -73,11 +77,7 @@ function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
         <b>{filteredResults.filter((r) => !r.approved).length}</b>
       </p>
 
-      <div
-        ref={parentRef as any}
-        className="mt-3 table-responsive overflow-y-auto"
-        style={{ height: "700px" }}
-      >
+      <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "700px" }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           <table className="table table-hover text-nowrap">
             <thead>
@@ -114,20 +114,11 @@ function ManageResultsScreen({ results, activeRecordConfigs }: Props) {
                       )}
                     </td>
                     <td>
-                      <Time
-                        result={result}
-                        event={result.event}
-                        recordConfigs={activeRecordConfigs}
-                      />
+                      <Time result={result} event={result.event} recordConfigs={recordConfigs} />
                     </td>
                     <td>
                       {result.attempts.length >= 3 && (
-                        <Time
-                          result={result}
-                          event={result.event}
-                          recordConfigs={activeRecordConfigs}
-                          average
-                        />
+                        <Time result={result} event={result.event} recordConfigs={recordConfigs} average />
                       )}
                     </td>
                     <td>

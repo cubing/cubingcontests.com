@@ -13,6 +13,15 @@ export const Continents: {
   { name: "South America", code: "SOUTH_AMERICA", recordTypeId: "SAR" },
 ];
 
+export const ContinentRecordType: Record<ContinentId, RecordType> = {
+  AFRICA: "AfR",
+  ASIA: "AsR",
+  EUROPE: "ER",
+  NORTH_AMERICA: "NAR",
+  OCEANIA: "OcR",
+  SOUTH_AMERICA: "SAR",
+};
+
 export function getContinent(countryIso2: string): ContinentId {
   const country = Countries.find((c) => c.code === countryIso2);
   if (!country) throw new Error(`Unknown country code: ${countryIso2}`);

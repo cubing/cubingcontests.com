@@ -12,7 +12,7 @@ export const recordConfigsTable = table("record_configs", {
   recordTypeId: recordTypeEnum().notNull(),
   category: recordCategoryEnum().notNull(),
   label: text().notNull().unique(),
-  active: boolean().notNull(),
+  active: boolean().default(true).notNull(),
   rank: integer().notNull(),
   color: varchar({ length: 7 }).notNull(),
   ...tableTimestamps,

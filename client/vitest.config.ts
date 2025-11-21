@@ -5,6 +5,7 @@ export default defineConfig({
     exclude: [".next/**", "node_modules/**"],
     setupFiles: ["__tests__/setup.ts"],
     env: {
+      TZ: "UTC",
       PROD_BASE_URL: "test",
     },
   },

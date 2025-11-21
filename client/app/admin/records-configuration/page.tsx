@@ -1,7 +1,7 @@
 import { db } from "~/server/db/provider.ts";
-import ConfigureRecordsScreen from "./ConfigureRecordsScreen.tsx";
-import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
 import { recordConfigsPublicCols, recordConfigsTable as table } from "~/server/db/schema/record-configs.ts";
+import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
+import ConfigureRecordsScreen from "./ConfigureRecordsScreen.tsx";
 
 async function RecordsConfigurationPage() {
   await authorizeUser({ permissions: { recordConfigs: ["create-and-update"] } });

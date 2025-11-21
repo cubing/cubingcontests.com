@@ -2,7 +2,7 @@ import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { EventWrPair, RecordCategory } from "~/helpers/types.ts";
+import { type EventWrPair, type RecordCategory, RecordTypeValues } from "~/helpers/types.ts";
 import { getDateOnly, getNameAndLocalizedName } from "../helpers/sharedFunctions.ts";
 import { auth } from "./auth.ts";
 import { db } from "./db/provider.ts";
@@ -32,11 +32,19 @@ export async function authorizeUser({ permissions }: { permissions?: CcPermissio
   return session;
 }
 
-export async function getActiveRecordConfigs(recordFor: RecordCategory) {
-  return await db
+export async function getRecordConfigs(recordFor: RecordCategory) {
+  const recordConfigs = await db
     .select(recordConfigsPublicCols)
     .from(recordConfigsTable)
-    .where(and(eq(recordConfigsTable.active, true), eq(recordConfigsTable.category, recordFor)));
+    .where(eq(recordConfigsTable.category, recordFor));
+
+  if (recordConfigs.length !== RecordTypeValues.length) {
+    throw new Error(
+      `The records are configured incorrectly. Expected ${RecordTypeValues.length} record configs for the category, but found ${recordConfigs.length}.`,
+    );
+  }
+
+  return recordConfigs;
 }
 
 export async function getWrPairs(

@@ -2,7 +2,12 @@
   "lsp": {
     "biome": {
       "settings": {
-        "config_path": "./client/biome.json"
+        "config_path": "./client/biome.jsonc",
+        "require_config_file": true
+      },
+      "binary": {
+        "path": "./client/node_modules/@biomejs/biome/bin/biome",
+        "arguments": ["lsp-proxy"]
       }
     }
   },

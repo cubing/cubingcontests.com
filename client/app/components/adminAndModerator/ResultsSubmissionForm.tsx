@@ -35,7 +35,7 @@ const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.
 type Props = {
   events: EventResponse[];
   wrPairs: EventWrPair[];
-  activeRecordConfigs: RecordConfigResponse[];
+  recordConfigs: RecordConfigResponse[];
   result?: SelectResult; // only defined when editing an existing result
   competitors?: PersonResponse[];
   creator?: Creator;
@@ -45,7 +45,7 @@ type Props = {
 function ResultsSubmissionForm({
   events,
   wrPairs: initWrPairs,
-  activeRecordConfigs,
+  recordConfigs,
   result,
   competitors: initCompetitors,
   creator,
@@ -225,46 +225,40 @@ function ResultsSubmissionForm({
       <h2 className="text-center">{result ? "Edit Result" : "Submit Result"}</h2>
 
       <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: "900px" }}>
-        {result
-          ? (
+        {result ? (
+          <p>
+            Once you submit the attempt, the backend will remove future records that would have been cancelled by it.
+          </p>
+        ) : (
+          <>
             <p>
-              Once you submit the attempt, the backend will remove future records that would have been cancelled by it.
+              Here you can submit results for events that allow submissions. You may submit other people's results too.
+              New results will be included in the rankings after an admin approves them. A result can only be accepted
+              if it has video evidence of the <b>ENTIRE</b> solve (including memorization, if applicable). The video
+              date is used as proof of when the solve was done, an earlier date cannot be used. Make sure that you can
+              be identified from the provided video; if your channel name is not your real name, please include your
+              full name or WCA ID in the description of the video. If you do not have a WCA ID, please contact the
+              admins to have a competitor profile created for you. If you have any questions or suggestions, feel free
+              to send an email to {C.contactEmail}.
             </p>
-          )
-          : (
-            <>
-              <p>
-                Here you can submit results for events that allow submissions. You may submit other people's results
-                too. New results will be included in the rankings after an admin approves them. A result can only be
-                accepted if it has video evidence of the <b>ENTIRE</b>{" "}
-                solve (including memorization, if applicable). The video date is used as proof of when the solve was
-                done, an earlier date cannot be used. Make sure that you can be identified from the provided video; if
-                your channel name is not your real name, please include your full name or WCA ID in the description of
-                the video. If you do not have a WCA ID, please contact the admins to have a competitor profile created
-                for you. If you have any questions or suggestions, feel free to send an email to {C.contactEmail}.
-              </p>
-              <div className="alert alert-warning mb-4" role="alert">
-                Rule 6 has been added
+            <div className="alert alert-warning mb-4" role="alert">
+              Rule 6 has been added
+            </div>
+            <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
+              {showRules ? "Hide rules" : "Show rules"}
+            </button>
+            {showRules && (
+              <div className="mt-4 lh-lg">
+                <Rules />
               </div>
-              <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
-                {showRules ? "Hide rules" : "Show rules"}
-              </button>
-              {showRules && (
-                <div className="mt-4 lh-lg">
-                  <Rules />
-                </div>
-              )}
-            </>
-          )}
+            )}
+          </>
+        )}
       </div>
 
       <Form hideControls>
         {result && (
-          <CreatorDetails
-            creator={creator}
-            person={creatorPerson}
-            createdExternally={!!result.createdExternally}
-          />
+          <CreatorDetails creator={creator} person={creatorPerson} createdExternally={!!result.createdExternally} />
         )}
         <FormEventSelect
           events={events}
@@ -303,13 +297,15 @@ function ResultsSubmissionForm({
             nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
           />
         ))}
-        {isUpdatingWrPairs ? <Loading small dontCenter /> : (
+        {isUpdatingWrPairs ? (
+          <Loading small dontCenter />
+        ) : (
           <BestAndAverage
             event={event}
             roundFormat={roundFormat.value}
             attempts={attempts}
             eventWrPair={eventWrPair}
-            recordConfigs={activeRecordConfigs}
+            recordConfigs={recordConfigs}
           />
         )}
         <FormDateInput
@@ -338,7 +334,11 @@ function ResultsSubmissionForm({
             setSelected={setVideoUnavailable}
           />
         )}
-        {videoLink && <a href={videoLink} target="_blank" className="d-block mb-3">Video link</a>}
+        {videoLink && (
+          <a href={videoLink} target="_blank" className="d-block mb-3">
+            Video link
+          </a>
+        )}
         <FormTextInput
           id="discussion_link"
           title="Link to discussion (optional)"
@@ -348,7 +348,11 @@ function ResultsSubmissionForm({
           nextFocusTargetId="submit_button"
           className="mb-3"
         />
-        {discussionLink && <a href={discussionLink} target="_blank" className="d-block">Discussion link</a>}
+        {discussionLink && (
+          <a href={discussionLink} target="_blank" className="d-block">
+            Discussion link
+          </a>
+        )}
         <Button
           id="submit_button"
           onClick={() => submitResult()}
