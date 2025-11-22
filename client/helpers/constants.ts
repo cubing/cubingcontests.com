@@ -1,6 +1,7 @@
 export const C = {
   contactEmail: "cubing-contests-admin@googlegroups.com",
   sourceCodeLink: "https://github.com/mintydev789/cubingcontests.com",
+  discordServerLink: "https://discord.gg/7rRMQA8jnU",
   fetchDebounceTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
   // Timeouts before revalidating a request in seconds
   rankingsRev: 300,
@@ -19,9 +20,6 @@ export const C = {
   maxProceedPercentage: 75,
   maxMeetupRounds: 15,
   maxPersonMatches: 6,
-  confirmationCodeCooldown: 5 * 60 * 1000, // in milliseconds (5 minutes)
-  passwordResetSessionLength: 3, // in days
-  passwordSaltRounds: 10,
   duePerCompetitor: 0.1,
   wcaApiBase: "https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api",
   wcaIdRegex: /[0-9]{4}[A-Z]{4}[0-9]{2}/,

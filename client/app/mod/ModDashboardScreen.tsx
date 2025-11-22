@@ -1,94 +1,77 @@
 "use client";
 
-import { faClock } from "@fortawesome/free-regular-svg-icons";
-import { faPencil, faUserGroup } from "@fortawesome/free-solid-svg-icons";
+import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAction } from "next-safe-action/hooks";
+import { useContext, useState } from "react";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
-import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import ModFilters from "~/app/mod/ModFilters.tsx";
-import { authClient } from "~/helpers/authClient.ts";
+import type { authClient } from "~/helpers/authClient.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { getActionError, getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import type { ContestResponse } from "~/server/db/schema/contests.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import { getModContestsSF } from "~/server/serverFunctions/contestServerFunctions.ts";
 import ContestControls from "./ContestControls.tsx";
 
 type Props = {
-  contests: any[]; //IContest[]
+  contests: ContestResponse[];
+  session: typeof authClient.$Infer.Session;
 };
 
-function ModDashboardScreen({ contests: initContests }: Props) {
+function ModDashboardScreen({ contests: initContests, session }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { data: session } = authClient.useSession();
+  const { changeErrorMessages } = useContext(MainContext);
 
-  const [contests, setContests] = useState<any[]>(initContests);
-  // const [adminStats, setAdminStats] = useState<IAdminStats>();
-  // const [showAnalytics, setShowAnalytics] = useState(false);
+  const { executeAsync: getModContests, isPending } = useAction(getModContestsSF);
+  const [contests, setContests] = useState<ContestResponse[]>(initContests);
 
-  const isAdmin = session?.user.role === "admin";
-  // const pendingContests = contests?.filter((c: IContest) => ["created", "ongoing", "finished"].includes(c.state)).length ?? 0;
+  const isAdmin = session.user.role === "admin";
+  const pendingContests = contests.filter((c) => ["created", "ongoing", "finished"].includes(c.state)).length;
 
-  // const fetchContests = async (newOrganizerId?: string | number) => {
-  //   const res = await myFetch.get(
-  //     `/competitions/mod${newOrganizerId ? `?organizerId=${newOrganizerId}` : ""}`,
-  //     { authorize: true },
-  //   );
+  const fetchContests = async (newOrganizerPersonId?: number) => {
+    const res = await getModContests({ organizerPersonId: newOrganizerPersonId });
 
-  //   if (res.success) setContests(res.data);
-  // };
+    if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
+    else setContests(res.data!);
+  };
 
-  // useEffect(() => {
-  //   const organizerId = searchParams.get("organizerId");
-  //   fetchContests(typeof organizerId === "string" ? organizerId : undefined);
+  const updateContest = (newContest: ContestResponse) => {
+    setContests(contests.map((c) => (c.competitionId === newContest.competitionId ? newContest : c)));
+  };
 
-  //   if (isAdmin) {
-  //     myFetch.get("/admin-stats", { authorize: true }).then((res) => {
-  //       if (res.success) setAdminStats(res.data);
-  //     });
-  //   }
-  // }, []);
+  const selectPerson = (person: PersonResponse) => {
+    router.replace(`/mod?organizerPersonId=${person.personId}`);
+    fetchContests(person.personId);
+  };
 
-  //////////////////////////////////////////////////////////////////////////////
-  // FUNCTIONS
-  //////////////////////////////////////////////////////////////////////////////
-
-  // const updateContest = (newContest: IContest) => {
-  //   setContests((contests as IContest[]).map((c) => (c.competitionId === newContest.competitionId ? newContest : c)));
-  // };
-
-  // const selectPerson = (person: IPerson) => {
-  //   router.replace(`/mod?organizerId=${person.personId}`);
-  //   fetchContests(person.personId);
-  // };
-
-  // const resetFilters = () => {
-  //   router.replace("/mod");
-  //   fetchContests();
-  // };
+  const resetFilters = () => {
+    router.replace("/mod");
+    fetchContests();
+  };
 
   return (
     <section>
       <div className="px-2">
         <h2 className="mb-4 text-center">Moderator Dashboard</h2>
-
         <ToastMessages />
 
         <div className="alert alert-light mb-4" role="alert">
           We have a Cubing Contests Discord server!{" "}
-          <a href="https://discord.gg/7rRMQA8jnU" target="_blank" rel="noopener noreferrer">
+          <a href={C.discordServerLink} target="_blank" rel="noopener noreferrer">
             Click here to join
           </a>
           , then send your CC username and your Discord username in an email to {C.contactEmail} so you can be given the
           moderator role on the server.
         </div>
 
-        <div className="my-4 d-flex flex-wrap gap-3 fs-5">
+        <div className="d-flex fs-5 my-4 flex-wrap gap-3">
           <Link href="/mod/competition" className="btn btn-success btn-sm btn-lg-md">
             Create new contest
           </Link>
@@ -112,51 +95,13 @@ function ModDashboardScreen({ contests: initContests }: Props) {
             </>
           )}
         </div>
-        {/* {adminStats && (
-          <>
-            <p>
-              Total contests:&nbsp;<b>
-                {contests?.length ?? 0}
-              </b>&#8194;|&#8194;Pending:&nbsp;<b>{pendingContests}</b>
-            </p>
-            <p>
-              Total competitors: <b>{adminStats.totalPersons}</b>&#8194;|&#8194;Not approved:&nbsp;
-              <b>{adminStats.unapprovedPersons}</b>
-            </p>
-            <p>
-              Total users:&nbsp;
-              <b>{adminStats.totalUsers}</b>&#8194;|&#8194;Not approved:&nbsp;<b>{adminStats.unapprovedUsers}</b>
-            </p>
-            <p>
-              Total results:&nbsp;<b>
-                {adminStats.totalResults}
-              </b>&#8194;|&#8194;Not approved:&nbsp;
-              <b>{adminStats.totalUnapprovedSubmittedResults}</b>
-            </p>
-            <Button
-              type="button"
-              onClick={() => setShowAnalytics(!showAnalytics)}
-              className="btn btn-success btn-sm mb-3"
-            >
-              {showAnalytics ? "Hide analytics" : "Show analytics"}
-            </Button>
-            {showAnalytics && (
-              <div className="mb-4">
-                <h5 className="mb-4">Stats for the past month</h5>
-
-                {adminStats?.analytics.map((stat: any) => (
-                  <p key={stat.label} className="mb-2">
-                    {stat.label}: <b>{stat.value}</b>
-                  </p>
-                ))}
-              </div>
-            )}
-          </>
-        )} */}
+        <p>
+          Total contests:&nbsp;<b>{contests.length ?? 0}</b>&#8194;|&#8194;Pending:&nbsp;<b>{pendingContests}</b>
+        </p>
         {!isAdmin && contests && (
           <>
             {!contests.some((c) => c.state !== "created") && (
-              <p className="my-3 text-danger fw-bold">
+              <p className="fw-bold my-3 text-danger">
                 Your contests will not be publicly visible and you will not be able to enter results until an admin
                 approves them
               </p>
@@ -168,19 +113,15 @@ function ModDashboardScreen({ contests: initContests }: Props) {
         )}
       </div>
 
-      {/* <ModFilters
-        onSelectPerson={selectPerson}
-        onResetFilters={resetFilters}
-        disabled={!contests}
-      /> */}
+      <ModFilters onSelectPerson={selectPerson} onResetFilters={resetFilters} disabled={isPending} />
 
-      {!contests ? (
+      {isPending ? (
         <Loading />
       ) : contests.length === 0 ? (
-        <p className="px-2 fs-5">You haven't created any contests yet</p>
+        <p className="fs-5 px-2">You haven't created any contests yet</p>
       ) : (
-        <div className="mb-5 table-responsive">
-          <table className="table table-hover text-nowrap">
+        <div className="table-responsive mb-5">
+          <table className="table-hover table text-nowrap">
             <thead>
               <tr>
                 <th scope="col">Date</th>
@@ -202,7 +143,12 @@ function ModDashboardScreen({ contests: initContests }: Props) {
                 <tr key={contest.competitionId}>
                   <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                   <td>
-                    <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
+                    <Link
+                      href={`/competitions/${contest.competitionId}`}
+                      prefetch={false}
+                      className="link-primary text-truncate"
+                      style={{ maxWidth: "10rem" }}
+                    >
                       {contest.shortName}
                     </Link>
                   </td>
@@ -216,19 +162,14 @@ function ModDashboardScreen({ contests: initContests }: Props) {
                     </div>
                   </td>
                   <td>
-                    <ContestTypeBadge type={contest.type} brief />
+                    <ContestTypeBadge type={contest.type} short />
                   </td>
                   <td>{contest.participants || ""}</td>
                   <td>
                     {contest.state === "removed" ? (
                       <span className="text-danger">Removed</span>
                     ) : (
-                      <ContestControls
-                        contest={contest}
-                        // updateContest={updateContest}
-                        isAdmin={isAdmin}
-                        smallButtons
-                      />
+                      <ContestControls contest={contest} updateContest={updateContest} isAdmin={isAdmin} smallButtons />
                     )}
                   </td>
                 </tr>

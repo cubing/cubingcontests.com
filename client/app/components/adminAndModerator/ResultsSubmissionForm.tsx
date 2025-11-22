@@ -92,7 +92,7 @@ function ResultsSubmissionForm({
   const isPending = isCreating || isUpdatingWrPairs;
 
   useEffect(() => {
-    updateWrPair(event.eventId)
+    updateWrPair(event.eventId);
 
     if (!result) {
       resetCompetitors((events.find((e) => e.eventId === searchParams.get("eventId")) ?? events[0]).participants);
@@ -213,10 +213,10 @@ function ResultsSubmissionForm({
   };
 
   return (
-    <div>
+    <>
       <h2 className="text-center">{result ? "Edit Result" : "Submit Result"}</h2>
 
-      <div className="mt-3 mx-auto px-3 fs-6" style={{ maxWidth: "900px" }}>
+      <div className="fs-6 mx-auto mt-3 px-3" style={{ maxWidth: "900px" }}>
         {result ? (
           <p>
             Once you submit the attempt, the backend will remove future records that would have been cancelled by it.
@@ -240,7 +240,7 @@ function ResultsSubmissionForm({
               {showRules ? "Hide rules" : "Show rules"}
             </button>
             {showRules && (
-              <div className="mt-4 lh-lg">
+              <div className="lh-lg mt-4">
                 <Rules />
               </div>
             )}
@@ -360,13 +360,13 @@ function ResultsSubmissionForm({
             onClick={() => submitResult(true)}
             disabled={isPending}
             // isLoading={isApproving}
-            className="btn-success mt-3 ms-3"
+            className="btn-success ms-3 mt-3"
           >
             Submit and approve
           </Button>
         )}
       </Form>
-    </div>
+    </>
   );
 }
 

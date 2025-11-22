@@ -19,6 +19,19 @@ import { resultsTable } from "../db/schema/results.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { checkUserPermissions, setPersonToApproved } from "../serverUtilityFunctions.ts";
 
+export const getPersonByPersonIdSF = actionClient
+  .metadata({ permissions: null })
+  .inputSchema(
+    z.strictObject({
+      personId: z.int().min(1),
+    }),
+  )
+  .action<PersonResponse>(async ({ parsedInput: { personId } }) => {
+    const [person] = await db.select(personsPublicCols).from(table).where(eq(table.personId, personId));
+    if (!person) throw new CcActionError(`Person with ID ${personId} not found`);
+    return person;
+  });
+
 export const getPersonsByNameSF = actionClient
   .metadata({ permissions: null })
   .inputSchema(

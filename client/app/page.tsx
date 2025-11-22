@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ne } from "drizzle-orm";
 import Link from "next/link";
 import CollectiveCubing from "~/app/components/CollectiveCubing.tsx";
+import { C } from "~/helpers/constants.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   collectiveSolutionsPublicCols,
@@ -23,7 +24,7 @@ async function HomePage() {
 
       <div className="alert alert-light mb-4" role="alert">
         Join the Cubing Contests{" "}
-        <a href="https://discord.gg/7rRMQA8jnU" target="_blank" rel="noopener noreferrer">
+        <a href={C.discordServerLink} target="_blank" rel="noopener noreferrer">
           Discord server
         </a>
         !
@@ -42,7 +43,7 @@ async function HomePage() {
         with video evidence. Some other events also allow submitted results.
       </p>
 
-      <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 gap-lg-4 fs-5">
+      <div className="d-flex justify-content-center fs-5 my-4 flex-column flex-md-row gap-3 gap-lg-4 align-items-center">
         <Link href="/about" className="cc-homepage-link btn btn-primary">
           About Us
         </Link>
@@ -64,7 +65,7 @@ async function HomePage() {
         at a WCA competition or create an unofficial competition or meetup, you must first read the moderator
         instructions.
       </p>
-      <div className="mt-4 mx-3 p-3 border rounded-3 fw-bold">
+      <div className="fw-bold mx-3 mt-4 rounded-3 border p-3">
         <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
         Please note that an unofficial competition can only be hosted on Cubing Contests if it's infeasible for it to be
         held as an official{" "}

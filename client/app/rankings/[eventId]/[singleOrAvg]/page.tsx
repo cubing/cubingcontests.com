@@ -43,7 +43,7 @@ async function RankingsPage({ params, searchParams }: Props) {
   const currEvent = eventsResponse.success ? eventsResponse.data.find((e) => e.eventId === eventId) : undefined;
 
   if (!eventRankingsResponse.success) {
-    return <p className="mt-5 text-center fs-4">Error while loading rankings</p>;
+    return <h3 className="mt-5 text-center">Error while loading rankings</h3>;
   }
 
   if (!eventsResponse.success || !currEvent) {

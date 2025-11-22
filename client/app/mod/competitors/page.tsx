@@ -1,10 +1,15 @@
-import ManageCompetitorsScreen from "~/app/mod/competitors/ManageCompetitorsScreen.tsx";
-import { Creator } from "~/helpers/types.ts";
-import { authorizeUser, checkUserPermissions } from "~/server/serverUtilityFunctions.ts";
-import { db } from "~/server/db/provider.ts";
 import { desc, eq, inArray } from "drizzle-orm";
-import { PersonResponse, personsPublicCols, personsTable as table, SelectPerson } from "~/server/db/schema/persons.ts";
+import ManageCompetitorsScreen from "~/app/mod/competitors/ManageCompetitorsScreen.tsx";
+import type { Creator } from "~/helpers/types.ts";
+import { db } from "~/server/db/provider.ts";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import {
+  type PersonResponse,
+  personsPublicCols,
+  type SelectPerson,
+  personsTable as table,
+} from "~/server/db/schema/persons.ts";
+import { authorizeUser, checkUserPermissions } from "~/server/serverUtilityFunctions.ts";
 
 async function CompetitorsPage() {
   const { user } = await authorizeUser({ permissions: { persons: ["create", "update", "delete"] } });
@@ -16,17 +21,25 @@ async function CompetitorsPage() {
 
     if (isAdmin) {
       persons = await db.select().from(table).orderBy(desc(table.personId));
-      const userIds = Array.from(new Set(persons.map((p) => p.createdBy)));
+      const userIds = Array.from(
+        new Set(persons.filter((p: SelectPerson) => p.createdBy).map((p: SelectPerson) => p.createdBy)),
+      );
 
-      users = await db.select({
-        id: usersTable.id,
-        username: usersTable.username,
-        email: usersTable.email,
-        personId: usersTable.personId,
-      }).from(usersTable).where(inArray(usersTable.id, userIds));
+      users = await db
+        .select({
+          id: usersTable.id,
+          username: usersTable.username,
+          email: usersTable.email,
+          personId: usersTable.personId,
+        })
+        .from(usersTable)
+        .where(inArray(usersTable.id, userIds));
     } else {
-      persons = await db.select(personsPublicCols).from(table)
-        .where(eq(table.createdBy, user.id)).orderBy(desc(table.personId));
+      persons = await db
+        .select(personsPublicCols)
+        .from(table)
+        .where(eq(table.createdBy, user.id))
+        .orderBy(desc(table.personId));
     }
 
     return (

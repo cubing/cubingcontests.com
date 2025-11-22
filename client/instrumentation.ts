@@ -4,14 +4,19 @@ import type { auth as authType } from "~/server/auth.ts";
 import type { db as dbType } from "~/server/db/provider.ts";
 import { accountsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { getContinent } from "./helpers/Countries.ts";
+import { C } from "./helpers/constants.ts";
 import type { Schedule } from "./helpers/types/Schedule.ts";
-import type { ContestState, ContestType } from "./helpers/types.ts";
+import { type ContestState, type ContestType, RecordTypeValues } from "./helpers/types.ts";
 import { contestsTable } from "./server/db/schema/contests.ts";
 import { eventsTable } from "./server/db/schema/events.ts";
 import { personsTable } from "./server/db/schema/persons.ts";
+import { recordConfigsTable } from "./server/db/schema/record-configs.ts";
 import { resultsTable } from "./server/db/schema/results.ts";
 import { roundsTable } from "./server/db/schema/rounds.ts";
 
+// This is the password hash for the password "cc" (only used for testing in development)
+const hashForCc =
+  "a73adfb4df83466851a5c337a6bc738b:a580ce8e36188f210f2342998c46789d69ab69ebf35a6382d80ad11e8542ec62074b31789b09dc653daaf8e1ec69fb5c97c6f6244f7de80d03169e7572c0e514";
 const message =
   "The EMAIL_TOKEN environment variable must be empty while seeding the DB to avoid sending lots of verification emails for the users being seeded. Remove it and comment out the sendVerificationEmail function in auth.ts, and then add them back after the DB has been seeded.";
 
@@ -22,6 +27,7 @@ export async function register() {
     const { auth }: { auth: typeof authType } = await import("~/server/auth.ts");
     const fs: typeof fsType = await import("node:fs");
     const usersDump = JSON.parse(fs.readFileSync("./dump/users.json") as any);
+    const personsDump = (JSON.parse(fs.readFileSync("./dump/people.json") as any) as any[]).reverse();
     const roundsDump = (JSON.parse(fs.readFileSync("./dump/rounds.json") as any) as any[]).reverse();
 
     const testUsers = [
@@ -67,13 +73,7 @@ export async function register() {
           .where(eq(usersTable.email, testUser.email))
           .returning();
 
-        // Set the password to "cc"
-        await db
-          .update(accountsTable)
-          .set({
-            password: "$2b$10$ZQ3h2HwwOgLTRveMw/NbFes0b.u6OOxYrnG10dwDkHiQBOMwx7M52",
-          })
-          .where(eq(accountsTable.userId, user.id));
+        await db.update(accountsTable).set({ password: hashForCc }).where(eq(accountsTable.userId, user.id));
 
         // Set role
         if (role) {
@@ -129,7 +129,7 @@ export async function register() {
 
     const users = await db.select().from(usersTable);
 
-    const getCreatorId = ($oid: string): string | null => {
+    const getUserId = ($oid: string): string | null => {
       const dumpUserObject = usersDump.find((u: any) => u._id.$oid === $oid);
       // if (!dumpUserObject) throw new Error(`User with ID ${$oid} not found in users dump!`);
       if (!dumpUserObject) return null;
@@ -145,7 +145,6 @@ export async function register() {
       console.log("Seeding persons...");
 
       try {
-        const personsDump = (JSON.parse(fs.readFileSync("./dump/people.json") as any) as any[]).reverse();
         let tempPersons = [];
 
         for (const p of personsDump) {
@@ -156,7 +155,7 @@ export async function register() {
             localizedName: p.localizedName,
             countryIso2: p.countryIso2,
             approved: !p.unapproved,
-            createdBy: p.createdBy ? getCreatorId(p.createdBy.$oid) : null,
+            createdBy: p.createdBy ? getUserId(p.createdBy.$oid) : null,
             createdExternally: !p.createdBy,
             createdAt: new Date(p.createdAt.$date),
             updatedAt: new Date(p.updatedAt.$date),
@@ -265,7 +264,7 @@ export async function register() {
             videoLink: r.competitionId ? null : r.videoLink || "",
             discussionLink: r.competitionId ? null : r.discussionLink || null,
             // FIX THESE TWO FIELDS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            createdBy: r.createdBy ? getCreatorId(r) : null,
+            createdBy: r.createdBy ? getUserId(r) : null,
             createdExternally: false,
             createdAt: new Date(r.createdAt.$date),
             updatedAt: new Date(r.updatedAt.$date),
@@ -348,6 +347,16 @@ export async function register() {
       const schedulesDump = (JSON.parse(fs.readFileSync("./dump/schedules.json") as any) as any[]).reverse();
       let tempContests: any[] = [];
 
+      const getPersonId = ($oid: string): number => {
+        const dumpPersonObject = personsDump.find((u: any) => u._id.$oid === $oid);
+        if (!dumpPersonObject) throw new Error(`Person with ID ${$oid} not found in persons dump!`);
+
+        const person = persons.find((u) => u.personId === dumpPersonObject.personId);
+        if (!person) throw new Error(`Person with person ID ${dumpPersonObject.username} not found in DB`);
+
+        return person.id;
+      };
+
       try {
         for (const c of contestsDump) {
           const schedule: Schedule = schedulesDump.find((s: any) => s.competitionId === c.competitionId);
@@ -397,15 +406,14 @@ export async function register() {
             endDate: c.endDate ? new Date(c.endDate.$date) : new Date(c.startDate.$date),
             startTime: c.meetupDetails ? new Date(c.meetupDetails.startTime.$date) : null,
             timeZone: c.meetupDetails?.timeZone ?? null,
-            // MAKE THIS FIELD WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            organizers: [],
+            organizers: c.organizers.map((o: any) => getPersonId(o.$oid)),
             contact: c.contact ?? null,
             description: c.description,
             competitorLimit: c.competitorLimit ?? null,
             participants: c.participants,
             queuePosition: c.queuePosition ?? null,
             schedule: schedule ?? null,
-            createdBy: getCreatorId(c.createdBy.$oid),
+            createdBy: getUserId(c.createdBy.$oid),
             createdAt: new Date(c.createdAt.$date),
             updatedAt: new Date(c.updatedAt.$date),
           });
@@ -420,6 +428,39 @@ export async function register() {
         await db.insert(contestsTable).values(tempContests).returning();
       } catch (e) {
         console.error("Unable to load contests dump:", e);
+      }
+    }
+
+    if ((await db.select({ id: contestsTable.id }).from(contestsTable).limit(1)).length === 0) {
+      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      console.log("Seeding record configs...");
+
+      for (let i = 0; i < RecordTypeValues.length; i++) {
+        const recordTypeId = RecordTypeValues[i];
+
+        await db.insert(recordConfigsTable).values([
+          {
+            recordTypeId,
+            category: "competitions",
+            label: `X${recordTypeId}`,
+            rank: (i + 1) * 10,
+            color: recordTypeId === "WR" ? C.color.danger : recordTypeId === "NR" ? C.color.success : C.color.warning,
+          },
+          {
+            recordTypeId,
+            category: "meetups",
+            label: `M${recordTypeId}`,
+            rank: 100 + (i + 1) * 10,
+            color: recordTypeId === "WR" ? C.color.danger : recordTypeId === "NR" ? C.color.success : C.color.warning,
+          },
+          {
+            recordTypeId,
+            category: "video-based-results",
+            label: `${recordTypeId.slice(0, -1)}B`,
+            rank: 200 + (i + 1) * 10,
+            color: recordTypeId === "WR" ? C.color.danger : recordTypeId === "NR" ? C.color.success : C.color.warning,
+          },
+        ]);
       }
     }
 

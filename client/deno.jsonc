@@ -2,27 +2,27 @@
   "nodeModulesDir": "auto",
 
   "imports": {
-    "~/": "./",
+    "~/": "./"
   },
 
   "tasks": {
-    "dev": "deno run -A npm:next dev --turbo -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
-    "build": "deno run -A npm:next build --turbo",
+    "dev": "deno run -A npm:next dev -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
+    "build": "deno run -A npm:next build",
     "start": "next start",
     "check": "deno run -A npm:@biomejs/biome lint && deno run -A npm:@biomejs/biome check",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "db:push": "deno run --allow-all --conditions=react-server npm:drizzle-kit push --strict",
     "db:migrate": "deno run --allow-all --conditions=react-server npm:drizzle-kit migrate",
-    "db:generate": "deno run --allow-all --conditions=react-server npm:drizzle-kit generate",
+    "db:generate": "deno run --allow-all --conditions=react-server npm:drizzle-kit generate"
   },
 
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
-    "jsx": "react-jsx",
+    "jsx": "react-jsx"
   },
 
   // unsafe-proto is required for building Next JS projects for now, because they still rely on __proto__.
   // For more, see https://github.com/denoland/docs/pull/1255.
-  "unstable": ["unsafe-proto"],
+  "unstable": ["unsafe-proto"]
 }

@@ -3,10 +3,11 @@ import { and, desc, eq, inArray, isNull, lte, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Continents, Countries } from "~/helpers/Countries.ts";
-import { type EventWrPair, type RecordCategory, type RecordType, RecordTypeValues } from "~/helpers/types.ts";
+import { type RecordCategory, type RecordType, RecordTypeValues } from "~/helpers/types.ts";
 import { getDateOnly, getNameAndLocalizedName } from "../helpers/sharedFunctions.ts";
 import { auth } from "./auth.ts";
 import { db } from "./db/provider.ts";
+import { eventsPublicCols, eventsTable } from "./db/schema/events.ts";
 import { personsTable, type SelectPerson } from "./db/schema/persons.ts";
 import { recordConfigsPublicCols, recordConfigsTable } from "./db/schema/record-configs.ts";
 import { resultsTable, type SelectResult } from "./db/schema/results.ts";
@@ -18,7 +19,11 @@ export async function checkUserPermissions(userId: string, permissions: CcPermis
   return success;
 }
 
-export async function authorizeUser({ permissions }: { permissions?: CcPermissions } = {}) {
+export async function authorizeUser({
+  permissions,
+}: {
+  permissions?: CcPermissions;
+} = {}): Promise<typeof auth.$Infer.Session> {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) redirect("/login");
@@ -44,6 +49,16 @@ export async function getRecordConfigs(recordFor: RecordCategory) {
   }
 
   return recordConfigs;
+}
+
+export async function getVideoBasedEvents() {
+  const events = await db
+    .select(eventsPublicCols)
+    .from(eventsTable)
+    .where(eq(eventsTable.submissionsAllowed, true))
+    .orderBy(eventsTable.rank);
+
+  return events;
 }
 
 export async function getRecordResult(

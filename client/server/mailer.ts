@@ -1,13 +1,13 @@
 import "server-only";
-import { MailtrapClient } from "mailtrap";
 import { loadEnvConfig } from "@next/env";
+import { MailtrapClient } from "mailtrap";
 
 // This is needed when running Better Auth DB migrations
 if (process.env.NODE_ENV !== "production") loadEnvConfig(".", true);
 
 const client = new MailtrapClient({
   token: process.env.EMAIL_TOKEN!,
-  testInboxId: process.env.NODE_ENV === "production" ? undefined : 2655545,
+  testInboxId: process.env.NODE_ENV === "production" ? undefined : Number(process.env.EMAIL_TEST_INBOX_ID),
   sandbox: process.env.NODE_ENV !== "production",
 });
 
@@ -36,21 +36,33 @@ function getHtml(contents: string) {
   // `;
 }
 
-export async function sendEmail(to: string, subject: string, content: string) {
+async function send(func: () => Promise<void>) {
+  if (!process.env.EMAIL_TOKEN) {
+    if (process.env.NODE_ENV !== "production")
+      console.log("Not sending email, because EMAIL_TOKEN environment variable isn't set");
+    return;
+  }
+
   try {
+    await func();
+  } catch (err) {
+    console.error("Error while sending email:", err);
+  }
+}
+
+export async function sendEmail(to: string, subject: string, content: string) {
+  await send(async () => {
     await client.send({
       from,
       to: [{ email: to }],
       subject,
       html: getHtml(content),
     });
-  } catch (err) {
-    console.error(err);
-  }
+  });
 }
 
 export async function sendResetPasswordEmail(to: string, url: string) {
-  try {
+  await send(async () => {
     await client.send({
       from,
       to: [{ email: to }],
@@ -68,13 +80,11 @@ export async function sendResetPasswordEmail(to: string, url: string) {
         </p>
       `),
     });
-  } catch (err) {
-    console.error(err);
-  }
+  });
 }
 
 export async function sendVerificationCodeEmail(to: string, url: string) {
-  try {
+  await send(async () => {
     await client.send({
       from,
       to: [{ email: to }],
@@ -92,13 +102,11 @@ export async function sendVerificationCodeEmail(to: string, url: string) {
         </p>
       `),
     });
-  } catch (err) {
-    console.error(err);
-  }
+  });
 }
 
 export async function sendRoleChangedEmail(to: string, role: string) {
-  try {
+  await send(async () => {
     await client.send({
       from,
       to: [{ email: to }],
@@ -108,14 +116,12 @@ export async function sendRoleChangedEmail(to: string, role: string) {
         <p>
           You have been given the ${role} role on
           <a href="${baseUrl}">Cubing Contests</a>.${
-        role !== "user"
-          ? ` You can now access the <a href="${baseUrl}/mod">Moderator Dashboard</a> from the navigation bar.`
-          : ""
-      }
+            role !== "user"
+              ? ` You can now access the <a href="${baseUrl}/mod">Moderator Dashboard</a> from the navigation bar.`
+              : ""
+          }
         </p>
       `),
     });
-  } catch (err) {
-    console.error(err);
-  }
+  });
 }

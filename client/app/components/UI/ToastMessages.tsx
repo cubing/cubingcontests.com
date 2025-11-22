@@ -17,7 +17,7 @@ const ToastMessages = () => {
   if (errorMessages.length > 0) {
     return errorMessages.map((message: string, index: number) => (
       <div
-        key={index}
+        key={index.toString()}
         id={`error_message_${index + 1}`}
         className="alert alert-danger"
         style={{ whiteSpace: "pre-wrap" }}
@@ -29,7 +29,11 @@ const ToastMessages = () => {
   }
 
   if (successMessage) {
-    return <div id="success_message" className="mb-3 alert alert-success fs-5" role="alert">{successMessage}</div>;
+    return (
+      <div id="success_message" className="alert alert-success fs-5 mb-3" role="alert">
+        {successMessage}
+      </div>
+    );
   }
 };
 
