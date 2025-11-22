@@ -26,7 +26,10 @@
         "useExhaustiveDependencies": "warn"
       },
       "nursery": {
-        "useSortedClasses": "info"
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe"
+        }
       }
     }
   },

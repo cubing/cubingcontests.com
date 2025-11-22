@@ -27,14 +27,13 @@ import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
-import { createVideoBasedResultSF, getWrPairsUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
+import { createVideoBasedResultSF, getWrPairUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
 import Rules from "./video-based-results-rules.mdx";
 
 const allowedRoundFormats: RoundFormatObject[] = roundFormats.filter((rf) => rf.value !== "3");
 
 type Props = {
   events: EventResponse[];
-  wrPairs: EventWrPair[];
   recordConfigs: RecordConfigResponse[];
   result?: SelectResult; // only defined when editing an existing result
   competitors?: PersonResponse[];
@@ -44,7 +43,6 @@ type Props = {
 
 function ResultsSubmissionForm({
   events,
-  wrPairs: initWrPairs,
   recordConfigs,
   result,
   competitors: initCompetitors,
@@ -57,12 +55,12 @@ function ResultsSubmissionForm({
   const { data: session } = authClient.useSession();
 
   const {
-    executeAsync: getWrPairsUpToDate,
+    executeAsync: getWrPairUpToDate,
     isPending: isUpdatingWrPairs,
     reset: resetGetEventWrPairsUpToDate,
-  } = useAction(getWrPairsUpToDateSF);
+  } = useAction(getWrPairUpToDateSF);
   const { executeAsync: createResult, isPending: isCreating } = useAction(createVideoBasedResultSF);
-  const [wrPairs, setWrPairs] = useState<EventWrPair[]>(initWrPairs);
+  const [eventWrPair, setEventWrPair] = useState<EventWrPair | undefined>();
   const [showRules, setShowRules] = useState(false);
   const [event, setEvent] = useState<EventResponse>(
     events.find((e) => e.eventId === (result?.eventId ?? searchParams.get("eventId"))) ?? events[0],
@@ -80,20 +78,12 @@ function ResultsSubmissionForm({
   const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [discussionLink, setDiscussionLink] = useState(result?.discussionLink ?? "");
 
-  const eventWrPair = useMemo<EventWrPair | undefined>(
-    () => wrPairs.find((ewp) => ewp.eventId === event.eventId),
-    [wrPairs, event],
-  );
+  const updateWrPair = useCallback(
+    debounce(async (eventId: string, recordsUpTo?: Date) => {
+      const res = await getWrPairUpToDate({ eventId, recordsUpTo, excludeResultId: result?.id });
 
-  const updateWrPairs = useCallback(
-    debounce(async (recordsUpTo: Date) => {
-      const res = await getWrPairsUpToDate({ recordsUpTo, excludeResultId: result?.id });
-
-      if (res.serverError || res.validationErrors) {
-        changeErrorMessages([getActionError(res)]);
-      } else {
-        setWrPairs(res.data!);
-      }
+      if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
+      else setEventWrPair(res.data!);
     }, C.fetchDebounceTimeout),
     [],
   );
@@ -102,6 +92,8 @@ function ResultsSubmissionForm({
   const isPending = isCreating || isUpdatingWrPairs;
 
   useEffect(() => {
+    updateWrPair(event.eventId)
+
     if (!result) {
       resetCompetitors((events.find((e) => e.eventId === searchParams.get("eventId")) ?? events[0]).participants);
       resetAttempts();
@@ -198,9 +190,9 @@ function ResultsSubmissionForm({
     setDate(newDate);
 
     if (newDate) {
-      updateWrPairs(newDate);
+      updateWrPair(event.eventId, newDate);
     } else {
-      updateWrPairs.cancel();
+      updateWrPair.cancel();
       resetGetEventWrPairsUpToDate();
     }
   };
@@ -297,7 +289,7 @@ function ResultsSubmissionForm({
             nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
           />
         ))}
-        {isUpdatingWrPairs ? (
+        {isUpdatingWrPairs || !eventWrPair ? (
           <Loading small dontCenter />
         ) : (
           <BestAndAverage

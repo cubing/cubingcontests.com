@@ -5,7 +5,7 @@ import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as any;
+const mockTimeEvent = eventsStub.find((e) => e.eventId === "333") as any;
 const roundOpts = { roundTime: true, roundMemo: true };
 
 const timeExamples = [

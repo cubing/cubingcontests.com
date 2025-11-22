@@ -1,6 +1,7 @@
 "use server";
 
-import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lte, ne, or } from "drizzle-orm";
+import { differenceInHours } from "date-fns";
+import { and, eq, gt, gte, inArray, isNotNull, isNull, ne, or } from "drizzle-orm";
 import z from "zod";
 import { ContinentRecordType, getContinent } from "~/helpers/Countries.ts";
 import { C } from "~/helpers/constants.ts";
@@ -24,18 +25,28 @@ import {
   resultsTable as table,
 } from "../db/schema/results.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
-import { getRecordConfigs, getWrPairs, setPersonToApproved } from "../serverUtilityFunctions.ts";
+import { getRecordConfigs, getRecordResult, setPersonToApproved } from "../serverUtilityFunctions.ts";
 
-export const getWrPairsUpToDateSF = actionClient
+export const getWrPairUpToDateSF = actionClient
   .metadata({ permissions: { videoBasedResults: ["create"] } })
   .inputSchema(
     z.strictObject({
-      recordsUpTo: z.date(),
+      eventId: z.string(),
+      recordsUpTo: z.date().optional(),
       excludeResultId: z.int().optional(),
     }),
   )
-  .action<EventWrPair[]>(async ({ parsedInput: { recordsUpTo, excludeResultId } }) => {
-    return await getWrPairs({ recordsUpTo, excludeResultId });
+  .action<EventWrPair>(async ({ parsedInput: { eventId, recordsUpTo, excludeResultId } }) => {
+    const singleWrResult = await getRecordResult(eventId, "best", "WR", "video-based-results", {
+      recordsUpTo,
+      excludeResultId,
+    });
+    const averageWrResult = await getRecordResult(eventId, "best", "WR", "video-based-results", {
+      recordsUpTo,
+      excludeResultId,
+    });
+
+    return { eventId, best: singleWrResult?.best, average: averageWrResult?.average };
   });
 
 export const createVideoBasedResultSF = actionClient
@@ -60,23 +71,13 @@ export const createVideoBasedResultSF = actionClient
 
     const [event] = await db.select().from(eventsTable).where(eq(eventsTable.eventId, newResultDto.eventId)).limit(1);
 
-    if (!event) {
-      throw new CcActionError(`Event with ID ${newResultDto.eventId} not found`);
-    } else if (newResultDto.personIds.length !== event.participants) {
+    if (!event) throw new CcActionError(`Event with ID ${newResultDto.eventId} not found`);
+    if (newResultDto.personIds.length !== event.participants)
       throw new CcActionError(
         `This event must have ${event.participants} participant${event.participants > 1 ? "s" : ""}`,
       );
-    }
-    // if (
-    //   process.env.NODE_ENV === "production" &&
-    //   differenceInHours(result.date, new Date()) > 36
-    // ) {
-    //   throw new BadRequestException(
-    //     round
-    //       ? "You may not enter results for a round in the future"
-    //       : "The date cannot be in the future",
-    //   );
-    // }
+    if (process.env.NODE_ENV === "production" && differenceInHours(newResultDto.date, new Date()) > 36)
+      throw new CcActionError("The date cannot be in the future");
 
     const recordConfigs = await getRecordConfigs("video-based-results");
     const format = roundFormats.find((rf) => rf.attempts === newResultDto.attempts.length && rf.value !== "3")!;
@@ -137,17 +138,13 @@ async function setResultRecord(
   const recordField = bestOrAverage === "best" ? "regionalSingleRecord" : "regionalAverageRecord";
   const type = bestOrAverage === "best" ? "single" : "average";
   const compareFunc = (a: any, b: any) => (bestOrAverage === "best" ? compareSingles(a, b) : compareAvgs(a, b));
-  const baseConditions = [isNull(table.competitionId), eq(table.eventId, result.eventId), lte(table.date, result.date)];
 
   // Set WR
-  const [wrResult] = await db
-    .select({ [bestOrAverage]: table[bestOrAverage], continentId: table.continentId, countryIso2: table.countryIso2 })
-    .from(table)
-    .where(and(...baseConditions, eq(table[recordField], "WR")))
-    .orderBy(desc(table.date))
-    .limit(1);
-
+  const wrResult = await getRecordResult(result.eventId, bestOrAverage, "WR", "video-based-results", {
+    recordsUpTo: result.date,
+  });
   const isWr = !wrResult || compareFunc(result, wrResult) <= 0;
+
   if (isWr) {
     const wrRecordConfig = recordConfigs.find((rc) => rc.recordTypeId === "WR")!;
     console.log(`New ${result.eventId} ${type} ${wrRecordConfig.label}: ${result[bestOrAverage]}`);
@@ -159,36 +156,23 @@ async function setResultRecord(
   ) {
     // Set CR
     const crType = ContinentRecordType[result.continentId];
-    const [crResult] = await db
-      .select({ [bestOrAverage]: table[bestOrAverage], countryIso2: table.countryIso2 })
-      .from(table)
-      .where(
-        and(...baseConditions, eq(table.continentId, result.continentId), inArray(table[recordField], [crType, "WR"])),
-      )
-      .orderBy(desc(table.date))
-      .limit(1);
-
+    const crResult = await getRecordResult(result.eventId, bestOrAverage, crType, "video-based-results", {
+      recordsUpTo: result.date,
+    });
     const isCr = !crResult || compareFunc(result, crResult) <= 0;
+
     if (isCr) {
       const crRecordConfig = recordConfigs.find((rc) => rc.recordTypeId === crType)!;
       console.log(`New ${result.eventId} ${type} ${crRecordConfig.label}: ${result[bestOrAverage]}`);
       result[recordField] = crType;
     } else if (result.countryIso2 && result.countryIso2 !== crResult?.countryIso2) {
       // Set NR
-      const [nrResult] = await db
-        .select({ [bestOrAverage]: table[bestOrAverage] })
-        .from(table)
-        .where(
-          and(
-            ...baseConditions,
-            eq(table.countryIso2, result.countryIso2),
-            inArray(table[recordField], ["NR", crType, "WR"]),
-          ),
-        )
-        .orderBy(desc(table.date))
-        .limit(1);
-
+      const nrResult = await getRecordResult(result.eventId, bestOrAverage, "NR", "video-based-results", {
+        recordsUpTo: result.date,
+        countryIso2: result.countryIso2,
+      });
       const isNr = !nrResult || compareFunc(result, nrResult) <= 0;
+
       if (isNr) {
         const nrRecordConfig = recordConfigs.find((rc) => rc.recordTypeId === "NR")!;
         console.log(`New ${result.eventId} ${type} ${nrRecordConfig.label}: ${result[bestOrAverage]}`);

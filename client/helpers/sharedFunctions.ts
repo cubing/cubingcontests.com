@@ -8,23 +8,28 @@ import { type RoundFormatObject, roundFormats } from "./roundFormats.ts";
 import type { ContestType, EventWrPair, RoundFormat } from "./types.ts";
 import type { PersonDto } from "./validators/Person.ts";
 
-type BestCompareObj = { best: number };
-type AvgCompareObj = { best?: number; average: number };
-
 // Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
-// This means that this function (and the one below) can be used in the Array.sort() method.
-export const compareSingles = (a: BestCompareObj, b: BestCompareObj): number => {
+// This means that this function can be used in the Array.sort() method.
+export function compareSingles(a: { best: number }, b: { best: number }): number {
   if (a.best <= 0 && b.best > 0) return 1;
   else if (a.best > 0 && b.best <= 0) return -1;
   else if (a.best <= 0 && b.best <= 0) return 0;
   return a.best - b.best;
-};
+}
 
 // Same logic as above, except the single can also be used as a tie breaker if the averages are equivalent
-export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
-  // If a.best or b.best is left undefined, the tie breaker will not be used
-  const useTieBreaker = typeof a.best === "number" && typeof b.best === "number";
-  const breakTie = () => compareSingles({ best: a.best as number }, { best: b.best as number });
+export function compareAvgs(a: { average: number }, b: { average: number }, useTieBreaker?: false): number;
+export function compareAvgs(
+  a: { average: number; best: number },
+  b: { average: number; best: number },
+  useTieBreaker: true,
+): number;
+export function compareAvgs(
+  a: { average: number; best?: number },
+  b: { average: number; best?: number },
+  useTieBreaker = false,
+): number {
+  const breakTie = () => compareSingles({ best: a.best! }, { best: b.best! });
 
   if (a.average <= 0) {
     if (b.average <= 0) {
@@ -37,7 +42,7 @@ export const compareAvgs = (a: AvgCompareObj, b: AvgCompareObj): number => {
   }
   if (a.average === b.average && useTieBreaker) return breakTie();
   return a.average - b.average;
-};
+}
 
 // IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR) and includes unapproved results
 export const setResultWorldRecords = (

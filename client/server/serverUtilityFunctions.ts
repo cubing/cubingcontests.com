@@ -1,15 +1,15 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lte, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { type EventWrPair, type RecordCategory, RecordTypeValues } from "~/helpers/types.ts";
+import { Continents, Countries } from "~/helpers/Countries.ts";
+import { type EventWrPair, type RecordCategory, type RecordType, RecordTypeValues } from "~/helpers/types.ts";
 import { getDateOnly, getNameAndLocalizedName } from "../helpers/sharedFunctions.ts";
 import { auth } from "./auth.ts";
 import { db } from "./db/provider.ts";
-import { eventsTable } from "./db/schema/events.ts";
 import { personsTable, type SelectPerson } from "./db/schema/persons.ts";
-import { type RecordConfigResponse, recordConfigsPublicCols, recordConfigsTable } from "./db/schema/record-configs.ts";
-import { resultsTable } from "./db/schema/results.ts";
+import { recordConfigsPublicCols, recordConfigsTable } from "./db/schema/record-configs.ts";
+import { resultsTable, type SelectResult } from "./db/schema/results.ts";
 import type { CcPermissions } from "./permissions.ts";
 import { CcActionError } from "./safeAction.ts";
 
@@ -25,7 +25,6 @@ export async function authorizeUser({ permissions }: { permissions?: CcPermissio
 
   if (permissions) {
     const isAuthorized = await checkUserPermissions(session.user.id, permissions);
-
     if (!isAuthorized) redirect("/login");
   }
 
@@ -47,38 +46,49 @@ export async function getRecordConfigs(recordFor: RecordCategory) {
   return recordConfigs;
 }
 
-export async function getWrPairs(
-  { recordsUpTo = getDateOnly(new Date())!, excludeResultId = 0 }: { recordsUpTo?: Date; excludeResultId?: number } = {
+export async function getRecordResult(
+  eventId: string,
+  bestOrAverage: "best" | "average",
+  recordType: RecordType,
+  recordCategory: RecordCategory,
+  {
+    recordsUpTo = getDateOnly(new Date())!,
+    excludeResultId,
+    countryIso2,
+  }: { recordsUpTo?: Date; excludeResultId?: number; countryIso2?: string } = {
     recordsUpTo: getDateOnly(new Date())!,
-    excludeResultId: 0,
   },
-): Promise<EventWrPair[]> {
-  const wrPairs = (
-    await db.execute<{
-      event_id: string;
-      best: string | null;
-      average: string | null;
-    }>(sql`SELECT ${eventsTable.eventId},
-(SELECT ${resultsTable.best} FROM ${resultsTable} WHERE ${resultsTable.competitionId} IS NULL
-  AND ${resultsTable.regionalSingleRecord} = 'WR'
-  AND ${resultsTable.id} <> ${excludeResultId}
-  AND ${resultsTable.eventId} = ${eventsTable.eventId}
-  AND ${resultsTable.date} <= ${recordsUpTo}
-  ORDER BY ${resultsTable.date} DESC LIMIT 1) AS best,
-(SELECT ${resultsTable.average} FROM ${resultsTable} WHERE ${resultsTable.competitionId} IS NULL
-  AND ${resultsTable.regionalAverageRecord} = 'WR'
-  AND ${resultsTable.id} <> ${excludeResultId}
-  AND ${resultsTable.eventId} = ${eventsTable.eventId}
-  AND ${resultsTable.date} <= ${recordsUpTo}
-  ORDER BY ${resultsTable.date} DESC LIMIT 1) AS average
-FROM ${eventsTable} WHERE ${eventsTable.submissionsAllowed} IS TRUE;`)
-  ).rows;
+): Promise<SelectResult | undefined> {
+  const recordField = bestOrAverage === "best" ? "regionalSingleRecord" : "regionalAverageRecord";
+  const continent = Continents.find((c) => c.recordTypeId === recordType);
+  const country = countryIso2 ? Countries.find((c) => c.code === countryIso2) : undefined;
+  let recordTypeCondition: any;
 
-  return wrPairs.map((ewp) => ({
-    eventId: ewp.event_id,
-    best: ewp.best ? parseInt(ewp.best) : -1,
-    average: ewp.average ? parseInt(ewp.average) : -1,
-  }));
+  if (recordType === "WR") recordTypeCondition = eq(resultsTable[recordField], "WR");
+  else if (continent) recordTypeCondition = inArray(resultsTable[recordField], [recordType, "WR"]);
+  else if (country) {
+    const crType = Continents.find((c) => c.code === country.continentId)!.recordTypeId;
+    recordTypeCondition = inArray(resultsTable[recordField], ["NR", crType, "WR"]);
+  } else throw new Error(`Country ${countryIso2} not found!`);
+
+  const [recordResult] = await db
+    .select()
+    .from(resultsTable)
+    .where(
+      and(
+        isNull(resultsTable.competitionId),
+        eq(resultsTable.eventId, eventId),
+        excludeResultId ? ne(resultsTable.id, excludeResultId) : undefined,
+        lte(resultsTable.date, recordsUpTo),
+        recordTypeCondition,
+        continent ? eq(resultsTable.continentId, continent.code) : undefined,
+        countryIso2 ? eq(resultsTable.countryIso2, countryIso2) : undefined,
+      ),
+    )
+    .orderBy(desc(resultsTable.date))
+    .limit(1);
+
+  return recordResult;
 }
 
 export async function setPersonToApproved(

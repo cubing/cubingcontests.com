@@ -69,6 +69,6 @@ export type ContinentId = (typeof ContinentIdValues)[number];
 
 export type EventWrPair = {
   eventId: string;
-  best: number;
-  average: number;
+  best?: number;
+  average?: number;
 };

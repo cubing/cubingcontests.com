@@ -10,6 +10,7 @@ import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Time from "~/app/components/Time.tsx";
+import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import type { InputPerson } from "~/helpers/types.ts";
@@ -77,9 +78,9 @@ function ManageResultsScreen({ results, recordConfigs }: Props) {
         <b>{filteredResults.filter((r) => !r.approved).length}</b>
       </p>
 
-      <div ref={parentRef as any} className="mt-3 table-responsive overflow-y-auto" style={{ height: "700px" }}>
+      <div ref={parentRef as any} className="table-responsive mt-3 overflow-y-auto" style={{ height: "700px" }}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-          <table className="table table-hover text-nowrap">
+          <table className="table-hover table text-nowrap">
             <thead>
               <tr>
                 <th scope="col">Event</th>
@@ -94,7 +95,7 @@ function ManageResultsScreen({ results, recordConfigs }: Props) {
             </thead>
             <tbody>
               {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
-                if (filteredResults?.length === 0) return;
+                if (filteredResults?.length === 0) return undefined;
                 const result = filteredResults[virtualItem.index];
 
                 return (
@@ -126,11 +127,7 @@ function ManageResultsScreen({ results, recordConfigs }: Props) {
                     </td>
                     <td>{getFormattedDate(result.date)}</td>
                     <td>
-                      {result.approved ? (
-                        <span className="badge bg-success">Yes</span>
-                      ) : (
-                        <span className="badge bg-danger">No</span>
-                      )}
+                      <ActiveInactiveIcon isActive={result.approved} />
                     </td>
                     <td>
                       <Link

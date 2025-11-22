@@ -5,7 +5,7 @@ import { compareAvgs, compareSingles, getBestAndAverage, setResultWorldRecords }
 import type { EventWrPair } from "~/helpers/types.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 
-const mockTimeEvent = eventsStub().find((e) => e.eventId === "333") as any;
+const mockTimeEvent = eventsStub.find((e) => e.eventId === "333") as any;
 
 describe("getBestAndAverage", () => {
   it("sets average to 0 when there is only one attempt", () => {
@@ -97,15 +97,15 @@ describe("compareAvgs", () => {
   });
 
   it("compares averages correctly when a and b are DNF", () => {
-    expect(compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 })).toBeLessThan(0);
+    expect(compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 }, true)).toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are different", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 })).toBeLessThan(0);
+    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 }, true)).toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are the same", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 })).toBe(0);
+    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 }, true)).toBe(0);
   });
 });
 

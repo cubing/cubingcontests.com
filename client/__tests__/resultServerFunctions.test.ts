@@ -9,23 +9,29 @@ import {
 } from "~/__mocks__/stubs/persons.stub.ts";
 import { db } from "~/server/db/provider.ts";
 import { resultsTable as table } from "~/server/db/schema/results.ts";
-import { createVideoBasedResultSF, getWrPairsUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
+import { createVideoBasedResultSF } from "~/server/serverFunctions/resultServerFunctions.ts";
+import { getRecordResult } from "~/server/serverUtilityFunctions.ts";
 
-describe("getWrPairsUpToDateSF", () => {
-  it.skip("gets WR pairs up to date", async () => {
-    const res = await getWrPairsUpToDateSF({ recordsUpTo: new Date(2025, 0, 1) });
+const date = new Date(2023, 0, 1);
 
-    expect(res.serverError).toBeUndefined();
-    expect(res.validationErrors).toBeUndefined();
-    expect(res.data!.length).toBeGreaterThan(0);
-    expect(res.data![0].eventId).toBe("666bf");
-    expect(res.data![0].best).toBe(120000);
+describe.skip("getRecordResult", () => {
+  it("gets single WR up to date", async () => {
+    const result = await getRecordResult("444bf", "best", "WR", "video-based-results", { recordsUpTo: date });
+
+    expect(result).toBeDefined();
+    expect(result!.eventId).toBe("444bf");
+    expect(result!.best).toBe(6500);
+    expect(result!.average).toBe(6600);
   });
+
+  it("doesn't get WR single if there are no successful results for the event yet", async () => {});
+
+  it("gets average WR up to date", async () => {});
+
+  it("doesn't get WR average if there are no successful averages for the event yet", async () => {});
 });
 
 describe("createVideoBasedResultSF", () => {
-  const date = new Date(2023, 0, 1);
-
   it("creates non-record result", async () => {
     const res = await createVideoBasedResultSF({
       newResultDto: {
