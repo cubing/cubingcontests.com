@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { eventCategories } from "~/helpers/eventCategories.ts";
+import { useMemo, useState } from "react";
 import EventIcon from "~/app/components/EventIcon.tsx";
-import { EventResponse } from "~/server/db/schema/events.ts";
+import { eventCategories } from "~/helpers/eventCategories.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+
+const filteredCategories = eventCategories.filter((ec) => ec.value !== "removed");
 
 type Props = {
   eventId: string | undefined;
@@ -17,11 +19,9 @@ function EventButtons({ eventId, events, forPage }: Props) {
   const { id, singleOrAvg } = useParams();
   const searchParams = useSearchParams();
 
-  const filteredCategories = eventCategories.filter((ec) => ec.value !== "removed");
-
   const [selectedCat, setSelectedCat] = useState(
     filteredCategories.find((ec) => events.find((e) => e.eventId === eventId)?.category === ec.value) ??
-      filteredCategories.at(0),
+      filteredCategories.at(0)!,
   );
 
   // If hideCategories = true, just show all events that were passed in
@@ -30,7 +30,7 @@ function EventButtons({ eventId, events, forPage }: Props) {
       !["rankings", "competitions"].includes(forPage)
         ? events
         : events.filter((e) => !e.hidden && e.category === selectedCat.value),
-    [events, selectedCat],
+    [events, selectedCat, forPage],
   );
 
   const handleEventClick = (newEventId: string) => {
@@ -43,11 +43,8 @@ function EventButtons({ eventId, events, forPage }: Props) {
       });
       router.push(`/rankings/${newEventId}/${singleOrAvg}${queryString}`);
     } else if (forPage === "competitions") {
-      if (searchParams.get("eventId") === newEventId) {
-        router.replace("/competitions");
-      } else {
-        router.replace(`/competitions?eventId=${newEventId}`);
-      }
+      if (searchParams.get("eventId") === newEventId) router.replace("/competitions");
+      else router.replace(`/competitions?eventId=${newEventId}`);
     } else {
       router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
     }
@@ -63,7 +60,7 @@ function EventButtons({ eventId, events, forPage }: Props) {
               <button
                 key={cat.value}
                 type="button"
-                className={"btn btn-primary" + (cat === selectedCat ? " active" : "")}
+                className={`btn btn-primary ${cat === selectedCat ? "active" : ""}`}
                 onClick={() => setSelectedCat(cat)}
               >
                 <span className="d-none d-md-inline">{cat.title}</span>
@@ -76,7 +73,7 @@ function EventButtons({ eventId, events, forPage }: Props) {
         </>
       )}
 
-      <div className="d-flex flex-wrap mb-3 fs-3">
+      <div className="d-flex fs-3 mb-3 flex-wrap">
         {filteredEvents.map((event) => (
           <EventIcon
             key={event.eventId}

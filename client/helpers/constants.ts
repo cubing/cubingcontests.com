@@ -3,9 +3,6 @@ export const C = {
   sourceCodeLink: "https://github.com/mintydev789/cubingcontests.com",
   discordServerLink: "https://discord.gg/7rRMQA8jnU",
   fetchDebounceTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
-  // Timeouts before revalidating a request in seconds
-  rankingsRev: 300,
-  contestsRev: 60,
   maxRounds: 4,
   minResultsForThreeMoreRounds: 100,
   minResultsForTwoMoreRounds: 16,

@@ -16,7 +16,6 @@ export const getModContestsSF = actionClient
   )
   .action<ContestResponse[]>(async ({ parsedInput: { organizerPersonId }, ctx: { session } }) => {
     const queryFilters = [];
-    let query: any = db.select(contestsPublicCols).from(table);
 
     // If it's a moderator, only get their own contests
     if (session.user.role !== "admin") {
@@ -39,12 +38,14 @@ export const getModContestsSF = actionClient
         .where(eq(personsTable.personId, organizerPersonId));
 
       if (!organizerPerson) throw new CcActionError(`Person with ID ${organizerPersonId} not found`);
-      console.log(organizerPerson);
       queryFilters.push(arrayContains(table.organizers, [organizerPerson.id]));
     }
 
-    if (queryFilters.length > 0) query = query.where(and(...queryFilters));
+    const contests = await db
+      .select(contestsPublicCols)
+      .from(table)
+      .where(and(...queryFilters))
+      .orderBy(desc(table.startDate));
 
-    const contests = await query.orderBy(desc(table.startDate));
     return contests;
   });

@@ -1,14 +1,20 @@
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { eq, inArray } from "drizzle-orm";
+import { headers } from "next/headers";
 import Markdown from "react-markdown";
-import TempClientComponent from "~/app/competitions/[id]/TempClientComponent.tsx";
-import ContestLayout from "~/app/competitions/ContestLayout.tsx";
+import ContestLayout from "~/app/competitions/[id]/ContestLayout.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
-import { ssrFetch } from "~/helpers/DELETEfetchUtils.ts";
+import ContestControls from "~/app/mod/ContestControls.tsx";
 import { getDateOnly } from "~/helpers/sharedFunctions.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { auth } from "~/server/auth.ts";
+import { db } from "~/server/db/provider.ts";
+import { contestsPublicCols, contestsTable as table } from "~/server/db/schema/contests.ts";
+import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -16,16 +22,21 @@ type Props = {
 
 const ContestDetailsPage = async ({ params }: Props) => {
   const { id } = await params;
-  const contestDataResponse = await ssrFetch<IContestData>(`/competitions/${id}`);
-  if (!contestDataResponse.success) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
-  const { contest } = contestDataResponse.data;
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  const [contest] = await db.select(contestsPublicCols).from(table).where(eq(table.competitionId, id));
+  const organizers = await db
+    .select(personsPublicCols)
+    .from(personsTable)
+    .where(inArray(personsTable.id, contest.organizers));
+
+  if (!contest) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
 
   const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests
-  const formattedTime = contest.meetupDetails
-    ? formatInTimeZone(contest.meetupDetails.startTime, contest.meetupDetails.timeZone, "H:mm")
-    : null;
-  const startOfDayInVenueTZ = getDateOnly(toZonedTime(new Date(), contest.meetupDetails?.timeZone ?? "UTC"))!;
+  const formattedTime =
+    contest.startTime && contest.timeZone ? formatInTimeZone(contest.startTime, contest.timeZone, "H:mm") : null;
+  const startOfDayInVenueTZ = getDateOnly(toZonedTime(new Date(), contest.timeZone ?? "UTC"))!;
   const start = new Date(contest.startDate);
   const isOngoing =
     ["approved", "ongoing"].includes(contest.state) &&
@@ -49,7 +60,7 @@ const ContestDetailsPage = async ({ params }: Props) => {
 
   return (
     <ContestLayout contest={contest} activeTab="details">
-      <div className="row w-100 mx-0 fs-5">
+      <div className="row fs-5 mx-0 w-100">
         <div className="col-md-5 px-0">
           <div className="px-2">
             <div className="mb-3">
@@ -71,7 +82,7 @@ const ContestDetailsPage = async ({ params }: Props) => {
             )}
             <p className="mb-2">
               {contest.organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
-              {contest.organizers.map((org, index) => (
+              {organizers.map((org, index) => (
                 <span key={org.personId} className="d-flex-inline">
                   {index !== 0 && <span className="me-1">,</span>}
                   <Competitor person={org} noFlag />
@@ -96,7 +107,10 @@ const ContestDetailsPage = async ({ params }: Props) => {
 
         <div className="col-md-7 px-0">
           <div className="px-2">
-            <TempClientComponent contest={contest} />
+            <div className="mb-3">
+              <ToastMessages />
+              <ContestControls contest={contest} isAdmin={session?.user.role === "admin"} />
+            </div>
 
             {contest.state === "created" ? (
               <p className="mb-4">This contest is currently awaiting approval</p>

@@ -3,8 +3,9 @@
 import { faClock, faCopy, faPencil } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Button from "~/app/components/UI/Button.tsx";
+import { MainContext } from "~/helpers/contexts.ts";
 import type { ContestState } from "~/helpers/types.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
 
@@ -16,9 +17,9 @@ type Props = {
 };
 
 function ContestControls({ contest, updateContest, isAdmin = false, smallButtons }: Props) {
-  const [loadingId, setLoadingId] = useState("");
+  const { changeErrorMessages } = useContext(MainContext);
 
-  const showApproveButton = contest.state === "created" && isAdmin;
+  const [loadingId, setLoadingId] = useState("");
 
   const changeState = async (newState: ContestState) => {
     const verb =
@@ -44,6 +45,7 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
       // } else {
       //   setLoadingId("");
       // }
+      changeErrorMessages(["ERROR: not implemented"]);
       throw new Error("NOT IMPLEMENTED!");
     }
   };
@@ -81,7 +83,7 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
           Results
         </Link>
       )}
-      {showApproveButton && (
+      {contest.state === "created" && isAdmin && (
         <Button
           id={`set_state_approved_${contest.competitionId}_button`}
           type="button"

@@ -1,9 +1,10 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
-import FormCountrySelect from "~/app/components/form/FormCountrySelect";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
 
 function RegionSelect() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -11,13 +12,13 @@ function RegionSelect() {
 
   const onChangeCountryIso2 = (newRegion: string) => {
     if (newRegion !== region) {
-      let queryString = newRegion !== "NOT_SELECTED" ? `region=${newRegion}` : "";
+      let queryString = newRegion === "NOT_SELECTED" ? "" : `region=${newRegion}`;
 
       searchParams.forEach((val, key) => {
         if (key !== "region") queryString += `${queryString ? "&" : ""}${key}=${val}`;
       });
 
-      window.location.assign(`${pathname}${queryString ? `?${queryString}` : ""}`);
+      router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`);
     }
   };
 

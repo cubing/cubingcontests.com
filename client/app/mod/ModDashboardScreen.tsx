@@ -143,12 +143,7 @@ function ModDashboardScreen({ contests: initContests, session }: Props) {
                 <tr key={contest.competitionId}>
                   <td>{getFormattedDate(contest.startDate, contest.endDate)}</td>
                   <td>
-                    <Link
-                      href={`/competitions/${contest.competitionId}`}
-                      prefetch={false}
-                      className="link-primary text-truncate"
-                      style={{ maxWidth: "10rem" }}
-                    >
+                    <Link href={`/competitions/${contest.competitionId}`} prefetch={false} className="link-primary">
                       {contest.shortName}
                     </Link>
                   </td>

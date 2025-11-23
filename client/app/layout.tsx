@@ -19,7 +19,7 @@ export const metadata = {
   icons: { icon: "/favicon.png" },
   metadataBase: new URL("https://cubingcontests.com"),
   openGraph: {
-    images: ["/api2/static/cubing_contests_1.jpg"],
+    images: ["/banners/cubing_contests_1.jpg"],
   },
 };
 

@@ -1,27 +1,27 @@
 "use server";
 
+import { Alg } from "cubing/alg";
+import { cube2x2x2 } from "cubing/puzzles";
+import { randomScrambleForEvent } from "cubing/scramble";
+import { and, eq, ne } from "drizzle-orm";
 import { find as findTimezone } from "geo-tz";
+import { headers } from "next/headers";
+import { z } from "zod";
+import { C } from "~/helpers/constants.ts";
+import { nxnMoves } from "~/helpers/types/NxNMove.ts";
+import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
+import { usersTable } from "~/server/db/schema/auth-schema.ts";
 import {
-  CollectiveSolutionResponse,
+  type CollectiveSolutionResponse,
   collectiveSolutionsPublicCols,
   collectiveSolutionsTable as csTable,
 } from "~/server/db/schema/collective-solutions.ts";
-import { and, eq, ne } from "drizzle-orm";
-import { randomScrambleForEvent } from "cubing/scramble";
-import { cube2x2x2 } from "cubing/puzzles";
-import { Alg } from "cubing/alg";
-import { nxnMoves } from "~/helpers/types/NxNMove.ts";
-import { z } from "zod";
-import { actionClient, CcActionError } from "../safeAction.ts";
-import { auth } from "~/server/auth.ts";
+import { sendEmail, sendRoleChangedEmail } from "~/server/email/mailer.ts";
 import { Roles } from "~/server/permissions.ts";
-import { headers } from "next/headers";
-import { usersTable } from "~/server/db/schema/auth-schema.ts";
-import { PersonResponse, personsPublicCols, personsTable } from "../db/schema/persons.ts";
+import { type PersonResponse, personsPublicCols, personsTable } from "../db/schema/persons.ts";
+import { actionClient, CcActionError } from "../safeAction.ts";
 import { approvePersonSF } from "./personServerFunctions.ts";
-import { sendEmail, sendRoleChangedEmail } from "~/server/mailer.ts";
-import { C } from "~/helpers/constants.ts";
 
 // const CoordinatesValidator = z.strictObject({
 //   latitude: z.number().gte(-90).lte(90),
@@ -42,12 +42,16 @@ import { C } from "~/helpers/constants.ts";
 //   return await Promise.resolve({ success: true, data: timeZone });
 // }
 
-export const updateUserSF = actionClient.metadata({ permissions: { user: ["set-role"] } })
-  .inputSchema(z.strictObject({
-    id: z.string(),
-    personId: z.int().nullable().default(null),
-    role: z.enum(Roles),
-  })).action<{ user: typeof auth.$Infer.Session.user; person?: PersonResponse }>(
+export const updateUserSF = actionClient
+  .metadata({ permissions: { user: ["set-role"] } })
+  .inputSchema(
+    z.strictObject({
+      id: z.string(),
+      personId: z.int().nullable().default(null),
+      role: z.enum(Roles),
+    }),
+  )
+  .action<{ user: typeof auth.$Infer.Session.user; person?: PersonResponse }>(
     async ({ parsedInput: { id, personId, role } }) => {
       const hdrs = await headers();
 
@@ -58,12 +62,16 @@ export const updateUserSF = actionClient.metadata({ permissions: { user: ["set-r
       let person: PersonResponse | undefined;
       if (personId) {
         if (personId !== user.personId) {
-          const [samePersonUser] = await db.select({ id: usersTable.id }).from(usersTable)
-            .where(and(ne(usersTable.id, id), eq(usersTable.personId, personId))).limit(1);
+          const [samePersonUser] = await db
+            .select({ id: usersTable.id })
+            .from(usersTable)
+            .where(and(ne(usersTable.id, id), eq(usersTable.personId, personId)))
+            .limit(1);
           if (samePersonUser) throw new CcActionError("The selected person is already tied to another user");
 
-          person = (await db.select(personsPublicCols).from(personsTable)
-            .where(eq(personsTable.personId, personId)).limit(1)).at(0);
+          person = (
+            await db.select(personsPublicCols).from(personsTable).where(eq(personsTable.personId, personId)).limit(1)
+          ).at(0);
           if (!person) throw new CcActionError(`Person with ID ${personId} not found`);
 
           if (!person.approved) {
@@ -98,7 +106,8 @@ export const updateUserSF = actionClient.metadata({ permissions: { user: ["set-r
     },
   );
 
-export const startNewCollectiveCubingSolutionSF = actionClient.metadata({ permissions: null })
+export const startNewCollectiveCubingSolutionSF = actionClient
+  .metadata({ permissions: null })
   .action<CollectiveSolutionResponse>(async ({ ctx: { session } }) => {
     const [ongoingSolution] = await db.select().from(csTable).where(eq(csTable.state, "ongoing")).limit(1);
 
@@ -109,12 +118,15 @@ export const startNewCollectiveCubingSolutionSF = actionClient.metadata({ permis
 
     const [createdSolution] = await db.transaction(async (tx) => {
       await tx.update(csTable).set({ state: "archived" }).where(eq(csTable.state, "solved"));
-      return await tx.insert(csTable).values({
-        eventId,
-        scramble: scramble.toString(),
-        lastUserWhoInteracted: session.user.id,
-        usersWhoMadeMoves: [],
-      }).returning(collectiveSolutionsPublicCols);
+      return await tx
+        .insert(csTable)
+        .values({
+          eventId,
+          scramble: scramble.toString(),
+          lastUserWhoInteracted: session.user.id,
+          usersWhoMadeMoves: [],
+        })
+        .returning(collectiveSolutionsPublicCols);
     });
 
     return createdSolution;
@@ -130,11 +142,14 @@ async function getIsSolved(currentState: Alg): Promise<boolean> {
   return isSolved;
 }
 
-export const makeCollectiveCubingMoveSF = actionClient.metadata({ permissions: null })
-  .inputSchema(z.strictObject({
-    move: z.enum(nxnMoves),
-    lastSeenSolution: z.string(),
-  }))
+export const makeCollectiveCubingMoveSF = actionClient
+  .metadata({ permissions: null })
+  .inputSchema(
+    z.strictObject({
+      move: z.enum(nxnMoves),
+      lastSeenSolution: z.string(),
+    }),
+  )
   .action<CollectiveSolutionResponse>(async ({ parsedInput: { move, lastSeenSolution }, ctx: { session } }) => {
     const [ongoingSolution] = await db.select().from(csTable).where(eq(csTable.state, "ongoing")).limit(1);
 
@@ -155,16 +170,20 @@ export const makeCollectiveCubingMoveSF = actionClient.metadata({ permissions: n
     }
 
     const solution = new Alg(ongoingSolution.solution).concat(move);
-    const state = await getIsSolved(new Alg(ongoingSolution.scramble).concat(solution)) ? "solved" : "ongoing";
+    const state = (await getIsSolved(new Alg(ongoingSolution.scramble).concat(solution))) ? "solved" : "ongoing";
 
-    const [updatedSolution] = await db.update(csTable).set({
-      state,
-      solution: solution.toString(),
-      lastUserWhoInteracted: session.user.id,
-      usersWhoMadeMoves: !ongoingSolution.usersWhoMadeMoves.includes(session.user.id)
-        ? [...ongoingSolution.usersWhoMadeMoves, session.user.id]
-        : ongoingSolution.usersWhoMadeMoves,
-    }).where(eq(csTable.id, ongoingSolution.id)).returning(collectiveSolutionsPublicCols);
+    const [updatedSolution] = await db
+      .update(csTable)
+      .set({
+        state,
+        solution: solution.toString(),
+        lastUserWhoInteracted: session.user.id,
+        usersWhoMadeMoves: !ongoingSolution.usersWhoMadeMoves.includes(session.user.id)
+          ? [...ongoingSolution.usersWhoMadeMoves, session.user.id]
+          : ongoingSolution.usersWhoMadeMoves,
+      })
+      .where(eq(csTable.id, ongoingSolution.id))
+      .returning(collectiveSolutionsPublicCols);
 
     return updatedSolution;
   });

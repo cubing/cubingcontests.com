@@ -14,7 +14,7 @@ import { resultsTable, type SelectResult } from "./db/schema/results.ts";
 import type { CcPermissions } from "./permissions.ts";
 import { CcActionError } from "./safeAction.ts";
 
-export async function checkUserPermissions(userId: string, permissions: CcPermissions) {
+export async function checkUserPermissions(userId: string, permissions: CcPermissions): Promise<boolean> {
   const { success } = await auth.api.userHasPermission({ body: { userId, permissions } });
   return success;
 }

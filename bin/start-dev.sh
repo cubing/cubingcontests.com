@@ -18,11 +18,14 @@ sleep 1 &&
 
 # Copy port environment variables to Next JS project
 grep "^PORT=" .env > client/.env.local
-grep "^BACKEND_PORT=" .env >> client/.env.local
 grep "^DB_USERNAME=" .env >> client/.env.local
 grep "^DB_PASSWORD=" .env >> client/.env.local
 grep "^DB_NAME=" .env >> client/.env.local
 grep "^PROD_BASE_URL=" .env >> client/.env.local
+grep "^EMAIL_TEST_INBOX_ID=" .env >> client/.env.local
+grep "^EMAIL_TOKEN=" .env >> client/.env.local
+grep "^BETTER_AUTH_URL=" .env >> client/.env.local
+grep "^BETTER_AUTH_SECRET=" .env >> client/.env.local
 cd client
 
 deno install --allow-scripts &&

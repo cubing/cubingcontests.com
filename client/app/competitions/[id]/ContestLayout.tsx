@@ -1,16 +1,14 @@
 import Tabs from "~/app/components/UI/Tabs.tsx";
-import { IContest } from "~/helpers/types.ts";
 import { getIsCompType } from "~/helpers/sharedFunctions.ts";
+import type { ContestResponse } from "~/server/db/schema/contests.ts";
 
-const ContestLayout = ({
-  contest,
-  activeTab,
-  children,
-}: {
-  contest: IContest;
+type Props = {
+  contest: ContestResponse;
   activeTab: string;
   children: React.ReactNode;
-}) => {
+};
+
+function ContestLayout({ contest, activeTab, children }: Props) {
   const tabs = [
     {
       title: "Details",
@@ -21,7 +19,6 @@ const ContestLayout = ({
       title: "Results",
       value: "results",
       route: `/competitions/${contest.competitionId}/results`,
-      hidden: !contest.events.some((ev) => ev.rounds.some((r) => r.results.length > 0)),
     },
     {
       title: "Events",
@@ -37,13 +34,13 @@ const ContestLayout = ({
   ];
 
   return (
-    <div className="mb-4">
+    <section className="mb-4">
       <h2 className="mb-3 px-3 text-center">{contest.name}</h2>
       <Tabs tabs={tabs} activeTab={activeTab} forServerSidePage replace />
 
       {children}
-    </div>
+    </section>
   );
-};
+}
 
 export default ContestLayout;
