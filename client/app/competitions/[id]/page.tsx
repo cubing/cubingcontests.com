@@ -10,7 +10,7 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 import ContestControls from "~/app/mod/ContestControls.tsx";
 import { getDateOnly } from "~/helpers/sharedFunctions.ts";
-import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { getFormattedDate, getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { contestsPublicCols, contestsTable as table } from "~/server/db/schema/contests.ts";
@@ -109,7 +109,7 @@ const ContestDetailsPage = async ({ params }: Props) => {
           <div className="px-2">
             <div className="mb-3">
               <ToastMessages />
-              <ContestControls contest={contest} isAdmin={session?.user.role === "admin"} />
+              <ContestControls contest={contest} isAdmin={getIsAdmin(session?.user.role)} />
             </div>
 
             {contest.state === "created" ? (

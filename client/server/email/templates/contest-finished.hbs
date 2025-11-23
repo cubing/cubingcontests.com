@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>Cubing Contests</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; word-wrap: break-word; } .unofficial-events-contents { margin:
+      1.5rem 0.5rem; padding: 1rem; border-radius: 10px; background-color: #eee; }
+    </style>
+  </head>
+  <body>
+    <p>
+      Contest <a href="{{contestUrl}}">{{contestName}}</a> (created by {{creator}}) has been finished and is pending review by the admin team.
+      {{#if isUnofficialCompetition}}
+        <strong>Please provide at least two photos of the competition setup</strong> (i.e. scrambling area, competition area, etc.) in response to this email.
+      {{/if}}
+    </p>
+
+    <p>If you find an error in the results that needs to be corrected, please let the admin team know in a reply to this email. <strong>Make sure to use "Reply All"!</strong></p>
+
+    {{#if duesAmount}}
+      <p><strong>Please donate ${{duesAmount}} (USD)</strong> to support the maintenance and continued development of cubingcontests.com as part of the Cubing Contests honorary dues system.</p>
+
+      <a href="{{ccUrl}}/donate">Donate to Cubing Contests</a>
+    {{/if}}
+    
+    <p>@CC Admin: Review the results and publish them so they become included in the rankings.</p>
+  </body>
+</html>

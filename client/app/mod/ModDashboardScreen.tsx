@@ -14,7 +14,7 @@ import ModFilters from "~/app/mod/ModFilters.tsx";
 import type { authClient } from "~/helpers/authClient.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { getActionError, getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import { getActionError, getFormattedDate, getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import { getModContestsSF } from "~/server/serverFunctions/contestServerFunctions.ts";
@@ -32,7 +32,7 @@ function ModDashboardScreen({ contests: initContests, session }: Props) {
   const { executeAsync: getModContests, isPending } = useAction(getModContestsSF);
   const [contests, setContests] = useState<ContestResponse[]>(initContests);
 
-  const isAdmin = session.user.role === "admin";
+  const isAdmin = getIsAdmin(session.user.role);
   const pendingContests = contests.filter((c) => ["created", "ongoing", "finished"].includes(c.state)).length;
 
   const fetchContests = async (newOrganizerPersonId?: number) => {

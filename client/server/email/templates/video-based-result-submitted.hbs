@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>Cubing Contests</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; word-wrap: break-word; }
+      .unofficial-events-contents { margin: 1.5rem 0.5rem; padding: 1rem; border-radius: 10px; background-color: #eee; }
+    </style>
+  </head>
+  <body>
+    <p>A new video-based {{eventName}} result has been submitted and is pending approval by the admin team.</p>
+
+    <p>Created by: {{creatorUsername}}</p>
+    <p>Format: {{roundFormat}}</p>
+    <p>Best: {{best}}</p>
+    {{#if average}}
+      <p>Average: {{average}}</p>
+    {{/if}}
+    <p>Video link: <a href="{{videoLink}}" target="_blank" rel="noopener noreferrer">{{videoLink}}</a></p>
+    {{#if discussionLink}}
+      <p>Discussion link: <a href="{{discussionLink}}" target="_blank" rel="noopener noreferrer">{{discussionLink}}</a></p>
+    {{/if}}
+
+    <p>If you have any questions, feel free to send a reply to this email. <strong>Make sure to use "Reply All"!</strong></p>
+
+    <p>@CC Admin: Review the result and approve it so it becomes publicly visible on the website.</p>
+  </body>
+</html>

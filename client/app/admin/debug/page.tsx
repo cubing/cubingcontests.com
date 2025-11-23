@@ -1,14 +1,12 @@
 "use client";
 
 import { useContext, useState } from "react";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import { MainContext } from "~/helpers/contexts.ts";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import { MainContext } from "~/helpers/contexts.ts";
 
 const DebugPage = () => {
-  const myFetch = useMyFetch();
   const { resetMessages } = useContext(MainContext);
 
   const [debugInputValue, setDebugInputValue] = useState("");
@@ -31,13 +29,14 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
   };
 
   const sendEmail = async () => {
-    setDebugOutput("");
+    throw new Error("NOT IMPLEMENTED");
+    // setDebugOutput("");
 
-    const res = await myFetch.post("/debug-sending-email", { email }, {
-      loadingId: "send_email_button",
-    });
+    // const res = await myFetch.post("/debug-sending-email", { email }, {
+    //   loadingId: "send_email_button",
+    // });
 
-    if (res.success) setDebugOutput("Successfully sent email!");
+    // if (res.success) setDebugOutput("Successfully sent email!");
   };
 
   return (
@@ -46,7 +45,7 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
         <h2 className="mb-5 text-center">Page for debugging</h2>
         <ToastMessages />
 
-        <p className="mt-3 mb-4 fs-5" style={{ whiteSpace: "pre-wrap" }}>
+        <p className="fs-5 mt-3 mb-4" style={{ whiteSpace: "pre-wrap" }}>
           {debugOutput}
         </p>
 
@@ -59,17 +58,12 @@ nativeEvent.code: "${e.nativeEvent?.code}"`;
 
         <h4 className="my-4">Test sending emails</h4>
 
-        <FormTextInput
-          title="Email address"
-          value={email}
-          setValue={setEmail}
-          className="mb-3"
-        />
+        <FormTextInput title="Email address" value={email} setValue={setEmail} className="mb-3" />
 
         <Button
           id="send_email_button"
           onClick={sendEmail}
-          loadingId={loadingId}
+          // loadingId={loadingId}
         >
           Send
         </Button>

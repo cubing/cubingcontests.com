@@ -23,6 +23,7 @@
     "date-fns-tz": "3.2.0",
     "drizzle-orm": "1.0.0-beta.1-fd8bfcc",
     "geo-tz": "8.1.4",
+    "handlebars": "4.7.8",
     "lodash": "4.17.21",
     "mailtrap": "4.3.0",
     "next": "16.0.3",

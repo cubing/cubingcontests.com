@@ -13,6 +13,7 @@ import {
   getDefaultAverageAttempts,
 } from "~/helpers/sharedFunctions.ts";
 import type { EventWrPair } from "~/helpers/types.ts";
+import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { VideoBasedResultValidator } from "~/helpers/validators/Result.ts";
 import { db } from "../db/provider.ts";
 import { type EventResponse, eventsTable } from "../db/schema/events.ts";
@@ -24,6 +25,7 @@ import {
   resultsPublicCols,
   resultsTable as table,
 } from "../db/schema/results.ts";
+import { sendVideoBasedResultSubmittedNotification } from "../email/mailer.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { getRecordConfigs, getRecordResult, setPersonToApproved } from "../serverUtilityFunctions.ts";
 
@@ -59,7 +61,7 @@ export const createVideoBasedResultSF = actionClient
   .action<ResultResponse>(async ({ parsedInput: { newResultDto }, ctx: { session } }) => {
     console.log(`Creating new video-based result: ${JSON.stringify(newResultDto)}`);
 
-    const isAdmin = session.user.role === "admin";
+    const isAdmin = getIsAdmin(session.user.role);
 
     // Disallow admin-only features
     if (!isAdmin) {
@@ -89,7 +91,7 @@ export const createVideoBasedResultSF = actionClient
       .where(inArray(personsTable.personId, newResult.personIds));
     await setResultRecordsCountryAndContinent(newResult, event, recordConfigs, participants);
 
-    const [createdResult] = (await db.insert(table).values(newResult).returning(resultsPublicCols)) as ResultResponse[];
+    const [createdResult] = await db.insert(table).values(newResult).returning(resultsPublicCols);
 
     if (isAdmin) {
       await Promise.allSettled(
@@ -98,12 +100,7 @@ export const createVideoBasedResultSF = actionClient
 
       await updateFutureRecords(createdResult, recordConfigs);
     } else {
-      //   await this.emailService.sendVideoBasedResultSubmittedNotification(
-      //     user.email,
-      //     event,
-      //     createdResult as IVideoBasedResult,
-      //     user.username,
-      //   );
+      sendVideoBasedResultSubmittedNotification(session.user.email, event, createdResult, session.user.username);
     }
 
     return createdResult;

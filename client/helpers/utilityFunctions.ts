@@ -1,16 +1,19 @@
 import { isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
+import type { SafeActionResult } from "next-safe-action";
 import { remove as removeAccents } from "remove-accents";
 import { C } from "~/helpers/constants.ts";
-import type { CcServerErrorObject, EventFormat, InputPerson, ITimeLimit } from "~/helpers/types.ts";
-import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
-import { SafeActionResult } from "next-safe-action";
-import type { Attempt } from "~/server/db/schema/results.ts";
+import type { CcServerErrorObject, EventFormat, InputPerson } from "~/helpers/types.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
-import { Color } from "./enums.ts";
-import { type RoundFormatObject } from "./roundFormats.ts";
+import type { Attempt } from "~/server/db/schema/results.ts";
+import type { RoundFormatObject } from "./roundFormats.ts";
+import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 
-export const getFormattedDate = (startDate: Date | string, endDate?: Date | string | null): string => {
+export function getIsAdmin(rolesString: string | null | undefined): boolean {
+  return !!rolesString?.split(",").some((role) => role === "admin");
+}
+
+export function getFormattedDate(startDate: Date | string, endDate?: Date | string | null): string {
   if (!startDate) throw new Error("Start date missing!");
 
   if (typeof startDate === "string") startDate = new Date(startDate);
@@ -29,12 +32,15 @@ export const getFormattedDate = (startDate: Date | string, endDate?: Date | stri
 
     return `${formatInTimeZone(startDate, "UTC", startFormat)} - ${formatInTimeZone(endDate, "UTC", fullFormat)}`;
   }
-};
+}
 
 // Returns null if the time is invalid
 const getCentiseconds = (
   time: string, // the time string without formatting (e.g. 1:35.97 should be "13597")
-  { round = true, throwErrorWhenInvalidTime = false }: {
+  {
+    round = true,
+    throwErrorWhenInvalidTime = false,
+  }: {
     round?: boolean;
     throwErrorWhenInvalidTime?: boolean;
   } = { round: true, throwErrorWhenInvalidTime: false },
@@ -75,7 +81,13 @@ export function getAttempt(
   attempt: Attempt,
   event: EventResponse,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
-  { roundTime = false, roundMemo = false, solved, attempted, memo }: {
+  {
+    roundTime = false,
+    roundMemo = false,
+    solved,
+    attempted,
+    memo,
+  }: {
     roundTime?: boolean;
     roundMemo?: boolean;
     // These three parameters are optional if the event format is Number
@@ -141,14 +153,21 @@ export const getContestIdFromName = (name: string): string => {
   let output = removeAccents(name).replaceAll(/[^a-zA-Z0-9 ]/g, "");
   const parts = output.split(" ");
 
-  output = parts.filter((el) => el !== "").map((el) => el[0].toUpperCase() + el.slice(1)).join("");
+  output = parts
+    .filter((el) => el !== "")
+    .map((el) => el[0].toUpperCase() + el.slice(1))
+    .join("");
 
   return output;
 };
 
 export const genericOnKeyDown = (
   e: any,
-  { nextFocusTargetId, onKeyDown, submitOnEnter }: {
+  {
+    nextFocusTargetId,
+    onKeyDown,
+    submitOnEnter,
+  }: {
     nextFocusTargetId?: string;
     onKeyDown?: (e: any) => void;
     submitOnEnter?: boolean;
@@ -190,8 +209,7 @@ export const getIsWebglSupported = (): boolean => {
     const webglContext = canvas.getContext("webgl");
     const webglExperimentalContext = canvas.getContext("experimental-webgl");
 
-    return !!window.WebGLRenderingContext && !!webglContext &&
-      !!webglExperimentalContext;
+    return !!window.WebGLRenderingContext && !!webglContext && !!webglExperimentalContext;
   } catch (_e) {
     return false;
   }
@@ -216,7 +234,7 @@ export function getActionError(actionResult: SafeActionResult<CcServerErrorObjec
     const getValidationError = (errorObject: any, currentErrors: string[], fieldName?: string) => {
       for (const key in errorObject) {
         if (key === "_errors" && fieldName) {
-          if (fieldName) currentErrors.push(...((errorObject._errors as string[]).map((e) => `${fieldName}: ${e}`)));
+          if (fieldName) currentErrors.push(...(errorObject._errors as string[]).map((e) => `${fieldName}: ${e}`));
           else currentErrors.push(...(errorObject._errors as string[]));
         } else {
           getValidationError(errorObject[key], currentErrors, key);

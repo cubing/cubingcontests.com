@@ -9,6 +9,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { C } from "~/helpers/constants.ts";
 import { nxnMoves } from "~/helpers/types/NxNMove.ts";
+import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
@@ -21,6 +22,7 @@ import { sendEmail, sendRoleChangedEmail } from "~/server/email/mailer.ts";
 import { Roles } from "~/server/permissions.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "../db/schema/persons.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
+import { checkUserPermissions } from "../serverUtilityFunctions.ts";
 import { approvePersonSF } from "./personServerFunctions.ts";
 
 // const CoordinatesValidator = z.strictObject({
@@ -85,17 +87,17 @@ export const updateUserSF = actionClient
 
       if (user.role !== role) {
         await auth.api.setRole({ body: { userId: id, role }, headers: hdrs });
+        const canAccessModDashboard = await checkUserPermissions(user.id, { modDashboard: ["view"] });
 
-        if (role === "admin") {
-          await sendEmail(
+        sendRoleChangedEmail(user.email, role, canAccessModDashboard);
+
+        if (getIsAdmin(role)) {
+          sendEmail(
             C.contactEmail,
-            "New admin user",
-            `<h1>New admin user</h1>
-            <p>User ${user.username}${person ? ` (${person.name})` : ""} has been given the admin role.</p>`,
+            "Important: New admin user",
+            `User ${user.username}${person ? ` (${person.name})` : ""} has been given the admin role.`,
           );
         }
-
-        await sendRoleChangedEmail(user.email, role);
       }
 
       const [updatedUser] = await db.update(usersTable).set({ personId }).where(eq(usersTable.id, id)).returning();

@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, username } from "better-auth/plugins";
 import { accountsTable, sessionsTable, usersTable, verificationsTable } from "~/server/db/schema/auth-schema.ts";
-import { sendResetPasswordEmail, sendVerificationCodeEmail } from "~/server/email/mailer.ts";
+import { sendResetPasswordEmail, sendVerificationEmail } from "~/server/email/mailer.ts";
 import { ac, admin, mod, user } from "~/server/permissions.ts";
 import { db } from "./db/provider.ts";
 
@@ -35,7 +35,7 @@ export const auth = betterAuth({
     sendResetPassword: ({ user, url }) => sendResetPasswordEmail(user.email, url),
   },
   emailVerification: {
-    sendVerificationEmail: ({ user, url }) => sendVerificationCodeEmail(user.email, url),
+    sendVerificationEmail: ({ user, url }) => sendVerificationEmail(user.email, url),
   },
   user: {
     additionalFields: {

@@ -3,7 +3,7 @@
 import debounce from "lodash/debounce";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
@@ -21,7 +21,7 @@ import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { type RoundFormatObject, roundFormats } from "~/helpers/roundFormats.ts";
 import type { Creator, EventWrPair, InputPerson, RoundFormat } from "~/helpers/types.ts";
-import { getActionError, getBlankCompetitors, getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
+import { getActionError, getBlankCompetitors, getIsAdmin, getRoundFormatOptions } from "~/helpers/utilityFunctions.ts";
 import type { VideoBasedResultDto } from "~/helpers/validators/Result.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
@@ -88,7 +88,7 @@ function ResultsSubmissionForm({
     [],
   );
 
-  const isAdmin = session?.user.role === "admin";
+  const isAdmin = getIsAdmin(session?.user.role);
   const isPending = isCreating || isUpdatingWrPairs;
 
   useEffect(() => {
@@ -233,9 +233,6 @@ function ResultsSubmissionForm({
               admins to have a competitor profile created for you. If you have any questions or suggestions, feel free
               to send an email to {C.contactEmail}.
             </p>
-            <div className="alert alert-warning mb-4" role="alert">
-              Rule 6 has been added
-            </div>
             <button type="button" className="btn btn-success btn-sm" onClick={() => setShowRules(!showRules)}>
               {showRules ? "Hide rules" : "Show rules"}
             </button>

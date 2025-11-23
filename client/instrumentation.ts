@@ -18,7 +18,7 @@ import { roundsTable } from "./server/db/schema/rounds.ts";
 const hashForCc =
   "a73adfb4df83466851a5c337a6bc738b:a580ce8e36188f210f2342998c46789d69ab69ebf35a6382d80ad11e8542ec62074b31789b09dc653daaf8e1ec69fb5c97c6f6244f7de80d03169e7572c0e514";
 const message =
-  "The EMAIL_TOKEN environment variable must be empty while seeding the DB to avoid sending lots of verification emails for the users being seeded. Remove it and comment out the sendVerificationEmail function in auth.ts, and then add them back after the DB has been seeded.";
+  "The EMAIL_API_KEY environment variable must be empty while seeding the DB to avoid sending lots of verification emails for the users being seeded. Remove it and comment out the sendVerificationEmail function in auth.ts, and then add them back after the DB has been seeded.";
 
 export async function register() {
   // Seed test users for development
@@ -61,7 +61,7 @@ export async function register() {
         (await db.select().from(usersTable).where(eq(usersTable.email, testUser.email)).limit(1)).length > 0;
 
       if (!userExists) {
-        if (process.env.EMAIL_TOKEN) throw new Error(message);
+        if (process.env.EMAIL_API_KEY) throw new Error(message);
 
         const { role, ...body } = testUser;
         await auth.api.signUpEmail({ body });
@@ -87,7 +87,7 @@ export async function register() {
     // Seed database with old Mongo DB data.
     // This assumes the local dev environment can't normally have 100 users.
     if ((await db.select({ id: usersTable.id }).from(usersTable).limit(100)).length < 100) {
-      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding users...");
 
       try {
@@ -141,7 +141,7 @@ export async function register() {
     };
 
     if ((await db.select({ id: personsTable.id }).from(personsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding persons...");
 
       try {
@@ -177,7 +177,7 @@ export async function register() {
     const persons = await db.select().from(personsTable);
 
     if ((await db.select({ id: eventsTable.id }).from(eventsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding events...");
 
       try {
@@ -227,7 +227,7 @@ export async function register() {
     };
 
     if ((await db.select({ id: resultsTable.id }).from(resultsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding results...");
 
       const resultsDump = JSON.parse(fs.readFileSync("./dump/results.json") as any);
@@ -340,7 +340,7 @@ export async function register() {
     }
 
     if ((await db.select({ id: contestsTable.id }).from(contestsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_TOKEN) throw new Error(message);
+      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding contests...");
 
       const contestsDump = (JSON.parse(fs.readFileSync("./dump/competitions.json") as any) as any[]).reverse();
@@ -431,8 +431,7 @@ export async function register() {
       }
     }
 
-    if ((await db.select({ id: contestsTable.id }).from(contestsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_TOKEN) throw new Error(message);
+    if ((await db.select({ id: recordConfigsTable.id }).from(recordConfigsTable).limit(1)).length === 0) {
       console.log("Seeding record configs...");
 
       for (let i = 0; i < RecordTypeValues.length; i++) {
