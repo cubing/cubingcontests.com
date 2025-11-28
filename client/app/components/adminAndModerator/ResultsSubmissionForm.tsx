@@ -56,7 +56,7 @@ function ResultsSubmissionForm({
 
   const {
     executeAsync: getWrPairUpToDate,
-    isPending: isUpdatingWrPairs,
+    isPending: isPendingWrPairs,
     reset: resetGetEventWrPairsUpToDate,
   } = useAction(getWrPairUpToDateSF);
   const { executeAsync: createResult, isPending: isCreating } = useAction(createVideoBasedResultSF);
@@ -89,7 +89,7 @@ function ResultsSubmissionForm({
   );
 
   const isAdmin = getIsAdmin(session?.user.role);
-  const isPending = isCreating || isUpdatingWrPairs;
+  const isPending = isCreating || isPendingWrPairs;
 
   useEffect(() => {
     updateWrPair(event.eventId);
@@ -112,7 +112,7 @@ function ResultsSubmissionForm({
       personIds: competitors.map((p) => p!.personId),
       attempts,
       videoLink: videoUnavailable ? "" : videoLink,
-      discussionLink: discussionLink || undefined,
+      discussionLink: discussionLink || null,
     };
 
     if (!result) {
@@ -286,7 +286,7 @@ function ResultsSubmissionForm({
             nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
           />
         ))}
-        {isUpdatingWrPairs || !eventWrPair ? (
+        {isPendingWrPairs || !eventWrPair ? (
           <Loading small dontCenter />
         ) : (
           <BestAndAverage

@@ -1,24 +1,24 @@
 "use client";
 
-import { useContext, useEffect, useRef, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
-import Form from "~/app/components/form/Form.tsx";
-import { MainContext } from "~/helpers/contexts.ts";
+import { useAction } from "next-safe-action/hooks";
+import { useContext, useEffect, useRef, useState, useTransition } from "react";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormCountrySelect from "~/app/components/form/FormCountrySelect.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import { MainContext } from "~/helpers/contexts.ts";
 import { fetchWcaPerson } from "~/helpers/sharedFunctions.ts";
-import { PersonResponse } from "~/server/db/schema/persons.ts";
-import { Creator } from "~/helpers/types.ts";
-import { useAction } from "next-safe-action/hooks";
+import type { Creator } from "~/helpers/types.ts";
+import { getActionError } from "~/helpers/utilityFunctions.ts";
+import type { PersonDto } from "~/helpers/validators/Person.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import {
   createPersonSF,
   getOrCreatePersonByWcaIdSF,
   updatePersonSF,
 } from "~/server/serverFunctions/personServerFunctions.ts";
-import { getActionError } from "~/helpers/utilityFunctions.ts";
-import { PersonDto } from "~/helpers/validators/Person.ts";
 
 type Props = {
   personUnderEdit: PersonResponse | undefined;
@@ -33,9 +33,8 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { executeAsync: createPerson, isPending: isCreating } = useAction(createPersonSF);
-  const { executeAsync: getOrCreateWcaPerson, isPending: isGettingOrCreatingWcaPerson } = useAction(
-    getOrCreatePersonByWcaIdSF,
-  );
+  const { executeAsync: getOrCreateWcaPerson, isPending: isGettingOrCreatingWcaPerson } =
+    useAction(getOrCreatePersonByWcaIdSF);
   const { executeAsync: updatePerson, isPending: isUpdating } = useAction(updatePersonSF);
   const [nextFocusTarget, setNextFocusTarget] = useState("");
   const [name, setName] = useState(personUnderEdit?.name ?? "");
@@ -66,8 +65,8 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
     const baseRequest = {
       newPersonDto: {
         name: name.trim(),
-        localizedName: localizedName.trim() || undefined,
-        wcaId: hasWcaId ? wcaId.trim().toUpperCase() : undefined,
+        localizedName: localizedName.trim() || null,
+        wcaId: hasWcaId ? wcaId.trim().toUpperCase() : null,
         countryIso2,
       } satisfies PersonDto,
       ignoreDuplicate: isConfirmation.current,

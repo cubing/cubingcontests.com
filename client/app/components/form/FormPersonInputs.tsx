@@ -1,27 +1,27 @@
 "use client";
 
-import { useCallback, useContext, useState } from "react";
 import debounce from "lodash/debounce";
-import Loading from "~/app/components/UI/Loading.tsx";
-import FormTextInput from "./FormTextInput.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
-import type { InputPerson } from "~/helpers/types.ts";
-import { C } from "~/helpers/constants.ts";
-import { PersonResponse } from "~/server/db/schema/persons.ts";
 import { useAction } from "next-safe-action/hooks";
-import { getOrCreatePersonByWcaIdSF, getPersonsByNameSF } from "~/server/serverFunctions/personServerFunctions.ts";
-import { getActionError } from "~/helpers/utilityFunctions.ts";
+import { useCallback, useContext, useState } from "react";
+import Competitor from "~/app/components/Competitor.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
+import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
+import type { InputPerson } from "~/helpers/types.ts";
+import { getActionError } from "~/helpers/utilityFunctions.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import { getOrCreatePersonByWcaIdSF, getPersonsByNameSF } from "~/server/serverFunctions/personServerFunctions.ts";
+import FormTextInput from "./FormTextInput.tsx";
 
 const personInputTooltip =
   "Enter the competitor's name if they are already on Cubing Contests. If not, enter their full WCA ID to add them.";
 
 type Props = {
   title: string;
-  personNames: string[];
-  setPersonNames: (val: string[]) => void;
   persons: InputPerson[];
   setPersons: (val: InputPerson[]) => void;
+  personNames: string[];
+  setPersonNames: (val: string[]) => void;
   onSelectPerson?: (val: PersonResponse) => void;
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
@@ -33,10 +33,10 @@ type Props = {
 
 function FormPersonInputs({
   title,
-  personNames,
-  setPersonNames,
   persons,
   setPersons,
+  personNames,
+  setPersonNames,
   onSelectPerson,
   infiniteInputs,
   nextFocusTargetId,
@@ -50,8 +50,8 @@ function FormPersonInputs({
 
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
-  const { executeAsync: getPersonsByName, isPending: isGettingByName } = useAction(getPersonsByNameSF);
-  const { executeAsync: getOrCreateWcaPerson, isPending: isGettingWcaPerson } = useAction(getOrCreatePersonByWcaIdSF);
+  const { executeAsync: getPersonsByName, isPending: isPendingPersonsByName } = useAction(getPersonsByNameSF);
+  const { executeAsync: getOrCreateWcaPerson, isPending: isPendingWcaPerson } = useAction(getOrCreatePersonByWcaIdSF);
   const [matchedPersons, setMatchedPersons] = useState<(PersonResponse | null)[]>(defaultMatchedPersons);
   const [personSelection, setPersonSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
@@ -86,7 +86,7 @@ function FormPersonInputs({
     [personSelection],
   );
 
-  const isPending = isGettingByName || isGettingWcaPerson;
+  const isPending = isPendingPersonsByName || isPendingWcaPerson;
 
   const queryMatchedPersons = (value: string) => {
     setMatchedPersons(defaultMatchedPersons);
@@ -206,10 +206,7 @@ function FormPersonInputs({
   return (
     <div className={display === "grid" ? "row" : ""}>
       {personNames.map((personName: string, inputIndex: number) => (
-        <div
-          key={inputIndex}
-          className={personNames.length > 1 && display === "grid" ? "col-md-6" : ""}
-        >
+        <div key={inputIndex} className={personNames.length > 1 && display === "grid" ? "col-md-6" : ""}>
           <div className={`position-relative ${display === "one-line" ? "" : "mb-3"}`}>
             <FormTextInput
               id={`${title}_${inputIndex + 1}`}
@@ -225,33 +222,31 @@ function FormPersonInputs({
             />
             {inputIndex === focusedInput && personName && (
               <ul
-                className={`position-absolute list-group mt-3 ${display === "one-line" ? "end-0" : ""}`}
+                className={`position-absolute mt-3 list-group ${display === "one-line" ? "end-0" : ""}`}
                 style={{ zIndex: 10, minWidth: display === "one-line" ? "initial" : "100%" }}
               >
-                {isPending
-                  ? (
-                    <li className="list-group-item">
-                      <div style={{ minWidth: "200px" }}>
-                        <Loading small />
-                      </div>
+                {isPending ? (
+                  <li className="list-group-item">
+                    <div style={{ minWidth: "200px" }}>
+                      <Loading small />
+                    </div>
+                  </li>
+                ) : matchedPersons.length > 0 ? (
+                  matchedPersons.map((person: PersonResponse | null, matchIndex: number) => (
+                    <li
+                      key={matchIndex}
+                      className={"list-group-item" + (matchIndex === personSelection ? "active" : "")}
+                      style={{ cursor: "pointer" }}
+                      aria-current={matchIndex === personSelection}
+                      onMouseEnter={() => setPersonSelection(matchIndex)}
+                      onMouseDown={() => selectPerson(inputIndex, matchIndex)}
+                    >
+                      {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
                     </li>
-                  )
-                  : matchedPersons.length > 0
-                  ? (
-                    matchedPersons.map((person: PersonResponse | null, matchIndex: number) => (
-                      <li
-                        key={matchIndex}
-                        className={"list-group-item" + (matchIndex === personSelection ? " active" : "")}
-                        style={{ cursor: "pointer" }}
-                        aria-current={matchIndex === personSelection}
-                        onMouseEnter={() => setPersonSelection(matchIndex)}
-                        onMouseDown={() => selectPerson(inputIndex, matchIndex)}
-                      >
-                        {person !== null ? <Competitor person={person} showLocalizedName noLink /> : "(add new person)"}
-                      </li>
-                    ))
-                  )
-                  : <li className="list-group-item">(competitor not found)</li>}
+                  ))
+                ) : (
+                  <li className="list-group-item">(competitor not found)</li>
+                )}
               </ul>
             )}
           </div>

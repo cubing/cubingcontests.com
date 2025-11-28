@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, isNull, lte, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Continents, Countries } from "~/helpers/Countries.ts";
+import { C } from "~/helpers/constants.ts";
 import { type RecordCategory, type RecordType, RecordTypeValues } from "~/helpers/types.ts";
 import { getDateOnly, getNameAndLocalizedName } from "../helpers/sharedFunctions.ts";
 import { auth } from "./auth.ts";
@@ -113,9 +114,7 @@ export async function setPersonToApproved(
   const updatePersonObject: Partial<SelectPerson> = {};
 
   if (!person.wcaId) {
-    const res = await fetch(
-      `https://www.worldcubeassociation.org/api/v0/search/users?persons_table=true&q=${person.name}`,
-    );
+    const res = await fetch(`${C.wcaV0ApiBaseUrl}/search/users?persons_table=true&q=${person.name}`);
     if (res.ok) {
       const { result: wcaPersons } = await res.json();
 

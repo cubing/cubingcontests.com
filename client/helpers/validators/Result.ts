@@ -2,7 +2,7 @@ import z from "zod";
 import { C } from "../constants.ts";
 
 export const VideoBasedResultValidator = z.strictObject({
-  eventId: z.string(),
+  eventId: z.string().nonempty(),
   date: z.date(),
   personIds: z.array(z.int()).min(1).refine(
     (val) => val.length === new Set(val).size,
@@ -16,7 +16,7 @@ export const VideoBasedResultValidator = z.strictObject({
     "You cannot submit only DNF/DNS attempts, and you cannot submit empty attempts",
   ),
   videoLink: z.url(),
-  discussionLink: z.url().optional(),
+  discussionLink: z.url().nullable(),
 });
 
 export type VideoBasedResultDto = z.infer<typeof VideoBasedResultValidator>;

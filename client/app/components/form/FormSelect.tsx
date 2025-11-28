@@ -10,24 +10,14 @@ type Props = {
   oneLine?: boolean;
 } & React.HTMLAttributes<HTMLElement>;
 
-function FormSelect({
-  id,
-  title,
-  options,
-  selected,
-  setSelected,
-  disabled,
-  oneLine,
-  className = "",
-  style,
-}: Props) {
+function FormSelect({ id, title, options, selected, setSelected, disabled, oneLine, className = "", style }: Props) {
   let inputId = "select";
 
   if (id) inputId = id;
   else if (title) inputId = `${title.toLowerCase().replaceAll(" ", "_")}_select`;
 
   return (
-    <div className={`fs-5 ${oneLine ? "d-flex align-items-center gap-3" : ""} ${className}`} style={style}>
+    <div className={`fs-5 ${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`} style={style}>
       {title && <FormInputLabel text={title} inputId={inputId} />}
 
       <select
@@ -35,10 +25,12 @@ function FormSelect({
         value={selected}
         onChange={(e) => setSelected(typeof selected === "string" ? e.target.value : Number(e.target.value))}
         disabled={disabled}
-        className={`form-select ${oneLine ? "" : "mt-2"}`}
+        className={`form-select ${oneLine || !title ? "" : "mt-2"}`}
       >
         {options.map((option: MultiChoiceOption) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
     </div>

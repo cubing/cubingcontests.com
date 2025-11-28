@@ -27,6 +27,7 @@ grep "^EMAIL_TEST_INBOX_ID=" .env >> client/.env.local
 grep "^EMAIL_API_KEY=" .env >> client/.env.local
 grep "^BETTER_AUTH_URL=" .env >> client/.env.local
 grep "^BETTER_AUTH_SECRET=" .env >> client/.env.local
+grep "^MIGRATE_DB=" .env >> client/.env.local
 cd client
 
 deno install --allow-scripts &&

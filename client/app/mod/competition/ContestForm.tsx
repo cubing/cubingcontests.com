@@ -4,6 +4,7 @@ import { addYears, isValid } from "date-fns";
 import { fromZonedTime, getTimezoneOffset, toZonedTime } from "date-fns-tz";
 import debounce from "lodash/debounce";
 import Link from "next/link";
+import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useState, useTransition } from "react";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import Form from "~/app/components/form/Form.tsx";
@@ -20,53 +21,60 @@ import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
-import { authClient } from "~/helpers/authClient.ts";
+import type { authClient } from "~/helpers/authClient.ts";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { useFetchWcaCompDetails, useMyFetch } from "~/helpers/customHooks.ts";
-import { Color, ContestState, type ContestType } from "~/helpers/enums.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getDateOnly, getIsCompType, getIsUrgent } from "~/helpers/sharedFunctions.ts";
-import type {
-  ICompetitionDetails,
-  IContest,
-  IContestDto,
-  IContestEvent,
-  IMeetupDetails,
-  InputPerson,
-  IRoom,
-  IRound,
-  PageSize,
-} from "~/helpers/types.ts";
-import { getContestIdFromName, getTimeLimit } from "~/helpers/utilityFunctions.ts";
+import type { Room } from "~/helpers/types/Schedule.ts";
+import type { ContestType, Creator, InputPerson, PageSize } from "~/helpers/types.ts";
+import { getActionError, getContestIdFromName, getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
+import type { SelectContest } from "~/server/db/schema/contests.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions/serverFunctions.ts";
+import type { RoundResponse } from "~/server/db/schema/rounds.ts";
+import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions/contestServerFunctions.ts";
+import { getOrCreatePersonByWcaIdSF, getOrCreatePersonSF } from "~/server/serverFunctions/personServerFunctions.ts";
 import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
+import { RoundDto } from "~/helpers/validators/Round.ts";
 
-const ContestForm = ({
+type Props = {
+  events: EventResponse[];
+  rounds: RoundResponse[] | undefined;
+  totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
+  mode: "new" | "edit" | "copy";
+  contest: SelectContest | undefined;
+  organizers: PersonResponse[] | undefined;
+  creator: Creator | undefined;
+  creatorPerson: PersonResponse | undefined;
+  session: typeof authClient.$Infer.Session;
+};
+
+function ContestForm({
   events,
+  rounds: initRounds = [],
+  totalResultsByRound,
   mode,
   contest,
+  organizers: initOrganizers = [],
   creator,
-}: {
-  events: EventResponse[];
-  mode: "new" | "edit" | "copy";
-  contest?: IContest;
-  creator?: IFeUser;
-}) => {
-  const myFetch = useMyFetch();
-  const { data: session } = authClient.useSession();
-  const fetchWcaCompDetails = useFetchWcaCompDetails();
+  creatorPerson,
+  session,
+}: Props) {
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
+  const { executeAsync: getOrCreateWcaPerson, isPending: isGettingOrCreatingWcaPerson } =
+    useAction(getOrCreatePersonByWcaIdSF);
+  const { executeAsync: getOrCreatePerson, isPending: isGettingOrCreatingPerson } = useAction(getOrCreatePersonSF);
+  const { executeAsync: getTimeZoneFromCoords, isPending: isPendingTimeZone } = useAction(getTimeZoneFromCoordsSF);
   const [activeTab, setActiveTab] = useState("details");
   const [detailsImported, setDetailsImported] = useState(mode === "edit" && contest?.type === "wca-comp");
   const [queueEnabled, setQueueEnabled] = useState(contest?.queuePosition !== undefined);
 
   const [competitionId, setCompetitionId] = useState(contest?.competitionId ?? "");
+  const [isPendingWcaCompDetails, startWcaCompDetailsTransition] = useTransition();
   const [name, setName] = useState(contest?.name ?? "");
   const [shortName, setShortName] = useState(contest?.shortName ?? "");
   const [type, setType] = useState<ContestType | undefined>(contest?.type);
@@ -78,241 +86,219 @@ const ContestForm = ({
   const [latitude, setLatitude] = useState<number | undefined>(contest ? contest.latitudeMicrodegrees / 1000000 : 0);
   // Horizontal coordinate (X); ranges from -180 to 180
   const [longitude, setLongitude] = useState<number | undefined>(contest ? contest.longitudeMicrodegrees / 1000000 : 0);
-  const [startDate, setStartDate] = useState(contest ? new Date(contest.startDate) : undefined);
-  const [startTime, setStartTime] = useState(
-    contest?.meetupDetails ? new Date(contest.meetupDetails.startTime) : undefined,
-  );
-  const [endDate, setEndDate] = useState(contest?.endDate ? new Date(contest.endDate) : undefined);
-  const [organizerNames, setOrganizerNames] = useState<string[]>([
-    ...(contest?.organizers.map((o) => o.name) ?? []),
-    "",
-  ]);
-  const [organizers, setOrganizers] = useState<InputPerson[]>([...(contest?.organizers ?? []), null]);
+  const [startDate, setStartDate] = useState(contest?.startDate ?? undefined);
+  const [startTime, setStartTime] = useState(contest?.startTime ?? undefined);
+  const [endDate, setEndDate] = useState(contest?.endDate ?? undefined);
+  const [organizers, setOrganizers] = useState<InputPerson[]>([...initOrganizers, null]);
+  const [organizerNames, setOrganizerNames] = useState([...(initOrganizers?.map((o) => o.name) ?? []), ""]);
   const [contact, setContact] = useState(contest?.contact ?? "");
   const [description, setDescription] = useState(contest?.description ?? "");
-  const [competitorLimit, setCompetitorLimit] = useState<number | undefined>(contest?.competitorLimit);
+  const [competitorLimit, setCompetitorLimit] = useState<number | undefined>(contest?.competitorLimit ?? undefined);
 
   // Event stuff
-  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest?.events ?? []);
+  const [rounds, setRounds] = useState<RoundDto[]>(initRounds);
 
   // Schedule stuff
-  const [rooms, setRooms] = useState<IRoom[]>(contest?.compDetails ? contest.compDetails.schedule.venues[0].rooms : []);
-  const [timeZone, setTimeZone] = useState(
-    contest?.compDetails?.schedule.venues[0].timezone ?? contest?.meetupDetails?.timeZone ?? "Etc/GMT",
-  );
-  const [isTimeZonePending, startTimeZoneTransition] = useTransition();
+  const [rooms, setRooms] = useState<Room[]>(contest?.schedule?.venues[0].rooms ?? []);
+  const [timeZone, setTimeZone] = useState(contest?.schedule?.venues[0].timezone ?? contest?.timeZone ?? "Etc/GMT");
   const [isUnderstood, setIsUnderstood] = useState(mode === "edit");
   const [isTimelinessUnderstood, setIsTimelinessUnderstood] = useState(mode === "edit");
   const [isCompPhotosUnderstood, setIsCompPhotosUnderstood] = useState(mode === "edit");
 
   const updateTimeZone = useCallback(
-    debounce(
-      (lat: number, long: number) =>
-        startTimeZoneTransition(async () => {
-          changeErrorMessages([]);
-          const res = await getTimeZoneFromCoordsSF({ latitude: lat, longitude: long });
+    debounce(async (lat: number, long: number) => {
+      changeErrorMessages([]);
+      const res = await getTimeZoneFromCoords({ latitude: lat, longitude: long });
 
-          if (!res.success) {
-            changeErrorMessages([res.error.message!]);
-          } else {
-            // Adjust times
-            if (isValid(startDate) && isValid(startTime)) {
-              if (type === "meetup") {
-                setStartTime(fromZonedTime(toZonedTime(startTime!, timeZone), res.data));
-              } else if (getIsCompType(type)) {
-                setRooms(
-                  rooms.map((r: IRoom) => ({
-                    ...r,
-                    activities: r.activities.map((a) => ({
-                      ...a,
-                      startTime: fromZonedTime(toZonedTime(a.startTime, timeZone), res.data),
-                      endTime: fromZonedTime(toZonedTime(a.endTime, timeZone), res.data),
-                    })),
-                  })),
-                );
-              }
-            }
-
-            setTimeZone(res.data);
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
+      } else {
+        // Adjust times
+        if (isValid(startDate) && isValid(startTime)) {
+          if (type === "meetup") {
+            setStartTime(fromZonedTime(toZonedTime(startTime!, timeZone), res.data!));
+          } else if (getIsCompType(type)) {
+            setRooms(
+              rooms.map((r: Room) => ({
+                ...r,
+                activities: r.activities.map((a) => ({
+                  ...a,
+                  startTime: fromZonedTime(toZonedTime(a.startTime, timeZone), res.data!),
+                  endTime: fromZonedTime(toZonedTime(a.endTime, timeZone), res.data!),
+                })),
+              })),
+            );
           }
-        }),
-      C.fetchDebounceTimeout,
-    ),
+        }
+
+        setTimeZone(res.data!);
+      }
+    }, C.fetchDebounceTimeout),
     [timeZone, startTime, rooms, type],
   );
 
   const tabs = [
     { title: "Details", value: "details" },
-    { title: "Events", value: "events" },
+    { title: "Events", value: "events", hidden: !type },
     { title: "Schedule", value: "schedule", hidden: !type || !getIsCompType(type) },
   ];
+  const isAdmin = getIsAdmin(session.user.role);
+  const isPending =
+    isPendingTimeZone || isPendingWcaCompDetails || isGettingOrCreatingWcaPerson || isGettingOrCreatingPerson;
   const disabled = !type || (type === "wca-comp" && !detailsImported);
   const disabledIfContestApproved: boolean = mode === "edit" && !!contest && contest.state !== "created";
   const disabledIfContestPublished: boolean = mode === "edit" && !!contest && contest.state === "published";
-  const disabledIfDetailsImported = !userInfo?.isAdmin && detailsImported;
+  const disabledIfDetailsImported = !isAdmin && detailsImported;
   const urgent = isValid(startDate) && getIsUrgent(startDate!);
   const disabledIfNotUnderstood =
     (!isUnderstood && (!type || getIsCompType(type))) || (!isTimelinessUnderstood && urgent);
 
-  //////////////////////////////////////////////////////////////////////////////
-  // FUNCTIONS
-  //////////////////////////////////////////////////////////////////////////////
-
   const handleSubmit = async () => {
-    const isCompType = getIsCompType(type);
-    if (!isValid(startDate) || (isCompType && !isValid(endDate)) || (!isCompType && !isValid(startTime))) {
-      changeErrorMessages(["Please enter valid dates"]);
-      return;
-    }
-    if (typeof latitude !== "number" || typeof longitude !== "number") {
-      changeErrorMessages(["Please enter valid coordinates"]);
-      return;
-    }
-
-    changeLoadingId("form_submit_button");
-
-    const selectedOrganizers = organizers.filter((o: InputPerson) => o !== null);
-    const latitudeMicrodegrees = Math.round(latitude * 1000000);
-    const longitudeMicrodegrees = Math.round(longitude * 1000000);
-
-    // Set the contest ID for every round and empty results if there were any  in order to avoid sending
-    // too much data to the backend. Remove internal IDs in case we're copying a contest.
-    const processedCompEvents = contestEvents.map((ce: IContestEvent) => ({
-      ...ce,
-      rounds: ce.rounds.map((round) => ({
-        ...round,
-        competitionId,
-        results: [],
-      })),
-    }));
-
-    let compDetails: ICompetitionDetails | undefined;
-    let meetupDetails: IMeetupDetails | undefined;
-
-    if (getIsCompType(type)) {
-      compDetails = {
-        schedule: {
-          competitionId,
-          venues: [
-            {
-              id: 1,
-              name: venue || "Unknown venue",
-              countryIso2,
-              latitudeMicrodegrees,
-              longitudeMicrodegrees,
-              timezone: "TEMPORARY", // this is set on the backend
-              // Only send the rooms that have at least one activity
-              rooms: rooms.filter((r: IRoom) => r.activities.length > 0),
-            },
-          ],
-        },
-      };
-    } else {
-      meetupDetails = {
-        startTime: startTime!,
-        timeZone: "TEMPORARY", // this is set on the backend
-      };
-    }
-
-    const newComp: IContestDto = {
-      competitionId,
-      name: name.trim(),
-      shortName: shortName.trim(),
-      type: type!,
-      city: city.trim(),
-      countryIso2,
-      venue: venue.trim(),
-      address: address.trim(),
-      latitudeMicrodegrees,
-      longitudeMicrodegrees,
-      startDate: startDate!,
-      endDate: getIsCompType(type) ? endDate : undefined,
-      organizers: selectedOrganizers,
-      contact: contact.trim() || undefined,
-      description: description.trim(),
-      competitorLimit: competitorLimit || undefined,
-      events: processedCompEvents,
-      compDetails,
-      meetupDetails,
-    };
-
-    const getRoundWithDefaultTimeLimitExists = () =>
-      processedCompEvents.some((ce: IContestEvent) =>
-        ce.rounds.some((r) => r.timeLimit?.centiseconds === 60000 && r.timeLimit?.cumulativeRoundIds.length === 0),
-      );
-    const confirmDefaultTimeLimitMsg =
-      "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
-    const doSubmit =
-      mode !== "edit"
-        ? !getRoundWithDefaultTimeLimitExists() || confirm(confirmDefaultTimeLimitMsg)
-        : competitionId === contest?.competitionId ||
-          confirm(
-            `Are you sure you would like to change the contest ID from ${contest?.competitionId} to ${competitionId}?`,
-          );
-
-    if (doSubmit) {
-      // Validation
-      const tempErrors: string[] = [];
-      if (selectedOrganizers.length < organizerNames.filter((on: string) => on !== "").length) {
-        tempErrors.push("Please enter all organizers");
-      }
-      if (type === "wca-comp" && !detailsImported) {
-        tempErrors.push('You must use the "Get WCA competition details" feature');
-      }
-
-      if (tempErrors.length > 0) {
-        changeErrorMessages(tempErrors);
-      } else {
-        const res =
-          mode === "edit"
-            ? await myFetch.patch(`/competitions/${contest?.competitionId}`, newComp, { loadingId: null })
-            : await myFetch.post("/competitions", newComp, { loadingId: null });
-
-        if (!res.success) changeErrorMessages(res.error);
-        else if (mode === "copy") window.location.href = "/mod";
-        else window.history.back();
-      }
-    } else {
-      changeLoadingId("");
-    }
+    // const isCompType = getIsCompType(type);
+    // if (!isValid(startDate) || (isCompType && !isValid(endDate)) || (!isCompType && !isValid(startTime))) {
+    //   changeErrorMessages(["Please enter valid dates"]);
+    //   return;
+    // }
+    // if (typeof latitude !== "number" || typeof longitude !== "number") {
+    //   changeErrorMessages(["Please enter valid coordinates"]);
+    //   return;
+    // }
+    // changeLoadingId("form_submit_button");
+    // const selectedOrganizers = organizers.filter((o: InputPerson) => o !== null);
+    // const latitudeMicrodegrees = Math.round(latitude * 1000000);
+    // const longitudeMicrodegrees = Math.round(longitude * 1000000);
+    // // Set the contest ID for every round and empty results if there were any  in order to avoid sending
+    // // too much data to the backend. Remove internal IDs in case we're copying a contest.
+    // const processedCompEvents = contestEvents.map((ce: IContestEvent) => ({
+    //   ...ce,
+    //   rounds: ce.rounds.map((round) => ({
+    //     ...round,
+    //     competitionId,
+    //     results: [],
+    //   })),
+    // }));
+    // let compDetails: ICompetitionDetails | undefined;
+    // let meetupDetails: IMeetupDetails | undefined;
+    // if (getIsCompType(type)) {
+    //   compDetails = {
+    //     schedule: {
+    //       competitionId,
+    //       venues: [
+    //         {
+    //           id: 1,
+    //           name: venue || "Unknown venue",
+    //           countryIso2,
+    //           latitudeMicrodegrees,
+    //           longitudeMicrodegrees,
+    //           timezone: "TEMPORARY", // this is set on the backend
+    //           // Only send the rooms that have at least one activity
+    //           rooms: rooms.filter((r: IRoom) => r.activities.length > 0),
+    //         },
+    //       ],
+    //     },
+    //   };
+    // } else {
+    //   meetupDetails = {
+    //     startTime: startTime!,
+    //     timeZone: "TEMPORARY", // this is set on the backend
+    //   };
+    // }
+    // const newComp: IContestDto = {
+    //   competitionId,
+    //   name: name.trim(),
+    //   shortName: shortName.trim(),
+    //   type: type!,
+    //   city: city.trim(),
+    //   countryIso2,
+    //   venue: venue.trim(),
+    //   address: address.trim(),
+    //   latitudeMicrodegrees,
+    //   longitudeMicrodegrees,
+    //   startDate: startDate!,
+    //   endDate: getIsCompType(type) ? endDate : undefined,
+    //   organizers: selectedOrganizers,
+    //   contact: contact.trim() || undefined,
+    //   description: description.trim(),
+    //   competitorLimit: competitorLimit || undefined,
+    //   events: processedCompEvents,
+    //   compDetails,
+    //   meetupDetails,
+    // };
+    // const getRoundWithDefaultTimeLimitExists = () =>
+    //   processedCompEvents.some((ce: IContestEvent) =>
+    //     ce.rounds.some((r) => r.timeLimit?.centiseconds === C.defaultTimeLimit && r.timeLimit?.cumulativeRoundIds.length === 0),
+    //   );
+    // const confirmDefaultTimeLimitMsg =
+    //   "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
+    // const doSubmit =
+    //   mode !== "edit"
+    //     ? !getRoundWithDefaultTimeLimitExists() || confirm(confirmDefaultTimeLimitMsg)
+    //     : competitionId === contest?.competitionId ||
+    //       confirm(
+    //         `Are you sure you would like to change the contest ID from ${contest?.competitionId} to ${competitionId}?`,
+    //       );
+    // if (doSubmit) {
+    //   // Validation
+    //   const tempErrors: string[] = [];
+    //   if (selectedOrganizers.length < organizerNames.filter((on: string) => on !== "").length) {
+    //     tempErrors.push("Please enter all organizers");
+    //   }
+    //   if (type === "wca-comp" && !detailsImported) {
+    //     tempErrors.push('You must use the "Get WCA competition details" feature');
+    //   }
+    //   if (tempErrors.length > 0) {
+    //     changeErrorMessages(tempErrors);
+    //   } else {
+    //     const res =
+    //       mode === "edit"
+    //         ? await myFetch.patch(`/competitions/${contest?.competitionId}`, newComp, { loadingId: null })
+    //         : await myFetch.post("/competitions", newComp, { loadingId: null });
+    //     if (!res.success) changeErrorMessages(res.error);
+    //     else if (mode === "copy") window.location.href = "/mod";
+    //     else window.history.back();
+    //   }
+    // } else {
+    //   changeLoadingId("");
+    // }
   };
 
   const fillWithMockData = async (mockContestType = "comp") => {
-    const res = await myFetch.get<PersonResponse>(`/persons?personId=${userInfo?.personId}`, {
-      loadingId: "set_mock_comp_button",
-    });
+    throw new Error("NOT IMPLEMENTED");
+    // const res = await myFetch.get<PersonResponse>(`/persons?personId=${userInfo?.personId}`, {
+    //   loadingId: "set_mock_comp_button",
+    // });
 
-    if (res.success) {
-      setType(mockContestType);
-      setCity("Singapore");
-      setCountryIso2("SG");
-      setAddress("Address");
-      setVenue("Venue");
-      setLatitude(1.314663);
-      setLongitude(103.845409);
-      setTimeZone("Asia/Singapore");
-      setStartDate(addYears(getDateOnly(new Date())!, 1));
-      setOrganizerNames([res.data.name, ""]);
-      setOrganizers([res.data, null]);
-      setContact(`${userInfo?.username}@cc.com`);
-      setDescription("THIS IS A MOCK CONTEST FOR TESTING!");
-      setCompetitorLimit(100);
+    // if (res.success) {
+    //   setType(mockContestType);
+    //   setCity("Singapore");
+    //   setCountryIso2("SG");
+    //   setAddress("Address");
+    //   setVenue("Venue");
+    //   setLatitude(1.314663);
+    //   setLongitude(103.845409);
+    //   setTimeZone("Asia/Singapore");
+    //   setStartDate(addYears(getDateOnly(new Date())!, 1));
+    //   setOrganizerNames([res.data.name, ""]);
+    //   setOrganizers([res.data, null]);
+    //   setContact(`${userInfo?.username}@cc.com`);
+    //   setDescription("THIS IS A MOCK CONTEST FOR TESTING!");
+    //   setCompetitorLimit(100);
 
-      const year = new Date().getFullYear();
+    //   const year = new Date().getFullYear();
 
-      if (mockContestType === "meetup") {
-        setName(`New Meetup ${year}`);
-        setShortName(`New Meetup ${year}`);
-        setCompetitionId(`NewMeetup${year}`);
-        setStartTime(addYears(new Date(), 1));
-      } else {
-        setName(`New Competition ${year}`);
-        setShortName(`New Competition ${year}`);
-        setCompetitionId(`NewCompetition${year}`);
-        setEndDate(addYears(getDateOnly(new Date())!, 1));
-        setRooms([{ id: 1, name: "Main", color: "#fff", activities: [] }]);
-      }
-    }
+    //   if (mockContestType === "meetup") {
+    //     setName(`New Meetup ${year}`);
+    //     setShortName(`New Meetup ${year}`);
+    //     setCompetitionId(`NewMeetup${year}`);
+    //     setStartTime(addYears(new Date(), 1));
+    //   } else {
+    //     setName(`New Competition ${year}`);
+    //     setShortName(`New Competition ${year}`);
+    //     setCompetitionId(`NewCompetition${year}`);
+    //     setEndDate(addYears(getDateOnly(new Date())!, 1));
+    //     setRooms([{ id: 1, name: "Main", color: "#fff", activities: [] }]);
+    //   }
+    // }
   };
 
   const changeActiveTab = (newTab: string) => {
@@ -324,14 +310,13 @@ const ContestForm = ({
       if (newTab === "events") {
         // If the rounds that are supposed to have time limits don't have them
         // (this can be true for old contests), set them to empty time limits
-        setContestEvents(
-          contestEvents.map((ce: IContestEvent) => ({
-            ...ce,
-            rounds: ce.rounds.map((r: IRound) => ({
-              ...r,
-              timeLimit: r.timeLimit ?? getTimeLimit(ce.event.format),
-            })),
-          })),
+        setRounds(
+          rounds.map((r) => {
+            if (r.timeLimitCentiseconds) return r; // if it already has a time limit, don't change anything
+            const event = events.find((e) => e.eventId === r.eventId)!;
+            if (event.format !== "time") return r;
+            return { ...r, timeLimitCentiseconds: C.defaultTimeLimit, timeLimitCumulativeRoundIds: [] };
+          }),
         );
       }
     }
@@ -340,9 +325,7 @@ const ContestForm = ({
   const changeName = (value: string) => {
     // If not editing a competition, update Competition ID accordingly, unless it deviates from the name
     if (mode !== "edit") {
-      if (competitionId === getContestIdFromName(name)) {
-        setCompetitionId(getContestIdFromName(value));
-      }
+      if (competitionId === getContestIdFromName(name)) setCompetitionId(getContestIdFromName(value));
       if (shortName === name && value.length <= 32) setShortName(value);
     }
 
@@ -351,46 +334,79 @@ const ContestForm = ({
 
   const changeShortName = (value: string) => {
     // Only update the value if the new one is within the allowed limit, or if it's shorter than it was (e.g. when Backspace is pressed)
-    if (value.length <= 32 || value.length < shortName.length) {
-      setShortName(value);
-    }
+    if (value.length <= 32 || value.length < shortName.length) setShortName(value);
   };
 
-  const getWcaCompDetails = async () => {
+  const getWcaCompDetails = () => {
     if (!competitionId) {
       changeErrorMessages(["Please enter a contest ID"]);
       return;
     }
 
-    try {
-      changeLoadingId("get_wca_comp_details_button");
-      const newContest = await fetchWcaCompDetails(competitionId);
+    startWcaCompDetailsTransition(async () => {
+      const notFoundMsg = `Competition with ID ${competitionId} not found. This may be because it's not been enough time since it was announced. If so, please try again in 24 hours.`;
 
-      const latitude = Number((newContest.latitudeMicrodegrees / 1000000).toFixed(6));
-      const longitude = Number((newContest.longitudeMicrodegrees / 1000000).toFixed(6));
+      const wcaCompDataPromise = fetch(`${C.wcaUnofficialApiBaseUrl}/competitions/${competitionId}.json`).then(
+        (res) => {
+          if (res.status === 404) throw new Error(notFoundMsg);
+          if (!res.ok) throw new Error(C.unknownErrorMsg);
+          return res.json();
+        },
+      );
+      // This is for getting the competitor limit, organizer WCA IDs, and delegate WCA IDs
+      const wcaV0CompDataPromise = fetch(`${C.wcaV0ApiBaseUrl}/competitions/${competitionId}`).then((res) => {
+        if (res.status === 404) throw new Error(notFoundMsg);
+        if (!res.ok) throw new Error(C.unknownErrorMsg);
+        return res.json();
+      });
 
-      setName(newContest.name);
-      setShortName(newContest.shortName);
-      setCity(newContest.city);
-      setCountryIso2(newContest.countryIso2);
-      setAddress(newContest.address);
-      setVenue(newContest.venue);
-      setStartDate(newContest.startDate);
-      setEndDate(newContest.endDate as Date);
-      setOrganizers([...newContest.organizers, null]);
-      setOrganizerNames([...newContest.organizers.map((o) => o.name), ""]);
-      setDescription(newContest.description);
-      setCompetitorLimit(newContest.competitorLimit);
-      await changeCoordinates(latitude, longitude);
+      const [wcaCompData, wcaV0CompData] = await Promise.all([wcaCompDataPromise, wcaV0CompDataPromise]).catch(
+        (err) => {
+          changeErrorMessages([err.message]);
+          return [];
+        },
+      );
+
+      if (!wcaCompData || !wcaV0CompData) return;
+
+      const organizers: PersonResponse[] = [];
+      const notFoundPersonNames = new Set();
+
+      // Set organizer objects
+      for (const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]) {
+        const res = org.wca_id
+          ? await getOrCreateWcaPerson({ wcaId: org.wca_id })
+          : await getOrCreatePerson({ name: org.name, countryIso2: org.country_iso2 });
+
+        if (!res.data) notFoundPersonNames.add(org.name);
+        else if (!organizers.some((o) => o.personId === res.data!.person.personId)) organizers.push(res.data.person);
+      }
+
+      if (notFoundPersonNames.size > 0) {
+        const notFoundNames = Array.from(notFoundPersonNames).join(", ");
+        changeErrorMessages([`Organizers with these names were not found: ${notFoundNames}`]);
+        return;
+      }
+
+      setName(wcaCompData.name);
+      setShortName(wcaV0CompData.short_name);
+      setCity(wcaCompData.city);
+      setCountryIso2(wcaCompData.country);
+      setAddress(wcaCompData.venue.address);
+      // Gets rid of the link and just takes the venue name
+      setVenue(wcaCompData.venue.name.split("]")[0].replace("[", ""));
+      changeCoordinates(wcaCompData.venue.coordinates.latitude, wcaCompData.venue.coordinates.longitude);
+      setStartDate(new Date(wcaCompData.date.from));
+      setEndDate(new Date(wcaCompData.date.till));
+      setOrganizers([...organizers, null]);
+      setOrganizerNames([...organizers.map((o) => o.name), ""]);
+      setDescription("");
+      // Sometimes the competitor limit does not exist
+      setCompetitorLimit(wcaV0CompData.competitor_limit || 10);
+
       setDetailsImported(true);
-      resetMessagesAndLoadingId();
-    } catch (err: any) {
-      if (err.message.includes("Not found")) {
-        changeErrorMessages([
-          `Competition with ID ${competitionId} not found. This may be because it's not been enough time since it was announced. If so, please try again in 24 hours.`,
-        ]);
-      } else changeErrorMessages([err.message]);
-    }
+      resetMessages();
+    });
   };
 
   const changeCoordinates = (newLat: number | undefined, newLong: number | undefined) => {
@@ -399,9 +415,7 @@ const ContestForm = ({
     setLatitude(newLat);
     setLongitude(newLong);
 
-    if (parsed.success) {
-      updateTimeZone(parsed.data.latitude, parsed.data.longitude);
-    }
+    if (parsed.success) updateTimeZone(parsed.data.latitude, parsed.data.longitude);
   };
 
   const changeStartDate = (newDate: Date | undefined) => {
@@ -420,11 +434,6 @@ const ContestForm = ({
     if (isValid(newDate) && isValid(startDate) && newDate!.getTime() < startDate!.getTime()) {
       setStartDate(newDate);
     }
-  };
-
-  const cloneContest = () => {
-    changeLoadingId("clone_contest_button");
-    window.location.href = `/mod/competition?copy_id=${contest?.competitionId}`;
   };
 
   const unfinishContest = async () => {
@@ -455,32 +464,35 @@ const ContestForm = ({
   };
 
   const downloadScorecards = (pageSize: PageSize) => {
-    myFetch.get(`/scorecards/${contest?.competitionId}?pageSize=${pageSize}`, {
-      authorize: true,
-      fileName: `${contest?.competitionId}_Scorecards.pdf`,
-      loadingId: `download_scorecards_${pageSize.toLowerCase()}_button`,
-    });
+    throw new Error("NOT IMPLEMENTED");
+    // myFetch.get(`/scorecards/${contest?.competitionId}?pageSize=${pageSize}`, {
+    //   authorize: true,
+    //   fileName: `${contest?.competitionId}_Scorecards.pdf`,
+    //   loadingId: `download_scorecards_${pageSize.toLowerCase()}_button`,
+    // });
   };
 
   const enableQueue = async () => {
-    const res = await myFetch.patch(
-      `/competitions/queue-reset/${(contest as IContest).competitionId}`,
-      {},
-      { loadingId: "enable_queue_button" },
-    );
+    throw new Error("NOT IMPLEMENTED");
+    // const res = await myFetch.patch(
+    //   `/competitions/queue-reset/${contest!.competitionId}`,
+    //   {},
+    //   { loadingId: "enable_queue_button" },
+    // );
 
-    if (res.success) setQueueEnabled(true);
+    // if (res.success) setQueueEnabled(true);
   };
 
   const createAuthToken = async () => {
-    const res = await myFetch.get(`/create-auth-token/${contest?.competitionId}`, {
-      authorize: true,
-      loadingId: "get_access_token_button",
-    });
+    throw new Error("NOT IMPLEMENTED");
+    // const res = await myFetch.get(`/create-auth-token/${contest?.competitionId}`, {
+    //   authorize: true,
+    //   loadingId: "get_access_token_button",
+    // });
 
-    if (res.success) {
-      changeSuccessMessage(`Your new access token is ${res.data}`);
-    }
+    // if (res.success) {
+    //   changeSuccessMessage(`Your new access token is ${res.data}`);
+    // }
   };
 
   return (
@@ -490,13 +502,13 @@ const ContestForm = ({
         onSubmit={handleSubmit}
         disableControls={disabled || disabledIfContestPublished || disabledIfNotUnderstood}
       >
-        {mode === "edit" && <CreatorDetails creator={creator} />}
+        {mode === "edit" && <CreatorDetails creator={creator} person={creatorPerson} />}
 
         <Tabs
           tabs={tabs}
           activeTab={activeTab}
           setActiveTab={changeActiveTab}
-          disabledTabs={isValid(startDate) ? [] : ["schedule"]}
+          disabledTabs={isPending ? tabs.map((t) => t.value) : isValid(startDate) ? [] : ["schedule"]}
         />
 
         {activeTab === "details" && (
@@ -504,7 +516,7 @@ const ContestForm = ({
             {mode === "new" && (
               <>
                 {process.env.NODE_ENV !== "production" && (
-                  <div className="d-flex flex-wrap gap-3 my-3">
+                  <div className="d-flex my-3 flex-wrap gap-3">
                     <Button
                       id="set_mock_comp_button"
                       onClick={() => fillWithMockData()}
@@ -523,27 +535,31 @@ const ContestForm = ({
                   </div>
                 )}
 
-                <p className="mb-4 fs-6 fw-bold fst-italic text-info">
+                <p className="fs-6 fw-bold fst-italic mb-4 text-info">
                   Come back here after the contest gets approved to generate the scorecards!
                 </p>
               </>
             )}
             {mode === "edit" && contest && (
               <>
-                <div className="d-flex flex-wrap gap-3 mt-3 mb-3">
+                <div className="d-flex mt-3 mb-3 flex-wrap gap-3">
                   {contest.type !== "wca-comp" && (
-                    // This has to be done like this, because redirection using <Link/> breaks the clone contest feature
-                    <Button id="clone_contest_button" onClick={cloneContest} loadingId={loadingId}>
+                    <Link
+                      href={`/mod/competition?copyId=${contest.competitionId}`}
+                      prefetch={false}
+                      className="btn btn-primary"
+                    >
                       Clone
-                    </Button>
+                    </Link>
                   )}
-                  {userInfo?.isAdmin && (
+                  {isAdmin && (
                     <>
                       {contest.state === "finished" && (
                         <Button
                           id="unfinish_contest_button"
                           onClick={unfinishContest}
-                          loadingId={loadingId}
+                          // loadingId={loadingId}
+                          disabled={isPending}
                           className="btn-warning"
                         >
                           Un-finish Contest
@@ -552,8 +568,8 @@ const ContestForm = ({
                       <Button
                         id="delete_contest_button"
                         onClick={removeContest}
-                        loadingId={loadingId}
-                        disabled={contest.participants > 0}
+                        // loadingId={loadingId}
+                        disabled={isPending || contest.participants > 0}
                         className="btn-danger"
                       >
                         Remove Contest
@@ -563,8 +579,9 @@ const ContestForm = ({
                   <Button
                     id="download_scorecards_a4_button"
                     onClick={() => downloadScorecards("A4")}
-                    loadingId={loadingId}
-                    disabled={contest.state === "created"}
+                    // loadingId={loadingId}
+                    // disabled={isPending || contest.state === "created"}
+                    disabled
                     className="btn-success"
                   >
                     Scorecards (A4)
@@ -572,44 +589,47 @@ const ContestForm = ({
                   <Button
                     id="download_scorecards_a6_button"
                     onClick={() => downloadScorecards("A6")}
-                    loadingId={loadingId}
-                    disabled={contest.state === "created"}
+                    // loadingId={loadingId}
+                    // disabled={isPending || contest.state === "created"}
+                    disabled
                     className="btn-success"
                   >
                     Scorecards (A6)
                   </Button>
-                  <div className="d-flex align-items-center gap-1">
+                  <div className="d-flex gap-1 align-items-center">
                     <Button
                       id="enable_queue_button"
                       onClick={enableQueue}
-                      loadingId={loadingId}
-                      disabled={!["approved", "ongoing"].includes(contest.state) || queueEnabled}
+                      // loadingId={loadingId}
+                      // disabled={isPending || !["approved", "ongoing"].includes(contest.state) || queueEnabled}
+                      disabled
                       className="btn-secondary"
                     >
                       {queueEnabled ? "Queue Enabled" : "Enable Queue"}
                     </Button>
                     <Tooltip
                       id="queue_tooltip"
-                      text="This can be used for contests where there are not enough solving stations. In such cases random scrambles must be used for every competitor."
+                      text="(TEMPORARILY DISABLED) This can be used for contests where there are not enough solving stations. In such cases random scrambles must be used for every competitor."
                     />
                   </div>
-                  <div className="d-flex align-items-center gap-1">
+                  <div className="d-flex gap-1 align-items-center">
                     <Button
                       id="get_access_token_button"
                       onClick={createAuthToken}
-                      loadingId={loadingId}
-                      disabled={!["approved", "ongoing"].includes(contest.state)}
+                      // loadingId={loadingId}
+                      // disabled={isPending || !["approved", "ongoing"].includes(contest.state)}
+                      disabled
                       className="btn-secondary"
                     >
                       Get Access Token
                     </Button>
                     <Tooltip
                       id="access_token_tooltip"
-                      text="Used for external data entry (e.g. using a paperless scoretaking system or a third-party tool)"
+                      text="(TEMPORARILY DISABLED) Used for external data entry (e.g. using a paperless scoretaking system or a third-party tool)"
                     />
                   </div>
                 </div>
-                <p className="mb-3 fs-6 fst-italic">
+                <p className="fs-6 fst-italic mb-3">
                   If the scorecards aren't generating correctly, please report this to the admins!
                 </p>
               </>
@@ -633,9 +653,8 @@ const ContestForm = ({
                   className="mb-3"
                 />
                 <Button
-                  id="get_wca_comp_details_button"
                   onClick={getWcaCompDetails}
-                  loadingId={loadingId}
+                  isLoading={isPendingWcaCompDetails}
                   className="mb-3"
                   disabled={disabledIfDetailsImported || !competitionId}
                 >
@@ -666,9 +685,7 @@ const ContestForm = ({
                   title="Contest ID"
                   value={competitionId}
                   setValue={setCompetitionId}
-                  disabled={
-                    disabledIfDetailsImported || disabledIfContestApproved || (mode === "edit" && !userInfo?.isAdmin)
-                  }
+                  disabled={disabledIfDetailsImported || disabledIfContestApproved || (mode === "edit" && !isAdmin)}
                   className="mb-3"
                 />
                 <div className="row">
@@ -728,21 +745,21 @@ const ContestForm = ({
                       </div>
                     </div>
                     <div className="row">
-                      <div className="text-secondary fs-6 mb-2">
-                        Time zone: {isTimeZonePending ? <Loading small dontCenter /> : timeZone}
+                      <div className="fs-6 mb-2 text-secondary">
+                        Time zone: {isPendingTimeZone ? <Loading small dontCenter /> : timeZone}
                       </div>
-                      <div className="text-danger fs-6">
+                      <div className="fs-6 text-danger">
                         The coordinates must point to a building and match the address of the venue.
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="my-3 row">
+                <div className="row my-3">
                   <div className="col">
                     {type === "meetup" ? (
                       <FormDatePicker
                         id="start_date"
-                        title={`Start date and time (${isTimeZonePending ? "..." : timeZone})`}
+                        title={`Start date and time (${isPendingTimeZone ? "..." : timeZone})`}
                         value={startTime}
                         setValue={changeStartDate}
                         timeZone={timeZone}
@@ -773,7 +790,7 @@ const ContestForm = ({
                   )}
                 </div>
                 <h5>Organizers</h5>
-                <div className="my-3 pt-3 px-4 border rounded bg-body-tertiary">
+                <div className="my-3 rounded border bg-body-tertiary px-4 pt-3">
                   <FormPersonInputs
                     title="Organizer"
                     personNames={organizerNames}
@@ -782,8 +799,8 @@ const ContestForm = ({
                     setPersons={setOrganizers}
                     infiniteInputs
                     nextFocusTargetId="contact"
-                    disabled={(disabledIfContestApproved && !userInfo?.isAdmin) || disabledIfContestPublished}
-                    // addNewPersonMode="from-new-tab"
+                    disabled={(disabledIfContestApproved && !isAdmin) || disabledIfContestPublished}
+                    addNewPersonMode="from-new-tab"
                   />
                 </div>
                 <FormTextInput
@@ -816,13 +833,11 @@ const ContestForm = ({
                   </div>
                 )}
                 <FormNumberInput
-                  title={"Competitor limit" + (!getIsCompType(type) ? " (optional)" : "")}
+                  title={`Competitor limit ${!getIsCompType(type) ? "(optional)" : ""}`}
                   value={competitorLimit}
                   setValue={setCompetitorLimit}
                   disabled={
-                    (disabledIfContestApproved && !userInfo?.isAdmin) ||
-                    disabledIfDetailsImported ||
-                    disabledIfContestPublished
+                    (disabledIfContestApproved && !isAdmin) || disabledIfDetailsImported || disabledIfContestPublished
                   }
                   integer
                   min={C.minCompetitorLimit}
@@ -835,11 +850,12 @@ const ContestForm = ({
         {activeTab === "events" && (
           <ContestEvents
             events={events}
-            contestEvents={contestEvents}
-            setContestEvents={setContestEvents}
+            rounds={rounds}
+            setRounds={setRounds}
+            totalResultsByRound={totalResultsByRound}
             contestType={type!}
             disabled={disabledIfContestPublished}
-            disableNewEvents={disabledIfContestApproved && !userInfo?.isAdmin}
+            newEventsDisabled={disabledIfContestApproved && !isAdmin}
           />
         )}
 
@@ -857,7 +873,7 @@ const ContestForm = ({
 
         {!disabled && getIsCompType(type) && (
           <>
-            <p className="mt-4 fs-6">
+            <p className="fs-6 mt-4">
               As part of the Cubing Contests honorary dues system, you will be asked to{" "}
               <Link href="/donate">donate</Link> $0.10 (USD) per competitor to support the maintenance and continued
               development of cubingcontests.com after the contest is finished.{" "}
@@ -868,14 +884,11 @@ const ContestForm = ({
                 </span>
               </strong>
               . This donation is voluntary.
-              {type === "wca-comp" ? (
+              {type === "wca-comp" && (
                 <em>
-                  {" "}
                   Note: for WCA Competitions the honorary dues system only considers the number of competitors in
                   unofficial events.
                 </em>
-              ) : (
-                ""
               )}
             </p>
             {mode !== "edit" && (
@@ -892,7 +905,7 @@ const ContestForm = ({
           <>
             {type === "comp" && (
               <>
-                <p className="mt-4 fs-6">
+                <p className="fs-6 mt-4">
                   This is an unofficial competition, which means that you should provide at least two photos of the
                   setup (i.e. scrambling area, competition area, etc.) in the contest finished email thread after the
                   competition, in accordance with moderator instruction B3.1.
@@ -907,7 +920,7 @@ const ContestForm = ({
             )}
             {urgent && (
               <>
-                <p className="mt-4 fs-6">
+                <p className="fs-6 mt-4">
                   You are submitting this contest within 7 days of the start date. In the future,{" "}
                   <strong>please submit contests at least a week in advance</strong>.
                 </p>
@@ -924,6 +937,6 @@ const ContestForm = ({
       </Form>
     </div>
   );
-};
+}
 
 export default ContestForm;

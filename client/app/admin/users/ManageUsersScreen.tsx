@@ -1,26 +1,26 @@
 "use client";
 
-import { useContext, useMemo, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
-import { getSimplifiedString } from "~/helpers/sharedFunctions.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import Form from "~/app/components/form/Form.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
-import Button from "~/app/components/UI/Button.tsx";
-import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import type { InputPerson } from "~/helpers/types.ts";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useAction } from "next-safe-action/hooks";
+import { useContext, useMemo, useState } from "react";
 import Competitor from "~/app/components/Competitor.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
-import { authClient } from "~/helpers/authClient.ts";
-import { PersonResponse } from "~/server/db/schema/persons.ts";
+import Form from "~/app/components/form/Form.tsx";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import type { authClient } from "~/helpers/authClient.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import { getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
-import { useAction } from "next-safe-action/hooks";
-import { updateUserSF } from "~/server/serverFunctions/serverFunctions.ts";
-import { Roles } from "~/server/permissions.ts";
+import type { InputPerson } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { Roles } from "~/server/permissions.ts";
+import { updateUserSF } from "~/server/serverFunctions/serverFunctions.ts";
 
 type Props = {
   users: (typeof authClient.$Infer.Session.user)[];
@@ -30,7 +30,7 @@ type Props = {
 function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: Props) {
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
-  const { executeAsync: updateUser, isPending } = useAction(updateUserSF);
+  const { executeAsync: updateUser, isPending: isUpdating } = useAction(updateUserSF);
   const [users, setUsers] = useState(initUsers);
   const [userPersons, setUserPersons] = useState(initUserPersons);
   const [userId, setUserId] = useState<string>();
@@ -44,9 +44,10 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
   const filteredUsers = useMemo(() => {
     const simplifiedSearch = getSimplifiedString(search);
 
-    return users.filter((u) =>
-      u.username.toLocaleLowerCase().includes(simplifiedSearch) ||
-      getSimplifiedString(userPersons.find((p) => p.personId === u.personId)?.name ?? "").includes(simplifiedSearch)
+    return users.filter(
+      (u) =>
+        u.username.toLocaleLowerCase().includes(simplifiedSearch) ||
+        getSimplifiedString(userPersons.find((p) => p.personId === u.personId)?.name ?? "").includes(simplifiedSearch),
     );
   }, [search, users, userPersons]);
 
@@ -109,7 +110,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
           hideToasts
           showCancelButton
           onCancel={() => setUsername("")}
-          isLoading={isPending}
+          isLoading={isUpdating}
         >
           <div className="row mb-3">
             <div className="col">
@@ -139,8 +140,8 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
         Number of users:&nbsp;<b>{filteredUsers.length}</b>
       </p>
 
-      <div className="mt-3 table-responsive">
-        <table className="table table-hover text-nowrap">
+      <div className="table-responsive mt-3">
+        <table className="table-hover table text-nowrap">
           <thead>
             <tr>
               <th scope="col">#</th>

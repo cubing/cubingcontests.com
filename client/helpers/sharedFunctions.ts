@@ -248,32 +248,26 @@ export function getNameAndLocalizedName(wcaName: string): { name: string; locali
 }
 
 export async function fetchWcaPerson(wcaId: string): Promise<PersonDto | undefined> {
-  const response = await fetch(`${C.wcaApiBase}/persons/${wcaId}.json`);
-
-  if (response.ok) {
-    const data = await response.json();
+  const res = await fetch(`${C.wcaUnofficialApiBaseUrl}/persons/${wcaId}.json`);
+  if (res.ok) {
+    const data = await res.json();
 
     const { name, localizedName } = getNameAndLocalizedName(data.name);
     const newPerson: PersonDto = {
       name,
-      localizedName,
+      localizedName: localizedName ?? null,
       wcaId,
       countryIso2: data.country,
     };
     return newPerson;
   }
-
-  return undefined;
 }
 
 export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
 
-export const getTotalRounds = (contestEvents: IContestEvent[]): number =>
-  contestEvents.map((ce) => ce.rounds.length).reduce((prev, curr) => prev + curr, 0);
-
 export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
 
-export const getMaxAllowedRounds = (rounds: IRound[]): number => {
+export function getMaxAllowedRounds(rounds: IRound[]): number {
   const getRoundHasEnoughResults = (roundIndex: number) =>
     rounds[roundIndex].results.length >= C.minResultsForOneMoreRound &&
     rounds[roundIndex].results.filter((r) => r.proceeds).length >= C.minProceedNumber;
@@ -290,7 +284,7 @@ export const getMaxAllowedRounds = (rounds: IRound[]): number => {
     return 3;
 
   return 4;
-};
+}
 
 export function parseRoundId(roundId: string): [string, number] {
   const [eventPart, roundPart] = roundId.split("-");

@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import ResultsSubmissionForm from "~/app/components/adminAndModerator/ResultsSubmissionForm.tsx";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { db } from "~/server/db/provider.ts";
 import { resultsTable as table } from "~/server/db/schema/results.ts";
 import { authorizeUser, getRecordConfigs, getVideoBasedEvents } from "~/server/serverUtilityFunctions.ts";
@@ -19,7 +20,7 @@ async function EditResultPage({ params }: Props) {
     .from(table)
     .where(eq(table.id, Number(resultId)));
 
-  if (!result) return; // ??????????????????????????
+  if (!result) return <LoadingError />;
 
   return (
     <section>

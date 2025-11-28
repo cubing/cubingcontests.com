@@ -28,6 +28,11 @@ export const relations = defineRelations(
         to: r.contests.competitionId,
         optional: false,
       }),
+      event: r.one.events({
+        from: r.rounds.eventId,
+        to: r.events.eventId,
+        optional: false,
+      }),
       results: r.many.results(),
     },
     results: {
@@ -47,7 +52,7 @@ export const relations = defineRelations(
       }),
       round: r.one.rounds({
         from: r.results.roundId,
-        to: r.rounds.roundId,
+        to: r.rounds.id,
       }),
       creator: r.one.users({
         from: r.results.createdBy,

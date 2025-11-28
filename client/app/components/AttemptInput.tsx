@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import FormTextInput from "./form/FormTextInput.tsx";
-import FormNumberInput from "./form/FormNumberInput.tsx";
-import { getAttempt } from "~/helpers/utilityFunctions.ts";
-import { getAlwaysShowDecimals, getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { C } from "~/helpers/constants.ts";
-import { EventResponse } from "~/server/db/schema/events.ts";
-import { Attempt } from "~/server/db/schema/results.ts";
+import { getAlwaysShowDecimals, getFormattedTime } from "~/helpers/sharedFunctions.ts";
+import { getAttempt } from "~/helpers/utilityFunctions.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { Attempt } from "~/server/db/schema/results.ts";
+import FormNumberInput from "./form/FormNumberInput.tsx";
+import FormTextInput from "./form/FormTextInput.tsx";
 
 const DNFKeys = ["f", "F", "d", "D", "/"];
 const DNSKeys = ["s", "S", "*"];
@@ -23,16 +23,16 @@ const getFormattedText = (text: string, { forMemo = false, isNumberFormat = fals
   else if (["DNF", "DNS", "Unknown"].includes(text)) return text;
   // Memo time formatting always requires minutes, even if they're 0
   else if (text.length < 5 && !forMemo) {
-    output = (parseInt(text) / 100).toFixed(decimals);
+    output = (parseInt(text, 10) / 100).toFixed(decimals);
   } else {
-    if (text.length >= 7) output += text.slice(0, text.length - 6) + ":"; // hours
+    if (text.length >= 7) output += `${text.slice(0, text.length - 6)}:`; // hours
     if (text.length >= 5) {
-      output += text.slice(Math.max(text.length - 6, 0), -4) + ":"; // minutes
-      const seconds = parseInt(text.slice(text.length - 4)) / 100;
+      output += `${text.slice(Math.max(text.length - 6, 0), -4)}:`; // minutes
+      const seconds = parseInt(text.slice(text.length - 4), 10) / 100;
       output += (seconds < 10 ? "0" : "") + seconds.toFixed(decimals); // seconds
     } else {
       const seconds = Number(text.slice(0, -2));
-      output += "0:" + (seconds < 10 ? "0" : "") + seconds;
+      output += `0:${seconds < 10 ? "0" : ""}${seconds}`;
     }
   }
 
@@ -44,7 +44,7 @@ type Props = {
   attempt: Attempt;
   setAttempt: (val: Attempt) => void;
   event: EventResponse;
-  timeLimit?: ITimeLimit;
+  timeLimitCentiseconds?: number;
   memoInputForBld?: boolean;
   allowUnknownTime?: boolean;
   maxTime?: number; // maximum allowed time in centiseconds (can be used for time limit/cutoff inputs)
@@ -57,7 +57,7 @@ function AttemptInput({
   attempt,
   setAttempt,
   event,
-  timeLimit,
+  timeLimitCentiseconds,
   memoInputForBld = false,
   allowUnknownTime = false,
   maxTime,
@@ -122,9 +122,7 @@ function AttemptInput({
     if (nextFocusTargetId) {
       document.getElementById(nextFocusTargetId)?.focus();
     } else {
-      const solvedInput = document.getElementById(
-        `attempt_${attNumber + 1}_solved`,
-      );
+      const solvedInput = document.getElementById(`attempt_${attNumber + 1}_solved`);
       if (solvedInput && !(solvedInput as any).disabled) solvedInput.focus();
       else document.getElementById(`attempt_${attNumber + 1}`)?.focus();
     }
@@ -231,12 +229,11 @@ function AttemptInput({
         const newText = !forMemo ? text + newCharacter : text.slice(0, -2) + newCharacter + "00";
 
         if (newText.length <= C.maxFmMoves.toString().length || (newText.length <= 8 && event.format !== "number")) {
-          const newAttempt = getAttempt(
-            attempt,
-            event,
-            forMemo ? attemptText : newText,
-            { solved, attempted, memo: forMemo ? newText : memoText },
-          );
+          const newAttempt = getAttempt(attempt, event, forMemo ? attemptText : newText, {
+            solved,
+            attempted,
+            memo: forMemo ? newText : memoText,
+          });
           setAttempt(newAttempt);
 
           // If the updated attempt is valid, it will get updated in useEffect anyways
@@ -254,7 +251,12 @@ function AttemptInput({
       e.preventDefault();
 
       // If it's not the memo input and there is a time limit that wasn't met, DNF the attempt
-      if (!forMemo && timeLimit && attempt.result !== null && attempt.result >= timeLimit.centiseconds) {
+      if (
+        !forMemo &&
+        timeLimitCentiseconds !== undefined &&
+        attempt.result !== null &&
+        attempt.result >= timeLimitCentiseconds
+      ) {
         dnfTheAttempt();
         focusNext();
       } else if (!forMemo && includeMemo) {
@@ -279,9 +281,7 @@ function AttemptInput({
         memo: memoText,
       });
 
-      if (
-        newAttempt.result !== attempt.result || newAttempt.memo !== attempt.memo
-      ) setAttempt(newAttempt);
+      if (newAttempt.result !== attempt.result || newAttempt.memo !== attempt.memo) setAttempt(newAttempt);
     }
   };
 

@@ -1,5 +1,6 @@
 import { getModContestsSF } from "~/server/serverFunctions/contestServerFunctions.ts";
 import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
+import LoadingError from "../components/UI/LoadingError.tsx";
 import ModDashboardScreen from "./ModDashboardScreen.tsx";
 
 type Props = {
@@ -12,7 +13,7 @@ async function ModeratorDashboardPage({ searchParams }: Props) {
 
   const res = await getModContestsSF({ organizerPersonId: organizerPersonId ? Number(organizerPersonId) : undefined });
 
-  if (!res.data) return <h3 className="mt-4 text-center">Error while loading contests</h3>;
+  if (!res.data) return <LoadingError loadingEntity="contests" />;
 
   return <ModDashboardScreen contests={res.data} session={session} />;
 }

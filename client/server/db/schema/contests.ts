@@ -48,8 +48,6 @@ export const contestsTable = table(
     contact: text(),
     description: text().notNull(),
     competitorLimit: integer(),
-    // events: integer().references(() => eventsTable.id).array().notNull(),
-    // rounds: integer().references(() => roundsTable.id).array().notNull(),
     participants: integer().default(0).notNull(),
     queuePosition: integer(),
     schedule: jsonb().$type<Schedule>(), // not used for meetups
@@ -61,13 +59,13 @@ export const contestsTable = table(
     check(
       "contests_meetup_check",
       sql`(${table.type} <> 'meetup'
-        AND ${table.startTime} IS NULL
-        AND ${table.timeZone} IS NULL
-        AND ${table.competitorLimit} IS NOT NULL)
-      OR (${table.type} = 'meetup'
-        AND ${table.startTime} IS NOT NULL
-        AND ${table.timeZone} IS NOT NULL
-        AND ${table.schedule} IS NULL)`,
+          and ${table.startTime} is null
+          and ${table.timeZone} is null
+          and ${table.competitorLimit} is not null)
+        or (${table.type} = 'meetup'
+          and ${table.startTime} is not null
+          and ${table.timeZone} is not null
+          and ${table.schedule} is null)`,
     ),
   ],
 );

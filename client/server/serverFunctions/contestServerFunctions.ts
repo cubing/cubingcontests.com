@@ -1,8 +1,10 @@
 "use server";
 
 import { and, arrayContains, desc, eq } from "drizzle-orm";
+import { find as findTimezone } from "geo-tz";
 import z from "zod";
 import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
+import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import { personsTable } from "~/server/db/schema/persons.ts";
 import { db } from "../db/provider.ts";
 import { type ContestResponse, contestsPublicCols, contestsTable as table } from "../db/schema/contests.ts";
@@ -49,4 +51,19 @@ export const getModContestsSF = actionClient
       .orderBy(desc(table.startDate));
 
     return contests;
+  });
+
+// This assumes that if you can create meetups, you can also create competitions
+export const getTimeZoneFromCoordsSF = actionClient
+  .metadata({ permissions: { meetups: ["create"] } })
+  .inputSchema(CoordinatesValidator)
+  .action<string>(async ({ parsedInput: { latitude, longitude } }) => {
+    const timeZone = findTimezone(latitude, longitude).at(0);
+
+    if (!timeZone)
+      throw new CcActionError(`Time zone for coordinates ${latitude}, ${longitude} not found`, {
+        data: { timeZoneNotFound: true },
+      });
+
+    return timeZone;
   });

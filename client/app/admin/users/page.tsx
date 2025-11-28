@@ -1,10 +1,11 @@
+import { inArray } from "drizzle-orm";
+import { headers } from "next/headers";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import { auth } from "~/server/auth.ts";
+import { db } from "~/server/db/provider.ts";
+import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
 import ManageUsersScreen from "./ManageUsersScreen.tsx";
-import { auth } from "~/server/auth.ts";
-import { headers } from "next/headers";
-import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
-import { db } from "~/server/db/provider.ts";
-import { inArray } from "drizzle-orm";
 
 async function ManageUsersPage() {
   await authorizeUser({ permissions: { user: ["list"] } });
@@ -14,16 +15,17 @@ async function ManageUsersPage() {
     headers: await headers(),
   });
 
-  if (!res.users) return <h3 className="mt-4 text-center">Error while loading users</h3>;
+  if (!res.users) return <LoadingError loadingEntity="users" />;
 
   const personIds = Array.from(new Set(res.users.filter((u) => u.personId).map((u) => u.personId)));
-  const persons = await db.select(personsPublicCols).from(personsTable)
+  const persons = await db
+    .select(personsPublicCols)
+    .from(personsTable)
     .where(inArray(personsTable.personId, personIds));
 
   return (
     <section>
       <h2 className="mb-4 text-center">Users</h2>
-
       <ManageUsersScreen users={res.users} userPersons={persons} />;
     </section>
   );

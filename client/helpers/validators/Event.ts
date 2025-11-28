@@ -13,8 +13,8 @@ export const EventValidator = z.strictObject({
   removedWca: z.boolean(),
   hasMemo: z.boolean(),
   hidden: z.boolean(),
-  description: z.string().optional(),
-  rule: z.string().optional(),
+  description: z.string().nullable(),
+  rule: z.string().nullable(),
 });
 
 export type EventDto = z.infer<typeof EventValidator>;

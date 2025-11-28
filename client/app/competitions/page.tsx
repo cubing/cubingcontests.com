@@ -5,6 +5,7 @@ import { Continents, Countries } from "~/helpers/Countries.ts";
 import { db } from "~/server/db/provider.ts";
 import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
 import AffiliateLink from "../components/AffiliateLink.tsx";
+import LoadingError from "../components/UI/LoadingError.tsx";
 import RegionSelect from "../rankings/[eventId]/[singleOrAvg]/RegionSelect.tsx";
 
 // SEO
@@ -44,9 +45,9 @@ async function ContestsPage({ searchParams }: Props) {
       endDate: true,
       participants: true,
     },
-    with: { rounds: { columns: { roundId: true } } },
+    with: { rounds: { columns: { eventId: true } } },
     where: {
-      rounds: eventId ? { roundId: { like: `${eventId}-r%` } } : undefined,
+      rounds: eventId ? { eventId } : undefined,
       countryIso2: continentCountryCodes ? { in: continentCountryCodes } : region ? { eq: region } : undefined,
     },
     orderBy: { startDate: "desc" },
@@ -64,7 +65,7 @@ async function ContestsPage({ searchParams }: Props) {
       <AffiliateLink type="other" />
 
       {events.length === 0 ? (
-        <h3 className="mt-4 text-center">Error while loading contests</h3>
+        <LoadingError loadingEntity="contests" />
       ) : (
         <>
           <div className="mb-3 px-2">

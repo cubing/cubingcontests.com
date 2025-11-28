@@ -22,7 +22,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
   const searchParams = useSearchParams();
   const { changeErrorMessages } = useContext(MainContext);
 
-  const { executeAsync: getPersonByPersonId, isPending } = useAction(getPersonByPersonIdSF);
+  const { executeAsync: getPersonByPersonId, isPending: isPendingPerson } = useAction(getPersonByPersonIdSF);
   const [persons, setPersons] = useState<InputPerson[]>([null]);
   const [personNames, setPersonNames] = useState([""]);
 
@@ -57,7 +57,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
         personNames={personNames}
         setPersonNames={setPersonNames}
         onSelectPerson={onSelectPerson}
-        disabled={disabled || isPending}
+        disabled={disabled || isPendingPerson}
         addNewPersonMode="disabled"
         display="one-line"
       />

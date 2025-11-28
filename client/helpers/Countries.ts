@@ -31,8 +31,7 @@ export function getContinent(countryIso2: string): ContinentId {
 export const Countries: {
   name: string;
   shortName?: string;
-  // See https://www.countrycallingcodes.com/iso-country-codes/
-  code: string;
+  code: string; // https://www.countrycallingcodes.com/iso-country-codes/
   continentId: ContinentId;
 }[] = [
   { name: "Afghanistan", code: "AF", continentId: "ASIA" },
@@ -235,3 +234,5 @@ export const Countries: {
   { name: "Zambia", code: "ZM", continentId: "AFRICA" },
   { name: "Zimbabwe", code: "ZW", continentId: "AFRICA" },
 ];
+
+export const CountryCodes = Countries.map((c) => c.code);

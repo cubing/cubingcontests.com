@@ -1,16 +1,16 @@
 "use client";
 
-import { useContext, useEffect, useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import Form from "~/app/components/form/Form.tsx";
-import { MainContext } from "~/helpers/contexts.ts";
-import { authClient } from "~/helpers/authClient.ts";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useContext, useEffect, useState, useTransition } from "react";
 import { z } from "zod";
-import { LoginFormValidator } from "~/helpers/validators/Auth";
+import Form from "~/app/components/form/Form.tsx";
+import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import { authClient } from "~/helpers/authClient.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import { LoginFormValidator } from "~/helpers/validators/Auth.ts";
 
-const LoginPage = () => {
+function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
@@ -21,20 +21,15 @@ const LoginPage = () => {
 
   useEffect(() => {
     const email = searchParams.get("email");
-
     if (email) {
       const parsed = z.email().safeParse(email);
 
       if (!parsed.success) {
-        changeErrorMessages([
-          "An unknown error has occurred. Please try to register again.",
-        ]);
+        changeErrorMessages(["An unknown error has occurred. Please try to register again."]);
       } else if (searchParams.get("error")) {
         router.push(`/register/link-expired?email=${parsed.data}`);
       } else {
-        changeSuccessMessage(
-          "Your email has been verified. You can now log in.",
-        );
+        changeSuccessMessage("Your email has been verified. You can now log in.");
       }
     }
   }, [searchParams]);
@@ -85,14 +80,11 @@ const LoginPage = () => {
         </Link>
       </Form>
 
-      <div
-        className="container mt-4 mx-auto px-3 fs-5"
-        style={{ maxWidth: "var(--cc-md-width)" }}
-      >
+      <div className="fs-5 container mx-auto mt-4 px-3" style={{ maxWidth: "var(--cc-md-width)" }}>
         <Link href="/register">Create account</Link>
       </div>
     </div>
   );
-};
+}
 
 export default LoginPage;

@@ -215,9 +215,6 @@ export const getIsWebglSupported = (): boolean => {
   }
 };
 
-export const getTimeLimit = (eventFormat: EventFormat): ITimeLimit | undefined =>
-  eventFormat === "time" ? { centiseconds: 60000, cumulativeRoundIds: [] } : undefined;
-
 export const getRoundFormatOptions = (roundFormats: RoundFormatObject[]): MultiChoiceOption[] =>
   roundFormats.map((rf) => ({ label: rf.label, value: rf.value }));
 

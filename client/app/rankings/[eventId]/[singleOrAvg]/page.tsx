@@ -4,6 +4,7 @@ import AffiliateLink from "~/app/components/AffiliateLink.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import RankingsTable from "~/app/components/RankingsTable.tsx";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import RegionSelect from "~/app/rankings/[eventId]/[singleOrAvg]/RegionSelect.tsx";
 import { C } from "~/helpers/constants.ts";
 import { ssrFetch } from "~/helpers/DELETEfetchUtils.ts";
@@ -50,9 +51,7 @@ async function RankingsPage({ params, searchParams }: Props) {
 
   const currEvent = eventsResponse.success ? eventsResponse.data.find((e) => e.eventId === eventId) : undefined;
 
-  if (!eventRankingsResponse.success) {
-    return <h3 className="mt-5 text-center">Error while loading rankings</h3>;
-  }
+  if (!eventRankingsResponse.success) return <LoadingError />;
 
   if (!eventsResponse.success || !currEvent) {
     return <p className="fs-4 mt-5 text-center">Event not found</p>;

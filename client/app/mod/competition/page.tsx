@@ -1,77 +1,113 @@
-"use client";
-
-import { useContext, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import { type Event, type IContestData } from "~/helpers/types.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import Loading from "~/app/components/UI/Loading.tsx";
+import { eq, inArray, ne, sql } from "drizzle-orm";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import type { Creator } from "~/helpers/types.ts";
+import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
+import { creatorCols } from "~/server/db/dbUtils.ts";
+import { db } from "~/server/db/provider.ts";
+import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
+import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
+import { resultsTable } from "~/server/db/schema/results.ts";
+import { type RoundResponse, roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
+import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
 import ContestForm from "./ContestForm.tsx";
 
-const CreateEditContestPage = () => {
-  const myFetch = useMyFetch();
-  const { changeErrorMessages } = useContext(MainContext);
+type Props = {
+  searchParams: Promise<{
+    editId?: string;
+    copyId?: string;
+  }>;
+};
 
-  const [events, setEvents] = useState<Event[]>();
-  const [contestData, setContestData] = useState<IContestData | undefined>();
+async function CreateEditContestPage({ searchParams }: Props) {
+  const session = await authorizeUser({ permissions: { persons: ["create", "update", "delete"] } });
+  const { editId, copyId } = await searchParams;
 
-  const searchParams = useSearchParams();
+  const isAdmin = getIsAdmin(session.user.role);
+  const mode = editId ? "edit" : copyId ? "copy" : "new";
+  const competitionId = editId ?? copyId;
 
-  let mode: "new" | "edit" | "copy" = "new";
-  let competitionId = searchParams.get("edit_id");
+  const eventsPromise = db.select(eventsPublicCols).from(eventsTable).where(ne(eventsTable.category, "removed"));
+  const contestPromise = competitionId ? db.query.contests.findFirst({ where: { competitionId } }) : undefined;
+  const roundsPromise = competitionId
+    ? db.select(roundsPublicCols).from(roundsTable).where(eq(roundsTable.competitionId, competitionId))
+    : undefined;
 
-  if (competitionId) {
-    mode = "edit";
-  } else {
-    competitionId = searchParams.get("copy_id");
-    if (competitionId) mode = "copy";
-  }
+  try {
+    // REIMPLEMENT THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // if (user) {
+    //   this.authService.checkAccessRightsToContest(user, contest, {
+    //     allowNotApproved: eventId === undefined,
+    //     allowFinishedForMod: eventId === undefined,
+    //     allowPublished: eventId === undefined,
+    //   });
+    // }
 
-  useEffect(() => {
-    (async () => {
-      const promises: Promise<any>[] = [myFetch.get<Event[]>("/events/mod", {
-        authorize: true,
-        loadingId: null,
-      })];
+    const [events, contest, rounds] = await Promise.all([eventsPromise, contestPromise, roundsPromise]);
+    let totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
+    let organizers: PersonResponse[] | undefined;
+    let creator: Creator | undefined;
+    let creatorPerson: PersonResponse | undefined;
 
-      if (competitionId) {
-        promises.push(
-          myFetch.get<IContestData>(`/competitions/mod/${competitionId}`, {
-            authorize: true,
-            loadingId: null,
-          }),
-        );
+    if (contest) {
+      const totalResultsByRoundPromise =
+        contest.participants > 0
+          ? db
+              .execute(
+                sql`select ${resultsTable.roundId}, count(*) as total_results
+                  from ${resultsTable}
+                  where ${resultsTable.competitionId} = ${contest.competitionId}
+                  group by ${resultsTable.roundId}`,
+              )
+              .then((res) =>
+                res.rows.map((el) => ({ roundId: el.round_id as number, totalResults: Number(el.total_results ?? 0) })),
+              )
+          : undefined;
+      const organizersPromise = db
+        .select(personsPublicCols)
+        .from(personsTable)
+        .where(inArray(personsTable.id, contest.organizers));
+      const creatorPromise =
+        isAdmin && contest.createdBy
+          ? db.select(creatorCols).from(usersTable).where(eq(usersTable.id, contest.createdBy))
+          : undefined;
+      const [totalResultsByRoundRes, organizersRes, creatorRes] = await Promise.all([
+        totalResultsByRoundPromise,
+        organizersPromise,
+        creatorPromise,
+      ]);
+      totalResultsByRound = totalResultsByRoundRes;
+      organizers = organizersRes;
+      creator = creatorRes?.[0];
+
+      if (creator?.personId) {
+        creatorPerson = (
+          await db.select(personsPublicCols).from(personsTable).where(eq(personsTable.personId, creator.personId))
+        ).at(0);
       }
+    }
 
-      const settled = await Promise.allSettled(promises);
-
-      if (settled.some((p) => p.status === "rejected" || !p.value.success)) {
-        changeErrorMessages(["Error while fetching contest data"]);
-      } else {
-        setEvents((settled[0] as any).value.data);
-        if (competitionId) setContestData((settled[1] as any).value.data);
-      }
-    })();
-  }, []);
-
-  if (events && (mode === "new" || contestData)) {
     return (
       <div>
-        <h2 className="mb-4 text-center">
-          {mode === "edit" ? "Edit Contest" : "Create Contest"}
-        </h2>
+        <h2 className="mb-4 text-center">{mode === "edit" ? "Edit Contest" : "Create Contest"}</h2>
 
         <ContestForm
           events={events}
+          rounds={rounds}
+          totalResultsByRound={totalResultsByRound}
           mode={mode}
-          contest={contestData?.contest}
-          creator={contestData?.creator}
+          contest={contest}
+          organizers={organizers}
+          creator={creator}
+          creatorPerson={creatorPerson}
+          session={session}
         />
       </div>
     );
+  } catch (err) {
+    console.error(err);
+    return <LoadingError />;
   }
-
-  return <Loading />;
-};
+}
 
 export default CreateEditContestPage;

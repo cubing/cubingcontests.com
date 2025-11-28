@@ -11,7 +11,7 @@ export const personsTable = table("persons", {
   localizedName: text(),
   countryIso2: varchar({ length: 2 }).notNull(),
   wcaId: varchar({ length: 10 }),
-  approved: boolean().notNull(),
+  approved: boolean().default(false).notNull(),
   createdBy: text().references(() => usersTable.id, { onDelete: "set null" }),
   createdExternally: boolean().default(false).notNull(),
   ...tableTimestamps,

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useMyFetch } from "~/helpers/customHooks.ts";
 
 const height = 192 / 2;
 const width = 1920 / 2;
@@ -13,10 +12,9 @@ type Props = {
 };
 
 function AffiliateLink({ type }: Props) {
-  const myFetch = useMyFetch();
-
   const logAffiliateLinkClick = async (utmCampaign: string) => {
-    await myFetch.get(`/log-affiliate-link-click/${utmCampaign}`);
+    alert("NOT IMPLEMENTED");
+    // await myFetch.get(`/log-affiliate-link-click/${utmCampaign}`);
   };
 
   switch (type) {
@@ -108,6 +106,7 @@ function AffiliateLink({ type }: Props) {
           className={className}
           style={style}
         >
+          <span className="text-danger">IMPLEMENT THE LOGGING OF AFFILIATE LINKS!!!</span>
           <Image src="/banners/other.jpg" height={height} width={width} alt="Cuboss ad" />
         </a>
       );

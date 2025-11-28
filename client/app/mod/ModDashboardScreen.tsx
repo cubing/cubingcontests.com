@@ -29,7 +29,7 @@ function ModDashboardScreen({ contests: initContests, session }: Props) {
   const router = useRouter();
   const { changeErrorMessages } = useContext(MainContext);
 
-  const { executeAsync: getModContests, isPending } = useAction(getModContestsSF);
+  const { executeAsync: getModContests, isPending: isPendingContests } = useAction(getModContestsSF);
   const [contests, setContests] = useState<ContestResponse[]>(initContests);
 
   const isAdmin = getIsAdmin(session.user.role);
@@ -113,9 +113,9 @@ function ModDashboardScreen({ contests: initContests, session }: Props) {
         )}
       </div>
 
-      <ModFilters onSelectPerson={selectPerson} onResetFilters={resetFilters} disabled={isPending} />
+      <ModFilters onSelectPerson={selectPerson} onResetFilters={resetFilters} disabled={isPendingContests} />
 
-      {isPending ? (
+      {isPendingContests ? (
         <Loading />
       ) : contests.length === 0 ? (
         <p className="fs-5 px-2">You haven't created any contests yet</p>

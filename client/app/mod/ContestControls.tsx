@@ -54,7 +54,7 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
     <div className="d-flex gap-2">
       {(["created", "approved", "ongoing"].includes(contest.state) || isAdmin) && (
         <Link
-          href={`/mod/competition?edit_id=${contest.competitionId}`}
+          href={`/mod/competition?editId=${contest.competitionId}`}
           prefetch={false}
           className={`btn btn-primary ${smallButtons ? "btn-xs" : ""}`}
           title="Edit"
@@ -65,7 +65,7 @@ function ContestControls({ contest, updateContest, isAdmin = false, smallButtons
       )}
       {contest.type !== "wca-comp" && (
         <Link
-          href={`/mod/competition?copy_id=${contest?.competitionId}`}
+          href={`/mod/competition?copyId=${contest?.competitionId}`}
           prefetch={false}
           className={`btn btn-primary ${smallButtons ? "btn-xs" : ""}`}
           title="Clone"

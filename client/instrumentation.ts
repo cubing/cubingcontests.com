@@ -1,5 +1,6 @@
+import type { randomUUID as randomUUIDType } from "node:crypto";
 import type fsType from "node:fs";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { auth as authType } from "~/server/auth.ts";
 import type { db as dbType } from "~/server/db/provider.ts";
 import { accountsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
@@ -22,13 +23,14 @@ const message =
 
 export async function register() {
   // Seed test users for development
-  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NODE_ENV !== "production") {
+  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.MIGRATE_DB === "true") {
     const { db }: { db: typeof dbType } = await import("~/server/db/provider.ts");
     const { auth }: { auth: typeof authType } = await import("~/server/auth.ts");
     const fs: typeof fsType = await import("node:fs");
+    const { randomUUID }: { randomUUID: typeof randomUUIDType } = await import("node:crypto");
     const usersDump = JSON.parse(fs.readFileSync("./dump/users.json") as any);
     const personsDump = (JSON.parse(fs.readFileSync("./dump/people.json") as any) as any[]).reverse();
-    const roundsDump = (JSON.parse(fs.readFileSync("./dump/rounds.json") as any) as any[]).reverse();
+    const roundsDump = JSON.parse(fs.readFileSync("./dump/rounds.json") as any) as any[];
 
     const testUsers = [
       {
@@ -97,7 +99,8 @@ export async function register() {
               email: user.email,
               username: user.username,
               displayUsername: user.username,
-              password: user.password,
+              // Resetting all passwords due to hashing algorithm change (further encrypted by scrypt)
+              password: randomUUID(),
               personId: user.personId,
               name: "",
             },
@@ -115,11 +118,7 @@ export async function register() {
 
           await db
             .update(accountsTable)
-            .set({
-              password: user.password,
-              createdAt: new Date(user.createdAt.$date),
-              updatedAt: new Date(user.updatedAt.$date),
-            })
+            .set({ createdAt: new Date(user.createdAt.$date), updatedAt: new Date(user.updatedAt.$date) })
             .where(eq(accountsTable.userId, res.user.id));
         }
       } catch (e) {
@@ -174,7 +173,9 @@ export async function register() {
       }
     }
 
-    const persons = await db.select().from(personsTable);
+    const persons = await db.select().from(personsTable).orderBy(personsTable.personId);
+
+    await db.execute(sql.raw(`ALTER SEQUENCE persons_person_id_seq RESTART WITH ${persons.at(-1)!.personId + 1};`));
 
     if ((await db.select({ id: eventsTable.id }).from(eventsTable).limit(1)).length === 0) {
       if (process.env.EMAIL_API_KEY) throw new Error(message);
@@ -220,10 +221,60 @@ export async function register() {
       }
     }
 
-    const getRoundId = ($oid: string): string => {
+    if ((await db.select({ id: roundsTable.id }).from(roundsTable).limit(1)).length === 0) {
+      if (process.env.EMAIL_API_KEY) throw new Error(message);
+      console.log("Seeding rounds...");
+
+      let tempRounds: any[] = [];
+
+      try {
+        for (const r of roundsDump) {
+          const [eventId, roundNumberStr] = r.roundId.split("-r");
+
+          tempRounds.push({
+            competitionId: r.competitionId,
+            eventId,
+            roundNumber: parseInt(roundNumberStr, 10),
+            roundTypeId: r.roundTypeId,
+            format: r.format,
+            timeLimitCentiseconds: r.timeLimit?.centiseconds ?? null,
+            timeLimitCumulativeRoundIds: r.timeLimit?.cumulativeRoundIds ?? null,
+            cutoffAttemptResult: r.cutoff?.attemptResult ?? null,
+            cutoffNumberOfAttempts: r.cutoff?.numberOfAttempts ?? null,
+            proceedType: r.proceed?.type === 1 ? "percentage" : r.proceed?.type === 2 ? "number" : null,
+            proceedValue: r.proceed?.value ?? null,
+            open: !!r.open,
+            createdAt: new Date(r.createdAt.$date),
+            updatedAt: new Date(r.updatedAt.$date),
+          });
+
+          // Drizzle can't handle too many entries being inserted at once
+          if (tempRounds.length === 1000) {
+            await db.insert(roundsTable).values(tempRounds).returning();
+            tempRounds = [];
+          }
+        }
+
+        await db.insert(roundsTable).values(tempRounds).returning();
+      } catch (e) {
+        console.error("Unable to load rounds dump:", e);
+      }
+    }
+
+    const rounds = await db.select().from(roundsTable);
+
+    const getRoundId = ($oid: string): number => {
       const dumpRoundObject = roundsDump.find((r: any) => r.results.some((res: any) => res.$oid === $oid));
       if (!dumpRoundObject) throw new Error(`Round containing result with ID ${$oid} not found in rounds dump!`);
-      return dumpRoundObject.roundId;
+
+      const [eventId, roundNumberStr] = dumpRoundObject.roundId.split("-r");
+      const round = rounds.find((r) => r.eventId === eventId && r.roundNumber === Number(roundNumberStr));
+      if (!round)
+        throw new Error(
+          `Round ${dumpRoundObject.roundId} from contest ${dumpRoundObject.competitionId} not found in DB`,
+        );
+
+      return round.id;
     };
 
     if ((await db.select({ id: resultsTable.id }).from(resultsTable).limit(1)).length === 0) {
@@ -231,7 +282,6 @@ export async function register() {
       console.log("Seeding results...");
 
       const resultsDump = JSON.parse(fs.readFileSync("./dump/results.json") as any);
-      const results: any[] = [];
       let tempResults = [];
 
       try {
@@ -272,70 +322,14 @@ export async function register() {
 
           // Drizzle can't handle too many entries being inserted at once
           if (tempResults.length === 1000) {
-            results.push(...(await db.insert(resultsTable).values(tempResults).returning()));
+            await db.insert(resultsTable).values(tempResults).returning();
             tempResults = [];
           }
         }
 
-        results.push(...(await db.insert(resultsTable).values(tempResults).returning()));
+        await db.insert(resultsTable).values(tempResults).returning();
       } catch (e) {
         console.error("Unable to load results dump:", e);
-      }
-
-      // const getResultId = ($oid: string): number => {
-      //   const dumpResultObject = resultsDump.find((r: any) => r._id.$oid === $oid);
-      //   if (!dumpResultObject) throw new Error(`Result with ID ${$oid} not found in results dump!`);
-
-      //   const result = results.find((r) =>
-      //     r.competitionId === (dumpResultObject.competitionId ?? null) &&
-      //     r.eventId === dumpResultObject.eventId &&
-      //     r.best === dumpResultObject.best &&
-      //     r.average === dumpResultObject.average &&
-      //     r.videoLink === (dumpResultObject.videoLink ?? null) &&
-      //     r.createdAt.getTime() === new Date(dumpResultObject.createdAt.$date).getTime() &&
-      //     r.updatedAt.getTime() === new Date(dumpResultObject.updatedAt.$date).getTime() &&
-      //     r.personIds.length === dumpResultObject.personIds.length &&
-      //     !r.personIds.some((pid: number, index: number) => pid !== dumpResultObject.personIds.at(index))
-      //   );
-
-      //   if (!result) throw new Error(`Result with Mongo ID ${$oid} not found in DB while converting round`);
-      //   return result.id;
-      // };
-
-      console.log("Seeding rounds...");
-
-      const rounds: any[] = [];
-      let tempRounds: any[] = [];
-
-      try {
-        for (const r of roundsDump) {
-          tempRounds.push({
-            roundId: r.roundId,
-            competitionId: r.competitionId,
-            roundTypeId: r.roundTypeId,
-            format: r.format,
-            timeLimitCentiseconds: r.timeLimit?.centiseconds ?? null,
-            timeLimitCumulativeRoundIds: r.timeLimit?.cumulativeRoundIds ?? null,
-            cutoffAttemptResult: r.cutoff?.attemptResult ?? null,
-            cutoffNumberOfAttempts: r.cutoff?.numberOfAttempts ?? null,
-            proceedType: r.proceed?.type === 1 ? "percentage" : r.proceed?.type === 2 ? "number" : null,
-            proceedValue: r.proceed?.value ?? null,
-            // results: r.results.map(({ $oid }: { $oid: string }) => getResultId($oid)),
-            open: !!r.open,
-            createdAt: new Date(r.createdAt.$date),
-            updatedAt: new Date(r.updatedAt.$date),
-          });
-
-          // Drizzle can't handle too many entries being inserted at once
-          if (tempRounds.length === 1000) {
-            rounds.push(...(await db.insert(roundsTable).values(tempRounds).returning()));
-            tempRounds = [];
-          }
-        }
-
-        rounds.push(...(await db.insert(roundsTable).values(tempRounds).returning()));
-      } catch (e) {
-        console.error("Unable to load rounds dump:", e);
       }
     }
 
@@ -344,7 +338,7 @@ export async function register() {
       console.log("Seeding contests...");
 
       const contestsDump = (JSON.parse(fs.readFileSync("./dump/competitions.json") as any) as any[]).reverse();
-      const schedulesDump = (JSON.parse(fs.readFileSync("./dump/schedules.json") as any) as any[]).reverse();
+      const schedulesDump = JSON.parse(fs.readFileSync("./dump/schedules.json") as any) as any[];
       let tempContests: any[] = [];
 
       const getPersonId = ($oid: string): number => {

@@ -1,6 +1,6 @@
 import "server-only";
 import { getTableColumns, sql } from "drizzle-orm";
-import { boolean, check, integer, pgEnum, pgTable as table, text } from "drizzle-orm/pg-core";
+import { boolean, check, integer, pgEnum, smallint, pgTable as table, text } from "drizzle-orm/pg-core";
 import { RoundProceedValues, RoundTypeValues } from "~/helpers/types.ts";
 import { tableTimestamps } from "../dbUtils.ts";
 import { roundFormatEnum } from "./events.ts";
@@ -12,8 +12,9 @@ export const roundsTable = table(
   "rounds",
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    roundId: text().notNull(),
     competitionId: text().notNull(),
+    eventId: text().notNull(),
+    roundNumber: smallint().notNull(),
     roundTypeId: roundTypeEnum().notNull(),
     format: roundFormatEnum().notNull(),
     timeLimitCentiseconds: integer(),
@@ -28,20 +29,20 @@ export const roundsTable = table(
   (table) => [
     check(
       "rounds_timelimit_check",
-      sql`(${table.timeLimitCentiseconds} IS NOT NULL AND ${table.timeLimitCumulativeRoundIds} IS NOT NULL)
-      OR (${table.timeLimitCentiseconds} IS NULL AND ${table.timeLimitCumulativeRoundIds} IS NULL)`,
+      sql`(${table.timeLimitCentiseconds} is not null and ${table.timeLimitCumulativeRoundIds} is not null)
+        or (${table.timeLimitCentiseconds} is null and ${table.timeLimitCumulativeRoundIds} is null)`,
     ),
     check(
       "rounds_cutoff_check",
-      sql`(${table.cutoffAttemptResult} IS NOT NULL AND ${table.cutoffNumberOfAttempts} IS NOT NULL)
-      OR (${table.cutoffAttemptResult} IS NULL AND ${table.cutoffNumberOfAttempts} IS NULL)`,
+      sql`(${table.cutoffAttemptResult} is not null and ${table.cutoffNumberOfAttempts} is not null)
+        or (${table.cutoffAttemptResult} is null and ${table.cutoffNumberOfAttempts} is null)`,
     ),
     check(
       "rounds_proceed_check",
-      sql`(${table.proceedType} IS NOT NULL AND ${table.proceedValue} IS NOT NULL)
-      OR (${table.proceedType} IS NULL AND ${table.proceedValue} IS NULL)`,
+      sql`(${table.proceedType} is not null and ${table.proceedValue} is not null)
+        or (${table.proceedType} is null and ${table.proceedValue} is null)`,
     ),
-    check("rounds_finals_check", sql`${table.roundTypeId} <> 'f' OR ${table.proceedType} IS NULL`),
+    check("rounds_finals_check", sql`${table.roundTypeId} <> 'f' or ${table.proceedType} is null`),
   ],
 );
 

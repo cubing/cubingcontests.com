@@ -4,10 +4,10 @@ import { useContext, useState, useTransition } from "react";
 import { z } from "zod";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import { MainContext } from "~/helpers/contexts.ts";
 import { authClient } from "~/helpers/authClient.ts";
+import { MainContext } from "~/helpers/contexts.ts";
 
-const RequestPasswordResetPage = () => {
+function RequestPasswordResetPage() {
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
 
   const [email, setEmail] = useState("");
@@ -22,7 +22,7 @@ const RequestPasswordResetPage = () => {
       document.getElementById("email")?.focus();
     } else {
       startTransition(async () => {
-        const { error } = await authClient.forgetPassword({
+        const { error } = await authClient.requestPasswordReset({
           email,
           redirectTo: "/reset-password",
         });
@@ -43,11 +43,7 @@ const RequestPasswordResetPage = () => {
     <div>
       <h2 className="mb-4 text-center">Forgot Password</h2>
 
-      <Form
-        onSubmit={handleSubmit}
-        disableControls={isDisabled}
-        isLoading={isPending}
-      >
+      <Form onSubmit={handleSubmit} disableControls={isDisabled} isLoading={isPending}>
         <FormTextInput
           id="email"
           title="Email address"
@@ -59,6 +55,6 @@ const RequestPasswordResetPage = () => {
       </Form>
     </div>
   );
-};
+}
 
 export default RequestPasswordResetPage;

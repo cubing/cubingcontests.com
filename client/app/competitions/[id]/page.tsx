@@ -6,6 +6,7 @@ import ContestLayout from "~/app/competitions/[id]/ContestLayout.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Country from "~/app/components/Country.tsx";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 import ContestControls from "~/app/mod/ContestControls.tsx";
@@ -20,7 +21,7 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-const ContestDetailsPage = async ({ params }: Props) => {
+async function ContestDetailsPage({ params }: Props) {
   const { id } = await params;
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -30,7 +31,7 @@ const ContestDetailsPage = async ({ params }: Props) => {
     .from(personsTable)
     .where(inArray(personsTable.id, contest.organizers));
 
-  if (!contest) return <h3 className="mt-4 text-center">Error while loading contest</h3>;
+  if (!contest) return <LoadingError loadingEntity="contest" />;
 
   const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests
@@ -144,6 +145,6 @@ const ContestDetailsPage = async ({ params }: Props) => {
       </div>
     </ContestLayout>
   );
-};
+}
 
 export default ContestDetailsPage;

@@ -9,7 +9,7 @@ type Props = {
   ariaLabel?: string;
 };
 
-const Button = ({
+function Button({
   children,
   id,
   type = "button",
@@ -21,7 +21,7 @@ const Button = ({
   style,
   title,
   ariaLabel,
-}: Props & React.HTMLAttributes<HTMLButtonElement>) => {
+}: Props & React.HTMLAttributes<HTMLButtonElement>) {
   const loading = isLoading || (loadingId && loadingId === id);
 
   return (
@@ -40,12 +40,12 @@ const Button = ({
       <div
         className={`${
           loading ? "" : "d-none"
-        } position-absolute top-0 start-0 h-100 w-100 d-flex justify-content-center align-items-center`}
+        } position-absolute d-flex justify-content-center start-0 top-0 h-100 w-100 align-items-center`}
       >
         <Loading small />
       </div>
     </button>
   );
-};
+}
 
 export default Button;

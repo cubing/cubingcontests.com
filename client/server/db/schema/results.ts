@@ -19,6 +19,7 @@ import { usersTable } from "./auth-schema.ts";
 import type { SelectContest } from "./contests.ts";
 import type { SelectEvent } from "./events.ts";
 import type { SelectPerson } from "./persons.ts";
+import { roundsTable } from "./rounds.ts";
 
 export type Attempt = {
   result: number;
@@ -44,7 +45,7 @@ export const resultsTable = table(
     regionalSingleRecord: recordTypeEnum(),
     regionalAverageRecord: recordTypeEnum(),
     competitionId: text(), // only used for contest results
-    roundId: text(), // only used for contest results
+    roundId: integer().references(() => roundsTable.id), // only used for contest results
     ranking: integer(), // only used for contest results
     proceeds: boolean(), // only used for contest results
     videoLink: text(), // only used for video-based results
@@ -56,16 +57,16 @@ export const resultsTable = table(
   (table) => [
     check(
       "results_check",
-      sql`(${table.competitionId} IS NOT NULL
-        AND ${table.roundId} IS NOT NULL
-        AND ${table.ranking} IS NOT NULL
-        AND ${table.videoLink} IS NULL
-        AND ${table.discussionLink} IS NULL)
-      OR (${table.competitionId} IS NULL
-        AND ${table.roundId} IS NULL
-        AND ${table.ranking} IS NULL
-        AND ${table.proceeds} IS NULL
-        AND ${table.videoLink} IS NOT NULL)`,
+      sql`(${table.competitionId} is not null
+          and ${table.roundId} is not null
+          and ${table.ranking} is not null
+          and ${table.videoLink} is null
+          and ${table.discussionLink} is null)
+        or (${table.competitionId} is null
+          and ${table.roundId} is null
+          and ${table.ranking} is null
+          and ${table.proceeds} is null
+          and ${table.videoLink} is not null)`,
     ),
   ],
 );

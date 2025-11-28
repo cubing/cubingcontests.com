@@ -1,15 +1,15 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState, useTransition } from "react";
+import z from "zod";
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import { MainContext } from "~/helpers/contexts.ts";
-import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "~/helpers/authClient.ts";
+import { MainContext } from "~/helpers/contexts.ts";
 import { ResetPasswordFormValidator } from "~/helpers/validators/Auth.ts";
-import z from "zod";
 
-const ResetPasswordPage = () => {
+function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
@@ -21,19 +21,14 @@ const ResetPasswordPage = () => {
 
   useEffect(() => {
     if (searchParams.get("error") || !searchParams.get("token")) {
-      changeErrorMessages([
-        "An unknown error has occurred. Please try to reset your password again.",
-      ]);
+      changeErrorMessages(["An unknown error has occurred. Please try to reset your password again."]);
     } else {
       setIsDisabled(false);
     }
   }, [searchParams]);
 
   const handleSubmit = () => {
-    const parsed = ResetPasswordFormValidator.safeParse({
-      password,
-      passwordRepeat,
-    });
+    const parsed = ResetPasswordFormValidator.safeParse({ password, passwordRepeat });
 
     if (!parsed.success) {
       changeErrorMessages([z.prettifyError(parsed.error)]);
@@ -60,11 +55,7 @@ const ResetPasswordPage = () => {
     <div>
       <h2 className="mb-4 text-center">Reset Password</h2>
 
-      <Form
-        onSubmit={handleSubmit}
-        disableControls={isDisabled}
-        isLoading={isPending}
-      >
+      <Form onSubmit={handleSubmit} disableControls={isDisabled} isLoading={isPending}>
         <FormTextInput
           id="password"
           title="Password"
@@ -73,6 +64,7 @@ const ResetPasswordPage = () => {
           nextFocusTargetId="password_repeat"
           password
           autoFocus
+          disabled={isPending || isPending}
           className="mb-2"
         />
         <FormTextInput
@@ -82,10 +74,11 @@ const ResetPasswordPage = () => {
           setValue={setPasswordRepeat}
           nextFocusTargetId="form_submit_button"
           password
+          disabled={isPending || isPending}
         />
       </Form>
     </div>
   );
-};
+}
 
 export default ResetPasswordPage;

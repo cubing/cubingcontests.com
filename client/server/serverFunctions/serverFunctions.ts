@@ -4,7 +4,6 @@ import { Alg } from "cubing/alg";
 import { cube2x2x2 } from "cubing/puzzles";
 import { randomScrambleForEvent } from "cubing/scramble";
 import { and, eq, ne } from "drizzle-orm";
-import { find as findTimezone } from "geo-tz";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { C } from "~/helpers/constants.ts";
@@ -24,25 +23,6 @@ import { type PersonResponse, personsPublicCols, personsTable } from "../db/sche
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { checkUserPermissions } from "../serverUtilityFunctions.ts";
 import { approvePersonSF } from "./personServerFunctions.ts";
-
-// const CoordinatesValidator = z.strictObject({
-//   latitude: z.number().gte(-90).lte(90),
-//   longitude: z.number().gte(-180).lte(180),
-// });
-
-// export async function getTimeZoneFromCoordsSF(
-//   dto: { latitude: number | undefined; longitude: number | undefined },
-// ): Promise<FetchObj<string>> {
-//   const parsed = CoordinatesValidator.safeParse(dto);
-//   if (!parsed.success) return getValidationError(parsed.error);
-//   const { data: { latitude, longitude } } = parsed;
-
-//   const timeZone = findTimezone(latitude, longitude).at(0);
-
-//   if (!timeZone) return { success: false, error: { code: "NOT_FOUND" } };
-
-//   return await Promise.resolve({ success: true, data: timeZone });
-// }
 
 export const updateUserSF = actionClient
   .metadata({ permissions: { user: ["set-role"] } })

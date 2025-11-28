@@ -36,7 +36,7 @@ async function send({
   callback: (html: string) => Promise<void>;
 }) {
   if (!process.env.EMAIL_API_KEY) {
-    if (process.env.NODE_ENV !== "production")
+    if (process.env.NODE_ENV === "production")
       console.log("Not sending email, because EMAIL_API_KEY environment variable isn't set");
     return;
   }

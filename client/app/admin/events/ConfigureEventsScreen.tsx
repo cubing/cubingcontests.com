@@ -71,8 +71,8 @@ function ConfigureEventsScreen({ events: initEvents }: Props) {
         removedWca,
         hasMemo,
         hidden,
-        description: description || undefined,
-        rule: rule || undefined,
+        description: description || null,
+        rule: rule || null,
       } satisfies EventDto;
 
       const res = mode === "add"

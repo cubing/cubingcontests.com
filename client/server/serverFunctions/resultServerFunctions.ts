@@ -94,6 +94,9 @@ export const createVideoBasedResultSF = actionClient
     const [createdResult] = await db.insert(table).values(newResult).returning(resultsPublicCols);
 
     if (isAdmin) {
+      // THIS IS UNFINISHED CODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // THIS IS UNFINISHED CODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // THIS IS UNFINISHED CODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       await Promise.allSettled(
         participants.filter((c) => !c.approved).map((c) => () => setPersonToApproved(c, { requireWcaId: false })),
       );
