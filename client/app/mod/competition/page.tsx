@@ -8,7 +8,7 @@ import { usersTable } from "~/server/db/schema/auth-schema.ts";
 import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { resultsTable } from "~/server/db/schema/results.ts";
-import { type RoundResponse, roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
+import { roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
 import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
 import ContestForm from "./ContestForm.tsx";
 
@@ -20,7 +20,7 @@ type Props = {
 };
 
 async function CreateEditContestPage({ searchParams }: Props) {
-  const session = await authorizeUser({ permissions: { persons: ["create", "update", "delete"] } });
+  const session = await authorizeUser({ permissions: { competitions: ["create", "update"] } });
   const { editId, copyId } = await searchParams;
 
   const isAdmin = getIsAdmin(session.user.role);
@@ -34,22 +34,18 @@ async function CreateEditContestPage({ searchParams }: Props) {
     : undefined;
 
   try {
-    // REIMPLEMENT THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // if (user) {
-    //   this.authService.checkAccessRightsToContest(user, contest, {
-    //     allowNotApproved: eventId === undefined,
-    //     allowFinishedForMod: eventId === undefined,
-    //     allowPublished: eventId === undefined,
-    //   });
-    // }
-
     const [events, contest, rounds] = await Promise.all([eventsPromise, contestPromise, roundsPromise]);
+
+    if (competitionId && !contest) return <LoadingError reason="Contest not found" />;
+
     let totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
     let organizers: PersonResponse[] | undefined;
     let creator: Creator | undefined;
     let creatorPerson: PersonResponse | undefined;
 
     if (contest) {
+      if (contest.state === "removed") return <LoadingError reason="This contest has been removed" />;
+
       const totalResultsByRoundPromise =
         contest.participants > 0
           ? db
@@ -79,6 +75,9 @@ async function CreateEditContestPage({ searchParams }: Props) {
       totalResultsByRound = totalResultsByRoundRes;
       organizers = organizersRes;
       creator = creatorRes?.[0];
+
+      if (!isAdmin && (!session.user.personId || !organizers.some((o) => o.personId === session.user.personId)))
+        return <LoadingError reason="You do not have access rights for this contest" />;
 
       if (creator?.personId) {
         creatorPerson = (
