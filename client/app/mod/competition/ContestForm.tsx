@@ -30,6 +30,7 @@ import type { Room } from "~/helpers/types/Schedule.ts";
 import type { ContestType, Creator, InputPerson, PageSize } from "~/helpers/types.ts";
 import { getActionError, getContestIdFromName, getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
+import type { RoundDto } from "~/helpers/validators/Round.ts";
 import type { SelectContest } from "~/server/db/schema/contests.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
@@ -38,7 +39,6 @@ import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions/contestServerF
 import { getOrCreatePersonByWcaIdSF, getOrCreatePersonSF } from "~/server/serverFunctions/personServerFunctions.ts";
 import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
-import { RoundDto } from "~/helpers/validators/Round.ts";
 
 type Props = {
   events: EventResponse[];
@@ -866,7 +866,8 @@ function ContestForm({
             venueTimeZone={timeZone}
             startDate={startDate!}
             contestType={type!}
-            contestEvents={contestEvents}
+            events={events}
+            rounds={rounds}
             disabled={disabledIfContestPublished}
           />
         )}

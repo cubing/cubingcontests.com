@@ -250,12 +250,12 @@ export async function register() {
 
           // Drizzle can't handle too many entries being inserted at once
           if (tempRounds.length === 1000) {
-            await db.insert(roundsTable).values(tempRounds).returning();
+            await db.insert(roundsTable).values(tempRounds);
             tempRounds = [];
           }
         }
 
-        await db.insert(roundsTable).values(tempRounds).returning();
+        await db.insert(roundsTable).values(tempRounds);
       } catch (e) {
         console.error("Unable to load rounds dump:", e);
       }
@@ -322,12 +322,12 @@ export async function register() {
 
           // Drizzle can't handle too many entries being inserted at once
           if (tempResults.length === 1000) {
-            await db.insert(resultsTable).values(tempResults).returning();
+            await db.insert(resultsTable).values(tempResults);
             tempResults = [];
           }
         }
 
-        await db.insert(resultsTable).values(tempResults).returning();
+        await db.insert(resultsTable).values(tempResults);
       } catch (e) {
         console.error("Unable to load results dump:", e);
       }
@@ -372,6 +372,8 @@ export async function register() {
                 })),
               })),
             }));
+          } else if (c.type !== 1) {
+            console.error("COMPETITION WITHOUT SCHEDULES FOUND: ", c);
           }
 
           tempContests.push({
@@ -414,12 +416,12 @@ export async function register() {
 
           // Drizzle can't handle too many entries being inserted at once
           if (tempContests.length === 500) {
-            await db.insert(contestsTable).values(tempContests).returning();
+            await db.insert(contestsTable).values(tempContests);
             tempContests = [];
           }
         }
 
-        await db.insert(contestsTable).values(tempContests).returning();
+        await db.insert(contestsTable).values(tempContests);
       } catch (e) {
         console.error("Unable to load contests dump:", e);
       }

@@ -3,7 +3,7 @@ import { getIsCompType } from "~/helpers/sharedFunctions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
 
 type Props = {
-  contest: ContestResponse;
+  contest: Pick<ContestResponse, "competitionId" | "name" | "type">;
   activeTab: string;
   children: React.ReactNode;
 };

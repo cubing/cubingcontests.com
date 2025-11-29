@@ -14,6 +14,8 @@ import { roundTypes } from "~/helpers/roundTypes.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import type { Activity, Room } from "~/helpers/types/Schedule.ts";
 import type { ContestType } from "~/helpers/types.ts";
+import type { RoundDto } from "~/helpers/validators/Round.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
 
 type Props = {
   rooms: Room[];
@@ -21,11 +23,12 @@ type Props = {
   venueTimeZone: string;
   startDate: Date;
   contestType: ContestType;
-  contestEvents: IContestEvent[];
+  events: EventResponse[];
+  rounds: RoundDto[];
   disabled: boolean;
 };
 
-function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType, contestEvents, disabled }: Props) {
+function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType, events, rounds, disabled }: Props) {
   // Room stuff
   const [roomName, setRoomName] = useState("");
   const [roomColor, setRoomColor] = useState("#fff");
@@ -45,23 +48,24 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
 
   const roomOptions = useMemo<MultiChoiceOption<number>[]>(
     () => rooms.map((room) => ({ label: room.name, value: room.id })),
-    [rooms.length],
+    [rooms],
   );
   const activityOptions = useMemo(() => {
     const output: MultiChoiceOption[] = [];
 
-    for (const contestEvent of contestEvents) {
-      for (const round of contestEvent.rounds) {
-        // Add all rounds not already in the schedule and the activity under edit as activity code options
-        if (
-          activityUnderEdit?.activityCode === round.roundId ||
-          !rooms.some((r) => r.activities.some((a) => a.activityCode === round.roundId))
-        ) {
-          output.push({
-            label: `${contestEvent.event.name} ${roundTypes[round.roundTypeId].label}`,
-            value: round.roundId,
-          });
-        }
+    for (const round of rounds) {
+      const event = events.find((e) => e.eventId === round.eventId)!;
+      const activityCode = `${round.eventId}-r${round.roundNumber}`;
+
+      // Add all rounds not already in the schedule and the activity under edit as activity code options
+      if (
+        activityUnderEdit?.activityCode === activityCode ||
+        !rooms.some((r) => r.activities.some((a) => a.activityCode === activityCode))
+      ) {
+        output.push({
+          label: `${event.name} ${roundTypes[round.roundTypeId].label}`,
+          value: activityCode,
+        });
       }
     }
 
@@ -69,7 +73,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
     // Set selected activity code as the first available option, if not editing
     if (activityUnderEdit === null) setActivityCode(output[0].value as string);
     return output;
-  }, [contestEvents, rooms, activityUnderEdit]);
+  }, [events, rounds, rooms, activityUnderEdit]);
 
   const selectedRoomExists = roomOptions.some((r: MultiChoiceOption) => r.value === selectedRoom);
   if (!selectedRoomExists && roomOptions.length > 0) {
@@ -111,7 +115,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
       startTime: activityStartTime!,
       endTime: activityEndTime!,
       name: activityCode === "other-misc" ? customActivity : undefined,
-      childActivities: [] as IActivity[],
+      childActivities: [] as Activity[],
     });
 
     const newRooms = rooms.map((room) =>
@@ -123,10 +127,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
               ? room.activities.map((a) => (a.id === activityUnderEdit.id ? { id: a.id, ...getFieldsFromInputs() } : a))
               : [
                   ...room.activities,
-                  {
-                    id: Math.max(...room.activities.map((a) => a.id), 0) + 1,
-                    ...getFieldsFromInputs(),
-                  },
+                  { id: Math.max(...room.activities.map((a) => a.id), 0) + 1, ...getFieldsFromInputs() },
                 ],
           },
     );
@@ -137,7 +138,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
     setActivityUnderEdit(null);
   };
 
-  const editActivity = (roomId: number, activity: IActivity) => {
+  const editActivity = (roomId: number, activity: Activity) => {
     setActivityUnderEdit(activity);
     setSelectedRoom(roomId);
     setActivityCode(activity.activityCode);
@@ -156,12 +157,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
     // This syntax is necessary, because this may be called multiple times in the same tick
     setRooms((prev) =>
       prev.map((room) =>
-        room.id !== roomId
-          ? room
-          : {
-              ...room,
-              activities: room.activities.filter((a) => a.id !== activityId),
-            },
+        room.id !== roomId ? room : { ...room, activities: room.activities.filter((a) => a.id !== activityId) },
       ),
     );
   };
@@ -279,7 +275,8 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
 
             <Schedule
               rooms={rooms}
-              contestEvents={contestEvents}
+              events={events}
+              rounds={rounds}
               timeZone={venueTimeZone}
               onEditActivity={disabled ? undefined : editActivity}
               onDeleteActivity={disabled ? undefined : deleteActivity}

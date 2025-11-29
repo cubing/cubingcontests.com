@@ -28,7 +28,18 @@ async function CreateEditContestPage({ searchParams }: Props) {
   const competitionId = editId ?? copyId;
 
   const eventsPromise = db.select(eventsPublicCols).from(eventsTable).where(ne(eventsTable.category, "removed"));
-  const contestPromise = competitionId ? db.query.contests.findFirst({ where: { competitionId } }) : undefined;
+  const contestPromise = competitionId
+    ? db.query.contests.findFirst({
+        columns: isAdmin
+          ? undefined
+          : {
+              createdBy: false,
+              createdAt: false,
+              updatedAt: false,
+            },
+        where: { competitionId },
+      })
+    : undefined;
   const roundsPromise = competitionId
     ? db.select(roundsPublicCols).from(roundsTable).where(eq(roundsTable.competitionId, competitionId))
     : undefined;
