@@ -1,37 +1,41 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
-import Time from "~/app/components/Time.tsx";
-import Solves from "~/app/components/Solves.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Competitor from "~/app/components/Competitor.tsx";
+import Solves from "~/app/components/Solves.tsx";
+import Time from "~/app/components/Time.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { getIsProceedableResult } from "~/helpers/sharedFunctions.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
+import { getIsProceedableResult } from "~/helpers/sharedFunctions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { ResultResponse } from "~/server/db/schema/results.ts";
-import { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 
 type Props = {
-  round: IRound;
   event: EventResponse;
+  round: RoundResponse;
+  results: ResultResponse[];
   persons: PersonResponse[];
-  recordTypes: IRecordType[];
+  recordConfigs: RecordConfigResponse[];
   onEditResult?: (result: ResultResponse) => void;
-  onDeleteResult?: (resultId: string) => void;
+  onDeleteResult?: (resultId: number) => void;
   loadingId?: string;
   disableEditAndDelete?: boolean;
 };
 
-const RoundResultsTable = ({
-  round,
+function RoundResultsTable({
   event,
+  round,
+  results,
   persons,
-  recordTypes,
+  recordConfigs,
   // If one of these is defined, the other must be defined too
   onEditResult,
   onDeleteResult,
   loadingId,
   disableEditAndDelete,
-}: Props) => {
+}: Props) {
   const roundFormat = roundFormats.find((rf) => rf.value === round.format)!;
   const roundCanHaveAverage = roundFormat.attempts >= 3;
   let lastRanking = 0;
@@ -40,7 +44,7 @@ const RoundResultsTable = ({
   const getRankingHighlight = (result: ResultResponse) => {
     if (
       result.proceeds ||
-      (round.roundTypeId === "f" && result.ranking <= 3 && getIsProceedableResult(result, roundFormat))
+      (round.roundTypeId === "f" && result.ranking! <= 3 && getIsProceedableResult(result, roundFormat))
     ) {
       return { color: "black", background: "#10c010" };
     }
@@ -48,39 +52,35 @@ const RoundResultsTable = ({
     return {};
   };
 
+  if (results.length === 0) return <p className="px-2">There are no results from this round yet</p>;
+
   return (
-    <div className="flex-grow-1 table-responsive">
-      <table className="table table-hover table-responsive text-nowrap">
+    <div className="table-responsive flex-grow-1">
+      <table className="table-hover table-responsive table text-nowrap">
         <thead>
           <tr>
             <th scope="col">#</th>
             <th scope="col">Name</th>
             <th scope="col">Best</th>
-            {roundCanHaveAverage && (
-              <th scope="col">
-                {round.format === "a" ? "Average" : "Mean"}
-              </th>
-            )}
+            {roundCanHaveAverage && <th scope="col">{round.format === "a" ? "Average" : "Mean"}</th>}
             <th scope="col">Attempts</th>
             {onDeleteResult && <th scope="col">Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {round.results.map((result: ResultResponse) => {
+          {results.map((result: ResultResponse) => {
             const isTie = result.ranking === lastRanking;
-            lastRanking = result.ranking;
+            lastRanking = result.ranking!;
 
             return (
-              <tr key={(result as any)._id}>
+              <tr key={result.id}>
                 <td className="ps-2" style={getRankingHighlight(result)}>
-                  <span className={isTie ? "text-secondary" : ""}>
-                    {result.ranking}
-                  </span>
+                  <span className={isTie ? "text-secondary" : ""}>{result.ranking}</span>
                 </td>
                 <td>
                   <div className="d-flex flex-wrap gap-2">
                     {result.personIds.map((personId, i) => {
-                      const person = persons.find((p: PersonResponse) => p.personId === personId);
+                      const person = persons.find((p) => p.personId === personId);
                       if (!person) return <span key={personId}>(name not found)</span>;
                       return (
                         <span key={person.personId} className="d-flex gap-2">
@@ -92,15 +92,13 @@ const RoundResultsTable = ({
                   </div>
                 </td>
                 <td>
-                  <Time
-                    result={result}
-                    event={event}
-                    recordTypes={recordTypes}
-                  />
+                  <Time result={result} event={event} recordConfigs={recordConfigs} />
                 </td>
                 {roundCanHaveAverage && (
                   <td>
-                    {result.average !== 0 && <Time result={result} event={event} recordTypes={recordTypes} average />}
+                    {result.average !== 0 && (
+                      <Time result={result} event={event} recordConfigs={recordConfigs} average />
+                    )}
                   </td>
                 )}
                 <td>
@@ -110,7 +108,7 @@ const RoundResultsTable = ({
                   <td>
                     <div className="d-flex gap-2">
                       <Button
-                        id={`edit_result_${(result as any)._id}_button`}
+                        id={`edit_result_${result.id}_button`}
                         onClick={() => onEditResult(result)}
                         loadingId={loadingId}
                         disabled={disableEditAndDelete}
@@ -121,8 +119,8 @@ const RoundResultsTable = ({
                         <FontAwesomeIcon icon={faPencil} />
                       </Button>
                       <Button
-                        id={`delete_result_${(result as any)._id}_button`}
-                        onClick={() => onDeleteResult((result as any)._id)}
+                        id={`delete_result_${result.id}_button`}
+                        onClick={() => onDeleteResult(result.id)}
                         loadingId={loadingId}
                         disabled={disableEditAndDelete}
                         className="btn-danger btn-xs"
@@ -141,6 +139,6 @@ const RoundResultsTable = ({
       </table>
     </div>
   );
-};
+}
 
 export default RoundResultsTable;

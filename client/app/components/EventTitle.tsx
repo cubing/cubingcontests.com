@@ -1,28 +1,25 @@
 import Link from "next/link";
-import EventIcon from "./EventIcon.tsx";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
-import { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import EventIcon from "./EventIcon.tsx";
 
-const EventTitle = ({
-  event,
-  showIcon,
-  showDescription,
-  linkToRankings,
-  noMargin,
-  fontSize = "3",
-}: {
+type Props = {
   event: EventResponse;
   showIcon?: boolean;
   showDescription?: boolean;
   linkToRankings?: boolean;
   noMargin?: boolean;
   fontSize?: "1" | "2" | "3" | "4" | "5" | "6";
-}) => {
+};
+
+function EventTitle({ event, showIcon, showDescription, linkToRankings, noMargin, fontSize = "3" }: Props) {
   return (
-    <h3 className={`d-flex align-items-center gap-2 fs-${fontSize} ${noMargin ? " m-0" : " ms-2 me-3 mb-3"}`}>
+    <h3 className={`d-flex gap-2 align-items-center fs-${fontSize} ${noMargin ? "m-0" : "ms-2 me-3 mb-3"}`}>
       {showIcon && <EventIcon event={event} />}
 
-      {!linkToRankings ? event.name : (
+      {!linkToRankings ? (
+        event.name
+      ) : (
         <Link
           href={`/rankings/${event.eventId}/single`}
           prefetch={false}
@@ -36,6 +33,6 @@ const EventTitle = ({
       {showDescription && event.description && <Tooltip id={`${event.eventId}_tooltip`} text={event.description} />}
     </h3>
   );
-};
+}
 
 export default EventTitle;

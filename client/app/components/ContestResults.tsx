@@ -1,35 +1,39 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-import EventResultsTable from "~/app/components/EventResultsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
-import { IContest, IContestDto, IPerson, IRecordType } from "~/helpers/types.ts";
+import EventResultsTable from "~/app/components/EventResultsTable.tsx";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
+import type { ResultResponse } from "~/server/db/schema/results.ts";
+import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 
-const ContestResults = ({
-  contest,
-  persons,
-  activeRecordTypes,
-}: {
-  contest: IContest | IContestDto;
-  persons: IPerson[];
-  activeRecordTypes: IRecordType[];
-}) => {
-  const searchParams = useSearchParams();
+type Props = {
+  eventId: string;
+  events: EventResponse[];
+  rounds: RoundResponse[];
+  results: ResultResponse[];
+  persons: PersonResponse[];
+  recordConfigs: RecordConfigResponse[];
+};
 
-  const events = contest.events.map((el) => el.event);
-  const eventId = searchParams.get("eventId") ?? contest.events[0].event.eventId;
-  const contestEvent = contest.events.find((ce) => ce.event.eventId === eventId);
+function ContestResults({ eventId, events, rounds, results, persons, recordConfigs }: Props) {
+  const event = events.find((e) => e.eventId === eventId);
 
-  if (!contestEvent) throw new Error(`Contest event with event ID ${eventId} not found`);
+  if (!event) throw new Error(`Contest event with event ID ${eventId} not found`);
 
   return (
     <div>
       <div className="px-1">
         <EventButtons eventId={eventId} events={events} forPage="results" />
       </div>
-      <EventResultsTable contestEvent={contestEvent} persons={persons} recordTypes={activeRecordTypes} />
+      <EventResultsTable
+        event={event}
+        rounds={rounds}
+        results={results}
+        persons={persons}
+        recordConfigs={recordConfigs}
+      />
     </div>
   );
-};
+}
 
 export default ContestResults;

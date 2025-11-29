@@ -178,7 +178,6 @@ export async function register() {
     await db.execute(sql.raw(`ALTER SEQUENCE persons_person_id_seq RESTART WITH ${persons.at(-1)!.personId + 1};`));
 
     if ((await db.select({ id: eventsTable.id }).from(eventsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding events...");
 
       try {
@@ -222,7 +221,6 @@ export async function register() {
     }
 
     if ((await db.select({ id: roundsTable.id }).from(roundsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding rounds...");
 
       let tempRounds: any[] = [];
@@ -268,7 +266,12 @@ export async function register() {
       if (!dumpRoundObject) throw new Error(`Round containing result with ID ${$oid} not found in rounds dump!`);
 
       const [eventId, roundNumberStr] = dumpRoundObject.roundId.split("-r");
-      const round = rounds.find((r) => r.eventId === eventId && r.roundNumber === Number(roundNumberStr));
+      const round = rounds.find(
+        (r) =>
+          r.competitionId === dumpRoundObject.competitionId &&
+          r.eventId === eventId &&
+          r.roundNumber === Number(roundNumberStr),
+      );
       if (!round)
         throw new Error(
           `Round ${dumpRoundObject.roundId} from contest ${dumpRoundObject.competitionId} not found in DB`,
@@ -278,7 +281,6 @@ export async function register() {
     };
 
     if ((await db.select({ id: resultsTable.id }).from(resultsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding results...");
 
       const resultsDump = JSON.parse(fs.readFileSync("./dump/results.json") as any);
@@ -334,7 +336,6 @@ export async function register() {
     }
 
     if ((await db.select({ id: contestsTable.id }).from(contestsTable).limit(1)).length === 0) {
-      if (process.env.EMAIL_API_KEY) throw new Error(message);
       console.log("Seeding contests...");
 
       const contestsDump = (JSON.parse(fs.readFileSync("./dump/competitions.json") as any) as any[]).reverse();
@@ -373,7 +374,7 @@ export async function register() {
               })),
             }));
           } else if (c.type !== 1) {
-            console.error("COMPETITION WITHOUT SCHEDULES FOUND: ", c);
+            console.error("COMPETITION WITHOUT SCHEDULE FOUND: ", c);
           }
 
           tempContests.push({

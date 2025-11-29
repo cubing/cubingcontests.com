@@ -75,11 +75,13 @@ function Schedule({ rooms, events, rounds, timeZone, onDeleteActivity, onEditAct
     };
 
     if (!getIsOtherActivity(activity.activityCode)) {
-      const [eventId, roundNumber] = dayActivity.activityCode.split("-r");
+      const [eventId, roundNumberStr] = dayActivity.activityCode.split("-r");
       dayActivity.event = events.find((e) => e.eventId === eventId);
 
       if (dayActivity.event) {
-        const round = rounds.find((r) => r.eventId === eventId && roundNumber && r.roundNumber === Number(roundNumber));
+        const round = rounds.find(
+          (r) => r.eventId === eventId && roundNumberStr && r.roundNumber === Number(roundNumberStr),
+        );
         if (round) {
           dayActivity.roundTypeLabel = roundTypes[round.roundTypeId].label;
           dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === round.format)?.label ?? "ERROR";

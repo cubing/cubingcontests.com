@@ -1,35 +1,36 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import Button from "~/app/components/UI/Button.tsx";
-import RoundResultsTable from "~/app/components/RoundResultsTable.tsx";
-import {
-  type IContestData,
-  type IContestEvent,
-  type ICutoff,
-  type IEventRecordPairs,
-  type IRound,
-  type IUpdateResultDto,
-} from "~/helpers/types.ts";
-import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
-import type { InputPerson, RoundType } from "~/helpers/types.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/helpers/sharedFunctions.ts";
-import type { IRecordPair } from "~/helpers/types.ts";
-import EventButtons from "~/app/components/EventButtons.tsx";
-import FormSelect from "~/app/components/form/FormSelect.tsx";
-import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useContext, useEffect, useMemo, useState } from "react";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
+import EventButtons from "~/app/components/EventButtons.tsx";
+import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
+import FormSelect from "~/app/components/form/FormSelect.tsx";
+import RoundResultsTable from "~/app/components/RoundResultsTable.tsx";
+import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { roundTypes } from "~/helpers/roundTypes.ts";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import { MainContext } from "~/helpers/contexts.ts";
+import { useMyFetch } from "~/helpers/customHooks.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
+import { roundTypes } from "~/helpers/roundTypes.ts";
+import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/helpers/sharedFunctions.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
+import type {
+  IContestData,
+  IContestEvent,
+  ICutoff,
+  IEventRecordPairs,
+  InputPerson,
+  IRecordPair,
+  IRound,
+  IUpdateResultDto,
+  RoundType,
+} from "~/helpers/types.ts";
+import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
 
@@ -38,12 +39,7 @@ type Props = {
 };
 
 function DataEntryScreen({
-  compData: {
-    contest,
-    persons: prevPersons,
-    activeRecordTypes,
-    recordPairsByEvent: initialRecordPairs,
-  },
+  compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent: initialRecordPairs },
 }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -109,11 +105,9 @@ function DataEntryScreen({
     let errors: string[] | undefined;
 
     if (resultUnderEdit === null) {
-      const res = await myFetch.post(
-        `/results/${contest.competitionId}/${round.roundId}`,
-        resultDto,
-        { loadingId: "submit_attempt_button" },
-      );
+      const res = await myFetch.post(`/results/${contest.competitionId}/${round.roundId}`, resultDto, {
+        loadingId: "submit_attempt_button",
+      });
       if (!res.success) errors = res.error;
       else updatedRound = res.data;
     } else {
@@ -121,11 +115,9 @@ function DataEntryScreen({
         personIds: resultDto.personIds,
         attempts: resultDto.attempts,
       };
-      const res = await myFetch.patch(
-        `/results/${(resultUnderEdit as any)._id}`,
-        updateResultDto,
-        { loadingId: "submit_attempt_button" },
-      );
+      const res = await myFetch.patch(`/results/${(resultUnderEdit as any)._id}`, updateResultDto, {
+        loadingId: "submit_attempt_button",
+      });
       if (!res.success) {
         errors = res.error;
       } else {
@@ -158,12 +150,10 @@ function DataEntryScreen({
       contestEvents.map((ce: IContestEvent) =>
         ce.event.eventId === eventId
           ? { ...ce, rounds: ce.rounds.map((r) => (r.roundId === updatedRound.roundId ? updatedRound : r)) }
-          : ce
+          : ce,
       ),
     );
-    setAttempts(
-      new Array(roundFormats.find((rf) => rf.value === updatedRound.format)!.attempts).fill({ result: 0 }),
-    );
+    setAttempts(new Array(roundFormats.find((rf) => rf.value === updatedRound.format)!.attempts).fill({ result: 0 }));
     const [persons, personNames] = getBlankCompetitors(currEvent.participants);
     setCurrentPersons(persons);
     setPersonNames(personNames);
@@ -174,8 +164,8 @@ function DataEntryScreen({
   };
 
   const updateRecordPairs = async (newResult: ResultResponse) => {
-    const eventRP = recordPairsByEvent.find((erp: IEventRecordPairs) =>
-      erp.eventId === newResult.eventId
+    const eventRP = recordPairsByEvent.find(
+      (erp: IEventRecordPairs) => erp.eventId === newResult.eventId,
     ) as IEventRecordPairs;
 
     // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -196,7 +186,7 @@ function DataEntryScreen({
   const onSelectPerson = (person: PersonResponse) => {
     if (currentPersons.every((p: InputPerson) => p === null)) {
       const existingResultForSelectedPerson = round.results.find((r: ResultResponse) =>
-        r.personIds.includes(person.personId)
+        r.personIds.includes(person.personId),
       );
       if (existingResultForSelectedPerson) {
         editResult(existingResultForSelectedPerson);
@@ -208,15 +198,15 @@ function DataEntryScreen({
     resetMessages();
     setResultUnderEdit(result);
     setAttempts(
-      getMakesCutoff(result.attempts, round.cutoff) ? result.attempts : [
-        ...result.attempts,
-        ...new Array(
-          roundFormat.attempts - (round.cutoff as ICutoff).numberOfAttempts,
-        ).fill({ result: 0 }),
-      ],
+      getMakesCutoff(result.attempts, round.cutoff)
+        ? result.attempts
+        : [
+            ...result.attempts,
+            ...new Array(roundFormat.attempts - (round.cutoff as ICutoff).numberOfAttempts).fill({ result: 0 }),
+          ],
     );
-    const newCurrentPersons: PersonResponse[] = result.personIds.map((pid) =>
-      persons.find((p: PersonResponse) => p.personId === pid)!
+    const newCurrentPersons: PersonResponse[] = result.personIds.map(
+      (pid) => persons.find((p: PersonResponse) => p.personId === pid)!,
     );
     setCurrentPersons(newCurrentPersons);
     setPersonNames(newCurrentPersons.map((p) => p.name));
@@ -248,16 +238,16 @@ function DataEntryScreen({
   };
 
   const submitMockResult = async () => {
-    let firstUnusedPersonId = persons.length === 0 ? 1 : persons.reduce(
-      (acc: PersonResponse, person: PersonResponse) => (!acc || person.personId > acc.personId) ? person : acc,
-    ).personId + 1;
+    let firstUnusedPersonId =
+      persons.length === 0
+        ? 1
+        : persons.reduce((acc: PersonResponse, person: PersonResponse) =>
+            !acc || person.personId > acc.personId ? person : acc,
+          ).personId + 1;
     const resultPersons: PersonResponse[] = [];
     for (let i = 0; i < currEvent.participants; i++) {
       while (resultPersons.length === i) {
-        const res = await myFetch.get(
-          `/persons?personId=${firstUnusedPersonId}`,
-          { loadingId: null },
-        );
+        const res = await myFetch.get(`/persons?personId=${firstUnusedPersonId}`, { loadingId: null });
         if (!res.success) firstUnusedPersonId++;
         else resultPersons.push(res.data);
       }
@@ -266,27 +256,18 @@ function DataEntryScreen({
     const resultDto = {
       eventId,
       personIds: resultPersons.map((p) => p.personId),
-      attempts: new Array(
-        round.cutoff ? round.cutoff.numberOfAttempts : roundFormat.attempts,
-      ).fill({ result: -1 }),
+      attempts: new Array(round.cutoff ? round.cutoff.numberOfAttempts : roundFormat.attempts).fill({ result: -1 }),
     };
 
-    const res = await myFetch.post(
-      `/results/${contest.competitionId}/${round.roundId}`,
-      resultDto,
-      { loadingId: "submit_attempt_button" },
-    );
+    const res = await myFetch.post(`/results/${contest.competitionId}/${round.roundId}`, resultDto, {
+      loadingId: "submit_attempt_button",
+    });
 
     if (res.success) {
       addNewPersonsToList(resultPersons);
       changeRound(res.data);
       // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      const { best, average } = getBestAndAverage(
-        attempts,
-        currEvent,
-        round.format,
-        { cutoff: round.cutoff },
-      );
+      const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
       updateRecordPairs({ ...resultDto, best, average } as ResultResponse);
     }
   };
@@ -336,7 +317,9 @@ function DataEntryScreen({
                 disabled={i + 1 > lastActiveAttempt || !round.open}
               />
             ))}
-            {loadingId === "RECORD_PAIRS" ? <Loading small dontCenter /> : (
+            {loadingId === "RECORD_PAIRS" ? (
+              <Loading small dontCenter />
+            ) : (
               <BestAndAverage
                 event={currEvent}
                 roundFormat={round.format}
@@ -358,7 +341,7 @@ function DataEntryScreen({
             {contest.queuePosition !== undefined && (
               <>
                 <p className="mt-4 mb-2">Current position in queue:</p>
-                <div className="d-flex align-items-center gap-3">
+                <div className="d-flex gap-3 align-items-center">
                   <Button
                     id="queue_decrement_button"
                     onClick={() => updateQueuePosition("decrement")}
@@ -369,7 +352,7 @@ function DataEntryScreen({
                   >
                     <FontAwesomeIcon icon={faMinus} />
                   </Button>
-                  <p className="mb-0 fs-5 fw-bold">{queuePosition}</p>
+                  <p className="fs-5 fw-bold mb-0">{queuePosition}</p>
                   <Button
                     id="queue_increment_button"
                     onClick={() => updateQueuePosition("increment")}
@@ -396,7 +379,7 @@ function DataEntryScreen({
                 id="set_mock_comp_button"
                 onClick={submitMockResult}
                 disabled={!round.open}
-                className="mt-4 btn-secondary"
+                className="btn-secondary mt-4"
               >
                 Submit Mock Result
               </Button>
@@ -409,37 +392,35 @@ function DataEntryScreen({
             {contest.shortName} &ndash; {shortenEventName(currEvent.name)}
           </h3>
 
-          {round.open || round.results.length > 0
-            ? (
-              <RoundResultsTable
-                round={round}
-                event={currEvent}
-                persons={persons}
-                recordTypes={activeRecordTypes}
-                onEditResult={round.open ? editResult : undefined}
-                onDeleteResult={round.open ? deleteResult : undefined}
-                disableEditAndDelete={resultUnderEdit !== null}
-                loadingId={loadingId}
-              />
-            )
-            : (
-              <div className="mt-5">
-                {isOpenableRound
-                  ? (
-                    <>
-                      <Button onClick={openRound} className="d-block mx-auto">
-                        Open Round
-                      </Button>
-                      <p className="mt-4 text-center text-danger fst-italic">
-                        Do NOT begin this round before opening it using the button, which checks that the round may be
-                        opened. Also, please mind that manually adding/removing competitors to/from a subsequent round
-                        hasn't been implemented yet.
-                      </p>
-                    </>
-                  )
-                  : <p className="text-center fst-italic">This round cannot be opened yet</p>}
-              </div>
-            )}
+          {round.open || round.results.length > 0 ? (
+            <RoundResultsTable
+              round={round}
+              event={currEvent}
+              persons={persons}
+              recordConfigs={activeRecordTypes}
+              onEditResult={round.open ? editResult : undefined}
+              onDeleteResult={round.open ? deleteResult : undefined}
+              disableEditAndDelete={resultUnderEdit !== null}
+              loadingId={loadingId}
+            />
+          ) : (
+            <div className="mt-5">
+              {isOpenableRound ? (
+                <>
+                  <Button onClick={openRound} className="d-block mx-auto">
+                    Open Round
+                  </Button>
+                  <p className="fst-italic mt-4 text-center text-danger">
+                    Do NOT begin this round before opening it using the button, which checks that the round may be
+                    opened. Also, please mind that manually adding/removing competitors to/from a subsequent round
+                    hasn't been implemented yet.
+                  </p>
+                </>
+              ) : (
+                <p className="fst-italic text-center">This round cannot be opened yet</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
