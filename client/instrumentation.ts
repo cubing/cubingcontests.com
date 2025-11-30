@@ -3,7 +3,7 @@ import type fsType from "node:fs";
 import { eq, sql } from "drizzle-orm";
 import type { auth as authType } from "~/server/auth.ts";
 import type { db as dbType } from "~/server/db/provider.ts";
-import { accountsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
+import { accounts as accountsTable, users as usersTable } from "~/server/db/schema/auth-schema.ts";
 import { getContinent } from "./helpers/Countries.ts";
 import { C } from "./helpers/constants.ts";
 import type { Schedule } from "./helpers/types/Schedule.ts";
@@ -94,10 +94,14 @@ export async function register() {
 
       try {
         for (const user of usersDump.filter((u: any) => !u.confirmationCodeHash)) {
+          const username = user.username.slice(0, 30);
+          if (username !== user.username)
+            console.warn(`Username ${user.username} is too long, truncating to ${username}`);
+
           const res = await auth.api.signUpEmail({
             body: {
               email: user.email,
-              username: user.username,
+              username,
               displayUsername: user.username,
               // Resetting all passwords due to hashing algorithm change (further encrypted by scrypt)
               password: randomUUID(),
@@ -130,11 +134,10 @@ export async function register() {
 
     const getUserId = ($oid: string): string | null => {
       const dumpUserObject = usersDump.find((u: any) => u._id.$oid === $oid);
-      // if (!dumpUserObject) throw new Error(`User with ID ${$oid} not found in users dump!`);
       if (!dumpUserObject) return null;
 
-      const user = users.find((u) => u.username === dumpUserObject.username);
-      if (!user) throw new Error(`User with username ${dumpUserObject.username} not found in DB`);
+      const user = users.find((u) => u.username === dumpUserObject.username.slice(0, 30));
+      if (!user) throw new Error(`User with username ${dumpUserObject.username.slice(0, 30)} not found in DB`);
 
       return user.id;
     };
@@ -374,7 +377,7 @@ export async function register() {
               })),
             }));
           } else if (c.type !== 1) {
-            console.error("COMPETITION WITHOUT SCHEDULE FOUND: ", c);
+            console.error("COMPETITION WITHOUT SCHEDULE FOUND: ", c.competitionId);
           }
 
           tempContests.push({

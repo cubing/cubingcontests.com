@@ -124,7 +124,7 @@ Keep in mind that when Handlebars files (the `.hbs` files used for the email
 templates) are edited, the dev environment has to be restarted for those changes
 to take effect.
 
-Go to `localhost:3000` to see the website. Go to `localhost:8081` to open Mongo
+Go to `localhost:4000` to see the website. Go to `localhost:8081` to open Mongo
 Express (makes it much easier to work with the database). The username is
 `admin` and the password is `cc`. `localhost:5000` is used by the legacy Nest JS
 backend, and `localhost:8000` is used by the Hono backend. The default ports can

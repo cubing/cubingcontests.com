@@ -1,2 +1,4 @@
 client/.env*.local
-server/.env.dev
+client/.next
+client/node_modules
+client/dump

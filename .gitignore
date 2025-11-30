@@ -39,5 +39,11 @@ client/next-env.d.ts
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
+# Supabase
+volumes/db/data
+volumes/storage
+test.http
+docker-compose.override.yml
+
 # Other
 client/dump

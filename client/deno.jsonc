@@ -6,20 +6,19 @@
   },
 
   "tasks": {
-    "dev": "deno run -A npm:next dev -p $(cat .env.local | grep -E '^PORT=' | sed -r 's/^PORT=([0-9]+).*/\\1/')",
+    "dev": "cp ../.env ./.env.local && deno run -A npm:next dev -p $(cat .env.local | grep -E '^NEXTJS_PORT=' | sed -r 's/^NEXTJS_PORT=([0-9]+).*/\\1/')",
     "build": "deno run -A npm:next build",
     "start": "next start",
     "check": "deno run -A npm:@biomejs/biome lint && deno run -A npm:@biomejs/biome check",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "db:push": "deno run --allow-all --conditions=react-server npm:drizzle-kit push --strict",
-    "db:migrate": "deno run --allow-all --conditions=react-server npm:drizzle-kit migrate",
-    "db:generate": "deno run --allow-all --conditions=react-server npm:drizzle-kit generate"
-  },
-
-  "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
-    "jsx": "react-jsx"
+    // "db:push": "deno run -A --conditions=react-server npm:drizzle-kit push",
+    "db:push": "NODE_OPTIONS=\"--conditions=react-server\" npx drizzle-kit push", // TEMPORARY FIX!!!
+    "db:migrate": "deno run -A --conditions=react-server npm:drizzle-kit migrate",
+    "db:generate": "deno run -A --conditions=react-server npm:drizzle-kit generate",
+    "auth:migrate": "deno run --allow-ffi -RWES npm:@better-auth/cli migrate",
+    // BEFORE RUNNING THIS COMMENT OUT THE "relations" PROPERTY IN THE DRIZZLE CONFIG OBJECT IN provider.ts
+    "auth:generate": "deno run --allow-ffi -RWES npm:@better-auth/cli generate --output ./server/db/schema/auth-schema.ts"
   },
 
   // unsafe-proto is required for building Next JS projects for now, because they still rely on __proto__.

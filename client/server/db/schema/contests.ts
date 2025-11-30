@@ -14,7 +14,7 @@ import {
 import type { Schedule } from "~/helpers/types/Schedule.ts";
 import { ContestStateValues, ContestTypeValues } from "~/helpers/types.ts";
 import { tableTimestamps } from "../dbUtils.ts";
-import { usersTable } from "./auth-schema.ts";
+import { users as usersTable } from "./auth-schema.ts";
 import { personsTable } from "./persons.ts";
 
 export const contestStateEnum = pgEnum("contest_state", ContestStateValues);

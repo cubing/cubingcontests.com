@@ -1,14 +1,17 @@
 // This file is only used by Drizzle Kit (not Drizzle ORM)
 
-import { defineConfig } from "drizzle-kit";
 import { loadEnvConfig } from "@next/env";
+import { defineConfig } from "drizzle-kit";
 
 loadEnvConfig(".", true);
+
+if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL environment variable not set!");
 
 export default defineConfig({
   out: "./server/db/drizzle",
   schema: "./server/db/schema",
   dialect: "postgresql",
-  dbCredentials: { url: process.env.POSTGRES_URI! },
+  dbCredentials: { url: process.env.DATABASE_URL },
   casing: "snake_case",
+  strict: true,
 });

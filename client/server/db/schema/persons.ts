@@ -1,7 +1,7 @@
 import "server-only";
 import { getTableColumns } from "drizzle-orm";
 import { boolean, integer, serial, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
-import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import { users as usersTable } from "~/server/db/schema/auth-schema.ts";
 import { tableTimestamps } from "../dbUtils.ts";
 
 export const personsTable = table("persons", {

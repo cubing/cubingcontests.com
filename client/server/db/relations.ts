@@ -1,6 +1,6 @@
 import "server-only";
 import { defineRelations } from "drizzle-orm";
-import { usersTable as users } from "./schema/auth-schema.ts";
+import { accounts, sessions, users } from "./schema/auth-schema.ts";
 import { collectiveSolutionsTable as collectiveSolutions } from "./schema/collective-solutions.ts";
 import { contestsTable as contests } from "./schema/contests.ts";
 import { eventsTable as events } from "./schema/events.ts";
@@ -11,6 +11,8 @@ import { roundsTable as rounds } from "./schema/rounds.ts";
 export const relations = defineRelations(
   {
     users,
+    sessions,
+    accounts,
     events,
     contests,
     rounds,
@@ -19,6 +21,27 @@ export const relations = defineRelations(
     collectiveSolutions,
   },
   (r) => ({
+    // Auth relations
+    users: {
+      sessions: r.many.sessions(),
+      accounts: r.many.accounts(),
+    },
+    sessions: {
+      user: r.one.users({
+        from: r.sessions.userId,
+        to: r.users.id,
+        optional: false,
+      }),
+    },
+    accounts: {
+      user: r.one.users({
+        from: r.accounts.userId,
+        to: r.users.id,
+        optional: false,
+      }),
+    },
+
+    // CC relations
     contests: {
       rounds: r.many.rounds(),
     },

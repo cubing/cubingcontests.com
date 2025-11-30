@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";

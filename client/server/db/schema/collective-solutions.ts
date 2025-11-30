@@ -1,7 +1,7 @@
 import "server-only";
 import { getTableColumns } from "drizzle-orm";
-import { integer, pgEnum, pgTable as table, serial, text, varchar } from "drizzle-orm/pg-core";
-import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import { integer, pgEnum, serial, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
+import { users as usersTable } from "~/server/db/schema/auth-schema.ts";
 import { tableTimestamps } from "../dbUtils.ts";
 
 export const collectiveSolutionStateEnum = pgEnum("state", ["ongoing", "solved", "archived"]);
@@ -14,7 +14,10 @@ export const collectiveSolutionsTable = table("collective_solutions", {
   scramble: text().notNull(),
   solution: text().default("").notNull(),
   lastUserWhoInteracted: text().references(() => usersTable.id, { onDelete: "set null" }), // this can be null if the user has been deleted
-  usersWhoMadeMoves: text().references(() => usersTable.id).array().notNull(),
+  usersWhoMadeMoves: text()
+    .references(() => usersTable.id, { onDelete: "set null" })
+    .array()
+    .notNull(),
   ...tableTimestamps,
 });
 

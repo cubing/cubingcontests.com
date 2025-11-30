@@ -15,7 +15,7 @@ import {
 import { getTableColumns } from "drizzle-orm/utils";
 import { ContinentIdValues, RecordTypeValues } from "~/helpers/types.ts";
 import { tableTimestamps } from "../dbUtils.ts";
-import { usersTable } from "./auth-schema.ts";
+import { users as usersTable } from "./auth-schema.ts";
 import type { SelectContest } from "./contests.ts";
 import type { SelectEvent } from "./events.ts";
 import type { SelectPerson } from "./persons.ts";

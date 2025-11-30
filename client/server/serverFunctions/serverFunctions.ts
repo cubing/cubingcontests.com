@@ -11,7 +11,7 @@ import { nxnMoves } from "~/helpers/types/NxNMove.ts";
 import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
-import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import { users as usersTable } from "~/server/db/schema/auth-schema.ts";
 import {
   type CollectiveSolutionResponse,
   collectiveSolutionsPublicCols,

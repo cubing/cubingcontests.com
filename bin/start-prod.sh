@@ -12,7 +12,7 @@
 # $2 - (optional) --cleanup - only used when $1 = --dev/-d
 
 if [ "$(pwd | tail -c 5)" == "/bin" ]; then
-  echo "Please run this script from the root directory"
+  echo "Please run this script from the repo's root directory"
   exit 1
 fi
 
@@ -43,7 +43,7 @@ if [ "$1" == "--use-version" ]; then
   # else
   #   # If it was, make sure a tag for that version exists
   #   VERSION=$(git tag | grep -x "^$2$")
-    
+
   #   if [ -z "$VERSION" ]; then
   #     echo "Version tag $2 does not exist"
   #     exit
@@ -66,12 +66,12 @@ if [ "$1" == "--use-version" ]; then
 elif [ "$1" != "--dev" ] && [ "$1" != "-d" ]; then
   ######  PRODUCTION  ######
 
-  if [ "$1" != "--restart" ]; then  
+  if [ "$1" != "--restart" ]; then
     sudo apt update &&
     sudo apt dist-upgrade &&
 
     ./bin/dump-db.sh /dump
-    
+
     if [ "$?" -gt 0 ]; then
       exit 2
     fi
@@ -102,9 +102,7 @@ else
   if [ "$2" != "--cleanup" ]; then
     # Build frontend and API containers
     source .env # needed for the build args
-    docker build --build-arg NEXT_PUBLIC_BASE_URL="$BASE_URL" \
-                 --build-arg NEXT_PUBLIC_API_BASE_URL="http://localhost:$BACKEND_PORT/api" \
-                 -t cubingcontests-client --file client.Dockerfile . &&
+    docker build --build-arg NEXT_PUBLIC_BASE_URL="$BASE_URL" -t cubingcontests-client --file client.Dockerfile . &&
     docker build -t cubingcontests-server --file server.Dockerfile . &&
 
     docker compose -f docker-compose-prod.yml up

@@ -19,8 +19,6 @@ if [ -z "$1" ] || [ "$1" != "--no-checks" ]; then
 
   # Check that the tests run successfully
   deno test &&
-  cd ../server
-  npm run test &&
   cd ..
 fi
 
@@ -44,19 +42,10 @@ if [ -z "$1" ] || [ "$1" != '--no-docker' ]; then
   # Client container
   rm client/.env.local
   source .env
-  docker build --build-arg NEXT_PUBLIC_BASE_URL="$PROD_BASE_URL" \
-               --build-arg NEXT_PUBLIC_API_BASE_URL="$PROD_BASE_URL/api" \
-               -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
+  docker build --build-arg NEXT_PUBLIC_BASE_URL="$PROD_BASE_URL" -t denimint/cubingcontests-client:$new_version --file client.Dockerfile . &&
   docker tag denimint/cubingcontests-client:$new_version denimint/cubingcontests-client:latest &&
   docker push denimint/cubingcontests-client:$new_version &&
   docker push denimint/cubingcontests-client:latest &&
-  # Legacy server container
-  ./bin/copy-helpers-to-server.sh
-  rm server/.env.dev
-  docker build -t denimint/cubingcontests-server:$new_version --file server.Dockerfile . &&
-  docker tag denimint/cubingcontests-server:$new_version denimint/cubingcontests-server:latest &&
-  docker push denimint/cubingcontests-server:$new_version &&
-  docker push denimint/cubingcontests-server:latest
 fi
 
 echo -e "\nDone!"

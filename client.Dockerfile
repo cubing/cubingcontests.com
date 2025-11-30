@@ -1,7 +1,7 @@
 FROM denoland/deno:2.4.2
 
 # Expose port
-EXPOSE $PORT
+EXPOSE $NEXTJS_PORT
 
 COPY client /app/client
 
@@ -13,7 +13,6 @@ WORKDIR /app/client
 ENV NEXT_TELEMETRY_DISABLED=1
 
 ARG NEXT_PUBLIC_BASE_URL
-ARG NEXT_PUBLIC_API_BASE_URL
 
 RUN deno install --allow-scripts
 RUN deno task build

@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, username } from "better-auth/plugins";
-import { accountsTable, sessionsTable, usersTable, verificationsTable } from "~/server/db/schema/auth-schema.ts";
+import * as authSchema from "~/server/db/schema/auth-schema.ts";
 import { sendResetPasswordEmail, sendVerificationEmail } from "~/server/email/mailer.ts";
 import { ac, admin, mod, user } from "~/server/permissions.ts";
 import { db } from "./db/provider.ts";
@@ -11,17 +11,12 @@ import { db } from "./db/provider.ts";
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: {
-      user: usersTable,
-      session: sessionsTable,
-      account: accountsTable,
-      verification: verificationsTable,
-    },
+    schema: authSchema,
+    usePlural: true,
   }),
   plugins: [
     nextCookies(),
     username({
-      maxUsernameLength: 40,
       usernameValidator: (username) => /^[0-9a-zA-Z-_.]*$/.test(username),
     }),
     adminPlugin({
@@ -31,6 +26,7 @@ export const auth = betterAuth({
   ],
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false,
     requireEmailVerification: true,
     sendResetPassword: ({ user, url }) => sendResetPasswordEmail(user.email, url),
   },

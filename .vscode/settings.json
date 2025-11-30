@@ -1,13 +1,4 @@
 {
-  "deno.enable": true,
-  "deno.lint": true,
-  // This just determines which paths should have Deno LSP enabled
-  "deno.enablePaths": [
-    "./client/deno.jsonc",
-    // "./client/__tests__",
-    // "./client/__mocks__"
-    "./client"
-  ],
   "biome.configurationPath": "./client/biome.jsonc",
   "biome.requireConfiguration": true,
   "biome.lsp.bin": "./client/node_modules/@biomejs/biome/bin/biome",

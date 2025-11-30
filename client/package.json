@@ -21,14 +21,14 @@
     "cubing": "0.58.2",
     "date-fns": "4.1.0",
     "date-fns-tz": "3.2.0",
-    "drizzle-orm": "1.0.0-beta.1-fd8bfcc",
+    "drizzle-orm": "1.0.0-beta.1-7722e6a",
     "geo-tz": "8.1.4",
     "handlebars": "4.7.8",
     "lodash": "4.17.21",
     "mailtrap": "4.3.0",
     "next": "16.0.3",
     "next-safe-action": "8.0.11",
-    "pg": "8.16.3",
+    "postgres": "3.4.7",
     "react": "19.2.0",
     "react-datepicker": "8.4.0",
     "react-dom": "19.2.0",
@@ -46,7 +46,7 @@
     "@types/pg": "8.15.6",
     "@types/react": "19.2.6",
     "@types/react-dom": "19.2.3",
-    "drizzle-kit": "1.0.0-beta.1-fd8bfcc",
+    "drizzle-kit": "1.0.0-beta.1-7722e6a",
     "vitest": "4.0.13"
   }
 }
