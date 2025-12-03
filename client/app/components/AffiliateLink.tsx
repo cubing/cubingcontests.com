@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useAction } from "next-safe-action/hooks";
+import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
 
 const height = 192 / 2;
 const width = 1920 / 2;
@@ -12,9 +14,10 @@ type Props = {
 };
 
 function AffiliateLink({ type }: Props) {
-  const logAffiliateLinkClick = async (utmCampaign: string) => {
-    alert("NOT IMPLEMENTED");
-    // await myFetch.get(`/log-affiliate-link-click/${utmCampaign}`);
+  const { executeAsync: logMessage } = useAction(logMessageSF);
+
+  const logAffiliateLinkClick = (utmCampaign: string) => {
+    logMessage({ message: `Affiliate link clicked (utm_campaign: ${utmCampaign})` });
   };
 
   switch (type) {
@@ -106,7 +109,6 @@ function AffiliateLink({ type }: Props) {
           className={className}
           style={style}
         >
-          <span className="text-danger">IMPLEMENT THE LOGGING OF AFFILIATE LINKS!!!</span>
           <Image src="/banners/other.jpg" height={height} width={width} alt="Cuboss ad" />
         </a>
       );

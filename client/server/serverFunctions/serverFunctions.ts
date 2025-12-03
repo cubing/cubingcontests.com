@@ -18,11 +18,23 @@ import {
   collectiveSolutionsTable as csTable,
 } from "~/server/db/schema/collective-solutions.ts";
 import { sendEmail, sendRoleChangedEmail } from "~/server/email/mailer.ts";
+import { logger } from "~/server/logger.ts";
 import { Roles } from "~/server/permissions.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "../db/schema/persons.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { checkUserPermissions } from "../serverUtilityFunctions.ts";
 import { approvePersonSF } from "./personServerFunctions.ts";
+
+export const logMessageSF = actionClient
+  .metadata({})
+  .inputSchema(
+    z.strictObject({
+      message: z.string().nonempty(),
+    }),
+  )
+  .action(async ({ parsedInput: { message } }) => {
+    logger.info(message);
+  });
 
 export const updateUserSF = actionClient
   .metadata({ permissions: { user: ["set-role"] } })

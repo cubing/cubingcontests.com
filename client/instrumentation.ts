@@ -15,19 +15,19 @@ import { recordConfigsTable } from "./server/db/schema/record-configs.ts";
 import { resultsTable } from "./server/db/schema/results.ts";
 import { roundsTable } from "./server/db/schema/rounds.ts";
 
-// This is the password hash for the password "cc" (only used for testing in development)
+// This is the scrypt password hash for the password "cc" (only used for testing in development)
 const hashForCc =
   "a73adfb4df83466851a5c337a6bc738b:a580ce8e36188f210f2342998c46789d69ab69ebf35a6382d80ad11e8542ec62074b31789b09dc653daaf8e1ec69fb5c97c6f6244f7de80d03169e7572c0e514";
 const message =
   "The EMAIL_API_KEY environment variable must be empty while seeding the DB to avoid sending lots of verification emails for the users being seeded. Remove it and comment out the sendVerificationEmail function in auth.ts, and then add them back after the DB has been seeded.";
 
 export async function register() {
-  // Seed test users for development
+  // Seed test data for development
   if (process.env.NEXT_RUNTIME === "nodejs" && process.env.MIGRATE_DB === "true") {
-    const { db }: { db: typeof dbType } = await import("~/server/db/provider.ts");
-    const { auth }: { auth: typeof authType } = await import("~/server/auth.ts");
     const fs: typeof fsType = await import("node:fs");
     const { randomUUID }: { randomUUID: typeof randomUUIDType } = await import("node:crypto");
+    const { db }: { db: typeof dbType } = await import("~/server/db/provider.ts");
+    const { auth }: { auth: typeof authType } = await import("~/server/auth.ts");
     const usersDump = JSON.parse(fs.readFileSync("./dump/users.json") as any);
     const personsDump = (JSON.parse(fs.readFileSync("./dump/people.json") as any) as any[]).reverse();
     const roundsDump = JSON.parse(fs.readFileSync("./dump/rounds.json") as any) as any[];

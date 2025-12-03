@@ -390,9 +390,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # depends_on:
-    #   vector:
-    #     condition: service_healthy
+    depends_on:
+      vector:
+        condition: service_healthy
     environment:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: ${POSTGRES_PORT}
@@ -413,24 +413,23 @@ services:
         "log_min_messages=fatal", # prevents Realtime polling queries from appearing in logs
       ]
 
-  # WHEN ENABLING THIS, ALSO UNCOMMENT depends_on: vector ABOVE!
-  # vector:
-  #   container_name: supabase-vector
-  #   image: timberio/vector:0.28.1-alpine
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
-  #     - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro,z
-  #   healthcheck:
-  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://vector:9001/health"]
-  #     timeout: 5s
-  #     interval: 5s
-  #     retries: 3
-  #   environment:
-  #     LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN}
-  #   command: ["--config", "/etc/vector/vector.yml"]
-  #   security_opt:
-  #     - "label=disable"
+  vector:
+    container_name: supabase-vector
+    image: timberio/vector:0.28.1-alpine
+    restart: unless-stopped
+    volumes:
+      - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
+      - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro,z
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://vector:9001/health"]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN}
+    command: ["--config", "/etc/vector/vector.yml"]
+    security_opt:
+      - "label=disable"
 
   # Update the DATABASE_URL if you are using an external Postgres database
   supavisor:

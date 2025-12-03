@@ -1,11 +1,11 @@
-import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
+import type { NextConfig } from "next";
 
 const withMDX = createMDX({});
 
 const nextConfig: NextConfig = withMDX({
   output: "standalone",
-  serverExternalPackages: ["cubing", "geo-tz"],
+  serverExternalPackages: ["cubing", "geo-tz", "pino", "pino-logflare"],
   pageExtensions: ["md", "mdx", "tsx", "ts", "jsx", "js", "mjs", "json"],
   redirects() {
     return Promise.resolve([

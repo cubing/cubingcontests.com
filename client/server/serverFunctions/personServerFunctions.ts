@@ -72,7 +72,7 @@ export const getOrCreatePersonSF = actionClient
 
     if (persons.length === 1) return { person: persons[0], isNew: false };
 
-    const res = await createPersonSF({ newPersonDto: { name, countryIso2 } });
+    const res = await createPersonSF({ newPersonDto: { name, localizedName: null, countryIso2, wcaId: null } });
     if (!res.data) throw new Error(res.serverError?.message || C.unknownErrorMsg);
 
     return { person: res.data, isNew: true };
