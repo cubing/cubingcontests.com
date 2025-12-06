@@ -1,2 +1,3 @@
 client/.env*.local
+client/dump
 server/.env.dev
