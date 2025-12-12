@@ -26,6 +26,7 @@ type Props = {
   rounds: RoundDto[];
   setRounds: (val: RoundDto[]) => void;
   totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
+  competitionId: string;
   contestType: ContestType;
   disabled: boolean;
   newEventsDisabled: boolean;
@@ -36,6 +37,7 @@ function ContestEvents({
   rounds,
   setRounds,
   totalResultsByRound,
+  competitionId,
   contestType,
   disabled,
   newEventsDisabled,
@@ -71,7 +73,7 @@ function ContestEvents({
   const [newEventId, setNewEventId] = useState(remainingEvents[0].eventId);
 
   const getNewRound = (event: EventResponse, roundNumber: number): RoundDto => ({
-    competitionId: "TEMPORARY", // this gets replaced for all rounds on submit
+    competitionId,
     eventId: event.eventId,
     roundNumber,
     roundTypeId: "f",

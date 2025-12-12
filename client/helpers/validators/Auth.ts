@@ -10,25 +10,23 @@ const passwordsDontMatchError = {
   path: ["Password"],
 };
 
-export const RegistrationFormValidator = z.strictObject({
-  username,
-  email,
-  password,
-  passwordRepeat,
-}).refine(
-  (values) => values.passwordRepeat === values.password,
-  passwordsDontMatchError,
-);
+export const RegistrationFormValidator = z
+  .strictObject({
+    username,
+    email,
+    password,
+    passwordRepeat,
+  })
+  .refine((val) => val.passwordRepeat === val.password, passwordsDontMatchError);
 
 export const LoginFormValidator = z.strictObject({
   username,
   password,
 });
 
-export const ResetPasswordFormValidator = z.strictObject({
-  password,
-  passwordRepeat,
-}).refine(
-  (values) => values.passwordRepeat === values.password,
-  passwordsDontMatchError,
-);
+export const ResetPasswordFormValidator = z
+  .strictObject({
+    password,
+    passwordRepeat,
+  })
+  .refine((val) => val.passwordRepeat === val.password, passwordsDontMatchError);

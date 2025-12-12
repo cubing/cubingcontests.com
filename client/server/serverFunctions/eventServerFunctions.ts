@@ -47,53 +47,53 @@ export const updateEventSF = actionClient
       if (newEventDto.eventId !== originalEventId) {
         throw new CcActionError("NOT IMPLEMENTED! Please contact the development team.");
 
-        const [sameIdEvent] = await tx.select().from(table).where(eq(table.eventId, newEventDto.eventId)).limit(1);
-        if (sameIdEvent) throw new CcActionError(`Event with ID ${newEventDto.eventId} already exists`);
+        // const [sameIdEvent] = await tx.select().from(table).where(eq(table.eventId, newEventDto.eventId)).limit(1);
+        // if (sameIdEvent) throw new CcActionError(`Event with ID ${newEventDto.eventId} already exists`);
 
-        await tx
-          .update(collectiveSolutionsTable)
-          .set({ eventId: newEventDto.eventId })
-          .where(eq(collectiveSolutionsTable.eventId, originalEventId));
+        // await tx
+        //   .update(collectiveSolutionsTable)
+        //   .set({ eventId: newEventDto.eventId })
+        //   .where(eq(collectiveSolutionsTable.eventId, originalEventId));
 
-        console.log(`Updating rounds and schedules, changing event ID ${originalEventId} to ${newEventDto.eventId}`);
+        // console.log(`Updating rounds and schedules, changing event ID ${originalEventId} to ${newEventDto.eventId}`);
 
-        // Update round IDs
-        // for (let i = 1; i <= 10; i++) {
-        //   const roundId = `${originalEventId}-r${i}`;
-        //   const newRoundId = `${newEvent.eventId}-r${i}`;
-        //   const res = await this.roundModel.updateMany({ roundId }, {
-        //     $set: { roundId: newRoundId },
-        //   }).exec();
+        // // Update round IDs
+        // // for (let i = 1; i <= 10; i++) {
+        // //   const roundId = `${originalEventId}-r${i}`;
+        // //   const newRoundId = `${newEvent.eventId}-r${i}`;
+        // //   const res = await this.roundModel.updateMany({ roundId }, {
+        // //     $set: { roundId: newRoundId },
+        // //   }).exec();
 
-        //   if (res.matchedCount > 0) {
-        //     // TO-DO: UPDATE CHILD ACTIVITIES' CODES TOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //     const schedules = await this.scheduleModel.find({
-        //       "venues.rooms.activities.activityCode": roundId,
-        //     }).exec();
+        // //   if (res.matchedCount > 0) {
+        // //     // TO-DO: UPDATE CHILD ACTIVITIES' CODES TOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // //     const schedules = await this.scheduleModel.find({
+        // //       "venues.rooms.activities.activityCode": roundId,
+        // //     }).exec();
 
-        //     for (const schedule of schedules) {
-        //       // Keep in mind that one schedule can only have one occurrence of the same activity code
-        //       venue_loop: for (const venue of schedule.venues) {
-        //         for (const room of venue.rooms) {
-        //           for (const activity of room.activities) {
-        //             if (activity.activityCode === roundId) {
-        //               activity.activityCode = newRoundId;
-        //               await schedule.save();
-        //               break venue_loop;
-        //             }
-        //           }
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
+        // //     for (const schedule of schedules) {
+        // //       // Keep in mind that one schedule can only have one occurrence of the same activity code
+        // //       venue_loop: for (const venue of schedule.venues) {
+        // //         for (const room of venue.rooms) {
+        // //           for (const activity of room.activities) {
+        // //             if (activity.activityCode === roundId) {
+        // //               activity.activityCode = newRoundId;
+        // //               await schedule.save();
+        // //               break venue_loop;
+        // //             }
+        // //           }
+        // //         }
+        // //       }
+        // //     }
+        // //   }
+        // // }
 
-        // Update results
-        console.log(`Updating results, changing event ID ${originalEventId} to ${newEventDto.eventId}`);
+        // // Update results
+        // console.log(`Updating results, changing event ID ${originalEventId} to ${newEventDto.eventId}`);
 
-        // await this.resultModel.updateMany({ eventId }, {
-        //   $set: { eventId: newId },
-        // }).exec();
+        // // await this.resultModel.updateMany({ eventId }, {
+        // //   $set: { eventId: newId },
+        // // }).exec();
       }
 
       return await tx

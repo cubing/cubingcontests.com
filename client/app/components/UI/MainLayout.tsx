@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import Navbar from "~/app/components/UI/Navbar.tsx";
+import { useEffect, useState } from "react";
 import Footer from "~/app/components/UI/Footer.tsx";
-import { MainContext, Theme } from "~/helpers/contexts.ts";
-import { authClient } from "~/helpers/authClient.ts";
+import Navbar from "~/app/components/UI/Navbar.tsx";
+import type { authClient } from "~/helpers/authClient.ts";
+import { MainContext, type Theme } from "~/helpers/contexts.ts";
 
 type Props = {
   children: React.ReactNode;
   initSession: typeof authClient.$Infer.Session | null;
 };
 
-const MainLayout = ({ children, initSession }: Props) => {
+function MainLayout({ children, initSession }: Props) {
   const pathname = usePathname();
 
   const [theme, setTheme] = useState<Theme>("dark");
@@ -76,13 +76,11 @@ const MainLayout = ({ children, initSession }: Props) => {
         }}
       >
         <Navbar initSession={initSession} />
-        <main className="container-md d-flex flex-column pt-4 px-0 pb-2 flex-grow-1">
-          {children}
-        </main>
+        <main className="container-md d-flex flex-column flex-grow-1 px-0 pt-4 pb-2">{children}</main>
         <Footer />
       </MainContext.Provider>
     </body>
   );
-};
+}
 
 export default MainLayout;

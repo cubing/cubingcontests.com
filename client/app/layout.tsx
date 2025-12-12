@@ -5,8 +5,8 @@ import MainLayout from "~/app/components/UI/MainLayout.tsx";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 // Prevent FA from adding its CSS since we did it manually above
 import { config } from "@fortawesome/fontawesome-svg-core";
-import { auth } from "~/server/auth.ts";
 import { headers } from "next/headers";
+import { auth } from "~/server/auth.ts";
 
 config.autoAddCss = false;
 

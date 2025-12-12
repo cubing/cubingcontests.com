@@ -4,9 +4,11 @@ import { join } from "node:path";
 import { loadEnvConfig } from "@next/env";
 import Handlebars from "handlebars";
 import { MailtrapClient } from "mailtrap";
+import { Countries } from "~/helpers/Countries.ts";
 import { C } from "~/helpers/constants.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
-import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
+import { getFormattedTime, getIsUrgent } from "~/helpers/sharedFunctions.ts";
+import type { SelectContest } from "~/server/db/schema/contests.ts";
 import type { SelectEvent } from "../db/schema/events.ts";
 import type { ResultResponse } from "../db/schema/results.ts";
 
@@ -32,7 +34,7 @@ async function send({
   callback,
 }: {
   templateFileName?: string;
-  context: Record<string, string>;
+  context: Record<string, string | number | boolean>;
   callback: (html: string) => Promise<void>;
 }) {
   if (!process.env.EMAIL_API_KEY) {
@@ -148,45 +150,40 @@ export function sendRoleChangedEmail(to: string, role: string, canAccessModDashb
   });
 }
 
-// async sendContestSubmittedNotification(
-//   to: string,
-//   contest: IContest,
-//   contestUrl: string,
-//   creator: string,
-// ) {
-//   const urgent = getIsUrgent(new Date(contest.startDate));
-//   const contents = await getEmailContents("contest-submitted.hbs", {
-//     competitionId: contest.competitionId,
-//     wcaCompetition: contest.type === ContestType.WcaComp,
-//     contestName: contest.name,
-//     contestUrl,
-//     ccUrl: process.env.BASE_URL,
-//     creator,
-//     startDate: new Date(contest.startDate).toDateString(),
-//     location: `${contest.city}, ${
-//       Countries.find((c) => c.code === contest.countryIso2)?.name ??
-//         "NOT FOUND"
-//     }`,
-//     urgent,
-//   });
+export function sendContestSubmittedNotification(
+  recipients: string[],
+  contest: SelectContest,
+  contestUrl: string,
+  creator: string,
+) {
+  const urgent = getIsUrgent(new Date(contest.startDate));
 
-//   try {
-//     await this.transporter.sendMail({
-//       from: this.contestsEmail,
-//       replyTo: C.contactEmail,
-//       to,
-//       bcc: C.contactEmail,
-//       subject: `Contest submitted: ${contest.shortName}`,
-//       html: contents,
-//       priority: urgent ? "high" : "normal",
-//     });
-//   } catch (err) {
-//     this.logger.logAndSave(
-//       `Error while sending contest submitted notification for contest ${contest.name}: ${err}`,
-//       LogType.Error,
-//     );
-//   }
-// }
+  send({
+    templateFileName: "contest-submitted.hbs",
+    context: {
+      competitionId: contest.competitionId,
+      wcaCompetition: contest.type === "wca-comp",
+      contestName: contest.name,
+      contestUrl,
+      ccUrl: baseUrl,
+      creator,
+      startDate: contest.startDate.toDateString(),
+      location: `${contest.city}, ${Countries.find((c) => c.code === contest.countryIso2)?.name ?? "NOT FOUND"}`,
+      urgent,
+    },
+    callback: async (html) => {
+      await client.send({
+        from,
+        reply_to: { email: C.contactEmail },
+        to: recipients.map(r => ({email: r})),
+        bcc: [{ email: C.contactEmail }],
+        subject: `Contest submitted: ${contest.shortName}`,
+        html,
+        // priority: urgent ? "high" : "normal",
+      });
+    },
+  });
+}
 
 // async sendContestApprovedNotification(to: string, contest: IContest) {
 //   try {

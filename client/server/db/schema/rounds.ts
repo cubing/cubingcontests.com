@@ -23,7 +23,7 @@ export const roundsTable = table(
     cutoffNumberOfAttempts: integer(),
     proceedType: roundProceedEnum(),
     proceedValue: integer(),
-    open: boolean().notNull(),
+    open: boolean().default(false).notNull(),
     ...tableTimestamps,
   },
   (table) => [

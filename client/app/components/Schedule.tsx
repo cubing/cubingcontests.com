@@ -6,7 +6,6 @@ import Button from "~/app/components/UI/Button.tsx";
 import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { getIsOtherActivity } from "~/helpers/sharedFunctions.ts";
 import type { Activity, Room } from "~/helpers/types/Schedule.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
@@ -74,7 +73,7 @@ function Schedule({ rooms, events, rounds, timeZone, onDeleteActivity, onEditAct
       isEditable: true,
     };
 
-    if (!getIsOtherActivity(activity.activityCode)) {
+    if (!/^other-/.test(activity.activityCode)) {
       const [eventId, roundNumberStr] = dayActivity.activityCode.split("-r");
       dayActivity.event = events.find((e) => e.eventId === eventId);
 

@@ -7,7 +7,7 @@ export const db = drizzle({
     url: process.env.DATABASE_URL!,
     // ssl: "verify-full",
     // Uncomment this if using Supabase "Transaction" pool mode (see https://orm.drizzle.team/docs/connect-supabase)
-    prepare: false,
+    // prepare: false,
   },
   casing: "snake_case",
   relations,

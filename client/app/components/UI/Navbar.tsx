@@ -12,7 +12,7 @@ type Props = {
   initSession: typeof authClient.$Infer.Session | null;
 };
 
-const NavbarItems = ({ initSession }: Props) => {
+function NavbarItems({ initSession }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -81,7 +81,7 @@ const NavbarItems = ({ initSession }: Props) => {
                 Contests
               </Link>
             </li>
-            <li
+            {/* <li
               className="nav-item dropdown"
               onMouseEnter={() => toggleDropdown("results", true)}
               onMouseLeave={() => toggleDropdown("results", false)}
@@ -115,7 +115,7 @@ const NavbarItems = ({ initSession }: Props) => {
                   </Link>
                 </li>
               </ul>
-            </li>
+            </li> */}
             <li className="nav-item">
               <Link className={`nav-link ${pathname === "/rules" ? "active" : ""}`} href="/rules" onClick={collapseAll}>
                 Rules
@@ -177,6 +177,6 @@ const NavbarItems = ({ initSession }: Props) => {
       </div>
     </nav>
   );
-};
+}
 
 export default NavbarItems;

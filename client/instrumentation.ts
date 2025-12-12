@@ -377,7 +377,8 @@ export async function register() {
               })),
             }));
           } else if (c.type !== 1) {
-            console.error("COMPETITION WITHOUT SCHEDULE FOUND: ", c.competitionId);
+            console.error("COMPETITION WITHOUT SCHEDULE FOUND (skipping insertion): ", c.competitionId);
+            continue;
           }
 
           tempContests.push({

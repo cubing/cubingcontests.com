@@ -25,7 +25,7 @@ export const contestsTable = table(
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     competitionId: text().notNull().unique(),
-    state: contestStateEnum().notNull(),
+    state: contestStateEnum().default("created").notNull(),
     name: text().notNull(),
     // FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // shortName: varchar({ length: 32 }).notNull(),
@@ -61,7 +61,8 @@ export const contestsTable = table(
       sql`(${table.type} <> 'meetup'
           and ${table.startTime} is null
           and ${table.timeZone} is null
-          and ${table.competitorLimit} is not null)
+          and ${table.competitorLimit} is not null
+          and ${table.schedule} is not null)
         or (${table.type} = 'meetup'
           and ${table.startTime} is not null
           and ${table.timeZone} is not null

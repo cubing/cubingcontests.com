@@ -6,6 +6,7 @@ import debounce from "lodash/debounce";
 import Link from "next/link";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useState, useTransition } from "react";
+import z from "zod";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
@@ -26,17 +27,22 @@ import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getDateOnly, getIsCompType, getIsUrgent } from "~/helpers/sharedFunctions.ts";
-import type { Room } from "~/helpers/types/Schedule.ts";
+import type { Room, Schedule } from "~/helpers/types/Schedule.ts";
 import type { ContestType, Creator, InputPerson, PageSize } from "~/helpers/types.ts";
 import { getActionError, getContestIdFromName, getIsAdmin } from "~/helpers/utilityFunctions.ts";
+import { ContestValidator } from "~/helpers/validators/Contest.ts";
 import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import type { RoundDto } from "~/helpers/validators/Round.ts";
 import type { SelectContest } from "~/server/db/schema/contests.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
-import { getTimeZoneFromCoordsSF } from "~/server/serverFunctions/contestServerFunctions.ts";
-import { getOrCreatePersonByWcaIdSF, getOrCreatePersonSF } from "~/server/serverFunctions/personServerFunctions.ts";
+import { createContestSF, getTimeZoneFromCoordsSF } from "~/server/serverFunctions/contestServerFunctions.ts";
+import {
+  getOrCreatePersonByWcaIdSF,
+  getOrCreatePersonSF,
+  getPersonByPersonIdSF,
+} from "~/server/serverFunctions/personServerFunctions.ts";
 import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
 
@@ -65,10 +71,12 @@ function ContestForm({
 }: Props) {
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
+  const { executeAsync: getPersonByPersonId, isPending: isGettingPerson } = useAction(getPersonByPersonIdSF);
   const { executeAsync: getOrCreateWcaPerson, isPending: isGettingOrCreatingWcaPerson } =
     useAction(getOrCreatePersonByWcaIdSF);
   const { executeAsync: getOrCreatePerson, isPending: isGettingOrCreatingPerson } = useAction(getOrCreatePersonSF);
   const { executeAsync: getTimeZoneFromCoords, isPending: isPendingTimeZone } = useAction(getTimeZoneFromCoordsSF);
+  const { executeAsync: createContest, isPending: isCreating } = useAction(createContestSF);
   const [activeTab, setActiveTab] = useState("details");
   const [detailsImported, setDetailsImported] = useState(mode === "edit" && contest?.type === "wca-comp");
   const [queueEnabled, setQueueEnabled] = useState(contest?.queuePosition !== undefined);
@@ -87,8 +95,8 @@ function ContestForm({
   // Horizontal coordinate (X); ranges from -180 to 180
   const [longitude, setLongitude] = useState<number | undefined>(contest ? contest.longitudeMicrodegrees / 1000000 : 0);
   const [startDate, setStartDate] = useState(contest?.startDate ?? undefined);
-  const [startTime, setStartTime] = useState(contest?.startTime ?? undefined);
   const [endDate, setEndDate] = useState(contest?.endDate ?? undefined);
+  const [startTime, setStartTime] = useState(contest?.startTime ?? undefined);
   const [organizers, setOrganizers] = useState<InputPerson[]>([...initOrganizers, null]);
   const [organizerNames, setOrganizerNames] = useState([...(initOrganizers?.map((o) => o.name) ?? []), ""]);
   const [contact, setContact] = useState(contest?.contact ?? "");
@@ -144,7 +152,11 @@ function ContestForm({
   ];
   const isAdmin = getIsAdmin(session.user.role);
   const isPending =
-    isPendingTimeZone || isPendingWcaCompDetails || isGettingOrCreatingWcaPerson || isGettingOrCreatingPerson;
+    isCreating ||
+    isPendingTimeZone ||
+    isPendingWcaCompDetails ||
+    isGettingOrCreatingWcaPerson ||
+    isGettingOrCreatingPerson;
   const disabled = !type || (type === "wca-comp" && !detailsImported);
   const disabledIfContestApproved: boolean = mode === "edit" && !!contest && contest.state !== "created";
   const disabledIfContestPublished: boolean = mode === "edit" && !!contest && contest.state === "published";
@@ -154,151 +166,131 @@ function ContestForm({
     (!isUnderstood && (!type || getIsCompType(type))) || (!isTimelinessUnderstood && urgent);
 
   const handleSubmit = async () => {
-    // const isCompType = getIsCompType(type);
-    // if (!isValid(startDate) || (isCompType && !isValid(endDate)) || (!isCompType && !isValid(startTime))) {
-    //   changeErrorMessages(["Please enter valid dates"]);
-    //   return;
-    // }
-    // if (typeof latitude !== "number" || typeof longitude !== "number") {
-    //   changeErrorMessages(["Please enter valid coordinates"]);
-    //   return;
-    // }
-    // changeLoadingId("form_submit_button");
-    // const selectedOrganizers = organizers.filter((o: InputPerson) => o !== null);
-    // const latitudeMicrodegrees = Math.round(latitude * 1000000);
-    // const longitudeMicrodegrees = Math.round(longitude * 1000000);
-    // // Set the contest ID for every round and empty results if there were any  in order to avoid sending
-    // // too much data to the backend. Remove internal IDs in case we're copying a contest.
-    // const processedCompEvents = contestEvents.map((ce: IContestEvent) => ({
-    //   ...ce,
-    //   rounds: ce.rounds.map((round) => ({
-    //     ...round,
-    //     competitionId,
-    //     results: [],
-    //   })),
-    // }));
-    // let compDetails: ICompetitionDetails | undefined;
-    // let meetupDetails: IMeetupDetails | undefined;
-    // if (getIsCompType(type)) {
-    //   compDetails = {
-    //     schedule: {
-    //       competitionId,
-    //       venues: [
-    //         {
-    //           id: 1,
-    //           name: venue || "Unknown venue",
-    //           countryIso2,
-    //           latitudeMicrodegrees,
-    //           longitudeMicrodegrees,
-    //           timezone: "TEMPORARY", // this is set on the backend
-    //           // Only send the rooms that have at least one activity
-    //           rooms: rooms.filter((r: IRoom) => r.activities.length > 0),
-    //         },
-    //       ],
-    //     },
-    //   };
-    // } else {
-    //   meetupDetails = {
-    //     startTime: startTime!,
-    //     timeZone: "TEMPORARY", // this is set on the backend
-    //   };
-    // }
-    // const newComp: IContestDto = {
-    //   competitionId,
-    //   name: name.trim(),
-    //   shortName: shortName.trim(),
-    //   type: type!,
-    //   city: city.trim(),
-    //   countryIso2,
-    //   venue: venue.trim(),
-    //   address: address.trim(),
-    //   latitudeMicrodegrees,
-    //   longitudeMicrodegrees,
-    //   startDate: startDate!,
-    //   endDate: getIsCompType(type) ? endDate : undefined,
-    //   organizers: selectedOrganizers,
-    //   contact: contact.trim() || undefined,
-    //   description: description.trim(),
-    //   competitorLimit: competitorLimit || undefined,
-    //   events: processedCompEvents,
-    //   compDetails,
-    //   meetupDetails,
-    // };
-    // const getRoundWithDefaultTimeLimitExists = () =>
-    //   processedCompEvents.some((ce: IContestEvent) =>
-    //     ce.rounds.some((r) => r.timeLimit?.centiseconds === C.defaultTimeLimit && r.timeLimit?.cumulativeRoundIds.length === 0),
-    //   );
-    // const confirmDefaultTimeLimitMsg =
-    //   "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
-    // const doSubmit =
-    //   mode !== "edit"
-    //     ? !getRoundWithDefaultTimeLimitExists() || confirm(confirmDefaultTimeLimitMsg)
-    //     : competitionId === contest?.competitionId ||
-    //       confirm(
-    //         `Are you sure you would like to change the contest ID from ${contest?.competitionId} to ${competitionId}?`,
-    //       );
-    // if (doSubmit) {
-    //   // Validation
-    //   const tempErrors: string[] = [];
-    //   if (selectedOrganizers.length < organizerNames.filter((on: string) => on !== "").length) {
-    //     tempErrors.push("Please enter all organizers");
-    //   }
-    //   if (type === "wca-comp" && !detailsImported) {
-    //     tempErrors.push('You must use the "Get WCA competition details" feature');
-    //   }
-    //   if (tempErrors.length > 0) {
-    //     changeErrorMessages(tempErrors);
-    //   } else {
-    //     const res =
-    //       mode === "edit"
-    //         ? await myFetch.patch(`/competitions/${contest?.competitionId}`, newComp, { loadingId: null })
-    //         : await myFetch.post("/competitions", newComp, { loadingId: null });
-    //     if (!res.success) changeErrorMessages(res.error);
-    //     else if (mode === "copy") window.location.href = "/mod";
-    //     else window.history.back();
-    //   }
-    // } else {
-    //   changeLoadingId("");
-    // }
+    const selectedOrganizers = organizers.filter((o: InputPerson) => o !== null);
+    // If one of these is 0, the validator will catch it
+    const latitudeMicrodegrees = latitude ? Math.round(latitude * 1000000) : 0;
+    const longitudeMicrodegrees = longitude ? Math.round(longitude * 1000000) : 0;
+    let schedule: Schedule | undefined;
+
+    if (getIsCompType(type)) {
+      schedule = {
+        competitionId,
+        venues: [
+          {
+            id: 1,
+            name: venue || "Unknown venue",
+            countryIso2,
+            latitudeMicrodegrees,
+            longitudeMicrodegrees,
+            timezone: timeZone,
+            // Only send the rooms that have at least one activity
+            rooms: rooms.filter((r) => r.activities.length > 0),
+          },
+        ],
+      };
+    }
+
+    const parsed = ContestValidator.safeParse({
+      competitionId,
+      name: name.trim(),
+      shortName: shortName.trim(),
+      type: type!,
+      city: city.trim(),
+      countryIso2,
+      venue: venue.trim(),
+      address: address.trim(),
+      latitudeMicrodegrees,
+      longitudeMicrodegrees,
+      startDate: startDate!,
+      endDate: endDate!,
+      startTime: type === "meetup" ? startTime : undefined,
+      timeZone: type === "meetup" ? timeZone : undefined,
+      organizers: selectedOrganizers.map((o) => o.id),
+      contact: contact.trim() || undefined,
+      description: description.trim(),
+      competitorLimit: competitorLimit || undefined,
+      schedule,
+    });
+
+    // Validation
+    const tempErrors: string[] = parsed.success ? [] : [z.prettifyError(parsed.error)];
+    if (selectedOrganizers.length < organizerNames.filter((on) => on !== "").length)
+      tempErrors.push("Please enter all organizers");
+    if (type === "wca-comp" && !detailsImported)
+      tempErrors.push('You must use the "Get WCA competition details" feature');
+    if (tempErrors.length > 0) {
+      changeErrorMessages(tempErrors);
+      return;
+    }
+
+    const roundWithDefaultTimeLimitExists = rounds.some(
+      (r) => r.timeLimitCentiseconds === C.defaultTimeLimit && r.timeLimitCumulativeRoundIds?.length === 0,
+    );
+    const confirmDefaultTimeLimitMsg =
+      "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
+    const doSubmit =
+      mode !== "edit"
+        ? !roundWithDefaultTimeLimitExists || confirm(confirmDefaultTimeLimitMsg)
+        : competitionId === contest!.competitionId ||
+          confirm(
+            `Are you sure you would like to change the contest ID from ${contest!.competitionId} to ${competitionId}?`,
+          );
+    if (!doSubmit) return;
+
+    // const res =
+    //   mode === "edit"
+    //     ? await myFetch.patch(`/competitions/${contest?.competitionId}`, newComp, { loadingId: null })
+    //     : await myFetch.post("/competitions", newComp, { loadingId: null });
+
+    const res = await createContest({ newContestDto: parsed.data!, rounds });
+
+    if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
+    else if (mode === "copy") window.location.href = "/mod";
+    else window.history.back();
   };
 
-  const fillWithMockData = async (mockContestType = "comp") => {
-    throw new Error("NOT IMPLEMENTED");
-    // const res = await myFetch.get<PersonResponse>(`/persons?personId=${userInfo?.personId}`, {
-    //   loadingId: "set_mock_comp_button",
-    // });
+  const fillWithMockData = async (mockContestType: ContestType = "comp") => {
+    const res = await getPersonByPersonId({ personId: session.user.personId! });
 
-    // if (res.success) {
-    //   setType(mockContestType);
-    //   setCity("Singapore");
-    //   setCountryIso2("SG");
-    //   setAddress("Address");
-    //   setVenue("Venue");
-    //   setLatitude(1.314663);
-    //   setLongitude(103.845409);
-    //   setTimeZone("Asia/Singapore");
-    //   setStartDate(addYears(getDateOnly(new Date())!, 1));
-    //   setOrganizerNames([res.data.name, ""]);
-    //   setOrganizers([res.data, null]);
-    //   setContact(`${userInfo?.username}@cc.com`);
-    //   setDescription("THIS IS A MOCK CONTEST FOR TESTING!");
-    //   setCompetitorLimit(100);
+    if (res.serverError || res.validationErrors) {
+      changeErrorMessages([getActionError(res)]);
+    } else {
+      setType(mockContestType);
+      setCity("Singapore");
+      setCountryIso2("SG");
+      setAddress("Address");
+      setVenue("Venue");
+      setLatitude(1.314663);
+      setLongitude(103.845409);
+      const tz = "Asia/Singapore";
+      setTimeZone(tz);
+      setOrganizerNames([res.data!.name, ""]);
+      setOrganizers([res.data!, null]);
+      setContact(`${session.user.username}@cc.com`);
+      setDescription("THIS IS A MOCK CONTEST FOR TESTING!");
+      setCompetitorLimit(100);
 
-    //   const year = new Date().getFullYear();
+      const year = new Date().getFullYear();
 
-    //   if (mockContestType === "meetup") {
-    //     setName(`New Meetup ${year}`);
-    //     setShortName(`New Meetup ${year}`);
-    //     setCompetitionId(`NewMeetup${year}`);
-    //     setStartTime(addYears(new Date(), 1));
-    //   } else {
-    //     setName(`New Competition ${year}`);
-    //     setShortName(`New Competition ${year}`);
-    //     setCompetitionId(`NewCompetition${year}`);
-    //     setEndDate(addYears(getDateOnly(new Date())!, 1));
-    //     setRooms([{ id: 1, name: "Main", color: "#fff", activities: [] }]);
-    //   }
-    // }
+      if (mockContestType === "meetup") {
+        setName(`New Meetup ${year}`);
+        setShortName(`New Meetup ${year}`);
+        setCompetitionId(`NewMeetup${year}`);
+        const time = addYears(new Date(), 1);
+        setStartTime(time);
+        const date = getDateOnly(toZonedTime(time, tz))!;
+        setStartDate(date);
+        setEndDate(date);
+      } else {
+        setName(`New Competition ${year}`);
+        setShortName(`New Competition ${year}`);
+        setCompetitionId(`NewCompetition${year}`);
+        const date = addYears(getDateOnly(new Date())!, 1);
+        setStartDate(date);
+        setEndDate(date);
+        setRooms([{ id: 1, name: "Main", color: "#fff", activities: [] }]);
+      }
+    }
   };
 
   const changeActiveTab = (newTab: string) => {
@@ -437,7 +429,7 @@ function ContestForm({
   };
 
   const unfinishContest = async () => {
-    const answer = confirm(`Are you sure you would like to set ${(contest as IContest).name} back to ongoing?`);
+    const answer = confirm(`Are you sure you would like to set ${contest!.name} back to ongoing?`);
 
     if (answer) {
       const res = await myFetch.patch(
@@ -451,7 +443,7 @@ function ContestForm({
   };
 
   const removeContest = async () => {
-    const answer = confirm(`Are you sure you would like to remove ${(contest as IContest).name}?`);
+    const answer = confirm(`Are you sure you would like to remove ${contest!.name}?`);
 
     if (answer) {
       const res = await myFetch.delete(`/competitions/${competitionId}`, {
@@ -518,8 +510,8 @@ function ContestForm({
                 {process.env.NODE_ENV !== "production" && (
                   <div className="d-flex my-3 flex-wrap gap-3">
                     <Button
-                      id="set_mock_comp_button"
                       onClick={() => fillWithMockData()}
+                      isLoading={isGettingPerson}
                       disabled={type !== undefined}
                       className="btn-secondary"
                     >
@@ -527,6 +519,7 @@ function ContestForm({
                     </Button>
                     <Button
                       onClick={() => fillWithMockData("meetup")}
+                      isLoading={isGettingPerson}
                       disabled={type !== undefined}
                       className="btn-secondary"
                     >
@@ -853,6 +846,7 @@ function ContestForm({
             rounds={rounds}
             setRounds={setRounds}
             totalResultsByRound={totalResultsByRound}
+            competitionId={competitionId}
             contestType={type!}
             disabled={disabledIfContestPublished}
             newEventsDisabled={disabledIfContestApproved && !isAdmin}

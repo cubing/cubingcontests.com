@@ -263,8 +263,6 @@ export async function fetchWcaPerson(wcaId: string): Promise<PersonDto | undefin
   }
 }
 
-export const getIsOtherActivity = (activityCode: string) => /^other-/.test(activityCode);
-
 export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
 
 export function getMaxAllowedRounds(rounds: IRound[]): number {
