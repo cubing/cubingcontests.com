@@ -1,15 +1,14 @@
 import "server-only";
 import { getTableColumns } from "drizzle-orm";
-import { boolean, integer, serial, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
 import { users as usersTable } from "~/server/db/schema/auth-schema.ts";
 import { tableTimestamps } from "../dbUtils.ts";
 
 export const personsTable = table("persons", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  personId: serial().notNull().unique(),
   name: text().notNull(),
   localizedName: text(),
-  countryIso2: varchar({ length: 2 }).notNull(),
+  regionCode: text().notNull(),
   wcaId: varchar({ length: 10 }),
   approved: boolean().default(false).notNull(),
   createdBy: text().references(() => usersTable.id, { onDelete: "set null" }),

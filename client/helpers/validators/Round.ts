@@ -11,7 +11,7 @@ export const RoundValidator = z
     roundTypeId: z.enum(RoundTypeValues),
     format: z.enum(RoundFormatValues),
     timeLimitCentiseconds: z.int().min(1).nullable(),
-    timeLimitCumulativeRoundIds: z.array(z.string()).nullable(),
+    timeLimitCumulativeRoundIds: z.array(z.int()).nullable(),
     cutoffAttemptResult: z.int().min(1).nullable(),
     cutoffNumberOfAttempts: z.int().min(1).nullable(),
     proceedType: z.enum(RoundProceedValues).nullable(),

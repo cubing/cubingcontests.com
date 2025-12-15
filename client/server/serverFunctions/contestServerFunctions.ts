@@ -12,14 +12,104 @@ import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import { type RoundDto, RoundValidator } from "~/helpers/validators/Round.ts";
 import type { auth } from "~/server/auth.ts";
 import { users as usersTable } from "~/server/db/schema/auth-schema.ts";
+import { type EventResponse, eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
-import { roundsTable } from "~/server/db/schema/rounds.ts";
+import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
+import { type ResultResponse, resultsPublicCols, resultsTable } from "~/server/db/schema/results.ts";
+import { type RoundResponse, roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
 import { sendContestSubmittedNotification } from "~/server/email/mailer.ts";
+import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
+import { getRecordConfigs } from "~/server/serverUtilityFunctions.ts";
 import { db } from "../db/provider.ts";
-import { type ContestResponse, contestsPublicCols, contestsTable as table } from "../db/schema/contests.ts";
+import {
+  type ContestResponse,
+  contestsPublicCols,
+  type SelectContest,
+  contestsTable as table,
+} from "../db/schema/contests.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 
 const getContestUrl = (competitionId: string) => `${process.env.BASE_URL}/competitions/${competitionId}`;
+
+export const getContest = actionClient
+  .metadata({ permissions: null })
+  .inputSchema(
+    z.strictObject({
+      competitionId: z.string().nonempty(),
+      eventId: z.string().optional(),
+    }),
+  )
+  .action<{
+    contest: Pick<
+      SelectContest,
+      | "competitionId"
+      | "state"
+      | "name"
+      | "shortName"
+      | "type"
+      | "startDate"
+      | "organizerIds"
+      | "queuePosition"
+      | "schedule"
+    >;
+    events: EventResponse[];
+    rounds: RoundResponse[];
+    results: ResultResponse[];
+    persons: PersonResponse[];
+    recordConfigs: RecordConfigResponse[];
+  } | null>(async ({ parsedInput: { competitionId, eventId } }) => {
+    const contestPromise = db.query.contests.findFirst({
+      columns: {
+        competitionId: true,
+        state: true,
+        name: true,
+        shortName: true,
+        type: true,
+        startDate: true,
+        organizerIds: true,
+        queuePosition: true,
+        schedule: true,
+      },
+      where: { competitionId },
+    });
+    const roundsPromise = db
+      .select(roundsPublicCols)
+      .from(roundsTable)
+      .where(eq(roundsTable.competitionId, competitionId));
+    const [contest, rounds] = await Promise.all([contestPromise, roundsPromise]);
+
+    if (!contest || !rounds) return null;
+
+    const eventIds = Array.from(new Set(rounds.map((r) => r.eventId)));
+    const eventsPromise = db
+      .select(eventsPublicCols)
+      .from(eventsTable)
+      .where(inArray(eventsTable.eventId, eventIds))
+      .orderBy(eventsTable.rank);
+    const recordConfigsPromise = getRecordConfigs(contest.type === "meetup" ? "meetups" : "competitions");
+    const [events, recordConfigs] = await Promise.all([eventsPromise, recordConfigsPromise]);
+
+    if (!events || !recordConfigs) return null;
+    const eventIdOrFirst = eventId ?? events[0].eventId;
+
+    const results = await db
+      .select(resultsPublicCols)
+      .from(resultsTable)
+      .where(and(eq(resultsTable.competitionId, competitionId), eq(resultsTable.eventId, eventIdOrFirst)));
+    const personIds = Array.from(
+      new Set(results.map((r) => r.personIds).reduce((prev, curr) => [...(prev as []), ...curr], [])),
+    );
+    const persons = await db.select(personsPublicCols).from(personsTable).where(inArray(personsTable.id, personIds));
+
+    return {
+      contest,
+      events,
+      rounds: rounds.filter((r) => r.eventId === eventIdOrFirst),
+      results,
+      persons,
+      recordConfigs,
+    };
+  });
 
 export const getModContestsSF = actionClient
   .metadata({ permissions: { modDashboard: ["view"] } })
@@ -39,20 +129,20 @@ export const getModContestsSF = actionClient
       const [userPerson] = await db
         .select({ id: personsTable.id })
         .from(personsTable)
-        .where(eq(personsTable.personId, session.user.personId));
+        .where(eq(personsTable.id, session.user.personId));
 
       if (!userPerson) throw new CcActionError(msg);
-      queryFilters.push(arrayContains(table.organizers, [userPerson.id]));
+      queryFilters.push(arrayContains(table.organizerIds, [userPerson.id]));
     }
 
     if (organizerPersonId) {
       const [organizerPerson] = await db
         .select({ id: personsTable.id })
         .from(personsTable)
-        .where(eq(personsTable.personId, organizerPersonId));
+        .where(eq(personsTable.id, organizerPersonId));
 
       if (!organizerPerson) throw new CcActionError(`Person with ID ${organizerPersonId} not found`);
-      queryFilters.push(arrayContains(table.organizers, [organizerPerson.id]));
+      queryFilters.push(arrayContains(table.organizerIds, [organizerPerson.id]));
     }
 
     const contests = await db
@@ -64,9 +154,8 @@ export const getModContestsSF = actionClient
     return contests;
   });
 
-// This assumes that if you can create meetups, you can also create competitions
 export const getTimeZoneFromCoordsSF = actionClient
-  .metadata({ permissions: { meetups: ["create"] } })
+  .metadata({ permissions: { competitions: ["create"], meetups: ["create"] } })
   .inputSchema(CoordinatesValidator)
   .action<string>(async ({ parsedInput: { latitude, longitude } }) => {
     const timeZone = findTimezone(latitude, longitude).at(0);
@@ -80,7 +169,7 @@ export const getTimeZoneFromCoordsSF = actionClient
   });
 
 export const createContestSF = actionClient
-  .metadata({ permissions: { meetups: ["create"] } })
+  .metadata({ permissions: { competitions: ["create"], meetups: ["create"] } })
   .inputSchema(
     z.strictObject({
       newContestDto: ContestValidator,
@@ -88,6 +177,8 @@ export const createContestSF = actionClient
     }),
   )
   .action(async ({ parsedInput: { newContestDto, rounds }, ctx: { session } }) => {
+    logMessageSF({ message: `Creating contest ${newContestDto.competitionId}` });
+
     // No need to check that the state is not removed, because removed contests have _REMOVED at the end of the competitionId anyways
     const sameIdContest = await db.query.contests.findFirst({ where: { competitionId: newContestDto.competitionId } });
     if (sameIdContest) throw new CcActionError(`A contest with the ID ${newContestDto.competitionId} already exists`);
@@ -101,16 +192,16 @@ export const createContestSF = actionClient
     if (sameShortContest)
       throw new CcActionError(`A contest with the short name ${newContestDto.shortName} already exists`);
 
-    const { organizers } = await validateAndCleanUpContest(newContestDto, rounds, session.user);
+    await validateAndCleanUpContest(newContestDto, rounds, session.user);
+
+    const [creatorPerson] = await db
+      .select({ name: personsTable.name })
+      .from(personsTable)
+      .where(eq(personsTable.id, session.user.personId!));
     const organizerUsers = await db
       .select({ email: usersTable.email })
       .from(usersTable)
-      .where(
-        inArray(
-          usersTable.personId,
-          organizers.map((o) => o.personId),
-        ),
-      );
+      .where(inArray(usersTable.personId, newContestDto.organizerIds));
 
     await db.transaction(async (tx) => {
       await tx
@@ -126,12 +217,12 @@ export const createContestSF = actionClient
         .values({ ...newContestDto, createdBy: session.user.id })
         .returning();
 
-      // Email the creator and admins
+      // Notify the organizers and admins
       sendContestSubmittedNotification(
         organizerUsers.map((u) => u.email),
         createdContest,
         getContestUrl(newContestDto.competitionId),
-        organizers.find((o) => o.personId === session.user.personId)?.name ?? "UNKNOWN",
+        creatorPerson.name,
       );
     });
   });
@@ -140,14 +231,13 @@ async function validateAndCleanUpContest(
   contest: ContestDto,
   rounds: RoundDto[],
   user: typeof auth.$Infer.Session.user,
-): Promise<{ organizers: PersonResponse[] }> {
+) {
   const isAdmin = getIsAdmin(user.role);
   const events = await db.query.events.findMany();
 
   // Protect against admin-only stuff
   if (!isAdmin) {
-    // WON'T WORK UNTIL PERSON IDS ARE MIGRATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if (!contest.organizers.some((id) => id === user.personId))
+    if (!contest.organizerIds.some((id) => id === user.personId))
       throw new CcActionError("You cannot create a contest which you are not organizing");
   }
 
@@ -164,8 +254,7 @@ async function validateAndCleanUpContest(
     const event = events.find((e) => e.eventId === round.eventId);
     if (!event) throw new CcActionError(`Event with ID ${round.eventId} not found`);
     if (event.category === "removed") throw new CcActionError("Removed events are not allowed");
-
-    if (event.format === "time" && (!round.timeLimitCentiseconds || !round.timeLimitCumulativeRoundIds))
+    if (event.format === "time" && !round.timeLimitCentiseconds)
       throw new CcActionError("Every round of an event with the format Time must have a time limit");
 
     if (
@@ -180,10 +269,10 @@ async function validateAndCleanUpContest(
 
   // Make sure all organizer IDs are valid
   const organizers = await db
-    .select(personsPublicCols)
+    .select({ id: personsTable.id })
     .from(personsTable)
-    .where(inArray(personsTable.id, contest.organizers));
-  if (organizers.length !== contest.organizers.length)
+    .where(inArray(personsTable.id, contest.organizerIds));
+  if (organizers.length !== contest.organizerIds.length)
     throw new CcActionError("One of the organizer persons was not found");
 
   // Validation of meetups
@@ -217,7 +306,7 @@ async function validateAndCleanUpContest(
 
     // Schedule validation
     for (const venue of contest.schedule!.venues) {
-      if (venue.countryIso2 !== contest.countryIso2)
+      if (venue.countryIso2 !== contest.regionCode)
         throw new CcActionError("A venue may not have a country different from the contest country");
       if (
         venue.latitudeMicrodegrees !== contest.latitudeMicrodegrees ||
@@ -246,6 +335,4 @@ async function validateAndCleanUpContest(
       }
     }
   }
-
-  return { organizers };
 }

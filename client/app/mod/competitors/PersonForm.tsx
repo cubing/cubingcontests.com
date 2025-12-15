@@ -41,7 +41,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
   const [localizedName, setLocalizedName] = useState(personUnderEdit?.localizedName ?? "");
   const [wcaId, setWcaId] = useState(personUnderEdit?.wcaId ?? "");
   const [hasWcaId, setHasWcaId] = useState<boolean>(personUnderEdit === undefined || !!personUnderEdit.wcaId);
-  const [countryIso2, setCountryIso2] = useState(personUnderEdit?.countryIso2 ?? "NOT_SELECTED");
+  const [regionCode, setRegionCode] = useState(personUnderEdit?.regionCode ?? "NOT_SELECTED");
   const [isFetchingWcaPerson, startFetchWcaPersonTransition] = useTransition();
   // This is set to true when the user is an admin, and they attempted to set a person with a duplicate name/country combination.
   // If the person is submitted again with no changes, the request will be sent with ignoreDuplicate=true.
@@ -55,11 +55,11 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
       setNextFocusTarget("");
     }
     // These dependencies are required so that it focuses AFTER everything has been rerendered
-  }, [nextFocusTarget, name, localizedName, wcaId, hasWcaId, countryIso2, isPending]);
+  }, [nextFocusTarget, name, localizedName, wcaId, hasWcaId, regionCode, isPending]);
 
   useEffect(() => {
     if (isConfirmation.current) isConfirmation.current = false;
-  }, [name, countryIso2, wcaId, hasWcaId]);
+  }, [name, regionCode, wcaId, hasWcaId]);
 
   const handleSubmit = async () => {
     const baseRequest = {
@@ -67,7 +67,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
         name: name.trim(),
         localizedName: localizedName.trim() || null,
         wcaId: hasWcaId ? wcaId.trim().toUpperCase() : null,
-        countryIso2,
+        regionCode,
       } satisfies PersonDto,
       ignoreDuplicate: isConfirmation.current,
     };
@@ -126,7 +126,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
             changeErrorMessages(["A competitor with this WCA ID already exists"]);
             setName(res.data!.person.name);
             setLocalizedName(res.data!.person.localizedName ?? "");
-            setCountryIso2(res.data!.person.countryIso2);
+            setRegionCode(res.data!.person.regionCode);
           }
 
           setNextFocusTarget("wca_id");
@@ -141,7 +141,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
               resetMessages();
               setName(wcaPerson.name);
               setLocalizedName(wcaPerson.localizedName ?? "");
-              setCountryIso2(wcaPerson.countryIso2);
+              setRegionCode(wcaPerson.regionCode);
               setNextFocusTarget("form_submit_button");
             }
           });
@@ -166,7 +166,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
   const reset = (exceptWcaId = false) => {
     setName("");
     setLocalizedName("");
-    setCountryIso2("NOT_SELECTED");
+    setRegionCode("NOT_SELECTED");
     if (!exceptWcaId) setWcaId("");
   };
 
@@ -188,7 +188,7 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
           createdExternally={(personUnderEdit as any).createdExternally}
         />
       )}
-      {personUnderEdit && <p>CC ID: {personUnderEdit.personId}</p>}
+      {personUnderEdit && <p>CC ID: {personUnderEdit.id}</p>}
       <FormTextInput
         title="WCA ID"
         id="wca_id"
@@ -224,8 +224,8 @@ function PersonForm({ personUnderEdit, creator, creatorPerson, onSubmit, onCance
         className="mb-3"
       />
       <FormCountrySelect
-        countryIso2={countryIso2}
-        setCountryIso2={setCountryIso2}
+        countryIso2={regionCode}
+        setCountryIso2={setRegionCode}
         nextFocusTargetId="form_submit_button"
         disabled={isPending || hasWcaId}
       />

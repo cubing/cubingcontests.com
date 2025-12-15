@@ -7,7 +7,6 @@ import RankingsTable from "~/app/components/RankingsTable.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import RegionSelect from "~/app/rankings/[eventId]/[singleOrAvg]/RegionSelect.tsx";
 import { C } from "~/helpers/constants.ts";
-import { ssrFetch } from "~/helpers/DELETEfetchUtils.ts";
 
 // SEO
 export const metadata = {
@@ -87,7 +86,7 @@ async function RankingsPage({ params, searchParams }: Props) {
       ? "3x3"
       : ["222", "222bf", "222fm", "222oh"].includes(currEvent.eventId)
         ? "2x2"
-        : currEvent.groups.includes(EventGroup.WCA)
+        : currEvent.category === "wca"
           ? "wca"
           : ["fto", "fto_bld", "fto_mbld", "mfto", "baby_fto"].includes(currEvent.eventId)
             ? "fto"
@@ -117,14 +116,14 @@ async function RankingsPage({ params, searchParams }: Props) {
                 <Link
                   href={`/rankings/${eventId}/single?${urlSearchParams}`}
                   prefetch={false}
-                  className={"btn btn-primary" + (singleOrAvg === "single" ? "active" : "")}
+                  className={`btn btn-primary ${singleOrAvg === "single" ? "active" : ""}`}
                 >
                   Single
                 </Link>
                 <Link
                   href={`/rankings/${eventId}/average?${urlSearchParams}`}
                   prefetch={false}
-                  className={"btn btn-primary" + (singleOrAvg === "average" ? "active" : "")}
+                  className={`btn btn-primary ${singleOrAvg === "average" ? "active" : ""}`}
                 >
                   {currEvent.defaultRoundFormat === "a" ? "Average" : "Mean"}
                 </Link>
@@ -137,7 +136,7 @@ async function RankingsPage({ params, searchParams }: Props) {
                 <Link
                   href={`/rankings/${eventId}/${singleOrAvg}?${urlSearchParamsWithoutShow}`}
                   prefetch={false}
-                  className={"btn btn-primary" + (!show ? "active" : "")}
+                  className={`btn btn-primary ${!show ? "active" : ""}`}
                 >
                   Top Persons
                 </Link>
@@ -146,7 +145,7 @@ async function RankingsPage({ params, searchParams }: Props) {
                     urlSearchParamsWithoutShow.toString() ? `${urlSearchParamsWithoutShow}&` : ""
                   }show=results`}
                   prefetch={false}
-                  className={"btn btn-primary" + (show ? "active" : "")}
+                  className={`btn btn-primary ${show ? "active" : ""}`}
                 >
                   Top Results
                 </Link>
@@ -159,7 +158,7 @@ async function RankingsPage({ params, searchParams }: Props) {
                 <Link
                   href={`/rankings/${eventId}/${singleOrAvg}?${urlSearchParamsWithoutTopN}`}
                   prefetch={false}
-                  className={"btn btn-primary" + (!topN || topN === "100" ? "active" : "")}
+                  className={`btn btn-primary ${!topN || topN === "100" ? "active" : ""}`}
                 >
                   100
                 </Link>
@@ -168,7 +167,7 @@ async function RankingsPage({ params, searchParams }: Props) {
                     urlSearchParamsWithoutTopN.toString() ? `${urlSearchParamsWithoutTopN}&` : ""
                   }topN=1000`}
                   prefetch={false}
-                  className={"btn btn-primary" + (topN === "1000" ? "active" : "")}
+                  className={`btn btn-primary ${topN === "1000" ? "active" : ""}`}
                 >
                   1000
                 </Link>
@@ -177,21 +176,21 @@ async function RankingsPage({ params, searchParams }: Props) {
                     urlSearchParamsWithoutTopN.toString() ? `${urlSearchParamsWithoutTopN}&` : ""
                   }topN=10000`}
                   prefetch={false}
-                  className={"btn btn-primary" + (topN === "10000" ? "active" : "")}
+                  className={`btn btn-primary ${topN === "10000" ? "active" : ""}`}
                 >
                   10000
                 </Link>
               </div>
             </div>
 
-            {!currEvent.groups.some((g) => [EventGroup.WCA, EventGroup.ExtremeBLD].includes(g)) && (
+            {!["wca", "extreme-bld"].includes(currEvent.category) && (
               <div>
                 <h5>Contest Type</h5>
                 <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Contest Type">
                   <Link
                     href={`/rankings/${eventId}/${singleOrAvg}?${urlSearchParamsWithoutContestType}`}
                     prefetch={false}
-                    className={"btn btn-primary" + (!contestType ? "active" : "")}
+                    className={`btn btn-primary ${!contestType ? "active" : ""}`}
                   >
                     Competitions
                   </Link>
@@ -200,7 +199,7 @@ async function RankingsPage({ params, searchParams }: Props) {
                       urlSearchParamsWithoutContestType.toString() ? `${urlSearchParamsWithoutContestType}&` : ""
                     }contestType=all`}
                     prefetch={false}
-                    className={"btn btn-primary" + (contestType ? "active" : "")}
+                    className={`btn btn-primary ${contestType ? "active" : ""}`}
                   >
                     All
                   </Link>

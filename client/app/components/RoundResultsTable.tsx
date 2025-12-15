@@ -80,10 +80,10 @@ function RoundResultsTable({
                 <td>
                   <div className="d-flex flex-wrap gap-2">
                     {result.personIds.map((personId, i) => {
-                      const person = persons.find((p) => p.personId === personId);
+                      const person = persons.find((p) => p.id === personId);
                       if (!person) return <span key={personId}>(name not found)</span>;
                       return (
-                        <span key={person.personId} className="d-flex gap-2">
+                        <span key={person.id} className="d-flex gap-2">
                           <Competitor person={person} showLocalizedName />
                           {i !== result.personIds.length - 1 && <span>&</span>}
                         </span>

@@ -10,7 +10,7 @@ const events = ["create", "update", "delete"];
 const videoBasedResults = ["create", "update", "approve", "delete"];
 
 const statement = {
-  ...defaultStatements,
+  ...defaultStatements, // includes "user" and "session" permissions
   modDashboard,
   recordConfigs,
   competitions,
@@ -23,7 +23,7 @@ const statement = {
 export const ac = createAccessControl(statement);
 
 const permissions = {
-  ...adminAc.statements,
+  ...adminAc.statements, // includes "user" and "session" permissions
   modDashboard,
   recordConfigs,
   competitions,

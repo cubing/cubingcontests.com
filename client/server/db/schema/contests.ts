@@ -32,7 +32,7 @@ export const contestsTable = table(
     shortName: varchar({ length: 60 }).notNull(),
     type: contestTypeEnum().notNull(),
     city: text().notNull(),
-    countryIso2: varchar({ length: 2 }).notNull(),
+    regionCode: text().notNull(),
     venue: text().notNull(),
     address: text().notNull(),
     latitudeMicrodegrees: integer().notNull(),
@@ -41,7 +41,7 @@ export const contestsTable = table(
     endDate: timestamp().notNull(),
     startTime: timestamp(), // only used for meetups
     timeZone: text(), // only used for meetups
-    organizers: integer()
+    organizerIds: integer()
       .references(() => personsTable.id)
       .array()
       .notNull(),

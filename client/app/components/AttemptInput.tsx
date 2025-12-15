@@ -44,7 +44,7 @@ type Props = {
   attempt: Attempt;
   setAttempt: (val: Attempt) => void;
   event: EventResponse;
-  timeLimitCentiseconds?: number;
+  timeLimitCentiseconds?: number | null;
   memoInputForBld?: boolean;
   allowUnknownTime?: boolean;
   maxTime?: number; // maximum allowed time in centiseconds (can be used for time limit/cutoff inputs)
@@ -222,7 +222,7 @@ function AttemptInput({
       } else if (/[0-9]/.test(newCharacter)) {
         let text: string;
         if (forMemo) text = memoText || "00";
-        else text = isNaN(Number(attemptText)) ? "" : attemptText;
+        else text = Number.isNaN(Number(attemptText)) ? "" : attemptText;
 
         if (newCharacter === "0" && ["", "00"].includes(text)) return; // don't allow entering 0 as the first digit
 
@@ -251,12 +251,7 @@ function AttemptInput({
       e.preventDefault();
 
       // If it's not the memo input and there is a time limit that wasn't met, DNF the attempt
-      if (
-        !forMemo &&
-        timeLimitCentiseconds !== undefined &&
-        attempt.result !== null &&
-        attempt.result >= timeLimitCentiseconds
-      ) {
+      if (!forMemo && timeLimitCentiseconds && attempt.result !== null && attempt.result >= timeLimitCentiseconds) {
         dnfTheAttempt();
         focusNext();
       } else if (!forMemo && includeMemo) {

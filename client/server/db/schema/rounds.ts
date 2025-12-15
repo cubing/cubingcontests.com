@@ -18,7 +18,8 @@ export const roundsTable = table(
     roundTypeId: roundTypeEnum().notNull(),
     format: roundFormatEnum().notNull(),
     timeLimitCentiseconds: integer(),
-    timeLimitCumulativeRoundIds: text().array(),
+    // If this is not null, it's implied that the round itself is included in the cumulative limit rounds
+    timeLimitCumulativeRoundIds: integer().array(),
     cutoffAttemptResult: integer(),
     cutoffNumberOfAttempts: integer(),
     proceedType: roundProceedEnum(),
@@ -27,10 +28,10 @@ export const roundsTable = table(
     ...tableTimestamps,
   },
   (table) => [
+    // Cumulative round IDs can only be set when the round has a time limit
     check(
       "rounds_timelimit_check",
-      sql`(${table.timeLimitCentiseconds} is not null and ${table.timeLimitCumulativeRoundIds} is not null)
-        or (${table.timeLimitCentiseconds} is null and ${table.timeLimitCumulativeRoundIds} is null)`,
+      sql`${table.timeLimitCumulativeRoundIds} is null or ${table.timeLimitCentiseconds} is not null`,
     ),
     check(
       "rounds_cutoff_check",

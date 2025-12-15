@@ -22,9 +22,9 @@ async function ManageResultsPage() {
   const persons = await db
     .select()
     .from(personsTable)
-    .where(inArray(personsTable.personId, Array.from(allPersonIds)));
+    .where(inArray(personsTable.id, Array.from(allPersonIds)));
   results.forEach((r) => {
-    (r as any).persons = r.personIds.map((pid) => persons.find((p) => p.personId === pid) ?? null);
+    (r as any).persons = r.personIds.map((pid) => persons.find((p) => p.id === pid) ?? null);
   });
 
   return (

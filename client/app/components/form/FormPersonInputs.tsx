@@ -107,7 +107,7 @@ function FormPersonInputs({
   // Returns true if an input was added
   const addEmptyInputIfRequired = (newPersonNames: string[], newPersons: InputPerson[]): boolean => {
     // Add new empty input if there isn't an empty one left
-    if (infiniteInputs && !newPersons.some((el) => el === null)) {
+    if (infiniteInputs && !newPersons.some((p) => p === null)) {
       newPersonNames.push("");
       newPersons.push(null);
       return true;

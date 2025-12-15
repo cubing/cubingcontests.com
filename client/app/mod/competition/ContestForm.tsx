@@ -41,7 +41,7 @@ import { createContestSF, getTimeZoneFromCoordsSF } from "~/server/serverFunctio
 import {
   getOrCreatePersonByWcaIdSF,
   getOrCreatePersonSF,
-  getPersonByPersonIdSF,
+  getPersonByIdSF,
 } from "~/server/serverFunctions/personServerFunctions.ts";
 import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
@@ -71,7 +71,7 @@ function ContestForm({
 }: Props) {
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
-  const { executeAsync: getPersonByPersonId, isPending: isGettingPerson } = useAction(getPersonByPersonIdSF);
+  const { executeAsync: getPersonById, isPending: isGettingPerson } = useAction(getPersonByIdSF);
   const { executeAsync: getOrCreateWcaPerson, isPending: isGettingOrCreatingWcaPerson } =
     useAction(getOrCreatePersonByWcaIdSF);
   const { executeAsync: getOrCreatePerson, isPending: isGettingOrCreatingPerson } = useAction(getOrCreatePersonSF);
@@ -87,7 +87,7 @@ function ContestForm({
   const [shortName, setShortName] = useState(contest?.shortName ?? "");
   const [type, setType] = useState<ContestType | undefined>(contest?.type);
   const [city, setCity] = useState(contest?.city ?? "");
-  const [countryIso2, setCountryIso2] = useState(contest?.countryIso2 ?? "NOT_SELECTED");
+  const [regionCode, setRegionCode] = useState(contest?.regionCode ?? "NOT_SELECTED");
   const [venue, setVenue] = useState(contest?.venue ?? "");
   const [address, setAddress] = useState(contest?.address ?? "");
   // Vertical coordinate (Y); ranges from -90 to 90
@@ -178,8 +178,8 @@ function ContestForm({
         venues: [
           {
             id: 1,
-            name: venue || "Unknown venue",
-            countryIso2,
+            name: venue,
+            countryIso2: regionCode,
             latitudeMicrodegrees,
             longitudeMicrodegrees,
             timezone: timeZone,
@@ -196,7 +196,7 @@ function ContestForm({
       shortName: shortName.trim(),
       type: type!,
       city: city.trim(),
-      countryIso2,
+      regionCode,
       venue: venue.trim(),
       address: address.trim(),
       latitudeMicrodegrees,
@@ -205,7 +205,7 @@ function ContestForm({
       endDate: endDate!,
       startTime: type === "meetup" ? startTime : undefined,
       timeZone: type === "meetup" ? timeZone : undefined,
-      organizers: selectedOrganizers.map((o) => o.id),
+      organizerIds: selectedOrganizers.map((o) => o.id),
       contact: contact.trim() || undefined,
       description: description.trim(),
       competitorLimit: competitorLimit || undefined,
@@ -214,7 +214,7 @@ function ContestForm({
 
     // Validation
     const tempErrors: string[] = parsed.success ? [] : [z.prettifyError(parsed.error)];
-    if (selectedOrganizers.length < organizerNames.filter((on) => on !== "").length)
+    if (selectedOrganizers.length < organizerNames.filter((name) => name !== "").length)
       tempErrors.push("Please enter all organizers");
     if (type === "wca-comp" && !detailsImported)
       tempErrors.push('You must use the "Get WCA competition details" feature');
@@ -224,7 +224,7 @@ function ContestForm({
     }
 
     const roundWithDefaultTimeLimitExists = rounds.some(
-      (r) => r.timeLimitCentiseconds === C.defaultTimeLimit && r.timeLimitCumulativeRoundIds?.length === 0,
+      (r) => r.timeLimitCentiseconds === C.defaultTimeLimit && !r.timeLimitCumulativeRoundIds,
     );
     const confirmDefaultTimeLimitMsg =
       "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
@@ -250,14 +250,14 @@ function ContestForm({
   };
 
   const fillWithMockData = async (mockContestType: ContestType = "comp") => {
-    const res = await getPersonByPersonId({ personId: session.user.personId! });
+    const res = await getPersonById({ id: session.user.personId! });
 
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
     } else {
       setType(mockContestType);
       setCity("Singapore");
-      setCountryIso2("SG");
+      setRegionCode("SG");
       setAddress("Address");
       setVenue("Venue");
       setLatitude(1.314663);
@@ -307,7 +307,7 @@ function ContestForm({
             if (r.timeLimitCentiseconds) return r; // if it already has a time limit, don't change anything
             const event = events.find((e) => e.eventId === r.eventId)!;
             if (event.format !== "time") return r;
-            return { ...r, timeLimitCentiseconds: C.defaultTimeLimit, timeLimitCumulativeRoundIds: [] };
+            return { ...r, timeLimitCentiseconds: C.defaultTimeLimit, timeLimitCumulativeRoundIds: null };
           }),
         );
       }
@@ -368,10 +368,10 @@ function ContestForm({
       for (const org of [...wcaV0CompData.organizers, ...wcaV0CompData.delegates]) {
         const res = org.wca_id
           ? await getOrCreateWcaPerson({ wcaId: org.wca_id })
-          : await getOrCreatePerson({ name: org.name, countryIso2: org.country_iso2 });
+          : await getOrCreatePerson({ name: org.name, regionCode: org.country_iso2 });
 
         if (!res.data) notFoundPersonNames.add(org.name);
-        else if (!organizers.some((o) => o.personId === res.data!.person.personId)) organizers.push(res.data.person);
+        else if (!organizers.some((o) => o.id === res.data!.person.id)) organizers.push(res.data.person);
       }
 
       if (notFoundPersonNames.size > 0) {
@@ -383,7 +383,7 @@ function ContestForm({
       setName(wcaCompData.name);
       setShortName(wcaV0CompData.short_name);
       setCity(wcaCompData.city);
-      setCountryIso2(wcaCompData.country);
+      setRegionCode(wcaCompData.country);
       setAddress(wcaCompData.venue.address);
       // Gets rid of the link and just takes the venue name
       setVenue(wcaCompData.venue.name.split("]")[0].replace("[", ""));
@@ -492,7 +492,8 @@ function ContestForm({
       <Form
         buttonText={mode === "edit" ? "Save Contest" : "Create Contest"}
         onSubmit={handleSubmit}
-        disableControls={disabled || disabledIfContestPublished || disabledIfNotUnderstood}
+        isLoading={isCreating}
+        disableControls={isPending || disabled || disabledIfContestPublished || disabledIfNotUnderstood}
       >
         {mode === "edit" && <CreatorDetails creator={creator} person={creatorPerson} />}
 
@@ -692,8 +693,8 @@ function ContestForm({
                   </div>
                   <div className="col-12 col-md-6 mb-3">
                     <FormCountrySelect
-                      countryIso2={countryIso2}
-                      setCountryIso2={setCountryIso2}
+                      countryIso2={regionCode}
+                      setCountryIso2={setRegionCode}
                       disabled={mode === "edit" || disabledIfDetailsImported}
                     />
                   </div>

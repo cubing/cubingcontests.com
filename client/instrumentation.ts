@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import type { auth as authType } from "~/server/auth.ts";
 import type { db as dbType } from "~/server/db/provider.ts";
 import { accounts as accountsTable, users as usersTable } from "~/server/db/schema/auth-schema.ts";
-import { getContinent } from "./helpers/Countries.ts";
+import { getSuperRegion } from "./helpers/Countries.ts";
 import { C } from "./helpers/constants.ts";
 import type { Schedule } from "./helpers/types/Schedule.ts";
 import { type ContestState, type ContestType, RecordTypeValues } from "./helpers/types.ts";
@@ -12,7 +12,7 @@ import { contestsTable } from "./server/db/schema/contests.ts";
 import { eventsTable } from "./server/db/schema/events.ts";
 import { personsTable } from "./server/db/schema/persons.ts";
 import { recordConfigsTable } from "./server/db/schema/record-configs.ts";
-import { resultsTable } from "./server/db/schema/results.ts";
+import { type InsertResult, resultsTable } from "./server/db/schema/results.ts";
 import { roundsTable } from "./server/db/schema/rounds.ts";
 
 // This is the scrypt password hash for the password "cc" (only used for testing in development)
@@ -28,15 +28,16 @@ export async function register() {
     const { randomUUID }: { randomUUID: typeof randomUUIDType } = await import("node:crypto");
     const { db }: { db: typeof dbType } = await import("~/server/db/provider.ts");
     const { auth }: { auth: typeof authType } = await import("~/server/auth.ts");
-    const usersDump = JSON.parse(fs.readFileSync("./dump/users.json") as any);
+    const usersDump = JSON.parse(fs.readFileSync("./dump/users.json") as any) as any[];
     const personsDump = (JSON.parse(fs.readFileSync("./dump/people.json") as any) as any[]).reverse();
+    const contestsDump = JSON.parse(fs.readFileSync("./dump/competitions.json") as any) as any[];
     const roundsDump = JSON.parse(fs.readFileSync("./dump/rounds.json") as any) as any[];
 
     const testUsers = [
       {
         email: "admin@cc.com",
         username: "admin",
-        name: "",
+        name: "admin",
         password: "Temporary_good_password123",
         role: "admin",
         personId: 1,
@@ -44,7 +45,7 @@ export async function register() {
       {
         email: "mod@cc.com",
         username: "mod",
-        name: "",
+        name: "mod",
         password: "Temporary_good_password123",
         role: "mod",
         personId: 2,
@@ -52,7 +53,7 @@ export async function register() {
       {
         email: "user@cc.com",
         username: "user",
-        name: "",
+        name: "user",
         password: "Temporary_good_password123",
         personId: 3,
       },
@@ -78,9 +79,7 @@ export async function register() {
         await db.update(accountsTable).set({ password: hashForCc }).where(eq(accountsTable.userId, user.id));
 
         // Set role
-        if (role) {
-          await db.update(usersTable).set({ role }).where(eq(usersTable.id, user.id));
-        }
+        if (role) await db.update(usersTable).set({ role }).where(eq(usersTable.id, user.id));
 
         console.log(`Seeded test user: ${testUser.username}`);
       }
@@ -106,7 +105,7 @@ export async function register() {
               // Resetting all passwords due to hashing algorithm change (further encrypted by scrypt)
               password: randomUUID(),
               personId: user.personId,
-              name: "",
+              name: user.username,
             },
           });
 
@@ -150,35 +149,37 @@ export async function register() {
         let tempPersons = [];
 
         for (const p of personsDump) {
-          tempPersons.push({
-            personId: p.personId,
-            wcaId: p.wcaId,
-            name: p.name,
-            localizedName: p.localizedName,
-            countryIso2: p.countryIso2,
-            approved: !p.unapproved,
-            createdBy: p.createdBy ? getUserId(p.createdBy.$oid) : null,
-            createdExternally: !p.createdBy,
-            createdAt: new Date(p.createdAt.$date),
-            updatedAt: new Date(p.updatedAt.$date),
-          });
+          const createdBy = p.createdBy ? getUserId(p.createdBy.$oid) : null;
+          tempPersons.push(
+            `(${p.personId}, '${p.name.replaceAll("'", "''")}', ${p.localizedName ? `'${p.localizedName.replaceAll("'", "''")}'` : "NULL"}, '${p.countryIso2}', ${p.wcaId ? `'${p.wcaId}'` : "NULL"}, ${!p.unapproved}, ${createdBy ? `'${createdBy}'` : "NULL"}, ${!p.createdBy}, '${p.createdAt.$date}', '${p.updatedAt.$date}')`,
+          );
 
           // Drizzle can't handle too many entries being inserted at once
-          if (tempPersons.length === 1000) {
-            await db.insert(personsTable).values(tempPersons);
+          if (tempPersons.length === 100) {
+            await db.execute(
+              sql.raw(
+                `INSERT INTO persons (id, name, localized_name, region_code, wca_id, approved, created_by, created_externally, created_at, updated_at) 
+                 OVERRIDING SYSTEM VALUE VALUES ${tempPersons.join(", ")}`,
+              ),
+            );
             tempPersons = [];
           }
         }
 
-        await db.insert(personsTable).values(tempPersons);
+        await db.execute(
+          sql.raw(
+            `INSERT INTO persons (id, name, localized_name, region_code, wca_id, approved, created_by, created_externally, created_at, updated_at) 
+             OVERRIDING SYSTEM VALUE VALUES ${tempPersons.join(", ")}`,
+          ),
+        );
       } catch (e) {
         console.error("Unable to load persons dump:", e);
       }
     }
 
-    const persons = await db.select().from(personsTable).orderBy(personsTable.personId);
+    const persons = await db.select().from(personsTable).orderBy(personsTable.id);
 
-    await db.execute(sql.raw(`ALTER SEQUENCE persons_person_id_seq RESTART WITH ${persons.at(-1)!.personId + 1};`));
+    await db.execute(sql.raw(`ALTER SEQUENCE persons_id_seq RESTART WITH ${persons.at(-1)!.id + 1};`));
 
     if ((await db.select({ id: eventsTable.id }).from(eventsTable).limit(1)).length === 0) {
       console.log("Seeding events...");
@@ -232,6 +233,15 @@ export async function register() {
         for (const r of roundsDump) {
           const [eventId, roundNumberStr] = r.roundId.split("-r");
 
+          if (
+            r.timeLimit &&
+            r.timeLimit.cumulativeRoundIds.length > 0 &&
+            (r.timeLimit.cumulativeRoundIds.length > 1 || r.timeLimit.cumulativeRoundIds[0] !== r.roundId)
+          )
+            console.error(
+              `Round time limit cumulative round IDs contain error: ${JSON.stringify({ ...r, results: [] }, null, 2)}`,
+            );
+
           tempRounds.push({
             competitionId: r.competitionId,
             eventId,
@@ -239,7 +249,8 @@ export async function register() {
             roundTypeId: r.roundTypeId,
             format: r.format,
             timeLimitCentiseconds: r.timeLimit?.centiseconds ?? null,
-            timeLimitCumulativeRoundIds: r.timeLimit?.cumulativeRoundIds ?? null,
+            timeLimitCumulativeRoundIds:
+              r.timeLimit?.cumulativeRoundIds && r.timeLimit.cumulativeRoundIds.length > 0 ? [] : null,
             cutoffAttemptResult: r.cutoff?.attemptResult ?? null,
             cutoffNumberOfAttempts: r.cutoff?.numberOfAttempts ?? null,
             proceedType: r.proceed?.type === 1 ? "percentage" : r.proceed?.type === 2 ? "number" : null,
@@ -291,25 +302,26 @@ export async function register() {
 
       try {
         for (const r of resultsDump) {
-          const participants = persons.filter((p) => r.personIds.includes(p.personId));
-          const isSameCountryParticipants = !participants.some((p) => p.countryIso2 !== participants[0].countryIso2);
-          const firstParticipantContinent = getContinent(participants[0].countryIso2);
-          const isSameContinentParticipants =
-            isSameCountryParticipants ||
-            !participants.slice(1).some((p) => getContinent(p.countryIso2) !== firstParticipantContinent);
-          const countryIso2 = isSameCountryParticipants ? participants[0].countryIso2 : null;
-          const continentId = isSameContinentParticipants ? firstParticipantContinent : null;
+          // Copied from results server functions
+          const participants = persons.filter((p) => r.personIds.includes(p.id));
+          const isSameRegionParticipants = participants.every((p) => p.regionCode === participants[0].regionCode);
+          const firstParticipantSuperRegion = getSuperRegion(participants[0].regionCode);
+          const isSameSuperRegionParticipants =
+            isSameRegionParticipants ||
+            participants.slice(1).every((p) => getSuperRegion(p.regionCode) === firstParticipantSuperRegion);
+          const contest = r.competitionId ? contestsDump.find((c) => c.competitionId === r.competitionId) : undefined;
 
           tempResults.push({
             eventId: r.eventId,
             date: new Date(r.date.$date),
             approved: !r.unapproved,
             personIds: r.personIds,
-            countryIso2,
-            continentId,
+            regionCode: isSameRegionParticipants ? participants[0].regionCode : null,
+            superRegionCode: isSameSuperRegionParticipants ? firstParticipantSuperRegion : null,
             attempts: r.attempts,
             best: r.best,
             average: r.average,
+            recordCategory: contest ? (contest.type === 1 ? "meetups" : "competitions") : "video-based-results",
             regionalSingleRecord: r.regionalSingleRecord ?? null,
             regionalAverageRecord: r.regionalAverageRecord ?? null,
             competitionId: r.competitionId ?? null,
@@ -323,7 +335,7 @@ export async function register() {
             createdExternally: false,
             createdAt: new Date(r.createdAt.$date),
             updatedAt: new Date(r.updatedAt.$date),
-          });
+          } satisfies InsertResult);
 
           // Drizzle can't handle too many entries being inserted at once
           if (tempResults.length === 1000) {
@@ -341,7 +353,6 @@ export async function register() {
     if ((await db.select({ id: contestsTable.id }).from(contestsTable).limit(1)).length === 0) {
       console.log("Seeding contests...");
 
-      const contestsDump = (JSON.parse(fs.readFileSync("./dump/competitions.json") as any) as any[]).reverse();
       const schedulesDump = JSON.parse(fs.readFileSync("./dump/schedules.json") as any) as any[];
       let tempContests: any[] = [];
 
@@ -349,8 +360,8 @@ export async function register() {
         const dumpPersonObject = personsDump.find((u: any) => u._id.$oid === $oid);
         if (!dumpPersonObject) throw new Error(`Person with ID ${$oid} not found in persons dump!`);
 
-        const person = persons.find((u) => u.personId === dumpPersonObject.personId);
-        if (!person) throw new Error(`Person with person ID ${dumpPersonObject.username} not found in DB`);
+        const person = persons.find((p) => p.id === dumpPersonObject.personId);
+        if (!person) throw new Error(`Person with person ID ${dumpPersonObject.personId} not found in DB`);
 
         return person.id;
       };
@@ -396,9 +407,9 @@ export async function register() {
                       : "removed") as ContestState,
             name: c.name,
             shortName: c.shortName,
-            type: (c.type === 1 ? "meetup" : c.type === 2 ? "wca-comp" : "comp") as ContestType,
+            type: (c.type === 1 ? "meetup" : c.type === 2 ? "wca-comp" : "comp") satisfies ContestType,
             city: c.city,
-            countryIso2: c.countryIso2,
+            regionCode: c.countryIso2,
             venue: c.venue,
             address: c.address,
             latitudeMicrodegrees: c.latitudeMicrodegrees,
@@ -407,7 +418,7 @@ export async function register() {
             endDate: c.endDate ? new Date(c.endDate.$date) : new Date(c.startDate.$date),
             startTime: c.meetupDetails ? new Date(c.meetupDetails.startTime.$date) : null,
             timeZone: c.meetupDetails?.timeZone ?? null,
-            organizers: c.organizers.map((o: any) => getPersonId(o.$oid)),
+            organizerIds: c.organizers.map((o: any) => getPersonId(o.$oid)),
             contact: c.contact ?? null,
             description: c.description,
             competitorLimit: c.competitorLimit ?? null,

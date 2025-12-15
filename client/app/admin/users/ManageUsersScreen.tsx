@@ -47,7 +47,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
     return users.filter(
       (u) =>
         u.username.toLocaleLowerCase().includes(simplifiedSearch) ||
-        getSimplifiedString(userPersons.find((p) => p.personId === u.personId)?.name ?? "").includes(simplifiedSearch),
+        getSimplifiedString(userPersons.find((p) => p.id === u.personId)?.name ?? "").includes(simplifiedSearch),
     );
   }, [search, users, userPersons]);
 
@@ -63,7 +63,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
       return;
     }
 
-    const res = await updateUser({ id: userId!, personId: persons[0]?.personId, role });
+    const res = await updateUser({ id: userId!, personId: persons[0]?.id, role });
 
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
@@ -88,7 +88,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
     if (!user.role) throw new Error("Error: user role is empty");
     setRole(user.role as any);
 
-    const person = user.personId ? userPersons.find((p) => p.personId === user.personId) : undefined;
+    const person = user.personId ? userPersons.find((p) => p.id === user.personId) : undefined;
 
     if (person) {
       setPersons([person]);
@@ -154,7 +154,7 @@ function ManageUsersScreen({ users: initUsers, userPersons: initUserPersons }: P
           </thead>
           <tbody>
             {filteredUsers.map((user, index) => {
-              const person = userPersons.find((p) => p.personId === user.personId);
+              const person = userPersons.find((p) => p.id === user.personId);
 
               return (
                 <tr key={user.id}>

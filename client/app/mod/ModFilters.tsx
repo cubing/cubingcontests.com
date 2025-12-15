@@ -10,7 +10,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utilityFunctions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import { getPersonByPersonIdSF } from "~/server/serverFunctions/personServerFunctions.ts";
+import { getPersonByIdSF } from "~/server/serverFunctions/personServerFunctions.ts";
 
 type Props = {
   onSelectPerson: (person: PersonResponse) => void;
@@ -22,7 +22,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
   const searchParams = useSearchParams();
   const { changeErrorMessages } = useContext(MainContext);
 
-  const { executeAsync: getPersonByPersonId, isPending: isPendingPerson } = useAction(getPersonByPersonIdSF);
+  const { executeAsync: getPersonById, isPending: isGettingPerson } = useAction(getPersonByIdSF);
   const [persons, setPersons] = useState<InputPerson[]>([null]);
   const [personNames, setPersonNames] = useState([""]);
 
@@ -30,7 +30,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
     const organizerPersonId = searchParams.get("organizerPersonId");
     if (organizerPersonId) {
       (async () => {
-        const res = await getPersonByPersonId({ personId: Number(organizerPersonId) });
+        const res = await getPersonById({ id: Number(organizerPersonId) });
 
         if (res.serverError || res.validationErrors) {
           changeErrorMessages([getActionError(res)]);
@@ -40,7 +40,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
         }
       })();
     }
-  }, [getPersonByPersonId, searchParams, changeErrorMessages]);
+  }, [getPersonById, searchParams, changeErrorMessages]);
 
   const resetFilters = () => {
     onResetFilters();
@@ -57,7 +57,7 @@ const ModFilters = ({ onSelectPerson, onResetFilters, disabled }: Props) => {
         personNames={personNames}
         setPersonNames={setPersonNames}
         onSelectPerson={onSelectPerson}
-        disabled={disabled || isPendingPerson}
+        disabled={disabled || isGettingPerson}
         addNewPersonMode="disabled"
         display="one-line"
       />

@@ -8,22 +8,15 @@ type Props = {
   shorten?: boolean;
 };
 
-const Country = ({
-  countryIso2,
-  swapPositions,
-  noText,
-  shorten,
-}: Props) => {
+function Country({ countryIso2, swapPositions, noText, shorten }: Props) {
   if (noText && shorten) {
-    throw new Error(
-      "Country does not support the noText and shorten arguments at the same time",
-    );
+    throw new Error("Country does not support the noText and shorten arguments at the same time");
   }
 
   const FlagComponent = (Flags as any)[countryIso2];
 
   const getCountry = (countryIso2: string): string => {
-    const country = Countries.find((el) => el.code === countryIso2);
+    const country = Countries.find((c) => c.code === countryIso2);
 
     if (!country) return "NOT FOUND";
 
@@ -33,17 +26,14 @@ const Country = ({
   };
 
   return (
-    <span className="d-inline-flex align-items-center gap-2">
+    <span className="d-inline-flex gap-2 align-items-center">
       {!noText && swapPositions && getCountry(countryIso2)}
-      {FlagComponent &&
-        FlagComponent({
-          title: getCountry(countryIso2),
-          className: "cc-flag-icon",
-          style: { height: "1.16rem" },
-        })}
+      {FlagComponent
+        ? FlagComponent({ title: getCountry(countryIso2), className: "cc-flag-icon", style: { height: "1.16rem" } })
+        : undefined}
       {!noText && !swapPositions && getCountry(countryIso2)}
     </span>
   );
-};
+}
 
 export default Country;

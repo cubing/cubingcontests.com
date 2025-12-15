@@ -1,8 +1,10 @@
 import { differenceInDays, startOfDay } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { remove as removeAccents } from "remove-accents";
+import type { SelectContest } from "~/server/db/schema/contests.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
+import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 import { C } from "./constants.ts";
 import { type RoundFormatObject, roundFormats } from "./roundFormats.ts";
 import type { ContestType, EventWrPair, RoundFormat } from "./types.ts";
@@ -44,17 +46,16 @@ export function compareAvgs(
   return a.average - b.average;
 }
 
-// IMPORTANT: it is assumed that recordPairs is sorted by importance (i.e. first WR, then the CRs, then NR, then PR) and includes unapproved results
 export const setResultWorldRecords = (
   result: ResultResponse,
   event: EventResponse,
   eventWrPair: EventWrPair,
 ): ResultResponse => {
-  const comparisonToRecordSingle = compareSingles(result, { best: eventWrPair.best });
+  const comparisonToRecordSingle = compareSingles(result, { best: eventWrPair.best ?? Infinity });
   if (result.best > 0 && comparisonToRecordSingle <= 0) result.regionalSingleRecord = "WR";
 
   if (result.attempts.length === getDefaultAverageAttempts(event)) {
-    const comparisonToRecordAvg = compareAvgs(result, { average: eventWrPair.average });
+    const comparisonToRecordAvg = compareAvgs(result, { average: eventWrPair.average ?? Infinity });
     if (result.average > 0 && comparisonToRecordAvg <= 0) result.regionalAverageRecord = "WR";
   }
 
@@ -257,7 +258,7 @@ export async function fetchWcaPerson(wcaId: string): Promise<PersonDto | undefin
       name,
       localizedName: localizedName ?? null,
       wcaId,
-      countryIso2: data.country,
+      regionCode: data.country,
     };
     return newPerson;
   }
@@ -265,19 +266,23 @@ export async function fetchWcaPerson(wcaId: string): Promise<PersonDto | undefin
 
 export const getSimplifiedString = (input: string): string => removeAccents(input.trim().toLocaleLowerCase());
 
-export function getMaxAllowedRounds(rounds: IRound[]): number {
-  const getRoundHasEnoughResults = (roundIndex: number) =>
-    rounds[roundIndex].results.length >= C.minResultsForOneMoreRound &&
-    rounds[roundIndex].results.filter((r) => r.proceeds).length >= C.minProceedNumber;
+export function getMaxAllowedRounds(rounds: RoundResponse[], results: ResultResponse[]): number {
+  const resultsByRound = rounds
+    .map((r) => ({ round: r, results: results.filter((res) => res.roundId === r.id) }))
+    .sort((a, b) => a.round.roundNumber - b.round.roundNumber);
 
-  if (!getRoundHasEnoughResults(0)) return 1;
+  const getRoundHasEnoughResults = ({ results }: (typeof resultsByRound)[number]): boolean =>
+    results.length >= C.minResultsForOneMoreRound && results.filter((r) => r.proceeds).length >= C.minProceedNumber;
 
-  if (rounds[0].results.length < C.minResultsForTwoMoreRounds || !getRoundHasEnoughResults(1)) return 2;
+  if (!getRoundHasEnoughResults(resultsByRound[0])) return 1;
+
+  if (resultsByRound[0].results.length < C.minResultsForTwoMoreRounds || !getRoundHasEnoughResults(resultsByRound[1]))
+    return 2;
 
   if (
-    rounds[0].results.length < C.minResultsForThreeMoreRounds ||
-    rounds[1].results.length < C.minResultsForTwoMoreRounds ||
-    !getRoundHasEnoughResults(2)
+    resultsByRound[0].results.length < C.minResultsForThreeMoreRounds ||
+    resultsByRound[1].results.length < C.minResultsForTwoMoreRounds ||
+    !getRoundHasEnoughResults(resultsByRound[2])
   )
     return 3;
 
@@ -288,10 +293,9 @@ export function parseRoundId(roundId: string): [string, number] {
   const [eventPart, roundPart] = roundId.split("-");
   if (!eventPart || !roundPart) throw new Error(`Invalid round ID: ${roundId}`);
 
-  const roundNumber = parseInt(roundPart.slice(1));
-  if (isNaN(roundNumber) || roundNumber < 1 || roundNumber > C.maxRounds) {
+  const roundNumber = parseInt(roundPart.slice(1), 10);
+  if (Number.isNaN(roundNumber) || roundNumber < 1 || roundNumber > C.maxRounds)
     throw new Error(`Round ID has invalid round number: ${roundId}`);
-  }
 
   return [eventPart, roundNumber];
 }
@@ -299,4 +303,23 @@ export function parseRoundId(roundId: string): [string, number] {
 export function getIsUrgent(startDate: Date) {
   const difference = differenceInDays(startDate, fromZonedTime(startOfDay(new Date()), "UTC"));
   return difference >= 0 && difference <= 7;
+}
+
+export function getRoundDate(round: RoundResponse, contest: Pick<SelectContest, "startDate" | "schedule">): Date {
+  if (contest.schedule) {
+    const roundActivityCode = `${round.eventId}-r${round.roundNumber}`;
+
+    for (const venue of contest.schedule.venues) {
+      for (const room of venue.rooms) {
+        // ADD SUPPORT FOR CHILD ACTIVITIES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        const activity = room.activities.find((a) => a.activityCode === roundActivityCode);
+
+        if (activity) return getDateOnly(toZonedTime(activity.startTime, contest.schedule.venues[0].timezone))!;
+      }
+    }
+
+    throw new Error(`Activity with code ${roundActivityCode} not found in schedule`);
+  } else {
+    return contest.startDate;
+  }
 }

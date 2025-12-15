@@ -40,14 +40,15 @@ describe("createVideoBasedResultSF", () => {
         personIds: [1],
         attempts: [{ result: 10000, memo: 50 }, { result: 10100 }, { result: 10200 }],
         videoLink: "https://example.com",
+        discussionLink: null,
       },
     });
 
     expect(res.serverError).toBeUndefined();
     expect(res.validationErrors).toBeUndefined();
     expect(res.data).toBeDefined();
-    expect(res.data!.countryIso2).toBe("GB");
-    expect(res.data!.continentId).toBe("EUROPE");
+    expect(res.data!.regionCode).toBe("GB");
+    expect(res.data!.superRegionCode).toBe("EUROPE");
     expect(res.data!.best).toBe(10000);
     expect(res.data!.average).toBe(10100);
     expect(res.data!.date.getTime()).toBe(date.getTime());
@@ -63,6 +64,7 @@ describe("createVideoBasedResultSF", () => {
         personIds: [1],
         attempts: [{ result: 1234 }, { result: 1234 }, { result: 1234 }, { result: 1234 }, { result: 1234 }],
         videoLink: "https://example.com",
+        discussionLink: null,
       },
     });
 
@@ -79,6 +81,7 @@ describe("createVideoBasedResultSF", () => {
         personIds: [1],
         attempts: [{ result: 1234, memo: 12 }],
         videoLink: "https://example.com",
+        discussionLink: null,
       },
     });
 
@@ -94,6 +97,7 @@ describe("createVideoBasedResultSF", () => {
         personIds: [1],
         attempts: [{ result: 1234, memo: 12 }],
         videoLink: "https://example.com",
+        discussionLink: null,
       },
     });
 
@@ -109,6 +113,7 @@ describe("createVideoBasedResultSF", () => {
         personIds: [1, 2],
         attempts: [{ result: 1234, memo: 12 }],
         videoLink: "https://example.com",
+        discussionLink: null,
       },
     });
 
@@ -122,6 +127,7 @@ describe("createVideoBasedResultSF", () => {
         eventId: "444bf",
         date,
         videoLink: "https://example.com",
+        discussionLink: null,
       };
 
       it("creates NR result (beating FWR) and cancels future NR", async () => {
@@ -134,7 +140,7 @@ describe("createVideoBasedResultSF", () => {
         });
 
         expect(res.data).toBeDefined();
-        expect(res.data!.countryIso2).toBe("US");
+        expect(res.data!.regionCode).toBe("US");
         expect(res.data!.regionalSingleRecord).toBe("NR");
         expect(res.data!.regionalAverageRecord).toBe("NR");
 
@@ -156,7 +162,7 @@ describe("createVideoBasedResultSF", () => {
         });
 
         expect(res.data).toBeDefined();
-        expect(res.data!.continentId).toBe("NORTH_AMERICA");
+        expect(res.data!.superRegionCode).toBe("NORTH_AMERICA");
         expect(res.data!.regionalSingleRecord).toBe("NAR");
         expect(res.data!.regionalAverageRecord).toBe("NAR");
 
@@ -184,7 +190,7 @@ describe("createVideoBasedResultSF", () => {
         });
 
         expect(res.data).toBeDefined();
-        expect(res.data!.countryIso2).toBe("KR");
+        expect(res.data!.regionCode).toBe("KR");
         expect(res.data!.regionalSingleRecord).toBe("NR");
         expect(res.data!.regionalAverageRecord).toBe("NR");
       });
@@ -199,7 +205,7 @@ describe("createVideoBasedResultSF", () => {
         });
 
         expect(res.data).toBeDefined();
-        expect(res.data!.countryIso2).toBe("DE");
+        expect(res.data!.regionCode).toBe("DE");
         expect(res.data!.regionalSingleRecord).toBe("NR");
         expect(res.data!.regionalAverageRecord).toBe("NR");
       });
@@ -214,7 +220,7 @@ describe("createVideoBasedResultSF", () => {
         });
 
         expect(res.data).toBeDefined();
-        expect(res.data!.continentId).toBe("ASIA");
+        expect(res.data!.superRegionCode).toBe("ASIA");
         expect(res.data!.regionalSingleRecord).toBe("AsR");
         expect(res.data!.regionalAverageRecord).toBe("AsR");
 
@@ -354,7 +360,7 @@ describe("createVideoBasedResultSF", () => {
           });
 
           expect(res.data).toBeDefined();
-          expect(res.data!.countryIso2).toBe("US");
+          expect(res.data!.regionCode).toBe("US");
           expect(res.data!.regionalSingleRecord).toBe("NR");
           expect(res.data!.regionalAverageRecord).toBe("NR");
         });
@@ -369,7 +375,7 @@ describe("createVideoBasedResultSF", () => {
           });
 
           expect(res.data).toBeDefined();
-          expect(res.data!.countryIso2).toBe("US");
+          expect(res.data!.regionCode).toBe("US");
           expect(res.data!.regionalSingleRecord).toBe("NR");
           expect(res.data!.regionalAverageRecord).toBe("NR");
 
@@ -391,7 +397,7 @@ describe("createVideoBasedResultSF", () => {
           });
 
           expect(res.data).toBeDefined();
-          expect(res.data!.continentId).toBe("NORTH_AMERICA");
+          expect(res.data!.superRegionCode).toBe("NORTH_AMERICA");
           expect(res.data!.regionalSingleRecord).toBe("NAR");
           expect(res.data!.regionalAverageRecord).toBe("NAR");
 
@@ -413,7 +419,7 @@ describe("createVideoBasedResultSF", () => {
           });
 
           expect(res.data).toBeDefined();
-          expect(res.data!.continentId).toBe("NORTH_AMERICA");
+          expect(res.data!.superRegionCode).toBe("NORTH_AMERICA");
           expect(res.data!.regionalSingleRecord).toBe("NAR");
           expect(res.data!.regionalAverageRecord).toBe("NAR");
 
@@ -502,7 +508,7 @@ describe("createVideoBasedResultSF", () => {
           });
 
           expect(res.data).toBeDefined();
-          expect(res.data!.countryIso2).toBe("DE");
+          expect(res.data!.regionCode).toBe("DE");
           expect(res.data!.regionalSingleRecord).toBeNull();
           expect(res.data!.regionalAverageRecord).toBeNull();
         });
@@ -518,7 +524,7 @@ describe("createVideoBasedResultSF", () => {
           });
 
           expect(res.data).toBeDefined();
-          expect(res.data!.countryIso2).toBe("DE");
+          expect(res.data!.regionCode).toBe("DE");
           expect(res.data!.regionalSingleRecord).toBe("NR");
           expect(res.data!.regionalAverageRecord).toBe("NR");
 
@@ -541,12 +547,13 @@ describe("createVideoBasedResultSF", () => {
             personIds: [5, 7],
             attempts: [{ result: 4000 }, { result: 4100 }, { result: 4200 }],
             videoLink: "https://example.com",
+            discussionLink: null,
           },
         });
 
         expect(res.data).toBeDefined();
-        expect(res.data!.countryIso2).toBeNull();
-        expect(res.data!.continentId).toBe("ASIA");
+        expect(res.data!.regionCode).toBeNull();
+        expect(res.data!.superRegionCode).toBe("ASIA");
         expect(res.data!.regionalSingleRecord).toBe("AsR");
         expect(res.data!.regionalAverageRecord).toBe("AsR");
       });
@@ -559,12 +566,13 @@ describe("createVideoBasedResultSF", () => {
             personIds: [7, 8],
             attempts: [{ result: 4300 }, { result: 4500 }, { result: 4700 }],
             videoLink: "https://example.com",
+            discussionLink: null,
           },
         });
 
         expect(res.data).toBeDefined();
-        expect(res.data!.countryIso2).toBe("KR");
-        expect(res.data!.continentId).toBe("ASIA");
+        expect(res.data!.regionCode).toBe("KR");
+        expect(res.data!.superRegionCode).toBe("ASIA");
         expect(res.data!.regionalSingleRecord).toBe("NR");
         expect(res.data!.regionalAverageRecord).toBe("NR");
       });

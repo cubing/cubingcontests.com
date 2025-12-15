@@ -11,22 +11,20 @@ async function ManageUsersPage() {
   await authorizeUser({ permissions: { user: ["list"] } });
 
   const res = await auth.api.listUsers({
-    query: { filterField: "emailVerified", filterValue: true, sortBy: "createdAt", limit: 10000 },
+    query: { filterField: "emailVerified", filterValue: true, sortBy: "createdAt" },
     headers: await headers(),
   });
 
   if (!res.users) return <LoadingError loadingEntity="users" />;
 
   const personIds = Array.from(new Set(res.users.filter((u) => u.personId).map((u) => u.personId)));
-  const persons = await db
-    .select(personsPublicCols)
-    .from(personsTable)
-    .where(inArray(personsTable.personId, personIds));
+  const persons = await db.select(personsPublicCols).from(personsTable).where(inArray(personsTable.id, personIds));
 
   return (
     <section>
       <h2 className="mb-4 text-center">Users</h2>
-      <ManageUsersScreen users={res.users} userPersons={persons} />;
+
+      <ManageUsersScreen users={res.users} userPersons={persons} />
     </section>
   );
 }

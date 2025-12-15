@@ -123,7 +123,7 @@ export const ContestValidator = z
       .regex(/.* [0-9]{4}$/, { error: "The short name must have the year at the end, separated by a space" }),
     type: z.enum(ContestTypeValues),
     city: z.string().nonempty(),
-    countryIso2: z.enum(CountryCodes, { error: "Please select a country" }),
+    regionCode: z.enum(CountryCodes, { error: "Please select a country" }),
     venue: z.string().nonempty(),
     address: z.string().nonempty(),
     latitudeMicrodegrees,
@@ -132,7 +132,7 @@ export const ContestValidator = z
     endDate: z.date(),
     startTime: z.date().optional(),
     timeZone: z.string().nonempty().optional(),
-    organizers: z
+    organizerIds: z
       .array(z.int())
       .nonempty()
       .refine((val) => val.length === new Set(val).size, { error: "List of organizers must not have duplicates" }),

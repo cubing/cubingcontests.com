@@ -1,6 +1,5 @@
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import RankingRow from "./RankingRow.tsx";
-import { IRanking } from "~/helpers/types.ts";
 
 type Props = {
   rankings: IRanking[];
@@ -10,12 +9,7 @@ type Props = {
   topResultsRankings?: boolean;
 };
 
-function RankingsTable({
-  rankings,
-  event,
-  recordsTable = false,
-  topResultsRankings = false,
-}: Props) {
+function RankingsTable({ rankings, event, recordsTable = false, topResultsRankings = false }: Props) {
   if (topResultsRankings && recordsTable) {
     throw new Error("forAverage and topResultsRankings cannot both be true in RankingsTable");
   }
@@ -28,7 +22,7 @@ function RankingsTable({
   const showDetailsColumn = hasSolves || rankings.some((e) => e.memo);
   let lastRanking = 0;
 
-  if (rankings.length === 0) return <p className="mt-4 mx-2 fs-5">Results not found</p>;
+  if (rankings.length === 0) return <p className="fs-5 mx-2 mt-4">Results not found</p>;
 
   /////////////////////////////////////////////////////////////////////////////////////////
   // REMEMBER TO UPDATE THE MOBILE VIEW OF THE RECORDS PAGE WHEN CHANGING THIS
@@ -36,7 +30,7 @@ function RankingsTable({
 
   return (
     <div className="table-responsive flex-grow-1">
-      <table className="table table-hover table-responsive text-nowrap">
+      <table className="table-hover table-responsive table text-nowrap">
         <thead>
           <tr>
             <th>{recordsTable ? "Type" : "#"}</th>
@@ -61,7 +55,7 @@ function RankingsTable({
             if (recordsTable) {
               return ranking.persons.map((person, i) => (
                 <RankingRow
-                  key={`${ranking.type}_${ranking.resultId}_${person.personId}`}
+                  key={`${ranking.type}_${ranking.resultId}_${person.id}`}
                   onlyKeepPerson={i !== 0}
                   event={event}
                   ranking={ranking}
@@ -73,7 +67,7 @@ function RankingsTable({
               ));
             }
 
-            let key = `${ranking.resultId}_${ranking.persons[0].personId}`;
+            let key = `${ranking.resultId}_${ranking.persons[0].id}`;
             if (ranking.attemptNumber !== undefined) key += `_${ranking.attemptNumber}`;
 
             return (

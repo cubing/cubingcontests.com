@@ -168,16 +168,16 @@ export function sendContestSubmittedNotification(
       ccUrl: baseUrl,
       creator,
       startDate: contest.startDate.toDateString(),
-      location: `${contest.city}, ${Countries.find((c) => c.code === contest.countryIso2)?.name ?? "NOT FOUND"}`,
+      location: `${contest.city}, ${Countries.find((c) => c.code === contest.regionId)?.name ?? "NOT FOUND"}`,
       urgent,
     },
     callback: async (html) => {
       await client.send({
         from,
         reply_to: { email: C.contactEmail },
-        to: recipients.map(r => ({email: r})),
+        to: recipients.map((r) => ({ email: r })),
         bcc: [{ email: C.contactEmail }],
-        subject: `Contest submitted: ${contest.shortName}`,
+        subject: `${urgent ? "Urgent: " : ""}Contest submitted: ${contest.shortName}`,
         html,
         // priority: urgent ? "high" : "normal",
       });

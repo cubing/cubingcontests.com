@@ -47,8 +47,8 @@ function ModDashboardScreen({ contests: initContests, session }: Props) {
   };
 
   const selectPerson = (person: PersonResponse) => {
-    router.replace(`/mod?organizerPersonId=${person.personId}`);
-    fetchContests(person.personId);
+    router.replace(`/mod?organizerPersonId=${person.id}`);
+    fetchContests(person.id);
   };
 
   const resetFilters = () => {
@@ -153,7 +153,7 @@ function ModDashboardScreen({ contests: initContests, session }: Props) {
                         {contest.city}
                       </span>
                       <span className="me-1">,</span>
-                      <Country countryIso2={contest.countryIso2} swapPositions shorten />
+                      <Country countryIso2={contest.regionCode} swapPositions shorten />
                     </div>
                   </td>
                   <td>

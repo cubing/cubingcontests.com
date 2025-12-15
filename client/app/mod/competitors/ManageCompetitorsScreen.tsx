@@ -1,29 +1,29 @@
 "use client";
 
-import { useContext, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { authClient } from "~/helpers/authClient.ts";
-import { Creator, ListPageMode } from "~/helpers/types.ts";
-import { MainContext } from "~/helpers/contexts.ts";
-import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
-import Button from "~/app/components/UI/Button.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useSearchParams } from "next/navigation";
+import { useAction } from "next-safe-action/hooks";
+import { useContext, useMemo, useRef, useState } from "react";
+import Competitor from "~/app/components/Competitor.tsx";
 import Country from "~/app/components/Country.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
-import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import PersonForm from "./PersonForm.tsx";
+import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
-import { getSimplifiedString } from "~/helpers/sharedFunctions.ts";
-import FiltersContainer from "~/app/components/FiltersContainer.tsx";
-import { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
-import { useAction } from "next-safe-action/hooks";
-import { approvePersonSF, deletePersonSF } from "~/server/serverFunctions/personServerFunctions.ts";
-import { getActionError } from "~/helpers/utilityFunctions.ts";
 import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import { authClient } from "~/helpers/authClient.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import { getSimplifiedString } from "~/helpers/sharedFunctions.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
+import type { Creator, ListPageMode } from "~/helpers/types.ts";
+import { getActionError } from "~/helpers/utilityFunctions.ts";
+import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
+import { approvePersonSF, deletePersonSF } from "~/server/serverFunctions/personServerFunctions.ts";
+import PersonForm from "./PersonForm.tsx";
 
 type Props = {
   persons: (SelectPerson | PersonResponse)[];
@@ -48,19 +48,21 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
   // Only used for admins. Is used to confirm approval of person with exact name and country match with a WCA person.
   const ignoredWcaMatches = useRef<{ personId: number; wcaMatches: string[] }>(undefined);
   const creator = useMemo(
-    () => personUnderEdit ? users?.find((u) => u.id === (personUnderEdit as SelectPerson).createdBy) : undefined,
+    () => (personUnderEdit ? users?.find((u) => u.id === (personUnderEdit as SelectPerson).createdBy) : undefined),
     [personUnderEdit, users],
   );
   const filteredPersons = useMemo(() => {
     const simplifiedSearch = getSimplifiedString(search);
 
     return persons.filter((p) => {
-      const passesNameFilter = getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
+      const passesNameFilter =
+        p.id.toString() === simplifiedSearch || // search by ID
+        getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
         (p.localizedName && getSimplifiedString(p.localizedName).includes(simplifiedSearch)) || // search by localized name
-        p.personId.toString() === simplifiedSearch || // search by person ID
         (users && users.find((c) => c.id === (p as SelectPerson).createdBy)?.username === simplifiedSearch); // search by creator username
 
-      const passesApprovedFilter = approvedFilter === "" ||
+      const passesApprovedFilter =
+        approvedFilter === "" ||
         (approvedFilter === "approved" && p.approved) ||
         (approvedFilter === "unapproved" && !p.approved);
 
@@ -105,7 +107,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
 
   const deleteCompetitor = async (person: PersonResponse) => {
     ignoredWcaMatches.current = undefined;
-    setLoadingId(`delete_person_${person.personId}_button`);
+    setLoadingId(`delete_person_${person.id}_button`);
     const res = await deletePerson({ id: person.id });
     setLoadingId("");
 
@@ -113,28 +115,28 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
       changeErrorMessages([getActionError(res)]);
     } else {
       setPersons(persons.filter((p) => p.id !== person.id));
-      changeSuccessMessage(`Successfully deleted ${person.name} (CC ID: ${person.personId})`);
+      changeSuccessMessage(`Successfully deleted ${person.name} (CC ID: ${person.id})`);
     }
   };
 
   const approveCompetitor = async (person: PersonResponse) => {
-    if (ignoredWcaMatches.current && person.personId !== ignoredWcaMatches.current.personId) {
+    if (ignoredWcaMatches.current && person.id !== ignoredWcaMatches.current.personId) {
       ignoredWcaMatches.current = undefined;
     }
 
-    setLoadingId(`approve_person_${person.personId}_button`);
+    setLoadingId(`approve_person_${person.id}_button`);
     const res = await approvePerson({ id: person.id, ignoredWcaMatches: ignoredWcaMatches.current?.wcaMatches });
     setLoadingId("");
 
     if (res.serverError || res.validationErrors) {
       if (res.serverError?.data) {
-        ignoredWcaMatches.current = { personId: person.personId, wcaMatches: res.serverError.data.wcaMatches };
+        ignoredWcaMatches.current = { personId: person.id, wcaMatches: res.serverError.data.wcaMatches };
       }
       changeErrorMessages([getActionError(res)]);
     } else {
       ignoredWcaMatches.current = undefined;
-      setPersons(persons.map((p) => p.id === person.id ? res.data! : p));
-      changeSuccessMessage(`Successfully approved ${person.name} (CC ID: ${person.personId})`);
+      setPersons(persons.map((p) => (p.id === person.id ? res.data! : p)));
+      changeSuccessMessage(`Successfully approved ${person.name} (CC ID: ${person.id})`);
     }
   };
 
@@ -142,7 +144,7 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
     if (isNew) {
       setPersons([person, ...persons]);
     } else {
-      setPersons(persons.map((p) => (p.personId === person.personId ? person : p)));
+      setPersons(persons.map((p) => (p.id === person.id ? person : p)));
       setMode("view");
     }
   };
@@ -151,26 +153,24 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
     <>
       <ToastMessages />
 
-      {mode === "view"
-        ? (
-          <Button
-            onClick={onAddCompetitor}
-            disabled={isDeleting || isApproving}
-            className="btn-success btn-sm mx-2"
-            style={{ width: "fit-content" }}
-          >
-            Add competitor
-          </Button>
-        )
-        : (
-          <PersonForm
-            personUnderEdit={personUnderEdit}
-            creator={creator}
-            creatorPerson={creator ? persons.find((p) => p.personId === creator.personId) : undefined}
-            onSubmit={updateCompetitors}
-            onCancel={mode !== "add-once" ? cancel : undefined}
-          />
-        )}
+      {mode === "view" ? (
+        <Button
+          onClick={onAddCompetitor}
+          disabled={isDeleting || isApproving}
+          className="btn-success btn-sm mx-2"
+          style={{ width: "fit-content" }}
+        >
+          Add competitor
+        </Button>
+      ) : (
+        <PersonForm
+          personUnderEdit={personUnderEdit}
+          creator={creator}
+          creatorPerson={creator ? persons.find((p) => p.id === creator.personId) : undefined}
+          onSubmit={updateCompetitors}
+          onCancel={mode !== "add-once" ? cancel : undefined}
+        />
+      )}
 
       {mode !== "add-once" && (
         <>
@@ -179,8 +179,10 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
               title="Search"
               value={search}
               setValue={setSearch}
-              tooltip={"Search by name, localized name, or CC ID" +
-                (isAdmin ? ". Admins can also search by the username of the creator." : "")}
+              tooltip={
+                "Search by name, localized name, or CC ID" +
+                (isAdmin ? ". Admins can also search by the username of the creator." : "")
+              }
               oneLine
             />
             <FormSelect
@@ -197,13 +199,9 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
             Number of competitors:&nbsp;<b>{filteredPersons.length}</b>
           </p>
 
-          <div
-            ref={parentRef as any}
-            className="mt-3 table-responsive overflow-y-auto"
-            style={{ height: "600px" }}
-          >
+          <div ref={parentRef as any} className="table-responsive mt-3 overflow-y-auto" style={{ height: "600px" }}>
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-              <table className="table table-hover text-nowrap">
+              <table className="table-hover table text-nowrap">
                 <thead>
                   <tr>
                     <th scope="col">CC ID</th>
@@ -217,92 +215,92 @@ function ManageCompetitorsScreen({ persons: initPersons, users }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {rowVirtualizer.getVirtualItems().map(
-                    (virtualItem, index) => {
-                      if (filteredPersons.length === 0) return;
-                      const person = filteredPersons[virtualItem.index];
-                      const personCreator = (person as SelectPerson).createdBy
-                        ? users.find((u) => u.id === (person as SelectPerson).createdBy)
-                        : undefined;
+                  {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
+                    if (filteredPersons.length === 0) return;
+                    const person = filteredPersons[virtualItem.index];
+                    const personCreator = (person as SelectPerson).createdBy
+                      ? users.find((u) => u.id === (person as SelectPerson).createdBy)
+                      : undefined;
 
-                      return (
-                        <tr
-                          key={virtualItem.key as React.Key}
-                          style={{
-                            height: `${virtualItem.size}px`,
-                            transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
-                          }}
-                        >
-                          <td>{person.personId}</td>
+                    return (
+                      <tr
+                        key={virtualItem.key as React.Key}
+                        style={{
+                          height: `${virtualItem.size}px`,
+                          transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
+                        }}
+                      >
+                        <td>{person.id}</td>
+                        <td>
+                          <Competitor person={person} noFlag />
+                        </td>
+                        <td>{person.localizedName}</td>
+                        <td>{person.wcaId}</td>
+                        <td>
+                          <Country countryIso2={person.regionCode} shorten />
+                        </td>
+                        {users && (
                           <td>
-                            <Competitor person={person} noFlag />
+                            <CreatorDetails
+                              creator={personCreator}
+                              person={
+                                personCreator?.personId
+                                  ? persons.find((p) => p.id === personCreator.personId)
+                                  : undefined
+                              }
+                              createdExternally={!!(person as SelectPerson).createdExternally}
+                              isCurrentUser={(person as SelectPerson).createdBy === session?.user.id}
+                              small
+                            />
                           </td>
-                          <td>{person.localizedName}</td>
-                          <td>{person.wcaId}</td>
-                          <td>
-                            <Country countryIso2={person.countryIso2} shorten />
-                          </td>
-                          {users && (
-                            <td>
-                              <CreatorDetails
-                                creator={personCreator}
-                                person={personCreator?.personId
-                                  ? persons.find((p) => p.personId === personCreator.personId)
-                                  : undefined}
-                                createdExternally={!!(person as SelectPerson).createdExternally}
-                                isCurrentUser={(person as SelectPerson).createdBy === session?.user.id}
-                                small
-                              />
-                            </td>
-                          )}
-                          <td>
-                            <ActiveInactiveIcon isActive={person.approved} />
-                          </td>
-                          <td>
-                            <div className="d-flex gap-2">
-                              {isAdmin && !person.approved && (
-                                <Button
-                                  id={`approve_person_${person.personId}_button`}
-                                  onClick={() => approveCompetitor(person)}
-                                  disabled={buttonsDisabled}
-                                  loadingId={loadingId}
-                                  className="btn-xs btn-success"
-                                  title="Approve"
-                                  ariaLabel="Approve"
-                                >
-                                  <FontAwesomeIcon icon={faCheck} />
-                                </Button>
-                              )}
-                              {(isAdmin || !person.approved) && (
-                                <Button
-                                  onClick={() => onEditCompetitor(person)}
-                                  disabled={buttonsDisabled}
-                                  className="btn-xs"
-                                  title="Edit"
-                                  ariaLabel="Edit"
-                                >
-                                  <FontAwesomeIcon icon={faPencil} />
-                                </Button>
-                              )}
-                              {(isAdmin || !person.approved) && (
-                                <Button
-                                  id={`delete_person_${person.personId}_button`}
-                                  onClick={() => deleteCompetitor(person)}
-                                  disabled={buttonsDisabled}
-                                  loadingId={loadingId}
-                                  className="btn-xs btn-danger"
-                                  title="Delete"
-                                  ariaLabel="Delete"
-                                >
-                                  <FontAwesomeIcon icon={faTrash} />
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    },
-                  )}
+                        )}
+                        <td>
+                          <ActiveInactiveIcon isActive={person.approved} />
+                        </td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            {isAdmin && !person.approved && (
+                              <Button
+                                id={`approve_person_${person.id}_button`}
+                                onClick={() => approveCompetitor(person)}
+                                disabled={buttonsDisabled}
+                                loadingId={loadingId}
+                                className="btn-xs btn-success"
+                                title="Approve"
+                                ariaLabel="Approve"
+                              >
+                                <FontAwesomeIcon icon={faCheck} />
+                              </Button>
+                            )}
+                            {(isAdmin || !person.approved) && (
+                              <Button
+                                onClick={() => onEditCompetitor(person)}
+                                disabled={buttonsDisabled}
+                                className="btn-xs"
+                                title="Edit"
+                                ariaLabel="Edit"
+                              >
+                                <FontAwesomeIcon icon={faPencil} />
+                              </Button>
+                            )}
+                            {(isAdmin || !person.approved) && (
+                              <Button
+                                id={`delete_person_${person.id}_button`}
+                                onClick={() => deleteCompetitor(person)}
+                                disabled={buttonsDisabled}
+                                loadingId={loadingId}
+                                className="btn-xs btn-danger"
+                                title="Delete"
+                                ariaLabel="Delete"
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

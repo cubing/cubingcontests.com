@@ -11,8 +11,7 @@ This is a web application with:
 - Helper functions, types and Zod validators in `~/helpers`
 - Backend in `~/server`
   - Drizzle PostgreSQL schema in `~/server/db`
-  - Server functions in `~/server/serverFunctions`, each using the
-    `next-safe-action` library
+  - Server functions in `~/server/serverFunctions`, each using the `next-safe-action` library
 
 ## Coding Standards
 

@@ -15,7 +15,7 @@ function Competitor({ person, showLocalizedName, noFlag, noLink }: Props) {
   if (showLocalizedName && person.localizedName) displayText += ` (${person.localizedName})`;
 
   return (
-    <span className={noFlag ? "" : "d-flex align-items-center gap-2"}>
+    <span className={noFlag ? "" : "d-flex gap-2 align-items-center"}>
       {noLink || !person.wcaId ? (
         displayText
       ) : (
@@ -24,7 +24,7 @@ function Competitor({ person, showLocalizedName, noFlag, noLink }: Props) {
         </a>
       )}
 
-      {!noFlag && <Country countryIso2={person.countryIso2} noText />}
+      {!noFlag && <Country countryIso2={person.regionCode} noText />}
     </span>
   );
 }

@@ -6,6 +6,7 @@ import { EventValidator } from "~/helpers/validators/Event.ts";
 import { db } from "~/server/db/provider.ts";
 import type { SelectEvent } from "~/server/db/schema/events.ts";
 import { eventsTable as table } from "~/server/db/schema/events.ts";
+import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
 import { collectiveSolutionsTable } from "../db/schema/collective-solutions.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 
@@ -17,6 +18,8 @@ export const createEventSF = actionClient
     }),
   )
   .action<SelectEvent>(async ({ parsedInput: { newEventDto } }) => {
+    logMessageSF({ message: `Creating new event with ID ${newEventDto.eventId}` });
+
     const [sameIdEvent] = await db.select().from(table).where(eq(table.eventId, newEventDto.eventId)).limit(1);
     if (sameIdEvent) throw new CcActionError(`Event with ID ${newEventDto.eventId} already exists`);
 
@@ -40,6 +43,8 @@ export const updateEventSF = actionClient
     }),
   )
   .action<SelectEvent>(async ({ parsedInput: { newEventDto, originalEventId } }) => {
+    logMessageSF({ message: `Updating event with ID ${newEventDto.eventId}` });
+
     const [event] = await db.select().from(table).where(eq(table.eventId, originalEventId)).limit(1);
     if (!event) throw new CcActionError(`Event with ID ${originalEventId} not found`);
 

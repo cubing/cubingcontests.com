@@ -80,7 +80,12 @@ function ResultsSubmissionForm({
 
   const updateWrPair = useCallback(
     debounce(async (eventId: string, recordsUpTo?: Date) => {
-      const res = await getWrPairUpToDate({ eventId, recordsUpTo, excludeResultId: result?.id });
+      const res = await getWrPairUpToDate({
+        recordCategory: "video-based-results",
+        eventId,
+        recordsUpTo,
+        excludeResultId: result?.id,
+      });
 
       if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
       else setEventWrPair(res.data!);
@@ -92,8 +97,6 @@ function ResultsSubmissionForm({
   const isPending = isCreating || isPendingWrPairs;
 
   useEffect(() => {
-    updateWrPair(event.eventId);
-
     if (!result) {
       resetCompetitors((events.find((e) => e.eventId === searchParams.get("eventId")) ?? events[0]).participants);
       resetAttempts();
@@ -109,7 +112,7 @@ function ResultsSubmissionForm({
     const newResultDto: VideoBasedResultDto = {
       eventId: event.eventId,
       date: date!,
-      personIds: competitors.map((p) => p!.personId),
+      personIds: competitors.map((p) => p!.id),
       attempts,
       videoLink: videoUnavailable ? "" : videoLink,
       discussionLink: discussionLink || null,
@@ -286,7 +289,7 @@ function ResultsSubmissionForm({
             nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
           />
         ))}
-        {isPendingWrPairs || !eventWrPair ? (
+        {isPendingWrPairs ? (
           <Loading small dontCenter />
         ) : (
           <BestAndAverage

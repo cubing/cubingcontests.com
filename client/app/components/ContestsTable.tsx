@@ -6,18 +6,13 @@ import Country from "~/app/components/Country.tsx";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import type { ContestType } from "~/helpers/types.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
+import type { ContestResponse } from "~/server/db/schema/contests.ts";
 
 type Props = {
-  contests: {
-    competitionId: string;
-    shortName: string;
-    type: ContestType;
-    city: string;
-    countryIso2: string;
-    startDate: Date;
-    endDate: Date;
-    participants: number;
-  }[];
+  contests: Pick<
+    ContestResponse,
+    "competitionId" | "shortName" | "type" | "city" | "regionCode" | "startDate" | "endDate" | "participants"
+  >[];
 };
 
 function ContestsTable({ contests }: Props) {
@@ -56,7 +51,7 @@ function ContestsTable({ contests }: Props) {
                 <div className="d-flex justify-content-between gap-3">
                   <div className="ms-2">
                     <span>
-                      {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions shorten />
+                      {contest.city}, <Country countryIso2={contest.regionCode} swapPositions shorten />
                     </span>
                   </div>
                   <div className="flex-shrink-0 text-end">
@@ -102,7 +97,7 @@ function ContestsTable({ contests }: Props) {
                   </Link>
                 </td>
                 <td>
-                  {contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
+                  {contest.city}, <Country countryIso2={contest.regionCode} swapPositions />
                 </td>
                 <td>
                   <ContestTypeBadge type={contest.type} />

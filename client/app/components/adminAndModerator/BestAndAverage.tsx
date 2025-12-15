@@ -36,7 +36,7 @@ function BestAndAverage({
       cutoffNumberOfAttempts,
     );
     let tempResult = { best, average, attempts, eventId: event.eventId } as ResultResponse;
-    if (eventWrPair) tempResult = setResultWorldRecords(tempResult, event, eventWrPair) as ResultResponse;
+    if (eventWrPair) tempResult = setResultWorldRecords(tempResult, event, eventWrPair);
     return tempResult;
   }, [attempts, event, roundFormat, eventWrPair, cutoffAttemptResult, cutoffNumberOfAttempts]);
 

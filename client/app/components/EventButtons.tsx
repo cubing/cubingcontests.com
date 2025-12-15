@@ -45,8 +45,10 @@ function EventButtons({ eventId, events, forPage }: Props) {
     } else if (forPage === "competitions") {
       if (searchParams.get("eventId") === newEventId) router.replace("/competitions");
       else router.replace(`/competitions?eventId=${newEventId}`);
-    } else {
+    } else if (forPage === "data-entry") {
       router.replace(`/mod/competition/${id}?eventId=${newEventId}`);
+    } else {
+      throw new Error(`Unrecognized page type: ${forPage}`);
     }
   };
 

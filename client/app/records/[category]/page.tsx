@@ -8,11 +8,10 @@ import RankingsTable from "~/app/components/RankingsTable.tsx";
 import Solves from "~/app/components/Solves.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import { C } from "~/helpers/constants.ts";
-import { ssrFetch } from "~/helpers/DELETEfetchUtils.ts";
 import { eventCategories } from "~/helpers/eventCategories.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
-import type { EventCategory, ResultRankingType } from "~/helpers/types.ts";
+import type { ResultRankingType } from "~/helpers/types.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 
 // SEO
@@ -39,10 +38,8 @@ const RecordsPage = async ({ params }: Props) => {
   if (!recordsByEventResponse.success) return <p className="fs-4 mt-5 text-center">Records not found</p>;
 
   // Gets just the events for the current records category
-  const filteredEventRecords = recordsByEventResponse.data.filter((er) =>
-    er.event.groups.includes((eventCategories.find((ec) => ec.value === category) as EventCategory).group),
-  );
-  const selectedCat = eventCategories.find((ec) => ec.value === category) as EventCategory;
+  const filteredEventRecords = recordsByEventResponse.data.filter((er) => er.event.category === category);
+  const selectedCat = eventCategories.find((ec) => ec.value === category)!;
   const tabs: NavigationItem[] = eventCategories.map((cat) => ({
     title: cat.title,
     shortTitle: cat.shortTitle,
@@ -72,7 +69,7 @@ const RecordsPage = async ({ params }: Props) => {
           )}
 
           <div className="mt-4">
-            {filteredEventRecords.map(({ event, rankings }: IEventRankings) => {
+            {filteredEventRecords.map(({ event, rankings }) => {
               return (
                 <div key={event.eventId} className="mb-3">
                   <EventTitle event={event} showIcon linkToRankings showDescription />

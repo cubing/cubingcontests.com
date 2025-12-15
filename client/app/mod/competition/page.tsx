@@ -9,7 +9,7 @@ import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { resultsTable } from "~/server/db/schema/results.ts";
 import { roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
-import { authorizeUser } from "~/server/serverUtilityFunctions.ts";
+import { authorizeUser, getUserHasAccessToContest } from "~/server/serverUtilityFunctions.ts";
 import ContestForm from "./ContestForm.tsx";
 
 type Props = {
@@ -27,7 +27,11 @@ async function CreateEditContestPage({ searchParams }: Props) {
   const mode = editId ? "edit" : copyId ? "copy" : "new";
   const competitionId = editId ?? copyId;
 
-  const eventsPromise = db.select(eventsPublicCols).from(eventsTable).where(ne(eventsTable.category, "removed"));
+  const eventsPromise = db
+    .select(eventsPublicCols)
+    .from(eventsTable)
+    .where(ne(eventsTable.category, "removed"))
+    .orderBy(eventsTable.rank);
   const contestPromise = competitionId
     ? db.query.contests.findFirst({
         columns: isAdmin
@@ -56,6 +60,8 @@ async function CreateEditContestPage({ searchParams }: Props) {
 
     if (contest) {
       if (contest.state === "removed") return <LoadingError reason="This contest has been removed" />;
+      if (!getUserHasAccessToContest(session.user, contest.organizerIds))
+        return <LoadingError reason="You do not have access rights for this contest" />;
 
       const totalResultsByRoundPromise =
         contest.participants > 0
@@ -67,13 +73,13 @@ async function CreateEditContestPage({ searchParams }: Props) {
                   group by ${resultsTable.roundId}`,
               )
               .then((res) =>
-                res.rows.map((el) => ({ roundId: el.round_id as number, totalResults: Number(el.total_results ?? 0) })),
+                res.map((row) => ({ roundId: row.round_id as number, totalResults: Number(row.total_results ?? 0) })),
               )
           : undefined;
       const organizersPromise = db
         .select(personsPublicCols)
         .from(personsTable)
-        .where(inArray(personsTable.id, contest.organizers));
+        .where(inArray(personsTable.id, contest.organizerIds));
       const creatorPromise =
         isAdmin && contest.createdBy
           ? db.select(creatorCols).from(usersTable).where(eq(usersTable.id, contest.createdBy))
@@ -87,12 +93,9 @@ async function CreateEditContestPage({ searchParams }: Props) {
       organizers = organizersRes;
       creator = creatorRes?.[0];
 
-      if (!isAdmin && (!session.user.personId || !organizers.some((o) => o.personId === session.user.personId)))
-        return <LoadingError reason="You do not have access rights for this contest" />;
-
       if (creator?.personId) {
         creatorPerson = (
-          await db.select(personsPublicCols).from(personsTable).where(eq(personsTable.personId, creator.personId))
+          await db.select(personsPublicCols).from(personsTable).where(eq(personsTable.id, creator.personId))
         ).at(0);
       }
     }

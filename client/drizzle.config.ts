@@ -1,5 +1,6 @@
 // This file is only used by Drizzle Kit (not Drizzle ORM)
 
+import "server-only";
 import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
 
@@ -14,4 +15,5 @@ export default defineConfig({
   dbCredentials: { url: process.env.DATABASE_URL },
   casing: "snake_case",
   strict: true,
+  // verbose: true,
 });

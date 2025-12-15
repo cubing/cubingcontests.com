@@ -1,30 +1,50 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import z from "zod";
-import { actionClient } from "../safeAction.ts";
 import { RecordConfigValidator } from "~/helpers/validators/RecordConfig.ts";
+import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
+import { db } from "../db/provider.ts";
 import {
-  RecordConfigResponse,
+  type RecordConfigResponse,
   recordConfigsPublicCols,
   recordConfigsTable as table,
 } from "../db/schema/record-configs.ts";
-import { db } from "../db/provider.ts";
-import { eq } from "drizzle-orm";
+import { actionClient } from "../safeAction.ts";
 
-export const createRecordConfigSF = actionClient.metadata({ permissions: { recordConfigs: ["create-and-update"] } })
-  .inputSchema(z.strictObject({
-    newRecordConfigDto: RecordConfigValidator,
-  })).action<RecordConfigResponse>(async ({ parsedInput: { newRecordConfigDto } }) => {
+export const createRecordConfigSF = actionClient
+  .metadata({ permissions: { recordConfigs: ["create-and-update"] } })
+  .inputSchema(
+    z.strictObject({
+      newRecordConfigDto: RecordConfigValidator,
+    }),
+  )
+  .action<RecordConfigResponse>(async ({ parsedInput: { newRecordConfigDto } }) => {
+    const { category, recordTypeId, label } = newRecordConfigDto;
+    logMessageSF({
+      message: `Creating record config with category ${category}, record type ID ${recordTypeId} and label ${label}`,
+    });
+
     const [createdRecordConfig] = await db.insert(table).values(newRecordConfigDto).returning(recordConfigsPublicCols);
     return createdRecordConfig;
   });
 
-export const updateRecordConfigSF = actionClient.metadata({ permissions: { recordConfigs: ["create-and-update"] } })
-  .inputSchema(z.strictObject({
-    id: z.int(),
-    newRecordConfigDto: RecordConfigValidator,
-  })).action<RecordConfigResponse>(async ({ parsedInput: { id, newRecordConfigDto } }) => {
-    const [updatedRecordConfig] = await db.update(table)
+export const updateRecordConfigSF = actionClient
+  .metadata({ permissions: { recordConfigs: ["create-and-update"] } })
+  .inputSchema(
+    z.strictObject({
+      id: z.int(),
+      newRecordConfigDto: RecordConfigValidator,
+    }),
+  )
+  .action<RecordConfigResponse>(async ({ parsedInput: { id, newRecordConfigDto } }) => {
+    const { category, recordTypeId, label } = newRecordConfigDto;
+    logMessageSF({
+      message: `Updating record config with category ${category}, record type ID ${recordTypeId} and label ${label}`,
+    });
+
+    const [updatedRecordConfig] = await db
+      .update(table)
       .set(newRecordConfigDto)
       .where(eq(table.id, id))
       .returning(recordConfigsPublicCols);

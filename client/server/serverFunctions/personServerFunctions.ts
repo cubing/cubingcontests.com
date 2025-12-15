@@ -15,6 +15,7 @@ import {
   type SelectPerson,
   personsTable as table,
 } from "~/server/db/schema/persons.ts";
+import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { checkUserPermissions, setPersonToApproved } from "../serverUtilityFunctions.ts";
 
@@ -23,16 +24,16 @@ type GetOrCreatePersonObject = {
   isNew: boolean;
 };
 
-export const getPersonByPersonIdSF = actionClient
+export const getPersonByIdSF = actionClient
   .metadata({ permissions: null })
   .inputSchema(
     z.strictObject({
-      personId: z.int().min(1),
+      id: z.int().min(1),
     }),
   )
-  .action<PersonResponse>(async ({ parsedInput: { personId } }) => {
-    const [person] = await db.select(personsPublicCols).from(table).where(eq(table.personId, personId));
-    if (!person) throw new CcActionError(`Person with ID ${personId} not found`);
+  .action<PersonResponse>(async ({ parsedInput: { id } }) => {
+    const [person] = await db.select(personsPublicCols).from(table).where(eq(table.id, id));
+    if (!person) throw new CcActionError(`Person with ID ${id} not found`);
     return person;
   });
 
@@ -58,21 +59,23 @@ export const getOrCreatePersonSF = actionClient
   .inputSchema(
     z.strictObject({
       name: z.string(),
-      countryIso2: z.enum(CountryCodes),
+      regionCode: z.enum(CountryCodes),
     }),
   )
-  .action<GetOrCreatePersonObject>(async ({ parsedInput: { name, countryIso2 } }) => {
+  .action<GetOrCreatePersonObject>(async ({ parsedInput: { name, regionCode } }) => {
     const persons = await db
       .select(personsPublicCols)
       .from(table)
-      .where(and(eq(table.name, name), eq(table.countryIso2, countryIso2)));
+      .where(and(eq(table.name, name), eq(table.regionCode, regionCode)));
 
     if (persons.length > 1)
-      throw new CcActionError(`Multiple people were found with the name ${name} and country ${countryIso2}`);
+      throw new CcActionError(`Multiple people were found with the name ${name} and country ${regionCode}`);
 
     if (persons.length === 1) return { person: persons[0], isNew: false };
 
-    const res = await createPersonSF({ newPersonDto: { name, localizedName: null, countryIso2, wcaId: null } });
+    const res = await createPersonSF({
+      newPersonDto: { name, localizedName: null, regionCode: regionCode, wcaId: null },
+    });
     if (!res.data) throw new Error(res.serverError?.message || C.unknownErrorMsg);
 
     return { person: res.data, isNew: true };
@@ -98,7 +101,6 @@ export const getOrCreatePersonByWcaIdSF = actionClient
     return { person: res.data, isNew: true };
   });
 
-// TO-DO: ADD SUPPORT FOR EXTERNAL DATA ENTRY and ADD LOGGING
 export const createPersonSF = actionClient
   .metadata({ permissions: { persons: ["create"] } })
   .inputSchema(
@@ -109,10 +111,14 @@ export const createPersonSF = actionClient
   )
   .action<PersonResponse | SelectPerson>(
     async ({ parsedInput: { newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
+      const { name, wcaId } = newPersonDto;
+      logMessageSF({ message: `Creating person with name ${name} and ${wcaId ? `WCA ID ${wcaId}` : "no WCA ID"}` });
+
       const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
       await validatePerson(newPersonDto, { ignoreDuplicate, isAdmin: getIsAdmin(session.user.role) });
 
+      // TO-DO: ADD SUPPORT FOR EXTERNAL DATA ENTRY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       const query = db.insert(table).values({ ...newPersonDto, createdBy: session.user.id });
       const [createdPerson] = await (canApprove ? query.returning() : query.returning(personsPublicCols));
       return createdPerson;
@@ -130,12 +136,15 @@ export const updatePersonSF = actionClient
   )
   .action<PersonResponse | SelectPerson>(
     async ({ parsedInput: { id, newPersonDto, ignoreDuplicate }, ctx: { session } }) => {
+      const { name, wcaId } = newPersonDto;
+      logMessageSF({ message: `Updating person with name ${name} and ${wcaId ? `WCA ID ${wcaId}` : "no WCA ID"}` });
+
       const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
       const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
       if (!person) throw new CcActionError("Person with the provided ID not found");
       if (!canApprove && person.approved) throw new CcActionError("You may not edit a person who has been approved");
-      if (person.countryIso2 !== newPersonDto.countryIso2)
+      if (person.regionCode !== newPersonDto.regionCode)
         throw new CcActionError(
           "Changing a person's country is not currently supported. Please contact a developer regarding this.",
         );
@@ -164,27 +173,29 @@ export const deletePersonSF = actionClient
     }),
   )
   .action(async ({ parsedInput: { id }, ctx: { session } }) => {
+    logMessageSF({ message: `Deleting person with ID ${id}` });
+
     const canApprove = await checkUserPermissions(session.user.id, { persons: ["approve"] });
 
     const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person with the provided ID not found");
     if (!canApprove && person.approved) throw new CcActionError("You may not delete an approved person");
 
-    const user = await db.query.users.findFirst({ where: { personId: person.personId } });
+    const user = await db.query.users.findFirst({ where: { personId: person.id } });
     if (user) {
       throw new CcActionError(
         `You may not delete a person tied to a user. This person is tied to the user ${user.username}.`,
       );
     }
 
-    const result = await db.query.results.findFirst({ where: { personIds: { arrayContains: [person.personId] } } });
+    const result = await db.query.results.findFirst({ where: { personIds: { arrayContains: [person.id] } } });
     if (result) {
       throw new CcActionError(
         `You may not delete a person who has a result. This person has a result in ${result.eventId}${result.competitionId ? ` at ${result.competitionId}` : ""}.`,
       );
     }
 
-    const organizedContest = await db.query.contests.findFirst({ where: { organizers: { arrayContains: [id] } } });
+    const organizedContest = await db.query.contests.findFirst({ where: { organizerIds: { arrayContains: [id] } } });
     if (organizedContest) {
       throw new CcActionError(
         `You may not delete a person who has organized a contest. This person was an organizer at ${organizedContest.competitionId}.`,
@@ -199,38 +210,53 @@ export const approvePersonSF = actionClient
   .inputSchema(
     z.strictObject({
       id: z.int(),
-      approveByPersonId: z.boolean().default(false),
       ignoredWcaMatches: z.array(z.string()).default([]),
     }),
   )
-  .action<SelectPerson>(async ({ parsedInput: { id, approveByPersonId, ignoredWcaMatches } }) => {
-    const [person] = await db
-      .select()
-      .from(table)
-      .where(eq(approveByPersonId ? table.personId : table.id, id))
-      .limit(1);
+  .action<SelectPerson>(async ({ parsedInput: { id, ignoredWcaMatches } }) => {
+    const [person] = await db.select().from(table).where(eq(table.id, id)).limit(1);
     if (!person) throw new CcActionError("Person not found");
+    if (person.approved) throw new CcActionError(`${person.name} has already been approved`);
 
-    // if (!skipValidation) {
-    if (person.approved) {
-      throw new CcActionError(`${person.name} has already been approved`);
+    const result = await db.query.results.findFirst({ where: { personIds: { arrayContains: [id] } } });
+    if (!result) {
+      const organizedContest = await db.query.contests.findFirst({ where: { organizerIds: { arrayContains: [id] } } });
+      if (!organizedContest) {
+        throw new CcActionError(
+          `${person.name} has no results and hasn't organized any contests. They could have been added by accident.`,
+        );
+      }
     }
-
-    // const result = await this.resultModel.findOne({ personIds: person.personId, }, { _id: 1 }).exec();
-    // if (!result) {
-    //   const organizedContest = await this.contestModel.findOne({
-    //     organizers: person._id,
-    //   }).exec();
-    //   if (!organizedContest) {
-    //     throw new CcActionError(
-    //       `${person.name} has no results and hasn't organized any contests. They could have been added by accident.`,
-    //     );
-    //   }
-    // }
-    // }
 
     return await setPersonToApproved(person, { requireWcaId: false, ignoredWcaMatches });
   });
+
+// This was used for approving organizers when approving a contest and for approving competitors when publishing a contest
+// async approvePersons({
+//   personIds,
+//   competitionId,
+//   requireWcaId = false,
+// }: {
+//   personIds?: number[];
+//   competitionId?: string;
+//   requireWcaId?: boolean;
+// }) {
+//   const persons = personIds
+//     ? await this.getPersonsByPersonIds(personIds, { unapprovedOnly: true })
+//     : await this.getContestParticipants({
+//       competitionId,
+//       unapprovedOnly: true,
+//     });
+//   const message = competitionId
+//     ? `Approving unapproved persons from contest with ID ${competitionId}`
+//     : `Approving persons with person IDs: ${personIds.join(", ")}`;
+
+//   this.logger.logAndSave(message, LogType.ApprovePersons);
+
+//   await Promise.allSettled(
+//     persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, requireWcaId)),
+//   );
+// }
 
 async function validatePerson(
   newPersonDto: PersonDto,
@@ -258,7 +284,7 @@ async function validatePerson(
     const [duplicatePerson] = await db
       .select()
       .from(table)
-      .where(and(eq(table.name, newPersonDto.name), eq(table.countryIso2, newPersonDto.countryIso2), excludeCondition))
+      .where(and(eq(table.name, newPersonDto.name), eq(table.regionCode, newPersonDto.regionCode), excludeCondition))
       .limit(1);
 
     if (duplicatePerson) {

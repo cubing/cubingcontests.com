@@ -20,7 +20,7 @@ async function CompetitorsPage() {
   let users: Creator[] | undefined;
 
   if (isAdmin) {
-    persons = await db.select().from(table).orderBy(desc(table.personId));
+    persons = await db.select().from(table).orderBy(desc(table.id));
     const userIds = Array.from(
       new Set(persons.filter((p) => (p as SelectPerson).createdBy).map((p) => (p as SelectPerson).createdBy)),
     );
@@ -39,7 +39,7 @@ async function CompetitorsPage() {
       .select(personsPublicCols)
       .from(table)
       .where(eq(table.createdBy, user.id))
-      .orderBy(desc(table.personId));
+      .orderBy(desc(table.id));
   }
 
   if (!persons || (isAdmin && !users)) return <LoadingError loadingEntity="persons" />;

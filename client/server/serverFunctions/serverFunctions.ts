@@ -23,7 +23,6 @@ import { Roles } from "~/server/permissions.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "../db/schema/persons.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
 import { checkUserPermissions } from "../serverUtilityFunctions.ts";
-import { approvePersonSF } from "./personServerFunctions.ts";
 
 export const logMessageSF = actionClient
   .metadata({})
@@ -33,6 +32,8 @@ export const logMessageSF = actionClient
     }),
   )
   .action(async ({ parsedInput: { message } }) => {
+    console.log(message);
+
     logger.info(message);
   });
 
@@ -64,14 +65,9 @@ export const updateUserSF = actionClient
           if (samePersonUser) throw new CcActionError("The selected person is already tied to another user");
 
           person = (
-            await db.select(personsPublicCols).from(personsTable).where(eq(personsTable.personId, personId)).limit(1)
+            await db.select(personsPublicCols).from(personsTable).where(eq(personsTable.id, personId)).limit(1)
           ).at(0);
           if (!person) throw new CcActionError(`Person with ID ${personId} not found`);
-
-          if (!person.approved) {
-            const res = await approvePersonSF({ id: personId, approveByPersonId: true });
-            if (!res.data) throw new Error(res.serverError?.message || C.unknownErrorMsg);
-          }
         }
       } else if (role !== "user") {
         throw new CcActionError("Privileged users must have a person tied to their account");

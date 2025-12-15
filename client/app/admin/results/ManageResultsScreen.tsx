@@ -32,7 +32,7 @@ function ManageResultsScreen({ results, recordConfigs }: Props) {
   const filteredResults = useMemo(
     () =>
       results.filter((r) => {
-        const passesCompetitorFilter = !persons[0] || r.personIds.includes(persons[0].personId);
+        const passesCompetitorFilter = !persons[0] || r.personIds.includes(persons[0].id);
         return passesCompetitorFilter;
       }),
     [results, persons],

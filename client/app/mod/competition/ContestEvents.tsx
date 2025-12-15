@@ -79,7 +79,7 @@ function ContestEvents({
     roundTypeId: "f",
     format: events.find((e) => e.eventId === event.eventId)!.defaultRoundFormat,
     timeLimitCentiseconds: event.format === "time" ? C.defaultTimeLimit : null,
-    timeLimitCumulativeRoundIds: event.format === "time" ? [] : null,
+    timeLimitCumulativeRoundIds: null,
     cutoffAttemptResult: null,
     cutoffNumberOfAttempts: null,
     proceedType: null,
@@ -157,9 +157,7 @@ function ContestEvents({
         r.eventId === eventId && r.roundNumber === roundNumber
           ? {
               ...r,
-              timeLimitCumulativeRoundIds: r.timeLimitCumulativeRoundIds?.length
-                ? null
-                : [`${eventId}_r${roundNumber}`],
+              timeLimitCumulativeRoundIds: r.timeLimitCumulativeRoundIds ? null : [],
             }
           : r,
       ),
@@ -288,7 +286,6 @@ function ContestEvents({
                   <div className="d-flex mt-3 w-100 flex-wrap gap-3 gap-md-5 align-items-center">
                     <div className="d-flex justify-content-between gap-3 align-items-center">
                       <h6 className="m-0 flex-shrink-0">Time limit:</h6>
-
                       <div style={{ maxWidth: "8rem" }}>
                         <AttemptInput
                           attNumber={0}
@@ -303,11 +300,10 @@ function ContestEvents({
 
                     <div className="d-flex justify-content-between gap-3 align-items-center">
                       <h6 className="m-0 flex-shrink-0">Cumulative limit:</h6>
-
                       <FormCheckbox
                         title=""
                         id={`cumulative_limit_${round.eventId}_r${round.roundNumber}`}
-                        selected={!!round.timeLimitCumulativeRoundIds?.length}
+                        selected={!!round.timeLimitCumulativeRoundIds}
                         setSelected={() => changeRoundTimeLimitCumulative(round.eventId, round.roundNumber)}
                         disabled={totalRoundResults > 0}
                         noMargin

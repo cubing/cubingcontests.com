@@ -1,19 +1,8 @@
 import "server-only";
 import { sql } from "drizzle-orm";
-import {
-  bigint,
-  boolean,
-  check,
-  integer,
-  jsonb,
-  pgEnum,
-  pgTable as table,
-  text,
-  timestamp,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { bigint, boolean, check, integer, jsonb, pgTable as table, text, timestamp } from "drizzle-orm/pg-core";
 import { getTableColumns } from "drizzle-orm/utils";
-import { ContinentIdValues, RecordTypeValues } from "~/helpers/types.ts";
+import { recordCategoryEnum, recordTypeEnum } from "~/server/db/schema/record-configs.ts";
 import { tableTimestamps } from "../dbUtils.ts";
 import { users as usersTable } from "./auth-schema.ts";
 import type { SelectContest } from "./contests.ts";
@@ -26,9 +15,6 @@ export type Attempt = {
   memo?: number;
 };
 
-export const recordTypeEnum = pgEnum("record_type", RecordTypeValues);
-export const continentIdEnum = pgEnum("continent_id", ContinentIdValues);
-
 export const resultsTable = table(
   "results",
   {
@@ -37,17 +23,18 @@ export const resultsTable = table(
     date: timestamp().notNull(),
     approved: boolean().default(false).notNull(),
     personIds: integer().array().notNull(),
-    countryIso2: varchar({ length: 2 }), // only set if participants are from the same country
-    continentId: continentIdEnum(), // only set if participants are from the same continent
+    regionCode: text(), // only set if participants are from the same region (e.g. country)
+    superRegionCode: text(), // only set if participants are from the same super-region (e.g. continent)
     attempts: jsonb().array().notNull().$type<Attempt[]>(),
     best: bigint({ mode: "number" }).notNull(),
     average: bigint({ mode: "number" }).notNull(),
+    recordCategory: recordCategoryEnum().notNull(),
     regionalSingleRecord: recordTypeEnum(),
     regionalAverageRecord: recordTypeEnum(),
     competitionId: text(), // only used for contest results
     roundId: integer().references(() => roundsTable.id), // only used for contest results
     ranking: integer(), // only used for contest results
-    proceeds: boolean(), // only used for contest results
+    proceeds: boolean(), // only used for contest results from non-final rounds
     videoLink: text(), // only used for video-based results
     discussionLink: text(), // only used for video-based results (also optional for those)
     createdBy: text().references(() => usersTable.id, { onDelete: "set null" }),
@@ -58,11 +45,13 @@ export const resultsTable = table(
     check(
       "results_check",
       sql`(${table.competitionId} is not null
+          and ${table.recordCategory} <> 'video-based-results'
           and ${table.roundId} is not null
           and ${table.ranking} is not null
           and ${table.videoLink} is null
           and ${table.discussionLink} is null)
         or (${table.competitionId} is null
+          and ${table.recordCategory} = 'video-based-results'
           and ${table.roundId} is null
           and ${table.ranking} is null
           and ${table.proceeds} is null

@@ -1,10 +1,12 @@
 import "server-only";
-import { and, desc, eq, inArray, isNull, lte, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Continents, Countries } from "~/helpers/Countries.ts";
 import { C } from "~/helpers/constants.ts";
 import { type RecordCategory, type RecordType, RecordTypeValues } from "~/helpers/types.ts";
+import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
+import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
 import { getDateOnly, getNameAndLocalizedName } from "../helpers/sharedFunctions.ts";
 import { auth } from "./auth.ts";
 import { db } from "./db/provider.ts";
@@ -32,6 +34,14 @@ export async function authorizeUser({
   if (permissions) {
     const isAuthorized = await checkUserPermissions(session.user.id, permissions);
     if (!isAuthorized) redirect("/login");
+
+    // The user must have an assigned person to be able to do any operation except creating video-based results
+    if (
+      !session.user.personId &&
+      (Object.keys(permissions).some((key) => key !== ("videoBasedResults" satisfies keyof typeof permissions)) ||
+        permissions.videoBasedResults?.some((perm) => perm !== "create"))
+    )
+      redirect("/login");
   }
 
   return session;
@@ -70,41 +80,57 @@ export async function getRecordResult(
   {
     recordsUpTo = getDateOnly(new Date())!,
     excludeResultId,
-    countryIso2,
-  }: { recordsUpTo?: Date; excludeResultId?: number; countryIso2?: string } = {
+    regionCode,
+  }: { recordsUpTo?: Date; excludeResultId?: number; regionCode?: string } = {
     recordsUpTo: getDateOnly(new Date())!,
   },
 ): Promise<SelectResult | undefined> {
   const recordField = bestOrAverage === "best" ? "regionalSingleRecord" : "regionalAverageRecord";
-  const continent = Continents.find((c) => c.recordTypeId === recordType);
-  const country = countryIso2 ? Countries.find((c) => c.code === countryIso2) : undefined;
-  let recordTypeCondition: any;
+  const superRegion = Continents.find((c) => c.recordTypeId === recordType);
+  const region = regionCode ? Countries.find((c) => c.code === regionCode) : undefined;
+  const recordTypes: RecordType[] = [];
 
-  if (recordType === "WR") recordTypeCondition = eq(resultsTable[recordField], "WR");
-  else if (continent) recordTypeCondition = inArray(resultsTable[recordField], [recordType, "WR"]);
-  else if (country) {
-    const crType = Continents.find((c) => c.code === country.continentId)!.recordTypeId;
-    recordTypeCondition = inArray(resultsTable[recordField], ["NR", crType, "WR"]);
-  } else throw new Error(`Country ${countryIso2} not found!`);
+  if (recordType === "WR") {
+    recordTypes.push("WR");
+  } else if (superRegion) {
+    recordTypes.push(recordType, "WR");
+  } else if (region) {
+    const crType = Continents.find((c) => c.code === region.superRegionCode)!.recordTypeId;
+    recordTypes.push("NR", crType, "WR");
+  } else {
+    throw new Error(`Unknown region code: ${regionCode}`);
+  }
 
   const [recordResult] = await db
     .select()
     .from(resultsTable)
     .where(
       and(
-        isNull(resultsTable.competitionId),
         eq(resultsTable.eventId, eventId),
         excludeResultId ? ne(resultsTable.id, excludeResultId) : undefined,
         lte(resultsTable.date, recordsUpTo),
-        recordTypeCondition,
-        continent ? eq(resultsTable.continentId, continent.code) : undefined,
-        countryIso2 ? eq(resultsTable.countryIso2, countryIso2) : undefined,
+        eq(resultsTable.recordCategory, recordCategory),
+        inArray(resultsTable[recordField], recordTypes),
+        superRegion ? eq(resultsTable.superRegionCode, superRegion.code) : undefined,
+        regionCode ? eq(resultsTable.regionCode, regionCode) : undefined,
       ),
     )
     .orderBy(desc(resultsTable.date))
     .limit(1);
-
   return recordResult;
+}
+
+export async function getContestParticipantIds(competitionId: string): Promise<number[]> {
+  const personIds = new Set<number>();
+  const results = await db.query.results.findMany({ columns: { personIds: true }, where: { competitionId } });
+
+  for (const result of results) {
+    for (const personId of result.personIds) {
+      personIds.add(personId);
+    }
+  }
+
+  return Array.from(personIds);
 }
 
 export async function setPersonToApproved(
@@ -125,7 +151,7 @@ export async function setPersonToApproved(
           if (
             !ignoredWcaMatches.includes(wcaPerson.wca_id) &&
             name === person.name &&
-            wcaPerson.country_iso2 === person.countryIso2
+            wcaPerson.country_iso2 === person.regionCode
           ) {
             throw new CcActionError(
               `There is an exact name and country match with the WCA competitor with WCA ID ${wcaPerson.wca_id}. If that is the same person, edit their profile, adding the WCA ID. If it's a different person, simply approve them again to confirm.`,
@@ -133,11 +159,13 @@ export async function setPersonToApproved(
             );
           }
         }
-      } else if (wcaPersons?.length === 1) {
-        const wcaPerson = wcaPersons[0];
+      }
+      // We only want to assign the WCA ID if there's just one matched person
+      else if (wcaPersons?.length === 1) {
+        const [wcaPerson] = wcaPersons;
         const { name, localizedName } = getNameAndLocalizedName(wcaPerson.name);
 
-        if (name === person.name && wcaPerson.country_iso2 === person.countryIso2) {
+        if (name === person.name && wcaPerson.country_iso2 === person.regionCode) {
           updatePersonObject.wcaId = wcaPerson.wca_id;
           if (localizedName) updatePersonObject.localizedName = localizedName;
         }
@@ -145,8 +173,8 @@ export async function setPersonToApproved(
     }
   }
 
-  if (!requireWcaId || person.wcaId) {
-    console.log(`Approving person ${person.name} (CC ID: ${person.personId})`);
+  if (!requireWcaId || person.wcaId || updatePersonObject.wcaId) {
+    logMessageSF({ message: `Approving person ${person.name} (CC ID: ${person.id})` });
 
     updatePersonObject.approved = true;
   }
@@ -161,4 +189,8 @@ export async function setPersonToApproved(
   }
 
   return person;
+}
+
+export function getUserHasAccessToContest(user: typeof auth.$Infer.Session.user, organizerIds: number[]) {
+  return user.personId && (getIsAdmin(user.role) || organizerIds.includes(user.personId));
 }

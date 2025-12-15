@@ -60,8 +60,7 @@ async function ContestEventsPage({ params }: Props) {
                   <td>{roundFormats.find((rf) => rf.value === round.format)?.label}</td>
                   <td>
                     {round.timeLimitCentiseconds && round.timeLimitCumulativeRoundIds
-                      ? getFormattedTime(round.timeLimitCentiseconds, { event }) +
-                        (round.timeLimitCumulativeRoundIds.length > 0 ? " cumulative" : "")
+                      ? `${getFormattedTime(round.timeLimitCentiseconds, { event })}${round.timeLimitCumulativeRoundIds ? " cumulative" : ""}`
                       : ""}
                   </td>
                   <td>{cutoffText}</td>

@@ -12,7 +12,7 @@ type Props = {
 };
 
 function CreatorDetails({ creator, person, createdExternally = false, isCurrentUser = false, small = false }: Props) {
-  if (creator && person && creator.personId !== person.personId) {
+  if (creator && person && creator.personId !== person.id) {
     throw new Error(
       `Person ID doesn't match between creator object (${JSON.stringify(creator)}) and person object (${JSON.stringify(
         person,

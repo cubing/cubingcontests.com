@@ -12,8 +12,8 @@
     "check": "deno run -A npm:@biomejs/biome lint && deno run -A npm:@biomejs/biome check",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    // "db:push": "deno run -A --conditions=react-server npm:drizzle-kit push",
-    "db:push": "NODE_OPTIONS=\"--conditions=react-server\" npx drizzle-kit push", // TEMPORARY FIX!!!
+    "db:push": "deno run -A --conditions=react-server npm:drizzle-kit push",
+    // "db:push": "NODE_OPTIONS=\"--conditions=react-server\" npx drizzle-kit push", // TEMPORARY FIX!!!
     "db:migrate": "deno run -A --conditions=react-server npm:drizzle-kit migrate",
     "db:generate": "deno run -A --conditions=react-server npm:drizzle-kit generate",
     "auth:migrate": "deno run --allow-ffi -RWES npm:@better-auth/cli migrate",
@@ -23,5 +23,15 @@
 
   // unsafe-proto is required for building Next JS projects for now, because they still rely on __proto__.
   // For more, see https://github.com/denoland/docs/pull/1255.
-  "unstable": ["unsafe-proto"]
+  "unstable": ["unsafe-proto"],
+
+  "allowScripts": {
+    "allow": ["npm:esbuild@0.18.20", "npm:esbuild@0.25.11", "npm:sharp@0.34.5"],
+    "deny": [
+      "npm:@prisma/client@5.22.0",
+      "npm:@prisma/engines@5.22.0",
+      "npm:better-sqlite3@12.5.0",
+      "npm:prisma@5.22.0"
+    ]
+  }
 }

@@ -2,8 +2,11 @@
 
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { usePathname, useSearchParams } from "next/navigation";
+import { toZonedTime } from "date-fns-tz";
+import { usePathname } from "next/navigation";
+import { useAction } from "next-safe-action/hooks";
 import { useContext, useEffect, useMemo, useState } from "react";
+import z from "zod";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/adminAndModerator/BestAndAverage.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
@@ -14,72 +17,77 @@ import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
-import { useMyFetch } from "~/helpers/customHooks.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { getBestAndAverage, getMakesCutoff, getMaxAllowedRounds } from "~/helpers/sharedFunctions.ts";
+import { getDateOnly, getMakesCutoff, getMaxAllowedRounds, getRoundDate } from "~/helpers/sharedFunctions.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
-import type {
-  IContestData,
-  IContestEvent,
-  ICutoff,
-  IEventRecordPairs,
-  InputPerson,
-  IRecordPair,
-  IRound,
-  IUpdateResultDto,
-  RoundType,
-} from "~/helpers/types.ts";
-import { getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
+import type { EventWrPair, InputPerson, RoundFormat, RoundType } from "~/helpers/types.ts";
+import { getActionError, getBlankCompetitors, shortenEventName } from "~/helpers/utilityFunctions.ts";
+import { type ResultDto, ResultValidator } from "~/helpers/validators/Result.ts";
+import type { SelectContest } from "~/server/db/schema/contests.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
+import type { RoundResponse } from "~/server/db/schema/rounds.ts";
+import { getPersonByIdSF } from "~/server/serverFunctions/personServerFunctions.ts";
+import { createContestResultSF, getWrPairUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
 
 type Props = {
-  compData: IContestData;
+  contest: Pick<SelectContest, "competitionId" | "shortName" | "type" | "startDate" | "queuePosition" | "schedule">;
+  eventId: string;
+  events: EventResponse[];
+  rounds: RoundResponse[];
+  results: ResultResponse[];
+  persons: PersonResponse[];
+  recordConfigs: RecordConfigResponse[];
 };
 
 function DataEntryScreen({
-  compData: { contest, persons: prevPersons, activeRecordTypes, recordPairsByEvent: initialRecordPairs },
+  contest,
+  eventId,
+  events,
+  rounds,
+  results: initResults,
+  persons: initPersons,
+  recordConfigs,
 }: Props) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const myFetch = useMyFetch();
   const { changeErrorMessages } = useContext(MainContext);
 
+  const { executeAsync: getWrPairUpToDate, isPending: isPendingWrPairs } = useAction(getWrPairUpToDateSF);
+  const { executeAsync: getPersonById, isPending: isGettingPerson } = useAction(getPersonByIdSF);
+  const { executeAsync: createResult, isPending: isCreating } = useAction(createContestResultSF);
   const [resultUnderEdit, setResultUnderEdit] = useState<ResultResponse | null>(null);
-  const [recordPairsByEvent, setRecordPairsByEvent] = useState(initialRecordPairs as IEventRecordPairs[]);
-  const [contestEvents, setContestEvents] = useState<IContestEvent[]>(contest.events);
-
-  const eventId = searchParams.get("eventId") ?? contest.events[0].event.eventId;
-  const currContestEvent = contestEvents.find((ev: IContestEvent) => ev.event.eventId === eventId) as IContestEvent;
-  const currEvent = currContestEvent.event;
-
-  const [round, setRound] = useState<IRound>(currContestEvent.rounds[0]);
+  const [eventWrPair, setEventWrPair] = useState<EventWrPair | undefined>();
+  const [round, setRound] = useState<RoundResponse>(rounds[0]);
+  const [results, setResults] = useState<ResultResponse[]>(initResults);
 
   const roundFormat = roundFormats.find((rf) => rf.value === round.format)!;
+  const currEvent = events.find((e) => e.eventId === eventId)!;
 
-  const [currentPersons, setCurrentPersons] = useState<InputPerson[]>(new Array(currEvent.participants).fill(null));
+  const [selectedPersons, setSelectedPersons] = useState<InputPerson[]>(new Array(currEvent.participants).fill(null));
   const [personNames, setPersonNames] = useState(new Array(currEvent.participants).fill(""));
   const [attempts, setAttempts] = useState<Attempt[]>(new Array(roundFormat.attempts).fill({ result: 0 }));
-  const [persons, setPersons] = useState<PersonResponse[]>(prevPersons);
+  const [persons, setPersons] = useState<PersonResponse[]>(initPersons);
   const [queuePosition, setQueuePosition] = useState(contest.queuePosition);
+  const [loadingId, setLoadingId] = useState("");
 
   const roundOptions = useMemo<MultiChoiceOption[]>(
-    () =>
-      currContestEvent.rounds.map((r: IRound) => ({ label: roundTypes[r.roundTypeId].label, value: r.roundTypeId })),
-    [currContestEvent],
-  );
-  const recordPairs = useMemo<IRecordPair[] | undefined>(
-    () => recordPairsByEvent.find((erp: IEventRecordPairs) => erp.eventId === eventId)?.recordPairs,
-    [recordPairsByEvent, currEvent],
+    () => rounds.map((r) => ({ label: roundTypes[r.roundTypeId].label, value: r.roundTypeId })),
+    [rounds],
   );
 
-  const roundNumber = currContestEvent.rounds.findIndex((r) => r.roundId === round.roundId) + 1;
-  const maxAllowedRounds = getMaxAllowedRounds(currContestEvent.rounds);
-  const isOpenableRound = !round.open && maxAllowedRounds >= roundNumber;
-  const lastActiveAttempt = getMakesCutoff(attempts, round?.cutoff)
+  const isPending = isCreating || isGettingPerson || isPendingWrPairs;
+  const maxAllowedRounds = getMaxAllowedRounds(rounds, results);
+  const isOpenableRound = !round.open && maxAllowedRounds >= round.roundNumber;
+  const lastActiveAttempt = getMakesCutoff(attempts, round.cutoffAttemptResult, round.cutoffNumberOfAttempts)
     ? attempts.length
-    : (round.cutoff as ICutoff).numberOfAttempts;
+    : round.cutoffNumberOfAttempts!; // getMakesCutoff returns true if this is falsy anyways
+
+  useEffect(() => {
+    updateEventWrPair();
+  }, []);
 
   // Focus the first competitor input whenever the round is changed
   useEffect(() => {
@@ -91,71 +99,75 @@ function DataEntryScreen({
   //////////////////////////////////////////////////////////////////////////////
 
   const submitResult = async () => {
-    if (currentPersons.some((p: InputPerson) => !p)) {
-      changeErrorMessages(["Invalid person(s)"]);
-      return;
-    }
-
-    const resultDto: ICreateResultDto = {
+    const parsed = ResultValidator.safeParse({
       eventId,
-      personIds: currentPersons.map((p: InputPerson) => p!.personId),
+      competitionId: contest.competitionId,
+      roundId: round.id,
+      personIds: selectedPersons.map((p) => p?.id),
       attempts,
-    };
-    let updatedRound: IRound;
-    let errors: string[] | undefined;
+    });
 
-    if (resultUnderEdit === null) {
-      const res = await myFetch.post(`/results/${contest.competitionId}/${round.roundId}`, resultDto, {
-        loadingId: "submit_attempt_button",
-      });
-      if (!res.success) errors = res.error;
-      else updatedRound = res.data;
+    if (!parsed.success) {
+      changeErrorMessages([z.prettifyError(parsed.error)]);
     } else {
-      const updateResultDto: IUpdateResultDto = {
-        personIds: resultDto.personIds,
-        attempts: resultDto.attempts,
-      };
-      const res = await myFetch.patch(`/results/${(resultUnderEdit as any)._id}`, updateResultDto, {
-        loadingId: "submit_attempt_button",
-      });
-      if (!res.success) {
-        errors = res.error;
+      const res = await createResult({ newResultDto: parsed.data });
+
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
       } else {
-        setResultUnderEdit(null);
-        updatedRound = res.data;
+        addNewPersonsToList();
+        resetSelectedPersonsAndAttempts();
+        // This assumes that there is only one result per person in a given round, which should always be the case
+        const result = res.data!.find(
+          (r) => r.roundId === parsed.data.roundId && r.personIds.includes(parsed.data.personIds[0]),
+        );
+        if (!result) throw new Error("Submitted result not found in response data");
+        setResults(res.data!);
+        updateEventWrPair(result);
       }
     }
 
-    if (!errors) {
-      addNewPersonsToList();
-      changeRound(updatedRound!);
-      // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
-      updateRecordPairs({ ...resultDto, best, average } as ResultResponse);
-    }
+    // if (resultUnderEdit === null) {
+    //   const res = await myFetch.post(`/results/${contest.competitionId}/${round.roundId}`, resultDto, {
+    //     loadingId: "submit_attempt_button",
+    //   });
+    //   if (!res.success) tempErrors = res.error;
+    //   else updatedRound = res.data;
+    // } else {
+    //   const updateResultDto: IUpdateResultDto = {
+    //     personIds: resultDto.personIds,
+    //     attempts: resultDto.attempts,
+    //   };
+    //   const res = await myFetch.patch(`/results/${(resultUnderEdit as any)._id}`, updateResultDto, {
+    //     loadingId: "submit_attempt_button",
+    //   });
+    //   if (!res.success) {
+    //     tempRrrors = res.error;
+    //   } else {
+    //     setResultUnderEdit(null);
+    //     updatedRound = res.data;
+    //   }
+    // }
   };
 
-  const addNewPersonsToList = (currPersons = currentPersons) => {
+  const addNewPersonsToList = (newSelectedPersons = selectedPersons as PersonResponse[]) => {
     const newPersons: PersonResponse[] = [
       ...persons,
-      ...currPersons.filter((cp: InputPerson) => !persons.some((p) => p.personId === cp!.personId)),
+      ...newSelectedPersons.filter((sp) => !persons.some((p) => p.id === sp.id)),
     ];
     setPersons(newPersons);
     setPersonNames(newPersons.map((p) => p.name));
   };
 
-  const changeRound = (updatedRound: IRound) => {
-    setRound(updatedRound);
-    setContestEvents(
-      contestEvents.map((ce: IContestEvent) =>
-        ce.event.eventId === eventId
-          ? { ...ce, rounds: ce.rounds.map((r) => (r.roundId === updatedRound.roundId ? updatedRound : r)) }
-          : ce,
-      ),
-    );
-    setAttempts(new Array(roundFormats.find((rf) => rf.value === updatedRound.format)!.attempts).fill({ result: 0 }));
+  const updateRound = (newRound: RoundResponse) => {
+    setRound(newRound);
+    resetSelectedPersonsAndAttempts(newRound.format);
+  };
+
+  const resetSelectedPersonsAndAttempts = (newRoundFormat: RoundFormat = round.format) => {
+    setAttempts(new Array(roundFormats.find((rf) => rf.value === newRoundFormat)!.attempts).fill({ result: 0 }));
     const [persons, personNames] = getBlankCompetitors(currEvent.participants);
-    setCurrentPersons(persons);
+    setSelectedPersons(persons);
     setPersonNames(personNames);
   };
 
@@ -163,112 +175,113 @@ function DataEntryScreen({
     setAttempts(attempts.map((a: Attempt, i: number) => (i !== index ? a : newAttempt)));
   };
 
-  const updateRecordPairs = async (newResult: ResultResponse) => {
-    const eventRP = recordPairsByEvent.find(
-      (erp: IEventRecordPairs) => erp.eventId === newResult.eventId,
-    ) as IEventRecordPairs;
-
-    // TO-DO: ADD SUPPORT FOR DETECTING CHANGES BASED ON THE TYPE OF RECORD IT IS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  const updateEventWrPair = async (newResult?: Pick<ResultResponse, "best" | "average">) => {
     if (
-      eventRP.recordPairs.length > 0 &&
-      (newResult.best < eventRP.recordPairs[0].best || newResult.average < eventRP.recordPairs[0].average)
+      !newResult ||
+      !eventWrPair?.best ||
+      newResult.best < eventWrPair.best ||
+      !eventWrPair?.average ||
+      newResult.average < eventWrPair.average
     ) {
-      const res = await myFetch.get(
-        `/results/record-pairs/${contest.startDate}/${contest.events.map((e) => e.event.eventId).join(",")}`,
-        { authorize: true, loadingId: null },
-      );
+      const res = await getWrPairUpToDate({
+        recordCategory: contest.type === "meetup" ? "meetups" : "competitions",
+        eventId,
+        recordsUpTo: getRoundDate(round, contest),
+      });
 
-      if (!res.success) changeErrorMessages(res.error);
-      else setRecordPairsByEvent(res.data);
+      if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
+      else setEventWrPair(res.data!);
     }
   };
 
   const onSelectPerson = (person: PersonResponse) => {
-    if (currentPersons.every((p: InputPerson) => p === null)) {
-      const existingResultForSelectedPerson = round.results.find((r: ResultResponse) =>
-        r.personIds.includes(person.personId),
-      );
-      if (existingResultForSelectedPerson) {
-        editResult(existingResultForSelectedPerson);
-      }
+    if (selectedPersons.every((p) => p === null)) {
+      const existingResultForSelectedPerson = results.find((r) => r.personIds.includes(person.id));
+      if (existingResultForSelectedPerson) editResult(existingResultForSelectedPerson);
     }
   };
 
   const editResult = (result: ResultResponse) => {
-    resetMessages();
-    setResultUnderEdit(result);
-    setAttempts(
-      getMakesCutoff(result.attempts, round.cutoff)
-        ? result.attempts
-        : [
-            ...result.attempts,
-            ...new Array(roundFormat.attempts - (round.cutoff as ICutoff).numberOfAttempts).fill({ result: 0 }),
-          ],
-    );
-    const newCurrentPersons: PersonResponse[] = result.personIds.map(
-      (pid) => persons.find((p: PersonResponse) => p.personId === pid)!,
-    );
-    setCurrentPersons(newCurrentPersons);
-    setPersonNames(newCurrentPersons.map((p) => p.name));
-    window.scrollTo(0, 0);
+    throw new Error("NOT IMPLEMENTED!");
+
+    // resetMessages();
+    // setResultUnderEdit(result);
+    // setAttempts(
+    //   getMakesCutoff(result.attempts, round.cutoff)
+    //     ? result.attempts
+    //     : [
+    //         ...result.attempts,
+    //         ...new Array(roundFormat.attempts - (round.cutoff as ICutoff).numberOfAttempts).fill({ result: 0 }),
+    //       ],
+    // );
+    // const newCurrentPersons: PersonResponse[] = result.personIds.map(
+    //   (pid) => persons.find((p: PersonResponse) => p.personId === pid)!,
+    // );
+    // setSelectedPersons(newCurrentPersons);
+    // setPersonNames(newCurrentPersons.map((p) => p.name));
+    // window.scrollTo(0, 0);
   };
 
-  const deleteResult = async (resultId: string) => {
-    if (confirm("Are you sure you want to delete this result?")) {
-      const res = await myFetch.delete(`/results/${resultId}`, { loadingId: `delete_result_${resultId}_button` });
+  const deleteResult = async (resultId: number) => {
+    throw new Error("NOT IMPLEMENTED!");
+    // setLoadingId(`delete_result_${resultId}_button` )
 
-      if (res.success) changeRound(res.data);
-    }
+    // if (confirm("Are you sure you want to delete this result?")) {
+    //   const res = await myFetch.delete(`/results/${resultId}`, { loadingId: `delete_result_${resultId}_button` });
+
+    //   if (res.success) changeRound(res.data);
+    // }
   };
 
   const updateQueuePosition = async (mode: "decrement" | "increment" | "reset") => {
-    const res = await myFetch.patch(
-      `/competitions/queue-${mode}/${contest.competitionId}`,
-      {},
-      { loadingId: `queue_${mode}_button` },
-    );
+    throw new Error("NOT IMPLEMENTED!");
+    // const res = await myFetch.patch(
+    //   `/competitions/queue-${mode}/${contest.competitionId}`,
+    //   {},
+    //   { loadingId: `queue_${mode}_button` },
+    // );
 
-    if (res.success) setQueuePosition(res.data);
+    // if (res.success) setQueuePosition(res.data);
   };
 
   const openRound = async () => {
     const res = await myFetch.post(`/competitions/${contest.competitionId}/open-round/${round.roundId}`, {});
 
-    if (res.success) changeRound(res.data);
+    if (res.success) updateRound(res.data);
   };
 
   const submitMockResult = async () => {
     let firstUnusedPersonId =
       persons.length === 0
         ? 1
-        : persons.reduce((acc: PersonResponse, person: PersonResponse) =>
-            !acc || person.personId > acc.personId ? person : acc,
-          ).personId + 1;
+        : persons.reduce((acc: PersonResponse, person: PersonResponse) => (!acc || person.id > acc.id ? person : acc))
+            .id + 1;
     const resultPersons: PersonResponse[] = [];
     for (let i = 0; i < currEvent.participants; i++) {
       while (resultPersons.length === i) {
-        const res = await myFetch.get(`/persons?personId=${firstUnusedPersonId}`, { loadingId: null });
-        if (!res.success) firstUnusedPersonId++;
-        else resultPersons.push(res.data);
+        const res = await getPersonById({ id: firstUnusedPersonId });
+        if (res.serverError || res.validationErrors) firstUnusedPersonId++;
+        else resultPersons.push(res.data!);
       }
       firstUnusedPersonId++;
     }
-    const resultDto = {
+    const newResultDto: ResultDto = {
       eventId,
-      personIds: resultPersons.map((p) => p.personId),
-      attempts: new Array(round.cutoff ? round.cutoff.numberOfAttempts : roundFormat.attempts).fill({ result: -1 }),
+      competitionId: contest.competitionId,
+      roundId: round.id,
+      personIds: resultPersons.map((p) => p.id),
+      attempts: new Array(round.cutoffNumberOfAttempts ?? roundFormat.attempts).fill({ result: -1 }),
     };
 
-    const res = await myFetch.post(`/results/${contest.competitionId}/${round.roundId}`, resultDto, {
-      loadingId: "submit_attempt_button",
-    });
+    const res = await createResult({ newResultDto });
 
-    if (res.success) {
+    if (res.serverError || res.validationErrors) {
+      changeErrorMessages([getActionError(res)]);
+    } else {
       addNewPersonsToList(resultPersons);
-      changeRound(res.data);
-      // CODE SMELL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      const { best, average } = getBestAndAverage(attempts, currEvent, round.format, { cutoff: round.cutoff });
-      updateRecordPairs({ ...resultDto, best, average } as ResultResponse);
+      resetSelectedPersonsAndAttempts();
+      setResults(res.data!);
+      // Assuming that the mock result couldn't have affected any records
     }
   };
 
@@ -279,17 +292,13 @@ function DataEntryScreen({
       <div className="row py-4">
         <div className="col-lg-3 mb-4">
           <div>
-            <EventButtons
-              eventId={eventId}
-              events={contestEvents?.map((e: IContestEvent) => e.event)}
-              forPage="data-entry"
-            />
+            <EventButtons eventId={eventId} events={events} forPage="data-entry" />
             <FormSelect
               title="Round"
               options={roundOptions}
               selected={round.roundTypeId}
-              setSelected={(val: RoundType) => changeRound(currContestEvent.rounds.find((r) => r.roundTypeId === val)!)}
-              disabled={resultUnderEdit !== null}
+              setSelected={(val: RoundType) => updateRound(rounds.find((r) => r.roundTypeId === val)!)}
+              disabled={resultUnderEdit !== null || isPending}
               className="mb-3"
             />
             <FormPersonInputs
@@ -297,12 +306,12 @@ function DataEntryScreen({
               personNames={personNames}
               setPersonNames={setPersonNames}
               onSelectPerson={onSelectPerson}
-              persons={currentPersons}
-              setPersons={setCurrentPersons}
+              persons={selectedPersons}
+              setPersons={setSelectedPersons}
               nextFocusTargetId="attempt_1"
               addNewPersonMode="default"
               redirectToOnAddPerson={`${pathname}?eventId=${eventId}`}
-              disabled={!round.open}
+              disabled={!round.open || isPending}
               display="basic"
             />
             {attempts.map((attempt: Attempt, i: number) => (
@@ -313,39 +322,49 @@ function DataEntryScreen({
                 setAttempt={(val: Attempt) => changeAttempt(i, val)}
                 event={currEvent}
                 nextFocusTargetId={i + 1 === lastActiveAttempt ? "submit_attempt_button" : undefined}
-                timeLimit={round.timeLimit}
-                disabled={i + 1 > lastActiveAttempt || !round.open}
+                timeLimitCentiseconds={round.timeLimitCentiseconds}
+                disabled={i + 1 > lastActiveAttempt || !round.open || isPending}
               />
             ))}
-            {loadingId === "RECORD_PAIRS" ? (
+            {isPendingWrPairs ? (
               <Loading small dontCenter />
             ) : (
               <BestAndAverage
                 event={currEvent}
                 roundFormat={round.format}
                 attempts={attempts}
-                recordPairs={recordPairs}
-                recordTypes={activeRecordTypes}
-                cutoff={round.cutoff}
+                eventWrPair={eventWrPair}
+                recordConfigs={recordConfigs}
+                cutoffAttemptResult={round.cutoffAttemptResult}
+                cutoffNumberOfAttempts={round.cutoffNumberOfAttempts}
               />
             )}
             <Button
               id="submit_attempt_button"
               onClick={submitResult}
-              disabled={!round.open}
-              loadingId={loadingId}
+              disabled={!round.open || isPending}
+              isLoading={isCreating}
               className="d-block mt-3"
             >
               Submit
             </Button>
-            {contest.queuePosition !== undefined && (
+            {process.env.NODE_ENV !== "production" && (
+              <Button
+                onClick={submitMockResult}
+                disabled={!round.open || isPending}
+                isLoading={isCreating}
+                className="btn-secondary mt-4"
+              >
+                Submit Mock Result
+              </Button>
+            )}
+            {contest.queuePosition !== null && false && (
               <>
                 <p className="mt-4 mb-2">Current position in queue:</p>
                 <div className="d-flex gap-3 align-items-center">
                   <Button
-                    id="queue_decrement_button"
                     onClick={() => updateQueuePosition("decrement")}
-                    loadingId={loadingId}
+                    disabled={isPending}
                     className="btn-success btn-xs"
                     title="Decrement"
                     ariaLabel="Decrement queue position"
@@ -354,35 +373,19 @@ function DataEntryScreen({
                   </Button>
                   <p className="fs-5 fw-bold mb-0">{queuePosition}</p>
                   <Button
-                    id="queue_increment_button"
                     onClick={() => updateQueuePosition("increment")}
-                    loadingId={loadingId}
+                    disabled={isPending}
                     className="btn-success btn-xs"
                     title="Increment"
                     ariaLabel="Increment queue position"
                   >
                     <FontAwesomeIcon icon={faPlus} />
                   </Button>
-                  <Button
-                    id="queue_reset_button"
-                    onClick={() => updateQueuePosition("reset")}
-                    loadingId={loadingId}
-                    className="btn-xs"
-                  >
+                  <Button onClick={() => updateQueuePosition("reset")} disabled={isPending} className="btn-xs">
                     Reset
                   </Button>
                 </div>
               </>
-            )}
-            {process.env.NODE_ENV !== "production" && (
-              <Button
-                id="set_mock_comp_button"
-                onClick={submitMockResult}
-                disabled={!round.open}
-                className="btn-secondary mt-4"
-              >
-                Submit Mock Result
-              </Button>
             )}
           </div>
         </div>
@@ -392,12 +395,13 @@ function DataEntryScreen({
             {contest.shortName} &ndash; {shortenEventName(currEvent.name)}
           </h3>
 
-          {round.open || round.results.length > 0 ? (
+          {round.open || results.some((r) => r.roundId === round.id) ? (
             <RoundResultsTable
-              round={round}
               event={currEvent}
+              round={round}
+              results={results.filter((r) => r.roundId === round.id).sort((a, b) => a.ranking! - b.ranking!)}
               persons={persons}
-              recordConfigs={activeRecordTypes}
+              recordConfigs={recordConfigs}
               onEditResult={round.open ? editResult : undefined}
               onDeleteResult={round.open ? deleteResult : undefined}
               disableEditAndDelete={resultUnderEdit !== null}

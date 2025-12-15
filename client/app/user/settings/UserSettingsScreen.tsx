@@ -1,15 +1,15 @@
 "use client";
 
 import capitalize from "lodash/capitalize";
-import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import Button from "~/app/components/UI/Button.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
-import { C } from "~/helpers/constants.ts";
-import { authClient } from "~/helpers/authClient.ts";
-import { useContext, useEffect, useTransition } from "react";
-import { MainContext } from "~/helpers/contexts.ts";
 import { useRouter } from "next/navigation";
-import { PersonResponse } from "~/server/db/schema/persons.ts";
+import { useContext, useEffect, useTransition } from "react";
+import Competitor from "~/app/components/Competitor.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import { authClient } from "~/helpers/authClient.ts";
+import { C } from "~/helpers/constants.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import type { PersonResponse } from "~/server/db/schema/persons.ts";
 
 type Props = {
   person: PersonResponse | undefined;
@@ -42,8 +42,6 @@ function UserSettingsScreen({ person }: Props) {
 
   return (
     <div className="px-2">
-      <h2 className="mb-4 text-center">Settings</h2>
-
       <ToastMessages />
 
       {session && (
@@ -52,27 +50,27 @@ function UserSettingsScreen({ person }: Props) {
             Email address: <b>{session.user.email}</b>
           </p>
           <p className="mb-4" style={{ fontSize: "0.85rem" }}>
-            Changing your email address is currently not supported. Please send an email to {C.contactEmail}{" "}
-            if you would like to change your email.
+            Changing your email address is currently not supported. Please send an email to {C.contactEmail} if you
+            would like to change your email.
           </p>
-          {session.user.personId
-            ? (
-              <p className="d-flex flex-wrap gap-2">
-                <span>Your competitor profile:</span>
-                <Competitor person={person} showLocalizedName />
-                <span>
-                  (CC ID: <b>{session.user.personId}</b>)
-                </span>
-              </p>
-            )
-            : <p>There is no competitor profile tied to your account.</p>}
+          {session.user.personId ? (
+            <p className="d-flex flex-wrap gap-2">
+              <span>Your competitor profile:</span>
+              <Competitor person={person} showLocalizedName />
+              <span>
+                (CC ID: <b>{session.user.personId}</b>)
+              </span>
+            </p>
+          ) : (
+            <p>There is no competitor profile tied to your account.</p>
+          )}
           {session.user.role && (
             <p>
               Your role: <strong>{capitalize(session.user.role)}</strong>.
             </p>
           )}
 
-          <Button onClick={deleteUser} isLoading={isDeleting} className="mt-4 btn-danger btn-sm">
+          <Button onClick={deleteUser} isLoading={isDeleting} className="btn-danger btn-sm mt-4">
             Delete Account
           </Button>
           <p className="mt-2" style={{ fontSize: "0.85rem" }}>

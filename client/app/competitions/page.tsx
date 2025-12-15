@@ -31,16 +31,15 @@ type Props = {
 async function ContestsPage({ searchParams }: Props) {
   const { eventId, region } = await searchParams;
 
-  const filterByContinent = !!region && Continents.some((c) => region === c.code);
-  const continentCountryCodes =
-    filterByContinent && Countries.filter((c) => c.continentId === region).map((c) => c.code);
+  const filterBySuperRegion = !!region && Continents.some((c) => region === c.code);
+  const regionCodes = filterBySuperRegion && Countries.filter((c) => c.superRegionCode === region).map((c) => c.code);
   const contests = await db.query.contests.findMany({
     columns: {
       competitionId: true,
       shortName: true,
       type: true,
       city: true,
-      countryIso2: true,
+      regionCode: true,
       startDate: true,
       endDate: true,
       participants: true,
@@ -48,7 +47,7 @@ async function ContestsPage({ searchParams }: Props) {
     with: { rounds: { columns: { eventId: true } } },
     where: {
       rounds: eventId ? { eventId } : undefined,
-      countryIso2: continentCountryCodes ? { in: continentCountryCodes } : region ? { eq: region } : undefined,
+      regionCode: regionCodes ? { in: regionCodes } : region,
     },
     orderBy: { startDate: "desc" },
   });

@@ -10,9 +10,7 @@ import ContestName from "~/app/components/ContestName.tsx";
 import Country from "~/app/components/Country.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Solves from "~/app/components/Solves.tsx";
-import { ContestType } from "~/helpers/enums";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
-import type { IRanking, ResultRankingType } from "~/helpers/types.ts";
 import { getFormattedDate } from "~/helpers/utilityFunctions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
@@ -69,7 +67,7 @@ function RankingRow({
       </td>
       {!showAllTeammates && (
         <td>
-          <Country countryIso2={person.countryIso2} shorten />
+          <Country countryIso2={person.regionCode} shorten />
         </td>
       )}
       <td>{!onlyKeepPerson && getFormattedDate(ranking.date)}</td>
@@ -79,7 +77,7 @@ function RankingRow({
       </td>
       {showTeamColumn && (
         <td>
-          <div className="d-flex flex-column align-items-start gap-2 fs-6">
+          <div className="d-flex fs-6 flex-column gap-2 align-items-start">
             <span className="text-white">
               <u style={{ cursor: "pointer" }} onClick={() => setTeamExpanded(!teamExpanded)}>
                 {teamExpanded ? "Close" : "Open"}
@@ -89,7 +87,7 @@ function RankingRow({
               </span>
             </span>
 
-            {teamExpanded && ranking.persons.map((p) => <Competitor key={p.personId} person={p} />)}
+            {teamExpanded && ranking.persons.map((p) => <Competitor key={p.id} person={p} />)}
           </div>
         </td>
       )}

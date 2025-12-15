@@ -3,7 +3,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import type { SafeActionResult } from "next-safe-action";
 import { remove as removeAccents } from "remove-accents";
 import { C } from "~/helpers/constants.ts";
-import type { CcServerErrorObject, EventFormat, InputPerson } from "~/helpers/types.ts";
+import type { CcServerErrorObject, InputPerson } from "~/helpers/types.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 import type { RoundFormatObject } from "./roundFormats.ts";
@@ -106,7 +106,7 @@ export function getAttempt(
   }
 
   if (event.format === "number") {
-    return { ...attempt, result: time ? parseInt(time) : 0 };
+    return { ...attempt, result: time ? parseInt(time, 10) : 0 };
   }
 
   const newAttempt: Attempt = { result: getCentiseconds(time, { round: roundTime }) };
@@ -143,7 +143,7 @@ export function getAttempt(
     multiOutput += new Array(7 - newAttempt.result.toString().length).fill("0").join("") + newAttempt.result;
     multiOutput += new Array(4 - missed.toString().length).fill("0").join("") + missed;
 
-    newAttempt.result = parseInt(multiOutput);
+    newAttempt.result = parseInt(multiOutput, 10);
   }
 
   return newAttempt;

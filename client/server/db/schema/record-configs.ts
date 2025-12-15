@@ -1,11 +1,11 @@
 import "server-only";
 import { getTableColumns } from "drizzle-orm";
 import { boolean, integer, pgEnum, pgTable as table, text, varchar } from "drizzle-orm/pg-core";
-import { RecordCategoryValues } from "~/helpers/types.ts";
+import { RecordCategoryValues, RecordTypeValues } from "~/helpers/types.ts";
 import { tableTimestamps } from "../dbUtils.ts";
-import { recordTypeEnum } from "./results.ts";
 
 export const recordCategoryEnum = pgEnum("record_category", RecordCategoryValues);
+export const recordTypeEnum = pgEnum("record_type", RecordTypeValues);
 
 export const recordConfigsTable = table("record_configs", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

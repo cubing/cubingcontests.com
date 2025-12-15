@@ -60,8 +60,7 @@ export type ContestType = (typeof ContestTypeValues)[number];
 export const ContestStateValues = ["created", "approved", "ongoing", "finished", "published", "removed"] as const;
 export type ContestState = (typeof ContestStateValues)[number];
 
-export const ContinentIdValues = ["AFRICA", "ASIA", "EUROPE", "NORTH_AMERICA", "OCEANIA", "SOUTH_AMERICA"] as const;
-export type ContinentId = (typeof ContinentIdValues)[number];
+export type ContinentCode = "AFRICA" | "ASIA" | "EUROPE" | "NORTH_AMERICA" | "OCEANIA" | "SOUTH_AMERICA";
 
 export type EventWrPair = {
   eventId: string;

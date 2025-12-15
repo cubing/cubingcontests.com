@@ -25,6 +25,10 @@ export const relations = defineRelations(
     users: {
       sessions: r.many.sessions(),
       accounts: r.many.accounts(),
+      person: r.one.persons({
+        from: r.users.personId,
+        to: r.persons.id,
+      }),
     },
     sessions: {
       user: r.one.users({
@@ -44,6 +48,10 @@ export const relations = defineRelations(
     // CC relations
     contests: {
       rounds: r.many.rounds(),
+      // organizers: r.many.persons({
+      //   from: r.contests.organizerIds,
+      //   to: r.persons.id,
+      // }),
     },
     rounds: {
       contest: r.one.contests({
@@ -66,8 +74,8 @@ export const relations = defineRelations(
       }),
       // persons: r.many.persons({
       //   from: r.results.personIds,
-      //   to: r.persons.personId,
-      //   optional: false,
+      //   to: r.persons.id,
+      //   where: { id: { in: r.results.personIds } },
       // }),
       contest: r.one.contests({
         from: r.results.competitionId,

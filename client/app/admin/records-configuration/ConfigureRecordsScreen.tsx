@@ -225,8 +225,8 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
         types under that category are also active.
       </p>
 
-      <div className="my-4 table-responsive">
-        <table className="table table-hover text-nowrap">
+      <div className="table-responsive my-4">
+        <table className="table-hover table text-nowrap">
           <thead>
             <tr>
               <th scope="col">#</th>

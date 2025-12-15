@@ -29,7 +29,7 @@ async function ContestDetailsPage({ params }: Props) {
   const organizers = await db
     .select(personsPublicCols)
     .from(personsTable)
-    .where(inArray(personsTable.id, contest.organizers));
+    .where(inArray(personsTable.id, contest.organizerIds));
 
   if (!contest) return <LoadingError loadingEntity="contest" />;
 
@@ -70,7 +70,7 @@ async function ContestDetailsPage({ params }: Props) {
             <p className="mb-2">Date:&#8194;{formattedDate}</p>
             {formattedTime && <p className="mb-2">Starts at:&#8194;{formattedTime}</p>}
             <p className="mb-2">
-              City:&#8194;{contest.city}, <Country countryIso2={contest.countryIso2} swapPositions />
+              City:&#8194;{contest.city}, <Country countryIso2={contest.regionCode} swapPositions />
             </p>
             {/* Venue and address may be undefined for some old WCA competitions */}
             {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
@@ -82,9 +82,9 @@ async function ContestDetailsPage({ params }: Props) {
               </p>
             )}
             <p className="mb-2">
-              {contest.organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
+              {organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
               {organizers.map((org, index) => (
-                <span key={org.personId} className="d-flex-inline">
+                <span key={org.id} className="d-flex-inline">
                   {index !== 0 && <span className="me-1">,</span>}
                   <Competitor person={org} noFlag />
                 </span>

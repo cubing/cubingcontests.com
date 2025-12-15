@@ -1,30 +1,42 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useMyFetch } from "~/helpers/customHooks.ts";
-import Loading from "~/app/components/UI/Loading.tsx";
 import DataEntryScreen from "~/app/components/adminAndModerator/DataEntryScreen.tsx";
-import { IContestData } from "~/helpers/types.ts";
-import { useParams, useSearchParams } from "next/navigation";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import { getContest } from "~/server/serverFunctions/contestServerFunctions.ts";
+import { authorizeUser, getUserHasAccessToContest } from "~/server/serverUtilityFunctions.ts";
 
-const PostResultsPage = () => {
-  const { id } = useParams();
-  const searchParams = useSearchParams();
-  const myFetch = useMyFetch();
-
-  const [contestData, setContestData] = useState<IContestData | undefined>();
-
-  useEffect(() => {
-    setContestData(undefined);
-    myFetch.get(`/competitions/mod/${id}?eventId=${searchParams.get("eventId") ?? "FIRST_EVENT"}`, { authorize: true })
-      .then((res) => {
-        if (res.success) setContestData(res.data as IContestData);
-      });
-  }, [id, searchParams]);
-
-  if (!contestData) return <Loading />;
-
-  return <DataEntryScreen compData={contestData} />;
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ eventId?: string }>;
 };
+
+async function PostResultsPage({ params, searchParams }: Props) {
+  const { user } = await authorizeUser({ permissions: { competitions: ["create", "update"] } });
+  const { id } = await params;
+  const { eventId } = await searchParams;
+
+  const res = await getContest({ competitionId: id, eventId });
+
+  if (!res.data) return <LoadingError loadingEntity="contest results" />;
+
+  const { contest, events, rounds, results, persons, recordConfigs } = res.data;
+  const eventIdOrFirst = eventId ?? events[0].eventId;
+
+  if (!contest) return <LoadingError reason="Contest not found" />;
+  if (contest.state === "removed") return <LoadingError reason="This contest has been removed" />;
+  if (!getUserHasAccessToContest(user, contest.organizerIds))
+    return <LoadingError reason="You do not have access rights for this contest" />;
+
+  return (
+    <DataEntryScreen
+      key={eventIdOrFirst}
+      contest={contest}
+      eventId={eventIdOrFirst}
+      events={events}
+      rounds={rounds}
+      results={results}
+      persons={persons}
+      recordConfigs={recordConfigs}
+    />
+  );
+}
 
 export default PostResultsPage;
