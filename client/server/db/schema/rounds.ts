@@ -48,6 +48,7 @@ export const roundsTable = table(
 );
 
 export type SelectRound = typeof roundsTable.$inferSelect;
+export type InsertRound = typeof roundsTable.$inferInsert;
 
 const { createdAt: _, updatedAt: _1, ...roundsPublicCols } = getTableColumns(roundsTable);
 export { roundsPublicCols };

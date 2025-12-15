@@ -443,6 +443,8 @@ export async function register() {
       }
     }
 
+    // TO-DO: ADD COLLECTIVE SOLUTIONS MIGRATION!!!
+
     if ((await db.select({ id: recordConfigsTable.id }).from(recordConfigsTable).limit(1)).length === 0) {
       console.log("Seeding record configs...");
 

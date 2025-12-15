@@ -32,9 +32,14 @@ export const logMessageSF = actionClient
     }),
   )
   .action(async ({ parsedInput: { message } }) => {
-    console.log(message);
+    // If not in test environment, log to console too (tests use a different implementation of the logger that logs straight to console)
+    if (!process.env.VITEST) console.log(message);
 
-    logger.info(message);
+    try {
+      logger.info(message);
+    } catch (err) {
+      console.error("Error while sending log to Supabase Analytics:", err);
+    }
   });
 
 export const updateUserSF = actionClient
@@ -74,7 +79,7 @@ export const updateUserSF = actionClient
       }
 
       if (user.role !== role) {
-        await auth.api.setRole({ body: { userId: id, role }, headers: hdrs });
+        await auth.api.setRole({ body: { userId: id, role: role as any }, headers: hdrs });
         const canAccessModDashboard = await checkUserPermissions(user.id, { modDashboard: ["view"] });
 
         sendRoleChangedEmail(user.email, role, canAccessModDashboard);

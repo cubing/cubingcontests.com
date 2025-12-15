@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventsStub } from "~/__mocks__/stubs/events.stub.ts";
+import { eventsStub } from "~/__mocks__/stubs/eventsStub.ts";
 import { C } from "~/helpers/constants.ts";
 import { getFormattedTime } from "~/helpers/sharedFunctions.ts";
 import { getAttempt } from "~/helpers/utilityFunctions.ts";
@@ -178,7 +178,7 @@ const multiBlindExamples = [
   },
 ];
 
-describe("getAttempt", () => {
+describe(getAttempt.name, () => {
   const dummyAtt = { result: 0 };
 
   describe("parse time attempts", () => {
@@ -304,7 +304,7 @@ describe("getAttempt", () => {
   });
 });
 
-describe("getFormattedTime", () => {
+describe(getFormattedTime.name, () => {
   describe("format time singles", () => {
     it("formats 0.07 correctly", () => {
       expect(getFormattedTime(7)).toBe("0.07");

@@ -1,4 +1,5 @@
 import { Countries } from "~/helpers/Countries.ts";
+import { RecordCategoryValues } from "~/helpers/types.ts";
 import type { Attempt, InsertResult } from "~/server/db/schema/results.ts";
 import {
   caPersonJoshCalhoun,
@@ -11,7 +12,14 @@ import {
   krPersonDongJunHyon,
   krPersonSooMinNam,
   usPersonJohnDoe,
-} from "./persons.stub.ts";
+} from "./personsStub.ts";
+import {
+  testComp2023_222_r1,
+  testComp2023_333_r1,
+  testComp2023_333bf_r1,
+  testComp2023_444bf_r1,
+  testMeetup2020_555bf_r1,
+} from "./roundsStub.ts";
 
 const personCountryMap: Record<number, string> = {
   1: "GB",
@@ -38,11 +46,13 @@ const generateRandomResults = (): InsertResult[] => {
       const date = new Date(year, randomMonth, randomDay);
       const personId = Math.floor(Math.random() * 10) + 1;
       const regionCode = personCountryMap[personId];
+      const recordCategory = RecordCategoryValues[Math.floor(Math.random() * 3)];
+      const isVideoBasedResult = recordCategory === "video-based-results";
 
       const attemptCounts = [1, 2, 3, 5];
       const numAttempts = attemptCounts[Math.floor(Math.random() * attemptCounts.length)];
       // We want all attempts to be slower than any potential record attempt
-      const firstAttempt = Math.floor(Math.random() * 9000) + 10000;
+      const firstAttempt = Math.floor(Math.random() * 90 * 100) + 100 * 100; // 100-190 seconds
       const attempts: Attempt[] = [];
       for (let j = 0; j < numAttempts; j++) attempts.push({ result: firstAttempt + j * 100 });
 
@@ -57,11 +67,14 @@ const generateRandomResults = (): InsertResult[] => {
         personIds: [personId],
         regionCode,
         superRegionCode: Countries.find((c) => c.code === regionCode)!.superRegionCode,
+        attempts,
         best,
         average,
-        attempts,
-        recordCategory: "video-based-results",
-        videoLink: "https://example.com",
+        recordCategory,
+        competitionId: isVideoBasedResult ? null : "TestComp2023",
+        roundId: isVideoBasedResult ? null : testComp2023_444bf_r1,
+        ranking: isVideoBasedResult ? null : 1, // doesn't matter for tests using these random results
+        videoLink: isVideoBasedResult ? "https://example.com" : null,
       });
     }
   }
@@ -72,7 +85,7 @@ const generateRandomResults = (): InsertResult[] => {
 export const resultsStub: InsertResult[] = [
   ...generateRandomResults(),
 
-  // 4x4x4 Blindfolded
+  // 4x4x4 Blindfolded (video-based)
   // 2020 results
   {
     eventId: "444bf",
@@ -246,45 +259,122 @@ export const resultsStub: InsertResult[] = [
 
   // 3x3x3 Blindfolded 2-man Relay
   // 2020 results
+  // {
+  //   eventId: "333bf_2_person_relay",
+  //   date: new Date(2020, 0, 1),
+  //   personIds: [gbPersonTomDillon, dePersonHansBauer],
+  //   superRegionCode: "EUROPE",
+  //   attempts: [{ result: 3800 }, { result: 3900 }, { result: 4000 }],
+  //   best: 3800,
+  //   average: 3900,
+  //   recordCategory: "video-based-results",
+  //   regionalSingleRecord: "WR",
+  //   regionalAverageRecord: "WR",
+  //   videoLink: "www.example.com",
+  // },
+  // {
+  //   eventId: "333bf_2_person_relay",
+  //   date: new Date(2020, 1, 1),
+  //   personIds: [jpPersonNaokoYoshida, jpPersonSatoshiNakamura],
+  //   regionCode: "JP",
+  //   superRegionCode: "ASIA",
+  //   attempts: [{ result: 4200 }, { result: 4400 }, { result: 4600 }],
+  //   best: 4200,
+  //   average: 4400,
+  //   recordCategory: "video-based-results",
+  //   regionalSingleRecord: "AsR",
+  //   regionalAverageRecord: "AsR",
+  //   videoLink: "www.example.com",
+  // },
+  // {
+  //   eventId: "333bf_2_person_relay",
+  //   date: new Date(2020, 2, 1),
+  //   personIds: [krPersonDongJunHyon, krPersonSooMinNam],
+  //   regionCode: "KR",
+  //   superRegionCode: "ASIA",
+  //   attempts: [{ result: 4500 }, { result: 4600 }, { result: 4700 }],
+  //   best: 4500,
+  //   average: 4600,
+  //   recordCategory: "video-based-results",
+  //   regionalSingleRecord: "NR",
+  //   regionalAverageRecord: "NR",
+  //   videoLink: "www.example.com",
+  // },
+
+  // Other results
   {
-    eventId: "333bf_2_person_relay",
-    date: new Date(2020, 0, 1),
-    personIds: [gbPersonTomDillon, dePersonHansBauer],
+    // Real result from Cubing Contests
+    eventId: "333",
+    date: new Date(2023, 5, 30), // June 30th, 2023
+    personIds: [9], // Oliver Fritz
+    regionCode: "DE",
     superRegionCode: "EUROPE",
-    attempts: [{ result: 3800 }, { result: 3900 }, { result: 4000 }],
-    best: 3800,
-    average: 3900,
-    recordCategory: "video-based-results",
+    attempts: [{ result: 876 }, { result: 989 }, { result: 812 }, { result: 711 }, { result: 686 }],
+    best: 686,
+    average: 800,
+    recordCategory: "meetups",
     regionalSingleRecord: "WR",
     regionalAverageRecord: "WR",
-    videoLink: "www.example.com",
+    competitionId: "Munich30062023",
+    roundId: testComp2023_333_r1,
+    ranking: 1,
   },
   {
-    eventId: "333bf_2_person_relay",
-    date: new Date(2020, 1, 1),
-    personIds: [jpPersonNaokoYoshida, jpPersonSatoshiNakamura],
-    regionCode: "JP",
-    superRegionCode: "ASIA",
-    attempts: [{ result: 4200 }, { result: 4400 }, { result: 4600 }],
-    best: 4200,
-    average: 4400,
-    recordCategory: "video-based-results",
-    regionalSingleRecord: "AsR",
-    regionalAverageRecord: "AsR",
-    videoLink: "www.example.com",
+    eventId: "222",
+    date: new Date(2023, 0, 1),
+    personIds: [1],
+    regionCode: "IRRELEVANT",
+    attempts: [{ result: 100 }, { result: 101 }, { result: 102 }],
+    best: 100,
+    average: 101,
+    recordCategory: "competitions",
+    regionalSingleRecord: "WR",
+    competitionId: "TestComp2023",
+    roundId: testComp2023_222_r1,
+    ranking: 1,
   },
   {
-    eventId: "333bf_2_person_relay",
-    date: new Date(2020, 2, 1),
-    personIds: [krPersonDongJunHyon, krPersonSooMinNam],
-    regionCode: "KR",
-    superRegionCode: "ASIA",
-    attempts: [{ result: 4500 }, { result: 4600 }, { result: 4700 }],
-    best: 4500,
-    average: 4600,
-    recordCategory: "video-based-results",
-    regionalSingleRecord: "NR",
-    regionalAverageRecord: "NR",
-    videoLink: "www.example.com",
+    eventId: "333bf",
+    date: new Date(2023, 0, 1),
+    personIds: [1],
+    regionCode: "IRRELEVANT",
+    attempts: [{ result: -1 }, { result: 2000 }, { result: -1 }],
+    best: 2000,
+    average: -1,
+    recordCategory: "competitions",
+    regionalSingleRecord: "WR",
+    competitionId: "TestComp2023",
+    roundId: testComp2023_333bf_r1,
+    ranking: 1,
+  },
+  {
+    eventId: "444bf",
+    date: new Date(2023, 0, 1), // January 1st, 2023
+    personIds: [1],
+    regionCode: "IRRELEVANT",
+    attempts: [{ result: 7500 }, { result: 7600 }, { result: 7700 }],
+    best: 7500,
+    average: 7600,
+    recordCategory: "competitions",
+    regionalSingleRecord: "WR",
+    regionalAverageRecord: "WR",
+    competitionId: "TestComp2023",
+    roundId: testComp2023_444bf_r1,
+    ranking: 1,
+  },
+  {
+    eventId: "444bf",
+    date: new Date(2020, 0, 1), // January 1st, 2020
+    personIds: [1],
+    regionCode: "IRRELEVANT",
+    attempts: [{ result: 7000 }, { result: 7100 }, { result: 7200 }],
+    best: 7000,
+    average: 7100,
+    recordCategory: "meetups",
+    regionalSingleRecord: "WR",
+    regionalAverageRecord: "WR",
+    competitionId: "TestMeetup2020",
+    roundId: testMeetup2020_555bf_r1,
+    ranking: 1,
   },
 ];

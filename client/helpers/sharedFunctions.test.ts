@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { eventsStub } from "~/__mocks__/stubs/events.stub.ts";
-import { newContestEventsStub, newFakeContestEventsStub } from "~/__mocks__/stubs/new-competition-events.stub.ts";
+import { eventsStub } from "~/__mocks__/stubs/eventsStub.ts";
+import { resultsStub } from "~/__mocks__/stubs/resultsStub.ts";
 import { compareAvgs, compareSingles, getBestAndAverage, setResultWorldRecords } from "~/helpers/sharedFunctions.ts";
 import type { EventWrPair } from "~/helpers/types.ts";
-import type { Attempt } from "~/server/db/schema/results.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
 
 const mockTimeEvent = eventsStub.find((e) => e.eventId === "333") as any;
 
-describe("getBestAndAverage", () => {
+describe(getBestAndAverage.name, () => {
   it("sets average to 0 when there is only one attempt", () => {
     const attempts: Attempt[] = [{ result: 1234 }];
 
@@ -27,7 +28,7 @@ describe("getBestAndAverage", () => {
   });
 });
 
-describe("compareSingles", () => {
+describe(compareSingles.name, () => {
   it("compares singles correctly when a < b", () => {
     expect(compareSingles({ best: 10 }, { best: 11 })).toBeLessThan(0);
   });
@@ -79,7 +80,7 @@ describe("compareSingles", () => {
   });
 });
 
-describe("compareAvgs", () => {
+describe(compareAvgs.name, () => {
   it("compares averages correctly when a < b", () => {
     expect(compareAvgs({ average: 10 }, { average: 11 })).toBeLessThan(0);
   });
@@ -109,14 +110,15 @@ describe("compareAvgs", () => {
   });
 });
 
-describe("setResultWorldRecords", () => {
+describe(setResultWorldRecords.name, () => {
   const mock333WrPair: EventWrPair = { eventId: "333", best: 1000, average: 1100 };
   const mock222WrPair: EventWrPair = { eventId: "222", best: 124, average: 211 };
   const mockBLDWrPair: EventWrPair = { eventId: "333bf", best: 2217, average: 2795 };
 
   it("sets new 3x3x3 records correctly", () => {
-    const contestEvent = newContestEventsStub().find((ce) => ce.event.eventId === "333")!;
-    const result = setResultWorldRecords(contestEvent.rounds[0].results[0], contestEvent.event, mock333WrPair);
+    const event = eventsStub.find((e) => e.eventId === "333") as EventResponse;
+    const stubResult = resultsStub.find((r) => r.eventId === "333") as ResultResponse;
+    const result = setResultWorldRecords(stubResult, event, mock333WrPair);
 
     expect(result.best).toBe(686);
     expect(result.regionalSingleRecord).toBe("WR");
@@ -125,16 +127,18 @@ describe("setResultWorldRecords", () => {
   });
 
   it("updates 3x3x3 BLD single record correctly", () => {
-    const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "333bf")!;
-    const result = setResultWorldRecords(contestEvent.rounds[0].results[0], contestEvent.event, mockBLDWrPair);
+    const event = eventsStub.find((e) => e.eventId === "333bf") as EventResponse;
+    const stubResult = resultsStub.find((r) => r.eventId === "333bf") as ResultResponse;
+    const result = setResultWorldRecords(stubResult, event, mockBLDWrPair);
 
     expect(result.regionalSingleRecord).toBe("WR");
     expect(result.regionalAverageRecord).toBeUndefined();
   });
 
   it("doesn't set avg records when the # of attempts doesn't match the default format's # of attempts", () => {
-    const contestEvent = newFakeContestEventsStub().find((ce) => ce.event.eventId === "222")!;
-    const result = setResultWorldRecords(contestEvent.rounds[2].results[0], contestEvent.event, mock222WrPair);
+    const event = eventsStub.find((e) => e.eventId === "222") as EventResponse;
+    const stubResult = resultsStub.find((r) => r.eventId === "222") as ResultResponse;
+    const result = setResultWorldRecords(stubResult, event, mock222WrPair);
 
     expect(result.best).toBe(100);
     expect(result.regionalSingleRecord).toBe("WR");

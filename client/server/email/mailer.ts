@@ -9,6 +9,7 @@ import { C } from "~/helpers/constants.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { getFormattedTime, getIsUrgent } from "~/helpers/sharedFunctions.ts";
 import type { SelectContest } from "~/server/db/schema/contests.ts";
+import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
 import type { SelectEvent } from "../db/schema/events.ts";
 import type { ResultResponse } from "../db/schema/results.ts";
 
@@ -37,7 +38,7 @@ async function send({
   context: Record<string, string | number | boolean>;
   callback: (html: string) => Promise<void>;
 }) {
-  if (!process.env.EMAIL_API_KEY) {
+  if (!process.env.EMAIL_API_KEY || process.env.VITEST) {
     if (process.env.NODE_ENV === "production")
       console.log("Not sending email, because EMAIL_API_KEY environment variable isn't set");
     return;
@@ -51,7 +52,7 @@ async function send({
 
     await callback(html);
   } catch (err) {
-    console.error(`Error while sending email with template ${templateFileName}:`, err);
+    logMessageSF({ message: `Error while sending email with template ${templateFileName}: ${err}` });
   }
 }
 
@@ -168,7 +169,7 @@ export function sendContestSubmittedNotification(
       ccUrl: baseUrl,
       creator,
       startDate: contest.startDate.toDateString(),
-      location: `${contest.city}, ${Countries.find((c) => c.code === contest.regionId)?.name ?? "NOT FOUND"}`,
+      location: `${contest.city}, ${Countries.find((c) => c.code === contest.regionCode)?.name ?? "NOT FOUND"}`,
       urgent,
     },
     callback: async (html) => {

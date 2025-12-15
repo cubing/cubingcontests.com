@@ -6,32 +6,99 @@ import {
   krPersonDongJunHyon,
   krPersonSooMinNam,
   usPersonJohnDoe,
-} from "~/__mocks__/stubs/persons.stub.ts";
+} from "~/__mocks__/stubs/personsStub.ts";
+import { resultsStub } from "~/__mocks__/stubs/resultsStub.ts";
 import { db } from "~/server/db/provider.ts";
 import { resultsTable as table } from "~/server/db/schema/results.ts";
-import { createVideoBasedResultSF } from "~/server/serverFunctions/resultServerFunctions.ts";
-import { getRecordResult } from "~/server/serverUtilityFunctions.ts";
+import { createVideoBasedResultSF, getWrPairUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
 
 const date = new Date(2023, 0, 1);
 
-describe.skip("getRecordResult", () => {
-  it("gets single WR up to date", async () => {
-    const result = await getRecordResult("444bf", "best", "WR", "video-based-results", { recordsUpTo: date });
+describe(getWrPairUpToDateSF.name, () => {
+  it("gets WR pair up to date", async () => {
+    const res = await getWrPairUpToDateSF({
+      eventId: "444bf",
+      recordCategory: "video-based-results",
+      recordsUpTo: date,
+    });
 
-    expect(result).toBeDefined();
-    expect(result!.eventId).toBe("444bf");
-    expect(result!.best).toBe(6500);
-    expect(result!.average).toBe(6600);
+    expect(res.serverError).toBeUndefined();
+    expect(res.validationErrors).toBeUndefined();
+    expect(res.data).toBeDefined();
+    expect(res.data!.eventId).toBe("444bf");
+    expect(res.data!.best).toBe(6500);
+    expect(res.data!.average).toBe(6600);
   });
 
-  it("doesn't get WR single if there are no successful results for the event yet", async () => {});
+  it("ignores better results from other categories while getting XWR pair", async () => {
+    const res = await getWrPairUpToDateSF({
+      eventId: "444bf",
+      recordCategory: "competitions",
+      recordsUpTo: date,
+    });
 
-  it("gets average WR up to date", async () => {});
+    expect(res.data).toBeDefined();
+    expect(res.data!.eventId).toBe("444bf");
+    expect(res.data!.best).toBe(7500);
+    expect(res.data!.average).toBe(7600);
+  });
 
-  it("doesn't get WR average if there are no successful averages for the event yet", async () => {});
+  it("ignores better results from other categories while getting MWR pair", async () => {
+    const res = await getWrPairUpToDateSF({
+      eventId: "444bf",
+      recordCategory: "meetups",
+      recordsUpTo: date,
+    });
+
+    expect(res.data).toBeDefined();
+    expect(res.data!.eventId).toBe("444bf");
+    expect(res.data!.best).toBeGreaterThanOrEqual(7000);
+    expect(res.data!.average).toBeGreaterThanOrEqual(7100);
+  });
+
+  it("doesn't get WR single or average if there are no successful results for the event yet", async () => {
+    const res = await getWrPairUpToDateSF({
+      eventId: "555bf",
+      recordCategory: "video-based-results",
+      recordsUpTo: date,
+    });
+
+    expect(res.data).toBeDefined();
+    expect(res.data!.eventId).toBe("555bf");
+    expect(res.data!.best).toBeUndefined();
+    expect(res.data!.average).toBeUndefined();
+  });
+
+  it("doesn't get WR average if there are no successful averages for the event yet (also checks that records set on the same day get included)", async () => {
+    const res = await getWrPairUpToDateSF({
+      eventId: "333bf",
+      recordCategory: "competitions",
+      recordsUpTo: date,
+    });
+
+    expect(res.data).toBeDefined();
+    expect(res.data!.eventId).toBe("333bf");
+    expect(res.data!.best).toBe(2000);
+    expect(res.data!.average).toBeUndefined();
+  });
+
+  it("excludes result", async () => {
+    const res = await getWrPairUpToDateSF({
+      eventId: "333bf",
+      recordCategory: "competitions",
+      recordsUpTo: date,
+      // Assumes the results stub only has one 3x3x3 Blindfolded result
+      excludeResultId: resultsStub.findIndex((r) => r.eventId === "333bf")! + 1,
+    });
+
+    expect(res.data).toBeDefined();
+    expect(res.data!.eventId).toBe("333bf");
+    expect(res.data!.best).toBeUndefined();
+    expect(res.data!.average).toBeUndefined();
+  });
 });
 
-describe("createVideoBasedResultSF", () => {
+describe(createVideoBasedResultSF.name, () => {
   it("creates non-record result", async () => {
     const res = await createVideoBasedResultSF({
       newResultDto: {

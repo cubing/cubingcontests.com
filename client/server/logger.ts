@@ -12,7 +12,7 @@ if (!process.env.LOGFLARE_API_BASE_URL) throw new Error("LOGFLARE_API_BASE_URL e
  * select id, function_edge_logs.timestamp, event_message, metadata from function_edge_logs where metadata->>'cc_log' = 'true' order by timestamp desc limit 100;
  */
 
-export const transport = pino.transport({
+const transport = pino.transport({
   target: "pino-logflare",
   options: {
     apiBaseUrl: process.env.LOGFLARE_API_BASE_URL,

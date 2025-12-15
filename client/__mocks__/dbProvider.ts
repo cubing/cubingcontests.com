@@ -1,3 +1,4 @@
+import "server-only";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { vi } from "vitest";
