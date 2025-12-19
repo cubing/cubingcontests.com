@@ -17,8 +17,6 @@ const memo = z
 export const ResultValidator = z.strictObject({
   eventId: z.string().nonempty(),
   personIds,
-  competitionId: z.string().nonempty(),
-  roundId: z.int(),
   attempts: z
     .array(z.strictObject({ result: z.int(), memo }))
     .min(1)
@@ -26,6 +24,8 @@ export const ResultValidator = z.strictObject({
     .refine((val) => val.some((a) => a.result !== -2) && val.some((a) => a.result !== 0), {
       error: "You cannot submit only DNS attempts or only empty attempts",
     }),
+  competitionId: z.string().nonempty(),
+  roundId: z.int(),
 });
 
 export type ResultDto = z.infer<typeof ResultValidator>;
@@ -33,9 +33,11 @@ export type ResultDto = z.infer<typeof ResultValidator>;
 export const VideoBasedResultValidator = z.strictObject({
   eventId: z.string().nonempty(),
   // TO-DO: MAKE IT SO THE DIFFERENCE IN HOURS THING GIVES NO MARGIN AND JUST ACCOUNTS FOR TIME ZONES!!!!!!!!!!!!!!!!!!
-  date: z.date().refine((val) => process.env.NODE_ENV !== "production" || differenceInHours(val, new Date()) <= 40, {
-    error: "The date cannot be in the future",
-  }),
+  date: z.date().refine(
+    // Only checked in production and test environments
+    (val) => !["production", "test"].includes(process.env.NODE_ENV) || differenceInHours(val, new Date()) <= 40,
+    { error: "The date cannot be in the future" },
+  ),
   personIds,
   attempts: z
     .array(

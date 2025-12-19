@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gt, gte, inArray, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
+import { and, eq, gt, gte, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import z from "zod";
 import { ContinentRecordType, getSuperRegion } from "~/helpers/Countries.ts";
 import { C } from "~/helpers/constants.ts";
@@ -20,7 +20,7 @@ import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { ResultValidator, VideoBasedResultValidator } from "~/helpers/validators/Result.ts";
 import { contestsTable, type SelectContest } from "~/server/db/schema/contests.ts";
 import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
-import { db } from "../db/provider.ts";
+import { type DbTransactionType, db } from "../db/provider.ts";
 import type { EventResponse } from "../db/schema/events.ts";
 import { personsTable, type SelectPerson } from "../db/schema/persons.ts";
 import type { RecordConfigResponse } from "../db/schema/record-configs.ts";
@@ -32,12 +32,7 @@ import {
 } from "../db/schema/results.ts";
 import { sendVideoBasedResultSubmittedNotification } from "../email/mailer.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
-import {
-  getContestParticipantIds,
-  getRecordConfigs,
-  getRecordResult,
-  getUserHasAccessToContest,
-} from "../serverUtilityFunctions.ts";
+import { getRecordConfigs, getRecordResult, getUserHasAccessToContest } from "../serverUtilityFunctions.ts";
 
 export const getWrPairUpToDateSF = actionClient
   .metadata({ permissions: { videoBasedResults: ["create"] } })
@@ -138,12 +133,12 @@ export const createContestResultSF = actionClient
           const cumulativeRoundsResults = await db.query.results.findMany({
             where: {
               roundId: { in: round.timeLimitCumulativeRoundIds },
-              RAW: (table) => sql`cardinality(${table.personIds}) = cardinality(${newResultDto.personIds})`,
+              RAW: (t) => sql`cardinality(${t.personIds}) = ${newResultDto.personIds.length}`,
               personIds: { arrayContains: newResultDto.personIds },
             },
           });
           let total = 0;
-          for (const res of [newResultDto as any, cumulativeRoundsResults])
+          for (const res of [newResultDto as any, ...cumulativeRoundsResults])
             for (const attempt of res.attempts) total += attempt.result;
 
           if (total >= round.timeLimitCentiseconds) {
@@ -199,17 +194,18 @@ export const createContestResultSF = actionClient
       await db.transaction(async (tx) => {
         const [createdResult] = await tx.insert(table).values(newResult).returning();
 
-        // Update contest state and participants, if necessary
+        // Update contest state and participants
         const updateContestObject: Partial<SelectContest> = {};
         if (contest.state === "approved") updateContestObject.state = "ongoing";
-        const totalParticipants = await getContestParticipantIds(competitionId);
-        if (totalParticipants.length !== contest.participants)
-          updateContestObject.participants = totalParticipants.length;
+        const participantIds = new Set<number>();
+        const results = await tx.query.results.findMany({ columns: { personIds: true }, where: { competitionId } });
+        for (const result of results) for (const personId of result.personIds) participantIds.add(personId);
+        if (participantIds.size !== contest.participants) updateContestObject.participants = participantIds.size;
+        // Do update, if some value actually changed
         if (Object.keys(updateContestObject).length > 0)
           await tx.update(contestsTable).set(updateContestObject).where(eq(contestsTable.competitionId, competitionId));
 
-        // TO-DO: THIS SHOULD BE DONE IN THE SAME TRANSACTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        await updateFutureRecords(createdResult, recordConfigs);
+        await updateFutureRecords(tx, createdResult, recordConfigs);
 
         // Set ranking and proceeds values
         const sortedResults = [...roundResults, createdResult].sort(
@@ -301,14 +297,15 @@ export const createVideoBasedResultSF = actionClient
 
       await setResultRecordsAndRegions(newResult, event, recordConfigs, participants);
 
-      // TO-DO: THIS AND UPDATING FUTURE RECORDS SHOULD BE DONE IN THE SAME TRANSACTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      const [createdResult] = await db.insert(table).values(newResult).returning(resultsPublicCols);
+      const createdResult = await db.transaction(async (tx) => {
+        const [createdResult] = await tx.insert(table).values(newResult).returning(resultsPublicCols);
 
-      if (isAdmin) {
-        await updateFutureRecords(createdResult, recordConfigs);
-      } else {
-        sendVideoBasedResultSubmittedNotification(user.email, event, createdResult, user.username);
-      }
+        if (isAdmin) await updateFutureRecords(tx, createdResult, recordConfigs);
+
+        return createdResult;
+      });
+
+      if (!isAdmin) sendVideoBasedResultSubmittedNotification(user.email, event, createdResult, user.username);
 
       return createdResult;
     },
@@ -321,11 +318,11 @@ async function setResultRecordsAndRegions(
   participants: SelectPerson[],
 ) {
   const firstParticipantRegion = participants[0].regionCode;
-  const isSameRegionParticipants = !participants.some((p) => p.regionCode !== firstParticipantRegion);
+  const isSameRegionParticipants = participants.every((p) => p.regionCode === firstParticipantRegion);
   const firstParticipantSuperRegion = getSuperRegion(participants[0].regionCode);
   const isSameSuperRegionParticipants =
     isSameRegionParticipants ||
-    !participants.slice(1).some((p) => getSuperRegion(p.regionCode) !== firstParticipantSuperRegion);
+    participants.slice(1).every((p) => getSuperRegion(p.regionCode) === firstParticipantSuperRegion);
 
   if (isSameRegionParticipants) result.regionCode = firstParticipantRegion;
   if (isSameSuperRegionParticipants) result.superRegionCode = firstParticipantSuperRegion;
@@ -387,6 +384,7 @@ async function setResultRecord(
 }
 
 async function updateFutureRecords(
+  tx: DbTransactionType,
   result: ResultResponse,
   recordConfigs: RecordConfigResponse[], // must be of the same category
   // {
@@ -410,11 +408,12 @@ async function updateFutureRecords(
   // const singleGotBetter = singlesComparison < 0 || (mode === "create" && result.best > 0);
   // if (singleGotWorse || singleGotBetter) {}
 
-  if (result.regionalSingleRecord) await cancelFutureRecords(result, "best", recordConfigs);
-  if (result.regionalAverageRecord) await cancelFutureRecords(result, "average", recordConfigs);
+  if (result.regionalSingleRecord) await cancelFutureRecords(tx, result, "best", recordConfigs);
+  if (result.regionalAverageRecord) await cancelFutureRecords(tx, result, "average", recordConfigs);
 }
 
 async function cancelFutureRecords(
+  tx: DbTransactionType,
   result: ResultResponse,
   bestOrAverage: "best" | "average",
   recordConfigs: RecordConfigResponse[],
@@ -435,7 +434,7 @@ async function cancelFutureRecords(
   if (result[recordField] === "WR") {
     const wrLabel = recordConfigs.find((rc) => rc.recordTypeId === "WR")!.label;
     const recordTypes = result.regionCode ? ["WR", crType!, "NR"] : result.superRegionCode ? ["WR", crType!] : ["WR"];
-    const cancelledWrCrNrResults = await db
+    const cancelledWrCrNrResults = await tx
       .update(table)
       .set({ [recordField]: null })
       .where(
@@ -456,7 +455,7 @@ async function cancelFutureRecords(
       logMessageSF({ message });
     }
 
-    const wrCrChangedToNrResults = await db
+    const wrCrChangedToNrResults = await tx
       .update(table)
       .set({ [recordField]: "NR" })
       .where(
@@ -467,7 +466,6 @@ async function cancelFutureRecords(
             ? or(eq(table.superRegionCode, result.superRegionCode), isNull(table.superRegionCode))
             : isNull(table.superRegionCode),
           isNotNull(table.regionCode),
-          result.regionCode ? ne(table.regionCode, result.regionCode) : undefined,
         ),
       )
       .returning();
@@ -477,21 +475,14 @@ async function cancelFutureRecords(
     }
 
     // Has to be done like this, because we can't dynamically determine the CR type to be set
-    const wrResultsToBeChangedToCr = await db
+    const wrResultsToBeChangedToCr = await tx
       .select()
       .from(table)
-      .where(
-        and(
-          ...baseConditions,
-          eq(table[recordField], "WR"),
-          isNotNull(table.superRegionCode),
-          result.superRegionCode ? ne(table.superRegionCode, result.superRegionCode) : undefined,
-        ),
-      );
+      .where(and(...baseConditions, eq(table[recordField], "WR"), isNotNull(table.superRegionCode)));
     for (const r of wrResultsToBeChangedToCr) {
       const resultCrType = ContinentRecordType[r.superRegionCode as ContinentCode];
       const resultCrLabel = recordConfigs.find((rc) => rc.recordTypeId === resultCrType)!.label;
-      await db
+      await tx
         .update(table)
         .set({ [recordField]: resultCrType })
         .where(eq(table.id, r.id))
@@ -501,7 +492,7 @@ async function cancelFutureRecords(
       logMessageSF({ message });
     }
   } else if (["ER", "NAR", "SAR", "AsR", "AfR", "OcR"].includes(result[recordField]!)) {
-    const cancelledCrNrResults = await db
+    const cancelledCrNrResults = await tx
       .update(table)
       .set({ [recordField]: null })
       .where(
@@ -520,7 +511,7 @@ async function cancelFutureRecords(
       logMessageSF({ message });
     }
 
-    const crChangedToNrResults = await db
+    const crChangedToNrResults = await tx
       .update(table)
       .set({ [recordField]: "NR" })
       .where(
@@ -529,7 +520,6 @@ async function cancelFutureRecords(
           eq(table[recordField], crType!),
           eq(table.superRegionCode, result.superRegionCode!),
           isNotNull(table.regionCode),
-          result.regionCode ? ne(table.regionCode, result.regionCode) : undefined,
         ),
       )
       .returning();
@@ -538,7 +528,7 @@ async function cancelFutureRecords(
       logMessageSF({ message });
     }
   } else if (result[recordField] === "NR") {
-    const cancelledNrResults = await db
+    const cancelledNrResults = await tx
       .update(table)
       .set({ [recordField]: null })
       .where(and(...baseConditions, eq(table[recordField], "NR"), eq(table.regionCode, result.regionCode!)))

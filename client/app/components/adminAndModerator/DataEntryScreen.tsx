@@ -101,10 +101,10 @@ function DataEntryScreen({
   const submitResult = async () => {
     const parsed = ResultValidator.safeParse({
       eventId,
-      competitionId: contest.competitionId,
-      roundId: round.id,
       personIds: selectedPersons.map((p) => p?.id),
       attempts,
+      competitionId: contest.competitionId,
+      roundId: round.id,
     });
 
     if (!parsed.success) {
@@ -267,10 +267,10 @@ function DataEntryScreen({
     }
     const newResultDto: ResultDto = {
       eventId,
-      competitionId: contest.competitionId,
-      roundId: round.id,
       personIds: resultPersons.map((p) => p.id),
       attempts: new Array(round.cutoffNumberOfAttempts ?? roundFormat.attempts).fill({ result: -1 }),
+      competitionId: contest.competitionId,
+      roundId: round.id,
     };
 
     const res = await createResult({ newResultDto });

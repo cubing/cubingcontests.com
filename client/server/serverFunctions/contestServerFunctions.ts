@@ -158,14 +158,11 @@ export const getTimeZoneFromCoordsSF = actionClient
   .metadata({ permissions: { competitions: ["create"], meetups: ["create"] } })
   .inputSchema(CoordinatesValidator)
   .action<string>(async ({ parsedInput: { latitude, longitude } }) => {
-    const timeZone = findTimezone(latitude, longitude).at(0);
+    const timezone = findTimezone(latitude, longitude).at(0);
 
-    if (!timeZone)
-      throw new CcActionError(`Time zone for coordinates ${latitude}, ${longitude} not found`, {
-        data: { timeZoneNotFound: true },
-      });
+    if (!timezone) throw new CcActionError(`Time zone for coordinates ${latitude}, ${longitude} not found`);
 
-    return timeZone;
+    return timezone;
   });
 
 export const createContestSF = actionClient
@@ -281,7 +278,7 @@ async function validateAndCleanUpContest(
       throw new CcActionError("You may not hold more than 15 rounds at a meetup");
 
     const correctTZ = findTimezone(contest.latitudeMicrodegrees / 1000000, contest.longitudeMicrodegrees / 1000000)[0];
-    if (contest.timeZone !== correctTZ)
+    if (contest.timezone !== correctTZ)
       throw new CcActionError("Contest time zone doesn't match time zone at the given coordinates");
   }
   // Validation of WCA competitions and unofficial competitions

@@ -1,20 +1,32 @@
-import { and, eq, ne } from "drizzle-orm";
+import { addYears } from "date-fns";
 import { describe, expect, it } from "vitest";
 import {
+  caPersonJoshCalhoun,
   dePersonHansBauer,
   dePersonJakobBach,
+  dePersonStefanSteinmeier,
+  gbPersonJamesStone,
+  gbPersonSamMarsh,
+  gbPersonTomDillon,
   krPersonDongJunHyon,
   krPersonSooMinNam,
   usPersonJohnDoe,
 } from "~/__mocks__/stubs/personsStub.ts";
 import { resultsStub } from "~/__mocks__/stubs/resultsStub.ts";
+import {
+  testComp2023_333_oh_bld_team_relay_r1,
+  testCompJan2020_333_oh_bld_team_relay_r1,
+} from "~/__mocks__/stubs/roundsStub.ts";
 import { db } from "~/server/db/provider.ts";
-import { resultsTable as table } from "~/server/db/schema/results.ts";
-import { createVideoBasedResultSF, getWrPairUpToDateSF } from "~/server/serverFunctions/resultServerFunctions.ts";
+import {
+  createContestResultSF,
+  createVideoBasedResultSF,
+  getWrPairUpToDateSF,
+} from "~/server/serverFunctions/resultServerFunctions.ts";
 
 const date = new Date(2023, 0, 1);
 
-describe(getWrPairUpToDateSF.name, () => {
+describe("getWrPairUpToDateSF", () => {
   it("gets WR pair up to date", async () => {
     const res = await getWrPairUpToDateSF({
       eventId: "444bf",
@@ -98,7 +110,307 @@ describe(getWrPairUpToDateSF.name, () => {
   });
 });
 
-describe(createVideoBasedResultSF.name, () => {
+describe("createContestResultSF", () => {
+  it("creates non-record result", async () => {
+    const res = await createContestResultSF({
+      newResultDto: {
+        eventId: "333_oh_bld_team_relay",
+        personIds: [gbPersonTomDillon, gbPersonSamMarsh, gbPersonJamesStone],
+        attempts: [{ result: 10000 }, { result: 10100 }, { result: 10200 }],
+        competitionId: "TestComp2023",
+        roundId: testComp2023_333_oh_bld_team_relay_r1,
+      },
+    });
+
+    expect(res.serverError).toBeUndefined();
+    expect(res.validationErrors).toBeUndefined();
+    expect(res.data?.length).toBe(1);
+    expect(res.data![0]).toBeDefined();
+    expect(res.data![0].regionCode).toBe("GB");
+    expect(res.data![0].superRegionCode).toBe("EUROPE");
+    expect(res.data![0].best).toBe(10000);
+    expect(res.data![0].average).toBe(10100);
+    expect(res.data![0].date.getTime()).toBe(new Date(2023, 0, 1).getTime());
+    expect(res.data![0].regionalSingleRecord).toBeNull();
+    expect(res.data![0].regionalAverageRecord).toBeNull();
+  });
+
+  describe("validation errors", () => {
+    it("throws validation error for the same person being entered twice", async () => {
+      const res = await createContestResultSF({
+        newResultDto: {
+          eventId: "333_oh_bld_team_relay",
+          personIds: [1, 2, 1],
+          attempts: [{ result: 1234 }],
+          competitionId: "TestCompJan2020",
+          roundId: testCompJan2020_333_oh_bld_team_relay_r1,
+        },
+      });
+
+      expect(res.serverError).toBeUndefined();
+      expect((res.validationErrors?.newResultDto?.personIds as any)._errors?.[0]).toBe(
+        "You cannot enter the same person twice in the same result",
+      );
+      expect(res.data).toBeUndefined();
+    });
+
+    it("throws validation error for all attempts being empty", async () => {
+      const res = await createContestResultSF({
+        newResultDto: {
+          eventId: "333_oh_bld_team_relay",
+          personIds: [1, 2, 3],
+          attempts: [{ result: 0 }, { result: 0 }, { result: 0 }],
+          competitionId: "TestCompJan2020",
+          roundId: testCompJan2020_333_oh_bld_team_relay_r1,
+        },
+      });
+
+      expect(res.serverError).toBeUndefined();
+      expect((res.validationErrors?.newResultDto?.attempts as any)._errors?.[0]).toBe(
+        "You cannot submit only DNS attempts or only empty attempts",
+      );
+      expect(res.data).toBeUndefined();
+    });
+
+    it("throws validation error for all attempts being DNS", async () => {
+      const res = await createContestResultSF({
+        newResultDto: {
+          eventId: "333_oh_bld_team_relay",
+          personIds: [1, 2, 3],
+          attempts: [{ result: -2 }, { result: -2 }, { result: -2 }],
+          competitionId: "TestCompJan2020",
+          roundId: testCompJan2020_333_oh_bld_team_relay_r1,
+        },
+      });
+
+      expect(res.serverError).toBeUndefined();
+      expect((res.validationErrors?.newResultDto?.attempts as any)._errors?.[0]).toBe(
+        "You cannot submit only DNS attempts or only empty attempts",
+      );
+      expect(res.data).toBeUndefined();
+    });
+  });
+
+  describe("Record result creation", () => {
+    describe("3x3x3 + OH + BLD Team Relay results", () => {
+      const eventId = "333_oh_bld_team_relay";
+      const partialResult = { eventId, competitionId: "TestComp2023", roundId: testComp2023_333_oh_bld_team_relay_r1 };
+
+      it("creates NR result and cancels future NR", async () => {
+        const res = await createContestResultSF({
+          newResultDto: {
+            ...partialResult,
+            personIds: [gbPersonJamesStone, gbPersonSamMarsh, gbPersonTomDillon],
+            attempts: [{ result: 6600 }, { result: 6700 }, { result: 6800 }],
+          },
+        });
+
+        expect(res.data?.length).toBe(1);
+        expect(res.data![0].regionCode).toBe("GB");
+        expect(res.data![0].regionalSingleRecord).toBe("NR");
+        expect(res.data![0].regionalAverageRecord).toBe("NR");
+
+        const cancelledNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 2 },
+        });
+        expect(cancelledNr?.regionalSingleRecord).toBeNull();
+        expect(cancelledNr?.regionalAverageRecord).toBeNull();
+      });
+
+      it("creates CR result and cancels future NR and CR", async () => {
+        const res = await createContestResultSF({
+          newResultDto: {
+            ...partialResult,
+            personIds: [gbPersonJamesStone, gbPersonSamMarsh, gbPersonTomDillon],
+            attempts: [{ result: 6200 }, { result: 6300 }, { result: 6400 }],
+          },
+        });
+
+        expect(res.data?.length).toBe(1);
+        expect(res.data![0].regionCode).toBe("GB");
+        expect(res.data![0].superRegionCode).toBe("EUROPE");
+        expect(res.data![0].regionalSingleRecord).toBe("ER");
+        expect(res.data![0].regionalAverageRecord).toBe("ER");
+
+        const cancelledCrWithNoRegion = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 1 },
+        });
+        expect(cancelledCrWithNoRegion?.regionalSingleRecord).toBeNull();
+        expect(cancelledCrWithNoRegion?.regionalAverageRecord).toBeNull();
+        const cancelledNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 2 },
+        });
+        expect(cancelledNr?.regionalSingleRecord).toBeNull();
+        expect(cancelledNr?.regionalAverageRecord).toBeNull();
+        const cancelledCr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 2 },
+        });
+        expect(cancelledCr?.regionalSingleRecord).toBeNull();
+        expect(cancelledCr?.regionalAverageRecord).toBeNull();
+      });
+
+      it("creates CR result (no reg. code), cancels future CR (no reg. code) and changes future CR to NR", async () => {
+        const res = await createContestResultSF({
+          newResultDto: {
+            ...partialResult,
+            personIds: [dePersonStefanSteinmeier, gbPersonSamMarsh, gbPersonTomDillon],
+            attempts: [{ result: 6200 }, { result: 6300 }, { result: 6400 }],
+          },
+        });
+
+        expect(res.data?.length).toBe(1);
+        expect(res.data![0].regionCode).toBeNull();
+        expect(res.data![0].superRegionCode).toBe("EUROPE");
+        expect(res.data![0].regionalSingleRecord).toBe("ER");
+        expect(res.data![0].regionalAverageRecord).toBe("ER");
+
+        const cancelledCr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 1 },
+        });
+        expect(cancelledCr?.regionalSingleRecord).toBeNull();
+        expect(cancelledCr?.regionalAverageRecord).toBeNull();
+        const notCancelledNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 2 },
+        });
+        expect(notCancelledNr?.regionalSingleRecord).toBe("NR");
+        expect(notCancelledNr?.regionalAverageRecord).toBe("NR");
+        const crChangedToNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 2 },
+        });
+        expect(crChangedToNr?.regionalSingleRecord).toBe("NR");
+        expect(crChangedToNr?.regionalAverageRecord).toBe("NR");
+      });
+
+      it("creates WR result, cancels future WR, WR (no reg. code) and WR (no s-reg. code)", async () => {
+        const res = await createContestResultSF({
+          newResultDto: {
+            ...partialResult,
+            personIds: [gbPersonJamesStone, gbPersonSamMarsh, gbPersonTomDillon],
+            attempts: [{ result: 5500 }, { result: 5600 }, { result: 5700 }],
+          },
+        });
+
+        expect(res.data?.length).toBe(1);
+        expect(res.data![0].regionCode).toBe("GB");
+        expect(res.data![0].superRegionCode).toBe("EUROPE");
+        expect(res.data![0].regionalSingleRecord).toBe("WR");
+        expect(res.data![0].regionalAverageRecord).toBe("WR");
+
+        const cancelledCr1 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 1 },
+        });
+        expect(cancelledCr1?.regionalSingleRecord).toBeNull();
+        expect(cancelledCr1?.regionalAverageRecord).toBeNull();
+        const cancelledNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 2 },
+        });
+        expect(cancelledNr?.regionalSingleRecord).toBeNull();
+        expect(cancelledNr?.regionalAverageRecord).toBeNull();
+        const cancelledWr1 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 1 },
+        });
+        expect(cancelledWr1?.regionalSingleRecord).toBeNull();
+        expect(cancelledWr1?.regionalAverageRecord).toBeNull();
+        const cancelledCr2 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 2 },
+        });
+        expect(cancelledCr2?.regionalSingleRecord).toBeNull();
+        expect(cancelledCr2?.regionalAverageRecord).toBeNull();
+        const cancelledWr2 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 2, 1) } },
+        });
+        expect(cancelledWr2?.regionalSingleRecord).toBeNull();
+        expect(cancelledWr2?.regionalAverageRecord).toBeNull();
+        const cancelledWr3 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 3, 1) } },
+        });
+        expect(cancelledWr3?.regionalSingleRecord).toBeNull();
+        expect(cancelledWr3?.regionalAverageRecord).toBeNull();
+      });
+
+      it("creates WR result (no reg. code), cancels future WR (no reg. code) and changes future WR to NR", async () => {
+        const res = await createContestResultSF({
+          newResultDto: {
+            ...partialResult,
+            personIds: [dePersonStefanSteinmeier, gbPersonSamMarsh, gbPersonTomDillon],
+            attempts: [{ result: 5500 }, { result: 5600 }, { result: 5700 }],
+          },
+        });
+
+        expect(res.data?.length).toBe(1);
+        expect(res.data![0].regionCode).toBeNull();
+        expect(res.data![0].superRegionCode).toBe("EUROPE");
+        expect(res.data![0].regionalSingleRecord).toBe("WR");
+        expect(res.data![0].regionalAverageRecord).toBe("WR");
+
+        const cancelledCr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) }, ranking: 1 },
+        });
+        expect(cancelledCr?.regionalSingleRecord).toBeNull();
+        expect(cancelledCr?.regionalAverageRecord).toBeNull();
+        const cancelledWr1 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 1 },
+        });
+        expect(cancelledWr1?.regionalSingleRecord).toBeNull();
+        expect(cancelledWr1?.regionalAverageRecord).toBeNull();
+        const crChangedToNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 2 },
+        });
+        expect(crChangedToNr?.regionalSingleRecord).toBe("NR");
+        expect(crChangedToNr?.regionalAverageRecord).toBe("NR");
+        const cancelledWr2 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 2, 1) } },
+        });
+        expect(cancelledWr2?.regionalSingleRecord).toBeNull();
+        expect(cancelledWr2?.regionalAverageRecord).toBeNull();
+        const wrChangedToNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 3, 1) } },
+        });
+        expect(wrChangedToNr?.regionalSingleRecord).toBe("NR");
+        expect(wrChangedToNr?.regionalAverageRecord).toBe("NR");
+      });
+
+      it("creates WR result (no s-reg. code), changes future WR to CR", async () => {
+        const res = await createContestResultSF({
+          newResultDto: {
+            ...partialResult,
+            personIds: [dePersonStefanSteinmeier, gbPersonSamMarsh, caPersonJoshCalhoun],
+            attempts: [{ result: 5500 }, { result: 5600 }, { result: 5700 }],
+          },
+        });
+
+        expect(res.data?.length).toBe(1);
+        expect(res.data![0].regionCode).toBeNull();
+        expect(res.data![0].superRegionCode).toBeNull();
+        expect(res.data![0].regionalSingleRecord).toBe("WR");
+        expect(res.data![0].regionalAverageRecord).toBe("WR");
+
+        const cancelledWr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 1 },
+        });
+        expect(cancelledWr?.regionalSingleRecord).toBeNull();
+        expect(cancelledWr?.regionalAverageRecord).toBeNull();
+        const notCancelledCr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) }, ranking: 2 },
+        });
+        expect(notCancelledCr?.regionalSingleRecord).toBe("ER");
+        expect(notCancelledCr?.regionalAverageRecord).toBe("ER");
+        const wrChangedToCr1 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 2, 1) } },
+        });
+        expect(wrChangedToCr1?.regionalSingleRecord).toBe("ER");
+        expect(wrChangedToCr1?.regionalAverageRecord).toBe("ER");
+        const wrChangedToCr2 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 3, 1) } },
+        });
+        expect(wrChangedToCr2?.regionalSingleRecord).toBe("ER");
+        expect(wrChangedToCr2?.regionalAverageRecord).toBe("ER");
+      });
+    });
+  });
+});
+
+describe("createVideoBasedResultSF", () => {
   it("creates non-record result", async () => {
     const res = await createVideoBasedResultSF({
       newResultDto: {
@@ -139,63 +451,118 @@ describe(createVideoBasedResultSF.name, () => {
     expect(res.data!.regionalAverageRecord).toBeNull();
   });
 
-  it("throws error for invalid event ID", async () => {
-    const eventId = "INVALID";
-    const res = await createVideoBasedResultSF({
-      newResultDto: {
-        eventId,
-        date,
-        personIds: [1],
-        attempts: [{ result: 1234, memo: 12 }],
-        videoLink: "https://example.com",
-        discussionLink: null,
-      },
+  describe("validation errors", () => {
+    it("throws validation error for date being in the future", async () => {
+      const res = await createVideoBasedResultSF({
+        newResultDto: {
+          eventId: "444bf",
+          date: addYears(date, 100), // looking forward to when this breaks in the year 2123 :)
+          personIds: [1],
+          attempts: [{ result: 1234 }],
+          videoLink: "https://example.com",
+          discussionLink: null,
+        },
+      });
+
+      expect(res.serverError).toBeUndefined();
+      expect(res.validationErrors?.newResultDto?.date?._errors?.[0]).toBe("The date cannot be in the future");
+      expect(res.data).toBeUndefined();
     });
 
-    expect(res.serverError?.message).toBe(`Event with ID ${eventId} not found`);
-    expect(res.data).toBeUndefined();
+    it("throws validation error for empty attempt", async () => {
+      const res = await createVideoBasedResultSF({
+        newResultDto: {
+          eventId: "444bf",
+          date,
+          personIds: [1],
+          attempts: [{ result: 0 }],
+          videoLink: "https://example.com",
+          discussionLink: null,
+        },
+      });
+
+      expect(res.serverError).toBeUndefined();
+      expect((res.validationErrors?.newResultDto?.attempts as any[])[0].result?._errors?.[0]).toBe(
+        "You cannot submit an empty attempt",
+      );
+      expect(res.data).toBeUndefined();
+    });
+
+    it("throws validation error for all attempts being DNF/DNS", async () => {
+      const res = await createVideoBasedResultSF({
+        newResultDto: {
+          eventId: "444bf",
+          date,
+          personIds: [1],
+          attempts: [{ result: -1 }, { result: -2 }, { result: -1 }],
+          videoLink: "https://example.com",
+          discussionLink: null,
+        },
+      });
+
+      expect(res.serverError).toBeUndefined();
+      expect((res.validationErrors?.newResultDto?.attempts as any)?._errors?.[0]).toBe(
+        "You cannot submit only DNF/DNS attempts",
+      );
+      expect(res.data).toBeUndefined();
+    });
   });
 
-  it("throws error for wrong number of participants (too few)", async () => {
-    const res = await createVideoBasedResultSF({
-      newResultDto: {
-        eventId: "333_team_bld",
-        date,
-        personIds: [1],
-        attempts: [{ result: 1234, memo: 12 }],
-        videoLink: "https://example.com",
-        discussionLink: null,
-      },
+  describe("server errors", () => {
+    it("throws error for invalid event ID", async () => {
+      const eventId = "INVALID";
+      const res = await createVideoBasedResultSF({
+        newResultDto: {
+          eventId,
+          date,
+          personIds: [1],
+          attempts: [{ result: 1234 }],
+          videoLink: "https://example.com",
+          discussionLink: null,
+        },
+      });
+
+      expect(res.serverError?.message).toBe(`Event with ID ${eventId} not found`);
+      expect(res.data).toBeUndefined();
     });
 
-    expect(res.serverError?.message).toContain("event must have 2 participants");
-    expect(res.data).toBeUndefined();
-  });
+    it("throws error for wrong number of participants (too few)", async () => {
+      const res = await createVideoBasedResultSF({
+        newResultDto: {
+          eventId: "333_team_bld",
+          date,
+          personIds: [1],
+          attempts: [{ result: 1234 }],
+          videoLink: "https://example.com",
+          discussionLink: null,
+        },
+      });
 
-  it("throws error for wrong number of participants (too many)", async () => {
-    const res = await createVideoBasedResultSF({
-      newResultDto: {
-        eventId: "444bf",
-        date,
-        personIds: [1, 2],
-        attempts: [{ result: 1234, memo: 12 }],
-        videoLink: "https://example.com",
-        discussionLink: null,
-      },
+      expect(res.serverError?.message).toContain("event must have 2 participants");
+      expect(res.data).toBeUndefined();
     });
 
-    expect(res.serverError?.message).toContain("event must have 1 participant");
-    expect(res.data).toBeUndefined();
+    it("throws error for wrong number of participants (too many)", async () => {
+      const res = await createVideoBasedResultSF({
+        newResultDto: {
+          eventId: "444bf",
+          date,
+          personIds: [1, 2],
+          attempts: [{ result: 1234 }],
+          videoLink: "https://example.com",
+          discussionLink: null,
+        },
+      });
+
+      expect(res.serverError?.message).toContain("event must have 1 participant");
+      expect(res.data).toBeUndefined();
+    });
   });
 
   describe("Record result creation", () => {
     describe("4x4x4 Blindfolded results", () => {
-      const partialResult = {
-        eventId: "444bf",
-        date,
-        videoLink: "https://example.com",
-        discussionLink: null,
-      };
+      const eventId = "444bf";
+      const partialResult = { eventId, date, videoLink: "https://example.com", discussionLink: null };
 
       it("creates NR result (beating FWR) and cancels future NR", async () => {
         const res = await createVideoBasedResultSF({
@@ -211,10 +578,9 @@ describe(createVideoBasedResultSF.name, () => {
         expect(res.data!.regionalSingleRecord).toBe("NR");
         expect(res.data!.regionalAverageRecord).toBe("NR");
 
-        const [cancelledNr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 0, 1)));
+        const cancelledNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+        });
         expect(cancelledNr?.regionalSingleRecord).toBeNull();
         expect(cancelledNr?.regionalAverageRecord).toBeNull();
       });
@@ -233,16 +599,14 @@ describe(createVideoBasedResultSF.name, () => {
         expect(res.data!.regionalSingleRecord).toBe("NAR");
         expect(res.data!.regionalAverageRecord).toBe("NAR");
 
-        const [cancelledNr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 0, 1)));
+        const cancelledNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+        });
         expect(cancelledNr?.regionalSingleRecord).toBeNull();
         expect(cancelledNr?.regionalAverageRecord).toBeNull();
-        const [crChangedToNr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 1, 1)));
+        const crChangedToNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) } },
+        });
         expect(crChangedToNr?.regionalSingleRecord).toBe("NR");
         expect(crChangedToNr?.regionalAverageRecord).toBe("NR");
       });
@@ -291,10 +655,9 @@ describe(createVideoBasedResultSF.name, () => {
         expect(res.data!.regionalSingleRecord).toBe("AsR");
         expect(res.data!.regionalAverageRecord).toBe("AsR");
 
-        const [cancelledCr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 2, 1)));
+        const cancelledCr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 2, 1) } },
+        });
         expect(cancelledCr?.regionalSingleRecord).toBeNull();
         expect(cancelledCr?.regionalAverageRecord).toBeNull();
       });
@@ -312,22 +675,19 @@ describe(createVideoBasedResultSF.name, () => {
         expect(res.data!.regionalSingleRecord).toBe("WR");
         expect(res.data!.regionalAverageRecord).toBe("WR");
 
-        const [cancelledWr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 3, 1)));
+        const cancelledWr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 3, 1) } },
+        });
         expect(cancelledWr?.regionalSingleRecord).toBeNull();
         expect(cancelledWr?.regionalAverageRecord).toBeNull();
-        const [wrChangedToCr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 4, 1)));
+        const wrChangedToCr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 4, 1) } },
+        });
         expect(wrChangedToCr?.regionalSingleRecord).toBe("AsR");
         expect(wrChangedToCr?.regionalAverageRecord).toBe("AsR");
-        const [wrChangedToNr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 5, 1)));
+        const wrChangedToNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 5, 1) } },
+        });
         expect(wrChangedToNr?.regionalSingleRecord).toBe("NR");
         expect(wrChangedToNr?.regionalAverageRecord).toBe("NR");
       });
@@ -345,28 +705,24 @@ describe(createVideoBasedResultSF.name, () => {
         expect(res.data!.regionalSingleRecord).toBe("WR");
         expect(res.data!.regionalAverageRecord).toBe("WR");
 
-        const [cancelledCr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 2, 1)));
+        const cancelledCr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 2, 1) } },
+        });
         expect(cancelledCr?.regionalSingleRecord).toBeNull();
         expect(cancelledCr?.regionalAverageRecord).toBeNull();
-        const [wrChangedToCr1] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 3, 1)));
+        const wrChangedToCr1 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 3, 1) } },
+        });
         expect(wrChangedToCr1?.regionalSingleRecord).toBe("ER");
         expect(wrChangedToCr1?.regionalAverageRecord).toBe("ER");
-        const [wrChangedToNr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 4, 1)));
+        const wrChangedToNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 4, 1) } },
+        });
         expect(wrChangedToNr?.regionalSingleRecord).toBe("NR");
         expect(wrChangedToNr?.regionalAverageRecord).toBe("NR");
-        const [wrChangedToCr2] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 5, 1)));
+        const wrChangedToCr2 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 5, 1) } },
+        });
         expect(wrChangedToCr2?.regionalSingleRecord).toBe("ER");
         expect(wrChangedToCr2?.regionalAverageRecord).toBe("ER");
       });
@@ -384,34 +740,29 @@ describe(createVideoBasedResultSF.name, () => {
         expect(res.data!.regionalSingleRecord).toBe("WR");
         expect(res.data!.regionalAverageRecord).toBe("WR");
 
-        const [cancelledNr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 0, 1)));
+        const cancelledNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+        });
         expect(cancelledNr?.regionalSingleRecord).toBeNull();
         expect(cancelledNr?.regionalAverageRecord).toBeNull();
-        const [crChangedToNr] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 1, 1)));
+        const crChangedToNr = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 1, 1) } },
+        });
         expect(crChangedToNr?.regionalSingleRecord).toBe("NR");
         expect(crChangedToNr?.regionalAverageRecord).toBe("NR");
-        const [wrChangedToCr1] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 3, 1)));
+        const wrChangedToCr1 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 3, 1) } },
+        });
         expect(wrChangedToCr1?.regionalSingleRecord).toBe("ER");
         expect(wrChangedToCr1?.regionalAverageRecord).toBe("ER");
-        const [wrChangedToCr2] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 4, 1)));
+        const wrChangedToCr2 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 4, 1) } },
+        });
         expect(wrChangedToCr2?.regionalSingleRecord).toBe("AsR");
         expect(wrChangedToCr2?.regionalAverageRecord).toBe("AsR");
-        const [wrChangedToCr3] = await db
-          .select()
-          .from(table)
-          .where(eq(table.date, new Date(2025, 5, 1)));
+        const wrChangedToCr3 = await db.query.results.findFirst({
+          where: { eventId, date: { eq: new Date(2025, 5, 1) } },
+        });
         expect(wrChangedToCr3?.regionalSingleRecord).toBe("ER");
         expect(wrChangedToCr3?.regionalAverageRecord).toBe("ER");
       });
@@ -446,10 +797,9 @@ describe(createVideoBasedResultSF.name, () => {
           expect(res.data!.regionalSingleRecord).toBe("NR");
           expect(res.data!.regionalAverageRecord).toBe("NR");
 
-          const [notCancelledTiedNr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 0, 1)));
+          const notCancelledTiedNr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+          });
           expect(notCancelledTiedNr?.regionalSingleRecord).toBe("NR");
           expect(notCancelledTiedNr?.regionalAverageRecord).toBe("NR");
         });
@@ -468,10 +818,9 @@ describe(createVideoBasedResultSF.name, () => {
           expect(res.data!.regionalSingleRecord).toBe("NAR");
           expect(res.data!.regionalAverageRecord).toBe("NAR");
 
-          const [cancelledNr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 0, 1)));
+          const cancelledNr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+          });
           expect(cancelledNr?.regionalSingleRecord).toBeNull();
           expect(cancelledNr?.regionalAverageRecord).toBeNull();
         });
@@ -490,16 +839,14 @@ describe(createVideoBasedResultSF.name, () => {
           expect(res.data!.regionalSingleRecord).toBe("NAR");
           expect(res.data!.regionalAverageRecord).toBe("NAR");
 
-          const [cancelledNr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 0, 1)));
+          const cancelledNr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+          });
           expect(cancelledNr?.regionalSingleRecord).toBeNull();
           expect(cancelledNr?.regionalAverageRecord).toBeNull();
-          const [notCancelledTiedCr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 1, 1)));
+          const notCancelledTiedCr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 1, 1) } },
+          });
           expect(notCancelledTiedCr?.regionalSingleRecord).toBe("NAR");
           expect(notCancelledTiedCr?.regionalAverageRecord).toBe("NAR");
         });
@@ -517,16 +864,14 @@ describe(createVideoBasedResultSF.name, () => {
           expect(res.data!.regionalSingleRecord).toBe("WR");
           expect(res.data!.regionalAverageRecord).toBe("WR");
 
-          const [cancelledNr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 0, 1)));
+          const cancelledNr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+          });
           expect(cancelledNr?.regionalSingleRecord).toBeNull();
           expect(cancelledNr?.regionalAverageRecord).toBeNull();
-          const [crChangedToNr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 1, 1)));
+          const crChangedToNr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 1, 1) } },
+          });
           expect(crChangedToNr?.regionalSingleRecord).toBe("NR");
           expect(crChangedToNr?.regionalAverageRecord).toBe("NR");
         });
@@ -544,22 +889,19 @@ describe(createVideoBasedResultSF.name, () => {
           expect(res.data!.regionalSingleRecord).toBe("WR");
           expect(res.data!.regionalAverageRecord).toBe("WR");
 
-          const [cancelledNr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 0, 1)));
+          const cancelledNr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 0, 1) } },
+          });
           expect(cancelledNr?.regionalSingleRecord).toBeNull();
           expect(cancelledNr?.regionalAverageRecord).toBeNull();
-          const [crChangedToNr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 1, 1)));
+          const crChangedToNr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 1, 1) } },
+          });
           expect(crChangedToNr?.regionalSingleRecord).toBe("NR");
           expect(crChangedToNr?.regionalAverageRecord).toBe("NR");
-          const [notCancelledTiedWr] = await db
-            .select()
-            .from(table)
-            .where(eq(table.date, new Date(2025, 3, 1)));
+          const notCancelledTiedWr = await db.query.results.findFirst({
+            where: { eventId, date: { eq: new Date(2025, 3, 1) } },
+          });
           expect(notCancelledTiedWr?.regionalSingleRecord).toBe("WR");
           expect(notCancelledTiedWr?.regionalAverageRecord).toBe("WR");
         });
@@ -595,53 +937,12 @@ describe(createVideoBasedResultSF.name, () => {
           expect(res.data!.regionalSingleRecord).toBe("NR");
           expect(res.data!.regionalAverageRecord).toBe("NR");
 
-          const [cancelledNr] = await db
-            .select()
-            .from(table)
-            .where(and(ne(table.id, res.data!.id), eq(table.date, new Date(2020, 5, 1))));
+          const cancelledNr = await db.query.results.findFirst({
+            where: { id: { ne: res.data!.id }, eventId, date: { eq: new Date(2020, 5, 1) } },
+          });
           expect(cancelledNr?.regionalSingleRecord).toBeNull();
           expect(cancelledNr?.regionalAverageRecord).toBeNull();
         });
-      });
-    });
-
-    describe.skip("3x3x3 Blindfolded 2-man Relay", () => {
-      it("creates team event AsB single & average result", async () => {
-        const res = await createVideoBasedResultSF({
-          newResultDto: {
-            eventId: "333bf_2_person_relay",
-            date: new Date(2023, 0, 1),
-            personIds: [5, 7],
-            attempts: [{ result: 4000 }, { result: 4100 }, { result: 4200 }],
-            videoLink: "https://example.com",
-            discussionLink: null,
-          },
-        });
-
-        expect(res.data).toBeDefined();
-        expect(res.data!.regionCode).toBeNull();
-        expect(res.data!.superRegionCode).toBe("ASIA");
-        expect(res.data!.regionalSingleRecord).toBe("AsR");
-        expect(res.data!.regionalAverageRecord).toBe("AsR");
-      });
-
-      it("creates team event NB single & average result", async () => {
-        const res = await createVideoBasedResultSF({
-          newResultDto: {
-            eventId: "333bf_2_person_relay",
-            date: new Date(2023, 0, 1),
-            personIds: [7, 8],
-            attempts: [{ result: 4300 }, { result: 4500 }, { result: 4700 }],
-            videoLink: "https://example.com",
-            discussionLink: null,
-          },
-        });
-
-        expect(res.data).toBeDefined();
-        expect(res.data!.regionCode).toBe("KR");
-        expect(res.data!.superRegionCode).toBe("ASIA");
-        expect(res.data!.regionalSingleRecord).toBe("NR");
-        expect(res.data!.regionalAverageRecord).toBe("NR");
       });
     });
   });

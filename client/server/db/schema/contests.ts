@@ -40,7 +40,7 @@ export const contestsTable = table(
     startDate: timestamp().notNull(),
     endDate: timestamp().notNull(),
     startTime: timestamp(), // only used for meetups
-    timeZone: text(), // only used for meetups
+    timezone: text(), // only used for meetups
     organizerIds: integer()
       .references(() => personsTable.id)
       .array()
@@ -60,17 +60,18 @@ export const contestsTable = table(
       "contests_meetup_check",
       sql`(${table.type} <> 'meetup'
           and ${table.startTime} is null
-          and ${table.timeZone} is null
+          and ${table.timezone} is null
           and ${table.competitorLimit} is not null
           and ${table.schedule} is not null)
         or (${table.type} = 'meetup'
           and ${table.startTime} is not null
-          and ${table.timeZone} is not null
+          and ${table.timezone} is not null
           and ${table.schedule} is null)`,
     ),
   ],
 );
 
+export type InsertContest = typeof contestsTable.$inferInsert;
 export type SelectContest = typeof contestsTable.$inferSelect;
 
 const {

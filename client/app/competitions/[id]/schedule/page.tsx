@@ -33,7 +33,7 @@ async function CompetitionSchedulePage({ params }: Props) {
         rooms={contest.schedule.venues[0].rooms}
         events={events}
         rounds={rounds}
-        timeZone={contest.schedule.venues[0].timezone}
+        timezone={contest.schedule.venues[0].timezone}
       />
     </ContestLayout>
   );

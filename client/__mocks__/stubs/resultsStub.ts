@@ -5,6 +5,8 @@ import {
   caPersonJoshCalhoun,
   dePersonHansBauer,
   dePersonJakobBach,
+  dePersonStefanSteinmeier,
+  gbPersonJamesStone,
   gbPersonSamMarsh,
   gbPersonTomDillon,
   jpPersonNaokoYoshida,
@@ -18,6 +20,13 @@ import {
   testComp2023_333_r1,
   testComp2023_333bf_r1,
   testComp2023_444bf_r1,
+  testCompApr2025_333_oh_bld_team_relay_r1,
+  testCompFeb2020_333_oh_bld_team_relay_r1,
+  testCompFeb2025_333_oh_bld_team_relay_r1,
+  testCompJan2020_333_oh_bld_team_relay_r1,
+  testCompJan2025_333_oh_bld_team_relay_r1,
+  testCompMar2020_333_oh_bld_team_relay_r1,
+  testCompMar2025_333_oh_bld_team_relay_r1,
   testMeetup2020_555bf_r1,
 } from "./roundsStub.ts";
 
@@ -84,6 +93,148 @@ const generateRandomResults = (): InsertResult[] => {
 
 export const resultsStub: InsertResult[] = [
   ...generateRandomResults(),
+
+  // 3x3x3 + OH + BLD Team Relay (contest results)
+  // 2020 results
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2020, 0, 1), // January 1st
+    personIds: [jpPersonSatoshiNakamura, krPersonSooMinNam, dePersonHansBauer],
+    attempts: [{ result: 6000 }, { result: 6100 }, { result: 6200 }],
+    best: 6000,
+    average: 6100,
+    recordCategory: "competitions",
+    regionalSingleRecord: "WR",
+    regionalAverageRecord: "WR",
+    competitionId: "TestCompJan2020",
+    roundId: testCompJan2020_333_oh_bld_team_relay_r1,
+    ranking: 1,
+  },
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2020, 1, 1), // February 1st
+    personIds: [gbPersonSamMarsh, dePersonHansBauer, dePersonJakobBach],
+    superRegionCode: "EUROPE",
+    attempts: [{ result: 6500 }, { result: 6600 }, { result: 6700 }],
+    best: 6500,
+    average: 6600,
+    recordCategory: "competitions",
+    regionalSingleRecord: "ER",
+    regionalAverageRecord: "ER",
+    competitionId: "TestCompFeb2020",
+    roundId: testCompFeb2020_333_oh_bld_team_relay_r1,
+    ranking: 1,
+  },
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2020, 2, 1), // March 1st
+    personIds: [gbPersonSamMarsh, gbPersonTomDillon, gbPersonJamesStone],
+    regionCode: "GB",
+    superRegionCode: "EUROPE",
+    attempts: [{ result: 6800 }, { result: 6900 }, { result: 7000 }],
+    best: 6800,
+    average: 6900,
+    recordCategory: "competitions",
+    regionalSingleRecord: "NR",
+    regionalAverageRecord: "NR",
+    competitionId: "TestCompMar2020",
+    roundId: testCompMar2020_333_oh_bld_team_relay_r1,
+    ranking: 1,
+  },
+  // 3x3x3 + OH + BLD Team Relay (contest results)
+  // 2025 results
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2025, 0, 1), // January 1st
+    personIds: [dePersonStefanSteinmeier, gbPersonTomDillon, gbPersonJamesStone],
+    superRegionCode: "EUROPE",
+    attempts: [{ result: 6400 }, { result: 6500 }, { result: 6600 }],
+    best: 6400,
+    average: 6500,
+    recordCategory: "competitions",
+    regionalSingleRecord: "ER",
+    regionalAverageRecord: "ER",
+    competitionId: "TestCompJan2025",
+    roundId: testCompJan2025_333_oh_bld_team_relay_r1,
+    ranking: 1,
+  },
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2025, 0, 1), // January 1st
+    personIds: [gbPersonSamMarsh, gbPersonTomDillon, gbPersonJamesStone],
+    regionCode: "GB",
+    superRegionCode: "EUROPE",
+    attempts: [{ result: 6700 }, { result: 6800 }, { result: 6900 }],
+    best: 6700,
+    average: 6800,
+    recordCategory: "competitions",
+    regionalSingleRecord: "NR",
+    regionalAverageRecord: "NR",
+    competitionId: "TestCompJan2025",
+    roundId: testCompJan2025_333_oh_bld_team_relay_r1,
+    ranking: 2,
+  },
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2025, 1, 1), // February 1st
+    personIds: [jpPersonNaokoYoshida, krPersonDongJunHyon, usPersonJohnDoe],
+    attempts: [{ result: 5900 }, { result: 6000 }, { result: 6100 }],
+    best: 5900,
+    average: 6000,
+    recordCategory: "competitions",
+    regionalSingleRecord: "WR",
+    regionalAverageRecord: "WR",
+    competitionId: "TestCompFeb2025",
+    roundId: testCompFeb2025_333_oh_bld_team_relay_r1,
+    ranking: 1,
+  },
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2025, 1, 1), // February 1st
+    personIds: [gbPersonSamMarsh, gbPersonTomDillon, gbPersonJamesStone],
+    regionCode: "GB",
+    superRegionCode: "EUROPE",
+    attempts: [{ result: 6300 }, { result: 6400 }, { result: 6500 }],
+    best: 6300,
+    average: 6400,
+    recordCategory: "competitions",
+    regionalSingleRecord: "ER",
+    regionalAverageRecord: "ER",
+    competitionId: "TestCompFeb2025",
+    roundId: testCompFeb2025_333_oh_bld_team_relay_r1,
+    ranking: 2,
+  },
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2025, 2, 1), // March 1st
+    personIds: [gbPersonJamesStone, dePersonHansBauer, gbPersonTomDillon],
+    superRegionCode: "EUROPE",
+    attempts: [{ result: 5800 }, { result: 5900 }, { result: 6000 }],
+    best: 5800,
+    average: 5900,
+    recordCategory: "competitions",
+    regionalSingleRecord: "WR",
+    regionalAverageRecord: "WR",
+    competitionId: "TestCompMar2025",
+    roundId: testCompMar2025_333_oh_bld_team_relay_r1,
+    ranking: 1,
+  },
+  {
+    eventId: "333_oh_bld_team_relay",
+    date: new Date(2025, 3, 1), // April 1st
+    personIds: [gbPersonJamesStone, gbPersonSamMarsh, gbPersonTomDillon],
+    regionCode: "GB",
+    superRegionCode: "EUROPE",
+    attempts: [{ result: 5700 }, { result: 5800 }, { result: 5900 }],
+    best: 5700,
+    average: 5800,
+    recordCategory: "competitions",
+    regionalSingleRecord: "WR",
+    regionalAverageRecord: "WR",
+    competitionId: "TestCompApr2025",
+    roundId: testCompApr2025_333_oh_bld_team_relay_r1,
+    ranking: 1,
+  },
 
   // 4x4x4 Blindfolded (video-based)
   // 2020 results
@@ -171,6 +322,7 @@ export const resultsStub: InsertResult[] = [
     regionalAverageRecord: "NR",
     videoLink: "https://example.com",
   },
+  // 4x4x4 Blindfolded (video-based)
   // 2025 results
   {
     eventId: "444bf",
@@ -256,50 +408,6 @@ export const resultsStub: InsertResult[] = [
     regionalAverageRecord: "WR",
     videoLink: "https://example.com",
   },
-
-  // 3x3x3 Blindfolded 2-man Relay
-  // 2020 results
-  // {
-  //   eventId: "333bf_2_person_relay",
-  //   date: new Date(2020, 0, 1),
-  //   personIds: [gbPersonTomDillon, dePersonHansBauer],
-  //   superRegionCode: "EUROPE",
-  //   attempts: [{ result: 3800 }, { result: 3900 }, { result: 4000 }],
-  //   best: 3800,
-  //   average: 3900,
-  //   recordCategory: "video-based-results",
-  //   regionalSingleRecord: "WR",
-  //   regionalAverageRecord: "WR",
-  //   videoLink: "www.example.com",
-  // },
-  // {
-  //   eventId: "333bf_2_person_relay",
-  //   date: new Date(2020, 1, 1),
-  //   personIds: [jpPersonNaokoYoshida, jpPersonSatoshiNakamura],
-  //   regionCode: "JP",
-  //   superRegionCode: "ASIA",
-  //   attempts: [{ result: 4200 }, { result: 4400 }, { result: 4600 }],
-  //   best: 4200,
-  //   average: 4400,
-  //   recordCategory: "video-based-results",
-  //   regionalSingleRecord: "AsR",
-  //   regionalAverageRecord: "AsR",
-  //   videoLink: "www.example.com",
-  // },
-  // {
-  //   eventId: "333bf_2_person_relay",
-  //   date: new Date(2020, 2, 1),
-  //   personIds: [krPersonDongJunHyon, krPersonSooMinNam],
-  //   regionCode: "KR",
-  //   superRegionCode: "ASIA",
-  //   attempts: [{ result: 4500 }, { result: 4600 }, { result: 4700 }],
-  //   best: 4500,
-  //   average: 4600,
-  //   recordCategory: "video-based-results",
-  //   regionalSingleRecord: "NR",
-  //   regionalAverageRecord: "NR",
-  //   videoLink: "www.example.com",
-  // },
 
   // Other results
   {

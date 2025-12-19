@@ -113,6 +113,7 @@ export const startNewCollectiveCubingSolutionSF = actionClient
 
     const [createdSolution] = await db.transaction(async (tx) => {
       await tx.update(csTable).set({ state: "archived" }).where(eq(csTable.state, "solved"));
+
       return await tx
         .insert(csTable)
         .values({

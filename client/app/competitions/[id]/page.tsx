@@ -36,8 +36,8 @@ async function ContestDetailsPage({ params }: Props) {
   const formattedDate = getFormattedDate(contest.startDate, contest.endDate || null);
   // Not used for competition type contests
   const formattedTime =
-    contest.startTime && contest.timeZone ? formatInTimeZone(contest.startTime, contest.timeZone, "H:mm") : null;
-  const startOfDayInVenueTZ = getDateOnly(toZonedTime(new Date(), contest.timeZone ?? "UTC"))!;
+    contest.startTime && contest.timezone ? formatInTimeZone(contest.startTime, contest.timezone, "H:mm") : null;
+  const startOfDayInVenueTZ = getDateOnly(toZonedTime(new Date(), contest.timezone ?? "UTC"))!;
   const start = new Date(contest.startDate);
   const isOngoing =
     ["approved", "ongoing"].includes(contest.state) &&

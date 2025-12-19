@@ -227,7 +227,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
               title={`Start time (${venueTimeZone})`}
               value={activityStartTime}
               setValue={changeActivityStartTime}
-              timeZone={venueTimeZone}
+              timezone={venueTimeZone}
               dateFormat="Pp"
               timeIntervals={5}
               disabled={disabled}
@@ -240,7 +240,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
               title="End time"
               value={activityEndTime}
               setValue={setActivityEndTime}
-              timeZone={venueTimeZone}
+              timezone={venueTimeZone}
               dateFormat="Pp"
               timeIntervals={5}
               disabled={disabled}
@@ -277,7 +277,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
               rooms={rooms}
               events={events}
               rounds={rounds}
-              timeZone={venueTimeZone}
+              timezone={venueTimeZone}
               onEditActivity={disabled ? undefined : editActivity}
               onDeleteActivity={disabled ? undefined : deleteActivity}
             />

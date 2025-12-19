@@ -4,7 +4,7 @@ import { and, eq, ilike, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { CountryCodes } from "~/helpers/Countries.ts";
 import { C } from "~/helpers/constants.ts";
-import { fetchWcaPerson, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
+import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "~/helpers/sharedFunctions.ts";
 import { getIsAdmin } from "~/helpers/utilityFunctions.ts";
 import { type PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
@@ -12,12 +12,13 @@ import { db } from "~/server/db/provider.ts";
 import {
   type PersonResponse,
   personsPublicCols,
+  personsTable,
   type SelectPerson,
   personsTable as table,
 } from "~/server/db/schema/persons.ts";
 import { logMessageSF } from "~/server/serverFunctions/serverFunctions.ts";
 import { actionClient, CcActionError } from "../safeAction.ts";
-import { checkUserPermissions, setPersonToApproved } from "../serverUtilityFunctions.ts";
+import { checkUserPermissions } from "../serverUtilityFunctions.ts";
 
 type GetOrCreatePersonObject = {
   person: PersonResponse;
@@ -257,6 +258,64 @@ export const approvePersonSF = actionClient
 //     persons.filter((p) => p.unapproved).map((p) => this.setPersonToApproved(p, requireWcaId)),
 //   );
 // }
+
+async function setPersonToApproved(
+  person: SelectPerson,
+  { requireWcaId, ignoredWcaMatches = [] }: { requireWcaId: boolean; ignoredWcaMatches?: string[] },
+): Promise<SelectPerson> {
+  const updatePersonObject: Partial<SelectPerson> = {};
+
+  if (!person.wcaId) {
+    const res = await fetch(`${C.wcaV0ApiBaseUrl}/search/users?persons_table=true&q=${person.name}`);
+    if (res.ok) {
+      const { result: wcaPersons } = await res.json();
+
+      if (!requireWcaId) {
+        for (const wcaPerson of wcaPersons) {
+          const { name } = getNameAndLocalizedName(wcaPerson.name);
+
+          if (
+            !ignoredWcaMatches.includes(wcaPerson.wca_id) &&
+            name === person.name &&
+            wcaPerson.country_iso2 === person.regionCode
+          ) {
+            throw new CcActionError(
+              `There is an exact name and country match with the WCA competitor with WCA ID ${wcaPerson.wca_id}. If that is the same person, edit their profile, adding the WCA ID. If it's a different person, simply approve them again to confirm.`,
+              { data: { wcaMatches: [...ignoredWcaMatches, wcaPerson.wca_id] } },
+            );
+          }
+        }
+      }
+      // We only want to assign the WCA ID if there's just one matched person
+      else if (wcaPersons?.length === 1) {
+        const [wcaPerson] = wcaPersons;
+        const { name, localizedName } = getNameAndLocalizedName(wcaPerson.name);
+
+        if (name === person.name && wcaPerson.country_iso2 === person.regionCode) {
+          updatePersonObject.wcaId = wcaPerson.wca_id;
+          if (localizedName) updatePersonObject.localizedName = localizedName;
+        }
+      }
+    }
+  }
+
+  if (!requireWcaId || person.wcaId || updatePersonObject.wcaId) {
+    logMessageSF({ message: `Approving person ${person.name} (CC ID: ${person.id})` });
+
+    updatePersonObject.approved = true;
+  }
+
+  if (Object.keys(updatePersonObject).length > 0) {
+    const [updatedPerson] = await db
+      .update(personsTable)
+      .set(updatePersonObject)
+      .where(eq(personsTable.id, person.id))
+      .returning();
+    return updatedPerson;
+  }
+
+  return person;
+}
 
 async function validatePerson(
   newPersonDto: PersonDto,

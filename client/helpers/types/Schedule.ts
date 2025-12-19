@@ -22,8 +22,8 @@ export type Room = {
 
 export type Activity = {
   id: number;
-  name?: string; // only set when activityCode = other-misc
   activityCode: string;
+  name?: string; // only set when activityCode = other-misc
   startTime: Date;
   endTime: Date;
   childActivities: Activity[];

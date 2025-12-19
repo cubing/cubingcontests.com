@@ -2,11 +2,11 @@
 
 import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { isValid } from "date-fns";
 import { enGB } from "date-fns/locale/en-GB";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
-import FormInputLabel from "./FormInputLabel.tsx";
 import { getDateOnly } from "~/helpers/sharedFunctions.ts";
-import { isValid } from "date-fns";
+import FormInputLabel from "./FormInputLabel.tsx";
 
 registerLocale("en-GB", enGB);
 setDefaultLocale("en-GB");
@@ -16,7 +16,7 @@ type Props = {
   title?: string;
   value: Date | undefined;
   setValue: (val: Date | undefined) => void;
-  timeZone?: string;
+  timezone?: string;
   dateFormat?: string; // P is date select only, Pp is date and time select
   timeFormat?: string;
   timeIntervals?: number;
@@ -24,18 +24,18 @@ type Props = {
   showUTCTime?: boolean;
 };
 
-const FormDatePicker = ({
+function FormDatePicker({
   id,
   title,
   value,
   setValue,
-  timeZone = "UTC",
+  timezone = "UTC",
   dateFormat = "P",
   timeFormat = "p",
   timeIntervals = 10,
   disabled = false,
   showUTCTime = false,
-}: Props) => {
+}: Props) {
   if (!id && !title) {
     throw new Error("Neither title nor id are set in FormDatePicker");
   }
@@ -46,9 +46,9 @@ const FormDatePicker = ({
   const onChange = (newDate: Date) => {
     // The time zone conversion is necessary, because otherwise JS uses the user's local time zone
     if (!showTimeSelect) {
-      setValue(getDateOnly(fromZonedTime(newDate, timeZone))!);
+      setValue(getDateOnly(fromZonedTime(newDate, timezone))!);
     } else {
-      setValue(fromZonedTime(newDate, timeZone));
+      setValue(fromZonedTime(newDate, timezone));
     }
   };
 
@@ -58,7 +58,7 @@ const FormDatePicker = ({
 
       <DatePicker
         id={inputId}
-        selected={isValid(value) && toZonedTime(value!, timeZone)}
+        selected={isValid(value) && toZonedTime(value!, timezone)}
         onChange={onChange}
         dateFormat={dateFormat}
         timeFormat={timeFormat}
@@ -71,12 +71,10 @@ const FormDatePicker = ({
       />
 
       {showUTCTime && (
-        <div className="mt-3 text-secondary fs-6">
-          UTC:&#8194;{value?.toUTCString().slice(0, -4) ?? "?"}
-        </div>
+        <div className="fs-6 mt-3 text-secondary">UTC:&#8194;{value?.toUTCString().slice(0, -4) ?? "?"}</div>
       )}
     </div>
   );
-};
+}
 
 export default FormDatePicker;

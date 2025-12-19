@@ -1,5 +1,6 @@
 import "server-only";
-import { drizzle } from "drizzle-orm/postgres-js";
+import type { PgTransaction } from "drizzle-orm/pg-core";
+import { drizzle, type PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import { relations } from "./relations.ts";
 
 export const db = drizzle({
@@ -12,3 +13,5 @@ export const db = drizzle({
   casing: "snake_case",
   relations,
 });
+
+export type DbTransactionType = PgTransaction<PostgresJsQueryResultHKT, Record<string, never>, typeof relations>;

@@ -11,8 +11,8 @@ const ActivityValidator = z.lazy((): any =>
   z
     .strictObject({
       id: z.int().min(1),
-      name: z.string().nonempty().optional(), // only set when activityCode = other-misc (see superRefine() below)
       activityCode: z.string().regex(/^[a-z0-9][a-z0-9-_]{2,}$/),
+      name: z.string().nonempty().optional(), // only set when activityCode = other-misc (see superRefine() below)
       startTime: z.date(),
       endTime: z.date(),
       // childActivities: z.array(ActivityValidator),
@@ -131,7 +131,7 @@ export const ContestValidator = z
     startDate: z.date(),
     endDate: z.date(),
     startTime: z.date().optional(),
-    timeZone: z.string().nonempty().optional(),
+    timezone: z.string().nonempty().optional(),
     organizerIds: z
       .array(z.int())
       .nonempty()
@@ -172,7 +172,7 @@ export const ContestValidator = z
     }
 
     if (val.type === "meetup") {
-      const correctStartDate = getDateOnly(toZonedTime(val.startTime!, val.timeZone!))!;
+      const correctStartDate = getDateOnly(toZonedTime(val.startTime!, val.timezone!))!;
       if (val.startDate.getTime() !== correctStartDate.getTime()) {
         ctx.addIssue({
           code: "custom",

@@ -15,6 +15,33 @@ import { recordConfigsTable } from "./server/db/schema/record-configs.ts";
 import { type InsertResult, resultsTable } from "./server/db/schema/results.ts";
 import { roundsTable } from "./server/db/schema/rounds.ts";
 
+// Used in tests too
+export const testUsers = [
+  {
+    email: "admin@cc.com",
+    username: "admin",
+    name: "admin",
+    password: "Temporary_good_password123",
+    role: "admin",
+    personId: 1,
+  },
+  {
+    email: "mod@cc.com",
+    username: "mod",
+    name: "mod",
+    password: "Temporary_good_password123",
+    role: "mod",
+    personId: 2,
+  },
+  {
+    email: "user@cc.com",
+    username: "user",
+    name: "user",
+    password: "Temporary_good_password123",
+    personId: 3,
+  },
+];
+
 // This is the scrypt password hash for the password "cc" (only used for testing in development)
 const hashForCc =
   "a73adfb4df83466851a5c337a6bc738b:a580ce8e36188f210f2342998c46789d69ab69ebf35a6382d80ad11e8542ec62074b31789b09dc653daaf8e1ec69fb5c97c6f6244f7de80d03169e7572c0e514";
@@ -32,32 +59,6 @@ export async function register() {
     const personsDump = (JSON.parse(fs.readFileSync("./dump/people.json") as any) as any[]).reverse();
     const contestsDump = JSON.parse(fs.readFileSync("./dump/competitions.json") as any) as any[];
     const roundsDump = JSON.parse(fs.readFileSync("./dump/rounds.json") as any) as any[];
-
-    const testUsers = [
-      {
-        email: "admin@cc.com",
-        username: "admin",
-        name: "admin",
-        password: "Temporary_good_password123",
-        role: "admin",
-        personId: 1,
-      },
-      {
-        email: "mod@cc.com",
-        username: "mod",
-        name: "mod",
-        password: "Temporary_good_password123",
-        role: "mod",
-        personId: 2,
-      },
-      {
-        email: "user@cc.com",
-        username: "user",
-        name: "user",
-        password: "Temporary_good_password123",
-        personId: 3,
-      },
-    ];
 
     for (const testUser of testUsers) {
       const userExists =
@@ -417,7 +418,7 @@ export async function register() {
             startDate: new Date(c.startDate.$date),
             endDate: c.endDate ? new Date(c.endDate.$date) : new Date(c.startDate.$date),
             startTime: c.meetupDetails ? new Date(c.meetupDetails.startTime.$date) : null,
-            timeZone: c.meetupDetails?.timeZone ?? null,
+            timezone: c.meetupDetails?.timeZone ?? null,
             organizerIds: c.organizers.map((o: any) => getPersonId(o.$oid)),
             contact: c.contact ?? null,
             description: c.description,

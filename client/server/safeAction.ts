@@ -25,7 +25,8 @@ export const actionClient = createSafeActionClient({
   // We still want to check authentication when permissions = null
   if (metadata.permissions !== undefined) {
     if (process.env.VITEST) {
-      return next({ ctx: { session: { user: { role: "admin" } } } });
+      const mockUser = { personId: 1, email: "email@example.com", role: "admin" };
+      return next({ ctx: { session: { user: mockUser } } });
     } else {
       const session = await authorizeUser({ permissions: metadata.permissions });
       return next({ ctx: { session } });

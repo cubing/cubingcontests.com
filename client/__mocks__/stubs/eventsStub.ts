@@ -419,4 +419,18 @@ export const eventsStub: InsertEvent[] = [
     hidden: false,
     description: "",
   },
+  {
+    eventId: "333_oh_bld_team_relay",
+    name: "3x3x3 + OH + BLD Team Relay",
+    rank: 3040,
+    format: "time",
+    defaultRoundFormat: "3",
+    category: "miscellaneous",
+    participants: 3,
+    removedWca: false,
+    hasMemo: false,
+    submissionsAllowed: true,
+    hidden: false,
+    description: "",
+  },
 ];

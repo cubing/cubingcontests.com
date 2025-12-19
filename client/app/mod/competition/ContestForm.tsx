@@ -108,7 +108,7 @@ function ContestForm({
 
   // Schedule stuff
   const [rooms, setRooms] = useState<Room[]>(contest?.schedule?.venues[0].rooms ?? []);
-  const [timeZone, setTimeZone] = useState(contest?.schedule?.venues[0].timezone ?? contest?.timeZone ?? "Etc/GMT");
+  const [timezone, setTimezone] = useState(contest?.schedule?.venues[0].timezone ?? contest?.timezone ?? "Etc/GMT");
   const [isUnderstood, setIsUnderstood] = useState(mode === "edit");
   const [isTimelinessUnderstood, setIsTimelinessUnderstood] = useState(mode === "edit");
   const [isCompPhotosUnderstood, setIsCompPhotosUnderstood] = useState(mode === "edit");
@@ -124,25 +124,25 @@ function ContestForm({
         // Adjust times
         if (isValid(startDate) && isValid(startTime)) {
           if (type === "meetup") {
-            setStartTime(fromZonedTime(toZonedTime(startTime!, timeZone), res.data!));
+            setStartTime(fromZonedTime(toZonedTime(startTime!, timezone), res.data!));
           } else if (getIsCompType(type)) {
             setRooms(
               rooms.map((r: Room) => ({
                 ...r,
                 activities: r.activities.map((a) => ({
                   ...a,
-                  startTime: fromZonedTime(toZonedTime(a.startTime, timeZone), res.data!),
-                  endTime: fromZonedTime(toZonedTime(a.endTime, timeZone), res.data!),
+                  startTime: fromZonedTime(toZonedTime(a.startTime, timezone), res.data!),
+                  endTime: fromZonedTime(toZonedTime(a.endTime, timezone), res.data!),
                 })),
               })),
             );
           }
         }
 
-        setTimeZone(res.data!);
+        setTimezone(res.data!);
       }
     }, C.fetchDebounceTimeout),
-    [timeZone, startTime, rooms, type],
+    [timezone, startTime, rooms, type],
   );
 
   const tabs = [
@@ -182,7 +182,7 @@ function ContestForm({
             countryIso2: regionCode,
             latitudeMicrodegrees,
             longitudeMicrodegrees,
-            timezone: timeZone,
+            timezone,
             // Only send the rooms that have at least one activity
             rooms: rooms.filter((r) => r.activities.length > 0),
           },
@@ -204,7 +204,7 @@ function ContestForm({
       startDate: startDate!,
       endDate: endDate!,
       startTime: type === "meetup" ? startTime : undefined,
-      timeZone: type === "meetup" ? timeZone : undefined,
+      timezone: type === "meetup" ? timezone : undefined,
       organizerIds: selectedOrganizers.map((o) => o.id),
       contact: contact.trim() || undefined,
       description: description.trim(),
@@ -263,7 +263,7 @@ function ContestForm({
       setLatitude(1.314663);
       setLongitude(103.845409);
       const tz = "Asia/Singapore";
-      setTimeZone(tz);
+      setTimezone(tz);
       setOrganizerNames([res.data!.name, ""]);
       setOrganizers([res.data!, null]);
       setContact(`${session.user.username}@cc.com`);
@@ -413,7 +413,7 @@ function ContestForm({
   const changeStartDate = (newDate: Date | undefined) => {
     if (type === "meetup") {
       setStartTime(newDate);
-      if (isValid(newDate)) setStartDate(getDateOnly(new Date(newDate!.getTime() + getTimezoneOffset(timeZone)))!);
+      if (isValid(newDate)) setStartDate(getDateOnly(new Date(newDate!.getTime() + getTimezoneOffset(timezone)))!);
     } else {
       setStartDate(newDate);
       if (isValid(newDate) && isValid(endDate) && newDate!.getTime() > endDate!.getTime()) setEndDate(newDate);
@@ -740,7 +740,7 @@ function ContestForm({
                     </div>
                     <div className="row">
                       <div className="fs-6 mb-2 text-secondary">
-                        Time zone: {isPendingTimeZone ? <Loading small dontCenter /> : timeZone}
+                        Time zone: {isPendingTimeZone ? <Loading small dontCenter /> : timezone}
                       </div>
                       <div className="fs-6 text-danger">
                         The coordinates must point to a building and match the address of the venue.
@@ -753,10 +753,10 @@ function ContestForm({
                     {type === "meetup" ? (
                       <FormDatePicker
                         id="start_date"
-                        title={`Start date and time (${isPendingTimeZone ? "..." : timeZone})`}
+                        title={`Start date and time (${isPendingTimeZone ? "..." : timezone})`}
                         value={startTime}
                         setValue={changeStartDate}
-                        timeZone={timeZone}
+                        timezone={timezone}
                         disabled={disabledIfContestApproved}
                         dateFormat="Pp"
                         showUTCTime
@@ -858,7 +858,7 @@ function ContestForm({
           <ScheduleEditor
             rooms={rooms}
             setRooms={setRooms}
-            venueTimeZone={timeZone}
+            venueTimeZone={timezone}
             startDate={startDate!}
             contestType={type!}
             events={events}

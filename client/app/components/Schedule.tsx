@@ -26,12 +26,12 @@ type Props = {
   rooms: Room[];
   events: EventResponse[];
   rounds: Pick<RoundResponse, "eventId" | "roundNumber" | "roundTypeId" | "format">[];
-  timeZone: string;
+  timezone: string;
   onDeleteActivity?: (roomId: number, activityId: number) => void;
   onEditActivity?: (roomId: number, activity: Activity) => void;
 };
 
-function Schedule({ rooms, events, rounds, timeZone, onDeleteActivity, onEditActivity }: Props) {
+function Schedule({ rooms, events, rounds, timezone, onDeleteActivity, onEditActivity }: Props) {
   const allActivities: RoomActivity[] = [];
 
   for (const room of rooms) {
@@ -54,8 +54,8 @@ function Schedule({ rooms, events, rounds, timeZone, onDeleteActivity, onEditAct
   const days: Day[] = [];
 
   for (const activity of allActivities) {
-    const zonedStartTime = toZonedTime(activity.startTime, timeZone);
-    const zonedEndTime = toZonedTime(activity.endTime, timeZone);
+    const zonedStartTime = toZonedTime(activity.startTime, timezone);
+    const zonedEndTime = toZonedTime(activity.endTime, timezone);
 
     // Add new day if the activity is on a new day or if the days array is empty
     const lastDay = days.at(-1);
@@ -66,10 +66,10 @@ function Schedule({ rooms, events, rounds, timeZone, onDeleteActivity, onEditAct
     const isMultiDayActivity = !isSameDay(zonedStartTime, zonedEndTime);
     const dayActivity: DayActivity = {
       ...activity,
-      formattedStartTime: formatInTimeZone(activity.startTime, timeZone, "HH:mm"),
+      formattedStartTime: formatInTimeZone(activity.startTime, timezone, "HH:mm"),
       formattedEndTime:
-        (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timeZone, "dd MMM")} ` : "") +
-        formatInTimeZone(activity.endTime, timeZone, "HH:mm"),
+        (isMultiDayActivity ? `${formatInTimeZone(activity.endTime, timezone, "dd MMM")} ` : "") +
+        formatInTimeZone(activity.endTime, timezone, "HH:mm"),
       isEditable: true,
     };
 
