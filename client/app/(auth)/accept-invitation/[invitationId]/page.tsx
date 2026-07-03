@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useContext, useTransition } from "react";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 
 function AcceptInvitationPage() {

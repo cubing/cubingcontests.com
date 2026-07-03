@@ -1,7 +1,7 @@
 import { StorageClient } from "@supabase/storage-js";
 import type { NextRequest } from "next/server";
 import z from "zod";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import type { OrganizationMetadata } from "~/helpers/types.ts";
 import type { LatestPublicExportDetailsDto } from "~/helpers/validators/LatestPublicExportDetails.ts";
 import { db } from "~/server/db/provider.ts";
@@ -27,11 +27,19 @@ export async function GET(req: NextRequest, { params }: RouteContext<"/api/[slug
   const { slug, version: exportFormatVersion } = parsedParams.data;
   const searchParams = req.nextUrl.searchParams;
 
-  const organization = await db.query.organizations.findFirst({ columns: { metadata: true }, where: { slug } });
+  const organization = await db.query.organizations.findFirst({
+    columns: { metadata: true },
+    with: { subscription: { columns: { plan: true }, where: { status: { in: ["active", "trialing"] } } } },
+    where: { slug },
+  });
   if (!organization?.metadata) return new Response("Space not found", { status: 404 });
+  if (IS_RR_INSTANCE) {
+    if (!organization.subscription)
+      return new Response("There is no active subscription for this space", { status: 400 });
+    if (organization.subscription.plan === "basic")
+      return new Response("Basic plan spaces don't have automated public exports", { status: 400 });
+  }
   const metadata = JSON.parse(organization.metadata) as OrganizationMetadata;
-  if (metadata.plan === "basic")
-    return new Response("Basic plan spaces don't have automated public exports", { status: 400 });
   if (metadata.private) return new Response("Private spaces don't have automated public exports", { status: 400 });
 
   const storageClient = new StorageClient(process.env.SUPABASE_STORAGE_URL, {

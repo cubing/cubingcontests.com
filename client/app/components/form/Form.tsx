@@ -14,11 +14,13 @@ type Props = {
       buttonText?: string;
       hideSubmitButton?: boolean;
       onSubmit: () => void;
+      submitButtonSuccessStyle?: boolean;
     }
   | {
       buttonText?: never;
       hideSubmitButton: true;
       onSubmit?: never;
+      submitButtonSuccessStyle?: never;
     }
 ) &
   React.HTMLAttributes<HTMLFormElement>;
@@ -31,6 +33,7 @@ function Form({
   isLoading = false,
   disableControls = false,
   onSubmit,
+  submitButtonSuccessStyle = false,
   onCancel,
   className,
 }: Props) {
@@ -39,7 +42,7 @@ function Form({
   return (
     <form
       onSubmit={(e) => e.preventDefault()}
-      className={`fs-5 container mx-auto my-4 px-3 ${className}`}
+      className={`container mx-auto my-4 px-3 ${className}`}
       style={{ maxWidth: "var(--rr-md-width)" }}
     >
       {!hideToasts && <ToastMessages />}
@@ -55,6 +58,7 @@ function Form({
               onClick={onSubmit}
               disabled={controlsDisabled}
               isLoading={isLoading}
+              className={submitButtonSuccessStyle ? "btn-success" : "btn-primary"}
             >
               {buttonText}
             </Button>

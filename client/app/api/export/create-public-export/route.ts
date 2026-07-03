@@ -4,7 +4,6 @@ import { and, eq, notInArray } from "drizzle-orm";
 import JSZip from "jszip";
 import type { NextRequest } from "next/server";
 import { C } from "~/helpers/constants.ts";
-import type { OrganizationMetadata } from "~/helpers/types.ts";
 import { generateCsv } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import { contestsPublicCols, contestsTable } from "~/server/db/schema/contests.ts";
@@ -59,12 +58,10 @@ export async function POST(req: NextRequest) {
 
   const exportFormatVersion = C.publicExportsFormatVersions.at(-1);
   const organizations = await db.query.organizations.findMany({
-    columns: { id: true, slug: true, name: true, metadata: true },
+    columns: { id: true, slug: true, name: true },
   });
 
-  for (const { id, slug, name, metadata } of organizations) {
-    if (!metadata || (JSON.parse(metadata) as OrganizationMetadata).plan === "basic") continue;
-
+  for (const { id, slug, name } of organizations) {
     let existingExports: string[] | undefined;
     const exportsDirectory = `${exportFormatVersion}/${slug}`;
 
@@ -153,7 +150,8 @@ export async function POST(req: NextRequest) {
 
     // Save export archive in Supabase storage
     const cleanOrgName = name.replace(/[^a-zA-Z0-9]/g, "");
-    const filePath = `${exportsDirectory}/${cleanOrgName}_export_${exportFormatVersion}_${timestamp}.zip`;
+    const randomString = crypto.randomUUID().split("-").at(0);
+    const filePath = `${exportsDirectory}/${cleanOrgName}_export_${exportFormatVersion}_${timestamp}_${randomString}.zip`;
 
     const { error: error2 } = await storageClient.from(process.env.PUBLIC_EXPORTS_BUCKET_NAME).upload(filePath, blob);
     if (error2) return new Response(`Error while uploading file: ${error2.message}`, { status: 500 });

@@ -38,7 +38,7 @@ function FormRegionSelect({
         onChange={(e) => setRegionCode(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className="form-select mt-2"
+        className="form-select"
       >
         {continentOptions ? (
           <>

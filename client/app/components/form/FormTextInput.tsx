@@ -70,7 +70,7 @@ function FormTextInput({
     <div className={`fs-5 ${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`}>
       {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
 
-      <div className={`d-flex justify-content-between gap-3 align-items-center ${oneLine ? "" : "mt-2"}`}>
+      <div className="d-flex justify-content-between gap-3 align-items-center">
         <input
           type={hidePassword ? "password" : "text"}
           id={inputId}

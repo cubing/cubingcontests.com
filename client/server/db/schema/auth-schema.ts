@@ -2,7 +2,7 @@ import "server-only";
 import { boolean, index, integer, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { rrSchema } from "~/server/db/schema/schema.ts";
 
-export const usersTable = rrSchema.table("users", {
+const users = rrSchema.table("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
@@ -19,9 +19,10 @@ export const usersTable = rrSchema.table("users", {
   banned: boolean("banned").default(false),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
+  stripeCustomerId: text("stripe_customer_id"),
 });
 
-export const sessionsTable = rrSchema.table(
+const sessions = rrSchema.table(
   "sessions",
   {
     id: text("id").primaryKey(),
@@ -35,14 +36,14 @@ export const sessionsTable = rrSchema.table(
     userAgent: text("user_agent"),
     userId: text("user_id")
       .notNull()
-      .references(() => usersTable.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     impersonatedBy: text("impersonated_by"),
     activeOrganizationId: text("active_organization_id"),
   },
   (table) => [index("sessions_userId_idx").on(table.userId)],
 );
 
-export const accountsTable = rrSchema.table(
+const accounts = rrSchema.table(
   "accounts",
   {
     id: text("id").primaryKey(),
@@ -50,7 +51,7 @@ export const accountsTable = rrSchema.table(
     providerId: text("provider_id").notNull(),
     userId: text("user_id")
       .notNull()
-      .references(() => usersTable.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
@@ -66,7 +67,7 @@ export const accountsTable = rrSchema.table(
   (table) => [index("accounts_userId_idx").on(table.userId)],
 );
 
-export const verificationsTable = rrSchema.table(
+const verifications = rrSchema.table(
   "verifications",
   {
     id: text("id").primaryKey(),
@@ -82,7 +83,7 @@ export const verificationsTable = rrSchema.table(
   (table) => [index("verifications_identifier_idx").on(table.identifier)],
 );
 
-export const organizationsTable = rrSchema.table(
+const organizations = rrSchema.table(
   "organizations",
   {
     id: text("id").primaryKey(),
@@ -91,20 +92,21 @@ export const organizationsTable = rrSchema.table(
     logo: text("logo"),
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
+    stripeCustomerId: text("stripe_customer_id"),
   },
   (table) => [uniqueIndex("organizations_slug_uidx").on(table.slug)],
 );
 
-export const membersTable = rrSchema.table(
+const members = rrSchema.table(
   "members",
   {
     id: text("id").primaryKey(),
     organizationId: text("organization_id")
       .notNull()
-      .references(() => organizationsTable.id, { onDelete: "cascade" }),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     userId: text("user_id")
       .notNull()
-      .references(() => usersTable.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     role: text("role").default("member").notNull(),
     createdAt: timestamp("created_at").notNull(),
     personId: integer("person_id").unique(),
@@ -115,13 +117,13 @@ export const membersTable = rrSchema.table(
   ],
 );
 
-export const invitationsTable = rrSchema.table(
+const invitations = rrSchema.table(
   "invitations",
   {
     id: text("id").primaryKey(),
     organizationId: text("organization_id")
       .notNull()
-      .references(() => organizationsTable.id, { onDelete: "cascade" }),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     email: text("email").notNull(),
     role: text("role"),
     status: text("status").default("pending").notNull(),
@@ -129,10 +131,41 @@ export const invitationsTable = rrSchema.table(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     inviterId: text("inviter_id")
       .notNull()
-      .references(() => usersTable.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
   },
   (table) => [
     index("invitations_organizationId_idx").on(table.organizationId),
     index("invitations_email_idx").on(table.email),
   ],
 );
+
+const subscriptions = rrSchema.table("subscriptions", {
+  id: text("id").primaryKey(),
+  plan: text("plan").notNull(),
+  referenceId: text("reference_id").notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  status: text("status").default("incomplete").notNull(),
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  cancelAt: timestamp("cancel_at"),
+  canceledAt: timestamp("canceled_at"),
+  endedAt: timestamp("ended_at"),
+  seats: integer("seats"),
+  billingInterval: text("billing_interval"),
+  stripeScheduleId: text("stripe_schedule_id"),
+});
+
+export {
+  accounts as accountsTable,
+  invitations as invitationsTable,
+  members as membersTable,
+  organizations as organizationsTable,
+  sessions as sessionsTable,
+  subscriptions as subscriptionsTable,
+  users as usersTable,
+  verifications as verificationsTable,
+};

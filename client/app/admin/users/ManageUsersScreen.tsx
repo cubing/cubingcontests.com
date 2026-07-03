@@ -9,7 +9,7 @@ import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import type { authClient } from "~/helpers/authClient.ts";
+import type { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getHasRole, getSimplifiedString } from "~/helpers/utility-functions.ts";
 import { rolesObject } from "~/server/permissions.ts";

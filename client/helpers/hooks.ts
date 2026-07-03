@@ -1,6 +1,6 @@
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import type { FeaturesInfo, FullSession } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 import { getFeaturesInfoSF, getOrgDetailsSF } from "~/server/server-functions/server-functions.ts";
@@ -37,7 +37,8 @@ export function useSession(): Partial<FullSession> {
 }
 
 export function useFeaturesInfo(): FeaturesInfo {
-  const fallbackData = {
+  const fallbackData: FeaturesInfo = {
+    aboutPageEnabled: false,
     rulesPageEnabled: false,
     modInstructionsPageEnabled: false,
     videoBasedResultsEnabled: false,

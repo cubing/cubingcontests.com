@@ -67,7 +67,7 @@ function FormDatePicker({
         showTimeSelectOnly={dateFormat === "HH:mm"}
         locale="en-GB"
         disabled={disabled}
-        className="form-control mt-2"
+        className="form-control"
       />
 
       {showUTCTime && (

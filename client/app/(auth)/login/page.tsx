@@ -9,7 +9,7 @@ import SignInWithGoogleButton from "~/app/(auth)/login/SignInWithGoogleButton.ts
 import Form from "~/app/components/form/Form.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import { HAS_CREDENTIAL_AUTH, HAS_GOOGLE_AUTH, HAS_WCA_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { LoginFormValidator } from "~/helpers/validators/Auth.ts";

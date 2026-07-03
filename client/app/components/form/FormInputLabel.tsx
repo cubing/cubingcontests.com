@@ -9,7 +9,7 @@ type Props = {
 function FormInputLabel({ text, inputId, tooltip }: Props) {
   return (
     <span className="d-flex flex-shrink-0 gap-2 align-items-start">
-      <label htmlFor={inputId} className="form-label mb-0">
+      <label htmlFor={inputId} className="form-label fs-5">
         {text}
       </label>
 

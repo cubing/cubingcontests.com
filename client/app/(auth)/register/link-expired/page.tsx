@@ -5,7 +5,7 @@ import { useContext, useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import { HAS_CREDENTIAL_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";

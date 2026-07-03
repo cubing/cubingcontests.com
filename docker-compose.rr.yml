@@ -64,6 +64,10 @@ services:
       PUBLIC_EXPORTS_BUCKET_NAME: ${PUBLIC_EXPORTS_BUCKET_NAME}
       LOGFLARE_API_BASE_URL: ${LOGFLARE_API_BASE_URL}
       LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN}
+
+      # Stripe variables (only used for the RecordRanks Platform website)
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
     restart: always
     healthcheck:
       test:

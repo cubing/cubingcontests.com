@@ -10,7 +10,7 @@ import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import MemberRequestTab from "~/app/user/settings/MemberRequestTab";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import { HAS_WCA_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";

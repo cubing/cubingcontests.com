@@ -45,7 +45,32 @@ async function CreateEditContestPage({ searchParams }: Props) {
       getEvents({ organizationId: organization!.id, includeHiddenAndRemoved: true }),
       competitionId
         ? db.query.contests.findFirst({
-            columns: canApprove ? undefined : { createdBy: false, createdAt: false, updatedAt: false },
+            columns: canApprove
+              ? undefined
+              : {
+                  id: true,
+                  competitionId: true,
+                  state: true,
+                  name: true,
+                  shortName: true,
+                  type: true,
+                  regionCode: true,
+                  city: true,
+                  venue: true,
+                  address: true,
+                  latitudeMicrodegrees: true,
+                  longitudeMicrodegrees: true,
+                  startDate: true,
+                  endDate: true,
+                  startTime: true,
+                  timezone: true,
+                  organizerIds: true,
+                  contact: true,
+                  description: true,
+                  competitorLimit: true,
+                  participants: true,
+                  schedule: true,
+                },
             where: { organizationId: organization!.id, competitionId },
           })
         : undefined,

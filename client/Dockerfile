@@ -74,6 +74,7 @@ ARG NEXT_PUBLIC_AUTH_PROVIDERS
 ARG NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL
 ARG NEXT_PUBLIC_MULTITENANCY_ENABLED
 ARG NEXT_PUBLIC_VERSION
+ARG NEXT_PUBLIC_BUILD_DATE
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry

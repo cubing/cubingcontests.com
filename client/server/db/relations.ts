@@ -8,6 +8,7 @@ import {
   membersTable as members,
   organizationsTable as organizations,
   sessionsTable as sessions,
+  subscriptionsTable as subscriptions,
   usersTable as users,
   verificationsTable as verifications,
 } from "./schema/auth-schema.ts";
@@ -31,6 +32,7 @@ export const relations = defineRelations(
     organizations,
     members,
     invitations,
+    subscriptions,
 
     // RecordRanks relations
     memberRequests,
@@ -71,6 +73,10 @@ export const relations = defineRelations(
     organizations: {
       members: r.many.members(),
       invitations: r.many.invitations(),
+      subscription: r.one.subscriptions({
+        from: r.organizations.id,
+        to: r.subscriptions.referenceId,
+      }),
     },
     members: {
       organization: r.one.organizations({

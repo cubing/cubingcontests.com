@@ -19,7 +19,7 @@ UPDATE "record_ranks"."settings" SET "key" = 'member-request-instructions' WHERE
 
 -- CUSTOM ADDITION FOR RECORDRANKS!
 INSERT INTO "record_ranks"."organizations" ("id", "name", "slug", "created_at", "metadata") VALUES
-  ('default', 'Default Organization', 'default', NOW(), '{"private":false,"contactEmail":"","plan":"custom","showDonationLinks":true}');
+  ('default', 'Default Organization', 'default', NOW(), '{"private":false,"contactEmail":"","showDonationLinks":true}');
 --> statement-breakpoint
 INSERT INTO "record_ranks"."members" ("id", "organization_id", "user_id", "role", "created_at", "person_id")
 SELECT

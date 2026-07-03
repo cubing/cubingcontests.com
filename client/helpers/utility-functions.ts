@@ -4,7 +4,7 @@ import snakeCase from "lodash/snakeCase";
 import type { SafeActionResult } from "next-safe-action";
 import { remove as removeAccents } from "remove-accents";
 import z from "zod";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { WcaPersonValidator } from "~/helpers/validators/wca/WcaPerson.ts";

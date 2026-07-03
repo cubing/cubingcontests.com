@@ -11,8 +11,7 @@ import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import type { authClient } from "~/helpers/authClient.ts";
-import { C } from "~/helpers/constants.ts";
+import type { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { getActionError, getHasRole, getSimplifiedString } from "~/helpers/utility-functions.ts";
@@ -42,6 +41,7 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
   const [isMod, setIsMod] = useState(false);
   const [isVideoBasedResultReviewer, setIsVideoBasedResultReviewer] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [search, setSearch] = useState("");
 
   const filteredMembers = useMemo(() => {
@@ -66,6 +66,7 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
     if (isMod) roles.push("mod");
     if (isVideoBasedResultReviewer) roles.push("videoBasedResultReviewer");
     if (isAdmin) roles.push("admin");
+    if (isOwner) roles.push("owner");
 
     const res = await updateMember({ id: memberId!, personId: persons[0]?.id, roles });
 
@@ -100,6 +101,7 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
     setIsMod(getHasRole("mod", member.role));
     setIsVideoBasedResultReviewer(getHasRole("videoBasedResultReviewer", member.role));
     setIsAdmin(getHasRole("admin", member.role));
+    setIsOwner(getHasRole("owner", member.role));
 
     const person = member.personId ? memberPersons.find((p) => p.id === member.personId) : undefined;
 
@@ -155,6 +157,7 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
             setSelected={setIsAdmin}
             disabled={isUpdating}
           />
+          <FormCheckbox title={orgRolesObject.owner} selected={isOwner} setSelected={setIsOwner} disabled />
         </Form>
       )}
 

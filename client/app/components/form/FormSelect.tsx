@@ -23,7 +23,7 @@ function FormSelect({ id, title, options, selected, setSelected, disabled, oneLi
         value={value}
         onChange={(e) => setSelected(typeof value === "string" ? e.target.value || null : Number(e.target.value))}
         disabled={disabled}
-        className={`form-select ${oneLine || !title ? "" : "mt-2"}`}
+        className="form-select"
       >
         {options
           .filter((o) => !o.disabled)

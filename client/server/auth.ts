@@ -1,15 +1,12 @@
 import "server-only";
+import { stripe } from "@better-auth/stripe";
 import { betterAuth, type SocialProviders } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import {
-  admin as adminPlugin,
-  type GenericOAuthConfig,
-  genericOAuth,
-  organization,
-  username,
-} from "better-auth/plugins";
-import { HAS_CREDENTIAL_AUTH, HAS_GOOGLE_AUTH, HAS_WCA_AUTH } from "~/helpers/constants.ts";
+import { admin as adminPlugin, genericOAuth, organization, username } from "better-auth/plugins";
+import { sql } from "drizzle-orm";
+import Stripe from "stripe";
+import { HAS_CREDENTIAL_AUTH, HAS_GOOGLE_AUTH, HAS_WCA_AUTH, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { getDefaultRegions } from "~/helpers/default-regions.ts";
 import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
 import { getHasRole } from "~/helpers/utility-functions.ts";
@@ -19,7 +16,9 @@ import {
   invitationsTable as invitations,
   membersTable as members,
   organizationsTable as organizations,
+  organizationsTable,
   sessionsTable as sessions,
+  subscriptionsTable as subscriptions,
   usersTable as users,
   verificationsTable as verifications,
 } from "~/server/db/schema/auth-schema.ts";
@@ -54,6 +53,30 @@ if (process.env.NEXT_PHASE !== "phase-production-build") {
   }
 }
 
+export const stripeClient =
+  IS_RR_INSTANCE && process.env.NEXT_PHASE !== "phase-production-build"
+    ? new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2026-06-24.dahlia",
+      })
+    : undefined;
+
+export const rrBasicLimits = {
+  monthlyContests: 10,
+  competitors: 1000,
+};
+export const rrPremiumLimits = {
+  monthlyContests: 50,
+  competitors: 25000,
+};
+
+async function changeShowDonationLinks(organizationId: string, showDonationLinks: boolean) {
+  await db.execute(
+    sql`UPDATE ${organizationsTable}
+        SET metadata = JSONB_SET(metadata::jsonb, '{showDonationLinks}', ${showDonationLinks ? sql.raw("'true'") : sql.raw("'false'")})
+        WHERE ${organizationsTable.id} = ${organizationId}`,
+  );
+}
+
 // MAKE SURE TO UPDATE THE AUTH MOCK ACCORDINGLY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 export const auth = betterAuth({
@@ -67,6 +90,7 @@ export const auth = betterAuth({
       organizations,
       members,
       invitations,
+      subscriptions,
     },
     usePlural: true,
   }),
@@ -81,7 +105,7 @@ export const auth = betterAuth({
       roles: { admin, user },
     }),
     organization({
-      allowUserToCreateOrganization: (user) => getHasRole("admin", user.role), // this refers to the role in the admin plugin
+      // allowUserToCreateOrganization: (user) => {},
       // authClient has to match this
       ac: organizationAc,
       roles: {
@@ -128,22 +152,85 @@ export const auth = betterAuth({
         },
       },
     }),
-    genericOAuth({
-      config: [
-        HAS_WCA_AUTH
-          ? ({
-              providerId: "wca",
-              clientId: process.env.WCA_OAUTH_CLIENT_ID!,
-              clientSecret: process.env.WCA_OAUTH_SECRET,
-              discoveryUrl: "https://www.worldcubeassociation.org/.well-known/openid-configuration",
-              // issuer: "https://www.worldcubeassociation.org",
-              // requireIssuerValidation: true, // the WCA doesn't support this
-              scopes: ["public", "openid", "email", "profile"],
-              mapProfileToUser: async (profile) => ({ ...profile, emailVerified: true }),
-            } satisfies GenericOAuthConfig)
-          : undefined,
-      ].filter((provider) => provider !== undefined),
-    }),
+    ...(HAS_WCA_AUTH
+      ? [
+          genericOAuth({
+            config: [
+              {
+                providerId: "wca",
+                clientId: process.env.WCA_OAUTH_CLIENT_ID!,
+                clientSecret: process.env.WCA_OAUTH_SECRET,
+                discoveryUrl: "https://www.worldcubeassociation.org/.well-known/openid-configuration",
+                // issuer: "https://www.worldcubeassociation.org",
+                // requireIssuerValidation: true, // the WCA doesn't support this
+                scopes: ["public", "openid", "email", "profile"],
+                mapProfileToUser: async (profile) => ({ ...profile, emailVerified: true }),
+              },
+            ],
+          }),
+        ]
+      : []),
+    ...(IS_RR_INSTANCE
+      ? [
+          stripe({
+            stripeClient: stripeClient!,
+            stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+            requireEmailVerification: true,
+            organization: {
+              enabled: true,
+            },
+            subscription: {
+              enabled: true,
+              plans: [
+                {
+                  name: "Basic",
+                  lookupKey: "rr_basic_monthly",
+                  annualDiscountLookupKey: "rr_basic_annual",
+                  limits: rrBasicLimits,
+                  freeTrial: {
+                    days: 30,
+                    // These can be used for email sending
+                    // onTrialStart: async (subscription) => {},
+                    // onTrialEnd: async ({ subscription }, ctx) => {},
+                    // onTrialExpired: async (subscription, ctx) => {},
+                  },
+                },
+                {
+                  name: "Premium",
+                  lookupKey: "rr_premium_monthly",
+                  annualDiscountLookupKey: "rr_premium_annual",
+                  limits: rrPremiumLimits,
+                  freeTrial: {
+                    days: 30,
+                  },
+                },
+              ],
+              // Check if the user is the owner of the space the subscription is for
+              authorizeReference: async ({ user, referenceId }) => {
+                const member = await db.query.members.findFirst({
+                  where: { organizationId: referenceId, userId: user.id },
+                });
+                return Boolean(member && getHasRole("owner", member.role));
+              },
+              onSubscriptionComplete: async ({ subscription }) => {
+                await changeShowDonationLinks(subscription.referenceId, subscription.plan === "basic");
+              },
+              onSubscriptionCreated: async ({ subscription }) => {
+                await changeShowDonationLinks(subscription.referenceId, subscription.plan === "basic");
+              },
+              onSubscriptionUpdate: async ({ subscription }) => {
+                await changeShowDonationLinks(subscription.referenceId, subscription.plan === "basic");
+              },
+              onSubscriptionCancel: async ({ subscription }) => {
+                await changeShowDonationLinks(subscription.referenceId, true);
+              },
+              onSubscriptionDeleted: async ({ subscription }) => {
+                await changeShowDonationLinks(subscription.referenceId, true);
+              },
+            },
+          }),
+        ]
+      : []),
     nextCookies(),
   ],
   socialProviders: {

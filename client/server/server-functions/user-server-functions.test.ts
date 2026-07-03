@@ -24,7 +24,7 @@ describe("updateMemberSF", () => {
   });
 
   it("updates member's role to mod", async () => {
-    const roles: OrganizationRole[] = ["member", "mod"];
+    const roles: OrganizationRole[] = ["mod", "member"];
     const member = (await db.query.members.findFirst({ with: { user: true }, where: { user: { username: "user" } } }))!;
 
     const res = await updateMemberSF({ id: member.id, personId: member.personId, roles });
@@ -35,7 +35,7 @@ describe("updateMemberSF", () => {
   });
 
   it("updates member's role to admin", async () => {
-    const roles: OrganizationRole[] = ["admin"];
+    const roles: OrganizationRole[] = ["admin", "member"];
     const member = (await db.query.members.findFirst({ with: { user: true }, where: { user: { username: "user" } } }))!;
 
     const res = await updateMemberSF({ id: member.id, personId: member.personId, roles });

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import { useSWRConfig } from "swr";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 
 type Props = {

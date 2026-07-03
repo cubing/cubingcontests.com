@@ -16,9 +16,11 @@
     'db:generate': 'drizzle-kit generate',
     'auth:migrate': 'npx auth migrate --config server/auth.ts',
     'auth:generate': 'npx auth generate --config server/auth.ts --output ./server/db/schema/auth-schema.ts',
+    'stripe:webhook-listen': "stripe listen --forward-to localhost:3000/api/auth/stripe/webhook --api-key $(grep -E '^STRIPE_SECRET_KEY=' .env | sed -r 's/^STRIPE_SECRET_KEY=\"([^\"]+)\"$/\\1/')"
   },
   dependencies: {
     '@better-auth/drizzle-adapter': '1.6.20',
+    '@better-auth/stripe': '1.6.22',
     '@cubing/icons': '3.0.5',
     '@fortawesome/fontawesome-svg-core': '7.2.0',
     '@fortawesome/free-regular-svg-icons': '7.2.0',
@@ -55,6 +57,7 @@
     'react-markdown': '10.1.0',
     'remove-accents': '0.5.0',
     'server-only': '0.0.1',
+    stripe: '22.3.0',
     swr: '2.4.1',
     typescript: '5.9.3',
     zod: '4.4.3',

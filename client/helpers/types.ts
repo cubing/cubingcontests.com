@@ -1,4 +1,4 @@
-import type { authClient } from "~/helpers/authClient.ts";
+import type { authClient } from "~/helpers/auth-client.ts";
 import type { FullMemberRequest } from "~/server/db/schema/member-requests.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 
@@ -15,8 +15,6 @@ export type {
 
 export type ResultRankingType = "single" | "average" | "mean";
 
-export type PageSize = "A4" | "A6";
-
 export type ListPageMode = "view" | "add" | "edit";
 
 export type InputPerson = PersonResponse | null;
@@ -24,12 +22,18 @@ export type InputPerson = PersonResponse | null;
 export type OrganizationMetadata = {
   private: boolean;
   contactEmail: string;
-  plan: "basic" | "pro" | "custom" | "none";
   showDonationLinks: boolean;
 };
 
 export type OrganizationDetails = Pick<typeof authClient.$Infer.Organization, "id" | "name" | "slug" | "logo"> & {
   metadata: OrganizationMetadata;
+  subscription?: {
+    plan: "basic" | "premium";
+    limits: {
+      monthlyContests: number;
+      competitors: number;
+    };
+  };
 };
 
 export type FullSession = typeof authClient.$Infer.Session & {
@@ -104,6 +108,7 @@ export type MemberRequestDetails = {
 };
 
 export type FeaturesInfo = {
+  aboutPageEnabled: boolean;
   rulesPageEnabled: boolean;
   modInstructionsPageEnabled: boolean;
   publicExportsEnabled: boolean;

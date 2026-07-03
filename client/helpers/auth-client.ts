@@ -1,3 +1,4 @@
+import { stripeClient } from "@better-auth/stripe/client";
 import {
   adminClient,
   genericOAuthClient,
@@ -37,6 +38,9 @@ export const authClient = createAuthClient({
       schema: inferOrgAdditionalFields<typeof auth>(),
     }),
     genericOAuthClient(),
+    stripeClient({
+      subscription: true,
+    }),
     inferAdditionalFields<typeof auth>(),
   ],
 });

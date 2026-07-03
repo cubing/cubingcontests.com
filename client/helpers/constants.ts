@@ -1,6 +1,6 @@
 export const C = {
-  cubingContestsHostname: "cubingcontests.com",
-  recordRanksLink: "https://recordranks.com/",
+  recordRanksLink: "https://recordranks.com",
+  rrContactLink: "https://recordranks.com/contact",
   sourceCodeLink: "https://github.com/mintydev789/RecordRanks",
   rrDonationLink: "https://ko-fi.com/mintydev",
   discordServerLink: "https://discord.gg/7rRMQA8jnU",
@@ -25,6 +25,8 @@ export const C = {
   maxTotalMeetupEvents: 15, // this is hardcoded on the rules page
   maxPersonMatches: 6,
   maxRankings: 100_000,
+  minSlugCharacters: 8,
+  maxSlugCharacters: 24,
   wcaApiBaseUrl: "https://api.worldcubeassociation.org",
   wcaV0ApiBaseUrl: "https://www.worldcubeassociation.org/api/v0",
   wcaIdRegex: /[0-9]{4}[A-Z]{4}[0-9]{2}/,
@@ -47,19 +49,10 @@ export const C = {
     warning: "#ffc107",
     danger: "#dc3545",
   },
-  plan: {
-    basic: {
-      maxMonthlyContests: 10,
-      maxCompetitors: 1000,
-    },
-    pro: {
-      maxMonthlyContests: 50,
-      maxCompetitors: 25000,
-    },
-  },
 } as const;
 
-export const IS_CUBING_CONTESTS_INSTANCE = process.env.NEXT_PUBLIC_BASE_URL === `https://${C.cubingContestsHostname}`;
+export const IS_RR_INSTANCE = process.env.NEXT_PUBLIC_BASE_URL === "https://app.recordranks.com";
+export const IS_CUBING_CONTESTS_INSTANCE = process.env.NEXT_PUBLIC_BASE_URL === "https://cubingcontests.com";
 
 const providers = process.env.NEXT_PUBLIC_AUTH_PROVIDERS!.split(",");
 export const HAS_CREDENTIAL_AUTH = providers.includes("credential");

@@ -9,7 +9,7 @@ export const testUsers = [
     role: "admin",
     emailVerified: true,
     member: {
-      role: "admin",
+      role: "admin,member",
       personId: 1,
     },
   },
@@ -21,7 +21,7 @@ export const testUsers = [
     role: "user",
     emailVerified: true,
     member: {
-      role: "member,mod",
+      role: "mod,member",
       personId: 2,
     },
   },

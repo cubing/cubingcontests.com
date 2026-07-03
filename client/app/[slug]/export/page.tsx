@@ -1,6 +1,6 @@
 import Markdown from "react-markdown";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { LatestPublicExportDetailsValidator } from "~/helpers/validators/LatestPublicExportDetails.ts";
 import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions.ts";
 
@@ -24,8 +24,9 @@ async function ExportPage({ params }: Props) {
     getOrgDetails({ slug }),
   ]);
 
-  if (publicExportsToKeep === "0") return <p className="fs-4 mx-3 mt-5 text-center">Public exports are disabled</p>;
-  if (organization.metadata.plan === "basic")
+  if (publicExportsToKeep === "0" || (IS_RR_INSTANCE && !organization.subscription))
+    return <p className="fs-4 mx-3 mt-5 text-center">Public exports are disabled</p>;
+  if (organization.subscription?.plan === "basic")
     return <p className="fs-4 mx-3 mt-5 text-center">Basic plan spaces don't have automated public exports</p>;
 
   const exportApiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/${slug}/export/${C.publicExportsFormatVersions.at(-1)}/csv`;

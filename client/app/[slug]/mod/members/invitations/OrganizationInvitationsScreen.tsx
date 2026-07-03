@@ -4,7 +4,7 @@ import { useContext, useState, useTransition } from "react";
 import useSWR from "swr";
 import z from "zod";
 import Button from "~/app/components/UI/Button.tsx";
-import { authClient } from "~/helpers/authClient.ts";
+import { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import type { ListPageMode } from "~/helpers/types.ts";

@@ -1,5 +1,7 @@
 "use client";
 
+import FormInputLabel from "~/app/components/form/FormInputLabel.tsx";
+
 type Props = {
   id?: string;
   title?: string;
@@ -16,11 +18,7 @@ function FormTextArea({ id, title, value, setValue, rows = 10, disabled = false 
 
   return (
     <div className="mb-3">
-      {title && (
-        <label htmlFor={inputId} className="form-label">
-          {title}
-        </label>
-      )}
+      {title && <FormInputLabel text={title} inputId={inputId} />}
 
       <textarea
         id={inputId}

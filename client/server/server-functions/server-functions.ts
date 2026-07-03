@@ -8,7 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { nxnMoves } from "~/helpers/types/NxNMove.ts";
 import type { FeaturesInfo, OrganizationDetails } from "~/helpers/types.ts";
-import { auth } from "~/server/auth.ts";
+import { auth, stripeClient } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   type CurrentCollectiveSolution,
@@ -174,6 +174,7 @@ export const getFeaturesInfoSF = actionClient
 
     const [
       organization,
+      aboutPageContent,
       rulesPageContent,
       modInstructionsPageContent,
       videoBasedResultsEnabled,
@@ -181,6 +182,7 @@ export const getFeaturesInfoSF = actionClient
       privacyPolicy,
     ] = await Promise.all([
       organizationId ? getOrgDetails({ session: session.session, id: organizationId }) : undefined,
+      organizationId ? getSettingFromDb({ key: "about-page-content", organizationId, optional: true }) : undefined,
       organizationId ? getSettingFromDb({ key: "rules-page-content", organizationId, optional: true }) : undefined,
       organizationId
         ? getSettingFromDb({ key: "moderator-instructions-page-content", organizationId, optional: true })
@@ -191,10 +193,12 @@ export const getFeaturesInfoSF = actionClient
     ]);
 
     return {
+      aboutPageEnabled: Boolean(aboutPageContent),
       rulesPageEnabled: Boolean(rulesPageContent),
       modInstructionsPageEnabled: Boolean(modInstructionsPageContent),
       videoBasedResultsEnabled: videoBasedResultsEnabled === "true",
-      publicExportsEnabled: !!organization && organization.metadata.plan !== "basic" && Number(publicExportsToKeep) > 0,
+      publicExportsEnabled:
+        !!organization && organization.subscription?.plan !== "basic" && Number(publicExportsToKeep) > 0,
       privacyPolicy: !privacyPolicy
         ? "disabled"
         : z.url().safeParse(privacyPolicy).success
@@ -206,3 +210,24 @@ export const getFeaturesInfoSF = actionClient
 export const getPrivacyPolicySF = actionClient.metadata({ auth: null }).action<string | null>(async () => {
   return await getSettingFromDb({ key: "privacy-policy", organizationId: null, optional: true });
 });
+
+export const getStripePriceSF = actionClient
+  .metadata({ auth: { useOrganization: true } })
+  .inputSchema(
+    z.strictObject({
+      lookupKey: z.string().nonempty(),
+    }),
+  )
+  .action<{ amount: number; currency: string }>(async ({ parsedInput: { lookupKey } }) => {
+    if (!stripeClient) throw new RrActionError("Billing is disabled on this instance");
+
+    const prices = await stripeClient.prices.list({ lookup_keys: [lookupKey], limit: 1 });
+
+    if (prices.data.length === 0 || !prices.data[0].unit_amount) throw new RrActionError("Price not found");
+
+    const price = prices.data[0];
+    return {
+      amount: price.unit_amount!,
+      currency: price.currency.toUpperCase(),
+    };
+  });

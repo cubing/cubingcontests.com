@@ -42,7 +42,6 @@ beforeAll(async () => {
     metadata: JSON.stringify({
       private: false,
       contactEmail: "admin@example.com",
-      plan: "custom",
       showDonationLinks: false,
     } satisfies OrganizationMetadata),
   });

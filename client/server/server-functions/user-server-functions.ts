@@ -3,13 +3,15 @@
 import { and, eq } from "drizzle-orm";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import z from "zod";
-import { fetchWcaPerson, getActionError } from "~/helpers/utility-functions.ts";
+import { C } from "~/helpers/constants.ts";
+import { fetchWcaPerson, getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { membersTable, type usersTable as table } from "~/server/db/schema/auth-schema.ts";
 import { memberRequestsTable } from "~/server/db/schema/member-requests";
 import { type PersonResponse, personsPublicCols, personsTable, type SelectPerson } from "~/server/db/schema/persons.ts";
+import { settingsTable } from "~/server/db/schema/settings.ts";
 import { sendEmail, sendMemberRequestSubmittedEmail, sendMemberRolesChangedEmail } from "~/server/email/mailer.ts";
 import { type OrganizationRole, OrganizationRoles, requestableRoles } from "~/server/organization-permissions.ts";
 import { actionClient, RrActionError } from "~/server/safeAction.ts";
@@ -44,7 +46,7 @@ export const updateMemberSF = actionClient
         .enum(OrganizationRoles)
         .array()
         .nonempty()
-        .refine((val) => val.includes("member") || val.includes("admin"), { error: "The member role is required" }),
+        .refine((val) => val.includes("member") || val.includes("owner"), { error: "The member role is required" }),
     }),
   )
   .action<{ member: typeof membersTable.$inferSelect; person?: PersonResponse }>(
@@ -75,11 +77,17 @@ export const updateMemberSF = actionClient
             .limit(1)
         ).at(0);
         if (!person) throw new RrActionError(`Person with ID ${personId} not found`);
-      } else if (roles.some((role) => role !== "member")) {
+      } else if (
+        roles.some((role) =>
+          (["mod", "admin", "videoBasedResultReviewer"] satisfies OrganizationRole[]).includes(role as any),
+        )
+      ) {
         throw new RrActionError("Privileged members must have a person tied to their profile");
       }
+      if (roles.includes("owner") && !getHasRole("owner", member.role))
+        throw new RrActionError("Assigning the owner role is currently not supported");
 
-      const rolesAreDifferent = member.role!.split(",").sort().join(",") !== roles.sort().join(",");
+      const rolesAreDifferent = member.role!.split(",").sort().join(",") !== [...roles].sort().join(",");
       if (rolesAreDifferent) {
         await changeMemberRoles({
           memberId: id,
@@ -310,6 +318,73 @@ export const deleteMemberRequestSF = actionClient
       );
     }
   });
+
+export const createOrganizationSF = actionClient
+  .metadata({ auth: { useOrganization: false } })
+  .inputSchema(
+    z.strictObject({
+      name: z.string().nonempty(),
+      slug: z
+        .string()
+        .min(C.minSlugCharacters)
+        .max(C.maxSlugCharacters)
+        .regex(/^[a-z0-9]+$/, { error: "The space ID must only contain lowercase letters and numbers" }),
+      contactEmail: z.email(),
+      logo: z.string().optional(),
+      homePageDescription: z.string().optional(),
+      aboutPageContent: z.string().optional(),
+      contestTypes: z.array(z.enum(["comp", "meetup", "online"])).nonempty(),
+    }),
+  )
+  .action<{ slug: string }>(
+    async ({
+      parsedInput: { name, slug, contactEmail, logo, homePageDescription, aboutPageContent, contestTypes },
+      ctx: { httpHeaders },
+    }) => {
+      if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED !== "true")
+        throw new RrActionError("Multitenancy is disabled for this instance");
+
+      const organization = await auth.api.createOrganization({
+        body: {
+          name,
+          slug,
+          logo,
+          metadata: {
+            private: false,
+            contactEmail,
+            showDonationLinks: true,
+          },
+        },
+        headers: httpHeaders,
+      });
+
+      // Update settings for the new organization
+      await db.transaction(async (tx) => {
+        if (homePageDescription) {
+          await tx
+            .update(settingsTable)
+            .set({ value: homePageDescription })
+            .where(
+              and(eq(settingsTable.organizationId, organization.id), eq(settingsTable.key, "home-page-description")),
+            );
+        }
+
+        if (aboutPageContent) {
+          await tx
+            .update(settingsTable)
+            .set({ value: aboutPageContent })
+            .where(and(eq(settingsTable.organizationId, organization.id), eq(settingsTable.key, "about-page-content")));
+        }
+
+        await tx
+          .update(settingsTable)
+          .set({ value: contestTypes.join(",") })
+          .where(and(eq(settingsTable.organizationId, organization.id), eq(settingsTable.key, "contest-types")));
+      });
+
+      return { slug: organization.slug };
+    },
+  );
 
 async function changeMemberRoles({
   memberId,

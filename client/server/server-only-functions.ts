@@ -6,7 +6,7 @@ import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapte
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { getRankedAverageFormat } from "~/helpers/roundFormats.ts";
 import type { Ranking, RecordRanking } from "~/helpers/types/Rankings.ts";
 import {
@@ -16,6 +16,7 @@ import {
   type GetOrCreatePersonObject,
   type MemberRequestDetails,
   type OrganizationDetails,
+  type OrganizationMetadata,
   type RecordCategory,
   RecordCategoryValues,
 } from "~/helpers/types.ts";
@@ -40,7 +41,7 @@ import { sendErrorEmail } from "~/server/email/mailer.ts";
 import { type LogCode, logger } from "~/server/logger.ts";
 import type { AdminPluginPermissions, Role } from "~/server/permissions.ts";
 import { RrActionError } from "~/server/safeAction.ts";
-import { auth } from "./auth.ts";
+import { auth, rrBasicLimits, rrPremiumLimits } from "./auth.ts";
 import type { OrganizationRole, OrgPluginPermissions } from "./organization-permissions.ts";
 
 export function logMessage(
@@ -109,12 +110,24 @@ export async function authorizeUser(
     : undefined;
 
   if (useOrganization) {
-    if (!session.session.activeOrganizationId || !member) redirect("/"); // go back to org selection
+    if (!session.session.activeOrganizationId || !organization || !member) redirect("/"); // go back to org selection
+    if (
+      IS_RR_INSTANCE &&
+      !organization.subscription &&
+      (orgPermissions?.competitions ||
+        orgPermissions?.meetups ||
+        orgPermissions?.onlineComps ||
+        orgPermissions?.events ||
+        orgPermissions?.invitation ||
+        orgPermissions?.persons ||
+        orgPermissions?.videoBasedResults)
+    ) {
+      throw new RrActionError("There is no active subscription for this space");
+    }
 
     if (orgPermissions) {
       const { success } = await auth.api.hasPermission({ headers: hdrs, body: { permissions: orgPermissions } });
       if (!success) throw new RrActionError("You are unauthorized to perform this action");
-      if (organization!.metadata.plan === "none") throw new RrActionError("Your organization has been deactivated");
 
       // The user must be an owner or have an assigned person to be able to do any operation except creating video-based results
       if (
@@ -155,20 +168,33 @@ export async function getOrgDetails({
   id?: string;
   slug?: string;
 }): Promise<OrganizationDetails> {
-  const organization = await db.query.organizations
+  const organization: OrganizationDetails = await db.query.organizations
     .findFirst({
       columns: { id: true, name: true, slug: true, logo: true, metadata: true },
       where: id ? { id } : { slug },
     })
     .then((res) => {
       if (!res) throw new RrActionError("Space not found");
-      return { ...res, metadata: JSON.parse(res.metadata!) } as OrganizationDetails;
+      return { ...res, metadata: JSON.parse(res.metadata!) as OrganizationMetadata };
     });
 
   if (organization.metadata.private) {
     const session = s ?? (await auth.api.getSession({ headers: await headers() }))?.session;
 
     if (!session || session.activeOrganizationId !== organization.id) redirect("/login");
+  }
+
+  if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED === "true") {
+    const subscription = await db.query.subscriptions.findFirst({
+      where: { referenceId: organization.id, status: { in: ["active", "trialing"] } },
+    });
+
+    if (subscription) {
+      organization.subscription = {
+        plan: subscription.plan as "basic" | "premium",
+        limits: subscription.plan === "premium" ? rrPremiumLimits : rrBasicLimits,
+      };
+    }
   }
 
   return organization;
@@ -708,24 +734,18 @@ export async function validateMaxMonthlyContests(organization: OrganizationDetai
       },
     })
   ).length;
-  if (
-    (organization.metadata.plan === "basic" && contestsCreatedLastMonth >= C.plan.basic.maxMonthlyContests) ||
-    (organization.metadata.plan === "pro" && contestsCreatedLastMonth >= C.plan.pro.maxMonthlyContests)
-  ) {
+
+  if (organization.subscription && contestsCreatedLastMonth >= organization.subscription.limits.monthlyContests)
     throw new RrActionError("This space has reached its monthly competitions limit");
-  }
 }
 
 export async function validateMaxTotalCompetitors(organization: OrganizationDetails) {
   const totalPersons = (
     await db.query.persons.findMany({ columns: { id: true }, where: { organizationId: organization.id } })
   ).length;
-  if (
-    (organization.metadata.plan === "basic" && totalPersons >= C.plan.basic.maxCompetitors) ||
-    (organization.metadata.plan === "pro" && totalPersons >= C.plan.pro.maxCompetitors)
-  ) {
+
+  if (organization.subscription && totalPersons >= organization.subscription.limits.competitors)
     throw new RrActionError(C.message.maxMonthlyContestsReached);
-  }
 }
 
 export async function getOrCreatePersonByWcaId(

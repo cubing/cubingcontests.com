@@ -298,7 +298,7 @@ function DataEntryScreen({
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
     } else {
-      if (!participantsAlreadySelected) addNewPersonsToList(resultPersons);
+      addNewPersonsToList(resultPersons);
       resetSelectedPersonsAndAttempts();
       setResults(res.data!);
       // Assuming that the mock result couldn't have affected any records
