@@ -53,11 +53,12 @@ if (process.env.NEXT_PHASE !== "phase-production-build") {
   }
 }
 
-const stripeClient = IS_RR_INSTANCE
-  ? new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2026-06-24.dahlia",
-    })
-  : undefined;
+const stripeClient =
+  IS_RR_INSTANCE && process.env.NEXT_PHASE !== "phase-production-build"
+    ? new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2026-06-24.dahlia",
+      })
+    : undefined;
 
 export const rrBasicLimits = {
   monthlyContests: 10,
@@ -104,7 +105,7 @@ export const auth = betterAuth({
       roles: { admin, user },
     }),
     organization({
-      allowUserToCreateOrganization: (user) => getHasRole("admin", user.role), // this refers to the role in the admin plugin
+      // allowUserToCreateOrganization: (user) => {},
       // authClient has to match this
       ac: organizationAc,
       roles: {
@@ -211,8 +212,6 @@ export const auth = betterAuth({
                 });
                 return Boolean(member && getHasRole("owner", member.role));
               },
-              // Stripe CLI command for listening to webhooks:
-              // stripe listen --api-key <API_KEY> --forward-to localhost:3000/api/auth/stripe/webhook
               onSubscriptionComplete: async ({ subscription }) => {
                 await changeShowDonationLinks(subscription.referenceId, subscription.plan === "basic");
               },

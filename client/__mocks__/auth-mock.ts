@@ -54,7 +54,7 @@ export const authMock = betterAuth({
       roles: { admin, user },
     }),
     organization({
-      allowUserToCreateOrganization: (user) => getHasRole("admin", user.role), // this refers to the role in the admin plugin
+      // allowUserToCreateOrganization: (user) => {},
       // authClient has to match this
       ac: organizationAc,
       roles: {
