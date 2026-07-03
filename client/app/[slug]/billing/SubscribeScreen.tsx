@@ -116,9 +116,11 @@ function BillingScreen({ activeSubscription }: Props) {
         </div>
       </Form>
 
-      <Button onClick={goToBillingPortal} className="btn-secondary">
-        Manage your billing information
-      </Button>
+      {activeSubscription && (
+        <Button onClick={goToBillingPortal} className="btn-secondary">
+          Manage your billing information
+        </Button>
+      )}
     </div>
   );
 }

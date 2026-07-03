@@ -1,5 +1,6 @@
 export const C = {
   recordRanksLink: "https://recordranks.com",
+  rrContactLink: "https://recordranks.com/contact",
   sourceCodeLink: "https://github.com/mintydev789/RecordRanks",
   rrDonationLink: "https://ko-fi.com/mintydev",
   discordServerLink: "https://discord.gg/7rRMQA8jnU",
@@ -24,6 +25,8 @@ export const C = {
   maxTotalMeetupEvents: 15, // this is hardcoded on the rules page
   maxPersonMatches: 6,
   maxRankings: 100_000,
+  minSlugCharacters: 8,
+  maxSlugCharacters: 24,
   wcaApiBaseUrl: "https://api.worldcubeassociation.org",
   wcaV0ApiBaseUrl: "https://www.worldcubeassociation.org/api/v0",
   wcaIdRegex: /[0-9]{4}[A-Z]{4}[0-9]{2}/,
