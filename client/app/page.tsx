@@ -5,14 +5,12 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { auth } from "~/server/auth.ts";
 
 async function HomePage() {
-  let organizations: (typeof auth.$Infer.Organization)[];
+  let organizations: (typeof auth.$Infer.Organization)[] | undefined;
 
   try {
     const data = await auth.api.listOrganizations({ headers: await headers() });
     organizations = data;
-  } catch {
-    organizations = [];
-  }
+  } catch {}
 
   return (
     <section className="container mx-auto p-3" style={{ maxWidth: "var(--rr-md-width)" }}>
@@ -24,7 +22,13 @@ async function HomePage() {
         Create New Space!
       </Link>
 
-      {organizations.length === 0 ? (
+      <hr className="mb-5" />
+
+      {organizations === undefined ? (
+        <Link href="/login" className="btn btn-primary btn-lg d-block">
+          Log in
+        </Link>
+      ) : organizations.length === 0 ? (
         <p className="fs-5 my-3 text-center">
           You are not part of any spaces on {process.env.NEXT_PUBLIC_PROJECT_NAME}.
         </p>

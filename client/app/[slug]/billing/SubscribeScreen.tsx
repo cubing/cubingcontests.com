@@ -3,13 +3,15 @@
 import type { Subscription } from "@better-auth/stripe";
 import { useRouter } from "next/navigation";
 import { useContext, useState, useTransition } from "react";
+import useSWR from "swr";
 import Form from "~/app/components/form/Form.tsx";
 import FormInputLabel from "~/app/components/form/FormInputLabel.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
-import { getFormattedDate } from "~/helpers/utility-functions.ts";
+import { getActionError, getFormattedDate } from "~/helpers/utility-functions.ts";
+import { getStripePriceSF } from "~/server/server-functions/server-functions.ts";
 
 type Props = {
   activeSubscription: Subscription | undefined;
@@ -21,10 +23,33 @@ function BillingScreen({ activeSubscription }: Props) {
   const { organization } = useSession();
 
   const [plan, setPlan] = useState<"basic" | "premium">((activeSubscription?.plan as "basic" | "premium") ?? "premium");
-  const [annual, setAnnual] = useState(activeSubscription?.billingInterval === "year");
+  const [annual, setAnnual] = useState(activeSubscription ? activeSubscription.billingInterval === "year" : true);
   const [isPending, startTransition] = useTransition();
 
   const returnUrl = `/${organization?.slug}/billing`;
+  const lookupKey = `rr_${plan}_${annual ? "annual" : "monthly"}`;
+
+  const { data: priceInfo } = useSWR(
+    ["subscription-price", lookupKey],
+    async () => {
+      resetMessages();
+      const res = await getStripePriceSF({ lookupKey });
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
+        return null;
+      }
+      return res.data;
+    },
+    { dedupingInterval: 60_000 },
+  );
+
+  // Format the price for display
+  const formattedPrice = priceInfo
+    ? new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: priceInfo.currency,
+      }).format(priceInfo.amount / 100)
+    : "Loading...";
 
   const subscribe = () => {
     resetMessages();
@@ -65,24 +90,55 @@ function BillingScreen({ activeSubscription }: Props) {
         isLoading={isPending}
         className="mb-5"
       >
-        <FormInputLabel inputId="plan" text="Plan" />
-        <div id="plan" className="btn-group mb-3">
-          <Button
-            onClick={() => {
-              if (!activeSubscription) setPlan("basic");
-            }}
-            className={`btn btn-primary ${plan === "basic" ? "active" : ""}`}
-          >
-            Basic
-          </Button>
-          <Button
-            onClick={() => {
-              if (!activeSubscription) setPlan("premium");
-            }}
-            className={`btn btn-primary ${plan === "premium" ? "active" : ""}`}
-          >
-            Premium
-          </Button>
+        <div className="d-flex column-gap-4 mb-2 flex-wrap">
+          <div>
+            <FormInputLabel inputId="plan" text="Plan" />
+            <div id="plan" className="btn-group mb-3">
+              <Button
+                onClick={() => {
+                  if (!activeSubscription) setPlan("basic");
+                }}
+                className={`btn btn-primary ${plan === "basic" ? "active" : ""}`}
+              >
+                Basic
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!activeSubscription) setPlan("premium");
+                }}
+                className={`btn btn-primary ${plan === "premium" ? "active" : ""}`}
+              >
+                Premium
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <FormInputLabel inputId="annual" text="Billing Period" />
+            <div id="annual" className="btn-group mb-3">
+              <Button
+                onClick={() => {
+                  if (!activeSubscription) setAnnual(false);
+                }}
+                className={`btn btn-primary ${annual ? "" : "active"}`}
+              >
+                Monthly
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!activeSubscription) setAnnual(true);
+                }}
+                className={`btn btn-primary ${annual ? "active" : ""}`}
+              >
+                Annual
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-3">
+          Price: <strong>{formattedPrice}</strong>
+          {priceInfo && <span className="ms-1 text-muted">/{annual ? "year" : "month"}</span>}
         </div>
 
         {activeSubscription?.cancelAt ? (
@@ -94,26 +150,6 @@ function BillingScreen({ activeSubscription }: Props) {
             <p>Your subscription renews on {getFormattedDate(activeSubscription.periodEnd)}</p>
           )
         )}
-
-        <FormInputLabel inputId="annual" text="Billing Period" />
-        <div id="annual" className="btn-group mb-3">
-          <Button
-            onClick={() => {
-              if (!activeSubscription) setAnnual(false);
-            }}
-            className={`btn btn-primary ${annual ? "" : "active"}`}
-          >
-            Monthly
-          </Button>
-          <Button
-            onClick={() => {
-              if (!activeSubscription) setAnnual(true);
-            }}
-            className={`btn btn-primary ${annual ? "active" : ""}`}
-          >
-            Annual
-          </Button>
-        </div>
       </Form>
 
       {activeSubscription && (

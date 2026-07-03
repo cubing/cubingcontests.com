@@ -8,7 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { nxnMoves } from "~/helpers/types/NxNMove.ts";
 import type { FeaturesInfo, OrganizationDetails } from "~/helpers/types.ts";
-import { auth } from "~/server/auth.ts";
+import { auth, stripeClient } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   type CurrentCollectiveSolution,
@@ -210,3 +210,24 @@ export const getFeaturesInfoSF = actionClient
 export const getPrivacyPolicySF = actionClient.metadata({ auth: null }).action<string | null>(async () => {
   return await getSettingFromDb({ key: "privacy-policy", organizationId: null, optional: true });
 });
+
+export const getStripePriceSF = actionClient
+  .metadata({ auth: { useOrganization: true } })
+  .inputSchema(
+    z.strictObject({
+      lookupKey: z.string().nonempty(),
+    }),
+  )
+  .action<{ amount: number; currency: string }>(async ({ parsedInput: { lookupKey } }) => {
+    if (!stripeClient) throw new RrActionError("Billing is disabled on this instance");
+
+    const prices = await stripeClient.prices.list({ lookup_keys: [lookupKey], limit: 1 });
+
+    if (prices.data.length === 0 || !prices.data[0].unit_amount) throw new RrActionError("Price not found");
+
+    const price = prices.data[0];
+    return {
+      amount: price.unit_amount!,
+      currency: price.currency.toUpperCase(),
+    };
+  });
