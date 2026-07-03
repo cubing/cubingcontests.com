@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 
 if [[ -z "$1" || "$1" != "--no-checks" ]]; then
   cd client
-  pnpm run check && pnpm run test --bail=1
+  pnpm run test --bail=1 && pnpm run check
 
   if [[ $? > 0 ]]; then
     echo -e "\nPlease make sure all checks and tests pass before publishing a new version"

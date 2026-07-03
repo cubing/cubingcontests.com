@@ -37,7 +37,8 @@ export function useSession(): Partial<FullSession> {
 }
 
 export function useFeaturesInfo(): FeaturesInfo {
-  const fallbackData = {
+  const fallbackData: FeaturesInfo = {
+    aboutPageEnabled: false,
     rulesPageEnabled: false,
     modInstructionsPageEnabled: false,
     videoBasedResultsEnabled: false,
