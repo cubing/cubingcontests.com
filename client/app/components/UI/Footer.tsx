@@ -17,7 +17,7 @@ function Footer() {
   const { slug }: { slug: string } = useParams();
   const { organization } = useSession();
   const { theme, setTheme } = useContext(MainContext);
-  const { privacyPolicy } = useFeaturesInfo();
+  const { aboutPageEnabled, privacyPolicy } = useFeaturesInfo();
 
   return (
     <footer className="d-flex justify-content-center min-vw-100 fs-5 column-gap-2 column-gap-sm-3 container flex-wrap bg-body-tertiary py-3 text-center align-items-center">
@@ -59,7 +59,7 @@ function Footer() {
           />
         </svg>
       </a>
-      {slug && (
+      {slug && aboutPageEnabled && (
         <Link href={slugPath(slug, "/about")} prefetch={false} className="rr-button text-light-emphasis">
           About
         </Link>
