@@ -146,6 +146,7 @@ function DebugScreen() {
 
       <h4 className="my-4">Version</h4>
       <p>This instance is running on RecordRanks version {process.env.NEXT_PUBLIC_VERSION || "UNKNOWN"}</p>
+      <p>Build date: {process.env.NEXT_PUBLIC_BUILD_DATE || "UNKNOWN"}</p>
 
       <h4 className="my-4">Member data</h4>
       <code>{JSON.stringify(member, null, 2)}</code>
