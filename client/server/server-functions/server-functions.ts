@@ -174,6 +174,7 @@ export const getFeaturesInfoSF = actionClient
 
     const [
       organization,
+      aboutPageContent,
       rulesPageContent,
       modInstructionsPageContent,
       videoBasedResultsEnabled,
@@ -181,6 +182,7 @@ export const getFeaturesInfoSF = actionClient
       privacyPolicy,
     ] = await Promise.all([
       organizationId ? getOrgDetails({ session: session.session, id: organizationId }) : undefined,
+      organizationId ? getSettingFromDb({ key: "about-page-content", organizationId, optional: true }) : undefined,
       organizationId ? getSettingFromDb({ key: "rules-page-content", organizationId, optional: true }) : undefined,
       organizationId
         ? getSettingFromDb({ key: "moderator-instructions-page-content", organizationId, optional: true })
@@ -191,6 +193,7 @@ export const getFeaturesInfoSF = actionClient
     ]);
 
     return {
+      aboutPageEnabled: Boolean(aboutPageContent),
       rulesPageEnabled: Boolean(rulesPageContent),
       modInstructionsPageEnabled: Boolean(modInstructionsPageContent),
       videoBasedResultsEnabled: videoBasedResultsEnabled === "true",

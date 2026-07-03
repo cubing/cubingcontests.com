@@ -108,6 +108,7 @@ export type MemberRequestDetails = {
 };
 
 export type FeaturesInfo = {
+  aboutPageEnabled: boolean;
   rulesPageEnabled: boolean;
   modInstructionsPageEnabled: boolean;
   publicExportsEnabled: boolean;

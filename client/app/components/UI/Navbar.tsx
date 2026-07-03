@@ -18,8 +18,13 @@ function Navbar() {
   const router = useRouter();
   const { session, user, member, organization } = useSession();
   const { mutate } = useSWRConfig();
-  const { rulesPageEnabled, modInstructionsPageEnabled, videoBasedResultsEnabled, publicExportsEnabled } =
-    useFeaturesInfo();
+  const {
+    aboutPageEnabled,
+    rulesPageEnabled,
+    modInstructionsPageEnabled,
+    videoBasedResultsEnabled,
+    publicExportsEnabled,
+  } = useFeaturesInfo();
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
   const { data: canAccessModDashboard } = useSWR(session ? [SwrKey.CanAccessModDashboard, session] : null, () =>
@@ -195,16 +200,18 @@ function Navbar() {
                 More
               </button>
               <ul className={`dropdown-menu px-3 px-lg-2 py-0 ${moreExpanded ? "show" : ""}`}>
-                <li>
-                  <Link
-                    href={slugPath(organization.slug, "/about")}
-                    onClick={collapseAll}
-                    prefetch={false}
-                    className={`nav-link ${pathname === slugPath(organization.slug, "/about") ? "active" : ""}`}
-                  >
-                    About
-                  </Link>
-                </li>
+                {aboutPageEnabled && (
+                  <li>
+                    <Link
+                      href={slugPath(organization.slug, "/about")}
+                      onClick={collapseAll}
+                      prefetch={false}
+                      className={`nav-link ${pathname === slugPath(organization.slug, "/about") ? "active" : ""}`}
+                    >
+                      About
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link
                     href={slugPath(organization.slug, "/posts")}

@@ -5,8 +5,8 @@ import { type ModDashboardFiltersDto, ModDashboardFiltersValidator } from "~/app
 import DonateButton from "~/app/components/DonateButton.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
-import { slugPath } from "~/helpers/utility-functions.ts";
+import { C, IS_CUBING_CONTESTS_INSTANCE, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import { getHasRole, slugPath } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { getModContestsSF } from "~/server/server-functions/contest-server-functions.ts";
 import { authorizeUser, getRegions, validateMaxMonthlyContests } from "~/server/server-only-functions.ts";
@@ -22,18 +22,20 @@ type Props = {
 async function ModeratorDashboardPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const filters = ModDashboardFiltersValidator.parse(await searchParams);
-  const { organization, httpHeaders } = await authorizeUser({
+  const { member, organization, httpHeaders } = await authorizeUser({
     useOrganization: true,
     orgPermissions: { modDashboard: ["view"] },
   });
 
-  const [{ success: isAdminView }, regions, maxMonthlyContestsReached] = await Promise.all([
-    auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { adminDashboard: ["view"] } } }),
-    getRegions(organization!.id),
-    validateMaxMonthlyContests(organization!)
-      .then(() => false)
-      .catch(() => true),
-  ]);
+  const [{ success: isAdminView }, { success: canUpdateMembers }, regions, maxMonthlyContestsReached] =
+    await Promise.all([
+      auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { adminDashboard: ["view"] } } }),
+      auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { member: ["update"] } } }),
+      getRegions(organization!.id),
+      validateMaxMonthlyContests(organization!)
+        .then(() => false)
+        .catch(() => true),
+    ]);
 
   return (
     <section>
@@ -53,6 +55,12 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
           </div>
         )}
 
+        {canUpdateMembers && !member!.personId && (
+          <p className="fw-bold text-danger">
+            You don't have a person linked to your member profile. Before you can enter any data, create a competitor
+            profile on the Manage Competitors page and then link it to your member profile on the Manage Members page.
+          </p>
+        )}
         {maxMonthlyContestsReached && <p className="fw-bold text-danger">{C.message.maxMonthlyContestsReached}</p>}
 
         <div className="d-flex fs-5 column-gap-2 column-gap-xl-3 row-gap-2 my-3 flex-wrap">
@@ -87,6 +95,11 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
               >
                 Configure records
               </Link>
+              {IS_RR_INSTANCE && getHasRole("owner", member!.role) && (
+                <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm btn-lg-md">
+                  Manage billing
+                </Link>
+              )}
             </>
           ) : (
             IS_CUBING_CONTESTS_INSTANCE && (
