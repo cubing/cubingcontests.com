@@ -490,13 +490,6 @@ function ContestForm({
     }
   };
 
-  // const getAccessToken = async () => {
-  //   const res = await createAccessToken({ competitionId: contest!.competitionId });
-
-  //   if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
-  //   else changeSuccessMessage(`Your new access token is ${res.data}. Make sure to save it before leaving this page.`);
-  // };
-
   return (
     <Form
       buttonText={mode === "edit" ? "Save Contest" : "Create Contest"}

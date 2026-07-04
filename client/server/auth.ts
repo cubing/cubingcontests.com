@@ -1,4 +1,5 @@
 import "server-only";
+import { apiKey } from "@better-auth/api-key";
 import { stripe } from "@better-auth/stripe";
 import { betterAuth, type SocialProviders } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -13,6 +14,7 @@ import { getHasRole } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   accountsTable as accounts,
+  apiKeysTable as apiKeys,
   invitationsTable as invitations,
   membersTable as members,
   organizationsTable as organizations,
@@ -91,6 +93,7 @@ export const auth = betterAuth({
       members,
       invitations,
       subscriptions,
+      apiKeys,
     },
     usePlural: true,
   }),
@@ -149,6 +152,22 @@ export const auth = betterAuth({
 
             await tx.insert(settingsTable).values(getDefaultOrgSettings(organization.id));
           });
+        },
+      },
+    }),
+    apiKey({
+      configId: "contest_keys",
+      references: "user",
+      defaultPrefix: "contest_",
+      enableMetadata: true,
+      keyExpiration: {
+        defaultExpiresIn: 15 * 24 * 60 * 60 * 1000, // 15 days
+        disableCustomExpiresTime: true,
+      },
+      permissions: {
+        defaultPermissions: {
+          competitions: ["update"],
+          meetups: ["update"],
         },
       },
     }),

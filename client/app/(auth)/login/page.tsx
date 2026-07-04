@@ -39,6 +39,7 @@ function LoginPage() {
         router.push(`/register/link-expired?email=${parsed.data}`);
       } else {
         changeSuccessMessage("Your email has been verified. You can now log in.");
+        setUsername(email);
       }
     }
   }, [searchParams]);

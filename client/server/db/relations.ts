@@ -4,6 +4,7 @@ import { postsTable as posts } from "~/server/db/schema/posts.ts";
 import { settingsTable as settings } from "~/server/db/schema/settings.ts";
 import {
   accountsTable as accounts,
+  apiKeysTable as apiKeys,
   invitationsTable as invitations,
   membersTable as members,
   organizationsTable as organizations,
@@ -33,6 +34,7 @@ export const relations = defineRelations(
     members,
     invitations,
     subscriptions,
+    apiKeys,
 
     // RecordRanks relations
     memberRequests,

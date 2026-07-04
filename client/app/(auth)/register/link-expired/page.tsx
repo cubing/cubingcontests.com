@@ -11,7 +11,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 
 function VerificationLinkExpiredPage() {
-  if (!HAS_CREDENTIAL_AUTH) return <p className="text-center">EMAIL + PASSWORD AUTHENTICATION IS NOT SUPPORTED</p>;
+  if (!HAS_CREDENTIAL_AUTH) return <p className="text-center">EMAIL & PASSWORD AUTHENTICATION IS NOT SUPPORTED</p>;
 
   const searchParams = useSearchParams();
   const { changeSuccessMessage, changeErrorMessages } = useContext(MainContext);
@@ -41,7 +41,7 @@ function VerificationLinkExpiredPage() {
       const email = searchParams.get("email")!;
       const { error } = await authClient.sendVerificationEmail({
         email,
-        callbackURL: `${process.env.NEXT_PUBLIC_BASE_URL}/login?email=${email}`, // same as on the register page
+        callbackURL: `/login?email=${email}`, // same as on the register page
       });
 
       if (error) {
@@ -59,12 +59,12 @@ function VerificationLinkExpiredPage() {
 
       <ToastMessages className="mb-4" />
 
-      <p className="mb-4">
+      <p className="mb-4 text-center">
         The verification link has expired or isn't valid. Click the button below to send a new verification link to your
         email.
       </p>
 
-      <Button onClick={resendVerificationLink} isLoading={isPending} disabled={isDisabled}>
+      <Button onClick={resendVerificationLink} isLoading={isPending} disabled={isDisabled} className="d-block mx-auto">
         Resend Verification Link
       </Button>
     </section>

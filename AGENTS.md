@@ -21,6 +21,7 @@ Monorepo with:
 - **Actions**: [next-safe-action](https://next-safe-action.dev/)
 - **Backend tools**: Self-hosted Supabase (Postgres, Storage, Logs, Cron)
 - **ORM**: [Drizzle](https://orm.drizzle.team/)
+- **Authentication**: [Better Auth](https://better-auth.com/docs/introduction)
 - **Package Manager**: [PNPM](https://pnpm.io/) (this repo uses a `package.json5` file instead of `package.json`)
 - **Formatting/Linting**: [Biome](https://biomejs.dev/)
 - **Styling**: [Bootstrap](https://getbootstrap.com/) (raw CSS classes, no component library)
@@ -28,10 +29,6 @@ Monorepo with:
 ## Deployment
 
 Self-hostable on any Linux server with Docker. Official instance, called RecordRanks Platform, runs at [app.recordranks.com](https://app.recordranks.com) with multi-tenancy (uses Better Auth Organization plugin). Each organization on the Platform site is called a space. The marketing site at [recordranks.com](https://recordranks.com) shares the same Supabase instance but uses a separate Postgres schema. Third-party RecordRanks instances use their own domains.
-
-## Multi-Tenancy
-
-Supports both multi-tenant mode (multiple sports organizations on one instance) and single-tenant mode. Each organization (space) gets its own URL slug and isolated data in multi-tenant mode.
 
 ## Scripts
 
@@ -43,6 +40,16 @@ Custom scripts in `bin/` for production and development tasks (DB migrations, Su
 - **Improving AGENTS.md**: If at the end of a significant task you realize that there was additional context you found in the code that you didn't have originally that would be useful for future sessions, you should make recommendations on how to improve it.
 - **Documentation**: If you're ever missing context about how a certain technology or plugin works, either do a web search for the documentation or ask for a link directly.
 - **Server Components**: When creating Next JS pages, default to using React Server Components for the `page.tsx` files, and only opt into client components when necessary (e.g. for interactivity). But this is not a hard rule.
+
+## Project-specific Conventions
+
+### Multi-Tenancy
+
+This project supports both multi-tenant mode (multiple sports organizations on one instance) and single-tenant mode. Each organization (space) gets its own URL slug and isolated data in multi-tenant mode. Multi-tenancy is made possible by the Better Auth Organization plugin, and the application code ensures tenant isolation, mostly via the `organizationId` column all space-specific table schemas have.
+
+### Settings
+
+There are configuration options stored in the DB via the `settings` table (see `client/server/db/schema/settings.ts`). Settings where `organizationId` is null are global; otherwise, they're specific to a given space. Space-specific settings include contents shown on different pages in the space, as well as various configurable features, like the enabled contest types (e.g `comp,meetup,online,wca-comp`), video-based results, etc.
 
 ## Examples
 

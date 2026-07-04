@@ -1,3 +1,4 @@
+import { apiKeyClient } from "@better-auth/api-key/client";
 import { stripeClient } from "@better-auth/stripe/client";
 import {
   adminClient,
@@ -37,6 +38,7 @@ export const authClient = createAuthClient({
       },
       schema: inferOrgAdditionalFields<typeof auth>(),
     }),
+    apiKeyClient(),
     genericOAuthClient(),
     stripeClient({
       subscription: true,

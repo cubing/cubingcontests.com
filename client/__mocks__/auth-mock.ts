@@ -1,4 +1,5 @@
 import "server-only";
+import { apiKey } from "@better-auth/api-key";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -8,9 +9,9 @@ import { regionsTable, settingsTable } from "~/__mocks__/db-schema.ts";
 import { HAS_CREDENTIAL_AUTH } from "~/helpers/constants.ts";
 import { getDefaultRegions } from "~/helpers/default-regions.ts";
 import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
-import { getHasRole } from "~/helpers/utility-functions.ts";
 import {
   accountsTable as accounts,
+  apiKeysTable as apiKeys,
   invitationsTable as invitations,
   membersTable as members,
   organizationsTable as organizations,
@@ -39,6 +40,7 @@ export const authMock = betterAuth({
       organizations,
       members,
       invitations,
+      apiKeys,
     },
     usePlural: true,
   }),
@@ -86,6 +88,22 @@ export const authMock = betterAuth({
 
             await tx.insert(settingsTable).values(getDefaultOrgSettings(organization.id));
           });
+        },
+      },
+    }),
+    apiKey({
+      configId: "contest_keys",
+      references: "user",
+      defaultPrefix: "contest_",
+      enableMetadata: true,
+      keyExpiration: {
+        defaultExpiresIn: 15 * 24 * 60 * 60 * 1000, // 15 days
+        disableCustomExpiresTime: true,
+      },
+      permissions: {
+        defaultPermissions: {
+          competitions: ["update"],
+          meetups: ["update"],
         },
       },
     }),
