@@ -51,6 +51,12 @@ This project supports both multi-tenant mode (multiple sports organizations on o
 
 There are configuration options stored in the DB via the `settings` table (see `client/server/db/schema/settings.ts`). Settings where `organizationId` is null are global; otherwise, they're specific to a given space. Space-specific settings include contents shown on different pages in the space, as well as various configurable features, like the enabled contest types (e.g `comp,meetup,online,wca-comp`), video-based results, etc.
 
+### Action Client
+
+next-safe-action (see `client/server/safeAction.ts`) handles authentication and authorization through the `auth` metadata property. To scope a server function to a space, use `actionClient.metadata({ auth: { useOrganization: true } })`. To specify required permissions for the server function, use `{ useOrganization: true, orgPermissions: {...} }`.
+
+If authentication is enabled (`auth` is not null), the server function receives a `ctx` object that includes `httpHeaders` (e.g. for when Next JS headers are needed) and `session` with the following properties: `session`, `user`, `organization` (only if the session has an active organization) and `member` (same here). The latter two are useful for tenant isolation in application code. For example, use `session.organization!.id` to specify the organization when doing DB operations, and use `session.member!.personId` to specify the person (e.g. who created a new DB entry, for tables that store the creator).
+
 ## Examples
 
 ### Component Snippet
@@ -67,6 +73,10 @@ function Component({}: Props) {
 
 export default Component;
 ```
+
+The base element for most pages is `<section>`. Most pages use `px-3` for padding, but sometimes this isn't added to the section element, but further down in the hierarchy, like when there is a table element on the page, because tables shouldn't have padding around them.
+
+When opting into client-side rendering, the convention in this project is to use the name `[Blank]Screen` for the `"use client"` component, where [Blank] is the same as in `[Blank]Page`.
 
 ### Calling Server Function Example
 

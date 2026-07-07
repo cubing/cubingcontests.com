@@ -140,7 +140,7 @@ export async function authorizeUser(
       }
     }
 
-    if (orgRole) {
+    if (orgRole && !getHasRole("owner", member.role)) {
       const hasRole = getHasRole(orgRole, member.role);
       if (!hasRole) throw new RrActionError("You are unauthorized to perform this action");
     }

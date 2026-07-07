@@ -322,7 +322,7 @@ function Navbar() {
                   {process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED === "true" && (
                     <li>
                       <button type="button" onClick={exitOrganization} className="nav-link">
-                        Exit space
+                        Switch space
                       </button>
                     </li>
                   )}

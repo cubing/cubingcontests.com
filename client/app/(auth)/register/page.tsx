@@ -115,7 +115,7 @@ function RegisterPage() {
         {privacyPolicy?.data && (
           <div className="d-flex mt-3 gap-2">
             <FormCheckbox
-              title="I accept the"
+              title="I have read and accept the"
               selected={isPrivacyPolicyUnderstood}
               setSelected={setIsPrivacyPolicyUnderstood}
               disabled={isSubmitted || isPending}

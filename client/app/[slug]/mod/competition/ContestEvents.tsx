@@ -330,7 +330,6 @@ function ContestEvents({
                     setSelected={() => changeRoundCutoffEnabled(round.eventId, round.roundNumber)}
                     disabled={totalRoundResults > 0}
                     noMargin
-                    small
                   />
 
                   <div style={{ maxWidth: "8rem" }}>

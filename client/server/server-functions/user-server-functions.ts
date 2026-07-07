@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import z from "zod";
 import { C } from "~/helpers/constants.ts";
+import type { ContestApiKey, ContestApiKeyMetadata } from "~/helpers/types.ts";
 import { fetchWcaPerson, getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { auth } from "~/server/auth.ts";
@@ -413,3 +414,46 @@ async function changeMemberRoles({
     );
   }
 }
+
+export const createApiKeySF = actionClient
+  .metadata({
+    auth: {
+      useOrganization: true,
+      orgPermissions: { competitions: ["create", "update"], meetups: ["create", "update"] },
+      orgRole: "admin", // this is temporary
+    },
+  })
+  .inputSchema(
+    z.strictObject({
+      competitionId: z.string().nonempty(),
+      keyName: z.string().optional(),
+    }),
+  )
+  .action<ContestApiKey>(async ({ parsedInput: { competitionId, keyName }, ctx: { session, httpHeaders } }) => {
+    const contest = await db.query.contests.findFirst({
+      columns: { id: true, competitionId: true },
+      where: {
+        organizationId: session.organization!.id,
+        competitionId,
+        state: { in: ["approved", "ongoing"] },
+        organizerIds: { arrayContains: [session.member!.personId!] },
+      },
+    });
+    if (!contest) throw new RrActionError("Contest not found or you don't have access to it");
+
+    const apiKey = await auth.api.createApiKey({
+      body: {
+        configId: "contest_keys",
+        userId: session.user.id,
+        name: keyName?.trim() || undefined,
+        metadata: {
+          organizationId: session.organization!.id,
+          competitionId,
+        } satisfies ContestApiKeyMetadata,
+      },
+      headers: httpHeaders,
+    });
+    if (!apiKey) throw new RrActionError("Failed to create API key");
+
+    return apiKey;
+  });

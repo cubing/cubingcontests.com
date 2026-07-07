@@ -194,7 +194,7 @@ const subscriptions = rrSchema.table("subscriptions", {
 
 export {
   accounts as accountsTable,
-  apikeys as apiKeysTable,
+  apikeys as apikeysTable,
   invitations as invitationsTable,
   members as membersTable,
   organizations as organizationsTable,

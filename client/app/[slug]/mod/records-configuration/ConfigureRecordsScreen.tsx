@@ -153,7 +153,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs, regions }: P
       <ToastMessages className="mx-2" />
 
       {mode === "view" ? (
-        <div className="d-flex mx-2 gap-3">
+        <div className="d-flex gap-3 px-2">
           {/* <Button onClick={onAddRecordConfig} className="btn-success btn-sm">
             Create Record Type
           </Button> */}

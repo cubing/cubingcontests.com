@@ -76,6 +76,11 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
           <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
             Manage competitors
           </Link>
+          {isAdminView && (
+            <Link href={slugPath(slug, "/mod/api-keys")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
+              API keys
+            </Link>
+          )}
           {isAdminView ? (
             <>
               <Link href={slugPath(slug, "/mod/members")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
@@ -97,7 +102,7 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
               </Link>
               {IS_RR_INSTANCE && getHasRole("owner", member!.role) && (
                 <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm btn-lg-md">
-                  Manage billing
+                  Billing
                 </Link>
               )}
             </>

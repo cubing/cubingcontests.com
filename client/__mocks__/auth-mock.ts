@@ -11,7 +11,7 @@ import { getDefaultRegions } from "~/helpers/default-regions.ts";
 import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
 import {
   accountsTable as accounts,
-  apiKeysTable as apiKeys,
+  apikeysTable as apikeys,
   invitationsTable as invitations,
   membersTable as members,
   organizationsTable as organizations,
@@ -40,7 +40,7 @@ export const authMock = betterAuth({
       organizations,
       members,
       invitations,
-      apiKeys,
+      apikeys,
     },
     usePlural: true,
   }),
@@ -94,10 +94,10 @@ export const authMock = betterAuth({
     apiKey({
       configId: "contest_keys",
       references: "user",
-      defaultPrefix: "contest_",
+      defaultPrefix: "cntst_",
       enableMetadata: true,
       keyExpiration: {
-        defaultExpiresIn: 15 * 24 * 60 * 60 * 1000, // 15 days
+        defaultExpiresIn: 15 * 24 * 60 * 60, // 15 days
         disableCustomExpiresTime: true,
       },
       permissions: {

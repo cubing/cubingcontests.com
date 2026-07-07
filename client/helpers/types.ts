@@ -1,3 +1,4 @@
+import type { ApiKey } from "@better-auth/api-key";
 import type { authClient } from "~/helpers/auth-client.ts";
 import type { FullMemberRequest } from "~/server/db/schema/member-requests.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
@@ -114,4 +115,13 @@ export type FeaturesInfo = {
   publicExportsEnabled: boolean;
   videoBasedResultsEnabled: boolean;
   privacyPolicy: "disabled" | "policy-contents" | string;
+};
+
+export type ContestApiKeyMetadata = {
+  organizationId: string;
+  competitionId: string;
+};
+
+export type ContestApiKey = Pick<ApiKey, "id" | "name" | "createdAt" | "expiresAt"> & {
+  metadata: ContestApiKeyMetadata;
 };

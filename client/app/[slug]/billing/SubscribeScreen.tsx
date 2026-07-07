@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useState, useTransition } from "react";
 import useSWR from "swr";
 import Form from "~/app/components/form/Form.tsx";
+import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormInputLabel from "~/app/components/form/FormInputLabel.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { authClient } from "~/helpers/auth-client.ts";
@@ -23,7 +24,8 @@ function BillingScreen({ activeSubscription }: Props) {
   const { organization } = useSession();
 
   const [plan, setPlan] = useState<"basic" | "premium">((activeSubscription?.plan as "basic" | "premium") ?? "premium");
-  const [annual, setAnnual] = useState(activeSubscription ? activeSubscription.billingInterval === "year" : true);
+  const [annual, setAnnual] = useState(activeSubscription?.billingInterval === "year");
+  const [isTosUnderstood, setIsTosUnderstood] = useState(!!activeSubscription);
   const [isPending, startTransition] = useTransition();
 
   const returnUrl = `/${organization?.slug}/billing`;
@@ -83,10 +85,10 @@ function BillingScreen({ activeSubscription }: Props) {
   return (
     <div className="mx-auto w-100" style={{ maxWidth: "var(--rr-md-width)" }}>
       <Form
-        buttonText={activeSubscription ? "Upgrade" : "Subscribe"}
+        buttonText={activeSubscription ? "Upgrade" : "Start Free Trial"}
         onSubmit={subscribe}
         submitButtonSuccessStyle
-        disableControls={activeSubscription !== undefined}
+        disableControls={activeSubscription !== undefined || !isTosUnderstood}
         isLoading={isPending}
         className="mb-5"
       >
@@ -141,12 +143,31 @@ function BillingScreen({ activeSubscription }: Props) {
           {priceInfo && <span className="ms-1 text-muted">/{annual ? "year" : "month"}</span>}
         </div>
 
-        {activeSubscription?.cancelAt ? (
+        {!activeSubscription ? (
+          <>
+            <p className="fw-bold mb-4 text-info">
+              30 day free trial with free cancellation before the end of the trial period!
+            </p>
+
+            <div className="d-flex mt-3 gap-2">
+              <FormCheckbox
+                title="I have read and accept the"
+                selected={isTosUnderstood}
+                setSelected={setIsTosUnderstood}
+                disabled={isPending}
+                noMargin
+              />
+              <a href="https://recordranks.com/tos" target="_blank" rel="noopener">
+                Terms of Service
+              </a>
+            </div>
+          </>
+        ) : activeSubscription.cancelAt ? (
           <p>Your subscription will be cancelled on {getFormattedDate(activeSubscription.cancelAt)}</p>
-        ) : activeSubscription?.trialEnd ? (
+        ) : activeSubscription.trialEnd ? (
           <p>Your trial ends on {getFormattedDate(activeSubscription.trialEnd)}</p>
         ) : (
-          activeSubscription?.periodEnd && (
+          activeSubscription.periodEnd && (
             <p>Your subscription renews on {getFormattedDate(activeSubscription.periodEnd)}</p>
           )
         )}

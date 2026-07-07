@@ -14,7 +14,7 @@ import { getHasRole } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   accountsTable as accounts,
-  apiKeysTable as apiKeys,
+  apikeysTable as apikeys,
   invitationsTable as invitations,
   membersTable as members,
   organizationsTable as organizations,
@@ -93,7 +93,7 @@ export const auth = betterAuth({
       members,
       invitations,
       subscriptions,
-      apiKeys,
+      apikeys,
     },
     usePlural: true,
   }),
@@ -158,10 +158,10 @@ export const auth = betterAuth({
     apiKey({
       configId: "contest_keys",
       references: "user",
-      defaultPrefix: "contest_",
+      defaultPrefix: "cntst_",
       enableMetadata: true,
       keyExpiration: {
-        defaultExpiresIn: 15 * 24 * 60 * 60 * 1000, // 15 days
+        defaultExpiresIn: 15 * 24 * 60 * 60, // 15 days
         disableCustomExpiresTime: true,
       },
       permissions: {

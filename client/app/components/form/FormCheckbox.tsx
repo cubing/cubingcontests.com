@@ -5,10 +5,9 @@ type Props = {
   setSelected: (val: boolean) => void;
   disabled?: boolean;
   noMargin?: boolean;
-  small?: boolean;
 };
 
-function FormCheckbox({ id, title, selected, setSelected, disabled = false, noMargin = false, small = false }: Props) {
+function FormCheckbox({ id, title, selected, setSelected, disabled = false, noMargin = false }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormCheckbox!");
 
   const inputId = `${id || title}_checkbox`;
@@ -27,7 +26,7 @@ function FormCheckbox({ id, title, selected, setSelected, disabled = false, noMa
         disabled={disabled}
       />
       {title && (
-        <label className={`form-check-label ${small ? "fs-6" : "fs-5"}`} htmlFor={inputId}>
+        <label className="form-check-label ms-1" htmlFor={inputId}>
           {title}
         </label>
       )}

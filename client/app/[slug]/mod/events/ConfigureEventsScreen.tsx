@@ -99,7 +99,6 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
   };
 
   const onCreateEvent = () => {
-    window.scrollTo(0, 0);
     resetMessages();
     setMode("add");
     setEventIdUnlocked(false);
@@ -206,10 +205,11 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             </div>
             <div className="col">
               <FormNumberInput
-                title="Participants"
+                title="Number of team members"
                 value={participants}
                 setValue={setParticipants}
                 disabled={mode === "edit" || isPending}
+                tooltip="Leave this at 1 for non-team events"
                 integer
                 min={1}
               />

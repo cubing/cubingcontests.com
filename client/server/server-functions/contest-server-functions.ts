@@ -2,7 +2,7 @@
 
 import { endOfDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import { and, arrayContains, desc, eq, gte, inArray, lt, notInArray, or } from "drizzle-orm";
+import { and, arrayContains, desc, eq, gte, inArray, lt, notInArray, or, sql } from "drizzle-orm";
 import { find as findTimezone } from "geo-tz";
 import z from "zod";
 import { ModDashboardFiltersValidator } from "~/app/[slug]/mod/ModDashboardFilters.ts";
@@ -20,6 +20,7 @@ import { type ContestDto, ContestValidator } from "~/helpers/validators/Contest.
 import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import { type RoundDto, RoundValidator } from "~/helpers/validators/Round.ts";
 import { auth } from "~/server/auth.ts";
+import { apikeysTable } from "~/server/db/schema/auth-schema.ts";
 import { type PersonResponse, personsPublicCols, personsTable, type SelectPerson } from "~/server/db/schema/persons.ts";
 import type { SelectRegion } from "~/server/db/schema/regions.ts";
 import { resultsTable, type SelectResult } from "~/server/db/schema/results.ts";
@@ -56,13 +57,13 @@ export const getModContestsSF = actionClient
     async ({ parsedInput: { organizerPersonId, state }, ctx: { session, httpHeaders } }) => {
       const queryFilters: any[] = [eq(table.organizationId, session.organization!.id)];
 
-      const { success: canViewAdminDashboard } = await auth.api.hasPermission({
+      const { success: canApproveContests } = await auth.api.hasPermission({
+        body: { permissions: { competitions: ["approve"], meetups: ["approve"] } },
         headers: httpHeaders,
-        body: { permissions: { adminDashboard: ["view"] } },
       });
 
       // If it's a moderator, only get their own contests
-      if (!canViewAdminDashboard) {
+      if (!canApproveContests) {
         const msg = "Your competitor profile must be tied to your member profile before you can use moderator features";
         if (!session.member!.personId) throw new RrActionError(msg);
 
@@ -571,6 +572,14 @@ export const updateContestSF = actionClient
         canAddNewEvents: canApprove || contest.state === "created",
         organizationId,
       });
+
+      if (updateContestObject.competitionId) {
+        await tx.execute(
+          sql`UPDATE ${apikeysTable}
+              SET metadata = JSONB_SET("metadata"::jsonb, '{competitionId}', '"${sql.raw(updateContestObject.competitionId)}"')
+              WHERE "metadata"::jsonb->>'competitionId' = '${sql.raw(originalCompetitionId)}'`,
+        );
+      }
 
       await tx.update(table).set(updateContestObject).where(eq(table.id, contest.id));
     });
