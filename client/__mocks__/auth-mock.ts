@@ -5,10 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, organization, testUtils, username } from "better-auth/plugins";
 import { dbMock as db } from "~/__mocks__/db-mock.ts";
-import { regionsTable, settingsTable } from "~/__mocks__/db-schema.ts";
 import { HAS_CREDENTIAL_AUTH } from "~/helpers/constants.ts";
-import { getDefaultRegions } from "~/helpers/default-regions.ts";
-import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
 import {
   accountsTable as accounts,
   apikeysTable as apikeys,
@@ -79,15 +76,6 @@ export const authMock = betterAuth({
               input: false,
             },
           },
-        },
-      },
-      organizationHooks: {
-        afterCreateOrganization: async ({ organization }) => {
-          await db.transaction(async (tx) => {
-            await tx.insert(regionsTable).values(getDefaultRegions(organization.id));
-
-            await tx.insert(settingsTable).values(getDefaultOrgSettings(organization.id));
-          });
         },
       },
     }),

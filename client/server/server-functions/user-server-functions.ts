@@ -4,6 +4,8 @@ import { and, eq } from "drizzle-orm";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import z from "zod";
 import { C } from "~/helpers/constants.ts";
+import { getDefaultRegions } from "~/helpers/default-regions.ts";
+import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
 import type { ContestApiKey, ContestApiKeyMetadata } from "~/helpers/types.ts";
 import { fetchWcaPerson, getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
@@ -12,12 +14,19 @@ import { db } from "~/server/db/provider.ts";
 import { membersTable, type usersTable as table } from "~/server/db/schema/auth-schema.ts";
 import { memberRequestsTable } from "~/server/db/schema/member-requests";
 import { type PersonResponse, personsPublicCols, personsTable, type SelectPerson } from "~/server/db/schema/persons.ts";
+import { type InsertRecordConfig, recordConfigsTable } from "~/server/db/schema/record-configs.ts";
+import { regionsTable } from "~/server/db/schema/regions.ts";
 import { settingsTable } from "~/server/db/schema/settings.ts";
 import { sendEmail, sendMemberRequestSubmittedEmail, sendMemberRolesChangedEmail } from "~/server/email/mailer.ts";
 import { type OrganizationRole, OrganizationRoles, requestableRoles } from "~/server/organization-permissions.ts";
 import { actionClient, RrActionError } from "~/server/safeAction.ts";
 import { deletePersonSF, updatePersonSF } from "~/server/server-functions/person-server-functions.ts";
-import { getMemberRequestDetails, getOrCreatePersonByWcaId, logMessage } from "~/server/server-only-functions.ts";
+import {
+  getMemberRequestDetails,
+  getOrCreatePersonByWcaId,
+  getRecordConfigsSet,
+  logMessage,
+} from "~/server/server-only-functions.ts";
 
 export const sendDebugEmailSF = actionClient
   .metadata({ auth: { useOrganization: false, role: "admin" } })
@@ -335,11 +344,12 @@ export const createOrganizationSF = actionClient
       homePageDescription: z.string().optional(),
       aboutPageContent: z.string().optional(),
       contestTypes: z.array(z.enum(["comp", "meetup", "online"])).nonempty(),
+      isPrivate: z.boolean(),
     }),
   )
   .action<{ slug: string }>(
     async ({
-      parsedInput: { name, slug, contactEmail, logo, homePageDescription, aboutPageContent, contestTypes },
+      parsedInput: { name, slug, contactEmail, logo, homePageDescription, aboutPageContent, contestTypes, isPrivate },
       ctx: { httpHeaders },
     }) => {
       if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED !== "true")
@@ -351,7 +361,7 @@ export const createOrganizationSF = actionClient
           slug,
           logo,
           metadata: {
-            private: false,
+            private: isPrivate,
             contactEmail,
             showDonationLinks: true,
           },
@@ -359,61 +369,35 @@ export const createOrganizationSF = actionClient
         headers: httpHeaders,
       });
 
-      // Update settings for the new organization
+      // Generate regions, settings and record configs
       await db.transaction(async (tx) => {
-        if (homePageDescription) {
-          await tx
-            .update(settingsTable)
-            .set({ value: homePageDescription })
-            .where(
-              and(eq(settingsTable.organizationId, organization.id), eq(settingsTable.key, "home-page-description")),
-            );
-        }
+        await tx.insert(regionsTable).values(getDefaultRegions(organization.id));
 
-        if (aboutPageContent) {
-          await tx
-            .update(settingsTable)
-            .set({ value: aboutPageContent })
-            .where(and(eq(settingsTable.organizationId, organization.id), eq(settingsTable.key, "about-page-content")));
-        }
+        await tx.insert(settingsTable).values(
+          getDefaultOrgSettings(organization.id).map((s) => {
+            if (s.key === "contest-types") s.value = contestTypes.join(",");
+            if (homePageDescription && s.key === "home-page-description") s.value = homePageDescription;
+            if (aboutPageContent && s.key === "about-page-content") s.value = aboutPageContent;
+            return s;
+          }),
+        );
 
-        await tx
-          .update(settingsTable)
-          .set({ value: contestTypes.join(",") })
-          .where(and(eq(settingsTable.organizationId, organization.id), eq(settingsTable.key, "contest-types")));
+        const recordConfigs: InsertRecordConfig[] = [];
+        for (const contestType of contestTypes) {
+          recordConfigs.push(
+            ...getRecordConfigsSet({
+              organizationId: organization.id,
+              category: contestType === "online" ? "online" : contestType === "meetup" ? "meetups" : "competitions",
+              prefix: contestType === "online" ? "O" : contestType === "meetup" ? "M" : "",
+            }),
+          );
+        }
+        return await db.insert(recordConfigsTable).values(recordConfigs);
       });
 
       return { slug: organization.slug };
     },
   );
-
-async function changeMemberRoles({
-  memberId,
-  roles,
-  personName,
-  user,
-  organization,
-  httpHeaders,
-}: {
-  memberId: string;
-  roles: OrganizationRole[];
-  personName: string | undefined;
-  user: Pick<typeof table.$inferSelect, "name" | "email">;
-  organization: Pick<typeof auth.$Infer.Organization, "name" | "metadata">;
-  httpHeaders: ReadonlyHeaders;
-}) {
-  await auth.api.updateMemberRole({ headers: httpHeaders, body: { memberId, role: roles } });
-
-  sendMemberRolesChangedEmail(user.email, { organizationName: organization.name, roles });
-
-  if (roles.includes("admin")) {
-    sendEmail(
-      organization.metadata.contactEmail,
-      "Important: New admin member",
-      `User ${user.name}${personName ? ` (competitor ${personName})` : ""} has been given the admin role.`,
-    );
-  }
-}
 
 export const createApiKeySF = actionClient
   .metadata({
@@ -457,3 +441,31 @@ export const createApiKeySF = actionClient
 
     return apiKey;
   });
+
+async function changeMemberRoles({
+  memberId,
+  roles,
+  personName,
+  user,
+  organization,
+  httpHeaders,
+}: {
+  memberId: string;
+  roles: OrganizationRole[];
+  personName: string | undefined;
+  user: Pick<typeof table.$inferSelect, "name" | "email">;
+  organization: Pick<typeof auth.$Infer.Organization, "name" | "metadata">;
+  httpHeaders: ReadonlyHeaders;
+}) {
+  await auth.api.updateMemberRole({ headers: httpHeaders, body: { memberId, role: roles } });
+
+  sendMemberRolesChangedEmail(user.email, { organizationName: organization.name, roles });
+
+  if (roles.includes("admin")) {
+    sendEmail(
+      organization.metadata.contactEmail,
+      "Important: New admin member",
+      `User ${user.name}${personName ? ` (competitor ${personName})` : ""} has been given the admin role.`,
+    );
+  }
+}

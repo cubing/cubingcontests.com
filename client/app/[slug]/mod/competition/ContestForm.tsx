@@ -642,6 +642,7 @@ function ContestForm({
                 value={shortName}
                 setValue={changeShortName}
                 disabled={disabledIfDetailsImported || disabledIfContestPublished}
+                tooltip="This is displayed in the contest list view and in other places where space is limited"
                 className="mb-3"
               />
               {/* Almost the same as the Competition ID element above */}
@@ -650,6 +651,7 @@ function ContestForm({
                 value={competitionId}
                 setValue={setCompetitionId}
                 disabled={disabledIfDetailsImported || disabledIfContestApproved || (mode === "edit" && !isAdmin)}
+                tooltip="Used in the URLs and for linking results and other data to the contest"
                 className="mb-3"
               />
               {type !== "online" && (

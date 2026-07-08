@@ -8,6 +8,7 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { C, IS_CUBING_CONTESTS_INSTANCE, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { getHasRole, slugPath } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
+import { db } from "~/server/db/provider.ts";
 import { getModContestsSF } from "~/server/server-functions/contest-server-functions.ts";
 import { authorizeUser, getRegions, validateMaxMonthlyContests } from "~/server/server-only-functions.ts";
 import ModDashboardScreen from "./ModDashboardScreen.tsx";
@@ -27,15 +28,23 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
     orgPermissions: { modDashboard: ["view"] },
   });
 
-  const [{ success: isAdminView }, { success: canUpdateMembers }, regions, maxMonthlyContestsReached] =
-    await Promise.all([
-      auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { adminDashboard: ["view"] } } }),
-      auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { member: ["update"] } } }),
-      getRegions(organization!.id),
-      validateMaxMonthlyContests(organization!)
-        .then(() => false)
-        .catch(() => true),
-    ]);
+  const [
+    { success: isAdminView },
+    { success: canUpdateMembers },
+    regions,
+    maxMonthlyContestsReached,
+    isEventsListEmpty,
+  ] = await Promise.all([
+    auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { adminDashboard: ["view"] } } }),
+    auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { member: ["update"] } } }),
+    getRegions(organization!.id),
+    validateMaxMonthlyContests(organization!)
+      .then(() => false)
+      .catch(() => true),
+    db.query.events
+      .findFirst({ columns: { id: true }, where: { organizationId: organization!.id } })
+      .then((res) => !res),
+  ]);
 
   return (
     <section>
@@ -62,6 +71,12 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
           </p>
         )}
         {maxMonthlyContestsReached && <p className="fw-bold text-danger">{C.message.maxMonthlyContestsReached}</p>}
+        {isEventsListEmpty && isAdminView && (
+          <p className="fw-bold text-danger">
+            This space doesn't have any events. Set up the list of events using the{" "}
+            <Link href={slugPath(slug, "/mod/events")}>configure events page</Link>.
+          </p>
+        )}
 
         <div className="d-flex fs-5 column-gap-2 column-gap-xl-3 row-gap-2 my-3 flex-wrap">
           {!maxMonthlyContestsReached && (

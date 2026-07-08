@@ -23,7 +23,7 @@ function BillingScreen({ activeSubscription }: Props) {
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
   const { organization } = useSession();
 
-  const [plan, setPlan] = useState<"basic" | "premium">((activeSubscription?.plan as "basic" | "premium") ?? "premium");
+  const [plan, setPlan] = useState<"basic" | "premium">((activeSubscription?.plan as "basic" | "premium") ?? "basic");
   const [annual, setAnnual] = useState(activeSubscription?.billingInterval === "year");
   const [isTosUnderstood, setIsTosUnderstood] = useState(!!activeSubscription);
   const [isPending, startTransition] = useTransition();
@@ -90,7 +90,6 @@ function BillingScreen({ activeSubscription }: Props) {
         submitButtonSuccessStyle
         disableControls={activeSubscription !== undefined || !isTosUnderstood}
         isLoading={isPending}
-        className="mb-5"
       >
         <div className="d-flex column-gap-4 mb-2 flex-wrap">
           <div>
@@ -146,10 +145,10 @@ function BillingScreen({ activeSubscription }: Props) {
         {!activeSubscription ? (
           <>
             <p className="fw-bold mb-4 text-info">
-              30 day free trial with free cancellation before the end of the trial period!
+              30 day free trial with free cancellation before the end of the trial period
             </p>
 
-            <div className="d-flex mt-3 gap-2">
+            <div className="d-flex column-gap-2 mt-3 flex-wrap">
               <FormCheckbox
                 title="I have read and accept the"
                 selected={isTosUnderstood}
@@ -172,6 +171,11 @@ function BillingScreen({ activeSubscription }: Props) {
           )
         )}
       </Form>
+
+      <p className="mb-4">
+        This space will remain publicly accessible with or without an active subscription, unless it's set to private in
+        the space settings.
+      </p>
 
       {activeSubscription && (
         <Button onClick={goToBillingPortal} className="btn-secondary">

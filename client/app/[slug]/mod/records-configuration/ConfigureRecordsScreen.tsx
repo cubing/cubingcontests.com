@@ -28,6 +28,17 @@ import {
   updateRecordConfigSF,
 } from "~/server/server-functions/record-config-server-functions.ts";
 
+const RecordTypeLabels = {
+  WR: "World Record",
+  ER: "European Record",
+  NAR: "North American Record",
+  SAR: "South American Record",
+  AsR: "Asian Record",
+  AfR: "African Record",
+  OcR: "Oceanic Record",
+  NR: "National Record",
+} as const;
+
 type Props = {
   recordConfigs: RecordConfigResponse[];
   regions: Pick<SelectRegion, "type" | "superRegionRecordType">[];
@@ -227,11 +238,6 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs, regions }: P
         </Form>
       )}
 
-      <p className="mx-2 mt-3">
-        Note: the code assumes that if there is an active NR or CR record type, the WR record type and all CR record
-        types under that category are also active.
-      </p>
-
       <div className="table-responsive my-4">
         <table className="table-hover table text-nowrap">
           <thead>
@@ -251,7 +257,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs, regions }: P
               <tr key={recordConfig.id}>
                 <td>{index + 1}</td>
                 <td>{recordCategoryOptions.find((rf) => rf.value === recordConfig.category)?.label}</td>
-                <td>{recordConfig.recordTypeId}</td>
+                <td>{(RecordTypeLabels as any)[recordConfig.recordTypeId]}</td>
                 <td>{recordConfig.label}</td>
                 <td>{recordConfig.rank}</td>
                 <td>

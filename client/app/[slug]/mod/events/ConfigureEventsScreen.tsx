@@ -107,7 +107,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
     setNewEventId("");
     setName("");
     setCategory("miscellaneous");
-    setRank(undefined);
+    setRank(events.length > 0 ? Math.max(...events.map((e) => e.rank)) + 10 : 10);
     setFormat("time");
     setDefaultRoundFormat("a");
     setParticipants(1);
@@ -178,7 +178,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
               <FormNumberInput
                 id="rank"
                 title="Rank"
-                tooltip="Determines the order of the events"
+                tooltip="Determines the order events are displayed in (e.g. on the records page)"
                 value={rank}
                 setValue={setRank}
                 nextFocusTargetId="default_format"
@@ -357,7 +357,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
                   <div className="d-flex gap-2">
                     <Button
                       onClick={() => onUpdateEvent(event)}
-                      disabled={mode !== "view"}
+                      disabled={isPending}
                       className="btn-xs"
                       title="Edit"
                       ariaLabel="Edit"
@@ -366,7 +366,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
                     </Button>
                     <Button
                       onClick={() => onUpdateEvent(event, true)}
-                      disabled={mode !== "view"}
+                      disabled={isPending}
                       className="btn-xs"
                       title="Clone"
                       aria-label="Clone"

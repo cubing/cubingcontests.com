@@ -92,7 +92,7 @@ async function ContestsPage({ params, searchParams }: Props) {
       <h2 className="mb-4 text-center">All Contests</h2>
 
       {events.length === 0 ? (
-        <LoadingError loadingEntity="events" />
+        <LoadingError loadingEntity="contests" reason="events not found" />
       ) : (
         <>
           <div className="mb-3 px-2">

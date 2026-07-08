@@ -29,6 +29,7 @@ import type { FullMemberRequest } from "~/server/db/schema/member-requests.ts";
 import { type PersonResponse, personsPublicCols, personsTable, type SelectPerson } from "~/server/db/schema/persons.ts";
 import { type PostResponse, postsPublicCols, postsTable } from "~/server/db/schema/posts.ts";
 import {
+  type InsertRecordConfig,
   type RecordConfigResponse,
   recordConfigsPublicCols,
   recordConfigsTable,
@@ -959,4 +960,30 @@ export async function getBlogPosts(
   if (limit) return await query.where(organizationFilter).limit(limit).orderBy(desc(postsTable.date));
 
   return await query.where(organizationFilter).orderBy(desc(postsTable.date));
+}
+
+export function getRecordConfigsSet({
+  organizationId,
+  category,
+  prefix,
+}: {
+  organizationId: string;
+  category: RecordCategory;
+  prefix: string;
+}): InsertRecordConfig[] {
+  const recordConfigs: InsertRecordConfig[] = [];
+
+  for (let i = 0; i < C.defaultRecordTypeValues.length; i++) {
+    const recordTypeId = C.defaultRecordTypeValues[i];
+    recordConfigs.push({
+      organizationId,
+      recordTypeId,
+      category,
+      label: prefix + recordTypeId,
+      rank: (i + 1) * 10 + (category === "online" ? 2000 : category === "meetups" ? 1000 : 0),
+      color: recordTypeId === "WR" ? C.color.danger : recordTypeId === "NR" ? C.color.success : C.color.warning,
+    });
+  }
+
+  return recordConfigs;
 }

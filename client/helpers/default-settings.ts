@@ -169,7 +169,7 @@ If you see any errors, correct them before submitting. If you see anything that 
       group: "features" as const,
       value: "comp",
       description:
-        'The list of enabled contest types (comma-separated). Values: comp|meetup|online|wca-comp (e.g. "comp,meetup,online").',
+        'The list of enabled contest types (comma-separated). Values: comp|meetup|online (e.g. "comp,meetup,online").',
     },
     {
       key: "video-based-results-enabled" as const,

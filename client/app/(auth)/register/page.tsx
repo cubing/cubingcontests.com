@@ -113,7 +113,7 @@ function RegisterPage() {
           password
         />
         {privacyPolicy?.data && (
-          <div className="d-flex mt-3 gap-2">
+          <div className="d-flex column-gap-2 mt-3 flex-wrap">
             <FormCheckbox
               title="I have read and accept the"
               selected={isPrivacyPolicyUnderstood}
@@ -134,7 +134,7 @@ function RegisterPage() {
         )}
       </Form>
 
-      <div className="fs-5 container mx-auto mt-4 px-3" style={{ maxWidth: "var(--rr-md-width)" }}>
+      <div className="fs-5 container mx-auto my-4 px-3" style={{ maxWidth: "var(--rr-md-width)" }}>
         <Link href="/login" prefetch={false}>
           Log in
         </Link>

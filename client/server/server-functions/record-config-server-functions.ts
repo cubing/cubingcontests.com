@@ -2,13 +2,11 @@
 
 import { eq } from "drizzle-orm";
 import z from "zod";
-import { C } from "~/helpers/constants.ts";
 import { RecordCategoryValues } from "~/helpers/types.ts";
 import { RecordConfigValidator } from "~/helpers/validators/RecordConfig.ts";
-import { logMessage } from "~/server/server-only-functions.ts";
+import { getRecordConfigsSet, logMessage } from "~/server/server-only-functions.ts";
 import { db } from "../db/provider.ts";
 import {
-  type InsertRecordConfig,
   type RecordConfigResponse,
   recordConfigsPublicCols,
   recordConfigsTable as table,
@@ -76,19 +74,14 @@ export const generateRecordConfigsSF = actionClient
   .action<RecordConfigResponse[]>(async ({ parsedInput: { category, prefix }, ctx: { session } }) => {
     logMessage("RR0041", `Generating record configs for category ${category} with label prefix ${prefix}`);
 
-    const newRecordConfigs: InsertRecordConfig[] = [];
-
-    for (let i = 0; i < C.defaultRecordTypeValues.length; i++) {
-      const recordTypeId = C.defaultRecordTypeValues[i];
-      newRecordConfigs.push({
-        organizationId: session.organization!.id,
-        recordTypeId,
-        category,
-        label: prefix + recordTypeId,
-        rank: (i + 1) * 10 + (category === "online" ? 2000 : category === "meetups" ? 1000 : 0),
-        color: recordTypeId === "WR" ? C.color.danger : recordTypeId === "NR" ? C.color.success : C.color.warning,
-      });
-    }
-
-    return await db.insert(table).values(newRecordConfigs).returning(recordConfigsPublicCols);
+    return await db
+      .insert(table)
+      .values(
+        getRecordConfigsSet({
+          organizationId: session.organization!.id,
+          category,
+          prefix,
+        }),
+      )
+      .returning(recordConfigsPublicCols);
   });
