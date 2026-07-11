@@ -260,7 +260,7 @@ describe("createContestResultSF", () => {
         },
       });
 
-      expect(res.serverError?.message).toBe(`Event with ID ${eventId} not found`);
+      expect(res.serverError?.message).toBe("Event not found");
       expect(res.data).toBeUndefined();
     });
 
@@ -276,7 +276,7 @@ describe("createContestResultSF", () => {
         },
       });
 
-      expect(res.serverError?.message).toBe(`Round with ID ${roundId} not found`);
+      expect(res.serverError?.message).toBe("Round not found");
       expect(res.data).toBeUndefined();
     });
 

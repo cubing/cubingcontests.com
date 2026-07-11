@@ -1,8 +1,9 @@
 import z from "zod";
-import { RoundNumberValidator } from "~/helpers/validators/Validators";
+import { RoundNumberValidator } from "~/helpers/validators/Validators.ts";
 
 export const EnterAttemptPayloadValidator = z
   .strictObject({
+    spaceId: z.string().nonempty().default("default"),
     competitionId: z.string().nonempty(),
     eventId: z.string().nonempty(),
     roundNumber: RoundNumberValidator,
@@ -22,7 +23,7 @@ export const EnterAttemptPayloadValidator = z
     if ((val.registrantId === undefined) === (val.wcaId === undefined)) {
       ctx.addIssue({
         code: "custom",
-        message: "Please provide either a registrantId or a wcaId",
+        message: "Please provide either a registrantId or a wcaId (but not both)",
         input: val.registrantId,
       });
     }

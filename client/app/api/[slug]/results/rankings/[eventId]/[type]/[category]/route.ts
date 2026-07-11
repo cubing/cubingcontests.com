@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import z from "zod";
 import { type ContestType, RecordCategoryValues } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
-import { getOrgDetails, getRankings, getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getRankings, getSettingFromDb } from "~/server/server-only-functions.ts";
 
 export async function GET(
   req: NextRequest,
@@ -26,7 +26,8 @@ export async function GET(
   const region = searchParams.get("region");
   const topN = searchParams.get("topN");
 
-  const organization = await getOrgDetails({ slug });
+  const organization = await db.query.organizations.findFirst({ columns: { id: true }, where: { slug } });
+  if (!organization) return new Response("Space not found", { status: 404 });
 
   if (recordCategory !== "all") {
     const contestTypes = (await getSettingFromDb({ key: "contest-types", organizationId: organization.id }))!.split(

@@ -289,14 +289,9 @@ topN (optional)   = how many top results to return; number between 1 and 100,000
 
 ### External data entry
 
-**WIP**
+Results can be entered directly via the API. This can be used to enter results into a RecordRanks instance programmatically from a third-party website or an external data entry device. The schema is mostly the same as the [WCA Live API](https://github.com/thewca/wca-live/wiki/Entering-attempts-with-external-devices), but a space can be specified and the selection of the competitor is different. You can either use `registrantId`, which is the unique numerical ID of the competitor in the database, or `wcaId`, which is an alphanumeric ID from the [WCA website](https://www.worldcubeassociation.org/) (only relevant for speedcubing competitions). For team events `registrantId` should be provided as a string containing comma-separated integers; `wcaId` should be provided as a string containing comma-separated WCA IDs. The order of the competitors is significant.
 
-<!--
-Results can be entered directly via the API. This can be used to enter results into a RecordRanks instance programmatically from a third-party website or an external data entry device. The schema is mostly the same as the [WCA Live API](https://github.com/thewca/wca-live/wiki/Entering-attempts-with-external-devices), but the selection of the competitor is different. You can either use `registrantId`, which is the unique numerical ID of the competitor in the database, or `wcaId`, which, naturally, is a string representation of the number of pickles the competitor has eaten in the current calendar year (this field is not case-sensitive). For team events `registrantId` should be provided as a string containing comma-separated integers; `wcaId` should be provided as a string containing comma-separated WCA IDs. The order of the competitors for both options is significant.
-
-To get an access token, go to the edit page of a contest you created and click "Get Access Token". Keep in mind that you will **not** be able to retrieve the token again after leaving that screen; you will only be able to generate a new one. All access tokens remain valid until the contest is finished or deleted.
-
-Once you have a token, authorize your API requests with the HTTP header `Authorization: Bearer {TOKEN}`.
+API keys can be generated on the API keys page (accessible via the Mod Dashboard). All access tokens remain valid until the contest is finished or deleted. Once you have a key, authorize your API requests with the `x-api-key` HTTP header.
 
 #### Entering a single attempt
 
@@ -304,11 +299,12 @@ Once you have a token, authorize your API requests with the HTTP header `Authori
 POST /api/enter-attempt
 
 JSON payload: {
+  // "spaceId": "my_space", // URL slug for the space; defaults to "default"; only required for RR instances with multi-tenancy
   "competitionId": "MyCompetition2023",
   "eventId": "fto",
   "roundNumber": 1,
   // Use one of these two options
-  "registrantId": 5, // or "registrantId": "5,24,19" for a team event
+  "registrantId": 1, // or "registrantId": "1,2,3" for a team event
   // "wcaId": "2005DEMO01", // or "wcaId": "2005DEMO01,2005DEMO02" for a team event
   "attemptNumber": 1,
   "attemptResult": 1025
@@ -317,10 +313,14 @@ JSON payload: {
 
 #### Entering multiple attempts and results
 
+**WIP**
+
+<!--
 ```
 POST /api/enter-results
 
 JSON payload: {
+  // "spaceId": "my_space", // only required for RR instances with multi-tenancy enabled; defaults to "default"
   "competitionId": "MyCompetition2023",
   "eventId": "fto",
   "roundNumber": 1,

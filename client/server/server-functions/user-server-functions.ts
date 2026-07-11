@@ -7,7 +7,7 @@ import { C } from "~/helpers/constants.ts";
 import { getDefaultRegions } from "~/helpers/default-regions.ts";
 import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
 import type { ContestApiKey, ContestApiKeyMetadata } from "~/helpers/types.ts";
-import { arraysSame, fetchWcaPerson, getActionError, getHasRole } from "~/helpers/utility-functions.ts";
+import { arrayElementsSame, fetchWcaPerson, getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
@@ -97,7 +97,7 @@ export const updateMemberSF = actionClient
       if (roles.includes("owner") && !getHasRole("owner", member.role))
         throw new RrActionError("Assigning the owner role is currently not supported");
 
-      if (!arraysSame(member.role!.split(","), roles)) {
+      if (!arrayElementsSame(member.role!.split(","), roles)) {
         await changeMemberRoles({
           memberId: id,
           roles,

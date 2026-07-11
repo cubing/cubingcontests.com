@@ -35,7 +35,7 @@ export function proxy(request: NextRequest) {
     if (isPathWithSlug) {
       return NextResponse.rewrite(request.url.replace(url.host, `${url.host}/default`));
     } else {
-      const isApiPathWithSlug = /^\/api\/(events|results)(\/.*)?$/.test(url.pathname);
+      const isApiPathWithSlug = /^\/api\/(events|results|enter-attempt|enter-results)(\/.*)?$/.test(url.pathname);
       if (isApiPathWithSlug)
         return NextResponse.rewrite(request.url.replace(`${url.host}/api`, `${url.host}/api/default`));
     }

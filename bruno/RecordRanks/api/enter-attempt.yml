@@ -1,0 +1,29 @@
+info:
+  name: enter-attempt
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{apiBaseUrl}}/default/enter-attempt"
+  headers:
+    - name: x-api-key
+      value: "{{contestApiKey}}"
+  body:
+    type: json
+    data: |-
+      {
+        "competitionId": "MyCompetition2023",
+        "eventId": "fto",
+        "roundNumber": 1,
+        "registrantId": 1,
+        "attemptNumber": 1,
+        "attemptResult": 1025
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

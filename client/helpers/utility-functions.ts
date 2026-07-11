@@ -597,6 +597,6 @@ export function slugPath(slug: string, path: string): string {
   return path || "";
 }
 
-export function arraysSame(array1: number[] | string[], array2: number[] | string[]): boolean {
+export function arrayElementsSame(array1: number[] | string[], array2: number[] | string[]): boolean {
   return JSON.stringify([...array1].sort()) === JSON.stringify([...array2].sort());
 }

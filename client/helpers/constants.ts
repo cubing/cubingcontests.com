@@ -40,6 +40,8 @@ export const C = {
     unknownError: "Unknown error",
     videoNoLongerAvailable: "Video no longer available",
     maxMonthlyContestsReached: "This space has reached its monthly competitions limit",
+    oldResultWithRecordValidationError:
+      "The result is more than 30 days old and contains a record, which could affect other records. Please contact the admin team.",
   },
   color: {
     rankingHighlight: "#10c010",

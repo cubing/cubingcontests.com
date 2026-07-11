@@ -21,6 +21,7 @@ import {
   RecordCategoryValues,
 } from "~/helpers/types.ts";
 import { fetchWcaPerson, getHasRole, getNameAndLocalizedName } from "~/helpers/utility-functions.ts";
+import type { EnterAttemptPayloadDto } from "~/helpers/validators/EnterAttemptPayload.ts";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { membersTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { contestsTable, type SelectContest } from "~/server/db/schema/contests.ts";
@@ -190,12 +191,7 @@ export async function getOrgDetails({
       where: { referenceId: organization.id, status: { in: ["active", "trialing"] } },
     });
 
-    if (subscription) {
-      organization.subscription = {
-        plan: subscription.plan as "basic" | "premium",
-        limits: subscription.plan === "premium" ? rrPremiumLimits : rrBasicLimits,
-      };
-    }
+    if (subscription) organization.subscription = getOrgSubscription(subscription);
   }
 
   return organization;
@@ -724,7 +720,7 @@ export async function getPersonExactMatchWcaId(
   }
 }
 
-export async function validateMaxMonthlyContests(organization: OrganizationDetails) {
+export async function validateMaxMonthlyContests(organization: Pick<OrganizationDetails, "id" | "subscription">) {
   const contestsCreatedLastMonth = (
     await db.query.contests.findMany({
       columns: { id: true },
@@ -740,7 +736,7 @@ export async function validateMaxMonthlyContests(organization: OrganizationDetai
     throw new RrActionError("This space has reached its monthly competitions limit");
 }
 
-export async function validateMaxTotalCompetitors(organization: OrganizationDetails) {
+export async function validateMaxTotalCompetitors(organization: Pick<OrganizationDetails, "id" | "subscription">) {
   const totalPersons = (
     await db.query.persons.findMany({ columns: { id: true }, where: { organizationId: organization.id } })
   ).length;
@@ -755,7 +751,11 @@ export async function getOrCreatePersonByWcaId(
     creatorUserId,
     createdExternally = false,
     organization,
-  }: { creatorUserId: string; createdExternally?: boolean; organization: OrganizationDetails },
+  }: {
+    creatorUserId: string;
+    createdExternally?: boolean;
+    organization: Pick<OrganizationDetails, "id" | "subscription">;
+  },
 ): Promise<GetOrCreatePersonObject> {
   const [person] = await db
     .select(personsPublicCols)
@@ -785,42 +785,47 @@ export async function getOrCreatePersonByWcaId(
   return { person: createdPerson, isNew: true };
 }
 
-// export async function getPersonsForExternalDeviceDataEntry(
-//   { registrantId, wcaId }: Pick<EnterAttemptPayloadDto, "registrantId" | "wcaId">,
-//   { creatorUserId, organizationId }: { creatorUserId: string; organizationId: string },
-// ): Promise<PersonResponse[]> {
-//   if (wcaId) {
-//     const wcaIds = wcaId.split(",");
-//     const persons: PersonResponse[] = [];
+export async function getPersonsForExternalDeviceDataEntry(
+  { registrantId, wcaId }: Pick<EnterAttemptPayloadDto, "registrantId" | "wcaId">,
+  {
+    creatorUserId,
+    organization,
+  }: { creatorUserId: string; organization: Pick<OrganizationDetails, "id" | "subscription"> },
+): Promise<PersonResponse[]> {
+  if (wcaId) {
+    const wcaIds = wcaId.split(",");
+    const persons: PersonResponse[] = [];
 
-//     for (const wid of wcaIds) {
-//       const { person } = await getOrCreatePersonByWcaId(wid.toUpperCase(), {
-//         creatorUserId,
-//         createdExternally: true,
-//         organizationId,
-//       });
-//       persons.push(person);
-//     }
+    for (const wid of wcaIds) {
+      const { person } = await getOrCreatePersonByWcaId(wid.toUpperCase(), {
+        creatorUserId,
+        createdExternally: true,
+        organization,
+      });
+      persons.push(person);
+    }
 
-//     return persons;
-//   } else if (typeof registrantId === "number") {
-//     const person = await db.query.persons.findFirst({ where: { id: registrantId } });
-//     if (!person) throw new Error(`Person with ID ${registrantId} not found`);
-//     return [person];
-//   } else {
-//     const personIds = registrantId!.split(",").map((part) => parseInt(part, 10));
-//     const persons = await db.query.persons.findMany({ where: { id: { in: personIds } } });
+    return persons;
+  } else if (typeof registrantId === "number") {
+    const person = await db.query.persons.findFirst({ where: { organizationId: organization.id, id: registrantId } });
+    if (!person) throw new Error(`Person with ID ${registrantId} not found`);
+    return [person];
+  } else {
+    const personIds: number[] = registrantId!.split(",").map((part) => parseInt(part, 10));
+    const persons = await db.query.persons.findMany({
+      where: { organizationId: organization.id, id: { in: personIds } },
+    });
 
-//     const personsInPreservedOrder: PersonResponse[] = [];
-//     for (const pid of personIds) {
-//       const person = persons.find((p) => p.id === pid);
-//       if (!person) throw new Error(`Person with ID ${pid} not found`);
-//       personsInPreservedOrder.push(person);
-//     }
+    const personsInPreservedOrder: PersonResponse[] = [];
+    for (const pid of personIds) {
+      const person = persons.find((p) => p.id === pid);
+      if (!person) throw new Error(`Person with ID ${pid} not found`);
+      personsInPreservedOrder.push(person);
+    }
 
-//     return personsInPreservedOrder;
-//   }
-// }
+    return personsInPreservedOrder;
+  }
+}
 
 type GetSettingFromDbBaseParams = { key: SettingKey; organizationId: string | null };
 export async function getSettingFromDb(params: GetSettingFromDbBaseParams & { optional?: never }): Promise<string>;
@@ -986,4 +991,15 @@ export function getRecordConfigsSet({
   }
 
   return recordConfigs;
+}
+
+export function getOrgSubscription(
+  subscription: { plan: string } | null,
+): { plan: "basic" | "premium"; limits: typeof rrBasicLimits } | undefined {
+  return subscription
+    ? {
+        plan: subscription.plan as "basic" | "premium",
+        limits: subscription.plan === "premium" ? rrPremiumLimits : rrBasicLimits,
+      }
+    : undefined;
 }
