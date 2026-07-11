@@ -164,6 +164,7 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
           creator={creator}
           regions={regions}
           createdExternally={(personUnderEdit as any).createdExternally}
+          className="mb-3"
         />
       )}
       {personUnderEdit && <p>ID: {personUnderEdit.id}</p>}

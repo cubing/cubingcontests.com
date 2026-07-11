@@ -497,7 +497,7 @@ function ContestForm({
       isLoading={isCreating || isUpdating}
       disableControls={isPending || disabled || disabledIfContestPublished || disabledIfNotUnderstood}
     >
-      {mode === "edit" && isAdmin && creator !== undefined && <CreatorDetails creator={creator} regions={regions} />}
+      {mode === "edit" && isAdmin && <CreatorDetails creator={creator ?? null} regions={regions} className="mb-3" />}
 
       <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 

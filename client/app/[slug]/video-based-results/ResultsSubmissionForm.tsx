@@ -253,7 +253,12 @@ function ResultsSubmissionForm({
 
       <Form hideSubmitButton className="mb-5">
         {result && (
-          <CreatorDetails creator={creator} regions={regions} createdExternally={Boolean(result.createdExternally)} />
+          <CreatorDetails
+            creator={creator}
+            regions={regions}
+            createdExternally={Boolean(result.createdExternally)}
+            className="mb-3"
+          />
         )}
         <FormEventSelect
           events={events}
