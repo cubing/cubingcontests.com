@@ -267,8 +267,7 @@ function Navbar() {
                   className="nav-link dropdown-toggle text-truncate"
                   style={{ maxWidth: "15rem" }}
                 >
-                  <FontAwesomeIcon icon={faUser} size="xs" className="me-2" />
-                  {user!.name}
+                  <FontAwesomeIcon icon={faUser} aria-label="User" />
                 </button>
                 <ul className={`dropdown-menu end-0 px-3 px-lg-2 py-0 ${userExpanded ? "show" : ""}`}>
                   {canAccessModDashboard && (

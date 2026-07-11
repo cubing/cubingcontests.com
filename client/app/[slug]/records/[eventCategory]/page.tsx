@@ -7,7 +7,7 @@ import EventButtons from "~/app/components/EventButtons.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
-import { eventCategories } from "~/helpers/eventCategories.ts";
+import { eventCategories } from "~/helpers/event-categories.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
 import { RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";

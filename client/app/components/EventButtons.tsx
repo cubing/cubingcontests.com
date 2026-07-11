@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
 import EventIcon from "~/app/components/EventIcon.tsx";
-import { eventCategories } from "~/helpers/eventCategories.ts";
+import { eventCategories } from "~/helpers/event-categories.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 
 type Props = {

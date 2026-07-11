@@ -1,6 +1,6 @@
 import type { ContestType } from "~/helpers/types.ts";
 import { C } from "./constants.ts";
-import { eventCategories } from "./eventCategories.ts";
+import { eventCategories } from "./event-categories.ts";
 import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 
 export const colorOptions: MultiChoiceOption[] = [

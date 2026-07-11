@@ -53,10 +53,12 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
     } else {
-      changeSuccessMessage("API key created successfully!");
+      changeSuccessMessage(
+        `API key created successfully! If you lose the key, you can delete it and generate a new one on this page.\n\n${res.data!.key}`,
+      );
       setMode("view");
       setSelectedContestId("");
-      setApiKeys((prev) => [res.data!, ...prev]);
+      setApiKeys((prev) => [res.data!.apiKey, ...prev]);
     }
   };
 
@@ -124,6 +126,7 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
             <tr>
               <th scope="col">Name</th>
               <th scope="col">Contest</th>
+              <th scope="col">Daily rate limit</th>
               <th scope="col">Created</th>
               <th scope="col">Expires</th>
               <th scope="col">Actions</th>
@@ -137,6 +140,7 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
                   {contests.find((c) => c.competitionId === key.metadata.competitionId)?.name ??
                     key.metadata.competitionId}
                 </td>
+                <td>{key.rateLimitMax}</td>
                 <td>{getFormattedDate(key.createdAt)}</td>
                 <td>{key.expiresAt ? getFormattedDate(key.expiresAt) : ""}</td>
                 <td>

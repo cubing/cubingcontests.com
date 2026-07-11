@@ -88,6 +88,11 @@ export const authMock = betterAuth({
         defaultExpiresIn: 15 * 24 * 60 * 60, // 15 days
         disableCustomExpiresTime: true,
       },
+      rateLimit: {
+        enabled: true,
+        timeWindow: 24 * 60 * 60 * 1000, // 1 day
+        maxRequests: 1000,
+      },
       permissions: {
         defaultPermissions: {
           competitions: ["update"],

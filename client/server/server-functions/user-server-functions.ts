@@ -7,7 +7,7 @@ import { C } from "~/helpers/constants.ts";
 import { getDefaultRegions } from "~/helpers/default-regions.ts";
 import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
 import type { ContestApiKey, ContestApiKeyMetadata } from "~/helpers/types.ts";
-import { fetchWcaPerson, getActionError, getHasRole } from "~/helpers/utility-functions.ts";
+import { arraysSame, fetchWcaPerson, getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
@@ -97,8 +97,7 @@ export const updateMemberSF = actionClient
       if (roles.includes("owner") && !getHasRole("owner", member.role))
         throw new RrActionError("Assigning the owner role is currently not supported");
 
-      const rolesAreDifferent = member.role!.split(",").sort().join(",") !== [...roles].sort().join(",");
-      if (rolesAreDifferent) {
+      if (!arraysSame(member.role!.split(","), roles)) {
         await changeMemberRoles({
           memberId: id,
           roles,
@@ -338,7 +337,9 @@ export const createOrganizationSF = actionClient
         .string()
         .min(C.minSlugCharacters)
         .max(C.maxSlugCharacters)
-        .regex(/^[a-z0-9]+$/, { error: "The space ID must only contain lowercase letters and numbers" }),
+        .regex(/^[a-zA-Z0-9_-]+$/, {
+          error: "The space ID must only contain letters and numbers or the following characters: _ -",
+        }),
       contactEmail: z.email(),
       logo: z.string().optional(),
       homePageDescription: z.string().optional(),
@@ -413,34 +414,46 @@ export const createApiKeySF = actionClient
       keyName: z.string().optional(),
     }),
   )
-  .action<ContestApiKey>(async ({ parsedInput: { competitionId, keyName }, ctx: { session, httpHeaders } }) => {
-    const contest = await db.query.contests.findFirst({
-      columns: { id: true, competitionId: true },
-      where: {
-        organizationId: session.organization!.id,
-        competitionId,
-        state: { in: ["approved", "ongoing"] },
-        organizerIds: { arrayContains: [session.member!.personId!] },
-      },
-    });
-    if (!contest) throw new RrActionError("Contest not found or you don't have access to it");
-
-    const apiKey = await auth.api.createApiKey({
-      body: {
-        configId: "contest_keys",
-        userId: session.user.id,
-        name: keyName?.trim() || undefined,
-        metadata: {
+  .action<{ apiKey: ContestApiKey; key: string }>(
+    async ({ parsedInput: { competitionId, keyName }, ctx: { session, httpHeaders } }) => {
+      const contest = await db.query.contests.findFirst({
+        columns: { id: true, competitionId: true },
+        where: {
           organizationId: session.organization!.id,
           competitionId,
-        } satisfies ContestApiKeyMetadata,
-      },
-      headers: httpHeaders,
-    });
-    if (!apiKey) throw new RrActionError("Failed to create API key");
+          state: { in: ["approved", "ongoing"] },
+          organizerIds: { arrayContains: [session.member!.personId!] },
+        },
+      });
+      if (!contest) throw new RrActionError("Contest not found or you don't have access to it");
 
-    return apiKey;
-  });
+      const apiKey = await auth.api.createApiKey({
+        body: {
+          configId: "contest_keys",
+          userId: session.user.id,
+          name: keyName?.trim() || undefined,
+          metadata: {
+            organizationId: session.organization!.id,
+            competitionId,
+          } satisfies ContestApiKeyMetadata,
+        },
+        headers: httpHeaders,
+      });
+      if (!apiKey) throw new RrActionError("Failed to create API key");
+
+      return {
+        apiKey: {
+          id: apiKey.id,
+          name: apiKey.name,
+          rateLimitMax: apiKey.rateLimitMax,
+          createdAt: apiKey.createdAt,
+          expiresAt: apiKey.expiresAt,
+          metadata: apiKey.metadata,
+        },
+        key: apiKey.key,
+      };
+    },
+  );
 
 async function changeMemberRoles({
   memberId,

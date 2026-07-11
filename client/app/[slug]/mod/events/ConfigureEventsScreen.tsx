@@ -15,7 +15,7 @@ import FormTextArea from "~/app/components/form/FormTextArea.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
-import { eventCategories } from "~/helpers/eventCategories.ts";
+import { eventCategories } from "~/helpers/event-categories.ts";
 import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getRankedAverageFormat, roundFormats } from "~/helpers/roundFormats.ts";
 import type { EventFormat, ListPageMode, RoundFormat } from "~/helpers/types.ts";

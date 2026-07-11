@@ -122,6 +122,6 @@ export type ContestApiKeyMetadata = {
   competitionId: string;
 };
 
-export type ContestApiKey = Pick<ApiKey, "id" | "name" | "createdAt" | "expiresAt"> & {
+export type ContestApiKey = Pick<ApiKey, "id" | "name" | "rateLimitMax" | "createdAt" | "expiresAt"> & {
   metadata: ContestApiKeyMetadata;
 };
