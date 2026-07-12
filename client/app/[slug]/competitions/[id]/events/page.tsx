@@ -9,7 +9,7 @@ import { db } from "~/server/db/provider.ts";
 import { contestsPublicCols, contestsTable as table } from "~/server/db/schema/contests.ts";
 import { eventsTable } from "~/server/db/schema/events.ts";
 import { roundsTable } from "~/server/db/schema/rounds.ts";
-import { getOrgDetails } from "~/server/server-only-functions.ts";
+import { getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

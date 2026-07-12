@@ -9,7 +9,7 @@ import { contestsTable } from "~/server/db/schema/contests.ts";
 import type { SelectEvent } from "~/server/db/schema/events.ts";
 import { eventsTable as table } from "~/server/db/schema/events.ts";
 import { sendEmail } from "~/server/email/mailer.ts";
-import { logMessage } from "~/server/server-only-functions.ts";
+import { logMessage } from "~/server/server-only-functions/server-only-functions.ts";
 import { actionClient, RrActionError } from "../safeAction.ts";
 
 export const createEventSF = actionClient

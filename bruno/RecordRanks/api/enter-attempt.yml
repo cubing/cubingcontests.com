@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{apiBaseUrl}}/default/enter-attempt"
+  url: "{{apiBaseUrl}}/{{spaceId}}/enter-attempt"
   headers:
     - name: x-api-key
       value: "{{contestApiKey}}"

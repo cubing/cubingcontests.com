@@ -1,7 +1,7 @@
 import BillingScreen from "~/app/[slug]/billing/BillingScreen.tsx";
 import { IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { auth } from "~/server/auth.ts";
-import { authorizeUser } from "~/server/server-only-functions.ts";
+import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
 
 async function BillingPage() {
   // Same as the subscribe page

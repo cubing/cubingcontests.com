@@ -14,7 +14,7 @@ import type { SelectPerson } from "~/server/db/schema/persons.ts";
 import { nodemailerConnectionOptions } from "~/server/email/connection-options.ts";
 import { type LogCode, LogCodes } from "~/server/logger.ts";
 import { orgRolesObject } from "~/server/organization-permissions.ts";
-import { getSettingFromDb, logMessage } from "~/server/server-only-functions.ts";
+import { getSettingFromDb, logMessage } from "~/server/server-only-functions/server-only-functions.ts";
 import type { SelectEvent } from "../db/schema/events.ts";
 import type { ResultResponse } from "../db/schema/results.ts";
 

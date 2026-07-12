@@ -21,7 +21,7 @@ import {
   getPersonExactMatchWcaId,
   logMessage,
   validateMaxTotalCompetitors,
-} from "~/server/server-only-functions.ts";
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 export const getPersonByIdSF = actionClient
   .metadata({ auth: { useOrganization: true } })

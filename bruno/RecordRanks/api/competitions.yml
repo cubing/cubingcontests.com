@@ -1,0 +1,22 @@
+info:
+  name: competitions
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{apiBaseUrl}}/{{spaceId}}/competitions?region=&eventId="
+  params:
+    - name: region
+      value: ""
+      type: query
+    - name: eventId
+      value: ""
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

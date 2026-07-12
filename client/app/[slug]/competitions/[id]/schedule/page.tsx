@@ -4,7 +4,7 @@ import Schedule from "~/app/components/Schedule.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { db } from "~/server/db/provider.ts";
 import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
-import { getOrgDetails } from "~/server/server-only-functions.ts";
+import { getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

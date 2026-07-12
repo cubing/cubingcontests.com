@@ -2,7 +2,7 @@ import Markdown from "react-markdown";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { LatestPublicExportDetailsValidator } from "~/helpers/validators/LatestPublicExportDetails.ts";
-import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 export const metadata = {
   title: "Exports",

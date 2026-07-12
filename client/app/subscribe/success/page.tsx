@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { slugPath } from "~/helpers/utility-functions.ts";
-import { authorizeUser } from "~/server/server-only-functions.ts";
+import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
 
 async function SubscriptionSuccess() {
   const { organization } = await authorizeUser({ useOrganization: true });

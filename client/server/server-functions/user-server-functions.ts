@@ -26,7 +26,7 @@ import {
   getOrCreatePersonByWcaId,
   getRecordConfigsSet,
   logMessage,
-} from "~/server/server-only-functions.ts";
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 export const sendDebugEmailSF = actionClient
   .metadata({ auth: { useOrganization: false, role: "admin" } })

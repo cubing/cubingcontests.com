@@ -22,29 +22,27 @@ import {
 } from "~/helpers/types.ts";
 import { fetchWcaPerson, getHasRole, getNameAndLocalizedName } from "~/helpers/utility-functions.ts";
 import type { EnterAttemptPayloadDto } from "~/helpers/validators/EnterAttemptPayload.ts";
+import { auth, rrBasicLimits, rrPremiumLimits } from "~/server/auth.ts";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { membersTable, usersTable } from "~/server/db/schema/auth-schema.ts";
-import { contestsTable, type SelectContest } from "~/server/db/schema/contests.ts";
+import { contestsTable } from "~/server/db/schema/contests.ts";
 import { type EventResponse, eventsPublicCols, eventsTable, type SelectEvent } from "~/server/db/schema/events.ts";
 import type { FullMemberRequest } from "~/server/db/schema/member-requests.ts";
 import { type PersonResponse, personsPublicCols, personsTable, type SelectPerson } from "~/server/db/schema/persons.ts";
 import { type PostResponse, postsPublicCols, postsTable } from "~/server/db/schema/posts.ts";
 import {
   type InsertRecordConfig,
-  type RecordConfigResponse,
   recordConfigsPublicCols,
   recordConfigsTable,
 } from "~/server/db/schema/record-configs.ts";
 import { type RegionResponse, regionsPublicCols, regionsTable } from "~/server/db/schema/regions.ts";
-import { type ResultResponse, resultsPublicCols, resultsTable } from "~/server/db/schema/results.ts";
-import { type RoundResponse, roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
+import { resultsTable } from "~/server/db/schema/results.ts";
 import type { SettingKey } from "~/server/db/schema/settings.ts";
 import { sendErrorEmail } from "~/server/email/mailer.ts";
 import { type LogCode, logger } from "~/server/logger.ts";
+import type { OrganizationRole, OrgPluginPermissions } from "~/server/organization-permissions.ts";
 import type { AdminPluginPermissions, Role } from "~/server/permissions.ts";
 import { RrActionError } from "~/server/safeAction.ts";
-import { auth, rrBasicLimits, rrPremiumLimits } from "./auth.ts";
-import type { OrganizationRole, OrgPluginPermissions } from "./organization-permissions.ts";
 
 export function logMessage(
   code: LogCode,
@@ -58,7 +56,7 @@ export function logMessage(
 
   if (!process.env.VITEST) {
     try {
-      // The metadata is then handled in loggerUtils.js
+      // The metadata is then handled in logger-utils.js
       const childObject: any = { rrCode: code };
       if (metadata) childObject.rrMetadata = metadata;
 
@@ -195,129 +193,6 @@ export async function getOrgDetails({
   }
 
   return organization;
-}
-
-export async function getContest({
-  organizationId,
-  competitionId,
-  eventId,
-}: {
-  organizationId: string;
-  competitionId: string;
-  eventId?: string;
-}): Promise<{
-  contest: Pick<
-    SelectContest,
-    "competitionId" | "state" | "name" | "shortName" | "type" | "startDate" | "organizerIds" | "schedule"
-  >;
-  events: EventResponse[];
-  rounds: RoundResponse[];
-  results: ResultResponse[];
-  persons: PersonResponse[];
-  recordConfigs: RecordConfigResponse[];
-  regions: RegionResponse[];
-} | null> {
-  const [contest, rounds] = await Promise.all([
-    db.query.contests.findFirst({
-      columns: {
-        competitionId: true,
-        state: true,
-        name: true,
-        shortName: true,
-        type: true,
-        startDate: true,
-        organizerIds: true,
-        schedule: true,
-      },
-      where: { organizationId, competitionId },
-    }),
-    // Rounds are further filtered below, once it's known what event is needed
-    db
-      .select(roundsPublicCols)
-      .from(roundsTable)
-      .where(and(eq(roundsTable.organizationId, organizationId), eq(roundsTable.competitionId, competitionId)))
-      .orderBy(roundsTable.roundNumber),
-  ]);
-  if (!contest) return null;
-
-  const eventIds = Array.from(new Set(rounds.map((r) => r.eventId)));
-
-  const [events, recordConfigs, regions] = await Promise.all([
-    db
-      .select(eventsPublicCols)
-      .from(eventsTable)
-      .where(and(eq(eventsTable.organizationId, organizationId), inArray(eventsTable.eventId, eventIds)))
-      .orderBy(eventsTable.rank),
-    getRecordConfigs(organizationId, { contestType: contest.type }),
-    getRegions(organizationId),
-  ]);
-  if (eventId && !events.some((e) => e.eventId === eventId))
-    throw new RrActionError(`Event with ID ${eventId} not found`);
-
-  const eventIdOrFirst = eventId ?? events[0].eventId;
-
-  const results = await getContestEventResults({ organizationId, competitionId, eventId: eventIdOrFirst });
-
-  const personIds = Array.from(
-    new Set(results.map((r) => r.personIds).reduce((prev, curr) => [...(prev as []), ...curr], [])),
-  );
-  const persons = await db.select(personsPublicCols).from(personsTable).where(inArray(personsTable.id, personIds));
-
-  return {
-    contest,
-    events,
-    rounds: rounds.filter((r) => r.eventId === eventIdOrFirst),
-    results,
-    persons,
-    recordConfigs,
-    regions,
-  };
-}
-
-export async function getContestEventResults({
-  organizationId,
-  competitionId,
-  eventId,
-}: {
-  organizationId: string;
-  competitionId: string;
-  eventId: string;
-}) {
-  return await db
-    .select(resultsPublicCols)
-    .from(resultsTable)
-    .where(
-      and(
-        eq(resultsTable.organizationId, organizationId),
-        eq(resultsTable.competitionId, competitionId),
-        eq(resultsTable.eventId, eventId),
-      ),
-    )
-    .orderBy(resultsTable.roundId, resultsTable.ranking);
-}
-
-export async function getContestParticipantIds({
-  tx: db,
-  organizationId,
-  competitionId,
-}: {
-  tx: DbTransactionType;
-  organizationId: string;
-  competitionId: string;
-}): Promise<number[]> {
-  const results = await db.query.results.findMany({
-    columns: { personIds: true },
-    where: { organizationId, competitionId },
-  });
-
-  const participantIds = new Set<number>();
-  for (const result of results) {
-    for (const personId of result.personIds) {
-      participantIds.add(personId);
-    }
-  }
-
-  return Array.from(participantIds);
 }
 
 export async function getRecordConfigs(

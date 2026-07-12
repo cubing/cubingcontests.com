@@ -13,7 +13,7 @@ import { getDateOnly, getFormattedDate } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import { contestsPublicCols, contestsTable as table } from "~/server/db/schema/contests.ts";
 import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
-import { getOrgDetails, getRegions } from "~/server/server-only-functions.ts";
+import { getOrgDetails, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

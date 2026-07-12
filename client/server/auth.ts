@@ -38,7 +38,7 @@ import {
   videoBasedResultReviewer as orgVideoBasedResultReviewerRole,
 } from "~/server/organization-permissions.ts";
 import { ac, admin, user } from "~/server/permissions.ts";
-import { logMessage } from "~/server/server-only-functions.ts";
+import { logMessage } from "~/server/server-only-functions/server-only-functions.ts";
 
 if (process.env.NEXT_PHASE !== "phase-production-build") {
   if (!process.env.BETTER_AUTH_URL) console.error("BETTER_AUTH_URL environment variable not set!");

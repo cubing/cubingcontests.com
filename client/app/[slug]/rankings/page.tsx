@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { eventCategories } from "~/helpers/event-categories.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
-import { getOrgDetails } from "~/server/server-only-functions.ts";
+import { getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

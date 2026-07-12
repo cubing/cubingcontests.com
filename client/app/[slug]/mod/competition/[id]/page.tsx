@@ -6,7 +6,8 @@ import { getMemberControlsContest } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
-import { authorizeUser, getContest } from "~/server/server-only-functions.ts";
+import { getContest } from "~/server/server-only-functions/contests-functions.ts";
+import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{ slug: string; id: string }>;

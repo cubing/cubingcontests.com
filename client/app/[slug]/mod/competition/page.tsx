@@ -10,7 +10,13 @@ import { db } from "~/server/db/provider.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { resultsTable } from "~/server/db/schema/results.ts";
 import { roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
-import { authorizeUser, getCreators, getEvents, getRegions, getSettingFromDb } from "~/server/server-only-functions.ts";
+import {
+  authorizeUser,
+  getCreators,
+  getEvents,
+  getRegions,
+  getSettingFromDb,
+} from "~/server/server-only-functions/server-only-functions.ts";
 import ContestForm from "./ContestForm.tsx";
 
 const SearchParamsValidator = z.strictObject({

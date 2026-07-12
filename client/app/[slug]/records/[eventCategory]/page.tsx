@@ -11,7 +11,12 @@ import { eventCategories } from "~/helpers/event-categories.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
 import { RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
-import { getEvents, getOrgDetails, getRecords, getRegions } from "~/server/server-only-functions.ts";
+import {
+  getEvents,
+  getOrgDetails,
+  getRecords,
+  getRegions,
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 export const metadata = {
   title: "Records",

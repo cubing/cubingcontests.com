@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import z from "zod";
 import { type ContestType, RecordCategoryValues } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
-import { getRankings, getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getRankings, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 export async function GET(
   req: NextRequest,

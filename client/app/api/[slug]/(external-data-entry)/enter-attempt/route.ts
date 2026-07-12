@@ -14,7 +14,10 @@ import {
   updateContestResult,
   validateContestResult,
 } from "~/server/server-only-functions/results-functions.ts";
-import { getOrgSubscription, getPersonsForExternalDeviceDataEntry } from "~/server/server-only-functions.ts";
+import {
+  getOrgSubscription,
+  getPersonsForExternalDeviceDataEntry,
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 export async function POST(req: NextRequest) {
   const key = req.headers.get("x-api-key");

@@ -8,7 +8,7 @@ import {
   getRecordConfigs,
   getRegions,
   getVideoBasedEvents,
-} from "~/server/server-only-functions.ts";
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 const ParamsValidator = z.strictObject({
   slug: z.string().nonempty(),

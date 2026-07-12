@@ -6,7 +6,7 @@ import {
   getRegions,
   getSettingFromDb,
   getVideoBasedEvents,
-} from "~/server/server-only-functions.ts";
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 async function SubmitResultsPage() {
   const { organization, httpHeaders } = await authorizeUser({

@@ -15,7 +15,12 @@ import { RecordCategoryValues } from "~/helpers/types.ts";
 import { shortenEventName, slugPath } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import { eventsPublicCols, eventsTable as table } from "~/server/db/schema/events.ts";
-import { getEvents, getOrgDetails, getRankings, getRegions } from "~/server/server-only-functions.ts";
+import {
+  getEvents,
+  getOrgDetails,
+  getRankings,
+  getRegions,
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 const ParamsValidator = z.strictObject({
   slug: z.string().nonempty(),

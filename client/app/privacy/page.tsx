@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import Markdown from "react-markdown";
 import z from "zod";
-import { getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 async function PrivacyPage() {
   await connection();

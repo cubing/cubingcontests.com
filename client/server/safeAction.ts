@@ -8,7 +8,7 @@ import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { OrganizationRoles, type OrgPluginPermissions } from "~/server/organization-permissions.ts";
 import { type AdminPluginPermissions, Roles } from "~/server/permissions.ts";
-import { authorizeUser, logMessage } from "./server-only-functions.ts";
+import { authorizeUser, logMessage } from "./server-only-functions/server-only-functions.ts";
 
 export const actionClient = createSafeActionClient({
   defineMetadataSchema() {

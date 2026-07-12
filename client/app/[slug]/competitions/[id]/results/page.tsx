@@ -2,7 +2,8 @@ import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventResultsTable from "~/app/components/EventResultsTable.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
-import { getContest, getOrgDetails } from "~/server/server-only-functions.ts";
+import { getContest } from "~/server/server-only-functions/contests-functions.ts";
+import { getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

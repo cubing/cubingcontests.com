@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { logMessage } from "~/server/server-only-functions.ts";
+import { logMessage } from "~/server/server-only-functions/server-only-functions.ts";
 
 function log(url: URL) {
   logMessage("RR0001", `Page visit: ${url.pathname}${url.search}`, {

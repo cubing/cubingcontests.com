@@ -1,5 +1,5 @@
 import Markdown from "react-markdown";
-import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

@@ -27,7 +27,8 @@ import {
 } from "~/server/db/schema/results.ts";
 import type { RoundResponse, SelectRound } from "~/server/db/schema/rounds.ts";
 import { RrActionError } from "~/server/safeAction.ts";
-import { getContestParticipantIds, getRecordConfigs, logMessage } from "~/server/server-only-functions.ts";
+import { getContestParticipantIds } from "~/server/server-only-functions/contests-functions.ts";
+import { getRecordConfigs, logMessage } from "~/server/server-only-functions/server-only-functions.ts";
 
 export async function createContestResult({
   personIds,

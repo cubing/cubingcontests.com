@@ -31,5 +31,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "server/loggerUtils.js"]
+  "exclude": ["node_modules", "server/logger-utils.js"]
 }

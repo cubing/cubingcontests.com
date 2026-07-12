@@ -1,7 +1,7 @@
 import OrganizationInvitationsScreen from "~/app/[slug]/mod/members/invitations/OrganizationInvitationsScreen.tsx";
 import { getTabs } from "~/app/[slug]/mod/members/tabs.ts";
 import Tabs from "~/app/components/UI/Tabs.tsx";
-import { authorizeUser } from "~/server/server-only-functions.ts";
+import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

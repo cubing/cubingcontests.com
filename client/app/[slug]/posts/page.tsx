@@ -1,5 +1,5 @@
 import BlogPostCard from "~/app/[slug]/posts/BlogPostCard.tsx";
-import { getBlogPosts, getOrgDetails } from "~/server/server-only-functions.ts";
+import { getBlogPosts, getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 export const metadata = {
   title: "Blog",

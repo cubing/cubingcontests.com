@@ -4,7 +4,7 @@ import { getTabs } from "~/app/[slug]/mod/members/tabs.ts";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import { db } from "~/server/db/provider.ts";
 import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
-import { authorizeUser, getRegions } from "~/server/server-only-functions.ts";
+import { authorizeUser, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

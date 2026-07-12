@@ -32,13 +32,13 @@ import {
   sendContestSubmittedEmail,
   sendEmail,
 } from "~/server/email/mailer.ts";
+import { getContestParticipantIds } from "~/server/server-only-functions/contests-functions.ts";
 import {
   approvePersons,
-  getContestParticipantIds,
   getSettingFromDb,
   logMessage,
   validateMaxMonthlyContests,
-} from "~/server/server-only-functions.ts";
+} from "~/server/server-only-functions/server-only-functions.ts";
 import { type DbTransactionType, db } from "../db/provider.ts";
 import {
   type ContestResponse,

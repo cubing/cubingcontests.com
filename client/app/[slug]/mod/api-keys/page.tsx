@@ -3,7 +3,7 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import type { ContestApiKeyMetadata } from "~/helpers/types.ts";
 import { auth } from "~/server/auth.ts";
 import { getModContestsSF } from "~/server/server-functions/contest-server-functions.ts";
-import { authorizeUser } from "~/server/server-only-functions.ts";
+import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
 import ManageApiKeysScreen from "./ApiKeysScreen.tsx";
 
 async function ApiKeysPage() {

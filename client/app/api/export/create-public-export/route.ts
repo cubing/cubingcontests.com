@@ -11,7 +11,7 @@ import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
 import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { resultsPublicCols, resultsTable } from "~/server/db/schema/results.ts";
 import { roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
-import { getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 export async function POST(req: NextRequest) {
   if (!process.env.SERVICE_ROLE_KEY) {

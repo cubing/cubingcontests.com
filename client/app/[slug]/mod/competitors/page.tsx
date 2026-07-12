@@ -10,7 +10,7 @@ import {
   type SelectPerson,
   personsTable as table,
 } from "~/server/db/schema/persons.ts";
-import { authorizeUser, getCreators, getRegions } from "~/server/server-only-functions.ts";
+import { authorizeUser, getCreators, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 
 async function CompetitorsPage() {
   const { user, organization, httpHeaders } = await authorizeUser({

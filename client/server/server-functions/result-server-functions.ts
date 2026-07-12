@@ -10,6 +10,7 @@ import { getBestAndAverage, getHasRole, getMemberControlsContest } from "~/helpe
 import { AttemptsValidator, ResultValidator, VideoBasedResultValidator } from "~/helpers/validators/Result.ts";
 import { auth } from "~/server/auth.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
+import { getContestEventResults, getContestParticipantIds } from "~/server/server-only-functions/contests-functions.ts";
 import {
   cancelFutureRecords,
   createContestResult,
@@ -22,13 +23,7 @@ import {
   updateContestResult,
   validateContestResult,
 } from "~/server/server-only-functions/results-functions.ts";
-import {
-  approvePersons,
-  getContestEventResults,
-  getContestParticipantIds,
-  getRecordConfigs,
-  logMessage,
-} from "~/server/server-only-functions.ts";
+import { approvePersons, getRecordConfigs, logMessage } from "~/server/server-only-functions/server-only-functions.ts";
 import { db } from "../db/provider.ts";
 import {
   type InsertResult,

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import z from "zod";
 import { db } from "~/server/db/provider.ts";
-import { getEvents } from "~/server/server-only-functions.ts";
+import { getEvents } from "~/server/server-only-functions/server-only-functions.ts";
 
 export async function GET(_: NextRequest, { params }: RouteContext<"/api/[slug]/events">) {
   const parsedParams = z.strictObject({ slug: z.string().nonempty() }).safeParse(await params);
@@ -19,5 +19,5 @@ export async function GET(_: NextRequest, { params }: RouteContext<"/api/[slug]/
     includeHiddenAndRemoved: true,
   });
 
-  return Response.json(events);
+  return Response.json(events, { status: 200 });
 }

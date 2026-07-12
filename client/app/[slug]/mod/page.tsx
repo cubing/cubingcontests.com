@@ -10,7 +10,11 @@ import { getHasRole, slugPath } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { getModContestsSF } from "~/server/server-functions/contest-server-functions.ts";
-import { authorizeUser, getRegions, validateMaxMonthlyContests } from "~/server/server-only-functions.ts";
+import {
+  authorizeUser,
+  getRegions,
+  validateMaxMonthlyContests,
+} from "~/server/server-only-functions/server-only-functions.ts";
 import ModDashboardScreen from "./ModDashboardScreen.tsx";
 
 type Props = {

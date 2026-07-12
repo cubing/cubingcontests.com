@@ -7,7 +7,7 @@ import DonateSection from "~/app/components/contest/DonateSection.tsx";
 import ModInstructionsSection from "~/app/components/contest/ModInstructionsSection.tsx";
 import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
-import { getBlogPosts, getOrgDetails, getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getBlogPosts, getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{

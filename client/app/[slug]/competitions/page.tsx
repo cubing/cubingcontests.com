@@ -1,15 +1,11 @@
-import { and, desc, eq, exists, inArray } from "drizzle-orm";
 import { Suspense } from "react";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
-import { db } from "~/server/db/provider.ts";
-import { contestsTable } from "~/server/db/schema/contests.ts";
-import { regionsTable } from "~/server/db/schema/regions.ts";
-import { roundsTable } from "~/server/db/schema/rounds.ts";
-import { getEvents, getOrgDetails, getRegions } from "~/server/server-only-functions.ts";
+import { getContests } from "~/server/server-only-functions/contests-functions.ts";
+import { getEvents, getOrgDetails, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 
 export const metadata = {
   title: "Contests",
@@ -42,50 +38,7 @@ async function ContestsPage({ params, searchParams }: Props) {
   const region = regionCode ? regions.find((r) => r.code === regionCode) : undefined;
   if (regionCode && !region) return <LoadingError loadingEntity="contests" />;
 
-  const contestsPromise = db
-    .select({
-      competitionId: contestsTable.competitionId,
-      shortName: contestsTable.shortName,
-      type: contestsTable.type,
-      city: contestsTable.city,
-      regionCode: contestsTable.regionCode,
-      startDate: contestsTable.startDate,
-      endDate: contestsTable.endDate,
-      participants: contestsTable.participants,
-    })
-    .from(contestsTable)
-    .leftJoin(
-      regionsTable,
-      and(
-        eq(contestsTable.organizationId, regionsTable.organizationId),
-        eq(contestsTable.regionCode, regionsTable.code),
-      ),
-    )
-    .where(
-      and(
-        eq(contestsTable.organizationId, organization.id),
-        inArray(contestsTable.state, ["approved", "ongoing", "finished", "published"]),
-        // Filter by continent or by country
-        region
-          ? eq(region.type === "super-region" ? regionsTable.superRegionCode : contestsTable.regionCode, region.code)
-          : undefined,
-        eventId
-          ? exists(
-              db
-                .select()
-                .from(roundsTable)
-                .where(
-                  and(
-                    eq(roundsTable.organizationId, contestsTable.organizationId),
-                    eq(roundsTable.competitionId, contestsTable.competitionId),
-                    eq(roundsTable.eventId, eventId),
-                  ),
-                ),
-            )
-          : undefined,
-      ),
-    )
-    .orderBy(desc(contestsTable.startDate));
+  const contestsPromise = getContests({ organizationId: organization.id, eventId, region });
 
   return (
     <section>

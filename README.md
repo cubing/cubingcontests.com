@@ -266,9 +266,30 @@ EMAIL_PASSWORD=""
 To get the list of events, use the endpoint below:
 
 ```
-/api/[slug]/events
+/api/[spaceId]/events
 
-slug (optional) = URL slug for the space (this parameter can be omitted to use the default space)
+spaceId (optional) = URL slug for the space (this parameter can be omitted to use the default space)
+```
+
+### Contests
+
+To get the list of contests, use the endpoint below:
+
+```
+/api/[spaceId]/competitions?eventId=[eventId]&region=[region]
+
+spaceId (optional) = URL slug for the space (this parameter can be omitted to use the default space)
+eventId (optional) = ID of an event; only returns contests that have this on the list of events
+region (optional)  = region; accepts values: 2 letter country ISO code | "XF" | "XA" | "XE" | "XO" | "XN" | "XS" (continent codes)
+```
+
+To get a specific contest, use the endpoint below:
+
+```
+/api/[spaceId]/competitions/[competitionId]
+
+spaceId (optional) = URL slug for the space (this parameter can be omitted to use the default space)
+competitionId      = ID of the contest, found in the URL of the contest page
 ```
 
 ### Rankings
@@ -276,15 +297,15 @@ slug (optional) = URL slug for the space (this parameter can be omitted to use t
 To get the rankings, use the endpoint below:
 
 ```
-/api/[slug]/results/rankings/[eventId]/[type]/[category]?show=[show]&region=[region]&topN=[topN]
+/api/[spaceId]/results/rankings/[eventId]/[type]/[category]?show=[show]&region=[region]&topN=[topN]
 
-slug (optional)   = URL slug for the space (this parameter can be omitted to use the default space)
-eventId           = ID of the event
-type              = "single" for top single rankings; "average" for top average rankings; "all-avg-formats" for top average rankings, including Mo3 and Ao5 formats
-category          = record category; accepts values: "competitions" | "meetups" | "online" | "all"
-show (optional)   = "persons" for top persons rankings (default); "results" for top results rankings
-region (optional) = region (shows World rankings if omitted); accepts values: 2 letter country ISO code | "XF" | "XA" | "XE" | "XO" | "XN" | "XS" (continent codes)
-topN (optional)   = how many top results to return; number between 1 and 100,000; defaults to 100
+spaceId (optional) = URL slug for the space (this parameter can be omitted to use the default space)
+eventId            = ID of the event
+type               = "single" for top single rankings; "average" for top average rankings; "all-avg-formats" for top average rankings, including Mo3 and Ao5 formats
+category           = record category; accepts values: "competitions" | "meetups" | "online" | "all"
+show (optional)    = "persons" for top persons rankings (default); "results" for top results rankings
+region (optional)  = region (shows World rankings if omitted); accepts values: 2 letter country ISO code | "XF" | "XA" | "XE" | "XO" | "XN" | "XS" (continent codes)
+topN (optional)    = how many top results to return; number between 1 and 100,000; defaults to 100
 ```
 
 ### External data entry

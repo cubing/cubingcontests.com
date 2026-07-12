@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db/provider.ts";
 import { recordConfigsPublicCols, recordConfigsTable as table } from "~/server/db/schema/record-configs.ts";
-import { authorizeUser, getRegions } from "~/server/server-only-functions.ts";
+import { authorizeUser, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 import ConfigureRecordsScreen from "./ConfigureRecordsScreen.tsx";
 
 async function RecordsConfigurationPage() {

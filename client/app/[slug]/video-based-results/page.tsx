@@ -9,7 +9,7 @@ import {
   getRecordConfigs,
   getRegions,
   getSettingFromDb,
-} from "~/server/server-only-functions.ts";
+} from "~/server/server-only-functions/server-only-functions.ts";
 import ManageResultsScreen from "./ManageResultsScreen.tsx";
 
 async function ManageResultsPage() {

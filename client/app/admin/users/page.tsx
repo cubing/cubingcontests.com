@@ -3,7 +3,7 @@ import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
-import { authorizeUser } from "~/server/server-only-functions.ts";
+import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
 import ManageUsersScreen from "./ManageUsersScreen.tsx";
 
 async function ManageUsersPage() {

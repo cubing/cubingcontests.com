@@ -9,7 +9,7 @@ import {
   getMemberRequestDetails,
   getRegions,
   getSettingFromDb,
-} from "~/server/server-only-functions.ts";
+} from "~/server/server-only-functions/server-only-functions.ts";
 import UserSettingsScreen from "./UserSettingsScreen.tsx";
 
 async function UserSettingsPage() {

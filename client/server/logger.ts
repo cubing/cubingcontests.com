@@ -24,7 +24,7 @@ const transport = pino.transport({
     // onError: { module: "my_utils", method: "handleErrors" },
     // transform events before sending
     onPreparePayload: {
-      module: fileURLToPath(import.meta.url.replace(/\/logger.ts$/, "/loggerUtils.js")),
+      module: fileURLToPath(import.meta.url.replace(/\/logger.ts$/, "/logger-utils.js")),
       method: "handlePayload",
     },
   },

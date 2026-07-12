@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import EventRules from "~/app/[slug]/rules/EventRules.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { db } from "~/server/db/provider.ts";
-import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions.ts";
+import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 export const metadata = {
   title: "Rules",

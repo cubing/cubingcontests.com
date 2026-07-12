@@ -2,7 +2,7 @@ import Markdown from "react-markdown";
 import z from "zod";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { getFormattedDate } from "~/helpers/utility-functions.ts";
-import { getBlogPosts, getOrgDetails } from "~/server/server-only-functions.ts";
+import { getBlogPosts, getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 const ParamsValidator = z.strictObject({
   slug: z.string().nonempty(),

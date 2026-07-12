@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import z from "zod";
 import { RecordCategoryValues } from "~/helpers/types.ts";
 import { RecordConfigValidator } from "~/helpers/validators/RecordConfig.ts";
-import { getRecordConfigsSet, logMessage } from "~/server/server-only-functions.ts";
+import { getRecordConfigsSet, logMessage } from "~/server/server-only-functions/server-only-functions.ts";
 import { db } from "../db/provider.ts";
 import {
   type RecordConfigResponse,
