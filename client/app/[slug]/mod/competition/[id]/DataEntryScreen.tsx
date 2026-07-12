@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -25,10 +26,13 @@ import {
   clientGetHasPermission,
   getActionError,
   getBlankCompetitors,
+  getFormattedTime,
+  getFormattedTimeLimit,
   getMakesCutoff,
   getMaxAllowedRounds,
   getRoundDate,
   shortenEventName,
+  slugPath,
 } from "~/helpers/utility-functions.ts";
 import { type ResultDto, ResultValidator } from "~/helpers/validators/Result.ts";
 import type { SelectContest } from "~/server/db/schema/contests.ts";
@@ -71,6 +75,7 @@ function DataEntryScreen({
   memberPerson,
 }: Props) {
   const pathname = usePathname();
+  const { slug }: { slug: string } = useParams();
   const { session } = useSession();
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
@@ -356,7 +361,7 @@ function DataEntryScreen({
               recordConfigs={recordConfigs}
             />
           )}
-          <div className="d-flex mt-3 flex-wrap gap-3">
+          <div className="d-flex my-3 flex-wrap gap-3">
             <Button
               id="submit_attempt_button"
               onClick={submitResult}
@@ -376,13 +381,20 @@ function DataEntryScreen({
               </Button>
             )}
           </div>
+          {round.timeLimitCentiseconds && (
+            <p className="mb-2">Time limit: {getFormattedTimeLimit({ round, event: currEvent })}</p>
+          )}
+          {round.cutoffAttemptResult && <p>Cutoff: {getFormattedTime(round.cutoffAttemptResult)}</p>}
           <EventImportantInfo importantInfo={currEvent.importantInfo} className="mt-4" />
         </div>
       </div>
 
       <div className="col-lg-9">
         <h3 className="mt-2 mb-4 text-center">
-          {contest.shortName} &ndash; {shortenEventName(currEvent.name)}
+          <Link href={slugPath(slug, `/competitions/${contest.competitionId}`)} prefetch={false}>
+            {contest.shortName}
+          </Link>{" "}
+          &ndash; {shortenEventName(currEvent.name)}
         </h3>
 
         {round.open || sortedResults.some((r) => r.roundId === round.id) ? (

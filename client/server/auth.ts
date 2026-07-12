@@ -64,7 +64,7 @@ export const rrBasicLimits = {
 };
 export const rrPremiumLimits = {
   monthlyContests: 50,
-  competitors: 25000,
+  competitors: 20000,
 };
 
 async function changeShowDonationLinks(organizationId: string, showDonationLinks: boolean) {

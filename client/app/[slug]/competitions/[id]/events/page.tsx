@@ -4,7 +4,7 @@ import EventTitle from "~/app/components/EventTitle.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import { getFormattedTime } from "~/helpers/utility-functions.ts";
+import { getFormattedTime, getFormattedTimeLimit } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import { contestsPublicCols, contestsTable as table } from "~/server/db/schema/contests.ts";
 import { eventsTable } from "~/server/db/schema/events.ts";
@@ -77,11 +77,7 @@ async function ContestEventsPage({ params }: Props) {
                   </td>
                   <td>{roundTypes[round.roundTypeId].label}</td>
                   <td>{roundFormats.find((rf) => rf.value === round.format)?.label}</td>
-                  <td>
-                    {round.timeLimitCentiseconds
-                      ? `${getFormattedTime(round.timeLimitCentiseconds, { event })}${round.timeLimitCumulativeRoundIds ? " cumulative" : ""}`
-                      : ""}
-                  </td>
+                  <td>{getFormattedTimeLimit({ round, event })}</td>
                   <td>{cutoffText}</td>
                   <td>
                     {round.proceedType &&

@@ -126,6 +126,7 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
             <tr>
               <th scope="col">Name</th>
               <th scope="col">Contest</th>
+              <th scope="col">Contest ID</th>
               <th scope="col">Daily rate limit</th>
               <th scope="col">Created</th>
               <th scope="col">Expires</th>
@@ -136,10 +137,8 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
             {apiKeys.map((key) => (
               <tr key={key.id}>
                 <td>{key.name}</td>
-                <td>
-                  {contests.find((c) => c.competitionId === key.metadata.competitionId)?.name ??
-                    key.metadata.competitionId}
-                </td>
+                <td>{contests.find((c) => c.competitionId === key.metadata.competitionId)?.name}</td>
+                <td>{key.metadata.competitionId}</td>
                 <td>{key.rateLimitMax}</td>
                 <td>{getFormattedDate(key.createdAt)}</td>
                 <td>{key.expiresAt ? getFormattedDate(key.expiresAt) : ""}</td>

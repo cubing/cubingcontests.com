@@ -606,3 +606,9 @@ export function slugPath(slug: string, path: string): string {
 export function arrayElementsSame(array1: number[] | string[], array2: number[] | string[]): boolean {
   return JSON.stringify([...array1].sort()) === JSON.stringify([...array2].sort());
 }
+
+export function getFormattedTimeLimit({ round, event }: { round: RoundResponse; event: EventResponse }) {
+  return round.timeLimitCentiseconds
+    ? `${getFormattedTime(round.timeLimitCentiseconds, { event })}${round.timeLimitCumulativeRoundIds ? " cumulative" : ""}`
+    : "";
+}
