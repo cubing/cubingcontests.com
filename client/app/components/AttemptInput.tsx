@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { C } from "~/helpers/constants.ts";
+import type { EventFormat } from "~/helpers/types.ts";
 import { getAlwaysShowDecimals, getAttempt, getFormattedTime } from "~/helpers/utility-functions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
@@ -12,28 +13,30 @@ const DNFKeys = ["f", "F", "d", "D", "/"];
 const DNSKeys = ["s", "S", "*"];
 const unknownTimeKeys = ["u", "U"];
 
-const getFormattedText = (text: string, { forMemo = false, isNumberFormat = false }): string => {
-  if (isNumberFormat) return text;
+const getFormattedText = (
+  text: string, // raw time input text, without delimiters
+  { eventFormat, forMemo = false }: { eventFormat: EventFormat; forMemo?: boolean },
+): string => {
+  if (eventFormat === "number") return text;
 
+  if (text === "") return forMemo ? "0:00" : eventFormat === "time-3d" ? "0.000" : "0.00";
+  if (["DNF", "DNS", "Unknown"].includes(text)) return text;
+
+  const precision = forMemo ? 2 : eventFormat === "time-3d" ? 3 : 2;
+  // Use regex to parse the time from the end: hours, minutes, seconds, decimals
+  const match = text.match(new RegExp(`(\\d{0,2}?)(\\d{0,2}?)(\\d{0,2}?)(\\d{1,${precision}})$`));
+  if (!match) throw new Error("Error while parsing input");
+
+  const [_fullMatch, hours, minutes, seconds, decimals] = match;
   let output = "";
-  const decimals = forMemo ? 0 : 2;
-
-  if (text === "") return forMemo ? "0:00" : "0.00";
-  else if (["DNF", "DNS", "Unknown"].includes(text)) return text;
-  // Memo time formatting always requires minutes, even if they're 0
-  else if (text.length < 5 && !forMemo) {
-    output = (parseInt(text, 10) / 100).toFixed(decimals);
-  } else {
-    if (text.length >= 7) output += `${text.slice(0, text.length - 6)}:`; // hours
-    if (text.length >= 5) {
-      output += `${text.slice(Math.max(text.length - 6, 0), -4)}:`; // minutes
-      const seconds = parseInt(text.slice(text.length - 4), 10) / 100;
-      output += (seconds < 10 ? "0" : "") + seconds.toFixed(decimals); // seconds
-    } else {
-      const seconds = Number(text.slice(0, -2));
-      output += `0:${seconds < 10 ? "0" : ""}${seconds}`;
-    }
-  }
+  if (hours) output += `${hours}:`;
+  // Minutes are always displayed for memo time, even 0
+  if (output || minutes || forMemo)
+    output += output ? `${"0".repeat(2 - minutes.length)}${minutes}:` : `${minutes || "0"}:`;
+  // Seconds are always displayed, even 0
+  output += output ? `${"0".repeat(2 - seconds.length)}${seconds}` : seconds || "0";
+  // Decimals aren't displayed for memo time
+  if (!forMemo) output += `.${"0".repeat(precision - decimals.length)}${decimals}`;
 
   return output;
 };
@@ -69,11 +72,11 @@ function AttemptInput({
   const [memoText, setMemoText] = useState<string>("");
 
   const formattedAttemptText = useMemo(
-    () => getFormattedText(attemptText, { isNumberFormat: event.format === "number" }),
+    () => getFormattedText(attemptText, { eventFormat: event.format }),
     [attemptText, event],
   );
   const formattedMemoText = useMemo(
-    () => getFormattedText(memoText, { forMemo: true, isNumberFormat: event.format === "number" }),
+    () => getFormattedText(memoText, { forMemo: true, eventFormat: event.format }),
     [memoText, event],
   );
 
@@ -225,7 +228,7 @@ function AttemptInput({
 
         if (
           newText.length <= C.maxNumberFormatValue.toString().length ||
-          (newText.length <= 8 && event.format !== "number")
+          (newText.length <= (event.format === "time-3d" ? 9 : 8) && event.format !== "number")
         ) {
           const newAttempt = getAttempt(attempt, event, forMemo ? attemptText : newText, {
             solved,
@@ -268,12 +271,11 @@ function AttemptInput({
   };
 
   const onTimeFocusOut = (forMemo = false) => {
-    // Get rid of the decimals if one of the times is >= 10 minutes and the event category is not
-    // ExtremeBLD (with the exception of Multi format, which should still have its time rounded)
-    if (attemptText.length >= 6 || (forMemo && memoText?.length >= 6)) {
+    // Truncate the decimals if one of the times is >= 10 minutes
+    if (attemptText.length >= (event.format === "time-3d" ? 7 : 6) || (forMemo && memoText?.length >= 6)) {
       const newAttempt = getAttempt(attempt, event, attemptText, {
-        roundTime: !getAlwaysShowDecimals(event),
-        roundMemo: true,
+        truncateTime: !getAlwaysShowDecimals(event),
+        truncateMemo: true,
         solved,
         attempted,
         memo: memoText,

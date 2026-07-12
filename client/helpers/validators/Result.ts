@@ -3,10 +3,10 @@ import z from "zod";
 import { C } from "../constants.ts";
 
 const personIds = z
-  .array(z.int())
+  .array(z.int({ error: "Please select a competitor" }))
   .min(1)
   .refine((val) => val.length === new Set(val).size, {
-    error: "You cannot enter the same person twice in the same result",
+    error: "You cannot select the same competitor twice in the same result",
   });
 const memo = z
   .int()

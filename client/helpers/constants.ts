@@ -9,13 +9,14 @@ export const C = {
   minResultsForThreeMoreRounds: 100,
   minResultsForTwoMoreRounds: 16,
   minResultsForOneMoreRound: 8,
-  maxTime: 24 * 60 * 60 * 100, // 24 hours
+  maxTime: 24 * 60 * 60 * 100, // max time for Time format (must be strictly less than this); 24 hours
+  maxTime3d: 10 * 60 * 1000, // max time for Time (3 decimals) format; 10 minutes
   maxTimeHumanReadable: "24000000", // MUST MATCH maxTime!
   maxResult: 999_999_999_999_999, // accounts for max possible Multi-Blind result
   maxNumberFormatValue: 999,
   maxTimeLimit: 60 * 60 * 100, // 1 hour
   maxContestShortName: 32,
-  defaultTimeLimit: 10 * 60 * 100, // 10 minutes
+  defaultTimeLimit: 10 * 60 * 100, // 10 minutes (1 minute for Time (3 decimals) format)
   minCompetitorLimit: 5,
   minCompetitorsForNonWca: 3,
   maxConfirmationCodeAttempts: 3,

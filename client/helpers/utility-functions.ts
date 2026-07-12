@@ -45,44 +45,43 @@ export function getFormattedDate(startDate: Date, endDate?: Date | null): string
 }
 
 // Returns NaN if the time is invalid
-const getCentiseconds = (
+const getTimeValue = (
   time: string, // the time string without formatting (e.g. 1:35.97 should be "13597")
-  {
-    round = true,
-    throwErrorWhenInvalidTime = false,
-  }: {
-    round?: boolean;
-    throwErrorWhenInvalidTime?: boolean;
-  } = { round: true, throwErrorWhenInvalidTime: false },
+  { format, truncate = true }: { format: EventFormat | "memo"; truncate?: boolean },
 ): number => {
   if (time === "") return 0;
 
-  let hours = 0;
-  let minutes = 0;
-  let centiseconds: number;
-
-  if (time.length >= 5) {
-    // Round attempts >= 10 minutes long, unless noRounding = true
-    if (time.length >= 6 && round) time = `${time.slice(0, -2)}00`;
-
-    if (time.length >= 7) hours = parseInt(time.slice(0, time.length - 6), 10);
-    minutes = parseInt(time.slice(Math.max(time.length - 6, 0), -4), 10);
-    centiseconds = parseInt(time.slice(-4), 10);
-  } else {
-    centiseconds = parseInt(time, 10);
-  }
-
-  // Disallow >60 minutes, >60 seconds, and times more than 24 hours long
-  if (minutes >= 60 || centiseconds >= 6000 || hours > 24 || (hours === 24 && minutes > 0 && centiseconds > 0)) {
-    if (throwErrorWhenInvalidTime) {
-      throw new Error(
-        `Invalid time: ${time}. Debug info: hours = ${hours}, minutes = ${minutes}, centiseconds = ${centiseconds}, time = ${time}, round = ${round}`,
-      );
-    }
+  const precision = format === "time-3d" ? 3 : 2;
+  const multiplier = format === "time-3d" ? 1000 : 100;
+  const match = time.match(new RegExp(`(\\d{0,2}?)(\\d{0,2}?)(\\d{0,2}?)(\\d{1,${precision}})$`));
+  if (!match) {
+    console.error("Error while parsing time input");
     return NaN;
   }
 
-  return hours * 360000 + minutes * 6000 + centiseconds;
+  const [_fullMatch, hoursStr, minutesStr, secondsStr, decimalsStr] = match;
+  const hours = hoursStr ? parseInt(hoursStr, 10) : 0;
+  const minutes = minutesStr ? parseInt(minutesStr, 10) : 0;
+  const seconds = secondsStr ? parseInt(secondsStr, 10) : 0;
+  const doTruncateDecimals = truncate && hours * 60 + minutes >= 10;
+  const decimals = decimalsStr && !doTruncateDecimals ? parseInt(decimalsStr, 10) : 0;
+  const timeValue = ((hours * 60 + minutes) * 60 + seconds) * multiplier + decimals;
+
+  if (hours >= 100 || minutes >= 60 || seconds >= 60) {
+    console.error(
+      `Invalid time: ${time}. Debug info: hours = ${hours}, minutes = ${minutes}, seconds = ${seconds}, decimals = ${decimals}, truncate = ${truncate}.`,
+    );
+    return NaN;
+  }
+
+  if ((format === "time-3d" && timeValue >= C.maxTime3d) || timeValue > C.maxTime) {
+    console.error(
+      `Time value exceeds max time: ${time}. The max time for this format is ${format === "time-3d" ? C.maxTime3d : C.maxTime}.`,
+    );
+    return NaN;
+  }
+
+  return timeValue;
 };
 
 // Returns NaN if the time is invalid (e.g. 8145); returns 0 if it's empty.
@@ -92,21 +91,23 @@ export function getAttempt(
   event: EventResponse,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
   {
-    roundTime = false,
-    roundMemo = false,
+    truncateTime = false,
+    truncateMemo = false,
     solved,
     attempted,
     memo,
   }: {
-    roundTime?: boolean;
-    roundMemo?: boolean;
+    truncateTime?: boolean;
+    truncateMemo?: boolean;
     // These three parameters are optional if the event format is Number
     solved?: number | undefined;
     attempted?: number | undefined;
     memo?: string; // only used for events with hasMemo = true
-  } = { roundTime: false, roundMemo: false },
+  } = { truncateTime: false, truncateMemo: false },
 ): Attempt {
-  if (time.length > 8 || (memo && memo.length > 8)) throw new Error("Times longer than 8 digits are not supported");
+  const maxDigits = event.format === "time-3d" ? 9 : 8;
+  if (time.length > maxDigits || (memo && memo.length > 8))
+    throw new Error(`Times longer than ${maxDigits} digits are not supported`);
 
   const maxFmResultDigits = C.maxNumberFormatValue.toString().length;
   if (time.length > maxFmResultDigits && event.format === "number")
@@ -114,9 +115,9 @@ export function getAttempt(
 
   if (event.format === "number") return { ...attempt, result: time ? parseInt(time, 10) : 0 };
 
-  const newAttempt: Attempt = { result: getCentiseconds(time, { round: roundTime }) as any };
+  const newAttempt: Attempt = { result: getTimeValue(time, { truncate: truncateTime, format: event.format }) as any };
   if (memo) {
-    newAttempt.memo = getCentiseconds(memo, { round: roundMemo }) as any;
+    newAttempt.memo = getTimeValue(memo, { truncate: truncateMemo, format: "memo" }) as any;
     if (newAttempt.memo && newAttempt.result && newAttempt.memo >= newAttempt.result)
       return { ...newAttempt, result: NaN };
   }
@@ -317,16 +318,19 @@ export function getFormattedTime(
     if (isAverage && !noDelimiterChars) return (time / 100).toFixed(2);
     else return time.toString();
   } else {
-    let centiseconds: number;
+    const precision = event?.format === "time-3d" ? 3 : 2;
+    const multiplier = event?.format === "time-3d" ? 1000 : 100;
+
+    let timeValue: number;
     let timeStr = time.toString();
 
-    if (event?.format !== "multi") centiseconds = time;
-    else centiseconds = parseInt(timeStr.slice(timeStr.length - 11, -4), 10);
+    if (event?.format === "multi") timeValue = parseInt(timeStr.slice(timeStr.length - 11, -4), 10);
+    else timeValue = time;
 
     let output = "";
-    const hours = Math.floor(centiseconds / 360000);
-    const minutes = Math.floor(centiseconds / 6000) % 60;
-    const seconds = (centiseconds - hours * 360000 - minutes * 6000) / 100;
+    const hours = Math.floor(timeValue / (3600 * multiplier));
+    const minutes = Math.floor(timeValue / (60 * multiplier)) % 60;
+    const seconds = (timeValue / multiplier) % 60;
 
     if (hours > 0) {
       output = hours.toString();
@@ -348,10 +352,12 @@ export function getFormattedTime(
     // Only times under ten minutes can have decimals, or if noDelimiterChars = true, or if it's an event that always
     // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
     if (
-      ((hours === 0 && minutes < 10) || noDelimiterChars || (event && getAlwaysShowDecimals(event) && time < 360000)) &&
+      ((hours === 0 && minutes < 10) ||
+        noDelimiterChars ||
+        (event && getAlwaysShowDecimals(event) && time < 3600 * multiplier)) &&
       showDecimals
     ) {
-      output += seconds.toFixed(2);
+      output += seconds.toFixed(precision);
       if (noDelimiterChars) output = Number(output.replace(".", "")).toString();
     } else {
       output += Math.floor(seconds).toFixed(0); // remove the decimals
@@ -370,7 +376,7 @@ export function getFormattedTime(
         if (noDelimiterChars) return `${solved};${solved + missed};${output}`;
         // This includes an En space before the points part
         return (
-          `${solved}/${solved + missed} ${centiseconds !== C.maxTime ? output : "Unknown time"}` +
+          `${solved}/${solved + missed} ${timeValue !== C.maxTime ? output : "Unknown time"}` +
           (showMultiPoints ? ` (${points})` : "")
         );
       } else {

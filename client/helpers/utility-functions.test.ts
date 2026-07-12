@@ -15,7 +15,7 @@ import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt, ResultResponse } from "~/server/db/schema/results";
 
 const mockTimeEvent = eventsStub.find((e) => e.eventId === "333") as any;
-const roundOpts = { roundTime: true, roundMemo: true };
+const truncateOpts = { truncateTime: true, truncateMemo: true };
 
 const timeExamples = [
   {
@@ -81,6 +81,12 @@ const mockMultiEvent = {
 const mockOldStyleEvent = {
   eventId: "333mbo",
   format: "multi",
+  category: "wca",
+} as EventResponse;
+
+const mockTime3dEvent = {
+  eventId: "333_3d",
+  format: "time-3d",
   category: "wca",
 } as EventResponse;
 
@@ -195,7 +201,7 @@ describe(getAttempt.name, () => {
       const { inputs, outputAtt } = example;
 
       it(`parses ${example.inputs.time}${example.inputs.memo ? ` with ${inputs.memo} memo` : ""} correctly`, () => {
-        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, { ...roundOpts, memo: inputs.memo });
+        const output = getAttempt(dummyAtt, mockTimeEvent, inputs.time, { ...truncateOpts, memo: inputs.memo });
         const expectedResult =
           !Number.isNaN(outputAtt.result) && outputAtt.result >= 60000
             ? outputAtt.result - (outputAtt.result % 100)
@@ -220,19 +226,51 @@ describe(getAttempt.name, () => {
     }
 
     it("parses empty time correctly", () => {
-      expect(getAttempt(dummyAtt, mockTimeEvent, "", roundOpts).result).toBe(0);
+      expect(getAttempt(dummyAtt, mockTimeEvent, "", truncateOpts).result).toBe(0);
+    });
+  });
+
+  describe("parse time-3d attempts", () => {
+    it("parses 0.123 seconds correctly", () => {
+      expect(getAttempt(dummyAtt, mockTime3dEvent, "123", truncateOpts).result).toBe(123);
+    });
+
+    it("parses 1.234 seconds correctly", () => {
+      expect(getAttempt(dummyAtt, mockTime3dEvent, "1234", truncateOpts).result).toBe(1234);
+    });
+
+    it("parses 2.345 seconds correctly", () => {
+      expect(getAttempt(dummyAtt, mockTime3dEvent, "2345", truncateOpts).result).toBe(2345);
+    });
+
+    it("parses empty time-3d correctly", () => {
+      expect(getAttempt(dummyAtt, mockTime3dEvent, "", truncateOpts).result).toBe(0);
+    });
+
+    it("rejects times longer than 9 digits for time-3d", () => {
+      expect(() => getAttempt(dummyAtt, mockTime3dEvent, "1234567890")).toThrow(
+        "Times longer than 9 digits are not supported",
+      );
+    });
+
+    it("rejects times >= 10 minutes for time-3d", () => {
+      expect(getAttempt(dummyAtt, mockTime3dEvent, "1000000", truncateOpts).result).toBeNaN();
+    });
+
+    it("accepts times just under 10 minutes for time-3d", () => {
+      expect(getAttempt(dummyAtt, mockTime3dEvent, "959999", truncateOpts).result).toBe(599999);
     });
   });
 
   describe("parse number attempts", () => {
     it("parses 36 move FMC correctly", () => {
-      const output = getAttempt(dummyAtt, mockNumberEvent, "36", roundOpts);
+      const output = getAttempt(dummyAtt, mockNumberEvent, "36", truncateOpts);
       expect(output.result).toBe(36);
       expect(output.memo).toBeUndefined();
     });
 
     it("parses empty number correctly", () => {
-      const output = getAttempt(dummyAtt, mockNumberEvent, "", roundOpts);
+      const output = getAttempt(dummyAtt, mockNumberEvent, "", truncateOpts);
       expect(output.result).toBe(0);
       expect(output.memo).toBe(undefined);
     });
@@ -245,7 +283,7 @@ describe(getAttempt.name, () => {
       if (Number(inp.time) <= 1002000) {
         it(`parses ${example.formatted} for Multi-Blind correctly`, () => {
           const output = getAttempt(dummyAtt, mockMultiEvent, inp.time, {
-            ...roundOpts,
+            ...truncateOpts,
             solved: inp.solved,
             attempted: inp.attempted,
             memo: inp.memo,
@@ -256,7 +294,7 @@ describe(getAttempt.name, () => {
 
         it(`disallows ${example.formatted} for Multi-Blind Old Style`, () => {
           const output = getAttempt(dummyAtt, mockOldStyleEvent, inp.time, {
-            ...roundOpts,
+            ...truncateOpts,
             solved: inp.solved,
             attempted: inp.attempted,
             memo: inp.memo,
@@ -267,7 +305,7 @@ describe(getAttempt.name, () => {
       } else {
         it(`parses ${example.formatted} for Multi-Blind Old Style correctly`, () => {
           const output = getAttempt(dummyAtt, mockOldStyleEvent, inp.time, {
-            ...roundOpts,
+            ...truncateOpts,
             solved: inp.solved,
             attempted: inp.attempted,
             memo: inp.memo,
@@ -278,7 +316,7 @@ describe(getAttempt.name, () => {
 
         it(`disallows ${example.formatted} for Multi-Blind`, () => {
           const output = getAttempt(dummyAtt, mockMultiEvent, inp.time, {
-            ...roundOpts,
+            ...truncateOpts,
             solved: inp.solved,
             attempted: inp.attempted,
             memo: inp.memo,
@@ -290,7 +328,7 @@ describe(getAttempt.name, () => {
     }
 
     it("parses empty Multi-Blind attempt correctly", () => {
-      expect(getAttempt(dummyAtt, mockMultiEvent, "", roundOpts).result).toBe(0);
+      expect(getAttempt(dummyAtt, mockMultiEvent, "", truncateOpts).result).toBe(0);
     });
 
     it("disallows unknown time for Multi-Blind", () => {
@@ -437,6 +475,50 @@ describe(getFormattedTime.name, () => {
 
   it("formats 14:07 memo time correctly", () => {
     expect(getFormattedTime(84700, { showDecimals: false })).toBe("14:07");
+  });
+
+  describe("format time-3d singles", () => {
+    it("formats 0.123 correctly", () => {
+      expect(getFormattedTime(123, { event: mockTime3dEvent })).toBe("0.123");
+    });
+
+    it("formats 1.234 correctly", () => {
+      expect(getFormattedTime(1234, { event: mockTime3dEvent })).toBe("1.234");
+    });
+
+    it("formats 2:03.456 correctly", () => {
+      expect(getFormattedTime(123456, { event: mockTime3dEvent })).toBe("2:03.456");
+    });
+
+    it("formats 9:59.999 correctly", () => {
+      expect(getFormattedTime(599999, { event: mockTime3dEvent })).toBe("9:59.999");
+    });
+
+    it("formats 0.000 correctly", () => {
+      expect(getFormattedTime(0, { event: mockTime3dEvent })).toBe("?");
+    });
+
+    describe("format time-3d singles without formatting (no commas or colons)", () => {
+      it("formats 0.123 without formatting correctly", () => {
+        expect(getFormattedTime(123, { event: mockTime3dEvent, noDelimiterChars: true })).toBe("123");
+      });
+
+      it("formats 1.234 without formatting correctly", () => {
+        expect(getFormattedTime(1234, { event: mockTime3dEvent, noDelimiterChars: true })).toBe("1234");
+      });
+
+      it("formats 12.345 without formatting correctly", () => {
+        expect(getFormattedTime(12345, { event: mockTime3dEvent, noDelimiterChars: true })).toBe("12345");
+      });
+
+      it("formats 2:03.456 without formatting correctly", () => {
+        expect(getFormattedTime(123456, { event: mockTime3dEvent, noDelimiterChars: true })).toBe("203456");
+      });
+
+      it("formats 10:12.345 without formatting correctly", () => {
+        expect(getFormattedTime(612345, { event: mockTime3dEvent, noDelimiterChars: true })).toBe("1012345");
+      });
+    });
   });
 });
 

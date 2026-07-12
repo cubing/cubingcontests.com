@@ -292,7 +292,8 @@ export async function getContestEventResults({
         eq(resultsTable.competitionId, competitionId),
         eq(resultsTable.eventId, eventId),
       ),
-    );
+    )
+    .orderBy(resultsTable.roundId, resultsTable.ranking);
 }
 
 export async function getContestParticipantIds({

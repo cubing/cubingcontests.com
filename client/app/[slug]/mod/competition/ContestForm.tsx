@@ -346,7 +346,7 @@ function ContestForm({
           rounds.map((r) => {
             if (r.timeLimitCentiseconds) return r; // if it already has a time limit, don't change anything
             const event = events.find((e) => e.eventId === r.eventId)!;
-            if (event.format !== "time") return r;
+            if (!["time", "time-3d"].includes(event.format)) return r;
             return { ...r, timeLimitCentiseconds: C.defaultTimeLimit, timeLimitCumulativeRoundIds: null };
           }),
         );

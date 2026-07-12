@@ -56,7 +56,8 @@ export type Creator = {
 };
 
 export const EventFormatValues = [
-  "time",
+  "time", // 2 decimals of precision
+  "time-3d", // 3 decimals of precision
   "number", // for Fewest Moves events
   "multi",
 ] as const;

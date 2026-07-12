@@ -1,0 +1,1 @@
+ALTER TYPE "record_ranks"."event_format" ADD VALUE 'time-3d' BEFORE 'number';

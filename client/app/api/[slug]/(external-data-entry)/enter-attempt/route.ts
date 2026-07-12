@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (!["approved", "ongoing"].includes(contest.state))
     return new Response("This contest has already been finished", { status: 400 });
   if (!event) return new Response("Event not found", { status: 400 });
-  if (event.format !== "time") {
+  if (!["time", "time-3d"].includes(event.format)) {
     return new Response("External data entry is currently only supported for events with the time format", {
       status: 501,
     });

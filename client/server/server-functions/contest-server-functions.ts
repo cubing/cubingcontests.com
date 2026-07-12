@@ -738,11 +738,12 @@ async function validateAndCleanUpContest(
     if (!event) throw new RrActionError(`Event with ID ${round.eventId} not found`);
     if (!canApprove && event.category === "removed")
       throw new RrActionError(`${event.name} is a removed event, so it cannot be held`);
-    if (event.format === "time" && !round.timeLimitCentiseconds)
+    const isSomeTimeFormat = ["time", "time-3d"].includes(event.format);
+    if (isSomeTimeFormat && !round.timeLimitCentiseconds)
       throw new RrActionError(`${event.name} round ${round.roundNumber} doesn't have a time limit`);
 
     if (
-      event.format !== "time" &&
+      !isSomeTimeFormat &&
       (round.timeLimitCentiseconds ||
         round.timeLimitCumulativeRoundIds ||
         round.cutoffAttemptResult ||

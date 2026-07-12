@@ -72,7 +72,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
         defaultRoundFormat,
         participants: participants as number,
         submissionsAllowed,
-        hasMemo,
+        hasMemo: format === "number" ? false : hasMemo,
         hidden,
         description: description || null,
         rule: rule || null,
@@ -222,6 +222,13 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             setSelected={setFormat}
             disabled={mode === "edit" || isPending}
           />
+          <p className="mx-1 mb-1 text-body-secondary">Examples:</p>
+          <ul className="text-body-secondary">
+            <li>Time (2 decimals): 1:41.38 (&lt; 24 hours; if ≥ 10 minutes, the decimals are truncated)</li>
+            <li>Time (3 decimals): 36.195 (&lt; 10 minutes)</li>
+            <li>Number: 42</li>
+            <li>Multi: 8/10 23:26</li>
+          </ul>
           <FormRadio
             title="Event category"
             options={eventCategoryOptions}
@@ -239,12 +246,14 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
               disabled={isPending}
             />
           )}
-          <FormCheckbox
-            title="Has memorization time input"
-            selected={hasMemo}
-            setSelected={setHasMemo}
-            disabled={isPending}
-          />
+          {format !== "number" && (
+            <FormCheckbox
+              title="Has memorization time input"
+              selected={hasMemo}
+              setSelected={setHasMemo}
+              disabled={isPending}
+            />
+          )}
           <FormCheckbox title="Hidden" selected={hidden} setSelected={setHidden} disabled={isPending} />
           <FormTextArea
             title="Description (optional)"
@@ -270,8 +279,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
           <p className="fs-6">
             This will be displayed whenever a user selects this event for a contest to make sure they're familiar with
             this information, and it's also displayed on the data entry page. Include some critical info here to make
-            sure organizers know about it (e.g. "This event has no inspection time" or "Do not confuse this with the
-            similar "X" puzzle").
+            sure organizers know about it when they hold the event.
           </p>
         </Form>
       )}

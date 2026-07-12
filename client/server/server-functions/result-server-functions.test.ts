@@ -172,7 +172,7 @@ describe("createContestResultSF", () => {
 
       expect(res.serverError).toBeUndefined();
       expect((res.validationErrors?.newResultDto?.personIds as any)._errors?.[0]).toBe(
-        "You cannot enter the same person twice in the same result",
+        "You cannot select the same competitor twice in the same result",
       );
       expect(res.data).toBeUndefined();
     });

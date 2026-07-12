@@ -1,4 +1,4 @@
-import type { ContestType } from "~/helpers/types.ts";
+import type { ContestType, EventFormat, RecordCategory } from "~/helpers/types.ts";
 import { C } from "./constants.ts";
 import { eventCategories } from "./event-categories.ts";
 import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
@@ -44,8 +44,9 @@ export const roundProceedOptions: MultiChoiceOption[] = [
   { label: "Percentage", value: "percentage" },
 ];
 
-export const eventFormatOptions: MultiChoiceOption[] = [
-  { label: "Time", value: "time" },
+export const eventFormatOptions: MultiChoiceOption<EventFormat>[] = [
+  { label: "Time (2 decimals)", value: "time" },
+  { label: "Time (3 decimals)", value: "time-3d" },
   { label: "Number", value: "number" },
   { label: "Multi", value: "multi" },
 ];
@@ -60,7 +61,7 @@ export const cutoffAttemptsOptions: MultiChoiceOption[] = [
   { label: "2", value: 2 },
 ];
 
-export const recordCategoryOptions: MultiChoiceOption[] = [
+export const recordCategoryOptions: MultiChoiceOption<RecordCategory>[] = [
   { value: "competitions", label: "Competitions" },
   { value: "meetups", label: "Meetups" },
   { value: "online", label: "Online" },

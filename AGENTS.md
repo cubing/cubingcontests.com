@@ -40,6 +40,7 @@ Custom scripts in `bin/` for production and development tasks (DB migrations, Su
 - **Improving AGENTS.md**: If at the end of a significant task you realize that there was additional context you found in the code that you didn't have originally that would be useful for future sessions, you should make recommendations on how to improve it.
 - **Documentation**: If you're ever missing context about how a certain technology or plugin works, either do a web search for the documentation or ask for a link directly.
 - **Server Components**: When creating Next JS pages, default to using React Server Components for the `page.tsx` files, and only opt into client components when necessary (e.g. for interactivity). But this is not a hard rule.
+- **Comments**: Don't write too many comments. The code should speak for itself, so only write comments when it's genuinely unclear what's being done in the code.
 
 ## Project-specific Conventions
 
