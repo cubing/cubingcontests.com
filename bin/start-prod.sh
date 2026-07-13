@@ -28,7 +28,7 @@ fi
 ./bin/apply-db-migrations.sh || exit 3
 
 if [ "$DISABLE_CADDY_DOCKER_SERVICE" == "true" ]; then
-  docker compose -f docker-compose.rr.yml up nextjs -d
+  docker compose up nextjs -d
 else
-  docker compose -f docker-compose.rr.yml up -d
+  docker compose up -d
 fi

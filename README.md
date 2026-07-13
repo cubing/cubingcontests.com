@@ -93,7 +93,7 @@ Before you deploy the instance, you will have to set up your DNS records:
 
 \* Note: a transactional email provider is not the same as an email service provider; the former enables you to send automated emails from your domain name (e.g. no-reply@yourdomainname.com), while the latter enables you to create an email inbox, often with the ability to set up a custom domain name (e.g. inquiries@yourdomainname.com).
 
-The `docker-compose.rr.yml` file includes a Caddy reverse proxy, which handles proxying for both Next JS and Supabase.
+The Docker Compose file includes a Caddy reverse proxy, which handles proxying for both Next JS and Supabase.
 
 ### Firewall
 
