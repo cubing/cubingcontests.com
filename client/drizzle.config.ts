@@ -8,15 +8,13 @@ import { defineConfig } from "drizzle-kit";
 loadEnvConfig(resolve(".."));
 
 if (
+  !process.env.RR_DB_NAME ||
   !process.env.RR_DB_SCHEMA ||
   !process.env.RR_DB_USERNAME ||
-  !process.env.RR_DB_PASSWORD ||
-  !process.env.POOLER_TENANT_ID ||
-  !process.env.POSTGRES_PORT ||
-  !process.env.POSTGRES_DB
+  !process.env.RR_DB_PASSWORD
 ) {
   throw new Error(
-    "One of these environment variables is not set: RR_DB_SCHEMA, RR_DB_USERNAME, RR_DB_PASSWORD, POOLER_TENANT_ID, POSTGRES_PORT, POSTGRES_DB!",
+    "One of these environment variables is not set: RR_DB_NAME, RR_DB_SCHEMA, RR_DB_USERNAME, RR_DB_PASSWORD!",
   );
 }
 
@@ -28,10 +26,10 @@ export default defineConfig({
   // This uses a direct DB connection instead of the Supabase connection pooler
   dbCredentials: {
     host: "localhost",
-    port: Number(process.env.POSTGRES_PORT),
-    user: `${process.env.RR_DB_USERNAME}.${process.env.POOLER_TENANT_ID}`,
+    port: 5432,
+    user: process.env.RR_DB_USERNAME,
     password: process.env.RR_DB_PASSWORD!,
-    database: process.env.POSTGRES_DB!,
+    database: process.env.RR_DB_NAME!,
   },
   strict: true,
   // verbose: true,

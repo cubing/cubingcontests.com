@@ -50,12 +50,11 @@ services:
 
       # Variables for the DB connection string
       RR_DB_HOST: ${RR_DB_HOST}
+      RR_DB_PORT: ${RR_DB_PORT}
+      RR_DB_NAME: ${RR_DB_NAME}
       RR_DB_SCHEMA: ${RR_DB_SCHEMA}
       RR_DB_USERNAME: ${RR_DB_USERNAME}
       RR_DB_PASSWORD: ${RR_DB_PASSWORD}
-      POOLER_TENANT_ID: ${POOLER_TENANT_ID}
-      POOLER_PROXY_PORT_TRANSACTION: ${POOLER_PROXY_PORT_TRANSACTION}
-      POSTGRES_DB: ${POSTGRES_DB}
 
       # Supabase variables
       SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}

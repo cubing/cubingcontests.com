@@ -10,10 +10,10 @@ export const db =
     : drizzle({
         connection: {
           host: process.env.RR_DB_HOST,
-          port: Number(process.env.POOLER_PROXY_PORT_TRANSACTION),
-          user: `${process.env.RR_DB_USERNAME}.${process.env.POOLER_TENANT_ID}`,
+          port: Number(process.env.RR_DB_PORT),
+          user: process.env.RR_DB_USERNAME,
           password: process.env.RR_DB_PASSWORD,
-          database: process.env.POSTGRES_DB,
+          database: process.env.RR_DB_NAME,
           // TO-DO: MAKE SSL CONNECTION WORK!!!!!!!!!!!!!!!!!!!!!!!!
           // ssl: "verify-full",
           // Uncomment this if using Supabase "Transaction" pool mode (see https://orm.drizzle.team/docs/connect-supabase)
