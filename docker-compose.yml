@@ -25,6 +25,7 @@ services:
       - 127.0.0.1:${NEXTJS_PORT}:3000 # port matches the PORT env var in the Dockerfile
     environment:
       PROD_HOSTNAME: ${PROD_HOSTNAME}
+      INSTANCE_MAINTAINER_EMAIL: ${INSTANCE_MAINTAINER_EMAIL}
       EMAIL_HOST: ${EMAIL_HOST}
       EMAIL_PORT: ${EMAIL_PORT}
       EMAIL_USERNAME: ${EMAIL_USERNAME}

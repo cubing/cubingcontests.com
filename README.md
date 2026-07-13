@@ -239,7 +239,7 @@ If your DB is empty, the backend will fill the events table with the data from `
 To access the DB container with admin privileges directly, use this command (make sure to use the values from `.env`):
 
 ```sh
-docker exec -it supabase-db psql postgresql://supabase_admin:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}
+docker exec -it supabase-db psql postgresql://supabase_admin:${POSTGRES_PASSWORD}@localhost:5432/postgres
 ```
 
 ### Testing email sending

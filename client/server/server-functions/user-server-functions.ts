@@ -351,7 +351,7 @@ export const createOrganizationSF = actionClient
   .action<{ slug: string }>(
     async ({
       parsedInput: { name, slug, contactEmail, logo, homePageDescription, aboutPageContent, contestTypes, isPrivate },
-      ctx: { httpHeaders },
+      ctx: { session, httpHeaders },
     }) => {
       if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED !== "true")
         throw new RrActionError("Multitenancy is disabled for this instance");
@@ -395,6 +395,14 @@ export const createOrganizationSF = actionClient
         }
         return await db.insert(recordConfigsTable).values(recordConfigs);
       });
+
+      if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED === "true" && process.env.INSTANCE_MAINTAINER_EMAIL) {
+        sendEmail(
+          process.env.INSTANCE_MAINTAINER_EMAIL,
+          "New RR space created",
+          `A new space has been created by user ${session.user.name}: ${name}. Contact email: ${session.user.email}`,
+        );
+      }
 
       return { slug: organization.slug };
     },
