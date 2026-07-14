@@ -1,35 +1,14 @@
 name: recordranks
 
 services:
-  caddy:
-    container_name: rr-caddy
-    image: caddy:2.11.2-alpine
-    network_mode: host
-    volumes:
-      - ./volumes/caddy/:/etc/caddy/:ro
-      - ./down-for-maintenance-page.html:/srv/down-for-maintenance-page.html:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    environment:
-      KONG_HTTP_PORT: ${KONG_HTTP_PORT}
-      PROD_HOSTNAME: ${PROD_HOSTNAME}
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
-      LOGFLARE_API_BASE_URL: ${LOGFLARE_API_BASE_URL}
-    restart: unless-stopped
-
   nextjs:
     container_name: rr-nextjs
     image: ${DOCKER_IMAGE_NAME}
     ports:
-      # The Caddyfile assumes the Next JS port used internally in the container is 3000
-      - 127.0.0.1:${NEXTJS_PORT}:3000 # port matches the PORT env var in the Dockerfile
+      - 127.0.0.1:${NEXTJS_PORT}:3000
     environment:
       PROD_HOSTNAME: ${PROD_HOSTNAME}
       INSTANCE_MAINTAINER_EMAIL: ${INSTANCE_MAINTAINER_EMAIL}
-      EMAIL_HOST: ${EMAIL_HOST}
-      EMAIL_PORT: ${EMAIL_PORT}
-      EMAIL_USERNAME: ${EMAIL_USERNAME}
-      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       WCA_OAUTH_CLIENT_ID: ${WCA_OAUTH_CLIENT_ID}
@@ -50,12 +29,15 @@ services:
       ANALYTICS_SCRIPT_CONTENT: ${ANALYTICS_SCRIPT_CONTENT}
 
       # Variables for the DB connection string
-      RR_DB_HOST: ${RR_DB_HOST}
-      RR_DB_PORT: ${RR_DB_PORT}
-      RR_DB_NAME: ${RR_DB_NAME}
-      RR_DB_SCHEMA: ${RR_DB_SCHEMA}
-      RR_DB_USERNAME: ${RR_DB_USERNAME}
-      RR_DB_PASSWORD: ${RR_DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
 
       # Supabase variables
       SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
@@ -78,7 +60,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
-volumes:
-  caddy_data:
-  caddy_config:

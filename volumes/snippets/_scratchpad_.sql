@@ -1,1 +1,0 @@
--- Use this snippet for writing one-off queries

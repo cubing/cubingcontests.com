@@ -7,29 +7,22 @@ import { defineConfig } from "drizzle-kit";
 
 loadEnvConfig(resolve(".."));
 
-if (
-  !process.env.RR_DB_NAME ||
-  !process.env.RR_DB_SCHEMA ||
-  !process.env.RR_DB_USERNAME ||
-  !process.env.RR_DB_PASSWORD
-) {
-  throw new Error(
-    "One of these environment variables is not set: RR_DB_NAME, RR_DB_SCHEMA, RR_DB_USERNAME, RR_DB_PASSWORD!",
-  );
+if (!process.env.DB_NAME || !process.env.DB_USERNAME || !process.env.DB_PASSWORD) {
+  throw new Error("One of these environment variables is not set: DB_NAME, DB_USERNAME, DB_PASSWORD!");
 }
 
 export default defineConfig({
   dialect: "postgresql",
   out: "./server/db/drizzle",
   schema: "./server/db/schema",
-  migrations: { schema: process.env.RR_DB_SCHEMA },
+  migrations: { schema: "record_ranks" },
   // This uses a direct DB connection instead of the Supabase connection pooler
   dbCredentials: {
     host: "localhost",
     port: 5432,
-    user: process.env.RR_DB_USERNAME,
-    password: process.env.RR_DB_PASSWORD!,
-    database: process.env.RR_DB_NAME!,
+    user: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD!,
+    database: process.env.DB_NAME!,
   },
   strict: true,
   // verbose: true,

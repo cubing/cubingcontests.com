@@ -6,7 +6,6 @@ RecordRanks is a sports organization and ranking system for organizing competiti
 
 Monorepo with:
 
-- **Root**: Deployment config (Docker Compose, Caddy, etc.)
 - **`bin/`**: scripts
 - **`client/`**: full-stack Next.js web application
 - **`client/server`**: backend files

@@ -32,7 +32,7 @@ To deploy an instance of RecordRanks, you have to first set up a Linux server an
 
 ### Environment variables
 
-You will have to set up a local `.env` file for releasing your Docker image and another one on your server, which will contain all of your secrets. Note that you **MUST NOT** use your local `.env` file or the `.env.example` file in production, because using the default values will leave your instance **completely exposed**. To set up a local `.env` file, follow these steps:
+You will have to set up a local `.env` file for releasing your Docker image and another one on your server, which will contain all of your secrets. Note that you **MUST NOT** use your local `.env` file or the `.env.example` file in production, because **using the default values will leave your server exposed**. To set up a local `.env` file, follow these steps:
 
 1. Create `.env` file: `cp .env.example .env`.
 2. Set `PROD_HOSTNAME` to your custom domain name without the protocol (e.g. `mysportsproject.com`).
@@ -45,16 +45,14 @@ You will have to set up a local `.env` file for releasing your Docker image and 
 To set up a production `.env` file, follow these steps:
 
 1. Create `.env` file: `cp .env.example .env`.
-2. Generate secure secret keys for Supabase: `./bin/supabase-generate-keys.sh`.
-3. Comment out all variables marked with `for local development` and uncomment variables marked with `for production`.
-4. Set `RR_DB_USERNAME` to a custom username for the DB user.
-5. Set `RR_DB_PASSWORD` to a secure password.
-6. Set `BETTER_AUTH_SECRET` to a secure secret.
-7. Set `PROD_HOSTNAME` to your custom domain name without the protocol (e.g. `mysportsproject.com`).
-8. Set `PROJECT_ID` to an alphanumeric ID for your project, in lowercase (e.g. `mysportsproject`).
-9. Optionally, set the `METADATA_...` values for SEO and the `ANALYTICS_...` values for analytics.
-10. Set `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USERNAME` and `EMAIL_PASSWORD` to your transactional email credentials.
-11. Set your Dockerhub username in `DOCKER_IMAGE_NAME` (e.g. `dockerhubuser/$PROJECT_ID-nextjs`).
+2. Comment out all variables marked with "for local development" and uncomment variables marked with "for production".
+3. Set the variables in the "Database & email" section.
+4. Set `BETTER_AUTH_SECRET` to a secure secret.
+5. Set `PROD_HOSTNAME` to your custom domain name without the protocol (e.g. `mysportsproject.com`).
+6. Set `PROJECT_ID` to an alphanumeric ID for your project, in lowercase (e.g. `mysportsproject`).
+7. Optionally, set the `METADATA_...` values for SEO and the `ANALYTICS_...` values for analytics.
+8. Set the variables in the "Supabase" section.
+9. Set your Dockerhub username in `DOCKER_IMAGE_NAME` (e.g. `dockerhubuser/$PROJECT_ID-nextjs`).
 
 \* Note: for [WCA OAuth](https://www.worldcubeassociation.org/oauth/applications) you will have to set these values when you set it up in your WCA OAuth settings:
 
@@ -68,11 +66,7 @@ To generate an icon, place an `icon.svg` file in the `client` directory (this fi
 
 ### Down for maintenance page
 
-Caddy uses the `down-for-maintenance-page.html` file at the root of the repo as the fallback for when the Next JS application is down. This file is git-ignored, as it's supposed to be unique to each RecordRanks instance. Copy the example file on your deployed server and edit it to fit your instance. You can use this command:
-
-```sh
-cp down-for-maintenance-page.html.example down-for-maintenance-page.html
-```
+Use the `down-for-maintenance-page.html.example` file as an example for a "down for maintenance" page for when the Next JS application is inaccessible.
 
 ### `robots.txt` file
 
@@ -92,8 +86,6 @@ Before you deploy the instance, you will have to set up your DNS records:
 4. If you would like to use a custom email address using your domain name, set up the records for that (follow the instructions from your email service provider\*).
 
 \* Note: a transactional email provider is not the same as an email service provider; the former enables you to send automated emails from your domain name (e.g. no-reply@yourdomainname.com), while the latter enables you to create an email inbox, often with the ability to set up a custom domain name (e.g. inquiries@yourdomainname.com).
-
-The Docker Compose file includes a Caddy reverse proxy, which handles proxying for both Next JS and Supabase.
 
 ### Firewall
 
@@ -122,7 +114,39 @@ The Scripts section shows how to start RecordRanks.
 
 ### Supabase
 
-RecordRanks instances run alongside self-hosted Supabase, which provides the database, blob storage, a sysadmin dashboard (Supabase Studio), and more. The credentials for accessing Supabase Studio are in the `.env` file. Note that the Auth, Edge Functions and PostgREST modules are excluded in the self-hosted Supabase configuration in this project.
+RecordRanks uses [Supabase](https://supabase.com/) for the database, blob storage, a sysadmin dashboard (Supabase Studio), and more. You'll have to set it up before you can run RecordRanks itself.
+
+#### DB initialization
+
+Run the command below (it's all one multi-line command) to initialize your Supabase DB. It gets `DB_USERNAME` and `DB_PASSWORD` values from the `.env` file in your RecordRanks repo (make sure to provide the correct path). The `username` variable strips off the Supabase Pooler tenant ID from the end of `DB_USERNAME`. This assumes you're self-hosting Supabase, so if you're not, you have to run the SQL query as the `supabase_admin` user some other way, or simply use the default `postgres` user instead of creating a new one.
+
+```sh
+source <PATH_TO_.env> && docker exec -i supabase-db psql \
+  -v username="${DB_USERNAME%.*}" \
+  -v password="$DB_PASSWORD" \
+  "postgresql://supabase_admin@localhost:5432/postgres" <<'EOF'
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+CREATE USER :"username" WITH PASSWORD :'password';
+CREATE SCHEMA IF NOT EXISTS record_ranks;
+ALTER SCHEMA record_ranks OWNER TO :"username";
+
+GRANT USAGE ON SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
+GRANT ALL ON ALL TABLES IN SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
+GRANT ALL ON ALL ROUTINES IN SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON TABLES TO anon, authenticated, service_role, postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON ROUTINES TO anon, authenticated, service_role, postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON SEQUENCES TO anon, authenticated, service_role, postgres;
+
+GRANT CREATE ON DATABASE postgres TO :"username";
+EOF
+```
+
+Note: part of the query is taken from the [Supabase docs](https://supabase.com/docs/guides/api/using-custom-schemas), except the `postgres` user is also included, since the schema isn't owned by it; and the `GRANT CREATE` command is required, until this Drizzle PR is merged: https://github.com/drizzle-team/drizzle-orm/pull/4025
+
+You can also copy the SQL snippets from `supabase-snippets` into your `volumes/snippets` directory in the Supabase repo or add them directly in SQL Editor via Supabase Studio.
 
 #### RecordRanks settings
 
@@ -239,7 +263,7 @@ If your DB is empty, the backend will fill the events table with the data from `
 To access the DB container with admin privileges directly, use this command (make sure to use the values from `.env`):
 
 ```sh
-docker exec -it supabase-db psql postgresql://supabase_admin:${POSTGRES_PASSWORD}@localhost:5432/postgres
+docker exec -it supabase-db psql postgresql://supabase_admin@localhost:5432/postgres
 ```
 
 ### Testing email sending
