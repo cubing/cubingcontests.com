@@ -23,6 +23,11 @@ spec:
           ports:
             - name: nextjs-port
               containerPort: 3000
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           envFrom:
             - configMapRef:
                 name: recordranks-config

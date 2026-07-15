@@ -4,7 +4,6 @@ import { useAction } from "next-safe-action/hooks";
 import { useContext, useState } from "react";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
@@ -33,11 +32,7 @@ function DebugScreen() {
   };
 
   return (
-    <div className="mx-auto mb-4 w-100 px-3" style={{ maxWidth: "var(--rr-md-width)" }}>
-      <h2 className="mb-5 text-center">Page for debugging</h2>
-
-      <ToastMessages />
-
+    <>
       <p className="fs-5 mt-3 mb-4" style={{ whiteSpace: "pre-wrap" }}>
         {debugOutput || "<debug output>"}
       </p>
@@ -63,7 +58,7 @@ function DebugScreen() {
       <h4 className="my-4">Member data</h4>
       <code>{JSON.stringify(member, null, 2)}</code>
 
-      <h4 className="my-4">Environment variables</h4>
+      <h4 className="my-4">Environment variables (client-side)</h4>
       <code>
         NEXT_PUBLIC_BASE_URL={process.env.NEXT_PUBLIC_BASE_URL}
         <br />
@@ -75,7 +70,7 @@ function DebugScreen() {
         <br />
         NEXT_PUBLIC_MULTITENANCY_ENABLED={process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED}
       </code>
-    </div>
+    </>
   );
 }
 
