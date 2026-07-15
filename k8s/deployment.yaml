@@ -34,7 +34,7 @@ spec:
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /api/healthcheck
+              path: /api/healthcheck/ready
               port: nextjs-port
             initialDelaySeconds: 10
             periodSeconds: 10
