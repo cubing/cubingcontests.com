@@ -7,9 +7,8 @@ import { defineConfig } from "drizzle-kit";
 
 loadEnvConfig(resolve(".."));
 
-if (!process.env.DB_NAME || !process.env.DB_USERNAME || !process.env.DB_PASSWORD) {
+if (!process.env.DB_NAME || !process.env.DB_USERNAME || !process.env.DB_PASSWORD)
   throw new Error("One of these environment variables is not set: DB_NAME, DB_USERNAME, DB_PASSWORD!");
-}
 
 export default defineConfig({
   dialect: "postgresql",

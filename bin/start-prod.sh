@@ -1,34 +1,22 @@
 #!/bin/bash
 
 ##################################################
-# Script for (re)starting production environment #
+# Script for starting the production environment #
 ##################################################
-
-# $1 - (optional) --restart/-r - skip apt update and DB dump
-# $2 - (optional) --no-backup - skip creating the backup
 
 cd "$(dirname "$0")/.."
 
+set -o allexport
 source .env
-docker pull "$DOCKER_IMAGE_NAME"
+set +o allexport
+# Substitutes variables, strips out comments and removes double quotes
+envsubst < .env | sed 's/\s*#.*$//;s/"//g' > .env.temp
 
-# Restart
-if [[ "$1" == "--restart" || "$1" == "-r" ]]; then  
-  if [ "$2" != "--no-backup" ]; then
-    ./bin/create-full-backup.sh || exit 1
-  fi
+kubectl create configmap recordranks-config --from-env-file=.env.temp -o yaml --dry-run=client > ./k8s/configmap.yaml || exit 1
+rm .env.temp
 
-  docker stop rr-nextjs
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/service.yaml
+sed "s|__DOCKER_IMAGE_NAME__|${DOCKER_IMAGE_NAME}|" k8s/deployment.yaml | kubectl apply -f -
 
-  if [ "$DISABLE_CADDY_DOCKER_SERVICE" != "true" ]; then
-    docker exec -w /etc/caddy rr-caddy caddy reload || exit 2
-  fi
-fi
-
-./bin/apply-db-migrations.sh || exit 3
-
-if [ "$DISABLE_CADDY_DOCKER_SERVICE" == "true" ]; then
-  docker compose up nextjs -d
-else
-  docker compose up -d
-fi
+./bin/apply-db-migrations.sh || exit 2

@@ -1,0 +1,40 @@
+# Variables with the format __VAR__ in this file are substituted in start-prod.sh
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recordranks-nextjs
+  labels:
+    app: recordranks-nextjs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: recordranks-nextjs
+  template:
+    metadata:
+      labels:
+        app: recordranks-nextjs
+    spec:
+      containers:
+        - name: nextjs
+          image: __DOCKER_IMAGE_NAME__
+          imagePullPolicy: Always
+          ports:
+            - name: nextjs-port
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: recordranks-config
+          livenessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: nextjs-port
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: nextjs-port
+            initialDelaySeconds: 10
+            periodSeconds: 10

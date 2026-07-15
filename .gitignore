@@ -19,6 +19,7 @@ npm-debug.log*
 *.log
 
 # env files
+k8s/configmap.yaml
 .env*
 !.env.example
 # This is just a symlink to the .env file in the root of the repo
