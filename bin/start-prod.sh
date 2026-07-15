@@ -16,7 +16,7 @@ kubectl create configmap recordranks-config --from-env-file=.env.temp -o yaml --
 rm .env.temp
 
 kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/service.yaml
+sed "s|__PORT__|${PORT}|" k8s/service.yaml | kubectl apply -f -
 sed "s|__DOCKER_IMAGE_NAME__|${DOCKER_IMAGE_NAME}|" k8s/deployment.yaml | kubectl apply -f -
 
 ./bin/apply-db-migrations.sh || exit 2

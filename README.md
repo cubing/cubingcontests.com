@@ -199,8 +199,8 @@ To enable automatic public exports that run at regular intervals, you have to se
 To test this locally, run the local dev environment and then use this command:
 
 ```sh
-# Make sure to replace <NEXTJS_PORT> with your Next JS container port (3000 by default)
-curl -X POST -H "Authorization: Bearer <SERVICE_ROLE_KEY>" http://localhost:<NEXTJS_PORT>/api/export/create-public-export
+# Make sure the port is the same as your Next JS port
+curl -X POST -H "Authorization: Bearer <SERVICE_ROLE_KEY>" http://localhost:3000/api/export/create-public-export
 ```
 
 For debugging you can look at the history of cron job runs in Integrations -> Cron and at the contents of the `net` schema in Table Editor.

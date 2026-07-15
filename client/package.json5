@@ -3,7 +3,7 @@
   type: 'module',
   private: true,
   scripts: {
-    dev: "next dev -p $(grep -E '^NEXTJS_PORT=' .env | sed -r 's/^NEXTJS_PORT=([0-9]+).*/\\1/')",
+    dev: "next dev -p $(grep -E '^PORT=' .env | sed -r 's/^PORT=([0-9]+).*/\\1/')",
     build: 'next build',
     start: 'next start',
     check: 'npx @biomejs/biome check',

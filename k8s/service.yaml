@@ -1,3 +1,5 @@
+# Variables with the format __VAR__ in this file are substituted in start-prod.sh
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,3 +13,4 @@ spec:
       protocol: TCP
       port: 3000
       targetPort: nextjs-port
+      nodePort: __PORT__
