@@ -1,9 +1,5 @@
 #!/bin/bash
 
-##################################################
-# Script for starting the production environment #
-##################################################
-
 cd "$(dirname "$0")/.."
 
 set -o allexport

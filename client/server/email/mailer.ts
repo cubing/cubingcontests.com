@@ -499,7 +499,7 @@ export function sendMemberRequestSubmittedEmail(
         replyTo: adminEmail,
         to,
         bcc: adminEmail,
-        subject: "User request submitted",
+        subject: "Member request submitted",
         html,
       });
     },

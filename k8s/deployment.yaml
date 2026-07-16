@@ -8,6 +8,7 @@ metadata:
     app: recordranks-nextjs
 spec:
   replicas: 3
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app: recordranks-nextjs

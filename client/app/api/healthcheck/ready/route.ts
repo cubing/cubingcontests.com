@@ -13,7 +13,5 @@ export async function GET() {
     uptime: process.uptime(),
   };
 
-  console.log("Readyness check:", readynessCheck);
-
   return NextResponse.json(readynessCheck, { status: ready ? 200 : 503 });
 }

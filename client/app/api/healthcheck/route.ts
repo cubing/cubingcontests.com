@@ -19,7 +19,5 @@ export async function GET() {
     },
   };
 
-  console.log("Healthcheck:", healthcheck);
-
   return NextResponse.json(healthcheck, { status: allHealthy ? 200 : 503 });
 }
