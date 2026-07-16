@@ -397,3 +397,11 @@ To see the current healthcheck status, use the endpoint below:
 ```
 /api/healthcheck
 ```
+
+## Copyright
+
+**Copyright (C) 2026 Deni Mintsaev and Contributors**
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License (AGPL) version 3, as published by the Free Software Foundation. The full text of the license can be found in the `LICENSE` file.
+
+This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE**. See the GNU Affero General Public License (AGPL) version 3 for more details.
