@@ -23,7 +23,7 @@ async function SubscribePage() {
       <h2 className="mb-4 text-center">Create Your Own Space</h2>
 
       <p className="fs-5 mb-4 text-center text-info">
-        After creating your space, you'll be taken to the billing page to set up billing
+        After creating your space, you'll be taken to the billing page to start your free trial
       </p>
 
       <ToastMessages />

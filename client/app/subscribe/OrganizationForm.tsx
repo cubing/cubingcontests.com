@@ -184,15 +184,15 @@ function OrganizationForm() {
         <label htmlFor="home_page_description" className="form-label">
           Home page description (Markdown supported)
         </label>
-        <textarea id="home_page_description" name="homePageDescription" rows={4} className="form-control" />
+        <textarea id="home_page_description" name="homePageDescription" rows={3} className="form-control" />
       </fieldset>
 
-      <fieldset className="mb-3">
+      {/* <fieldset className="mb-3">
         <label htmlFor="about_page_content" className="form-label">
           About page contents (Markdown supported)
         </label>
-        <textarea id="about_page_content" name="aboutPageContent" rows={4} className="form-control" />
-      </fieldset>
+        <textarea id="about_page_content" name="aboutPageContent" rows={3} className="form-control" />
+      </fieldset> */}
 
       <Button type="submit" isLoading={isCreating} className="my-3 w-100">
         Create Space
