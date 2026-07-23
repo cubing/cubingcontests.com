@@ -1,11 +1,17 @@
 import { Suspense } from "react";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
+import DonationGoals from "~/app/components/content/DonationGoals.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { getContests } from "~/server/server-only-functions/contests-functions.ts";
-import { getEvents, getOrgDetails, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
+import {
+  getEvents,
+  getOrgDetails,
+  getRegions,
+  getSettingFromDb,
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 export const metadata = {
   title: "Contests",
@@ -30,9 +36,10 @@ async function ContestsPage({ params, searchParams }: Props) {
   const { eventId, region: regionCode } = await searchParams;
 
   const organization = await getOrgDetails({ slug });
-  const [events, regions] = await Promise.all([
+  const [events, regions, kofiGoalProgress] = await Promise.all([
     getEvents({ organizationId: organization!.id }),
     getRegions(organization!.id),
+    getSettingFromDb({ key: "kofi-goal-progress", organizationId: null, optional: true }),
   ]);
 
   const region = regionCode ? regions.find((r) => r.code === regionCode) : undefined;
@@ -49,6 +56,8 @@ async function ContestsPage({ params, searchParams }: Props) {
       ) : (
         <>
           <div className="mb-3 px-2">
+            {kofiGoalProgress !== null && <DonationGoals kofiGoalProgress={kofiGoalProgress} compact />}
+
             <EventButtons events={events} resetOnSameEventClick />
             <div style={{ maxWidth: "24rem" }}>
               <RegionSelect regions={regions} />

@@ -1,19 +1,17 @@
-"use client";
-
-import { use } from "react";
+import DonationGoals from "~/app/components/content/DonationGoals.tsx";
 import DonateButton from "~/app/components/DonateButton.tsx";
 import { C } from "~/helpers/constants.ts";
 import type { OrganizationDetails } from "~/helpers/types.ts";
+import { getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   organization: OrganizationDetails;
-  kofiGoalProgressPromise: Promise<string | null>;
 };
 
-function DonateSection({ organization, kofiGoalProgressPromise }: Props) {
+async function DonateSection({ organization }: Props) {
   if (!organization.metadata.showDonationLinks) return;
 
-  const kofiGoalProgress = use(kofiGoalProgressPromise);
+  const kofiGoalProgress = await getSettingFromDb({ key: "kofi-goal-progress", organizationId: null, optional: true });
 
   return (
     <>
@@ -31,31 +29,7 @@ function DonateSection({ organization, kofiGoalProgressPromise }: Props) {
       </p>
       <DonateButton />
 
-      {kofiGoalProgress !== null && (
-        <>
-          <h4 className="mt-4">Goals</h4>
-          <p>
-            Prioritize RR feature: <strong>Personal Records</strong>
-          </p>
-          <div
-            role="progressbar"
-            className="progress mb-2"
-            style={{ height: "1.3rem" }}
-            aria-label="Goal progress"
-            aria-valuenow={17}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          >
-            <div className="progress-bar fs-6 fw-semibold bg-success" style={{ width: `${kofiGoalProgress}%` }}>
-              {kofiGoalProgress}%
-            </div>
-          </div>
-          <p className="mt-3">
-            When this goal is reached, the Personal Records feature will be prioritized to be implemented into
-            RecordRanks.
-          </p>
-        </>
-      )}
+      {kofiGoalProgress !== null && <DonationGoals kofiGoalProgress={kofiGoalProgress} />}
     </>
   );
 }
