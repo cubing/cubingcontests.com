@@ -80,8 +80,11 @@ export const LogCodes = {
   RR0037: "create user request",
   RR0038: "delete user request",
   RR0039: "send organization invitation",
+  // Organizations
+  RR0042: "update member",
+  RR0043: "remove member",
   // Access Tokens
-  RR0040: "create access token",
+  // RR0040: "create access token",
 
   // Error codes
   RR5000: "unknown error",

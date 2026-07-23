@@ -1,6 +1,6 @@
 "use client";
 
-import { faPencil } from "@fortawesome/free-solid-svg-icons";
+import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useMemo, useState } from "react";
@@ -13,23 +13,32 @@ import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import type { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
+import { useSession } from "~/helpers/hooks.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { getActionError, getHasRole, getSimplifiedString } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { type OrganizationRole, orgRolesObject } from "~/server/organization-permissions.ts";
-import { updateMemberSF } from "~/server/server-functions/user-server-functions.ts";
+import { removeMemberSF, updateMemberSF } from "~/server/server-functions/user-server-functions.ts";
 
 type Props = {
   members: (typeof authClient.$Infer.Member)[];
   memberPersons: PersonResponse[];
   regions: RegionResponse[];
+  videoBasedResultsEnabled: boolean;
 };
 
-function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPersons, regions }: Props) {
-  const { changeErrorMessages, resetMessages } = useContext(MainContext);
+function ManageMembersScreen({
+  members: initMembers,
+  memberPersons: initMemberPersons,
+  regions,
+  videoBasedResultsEnabled,
+}: Props) {
+  const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
+  const { member, organization } = useSession();
 
   const { executeAsync: updateMember, isPending: isUpdating } = useAction(updateMemberSF);
+  const { executeAsync: removeMember, isPending: isRemoving } = useAction(removeMemberSF);
   const [members, setMembers] = useState(initMembers);
   const [memberPersons, setMemberPersons] = useState(initMemberPersons);
   const [memberId, setMemberId] = useState<string>();
@@ -43,6 +52,7 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [search, setSearch] = useState("");
+  const [loadingId, setLoadingId] = useState("");
 
   const filteredMembers = useMemo(() => {
     const simplifiedSearch = getSimplifiedString(search);
@@ -54,6 +64,8 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
         getSimplifiedString(memberPersons.find((p) => p.id === m.personId)?.name ?? "").includes(simplifiedSearch),
     );
   }, [search, members, memberPersons]);
+
+  const isPending = isUpdating || isRemoving;
 
   const handleSubmit = async () => {
     if (persons[0] === null && personNames[0].trim() !== "") {
@@ -114,10 +126,28 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
     }
   };
 
+  const onRemoveMember = async (member: typeof authClient.$Infer.Member) => {
+    resetMessages();
+
+    if (confirm(`Are you sure you would like to remove member ${member.user.name} from ${organization!.name}?`)) {
+      setLoadingId(`delete_member_${member.id}_button`);
+
+      const res = await removeMember({ id: member.id });
+
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
+      } else {
+        changeSuccessMessage(`Successfully removed member ${member.user.name} from ${organization!.name}`);
+        setMembers(members.filter((m) => m.id !== member.id));
+      }
+      setLoadingId("");
+    }
+  };
+
   return (
     <>
       {name && (
-        <Form onSubmit={handleSubmit} hideToasts onCancel={() => setName("")} isLoading={isUpdating}>
+        <Form onSubmit={handleSubmit} hideToasts onCancel={() => setName("")} isLoading={isPending}>
           <div className="row mb-3">
             <div className="col">
               <FormTextInput title="Name" value={name} disabled />
@@ -133,7 +163,7 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
             personNames={personNames}
             setPersonNames={setPersonNames}
             regions={regions}
-            disabled={isUpdating}
+            disabled={isPending}
             addNewPersonMode="default"
             display="grid"
           />
@@ -142,22 +172,39 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
             title={orgRolesObject.member}
             selected={isMember}
             setSelected={setIsMember}
-            disabled={isUpdating || isMember} // removing this role is no longer allowed
+            disabled={isPending || isMember} // removing this role is no longer allowed
+            className="mb-3"
           />
-          <FormCheckbox title={orgRolesObject.mod} selected={isMod} setSelected={setIsMod} disabled={isUpdating} />
           <FormCheckbox
-            title={orgRolesObject.videoBasedResultReviewer}
-            selected={isVideoBasedResultReviewer}
-            setSelected={setIsVideoBasedResultReviewer}
-            disabled={isUpdating}
+            title={orgRolesObject.mod}
+            selected={isMod}
+            setSelected={setIsMod}
+            disabled={isPending}
+            className="mb-3"
           />
+          {videoBasedResultsEnabled && (
+            <FormCheckbox
+              title={orgRolesObject.videoBasedResultReviewer}
+              selected={isVideoBasedResultReviewer}
+              setSelected={setIsVideoBasedResultReviewer}
+              disabled={isPending}
+              className="mb-3"
+            />
+          )}
           <FormCheckbox
             title={orgRolesObject.admin}
             selected={isAdmin}
             setSelected={setIsAdmin}
-            disabled={isUpdating}
+            disabled={isPending}
+            className="mb-3"
           />
-          <FormCheckbox title={orgRolesObject.owner} selected={isOwner} setSelected={setIsOwner} disabled />
+          <FormCheckbox
+            title={orgRolesObject.owner}
+            selected={isOwner}
+            setSelected={setIsOwner}
+            disabled
+            className="mb-3"
+          />
         </Form>
       )}
 
@@ -185,26 +232,46 @@ function ManageMembersScreen({ members: initMembers, memberPersons: initMemberPe
             </tr>
           </thead>
           <tbody>
-            {filteredMembers.map((member, index) => {
-              const person = memberPersons.find((p) => p.id === member.personId);
-              const roles = member
+            {filteredMembers.map((m, index) => {
+              const person = memberPersons.find((p) => p.id === m.personId);
+              const roles = m
                 .role!.split(",")
                 .map((role) => (orgRolesObject as any)[role])
                 .join(", ");
 
               return (
-                <tr key={member.id}>
+                <tr key={m.id}>
                   <td>{index + 1}</td>
                   <td className="text-truncate" style={{ maxWidth: "20rem" }}>
-                    {member.user.name}
+                    {m.user.name}
                   </td>
-                  <td>{member.user.email}</td>
+                  <td>{m.user.email}</td>
                   <td>{person && <Competitor person={person} regions={regions} noFlag />}</td>
                   <td>{roles}</td>
                   <td>
-                    <Button onClick={() => onEditMember(member)} className="btn-xs" title="Edit" ariaLabel="Edit">
-                      <FontAwesomeIcon icon={faPencil} />
-                    </Button>
+                    <div className="d-flex gap-2">
+                      <Button
+                        onClick={() => onEditMember(m)}
+                        className="btn-xs"
+                        title="Edit member"
+                        ariaLabel="Edit member"
+                      >
+                        <FontAwesomeIcon icon={faPencil} />
+                      </Button>
+                      {member && m.id !== member.id && (
+                        <Button
+                          id={`delete_member_${m.id}_button`}
+                          onClick={() => onRemoveMember(m)}
+                          loadingId={loadingId}
+                          disabled={isPending}
+                          className="btn-danger btn-xs"
+                          title="Remove member"
+                          ariaLabel="Remove member"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
