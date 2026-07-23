@@ -95,14 +95,14 @@ function Navbar() {
     setUserExpanded(false);
   };
 
-  if (!organization) return;
-
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-md position-relative">
-        <Link href={slugPath(organization.slug, "") || "/"} prefetch={false} className="navbar-brand">
-          {organization.logo ? <img src={organization.logo} height={45} width={45} alt="Home" /> : "Home"}
-        </Link>
+        {organization && (
+          <Link href={slugPath(organization.slug, "") || "/"} prefetch={false} className="navbar-brand">
+            {organization.logo ? <img src={organization.logo} height={45} alt="Home" /> : "Home"}
+          </Link>
+        )}
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
@@ -114,141 +114,144 @@ function Navbar() {
         </button>
         <div className={`navbar-collapse justify-content-end ${expanded ? "" : "collapse"}`}>
           <ul className="navbar-nav fs-5 mx-2 mt-3 mt-lg-0 gap-lg-2 align-items-lg-end align-items-start">
-            <li className="nav-item">
-              <Link
-                href={slugPath(organization.slug, "/competitions")}
-                onClick={collapseAll}
-                prefetch={false}
-                className={`nav-link ${pathname === slugPath(organization.slug, "/competitions") ? "active" : ""}`}
-              >
-                <FontAwesomeIcon icon={faCalendarDays} size="xs" className="me-2" />
-                Contests
-              </Link>
-            </li>
-            <li
-              onMouseEnter={() => toggleDropdown("results", true)}
-              onMouseLeave={() => toggleDropdown("results", false)}
-              className="nav-item dropdown"
-            >
-              <button
-                type="button"
-                onClick={() => toggleDropdown("results", !resultsExpanded)}
-                className={`nav-link dropdown-toggle ${new RegExp(`^${slugPath(organization.slug, "")}/(rankings/|records/|export)`).test(pathname) ? "active" : ""}`}
-              >
-                <FontAwesomeIcon icon={faRankingStar} size="xs" className="me-2" />
-                Results
-              </button>
-              <ul className={`dropdown-menu px-3 px-lg-2 py-0 ${resultsExpanded ? "show" : ""}`}>
-                <li>
+            {organization && (
+              <>
+                <li className="nav-item">
                   <Link
-                    href={slugPath(organization.slug, "/records")}
+                    href={slugPath(organization.slug, "/competitions")}
                     onClick={collapseAll}
                     prefetch={false}
-                    className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/records")}/`).test(pathname) ? "active" : ""}`}
+                    className={`nav-link ${pathname === slugPath(organization.slug, "/competitions") ? "active" : ""}`}
                   >
-                    Records
+                    <FontAwesomeIcon icon={faCalendarDays} size="xs" className="me-2" />
+                    Contests
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href={slugPath(organization.slug, "/rankings")}
-                    onClick={collapseAll}
-                    prefetch={false}
-                    className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/rankings")}/`).test(pathname) ? "active" : ""}`}
-                  >
-                    Rankings
-                  </Link>
-                </li>
-                {publicExportsEnabled && (
-                  <li>
-                    <Link
-                      href={slugPath(organization.slug, "/export")}
-                      onClick={collapseAll}
-                      prefetch={false}
-                      className={`nav-link ${pathname === slugPath(organization.slug, "/export") ? "active" : ""}`}
-                    >
-                      Exports
-                    </Link>
-                  </li>
-                )}
-              </ul>
-            </li>
-            {rulesPageEnabled && (
-              <li className="nav-item">
-                <Link
-                  href={slugPath(organization.slug, "/rules")}
-                  onClick={collapseAll}
-                  prefetch={false}
-                  className={`nav-link ${pathname === slugPath(organization.slug, "/rules") ? "active" : ""}`}
+                <li
+                  onMouseEnter={() => toggleDropdown("results", true)}
+                  onMouseLeave={() => toggleDropdown("results", false)}
+                  className="nav-item dropdown"
                 >
-                  <FontAwesomeIcon icon={faBook} size="xs" className="me-2" />
-                  Rules
-                </Link>
-              </li>
+                  <button
+                    type="button"
+                    onClick={() => toggleDropdown("results", !resultsExpanded)}
+                    className={`nav-link dropdown-toggle ${new RegExp(`^${slugPath(organization.slug, "")}/(rankings/|records/|export)`).test(pathname) ? "active" : ""}`}
+                  >
+                    <FontAwesomeIcon icon={faRankingStar} size="xs" className="me-2" />
+                    Results
+                  </button>
+                  <ul className={`dropdown-menu px-3 px-lg-2 py-0 ${resultsExpanded ? "show" : ""}`}>
+                    <li>
+                      <Link
+                        href={slugPath(organization.slug, "/records")}
+                        onClick={collapseAll}
+                        prefetch={false}
+                        className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/records")}/`).test(pathname) ? "active" : ""}`}
+                      >
+                        Records
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={slugPath(organization.slug, "/rankings")}
+                        onClick={collapseAll}
+                        prefetch={false}
+                        className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/rankings")}/`).test(pathname) ? "active" : ""}`}
+                      >
+                        Rankings
+                      </Link>
+                    </li>
+                    {publicExportsEnabled && (
+                      <li>
+                        <Link
+                          href={slugPath(organization.slug, "/export")}
+                          onClick={collapseAll}
+                          prefetch={false}
+                          className={`nav-link ${pathname === slugPath(organization.slug, "/export") ? "active" : ""}`}
+                        >
+                          Exports
+                        </Link>
+                      </li>
+                    )}
+                  </ul>
+                </li>
+                {rulesPageEnabled && (
+                  <li className="nav-item">
+                    <Link
+                      href={slugPath(organization.slug, "/rules")}
+                      onClick={collapseAll}
+                      prefetch={false}
+                      className={`nav-link ${pathname === slugPath(organization.slug, "/rules") ? "active" : ""}`}
+                    >
+                      <FontAwesomeIcon icon={faBook} size="xs" className="me-2" />
+                      Rules
+                    </Link>
+                  </li>
+                )}
+                <li
+                  onMouseEnter={() => toggleDropdown("more", true)}
+                  onMouseLeave={() => toggleDropdown("more", false)}
+                  className="nav-item dropdown"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleDropdown("more", !moreExpanded)}
+                    className="nav-link dropdown-toggle"
+                  >
+                    <FontAwesomeIcon icon={faStar} size="xs" className="me-2" />
+                    More
+                  </button>
+                  <ul className={`dropdown-menu px-3 px-lg-2 py-0 ${moreExpanded ? "show" : ""}`}>
+                    {aboutPageEnabled && (
+                      <li>
+                        <Link
+                          href={slugPath(organization.slug, "/about")}
+                          onClick={collapseAll}
+                          prefetch={false}
+                          className={`nav-link ${pathname === slugPath(organization.slug, "/about") ? "active" : ""}`}
+                        >
+                          About
+                        </Link>
+                      </li>
+                    )}
+                    <li>
+                      <Link
+                        href={slugPath(organization.slug, "/posts")}
+                        onClick={collapseAll}
+                        prefetch={false}
+                        className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/posts")}`).test(pathname) ? "active" : ""}`}
+                      >
+                        Blog
+                      </Link>
+                    </li>
+                    {modInstructionsPageEnabled && (
+                      <li>
+                        <Link
+                          href={slugPath(organization.slug, "/moderator-instructions")}
+                          onClick={collapseAll}
+                          prefetch={false}
+                          className={`nav-link ${pathname === slugPath(organization.slug, "/moderator-instructions") ? "active" : ""}`}
+                        >
+                          Moderator instructions
+                        </Link>
+                      </li>
+                    )}
+                    <li>
+                      <a
+                        href={C.rrDonationLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={collapseAll}
+                        className="nav-link"
+                      >
+                        Support RecordRanks
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </>
             )}
-            <li
-              onMouseEnter={() => toggleDropdown("more", true)}
-              onMouseLeave={() => toggleDropdown("more", false)}
-              className="nav-item dropdown"
-            >
-              <button
-                type="button"
-                onClick={() => toggleDropdown("more", !moreExpanded)}
-                className="nav-link dropdown-toggle"
-              >
-                <FontAwesomeIcon icon={faStar} size="xs" className="me-2" />
-                More
-              </button>
-              <ul className={`dropdown-menu px-3 px-lg-2 py-0 ${moreExpanded ? "show" : ""}`}>
-                {aboutPageEnabled && (
-                  <li>
-                    <Link
-                      href={slugPath(organization.slug, "/about")}
-                      onClick={collapseAll}
-                      prefetch={false}
-                      className={`nav-link ${pathname === slugPath(organization.slug, "/about") ? "active" : ""}`}
-                    >
-                      About
-                    </Link>
-                  </li>
-                )}
-                <li>
-                  <Link
-                    href={slugPath(organization.slug, "/posts")}
-                    onClick={collapseAll}
-                    prefetch={false}
-                    className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/posts")}`).test(pathname) ? "active" : ""}`}
-                  >
-                    Blog
-                  </Link>
-                </li>
-                {modInstructionsPageEnabled && (
-                  <li>
-                    <Link
-                      href={slugPath(organization.slug, "/moderator-instructions")}
-                      onClick={collapseAll}
-                      prefetch={false}
-                      className={`nav-link ${pathname === slugPath(organization.slug, "/moderator-instructions") ? "active" : ""}`}
-                    >
-                      Moderator instructions
-                    </Link>
-                  </li>
-                )}
-                <li>
-                  <a
-                    href={C.rrDonationLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={collapseAll}
-                    className="nav-link"
-                  >
-                    Support RecordRanks
-                  </a>
-                </li>
-              </ul>
-            </li>
-            {!member ? (
-              // TO-DO: THIS NEEDS TO BE REMOVED NOW! BUT WAIT, WHAT ABOUT WHITE-LABEL? (i.e. CC)
+            {!user ? (
               <li className="nav-item">
                 <Link href="/login" prefetch={false} onClick={collapseAll} className="nav-link">
                   <FontAwesomeIcon icon={faUser} size="xs" className="me-2" />
@@ -270,7 +273,7 @@ function Navbar() {
                   <FontAwesomeIcon icon={faUser} aria-label="User" />
                 </button>
                 <ul className={`dropdown-menu end-0 px-3 px-lg-2 py-0 ${userExpanded ? "show" : ""}`}>
-                  {canAccessModDashboard && (
+                  {organization && canAccessModDashboard && (
                     <li>
                       <Link
                         href={slugPath(organization.slug, `/mod${isAdmin ? "?state=pending" : ""}`)}
@@ -282,7 +285,7 @@ function Navbar() {
                       </Link>
                     </li>
                   )}
-                  {videoBasedResultsEnabled && (
+                  {organization && videoBasedResultsEnabled && (
                     <>
                       {canApproveVideoBasedResults && (
                         <li>
