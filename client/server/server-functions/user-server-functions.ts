@@ -365,15 +365,14 @@ export const createOrganizationSF = actionClient
         }),
       contactEmail: z.email(),
       logo: z.string().optional(),
-      homePageDescription: z.string().optional(),
-      aboutPageContent: z.string().optional(),
       contestTypes: z.array(z.enum(["comp", "meetup", "online"])).nonempty(),
       isPrivate: z.boolean(),
+      communicationsAgreed: z.boolean().optional(),
     }),
   )
   .action<{ slug: string }>(
     async ({
-      parsedInput: { name, slug, contactEmail, logo, homePageDescription, aboutPageContent, contestTypes, isPrivate },
+      parsedInput: { name, slug, contactEmail, logo, contestTypes, isPrivate, communicationsAgreed },
       ctx: { session, httpHeaders },
     }) => {
       if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED !== "true")
@@ -388,6 +387,7 @@ export const createOrganizationSF = actionClient
             private: isPrivate,
             contactEmail,
             showDonationLinks: true,
+            communicationsAgreed,
           },
         },
         headers: httpHeaders,
@@ -400,8 +400,6 @@ export const createOrganizationSF = actionClient
         await tx.insert(settingsTable).values(
           getDefaultOrgSettings(organization.id).map((s) => {
             if (s.key === "contest-types") s.value = contestTypes.join(",");
-            if (homePageDescription && s.key === "home-page-description") s.value = homePageDescription;
-            if (aboutPageContent && s.key === "about-page-content") s.value = aboutPageContent;
             return s;
           }),
         );

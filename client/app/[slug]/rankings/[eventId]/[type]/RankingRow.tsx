@@ -1,15 +1,15 @@
 "use client";
 
-import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import Attempts from "~/app/components/Attempts.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Region from "~/app/components/Region.tsx";
-import Solves from "~/app/components/Solves.tsx";
 import type { Ranking } from "~/helpers/types/Rankings.ts";
 import { getFormattedDate, getFormattedTime, slugPath } from "~/helpers/utility-functions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
@@ -38,11 +38,12 @@ function RankingRow({
 }: Props) {
   const { slug }: { slug: string } = useParams();
 
-  const [teamExpanded, setTeamExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const personsToDisplay = showAllTeammates
     ? ranking.persons
     : [ranking.personId ? ranking.persons.find((p) => p.id === ranking.personId)! : ranking.persons[0]];
+  const result = getFormattedTime(ranking.result, { event, showMultiPoints: true, isAverage: type === "average" });
 
   return (
     <tr>
@@ -52,7 +53,7 @@ function RankingRow({
       <td>
         <Competitors persons={personsToDisplay} regions={regions} noFlag={!showAllTeammates} />
       </td>
-      <td>{getFormattedTime(ranking.result, { event, showMultiPoints: true, isAverage: type === "average" })}</td>
+      <td>{result}</td>
       {!showAllTeammates && (
         <td>
           <Region regionCode={personsToDisplay[0].regionCode} regions={regions} shorten />
@@ -74,31 +75,29 @@ function RankingRow({
       </td>
       {showTeamColumn && (
         <td>
-          <div className="d-flex fs-6 flex-column gap-2 align-items-start">
-            <span className="text-white">
+          <div className="d-flex fs-6 flex-column gap-2">
+            <span className="align-self-end">
               <button
                 type="button"
-                onClick={() => setTeamExpanded(!teamExpanded)}
-                className="border-0 bg-transparent p-0 text-decoration-underline"
+                onClick={() => setExpanded(!expanded)}
+                title={expanded ? "Collapse" : "Expand"}
+                className="fs-5 border-0 bg-transparent p-0"
                 style={{ cursor: "pointer" }}
               >
-                {teamExpanded ? "Close" : "Open"}
+                <FontAwesomeIcon icon={expanded ? faChevronUp : faChevronDown} />
               </button>
-              <span>
-                {teamExpanded ? <FontAwesomeIcon icon={faCaretDown} /> : <FontAwesomeIcon icon={faCaretRight} />}
-              </span>
             </span>
 
-            {teamExpanded && ranking.persons.map((p) => <Competitor key={p.id} person={p} regions={regions} />)}
+            {expanded && ranking.persons.map((p) => <Competitor key={p.id} person={p} regions={regions} />)}
           </div>
         </td>
       )}
       {showDetailsColumn && (
         <td>
           {type === "average" ? (
-            <Solves event={event} attempts={ranking.attempts} showMultiPoints />
+            <Attempts event={event} attempts={ranking.attempts} showMultiPoints />
           ) : (
-            ranking.memo && getFormattedTime(ranking.memo, { showDecimals: false, alwaysShowMinutes: true })
+            ranking.memo && `${getFormattedTime(ranking.memo, { showDecimals: false, alwaysShowMinutes: true })} memo`
           )}
         </td>
       )}

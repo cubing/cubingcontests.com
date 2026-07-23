@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Attempts from "~/app/components/Attempts";
+import Attempts from "~/app/components/Attempts.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Region from "~/app/components/Region.tsx";

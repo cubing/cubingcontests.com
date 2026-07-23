@@ -1,6 +1,6 @@
 import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Attempts from "~/app/components/Attempts";
+import Attempts from "~/app/components/Attempts.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import Time from "~/app/components/Time.tsx";
 import Button from "~/app/components/UI/Button.tsx";

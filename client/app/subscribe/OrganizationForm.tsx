@@ -30,6 +30,7 @@ function OrganizationForm() {
       ...Object.fromEntries(formData.entries()),
       contestTypes,
       isPrivate: formData.get("isPrivate") === "on",
+      communicationsAgreed: formData.get("communicationsAgreed") === "on",
     } as any);
 
     if (res.serverError || res.validationErrors) {
@@ -164,9 +165,7 @@ function OrganizationForm() {
         </div>
       </fieldset>
 
-      <h4 className="fw-normal mb-3">Options</h4>
-
-      <fieldset className="mb-3">
+      <fieldset className="mb-4">
         <label htmlFor="logo_input" className="form-label">
           Logo URL
         </label>
@@ -180,21 +179,14 @@ function OrganizationForm() {
         </div>
       </fieldset>
 
-      <fieldset className="mb-3">
-        <label htmlFor="home_page_description" className="form-label">
-          Home page description (Markdown supported)
+      <fieldset className="form-check mb-3">
+        <input id="communications_agreed" type="checkbox" name="communicationsAgreed" className="form-check-input" />
+        <label htmlFor="communications_agreed" className="form-check-label">
+          I want to receive communications from RecordRanks (you can unsubscribe at any time)
         </label>
-        <textarea id="home_page_description" name="homePageDescription" rows={3} className="form-control" />
       </fieldset>
 
-      {/* <fieldset className="mb-3">
-        <label htmlFor="about_page_content" className="form-label">
-          About page contents (Markdown supported)
-        </label>
-        <textarea id="about_page_content" name="aboutPageContent" rows={3} className="form-control" />
-      </fieldset> */}
-
-      <Button type="submit" isLoading={isCreating} className="my-3 w-100">
+      <Button type="submit" isLoading={isCreating} className="mb-3 w-100">
         Create Space
       </Button>
 

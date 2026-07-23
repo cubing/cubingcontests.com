@@ -180,11 +180,9 @@ To enable automatic public exports that run at regular intervals, you have to se
 
 1. Open Supabase Studio and go to Integrations -> Vault -> Secrets.
 2. Add secret `service_role_key` with the value being the same as `SERVICE_ROLE_KEY` in your production `.env` file.
-3. Add secret `base_url` with the value `https://<PROD_HOSTNAME>` (use your production hostname value).
+3. Add secret `base_url` with the value `https://<PROD_HOSTNAME>` (use the same `PROD_HOSTNAME` value from `.env`).
 4. Go to SQL Editor and run the query "Schedule public export cron job".
 5. Go to the `settings` table in Table Editor and set the `public-exports-to-keep` value to a number above 0.
-
-**NOTE**: while this cron job will be visible in Integrations -> Cron, it cannot be edited directly, due to the complex value of the authorization header; only activated and deactivated. To change the cron job, delete it and create it again following step 4.
 
 To test this locally, run the local dev environment and then use this command:
 

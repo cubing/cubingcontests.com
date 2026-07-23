@@ -6,7 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
-import Attempts from "~/app/components/Attempts";
+import Attempts from "~/app/components/Attempts.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";

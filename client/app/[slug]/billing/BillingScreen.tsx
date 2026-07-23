@@ -84,6 +84,8 @@ function BillingScreen({ activeSubscription }: Props) {
 
   return (
     <div className="mx-auto w-100" style={{ maxWidth: "var(--rr-md-width)" }}>
+      <p className="fs-5">Please select your plan and billing period:</p>
+
       <Form
         buttonText={activeSubscription ? "Upgrade" : "Start Free Trial"}
         onSubmit={subscribe}
@@ -144,8 +146,9 @@ function BillingScreen({ activeSubscription }: Props) {
 
         {!activeSubscription ? (
           <>
-            <p className="fw-bold mb-4 text-info">
-              30 day free trial with free cancellation before the end of the trial period
+            <p className="fw-bold mb-4">
+              <span className="text-info">30 day free trial</span>, with free cancellation before the end of the trial
+              period!
             </p>
 
             <div className="d-flex column-gap-2 mt-3 flex-wrap">
@@ -172,8 +175,12 @@ function BillingScreen({ activeSubscription }: Props) {
       </Form>
 
       <p className="mb-4">
-        This space will remain publicly accessible with or without an active subscription, unless it's set to private in
-        the space settings.
+        <span className="fw-bold text-warning">
+          Please note that if billing isn't set up within 24 hours, the space may be deleted, which means you will have
+          to create it again.
+        </span>{" "}
+        Once billing is set up, the space will remain publicly accessible with or without an active subscription, unless
+        it's set to private in the space's settings.
       </p>
 
       {activeSubscription && (
