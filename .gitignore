@@ -50,6 +50,3 @@ client/icon.svg
 client/icon.*.svg
 client/app/favicon.ico
 client/app/robots.txt
-
-# (TEMPORARY!!!!!!!!!!!!!!! ALSO REMOVE THE SAME DIRECTORY FROM .dockerignore!!!!)
-client/dump
