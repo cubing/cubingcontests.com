@@ -7,15 +7,18 @@ import z from "zod";
 import RankingsTable from "~/app/[slug]/rankings/[eventId]/[type]/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
+import RecordCategoriesButtonGroup from "~/app/components/RecordCategoriesButtonGroup.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
+import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
-import { RecordCategoryValues } from "~/helpers/types.ts";
+import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { shortenEventName, slugPath } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import { eventsPublicCols, eventsTable as table } from "~/server/db/schema/events.ts";
 import {
+  getEnabledRecordCategories,
   getEvents,
   getOrgDetails,
   getRankings,
@@ -67,19 +70,22 @@ async function RankingsPage({ params, searchParams }: Props) {
   const urlSearchParamsWithoutTopN = new URLSearchParams(omitBy({ show, category, region } as any, (val) => !val));
 
   const organization = await getOrgDetails({ slug });
-  const [events, regions] = await Promise.all([
+  const [events, regions, enabledRecordCategories] = await Promise.all([
     getEvents({ organizationId: organization!.id, includeHiddenAndRemoved: true }),
     getRegions(organization!.id),
+    getEnabledRecordCategories({ organizationId: organization!.id }),
   ]);
 
   const visibleEvents = events.filter((e) => e.category !== "removed" && !e.hidden);
   const event = events.find((e) => e.eventId === eventId);
   if (!event) return <p className="fs-4 mx-3 mt-5 text-center">Event not found</p>;
-  const recordCategory =
+  const recordCategory: RecordCategory | "all" =
     category ??
-    (event.category === "extreme-bld" || (event.category !== "unofficial" && event.submissionsAllowed)
+    (IS_CUBING_CONTESTS_INSTANCE &&
+    (event.category === "extreme-bld" ||
+      (["wca", "miscellaneous"].includes(event.category) && event.submissionsAllowed))
       ? "online"
-      : "competitions");
+      : enabledRecordCategories[0]);
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat)!;
 
   const rankingsPromise = getRankings(organization!.id, event, type, recordCategory, { show, region, topN });
@@ -201,64 +207,21 @@ async function RankingsPage({ params, searchParams }: Props) {
               </div>
             </div>
 
-            <div>
-              <h5>Category</h5>
-              {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-              <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Contest Type">
-                <Link
-                  href={slugPath(
-                    slug,
-                    `/rankings/${eventId}/${type}?${
-                      urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                    }category=competitions`,
-                  )}
-                  prefetch={false}
-                  className={`btn btn-primary ${recordCategory === "competitions" ? "active" : ""}`}
-                >
-                  Competitions
-                </Link>
-                <Link
-                  href={slugPath(
-                    slug,
-                    `/rankings/${eventId}/${type}?${
-                      urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                    }category=meetups`,
-                  )}
-                  prefetch={false}
-                  className={`btn btn-primary ${recordCategory === "meetups" ? "active" : ""}`}
-                >
-                  Meetups
-                </Link>
-                <Link
-                  href={slugPath(
-                    slug,
-                    `/rankings/${eventId}/${type}?${
-                      urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                    }category=online`,
-                  )}
-                  prefetch={false}
-                  className={`btn btn-primary ${recordCategory === "online" ? "active" : ""}`}
-                >
-                  Online
-                </Link>
-                <Link
-                  href={slugPath(
-                    slug,
-                    `/rankings/${eventId}/${type}?${
-                      urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                    }category=all`,
-                  )}
-                  prefetch={false}
-                  className={`btn btn-primary ${recordCategory === "all" ? "active" : ""}`}
-                >
-                  All
-                </Link>
-              </div>
-            </div>
+            <RecordCategoriesButtonGroup
+              pathTemplate={slugPath(
+                slug,
+                `/rankings/${eventId}/${type}?${
+                  urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
+                }category=__CATEGORY__`,
+              )}
+              selectedCategory={recordCategory}
+              recordCategories={enabledRecordCategories}
+              allCategoriesOption
+            />
           </div>
         </div>
 
-        {(event.category === "extreme-bld" || event.submissionsAllowed) && (
+        {((IS_CUBING_CONTESTS_INSTANCE && event.category === "extreme-bld") || event.submissionsAllowed) && (
           <Link
             href={slugPath(slug, `/video-based-results/submit?eventId=${eventId}`)}
             prefetch={false}

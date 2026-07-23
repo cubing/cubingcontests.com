@@ -1,4 +1,4 @@
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize";
 import type { RecordCategory } from "~/helpers/types.ts";
 
 type Props = {

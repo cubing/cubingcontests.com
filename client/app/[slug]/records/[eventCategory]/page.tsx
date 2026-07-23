@@ -4,14 +4,17 @@ import { Suspense } from "react";
 import z from "zod";
 import RecordsTable from "~/app/[slug]/records/[eventCategory]/RecordsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
+import RecordCategoriesButtonGroup from "~/app/components/RecordCategoriesButtonGroup.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
+import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { eventCategories } from "~/helpers/event-categories.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
-import { RecordCategoryValues } from "~/helpers/types.ts";
+import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import {
+  getEnabledRecordCategories,
   getEvents,
   getOrgDetails,
   getRecords,
@@ -48,9 +51,12 @@ async function RecordsPage({ params, searchParams }: Props) {
   const urlSearchParams = new URLSearchParams(omitBy({ category, eventId, region } as any, (val) => !val));
   const urlSearchParamsWithoutCategory = new URLSearchParams(omitBy({ eventId, region } as any, (val) => !val));
 
-  const recordCategory = category ?? (eventCategory === "extreme-bld" ? "online" : "competitions");
-
   const organization = await getOrgDetails({ slug });
+  const enabledRecordCategories = await getEnabledRecordCategories({ organizationId: organization!.id });
+  const recordCategory: RecordCategory | "all" =
+    category ??
+    (IS_CUBING_CONTESTS_INSTANCE && eventCategory === "extreme-bld" ? "online" : enabledRecordCategories[0]);
+
   const recordsPromise = getRecords({
     organizationId: organization!.id,
     eventCategory,
@@ -93,48 +99,16 @@ async function RecordsPage({ params, searchParams }: Props) {
         <div className="d-flex flex-wrap gap-3">
           <RegionSelect regions={regions} />
 
-          <div>
-            <h5>Category</h5>
-            {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-            <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Contest Type">
-              <Link
-                href={slugPath(
-                  slug,
-                  `/records/${eventCategory}?${
-                    urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                  }category=competitions`,
-                )}
-                prefetch={false}
-                className={`btn btn-primary ${recordCategory === "competitions" ? "active" : ""}`}
-              >
-                Competitions
-              </Link>
-              <Link
-                href={slugPath(
-                  slug,
-                  `/records/${eventCategory}/?${
-                    urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                  }category=meetups`,
-                )}
-                prefetch={false}
-                className={`btn btn-primary ${recordCategory === "meetups" ? "active" : ""}`}
-              >
-                Meetups
-              </Link>
-              <Link
-                href={slugPath(
-                  slug,
-                  `/records/${eventCategory}?${
-                    urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                  }category=online`,
-                )}
-                prefetch={false}
-                className={`btn btn-primary ${recordCategory === "online" ? "active" : ""}`}
-              >
-                Online
-              </Link>
-            </div>
-          </div>
+          <RecordCategoriesButtonGroup
+            pathTemplate={slugPath(
+              slug,
+              `/records/${eventCategory}?${
+                urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
+              }category=__CATEGORY__`,
+            )}
+            selectedCategory={recordCategory}
+            recordCategories={enabledRecordCategories}
+          />
         </div>
       </div>
 

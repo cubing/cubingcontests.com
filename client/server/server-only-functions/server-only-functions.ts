@@ -710,13 +710,13 @@ export async function getPersonsForExternalDeviceDataEntry(
 }
 
 type GetSettingFromDbBaseParams = { key: SettingKey; organizationId: string | null };
-export async function getSettingFromDb(params: GetSettingFromDbBaseParams & { optional?: never }): Promise<string>;
+export async function getSettingFromDb(params: GetSettingFromDbBaseParams & { optional?: false }): Promise<string>;
 export async function getSettingFromDb(params: GetSettingFromDbBaseParams & { optional: true }): Promise<string | null>;
 export async function getSettingFromDb({
   key,
   organizationId,
-  optional,
-}: GetSettingFromDbBaseParams & { optional?: true }): Promise<string | null> {
+  optional = false,
+}: GetSettingFromDbBaseParams & { optional?: boolean }): Promise<string | null> {
   const setting = await db.query.settings.findFirst({
     columns: { value: true },
     where: { key, organizationId: organizationId || { isNull: true } },
@@ -884,4 +884,23 @@ export function getOrgSubscription(
         limits: subscription.plan === "premium" ? rrPremiumLimits : rrBasicLimits,
       }
     : undefined;
+}
+
+export async function getEnabledRecordCategories({
+  organizationId,
+}: {
+  organizationId: string;
+}): Promise<RecordCategory[]> {
+  const [contestTypesSetting, videoBasedResultsEnabled] = await Promise.all([
+    getSettingFromDb({ organizationId, key: "contest-types" }),
+    getSettingFromDb({ organizationId, key: "video-based-results-enabled" }),
+  ]);
+  const contestTypes = contestTypesSetting.split(",") as ContestType[];
+  const enabledRecordCategories: RecordCategory[] = [];
+
+  if (contestTypes.includes("comp") || contestTypes.includes("wca-comp")) enabledRecordCategories.push("competitions");
+  if (contestTypes.includes("meetup")) enabledRecordCategories.push("meetups");
+  if (contestTypes.includes("online") || videoBasedResultsEnabled === "true") enabledRecordCategories.push("online");
+
+  return enabledRecordCategories;
 }

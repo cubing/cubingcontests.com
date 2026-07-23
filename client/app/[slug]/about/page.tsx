@@ -1,5 +1,5 @@
 import Markdown from "react-markdown";
-import DonateSection from "~/app/components/contest/DonateSection.tsx";
+import DonateSection from "~/app/components/content/DonateSection.tsx";
 import { getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
 export const metadata = {

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import Markdown from "react-markdown";
-import BlogSection from "~/app/components/contest/BlogSection.tsx";
-import CollectiveCubing from "~/app/components/contest/CollectiveCubing.tsx";
-import DonateSection from "~/app/components/contest/DonateSection.tsx";
-import ModInstructionsSection from "~/app/components/contest/ModInstructionsSection.tsx";
+import BlogSection from "~/app/components/content/BlogSection.tsx";
+import CollectiveCubing from "~/app/components/content/CollectiveCubing.tsx";
+import DonateSection from "~/app/components/content/DonateSection.tsx";
+import ModInstructionsSection from "~/app/components/content/ModInstructionsSection.tsx";
 import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import { getBlogPosts, getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
