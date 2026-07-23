@@ -24,7 +24,7 @@ async function BillingPage() {
 
   return (
     <section className="px-3 pb-3">
-      <h2 className="mb-4 text-center">Billing for space {organization!.name}</h2>
+      <h2 className="mb-4 text-center">Billing for {organization!.name}</h2>
 
       <BillingScreen activeSubscription={activeSubscription} />
     </section>

@@ -7,7 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, genericOAuth, organization, username } from "better-auth/plugins";
 import { sql } from "drizzle-orm";
 import Stripe from "stripe";
-import { HAS_CREDENTIAL_AUTH, HAS_GOOGLE_AUTH, HAS_WCA_AUTH, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import { baseUrl, HAS_CREDENTIAL_AUTH, HAS_GOOGLE_AUTH, HAS_WCA_AUTH, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { getHasRole } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import {
@@ -126,7 +126,7 @@ export const auth = betterAuth({
           organizationSlug: data.organization.slug,
           invitedByUsername: data.inviter.user.name,
           invitedByEmail: data.inviter.user.email,
-          inviteLink: `${process.env.NEXT_PUBLIC_BASE_URL}/accept-invitation/${data.id}`,
+          inviteLink: `${baseUrl}/accept-invitation/${data.id}`,
         });
       },
       schema: {

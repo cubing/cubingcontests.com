@@ -104,10 +104,16 @@ export async function authorizeUser(
 
   if (!session) redirect("/login");
 
-  const member = session.session.activeOrganizationId ? await auth.api.getActiveMember({ headers: hdrs }) : undefined;
-  const organization = session.session.activeOrganizationId
-    ? await getOrgDetails({ session: session.session, id: session.session.activeOrganizationId })
-    : undefined;
+  let member: typeof auth.$Infer.Member | undefined;
+  let organization: OrganizationDetails | undefined;
+
+  // It could be that the organization no longer exists, hence the try/catch
+  try {
+    member = session.session.activeOrganizationId ? await auth.api.getActiveMember({ headers: hdrs }) : undefined;
+    organization = session.session.activeOrganizationId
+      ? await getOrgDetails({ session: session.session, id: session.session.activeOrganizationId })
+      : undefined;
+  } catch {}
 
   if (useOrganization) {
     if (!session.session.activeOrganizationId || !organization || !member) redirect("/"); // go back to org selection

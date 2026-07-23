@@ -8,25 +8,12 @@ type Props = {
   setSelected: (val: any) => void;
   disabled?: boolean;
   oneLine?: boolean;
-  small?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-function FormRadio({
-  id,
-  title,
-  options,
-  selected,
-  setSelected,
-  disabled = false,
-  oneLine = false,
-  small = false,
-  className,
-}: Props) {
+function FormRadio({ id, title, options, selected, setSelected, disabled = false, oneLine = false, className }: Props) {
   return (
-    <div
-      className={`${oneLine ? "d-flex flex-wrap gap-3 gap-md-5 align-items-center" : ""} ${small ? "fs-6" : "fs-5"} ${className}`}
-    >
-      <h5 className={`${oneLine ? "m-0" : ""}  ${small ? "fs-6" : "fs-5"}`}>{title}</h5>
+    <div className={`${oneLine ? "d-flex flex-wrap gap-3 gap-md-5 align-items-center" : ""} ${className}`}>
+      <h5 className={`${oneLine ? "m-0" : ""}`}>{title}</h5>
 
       <div className={`d-flex flex-wrap gap-3 gap-md-4 ${oneLine ? "" : "my-3"}`}>
         {options.map((option) => {

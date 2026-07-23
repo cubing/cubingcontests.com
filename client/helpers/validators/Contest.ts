@@ -110,17 +110,17 @@ export const ContestValidator = z
   .strictObject({
     competitionId: z
       .string()
-      .min(5)
+      .min(4)
       .regex(/^[a-zA-Z0-9]*$/, { error: "The contest ID must only contain alphanumeric characters" }),
     name: z
       .string()
-      .min(10)
+      .min(IS_CUBING_CONTESTS_INSTANCE ? 10 : 5)
       .refine((val) => !IS_CUBING_CONTESTS_INSTANCE || /.* [0-9]{4}$/.test(val), {
         error: "The contest name must have the year at the end, separated by a space",
       }),
     shortName: z
       .string()
-      .min(8)
+      .min(IS_CUBING_CONTESTS_INSTANCE ? 8 : 3)
       .max(C.maxContestShortName)
       .refine((val) => !IS_CUBING_CONTESTS_INSTANCE || /.* [0-9]{4}$/.test(val), {
         error: "The short name must have the year at the end, separated by a space",

@@ -7,7 +7,7 @@ RecordRanks is a sports organization and ranking system for organizing competiti
 Monorepo with:
 
 - **`bin/`**: scripts
-- **`client/`**: full-stack Next.js web application
+- **`client/`**: PNPM project with the full-stack Next.js web application
 - **`client/server`**: backend files
 - **`client/db`**: DB schema and ORM configuration
 - **`client/db/schema`**: table schema files
@@ -36,10 +36,12 @@ Custom scripts in `bin/` for production and development tasks (DB migrations, Su
 ## Constraints
 
 - **.env files**: Don't try to read the `.env` files, except `.env.example`.
+- **PNPM commands**: Only run `pnpm` commands from the `client/` directory (where the PNPM project and `node_modules` are located), never from the repo root.
 - **Improving AGENTS.md**: If at the end of a significant task you realize that there was additional context you found in the code that you didn't have originally that would be useful for future sessions, you should make recommendations on how to improve it.
 - **Documentation**: If you're ever missing context about how a certain technology or plugin works, either do a web search for the documentation or ask for a link directly.
 - **Server Components**: When creating Next JS pages, default to using React Server Components for the `page.tsx` files, and only opt into client components when necessary (e.g. for interactivity). But this is not a hard rule.
 - **Comments**: Don't write too many comments. The code should speak for itself, so only write comments when it's genuinely unclear what's being done in the code.
+- **Git**: Don't stage files, read the staging diff or make commits unless explicitly told. Just read the un-staged diffs and edit the working tree directly.
 
 ## Project-specific Conventions
 

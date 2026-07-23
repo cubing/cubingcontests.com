@@ -54,16 +54,16 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
   const [isInitiatingEmailChange, startEmailChange] = useTransition();
   const [isDeleting, startDeleteAccountTransition] = useTransition();
 
-  const tabs = [
+  const tabs: NavigationItem[] = [
     { title: "Account", value: "account" },
-    { title: "Member Request", value: "member-request", disabled: !member },
-  ] as const satisfies NavigationItem[];
+    { title: "Member Request", value: "member-request", hidden: !member },
+  ];
   const showLinkWcaProfileButton =
     HAS_WCA_AUTH &&
     !["disabled", "linked"].includes(wcaProfileLinkStatus) &&
     accounts!.some((a) => a.providerId === "wca");
-  const roles = session?.activeOrganizationId
-    ? member!
+  const roles = member
+    ? member
         .role!.split(",")
         .map((role) => (orgRolesObject as any)[role])
         .join(", ")
@@ -155,7 +155,7 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
 
   return (
     <>
-      <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab as any} />
+      <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {activeTab === "account" && (
         <>
@@ -204,7 +204,7 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
               </div>
             </div>
           ) : (
-            <p className="mt-4">There is no competitor profile tied to your member profile.</p>
+            member && <p className="mt-4">There is no competitor profile tied to your member profile.</p>
           )}
           {showLinkWcaProfileButton && member && (
             <Button

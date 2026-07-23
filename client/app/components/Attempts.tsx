@@ -8,12 +8,12 @@ type Props = {
   showMultiPoints?: boolean;
 };
 
-function Solves({ event, attempts, showMultiPoints = false }: Props) {
+function Attempts({ event, attempts, showMultiPoints = false }: Props) {
   const best = Math.min(...attempts.map((a) => (a.result > 0 ? a.result : Infinity)));
   const worst = attempts.find((a) => a.result < 0)?.result ?? Math.max(...attempts.map((a) => a.result));
   const isAllDnfOrDnsAttempts = best === Infinity;
-  let bestSolve: number | undefined;
-  let worstSolve: number | undefined;
+  let bestAttempt: number | undefined;
+  let worstAttempt: number | undefined;
 
   return (
     <div className="d-flex gap-2">
@@ -23,9 +23,9 @@ function Solves({ event, attempts, showMultiPoints = false }: Props) {
         if (isAllDnfOrDnsAttempts || attempts.length < 5 || attempts.some((a) => a.result === 0))
           return <span key={index}>{formattedTime}</span>;
 
-        if (bestSolve === undefined && attempt.result === best) bestSolve = index;
-        if (bestSolve !== index && worstSolve === undefined && attempt.result === worst) worstSolve = index;
-        const addParentheses = index === bestSolve || index === worstSolve;
+        if (bestAttempt === undefined && attempt.result === best) bestAttempt = index;
+        if (bestAttempt !== index && worstAttempt === undefined && attempt.result === worst) worstAttempt = index;
+        const addParentheses = index === bestAttempt || index === worstAttempt;
 
         return <span key={index}>{`${addParentheses ? "(" : ""}${formattedTime}${addParentheses ? ")" : ""}`}</span>;
       })}
@@ -33,4 +33,4 @@ function Solves({ event, attempts, showMultiPoints = false }: Props) {
   );
 }
 
-export default Solves;
+export default Attempts;

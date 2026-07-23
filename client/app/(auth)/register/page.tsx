@@ -119,7 +119,6 @@ function RegisterPage() {
               selected={isPrivacyPolicyUnderstood}
               setSelected={setIsPrivacyPolicyUnderstood}
               disabled={isSubmitted || isPending}
-              noMargin
             />
             {z.url().safeParse(privacyPolicy.data).success ? (
               <a href={privacyPolicy.data} target="_blank" rel="noopener">

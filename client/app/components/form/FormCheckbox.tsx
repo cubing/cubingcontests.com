@@ -4,16 +4,15 @@ type Props = {
   selected: boolean;
   setSelected: (val: boolean) => void;
   disabled?: boolean;
-  noMargin?: boolean;
-};
+} & React.HTMLAttributes<HTMLDivElement>;
 
-function FormCheckbox({ id, title, selected, setSelected, disabled = false, noMargin = false }: Props) {
+function FormCheckbox({ id, title, selected, setSelected, disabled = false, className }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormCheckbox!");
 
   const inputId = `${id || title}_checkbox`;
 
   return (
-    <div className={`form-check ${noMargin ? "" : "mb-3"}`}>
+    <div className={`form-check ${className}`}>
       <input
         className="form-check-input"
         id={inputId}

@@ -154,7 +154,6 @@ function BillingScreen({ activeSubscription }: Props) {
                 selected={isTosUnderstood}
                 setSelected={setIsTosUnderstood}
                 disabled={isPending}
-                noMargin
               />
               <a href="https://recordranks.com/tos" target="_blank" rel="noopener">
                 Terms of Service

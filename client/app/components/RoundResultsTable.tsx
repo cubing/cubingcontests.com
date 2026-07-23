@@ -1,7 +1,7 @@
 import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Attempts from "~/app/components/Attempts";
 import Competitor from "~/app/components/Competitor.tsx";
-import Solves from "~/app/components/Solves.tsx";
 import Time from "~/app/components/Time.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { C } from "~/helpers/constants";
@@ -117,7 +117,7 @@ function RoundResultsTable({
                   </td>
                 )}
                 <td>
-                  <Solves event={event} attempts={result.attempts} />
+                  <Attempts event={event} attempts={result.attempts} />
                 </td>
                 {onEditResult && onDeleteResult && (
                   <td>

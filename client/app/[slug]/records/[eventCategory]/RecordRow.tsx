@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import Attempts from "~/app/components/Attempts";
 import Competitors from "~/app/components/Competitors.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Region from "~/app/components/Region.tsx";
-import Solves from "~/app/components/Solves.tsx";
 import type { RecordRanking } from "~/helpers/types/Rankings.ts";
 import { getFormattedDate, getFormattedTime, slugPath } from "~/helpers/utility-functions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
@@ -69,7 +69,7 @@ function RecordRow({ type, record, event, regions, mixedRecords, showOnlyPersonW
             <RankingLinks ranking={record} />
           ))}
       </td>
-      <td>{!showOnlyPersonWithId && type !== "single" && <Solves event={event} attempts={record.attempts} />}</td>
+      <td>{!showOnlyPersonWithId && type !== "single" && <Attempts event={event} attempts={record.attempts} />}</td>
     </tr>
   );
 }

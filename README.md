@@ -118,33 +118,23 @@ RecordRanks uses [Supabase](https://supabase.com/) for the database, blob storag
 
 #### DB initialization
 
-Run the command below (it's all one multi-line command) to initialize your Supabase DB. It gets `DB_USERNAME` and `DB_PASSWORD` values from the `.env` file in your RecordRanks repo (make sure to provide the correct path). The `username` variable strips off the Supabase Pooler tenant ID from the end of `DB_USERNAME`. This assumes you're self-hosting Supabase, so if you're not, you have to run the SQL query as the `supabase_admin` user some other way, or simply use the default `postgres` user instead of creating a new one.
+Run the following query as the `postgres` user to initialize the DB for RecordRanks.
 
-```sh
-source <PATH_TO_.env> && docker exec -i supabase-db psql \
-  -v username="${DB_USERNAME%.*}" \
-  -v password="$DB_PASSWORD" \
-  "postgresql://supabase_admin@localhost:5432/postgres" <<'EOF'
+```sql
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
-CREATE USER :"username" WITH PASSWORD :'password';
 CREATE SCHEMA IF NOT EXISTS record_ranks;
-ALTER SCHEMA record_ranks OWNER TO :"username";
 
-GRANT USAGE ON SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
-GRANT ALL ON ALL TABLES IN SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
-GRANT ALL ON ALL ROUTINES IN SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA record_ranks TO anon, authenticated, service_role, postgres;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON TABLES TO anon, authenticated, service_role, postgres;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON ROUTINES TO anon, authenticated, service_role, postgres;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON SEQUENCES TO anon, authenticated, service_role, postgres;
-
-GRANT CREATE ON DATABASE postgres TO :"username";
-EOF
+-- From Supabase docs: https://supabase.com/docs/guides/api/using-custom-schemas
+GRANT USAGE ON SCHEMA record_ranks TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA record_ranks TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA record_ranks TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA record_ranks TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA record_ranks GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
 ```
-
-Note: part of the query is taken from the [Supabase docs](https://supabase.com/docs/guides/api/using-custom-schemas), except the `postgres` user is also included, since the schema isn't owned by it; and the `GRANT CREATE` command is required, until this Drizzle PR is merged: https://github.com/drizzle-team/drizzle-orm/pull/4025
 
 You can also copy the SQL snippets from `supabase-snippets` into your `volumes/snippets` directory in the Supabase repo or add them directly in SQL Editor via Supabase Studio.
 
