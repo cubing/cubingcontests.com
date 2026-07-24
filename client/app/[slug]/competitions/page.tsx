@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
 import DonationGoals from "~/app/components/content/DonationGoals.tsx";
+import DonateButton from "~/app/components/DonateButton.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
@@ -56,7 +57,14 @@ async function ContestsPage({ params, searchParams }: Props) {
       ) : (
         <>
           <div className="mb-3 px-2">
-            {kofiGoalProgress !== null && <DonationGoals kofiGoalProgress={kofiGoalProgress} compact />}
+            {kofiGoalProgress !== null && (
+              <>
+                <DonationGoals kofiGoalProgress={kofiGoalProgress} compact />
+                <div className="my-3">
+                  <DonateButton />
+                </div>
+              </>
+            )}
 
             <EventButtons events={events} resetOnSameEventClick />
             <div style={{ maxWidth: "24rem" }}>

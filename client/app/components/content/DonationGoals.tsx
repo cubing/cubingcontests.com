@@ -1,5 +1,3 @@
-import { C } from "~/helpers/constants.ts";
-
 type Props = {
   kofiGoalProgress: string;
   compact?: boolean;
@@ -11,14 +9,9 @@ function DonationGoals({ kofiGoalProgress, compact }: Props) {
   return (
     <>
       {compact ? (
-        <a
-          href={C.rrDonationLink}
-          target="_blank"
-          rel="noreferrer"
-          className="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover d-block mb-2"
-        >
+        <p className="mb-2">
           Ko-fi goal progress: <strong>Personal Records</strong>
-        </a>
+        </p>
       ) : (
         <>
           <h4 className="mt-4">Goals</h4>
@@ -29,7 +22,7 @@ function DonationGoals({ kofiGoalProgress, compact }: Props) {
       )}
       <div
         role="progressbar"
-        className={`progress ${compact ? "mb-4" : "mb-2"}`}
+        className="progress mb-2"
         style={{ height: compact ? "1.1rem" : "1.3rem" }}
         aria-label="Goal progress"
         aria-valuenow={progressValue}
