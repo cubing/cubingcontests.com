@@ -46,12 +46,12 @@ export function useFeaturesInfo(): FeaturesInfo {
     privacyPolicy: "disabled" as const,
   };
 
-  const { organization } = useSession();
+  const { slug }: { slug?: string } = useParams();
 
   const { data: featuresInfo } = useSWR(
-    ["features-info", organization?.id],
+    ["features-info", slug],
     () =>
-      getFeaturesInfoSF({ organizationId: organization?.id }).then((res) => {
+      getFeaturesInfoSF({ slug }).then((res) => {
         if (res.serverError || res.validationErrors) console.error(getActionError(res));
         return res.data ?? fallbackData;
       }),

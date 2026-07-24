@@ -6,6 +6,7 @@ import { randomScrambleForEvent } from "cubing/scramble";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { nxnMoves } from "~/helpers/types/NxNMove.ts";
 import type { FeaturesInfo, OrganizationDetails } from "~/helpers/types.ts";
 import { auth, stripeClient } from "~/server/auth.ts";
@@ -162,18 +163,11 @@ export const makeCollectiveCubingMoveSF = actionClient
 
 export const getFeaturesInfoSF = actionClient
   .metadata({ auth: null })
-  .inputSchema(z.strictObject({ organizationId: z.string().nonempty().optional() }))
-  .action<FeaturesInfo>(async ({ parsedInput: { organizationId }, ctx: { session } }) => {
-    if (
-      organizationId &&
-      session.session.activeOrganizationId &&
-      organizationId !== session.session.activeOrganizationId
-    ) {
-      throw new RrActionError("You are not authorized to access this organization");
-    }
-
+  .inputSchema(z.strictObject({ slug: z.string().nonempty().optional() }))
+  .action<FeaturesInfo>(async ({ parsedInput: { slug }, ctx: { session } }) => {
+    const organization = slug ? await getOrgDetails({ session: session?.session, slug }) : undefined;
+    const organizationId = organization?.id;
     const [
-      organization,
       aboutPageContent,
       rulesPageContent,
       modInstructionsPageContent,
@@ -181,7 +175,6 @@ export const getFeaturesInfoSF = actionClient
       publicExportsToKeep,
       privacyPolicy,
     ] = await Promise.all([
-      organizationId ? getOrgDetails({ session: session.session, id: organizationId }) : undefined,
       organizationId ? getSettingFromDb({ key: "about-page-content", organizationId, optional: true }) : undefined,
       organizationId ? getSettingFromDb({ key: "rules-page-content", organizationId, optional: true }) : undefined,
       organizationId
@@ -198,7 +191,8 @@ export const getFeaturesInfoSF = actionClient
       modInstructionsPageEnabled: Boolean(modInstructionsPageContent),
       videoBasedResultsEnabled: videoBasedResultsEnabled === "true",
       publicExportsEnabled:
-        !!organization && organization.subscription?.plan !== "basic" && Number(publicExportsToKeep) > 0,
+        (!IS_RR_INSTANCE || (!!organization?.subscription && organization.subscription.plan !== "basic")) &&
+        Number(publicExportsToKeep) > 0,
       privacyPolicy: !privacyPolicy
         ? "disabled"
         : z.url().safeParse(privacyPolicy).success

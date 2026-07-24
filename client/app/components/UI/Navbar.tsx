@@ -27,11 +27,12 @@ function Navbar() {
   } = useFeaturesInfo();
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
-  const { data: canAccessModDashboard } = useSWR(session ? [SwrKey.CanAccessModDashboard, session] : null, () =>
-    clientGetHasPermission({ modDashboard: ["view"] }),
+  const { data: canAccessModDashboard } = useSWR(
+    session?.activeOrganizationId ? [SwrKey.CanAccessModDashboard, session] : null,
+    () => clientGetHasPermission({ modDashboard: ["view"] }),
   );
   const { data: canApproveVideoBasedResults } = useSWR(
-    session ? [SwrKey.CanApproveVideoBasedResults, session] : null,
+    session?.activeOrganizationId ? [SwrKey.CanApproveVideoBasedResults, session] : null,
     () => clientGetHasPermission({ videoBasedResults: ["approve"] }),
   );
   const [expanded, setExpanded] = useState(false);

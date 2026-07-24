@@ -190,7 +190,7 @@ export async function getOrgDetails({
     if (!session || session.activeOrganizationId !== organization.id) redirect("/login");
   }
 
-  if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED === "true") {
+  if (IS_RR_INSTANCE) {
     const subscription = await db.query.subscriptions.findFirst({
       where: { referenceId: organization.id, status: { in: ["active", "trialing"] } },
     });
