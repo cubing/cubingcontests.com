@@ -62,8 +62,8 @@ export const updateMemberSF = actionClient
   .action<{ member: typeof membersTable.$inferSelect; person?: PersonResponse }>(
     async ({ parsedInput: { id, personId, roles }, ctx: { session, httpHeaders } }) => {
       logMessage(
-        "RR0033",
-        `Updating member with ID ${id} (new person ID: ${personId}; new roles: ${roles.join(", ")})`,
+        "RR0042",
+        `Updating member with ID ${id} from organization ${session.organization!.name} (new person ID: ${personId}; new roles: ${roles.join(", ")})`,
       );
 
       const [member, credentialAccount] = await Promise.all([
@@ -117,6 +117,36 @@ export const updateMemberSF = actionClient
       return { member: updatedMember, person };
     },
   );
+
+export const removeMemberSF = actionClient
+  .metadata({ auth: { useOrganization: true, orgPermissions: { member: ["delete"] } } })
+  .inputSchema(z.strictObject({ id: z.string().nonempty() }))
+  .action(async ({ parsedInput: { id }, ctx: { session, httpHeaders } }) => {
+    logMessage("RR0043", `Removing member with ID ${id} from organization ${session.organization!.name}`);
+
+    const [member, memberRequest] = await Promise.all([
+      db.query.members.findFirst({ with: { user: { columns: { email: true } } }, where: { id } }),
+      db.query.memberRequests.findFirst({ where: { memberId: id } }),
+    ]);
+    if (!member) throw new RrActionError("Member not found");
+
+    if (memberRequest) {
+      await deleteUnusedPerson(memberRequest.requestedPersonId);
+
+      await db.delete(memberRequestsTable).where(eq(memberRequestsTable.id, memberRequest.id));
+    }
+
+    await auth.api.removeMember({
+      body: { memberIdOrEmail: id, organizationId: session.organization!.id },
+      headers: httpHeaders,
+    });
+
+    sendEmail(
+      member.user.email,
+      `You are no longer a member of ${session.organization!.name}`,
+      `The admin team has removed you as a member of ${session.organization!.name} on ${process.env.NEXT_PUBLIC_PROJECT_NAME}.`,
+    );
+  });
 
 export const linkWcaProfileSF = actionClient
   .metadata({ auth: { useOrganization: true } })
@@ -293,29 +323,22 @@ export const deleteMemberRequestSF = actionClient
   .metadata({ auth: { useOrganization: true } })
   .inputSchema(z.int())
   .action(async ({ parsedInput: id, ctx: { session, httpHeaders } }) => {
-    logMessage("RR0038", `Deleting member request for user with ID ${session.user.id}`);
-
     const { success: canDeleteMemberRequests } = await auth.api.hasPermission({
       headers: httpHeaders,
       body: { permissions: { memberRequests: ["delete"] } },
     });
 
     const memberRequest = await db.query.memberRequests.findFirst({
-      with: { user: { columns: { email: true } } },
+      with: { user: { columns: { id: true, email: true } } },
       where: { member: { organizationId: session.organization!.id }, id },
     });
     if (!memberRequest) throw new RrActionError("Member request not found");
     if (memberRequest.memberId !== session.member?.id && !canDeleteMemberRequests)
       throw new RrActionError("You are unauthorized to delete this request");
 
-    // Delete competitor profile, if it was simply created by the user and isn't used anywhere else
-    if (memberRequest.requestedPersonId) {
-      try {
-        await deletePersonSF({ id: memberRequest.requestedPersonId });
-      } catch (err) {
-        if (!(err instanceof RrActionError)) throw err;
-      }
-    }
+    logMessage("RR0038", `Deleting member request for user with ID ${memberRequest.user.id}`);
+
+    await deleteUnusedPerson(memberRequest.requestedPersonId);
 
     await db.delete(memberRequestsTable).where(eq(memberRequestsTable.id, id));
 
@@ -342,16 +365,15 @@ export const createOrganizationSF = actionClient
         }),
       contactEmail: z.email(),
       logo: z.string().optional(),
-      homePageDescription: z.string().optional(),
-      aboutPageContent: z.string().optional(),
       contestTypes: z.array(z.enum(["comp", "meetup", "online"])).nonempty(),
       isPrivate: z.boolean(),
+      communicationsAgreed: z.boolean().optional(),
     }),
   )
   .action<{ slug: string }>(
     async ({
-      parsedInput: { name, slug, contactEmail, logo, homePageDescription, aboutPageContent, contestTypes, isPrivate },
-      ctx: { httpHeaders },
+      parsedInput: { name, slug, contactEmail, logo, contestTypes, isPrivate, communicationsAgreed },
+      ctx: { session, httpHeaders },
     }) => {
       if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED !== "true")
         throw new RrActionError("Multitenancy is disabled for this instance");
@@ -365,6 +387,7 @@ export const createOrganizationSF = actionClient
             private: isPrivate,
             contactEmail,
             showDonationLinks: true,
+            communicationsAgreed,
           },
         },
         headers: httpHeaders,
@@ -377,8 +400,6 @@ export const createOrganizationSF = actionClient
         await tx.insert(settingsTable).values(
           getDefaultOrgSettings(organization.id).map((s) => {
             if (s.key === "contest-types") s.value = contestTypes.join(",");
-            if (homePageDescription && s.key === "home-page-description") s.value = homePageDescription;
-            if (aboutPageContent && s.key === "about-page-content") s.value = aboutPageContent;
             return s;
           }),
         );
@@ -395,6 +416,14 @@ export const createOrganizationSF = actionClient
         }
         return await db.insert(recordConfigsTable).values(recordConfigs);
       });
+
+      if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED === "true" && process.env.INSTANCE_MAINTAINER_EMAIL) {
+        sendEmail(
+          process.env.INSTANCE_MAINTAINER_EMAIL,
+          "New RR space created",
+          `A new space has been created by user ${session.user.name}: ${name}. Contact email: ${session.user.email}`,
+        );
+      }
 
       return { slug: organization.slug };
     },
@@ -480,5 +509,16 @@ async function changeMemberRoles({
       "Important: New admin member",
       `User ${user.name}${personName ? ` (competitor ${personName})` : ""} has been given the admin role.`,
     );
+  }
+}
+
+// Delete competitor profile, if it was simply created by the user and isn't used anywhere else
+async function deleteUnusedPerson(personId: number | null) {
+  if (personId) {
+    try {
+      await deletePersonSF({ id: personId });
+    } catch (err) {
+      if (!(err instanceof RrActionError)) throw err;
+    }
   }
 }

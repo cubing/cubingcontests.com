@@ -6,10 +6,10 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
+import Attempts from "~/app/components/Attempts.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
-import Solves from "~/app/components/Solves.tsx";
 import Time from "~/app/components/Time.tsx";
 import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
 import Button from "~/app/components/UI/Button.tsx";
@@ -137,7 +137,7 @@ function ManageResultsScreen({ results, events, recordConfigs, regions }: Props)
                       )}
                     </td>
                     <td>
-                      <Solves event={event} attempts={result.attempts} />
+                      <Attempts event={event} attempts={result.attempts} />
                     </td>
                     <td>{getFormattedDate(result.date)}</td>
                     <td>

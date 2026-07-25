@@ -37,5 +37,5 @@ echo -e "\n${cyan}Release new Docker image? (y/N)${nc}" &&
 read answer &&
 
 if [[ $? == 0 && ( "$answer" == "y" || "$answer" == "Y" ) ]]; then
-  ./bin/release-new-image.sh
+  ./bin/release-new-image.sh "$new_version"
 fi

@@ -45,7 +45,7 @@ export const C = {
       "The result is more than 30 days old and contains a record, which could affect other records. Please contact the admin team.",
   },
   color: {
-    rankingHighlight: "#10c010",
+    rankingHighlight: "#22d322",
     // These are the same as the Bootstrap colors
     primary: "#0d6efd",
     success: "#198754",
@@ -53,6 +53,9 @@ export const C = {
     danger: "#dc3545",
   },
 } as const;
+
+export const baseUrl =
+  process.env.NODE_ENV === "production" ? process.env.NEXT_PUBLIC_BASE_URL! : `http://localhost:${process.env.PORT}`;
 
 export const IS_RR_INSTANCE = process.env.NEXT_PUBLIC_BASE_URL === "https://app.recordranks.com";
 export const IS_CUBING_CONTESTS_INSTANCE = process.env.NEXT_PUBLIC_BASE_URL === "https://cubingcontests.com";

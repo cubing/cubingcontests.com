@@ -335,6 +335,7 @@ function ResultsSubmissionForm({
             title={C.message.videoNoLongerAvailable}
             selected={videoUnavailable}
             setSelected={setVideoUnavailable}
+            className="mb-3"
           />
         )}
         {videoLink && (

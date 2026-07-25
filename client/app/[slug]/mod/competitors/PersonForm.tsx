@@ -185,6 +185,7 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
             selected={!hasWcaId}
             setSelected={changeHasWcaId}
             disabled={isPending}
+            className="mb-3"
           />
         </>
       )}

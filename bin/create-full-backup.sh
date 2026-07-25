@@ -1,23 +1,34 @@
 #!/bin/bash
 
-cd "$(dirname "$0")/.."
+if [[ -n "$1" ]]; then
+  supabase_dir="$1"
+else
+  supabase_dir="."
+fi
+
+if [[ ! -d "$supabase_dir/volumes" || ! -f "$supabase_dir/run.sh" ]]; then
+  echo "Please run this script from the Supabase directory containing the run.sh script, or provide a path to it as the first argument"
+  exit 1
+fi
+
+cd "$supabase_dir"
 
 cyan='\033[0;36m'
 nc='\033[0m' # no color
 backup_name="backup_$(date "+%Y-%m-%d_%H-%M-%S")"
 
-echo -e "${cyan}Backing up .env, volumes/db/data and volumes/storage to $backup_name...${nc}\n" &&
+echo -e "${cyan}Backing up .env, volumes/db/data, volumes/storage and volumes/snippets to $backup_name...${nc}\n" &&
 sudo rsync --archive --xattrs .env volumes/db/data volumes/storage volumes/snippets ./$backup_name/ &&
 
-echo -e "${cyan}Stopping DB and storage containers...${nc}\n" &&
-docker stop supabase-db supabase-storage supabase-imgproxy &&
+echo -e "${cyan}Stopping containers...${nc}\n" &&
+sh run.sh stop db storage imgproxy &&
 
-echo -e "\n${cyan}Syncing the changes from the last few seconds for completeness...${nc}\n" &&
+echo -e "\n${cyan}Syncing the changes from the last few seconds for completeness...${nc}\n"
 sudo rsync --checksum --delete --archive --xattrs volumes/db/data volumes/storage ./$backup_name/ &&
 sudo chown -R $USER:$USER $backup_name &&
 
 echo -e "${cyan}Restarting Supabase containers...${nc}\n" &&
-docker compose -f docker-compose.supabase.yml up -d &&
+sh run.sh start db storage imgproxy &&
 
 echo -e "\n${cyan}Creating encrypted archive...${nc}" &&
 tar -czf "$backup_name.tar.gz" $backup_name &&

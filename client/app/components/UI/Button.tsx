@@ -31,7 +31,7 @@ function Button({
       onClick={onClick}
       onSubmit={(e) => e.preventDefault()}
       disabled={disabled || isLoading || !!loadingId}
-      className={`position-relative btn btn-primary ${className}`}
+      className={`position-relative btn ${className.split(" ").includes("btn-link") ? "" : "btn-primary"} ${className}`}
       style={style}
       title={title}
       aria-label={ariaLabel}

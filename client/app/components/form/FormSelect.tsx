@@ -15,7 +15,7 @@ function FormSelect({ id, title, options, selected, setSelected, disabled, oneLi
   const inputId = id || (title ? `${title.toLowerCase().replaceAll(" ", "_")}_select` : "select");
 
   return (
-    <div className={`fs-5 ${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`} style={style}>
+    <div className={`${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`} style={style}>
       {title && <FormInputLabel text={title} inputId={inputId} />}
 
       <select

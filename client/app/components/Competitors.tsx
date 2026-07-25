@@ -3,7 +3,7 @@ import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
-  persons: Pick<PersonResponse, "id" | "name" | "localizedName" | "regionCode" | "wcaId">[];
+  persons: (Pick<PersonResponse, "id" | "name" | "localizedName" | "regionCode" | "wcaId"> | undefined)[];
   regions: RegionResponse[];
   noFlag?: boolean;
   vertical?: boolean;
@@ -15,7 +15,7 @@ function Competitors({ persons, regions, noFlag = false, vertical = false }: Pro
       <div className="d-flex flex-column gap-2">
         {persons.map((person, index) =>
           person ? (
-            <Competitor key={person.id} person={person} regions={regions} />
+            <Competitor key={person.id} person={person} regions={regions} noFlag={noFlag} />
           ) : (
             <span key={index} className="text-danger">
               COMPETITOR NOT FOUND

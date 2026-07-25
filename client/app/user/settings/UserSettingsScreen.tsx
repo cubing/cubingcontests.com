@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useContext, useEffect, useState, useTransition } from "react";
@@ -15,7 +16,7 @@ import { HAS_WCA_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
-import { getActionError } from "~/helpers/utility-functions.ts";
+import { getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { orgRolesObject } from "~/server/organization-permissions.ts";
@@ -53,16 +54,16 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
   const [isInitiatingEmailChange, startEmailChange] = useTransition();
   const [isDeleting, startDeleteAccountTransition] = useTransition();
 
-  const tabs = [
+  const tabs: NavigationItem[] = [
     { title: "Account", value: "account" },
-    { title: "Member Request", value: "member-request", disabled: !member },
-  ] as const satisfies NavigationItem[];
+    { title: "Member Request", value: "member-request", hidden: !member },
+  ];
   const showLinkWcaProfileButton =
     HAS_WCA_AUTH &&
     !["disabled", "linked"].includes(wcaProfileLinkStatus) &&
     accounts!.some((a) => a.providerId === "wca");
-  const roles = session?.activeOrganizationId
-    ? member!
+  const roles = member
+    ? member
         .role!.split(",")
         .map((role) => (orgRolesObject as any)[role])
         .join(", ")
@@ -154,7 +155,7 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
 
   return (
     <>
-      <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab as any} />
+      <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {activeTab === "account" && (
         <>
@@ -203,7 +204,7 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
               </div>
             </div>
           ) : (
-            <p className="mt-4">There is no competitor profile tied to your member profile.</p>
+            member && <p className="mt-4">There is no competitor profile tied to your member profile.</p>
           )}
           {showLinkWcaProfileButton && member && (
             <Button
@@ -225,6 +226,12 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
           <p className="mt-2" style={{ fontSize: "0.85rem" }}>
             This deletes all of your account data, but does not affect your competitor profile data.
           </p>
+
+          {getHasRole("admin", user.role) && (
+            <Link href="/admin/debug" prefetch={false} className="d-block mt-4">
+              Debug page
+            </Link>
+          )}
         </>
       )}
 

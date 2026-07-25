@@ -29,6 +29,10 @@ const hashForRr =
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    if (process.env.NODE_ENV === "production") {
+      console.log("Running on pod with POD_NAME =", process.env.POD_NAME);
+    }
+
     const { db } = await import("~/server/db/provider.ts");
 
     // Seed default global settings

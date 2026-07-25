@@ -41,7 +41,7 @@ function EventResultsTable({ event, rounds, results, persons, recordConfigs, reg
 
   return (
     <div className="my-3">
-      <div className="mb-3">
+      <div className="mb-4">
         <EventTitle organizationSlug={slug} event={event} linkToRankings showDescription />
       </div>
 

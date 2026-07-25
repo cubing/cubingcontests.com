@@ -292,72 +292,70 @@ function ContestEvents({
                   </div>
                 </div>
                 {["time", "time-3d"].includes(ce.event.format) && (
-                  <div className="d-flex mt-3 w-100 flex-wrap gap-3 gap-md-5 align-items-center">
-                    <div className="d-flex justify-content-between gap-3 align-items-center">
-                      <h6 className="m-0 flex-shrink-0">Time limit:</h6>
-                      <div style={{ maxWidth: "8rem" }}>
-                        <AttemptInput
-                          attNumber={0}
-                          attempt={{ result: round.timeLimitCentiseconds ?? 0 }}
-                          setAttempt={(val) => changeRoundTimeLimit(round.eventId, round.roundNumber, val)}
-                          event={ce.event}
-                          maxTime={C.maxTimeLimit}
+                  <>
+                    <div className="d-flex mt-3 w-100 flex-wrap gap-3 gap-md-5 align-items-center">
+                      <div className="d-flex justify-content-between gap-3 align-items-center">
+                        <h6 className="m-0 flex-shrink-0">Time limit:</h6>
+                        <div style={{ maxWidth: "8rem" }}>
+                          <AttemptInput
+                            attNumber={0}
+                            attempt={{ result: round.timeLimitCentiseconds ?? 0 }}
+                            setAttempt={(val) => changeRoundTimeLimit(round.eventId, round.roundNumber, val)}
+                            event={ce.event}
+                            maxTime={C.maxTimeLimit}
+                            disabled={totalRoundResults > 0}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="d-flex justify-content-between gap-3 align-items-center">
+                        <h6 className="m-0 flex-shrink-0">Cumulative limit:</h6>
+                        <FormCheckbox
+                          title=""
+                          id={`cumulative_limit_${round.eventId}_r${round.roundNumber}`}
+                          selected={!!round.timeLimitCumulativeRoundIds}
+                          setSelected={() => changeRoundTimeLimitCumulative(round.eventId, round.roundNumber)}
                           disabled={totalRoundResults > 0}
                         />
                       </div>
                     </div>
+                    <div className="d-flex justify-content-between mt-3 flex-wrap gap-3 gap-md-5 align-items-center">
+                      <h6 className="m-0 flex-shrink-0">Cutoff:</h6>
 
-                    <div className="d-flex justify-content-between gap-3 align-items-center">
-                      <h6 className="m-0 flex-shrink-0">Cumulative limit:</h6>
                       <FormCheckbox
-                        title=""
-                        id={`cumulative_limit_${round.eventId}_r${round.roundNumber}`}
-                        selected={!!round.timeLimitCumulativeRoundIds}
-                        setSelected={() => changeRoundTimeLimitCumulative(round.eventId, round.roundNumber)}
+                        title="Enabled"
+                        id={`cutoff_${round.eventId}_${round.roundNumber}`}
+                        selected={round.cutoffNumberOfAttempts !== null}
+                        setSelected={() => changeRoundCutoffEnabled(round.eventId, round.roundNumber)}
                         disabled={totalRoundResults > 0}
-                        noMargin
                       />
+
+                      <div style={{ maxWidth: "8rem" }}>
+                        <AttemptInput
+                          attNumber={0}
+                          attempt={{ result: round.cutoffAttemptResult ?? 0 }}
+                          setAttempt={(val: Attempt) => changeRoundCutoff(round.eventId, round.roundNumber, val)}
+                          event={ce.event}
+                          maxTime={C.maxTimeLimit}
+                          disabled={round.cutoffAttemptResult === null || totalRoundResults > 0}
+                        />
+                      </div>
+
+                      <div className="d-flex justify-content-between gap-3 align-items-center">
+                        <h6 className="m-0">Attempts:</h6>
+
+                        <FormSelect
+                          title=""
+                          options={cutoffAttemptsOptions}
+                          selected={round.cutoffNumberOfAttempts ?? 2}
+                          setSelected={(val) =>
+                            changeRoundCutoffNumberOfAttempts(round.eventId, round.roundNumber, val as any)
+                          }
+                          disabled={!round.cutoffNumberOfAttempts || totalRoundResults > 0}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
-                {ce.event.format !== "multi" && (
-                  <div className="d-flex justify-content-between mt-3 flex-wrap gap-3 gap-md-5 align-items-center">
-                    <h6 className="m-0 flex-shrink-0">Cutoff:</h6>
-
-                    <FormCheckbox
-                      title="Enabled"
-                      id={`cutoff_${round.eventId}_${round.roundNumber}`}
-                      selected={round.cutoffNumberOfAttempts !== null}
-                      setSelected={() => changeRoundCutoffEnabled(round.eventId, round.roundNumber)}
-                      disabled={totalRoundResults > 0}
-                      noMargin
-                    />
-
-                    <div style={{ maxWidth: "8rem" }}>
-                      <AttemptInput
-                        attNumber={0}
-                        attempt={{ result: round.cutoffAttemptResult ?? 0 }}
-                        setAttempt={(val: Attempt) => changeRoundCutoff(round.eventId, round.roundNumber, val)}
-                        event={ce.event}
-                        maxTime={C.maxTimeLimit}
-                        disabled={round.cutoffAttemptResult === null || totalRoundResults > 0}
-                      />
-                    </div>
-
-                    <div className="d-flex justify-content-between gap-3 align-items-center">
-                      <h6 className="m-0">Attempts:</h6>
-
-                      <FormSelect
-                        title=""
-                        options={cutoffAttemptsOptions}
-                        selected={round.cutoffNumberOfAttempts ?? 2}
-                        setSelected={(val) =>
-                          changeRoundCutoffNumberOfAttempts(round.eventId, round.roundNumber, val as any)
-                        }
-                        disabled={!round.cutoffNumberOfAttempts || totalRoundResults > 0}
-                      />
-                    </div>
-                  </div>
+                  </>
                 )}
                 {round.proceedType && round.proceedValue !== null && (
                   <div className="d-flex justify-content-between mt-3 flex-wrap gap-3 align-items-center">
@@ -370,7 +368,6 @@ function ContestEvents({
                         changeRoundProceed(round, { proceedType: val, proceedValue: round.proceedValue! })
                       }
                       oneLine
-                      small
                     />
                     <div style={{ width: "5rem" }}>
                       <FormNumberInput

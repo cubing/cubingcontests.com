@@ -39,7 +39,7 @@ function RankingsTable({ rankingsPromise, event, regions, type, show }: Props) {
               {hasLink ? "Links" : ""}
             </th>
             {showTeamColumn && <th>Team</th>}
-            {showDetailsColumn && <th>{type === "single" ? "Memorization time" : "Solves"}</th>}
+            {showDetailsColumn && <th>Details</th>}
           </tr>
         </thead>
         <tbody>

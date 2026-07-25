@@ -5,7 +5,7 @@ import { loadEnvConfig } from "@next/env";
 import Handlebars from "handlebars";
 import nodemailer from "nodemailer";
 import type Mail from "nodemailer/lib/mailer/index";
-import { C } from "~/helpers/constants.ts";
+import { baseUrl, C } from "~/helpers/constants.ts";
 import { videoBasedFormats } from "~/helpers/roundFormats.ts";
 import type { OrganizationDetails } from "~/helpers/types.ts";
 import { getFormattedTime, getIsUrgent } from "~/helpers/utility-functions.ts";
@@ -38,7 +38,6 @@ const resultsEmail: Mail.Address = {
   name: "Results",
   address: `results@${process.env.PROD_HOSTNAME}`,
 };
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
 const projectName = process.env.NEXT_PUBLIC_PROJECT_NAME!;
 
 async function send({
@@ -499,7 +498,7 @@ export function sendMemberRequestSubmittedEmail(
         replyTo: adminEmail,
         to,
         bcc: adminEmail,
-        subject: "User request submitted",
+        subject: "Member request submitted",
         html,
       });
     },

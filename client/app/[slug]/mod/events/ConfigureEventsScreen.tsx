@@ -129,7 +129,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
     setNewEventId(event.eventId);
     setName(event.name);
     setCategory(event.category);
-    setRank(event.rank);
+    setRank(clone ? Math.max(...events.map((e) => e.rank)) + 10 : event.rank);
     setFormat(event.format);
     setDefaultRoundFormat(event.defaultRoundFormat);
     setParticipants(event.participants);
@@ -244,6 +244,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
               selected={submissionsAllowed}
               setSelected={setSubmissionsAllowed}
               disabled={isPending}
+              className="mb-3"
             />
           )}
           {format !== "number" && (
@@ -252,9 +253,16 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
               selected={hasMemo}
               setSelected={setHasMemo}
               disabled={isPending}
+              className="mb-3"
             />
           )}
-          <FormCheckbox title="Hidden" selected={hidden} setSelected={setHidden} disabled={isPending} />
+          <FormCheckbox
+            title="Hidden"
+            selected={hidden}
+            setSelected={setHidden}
+            disabled={isPending}
+            className="mb-3"
+          />
           <FormTextArea
             title="Description (optional)"
             value={description}
@@ -292,7 +300,8 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
               <th scope="col">Name</th>
               <th scope="col">Event ID</th>
               <th scope="col">Rank</th>
-              <th scope="col">Default format</th>
+              <th scope="col">Format</th>
+              <th scope="col">Default round format</th>
               <th scope="col">Participants</th>
               <th scope="col">Category</th>
               <th scope="col">Options</th>
@@ -316,11 +325,8 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
                 >
                   {event.rank}
                 </td>
-                <td>
-                  {roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel ?? (
-                    <span className="text-danger">ERROR</span>
-                  )}
-                </td>
+                <td>{eventFormatOptions.find((efo) => efo.value === event.format)?.label}</td>
+                <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}</td>
                 <td>
                   <span className={`${event.participants > 1 ? "fw-bold text-info" : ""}`}>{event.participants}</span>
                 </td>

@@ -1,34 +1,20 @@
 #!/bin/bash
 
-##################################################
-# Script for (re)starting production environment #
-##################################################
-
-# $1 - (optional) --restart/-r - skip apt update and DB dump
-# $2 - (optional) --no-backup - skip creating the backup
-
 cd "$(dirname "$0")/.."
 
+set -o allexport
 source .env
-docker pull "$DOCKER_IMAGE_NAME"
+set +o allexport
+# Substitutes variables, excludes PORT variable (not used in k8s pods), strips out comments and removes double quotes
+envsubst < .env | grep -v "^PORT=" | sed 's/\s*#.*$//;s/"//g' > .env.temp
 
-# Restart
-if [[ "$1" == "--restart" || "$1" == "-r" ]]; then  
-  if [ "$2" != "--no-backup" ]; then
-    ./bin/create-full-backup.sh || exit 1
-  fi
+kubectl create configmap recordranks-config --from-env-file=.env.temp -o yaml --dry-run=client > ./k8s/configmap.yaml || exit 1
+rm .env.temp
 
-  docker stop rr-nextjs
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/service.yaml 
+sed "s|__DOCKER_IMAGE_NAME__|${DOCKER_IMAGE_NAME}|" k8s/deployment.yaml | kubectl apply -f -
 
-  if [ "$DISABLE_CADDY_DOCKER_SERVICE" != "true" ]; then
-    docker exec -w /etc/caddy rr-caddy caddy reload || exit 2
-  fi
-fi
+kubectl rollout restart deployment recordranks-nextjs || exit 2
 
 ./bin/apply-db-migrations.sh || exit 3
-
-if [ "$DISABLE_CADDY_DOCKER_SERVICE" == "true" ]; then
-  docker compose -f docker-compose.rr.yml up nextjs -d
-else
-  docker compose -f docker-compose.rr.yml up -d
-fi

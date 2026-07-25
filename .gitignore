@@ -19,6 +19,7 @@ npm-debug.log*
 *.log
 
 # env files
+k8s/configmap.yaml
 .env*
 !.env.example
 # This is just a symlink to the .env file in the root of the repo
@@ -49,6 +50,3 @@ client/icon.svg
 client/icon.*.svg
 client/app/favicon.ico
 client/app/robots.txt
-
-# (TEMPORARY!!!!!!!!!!!!!!! ALSO REMOVE THE SAME DIRECTORY FROM .dockerignore!!!!)
-client/dump

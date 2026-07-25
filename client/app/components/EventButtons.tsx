@@ -50,7 +50,7 @@ function EventButtons({ events, eventIdOverride, pathTemplate, showAllEvents, re
   return (
     <div>
       {/* Event categories */}
-      {!showAllEvents && (
+      {!showAllEvents && filteredCategories.length > 1 && (
         <>
           {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
           <div className="btn-group btn-group-sm my-2" role="group">
@@ -72,16 +72,18 @@ function EventButtons({ events, eventIdOverride, pathTemplate, showAllEvents, re
       )}
 
       {/* Events */}
-      <div className="d-flex fs-3 mb-3 flex-wrap">
-        {filteredEvents.map((event) => (
-          <EventIcon
-            key={event.eventId}
-            event={event}
-            onClick={() => handleEventClick(event.eventId)}
-            isActive={event.eventId === currEventId}
-          />
-        ))}
-      </div>
+      {(filteredEvents.length > 1 || filteredCategories.length > 1) && (
+        <div className="d-flex fs-3 mb-3 flex-wrap">
+          {filteredEvents.map((event) => (
+            <EventIcon
+              key={event.eventId}
+              event={event}
+              onClick={() => handleEventClick(event.eventId)}
+              isActive={event.eventId === currEventId}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
