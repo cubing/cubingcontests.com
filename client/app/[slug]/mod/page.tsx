@@ -71,7 +71,8 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
         {canUpdateMembers && !member!.personId && (
           <p className="fw-bold text-danger">
             You don't have a person linked to your member profile. Before you can enter any data, create a competitor
-            profile on the Manage Competitors page and then link it to your member profile on the Manage Members page.
+            profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage Competitors</Link> page and then link
+            it to your member profile on the <Link href={slugPath(slug, "/mod/members")}>Manage Members</Link> page.
           </p>
         )}
         {maxMonthlyContestsReached && <p className="fw-bold text-danger">{C.message.maxMonthlyContestsReached}</p>}
@@ -83,7 +84,7 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
         )}
 
         <div className="d-flex fs-5 column-gap-2 column-gap-xl-3 row-gap-2 my-3 flex-wrap">
-          {!maxMonthlyContestsReached && (
+          {!maxMonthlyContestsReached && !isEventsListEmpty && (
             <Link
               href={slugPath(slug, "/mod/competition")}
               prefetch={false}

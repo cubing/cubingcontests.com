@@ -132,7 +132,7 @@ function ContestControls({ contest, forPage, onUpdateContestState }: Props) {
               prefetch={false}
               className={`btn btn-success ${smallButtons ? "btn-xs" : ""}`}
             >
-              Results
+              {canCreateAndUpdateContests || forPage === "mod-dashboard" ? "Results" : "Submit Result"}
             </Link>
           )}
           {canApproveContests && contest.state === "created" && (

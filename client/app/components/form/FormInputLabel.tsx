@@ -4,20 +4,16 @@ type Props = {
   text?: string;
   inputId: string;
   tooltip?: string;
-};
+} & React.HTMLAttributes<HTMLLabelElement>;
 
-function FormInputLabel({ text, inputId, tooltip }: Props) {
+function FormInputLabel({ text, inputId, tooltip, className }: Props) {
   return (
     <span className="d-flex flex-shrink-0 gap-2 align-items-start">
-      <label htmlFor={inputId} className="form-label fw-semibold">
+      <label htmlFor={inputId} className={`form-label fw-semibold ${className}`}>
         {text}
       </label>
 
-      {tooltip && (
-        <span className="mt-1">
-          <Tooltip id={`${inputId}_tooltip`} text={tooltip} />
-        </span>
-      )}
+      {tooltip && <Tooltip id={`${inputId}_tooltip`} text={tooltip} />}
     </span>
   );
 }

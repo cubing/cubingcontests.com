@@ -16,7 +16,7 @@ function FormSelect({ id, title, options, selected, setSelected, disabled, oneLi
 
   return (
     <div className={`${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`} style={style}>
-      {title && <FormInputLabel text={title} inputId={inputId} />}
+      {title && <FormInputLabel text={title} inputId={inputId} className={oneLine ? "mb-0" : ""} />}
 
       <select
         id={inputId}

@@ -32,7 +32,7 @@ function FormNumberInput({
   min = -Infinity,
   max = Infinity,
   invalid = false,
-  className = "",
+  className,
 }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormNumberInput");
 
@@ -79,7 +79,7 @@ function FormNumberInput({
   };
 
   return (
-    <div className={`fs-5 ${className}`}>
+    <div className={className}>
       {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
 
       <input

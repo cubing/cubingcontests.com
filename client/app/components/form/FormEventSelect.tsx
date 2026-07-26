@@ -4,18 +4,17 @@ import type { EventResponse } from "~/server/db/schema/events.ts";
 
 type Props = {
   title?: string;
-  noMargin?: boolean;
   events: EventResponse[];
   eventId: string;
   setEventId: (val: string) => void;
   disabled?: boolean;
-};
+} & React.HTMLAttributes<HTMLDivElement>;
 
-function FormEventSelect({ title = "Event", noMargin = false, events, eventId, setEventId, disabled = false }: Props) {
+function FormEventSelect({ title = "Event", events, eventId, setEventId, disabled = false, className }: Props) {
   return (
-    <div className={`fs-5 ${noMargin ? "" : "mb-3"}`}>
+    <div className={className}>
       {title && (
-        <label htmlFor="event_select" className="form-label">
+        <label htmlFor="event_select" className="form-label fw-semibold">
           {title}
         </label>
       )}

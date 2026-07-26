@@ -22,8 +22,9 @@ async function SubscribePage() {
     <section className="container mx-auto p-3" style={{ maxWidth: "var(--rr-md-width)" }}>
       <h2 className="mb-4 text-center">Create Your Own Space</h2>
 
-      <p className="fs-5 mb-4 text-center text-info">
-        After creating your space, you'll be taken to the billing page to start your free trial
+      <p className="fw-semibold mb-4 text-center">
+        Enter the details for your new space, which will be dedicated entirely to your community, with its own list of
+        events, competitors, record history, and so on!
       </p>
 
       <ToastMessages />

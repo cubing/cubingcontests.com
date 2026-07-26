@@ -67,8 +67,8 @@ function FormTextInput({
   };
 
   return (
-    <div className={`fs-5 ${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`}>
-      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
+    <div className={`${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`}>
+      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} className={oneLine ? "mb-0" : ""} />}
 
       <div className="d-flex justify-content-between gap-3 align-items-center">
         <input
