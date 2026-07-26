@@ -18,7 +18,7 @@ import {
 } from "~/server/server-only-functions/server-only-functions.ts";
 
 async function CompetitorsPage() {
-  const { user, organization, httpHeaders } = await authorizeUser({
+  const { user, member, organization, httpHeaders } = await authorizeUser({
     useOrganization: true,
     orgPermissions: { persons: ["create", "update", "delete"] },
   });
@@ -39,6 +39,12 @@ async function CompetitorsPage() {
     );
 
     creators = await getCreators({ organizationId: organization!.id, userIds });
+
+    // Add current user to creators list, if they've not created any persons yet
+    if (!creators.some((c) => c.userId === user.id)) {
+      const creatorPerson = member?.personId ? (persons.find((p) => p.id === member.personId) ?? null) : null;
+      creators.push({ userId: user.id, name: user.name, email: user.email, person: creatorPerson });
+    }
   } else {
     persons = await db
       .select(personsPublicCols)
