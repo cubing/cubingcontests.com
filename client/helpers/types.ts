@@ -13,6 +13,8 @@ export type ListPageMode = "view" | "add" | "edit";
 
 export type InputPerson = PersonResponse | null;
 
+export type SpaceType = "default" | "speedcubing";
+
 export type OrganizationMetadata = {
   private: boolean;
   contactEmail: string;

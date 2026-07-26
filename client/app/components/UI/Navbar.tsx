@@ -2,12 +2,13 @@
 
 import { faBars, faBook, faCalendarDays, faRankingStar, faStar, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { authClient } from "~/helpers/auth-client.ts";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useFeaturesInfo, useSession } from "~/helpers/hooks.ts";
 import { SwrKey } from "~/helpers/swr-keys.ts";
@@ -99,10 +100,16 @@ function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-md position-relative">
-        {organization && (
-          <Link href={slugPath(organization.slug, "") || "/"} prefetch={false} className="navbar-brand">
+        {organization ? (
+          <Link href={slugPath(organization.slug, "") || "/"} className="navbar-brand">
             {organization.logo ? <img src={organization.logo} alt="Home" className="tw:h-12" /> : "Home"}
           </Link>
+        ) : (
+          IS_RR_INSTANCE && (
+            <Link href="/" className="navbar-brand">
+              <Image src="/recordranks_logo.png" height={48} width={48} alt="RecordRanks logo" />
+            </Link>
+          )
         )}
         <button
           type="button"

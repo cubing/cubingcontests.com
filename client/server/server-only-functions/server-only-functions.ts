@@ -614,8 +614,11 @@ export async function validateMaxMonthlyContests(organization: Pick<Organization
     })
   ).length;
 
-  if (organization.subscription && contestsCreatedLastMonth >= organization.subscription.limits.monthlyContests)
-    throw new RrActionError("This space has reached its monthly competitions limit");
+  if (organization.subscription && contestsCreatedLastMonth >= organization.subscription.limits.monthlyContests) {
+    throw new RrActionError(
+      C.message.maxMonthlyContestsReached + (IS_RR_INSTANCE ? ". Please upgrade to a higher plan." : ""),
+    );
+  }
 }
 
 export async function validateMaxTotalCompetitors(organization: Pick<OrganizationDetails, "id" | "subscription">) {
@@ -623,8 +626,11 @@ export async function validateMaxTotalCompetitors(organization: Pick<Organizatio
     await db.query.persons.findMany({ columns: { id: true }, where: { organizationId: organization.id } })
   ).length;
 
-  if (organization.subscription && totalPersons >= organization.subscription.limits.competitors)
-    throw new RrActionError(C.message.maxMonthlyContestsReached);
+  if (organization.subscription && totalPersons >= organization.subscription.limits.competitors) {
+    throw new RrActionError(
+      C.message.maxCompetitorsReached + (IS_RR_INSTANCE ? ". Please upgrade to a higher plan." : ""),
+    );
+  }
 }
 
 export async function getOrCreatePersonByWcaId(

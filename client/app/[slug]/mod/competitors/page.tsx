@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import ManageCompetitorsScreen from "~/app/[slug]/mod/competitors/ManageCompetitorsScreen.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
-import type { Creator } from "~/helpers/types.ts";
+import type { Creator, SpaceType } from "~/helpers/types.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import {
@@ -10,7 +10,12 @@ import {
   type SelectPerson,
   personsTable as table,
 } from "~/server/db/schema/persons.ts";
-import { authorizeUser, getCreators, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
+import {
+  authorizeUser,
+  getCreators,
+  getRegions,
+  getSettingFromDb,
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 async function CompetitorsPage() {
   const { user, organization, httpHeaders } = await authorizeUser({
@@ -18,9 +23,10 @@ async function CompetitorsPage() {
     orgPermissions: { persons: ["create", "update", "delete"] },
   });
 
-  const [{ success: canApprovePersons }, regions] = await Promise.all([
+  const [{ success: canApprovePersons }, regions, spaceType] = await Promise.all([
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { persons: ["approve"] } } }),
     getRegions(organization!.id),
+    getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
   ]);
 
   let persons: SelectPerson[] | PersonResponse[] | undefined;
@@ -47,7 +53,12 @@ async function CompetitorsPage() {
     <section>
       <h2 className="mb-4 text-center">Manage Competitors</h2>
 
-      <ManageCompetitorsScreen persons={persons} regions={regions} creators={creators as any} />
+      <ManageCompetitorsScreen
+        persons={persons}
+        regions={regions}
+        creators={creators as any}
+        spaceType={spaceType as SpaceType}
+      />
     </section>
   );
 }

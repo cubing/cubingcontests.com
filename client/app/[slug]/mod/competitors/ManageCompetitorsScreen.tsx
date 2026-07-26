@@ -18,7 +18,7 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
-import type { Creator, ListPageMode } from "~/helpers/types.ts";
+import type { Creator, ListPageMode, SpaceType } from "~/helpers/types.ts";
 import { getActionError, getSimplifiedString } from "~/helpers/utility-functions.ts";
 import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -33,6 +33,7 @@ const approvedFilterOptions: MultiChoiceOption[] = [
 
 type Props = {
   regions: RegionResponse[];
+  spaceType: SpaceType;
 } & (
   | {
       // When requested by an admin
@@ -45,7 +46,7 @@ type Props = {
     }
 );
 
-function ManageCompetitorsScreen({ persons: initPersons, regions, creators }: Props) {
+function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, creators }: Props) {
   const searchParams = useSearchParams();
   const { user } = useSession();
   const { changeSuccessMessage, changeErrorMessages, resetMessages } = useContext(MainContext);
@@ -182,6 +183,7 @@ function ManageCompetitorsScreen({ persons: initPersons, regions, creators }: Pr
           regions={regions}
           onSubmit={updateCompetitors}
           onCancel={mode !== "add-once" ? cancel : undefined}
+          wcaIdInputHidden={spaceType !== "speedcubing"}
         />
       )}
 
@@ -222,7 +224,7 @@ function ManageCompetitorsScreen({ persons: initPersons, regions, creators }: Pr
                     <th scope="col">ID</th>
                     <th scope="col">Name</th>
                     <th scope="col">Localized Name</th>
-                    <th scope="col">WCA ID</th>
+                    {spaceType === "speedcubing" && <th scope="col">WCA ID</th>}
                     <th scope="col">Country</th>
                     {creators && <th scope="col">Created by</th>}
                     <th scope="col">Approved</th>
@@ -251,7 +253,7 @@ function ManageCompetitorsScreen({ persons: initPersons, regions, creators }: Pr
                           <Competitor person={person} regions={regions} noFlag />
                         </td>
                         <td>{person.localizedName}</td>
-                        <td>{person.wcaId}</td>
+                        {spaceType === "speedcubing" && <td>{person.wcaId}</td>}
                         <td>
                           <Region regionCode={person.regionCode} regions={regions} shorten />
                         </td>
