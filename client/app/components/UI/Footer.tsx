@@ -36,6 +36,17 @@ function Footer() {
           )}
         </a>
       </div>
+      {IS_RR_INSTANCE && (
+        <a
+          href={C.rrDiscordServerLink}
+          target="_blank"
+          rel="noopener"
+          title="Discord logo"
+          className="rr-button d-inline-flex justify-content-center align-items-center"
+        >
+          <span className="tw:icon-[logos--discord-icon] tw:text-xl" />
+        </a>
+      )}
       <a
         href={C.sourceCodeLink}
         target="_blank"
