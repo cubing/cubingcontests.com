@@ -9,15 +9,19 @@ async function SubscriptionSuccess() {
     <section className="px-3 pb-3">
       <h2 className="mb-4 text-center">Subscription Success</h2>
 
-      <p className="fs-5 text-center">The subscription for your space is now active! You can safely leave this page.</p>
+      <p className="fs-5 text-center">
+        Your subscription is now <strong>active</strong>!
+      </p>
+      <p className="text-center">Go to the dashboard to start customizing your space.</p>
 
-      <Link
-        href={slugPath(organization!.slug, "/billing")}
-        className="btn btn-secondary d-block mx-auto mt-4"
-        style={{ width: "fit-content" }}
-      >
-        Back to billing
-      </Link>
+      <div className="tw:mt-6 tw:flex tw:justify-center tw:gap-6">
+        <Link href={slugPath(organization!.slug, "/mod")} className="btn btn-primary">
+          Dashboard
+        </Link>
+        <Link href={slugPath(organization!.slug, "/billing")} className="btn btn-secondary">
+          Back to billing
+        </Link>
+      </div>
     </section>
   );
 }
