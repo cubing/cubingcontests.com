@@ -221,24 +221,18 @@ There is also a `convert-svg-to-ico.sh` script in the `client` directory to conv
 This project uses Next JS as a full-stack web application and self-hosted Supabase for various backend utilities. These instructions assume you're using Linux (or WSL). To set up the development environment, install Node, PNPM and Docker, and then follow these steps:
 
 1. Create a `.env` file: `cp .env.example .env` (skip this step if you already have a `.env` file; **DO NOT** use the example `.env` in production!)
-2. Start Supabase: `docker compose -f docker-compose.supabase.yml up -d`
+2. Set up Supabase by following the [self-hosting docs](https://supabase.com/docs/guides/self-hosting/docker)
 3. Apply DB migrations: `./bin/apply-db-migrations.sh` (skip this step if there are no new migrations since last time)
 4. `cd client`
 5. Start Next JS: `pnpm dev`
+
+Go to `localhost:3000` to see the website. Go to `localhost:8000` to open Supabase Studio.
 
 Note that Next JS accesses the variables in `.env` through the `client/.env` symlink, which means that it won't be able to detect changes made to the source file. If you change any values in `.env`, simply restart `pnpm dev`.
 
 This repo uses Biome for formatting and linting. If you intend to contribute code to this repo, please install the Biome extension for your IDE and set it up as your default formatter.
 
-Go to `localhost:3000` to see the website. Go to `localhost:8000` to open Supabase Studio. The default username is `supabase` and the password is `rr` (you can see this in the `.env` file). The default ports can be overridden in the `.env` file.
-
-Global constants are located in `constants.ts`. Keep in mind that some features are only enabled for the Cubing Contests instance (via the `IS_CUBING_CONTESTS_INSTANCE` constant).
-
-Please note that some Supabase features, like analytics and cron only work in a production environment. To stop Supabase, use this command:
-
-```sh
-docker compose -f docker-compose.supabase.yml down
-```
+Global constants are located in `constants.ts`. Keep in mind that some features are only enabled for the RecordRanks Platform instance (via the `IS_RR_INSTANCE` constant), and some are only enabled for the Cubing Contests instance (via the `IS_CUBING_CONTESTS_INSTANCE` constant).
 
 ### Mock data
 
@@ -246,7 +240,7 @@ If your DB is empty, the backend will fill the events table with the data from `
 
 ### Accessing DB container directly
 
-To access the DB container with admin privileges directly, use this command (make sure to use the values from `.env`):
+To access the Supabase DB container with admin privileges directly, use this command (make sure to use the values from `.env`):
 
 ```sh
 docker exec -it supabase-db psql postgresql://supabase_admin@localhost:5432/postgres
