@@ -1,5 +1,5 @@
+import DonateButton from "~/app/components/content/DonateButton.tsx";
 import DonationGoals from "~/app/components/content/DonationGoals.tsx";
-import DonateButton from "~/app/components/DonateButton.tsx";
 import { C } from "~/helpers/constants.ts";
 import type { OrganizationDetails } from "~/helpers/types.ts";
 import { getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";

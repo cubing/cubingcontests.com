@@ -6,7 +6,7 @@ import { organizationsTable } from "~/server/db/schema/auth-schema.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
 
 // More groups and keys can be added here
-export type SettingGroup = "default" | "page-contents" | "features";
+export type SettingGroup = "default" | "page-contents" | "features" | "socials";
 export type SettingKey =
   ///// Global settings /////
   // default
@@ -33,7 +33,10 @@ export type SettingKey =
   | "member-request-instructions"
   // features
   | "contest-types"
-  | "video-based-results-enabled";
+  | "video-based-results-enabled"
+  // socials
+  | "website-link"
+  | "discord-server-link";
 
 export const settingsTable = rrSchema.table(
   "settings",

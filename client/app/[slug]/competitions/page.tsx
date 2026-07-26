@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
+import DonateButton from "~/app/components/content/DonateButton.tsx";
 import DonationGoals from "~/app/components/content/DonationGoals.tsx";
-import DonateButton from "~/app/components/DonateButton.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
