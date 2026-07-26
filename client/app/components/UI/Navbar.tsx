@@ -1,6 +1,14 @@
 "use client";
 
-import { faBars, faBook, faCalendarDays, faRankingStar, faStar, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faBook,
+  faCalendarDays,
+  faRankingStar,
+  faScrewdriverWrench,
+  faStar,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
@@ -257,6 +265,19 @@ function Navbar() {
                     </li>
                   </ul>
                 </li>
+                {user && organization && canAccessModDashboard && (
+                  <li className="nav-item">
+                    <Link
+                      href={slugPath(organization.slug, `/mod${isAdmin ? "?state=pending" : ""}`)}
+                      onClick={collapseAll}
+                      prefetch={false}
+                      className={`nav-link ${pathname === slugPath(organization.slug, "/mod") ? "active" : ""}`}
+                    >
+                      <FontAwesomeIcon icon={faScrewdriverWrench} size="xs" className="me-2" />
+                      Dashboard
+                    </Link>
+                  </li>
+                )}
               </>
             )}
             {!user ? (
@@ -276,23 +297,10 @@ function Navbar() {
                   type="button"
                   onClick={() => toggleDropdown("user", !userExpanded)}
                   className="nav-link dropdown-toggle text-truncate"
-                  style={{ maxWidth: "15rem" }}
                 >
                   <FontAwesomeIcon icon={faUser} aria-label="User" />
                 </button>
-                <ul className={`dropdown-menu end-0 px-3 px-lg-2 py-0 ${userExpanded ? "show" : ""}`}>
-                  {organization && canAccessModDashboard && (
-                    <li>
-                      <Link
-                        href={slugPath(organization.slug, `/mod${isAdmin ? "?state=pending" : ""}`)}
-                        prefetch={false}
-                        onClick={collapseAll}
-                        className={`nav-link ${pathname === slugPath(organization.slug, "/mod") ? "active" : ""}`}
-                      >
-                        Mod dashboard
-                      </Link>
-                    </li>
-                  )}
+                <ul className={`dropdown-menu end-0 tw:text-nowrap px-3 px-lg-2 py-0 ${userExpanded ? "show" : ""}`}>
                   {organization && videoBasedResultsEnabled && (
                     <>
                       {canApproveVideoBasedResults && (
@@ -318,6 +326,13 @@ function Navbar() {
                         </Link>
                       </li>
                     </>
+                  )}
+                  {IS_RR_INSTANCE && (
+                    <li>
+                      <a href="https://recordranks.com/contact" target="_blank" rel="noopener" className="nav-link">
+                        Contact support
+                      </a>
+                    </li>
                   )}
                   <li>
                     <Link

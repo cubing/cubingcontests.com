@@ -1,8 +1,9 @@
 export const C = {
   recordRanksLink: "https://recordranks.com",
   rrContactLink: "https://recordranks.com/contact",
-  sourceCodeLink: "https://github.com/mintydev789/RecordRanks",
   rrDonationLink: "https://ko-fi.com/mintydev",
+  rrDiscordServerLink: "https://discord.gg/YWbYh9AqHj",
+  sourceCodeLink: "https://github.com/mintydev789/RecordRanks",
   fetchDebounceTimeout: 750, // the timeout in ms between doing repetitive fetch requests that need to be limited
   maxRounds: 4,
   minResultsForThreeMoreRounds: 100,
