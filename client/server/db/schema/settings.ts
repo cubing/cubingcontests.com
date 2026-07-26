@@ -21,6 +21,7 @@ export type SettingKey =
 
   ///// Organization settings /////
   // default
+  | "space-type"
   | "video-based-results-contact-email"
   // page-contents
   | "home-page-description"

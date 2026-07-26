@@ -85,6 +85,12 @@ attempted          = solved + missed
 export function getDefaultOrgSettings(organizationId: string): InsertSetting[] {
   return [
     {
+      key: "space-type" as const,
+      group: "default" as const,
+      value: "default",
+      description: "The type of the space affects some features. Value: default|speedcubing.",
+    },
+    {
       key: "video-based-results-contact-email" as const,
       group: "default" as const,
       value: "",

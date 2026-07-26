@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Param 1 (optional): project ID (has to match the PROJECT_ID environment variable)
+
 cd "$(dirname "$0")"
 
 cyan='\033[0;36m'
