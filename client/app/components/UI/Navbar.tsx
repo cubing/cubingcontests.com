@@ -101,7 +101,7 @@ function Navbar() {
       <div className="container-md position-relative">
         {organization && (
           <Link href={slugPath(organization.slug, "") || "/"} prefetch={false} className="navbar-brand">
-            {organization.logo ? <img src={organization.logo} height={45} alt="Home" /> : "Home"}
+            {organization.logo ? <img src={organization.logo} alt="Home" className="tw:h-12" /> : "Home"}
           </Link>
         )}
         <button

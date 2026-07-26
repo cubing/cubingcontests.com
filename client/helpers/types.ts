@@ -3,16 +3,9 @@ import type { authClient } from "~/helpers/auth-client.ts";
 import type { FullMemberRequest } from "~/server/db/schema/member-requests.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 
-// WCIF types
-export type {
-  Activity as WcifActivity,
-  Competition as WcifCompetition,
-  Event as WcifEvent,
-  Round as WcifRound,
-  Schedule as WcifSchedule,
-} from "@wca/helpers";
-
 // Other types
+
+export type Theme = "dark" | "light";
 
 export type ResultRankingType = "single" | "average" | "mean";
 

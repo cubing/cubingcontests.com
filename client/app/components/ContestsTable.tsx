@@ -1,6 +1,6 @@
 "use client";
 
-import { faCircle, faDiamond, faSquare, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -8,7 +8,6 @@ import { use } from "react";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Region from "~/app/components/Region.tsx";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
-import type { ContestType } from "~/helpers/types.ts";
 import { getFormattedDate, slugPath } from "~/helpers/utility-functions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -26,8 +25,6 @@ type Props = {
 function ContestsTable({ contestsPromise, regions }: Props) {
   const contests = use(contestsPromise);
   const { slug }: { slug: string } = useParams();
-
-  const getShapeIcon = (type: ContestType) => (type === "comp" ? faSquare : type === "meetup" ? faDiamond : faCircle);
 
   if (contests.length === 0) return <p className="fs-5 mx-3">No contests have been held yet</p>;
 
@@ -47,9 +44,9 @@ function ContestsTable({ contestsPromise, regions }: Props) {
               >
                 <div className="d-flex justify-content-between mb-3 align-items-center">
                   <div className="d-flex gap-2 align-items-center">
-                    <FontAwesomeIcon
-                      icon={getShapeIcon(contest.type)}
-                      style={{ minWidth: "0.5rem", width: "0.5rem", color: contestType?.color }}
+                    <span
+                      className={`d-shrink-0 tw:text-xs ${contest.type === "comp" ? "tw:icon-[tabler--square-filled]" : contest.type === "meetup" ? "tw:icon-[tabler--flare-filled] tw:text-sm!" : contest.type === "online" ? "tw:icon-[tabler--triangle-filled]" : "tw:icon-[tabler--circle-filled]"}`}
+                      style={{ color: contestType?.color }}
                     />
 
                     <Link
