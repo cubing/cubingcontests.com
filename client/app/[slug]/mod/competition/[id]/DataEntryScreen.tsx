@@ -338,18 +338,20 @@ function DataEntryScreen({
             display="basic"
             showWcaId
           />
-          {attempts.map((attempt: Attempt, i: number) => (
-            <AttemptInput
-              key={i}
-              attNumber={i + 1}
-              attempt={attempt}
-              setAttempt={(val: Attempt) => changeAttempt(i, val)}
-              event={currEvent}
-              nextFocusTargetId={i + 1 === lastActiveAttempt ? "submit_attempt_button" : undefined}
-              timeLimitCentiseconds={round.timeLimitCentiseconds}
-              disabled={i + 1 > lastActiveAttempt || !round.open || isPending}
-            />
-          ))}
+          <div className="tw:mb-1 tw:flex tw:flex-col tw:gap-2">
+            {attempts.map((attempt: Attempt, i: number) => (
+              <AttemptInput
+                key={i}
+                attNumber={i + 1}
+                attempt={attempt}
+                setAttempt={(val: Attempt) => changeAttempt(i, val)}
+                event={currEvent}
+                nextFocusTargetId={i + 1 === lastActiveAttempt ? "submit_attempt_button" : undefined}
+                timeLimitCentiseconds={round.timeLimitCentiseconds}
+                disabled={i + 1 > lastActiveAttempt || !round.open || isPending}
+              />
+            ))}
+          </div>
           {isPendingWrPairs ? (
             <Loading small dontCenter />
           ) : (

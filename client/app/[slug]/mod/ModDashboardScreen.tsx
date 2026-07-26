@@ -23,7 +23,7 @@ function ModDashboardScreen({ regions, isAdminView }: Props) {
   const { slug }: { slug: string } = useParams();
   const [filters] = useModDashboardQueryState();
   const { data, isLoading, isValidating, mutate } = useSWR(["mod", filters], () => getModContestsSF(filters), {
-    revalidateOnMount: false,
+    suspense: true,
   });
 
   const contests = data?.data?.contests;

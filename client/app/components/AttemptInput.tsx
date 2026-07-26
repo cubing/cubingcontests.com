@@ -304,7 +304,7 @@ function AttemptInput({
     const extraTip = allowUnknownTime ? "\nUse U for Unknown time." : "";
 
     if (event.format !== "multi") {
-      timeInputTooltip = `Use D, F, or / for DNF.\nUse S or * for DNS.${extraTip}`;
+      timeInputTooltip = `Use D, F, or / for DNF (Did Not Finish).\n\nUse S or * for DNS (Did Not Start).${extraTip}`;
     } else {
       timeInputTooltip =
         "Enter the result even for DNF attempts (they're treated as DNF, but the result is still shown).\nUse S or * for DNS." +
@@ -314,7 +314,7 @@ function AttemptInput({
 
   // TO-DO: CLEAN UP THIS COMPONENT!!! THE INPUTS SHOULDN'T BE CONTROLLED SO MUCH; A TON OF NATIVE FEATURES BREAK THIS WAY!!!
   return (
-    <div className={`${attNumber !== 0 ? "row px-3" : ""} gap-2 gap-md-3`}>
+    <div className={`${attNumber !== 0 ? "row mx-0" : ""} gap-2 gap-md-3`}>
       {event.format === "multi" && (
         <>
           <div className={cubesInputClasses}>
@@ -352,7 +352,7 @@ function AttemptInput({
       <div className="col px-0">
         <FormTextInput
           id={`attempt_${attNumber}`}
-          title={attNumber === 1 ? (event.format !== "number" ? "Time" : "Moves") : ""}
+          title={attNumber === 1 ? "Result" : ""}
           tooltip={timeInputTooltip}
           value={formattedAttemptText}
           onChange={(e) => onTimeChange(e)}

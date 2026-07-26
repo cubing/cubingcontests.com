@@ -35,9 +35,11 @@ function MemberRequestTab({ regions }: Props) {
 
   const { executeAsync: createOrUpdateMemberRequest, isPending: isCreating } = useAction(createOrUpdateMemberRequestSF);
   const { executeAsync: deleteMemberRequest, isPending: isDeleting } = useAction(deleteMemberRequestSF);
-  const { data: memberRequestDetails, mutate } = useSWR<MemberRequestDetails>(SwrKey.MemberRequestDetails);
+  const { data: memberRequestDetails, mutate } = useSWR<MemberRequestDetails>(SwrKey.MemberRequestDetails, {
+    suspense: true,
+  });
   const memberRequest = memberRequestDetails?.memberRequest;
-  const { data: memberRequestInstructions } = useSWR<string>(SwrKey.MemberRequestInstructions);
+  const { data: memberRequestInstructions } = useSWR<string>(SwrKey.MemberRequestInstructions, { suspense: true });
   const [persons, setPersons] = useState<InputPerson[]>([memberRequest?.requestedPerson ?? null]);
   const [personNames, setPersonNames] = useState([memberRequest?.requestedPerson?.name ?? ""]);
   const [requestedRole, setRequestedRole] = useState<(typeof roleOptions)[number]["value"]>(

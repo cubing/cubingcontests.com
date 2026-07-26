@@ -289,18 +289,20 @@ function ResultsSubmissionForm({
           display="grid"
           showWcaId
         />
-        {attempts.map((attempt: Attempt, i: number) => (
-          <AttemptInput
-            key={i}
-            attNumber={i + 1}
-            attempt={attempt}
-            setAttempt={(val: Attempt) => changeAttempt(i, val)}
-            event={event}
-            memoInputForBld
-            allowUnknownTime={isVideoBasedResultReviewer && ["1", "2"].includes(roundFormat.value)}
-            nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
-          />
-        ))}
+        <div className="tw:mb-1 tw:flex tw:flex-col tw:gap-2">
+          {attempts.map((attempt: Attempt, i: number) => (
+            <AttemptInput
+              key={i}
+              attNumber={i + 1}
+              attempt={attempt}
+              setAttempt={(val: Attempt) => changeAttempt(i, val)}
+              event={event}
+              memoInputForBld
+              allowUnknownTime={isVideoBasedResultReviewer && ["1", "2"].includes(roundFormat.value)}
+              nextFocusTargetId={i + 1 === attempts.length ? (result?.approved ? "video_link" : "date") : undefined}
+            />
+          ))}
+        </div>
         {isPendingWrPairs ? (
           <Loading small dontCenter />
         ) : (

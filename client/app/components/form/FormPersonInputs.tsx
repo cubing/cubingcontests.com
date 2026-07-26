@@ -6,7 +6,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useState } from "react";
 import Competitor from "~/app/components/Competitor.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { getActionError, slugPath } from "~/helpers/utility-functions.ts";
@@ -19,7 +19,10 @@ import {
 } from "~/server/server-functions/person-server-functions.ts";
 import FormTextInput from "./FormTextInput.tsx";
 
-const personInputTooltip = "Enter the competitor's name, ID or WCA ID";
+// TO-DO: use spaceType setting instead of IS_CC...
+const personInputTooltip = IS_CUBING_CONTESTS_INSTANCE
+  ? "Enter the competitor's ID or WCA ID, or part of their name"
+  : "Enter competitor's ID or part of their name";
 
 type Props = {
   title: string;

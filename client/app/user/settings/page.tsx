@@ -1,5 +1,7 @@
 import { eq } from "drizzle-orm";
+import { Suspense } from "react";
 import { SWRConfig } from "swr";
+import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import { db } from "~/server/db/provider.ts";
@@ -38,7 +40,9 @@ async function UserSettingsPage() {
           },
         }}
       >
-        <UserSettingsScreen initPerson={person} regions={regions} />
+        <Suspense fallback={<Loading />}>
+          <UserSettingsScreen initPerson={person} regions={regions} />
+        </Suspense>
       </SWRConfig>
     </section>
   );
