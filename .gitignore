@@ -50,3 +50,10 @@ client/icon.svg
 client/icon.*.svg
 client/app/favicon.ico
 client/app/robots.txt
+
+# AI
+AGENTS.md
+.agents
+.claude
+.vibe
+.wiki
