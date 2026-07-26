@@ -288,6 +288,7 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
               events={events}
               rounds={rounds}
               timezone={venueTimeZone}
+              contestType={contestType}
               onEditActivity={disabled ? undefined : editActivity}
               onDeleteActivity={disabled ? undefined : deleteActivity}
             />
