@@ -265,6 +265,7 @@ function ResultsSubmissionForm({
           eventId={event.eventId}
           setEventId={(val) => changeEvent(val)}
           disabled={result !== undefined}
+          className="mb-3"
         />
         <FormSelect
           title="Format"

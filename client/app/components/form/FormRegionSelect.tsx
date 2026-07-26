@@ -29,7 +29,7 @@ function FormRegionSelect({
   };
 
   return (
-    <div className="fs-5">
+    <div>
       <FormInputLabel text="Region" inputId="region_code" />
 
       <select

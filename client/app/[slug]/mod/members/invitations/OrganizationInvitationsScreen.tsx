@@ -12,7 +12,7 @@ import { orgRolesObject } from "~/server/organization-permissions.ts";
 
 function OrganizationInvitationsScreen() {
   const { resetMessages, changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
-  const { session, organization } = useSession();
+  const { session } = useSession();
 
   const {
     data: invitations,
@@ -116,7 +116,6 @@ function OrganizationInvitationsScreen() {
           <table className="table-hover table text-nowrap">
             <thead>
               <tr>
-                <th scope="col">Organization</th>
                 <th scope="col">Email</th>
                 <th scope="col">Role</th>
                 <th scope="col">Status</th>
@@ -126,7 +125,6 @@ function OrganizationInvitationsScreen() {
             <tbody>
               {invitations.data.map((invitation) => (
                 <tr key={invitation.id}>
-                  <td>{organization!.name}</td>
                   <td>{invitation.email}</td>
                   <td>{invitation.role}</td>
                   <td>{invitation.status}</td>

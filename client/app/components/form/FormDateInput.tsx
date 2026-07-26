@@ -145,9 +145,9 @@ function FormDateInput({
   };
 
   return (
-    <div className={`fs-5 ${className}`}>
+    <div className={className}>
       {title && (
-        <label htmlFor={inputId} className="form-label">
+        <label htmlFor={inputId} className="form-label fw-semibold">
           {title}
         </label>
       )}

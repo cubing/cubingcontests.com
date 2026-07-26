@@ -220,7 +220,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs, regions }: P
           </div>
           <div className="row">
             <div className="col-md-6 mb-3">
-              <label htmlFor="color_input" className="form-label d-block mb-2">
+              <label htmlFor="color_input" className="form-label fw-semibold d-block mb-2">
                 Color
               </label>
               <input

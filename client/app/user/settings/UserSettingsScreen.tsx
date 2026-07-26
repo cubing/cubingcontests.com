@@ -228,9 +228,16 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
           </p>
 
           {getHasRole("admin", user.role) && (
-            <Link href="/admin/debug" prefetch={false} className="d-block mt-4">
-              Debug page
-            </Link>
+            <div className="d-flex mt-4 flex-wrap gap-2">
+              <span>Website admin pages:</span>
+              <Link href="/admin/users" prefetch={false}>
+                Manage users
+              </Link>
+              |
+              <Link href="/admin/debug" prefetch={false}>
+                Debug
+              </Link>
+            </div>
           )}
         </>
       )}

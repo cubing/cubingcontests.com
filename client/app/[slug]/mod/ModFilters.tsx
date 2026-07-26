@@ -81,7 +81,7 @@ function ModFilters({ initOrganizerPerson, regions, isAdminView, disabled }: Pro
         oneLine
       />
       {(organizerPersonId || state) && (
-        <Button onClick={resetFilters} className="btn-secondary btn-md">
+        <Button onClick={resetFilters} className="btn-secondary btn-sm">
           Reset
         </Button>
       )}

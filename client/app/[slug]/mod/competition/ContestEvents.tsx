@@ -234,7 +234,6 @@ function ContestEvents({
           <div className="flex-grow-1">
             <FormEventSelect
               title=""
-              noMargin
               events={remainingEvents}
               eventId={newEventId}
               setEventId={setNewEventId}

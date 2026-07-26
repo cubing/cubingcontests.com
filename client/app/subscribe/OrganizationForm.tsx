@@ -66,19 +66,14 @@ function OrganizationForm() {
           id="slug_input"
           type="text"
           name="slug"
-          placeholder="E.g: iax"
+          placeholder="E.g: powerliftingclubuk"
           required
           minLength={C.minSlugCharacters}
           maxLength={C.maxSlugCharacters}
           className="form-control"
         />
         <div className="form-text mt-2">
-          Must be 8-24 characters long, using only lowercase letters and numbers. If you end up purchasing the Premium
-          plan and would like to reserve a shorter space ID,{" "}
-          <a href={C.rrContactLink} target="_blank" rel="noopener">
-            contact us
-          </a>{" "}
-          after you set up billing.
+          Must be 8-24 characters long, using only letters, numbers, underscores and dashes.
         </div>
       </fieldset>
 
@@ -99,7 +94,7 @@ function OrganizationForm() {
           Select which contest types you will be organizing in your space. You can change this later in the space
           settings. Note that each contest type has its own separate record history.
         </p>
-        <div className="d-flex fs-5 flex-column gap-2">
+        <div className="d-flex flex-column gap-2">
           <div className="form-check">
             <input
               type="checkbox"
@@ -110,7 +105,7 @@ function OrganizationForm() {
               className="form-check-input"
             />
             <label className="form-check-label" htmlFor="contest_type_comp">
-              Competitions <span className="fs-6 text-muted">(in-person events with higher levels of scrutiny)</span>
+              Competitions <span className="form-text">(in-person events with higher levels of scrutiny)</span>
             </label>
           </div>
           <div className="form-check">
@@ -122,7 +117,7 @@ function OrganizationForm() {
               className="form-check-input"
             />
             <label className="form-check-label" htmlFor="contest_type_meetup">
-              Meetups <span className="fs-6 text-muted">(more casual; no strict schedule)</span>
+              Meetups <span className="form-text">(more casual single-day events; no strict schedule)</span>
             </label>
           </div>
           <div className="form-check">
@@ -134,9 +129,9 @@ function OrganizationForm() {
               className="form-check-input"
             />
             <label className="form-check-label" htmlFor="contest_type_online">
-              Online competitions{" "}
-              <span className="fs-6 text-muted">
-                (held remotely; members can self-submit results using an honor system or video evidence)
+              Online{" "}
+              <span className="form-text">
+                (remote events; members can submit results using an honor system or video evidence)
               </span>
             </label>
           </div>
