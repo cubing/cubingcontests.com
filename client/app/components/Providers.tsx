@@ -7,7 +7,8 @@ import { SWRConfig } from "swr";
 import Footer from "~/app/components/UI/Footer.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Navbar from "~/app/components/UI/Navbar.tsx";
-import { MainContext, type Theme } from "~/helpers/contexts.ts";
+import { MainContext } from "~/helpers/contexts.ts";
+import type { Theme } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 
 type Props = {

@@ -1,6 +1,5 @@
 import { createContext } from "react";
-
-export type Theme = "dark" | "light";
+import type { Theme } from "~/helpers/types.ts";
 
 interface MainContext {
   theme: Theme;

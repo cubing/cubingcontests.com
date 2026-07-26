@@ -40,7 +40,7 @@ function OrganizationSelect({ organizations }: Props) {
           onClick={() => selectOrganization(organization)}
           className="d-flex list-group-item list-group-item-action gap-3 align-items-center"
         >
-          {organization.logo && <img src={organization.logo} height={50} alt="Logo" />}
+          {organization.logo && <img src={organization.logo} alt="Logo" className="tw:h-14" />}
           <span className="fs-5 text-body">{organization.name}</span>
         </button>
       ))}
