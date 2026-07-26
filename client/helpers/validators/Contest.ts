@@ -88,7 +88,7 @@ const duplicateIdsCheck = (val: any[]) => val.length === new Set(val.map((v) => 
 
 const VenueValidator = z.strictObject({
   id: z.int().min(1),
-  name: z.string().nonempty(),
+  name: z.string().nonempty({ error: "Please enter the venue name" }),
   countryIso2: RegionCodeValidator,
   latitudeMicrodegrees,
   longitudeMicrodegrees,
@@ -181,7 +181,7 @@ export const ContestValidator = z
       if (!val.venue || !val.address)
         ctx.addIssue({ code: "custom", message: "Please enter the venue and the address" });
       if (!val.latitudeMicrodegrees || !val.longitudeMicrodegrees)
-        ctx.addIssue({ code: "custom", message: "Please enter the coordinates of the venue" });
+        ctx.addIssue({ code: "custom", message: "Please enter the coordinates of the venue (they cannot be 0)" });
     }
 
     if (val.type === "meetup") {

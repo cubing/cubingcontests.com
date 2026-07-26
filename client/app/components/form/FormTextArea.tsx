@@ -11,7 +11,7 @@ type Props = {
   disabled?: boolean;
 };
 
-function FormTextArea({ id, title, value, setValue, rows = 10, disabled = false }: Props) {
+function FormTextArea({ id, title, value, setValue, rows = 5, disabled = false }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormTextArea");
 
   const inputId = (id || title) as string;

@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { use } from "react";
 import EventInformation from "~/app/[slug]/rules/EventInformation.tsx";
+import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import type { SelectEvent } from "~/server/db/schema/events.ts";
 
 type Props = {
@@ -31,8 +32,9 @@ function EventRules({ eventRulesPromise }: Props) {
             <h3>Event rules</h3>
           </a>
           <p>
-            These rules apply to each event individually. If an event is not listed here, it must follow the most
-            relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F).
+            These rules apply to each event individually.
+            {IS_CUBING_CONTESTS_INSTANCE &&
+              " If an event is not listed here, it must follow the most relevant WCA Regulations, based on the nature of the event (i.e. one of the articles from A to F)."}
           </p>
           {eventsWithRules.map((event) => (
             <EventInformation organizationSlug={slug} key={event.eventId} event={event} />

@@ -1,9 +1,7 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { SWRConfig } from "swr";
 import z from "zod";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
-import { SwrKey } from "~/helpers/swr-keys.ts";
-import type { Creator } from "~/helpers/types.ts";
+import type { ContestType, Creator } from "~/helpers/types.ts";
 import { getMemberControlsContest } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
@@ -47,7 +45,7 @@ async function CreateEditContestPage({ searchParams }: Props) {
   const competitionId = editId ?? copyId;
 
   try {
-    const [events, contest, rounds] = await Promise.all([
+    const [events, contest, rounds, contestTypes] = await Promise.all([
       getEvents({ organizationId: organization!.id, includeHiddenAndRemoved: true }),
       competitionId
         ? db.query.contests.findFirst({
@@ -86,6 +84,7 @@ async function CreateEditContestPage({ searchParams }: Props) {
             .from(roundsTable)
             .where(and(eq(roundsTable.organizationId, organization!.id), eq(roundsTable.competitionId, competitionId)))
         : undefined,
+      getSettingFromDb({ key: "contest-types", organizationId: organization!.id }),
     ]);
 
     if (competitionId && !contest) return <LoadingError reason="Contest not found" />;
@@ -127,24 +126,17 @@ async function CreateEditContestPage({ searchParams }: Props) {
       <section>
         <h2 className="mb-4 text-center">{mode === "edit" ? "Edit Contest" : "Create Contest"}</h2>
 
-        <SWRConfig
-          value={{
-            fallback: {
-              [SwrKey.ContestTypes]: getSettingFromDb({ key: "contest-types", organizationId: organization!.id }),
-            },
-          }}
-        >
-          <ContestForm
-            events={events}
-            rounds={rounds}
-            totalResultsByRound={totalResultsByRound}
-            regions={regions}
-            mode={mode}
-            contest={contest}
-            organizers={organizers}
-            creator={creator}
-          />
-        </SWRConfig>
+        <ContestForm
+          events={events}
+          rounds={rounds}
+          totalResultsByRound={totalResultsByRound}
+          regions={regions}
+          contestTypes={contestTypes.split(",") as ContestType[]}
+          mode={mode}
+          contest={contest}
+          organizers={organizers}
+          creator={creator}
+        />
       </section>
     );
   } catch (err) {

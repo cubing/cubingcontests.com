@@ -1,5 +1,4 @@
 export const SwrKey = {
-  ContestTypes: "contest-types",
   MemberRequestDetails: "member-request-details",
   MemberRequestInstructions: "member-request-instructions",
   PrivacyPolicy: "privacy-policy",

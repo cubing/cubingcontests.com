@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useState, useTransition } from "react";
-import useSWRImmutable from "swr/immutable";
 import z from "zod";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import Form from "~/app/components/form/Form.tsx";
@@ -27,7 +26,6 @@ import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
-import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { Room, Schedule } from "~/helpers/types/Schedule.ts";
 import type { ContestType, Creator, InputPerson } from "~/helpers/types.ts";
 import {
@@ -63,11 +61,14 @@ import {
 import ContestEvents from "./ContestEvents.tsx";
 import ScheduleEditor from "./ScheduleEditor.tsx";
 
+const onlineContestRooms: Room[] = [{ id: 1, name: C.onlineCompKey, color: "#fff", activities: [] }];
+
 type Props = {
   events: EventResponse[];
   rounds: RoundResponse[] | undefined;
   totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
   regions: RegionResponse[];
+  contestTypes: ContestType[];
   mode: "new" | "edit" | "copy";
   contest: SelectContest | undefined;
   organizers: PersonResponse[] | undefined;
@@ -79,6 +80,7 @@ function ContestForm({
   rounds: initRounds = [],
   totalResultsByRound,
   regions,
+  contestTypes,
   mode,
   contest,
   organizers: initOrganizers = [],
@@ -99,7 +101,6 @@ function ContestForm({
   const { executeAsync: unfinishContest, isPending: isUnfinishing } = useAction(unfinishContestSF);
   const { executeAsync: removeContest, isPending: isDeleting } = useAction(removeContestSF);
   const { executeAsync: updateAdminNotes, isPending: isUpdatingAdminNotes } = useAction(updateAdminNotesSF);
-  const { data: contestTypesData } = useSWRImmutable<string>(SwrKey.ContestTypes);
   const [activeTab, setActiveTab] = useState("details");
   const [detailsImported, setDetailsImported] = useState(mode === "edit" && contest?.type === "wca-comp");
 
@@ -107,9 +108,11 @@ function ContestForm({
   const [isPendingWcaCompDetails, startWcaCompDetailsTransition] = useTransition();
   const [name, setName] = useState(contest?.name ?? "");
   const [shortName, setShortName] = useState(contest?.shortName ?? "");
-  const [type, setType] = useState<ContestType | undefined>(contest?.type);
+  const [type, setType] = useState<ContestType | undefined>(
+    contest?.type ?? (contestTypes.length === 1 ? contestTypes[0] : undefined),
+  );
   const [city, setCity] = useState(contest?.city ?? "");
-  const [regionCode, setRegionCode] = useState(contest?.regionCode ?? C.notSelectedOption);
+  const [regionCode, setRegionCode] = useState(contest?.regionCode ?? (type === "online" ? "XW" : C.notSelectedOption));
   const [venue, setVenue] = useState(contest?.venue ?? "");
   const [address, setAddress] = useState(contest?.address ?? "");
   // Vertical coordinate (Y); ranges from -90 to 90
@@ -130,7 +133,9 @@ function ContestForm({
   const [rounds, setRounds] = useState<RoundDto[]>(initRounds);
 
   // Schedule stuff
-  const [rooms, setRooms] = useState<Room[]>(contest?.schedule?.venues[0].rooms ?? []);
+  const [rooms, setRooms] = useState<Room[]>(
+    contest?.schedule?.venues[0].rooms ?? (type === "online" ? onlineContestRooms : []),
+  );
   const [timezone, setTimezone] = useState(contest?.schedule?.venues[0].timezone ?? contest?.timezone ?? "Etc/GMT");
   const [isCompPhotosUnderstood, setIsCompPhotosUnderstood] = useState(mode === "edit" || !IS_CUBING_CONTESTS_INSTANCE);
   const [isTimelinessUnderstood, setIsTimelinessUnderstood] = useState(mode === "edit");
@@ -195,7 +200,6 @@ function ContestForm({
       disabled: isPending || !isValid(startDate),
     },
   ];
-  const contestTypes = contestTypesData!.split(",") as ContestType[];
 
   const handleSubmit = async () => {
     const selectedOrganizers = organizers.filter((o: InputPerson) => o !== null);
@@ -226,7 +230,7 @@ function ContestForm({
       name: name.trim(),
       shortName: shortName.trim(),
       type: type!,
-      city: city.trim(),
+      city: type === "online" ? C.onlineCompKey : city.trim(),
       regionCode,
       venue: venue.trim(),
       address: address.trim(),
@@ -358,9 +362,8 @@ function ContestForm({
     setType(newType);
 
     if (newType === "online") {
-      setCity(C.onlineCompKey);
       setRegionCode("XW");
-      setRooms([{ id: 1, name: C.onlineCompKey, color: "#fff", activities: [] }]);
+      setRooms(onlineContestRooms);
     }
   };
 
@@ -556,31 +559,6 @@ function ContestForm({
                     </Button>
                   </>
                 )}
-                {/* <div className="d-flex gap-1 align-items-center">
-                    <Button id="enable_queue_button" disabled className="btn-secondary">
-                      Enable Queue
-                    </Button>
-                    <Tooltip
-                      id="queue_tooltip"
-                      text="(DISABLED) This can be used for contests where there are not enough solving stations. In such cases random scrambles must be used for every competitor."
-                    />
-                  </div> */}
-                {/* {type !== "meetup" && (
-                    <div className="d-flex gap-1 align-items-center">
-                      <Button
-                        onClick={getAccessToken}
-                        isLoading={isCreatingAccessToken}
-                        disabled={isPending || !["approved", "ongoing"].includes(contest.state)}
-                        className="btn-secondary"
-                      >
-                        Get Access Token
-                      </Button>
-                      <Tooltip
-                        id="access_token_tooltip"
-                        text="Used for external data entry. See the RecordRanks README for more information."
-                      />
-                    </div>
-                  )} */}
               </div>
               {isAdmin && (
                 <>
@@ -760,7 +738,9 @@ function ContestForm({
                   </div>
                 )}
               </div>
-              <h5>Organizers</h5>
+              <h5>
+                Organizers <span className="text-muted">(select at least one)</span>
+              </h5>
               <div className="my-3 rounded border bg-body-tertiary px-4 pt-3 pb-2">
                 <FormPersonInputs
                   title="Organizer"
@@ -776,6 +756,17 @@ function ContestForm({
                   display="grid"
                 />
               </div>
+              <FormNumberInput
+                title="Competitor limit"
+                value={competitorLimit}
+                setValue={setCompetitorLimit}
+                disabled={
+                  (disabledIfContestApproved && !isAdmin) || disabledIfDetailsImported || disabledIfContestPublished
+                }
+                integer
+                min={C.minCompetitorLimit}
+                className="mb-3"
+              />
               <FormTextInput
                 id="contact"
                 title="Contact (optional)"
@@ -790,13 +781,10 @@ function ContestForm({
                 value={description}
                 setValue={setDescription}
                 disabled={disabledIfContestPublished}
+                rows={8}
               />
               {type === "wca-comp" && (
                 <div>
-                  <p className="fs-6">
-                    The description must be available in English for WCA competitions. You may still include versions
-                    written in other languages, and the order doesn't matter.
-                  </p>
                   <p className="fs-6 fst-italic">
                     The following text will be displayed above the description on the contest page:
                   </p>
@@ -805,16 +793,6 @@ function ContestForm({
                   </div>
                 </div>
               )}
-              <FormNumberInput
-                title="Competitor limit"
-                value={competitorLimit}
-                setValue={setCompetitorLimit}
-                disabled={
-                  (disabledIfContestApproved && !isAdmin) || disabledIfDetailsImported || disabledIfContestPublished
-                }
-                integer
-                min={C.minCompetitorLimit}
-              />
             </>
           )}
         </>

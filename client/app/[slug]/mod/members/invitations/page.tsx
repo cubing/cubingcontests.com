@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import OrganizationInvitationsScreen from "~/app/[slug]/mod/members/invitations/OrganizationInvitationsScreen.tsx";
 import { getTabs } from "~/app/[slug]/mod/members/tabs.ts";
+import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
 
@@ -17,7 +19,9 @@ async function InvitationsPage({ params }: Props) {
     <>
       <Tabs tabs={getTabs(slug)} activeTab="invitations" forServerSidePage />
 
-      <OrganizationInvitationsScreen />
+      <Suspense fallback={<Loading />}>
+        <OrganizationInvitationsScreen />
+      </Suspense>
     </>
   );
 }
