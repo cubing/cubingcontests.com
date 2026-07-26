@@ -257,7 +257,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             />
           )}
           <FormCheckbox
-            title="Hidden"
+            title="Hidden event"
             selected={hidden}
             setSelected={setHidden}
             disabled={isPending}
@@ -267,24 +267,24 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             title="Description (optional)"
             value={description}
             setValue={setDescription}
-            rows={4}
+            rows={3}
             disabled={isPending}
           />
           <FormTextArea
             title="Rules (optional, Markdown supported)"
             value={rule}
             setValue={setRule}
-            rows={5}
+            rows={4}
             disabled={isPending}
           />
           <FormTextArea
             title="Important information (optional)"
             value={importantInfo}
             setValue={setImportantInfo}
-            rows={4}
+            rows={3}
             disabled={isPending}
           />
-          <p className="fs-6">
+          <p className="fs-6 mb-4">
             This will be displayed whenever a user selects this event for a contest to make sure they're familiar with
             this information, and it's also displayed on the data entry page. Include some critical info here to make
             sure organizers know about it when they hold the event.
