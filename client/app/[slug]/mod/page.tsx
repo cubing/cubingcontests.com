@@ -18,6 +18,7 @@ import {
   validateMaxMonthlyContests,
 } from "~/server/server-only-functions/server-only-functions.ts";
 import ModDashboardScreen from "./ModDashboardScreen.tsx";
+import SpaceTodoList from "./SpaceTodoList.tsx";
 
 type Props = {
   params: Promise<{
@@ -40,6 +41,7 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
     regions,
     maxMonthlyContestsReached,
     isEventsListEmpty,
+    isContestsListEmpty,
     discordServerLink,
   ] = await Promise.all([
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { adminDashboard: ["view"] } } }),
@@ -51,30 +53,37 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
     db.query.events
       .findFirst({ columns: { id: true }, where: { organizationId: organization!.id } })
       .then((res) => !res),
+    db.query.contests
+      .findFirst({ columns: { id: true }, where: { organizationId: organization!.id } })
+      .then((res) => !res),
     getSettingFromDb({ key: "discord-server-link", organizationId: organization!.id, optional: true }),
   ]);
 
+  const isOwner = getHasRole("owner", member!.role);
+  const showBillingTodo = IS_RR_INSTANCE && isOwner && !organization?.subscription;
+  const showLinkPersonTodo = isOwner && canUpdateMembers && !member!.personId;
+  const showAddEventsTodo = isOwner && isEventsListEmpty;
+  const showCreateContestTodo = isOwner && isContestsListEmpty;
+  const showTodos = showBillingTodo || showLinkPersonTodo || showAddEventsTodo || showCreateContestTodo;
+
   return (
     <section>
-      <h2 className="mx-2 mb-4 text-center">Moderator Dashboard</h2>
+      <h2 className="mx-2 mb-4 text-center">Dashboard</h2>
 
       <div className="px-2">
         <ToastMessages />
 
-        {canUpdateMembers && !member!.personId && (
-          <p className="fw-bold text-danger">
-            You don't have a person linked to your member profile. Before you can enter any data, create a competitor
-            profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage Competitors</Link> page and then link
-            it to your member profile on the <Link href={slugPath(slug, "/mod/members")}>Manage Members</Link> page.
-          </p>
+        {showTodos && (
+          <SpaceTodoList
+            slug={slug}
+            showBillingTodo={showBillingTodo}
+            showLinkPersonTodo={showLinkPersonTodo}
+            showAddEventsTodo={showAddEventsTodo}
+            showCreateContestTodo={showCreateContestTodo}
+          />
         )}
+
         {maxMonthlyContestsReached && <p className="fw-bold text-danger">{C.message.maxMonthlyContestsReached}</p>}
-        {isEventsListEmpty && isAdminView && (
-          <p className="fw-bold text-danger">
-            This space doesn't have any events. Set up the list of events using the{" "}
-            <Link href={slugPath(slug, "/mod/events")}>configure events page</Link>.
-          </p>
-        )}
 
         <div className="d-flex fs-5 column-gap-2 column-gap-xl-3 row-gap-2 my-3 flex-wrap">
           {!maxMonthlyContestsReached && !isEventsListEmpty && (
@@ -113,7 +122,7 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
               >
                 Configure records
               </Link>
-              {IS_RR_INSTANCE && getHasRole("owner", member!.role) && (
+              {IS_RR_INSTANCE && isOwner && (
                 <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm btn-lg-md">
                   Billing
                 </Link>
