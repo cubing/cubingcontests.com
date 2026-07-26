@@ -44,6 +44,7 @@ async function CompetitionSchedulePage({ params }: Props) {
         events={events}
         rounds={rounds}
         timezone={contest.schedule.venues[0].timezone}
+        contestType={contest.type}
       />
     </ContestLayout>
   );

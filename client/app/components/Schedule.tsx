@@ -7,6 +7,7 @@ import ColorSquare from "~/app/components/UI/ColorSquare.tsx";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import type { Activity, Room } from "~/helpers/types/Schedule.ts";
+import type { ContestType } from "~/helpers/types.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 import EventTitle from "./EventTitle.tsx";
@@ -28,11 +29,21 @@ type Props = {
   events: EventResponse[];
   rounds: Pick<RoundResponse, "eventId" | "roundNumber" | "roundTypeId" | "format">[];
   timezone: string;
+  contestType: ContestType;
   onDeleteActivity?: (roomId: number, activityId: number) => void;
   onEditActivity?: (roomId: number, activity: Activity) => void;
 };
 
-function Schedule({ organizationSlug, rooms, events, rounds, timezone, onDeleteActivity, onEditActivity }: Props) {
+function Schedule({
+  organizationSlug,
+  rooms,
+  events,
+  rounds,
+  timezone,
+  contestType,
+  onDeleteActivity,
+  onEditActivity,
+}: Props) {
   const allActivities: RoomActivity[] = rooms
     .flatMap((room) =>
       room.activities.map((a) => ({ ...a, room, startTime: new Date(a.startTime), endTime: new Date(a.endTime) })),
@@ -104,7 +115,7 @@ function Schedule({ organizationSlug, rooms, events, rounds, timezone, onDeleteA
                       <th scope="col">Start</th>
                       <th scope="col">End</th>
                       <th scope="col">Activity</th>
-                      <th scope="col">Room</th>
+                      {contestType !== "online" && <th scope="col">Room</th>}
                       <th scope="col">Format</th>
                       {(onEditActivity || onDeleteActivity) && <th scope="col">Actions</th>}
                     </tr>
@@ -141,19 +152,21 @@ function Schedule({ organizationSlug, rooms, events, rounds, timezone, onDeleteA
                             a.name
                           )}
                         </td>
-                        <td>
-                          <span className="d-flex gap-3">
-                            <ColorSquare
-                              color={a.room.color}
-                              style={{
-                                height: "1.5rem",
-                                width: "1.8rem",
-                                margin: 0,
-                              }}
-                            />
-                            {a.room.name}
-                          </span>
-                        </td>
+                        {contestType !== "online" && (
+                          <td>
+                            <span className="d-flex gap-3">
+                              <ColorSquare
+                                color={a.room.color}
+                                style={{
+                                  height: "1.5rem",
+                                  width: "1.8rem",
+                                  margin: 0,
+                                }}
+                              />
+                              {a.room.name}
+                            </span>
+                          </td>
+                        )}
                         <td>{a.roundFormatLabel}</td>
                         {(onEditActivity || onDeleteActivity) && (
                           <td>
