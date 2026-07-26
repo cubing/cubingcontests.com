@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import Markdown from "react-markdown";
 import BlogSection from "~/app/components/content/BlogSection.tsx";
 import CollectiveCubing from "~/app/components/content/CollectiveCubing.tsx";
+import SocialLinkButton from "~/app/components/content/DiscordServerButton.tsx";
 import DonateSection from "~/app/components/content/DonateSection.tsx";
 import ModInstructionsSection from "~/app/components/content/ModInstructionsSection.tsx";
-import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import { getBlogPosts, getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
@@ -19,11 +19,11 @@ async function OrganizationHomePage({ params }: Props) {
   const { slug } = await params;
 
   const organization = await getOrgDetails({ slug });
-  const description = await getSettingFromDb({
-    key: "home-page-description",
-    organizationId: organization.id,
-    optional: true,
-  });
+  const [description, websiteLink, discordServerLink] = await Promise.all([
+    getSettingFromDb({ key: "home-page-description", organizationId: organization.id, optional: true }),
+    getSettingFromDb({ key: "website-link", organizationId: organization.id, optional: true }),
+    getSettingFromDb({ key: "discord-server-link", organizationId: organization.id, optional: true }),
+  ]);
 
   const latestBlogPostsPromise = getBlogPosts(organization.id, { limit: 2 });
   const modInstructionsPromise = getSettingFromDb({
@@ -46,16 +46,6 @@ async function OrganizationHomePage({ params }: Props) {
     <section className="px-3">
       <h1 className="mb-4 text-center">{organization.name}</h1>
 
-      {IS_CUBING_CONTESTS_INSTANCE && (
-        <div className="alert alert-light mb-4" role="alert">
-          Join the Cubing Contests{" "}
-          <a href={C.discordServerLink} target="_blank" rel="noreferrer">
-            Discord server
-          </a>
-          !
-        </div>
-      )}
-
       {description && <Markdown>{description}</Markdown>}
 
       <div className="d-flex justify-content-center fs-5 my-4 flex-column flex-md-row gap-3 gap-lg-4 align-items-center">
@@ -72,6 +62,19 @@ async function OrganizationHomePage({ params }: Props) {
           See Rankings
         </Link>
       </div>
+
+      {(websiteLink || discordServerLink) && (
+        <>
+          <h3 className="rr-basic-heading">Socials</h3>
+
+          <div className="d-flex flex-wrap gap-3">
+            <SocialLinkButton link={websiteLink}>Website</SocialLinkButton>
+            <SocialLinkButton link={discordServerLink} logo="discord">
+              Discord server
+            </SocialLinkButton>
+          </div>
+        </>
+      )}
 
       <DonateSection organization={organization} />
 

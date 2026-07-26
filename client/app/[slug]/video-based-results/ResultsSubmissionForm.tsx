@@ -8,7 +8,7 @@ import Markdown from "react-markdown";
 import AttemptInput from "~/app/components/AttemptInput.tsx";
 import BestAndAverage from "~/app/components/BestAndAverage";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
-import DonateButton from "~/app/components/DonateButton.tsx";
+import DonateButton from "~/app/components/content/DonateButton.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormDateInput from "~/app/components/form/FormDateInput.tsx";

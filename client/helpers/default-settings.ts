@@ -177,5 +177,19 @@ If you see any errors, correct them before submitting. If you see anything that 
       value: "false",
       description: "Whether or not the video-based results feature is enabled. Value: true|false.",
     },
+
+    // socials
+    {
+      key: "website-link" as const,
+      group: "socials" as const,
+      value: "",
+      description: "Link to a website dedicated to the space",
+    },
+    {
+      key: "discord-server-link" as const,
+      group: "socials" as const,
+      value: "",
+      description: "Link to a Discord server dedicated to the space",
+    },
   ].map((o) => ({ ...o, organizationId }));
 }

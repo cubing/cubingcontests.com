@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { SWRConfig, unstable_serialize as serialize } from "swr";
 import { type ModDashboardFiltersDto, ModDashboardFiltersValidator } from "~/app/[slug]/mod/ModDashboardFilters.ts";
-import DonateButton from "~/app/components/DonateButton.tsx";
+import SocialLinkButton from "~/app/components/content/DiscordServerButton.tsx";
+import DonateButton from "~/app/components/content/DonateButton.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { C, IS_CUBING_CONTESTS_INSTANCE, IS_RR_INSTANCE } from "~/helpers/constants.ts";
@@ -13,6 +14,7 @@ import { getModContestsSF } from "~/server/server-functions/contest-server-funct
 import {
   authorizeUser,
   getRegions,
+  getSettingFromDb,
   validateMaxMonthlyContests,
 } from "~/server/server-only-functions/server-only-functions.ts";
 import ModDashboardScreen from "./ModDashboardScreen.tsx";
@@ -38,6 +40,7 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
     regions,
     maxMonthlyContestsReached,
     isEventsListEmpty,
+    discordServerLink,
   ] = await Promise.all([
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { adminDashboard: ["view"] } } }),
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { member: ["update"] } } }),
@@ -48,6 +51,7 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
     db.query.events
       .findFirst({ columns: { id: true }, where: { organizationId: organization!.id } })
       .then((res) => !res),
+    getSettingFromDb({ key: "discord-server-link", organizationId: organization!.id, optional: true }),
   ]);
 
   return (
@@ -56,17 +60,6 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
 
       <div className="px-2">
         <ToastMessages />
-
-        {IS_CUBING_CONTESTS_INSTANCE && (
-          <div className="alert alert-light mb-4" role="alert">
-            We have a Cubing Contests Discord server!{" "}
-            <a href={C.discordServerLink} target="_blank" rel="noreferrer">
-              Click here to join
-            </a>
-            , then send your CC username and your Discord username in an email to {organization!.metadata.contactEmail}{" "}
-            so you can be given the moderator role on the server.
-          </div>
-        )}
 
         {canUpdateMembers && !member!.personId && (
           <p className="fw-bold text-danger">
@@ -138,6 +131,9 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
               </a>
             )
           )}
+          <SocialLinkButton link={discordServerLink} logo="discord" className="btn-sm">
+            Discord server
+          </SocialLinkButton>
           {organization!.metadata.showDonationLinks && <DonateButton />}
         </div>
       </div>
