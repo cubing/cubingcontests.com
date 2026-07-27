@@ -11,10 +11,9 @@
     'test:watch': 'vitest watch',
     'server-only-off': 'find "./" -type f -name "*.ts" -exec sed -i "s/^import \\"server-only\\";$/\\/\\/ import \\"server-only\\";/" {} +',
     'server-only-on': 'find "./" -type f -name "*.ts" -exec sed -i "s/^\\/\\/ import \\"server-only\\";$/import \\"server-only\\";/" {} +',
-    // WHEN RUNNING DRIZZLE OR BETTER AUTH COMMANDS, USE THE TWO SCRIPTS ABOVE TO DISABLE AND THEN ENABLE "server-only" IMPORTS!
+    // WHEN RUNNING DRIZZLE OR BETTER AUTH COMMANDS, USE THE TWO SCRIPTS ABOVE TO DISABLE AND THEN RE-ENABLE "server-only" IMPORTS!
     'db:migrate': 'drizzle-kit migrate',
     'db:generate': 'drizzle-kit generate',
-    'auth:migrate': 'npx auth migrate --config server/auth.ts',
     'auth:generate': 'npx auth generate --config server/auth.ts --output ./server/db/schema/auth-schema.ts',
     'stripe:wh-listen': "stripe listen --forward-to localhost:3000/api/auth/stripe/webhook --api-key $(grep -E '^STRIPE_SECRET_KEY=' .env | sed -r 's/^STRIPE_SECRET_KEY=\"([^\"]+)\"$/\\1/')",
   },

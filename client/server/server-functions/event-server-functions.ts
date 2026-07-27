@@ -10,7 +10,7 @@ import type { SelectEvent } from "~/server/db/schema/events.ts";
 import { eventsTable as table } from "~/server/db/schema/events.ts";
 import { sendEmail } from "~/server/email/mailer.ts";
 import { logMessage } from "~/server/server-only-functions/server-only-functions.ts";
-import { actionClient, RrActionError } from "../safeAction.ts";
+import { actionClient, RrActionError } from "../safe-action.ts";
 
 export const createEventSF = actionClient
   .metadata({ auth: { useOrganization: true, orgPermissions: { events: ["create"] } } })

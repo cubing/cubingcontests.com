@@ -5,7 +5,7 @@ import { getColumns } from "drizzle-orm/utils";
 import { recordCategoryEnum } from "~/server/db/schema/record-configs.ts";
 import { regionsTable } from "~/server/db/schema/regions.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
-import { tableTimestamps } from "../dbUtils.ts";
+import { tableTimestamps } from "../db-utils.ts";
 import { organizationsTable, usersTable } from "./auth-schema.ts";
 import { contestsTable, type SelectContest } from "./contests.ts";
 import { eventsTable } from "./events.ts";

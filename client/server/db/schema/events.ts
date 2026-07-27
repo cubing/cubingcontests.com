@@ -2,7 +2,7 @@ import "server-only";
 import * as d from "drizzle-orm/pg-core";
 import { getColumns } from "drizzle-orm/utils";
 import { EventCategoryValues, EventFormatValues, RoundFormatValues } from "~/helpers/types.ts";
-import { tableTimestamps } from "~/server/db/dbUtils.ts";
+import { tableTimestamps } from "~/server/db/db-utils.ts";
 import { organizationsTable } from "~/server/db/schema/auth-schema.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
 

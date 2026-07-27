@@ -16,7 +16,7 @@ function SpaceTodoList({ slug, showBillingTodo, showLinkPersonTodo, showAddEvent
 
       <ul className="list-unstyled">
         <SpaceTodoItem checked={!showBillingTodo}>
-          Start your free trial on the <Link href={slugPath(slug, "/billing")}>Billing</Link> page
+          Set up billing on the <Link href={slugPath(slug, "/billing")}>Billing</Link> page (required)
         </SpaceTodoItem>
         <SpaceTodoItem checked={!showLinkPersonTodo}>
           Create a person profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage competitors</Link> page

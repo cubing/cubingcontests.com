@@ -4,7 +4,7 @@ import * as d from "drizzle-orm/pg-core";
 import { C } from "~/helpers/constants.ts";
 import type { Schedule } from "~/helpers/types/Schedule.ts";
 import { ContestStateValues, ContestTypeValues } from "~/helpers/types.ts";
-import { tableTimestamps } from "~/server/db/dbUtils.ts";
+import { tableTimestamps } from "~/server/db/db-utils.ts";
 import { regionsTable } from "~/server/db/schema/regions.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
 import { organizationsTable, usersTable } from "./auth-schema.ts";
