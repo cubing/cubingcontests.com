@@ -157,11 +157,7 @@ function Schedule({
                             <span className="d-flex gap-3">
                               <ColorSquare
                                 color={a.room.color}
-                                style={{
-                                  height: "1.5rem",
-                                  width: "1.8rem",
-                                  margin: 0,
-                                }}
+                                style={{ height: "1.5rem", width: "1.8rem", margin: 0 }}
                               />
                               {a.room.name}
                             </span>

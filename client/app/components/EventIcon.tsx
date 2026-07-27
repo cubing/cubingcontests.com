@@ -4,7 +4,7 @@ import { shortenEventName } from "~/helpers/utility-functions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
 
 type Props = {
-  event: Pick<EventResponse, "eventId" | "name" | "category">;
+  event: Pick<EventResponse, "eventId" | "name">;
   onClick?: () => void;
   isActive?: boolean;
 };

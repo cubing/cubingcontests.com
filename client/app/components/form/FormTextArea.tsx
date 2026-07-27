@@ -9,15 +9,15 @@ type Props = {
   setValue: (val: string) => void;
   rows?: number;
   disabled?: boolean;
-};
+} & React.HTMLAttributes<HTMLDivElement>;
 
-function FormTextArea({ id, title, value, setValue, rows = 5, disabled = false }: Props) {
+function FormTextArea({ id, title, value, setValue, rows = 5, disabled = false, className }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormTextArea");
 
   const inputId = (id || title) as string;
 
   return (
-    <div className="mb-3">
+    <div className={className}>
       {title && <FormInputLabel text={title} inputId={inputId} />}
 
       <textarea

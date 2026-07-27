@@ -37,7 +37,9 @@ export const LogCodes = {
   // Events
   RR0002: "create event",
   RR0003: "update event",
-  RR0004: "affiliate link click", // deprecated
+  // RR0004: "affiliate link click",
+  RR0050: "create event category",
+  RR0051: "update event category",
   // Contests
   RR0005: "create contest",
   RR0006: "approve contest",

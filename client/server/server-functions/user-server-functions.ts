@@ -12,6 +12,7 @@ import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { membersTable, type usersTable as table } from "~/server/db/schema/auth-schema.ts";
+import { eventCategoriesTable } from "~/server/db/schema/event-categories.ts";
 import { memberRequestsTable } from "~/server/db/schema/member-requests";
 import { type PersonResponse, personsPublicCols, personsTable, type SelectPerson } from "~/server/db/schema/persons.ts";
 import { type InsertRecordConfig, recordConfigsTable } from "~/server/db/schema/record-configs.ts";
@@ -414,6 +415,15 @@ export const createOrganizationSF = actionClient
             }),
           );
         }
+
+        await db.insert(eventCategoriesTable).values({
+          organizationId: organization.id,
+          categoryId: "default",
+          rank: 10,
+          name: "Default",
+          color: "#ffffff",
+        });
+
         return await db.insert(recordConfigsTable).values(recordConfigs);
       });
 

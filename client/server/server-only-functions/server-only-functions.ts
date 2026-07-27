@@ -1,6 +1,6 @@
 import "server-only";
 import { addMonths } from "date-fns";
-import { and, desc, eq, getColumns, inArray, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, getColumns, inArray, or, sql } from "drizzle-orm";
 import { camelCase } from "lodash";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { headers } from "next/headers";
@@ -26,7 +26,14 @@ import { auth, rrBasicLimits, rrPremiumLimits } from "~/server/auth.ts";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { membersTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
-import { type EventResponse, eventsPublicCols, eventsTable, type SelectEvent } from "~/server/db/schema/events.ts";
+import { eventCategoriesTable, type SelectEventCategory } from "~/server/db/schema/event-categories.ts";
+import {
+  type EventResponse,
+  eventsPublicCols,
+  eventsTable,
+  type FullEvent,
+  type SelectEvent,
+} from "~/server/db/schema/events.ts";
 import type { FullMemberRequest } from "~/server/db/schema/member-requests.ts";
 import { type PersonResponse, personsPublicCols, personsTable, type SelectPerson } from "~/server/db/schema/persons.ts";
 import { type PostResponse, postsPublicCols, postsTable } from "~/server/db/schema/posts.ts";
@@ -801,7 +808,7 @@ export async function getCreators({
 }
 
 type GetEventsBaseParams = { organizationId: string; includeHiddenAndRemoved?: boolean };
-export async function getEvents(params: GetEventsBaseParams & { columns?: "all" }): Promise<SelectEvent[]>;
+export async function getEvents(params: GetEventsBaseParams & { columns?: "all" }): Promise<FullEvent[]>;
 export async function getEvents(
   params: GetEventsBaseParams & { columns?: "public+rules" },
 ): Promise<(EventResponse & Pick<SelectEvent, "rule">)[]>;
@@ -809,20 +816,30 @@ export async function getEvents({
   organizationId,
   columns = "public",
   includeHiddenAndRemoved = false,
-}: GetEventsBaseParams & { columns?: "public" | "public+rules" | "all" }): Promise<EventResponse[]> {
+}: GetEventsBaseParams & { columns?: "public" | "public+rules" | "all" }): Promise<
+  (EventResponse & { category?: Pick<SelectEventCategory, "name" | "shortName" | "color"> })[]
+> {
   return await db
     .select(
       columns === "all"
-        ? getColumns(eventsTable)
+        ? {
+            ...getColumns(eventsTable),
+            category: {
+              name: eventCategoriesTable.name,
+              shortName: eventCategoriesTable.shortName,
+              color: eventCategoriesTable.color,
+            },
+          }
         : columns === "public+rules"
           ? { ...eventsPublicCols, rule: eventsTable.rule }
           : eventsPublicCols,
     )
     .from(eventsTable)
+    .innerJoin(eventCategoriesTable, eq(eventsTable.categoryId, eventCategoriesTable.id))
     .where(
       and(
         eq(eventsTable.organizationId, organizationId),
-        includeHiddenAndRemoved ? undefined : ne(eventsTable.category, "removed"),
+        includeHiddenAndRemoved ? undefined : eq(eventCategoriesTable.hidden, false),
         includeHiddenAndRemoved ? undefined : eq(eventsTable.hidden, false),
       ),
     )

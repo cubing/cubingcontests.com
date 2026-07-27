@@ -568,6 +568,7 @@ function ContestForm({
                     setValue={setAdminNotes}
                     disabled={isUpdatingAdminNotes}
                     rows={3}
+                    className="mb-3"
                   />
                   <Button onClick={submitAdminNotes} isLoading={isUpdatingAdminNotes} className="mb-5">
                     Save
@@ -782,6 +783,7 @@ function ContestForm({
                 setValue={setDescription}
                 disabled={disabledIfContestPublished}
                 rows={8}
+                className="mb-3"
               />
               {type === "wca-comp" && (
                 <div>

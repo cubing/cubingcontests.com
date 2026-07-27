@@ -2,11 +2,12 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
+import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { EventValidator } from "~/helpers/validators/Event.ts";
 import { db } from "~/server/db/provider.ts";
 import { collectiveSolutionsTable } from "~/server/db/schema/collective-solutions.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
-import type { SelectEvent } from "~/server/db/schema/events.ts";
+import type { FullEvent } from "~/server/db/schema/events.ts";
 import { eventsTable as table } from "~/server/db/schema/events.ts";
 import { sendEmail } from "~/server/email/mailer.ts";
 import { logMessage } from "~/server/server-only-functions/server-only-functions.ts";
@@ -19,7 +20,7 @@ export const createEventSF = actionClient
       newEventDto: EventValidator,
     }),
   )
-  .action<SelectEvent>(async ({ parsedInput: { newEventDto }, ctx: { session } }) => {
+  .action<FullEvent>(async ({ parsedInput: { newEventDto }, ctx: { session } }) => {
     logMessage("RR0002", `Creating new event with ID ${newEventDto.eventId}`);
 
     const [sameNameEvent] = await db
@@ -34,18 +35,26 @@ export const createEventSF = actionClient
       .limit(1);
     if (sameNameEvent) throw new RrActionError(`Event with name ${newEventDto.name} already exists`);
 
+    const category = await db.query.eventCategories.findFirst({
+      columns: { name: true, shortName: true, color: true },
+      where: { organizationId: session.organization!.id, id: newEventDto.categoryId },
+    });
+    if (!category) throw new RrActionError("Event category not found");
+
     const [createdEvent] = await db
       .insert(table)
       .values({ ...newEventDto, organizationId: session.organization!.id })
       .returning();
 
-    sendEmail(
-      session.organization!.metadata.contactEmail,
-      "Important: Event created",
-      `A new event has been created:\n\n${JSON.stringify(createdEvent, null, 2)}`,
-    );
+    if (IS_CUBING_CONTESTS_INSTANCE) {
+      sendEmail(
+        session.organization!.metadata.contactEmail,
+        "Important: Event created",
+        `A new event has been created:\n\n${JSON.stringify(createdEvent, null, 2)}`,
+      );
+    }
 
-    return createdEvent;
+    return { ...createdEvent, category };
   });
 
 export const updateEventSF = actionClient
@@ -56,18 +65,22 @@ export const updateEventSF = actionClient
       newEventDto: EventValidator,
     }),
   )
-  .action<SelectEvent>(async ({ parsedInput: { originalEventId, newEventDto }, ctx: { session } }) => {
+  .action<FullEvent>(async ({ parsedInput: { originalEventId, newEventDto }, ctx: { session } }) => {
     const isNewId = newEventDto.eventId !== originalEventId;
     logMessage(
       "RR0003",
       `Updating event with ID ${newEventDto.eventId}${isNewId ? ` (new event ID: ${newEventDto.eventId})` : ""}`,
     );
 
-    const [event] = await db
-      .select()
-      .from(table)
-      .where(and(eq(table.organizationId, session.organization!.id), eq(table.eventId, originalEventId)))
-      .limit(1);
+    const [event, category] = await Promise.all([
+      db.query.events.findFirst({ where: { organizationId: session.organization!.id, eventId: originalEventId } }),
+      db.query.eventCategories.findFirst({
+        columns: { name: true, shortName: true, color: true },
+        where: { organizationId: session.organization!.id, id: newEventDto.categoryId },
+      }),
+    ]);
+
+    if (!category) throw new RrActionError("Event category not found");
     if (!event) throw new RrActionError(`Event with ID ${originalEventId} not found`);
 
     const [updatedEvent] = await db.transaction(async (tx) => {
@@ -123,7 +136,7 @@ export const updateEventSF = actionClient
           eventId: newEventDto.eventId,
           name: newEventDto.name,
           rank: newEventDto.rank,
-          category: newEventDto.category,
+          categoryId: newEventDto.categoryId,
           submissionsAllowed: newEventDto.submissionsAllowed,
           hasMemo: newEventDto.hasMemo,
           hidden: newEventDto.hidden,
@@ -135,5 +148,5 @@ export const updateEventSF = actionClient
         .returning();
     });
 
-    return updatedEvent;
+    return { ...updatedEvent, category };
   });
