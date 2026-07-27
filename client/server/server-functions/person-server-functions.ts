@@ -15,7 +15,7 @@ import {
   type SelectPerson,
   personsTable as table,
 } from "~/server/db/schema/persons.ts";
-import { actionClient, RrActionError } from "~/server/safeAction.ts";
+import { actionClient, RrActionError } from "~/server/safe-action.ts";
 import {
   getOrCreatePersonByWcaId,
   getPersonExactMatchWcaId,

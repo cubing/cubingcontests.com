@@ -19,7 +19,7 @@ import { regionsTable } from "~/server/db/schema/regions.ts";
 import { settingsTable } from "~/server/db/schema/settings.ts";
 import { sendEmail, sendMemberRequestSubmittedEmail, sendMemberRolesChangedEmail } from "~/server/email/mailer.ts";
 import { type OrganizationRole, OrganizationRoles, requestableRoles } from "~/server/organization-permissions.ts";
-import { actionClient, RrActionError } from "~/server/safeAction.ts";
+import { actionClient, RrActionError } from "~/server/safe-action.ts";
 import { deletePersonSF, updatePersonSF } from "~/server/server-functions/person-server-functions.ts";
 import {
   getMemberRequestDetails,

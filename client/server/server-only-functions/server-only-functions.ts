@@ -42,7 +42,7 @@ import { sendErrorEmail } from "~/server/email/mailer.ts";
 import { type LogCode, logger } from "~/server/logger.ts";
 import type { OrganizationRole, OrgPluginPermissions } from "~/server/organization-permissions.ts";
 import type { AdminPluginPermissions, Role } from "~/server/permissions.ts";
-import { RrActionError } from "~/server/safeAction.ts";
+import { RrActionError } from "~/server/safe-action.ts";
 
 export function logMessage(
   code: LogCode,

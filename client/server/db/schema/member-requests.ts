@@ -1,6 +1,6 @@
 import "server-only";
 import { integer, text } from "drizzle-orm/pg-core";
-import { tableTimestamps } from "~/server/db/dbUtils.ts";
+import { tableTimestamps } from "~/server/db/db-utils.ts";
 import { membersTable, type usersTable } from "~/server/db/schema/auth-schema.ts";
 import { type PersonResponse, personsTable } from "~/server/db/schema/persons.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";

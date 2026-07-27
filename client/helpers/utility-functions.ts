@@ -14,7 +14,7 @@ import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
 import type { RoundResponse, SelectRound } from "~/server/db/schema/rounds.ts";
 import type { OrganizationRole, OrgPluginPermissions } from "~/server/organization-permissions.ts";
 import type { Role } from "~/server/permissions.ts";
-import type { RrServerErrorObject } from "~/server/safeAction.ts";
+import type { RrServerErrorObject } from "~/server/safe-action.ts";
 import { getRankedAverageFormat, type RoundFormatObject, roundFormats } from "./roundFormats.ts";
 import type { MultiChoiceOption } from "./types/MultiChoiceOption.ts";
 import type { EventFormat, EventWrPair, RoundFormat } from "./types.ts";

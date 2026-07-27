@@ -46,7 +46,7 @@ import {
   type SelectContest,
   contestsTable as table,
 } from "../db/schema/contests.ts";
-import { actionClient, RrActionError } from "../safeAction.ts";
+import { actionClient, RrActionError } from "../safe-action.ts";
 
 const SELECT_AN_EVENT_MSG = "Please select at least one event";
 

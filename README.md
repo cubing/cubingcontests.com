@@ -93,7 +93,7 @@ If you're using a firewall on your server, make sure the following ports are not
 
 ### Starting production server
 
-To deploy your RecordRanks instance, you will have to install the following dependencies on your Linux server: `git`, `docker`, `node`, `pnpm` and `rsync` (for backups). It is also recommended that you [set up a better logging driver](https://docs.docker.com/engine/logging/configure/) for Docker. Here's an example `/etc/docker/daemon.json` file you could use for your server (don't forget to restart Docker and any running containers after setting it up):
+To deploy your RecordRanks instance, you will have to install the following dependencies on your Linux server: `git`, `docker`, `node`, `pnpm` and `rsync` (for backups), and some deployment of Kubernetes (e.g. `k3s`). It is also recommended that you [set up a better logging driver](https://docs.docker.com/engine/logging/configure/) for Docker. Here's an example `/etc/docker/daemon.json` file you could use for your server (don't forget to restart Docker and any running containers after setting it up):
 
 ```json
 {
@@ -104,13 +104,7 @@ To deploy your RecordRanks instance, you will have to install the following depe
 }
 ```
 
-There are two Docker Compose files used for deploying an instance: one for starting Supabase and one for starting RecordRanks. Run the following command to start Supabase:
-
-```sh
-docker compose -f docker-compose.supabase.yml up -d
-```
-
-The Scripts section shows how to start RecordRanks.
+The Scripts section shows how to start RecordRanks (uses Kubernetes).
 
 ### Supabase
 
@@ -206,13 +200,13 @@ Note: due to limitations with the CSV format, empty string values are represente
 
 There are several custom scripts located in the `bin` directory. These should be executed from the root of the project with `./bin/<script>`.
 
-| Script                   | Description                                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `start-prod.sh`          | Start RecordRanks in production. If it's already running, add `-r` to restart it instead.                   |
-| `apply-db-migrations.sh` | Apply DB migrations using Drizzle Kit. Also handles disabling `"server-only"` while Drizzle Kit is running. |
-| `release-new-version.sh` | Release new version of RecordRanks (pushes to Codeberg).                                                    |
-| `release-new-image.sh`   | Create Docker image for the Next JS app and publish it.                                                     |
-| `create-full-backup.sh`  | Create encrypted backup of the Supabase database and storage.                                               |
+| Script                   | Description                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `start-prod.sh`          | Start RecordRanks using Kubernetes in production.                                                      |
+| `apply-db-migrations.sh` | Apply DB migrations using Drizzle Kit. Handles disabling `"server-only"` while Drizzle Kit is running. |
+| `release-new-version.sh` | Release new version of RecordRanks (pushes to GitHub).                                                 |
+| `release-new-image.sh`   | Create Docker image for the Next JS app and publish it.                                                |
+| `create-full-backup.sh`  | Create encrypted backup of self-hosted Supabase. Takes path to Supabase as first argument.             |
 
 There is also a `convert-svg-to-ico.sh` script in the `client` directory to convert an SVG file with the icon to an ICO file at `client/app/favicon.ico`. This script runs automatically on Docker image build.
 

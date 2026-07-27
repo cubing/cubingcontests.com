@@ -3,7 +3,7 @@ import { getColumns } from "drizzle-orm";
 import { integer, serial, text } from "drizzle-orm/pg-core";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
-import { tableTimestamps } from "../dbUtils.ts";
+import { tableTimestamps } from "../db-utils.ts";
 
 export const collectiveSolutionStateEnum = rrSchema.enum("state", ["ongoing", "solved", "archived"]);
 

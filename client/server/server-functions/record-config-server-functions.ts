@@ -11,7 +11,7 @@ import {
   recordConfigsPublicCols,
   recordConfigsTable as table,
 } from "../db/schema/record-configs.ts";
-import { actionClient, RrActionError } from "../safeAction.ts";
+import { actionClient, RrActionError } from "../safe-action.ts";
 
 export const createRecordConfigSF = actionClient
   .metadata({ auth: { useOrganization: true, orgPermissions: { recordConfigs: ["create-and-update"] } } })

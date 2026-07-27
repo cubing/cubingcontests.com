@@ -5,7 +5,7 @@ import { RoundProceedValues, RoundTypeValues } from "~/helpers/types.ts";
 import { organizationsTable } from "~/server/db/schema/auth-schema.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
-import { tableTimestamps } from "../dbUtils.ts";
+import { tableTimestamps } from "../db-utils.ts";
 import { eventsTable, roundFormatEnum } from "./events.ts";
 
 export const roundTypeEnum = rrSchema.enum("round_type", RoundTypeValues);

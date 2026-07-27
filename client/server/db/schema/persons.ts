@@ -1,7 +1,7 @@
 import "server-only";
 import { getColumns } from "drizzle-orm";
 import * as d from "drizzle-orm/pg-core";
-import { tableTimestamps } from "~/server/db/dbUtils.ts";
+import { tableTimestamps } from "~/server/db/db-utils.ts";
 import { organizationsTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { regionsTable } from "~/server/db/schema/regions.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";

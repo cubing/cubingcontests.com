@@ -33,7 +33,7 @@ import {
   resultsTable as table,
 } from "../db/schema/results.ts";
 import { sendVideoBasedResultApprovedEmail, sendVideoBasedResultSubmittedEmail } from "../email/mailer.ts";
-import { actionClient, RrActionError } from "../safeAction.ts";
+import { actionClient, RrActionError } from "../safe-action.ts";
 
 export const getWrPairUpToDateSF = actionClient
   .metadata({ auth: { useOrganization: true, orgPermissions: { videoBasedResults: ["create"] } } })

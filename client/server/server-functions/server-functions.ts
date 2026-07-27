@@ -16,7 +16,7 @@ import {
   collectiveSolutionsPublicCols,
   collectiveSolutionsTable as csTable,
 } from "~/server/db/schema/collective-solutions.ts";
-import { actionClient, RrActionError } from "../safeAction.ts";
+import { actionClient, RrActionError } from "../safe-action.ts";
 import { getOrgDetails, getSettingFromDb, logMessage } from "../server-only-functions/server-only-functions.ts";
 
 export const logErrorSF = actionClient

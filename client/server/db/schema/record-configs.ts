@@ -4,7 +4,7 @@ import * as d from "drizzle-orm/pg-core";
 import { RecordCategoryValues } from "~/helpers/types.ts";
 import { organizationsTable } from "~/server/db/schema/auth-schema.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
-import { tableTimestamps } from "../dbUtils.ts";
+import { tableTimestamps } from "../db-utils.ts";
 
 export const recordCategoryEnum = rrSchema.enum("record_category", RecordCategoryValues);
 
