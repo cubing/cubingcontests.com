@@ -6,7 +6,7 @@ import EventIcon from "./EventIcon.tsx";
 
 type Props = {
   organizationSlug: string;
-  event: Pick<EventResponse, "eventId" | "name" | "category" | "description">;
+  event: Pick<EventResponse, "eventId" | "name" | "description">;
   showIcon?: boolean;
   showDescription?: boolean;
   linkToRankings?: true | string; // if this is a string, it'll be used as the query string for the URL

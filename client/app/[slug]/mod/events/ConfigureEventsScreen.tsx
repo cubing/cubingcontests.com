@@ -1,6 +1,6 @@
 "use client";
 
-import { faBrain, faCopy, faEyeSlash, faPencil, faVideo } from "@fortawesome/free-solid-svg-icons";
+import { faBrain, faCopy, faEyeSlash, faPencil, faUsers, faVideo } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
@@ -15,21 +15,23 @@ import FormTextArea from "~/app/components/form/FormTextArea.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
-import { eventCategories } from "~/helpers/event-categories.ts";
-import { eventCategoryOptions, eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { eventFormatOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getRankedAverageFormat, roundFormats } from "~/helpers/roundFormats.ts";
+import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import type { EventFormat, ListPageMode, RoundFormat } from "~/helpers/types.ts";
 import { getActionError, getRoundFormatOptions } from "~/helpers/utility-functions.ts";
 import type { EventDto } from "~/helpers/validators/Event.ts";
-import type { SelectEvent } from "~/server/db/schema/events.ts";
+import type { SelectEventCategory } from "~/server/db/schema/event-categories.ts";
+import type { FullEvent, SelectEvent } from "~/server/db/schema/events.ts";
 import { createEventSF, updateEventSF } from "~/server/server-functions/event-server-functions.ts";
 
 type Props = {
-  events: SelectEvent[];
+  events: FullEvent[];
+  eventCategories: SelectEventCategory[];
   videoBasedResultsEnabled: boolean;
 };
 
-function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }: Props) {
+function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBasedResultsEnabled }: Props) {
   const { slug }: { slug: string } = useParams();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
@@ -42,7 +44,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
   const [eventIdUnderEdit, setEventIdUnderEdit] = useState("");
   const [newEventId, setNewEventId] = useState("");
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("miscellaneous");
+  const [categoryId, setCategoryId] = useState<number | undefined>();
   const [rank, setRank] = useState<number | undefined>();
   const [format, setFormat] = useState<EventFormat>("time");
   const [defaultRoundFormat, setDefaultRoundFormat] = useState<RoundFormat>("a");
@@ -56,6 +58,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
 
   const isPending = isCreating || isUpdating;
   const rankedAverageFormat = getRankedAverageFormat(defaultRoundFormat);
+  const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((ec) => ({ value: ec.id, label: ec.name }));
 
   const handleSubmit = async () => {
     if (
@@ -63,10 +66,11 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
       newEventId === eventIdUnderEdit ||
       confirm(`Are you sure you would like to change the event ID from ${eventIdUnderEdit} to ${newEventId}?`)
     ) {
+      // Whatever doesn't pass validation will be caught and the server function will return an error
       const newEventDto = {
         eventId: newEventId,
         name,
-        category,
+        categoryId: categoryId as number,
         rank: rank as number,
         format,
         defaultRoundFormat,
@@ -106,7 +110,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
     setEventIdUnderEdit("");
     setNewEventId("");
     setName("");
-    setCategory("miscellaneous");
+    setCategoryId(eventCategories[0].id);
     setRank(events.length > 0 ? Math.max(...events.map((e) => e.rank)) + 10 : 10);
     setFormat("time");
     setDefaultRoundFormat("a");
@@ -128,7 +132,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
     setEventIdUnderEdit(clone ? "" : event.eventId);
     setNewEventId(event.eventId);
     setName(event.name);
-    setCategory(event.category);
+    setCategoryId(event.categoryId);
     setRank(clone ? Math.max(...events.map((e) => e.rank)) + 10 : event.rank);
     setFormat(event.format);
     setDefaultRoundFormat(event.defaultRoundFormat);
@@ -195,7 +199,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             <div className="col">
               <FormSelect
                 id="default_format"
-                title="Default format"
+                title="Default round format"
                 options={getRoundFormatOptions(roundFormats)}
                 selected={defaultRoundFormat}
                 setSelected={setDefaultRoundFormat as any}
@@ -232,8 +236,8 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
           <FormRadio
             title="Event category"
             options={eventCategoryOptions}
-            selected={category}
-            setSelected={setCategory}
+            selected={categoryId}
+            setSelected={setCategoryId}
             disabled={isPending}
             className="mb-3"
           />
@@ -269,6 +273,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             setValue={setDescription}
             rows={3}
             disabled={isPending}
+            className="mb-3"
           />
           <FormTextArea
             title="Rules (optional, Markdown supported)"
@@ -276,6 +281,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             setValue={setRule}
             rows={4}
             disabled={isPending}
+            className="mb-3"
           />
           <FormTextArea
             title="Important information (optional)"
@@ -283,6 +289,7 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
             setValue={setImportantInfo}
             rows={3}
             disabled={isPending}
+            className="mb-3"
           />
           <p className="fs-6 mb-4">
             This will be displayed whenever a user selects this event for a contest to make sure they're familiar with
@@ -301,96 +308,88 @@ function ConfigureEventsScreen({ events: initEvents, videoBasedResultsEnabled }:
               <th scope="col">Event ID</th>
               <th scope="col">Rank</th>
               <th scope="col">Format</th>
-              <th scope="col">Default round format</th>
-              <th scope="col">Participants</th>
+              <th scope="col">Def. r. fmt.</th>
+              <th scope="col">
+                <span title="Number of participants">
+                  <FontAwesomeIcon icon={faUsers} aria-label="Number of participants" />
+                </span>
+              </th>
               <th scope="col">Category</th>
               <th scope="col">Options</th>
               <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {events.map((event: SelectEvent, index: number) => (
-              <tr key={event.eventId}>
-                <td>{index + 1}</td>
-                <td>
-                  <EventTitle organizationSlug={slug} fontSize="6" event={event} showIcon linkToRankings noMargin />
-                </td>
-                <td>{event.eventId}</td>
-                <td
-                  className={
-                    events.some((e) => e.eventId !== event.eventId && e.rank === event.rank)
-                      ? "fw-bold text-danger"
-                      : ""
-                  }
-                >
-                  {event.rank}
-                </td>
-                <td>{eventFormatOptions.find((efo) => efo.value === event.format)?.label}</td>
-                <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}</td>
-                <td>
-                  <span className={`${event.participants > 1 ? "fw-bold text-info" : ""}`}>{event.participants}</span>
-                </td>
-                <td>
-                  <span
-                    className={`badge ${
-                      event.category === "wca"
-                        ? "bg-danger"
-                        : event.category === "unofficial"
-                          ? "bg-warning text-dark"
-                          : event.category === "extreme-bld"
-                            ? "bg-primary"
-                            : event.category === "miscellaneous"
-                              ? "bg-light text-dark"
-                              : ""
-                    }`}
+            {events.map((event, index) => {
+              const eventFormat = eventFormatOptions.find((efo) => efo.value === event.format);
+
+              return (
+                <tr key={event.eventId}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <EventTitle organizationSlug={slug} fontSize="6" event={event} showIcon linkToRankings noMargin />
+                  </td>
+                  <td>{event.eventId}</td>
+                  <td
+                    className={
+                      events.some((e) => e.eventId !== event.eventId && e.rank === event.rank)
+                        ? "fw-bold text-danger"
+                        : ""
+                    }
                   >
-                    {eventCategories.find((ec) => event.category === ec.value)?.title}
-                  </span>
-                </td>
-                <td>
-                  <div className="d-flex gap-2">
-                    {/* For some reason FontAwesomeIcon doesn't like having title attributes (causes hydration errors) */}
-                    {event.submissionsAllowed && (
-                      <span title="Allow video-based results">
-                        <FontAwesomeIcon icon={faVideo} />
-                      </span>
-                    )}
-                    {event.hasMemo && (
-                      <span title="Has memorization time input">
-                        <FontAwesomeIcon icon={faBrain} />
-                      </span>
-                    )}
-                    {event.hidden && (
-                      <span title="Hidden">
-                        <FontAwesomeIcon icon={faEyeSlash} />
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <div className="d-flex gap-2">
-                    <Button
-                      onClick={() => onUpdateEvent(event)}
-                      disabled={isPending}
-                      className="btn-xs"
-                      title="Edit"
-                      ariaLabel="Edit"
-                    >
-                      <FontAwesomeIcon icon={faPencil} />
-                    </Button>
-                    <Button
-                      onClick={() => onUpdateEvent(event, true)}
-                      disabled={isPending}
-                      className="btn-xs"
-                      title="Clone"
-                      aria-label="Clone"
-                    >
-                      <FontAwesomeIcon icon={faCopy} />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                    {event.rank}
+                  </td>
+                  <td>{eventFormat?.shortLabel || eventFormat?.label || "ERROR"}</td>
+                  <td>{roundFormats.find((rf) => rf.value === event.defaultRoundFormat)?.shortLabel}</td>
+                  <td>
+                    <span className={`${event.participants > 1 ? "fw-bold text-info" : ""}`}>{event.participants}</span>
+                  </td>
+                  <td>{event.category.name}</td>
+                  <td>
+                    <div className="d-flex gap-2">
+                      {/* For some reason FontAwesomeIcon doesn't like having title attributes (causes hydration errors) */}
+                      {event.submissionsAllowed && (
+                        <span title="Allow video-based results">
+                          <FontAwesomeIcon icon={faVideo} />
+                        </span>
+                      )}
+                      {event.hasMemo && (
+                        <span title="Has memorization time input">
+                          <FontAwesomeIcon icon={faBrain} />
+                        </span>
+                      )}
+                      {event.hidden && (
+                        <span title="Hidden">
+                          <FontAwesomeIcon icon={faEyeSlash} />
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="d-flex gap-2">
+                      <Button
+                        onClick={() => onUpdateEvent(event)}
+                        disabled={isPending}
+                        className="btn-xs"
+                        title="Edit"
+                        ariaLabel="Edit"
+                      >
+                        <FontAwesomeIcon icon={faPencil} />
+                      </Button>
+                      <Button
+                        onClick={() => onUpdateEvent(event, true)}
+                        disabled={isPending}
+                        className="btn-xs"
+                        title="Clone"
+                        aria-label="Clone"
+                      >
+                        <FontAwesomeIcon icon={faCopy} />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

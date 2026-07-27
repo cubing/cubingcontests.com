@@ -155,7 +155,14 @@ function MemberRequestTab({ regions }: Props) {
             />
           </div>
         </div>
-        <FormTextArea title="Comment" value={comment} setValue={setComment} disabled={isPending} rows={5} />
+        <FormTextArea
+          title="Comment"
+          value={comment}
+          setValue={setComment}
+          disabled={isPending}
+          rows={5}
+          className="mb-3"
+        />
       </Form>
 
       {memberRequest && (

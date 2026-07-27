@@ -15,6 +15,7 @@ import {
 } from "./schema/auth-schema.ts";
 import { collectiveSolutionsTable as collectiveSolutions } from "./schema/collective-solutions.ts";
 import { contestsTable as contests } from "./schema/contests.ts";
+import { eventCategoriesTable as eventCategories } from "./schema/event-categories.ts";
 import { eventsTable as events } from "./schema/events.ts";
 import { memberRequestsTable as memberRequests } from "./schema/member-requests.ts";
 import { personsTable as persons } from "./schema/persons.ts";
@@ -37,6 +38,7 @@ export const relations = defineRelations(
     apikeys,
 
     // RecordRanks relations
+    eventCategories,
     memberRequests,
     events,
     contests,
@@ -136,6 +138,16 @@ export const relations = defineRelations(
         from: r.contests.createdBy,
         to: r.users.id,
       }),
+    },
+    events: {
+      eventCategory: r.one.eventCategories({
+        from: r.events.categoryId,
+        to: r.eventCategories.id,
+        optional: false,
+      }),
+    },
+    eventCategories: {
+      events: r.many.events(),
     },
     rounds: {
       results: r.many.results(),

@@ -11,7 +11,7 @@ export const EventValidator = z
         error: "The event ID can only contain lowercase alphanumeric characters and underscores (_)",
       }),
     name: z.string().min(3),
-    category: z.string().nonempty(),
+    categoryId: z.int(),
     rank: z.int().min(1),
     format: z.enum(EventFormatValues),
     defaultRoundFormat: z.enum(RoundFormatValues),

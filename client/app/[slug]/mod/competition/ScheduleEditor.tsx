@@ -176,16 +176,15 @@ function ScheduleEditor({ rooms, setRooms, venueTimeZone, startDate, contestType
               <div className="col-8">
                 <FormTextInput title="Room name" value={roomName} setValue={setRoomName} disabled={disabled} />
               </div>
-              <div className="d-flex justify-content-between col-4 gap-3 align-items-end">
-                <div className="flex-grow-1">
-                  <FormSelect
-                    title="Color"
-                    options={colorOptions}
-                    selected={roomColor}
-                    setSelected={setRoomColor as any}
-                    disabled={disabled}
-                  />
-                </div>
+              <div className="d-flex col-4 gap-3 align-items-end">
+                <FormSelect
+                  title="Color"
+                  options={colorOptions}
+                  selected={roomColor}
+                  setSelected={setRoomColor as any}
+                  disabled={disabled}
+                  className="flex-grow-1"
+                />
                 <ColorSquare color={roomColor} />
               </div>
             </div>

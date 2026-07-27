@@ -68,10 +68,6 @@ export type RoundType = (typeof RoundTypeValues)[number];
 export const RoundProceedValues = ["percentage", "number"] as const;
 export type RoundProceed = (typeof RoundProceedValues)[number];
 
-// This will be deleted once event categories are stored in the DB
-export const EventCategoryValues = ["unofficial", "wca", "extreme-bld", "miscellaneous", "removed"] as const;
-export type EventCategory = (typeof EventCategoryValues)[number];
-
 export const RecordCategoryValues = ["competitions", "meetups", "online"] as const;
 export type RecordCategory = (typeof RecordCategoryValues)[number];
 
