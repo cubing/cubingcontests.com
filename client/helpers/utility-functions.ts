@@ -144,7 +144,8 @@ export function getAttempt(
 
   if (memo) {
     const memoTime = getTimeValue(memo, { truncate: true });
-    if (memoTime && newAttempt.result && memoTime >= newAttempt.result) return { ...newAttempt, result: NaN };
+    if (memoTime && newAttempt.result && memoTime >= newAttempt.result)
+      return { ...newAttempt, result: NaN, memo: NaN };
     newAttempt.memo = memoTime;
   }
 
