@@ -19,15 +19,20 @@ ALTER TABLE "record_ranks"."event_categories" ADD CONSTRAINT "event_categories_o
 -- CUSTOM ADDITION FOR RECORDRANKS: {
 -- Generate categories for each organization based on existing events.category values
 INSERT INTO "record_ranks"."event_categories" ("organization_id", "category_id", "rank", "name", "color", "hidden", "video_based")
-SELECT DISTINCT
-	e."organization_id",
-	e."category",
-  10 * ROW_NUMBER() OVER (PARTITION BY e."organization_id" ORDER BY e."category") AS rank,
-  INITCAP(e."category"),
-	'#ffffff',
-  CASE WHEN e."category" = 'removed' THEN true ELSE false END,
-  CASE WHEN e."category" = 'extreme-bld' THEN true ELSE false END
-FROM "record_ranks"."events" e;
+SELECT
+  org_cat."organization_id",
+  org_cat."category",
+  10 * ROW_NUMBER() OVER (PARTITION BY org_cat."organization_id" ORDER BY org_cat."category") AS rank,
+  INITCAP(org_cat."category"),
+  '#ffffff',
+  CASE WHEN org_cat."category" = 'removed' THEN true ELSE false END,
+  CASE WHEN org_cat."category" = 'extreme-bld' THEN true ELSE false END
+FROM (
+  SELECT DISTINCT
+    e."organization_id",
+    e."category"
+  FROM "record_ranks"."events" e
+) org_cat;
 -- Add category_id column as nullable first
 ALTER TABLE "record_ranks"."events" ADD COLUMN "category_id" integer;
 -- Populate category_id from the newly created event categories
