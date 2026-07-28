@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import Markdown from "react-markdown";
 import BlogSection from "~/app/components/content/BlogSection.tsx";
 import CollectiveCubing from "~/app/components/content/CollectiveCubing.tsx";
-import SocialLinkButton from "~/app/components/content/DiscordServerButton.tsx";
 import DonateSection from "~/app/components/content/DonateSection.tsx";
 import ModInstructionsSection from "~/app/components/content/ModInstructionsSection.tsx";
+import SocialLinkButton from "~/app/components/content/SocialLinkButton.tsx";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import { getBlogPosts, getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 

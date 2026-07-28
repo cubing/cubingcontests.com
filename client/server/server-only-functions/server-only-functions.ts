@@ -615,7 +615,7 @@ export async function validateMaxMonthlyContests(organization: Pick<Organization
 
   if (organization.subscription && contestsCreatedLastMonth >= organization.subscription.limits.monthlyContests) {
     throw new RrActionError(
-      C.message.maxMonthlyContestsReached + (IS_RR_INSTANCE ? ". Please upgrade to a higher plan." : ""),
+      C.message.maxMonthlyContestsReached + (IS_RR_INSTANCE ? ". Consider upgrading to a higher plan." : ""),
     );
   }
 }
@@ -627,7 +627,7 @@ export async function validateMaxTotalCompetitors(organization: Pick<Organizatio
 
   if (organization.subscription && totalPersons >= organization.subscription.limits.competitors) {
     throw new RrActionError(
-      C.message.maxCompetitorsReached + (IS_RR_INSTANCE ? ". Please upgrade to a higher plan." : ""),
+      C.message.maxCompetitorsReached + (IS_RR_INSTANCE ? ". Consider upgrading to a higher plan." : ""),
     );
   }
 }
