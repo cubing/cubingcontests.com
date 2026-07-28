@@ -4,7 +4,7 @@ import { getColumns } from "drizzle-orm/utils";
 import { EventFormatValues, RoundFormatValues } from "~/helpers/types.ts";
 import { tableTimestamps } from "~/server/db/db-utils.ts";
 import { organizationsTable } from "~/server/db/schema/auth-schema.ts";
-import { eventCategoriesTable, type SelectEventCategory } from "~/server/db/schema/event-categories.ts";
+import { type EventCategoryDetails, eventCategoriesTable } from "~/server/db/schema/event-categories.ts";
 import { rrSchema } from "~/server/db/schema/schema.ts";
 
 export const eventFormatEnum = rrSchema.enum("event_format", EventFormatValues);
@@ -42,9 +42,7 @@ export const eventsTable = rrSchema.table(
 export type InsertEvent = typeof eventsTable.$inferInsert;
 export type SelectEvent = typeof eventsTable.$inferSelect;
 
-export type FullEvent = SelectEvent & {
-  category: Pick<SelectEventCategory, "name" | "shortName" | "color">;
-};
+export type FullEvent = SelectEvent & { category: EventCategoryDetails };
 
 const {
   organizationId: _,
@@ -57,3 +55,4 @@ const {
 export { eventsPublicCols };
 
 export type EventResponse = Pick<SelectEvent, keyof typeof eventsPublicCols>;
+export type EventResponseWithCategory = EventResponse & { category: EventCategoryDetails };

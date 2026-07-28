@@ -1,9 +1,9 @@
-import { getFormattedTime } from "~/helpers/utility-functions.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import { getAlwaysShowDecimals, getFormattedTime } from "~/helpers/utility-functions.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 
 type Props = {
-  event: Pick<EventResponse, "category" | "format">;
+  event: Pick<EventResponseWithCategory, "format" | "category">;
   attempts: Attempt[];
   showMultiPoints?: boolean;
 };
@@ -18,7 +18,11 @@ function Attempts({ event, attempts, showMultiPoints = false }: Props) {
   return (
     <div className="d-flex gap-2">
       {attempts.map((attempt, index) => {
-        const formattedTime = getFormattedTime(attempt.result, { event, showMultiPoints });
+        const formattedTime = getFormattedTime(attempt.result, {
+          eventFormat: event.format,
+          showDecimals: getAlwaysShowDecimals(event) ? "up-to-1h" : "default",
+          showMultiPoints,
+        });
 
         if (isAllDnfOrDnsAttempts || attempts.length < 5 || attempts.some((a) => a.result === 0))
           return <span key={index}>{formattedTime}</span>;

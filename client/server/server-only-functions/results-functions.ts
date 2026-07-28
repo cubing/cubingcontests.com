@@ -7,6 +7,8 @@ import type { RecordCategory } from "~/helpers/types.ts";
 import {
   compareAvgs,
   compareSingles,
+  getAlwaysShowDecimals,
+  getAttempt,
   getBestAndAverage,
   getFormattedTime,
   getMakesCutoff,
@@ -15,7 +17,7 @@ import {
 } from "~/helpers/utility-functions.ts";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { contestsTable, type SelectContest } from "~/server/db/schema/contests.ts";
-import type { SelectEvent } from "~/server/db/schema/events.ts";
+import type { FullEvent, SelectEvent } from "~/server/db/schema/events.ts";
 import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import {
@@ -675,10 +677,10 @@ export async function validateContestResult({
   attempts: Attempt[];
   personIds: number[];
   round: SelectRound;
-  event: SelectEvent;
+  event: FullEvent;
   expectedNumberOfAttempts: number;
 }): Promise<Attempt[]> {
-  let outputAttempts = attempts;
+  let outputAttempts = getTruncatedAttempts({ attempts, event });
 
   // Same check as in createVideoBasedResultSF()
   if (personIds.length !== event.participants) {
@@ -689,8 +691,11 @@ export async function validateContestResult({
 
   // Time limit validation
   if (round.timeLimitCentiseconds) {
-    if (attempts.some((a) => a.result > round.timeLimitCentiseconds!))
-      throw new RrActionError(`This round has a time limit of ${getFormattedTime(round.timeLimitCentiseconds)}`);
+    if (attempts.some((a) => a.result > round.timeLimitCentiseconds!)) {
+      throw new RrActionError(
+        `This round has a time limit of ${getFormattedTime(round.timeLimitCentiseconds, { showDecimals: "never" })}`,
+      );
+    }
 
     if (round.timeLimitCumulativeRoundIds) {
       // Add up all attempt times from the new result and results from other rounds included in the cumulative time limit
@@ -708,7 +713,7 @@ export async function validateContestResult({
 
       if (total >= round.timeLimitCentiseconds) {
         throw new RrActionError(
-          `This round has a cumulative time limit of ${getFormattedTime(round.timeLimitCentiseconds)}${
+          `This round has a cumulative time limit of ${getFormattedTime(round.timeLimitCentiseconds, { showDecimals: "never" })}${
             round.timeLimitCumulativeRoundIds.length > 0
               ? ` for these rounds: ${round.id}, ${round.timeLimitCumulativeRoundIds.join(", ")}`
               : ""
@@ -725,9 +730,12 @@ export async function validateContestResult({
     ) {
       if (attempts.length > round.cutoffNumberOfAttempts!) {
         const attemptsPastCutoffNumberOfAttempts = attempts.slice(round.cutoffNumberOfAttempts);
-        if (attemptsPastCutoffNumberOfAttempts.some((a) => a.result !== 0))
-          throw new RrActionError(`This round has a cutoff of ${getFormattedTime(round.cutoffAttemptResult)}`);
-        else outputAttempts = attempts.slice(0, round.cutoffNumberOfAttempts);
+        if (attemptsPastCutoffNumberOfAttempts.some((a) => a.result !== 0)) {
+          const formattedCutoff = getFormattedTime(round.cutoffAttemptResult, { showDecimals: "never" });
+          throw new RrActionError(`This round has a cutoff of ${formattedCutoff}`);
+        } else {
+          outputAttempts = attempts.slice(0, round.cutoffNumberOfAttempts);
+        }
       }
 
       expectedNumberOfAttempts = round.cutoffNumberOfAttempts;
@@ -741,6 +749,32 @@ export async function validateContestResult({
   }
 
   return outputAttempts;
+}
+
+export function getTruncatedAttempts({ attempts, event }: { attempts: Attempt[]; event: FullEvent }): Attempt[] {
+  const newAttempts: Attempt[] = [];
+
+  for (const attempt of attempts) {
+    if ([0, -1, -2, C.maxTime].includes(attempt.result)) {
+      newAttempts.push(attempt);
+    } else {
+      const [timeStr, solved, attempted] = getFormattedTime(attempt.result, {
+        eventFormat: event.format,
+        noDelimiterChars: true,
+      }).split(";") as [timeStr: string, solved?: string, attempted?: string];
+      const memoStr = attempt.memo ? getFormattedTime(attempt.memo, { noDelimiterChars: true }) : undefined;
+
+      const newAttempt = getAttempt(attempt, event, timeStr, {
+        truncateTime: !getAlwaysShowDecimals(event),
+        solved: solved ? Number(solved) : undefined,
+        attempted: attempted ? Number(attempted) : undefined,
+        memo: memoStr,
+      });
+      newAttempts.push(newAttempt);
+    }
+  }
+
+  return newAttempts;
 }
 
 export async function setRankingAndProceedsValues(

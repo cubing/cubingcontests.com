@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import type { EventFormat } from "~/helpers/types.ts";
 import { getAlwaysShowDecimals, getAttempt, getFormattedTime } from "~/helpers/utility-functions.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 import FormNumberInput from "./form/FormNumberInput.tsx";
 import FormTextInput from "./form/FormTextInput.tsx";
@@ -45,7 +45,7 @@ type Props = {
   attNumber: number; // number of the attempt (use 0 if the input is used for a time limit or cutoff)
   attempt: Attempt;
   setAttempt: (val: Attempt) => void;
-  event: EventResponse;
+  event: EventResponseWithCategory;
   timeLimitCentiseconds?: number | null;
   memoInputForBld?: boolean;
   allowUnknownTime?: boolean;
@@ -96,15 +96,15 @@ function AttemptInput({
         // Attempt time
         if (attempt.result === 0) {
           setAttemptText("");
-        } else if (event.format !== "multi") {
-          setAttemptText(getFormattedTime(attempt.result, { event, noDelimiterChars: true }));
         } else {
-          const formattedTime = getFormattedTime(attempt.result, { event, noDelimiterChars: true });
-          const [newSolved, newAttempted, newAttText] = formattedTime.split(";");
+          const formattedTime = getFormattedTime(attempt.result, { eventFormat: event.format, noDelimiterChars: true });
+          const [newAttText, newSolved, newAttempted] = formattedTime.split(";");
 
-          setSolved(Number(newSolved));
-          setAttempted(Number(newAttempted));
           setAttemptText(newAttText === C.maxTimeHumanReadable ? "Unknown" : newAttText);
+          if (event.format === "multi") {
+            setSolved(Number(newSolved));
+            setAttempted(Number(newAttempted));
+          }
         }
 
         // Memo time
@@ -140,26 +140,14 @@ function AttemptInput({
   const changeSolved = (newSolved: number | undefined) => {
     setSolved(newSolved);
     if (attemptText) {
-      setAttempt(
-        getAttempt(attempt, event, attemptText, {
-          solved: newSolved,
-          attempted,
-          memo: memoText,
-        }),
-      );
+      setAttempt(getAttempt(attempt, event, attemptText, { solved: newSolved, attempted, memo: memoText }));
     }
   };
 
   const changeAttempted = (newAttempted: number | undefined) => {
     setAttempted(newAttempted);
     if (attemptText) {
-      setAttempt(
-        getAttempt(attempt, event, attemptText, {
-          solved,
-          attempted: newAttempted,
-          memo: memoText,
-        }),
-      );
+      setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted: newAttempted, memo: memoText }));
     }
   };
 
@@ -182,19 +170,17 @@ function AttemptInput({
       ) {
         setAttempt({ ...attempt, result: 0 });
         if (event.format === "multi") document.getElementById(`attempt_${attNumber}_solved`)?.focus();
-      } else {
-        if (!forMemo && attemptText !== "") {
-          const newAttText = attemptText.slice(0, -1);
-          setAttemptText(newAttText);
-          setAttempt(getAttempt(attempt, event, newAttText, { solved, attempted, memo: memoText }));
-        } else if (forMemo && memoText) {
-          // This is different, because the memo input has no decimals, but memo time is still stored as centiseconds
-          let newMemoText: string = memoText.slice(0, -3);
-          if (newMemoText) newMemoText += "00";
+      } else if (!forMemo && attemptText !== "") {
+        const newAttText = attemptText.slice(0, -1);
+        setAttemptText(newAttText);
+        setAttempt(getAttempt(attempt, event, newAttText, { solved, attempted, memo: memoText }));
+      } else if (forMemo && memoText) {
+        // This is different, because the memo input has no decimals, but memo time is still stored as centiseconds
+        let newMemoText: string = memoText.slice(0, -3);
+        if (newMemoText) newMemoText += "00";
 
-          setMemoText(newMemoText);
-          setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted, memo: newMemoText }));
-        }
+        setMemoText(newMemoText);
+        setAttempt(getAttempt(attempt, event, attemptText, { solved, attempted, memo: newMemoText }));
       }
     } // Add character
     else if (e.target.value.length > prevValue.length) {
@@ -205,8 +191,8 @@ function AttemptInput({
       } else if (!forMemo && DNSKeys.includes(newCharacter)) {
         handleSetDNS(e);
       } else if (!forMemo && unknownTimeKeys.includes(newCharacter)) {
-        // Multi-Blind doesn't allow unknown time, but Multi-Blind Old Style does
-        if (allowUnknownTime && event.eventId !== "333mbf") {
+        // Multi-Blind doesn't allow unknown time on Cubing Contests, but Multi-Blind Old Style does
+        if (allowUnknownTime && !(IS_CUBING_CONTESTS_INSTANCE && event.eventId === "333mbf")) {
           if (event.format !== "multi") {
             setAttempt({ result: C.maxTime });
             setAttemptText("Unknown");
@@ -270,21 +256,6 @@ function AttemptInput({
     }
   };
 
-  const onTimeFocusOut = (forMemo = false) => {
-    // Truncate the decimals if one of the times is >= 10 minutes
-    if (attemptText.length >= (event.format === "time-3d" ? 7 : 6) || (forMemo && memoText?.length >= 6)) {
-      const newAttempt = getAttempt(attempt, event, attemptText, {
-        truncateTime: !getAlwaysShowDecimals(event),
-        truncateMemo: true,
-        solved,
-        attempted,
-        memo: memoText,
-      });
-
-      if (newAttempt.result !== attempt.result || newAttempt.memo !== attempt.memo) setAttempt(newAttempt);
-    }
-  };
-
   const dnfTheAttempt = () => {
     setAttempt({ result: -1 }); // set DNF
     setAttemptText("DNF");
@@ -314,76 +285,82 @@ function AttemptInput({
 
   // TO-DO: CLEAN UP THIS COMPONENT!!! THE INPUTS SHOULDN'T BE CONTROLLED SO MUCH; A TON OF NATIVE FEATURES BREAK THIS WAY!!!
   return (
-    <div className={`${attNumber !== 0 ? "row mx-0" : ""} gap-2 gap-md-3`}>
-      {event.format === "multi" && (
-        <>
-          <div className={cubesInputClasses}>
-            <FormNumberInput
-              id={`attempt_${attNumber}_solved`}
-              title={attNumber === 1 ? "Solved" : ""}
-              value={solved}
-              setValue={changeSolved}
-              onKeyDown={(e) => onCubesKeyDown(e)}
-              nextFocusTargetId={`attempt_${attNumber}_attempted`}
-              disabled={attempt.result === -2}
-              integer
-              min={0}
-              max={event.eventId === "333mbo" ? 999 : 99}
-              invalid={isInvalidAttempt}
-            />
-          </div>
-          <div className={cubesInputClasses}>
-            <FormNumberInput
-              id={`attempt_${attNumber}_attempted`}
-              title={attNumber === 1 ? "Total" : ""}
-              value={attempted}
-              setValue={changeAttempted}
-              onKeyDown={(e: any) => onCubesKeyDown(e)}
-              nextFocusTargetId={`attempt_${attNumber}`}
-              disabled={attempt.result === -2}
-              integer
-              min={2}
-              max={event.eventId === "333mbo" ? 999 : 99}
-              invalid={isInvalidAttempt}
-            />
-          </div>
-        </>
-      )}
-      <div className="col px-0">
-        <FormTextInput
-          id={`attempt_${attNumber}`}
-          title={attNumber === 1 ? "Result" : ""}
-          tooltip={timeInputTooltip}
-          value={formattedAttemptText}
-          onChange={(e) => onTimeChange(e)}
-          onKeyDown={(e) => onTimeKeyDown(e)}
-          onClick={resetCursorPosition}
-          onFocus={resetCursorPosition}
-          onSelect={resetCursorPosition}
-          onBlur={() => onTimeFocusOut()}
-          invalid={isInvalidAttempt}
-          disabled={disabled}
-          className={attNumber === 0 ? "" : "mb-2"}
-        />
-      </div>
-      {includeMemo && (
+    <div>
+      <div className={`${attNumber !== 0 ? "row mx-0" : ""} gap-2`}>
+        {event.format === "multi" && (
+          <>
+            <div className={cubesInputClasses}>
+              <FormNumberInput
+                id={`attempt_${attNumber}_solved`}
+                title={attNumber === 1 ? "Solved" : ""}
+                value={solved}
+                setValue={changeSolved}
+                onKeyDown={(e) => onCubesKeyDown(e)}
+                nextFocusTargetId={`attempt_${attNumber}_attempted`}
+                disabled={attempt.result === -2}
+                integer
+                min={0}
+                max={event.eventId === "333mbo" ? 999 : 99}
+                invalid={isInvalidAttempt}
+              />
+            </div>
+            <div className={cubesInputClasses}>
+              <FormNumberInput
+                id={`attempt_${attNumber}_attempted`}
+                title={attNumber === 1 ? "Total" : ""}
+                value={attempted}
+                setValue={changeAttempted}
+                onKeyDown={(e: any) => onCubesKeyDown(e)}
+                nextFocusTargetId={`attempt_${attNumber}`}
+                disabled={attempt.result === -2}
+                integer
+                min={2}
+                max={event.eventId === "333mbo" ? 999 : 99}
+                invalid={isInvalidAttempt}
+              />
+            </div>
+          </>
+        )}
         <div className="col px-0">
           <FormTextInput
-            id={`attempt_${attNumber}_memo`}
-            title={attNumber === 1 ? "Memo" : ""}
-            tooltip="Memorization time without the decimals. If unknown, leave as 0."
-            value={formattedMemoText}
-            onChange={(e) => onTimeChange(e, true)}
-            onKeyDown={(e: any) => onTimeKeyDown(e, true)}
+            id={`attempt_${attNumber}`}
+            title={attNumber === 1 ? "Result" : ""}
+            tooltip={timeInputTooltip}
+            value={formattedAttemptText}
+            onChange={(e) => onTimeChange(e)}
+            onKeyDown={(e) => onTimeKeyDown(e)}
             onClick={resetCursorPosition}
             onFocus={resetCursorPosition}
             onSelect={resetCursorPosition}
-            onBlur={() => onTimeFocusOut(true)}
-            disabled={["DNF", "DNS", "Unknown"].includes(formattedAttemptText)}
             invalid={isInvalidAttempt}
+            disabled={disabled}
+            className={attNumber === 0 ? "" : "mb-2"}
           />
         </div>
-      )}
+        {includeMemo && (
+          <div className="col px-0">
+            <FormTextInput
+              id={`attempt_${attNumber}_memo`}
+              title={attNumber === 1 ? "Memo" : ""}
+              tooltip="Memorization time without the decimals. If unknown, leave as 0."
+              value={formattedMemoText}
+              onChange={(e) => onTimeChange(e, true)}
+              onKeyDown={(e: any) => onTimeKeyDown(e, true)}
+              onClick={resetCursorPosition}
+              onFocus={resetCursorPosition}
+              onSelect={resetCursorPosition}
+              disabled={["DNF", "DNS", "Unknown"].includes(formattedAttemptText)}
+              invalid={isInvalidAttempt}
+            />
+          </div>
+        )}
+      </div>
+
+      {attNumber !== 0 &&
+        !getAlwaysShowDecimals(event) &&
+        attemptText.length >= (event.format === "time-3d" ? 7 : 6) && (
+          <p className="mb-0 text-center text-danger tw:text-sm">Decimals will be truncated (&gt;10m)</p>
+        )}
     </div>
   );
 }

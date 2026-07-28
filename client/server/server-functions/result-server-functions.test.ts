@@ -378,7 +378,9 @@ describe("createContestResultSF", () => {
         },
       });
 
-      expect(res.serverError?.message).toBe(`This round has a time limit of ${getFormattedTime(timeLimit!)}`);
+      expect(res.serverError?.message).toBe(
+        `This round has a time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
+      );
       expect(res.data).toBeUndefined();
     });
 
@@ -396,7 +398,7 @@ describe("createContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a cumulative time limit of ${getFormattedTime(timeLimit!)}`,
+        `This round has a cumulative time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -413,7 +415,9 @@ describe("createContestResultSF", () => {
         },
       });
 
-      expect(res.serverError?.message).toBe(`This round has a cutoff of ${getFormattedTime(cutoffAttemptResult!)}`);
+      expect(res.serverError?.message).toBe(
+        `This round has a cutoff of ${getFormattedTime(cutoffAttemptResult!, { showDecimals: "never" })}`,
+      );
       expect(res.data).toBeUndefined();
     });
 
@@ -693,7 +697,9 @@ describe("updateContestResultSF", () => {
         newAttempts: [{ result: timeLimit! + 1 }, { result: 1234 }, { result: 1234 }],
       });
 
-      expect(res.serverError?.message).toBe(`This round has a time limit of ${getFormattedTime(timeLimit!)}`);
+      expect(res.serverError?.message).toBe(
+        `This round has a time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
+      );
       expect(res.data).toBeUndefined();
     });
 
@@ -706,7 +712,7 @@ describe("updateContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a cumulative time limit of ${getFormattedTime(timeLimit!)}`,
+        `This round has a cumulative time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -718,7 +724,9 @@ describe("updateContestResultSF", () => {
         newAttempts: [{ result: cutoffAttemptResult! + 1 }, { result: 1234 }, { result: 1234 }],
       });
 
-      expect(res.serverError?.message).toBe(`This round has a cutoff of ${getFormattedTime(cutoffAttemptResult!)}`);
+      expect(res.serverError?.message).toBe(
+        `This round has a cutoff of ${getFormattedTime(cutoffAttemptResult!, { showDecimals: "never" })}`,
+      );
       expect(res.data).toBeUndefined();
     });
   });

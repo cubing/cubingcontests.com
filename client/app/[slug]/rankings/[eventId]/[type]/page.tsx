@@ -19,6 +19,7 @@ import { db } from "~/server/db/provider.ts";
 import { eventsPublicCols, eventsTable as table } from "~/server/db/schema/events.ts";
 import {
   getEnabledRecordCategories,
+  getEventCategories,
   getEvents,
   getOrgDetails,
   getRankings,
@@ -70,20 +71,23 @@ async function RankingsPage({ params, searchParams }: Props) {
   const urlSearchParamsWithoutTopN = new URLSearchParams(omitBy({ show, category, region } as any, (val) => !val));
 
   const organization = await getOrgDetails({ slug });
-  const [events, regions, enabledRecordCategories] = await Promise.all([
-    getEvents({ organizationId: organization!.id, includeHiddenAndRemoved: true }),
-    getRegions(organization!.id),
-    getEnabledRecordCategories({ organizationId: organization!.id }),
+  const [events, eventCategories, regions, enabledRecordCategories] = await Promise.all([
+    getEvents({ organizationId: organization.id, includeHiddenAndRemoved: true }),
+    getEventCategories({ organizationId: organization.id }),
+    getRegions(organization.id),
+    getEnabledRecordCategories({ organizationId: organization.id }),
   ]);
 
-  const visibleEvents = events.filter((e) => e.category !== "removed" && !e.hidden);
+  const visibleEvents = events.filter((e) => !e.category.hidden && !e.hidden);
   const event = events.find((e) => e.eventId === eventId);
   if (!event) return <p className="fs-4 mx-3 mt-5 text-center">Event not found</p>;
+  const eventCategory = eventCategories.find((ec) => ec.id === event.categoryId)!;
   const recordCategory: RecordCategory | "all" =
     category ??
+    (eventCategory.videoBased ||
     (IS_CUBING_CONTESTS_INSTANCE &&
-    (event.category === "extreme-bld" ||
-      (["wca", "miscellaneous"].includes(event.category) && event.submissionsAllowed))
+      ["wca", "miscellaneous"].includes(event.category.categoryId) &&
+      event.submissionsAllowed)
       ? "online"
       : enabledRecordCategories[0]);
   const roundFormat = roundFormats.find((rf) => rf.value === event.defaultRoundFormat)!;
@@ -98,6 +102,7 @@ async function RankingsPage({ params, searchParams }: Props) {
         <h4>Event</h4>
         <EventButtons
           events={visibleEvents}
+          eventCategories={eventCategories}
           eventIdOverride={eventId}
           pathTemplate={slugPath(slug, `/rankings/__EVENT_ID__/${type}`)}
         />
@@ -221,7 +226,7 @@ async function RankingsPage({ params, searchParams }: Props) {
           </div>
         </div>
 
-        {((IS_CUBING_CONTESTS_INSTANCE && event.category === "extreme-bld") || event.submissionsAllowed) && (
+        {(eventCategory.videoBased || event.submissionsAllowed) && (
           <Link
             href={slugPath(slug, `/video-based-results/submit?eventId=${eventId}`)}
             prefetch={false}
@@ -234,11 +239,7 @@ async function RankingsPage({ params, searchParams }: Props) {
 
       <EventTitle organizationSlug={slug} event={event} showDescription />
 
-      {event.category === "removed" ? (
-        <p className="ms-2 text-danger">This is a removed event</p>
-      ) : event.hidden ? (
-        <p className="ms-2 text-danger">This is a hidden event</p>
-      ) : undefined}
+      {(eventCategory.hidden || event.hidden) && <p className="ms-2 text-danger">This is a hidden event</p>}
 
       <Suspense fallback={<Loading />}>
         <RankingsTable rankingsPromise={rankingsPromise} event={event} regions={regions} type={type} show={show} />

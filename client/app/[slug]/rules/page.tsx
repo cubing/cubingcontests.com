@@ -25,7 +25,6 @@ async function RulesPage({ params }: Props) {
   const columns = {
     eventId: true,
     name: true,
-    category: true,
     defaultRoundFormat: true,
     description: true,
     rule: true,
@@ -33,18 +32,20 @@ async function RulesPage({ params }: Props) {
 
   const eventRulesPromise = Promise.all([
     db.query.events.findMany({
+      with: { category: { columns: { hidden: true } } },
       columns,
-      where: { organizationId: organization.id, hidden: false, category: { ne: "removed" }, rule: { isNotNull: true } },
+      where: { organizationId: organization.id, hidden: false, rule: { isNotNull: true }, category: { hidden: false } },
       orderBy: { rank: "asc" },
     }),
     db.query.events.findMany({
+      with: { category: { columns: { hidden: true } } },
       columns,
       where: {
         organizationId: organization.id,
         hidden: false,
-        category: { ne: "removed" },
         rule: { isNull: true },
         description: { isNotNull: true },
+        category: { hidden: false },
       },
       orderBy: { rank: "asc" },
     }),

@@ -10,6 +10,7 @@ import { authMock } from "~/__mocks__/auth-mock.ts";
 import { apply as applyDbSchema, dbMock } from "~/__mocks__/db-mock.ts";
 import {
   contestsTable,
+  eventCategoriesTable,
   eventsTable,
   membersTable,
   personsTable,
@@ -20,6 +21,7 @@ import {
   rrSchema,
 } from "~/__mocks__/db-schema.ts";
 import { contestsStub } from "~/__mocks__/stubs/contestsStub.ts";
+import { eventCategoriesStub } from "~/__mocks__/stubs/eventCategoriesStub.ts";
 import { eventsStub } from "~/__mocks__/stubs/eventsStub.ts";
 import { personsStub } from "~/__mocks__/stubs/personsStub.ts";
 import { recordConfigsStub } from "~/__mocks__/stubs/recordConfigsStub.ts";
@@ -67,6 +69,7 @@ beforeAll(async () => {
 
   await Promise.all([
     dbMock.insert(recordConfigsTable).values(recordConfigsStub),
+    dbMock.insert(eventCategoriesTable).values(eventCategoriesStub),
     dbMock.insert(eventsTable).values(eventsStub),
     dbMock.insert(regionsTable).values(getDefaultRegions("default")),
   ]);

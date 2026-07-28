@@ -39,3 +39,16 @@ const {
 export { eventCategoriesPublicCols };
 
 export type EventCategoryResponse = Pick<SelectEventCategory, keyof typeof eventCategoriesPublicCols>;
+export type EventCategoryDetails = Pick<
+  SelectEventCategory,
+  "categoryId" | "name" | "shortName" | "color" | "hidden" | "videoBased"
+>;
+
+export const eventCategoryDetailsColumns = {
+  categoryId: true,
+  name: true,
+  shortName: true,
+  color: true,
+  hidden: true,
+  videoBased: true,
+} as const;

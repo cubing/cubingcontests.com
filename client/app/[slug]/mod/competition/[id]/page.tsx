@@ -7,7 +7,7 @@ import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { getContest } from "~/server/server-only-functions/contests-functions.ts";
-import { authorizeUser } from "~/server/server-only-functions/server-only-functions.ts";
+import { authorizeUser, getEventCategories } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{ slug: string; id: string }>;
@@ -19,7 +19,10 @@ async function DataEntryPage({ params, searchParams }: Props) {
   const { eventId } = await searchParams;
   const { member, organization, httpHeaders } = await authorizeUser({ useOrganization: true });
 
-  const contestData = await getContest({ organizationId: organization!.id, competitionId: id, eventId });
+  const [contestData, eventCategories] = await Promise.all([
+    getContest({ organizationId: organization!.id, competitionId: id, eventId }),
+    getEventCategories({ organizationId: organization!.id }),
+  ]);
   if (!contestData) return <LoadingError loadingEntity="contest results" />;
 
   const { contest, events, rounds, results, persons, recordConfigs, regions } = contestData;
@@ -67,6 +70,7 @@ async function DataEntryPage({ params, searchParams }: Props) {
         contest={contest}
         eventId={eventIdOrFirst}
         events={events}
+        eventCategories={eventCategories}
         rounds={rounds}
         results={results}
         persons={memberPerson ? [...persons, memberPerson] : persons}

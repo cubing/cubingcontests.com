@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, getColumns } from "drizzle-orm";
 import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
@@ -27,7 +27,10 @@ async function ContestEventsPage({ params }: Props) {
     .from(table)
     .where(and(eq(table.organizationId, organization.id), eq(table.competitionId, id)));
   const roundsData = await db
-    .select()
+    .select({
+      round: getColumns(roundsTable),
+      event: getColumns(eventsTable),
+    })
     .from(roundsTable)
     .innerJoin(
       eventsTable,
@@ -53,11 +56,11 @@ async function ContestEventsPage({ params }: Props) {
             </tr>
           </thead>
           <tbody>
-            {roundsData.map(({ rounds: round, events: event }) => {
+            {roundsData.map(({ round, event }) => {
               const cutoffText = round.cutoffAttemptResult
                 ? `${round.cutoffNumberOfAttempts} ${
                     round.cutoffNumberOfAttempts === 1 ? "attempt" : "attempts"
-                  } to get < ${getFormattedTime(round.cutoffAttemptResult, { event })}`
+                  } to get < ${getFormattedTime(round.cutoffAttemptResult, { showDecimals: "never" })}`
                 : "";
 
               return (
@@ -77,7 +80,7 @@ async function ContestEventsPage({ params }: Props) {
                   </td>
                   <td>{roundTypes[round.roundTypeId].label}</td>
                   <td>{roundFormats.find((rf) => rf.value === round.format)?.label}</td>
-                  <td>{getFormattedTimeLimit({ round, event })}</td>
+                  <td>{getFormattedTimeLimit({ round, eventFormat: event.format })}</td>
                   <td>{cutoffText}</td>
                   <td>
                     {round.proceedType &&

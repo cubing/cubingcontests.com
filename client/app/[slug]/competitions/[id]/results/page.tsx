@@ -3,7 +3,7 @@ import EventButtons from "~/app/components/EventButtons.tsx";
 import EventResultsTable from "~/app/components/EventResultsTable.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { getContest } from "~/server/server-only-functions/contests-functions.ts";
-import { getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
+import { getEventCategories, getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{
@@ -20,7 +20,10 @@ async function ContestResultsPage({ params, searchParams }: Props) {
   const { eventId } = await searchParams;
 
   const organization = await getOrgDetails({ slug });
-  const contestData = await getContest({ organizationId: organization.id, competitionId: id, eventId });
+  const [contestData, eventCategories] = await Promise.all([
+    getContest({ organizationId: organization.id, competitionId: id, eventId }),
+    getEventCategories({ organizationId: organization.id }),
+  ]);
   if (!contestData) return <LoadingError loadingEntity="contest results" />;
 
   const { contest, events, rounds, results, persons, recordConfigs, regions } = contestData;
@@ -29,7 +32,7 @@ async function ContestResultsPage({ params, searchParams }: Props) {
   return (
     <ContestLayout organizationSlug={slug} contest={contest} activeTab="results">
       <div className="px-1">
-        <EventButtons events={events} eventIdOverride={event.eventId} showAllEvents />
+        <EventButtons events={events} eventCategories={eventCategories} eventIdOverride={event.eventId} showAllEvents />
       </div>
       <EventResultsTable
         event={event}

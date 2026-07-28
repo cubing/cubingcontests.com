@@ -137,6 +137,7 @@ function ConfigureEventCategoriesScreen({ eventCategories: initEventCategories }
               <FormTextInput
                 id="category_id"
                 title="Category ID"
+                tooltip="This alphanumeric ID is displayed in the URL in some areas (e.g. the records page)"
                 value={categoryId}
                 setValue={setCategoryId}
                 disabled={isPending}

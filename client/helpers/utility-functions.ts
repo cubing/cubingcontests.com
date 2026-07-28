@@ -9,7 +9,7 @@ import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { WcaPersonValidator } from "~/helpers/validators/wca/WcaPerson.ts";
 import type { ContestResponse, SelectContest } from "~/server/db/schema/contests.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponse, EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
 import type { RoundResponse, SelectRound } from "~/server/db/schema/rounds.ts";
 import type { OrganizationRole, OrgPluginPermissions } from "~/server/organization-permissions.ts";
@@ -45,10 +45,10 @@ export function getFormattedDate(startDate: Date, endDate?: Date | null): string
 }
 
 // Returns NaN if the time is invalid
-const getTimeValue = (
+function getTimeValue(
   time: string, // the time string without formatting (e.g. 1:35.97 should be "13597")
-  { format, truncate = true }: { format: EventFormat | "memo"; truncate?: boolean },
-): number => {
+  { format, truncate }: { format?: EventFormat; truncate: boolean },
+): number {
   if (time === "") return 0;
 
   const precision = format === "time-3d" ? 3 : 2;
@@ -67,70 +67,60 @@ const getTimeValue = (
   const decimals = decimalsStr && !doTruncateDecimals ? parseInt(decimalsStr, 10) : 0;
   const timeValue = ((hours * 60 + minutes) * 60 + seconds) * multiplier + decimals;
 
-  if (hours >= 100 || minutes >= 60 || seconds >= 60) {
-    console.error(
-      `Invalid time: ${time}. Debug info: hours = ${hours}, minutes = ${minutes}, seconds = ${seconds}, decimals = ${decimals}, truncate = ${truncate}.`,
-    );
-    return NaN;
-  }
+  if (hours >= 100 || minutes >= 60 || seconds >= 60) return NaN;
 
-  if ((format === "time-3d" && timeValue >= C.maxTime3d) || timeValue > C.maxTime) {
-    console.error(
-      `Time value exceeds max time: ${time}. The max time for this format is ${format === "time-3d" ? C.maxTime3d : C.maxTime}.`,
-    );
-    return NaN;
-  }
+  if ((format === "time-3d" && timeValue >= C.maxTime3d) || timeValue > C.maxTime) return NaN;
 
   return timeValue;
-};
+}
 
 // Returns NaN if the time is invalid (e.g. 8145); returns 0 if it's empty.
 // solved and attempted are only required for the Multi event format.
 export function getAttempt(
   attempt: Attempt,
-  event: EventResponse,
+  event: Pick<EventResponse, "eventId" | "format">,
   time: string, // a time string without formatting (e.g. 1534 represents 15.34, 25342 represents 2:53.42)
   {
     truncateTime = false,
-    truncateMemo = false,
     solved,
     attempted,
     memo,
   }: {
     truncateTime?: boolean;
-    truncateMemo?: boolean;
     // These three parameters are optional if the event format is Number
     solved?: number | undefined;
     attempted?: number | undefined;
     memo?: string; // only used for events with hasMemo = true
-  } = { truncateTime: false, truncateMemo: false },
+  } = { truncateTime: false },
 ): Attempt {
+  // Spread the attempt object to preserve the metadata
+  const newAttempt: Attempt = { ...attempt, result: NaN, memo: undefined };
+
+  if (event.format === "number") {
+    const maxFmResultDigits = C.maxNumberFormatValue.toString().length;
+    if (time.length > maxFmResultDigits)
+      throw new Error(`Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`);
+
+    return { ...newAttempt, result: time ? parseInt(time, 10) : 0 };
+  }
+
   const maxDigits = event.format === "time-3d" ? 9 : 8;
   if (time.length > maxDigits || (memo && memo.length > 8))
     throw new Error(`Times longer than ${maxDigits} digits are not supported`);
 
-  const maxFmResultDigits = C.maxNumberFormatValue.toString().length;
-  if (time.length > maxFmResultDigits && event.format === "number")
-    throw new Error(`Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`);
-
-  if (event.format === "number") return { ...attempt, result: time ? parseInt(time, 10) : 0 };
-
-  const newAttempt: Attempt = { result: getTimeValue(time, { truncate: truncateTime, format: event.format }) as any };
-  if (memo) {
-    newAttempt.memo = getTimeValue(memo, { truncate: truncateMemo, format: "memo" }) as any;
-    if (newAttempt.memo && newAttempt.result && newAttempt.memo >= newAttempt.result)
-      return { ...newAttempt, result: NaN };
-  }
+  newAttempt.result = getTimeValue(time, { truncate: truncateTime, format: event.format });
 
   if (event.format === "multi" && newAttempt.result) {
-    if (typeof solved !== "number" || typeof attempted !== "number" || solved > attempted) return { result: NaN };
+    if (typeof solved !== "number" || typeof attempted !== "number" || solved > attempted)
+      return { ...newAttempt, result: NaN };
 
     const maxTime = Math.min(attempted, 6) * 10 * 60 * 100 + attempted * 2 * 100; // accounts for +2s
 
     // Disallow submitting multi times > max time, and <= 1 hour for old style
     if (
-      (event.eventId === "333mbf" && newAttempt.result > maxTime) ||
-      (event.eventId === "333mbo" && newAttempt.result <= 360000)
+      IS_CUBING_CONTESTS_INSTANCE &&
+      ((event.eventId === "333mbf" && newAttempt.result > maxTime) ||
+        (event.eventId === "333mbo" && newAttempt.result <= 3600_00))
     ) {
       return { ...newAttempt, result: NaN };
     }
@@ -152,6 +142,12 @@ export function getAttempt(
     newAttempt.result = parseInt(multiOutput, 10);
   }
 
+  if (memo) {
+    const memoTime = getTimeValue(memo, { truncate: true });
+    if (memoTime && newAttempt.result && memoTime >= newAttempt.result) return { ...newAttempt, result: NaN };
+    newAttempt.memo = memoTime;
+  }
+
   return newAttempt;
 }
 
@@ -168,25 +164,27 @@ export function getContestIdFromName(name: string): string {
 }
 
 export function shortenEventName(name: string): string {
-  return name
-    .replaceAll("2x2x2", "2x2")
-    .replaceAll("3x3x3", "3x3")
-    .replaceAll("4x4x4", "4x4")
-    .replaceAll("5x5x5", "5x5")
-    .replaceAll("6x6x6", "6x6")
-    .replaceAll("7x7x7", "7x7")
-    .replaceAll("8x8x8", "8x8")
-    .replaceAll("9x9x9", "9x9")
-    .replaceAll("10x10x10", "10x10")
-    .replaceAll("11x11x11", "11x11")
-    .replace("Blindfolded", "BLD")
-    .replace("Multi-Blind", "MBLD")
-    .replace("One-Handed", "OH")
-    .replace("Match The Scramble", "MTS")
-    .replace("Face-Turning Octahedron", "FTO")
-    .replace(" Cuboid", "")
-    .replace(" Challenge", "")
-    .replace("Three 3x3 Cubes", "3x 3x3");
+  return IS_CUBING_CONTESTS_INSTANCE
+    ? name
+        .replaceAll("2x2x2", "2x2")
+        .replaceAll("3x3x3", "3x3")
+        .replaceAll("4x4x4", "4x4")
+        .replaceAll("5x5x5", "5x5")
+        .replaceAll("6x6x6", "6x6")
+        .replaceAll("7x7x7", "7x7")
+        .replaceAll("8x8x8", "8x8")
+        .replaceAll("9x9x9", "9x9")
+        .replaceAll("10x10x10", "10x10")
+        .replaceAll("11x11x11", "11x11")
+        .replace("Blindfolded", "BLD")
+        .replace("Multi-Blind", "MBLD")
+        .replace("One-Handed", "OH")
+        .replace("Match The Scramble", "MTS")
+        .replace("Face-Turning Octahedron", "FTO")
+        .replace(" Cuboid", "")
+        .replace(" Challenge", "")
+        .replace("Three 3x3 Cubes", "3x 3x3")
+    : name;
 }
 
 export const getRoundFormatOptions = (roundFormats: RoundFormatObject[]): MultiChoiceOption[] =>
@@ -285,24 +283,22 @@ export function getDateOnly(date: Date | null): Date | null {
 export function getFormattedTime(
   time: number,
   {
-    event,
+    eventFormat,
     noDelimiterChars = false,
     showMultiPoints = false,
-    showDecimals = true,
-    alwaysShowMinutes = false,
+    showDecimals = "default",
     isAverage = false,
   }: {
-    event?: Pick<EventResponse, "category" | "format">;
+    eventFormat?: EventFormat;
     noDelimiterChars?: boolean;
     showMultiPoints?: boolean;
-    showDecimals?: boolean; // if the time is >= 1 hour, they won't be shown regardless of this value
-    alwaysShowMinutes?: boolean;
+    // default: show up to 10m; up-to-1h: show up to 1h; never: hide decimals
+    showDecimals?: "default" | "up-to-1h" | "never";
     isAverage?: boolean;
   } = {
     noDelimiterChars: false,
     showMultiPoints: false,
-    showDecimals: true,
-    alwaysShowMinutes: false,
+    showDecimals: "default",
     isAverage: false,
   },
 ): string {
@@ -314,17 +310,17 @@ export function getFormattedTime(
     return "DNS";
   } else if (time === C.maxTime) {
     return "Unknown";
-  } else if (event?.format === "number") {
+  } else if (eventFormat === "number") {
     if (isAverage && !noDelimiterChars) return (time / 100).toFixed(2);
     else return time.toString();
   } else {
-    const precision = event?.format === "time-3d" ? 3 : 2;
-    const multiplier = event?.format === "time-3d" ? 1000 : 100;
+    const precision = eventFormat === "time-3d" ? 3 : 2;
+    const multiplier = eventFormat === "time-3d" ? 1000 : 100;
 
     let timeValue: number;
     let timeStr = time.toString();
 
-    if (event?.format === "multi") timeValue = parseInt(timeStr.slice(timeStr.length - 11, -4), 10);
+    if (eventFormat === "multi") timeValue = parseInt(timeStr.slice(timeStr.length - 11, -4), 10);
     else timeValue = time;
 
     let output = "";
@@ -337,7 +333,7 @@ export function getFormattedTime(
       if (!noDelimiterChars) output += ":";
     }
 
-    const showMinutes = hours > 0 || minutes > 0 || alwaysShowMinutes;
+    const showMinutes = hours > 0 || minutes > 0 || showDecimals === "never";
 
     if (showMinutes) {
       if (hours > 0 && minutes === 0) output += "00";
@@ -349,21 +345,21 @@ export function getFormattedTime(
 
     if (seconds < 10 && showMinutes) output += "0";
 
-    // Only times under ten minutes can have decimals, or if noDelimiterChars = true, or if it's an event that always
-    // includes the decimals (but the time is still < 1 hour). If showDecimals = false, the decimals aren't shown.
     if (
-      ((hours === 0 && minutes < 10) ||
-        noDelimiterChars ||
-        (event && getAlwaysShowDecimals(event) && time < 3600 * multiplier)) &&
-      showDecimals
+      isAverage ||
+      noDelimiterChars ||
+      (showDecimals === "up-to-1h" && hours === 0) ||
+      (showDecimals === "default" && hours === 0 && minutes < 10)
     ) {
+      // Keep the decimals
       output += seconds.toFixed(precision);
-      if (noDelimiterChars) output = Number(output.replace(".", "")).toString();
+      if (noDelimiterChars) output = Number(output.replace(".", "")).toString(); // Number() strips the leading zeroes
     } else {
-      output += Math.floor(seconds).toFixed(0); // remove the decimals
+      // Remove the decimals
+      output += Math.floor(seconds).toFixed(0);
     }
 
-    if (event?.format !== "multi") {
+    if (eventFormat !== "multi") {
       return output;
     } else {
       if (time < 0) timeStr = timeStr.replace("-", "");
@@ -372,15 +368,15 @@ export function getFormattedTime(
       const missed = parseInt(timeStr.slice(timeStr.length - 4), 10);
       const solved = points + missed;
 
-      if (time > 0) {
-        if (noDelimiterChars) return `${solved};${solved + missed};${output}`;
+      if (noDelimiterChars) {
+        return `${output};${solved};${solved + missed}`;
+      } else if (time > 0) {
         // This includes an En space before the points part
         return (
           `${solved}/${solved + missed} ${timeValue !== C.maxTime ? output : "Unknown time"}` +
           (showMultiPoints ? ` (${points})` : "")
         );
       } else {
-        if (noDelimiterChars) return `${solved};${solved + missed};${output}`;
         return `DNF (${solved}/${solved + missed} ${output})`;
       }
     }
@@ -464,8 +460,8 @@ export function getResultProceeds(
   );
 }
 
-export const getAlwaysShowDecimals = (event: Pick<EventResponse, "category" | "format">): boolean =>
-  event.category === "extreme-bld" && event.format !== "multi";
+export const getAlwaysShowDecimals = (event: Pick<EventResponseWithCategory, "format" | "category">): boolean =>
+  IS_CUBING_CONTESTS_INSTANCE && event.category.categoryId === "extreme-bld" && event.format !== "multi";
 
 export function getNameAndLocalizedName(nameString: string): { name: string; localizedName: string | undefined } {
   const [name, localizedName] = nameString.trim().replace(/\)$/, "").split(" (");
@@ -607,8 +603,8 @@ export function arrayElementsSame(array1: number[] | string[], array2: number[] 
   return JSON.stringify([...array1].sort()) === JSON.stringify([...array2].sort());
 }
 
-export function getFormattedTimeLimit({ round, event }: { round: RoundResponse; event: EventResponse }) {
+export function getFormattedTimeLimit({ round, eventFormat }: { round: RoundResponse; eventFormat: EventFormat }) {
   return round.timeLimitCentiseconds
-    ? `${getFormattedTime(round.timeLimitCentiseconds, { event })}${round.timeLimitCumulativeRoundIds ? " cumulative" : ""}`
+    ? `${getFormattedTime(round.timeLimitCentiseconds, { eventFormat, showDecimals: "never" })}${round.timeLimitCumulativeRoundIds ? " cumulative" : ""}`
     : "";
 }

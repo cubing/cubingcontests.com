@@ -7,7 +7,7 @@ import Button from "~/app/components/UI/Button.tsx";
 import { C } from "~/helpers/constants";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { getIsProceedableResult } from "~/helpers/utility-functions.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -15,7 +15,7 @@ import type { ResultResponse } from "~/server/db/schema/results.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 
 type Props = {
-  event: EventResponse;
+  event: EventResponseWithCategory;
   round: RoundResponse;
   results: ResultResponse[];
   persons: PersonResponse[];

@@ -1,11 +1,11 @@
 import Markdown from "react-markdown";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import { roundFormats } from "~/helpers/roundFormats.ts";
-import type { SelectEvent } from "~/server/db/schema/events.ts";
+import type { FullEvent } from "~/server/db/schema/events.ts";
 
 type Props = {
   organizationSlug: string;
-  event: Pick<SelectEvent, "eventId" | "name" | "category" | "defaultRoundFormat" | "description" | "rule">;
+  event: Pick<FullEvent, "eventId" | "name" | "defaultRoundFormat" | "description" | "rule">;
 };
 
 function EventInformation({ organizationSlug, event }: Props) {

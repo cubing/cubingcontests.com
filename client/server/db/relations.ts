@@ -140,7 +140,7 @@ export const relations = defineRelations(
       }),
     },
     events: {
-      eventCategory: r.one.eventCategories({
+      category: r.one.eventCategories({
         from: r.events.categoryId,
         to: r.eventCategories.id,
         optional: false,

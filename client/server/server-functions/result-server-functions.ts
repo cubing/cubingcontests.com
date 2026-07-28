@@ -10,12 +10,14 @@ import { getBestAndAverage, getHasRole, getMemberControlsContest } from "~/helpe
 import { AttemptsValidator, ResultValidator, VideoBasedResultValidator } from "~/helpers/validators/Result.ts";
 import { auth } from "~/server/auth.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
+import { eventCategoryDetailsColumns } from "~/server/db/schema/event-categories.ts";
 import { getContestEventResults, getContestParticipantIds } from "~/server/server-only-functions/contests-functions.ts";
 import {
   cancelFutureRecords,
   createContestResult,
   getNotProceededParticipant,
   getRecordResult,
+  getTruncatedAttempts,
   setFutureRecords,
   setRankingAndProceedsValues,
   setResultRecords,
@@ -94,7 +96,10 @@ export const createContestResultSF = actionClient
       }),
       auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { onlineComps: ["submit-own-result"] } } }),
       db.query.contests.findFirst({ where: { organizationId, competitionId } }),
-      db.query.events.findFirst({ where: { organizationId, eventId } }),
+      db.query.events.findFirst({
+        with: { category: { columns: eventCategoryDetailsColumns } },
+        where: { organizationId, eventId },
+      }),
       db.query.rounds.findMany({ where: { organizationId, competitionId, eventId } }),
       db.query.results.findMany({ where: { organizationId, roundId }, orderBy: { ranking: "asc" } }),
       db.query.persons.findMany({ where: { organizationId, id: { in: personIds } } }),
@@ -174,7 +179,10 @@ export const updateContestResultSF = actionClient
 
     const [contest, event, round, roundResults] = await Promise.all([
       db.query.contests.findFirst({ where: { organizationId, competitionId: result.competitionId! } }),
-      db.query.events.findFirst({ where: { organizationId, eventId: result.eventId } }),
+      db.query.events.findFirst({
+        with: { category: { columns: eventCategoryDetailsColumns } },
+        where: { organizationId, eventId: result.eventId },
+      }),
       db.query.rounds.findFirst({ where: { organizationId, id: result.roundId! } }),
       db.query.results.findMany({ where: { organizationId, roundId: result.roundId! }, orderBy: { ranking: "asc" } }),
     ]);
@@ -304,7 +312,10 @@ export const createVideoBasedResultSF = actionClient
     }
 
     const [event, participants, recordConfigs, creatorPerson] = await Promise.all([
-      db.query.events.findFirst({ where: { organizationId, eventId: newResultDto.eventId } }),
+      db.query.events.findFirst({
+        with: { category: { columns: eventCategoryDetailsColumns } },
+        where: { organizationId, eventId: newResultDto.eventId },
+      }),
       db.query.persons.findMany({ where: { organizationId, id: { in: newResultDto.personIds } } }),
       getRecordConfigs(organizationId, { recordCategory: "online" }),
       session.member!.personId
@@ -327,10 +338,12 @@ export const createVideoBasedResultSF = actionClient
     }
 
     const roundFormat = videoBasedFormats.find((rf) => rf.attempts === newResultDto.attempts.length)!;
-    const { best, average } = getBestAndAverage(newResultDto.attempts, event.format, roundFormat.value);
+    const attempts = getTruncatedAttempts({ attempts: newResultDto.attempts, event });
+    const { best, average } = getBestAndAverage(attempts, event.format, roundFormat.value);
     const newResult: InsertResult = {
       ...newResultDto,
       organizationId,
+      attempts,
       best,
       average,
       recordCategory: "online",
@@ -379,7 +392,10 @@ export const updateVideoBasedResultSF = actionClient
     logMessage("RR0017", `Updating video-based result with ID ${id}: ${JSON.stringify(newResultDto)}`);
 
     const [event, recordConfigs] = await Promise.all([
-      db.query.events.findFirst({ where: { organizationId, eventId: result.eventId } }),
+      db.query.events.findFirst({
+        with: { category: { columns: eventCategoryDetailsColumns } },
+        where: { organizationId, eventId: result.eventId },
+      }),
       getRecordConfigs(organizationId, { recordCategory: "online" }),
     ]);
 
@@ -388,12 +404,13 @@ export const updateVideoBasedResultSF = actionClient
       throw new RrActionError("The number of attempts cannot be changed");
 
     const roundFormat = videoBasedFormats.find((rf) => rf.attempts === newResultDto.attempts.length)!;
-    const { best, average } = getBestAndAverage(newResultDto.attempts, event.format, roundFormat.value);
+    const attempts = getTruncatedAttempts({ attempts: newResultDto.attempts, event });
+    const { best, average } = getBestAndAverage(attempts, event.format, roundFormat.value);
     const newResult: SelectResult = {
       ...result,
       date: newResultDto.date,
       approved: approve,
-      attempts: newResultDto.attempts,
+      attempts,
       best,
       average,
       regionalSingleRecord: null,

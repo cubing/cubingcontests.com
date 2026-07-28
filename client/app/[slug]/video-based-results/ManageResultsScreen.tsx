@@ -16,14 +16,14 @@ import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import type { InputPerson } from "~/helpers/types.ts";
 import { getFormattedDate, shortenEventName, slugPath } from "~/helpers/utility-functions.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { FullResult } from "~/server/db/schema/results.ts";
 
 type Props = {
   results: FullResult[];
-  events: EventResponse[];
+  events: EventResponseWithCategory[];
   recordConfigs: RecordConfigResponse[];
   regions: RegionResponse[];
 };

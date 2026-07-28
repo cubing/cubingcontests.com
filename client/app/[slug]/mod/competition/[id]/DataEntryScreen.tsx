@@ -36,7 +36,8 @@ import {
 } from "~/helpers/utility-functions.ts";
 import { type ResultDto, ResultValidator } from "~/helpers/validators/Result.ts";
 import type { SelectContest } from "~/server/db/schema/contests.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventCategoryResponse } from "~/server/db/schema/event-categories.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -54,7 +55,8 @@ import {
 type Props = {
   contest: Pick<SelectContest, "competitionId" | "shortName" | "type" | "startDate" | "schedule">;
   eventId: string;
-  events: EventResponse[];
+  events: EventResponseWithCategory[];
+  eventCategories: EventCategoryResponse[];
   rounds: RoundResponse[];
   results: ResultResponse[];
   persons: PersonResponse[];
@@ -67,6 +69,7 @@ function DataEntryScreen({
   contest,
   eventId,
   events,
+  eventCategories,
   rounds: initRounds,
   results: initResults,
   persons: initPersons,
@@ -224,11 +227,8 @@ function DataEntryScreen({
   const onEditResult = (result: ResultResponse) => {
     resetMessages();
     setResultUnderEdit(result);
-    setAttempts(
-      getMakesCutoff(result.attempts, round.cutoffAttemptResult, round.cutoffNumberOfAttempts)
-        ? result.attempts
-        : [...result.attempts, ...new Array(roundFormat.attempts - round.cutoffNumberOfAttempts!).fill({ result: 0 })],
-    );
+    // Fill empty attempts (e.g. the result could've previously not met cutoff and was saved with fewer attempts)
+    setAttempts([...result.attempts, ...new Array(roundFormat.attempts - result.attempts.length).fill({ result: 0 })]);
     const newCurrentPersons: PersonResponse[] = result.personIds.map((pid) => persons.find((p) => p.id === pid)!);
     setSelectedPersons(newCurrentPersons);
     setPersonNames(newCurrentPersons.map((p) => p.name));
@@ -314,7 +314,7 @@ function DataEntryScreen({
     <div className="row mx-0 mb-4 px-0">
       <div className="col-lg-3 mb-4">
         <div>
-          <EventButtons events={events} eventIdOverride={eventId} showAllEvents />
+          <EventButtons events={events} eventCategories={eventCategories} eventIdOverride={eventId} showAllEvents />
           <FormSelect
             title="Round"
             options={roundOptions}
@@ -384,9 +384,11 @@ function DataEntryScreen({
             )}
           </div>
           {round.timeLimitCentiseconds && (
-            <p className="mb-2">Time limit: {getFormattedTimeLimit({ round, event: currEvent })}</p>
+            <p className="mb-2">Time limit: {getFormattedTimeLimit({ round, eventFormat: currEvent.format })}</p>
           )}
-          {round.cutoffAttemptResult && <p>Cutoff: {getFormattedTime(round.cutoffAttemptResult)}</p>}
+          {round.cutoffAttemptResult && (
+            <p>Cutoff: {getFormattedTime(round.cutoffAttemptResult, { showDecimals: "never" })}</p>
+          )}
           <EventImportantInfo importantInfo={currEvent.importantInfo} className="mt-4" />
         </div>
       </div>

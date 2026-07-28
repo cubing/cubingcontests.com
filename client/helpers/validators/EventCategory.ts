@@ -4,7 +4,7 @@ import { ColorValidator } from "~/helpers/validators/Validators.ts";
 export const EventCategoryValidator = z.strictObject({
   categoryId: z
     .string()
-    .min(3)
+    .min(2)
     .max(20)
     .regex(/^[a-z0-9-_]*$/, {
       error: "The category ID can only contain lowercase alphanumeric characters, dashes (-) and underscores (_)",
