@@ -1,14 +1,14 @@
-import { and, desc, eq, exists, inArray } from "drizzle-orm";
 import "server-only";
+import { and, desc, eq, exists, inArray } from "drizzle-orm";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { type SelectContest, contestsTable as table } from "~/server/db/schema/contests.ts";
-import { type EventResponse, eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import { type RegionResponse, regionsTable } from "~/server/db/schema/regions.ts";
 import { type ResultResponse, resultsPublicCols, resultsTable } from "~/server/db/schema/results.ts";
 import { type RoundResponse, roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
-import { getRecordConfigs, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
+import { getEvents, getRecordConfigs, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 
 export async function getContests({
   organizationId,
@@ -75,7 +75,7 @@ export async function getContest({
     SelectContest,
     "competitionId" | "state" | "name" | "shortName" | "type" | "startDate" | "organizerIds" | "schedule"
   >;
-  events: EventResponse[];
+  events: EventResponseWithCategory[];
   rounds: RoundResponse[];
   results: ResultResponse[];
   persons: PersonResponse[];
@@ -108,11 +108,7 @@ export async function getContest({
   const eventIds = Array.from(new Set(rounds.map((r) => r.eventId)));
 
   const [events, recordConfigs, regions] = await Promise.all([
-    db
-      .select(eventsPublicCols)
-      .from(eventsTable)
-      .where(and(eq(eventsTable.organizationId, organizationId), inArray(eventsTable.eventId, eventIds)))
-      .orderBy(eventsTable.rank),
+    getEvents({ organizationId, eventIds }),
     getRecordConfigs(organizationId, { contestType: contest.type }),
     getRegions(organizationId),
   ]);

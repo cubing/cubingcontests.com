@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { roundTypes } from "~/helpers/roundTypes.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -14,7 +14,7 @@ import FormSelect from "./form/FormSelect.tsx";
 import RoundResultsTable from "./RoundResultsTable.tsx";
 
 type Props = {
-  event: EventResponse;
+  event: EventResponseWithCategory;
   rounds: RoundResponse[];
   results: ResultResponse[];
   persons: PersonResponse[];

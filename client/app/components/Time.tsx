@@ -1,12 +1,12 @@
 import { C } from "~/helpers/constants.ts";
-import { getFormattedTime } from "~/helpers/utility-functions.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import { getAlwaysShowDecimals, getFormattedTime } from "~/helpers/utility-functions.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { ResultResponse } from "~/server/db/schema/results.ts";
 
 type Props = {
   result: ResultResponse;
-  event: EventResponse;
+  event: EventResponseWithCategory;
   recordConfigs: RecordConfigResponse[];
   average?: boolean;
 };
@@ -18,7 +18,12 @@ function Time({ result, event, recordConfigs, average }: Props) {
 
   return (
     <div className="d-inline-flex gap-2 align-items-center">
-      {getFormattedTime(average ? result.average : result.best, { event, showMultiPoints: true, isAverage: average })}
+      {getFormattedTime(average ? result.average : result.best, {
+        eventFormat: event.format,
+        showDecimals: getAlwaysShowDecimals(event) ? "up-to-1h" : "default",
+        showMultiPoints: true,
+        isAverage: average,
+      })}
 
       {recordConfig?.active && (
         <span

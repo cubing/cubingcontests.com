@@ -24,7 +24,7 @@ import { useSession } from "~/helpers/hooks.ts";
 import { type RoundFormatObject, videoBasedFormats } from "~/helpers/roundFormats.ts";
 import type { Creator, EventWrPair, InputPerson, RoundFormat } from "~/helpers/types.ts";
 import { getActionError, getBlankCompetitors, getRoundFormatOptions, slugPath } from "~/helpers/utility-functions.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -38,7 +38,7 @@ import {
 type Props = {
   videoBasedResultsRules: string | null;
   videoBasedResultsContactEmail: string | null;
-  events: EventResponse[];
+  events: EventResponseWithCategory[];
   recordConfigs: RecordConfigResponse[];
   regions: RegionResponse[];
   isVideoBasedResultReviewer: boolean;
@@ -84,7 +84,7 @@ function ResultsSubmissionForm({
   const { executeAsync: updateResult, isPending: isUpdating } = useAction(updateVideoBasedResultSF);
   const [loadingId, setLoadingId] = useState<"UPDATING" | "APPROVING" | undefined>();
   const [eventWrPair, setEventWrPair] = useState<EventWrPair | undefined>();
-  const [event, setEvent] = useState<EventResponse>(
+  const [event, setEvent] = useState<EventResponseWithCategory>(
     events.find((e) => e.eventId === (result?.eventId ?? searchParams.get("eventId"))) ?? events[0],
   );
   const [roundFormat, setRoundFormat] = useState<RoundFormatObject>(
@@ -246,7 +246,7 @@ function ResultsSubmissionForm({
                 </Markdown>
               </div>
             )}
-            {organization!.metadata.showDonationLinks && <DonateButton />}
+            {organization?.metadata.showDonationLinks && <DonateButton />}
           </>
         )}
       </div>

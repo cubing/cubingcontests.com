@@ -26,9 +26,10 @@ import { auth, rrBasicLimits, rrPremiumLimits } from "~/server/auth.ts";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { membersTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
-import { eventCategoriesTable, type SelectEventCategory } from "~/server/db/schema/event-categories.ts";
+import { eventCategoriesPublicCols, eventCategoriesTable } from "~/server/db/schema/event-categories.ts";
 import {
   type EventResponse,
+  type EventResponseWithCategory,
   eventsPublicCols,
   eventsTable,
   type FullEvent,
@@ -199,7 +200,7 @@ export async function getOrgDetails({
 
   if (IS_RR_INSTANCE) {
     const subscription = await db.query.subscriptions.findFirst({
-      where: { referenceId: organization.id, status: { in: ["active", "trialing"] } },
+      where: { referenceId: organization.id, status: { in: ["active", "trialing"] }, canceledAt: { isNull: true } },
     });
 
     if (subscription) organization.subscription = getOrgSubscription(subscription);
@@ -230,16 +231,6 @@ export async function getRecordConfigs(
     );
 }
 
-export async function getVideoBasedEvents(organizationId: string) {
-  const events = await db
-    .select(eventsPublicCols)
-    .from(eventsTable)
-    .where(and(eq(eventsTable.organizationId, organizationId), eq(eventsTable.submissionsAllowed, true)))
-    .orderBy(eventsTable.rank);
-
-  return events;
-}
-
 const personsArrayJsonSql = sql`
   JSON_AGG(
     JSON_BUILD_OBJECT(
@@ -265,8 +256,9 @@ export async function getRecords({
   regionCode?: string;
 }): Promise<RecordRanking[]> {
   const events = await db.query.events.findMany({
+    with: { category: { columns: { categoryId: true } } },
     columns: { eventId: true },
-    where: { organizationId, eventId, hidden: false, category: eventCategory },
+    where: { organizationId, eventId, hidden: false, category: { categoryId: eventCategory, hidden: false } },
   });
 
   const region = regionCode
@@ -807,43 +799,91 @@ export async function getCreators({
     .where(and(eq(membersTable.organizationId, organizationId), inArray(membersTable.userId, userIds)));
 }
 
-type GetEventsBaseParams = { organizationId: string; includeHiddenAndRemoved?: boolean };
-export async function getEvents(params: GetEventsBaseParams & { columns?: "all" }): Promise<FullEvent[]>;
-export async function getEvents(
-  params: GetEventsBaseParams & { columns?: "public+rules" },
-): Promise<(EventResponse & Pick<SelectEvent, "rule">)[]>;
+export async function getEventCategories({ organizationId }: { organizationId: string }) {
+  return await db
+    .select(eventCategoriesPublicCols)
+    .from(eventCategoriesTable)
+    .where(eq(eventCategoriesTable.organizationId, organizationId))
+    .orderBy(eventCategoriesTable.rank);
+}
+
+export async function getEvents(params: {
+  organizationId: string;
+  eventIds?: string[];
+  includeHiddenAndRemoved?: boolean;
+  columns?: "all";
+}): Promise<FullEvent[]>;
+export async function getEvents(params: {
+  organizationId: string;
+  eventIds?: string[];
+  includeHiddenAndRemoved?: boolean;
+  columns?: "public+rules";
+}): Promise<(EventResponseWithCategory & { rule: SelectEvent["rule"] })[]>;
 export async function getEvents({
   organizationId,
+  eventIds,
   columns = "public",
   includeHiddenAndRemoved = false,
-}: GetEventsBaseParams & { columns?: "public" | "public+rules" | "all" }): Promise<
-  (EventResponse & { category?: Pick<SelectEventCategory, "name" | "shortName" | "color"> })[]
-> {
+}: {
+  organizationId: string;
+  eventIds?: string[];
+  includeHiddenAndRemoved?: boolean;
+  columns?: "public" | "public+rules" | "all";
+}): Promise<EventResponseWithCategory[]> {
   return await db
-    .select(
-      columns === "all"
-        ? {
-            ...getColumns(eventsTable),
-            category: {
-              name: eventCategoriesTable.name,
-              shortName: eventCategoriesTable.shortName,
-              color: eventCategoriesTable.color,
-            },
-          }
+    .select({
+      ...(columns === "all"
+        ? getColumns(eventsTable)
         : columns === "public+rules"
           ? { ...eventsPublicCols, rule: eventsTable.rule }
-          : eventsPublicCols,
-    )
+          : eventsPublicCols),
+      category: {
+        categoryId: eventCategoriesTable.categoryId,
+        name: eventCategoriesTable.name,
+        shortName: eventCategoriesTable.shortName,
+        color: eventCategoriesTable.color,
+        hidden: eventCategoriesTable.hidden,
+        videoBased: eventCategoriesTable.videoBased,
+      },
+    })
     .from(eventsTable)
     .innerJoin(eventCategoriesTable, eq(eventsTable.categoryId, eventCategoriesTable.id))
     .where(
       and(
         eq(eventsTable.organizationId, organizationId),
+        eventIds ? inArray(eventsTable.eventId, eventIds) : undefined,
         includeHiddenAndRemoved ? undefined : eq(eventCategoriesTable.hidden, false),
         includeHiddenAndRemoved ? undefined : eq(eventsTable.hidden, false),
       ),
     )
     .orderBy(eventsTable.rank);
+}
+
+export async function getVideoBasedEvents(organizationId: string) {
+  const events = await db
+    .select({
+      ...eventsPublicCols,
+      category: {
+        categoryId: eventCategoriesTable.categoryId,
+        name: eventCategoriesTable.name,
+        shortName: eventCategoriesTable.shortName,
+        color: eventCategoriesTable.color,
+        hidden: eventCategoriesTable.hidden,
+        videoBased: eventCategoriesTable.videoBased,
+      },
+    })
+    .from(eventsTable)
+    .innerJoin(eventCategoriesTable, eq(eventsTable.categoryId, eventCategoriesTable.id))
+    .where(
+      and(
+        eq(eventsTable.organizationId, organizationId),
+        eq(eventsTable.submissionsAllowed, true),
+        eq(eventCategoriesTable.hidden, false),
+      ),
+    )
+    .orderBy(eventsTable.rank);
+
+  return events;
 }
 
 export async function getRegions(organizationId: string): Promise<RegionResponse[]> {

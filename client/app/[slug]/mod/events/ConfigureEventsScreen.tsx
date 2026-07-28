@@ -172,6 +172,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
               <FormTextInput
                 id="event_id"
                 title="Event ID"
+                tooltip="This alphanumeric ID is displayed in the URL in some areas (e.g. the rankings page)"
                 value={newEventId}
                 setValue={setNewEventId}
                 nextFocusTargetId="rank"

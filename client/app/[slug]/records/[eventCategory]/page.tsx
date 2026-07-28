@@ -9,12 +9,12 @@ import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
 import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
-import { eventCategories } from "~/helpers/event-categories.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import {
   getEnabledRecordCategories,
+  getEventCategories,
   getEvents,
   getOrgDetails,
   getRecords,
@@ -52,10 +52,13 @@ async function RecordsPage({ params, searchParams }: Props) {
   const urlSearchParamsWithoutCategory = new URLSearchParams(omitBy({ eventId, region } as any, (val) => !val));
 
   const organization = await getOrgDetails({ slug });
-  const enabledRecordCategories = await getEnabledRecordCategories({ organizationId: organization!.id });
+  const [eventCategories, enabledRecordCategories] = await Promise.all([
+    getEventCategories({ organizationId: organization.id }),
+    getEnabledRecordCategories({ organizationId: organization.id }),
+  ]);
+  const selectedCat = eventCategories.find((ec) => ec.categoryId === eventCategory)!;
   const recordCategory: RecordCategory | "all" =
-    category ??
-    (IS_CUBING_CONTESTS_INSTANCE && eventCategory === "extreme-bld" ? "online" : enabledRecordCategories[0]);
+    category ?? (selectedCat.videoBased ? "online" : enabledRecordCategories[0]);
 
   const recordsPromise = getRecords({
     organizationId: organization!.id,
@@ -70,18 +73,16 @@ async function RecordsPage({ params, searchParams }: Props) {
     getRegions(organization.id),
   ]);
 
-  const selectedCat = eventCategories.find((ec) => ec.value === eventCategory)!;
   const tabs: NavigationItem[] = eventCategories
     // Only show categories that have at least one event
-    .filter((ec) => events.some((e) => e.category === ec.value))
+    .filter((ec) => !ec.hidden && events.some((e) => e.categoryId === ec.id))
     .map((ec) => ({
-      title: ec.title,
-      shortTitle: ec.shortTitle,
-      value: ec.value,
-      route: slugPath(slug, `/records/${ec.value}?${urlSearchParams}`),
-      hidden: ec.value === "removed",
+      title: ec.name,
+      shortTitle: ec.shortName ?? undefined,
+      value: ec.categoryId,
+      route: slugPath(slug, `/records/${ec.categoryId}?${urlSearchParams}`),
     }));
-  const selectedCatEvents = events.filter((e) => e.category === eventCategory);
+  const selectedCatEvents = events.filter((e) => e.categoryId === selectedCat.id);
 
   return (
     <section>
@@ -93,7 +94,12 @@ async function RecordsPage({ params, searchParams }: Props) {
         {selectedCat.description && <p>{selectedCat.description}</p>}
 
         <h4>Event</h4>
-        <EventButtons events={selectedCatEvents} resetOnSameEventClick showAllEvents />
+        <EventButtons
+          events={selectedCatEvents}
+          eventCategories={eventCategories}
+          resetOnSameEventClick
+          showAllEvents
+        />
 
         {/* Similar code to the rankings page */}
         <div className="d-flex flex-wrap gap-3">
@@ -112,7 +118,7 @@ async function RecordsPage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      {eventCategory === "extremebld" && (
+      {selectedCat.videoBased && (
         <Link
           href={slugPath(slug, "/video-based-results/submit")}
           prefetch={false}
@@ -125,7 +131,7 @@ async function RecordsPage({ params, searchParams }: Props) {
       <Suspense fallback={<Loading />}>
         <RecordsTable
           recordsPromise={recordsPromise}
-          events={events.filter((e) => e.category === eventCategory)}
+          events={events.filter((e) => e.categoryId === selectedCat.id)}
           regions={regions}
         />
       </Suspense>

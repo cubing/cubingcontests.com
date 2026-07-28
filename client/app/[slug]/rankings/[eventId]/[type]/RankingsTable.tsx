@@ -3,12 +3,12 @@
 import { use } from "react";
 import RankingRow from "~/app/[slug]/rankings/[eventId]/[type]/RankingRow.tsx";
 import type { Ranking } from "~/helpers/types/Rankings.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   rankingsPromise: Promise<Ranking[]>;
-  event: EventResponse;
+  event: EventResponseWithCategory;
   regions: RegionResponse[];
   type: "single" | "average" | "all-avg-formats";
   show?: "results";

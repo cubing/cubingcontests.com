@@ -11,20 +11,20 @@ import FormNumberInput from "~/app/components/form/FormNumberInput.tsx";
 import FormRadio from "~/app/components/form/FormRadio.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { cutoffAttemptsOptions, roundProceedOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { type ContestType, type RoundFormat, type RoundProceed, RoundTypeValues } from "~/helpers/types.ts";
 import { getRoundFormatOptions } from "~/helpers/utility-functions.ts";
 import type { RoundDto } from "~/helpers/validators/Round.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponse, EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 
 const roundFormatOptions = getRoundFormatOptions(roundFormats);
 
 type Props = {
-  events: EventResponse[];
+  events: EventResponseWithCategory[];
   rounds: RoundDto[];
   setRounds: (val: RoundDto[]) => void;
   totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
@@ -49,10 +49,13 @@ function ContestEvents({
   const { slug }: { slug: string } = useParams();
 
   const newRoundsDisabled = disabled || (contestType === "meetup" && rounds.length >= 15);
-  const filteredEvents: EventResponse[] = events.filter(
-    (e) => e.category !== "removed" && (!e.hidden || isAdmin) && (contestType !== "wca-comp" || e.category !== "wca"),
+  const filteredEvents: EventResponseWithCategory[] = events.filter(
+    (e) =>
+      !e.category.hidden &&
+      (!e.hidden || isAdmin) &&
+      !(IS_CUBING_CONTESTS_INSTANCE && contestType === "wca-comp" && e.category.categoryId === "wca"),
   );
-  const contestEvents: { event: EventResponse; rounds: RoundDto[]; totalResults: number }[] = [];
+  const contestEvents: { event: EventResponseWithCategory; rounds: RoundDto[]; totalResults: number }[] = [];
   for (const round of [...rounds].sort((a, b) => a.roundNumber - b.roundNumber)) {
     const contestEvent = contestEvents.find((ce) => ce.event.eventId === round.eventId);
     const totalRoundResults = totalResultsByRound?.find((el) => el.roundId === round.id)?.totalResults ?? 0;
@@ -161,10 +164,7 @@ function ContestEvents({
     setRounds(
       rounds.map((r) =>
         r.eventId === eventId && r.roundNumber === roundNumber
-          ? {
-              ...r,
-              timeLimitCumulativeRoundIds: r.timeLimitCumulativeRoundIds ? null : [],
-            }
+          ? { ...r, timeLimitCumulativeRoundIds: r.timeLimitCumulativeRoundIds ? null : [] }
           : r,
       ),
     );
@@ -188,12 +188,7 @@ function ContestEvents({
   const changeRoundCutoff = (eventId: string, roundNumber: number, value: Attempt) => {
     setRounds(
       rounds.map((r) =>
-        r.eventId === eventId && r.roundNumber === roundNumber
-          ? {
-              ...r,
-              cutoffAttemptResult: value.result,
-            }
-          : r,
+        r.eventId === eventId && r.roundNumber === roundNumber ? { ...r, cutoffAttemptResult: value.result } : r,
       ),
     );
   };

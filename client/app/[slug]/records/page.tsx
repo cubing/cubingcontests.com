@@ -1,7 +1,9 @@
+import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { eventCategories } from "~/helpers/event-categories.ts";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
+import { eventCategoriesTable } from "~/server/db/schema/event-categories.ts";
 import { getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
@@ -14,17 +16,16 @@ async function RecordsRedirectPage({ params }: Props) {
   const { slug } = await params;
 
   const organization = await getOrgDetails({ slug });
-  const events = await db.query.events.findMany({
-    columns: { category: true },
-    where: { organizationId: organization.id, hidden: false },
-    orderBy: { rank: "asc" },
-  });
+  const [firstCategory] = await db
+    .select({ categoryId: eventCategoriesTable.categoryId })
+    .from(eventCategoriesTable)
+    .where(and(eq(eventCategoriesTable.organizationId, organization.id), eq(eventCategoriesTable.hidden, false)))
+    .orderBy(eventCategoriesTable.rank)
+    .limit(1);
 
-  if (events.length === 0) return <p>There are currently no events</p>;
+  if (!firstCategory) return <LoadingError reason="no public event categories found" />;
 
-  const firstCategory = eventCategories.find((ec) => events.some((e) => e.category === ec.value))!.value;
-
-  redirect(slugPath(slug, `/records/${firstCategory}`), "replace");
+  redirect(slugPath(slug, `/records/${firstCategory.categoryId}`), "replace");
 }
 
 export default RecordsRedirectPage;

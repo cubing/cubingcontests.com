@@ -7,6 +7,7 @@ import { EventValidator } from "~/helpers/validators/Event.ts";
 import { db } from "~/server/db/provider.ts";
 import { collectiveSolutionsTable } from "~/server/db/schema/collective-solutions.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
+import { eventCategoryDetailsColumns } from "~/server/db/schema/event-categories.ts";
 import type { FullEvent } from "~/server/db/schema/events.ts";
 import { eventsTable as table } from "~/server/db/schema/events.ts";
 import { sendEmail } from "~/server/email/mailer.ts";
@@ -36,7 +37,7 @@ export const createEventSF = actionClient
     if (sameNameEvent) throw new RrActionError(`Event with name ${newEventDto.name} already exists`);
 
     const category = await db.query.eventCategories.findFirst({
-      columns: { name: true, shortName: true, color: true },
+      columns: eventCategoryDetailsColumns,
       where: { organizationId: session.organization!.id, id: newEventDto.categoryId },
     });
     if (!category) throw new RrActionError("Event category not found");
@@ -75,7 +76,7 @@ export const updateEventSF = actionClient
     const [event, category] = await Promise.all([
       db.query.events.findFirst({ where: { organizationId: session.organization!.id, eventId: originalEventId } }),
       db.query.eventCategories.findFirst({
-        columns: { name: true, shortName: true, color: true },
+        columns: eventCategoryDetailsColumns,
         where: { organizationId: session.organization!.id, id: newEventDto.categoryId },
       }),
     ]);

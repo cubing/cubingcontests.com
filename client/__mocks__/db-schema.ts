@@ -3,6 +3,7 @@
 export * from "~/server/db/schema/auth-schema.ts";
 export * from "~/server/db/schema/collective-solutions.ts";
 export * from "~/server/db/schema/contests.ts";
+export * from "~/server/db/schema/event-categories.ts";
 export * from "~/server/db/schema/events.ts";
 export * from "~/server/db/schema/member-requests.ts";
 export * from "~/server/db/schema/persons.ts";

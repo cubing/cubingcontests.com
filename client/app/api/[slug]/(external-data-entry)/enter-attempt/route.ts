@@ -6,6 +6,7 @@ import { arrayElementsSame } from "~/helpers/utility-functions.ts";
 import { EnterAttemptPayloadValidator } from "~/helpers/validators/EnterAttemptPayload.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
+import { eventCategoryDetailsColumns } from "~/server/db/schema/event-categories.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 import {
@@ -28,7 +29,12 @@ export async function POST(req: NextRequest) {
 
   const organization = await db.query.organizations.findFirst({
     columns: { id: true },
-    with: { subscription: { columns: { plan: true }, where: { status: { in: ["active", "trialing"] } } } },
+    with: {
+      subscription: {
+        columns: { plan: true },
+        where: { status: { in: ["active", "trialing"] }, canceledAt: { isNull: true } },
+      },
+    },
     where: { slug: spaceId },
   });
   if (!organization) return new Response("Space not found", { status: 404 });
@@ -46,7 +52,10 @@ export async function POST(req: NextRequest) {
     db.query.contests.findFirst({
       where: { organizationId: organization.id, competitionId, state: { ne: "removed" } },
     }),
-    db.query.events.findFirst({ where: { organizationId: organization.id, eventId } }),
+    db.query.events.findFirst({
+      with: { category: { columns: eventCategoryDetailsColumns } },
+      where: { organizationId: organization.id, eventId },
+    }),
     db.query.rounds.findMany({ where: { organizationId: organization.id, competitionId, eventId } }),
   ]);
   const round = rounds.find((r) => r.roundNumber === roundNumber);

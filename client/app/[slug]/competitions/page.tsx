@@ -8,6 +8,7 @@ import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import { getContests } from "~/server/server-only-functions/contests-functions.ts";
 import {
+  getEventCategories,
   getEvents,
   getOrgDetails,
   getRegions,
@@ -37,9 +38,10 @@ async function ContestsPage({ params, searchParams }: Props) {
   const { eventId, region: regionCode } = await searchParams;
 
   const organization = await getOrgDetails({ slug });
-  const [events, regions, kofiGoalProgress] = await Promise.all([
-    getEvents({ organizationId: organization!.id }),
-    getRegions(organization!.id),
+  const [events, eventCategories, regions, kofiGoalProgress] = await Promise.all([
+    getEvents({ organizationId: organization.id }),
+    getEventCategories({ organizationId: organization.id }),
+    getRegions(organization.id),
     getSettingFromDb({ key: "kofi-goal-progress", organizationId: null, optional: true }),
   ]);
 
@@ -66,7 +68,7 @@ async function ContestsPage({ params, searchParams }: Props) {
               </>
             )}
 
-            <EventButtons events={events} resetOnSameEventClick />
+            <EventButtons events={events} eventCategories={eventCategories} resetOnSameEventClick />
             <div style={{ maxWidth: "24rem" }}>
               <RegionSelect regions={regions} />
             </div>

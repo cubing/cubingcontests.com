@@ -41,7 +41,7 @@ import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
 import type { RoundDto } from "~/helpers/validators/Round.ts";
 import { WcaCompetitionValidator } from "~/helpers/validators/wca/WcaCompetition.ts";
 import type { SelectContest } from "~/server/db/schema/contests.ts";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
@@ -64,7 +64,7 @@ import ScheduleEditor from "./ScheduleEditor.tsx";
 const onlineContestRooms: Room[] = [{ id: 1, name: C.onlineCompKey, color: "#fff", activities: [] }];
 
 type Props = {
-  events: EventResponse[];
+  events: EventResponseWithCategory[];
   rounds: RoundResponse[] | undefined;
   totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
   regions: RegionResponse[];

@@ -29,7 +29,12 @@ export async function GET(req: NextRequest, { params }: RouteContext<"/api/[slug
 
   const organization = await db.query.organizations.findFirst({
     columns: { metadata: true },
-    with: { subscription: { columns: { plan: true }, where: { status: { in: ["active", "trialing"] } } } },
+    with: {
+      subscription: {
+        columns: { plan: true },
+        where: { status: { in: ["active", "trialing"] }, canceledAt: { isNull: true } },
+      },
+    },
     where: { slug },
   });
   if (!organization?.metadata) return new Response("Space not found", { status: 404 });

@@ -35,6 +35,7 @@ import {
 import { getContestParticipantIds } from "~/server/server-only-functions/contests-functions.ts";
 import {
   approvePersons,
+  getEvents,
   getSettingFromDb,
   logMessage,
   validateMaxMonthlyContests,
@@ -704,10 +705,7 @@ async function validateAndCleanUpContest(
       .select({ id: personsTable.id })
       .from(personsTable)
       .where(and(eq(personsTable.organizationId, organizationId), inArray(personsTable.id, contest.organizerIds))),
-    db.query.events.findMany({
-      columns: { eventId: true, name: true, category: true, format: true },
-      where: { organizationId },
-    }),
+    getEvents({ organizationId, includeHiddenAndRemoved: true }),
     db.query.regions.findFirst({ where: { organizationId, code: contest.regionCode } }),
   ]);
 
@@ -736,8 +734,8 @@ async function validateAndCleanUpContest(
 
     const event = events.find((e) => e.eventId === round.eventId);
     if (!event) throw new RrActionError(`Event with ID ${round.eventId} not found`);
-    if (!canApprove && event.category === "removed")
-      throw new RrActionError(`${event.name} is a removed event, so it cannot be held`);
+    if (!canApprove && event.category.hidden)
+      throw new RrActionError(`${event.name} is an event in a hidden event category, so it cannot be held`);
     const isSomeTimeFormat = ["time", "time-3d"].includes(event.format);
     if (isSomeTimeFormat && !round.timeLimitCentiseconds)
       throw new RrActionError(`${event.name} round ${round.roundNumber} doesn't have a time limit`);
@@ -803,7 +801,7 @@ async function validateAndCleanUpContest(
 
     for (const round of rounds) {
       const event = events.find((e) => e.eventId === round.eventId)!;
-      if (contest.type === "wca-comp" && event.category === "wca") {
+      if (IS_CUBING_CONTESTS_INSTANCE && contest.type === "wca-comp" && event.category.categoryId === "wca") {
         throw new RrActionError(
           "WCA events may not be added for the WCA Competition contest type. They must be held through the WCA website only.",
         );

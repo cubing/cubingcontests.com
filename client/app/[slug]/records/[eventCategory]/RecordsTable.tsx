@@ -6,12 +6,12 @@ import { use } from "react";
 import RecordRow from "~/app/[slug]/records/[eventCategory]/RecordRow.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import type { RecordRanking } from "~/helpers/types/Rankings.tsx";
-import type { EventResponse } from "~/server/db/schema/events.ts";
+import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   recordsPromise: Promise<RecordRanking[]>;
-  events: Pick<EventResponse, "eventId" | "name" | "category" | "format" | "description">[];
+  events: Pick<EventResponseWithCategory, "eventId" | "name" | "format" | "description" | "category">[];
   regions: RegionResponse[];
 };
 
@@ -19,7 +19,7 @@ function RecordsTable({ recordsPromise, events, regions }: Props) {
   const records = use(recordsPromise);
   const { slug }: { slug: string } = useParams();
 
-  const [category] = useQueryState("category");
+  const [recordCategory] = useQueryState("category");
   const [eventId] = useQueryState("eventId");
 
   return (
@@ -65,7 +65,7 @@ function RecordsTable({ recordsPromise, events, regions }: Props) {
                   organizationSlug={slug}
                   event={event}
                   showIcon
-                  linkToRankings={category ? `?category=${category}` : true}
+                  linkToRankings={recordCategory ? `?category=${recordCategory}` : true}
                   showDescription
                 />
 
@@ -79,7 +79,7 @@ function RecordsTable({ recordsPromise, events, regions }: Props) {
                         {mixedRecords && <th>Average</th>}
                         {!mixedRecords && <th>Representing</th>}
                         {!mixedRecords && <th>Date</th>}
-                        <th>{category === "online" ? "Link" : "Contest"}</th>
+                        <th>{recordCategory === "online" ? "Link" : "Contest"}</th>
                         <th>Attempts</th>
                       </tr>
                     </thead>
