@@ -4,13 +4,13 @@ import { useParams } from "next/navigation";
 import { use } from "react";
 import EventInformation from "~/app/[slug]/rules/EventInformation.tsx";
 import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
-import type { FullEvent } from "~/server/db/schema/events.ts";
+import type { SelectEvent } from "~/server/db/schema/events.ts";
 
 type Props = {
   eventRulesPromise: Promise<
     [
-      Pick<FullEvent, "eventId" | "name" | "defaultRoundFormat" | "description" | "rule">[],
-      Pick<FullEvent, "eventId" | "name" | "defaultRoundFormat" | "description" | "rule">[],
+      Pick<SelectEvent, "eventId" | "name" | "defaultRoundFormat" | "description" | "rule">[],
+      Pick<SelectEvent, "eventId" | "name" | "defaultRoundFormat" | "description" | "rule">[],
     ]
   >;
 };

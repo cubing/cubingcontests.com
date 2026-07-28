@@ -81,8 +81,8 @@ export const updateEventSF = actionClient
       }),
     ]);
 
-    if (!category) throw new RrActionError("Event category not found");
     if (!event) throw new RrActionError(`Event with ID ${originalEventId} not found`);
+    if (!category) throw new RrActionError("Event category not found");
 
     const [updatedEvent] = await db.transaction(async (tx) => {
       if (isNewId) {
