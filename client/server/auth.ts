@@ -70,8 +70,8 @@ export const rrPremiumLimits = {
 async function changeShowDonationLinks(organizationId: string, showDonationLinks: boolean) {
   await db.execute(
     sql`UPDATE ${organizationsTable}
-        SET metadata = JSONB_SET(metadata::jsonb, '{showDonationLinks}', ${showDonationLinks ? sql.raw("'true'") : sql.raw("'false'")})
-        WHERE ${organizationsTable.id} = ${organizationId}`,
+        SET metadata = JSONB_SET(metadata::jsonb, '{showDonationLinks}', '${showDonationLinks ? sql.raw("true") : sql.raw("false")}')
+        WHERE ${organizationsTable.id} = '${sql.raw(organizationId)}'`,
   );
 }
 

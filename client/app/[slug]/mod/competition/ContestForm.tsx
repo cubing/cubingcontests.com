@@ -263,13 +263,13 @@ function ContestForm({
     );
     const confirmDefaultTimeLimitMsg =
       "You have a round with a default time limit of 10:00. A round with a high time limit may take too long. Are you sure you would like to keep this time limit?";
-    const doSubmit =
-      mode !== "edit"
-        ? !roundWithDefaultTimeLimitExists || confirm(confirmDefaultTimeLimitMsg)
-        : competitionId === contest!.competitionId ||
+    const doSubmit: boolean =
+      mode === "edit"
+        ? competitionId === contest!.competitionId ||
           confirm(
             `Are you sure you would like to change the contest ID from ${contest!.competitionId} to ${competitionId}?`,
-          );
+          )
+        : !IS_CUBING_CONTESTS_INSTANCE || !roundWithDefaultTimeLimitExists || confirm(confirmDefaultTimeLimitMsg);
     if (!doSubmit) return;
 
     const res =

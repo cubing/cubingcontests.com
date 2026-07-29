@@ -33,9 +33,10 @@ type Props = {
 };
 
 function CollectiveCubing({ settingValuePromise }: Props) {
+  const settingValue = use(settingValuePromise);
+
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
-  const settingValue = use(settingValuePromise);
   const { executeAsync: getCurrentCollectiveSolution } = useAction(getCurrentCollectiveCubingSolutionSF);
   const { executeAsync: startNewSolution, isPending: isScrambling } = useAction(startNewCollectiveCubingSolutionSF);
   const { executeAsync: makeMove, isPending: isMakingMove } = useAction(makeCollectiveCubingMoveSF);

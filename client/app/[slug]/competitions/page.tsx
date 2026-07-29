@@ -59,7 +59,7 @@ async function ContestsPage({ params, searchParams }: Props) {
       ) : (
         <>
           <div className="mb-3 px-2">
-            {kofiGoalProgress !== null && (
+            {organization.metadata.showDonationLinks && kofiGoalProgress !== null && (
               <>
                 <DonationGoals kofiGoalProgress={kofiGoalProgress} compact />
                 <div className="my-3">

@@ -81,7 +81,7 @@ function ContestEvents({
 
   const [newEventId, setNewEventId] = useState(remainingEvents[0]?.eventId ?? undefined);
 
-  const newEvent = events.find((e) => e.eventId === newEventId)!;
+  const newEvent = events.find((e) => e.eventId === newEventId);
 
   const getNewRound = (event: EventResponse, roundNumber: number): RoundDto => ({
     competitionId,
@@ -98,7 +98,7 @@ function ContestEvents({
   });
 
   const addContestEvent = () => {
-    setRounds([...rounds, getNewRound(newEvent, 1)].sort((a, b) => a.roundNumber - b.roundNumber));
+    setRounds([...rounds, getNewRound(newEvent!, 1)].sort((a, b) => a.roundNumber - b.roundNumber));
 
     if (remainingEvents.length > 1) {
       const newId = remainingEvents.find((e) => e.eventId !== newEventId)!.eventId;
@@ -236,8 +236,12 @@ function ContestEvents({
             />
           </div>
         </div>
-        {newEvent.description && <p className="fs-6 fst-italic mb-0">{newEvent.description}</p>}
-        <EventImportantInfo importantInfo={newEvent.importantInfo} className="mb-0" />
+        {newEvent && (
+          <>
+            {newEvent.description && <p className="fs-6 fst-italic mb-0">{newEvent.description}</p>}
+            <EventImportantInfo importantInfo={newEvent.importantInfo} className="mb-0" />
+          </>
+        )}
       </div>
 
       {contestEvents.map((ce) => (

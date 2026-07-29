@@ -22,18 +22,16 @@ type Props = {
 function ModDashboardScreen({ regions, isAdminView }: Props) {
   const { slug }: { slug: string } = useParams();
   const [filters] = useModDashboardQueryState();
-  const { data, isLoading, isValidating, mutate } = useSWR(["mod", filters], () => getModContestsSF(filters), {
-    suspense: true,
-  });
+  const { data, isLoading, isValidating, mutate } = useSWR(["mod", filters], () => getModContestsSF(filters));
 
-  const contests = data.data?.contests;
+  const contests = data?.data?.contests;
   const isPending = isLoading || isValidating;
 
   return (
     <>
       <div className="px-2">
         <ModFilters
-          initOrganizerPerson={data.data?.organizerPerson}
+          initOrganizerPerson={data?.data?.organizerPerson}
           regions={regions}
           isAdminView={isAdminView}
           disabled={isPending}

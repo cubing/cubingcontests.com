@@ -305,8 +305,10 @@ function DataEntryScreen({
     } else {
       addNewPersonsToList(resultPersons);
       resetSelectedPersonsAndAttempts();
+      const result = res.data!.find((r) => r.roundId === round.id && r.personIds.includes(newResultDto.personIds[0]));
+      if (!result) throw new Error("Submitted result not found in response data");
       setResults(res.data!);
-      // Assuming that the mock result couldn't have affected any records
+      updateEventWrPair(result);
     }
   };
 

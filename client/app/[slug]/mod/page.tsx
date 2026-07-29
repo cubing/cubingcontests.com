@@ -1,16 +1,12 @@
 import Link from "next/link";
-import { Suspense } from "react";
-import { SWRConfig, unstable_serialize as serialize } from "swr";
 import { type ModDashboardFiltersDto, ModDashboardFiltersValidator } from "~/app/[slug]/mod/ModDashboardFilters.ts";
 import DonateButton from "~/app/components/content/DonateButton.tsx";
 import SocialLinkButton from "~/app/components/content/SocialLinkButton.tsx";
-import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { C, IS_CUBING_CONTESTS_INSTANCE, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { getHasRole, slugPath } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
-import { getModContestsSF } from "~/server/server-functions/contest-server-functions.ts";
 import {
   authorizeUser,
   getRegions,
@@ -27,9 +23,8 @@ type Props = {
   searchParams: Promise<ModDashboardFiltersDto>;
 };
 
-async function ModeratorDashboardPage({ params, searchParams }: Props) {
+async function ModeratorDashboardPage({ params }: Props) {
   const { slug } = await params;
-  const filters = ModDashboardFiltersValidator.parse(await searchParams);
   const { member, organization, httpHeaders } = await authorizeUser({
     useOrganization: true,
     orgPermissions: { modDashboard: ["view"] },
@@ -147,17 +142,7 @@ async function ModeratorDashboardPage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      <SWRConfig
-        value={{
-          fallback: {
-            [serialize(["mod", filters])]: getModContestsSF(filters),
-          },
-        }}
-      >
-        <Suspense fallback={<Loading />}>
-          <ModDashboardScreen regions={regions} isAdminView={isAdminView} />
-        </Suspense>
-      </SWRConfig>
+      <ModDashboardScreen regions={regions} isAdminView={isAdminView} />
     </section>
   );
 }

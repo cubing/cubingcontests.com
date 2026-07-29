@@ -252,17 +252,19 @@ function Navbar() {
                         </Link>
                       </li>
                     )}
-                    <li>
-                      <a
-                        href={C.rrDonationLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={collapseAll}
-                        className="nav-link"
-                      >
-                        Support RecordRanks
-                      </a>
-                    </li>
+                    {organization.metadata.showDonationLinks && (
+                      <li>
+                        <a
+                          href={C.rrDonationLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={collapseAll}
+                          className="nav-link"
+                        >
+                          Support RecordRanks
+                        </a>
+                      </li>
+                    )}
                   </ul>
                 </li>
                 {user && organization && canAccessModDashboard && (
