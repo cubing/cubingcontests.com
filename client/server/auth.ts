@@ -238,6 +238,13 @@ export const auth = betterAuth({
               onSubscriptionDeleted: async ({ subscription }) => {
                 await changeShowDonationLinks(subscription.referenceId, true);
               },
+              getCheckoutSessionParams: async () => {
+                return {
+                  params: {
+                    allow_promotion_codes: true,
+                  },
+                };
+              },
             },
           }),
         ]
