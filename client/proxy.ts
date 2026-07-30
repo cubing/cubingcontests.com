@@ -12,7 +12,7 @@ export function proxy(request: NextRequest) {
 
   if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED === "true") {
     const isLoggablePage =
-      /^\/[^/]+(\/|\/(about|competitions|export|moderator-instructions|posts|rankings|records|rules|video-based-results)(\/.*)?)?$/.test(
+      /^\/[^/]+(\/|\/(about|competitions|export|moderator-instructions|blog|rankings|records|rules|video-based-results)(\/.*)?)?$/.test(
         url.pathname,
       );
 
@@ -20,15 +20,17 @@ export function proxy(request: NextRequest) {
   } else {
     const isLoggablePage =
       url.pathname === "/" ||
-      /^\/(about|competitions|export|moderator-instructions|posts|rankings|records|rules|video-based-results)(\/.*)?$/.test(
+      /^\/(about|competitions|export|moderator-instructions|blog|rankings|records|rules|video-based-results)(\/.*)?$/.test(
         url.pathname,
       );
 
     if (isLoggablePage) log(url);
 
+    // Single tenancy routing support
+
     const isPathWithSlug =
       url.pathname === "/" ||
-      /^\/(about|competitions|export|mod|moderator-instructions|posts|rankings|records|rules|video-based-results)(\/.*)?$/.test(
+      /^\/(about|competitions|export|mod|moderator-instructions|blog|rankings|records|rules|video-based-results)(\/.*)?$/.test(
         url.pathname,
       );
 

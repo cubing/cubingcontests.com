@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { use } from "react";
-import BlogPostCard from "~/app/[slug]/posts/BlogPostCard.tsx";
+import BlogPostCard from "~/app/[slug]/blog/BlogPostCard.tsx";
+import { slugPath } from "~/helpers/utility-functions.ts";
 import type { PostResponse } from "~/server/db/schema/posts.ts";
 
 type Props = {
@@ -18,7 +20,13 @@ function BlogSection({ latestBlogPostsPromise }: Props) {
 
   return (
     <>
-      <h3 className="rr-basic-heading">Latest blog post</h3>
+      <Link
+        href={slugPath(slug, "/blog")}
+        prefetch={false}
+        className="rr-basic-heading fs-3 link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"
+      >
+        Blog
+      </Link>
 
       <div className="row row-gap-3">
         {latestBlogPosts.map((post) => (

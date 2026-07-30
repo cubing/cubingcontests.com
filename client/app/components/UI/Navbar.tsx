@@ -232,10 +232,10 @@ function Navbar() {
                     )}
                     <li>
                       <Link
-                        href={slugPath(organization.slug, "/posts")}
+                        href={slugPath(organization.slug, "/blog")}
                         onClick={collapseAll}
                         prefetch={false}
-                        className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/posts")}`).test(pathname) ? "active" : ""}`}
+                        className={`nav-link ${new RegExp(`^${slugPath(organization.slug, "/blog")}`).test(pathname) ? "active" : ""}`}
                       >
                         Blog
                       </Link>

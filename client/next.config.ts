@@ -9,6 +9,12 @@ const nextConfig: NextConfig = withMDX({
   pageExtensions: ["md", "mdx", "tsx", "ts", "jsx", "js", "mjs", "json"],
   redirects() {
     return Promise.resolve([
+      // This is just for Cubing Contests pre-2026-07-30
+      {
+        source: "/posts/:slug",
+        destination: "/blog/:slug",
+        permanent: true,
+      },
       // This is to override Better Auth's default behavior when redirecting after an error
       // https://github.com/better-auth/better-auth/issues/5467
       {
