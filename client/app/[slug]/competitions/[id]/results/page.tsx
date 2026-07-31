@@ -26,7 +26,7 @@ async function ContestResultsPage({ params, searchParams }: Props) {
   ]);
   if (!contestData) return <LoadingError loadingEntity="contest results" />;
 
-  const { contest, events, rounds, results, persons, recordConfigs, regions } = contestData;
+  const { contest, events, rounds, results, matches, sets, persons, recordConfigs, regions } = contestData;
   const event = eventId ? events.find((e) => e.eventId === eventId)! : events[0];
 
   return (
@@ -38,6 +38,8 @@ async function ContestResultsPage({ params, searchParams }: Props) {
         event={event}
         rounds={rounds}
         results={results}
+        matches={matches}
+        sets={sets}
         persons={persons}
         recordConfigs={recordConfigs}
         regions={regions}

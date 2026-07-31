@@ -59,10 +59,11 @@ export const EventFormatValues = [
   "time-3d", // 3 decimals of precision
   "number", // for Fewest Moves events
   "multi",
+  "h2h", // for events that simply have a winner and a loser
 ] as const;
 export type EventFormat = (typeof EventFormatValues)[number];
 
-export const RoundFormatValues = ["a", "5", "m", "3", "2", "1"] as const;
+export const RoundFormatValues = ["a", "5", "m", "3", "2", "1", "h2h"] as const;
 export type RoundFormat = (typeof RoundFormatValues)[number];
 
 export const RoundTypeValues = ["1", "2", "3", "4", "5", "6", "7", "8", "s", "f"] as const;

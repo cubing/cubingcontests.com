@@ -51,7 +51,7 @@ function RankingRow({
   });
 
   return (
-    <tr>
+    <tr style={expanded ? { borderBottom: "#212529" } : {}}>
       <td>
         <span className={isTiedRanking ? "text-secondary" : ""}>{ranking.ranking}</span>
       </td>
@@ -108,6 +108,87 @@ function RankingRow({
       )}
     </tr>
   );
+
+  // {expanded && (
+  //   <tr>
+  //     <td colSpan={7} className="p-3">
+  //       <div className="d-flex gap-4">
+  //         <div className="d-flex flex-shrink-0 gap-4 rounded-4 bg-body-secondary p-4 align-items-center">
+  //           <div className="d-flex justify-content-center flex-shrink-0 overflow-hidden rounded-circle border border-secondary bg-body-tertiary align-items-center">
+  //             <img src="/vimilyn.png" alt={ranking.persons[0].name} height="100px" width="100px" />
+  //           </div>
+  //           <div>
+  //             <h3>{ranking.persons[0].name}</h3>
+  //             <div className="d-flex gap-4">
+  //               <div>
+  //                 <span className="small text-muted">RANK</span>
+  //                 <div className="fw-bold fs-4">#1</div>
+  //               </div>
+  //               <div>
+  //                 <span className="small text-muted">POINTS</span>
+  //                 <div className="fw-bold fs-4">{result}</div>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //         <div className="flex-grow-1">
+  //           <div className="row mb-3">
+  //             <div className="col">
+  //               <div className="d-flex gap-3 rounded-3 border border-secondary p-3">
+  //                 <div className="fs-5 rounded-3 bg-body-secondary p-2 text-primary">
+  //                   <FontAwesomeIcon icon={faUser} />
+  //                 </div>
+  //                 <div>
+  //                   <div className="small text-muted">GENDER</div>
+  //                   <div className="fw-bold">Female</div>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //             <div className="col">
+  //               <div className="d-flex gap-3 rounded-3 border border-secondary p-3">
+  //                 <div className="fs-5 rounded-3 bg-body-secondary p-2 text-primary">
+  //                   <FontAwesomeIcon icon={faCakeCandles} />
+  //                 </div>
+  //                 <div>
+  //                   <div className="small text-muted">AGE</div>
+  //                   <div className="fw-bold">23 years</div>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </div>
+  //           <div className="row">
+  //             <div className="col">
+  //               <div className="d-flex gap-3 rounded-3 border border-secondary p-3">
+  //                 <div className="fs-5 rounded-3 bg-body-secondary p-2 text-primary">
+  //                   <FontAwesomeIcon icon={faFlag} />
+  //                 </div>
+  //                 <div>
+  //                   <div className="small text-muted">COUNTRY</div>
+  //                   <div className="fw-bold">Singapore</div>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //             <div className="col">
+  //               <div className="d-flex gap-3 rounded-3 border border-secondary p-3">
+  //                 <div className="fs-5 rounded-3 bg-body-secondary p-2 text-primary">
+  //                   <FontAwesomeIcon icon={faTrophy} />
+  //                 </div>
+  //                 <div>
+  //                   <div className="small text-muted">NATIONAL RANK</div>
+  //                   <div className="fw-bold">#1</div>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //       <button type="button" className="btn btn-primary d-block ms-auto mt-3">
+  //         <FontAwesomeIcon icon={faArrowTrendUp} className="me-2" />
+  //         View Full Ranking Details
+  //       </button>
+  //     </td>
+  //   </tr>
+  // )}
 }
 
 export default RankingRow;

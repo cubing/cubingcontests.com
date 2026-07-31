@@ -95,6 +95,7 @@ function ContestEvents({
     cutoffNumberOfAttempts: null,
     proceedType: null,
     proceedValue: null,
+    brackets: null,
   });
 
   const addContestEvent = () => {
@@ -279,15 +280,17 @@ function ContestEvents({
                 <div className="d-flex flex-grow-1 gap-3 gap-md-5 align-items-center">
                   <h5 className="m-0">{roundTypes[round.roundTypeId].label}</h5>
 
-                  <div className="flex-grow-1">
-                    <FormSelect
-                      title=""
-                      options={roundFormatOptions}
-                      selected={round.format}
-                      setSelected={(val) => changeRoundFormat(round.eventId, round.roundNumber, val as any)}
-                      disabled={totalRoundResults > 0}
-                    />
-                  </div>
+                  {ce.event.format !== "h2h" && (
+                    <div className="flex-grow-1">
+                      <FormSelect
+                        title=""
+                        options={roundFormatOptions}
+                        selected={round.format}
+                        setSelected={(val) => changeRoundFormat(round.eventId, round.roundNumber, val as any)}
+                        disabled={totalRoundResults > 0}
+                      />
+                    </div>
+                  )}
                 </div>
                 {["time", "time-3d"].includes(ce.event.format) && (
                   <>

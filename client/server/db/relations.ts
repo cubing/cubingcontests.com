@@ -17,12 +17,14 @@ import { collectiveSolutionsTable as collectiveSolutions } from "./schema/collec
 import { contestsTable as contests } from "./schema/contests.ts";
 import { eventCategoriesTable as eventCategories } from "./schema/event-categories.ts";
 import { eventsTable as events } from "./schema/events.ts";
+import { matchesTable as matches } from "./schema/matches.ts";
 import { memberRequestsTable as memberRequests } from "./schema/member-requests.ts";
 import { personsTable as persons } from "./schema/persons.ts";
 import { recordConfigsTable as recordConfigs } from "./schema/record-configs.ts";
 import { regionsTable as regions } from "./schema/regions.ts";
 import { resultsTable as results } from "./schema/results.ts";
 import { roundsTable as rounds } from "./schema/rounds.ts";
+import { setsTable as sets } from "./schema/sets.ts";
 
 export const relations = defineRelations(
   {
@@ -43,6 +45,8 @@ export const relations = defineRelations(
     events,
     contests,
     rounds,
+    matches,
+    sets,
     results,
     persons,
     regions,
@@ -151,6 +155,24 @@ export const relations = defineRelations(
     },
     rounds: {
       results: r.many.results(),
+      matches: r.many.matches(),
+    },
+    matches: {
+      round: r.one.rounds({
+        from: r.matches.roundId,
+        to: r.rounds.id,
+      }),
+      sets: r.many.sets(),
+    },
+    sets: {
+      match: r.one.matches({
+        from: r.sets.matchId,
+        to: r.matches.id,
+      }),
+      round: r.one.rounds({
+        from: r.sets.roundId,
+        to: r.rounds.id,
+      }),
     },
     results: {
       // persons: r.many.persons({

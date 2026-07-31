@@ -29,6 +29,7 @@ export const C = {
   maxRankings: 100_000,
   minSlugCharacters: 8,
   maxSlugCharacters: 24,
+  maxMatchesForTournamentDisplay: 16,
   wcaApiBaseUrl: "https://api.worldcubeassociation.org",
   wcaV0ApiBaseUrl: "https://www.worldcubeassociation.org/api/v0",
   wcaIdRegex: /[0-9]{4}[A-Z]{4}[0-9]{2}/,

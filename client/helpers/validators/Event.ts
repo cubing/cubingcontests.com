@@ -24,6 +24,14 @@ export const EventValidator = z
     importantInfo: z.string().nullable(),
   })
   .superRefine((val, ctx) => {
+    if (val.format === "h2h" && val.defaultRoundFormat !== "h2h") {
+      ctx.addIssue({
+        code: "custom",
+        message: "A H2H event can only have H2H as the default round format",
+        input: val.defaultRoundFormat,
+      });
+    }
+
     if (val.hasMemo && val.format === "number") {
       ctx.addIssue({
         code: "custom",

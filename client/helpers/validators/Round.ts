@@ -23,6 +23,17 @@ export const RoundValidator = z
       })
       .nullable(),
     open: z.boolean().optional(), // not needed when creating new round
+    brackets: z
+      .array(
+        z.strictObject({
+          bracketNumber: z.int().min(1),
+          bracketType: z.enum(["main", "losers", "double-elim-finals", "double-elim-reset", "swiss", "round-robin"]),
+          stages: z.int().min(1),
+          seedingStrategy: z.enum(["best-vs-worst", "best-vs-2nd", "random"]),
+        }),
+      )
+      .nonempty()
+      .nullable(),
   })
   .superRefine((val, ctx) => {
     if (val.timeLimitCentiseconds && val.cutoffAttemptResult && val.cutoffAttemptResult > val.timeLimitCentiseconds) {

@@ -10,6 +10,7 @@ export type RoundFormatObject = {
   bestAndWorstAttemptsToExclude: number; // TO-DO: ADD SUPPORT FOR THIS VALUE BEING > 1 TO getBestAndAverage()!!!
 };
 
+// The "h2h" format isn't included here, because that is a special case
 export const roundFormats: RoundFormatObject[] = [
   {
     value: "1",

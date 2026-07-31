@@ -47,6 +47,7 @@ export const eventFormatOptions: MultiChoiceOption<EventFormat>[] = [
   { label: "Time (2 decimals)", shortLabel: "Time (2d)", value: "time" },
   { label: "Time (3 decimals)", shortLabel: "Time (3d)", value: "time-3d" },
   { label: "Number", value: "number" },
+  { label: "Head-to-head", value: "h2h" },
   { label: "Multi", value: "multi" },
 ];
 

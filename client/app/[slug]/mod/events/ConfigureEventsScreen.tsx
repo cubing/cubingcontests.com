@@ -57,7 +57,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
   const [importantInfo, setImportantInfo] = useState("");
 
   const isPending = isCreating || isUpdating;
-  const rankedAverageFormat = getRankedAverageFormat(defaultRoundFormat);
+  const rankedAverageFormat = defaultRoundFormat === "h2h" ? undefined : getRankedAverageFormat(defaultRoundFormat);
   const eventCategoryOptions: MultiChoiceOption[] = eventCategories.map((ec) => ({ value: ec.id, label: ec.name }));
 
   const handleSubmit = async () => {
@@ -73,7 +73,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
         categoryId: categoryId as number,
         rank: rank as number,
         format,
-        defaultRoundFormat,
+        defaultRoundFormat: format === "h2h" ? "h2h" : defaultRoundFormat,
         participants: participants as number,
         submissionsAllowed,
         hasMemo: format === "number" ? false : hasMemo,
@@ -158,16 +158,17 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
         </Button>
       ) : (
         <Form onSubmit={handleSubmit} hideToasts onCancel={cancel} isLoading={isPending}>
-          <FormTextInput
-            id="event_name"
-            title="Event name"
-            value={name}
-            setValue={setName}
-            nextFocusTargetId="event_id"
-            disabled={isPending}
-            className="mb-3"
-          />
           <div className="row mb-3">
+            <div className="col">
+              <FormTextInput
+                id="event_name"
+                title="Event name"
+                value={name}
+                setValue={setName}
+                nextFocusTargetId="event_id"
+                disabled={isPending}
+              />
+            </div>
             <div className="col">
               <FormTextInput
                 id="event_id"
@@ -177,6 +178,27 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
                 setValue={setNewEventId}
                 nextFocusTargetId="rank"
                 disabled={(mode === "edit" && !eventIdUnlocked) || isPending}
+              />
+              {mode === "edit" && (
+                <FormCheckbox
+                  title="Unlock event ID"
+                  selected={eventIdUnlocked}
+                  setSelected={setEventIdUnlocked}
+                  className="mt-2"
+                />
+              )}
+            </div>
+          </div>
+          <div className="row mb-3">
+            <div className="col">
+              <FormNumberInput
+                title="Number of team members"
+                value={participants}
+                setValue={setParticipants}
+                disabled={mode === "edit" || isPending}
+                tooltip="Leave this at 1 for non-team events"
+                integer
+                min={1}
               />
             </div>
             <div className="col">
@@ -234,6 +256,21 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
             <li>Number: 42</li>
             <li>Multi: 8/10 23:26</li>
           </ul>
+          {format !== "h2h" && (
+            <>
+              <FormSelect
+                id="default_format"
+                title="Default round format"
+                options={getRoundFormatOptions(roundFormats)}
+                selected={defaultRoundFormat}
+                setSelected={setDefaultRoundFormat as any}
+                disabled={mode === "edit" || isPending}
+              />
+              {rankedAverageFormat && (
+                <p className="fs-6 mt-2 text-secondary">The ranked average format is {rankedAverageFormat.label}</p>
+              )}
+            </>
+          )}
           <FormRadio
             title="Event category"
             options={eventCategoryOptions}

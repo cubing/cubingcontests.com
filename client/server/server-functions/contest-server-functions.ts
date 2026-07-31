@@ -767,11 +767,13 @@ async function validateAndCleanUpContest(
       eventRounds.sort((a, b) => a.roundNumber - b.roundNumber);
 
       for (let i = 0; i < eventRounds.length; i++) {
-        const { roundNumber, roundTypeId } = eventRounds[i];
+        const { roundNumber, format, roundTypeId } = eventRounds[i];
         if (roundNumber !== i + 1)
-          throw new RrActionError(`${event.name} has a missing round number. Please contact the development team.`);
+          throw new RrActionError(`${event.name} has a missing round number. Please contact the admin team.`);
+        if (event.format === "h2h" && format !== "h2h")
+          throw new RrActionError("H2H events can only have rounds with H2H formats");
 
-        const message = `${event.name} has a mismatch between the round numbers and round types. Please contact the development team.`;
+        const message = `${event.name} has a mismatch between the round numbers and round types. Please contact the admin team.`;
         if (roundTypeId === "f") {
           if (roundNumber !== eventRounds.length) throw new RrActionError(message);
         } else if (roundTypeId === "s") {

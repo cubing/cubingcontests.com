@@ -2,12 +2,14 @@ import "server-only";
 import { and, desc, eq, exists, inArray } from "drizzle-orm";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { type SelectContest, contestsTable as table } from "~/server/db/schema/contests.ts";
-import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
+import { type EventResponseWithCategory, eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
+import { type MatchResponse, matchesPublicCols, matchesTable } from "~/server/db/schema/matches.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
 import { type RegionResponse, regionsTable } from "~/server/db/schema/regions.ts";
 import { type ResultResponse, resultsPublicCols, resultsTable } from "~/server/db/schema/results.ts";
 import { type RoundResponse, roundsPublicCols, roundsTable } from "~/server/db/schema/rounds.ts";
+import { type SetResponse, setsPublicCols, setsTable } from "~/server/db/schema/sets.ts";
 import { getEvents, getRecordConfigs, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 
 export async function getContests({
@@ -77,7 +79,9 @@ export async function getContest({
   >;
   events: EventResponseWithCategory[];
   rounds: RoundResponse[];
-  results: ResultResponse[];
+  results?: ResultResponse[];
+  matches?: MatchResponse[];
+  sets?: SetResponse[];
   persons: PersonResponse[];
   recordConfigs: RecordConfigResponse[];
   regions: RegionResponse[];
@@ -114,20 +118,58 @@ export async function getContest({
   ]);
   if (eventId && !events.some((e) => e.eventId === eventId)) throw new Error(`Event with ID ${eventId} not found`);
 
-  const eventIdOrFirst = eventId ?? events[0].eventId;
+  const event = events.find((e) => e.eventId === (eventId ?? events[0].eventId))!;
 
-  const results = await getContestEventResults({ organizationId, competitionId, eventId: eventIdOrFirst });
+  const [results, matches, sets] = await Promise.all([
+    event.format === "h2h"
+      ? undefined
+      : await getContestEventResults({ organizationId, competitionId, eventId: event.eventId }),
+    event.format === "h2h"
+      ? await db
+          .select(matchesPublicCols)
+          .from(matchesTable)
+          .where(
+            and(
+              eq(matchesTable.organizationId, organizationId),
+              eq(matchesTable.competitionId, competitionId),
+              eq(matchesTable.eventId, event.eventId),
+            ),
+          )
+      : undefined,
+    event.format === "h2h"
+      ? await db
+          .select(setsPublicCols)
+          .from(setsTable)
+          .where(
+            and(
+              eq(setsTable.organizationId, organizationId),
+              eq(setsTable.competitionId, competitionId),
+              eq(setsTable.eventId, event.eventId),
+            ),
+          )
+      : undefined,
+  ]);
 
-  const personIds = Array.from(
-    new Set(results.map((r) => r.personIds).reduce((prev, curr) => [...(prev as []), ...curr], [])),
-  );
-  const persons = await db.select(personsPublicCols).from(personsTable).where(inArray(personsTable.id, personIds));
+  const personIds: number[] = [];
+  if (results) {
+    for (const result of results) personIds.push(...result.personIds);
+  }
+  if (matches) {
+    for (const match of matches) personIds.push(...match.team1.participantIds, ...match.team2.participantIds);
+  }
+
+  const persons = await db
+    .select(personsPublicCols)
+    .from(personsTable)
+    .where(inArray(personsTable.id, Array.from(new Set(personIds))));
 
   return {
     contest,
     events,
-    rounds: rounds.filter((r) => r.eventId === eventIdOrFirst),
+    rounds: rounds.filter((r) => r.eventId === event.eventId),
     results,
+    matches,
+    sets,
     persons,
     recordConfigs,
     regions,

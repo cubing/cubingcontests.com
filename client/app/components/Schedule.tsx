@@ -86,7 +86,10 @@ function Schedule({
         );
         if (round) {
           dayActivity.roundTypeLabel = roundTypes[round.roundTypeId].label;
-          dayActivity.roundFormatLabel = roundFormats.find((rf) => rf.value === round.format)?.label ?? "ERROR";
+          dayActivity.roundFormatLabel =
+            dayActivity.event.format === "h2h"
+              ? ""
+              : (roundFormats.find((rf) => rf.value === round.format)?.label ?? "ERROR");
         } else {
           dayActivity.isEditable = false;
         }
