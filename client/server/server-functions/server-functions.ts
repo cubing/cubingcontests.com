@@ -45,7 +45,7 @@ export const getOrgDetailsSF = actionClient
     ]),
   )
   .action<OrganizationDetails>(async ({ parsedInput: { id, slug }, ctx: { session } }) => {
-    return await getOrgDetails({ session: session?.session, id, slug });
+    return await getOrgDetails({ session, id, slug });
   });
 
 export const getCurrentCollectiveCubingSolutionSF = actionClient
@@ -165,7 +165,7 @@ export const getFeaturesInfoSF = actionClient
   .metadata({ auth: null })
   .inputSchema(z.strictObject({ slug: z.string().nonempty().optional() }))
   .action<FeaturesInfo>(async ({ parsedInput: { slug }, ctx: { session } }) => {
-    const organization = slug ? await getOrgDetails({ session: session?.session, slug }) : undefined;
+    const organization = slug ? await getOrgDetails({ session, slug }) : undefined;
     const organizationId = organization?.id;
     const [
       aboutPageContent,
@@ -205,23 +205,19 @@ export const getPrivacyPolicySF = actionClient.metadata({ auth: null }).action<s
   return await getSettingFromDb({ key: "privacy-policy", organizationId: null, optional: true });
 });
 
-export const getStripePriceSF = actionClient
+export const getStripePricesSF = actionClient
   .metadata({ auth: { useOrganization: true } })
-  .inputSchema(
-    z.strictObject({
-      lookupKey: z.string().nonempty(),
-    }),
-  )
-  .action<{ amount: number; currency: string }>(async ({ parsedInput: { lookupKey } }) => {
+  .action<{ lookupKey: string; amount: number; currency: string }[]>(async () => {
     if (!stripeClient) throw new RrActionError("Billing is disabled on this instance");
 
-    const prices = await stripeClient.prices.list({ lookup_keys: [lookupKey], limit: 1 });
+    const prices = await stripeClient.prices.list({
+      lookup_keys: ["rr_basic_monthly", "rr_basic_annual", "rr_premium_monthly", "rr_premium_annual"],
+      currency: "USD",
+    });
 
-    if (prices.data.length === 0 || !prices.data[0].unit_amount) throw new RrActionError("Price not found");
-
-    const price = prices.data[0];
-    return {
-      amount: price.unit_amount!,
-      currency: price.currency.toUpperCase(),
-    };
+    return prices.data.map((p) => ({
+      lookupKey: p.lookup_key!,
+      amount: p.unit_amount!,
+      currency: p.currency.toUpperCase(),
+    }));
   });

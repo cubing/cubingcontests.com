@@ -1,18 +1,23 @@
 "use client";
 
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useContext, useState, useTransition } from "react";
 import useSWR from "swr";
 import z from "zod";
 import Button from "~/app/components/UI/Button.tsx";
 import { authClient } from "~/helpers/auth-client.ts";
+import { IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import type { ListPageMode } from "~/helpers/types.ts";
+import { slugPath } from "~/helpers/utility-functions.ts";
 import { orgRolesObject } from "~/server/organization-permissions.ts";
 
 function OrganizationInvitationsScreen() {
+  const { slug }: { slug: string } = useParams();
+  const { session, organization } = useSession();
   const { resetMessages, changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
-  const { session } = useSession();
 
   const {
     data: invitations,
@@ -62,6 +67,18 @@ function OrganizationInvitationsScreen() {
       });
     }
   };
+
+  if (IS_RR_INSTANCE && !organization!.subscription) {
+    return (
+      <p className="mx-3 mt-4">
+        You have to set up{" "}
+        <Link href={slugPath(slug, "/billing")} prefetch={false}>
+          billing
+        </Link>{" "}
+        before you can start inviting other users.
+      </p>
+    );
+  }
 
   return (
     <>

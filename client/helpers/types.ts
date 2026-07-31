@@ -22,7 +22,10 @@ export type OrganizationMetadata = {
   communicationsAgreed?: boolean;
 };
 
-export type OrganizationDetails = Pick<typeof authClient.$Infer.Organization, "id" | "name" | "slug" | "logo"> & {
+export type OrganizationDetails = Pick<
+  typeof authClient.$Infer.Organization,
+  "id" | "name" | "slug" | "logo" | "createdAt"
+> & {
   metadata: OrganizationMetadata;
   subscription?: {
     plan: "basic" | "premium";

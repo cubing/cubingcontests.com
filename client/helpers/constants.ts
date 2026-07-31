@@ -3,6 +3,7 @@ export const C = {
   rrContactLink: "https://recordranks.com/contact",
   rrDonationLink: "https://ko-fi.com/mintydev",
   rrDiscordServerLink: "https://discord.gg/YWbYh9AqHj",
+  rrDaysBeforeStartingFreeTrial: 5,
   sourceCodeLink: "https://github.com/mintydev789/RecordRanks",
   fetchDebounceTimeout: 750, // the timeout in ms between doing repetitive fetch requests that need to be limited
   maxRounds: 4,
@@ -65,3 +66,12 @@ const providers = process.env.NEXT_PUBLIC_AUTH_PROVIDERS!.split(",");
 export const HAS_CREDENTIAL_AUTH = providers.includes("credential");
 export const HAS_WCA_AUTH = providers.includes("wca");
 export const HAS_GOOGLE_AUTH = providers.includes("google");
+
+export const rrBasicLimits = {
+  monthlyContests: 10,
+  competitors: 1000,
+};
+export const rrPremiumLimits = {
+  monthlyContests: 50,
+  competitors: 20000,
+};

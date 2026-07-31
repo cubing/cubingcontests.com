@@ -1,12 +1,12 @@
 import "server-only";
-import { addMonths } from "date-fns";
+import { addMonths, differenceInDays } from "date-fns";
 import { and, desc, eq, getColumns, inArray, or, sql } from "drizzle-orm";
 import { camelCase } from "lodash";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod";
-import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import { C, IS_RR_INSTANCE, rrBasicLimits, rrPremiumLimits } from "~/helpers/constants.ts";
 import { getRankedAverageFormat } from "~/helpers/roundFormats.ts";
 import type { Ranking, RecordRanking } from "~/helpers/types/Rankings.ts";
 import {
@@ -22,7 +22,7 @@ import {
 } from "~/helpers/types.ts";
 import { fetchWcaPerson, getHasRole, getNameAndLocalizedName } from "~/helpers/utility-functions.ts";
 import type { EnterAttemptPayloadDto } from "~/helpers/validators/EnterAttemptPayload.ts";
-import { auth, rrBasicLimits, rrPremiumLimits } from "~/server/auth.ts";
+import { auth } from "~/server/auth.ts";
 import { type DbTransactionType, db } from "~/server/db/provider.ts";
 import { membersTable, usersTable } from "~/server/db/schema/auth-schema.ts";
 import { contestsTable } from "~/server/db/schema/contests.ts";
@@ -119,7 +119,7 @@ export async function authorizeUser(
   try {
     member = session.session.activeOrganizationId ? await auth.api.getActiveMember({ headers: hdrs }) : undefined;
     organization = session.session.activeOrganizationId
-      ? await getOrgDetails({ session: session.session, id: session.session.activeOrganizationId })
+      ? await getOrgDetails({ session, id: session.session.activeOrganizationId })
       : undefined;
   } catch {}
 
@@ -128,6 +128,7 @@ export async function authorizeUser(
     if (
       IS_RR_INSTANCE &&
       !organization.subscription &&
+      differenceInDays(new Date(), organization.createdAt) > C.rrDaysBeforeStartingFreeTrial &&
       (orgPermissions?.competitions ||
         orgPermissions?.meetups ||
         orgPermissions?.onlineComps ||
@@ -178,13 +179,13 @@ export async function getOrgDetails({
   id,
   slug,
 }: {
-  session?: Pick<typeof auth.$Infer.Session.session, "activeOrganizationId">;
+  session?: typeof auth.$Infer.Session;
   id?: string;
   slug?: string;
 }): Promise<OrganizationDetails> {
   const organization: OrganizationDetails = await db.query.organizations
     .findFirst({
-      columns: { id: true, name: true, slug: true, logo: true, metadata: true },
+      columns: { id: true, name: true, slug: true, logo: true, metadata: true, createdAt: true },
       where: id ? { id } : { slug },
     })
     .then((res) => {
@@ -192,18 +193,28 @@ export async function getOrgDetails({
       return { ...res, metadata: JSON.parse(res.metadata!) as OrganizationMetadata };
     });
 
-  if (organization.metadata.private) {
-    const session = s ?? (await auth.api.getSession({ headers: await headers() }))?.session;
+  const session = s ?? (await auth.api.getSession({ headers: await headers() })) ?? undefined;
 
-    if (!session || session.activeOrganizationId !== organization.id) redirect("/login");
-  }
+  if (organization.metadata.private && (!session || session.session.activeOrganizationId !== organization.id))
+    redirect("/login");
 
   if (IS_RR_INSTANCE) {
     const subscription = await db.query.subscriptions.findFirst({
       where: { referenceId: organization.id, status: { in: ["active", "trialing"] }, canceledAt: { isNull: true } },
     });
 
-    if (subscription) organization.subscription = getOrgSubscription(subscription);
+    if (subscription) {
+      organization.subscription = getOrgSubscription(subscription);
+    } else if (!session) {
+      throw new RrActionError("There is no active subscription for this space");
+    } else {
+      const member = await db.query.members.findFirst({
+        columns: { role: true },
+        where: { organizationId: organization.id, userId: session.user.id },
+      });
+      if (!member || !getHasRole("owner", member.role))
+        throw new RrActionError("There is no active subscription for this space");
+    }
   }
 
   return organization;

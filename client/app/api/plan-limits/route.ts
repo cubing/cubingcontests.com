@@ -1,4 +1,4 @@
-import { rrBasicLimits, rrPremiumLimits } from "~/server/auth.ts";
+import { rrBasicLimits, rrPremiumLimits } from "~/helpers/constants.ts";
 
 export async function GET() {
   return Response.json(

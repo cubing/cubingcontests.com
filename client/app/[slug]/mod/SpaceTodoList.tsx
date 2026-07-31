@@ -1,36 +1,57 @@
+import { differenceInDays } from "date-fns";
 import Link from "next/link";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import type { OrganizationDetails } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
 
 type Props = {
-  slug: string;
+  organization: OrganizationDetails;
   showBillingTodo: boolean;
   showLinkPersonTodo: boolean;
   showAddEventsTodo: boolean;
   showCreateContestTodo: boolean;
 };
 
-function SpaceTodoList({ slug, showBillingTodo, showLinkPersonTodo, showAddEventsTodo, showCreateContestTodo }: Props) {
+function SpaceTodoList({
+  organization,
+  showBillingTodo,
+  showLinkPersonTodo,
+  showAddEventsTodo,
+  showCreateContestTodo,
+}: Props) {
+  const slug = organization.slug;
+
   return (
     <div className="mb-4">
       <h4 className="mb-3">Getting started to-do:</h4>
 
       <ul className="list-unstyled">
-        <SpaceTodoItem checked={!showBillingTodo}>
-          Set up billing on the <Link href={slugPath(slug, "/billing")}>Billing</Link> page (required)
-        </SpaceTodoItem>
         <SpaceTodoItem checked={!showLinkPersonTodo}>
           Create a person profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage competitors</Link> page
-          and then link it to your member profile on the{" "}
-          <Link href={slugPath(slug, "/mod/members")}>Manage members</Link> page
-        </SpaceTodoItem>
-        <SpaceTodoItem checked={!showAddEventsTodo}>
-          Set up the list of events for this space using the{" "}
-          <Link href={slugPath(slug, "/mod/events")}>Configure events</Link> page
-        </SpaceTodoItem>
-        <SpaceTodoItem checked={!showCreateContestTodo}>
-          Create your first contest on the <Link href={slugPath(slug, "/mod/competition")}>Create new contest</Link>{" "}
+          and link it to your member profile on the <Link href={slugPath(slug, "/mod/members")}>Manage members</Link>{" "}
           page
         </SpaceTodoItem>
+        <SpaceTodoItem checked={!showAddEventsTodo}>
+          Set up the <Link href={slugPath(slug, "/mod/events")}>list of events</Link> for this space
+        </SpaceTodoItem>
+        <SpaceTodoItem checked={!showCreateContestTodo}>
+          <Link href={slugPath(slug, "/mod/competition")}>Create your first contest</Link>
+        </SpaceTodoItem>
+        {IS_RR_INSTANCE && (
+          <SpaceTodoItem checked={!showBillingTodo}>
+            Set up <Link href={slugPath(slug, "/billing")}>billing</Link> to make this space accessible to other users
+            {showBillingTodo && (
+              <span className="ms-1">
+                (
+                <span className="fw-bold text-warning">
+                  {Math.max(0, C.rrDaysBeforeStartingFreeTrial - differenceInDays(new Date(), organization.createdAt))}{" "}
+                  days
+                </span>{" "}
+                left)
+              </span>
+            )}
+          </SpaceTodoItem>
+        )}
       </ul>
     </div>
   );

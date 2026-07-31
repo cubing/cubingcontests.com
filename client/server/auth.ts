@@ -7,7 +7,15 @@ import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, genericOAuth, organization, username } from "better-auth/plugins";
 import { sql } from "drizzle-orm";
 import Stripe from "stripe";
-import { baseUrl, HAS_CREDENTIAL_AUTH, HAS_GOOGLE_AUTH, HAS_WCA_AUTH, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import {
+  baseUrl,
+  HAS_CREDENTIAL_AUTH,
+  HAS_GOOGLE_AUTH,
+  HAS_WCA_AUTH,
+  IS_RR_INSTANCE,
+  rrBasicLimits,
+  rrPremiumLimits,
+} from "~/helpers/constants.ts";
 import { getHasRole } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import {
@@ -57,15 +65,6 @@ export const stripeClient =
         apiVersion: "2026-06-24.dahlia",
       })
     : undefined;
-
-export const rrBasicLimits = {
-  monthlyContests: 10,
-  competitors: 1000,
-};
-export const rrPremiumLimits = {
-  monthlyContests: 50,
-  competitors: 20000,
-};
 
 async function changeShowDonationLinks(organizationId: string, showDonationLinks: boolean) {
   await db.execute(

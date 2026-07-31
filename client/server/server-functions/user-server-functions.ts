@@ -3,7 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import type { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import z from "zod";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { getDefaultRegions } from "~/helpers/default-regions.ts";
 import { getDefaultOrgSettings } from "~/helpers/default-settings.ts";
 import type { ContestApiKey, ContestApiKeyMetadata } from "~/helpers/types.ts";
@@ -379,6 +379,18 @@ export const createOrganizationSF = actionClient
       if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED !== "true")
         throw new RrActionError("Multitenancy is disabled for this instance");
 
+      if (!getHasRole("admin", session.user.role)) {
+        const memberships = await db.query.members.findMany({
+          columns: { role: true },
+          where: { userId: session.user.id },
+        });
+        if (memberships.some((m) => getHasRole("owner", m.role))) {
+          throw new RrActionError(
+            "You have already created a space. Please contact support if you would like to create another one.",
+          );
+        }
+      }
+
       const organization = await auth.api.createOrganization({
         body: {
           name,
@@ -455,6 +467,9 @@ export const createApiKeySF = actionClient
   )
   .action<{ apiKey: ContestApiKey; key: string }>(
     async ({ parsedInput: { competitionId, keyName }, ctx: { session, httpHeaders } }) => {
+      if (IS_RR_INSTANCE && !session.organization!.subscription)
+        throw new RrActionError("You can only start adding API keys once you've set up billing");
+
       const contest = await db.query.contests.findFirst({
         columns: { id: true, competitionId: true },
         where: {

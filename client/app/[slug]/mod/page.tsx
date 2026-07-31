@@ -70,7 +70,7 @@ async function ModeratorDashboardPage({ params }: Props) {
 
         {showTodos && (
           <SpaceTodoList
-            slug={slug}
+            organization={organization!}
             showBillingTodo={showBillingTodo}
             showLinkPersonTodo={showLinkPersonTodo}
             showAddEventsTodo={showAddEventsTodo}

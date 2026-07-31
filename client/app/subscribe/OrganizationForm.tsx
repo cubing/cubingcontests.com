@@ -36,9 +36,9 @@ function OrganizationForm() {
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
     } else {
-      changeSuccessMessage("Successfully created new space! Redirecting to billing page...");
+      changeSuccessMessage("Successfully created the space!");
       e.target.reset();
-      setTimeout(() => router.push(slugPath(res.data!.slug, "/billing")), 2000);
+      setTimeout(() => router.push(slugPath(res.data!.slug, "/mod")), 2000);
     }
   };
 
@@ -162,7 +162,7 @@ function OrganizationForm() {
 
       <fieldset className="mb-4">
         <label htmlFor="logo_input" className="form-label">
-          Logo URL
+          Logo URL (optional)
         </label>
         <input id="logo_input" type="url" name="logo" className="form-control" />
         <div className="form-text mt-2">

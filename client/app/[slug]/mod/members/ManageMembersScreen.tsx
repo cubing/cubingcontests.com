@@ -109,13 +109,14 @@ function ManageMembersScreen({
     setEmail(member.user.email);
 
     if (!member.role) throw new Error("Error: role is empty");
-    setIsMember(getHasRole("member", member.role));
+
+    const person = member.personId ? memberPersons.find((p) => p.id === member.personId) : undefined;
+
+    setIsMember(person !== undefined); // we always want to set the member role when the person profile is linked
     setIsMod(getHasRole("mod", member.role));
     setIsVideoBasedResultReviewer(getHasRole("videoBasedResultReviewer", member.role));
     setIsAdmin(getHasRole("admin", member.role));
     setIsOwner(getHasRole("owner", member.role));
-
-    const person = member.personId ? memberPersons.find((p) => p.id === member.personId) : undefined;
 
     if (person) {
       setPersons([person]);
@@ -164,6 +165,7 @@ function ManageMembersScreen({
             setPersonNames={setPersonNames}
             regions={regions}
             disabled={isPending}
+            onSelectPerson={() => setIsMember(true)}
             addNewPersonMode="default"
             display="grid"
           />
@@ -172,7 +174,7 @@ function ManageMembersScreen({
             title={orgRolesObject.member}
             selected={isMember}
             setSelected={setIsMember}
-            disabled={isPending || isMember} // removing this role is no longer allowed
+            disabled={isPending || isMember} // removing this role isn't allowed
             className="mb-3"
           />
           <FormCheckbox

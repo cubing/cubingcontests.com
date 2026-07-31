@@ -12,7 +12,9 @@ async function SubscriptionSuccess() {
       <p className="fs-5 text-center">
         Your subscription is now <strong>active</strong>!
       </p>
-      <p className="text-center">You can go to the dashboard to start customizing your space.</p>
+      <p className="text-center">
+        You can now share this space with your community members and invite other users to help with moderation.
+      </p>
 
       <div className="tw:mt-6 tw:flex tw:justify-center tw:gap-6">
         <Link href={slugPath(organization!.slug, "/mod")} className="btn btn-primary">

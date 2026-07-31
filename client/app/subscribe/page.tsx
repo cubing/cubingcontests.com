@@ -24,7 +24,7 @@ async function SubscribePage() {
 
       <p className="fw-semibold mb-4 text-center">
         Enter the details for your new space, which will be dedicated entirely to your community, with its own list of
-        events, competitors, record history, and so on!
+        events, competitors, record history, and more!
       </p>
 
       <ToastMessages />

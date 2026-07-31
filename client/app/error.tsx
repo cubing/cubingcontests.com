@@ -16,7 +16,7 @@ function ErrorPage({ error }: Props) {
     <section>
       <h4 className="my-4 text-center">Error</h4>
 
-      <p className="text-center">An unexpected error has occurred. Please contact the development team.</p>
+      <p className="text-center">Error: {error.message}</p>
     </section>
   );
 }

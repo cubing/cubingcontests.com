@@ -43,7 +43,10 @@ async function ApiKeysPage() {
 
       <ToastMessages className="mx-2" />
 
-      <ManageApiKeysScreen contests={contestsRes.data!.contests} apiKeys={apiKeys} />
+      <ManageApiKeysScreen
+        contests={contestsRes.data!.contests.filter((c) => c.state !== "created")}
+        apiKeys={apiKeys}
+      />
     </section>
   );
 }
