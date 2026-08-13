@@ -200,13 +200,13 @@ Note: due to limitations with the CSV format, empty string values are represente
 
 There are several custom scripts located in the `bin` directory. These should be executed from the root of the project with `./bin/<script>`.
 
-| Script                   | Description                                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `start-prod.sh`          | Start RecordRanks using Kubernetes in production.                                                      |
-| `apply-db-migrations.sh` | Apply DB migrations using Drizzle Kit. Handles disabling `"server-only"` while Drizzle Kit is running. |
-| `release-new-version.sh` | Release new version of RecordRanks (pushes to GitHub).                                                 |
-| `release-new-image.sh`   | Create Docker image for the Next JS app and publish it.                                                |
-| `create-full-backup.sh`  | Create encrypted backup of self-hosted Supabase. Takes path to Supabase as first argument.             |
+| Script                   | Description                                                                                                     |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `start-prod.sh`          | Start RecordRanks using Kubernetes in production. Use `--no-migrations` or `-n` to prevent applying migrations. |
+| `apply-db-migrations.sh` | Apply DB migrations using Drizzle Kit. Handles disabling `"server-only"` while Drizzle Kit is running.          |
+| `release-new-version.sh` | Release new version of RecordRanks (pushes to GitHub).                                                          |
+| `release-new-image.sh`   | Create Docker image for the Next JS app and publish it.                                                         |
+| `create-full-backup.sh`  | Create encrypted backup of self-hosted Supabase. Takes path to Supabase as first argument.                      |
 
 There is also a `convert-svg-to-ico.sh` script in the `client` directory to convert an SVG file with the icon to an ICO file at `client/app/favicon.ico`. This script runs automatically on Docker image build.
 

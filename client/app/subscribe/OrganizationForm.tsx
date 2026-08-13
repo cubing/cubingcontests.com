@@ -21,7 +21,7 @@ function OrganizationForm() {
     const contestTypes = formData.getAll("contestTypes"); // handles checkbox array properly
 
     if (contestTypes.length === 0) {
-      changeErrorMessages(["Please select at least one contest type"]);
+      changeErrorMessages(["Please select at least one competition type"]);
       return;
     }
 
@@ -89,10 +89,10 @@ function OrganizationForm() {
       </fieldset>
 
       <fieldset className="mb-3">
-        <legend className="form-label">Contest types</legend>
+        <legend className="form-label">Competition types</legend>
         <p className="mb-3">
-          Select which contest types you will be organizing in your space. You can change this later in the space
-          settings. Note that each contest type has its own separate record history.
+          Select which competition types you will be organizing in your space. You can change this later in the space
+          settings. Note that each competition type has its own separate record history.
         </p>
         <div className="d-flex flex-column gap-2">
           <div className="form-check">

@@ -27,9 +27,8 @@ function SpaceTodoList({
 
       <ul className="list-unstyled">
         <SpaceTodoItem checked={!showLinkPersonTodo}>
-          Create a person profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage Persons</Link> page
-          and link it to your member profile on the <Link href={slugPath(slug, "/mod/members")}>Manage Members</Link>{" "}
-          page
+          Create a person profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage Persons</Link> page and
+          link it to your member profile on the <Link href={slugPath(slug, "/mod/members")}>Manage Members</Link> page
         </SpaceTodoItem>
         <SpaceTodoItem checked={!showAddEventsTodo}>
           Set up the <Link href={slugPath(slug, "/mod/events")}>list of events</Link> for this space

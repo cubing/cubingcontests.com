@@ -17,4 +17,6 @@ sed "s|__DOCKER_IMAGE_NAME__|${DOCKER_IMAGE_NAME}|" k8s/deployment.yaml | kubect
 
 kubectl rollout restart deployment recordranks-nextjs || exit 2
 
-./bin/apply-db-migrations.sh || exit 3
+if [[ "$1" != "--no-migrations" && "$1" != "-n"  ]]; then
+  ./bin/apply-db-migrations.sh || exit 3
+fi

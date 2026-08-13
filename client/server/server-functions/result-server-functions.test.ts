@@ -372,7 +372,7 @@ describe("createContestResultSF", () => {
         newResultDto: {
           eventId: "333_oh_bld_team_relay",
           personIds: [1, 2, 3],
-          attempts: [{ result: timeLimit! + 1 }, { result: 1234 }, { result: 1234 }],
+          attempts: [{ result: timeLimit! }, { result: 1234 }, { result: 1234 }],
           competitionId: "TestComp2026",
           roundId,
         },
@@ -391,7 +391,7 @@ describe("createContestResultSF", () => {
           eventId: "333_oh_bld_team_relay",
           personIds: [1, 2, 3],
           // First result just barely passes the time limit, but the second one pushes it over the cumulative limit
-          attempts: [{ result: timeLimit! }, { result: 1234 }, { result: 1234 }],
+          attempts: [{ result: timeLimit! - 1 }, { result: 1234 }, { result: 1234 }],
           competitionId: "TestComp2026",
           roundId,
         },
@@ -694,7 +694,7 @@ describe("updateContestResultSF", () => {
       const { timeLimitCentiseconds: timeLimit } = testMeetupMar2023_333bf_2_person_relay_r1;
       const res = await updateContestResultSF({
         id: 4,
-        newAttempts: [{ result: timeLimit! + 1 }, { result: 1234 }, { result: 1234 }],
+        newAttempts: [{ result: timeLimit! }, { result: 1234 }, { result: 1234 }],
       });
 
       expect(res.serverError?.message).toBe(
@@ -708,7 +708,7 @@ describe("updateContestResultSF", () => {
       const res = await updateContestResultSF({
         id: 4,
         // First result just barely passes the time limit, but the second one pushes it over the cumulative limit
-        newAttempts: [{ result: timeLimit! }, { result: 1234 }, { result: 1234 }],
+        newAttempts: [{ result: timeLimit! - 1 }, { result: 1234 }, { result: 1234 }],
       });
 
       expect(res.serverError?.message).toBe(
