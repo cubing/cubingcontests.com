@@ -1,0 +1,13 @@
+services:
+  scorecards:
+    image: zbaruch20/scorecard-generator
+    container_name: scorecards
+    restart: always
+    networks:
+      - supabase_default
+    ports:
+      - "3030:80"
+
+networks:
+  supabase_default:
+    external: true
