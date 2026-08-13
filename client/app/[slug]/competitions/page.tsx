@@ -46,16 +46,16 @@ async function ContestsPage({ params, searchParams }: Props) {
   ]);
 
   const region = regionCode ? regions.find((r) => r.code === regionCode) : undefined;
-  if (regionCode && !region) return <LoadingError loadingEntity="contests" />;
+  if (regionCode && !region) return <LoadingError loadingEntity="competitions" />;
 
   const contestsPromise = getContests({ organizationId: organization.id, eventId, region });
 
   return (
     <section>
-      <h2 className="mb-4 text-center">All Contests</h2>
+      <h2 className="mb-4 text-center">All Competitions</h2>
 
       {events.length === 0 ? (
-        <LoadingError loadingEntity="contests" reason="events not found" />
+        <LoadingError loadingEntity="competitions" reason="events not found" />
       ) : (
         <>
           <div className="mb-3 px-2">

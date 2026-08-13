@@ -125,8 +125,8 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
           <thead>
             <tr>
               <th scope="col">Name</th>
-              <th scope="col">Contest</th>
-              <th scope="col">Contest ID</th>
+              <th scope="col">Competition</th>
+              <th scope="col">Competition ID</th>
               <th scope="col">Daily rate limit</th>
               <th scope="col">Created</th>
               <th scope="col">Expires</th>

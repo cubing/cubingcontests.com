@@ -111,7 +111,7 @@ export const ContestValidator = z
     competitionId: z
       .string()
       .min(4)
-      .regex(/^[a-zA-Z0-9]*$/, { error: "The contest ID must only contain alphanumeric characters" }),
+      .regex(/^[a-zA-Z0-9]*$/, { error: "The competition ID must only contain alphanumeric characters" }),
     name: z
       .string()
       .min(IS_CUBING_CONTESTS_INSTANCE ? 10 : 5)

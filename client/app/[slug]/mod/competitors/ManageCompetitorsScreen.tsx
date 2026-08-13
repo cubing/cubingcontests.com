@@ -174,7 +174,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
           className="btn-success btn-sm mx-2"
           style={{ width: "fit-content" }}
         >
-          Add competitor
+          Create person profile
         </Button>
       ) : (
         <PersonForm

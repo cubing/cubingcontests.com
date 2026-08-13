@@ -27,8 +27,8 @@ function SpaceTodoList({
 
       <ul className="list-unstyled">
         <SpaceTodoItem checked={!showLinkPersonTodo}>
-          Create a person profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage competitors</Link> page
-          and link it to your member profile on the <Link href={slugPath(slug, "/mod/members")}>Manage members</Link>{" "}
+          Create a person profile on the <Link href={slugPath(slug, "/mod/competitors")}>Manage Persons</Link> page
+          and link it to your member profile on the <Link href={slugPath(slug, "/mod/members")}>Manage Members</Link>{" "}
           page
         </SpaceTodoItem>
         <SpaceTodoItem checked={!showAddEventsTodo}>
@@ -39,7 +39,8 @@ function SpaceTodoList({
         </SpaceTodoItem>
         {IS_RR_INSTANCE && (
           <SpaceTodoItem checked={!showBillingTodo}>
-            Set up <Link href={slugPath(slug, "/billing")}>billing</Link> to make this space accessible to other users
+            Start your free trial on the <Link href={slugPath(slug, "/billing")}>Billing</Link> page to make this space
+            accessible to other users
             {showBillingTodo && (
               <span className="ms-1">
                 (

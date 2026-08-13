@@ -35,8 +35,9 @@ function DonationGoals({ kofiGoalProgress, compact }: Props) {
       </div>
       {!compact && (
         <p className="mt-3">
-          When this goal is reached, the Personal Records feature will be prioritized to be implemented into
-          RecordRanks.
+          {progressValue < 100
+            ? "When this goal is reached, the Personal Records feature will be prioritized to be implemented into RecordRanks."
+            : "The goal has been reached, so you can expect this feature to be implemented soon!"}
         </p>
       )}
     </>

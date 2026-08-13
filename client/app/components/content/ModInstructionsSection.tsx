@@ -21,11 +21,11 @@ function ModInstructionsSection({ modInstructionsPromise, modInstructionsDescrip
 
   return (
     <>
-      <h3 className="rr-basic-heading">Holding a contest</h3>
+      <h3 className="rr-basic-heading">Holding a competition</h3>
 
       {modInstructionsDescription && <Markdown>{modInstructionsDescription}</Markdown>}
 
-      <Link href={slugPath(slug, "/moderator-instructions")} prefetch={false} className="btn btn-secondary">
+      <Link href={slugPath(slug, "/moderator-instructions")} prefetch={false} className="btn btn-secondary btn-sm">
         Moderator Instructions
       </Link>
     </>

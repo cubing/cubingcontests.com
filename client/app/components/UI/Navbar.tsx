@@ -140,7 +140,7 @@ function Navbar() {
                     className={`nav-link ${pathname === slugPath(organization.slug, "/competitions") ? "active" : ""}`}
                   >
                     <FontAwesomeIcon icon={faCalendarDays} size="xs" className="me-2" />
-                    Contests
+                    Competitions
                   </Link>
                 </li>
                 <li
@@ -252,12 +252,17 @@ function Navbar() {
                         </Link>
                       </li>
                     )}
+                    <li>
+                      <a href={C.rrDocsLink} target="_blank" rel="noopener" onClick={collapseAll} className="nav-link">
+                        Documentation
+                      </a>
+                    </li>
                     {organization.metadata.showDonationLinks && (
                       <li>
                         <a
                           href={C.rrDonationLink}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener"
                           onClick={collapseAll}
                           className="nav-link"
                         >

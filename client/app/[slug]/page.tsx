@@ -6,6 +6,7 @@ import CollectiveCubing from "~/app/components/content/CollectiveCubing.tsx";
 import DonateSection from "~/app/components/content/DonateSection.tsx";
 import ModInstructionsSection from "~/app/components/content/ModInstructionsSection.tsx";
 import SocialLinkButton from "~/app/components/content/SocialLinkButton.tsx";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
 import { getBlogPosts, getOrgDetails, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
 
@@ -81,6 +82,19 @@ async function OrganizationHomePage({ params }: Props) {
       <Suspense>
         <BlogSection latestBlogPostsPromise={latestBlogPostsPromise} />
       </Suspense>
+
+      <div className="tw:mt-6 tw:mb-4 tw:flex tw:items-center tw:gap-3">
+        <h3 className="m-0">Documentation</h3>
+        <img src="/recordranks_logo.png" alt="RecordRanks Logo" className="tw:h-8" />
+      </div>
+      <p>
+        Have questions about how RecordRanks{" "}
+        {IS_RR_INSTANCE ? "" : `– the software powering ${process.env.NEXT_PUBLIC_PROJECT_NAME} – `}works? Check out the
+        documentation page to learn about its functionality and about creating your own competitive events.
+      </p>
+      <a href={C.rrDocsLink} target="_blank" rel="noopener" className="btn btn-secondary btn-sm">
+        Documentation
+      </a>
 
       <Suspense>
         <ModInstructionsSection

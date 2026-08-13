@@ -87,35 +87,35 @@ async function ModeratorDashboardPage({ params }: Props) {
               prefetch={false}
               className="btn btn-success btn-sm btn-lg-md"
             >
-              Create new contest
+              Create New Competition
             </Link>
           )}
           <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
-            Manage competitors
+            Manage Persons
           </Link>
           {isAdminView && (
             <Link href={slugPath(slug, "/mod/api-keys")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
-              API keys
+              API Keys
             </Link>
           )}
           {isAdminView ? (
             <>
               <Link href={slugPath(slug, "/mod/members")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
-                Manage members
+                Manage Members
               </Link>
               <Link
                 href={slugPath(slug, "/mod/events")}
                 prefetch={false}
                 className="btn btn-secondary btn-sm btn-lg-md"
               >
-                Configure events
+                Configure Events
               </Link>
               <Link
                 href={slugPath(slug, "/mod/records-configuration")}
                 prefetch={false}
                 className="btn btn-secondary btn-sm btn-lg-md"
               >
-                Configure records
+                Configure Records
               </Link>
               {IS_RR_INSTANCE && isOwner && (
                 <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm btn-lg-md">

@@ -310,7 +310,7 @@ topN (optional)    = how many top results to return; number between 1 and 100,00
 
 Results can be entered directly via the API. This can be used to enter results into a RecordRanks instance programmatically from a third-party website or an external data entry device. The schema is mostly the same as the [WCA Live API](https://github.com/thewca/wca-live/wiki/Entering-attempts-with-external-devices), but a space can be specified and the selection of the competitor is different. You can either use `registrantId`, which is the unique numerical ID of the competitor in the database, or `wcaId`, which is an alphanumeric ID from the [WCA website](https://www.worldcubeassociation.org/) (only relevant for speedcubing competitions). For team events `registrantId` should be provided as a string containing comma-separated integers; `wcaId` should be provided as a string containing comma-separated WCA IDs. The order of the competitors is significant.
 
-API keys can be generated on the API keys page (accessible via the Mod Dashboard). All access tokens remain valid until the contest is finished or deleted. Once you have a key, authorize your API requests with the `x-api-key` HTTP header.
+API keys can be generated on the API Keys page (accessible via the Mod Dashboard). All access tokens remain valid until the contest is finished or deleted. Once you have a key, authorize your API requests with the `x-api-key` HTTP header.
 
 #### Entering a single attempt
 

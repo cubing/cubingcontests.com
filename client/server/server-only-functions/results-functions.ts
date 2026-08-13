@@ -691,7 +691,7 @@ export async function validateContestResult({
 
   // Time limit validation
   if (round.timeLimitCentiseconds) {
-    if (attempts.some((a) => a.result > round.timeLimitCentiseconds!)) {
+    if (attempts.some((a) => a.result >= round.timeLimitCentiseconds!)) {
       throw new RrActionError(
         `This round has a time limit of ${getFormattedTime(round.timeLimitCentiseconds, { showDecimals: "never" })}`,
       );

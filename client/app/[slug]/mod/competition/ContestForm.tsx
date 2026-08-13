@@ -267,7 +267,7 @@ function ContestForm({
       mode === "edit"
         ? competitionId === contest!.competitionId ||
           confirm(
-            `Are you sure you would like to change the contest ID from ${contest!.competitionId} to ${competitionId}?`,
+            `Are you sure you would like to change the competition ID from ${contest!.competitionId} to ${competitionId}?`,
           )
         : !IS_CUBING_CONTESTS_INSTANCE || !roundWithDefaultTimeLimitExists || confirm(confirmDefaultTimeLimitMsg);
     if (!doSubmit) return;
@@ -382,7 +382,7 @@ function ContestForm({
 
   const getWcaCompDetails = () => {
     if (!competitionId) {
-      changeErrorMessages(["Please enter a contest ID"]);
+      changeErrorMessages(["Please enter a competition ID"]);
       return;
     }
 
@@ -495,7 +495,7 @@ function ContestForm({
 
   return (
     <Form
-      buttonText={mode === "edit" ? "Save Contest" : "Create Contest"}
+      buttonText={mode === "edit" ? "Save Competition" : "Create Competition"}
       onSubmit={handleSubmit}
       isLoading={isCreating || isUpdating}
       disableControls={isPending || disabled || disabledIfContestPublished || disabledIfNotUnderstood}
@@ -546,7 +546,7 @@ function ContestForm({
                         disabled={isPending}
                         className="btn-warning"
                       >
-                        Un-finish Contest
+                        Un-finish Competition
                       </Button>
                     )}
                     <Button
@@ -555,7 +555,7 @@ function ContestForm({
                       disabled={isPending || contest.participants > 0}
                       className="btn-danger"
                     >
-                      Remove Contest
+                      Remove Competition
                     </Button>
                   </>
                 )}
@@ -586,7 +586,7 @@ function ContestForm({
           />
           {type === "wca-comp" && disabled && mode === "new" && (
             <>
-              {/* Almost the same as the Contest ID element below */}
+              {/* Almost the same as the Competition ID element below */}
               <FormTextInput
                 title="Competition ID"
                 value={competitionId}
@@ -626,7 +626,7 @@ function ContestForm({
               />
               {/* Almost the same as the Competition ID element above */}
               <FormTextInput
-                title="Contest ID"
+                title="Competition ID"
                 value={competitionId}
                 setValue={setCompetitionId}
                 disabled={disabledIfDetailsImported || disabledIfContestApproved || (mode === "edit" && !isAdmin)}

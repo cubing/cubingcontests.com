@@ -1,6 +1,7 @@
 export const C = {
   recordRanksLink: "https://recordranks.com",
   rrContactLink: "https://recordranks.com/contact",
+  rrDocsLink: "https://recordranks.com/docs",
   rrDonationLink: "https://ko-fi.com/mintydev",
   rrDiscordServerLink: "https://discord.gg/YWbYh9AqHj",
   rrDaysBeforeStartingFreeTrial: 5,
