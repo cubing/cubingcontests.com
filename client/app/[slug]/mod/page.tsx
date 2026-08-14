@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { type ModDashboardFiltersDto, ModDashboardFiltersValidator } from "~/app/[slug]/mod/ModDashboardFilters.ts";
+import type { ModDashboardFiltersDto } from "~/app/[slug]/mod/ModDashboardFilters.ts";
+import DocsButton from "~/app/components/content/DocsButton.tsx";
 import DonateButton from "~/app/components/content/DonateButton.tsx";
 import SocialLinkButton from "~/app/components/content/SocialLinkButton.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
@@ -135,6 +136,7 @@ async function ModeratorDashboardPage({ params }: Props) {
               </a>
             )
           )}
+          <DocsButton />
           <SocialLinkButton link={discordServerLink} logo="discord" className="btn-sm">
             Discord server
           </SocialLinkButton>

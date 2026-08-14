@@ -63,13 +63,16 @@ function Footer() {
           About
         </Link>
       )}
+      <a href={C.rrDocsLink} target="_blank" rel="noopener" className="rr-button text-light-emphasis">
+        Docs
+      </a>
       {privacyPolicy !== "disabled" &&
         (privacyPolicy === "policy-contents" ? (
-          <Link href="/privacy" prefetch={false} className="text-light-emphasis">
+          <Link href="/privacy" prefetch={false} className="rr-button text-light-emphasis">
             Privacy
           </Link>
         ) : (
-          <a href={privacyPolicy} target="_blank" rel="noopener" className="text-light-emphasis">
+          <a href={privacyPolicy} target="_blank" rel="noopener" className="rr-button text-light-emphasis">
             Privacy
           </a>
         ))}
