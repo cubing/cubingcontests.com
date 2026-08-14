@@ -443,7 +443,7 @@ export const createOrganizationSF = actionClient
         sendEmail(
           process.env.INSTANCE_MAINTAINER_EMAIL,
           "New RR space created",
-          `A new space has been created by user ${session.user.name}: ${name}. Contact email: ${session.user.email}`,
+          `A new space has been created by user ${session.user.name}: ${name} (space ID ${slug}). Contact email: ${session.user.email}`,
         );
       }
 

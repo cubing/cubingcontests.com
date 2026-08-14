@@ -80,6 +80,12 @@ attempted          = solved + missed
     description:
       "Whether or not to enable Collective Cubing - the minigame where people solve a 2x2x2 Rubik's Cube one move at a time on the home page. Value: true|false.",
   },
+  {
+    key: "scorecards-service-link",
+    group: "features",
+    value: "",
+    description: "Link to self-hosted scorecards generator service (see README for more details)",
+  },
 ];
 
 export function getDefaultOrgSettings(organizationId: string): InsertSetting[] {
@@ -182,6 +188,13 @@ If you see any errors, correct them before submitting. If you see anything that 
       group: "features" as const,
       value: "false",
       description: "Whether or not the video-based results feature is enabled. Value: true|false.",
+    },
+    {
+      key: "scorecards-link-enabled" as const,
+      group: "features" as const,
+      value: "false",
+      description:
+        "Whether or not to display the link to the scorecards generator service on the Dashboard. Has no effect if the value of scorecards-service-link is empty. Value: true|false.",
     },
 
     // socials

@@ -61,7 +61,7 @@ function ManageResultsScreen({ results, events, recordConfigs, regions }: Props)
       <div className="px-2">
         <ToastMessages />
 
-        <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
+        <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm">
           Manage Persons
         </Link>
 

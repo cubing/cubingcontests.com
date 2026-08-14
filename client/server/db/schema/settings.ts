@@ -18,6 +18,7 @@ export type SettingKey =
   // features
   | "public-exports-to-keep"
   | "collective-cubing-enabled"
+  | "scorecards-service-link"
 
   ///// Organization settings /////
   // default
@@ -35,6 +36,7 @@ export type SettingKey =
   // features
   | "contest-types"
   | "video-based-results-enabled"
+  | "scorecards-link-enabled"
   // socials
   | "website-link"
   | "discord-server-link";

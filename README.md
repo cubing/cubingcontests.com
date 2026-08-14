@@ -196,6 +196,16 @@ The export files can be imported with Supabase, but keep in mind that they don't
 
 Note: due to limitations with the CSV format, empty string values are represented as `__EMPTY_STRING__`. You can (and should) safely change those values to `""` (empty string), if you find any.
 
+### Scorecards service
+
+A `docker-compose.scorecards.yml` file is available for optionally running a scorecard generation service, using [zbaruch20/scorecard-generator](https://github.com/zbaruch20/scorecard-generator). This container provides a web interface for generating scorecards for recording attempts at competitions (this is only used for free-for-all formats, not tournaments). Each scorecard includes fields for the competition name, competitor's name, event, round, and the result for each attempt. To start this service, run:
+
+```sh
+docker compose -f docker-compose.scorecards.yml up -d
+```
+
+The service will be available on port 3030. Instance maintainers can set up their proxy to route traffic from a `scorecards.` subdomain or any other desired path to this port.
+
 ## Scripts
 
 There are several custom scripts located in the `bin` directory. These should be executed from the root of the project with `./bin/<script>`.

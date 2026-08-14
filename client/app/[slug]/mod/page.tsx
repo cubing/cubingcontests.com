@@ -39,6 +39,8 @@ async function ModeratorDashboardPage({ params }: Props) {
     isEventsListEmpty,
     isContestsListEmpty,
     discordServerLink,
+    scorecardsServiceLink,
+    scorecardsLinkEnabled,
   ] = await Promise.all([
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { adminDashboard: ["view"] } } }),
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { member: ["update"] } } }),
@@ -53,6 +55,8 @@ async function ModeratorDashboardPage({ params }: Props) {
       .findFirst({ columns: { id: true }, where: { organizationId: organization!.id } })
       .then((res) => !res),
     getSettingFromDb({ key: "discord-server-link", organizationId: organization!.id, optional: true }),
+    getSettingFromDb({ key: "scorecards-service-link", organizationId: null, optional: true }),
+    getSettingFromDb({ key: "scorecards-link-enabled", organizationId: organization!.id, optional: true }),
   ]);
 
   const isOwner = getHasRole("owner", member!.role);
@@ -83,58 +87,44 @@ async function ModeratorDashboardPage({ params }: Props) {
 
         <div className="d-flex fs-5 column-gap-2 column-gap-xl-3 row-gap-2 my-3 flex-wrap">
           {!maxMonthlyContestsReached && !isEventsListEmpty && (
-            <Link
-              href={slugPath(slug, "/mod/competition")}
-              prefetch={false}
-              className="btn btn-success btn-sm btn-lg-md"
-            >
+            <Link href={slugPath(slug, "/mod/competition")} prefetch={false} className="btn btn-success btn-sm">
               Create New Competition
             </Link>
           )}
-          <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
+          <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm">
             Manage Persons
           </Link>
           {isAdminView && (
-            <Link href={slugPath(slug, "/mod/api-keys")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
+            <Link href={slugPath(slug, "/mod/api-keys")} prefetch={false} className="btn btn-warning btn-sm">
               API Keys
             </Link>
           )}
-          {isAdminView ? (
+          {isAdminView && (
             <>
-              <Link href={slugPath(slug, "/mod/members")} prefetch={false} className="btn btn-warning btn-sm btn-lg-md">
+              <Link href={slugPath(slug, "/mod/members")} prefetch={false} className="btn btn-warning btn-sm">
                 Manage Members
               </Link>
-              <Link
-                href={slugPath(slug, "/mod/events")}
-                prefetch={false}
-                className="btn btn-secondary btn-sm btn-lg-md"
-              >
+              <Link href={slugPath(slug, "/mod/events")} prefetch={false} className="btn btn-secondary btn-sm">
                 Configure Events
               </Link>
               <Link
                 href={slugPath(slug, "/mod/records-configuration")}
                 prefetch={false}
-                className="btn btn-secondary btn-sm btn-lg-md"
+                className="btn btn-secondary btn-sm"
               >
                 Configure Records
               </Link>
               {IS_RR_INSTANCE && isOwner && (
-                <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm btn-lg-md">
+                <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm">
                   Billing
                 </Link>
               )}
             </>
-          ) : (
-            IS_CUBING_CONTESTS_INSTANCE && (
-              <a
-                href="https://docs.google.com/forms/d/12AuZdtH4qHwTxd4Kxd2Y_TwZHlBuBu8XuKX3VdKrE60"
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-light btn-sm btn-lg-md"
-              >
-                Request new event
-              </a>
-            )
+          )}
+          {scorecardsServiceLink && scorecardsLinkEnabled === "true" && (
+            <a href={scorecardsServiceLink} target="_blank" rel="noopener" className="btn btn-secondary btn-sm">
+              Scorecards
+            </a>
           )}
           <DocsButton />
           <SocialLinkButton link={discordServerLink} logo="discord" className="btn-sm">

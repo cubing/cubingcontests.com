@@ -16,7 +16,10 @@ function ErrorPage({ error }: Props) {
     <section>
       <h4 className="my-4 text-center">Error</h4>
 
-      <p className="text-center">Error: {error.message}</p>
+      <p className="text-center">
+        Error:{" "}
+        {error.message.includes("An error occurred in the Server Components render") ? "Unknown error" : error.message}
+      </p>
     </section>
   );
 }
