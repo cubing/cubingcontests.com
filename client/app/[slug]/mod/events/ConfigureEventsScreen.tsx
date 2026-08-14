@@ -1,6 +1,6 @@
 "use client";
 
-import { faBrain, faCopy, faEyeSlash, faPencil, faUsers, faVideo } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faPencil, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
@@ -49,6 +49,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
   const [format, setFormat] = useState<EventFormat>("time");
   const [defaultRoundFormat, setDefaultRoundFormat] = useState<RoundFormat>("a");
   const [participants, setParticipants] = useState<number | undefined>(1);
+  const [higherIsBetter, setHigherIsBetter] = useState(false);
   const [submissionsAllowed, setSubmissionsAllowed] = useState(false);
   const [hasMemo, setHasMemo] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -75,6 +76,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
         format,
         defaultRoundFormat,
         participants: participants as number,
+        higherIsBetter: format === "multi" ? false : higherIsBetter,
         submissionsAllowed,
         hasMemo: format === "number" ? false : hasMemo,
         hidden,
@@ -115,6 +117,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
     setFormat("time");
     setDefaultRoundFormat("a");
     setParticipants(1);
+    setHigherIsBetter(false);
     setSubmissionsAllowed(false);
     setHasMemo(false);
     setHidden(false);
@@ -137,6 +140,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
     setFormat(event.format);
     setDefaultRoundFormat(event.defaultRoundFormat);
     setParticipants(event.participants);
+    setHigherIsBetter(event.higherIsBetter);
     setSubmissionsAllowed(event.submissionsAllowed);
     setHasMemo(event.hasMemo);
     setHidden(event.hidden);
@@ -243,6 +247,13 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
             className="mb-3"
           />
           <h5 className="mb-3">Options</h5>
+          <FormCheckbox
+            title="Higher is better"
+            selected={higherIsBetter}
+            setSelected={setHigherIsBetter}
+            disabled={mode === "edit" || isPending}
+            className="mb-3"
+          />
           {videoBasedResultsEnabled && (
             <FormCheckbox
               title="Allow video-based results"
@@ -347,23 +358,19 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
                   </td>
                   <td>{event.category.name}</td>
                   <td>
-                    <div className="d-flex gap-2">
-                      {/* For some reason FontAwesomeIcon doesn't like having title attributes (causes hydration errors) */}
+                    <div className="tw:flex tw:items-center tw:gap-2">
+                      {event.higherIsBetter ? (
+                        <span className="tw:icon-[tabler--arrow-big-up-filled] tw:text-lg" title="Higher is better" />
+                      ) : (
+                        <span className="tw:icon-[tabler--arrow-big-down-filled] tw:text-lg" title="Lower is better" />
+                      )}
                       {event.submissionsAllowed && (
-                        <span title="Allow video-based results">
-                          <FontAwesomeIcon icon={faVideo} />
-                        </span>
+                        <span className="tw:icon-[tabler--video-filled] tw:text-lg" title="Allow video-based results" />
                       )}
                       {event.hasMemo && (
-                        <span title="Has memorization time input">
-                          <FontAwesomeIcon icon={faBrain} />
-                        </span>
+                        <span className="tw:icon-[tabler--brain] tw:text-lg" title="Has memorization time input" />
                       )}
-                      {event.hidden && (
-                        <span title="Hidden">
-                          <FontAwesomeIcon icon={faEyeSlash} />
-                        </span>
-                      )}
+                      {event.hidden && <span className="tw:icon-[tabler--eye-off] tw:text-lg" title="Hidden" />}
                     </div>
                   </td>
                   <td>

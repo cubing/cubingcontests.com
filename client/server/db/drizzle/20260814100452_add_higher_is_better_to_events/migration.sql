@@ -1,0 +1,1 @@
+ALTER TABLE "record_ranks"."events" ADD COLUMN "higher_is_better" boolean DEFAULT false NOT NULL;

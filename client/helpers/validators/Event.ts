@@ -16,6 +16,7 @@ export const EventValidator = z
     format: z.enum(EventFormatValues),
     defaultRoundFormat: z.enum(RoundFormatValues),
     participants: z.int().min(1).max(20),
+    higherIsBetter: z.boolean(),
     submissionsAllowed: z.boolean(),
     hasMemo: z.boolean(),
     hidden: z.boolean(),
@@ -29,6 +30,14 @@ export const EventValidator = z
         code: "custom",
         message: 'An event with the format "number" can\'t have memorization time enabled',
         input: val.hasMemo,
+      });
+    }
+
+    if (val.higherIsBetter && val.format === "multi") {
+      ctx.addIssue({
+        code: "custom",
+        message: "An event with the Multi format can't use higher-is-better",
+        input: val.higherIsBetter,
       });
     }
   });

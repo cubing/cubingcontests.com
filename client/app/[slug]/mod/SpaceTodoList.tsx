@@ -67,9 +67,9 @@ function SpaceTodoItem({ checked, children }: SpaceTodoItemProps) {
     <li className="tw:mb-2">
       <div className="tw:flex tw:items-center tw:gap-2">
         {checked ? (
-          <span className="tw:icon-[tabler--checkbox] tw:text-amber-500 tw:text-xl" />
+          <span className="tw:icon-[tabler--checkbox] tw:text-amber-500 tw:text-xl" title="Checkbox checked" />
         ) : (
-          <span className="tw:icon-[tabler--square] tw:ms-px tw:text-lg" />
+          <span className="tw:icon-[tabler--square] tw:ms-px tw:text-lg" title="Checkbox unchecked" />
         )}
         <span className={checked ? "text-muted tw:line-through" : ""}>{children}</span>
       </div>

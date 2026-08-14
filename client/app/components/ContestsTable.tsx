@@ -47,6 +47,7 @@ function ContestsTable({ contestsPromise, regions }: Props) {
                     <span
                       className={`d-shrink-0 tw:text-xs ${contest.type === "comp" ? "tw:icon-[tabler--square-filled]" : contest.type === "meetup" ? "tw:icon-[tabler--flare-filled] tw:text-sm!" : contest.type === "online" ? "tw:icon-[tabler--triangle-filled]" : "tw:icon-[tabler--circle-filled]"}`}
                       style={{ color: contestType?.color }}
+                      title={contestType?.label}
                     />
 
                     <Link

@@ -170,19 +170,19 @@ function BillingScreen({ activeSubscription }: Props) {
                 <p className="fw-semibold mb-3">30 day free trial</p>
                 <ul className="d-flex mb-0 flex-column list-unstyled gap-2">
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Up to {rrBasicLimits.monthlyContests} competitions per month
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Up to {rrBasicLimits.competitors} total competitors
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Basic support
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Data backups available on request
                   </li>
                 </ul>
@@ -219,31 +219,31 @@ function BillingScreen({ activeSubscription }: Props) {
                 <p className="fw-semibold mb-3">30 day free trial</p>
                 <ul className="d-flex mb-0 flex-column list-unstyled gap-2">
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Up to {rrPremiumLimits.monthlyContests} competitions per month
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Up to {rrPremiumLimits.competitors} total competitors
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Priority support
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Automated weekly backups
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     No "Support RecordRanks" links
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Public data exports
                   </li>
                   <li className="tw:flex tw:items-center tw:gap-2">
-                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" />
+                    <span className="tw:icon-[tabler--check] text-success tw:text-lg" title="Check" />
                     Custom banner
                   </li>
                 </ul>
