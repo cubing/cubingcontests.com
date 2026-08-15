@@ -173,7 +173,7 @@ function ContestForm({
   );
 
   const isAdmin = getHasRole("admin", member?.role) || getHasRole("owner", member?.role);
-  const modDashboardUrl = slugPath(slug, isAdmin ? "/mod?state=pending" : "/mod");
+  const modDashboardUrl = slugPath(slug, `/mod${isAdmin && IS_CUBING_CONTESTS_INSTANCE ? "?state=pending" : ""}`);
   const isPending =
     isCreating ||
     isUpdating ||

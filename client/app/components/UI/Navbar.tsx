@@ -16,7 +16,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { authClient } from "~/helpers/auth-client.ts";
-import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import { C, IS_CUBING_CONTESTS_INSTANCE, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useFeaturesInfo, useSession } from "~/helpers/hooks.ts";
 import { SwrKey } from "~/helpers/swr-keys.ts";
@@ -275,7 +275,10 @@ function Navbar() {
                 {user && organization && canAccessModDashboard && (
                   <li className="nav-item">
                     <Link
-                      href={slugPath(organization.slug, `/mod${isAdmin ? "?state=pending" : ""}`)}
+                      href={slugPath(
+                        organization.slug,
+                        `/mod${isAdmin && IS_CUBING_CONTESTS_INSTANCE ? "?state=pending" : ""}`,
+                      )}
                       onClick={collapseAll}
                       prefetch={false}
                       className={`nav-link ${pathname === slugPath(organization.slug, "/mod") ? "active" : ""}`}
