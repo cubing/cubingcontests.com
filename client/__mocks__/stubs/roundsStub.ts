@@ -126,6 +126,13 @@ export const roundsStub: (InsertRound & { id: number })[] = [
     cutoffNumberOfAttempts: 1,
   },
   {
+    competitionId: "TestComp2026",
+    eventId: "ntsc_19_start",
+    roundNumber: 1,
+    roundTypeId: "f" as RoundType,
+    format: "1" as RoundFormat,
+  },
+  {
     competitionId: "TestMeetupJan2026",
     eventId: "333bf_2_person_relay",
     roundNumber: 1,
@@ -179,6 +186,13 @@ export const roundsStub: (InsertRound & { id: number })[] = [
     timeLimitCumulativeRoundIds: [],
   },
   {
+    competitionId: "TestCompJan2028",
+    eventId: "ntsc_19_start",
+    roundNumber: 1,
+    roundTypeId: "f" as RoundType,
+    format: "1" as RoundFormat,
+  },
+  {
     competitionId: "TestMeetupFeb2028",
     eventId: "333bf_2_person_relay",
     roundNumber: 1,
@@ -196,6 +210,13 @@ export const roundsStub: (InsertRound & { id: number })[] = [
     timeLimitCumulativeRoundIds: [],
   },
   {
+    competitionId: "TestCompFeb2028",
+    eventId: "ntsc_19_start",
+    roundNumber: 1,
+    roundTypeId: "f" as RoundType,
+    format: "1" as RoundFormat,
+  },
+  {
     competitionId: "TestMeetupMar2028",
     eventId: "333bf_2_person_relay",
     roundNumber: 1,
@@ -211,6 +232,13 @@ export const roundsStub: (InsertRound & { id: number })[] = [
     format: "m" as RoundFormat,
     timeLimitCentiseconds: 10 * 60_00,
     timeLimitCumulativeRoundIds: [],
+  },
+  {
+    competitionId: "TestCompMar2028",
+    eventId: "ntsc_19_start",
+    roundNumber: 1,
+    roundTypeId: "f" as RoundType,
+    format: "1" as RoundFormat,
   },
   {
     competitionId: "TestMeetupApr2028",
@@ -270,6 +298,9 @@ export const testComp2026_444bf_r1 = roundsStub.find(
 export const testComp2026_333_oh_bld_team_relay_r1 = roundsStub.find(
   (r) => r.competitionId === "TestComp2026" && r.eventId === "333_oh_bld_team_relay",
 )!;
+export const testComp2026_ntsc_19_start_r1 = roundsStub.find(
+  (r) => r.competitionId === "TestComp2026" && r.eventId === "ntsc_19_start",
+)!;
 export const testMeetupJan2026_333bf_2_person_relay_r1 = roundsStub.find(
   (r) => r.competitionId === "TestMeetupJan2026" && r.eventId === "333bf_2_person_relay",
 )!;
@@ -290,17 +321,26 @@ export const testCompJan2028_333_oh_bld_team_relay_r1 = roundsStub.find(
 export const testCompJan2028_333_oh_bld_team_relay_r2 = roundsStub.find(
   (r) => r.competitionId === "TestCompJan2028" && r.eventId === "333_oh_bld_team_relay" && r.roundNumber === 2,
 )!;
+export const testCompJan2028_ntsc_19_start_r1 = roundsStub.find(
+  (r) => r.competitionId === "TestCompJan2028" && r.eventId === "ntsc_19_start",
+)!;
 export const testMeetupFeb2028_333bf_2_person_relay_r1 = roundsStub.find(
   (r) => r.competitionId === "TestMeetupFeb2028" && r.eventId === "333bf_2_person_relay",
 )!;
 export const testCompFeb2028_333_oh_bld_team_relay_r1 = roundsStub.find(
   (r) => r.competitionId === "TestCompFeb2028" && r.eventId === "333_oh_bld_team_relay",
 )!;
+export const testCompFeb2028_ntsc_19_start_r1 = roundsStub.find(
+  (r) => r.competitionId === "TestCompFeb2028" && r.eventId === "ntsc_19_start",
+)!;
 export const testMeetupMar2028_333bf_2_person_relay_r1 = roundsStub.find(
   (r) => r.competitionId === "TestMeetupMar2028" && r.eventId === "333bf_2_person_relay",
 )!;
 export const testCompMar2028_333_oh_bld_team_relay_r1 = roundsStub.find(
   (r) => r.competitionId === "TestCompMar2028" && r.eventId === "333_oh_bld_team_relay",
+)!;
+export const testCompMar2028_ntsc_19_start_r1 = roundsStub.find(
+  (r) => r.competitionId === "TestCompMar2028" && r.eventId === "ntsc_19_start",
 )!;
 export const testMeetupApr2028_333bf_2_person_relay_r1 = roundsStub.find(
   (r) => r.competitionId === "TestMeetupApr2028" && r.eventId === "333bf_2_person_relay",

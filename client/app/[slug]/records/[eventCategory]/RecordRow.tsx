@@ -7,7 +7,7 @@ import Competitors from "~/app/components/Competitors.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Region from "~/app/components/Region.tsx";
 import type { RecordRanking } from "~/helpers/types/Rankings.ts";
-import { getAlwaysShowDecimals, getFormattedDate, getFormattedTime, slugPath } from "~/helpers/utility-functions.ts";
+import { getAlwaysShowDecimals, getFormattedDate, getFormattedResult, slugPath } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
@@ -42,7 +42,7 @@ function RecordRow({ type, record, event, regions, mixedRecords, showOnlyPersonW
       <td>
         {!showOnlyPersonWithId &&
           (["single", "single-and-avg"].includes(type) || !mixedRecords) &&
-          getFormattedTime(type === "average" ? record.average : record.best, {
+          getFormattedResult(type === "average" ? record.average : record.best, {
             eventFormat: event.format,
             showDecimals: getAlwaysShowDecimals(event) ? "up-to-1h" : "default",
             isAverage: type === "average",
@@ -51,7 +51,7 @@ function RecordRow({ type, record, event, regions, mixedRecords, showOnlyPersonW
       {mixedRecords && (
         <td>
           {["average", "single-and-avg"].includes(type) &&
-            getFormattedTime(record.average, { eventFormat: event.format, isAverage: true })}
+            getFormattedResult(record.average, { eventFormat: event.format, isAverage: true })}
         </td>
       )}
       {!mixedRecords && (

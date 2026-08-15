@@ -8,7 +8,7 @@ import type Mail from "nodemailer/lib/mailer/index";
 import { baseUrl, C } from "~/helpers/constants.ts";
 import { videoBasedFormats } from "~/helpers/roundFormats.ts";
 import type { OrganizationDetails } from "~/helpers/types.ts";
-import { getAlwaysShowDecimals, getFormattedTime, getIsUrgent } from "~/helpers/utility-functions.ts";
+import { getAlwaysShowDecimals, getFormattedResult, getIsUrgent } from "~/helpers/utility-functions.ts";
 import type { SelectContest } from "~/server/db/schema/contests.ts";
 import type { SelectPerson } from "~/server/db/schema/persons.ts";
 import { nodemailerConnectionOptions } from "~/server/email/connection-options.ts";
@@ -407,14 +407,14 @@ export function sendVideoBasedResultSubmittedEmail(
       eventName: event.name,
       roundFormat: videoBasedFormats.find((rf) => rf.attempts === result.attempts.length)!.label,
       best:
-        getFormattedTime(result.best, {
+        getFormattedResult(result.best, {
           eventFormat: event.format,
           showDecimals: getAlwaysShowDecimals(event) ? "up-to-1h" : "default",
           showMultiPoints: true,
         }) + (result.regionalSingleRecord ? ` (${result.regionalSingleRecord})` : ""),
       average:
         result.average !== 0
-          ? getFormattedTime(result.average, { eventFormat: event.format, isAverage: true }) +
+          ? getFormattedResult(result.average, { eventFormat: event.format, isAverage: true }) +
             (result.regionalAverageRecord ? ` (${result.regionalAverageRecord})` : "")
           : "",
       videoLink: result.videoLink!,

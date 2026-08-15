@@ -4,6 +4,7 @@ import { getDefaultRegions } from "~/helpers/default-regions.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { RecordCategoryValues } from "~/helpers/types.ts";
 import { getBestAndAverage } from "~/helpers/utility-functions.ts";
+import type { EventResponse } from "~/server/db/schema/events.ts";
 import type { Attempt, InsertResult } from "~/server/db/schema/results.ts";
 import type { InsertRound } from "~/server/db/schema/rounds.ts";
 import {
@@ -31,13 +32,17 @@ import {
   testComp2026_222_r1,
   testComp2026_333bf_r1,
   testComp2026_444bf_r1,
+  testComp2026_ntsc_19_start_r1,
   testCompApr2028_333_oh_bld_team_relay_r1,
   testCompFeb2023_333_oh_bld_team_relay_r1,
   testCompFeb2028_333_oh_bld_team_relay_r1,
+  testCompFeb2028_ntsc_19_start_r1,
   testCompJan2023_333_oh_bld_team_relay_r1,
   testCompJan2028_333_oh_bld_team_relay_r1,
+  testCompJan2028_ntsc_19_start_r1,
   testCompMar2023_333_oh_bld_team_relay_r1,
   testCompMar2028_333_oh_bld_team_relay_r1,
+  testCompMar2028_ntsc_19_start_r1,
   testMeetupApr2028_333bf_2_person_relay_r1,
   testMeetupFeb2023_333bf_2_person_relay_r1,
   testMeetupFeb2026_333bf_2_person_relay_r1,
@@ -110,7 +115,11 @@ type MockInsertResult = Omit<
 function getVideoBasedResult(result: MockInsertResult): InsertResult {
   const event = eventsStub.find((e) => e.eventId === result.eventId)!;
   const roundFormat = roundFormats.find((rf) => rf.value !== "3" && rf.attempts === result.attempts.length)!;
-  const { best, average } = getBestAndAverage(result.attempts, event.format, roundFormat.value);
+  const { best, average } = getBestAndAverage(
+    result.attempts,
+    event as Pick<EventResponse, "format" | "higherIsBetter">,
+    roundFormat.value,
+  );
 
   return {
     ...result,
@@ -128,7 +137,11 @@ function getContestResult(
 ): InsertResult {
   const contest = contestsStub.find((c) => c.competitionId === round.competitionId)!;
   const event = eventsStub.find((e) => e.eventId === round.eventId)!;
-  const { best, average } = getBestAndAverage(result.attempts, event.format, round.format);
+  const { best, average } = getBestAndAverage(
+    result.attempts,
+    event as Pick<EventResponse, "format" | "higherIsBetter">,
+    round.format,
+  );
 
   return {
     ...result,
@@ -625,6 +638,44 @@ export const resultsStub: InsertResult[] = [
     attempts: [{ result: 7500 }, { result: 7600 }, { result: 7700 }],
     regionalSingleRecord: "WR",
     regionalAverageRecord: "WR",
+    ranking: 1,
+  }),
+
+  // NTSC 19 Start (higher-is-better number event)
+  getContestResult(testComp2026_ntsc_19_start_r1, {
+    personIds: [usPersonJohnDoe.id],
+    regionCode: "US",
+    superRegionCode: "XN",
+    attempts: [{ result: 500 }],
+    regionalSingleRecord: "WR",
+    ranking: 1,
+  }),
+  getContestResult(testComp2026_ntsc_19_start_r1, {
+    personIds: [usPersonJayScott.id],
+    regionCode: "US",
+    superRegionCode: "XN",
+    attempts: [{ result: 450 }],
+    ranking: 2,
+  }),
+  getContestResult(testCompJan2028_ntsc_19_start_r1, {
+    personIds: [usPersonJohnDoe.id],
+    regionCode: "US",
+    superRegionCode: "XN",
+    attempts: [{ result: 450 }],
+    ranking: 1,
+  }),
+  getContestResult(testCompFeb2028_ntsc_19_start_r1, {
+    personIds: [usPersonJohnDoe.id],
+    regionCode: "US",
+    superRegionCode: "XN",
+    attempts: [{ result: 400 }],
+    ranking: 1,
+  }),
+  getContestResult(testCompMar2028_ntsc_19_start_r1, {
+    personIds: [usPersonJohnDoe.id],
+    regionCode: "US",
+    superRegionCode: "XN",
+    attempts: [{ result: 350 }],
     ranking: 1,
   }),
 ];

@@ -15,7 +15,6 @@ export const C = {
   maxTime3d: 10 * 60 * 1000, // max time for Time (3 decimals) format; 10 minutes
   maxTimeHumanReadable: "24000000", // MUST MATCH maxTime!
   maxResult: 999_999_999_999_999, // accounts for max possible Multi-Blind result
-  maxNumberFormatValue: 999,
   maxTimeLimit: 60 * 60 * 100, // 1 hour
   maxContestShortName: 32,
   defaultTimeLimit: 10 * 60 * 100, // 10 minutes (1 minute for Time (3 decimals) format)

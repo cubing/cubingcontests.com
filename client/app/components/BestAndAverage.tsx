@@ -18,7 +18,7 @@ type Props = {
 
 function BestAndAverage({ event, roundFormat, attempts, eventWrPair, recordConfigs }: Props) {
   const pseudoResult = useMemo<ResultResponse>(() => {
-    const { best, average } = getBestAndAverage(attempts, event.format, roundFormat);
+    const { best, average } = getBestAndAverage(attempts, event, roundFormat);
     let tempResult = { best, average, attempts, eventId: event.eventId } as ResultResponse;
     if (eventWrPair) tempResult = setResultWorldRecords(tempResult, event, eventWrPair);
     return tempResult;

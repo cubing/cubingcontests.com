@@ -207,15 +207,17 @@ export async function register() {
             resultNumber++;
             // If the result is worse than the previous one, update the ranking
             if (
-              (roundFormat.isAverage && compareAvgs(prevResult, results[i], true) < 0) ||
-              (!roundFormat.isAverage && compareSingles(prevResult, results[i]) < 0)
+              (roundFormat.isAverage &&
+                compareAvgs(prevResult, results[i], { higherIsBetter: false, useTieBreaker: true }) < 0) ||
+              (!roundFormat.isAverage && compareSingles(prevResult, results[i], { higherIsBetter: false }) < 0)
             ) {
               expectedRanking = resultNumber;
             }
             // If the result is better than the previous one, that means there is an inconsistency
             else if (
-              (roundFormat.isAverage && compareAvgs(prevResult, results[i], true) > 0) ||
-              (!roundFormat.isAverage && compareSingles(prevResult, results[i]) > 0)
+              (roundFormat.isAverage &&
+                compareAvgs(prevResult, results[i], { higherIsBetter: false, useTieBreaker: true }) > 0) ||
+              (!roundFormat.isAverage && compareSingles(prevResult, results[i], { higherIsBetter: false }) > 0)
             ) {
               incorrectlyRankedResults.push(results[i]);
             }
@@ -471,10 +473,10 @@ export async function register() {
 
     //     if (result.regionalSingleRecord) {
     //       (temp as any).regionalSingleRecord = getRecordLabel("regionalSingleRecord");
-    //       (temp as any).best = getFormattedTime(result.best, { event: event as any });
+    //       (temp as any).best = getFormattedResult(result.best, { event: event as any });
     //     } else {
     //       (temp as any).regionalAverageRecord = getRecordLabel("regionalAverageRecord");
-    //       (temp as any).average = getFormattedTime(result.average, { event: event as any, isAverage: true });
+    //       (temp as any).average = getFormattedResult(result.average, { event: event as any, isAverage: true });
     //     }
 
     //     return temp;

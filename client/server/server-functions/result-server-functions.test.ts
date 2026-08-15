@@ -11,6 +11,7 @@ import {
   gbPersonTomDillon,
   krPersonDongJunHyon,
   krPersonSooMinNam,
+  usPersonJayScott,
   usPersonJohnDoe,
   zaPersonKayaKhumalo,
 } from "~/__mocks__/stubs/personsStub.ts";
@@ -18,13 +19,14 @@ import { resultsStub } from "~/__mocks__/stubs/resultsStub.ts";
 import {
   testComp2026_333_oh_bld_team_relay_r1,
   testComp2026_333_r1,
+  testComp2026_ntsc_19_start_r1,
   testCompJan2023_333_oh_bld_team_relay_r1,
   testCompJan2028_333_oh_bld_team_relay_r1,
   testCompJan2028_333_oh_bld_team_relay_r2,
   testMeetupFeb2023_333bf_2_person_relay_r1,
   testMeetupMar2023_333bf_2_person_relay_r1,
 } from "~/__mocks__/stubs/roundsStub.ts";
-import { getFormattedTime } from "~/helpers/utility-functions.ts";
+import { getFormattedResult } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   createContestResultSF,
@@ -379,7 +381,7 @@ describe("createContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
+        `This round has a time limit of ${getFormattedResult(timeLimit!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -398,7 +400,7 @@ describe("createContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a cumulative time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
+        `This round has a cumulative time limit of ${getFormattedResult(timeLimit!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -416,7 +418,7 @@ describe("createContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a cutoff of ${getFormattedTime(cutoffAttemptResult!, { showDecimals: "never" })}`,
+        `This round has a cutoff of ${getFormattedResult(cutoffAttemptResult!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -698,7 +700,7 @@ describe("updateContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
+        `This round has a time limit of ${getFormattedResult(timeLimit!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -712,7 +714,7 @@ describe("updateContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a cumulative time limit of ${getFormattedTime(timeLimit!, { showDecimals: "never" })}`,
+        `This round has a cumulative time limit of ${getFormattedResult(timeLimit!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -725,7 +727,7 @@ describe("updateContestResultSF", () => {
       });
 
       expect(res.serverError?.message).toBe(
-        `This round has a cutoff of ${getFormattedTime(cutoffAttemptResult!, { showDecimals: "never" })}`,
+        `This round has a cutoff of ${getFormattedResult(cutoffAttemptResult!, { showDecimals: "never" })}`,
       );
       expect(res.data).toBeUndefined();
     });
@@ -1539,5 +1541,82 @@ describe("createVideoBasedResultSF", () => {
         });
       });
     });
+  });
+});
+
+describe("higher-is-better (NTSC 19 Start)", () => {
+  beforeEach(reseedTestData);
+
+  const eventId = "ntsc_19_start";
+  const partialResult = {
+    eventId,
+    competitionId: testComp2026_ntsc_19_start_r1.competitionId,
+    roundId: testComp2026_ntsc_19_start_r1.id,
+  };
+
+  // Seeded state: a 2026 WR of 500, plus future (2028) results of 450/400/350 with no record
+  const findNtscResultByBest = (best: number) => db.query.results.findFirst({ where: { eventId, best } });
+  const findNtscResultForPerson = (personId: number) =>
+    db.query.results.findFirst({ where: { eventId, personIds: { arrayContains: [personId] } } });
+
+  it("creates a WR with a higher result and changes WR to NR", async () => {
+    const res = await createContestResultSF({
+      newResultDto: {
+        ...partialResult,
+        personIds: [caPersonJoshCalhoun.id],
+        attempts: [{ result: 550 }],
+      },
+    });
+
+    expect(res.serverError).toBeUndefined();
+    expect(res.validationErrors).toBeUndefined();
+
+    const createdResult = await findNtscResultForPerson(caPersonJoshCalhoun.id);
+    expect(createdResult).toBeDefined();
+    expect(createdResult!.best).toBe(550);
+    expect(createdResult!.regionalSingleRecord).toBe("WR");
+
+    const previousWr = await findNtscResultByBest(500);
+    expect(previousWr).toBeDefined();
+    expect(previousWr!.regionalSingleRecord).toBe("NR");
+  });
+
+  it("updates a result to a higher value, setting a record and cancelling a future record", async () => {
+    const nonRecordResult = await findNtscResultForPerson(usPersonJayScott.id);
+    expect(nonRecordResult).toBeDefined();
+    expect(nonRecordResult!.regionalSingleRecord).toBeNull();
+
+    const res = await updateContestResultSF({
+      id: nonRecordResult!.id,
+      newAttempts: [{ result: 550 }],
+    });
+
+    expect(res.serverError).toBeUndefined();
+    expect(res.validationErrors).toBeUndefined();
+
+    const updatedResult = await findNtscResultForPerson(usPersonJayScott.id);
+    expect(updatedResult!.best).toBe(550);
+    expect(updatedResult!.regionalSingleRecord).toBe("WR");
+
+    const cancelledWr = await findNtscResultByBest(500);
+    expect(cancelledWr!.regionalSingleRecord).toBeNull();
+  });
+
+  it("updates a result to a lower value and retroactively sets a future record", async () => {
+    const wrResult = await findNtscResultByBest(500);
+    expect(wrResult).toBeDefined();
+    expect(wrResult!.regionalSingleRecord).toBe("WR");
+
+    const res = await updateContestResultSF({
+      id: wrResult!.id,
+      newAttempts: [{ result: 400 }],
+    });
+
+    expect(res.serverError).toBeUndefined();
+    expect(res.validationErrors).toBeUndefined();
+
+    const newWr = await findNtscResultByBest(450);
+    expect(newWr).toBeDefined();
+    expect(newWr!.regionalSingleRecord).toBe("WR");
   });
 });

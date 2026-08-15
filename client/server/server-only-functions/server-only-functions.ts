@@ -377,6 +377,7 @@ export async function getRankings(
 
   const bestOrAverage = type === "single" ? "best" : "average";
   const rankedAverageFormat = getRankedAverageFormat(event.defaultRoundFormat);
+  const sortDirection = event.higherIsBetter ? sql`DESC` : sql`ASC`;
   const recordCategoryCondition =
     recordCategory === "all" ? sql`` : sql`AND ${resultsTable.recordCategory} = ${recordCategory}`;
   const numberOfAttemptsCondition =
@@ -439,11 +440,11 @@ export async function getRankings(
             AND ${resultsTable[bestOrAverage]} > 0
             ${numberOfAttemptsCondition}
             ${regionCondition}
-          ORDER BY person_id, ${resultsTable[bestOrAverage]}, ${resultsTable.date}
+          ORDER BY person_id, ${resultsTable[bestOrAverage]} ${sortDirection}, ${resultsTable.date}
         ), rankings AS (
           SELECT
             personal_records.*,
-            RANK() OVER (ORDER BY personal_records.result ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ranking,
+            RANK() OVER (ORDER BY personal_records.result ${sortDirection} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ranking,
             (SELECT ${personsArrayJsonSql} FROM ${personsTable} WHERE ${personsTable.id} = ANY(personal_records.persons)) AS persons
           FROM personal_records
           ORDER BY ranking, personal_records.date
@@ -471,7 +472,7 @@ export async function getRankings(
         WITH rankings AS (
           SELECT
             CONCAT(${resultsTable.id}, '_', attempts_data.attempt_number) AS ranking_id,
-            RANK() OVER (ORDER BY CAST(attempts_data.attempt->>'result' AS BIGINT) ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ranking,
+            RANK() OVER (ORDER BY CAST(attempts_data.attempt->>'result' AS BIGINT) ${sortDirection} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ranking,
             ${resultsTable.date},
             (SELECT ${personsArrayJsonSql} FROM ${personsTable} WHERE ${personsTable.id} = ANY(${resultsTable.personIds})) AS persons,
             attempts_data.attempt->>'result' AS result,
@@ -512,7 +513,7 @@ export async function getRankings(
         WITH rankings AS (
           SELECT
             CAST(${resultsTable.id} AS TEXT) AS ranking_id,
-            RANK() OVER (ORDER BY ${resultsTable.average} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ranking,
+            RANK() OVER (ORDER BY ${resultsTable.average} ${sortDirection} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ranking,
             ${resultsTable.date},
             (SELECT ${personsArrayJsonSql} FROM ${personsTable} WHERE ${personsTable.id} = ANY(${resultsTable.personIds})) AS persons,
             ${resultsTable.average} AS result,
@@ -538,7 +539,7 @@ export async function getRankings(
             AND ${resultsTable.average} > 0
             ${numberOfAttemptsCondition}
             ${regionCondition}
-          ORDER BY ${resultsTable.average}, ${resultsTable.date}
+          ORDER BY ${resultsTable.average} ${sortDirection}, ${resultsTable.date}
         )
         SELECT * FROM rankings
         WHERE rankings.ranking <= ${topN}

@@ -1,4 +1,4 @@
-import { getAlwaysShowDecimals, getFormattedTime } from "~/helpers/utility-functions.ts";
+import { getAlwaysShowDecimals, getFormattedResult } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 
@@ -18,7 +18,7 @@ function Attempts({ event, attempts, showMultiPoints = false }: Props) {
   return (
     <div className="d-flex gap-2">
       {attempts.map((attempt, index) => {
-        const formattedTime = getFormattedTime(attempt.result, {
+        const formattedTime = getFormattedResult(attempt.result, {
           eventFormat: event.format,
           showDecimals: getAlwaysShowDecimals(event) ? "up-to-1h" : "default",
           showMultiPoints,

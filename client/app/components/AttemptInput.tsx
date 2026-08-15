@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import type { EventFormat } from "~/helpers/types.ts";
-import { getAlwaysShowDecimals, getAttempt, getFormattedTime } from "~/helpers/utility-functions.ts";
+import { getAlwaysShowDecimals, getAttempt, getFormattedResult } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { Attempt } from "~/server/db/schema/results.ts";
 import FormNumberInput from "./form/FormNumberInput.tsx";
@@ -97,7 +97,10 @@ function AttemptInput({
         if (attempt.result === 0) {
           setAttemptText("");
         } else {
-          const formattedTime = getFormattedTime(attempt.result, { eventFormat: event.format, noDelimiterChars: true });
+          const formattedTime = getFormattedResult(attempt.result, {
+            eventFormat: event.format,
+            noDelimiterChars: true,
+          });
           const [newAttText, newSolved, newAttempted] = formattedTime.split(";");
 
           setAttemptText(newAttText === C.maxTimeHumanReadable ? "Unknown" : newAttText);
@@ -109,7 +112,7 @@ function AttemptInput({
 
         // Memo time
         if (attempt.memo && attempt.memo > 0) {
-          setMemoText(getFormattedTime(attempt.memo, { noDelimiterChars: true }));
+          setMemoText(getFormattedResult(attempt.memo, { noDelimiterChars: true }));
         } else if (attempt.memo === undefined) {
           setMemoText("");
         }
@@ -212,10 +215,7 @@ function AttemptInput({
 
         const newText = !forMemo ? text + newCharacter : `${text.slice(0, -2)}${newCharacter}00`;
 
-        if (
-          newText.length <= C.maxNumberFormatValue.toString().length ||
-          (newText.length <= (event.format === "time-3d" ? 9 : 8) && event.format !== "number")
-        ) {
+        if (event.format === "number" || newText.length <= (event.format === "time-3d" ? 9 : 8)) {
           const newAttempt = getAttempt(attempt, event, forMemo ? attemptText : newText, {
             solved,
             attempted,
@@ -357,6 +357,7 @@ function AttemptInput({
       </div>
 
       {attNumber !== 0 &&
+        event.format !== "number" &&
         !getAlwaysShowDecimals(event) &&
         attemptText.length >= (event.format === "time-3d" ? 7 : 6) && (
           <p className="mb-0 text-center text-danger tw:text-sm">Decimals will be truncated (&gt;10m)</p>

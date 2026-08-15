@@ -8,7 +8,7 @@ import {
   compareSingles,
   getAttempt,
   getBestAndAverage,
-  getFormattedTime,
+  getFormattedResult,
   setResultWorldRecords,
 } from "~/helpers/utility-functions.ts";
 import type { EventResponse } from "~/server/db/schema/events.ts";
@@ -326,84 +326,84 @@ describe(getAttempt.name, () => {
   });
 });
 
-describe(getFormattedTime.name, () => {
+describe(getFormattedResult.name, () => {
   describe("format time singles", () => {
     it("formats 0.07 correctly", () => {
-      expect(getFormattedTime(7)).toBe("0.07");
+      expect(getFormattedResult(7)).toBe("0.07");
     });
 
     it("formats 0.35 correctly", () => {
-      expect(getFormattedTime(35)).toBe("0.35");
+      expect(getFormattedResult(35)).toBe("0.35");
     });
 
     it("formats 8.80 correctly", () => {
-      expect(getFormattedTime(880)).toBe("8.80");
+      expect(getFormattedResult(880)).toBe("8.80");
     });
 
     it("formats 10.00 correctly", () => {
-      expect(getFormattedTime(1000)).toBe("10.00");
+      expect(getFormattedResult(1000)).toBe("10.00");
     });
 
     it("formats 30.05 correctly", () => {
-      expect(getFormattedTime(3005)).toBe("30.05");
+      expect(getFormattedResult(3005)).toBe("30.05");
     });
 
     it("formats 2:45.07 correctly", () => {
-      expect(getFormattedTime(16507)).toBe("2:45.07");
+      expect(getFormattedResult(16507)).toBe("2:45.07");
     });
 
     // Results over ten minutes long must have no decimals
     it("formats 23:00.35 correctly", () => {
-      expect(getFormattedTime(138035)).toBe("23:00");
+      expect(getFormattedResult(138035)).toBe("23:00");
     });
 
     it("formats 1:32:08(.36) correctly", () => {
-      expect(getFormattedTime(552836)).toBe("1:32:08");
+      expect(getFormattedResult(552836)).toBe("1:32:08");
     });
   });
 
   describe("format time singles without formatting (no commas or colons)", () => {
     it("formats 0.09 without formatting correctly", () => {
-      expect(getFormattedTime(9, { noDelimiterChars: true })).toBe("9");
+      expect(getFormattedResult(9, { noDelimiterChars: true })).toBe("9");
     });
 
     it("formats 0.78 without formatting correctly", () => {
-      expect(getFormattedTime(78, { noDelimiterChars: true })).toBe("78");
+      expect(getFormattedResult(78, { noDelimiterChars: true })).toBe("78");
     });
 
     it("formats 20.00 correctly", () => {
-      expect(getFormattedTime(2000, { noDelimiterChars: true })).toBe("2000");
+      expect(getFormattedResult(2000, { noDelimiterChars: true })).toBe("2000");
     });
 
     it("formats 1:08.45 without formatting correctly", () => {
-      expect(getFormattedTime(6845, { noDelimiterChars: true })).toBe("10845");
+      expect(getFormattedResult(6845, { noDelimiterChars: true })).toBe("10845");
     });
 
     it("formats 12:35.00 correctly", () => {
-      expect(getFormattedTime(75500, { noDelimiterChars: true })).toBe("123500");
+      expect(getFormattedResult(75500, { noDelimiterChars: true })).toBe("123500");
     });
   });
 
   describe("format numbers (number format event)", () => {
     it("formats 37 correctly", () => {
-      expect(getFormattedTime(37, { eventFormat: mockNumberEvent.format })).toBe("37");
+      expect(getFormattedResult(37, { eventFormat: mockNumberEvent.format })).toBe("37");
     });
 
     it("formats 41.33 correctly", () => {
-      expect(getFormattedTime(4133, { eventFormat: mockNumberEvent.format, isAverage: true })).toBe("41.33");
+      expect(getFormattedResult(4133, { eventFormat: mockNumberEvent.format, isAverage: true })).toBe("41.33");
     });
 
     it("formats 40.00 correctly", () => {
-      expect(getFormattedTime(4000, { eventFormat: mockNumberEvent.format, isAverage: true })).toBe("40.00");
+      expect(getFormattedResult(4000, { eventFormat: mockNumberEvent.format, isAverage: true })).toBe("40.00");
     });
 
     it("formats 9.67 average correctly", () => {
-      expect(getFormattedTime(967, { eventFormat: mockNumberEvent.format, isAverage: true })).toBe("9.67");
+      expect(getFormattedResult(967, { eventFormat: mockNumberEvent.format, isAverage: true })).toBe("9.67");
     });
 
     it("formats 39.66 without formatting correctly", () => {
       expect(
-        getFormattedTime(3966, { eventFormat: mockNumberEvent.format, noDelimiterChars: true, isAverage: true }),
+        getFormattedResult(3966, { eventFormat: mockNumberEvent.format, noDelimiterChars: true, isAverage: true }),
       ).toBe("3966");
     });
   });
@@ -411,12 +411,12 @@ describe(getFormattedTime.name, () => {
   describe("format Multi-Blind attempts", () => {
     for (const example of multiBlindExamples) {
       it(`formats ${example.formatted} correctly`, () => {
-        expect(getFormattedTime(example.result, { eventFormat: mockMultiEvent.format })).toBe(example.formatted);
+        expect(getFormattedResult(example.result, { eventFormat: mockMultiEvent.format })).toBe(example.formatted);
       });
 
       it(`formats ${example.formatted} without formatting correctly`, () => {
         expect(
-          getFormattedTime(example.result, {
+          getFormattedResult(example.result, {
             eventFormat: mockMultiEvent.format,
             noDelimiterChars: true,
           }),
@@ -425,77 +425,79 @@ describe(getFormattedTime.name, () => {
     }
 
     it("formats Multi-Blind result with unknown time correctly", () => {
-      expect(getFormattedTime(996386400000000, { eventFormat: mockMultiEvent.format })).toBe("36/36 Unknown time");
+      expect(getFormattedResult(996386400000000, { eventFormat: mockMultiEvent.format })).toBe("36/36 Unknown time");
     });
   });
 
   it("formats DNF correctly", () => {
-    expect(getFormattedTime(-1)).toBe("DNF");
+    expect(getFormattedResult(-1)).toBe("DNF");
   });
 
   it("formats DNS correctly", () => {
-    expect(getFormattedTime(-2)).toBe("DNS");
+    expect(getFormattedResult(-2)).toBe("DNS");
   });
 
   it("formats unknown time correctly", () => {
-    expect(getFormattedTime(C.maxTime)).toBe("Unknown");
+    expect(getFormattedResult(C.maxTime)).toBe("Unknown");
   });
 
   it("formats Multi attempt with unknown time correctly", () => {
     const attempt = Number(`9995${C.maxTime}0001`);
-    expect(getFormattedTime(attempt, { eventFormat: mockMultiEvent.format })).toBe("5/6 Unknown time");
+    expect(getFormattedResult(attempt, { eventFormat: mockMultiEvent.format })).toBe("5/6 Unknown time");
   });
 
   it("formats 0:34 memo time correctly", () => {
-    expect(getFormattedTime(3400, { showDecimals: "never" })).toBe("0:34");
+    expect(getFormattedResult(3400, { showDecimals: "never" })).toBe("0:34");
   });
 
   it("formats 14:07 memo time correctly", () => {
-    expect(getFormattedTime(84700, { showDecimals: "never" })).toBe("14:07");
+    expect(getFormattedResult(84700, { showDecimals: "never" })).toBe("14:07");
   });
 
   describe("format time-3d singles", () => {
     it("formats 0.123 correctly", () => {
-      expect(getFormattedTime(123, { eventFormat: mockTime3dEvent.format })).toBe("0.123");
+      expect(getFormattedResult(123, { eventFormat: mockTime3dEvent.format })).toBe("0.123");
     });
 
     it("formats 1.234 correctly", () => {
-      expect(getFormattedTime(1234, { eventFormat: mockTime3dEvent.format })).toBe("1.234");
+      expect(getFormattedResult(1234, { eventFormat: mockTime3dEvent.format })).toBe("1.234");
     });
 
     it("formats 2:03.456 correctly", () => {
-      expect(getFormattedTime(123456, { eventFormat: mockTime3dEvent.format })).toBe("2:03.456");
+      expect(getFormattedResult(123456, { eventFormat: mockTime3dEvent.format })).toBe("2:03.456");
     });
 
     it("formats 9:59.999 correctly", () => {
-      expect(getFormattedTime(599999, { eventFormat: mockTime3dEvent.format })).toBe("9:59.999");
+      expect(getFormattedResult(599999, { eventFormat: mockTime3dEvent.format })).toBe("9:59.999");
     });
 
     it("formats 0.000 correctly", () => {
-      expect(getFormattedTime(0, { eventFormat: mockTime3dEvent.format })).toBe("?");
+      expect(getFormattedResult(0, { eventFormat: mockTime3dEvent.format })).toBe("?");
     });
 
     describe("format time-3d singles without formatting (no commas or colons)", () => {
       it("formats 0.123 without formatting correctly", () => {
-        expect(getFormattedTime(123, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe("123");
+        expect(getFormattedResult(123, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe("123");
       });
 
       it("formats 1.234 without formatting correctly", () => {
-        expect(getFormattedTime(1234, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe("1234");
+        expect(getFormattedResult(1234, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe("1234");
       });
 
       it("formats 12.345 without formatting correctly", () => {
-        expect(getFormattedTime(12345, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe("12345");
+        expect(getFormattedResult(12345, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe(
+          "12345",
+        );
       });
 
       it("formats 2:03.456 without formatting correctly", () => {
-        expect(getFormattedTime(123456, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe(
+        expect(getFormattedResult(123456, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe(
           "203456",
         );
       });
 
       it("formats 10:12.345 without formatting correctly", () => {
-        expect(getFormattedTime(612345, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe(
+        expect(getFormattedResult(612345, { eventFormat: mockTime3dEvent.format, noDelimiterChars: true })).toBe(
           "1012345",
         );
       });
@@ -508,7 +510,7 @@ describe(getBestAndAverage.name, () => {
     it("sets average to 0 when there is only one attempt", () => {
       const attempts: Attempt[] = [{ result: 1234 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "1");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "1");
 
       expect(best).toBe(1234);
       expect(average).toBe(0);
@@ -517,7 +519,7 @@ describe(getBestAndAverage.name, () => {
     it("sets average to 0 when there are only 2 attempts", () => {
       const attempts: Attempt[] = [{ result: 1234 }, { result: 2345 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "2");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "2");
 
       expect(best).toBe(1234);
       expect(average).toBe(0);
@@ -526,7 +528,7 @@ describe(getBestAndAverage.name, () => {
     it("correctly calculates best and average for Bo3", () => {
       const attempts: Attempt[] = [{ result: 1234 }, { result: 1500 }, { result: 1300 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "3");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "3");
 
       expect(best).toBe(1234);
       expect(average).toBe(1345);
@@ -535,7 +537,7 @@ describe(getBestAndAverage.name, () => {
     it("correctly calculates best and average for Mo3", () => {
       const attempts: Attempt[] = [{ result: 1234 }, { result: 1500 }, { result: 1300 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "m");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "m");
 
       expect(best).toBe(1234);
       expect(average).toBe(1345);
@@ -550,7 +552,7 @@ describe(getBestAndAverage.name, () => {
         { result: 1400 },
       ];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "a");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "a");
 
       expect(best).toBe(1100);
       expect(average).toBe(1311);
@@ -565,7 +567,7 @@ describe(getBestAndAverage.name, () => {
         { result: 1400 },
       ];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "5");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "5");
 
       expect(best).toBe(1100);
       expect(average).toBe(1311);
@@ -574,7 +576,7 @@ describe(getBestAndAverage.name, () => {
     it("handles DNF for Mo3", () => {
       const attempts: Attempt[] = [{ result: 1234 }, { result: -1 }, { result: 1300 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "m");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "m");
 
       expect(best).toBe(1234);
       expect(average).toBe(-1);
@@ -589,7 +591,7 @@ describe(getBestAndAverage.name, () => {
         { result: 1400 },
       ];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "a");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "a");
 
       expect(best).toBe(1234);
       expect(average).toBe(-1);
@@ -598,7 +600,7 @@ describe(getBestAndAverage.name, () => {
     it("handles not yet entered attempts for Mo3", () => {
       const attempts: Attempt[] = [{ result: 1234 }, { result: 1300 }, { result: 0 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "m");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "m");
 
       expect(best).toBe(1234);
       expect(average).toBe(0);
@@ -613,7 +615,7 @@ describe(getBestAndAverage.name, () => {
         { result: 0 },
       ];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "a");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "a");
 
       expect(best).toBe(1234);
       expect(average).toBe(0);
@@ -622,7 +624,7 @@ describe(getBestAndAverage.name, () => {
     it("handles all DNF/DNS attempts", () => {
       const attempts: Attempt[] = [{ result: -1 }, { result: -2 }, { result: -1 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "m");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "m");
 
       expect(best).toBe(-1);
       expect(average).toBe(-1);
@@ -631,7 +633,7 @@ describe(getBestAndAverage.name, () => {
     it("handles NaN attempt for Mo3 (invalid time value, like 70.00)", () => {
       const attempts: Attempt[] = [{ result: -1 }, { result: -2 }, { result: NaN }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "m");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "m");
 
       expect(best).toBe(-1);
       expect(average).toBe(0);
@@ -646,7 +648,7 @@ describe(getBestAndAverage.name, () => {
         { result: 1500 },
       ];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "a");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "a");
 
       expect(best).toBe(1234);
       expect(average).toBe(0);
@@ -656,7 +658,7 @@ describe(getBestAndAverage.name, () => {
       // Doesn't make 15.00 Bo1 cutoff
       const attempts: Attempt[] = [{ result: 1700 }, { result: 0 }, { result: 0 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "m");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "m");
 
       expect(best).toBe(1700);
       expect(average).toBe(0);
@@ -666,7 +668,7 @@ describe(getBestAndAverage.name, () => {
       // Doesn't make 15.00 Bo2 cutoff
       const attempts: Attempt[] = [{ result: 1700 }, { result: 1500 }, { result: 0 }, { result: 0 }, { result: 0 }];
 
-      const { best, average } = getBestAndAverage(attempts, "time", "a");
+      const { best, average } = getBestAndAverage(attempts, { format: "time", higherIsBetter: false }, "a");
 
       expect(best).toBe(1500);
       expect(average).toBe(0);
@@ -677,7 +679,7 @@ describe(getBestAndAverage.name, () => {
     it("correctly calculates best and average for Bo3", () => {
       const attempts: Attempt[] = [{ result: 10 }, { result: 12 }, { result: 11 }];
 
-      const { best, average } = getBestAndAverage(attempts, "number", "3");
+      const { best, average } = getBestAndAverage(attempts, { format: "number", higherIsBetter: false }, "3");
 
       expect(best).toBe(10);
       expect(average).toBe(1100);
@@ -686,10 +688,30 @@ describe(getBestAndAverage.name, () => {
     it("correctly calculates best and average for Ao5", () => {
       const attempts: Attempt[] = [{ result: 10 }, { result: 12 }, { result: 11 }, { result: 9 }, { result: -1 }];
 
-      const { best, average } = getBestAndAverage(attempts, "number", "a");
+      const { best, average } = getBestAndAverage(attempts, { format: "number", higherIsBetter: false }, "a");
 
       expect(best).toBe(9);
       expect(average).toBe(1100);
+    });
+  });
+
+  describe("higher-is-better events", () => {
+    it("gets the best attempt as the highest value for Bo3", () => {
+      const attempts: Attempt[] = [{ result: 10 }, { result: 12 }, { result: 11 }];
+
+      const { best, average } = getBestAndAverage(attempts, { format: "number", higherIsBetter: true }, "3");
+
+      expect(best).toBe(12);
+      expect(average).toBe(1100);
+    });
+
+    it("gets the best attempt as the highest value and excludes the best and worst from an Ao5", () => {
+      const attempts: Attempt[] = [{ result: 10 }, { result: 12 }, { result: 11 }, { result: 9 }, { result: 8 }];
+
+      const { best, average } = getBestAndAverage(attempts, { format: "number", higherIsBetter: true }, "a");
+
+      expect(best).toBe(12);
+      expect(average).toBe(1000);
     });
   });
 
@@ -699,83 +721,109 @@ describe(getBestAndAverage.name, () => {
 
 describe(compareSingles.name, () => {
   it("compares singles correctly when a < b", () => {
-    expect(compareSingles({ best: 10 }, { best: 11 })).toBeLessThan(0);
+    expect(compareSingles({ best: 10 }, { best: 11 }, { higherIsBetter: false })).toBeLessThan(0);
   });
 
   it("compares singles correctly when a > b", () => {
-    expect(compareSingles({ best: 10 }, { best: 9 })).toBeGreaterThan(0);
+    expect(compareSingles({ best: 10 }, { best: 9 }, { higherIsBetter: false })).toBeGreaterThan(0);
   });
 
   it("compares singles correctly when a = b", () => {
-    expect(compareSingles({ best: 10 }, { best: 10 })).toBe(0);
+    expect(compareSingles({ best: 10 }, { best: 10 }, { higherIsBetter: false })).toBe(0);
   });
 
   it("compares singles correctly when a is DNF", () => {
-    expect(compareSingles({ best: -1 }, { best: 10 })).toBeGreaterThan(0);
+    expect(compareSingles({ best: -1 }, { best: 10 }, { higherIsBetter: false })).toBeGreaterThan(0);
   });
 
   it("compares singles correctly when b is DNF", () => {
-    expect(compareSingles({ best: 10 }, { best: -1 })).toBeLessThan(0);
+    expect(compareSingles({ best: 10 }, { best: -1 }, { higherIsBetter: false })).toBeLessThan(0);
   });
 
   it("compares singles correctly when a and b are DNF", () => {
-    expect(compareSingles({ best: -1 }, { best: -1 })).toBe(0);
+    expect(compareSingles({ best: -1 }, { best: -1 }, { higherIsBetter: false })).toBe(0);
   });
 
   it("compares singles correctly when a is DNS and b is DNF", () => {
-    expect(compareSingles({ best: -2 }, { best: -1 })).toBe(0);
+    expect(compareSingles({ best: -2 }, { best: -1 }, { higherIsBetter: false })).toBe(0);
   });
 
   it("compares singles correctly when a is DNF and b is DNS", () => {
-    expect(compareSingles({ best: -1 }, { best: -2 })).toBe(0);
+    expect(compareSingles({ best: -1 }, { best: -2 }, { higherIsBetter: false })).toBe(0);
   });
 
   describe("compare Multi-Blind singles", () => {
     it("compares Multi-Blind singles correctly when a is 2/2 and b is 9/10", () => {
-      expect(compareSingles({ best: 999700043890000 }, { best: 999100774000001 })).toBeGreaterThan(0);
+      expect(
+        compareSingles({ best: 999700043890000 }, { best: 999100774000001 }, { higherIsBetter: false }),
+      ).toBeGreaterThan(0);
     });
 
     it("compares Multi-Blind singles correctly when a is 3/3 59.68 and b is 3/3 1:05.57", () => {
-      expect(compareSingles({ best: 999600059680000 }, { best: 999600065570000 })).toBeLessThan(0);
+      expect(
+        compareSingles({ best: 999600059680000 }, { best: 999600065570000 }, { higherIsBetter: false }),
+      ).toBeLessThan(0);
     });
 
     it("compares Multi-Blind singles correctly when a is 51/55 58:06 and b is 49/51 58:06", () => {
-      expect(compareSingles({ best: 995203486000004 }, { best: 995203486000002 })).toBeGreaterThan(0);
+      expect(
+        compareSingles({ best: 995203486000004 }, { best: 995203486000002 }, { higherIsBetter: false }),
+      ).toBeGreaterThan(0);
     });
 
     it("compares Multi-Blind singles correctly when a is DNF (6/15) and b is DNF (1/2)", () => {
-      expect(compareSingles({ best: -999603161000009 }, { best: -999900516420001 })).toBe(0);
+      expect(compareSingles({ best: -999603161000009 }, { best: -999900516420001 }, { higherIsBetter: false })).toBe(0);
     });
+  });
+
+  it("compares singles for higher-is-better event", () => {
+    expect(compareSingles({ best: 10 }, { best: 11 }, { higherIsBetter: true })).toBeGreaterThan(0);
+    expect(compareSingles({ best: 10 }, { best: 10 }, { higherIsBetter: true })).toBe(0);
+    expect(compareSingles({ best: 11 }, { best: 10 }, { higherIsBetter: true })).toBeLessThan(0);
   });
 });
 
 describe(compareAvgs.name, () => {
   it("compares averages correctly when a < b", () => {
-    expect(compareAvgs({ average: 10 }, { average: 11 })).toBeLessThan(0);
+    expect(compareAvgs({ average: 10 }, { average: 11 }, { higherIsBetter: false })).toBeLessThan(0);
   });
 
   it("compares averages correctly when a > b", () => {
-    expect(compareAvgs({ average: 10 }, { average: 9 })).toBeGreaterThan(0);
+    expect(compareAvgs({ average: 10 }, { average: 9 }, { higherIsBetter: false })).toBeGreaterThan(0);
   });
 
   it("compares averages correctly when b is DNF", () => {
-    expect(compareAvgs({ average: 10 }, { average: -1 })).toBeLessThan(0);
+    expect(compareAvgs({ average: 10 }, { average: -1 }, { higherIsBetter: false })).toBeLessThan(0);
   });
 
   it("compares averages correctly when a is DNF", () => {
-    expect(compareAvgs({ average: -1 }, { average: 10 })).toBeGreaterThan(0);
+    expect(compareAvgs({ average: -1 }, { average: 10 }, { higherIsBetter: false })).toBeGreaterThan(0);
   });
 
   it("compares averages correctly when a and b are DNF", () => {
-    expect(compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 }, true)).toBeLessThan(0);
+    expect(
+      compareAvgs({ average: -1, best: 10 }, { average: -1, best: 11 }, { higherIsBetter: false, useTieBreaker: true }),
+    ).toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are different", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 }, true)).toBeLessThan(0);
+    expect(
+      compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 }, { higherIsBetter: false, useTieBreaker: true }),
+    ).toBeLessThan(0);
   });
 
   it("compares same averages correctly when the singles are the same", () => {
-    expect(compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 }, true)).toBe(0);
+    expect(
+      compareAvgs({ average: 10, best: 5 }, { average: 10, best: 5 }, { higherIsBetter: false, useTieBreaker: true }),
+    ).toBe(0);
+  });
+
+  it("compares averages for higher-is-better event", () => {
+    expect(compareAvgs({ average: 10 }, { average: 11 }, { higherIsBetter: true })).toBeGreaterThan(0);
+    expect(compareAvgs({ average: 11 }, { average: 10 }, { higherIsBetter: true })).toBeLessThan(0);
+    expect(
+      compareAvgs({ average: 10, best: 5 }, { average: 10, best: 6 }, { useTieBreaker: true, higherIsBetter: true }),
+    ).toBeGreaterThan(0);
   });
 });
 

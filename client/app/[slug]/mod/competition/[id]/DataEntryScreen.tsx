@@ -26,7 +26,7 @@ import {
   clientGetHasPermission,
   getActionError,
   getBlankCompetitors,
-  getFormattedTime,
+  getFormattedResult,
   getFormattedTimeLimit,
   getMakesCutoff,
   getMaxAllowedRounds,
@@ -389,7 +389,7 @@ function DataEntryScreen({
             <p className="mb-2">Time limit: {getFormattedTimeLimit({ round, eventFormat: currEvent.format })}</p>
           )}
           {round.cutoffAttemptResult && (
-            <p>Cutoff: {getFormattedTime(round.cutoffAttemptResult, { showDecimals: "never" })}</p>
+            <p>Cutoff: {getFormattedResult(round.cutoffAttemptResult, { showDecimals: "never" })}</p>
           )}
           <EventImportantInfo importantInfo={currEvent.importantInfo} className="mt-4" />
         </div>

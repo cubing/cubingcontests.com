@@ -97,10 +97,6 @@ export function getAttempt(
   const newAttempt: Attempt = { ...attempt, result: NaN, memo: undefined };
 
   if (event.format === "number") {
-    const maxFmResultDigits = C.maxNumberFormatValue.toString().length;
-    if (time.length > maxFmResultDigits)
-      throw new Error(`Fewest Moves solutions longer than ${maxFmResultDigits} digits are not supported`);
-
     return { ...newAttempt, result: time ? parseInt(time, 10) : 0 };
   }
 
@@ -220,28 +216,35 @@ export function getActionError(actionResult: SafeActionResult<RrServerErrorObjec
   return "Unknown error";
 }
 
-// Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie.
-// This means that this function can be used in the Array.sort() method.
-export function compareSingles(a: { best: number }, b: { best: number }): number {
+// Returns >0 if a is worse than b, <0 if a is better than b, and 0 if it's a tie, similar to Array.sort()
+export function compareSingles(
+  a: { best: number },
+  b: { best: number },
+  { higherIsBetter }: { higherIsBetter: boolean },
+): number {
   if (a.best <= 0 && b.best > 0) return 1;
   else if (a.best > 0 && b.best <= 0) return -1;
   else if (a.best <= 0 && b.best <= 0) return 0;
-  return a.best - b.best;
+  return higherIsBetter ? b.best - a.best : a.best - b.best;
 }
 
 // Same logic as above, except the single can also be used as a tie breaker if the averages are equivalent
-export function compareAvgs(a: { average: number }, b: { average: number }, useTieBreaker?: false): number;
+export function compareAvgs(
+  a: { average: number },
+  b: { average: number },
+  options: { higherIsBetter: boolean; useTieBreaker?: false },
+): number;
 export function compareAvgs(
   a: { average: number; best: number },
   b: { average: number; best: number },
-  useTieBreaker: true,
+  options: { higherIsBetter: boolean; useTieBreaker: true },
 ): number;
 export function compareAvgs(
   a: { average: number; best?: number },
   b: { average: number; best?: number },
-  useTieBreaker = false,
+  { higherIsBetter, useTieBreaker = false }: { higherIsBetter: boolean; useTieBreaker?: boolean },
 ): number {
-  const breakTie = () => compareSingles({ best: a.best! }, { best: b.best! });
+  const breakTie = () => compareSingles({ best: a.best! }, { best: b.best! }, { higherIsBetter });
 
   if (a.average <= 0) {
     if (b.average <= 0) {
@@ -253,7 +256,7 @@ export function compareAvgs(
     return -1;
   }
   if (a.average === b.average && useTieBreaker) return breakTie();
-  return a.average - b.average;
+  return higherIsBetter ? b.average - a.average : a.average - b.average;
 }
 
 export function setResultWorldRecords(
@@ -261,11 +264,19 @@ export function setResultWorldRecords(
   event: EventResponse,
   eventWrPair: EventWrPair,
 ): ResultResponse {
-  const comparisonToRecordSingle = compareSingles(result, { best: eventWrPair.best ?? Infinity });
+  const comparisonToRecordSingle = compareSingles(
+    result,
+    { best: eventWrPair.best ?? Infinity },
+    { higherIsBetter: event.higherIsBetter },
+  );
   if (result.best > 0 && comparisonToRecordSingle <= 0) result.regionalSingleRecord = "WR";
 
   if (result.attempts.length === getRankedAverageFormat(event.defaultRoundFormat).attempts) {
-    const comparisonToRecordAvg = compareAvgs(result, { average: eventWrPair.average ?? Infinity });
+    const comparisonToRecordAvg = compareAvgs(
+      result,
+      { average: eventWrPair.average ?? Infinity },
+      { higherIsBetter: event.higherIsBetter },
+    );
     if (result.average > 0 && comparisonToRecordAvg <= 0) result.regionalAverageRecord = "WR";
   }
 
@@ -281,7 +292,7 @@ export function getDateOnly(date: Date | null): Date | null {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-export function getFormattedTime(
+export function getFormattedResult(
   time: number,
   {
     eventFormat,
@@ -312,8 +323,15 @@ export function getFormattedTime(
   } else if (time === C.maxTime) {
     return "Unknown";
   } else if (eventFormat === "number") {
-    if (isAverage && !noDelimiterChars) return (time / 100).toFixed(2);
-    else return time.toString();
+    if (noDelimiterChars) {
+      return time.toString();
+    } else if (isAverage) {
+      return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+        time / 100,
+      );
+    } else {
+      return new Intl.NumberFormat().format(time);
+    }
   } else {
     const precision = eventFormat === "time-3d" ? 3 : 2;
     const multiplier = eventFormat === "time-3d" ? 1000 : 100;
@@ -394,10 +412,10 @@ export const getMakesCutoff = (
   !cutoffNumberOfAttempts ||
   attempts.some((a, i) => i < cutoffNumberOfAttempts && a.result && a.result > 0 && a.result < cutoffAttemptResult);
 
-// Returns the best and average times
+// Returns the best and average results from a set of attempts
 export function getBestAndAverage(
   attempts: Attempt[],
-  eventFormat: EventFormat,
+  event: Pick<EventResponse, "format" | "higherIsBetter">,
   roundFormat: RoundFormat,
 ): { best: number; average: number } {
   let best: number, average: number;
@@ -408,37 +426,40 @@ export function getBestAndAverage(
     (rf) => rf.value === roundFormat,
   )!;
 
-  // This actually follows the rule that the lower the attempt value is - the better
-  const convertedAttempts: number[] = attempts.map(({ result }) => {
+  // DNF/DNS results are always worse than any valid result, regardless of whether higher or lower values are better
+  const validAttempts: number[] = [];
+  attempts.forEach(({ result }) => {
     if (result === 0 || Number.isNaN(result)) {
       hasInvalidOrEmptyResult = true;
     } else if (result < 0) {
       dnfDnsCount++;
     } else {
       sum += result;
-      return result;
+      validAttempts.push(result);
     }
-    return Infinity;
   });
 
-  best = Math.min(...convertedAttempts);
-  if (best === Infinity) best = -1; // if infinity, that means every attempt was DNF/DNS/invalid
+  const lowest = Math.min(...validAttempts);
+  const highest = Math.max(...validAttempts);
+  // If every attempt was DNF/DNS/invalid
+  if (validAttempts.length === 0) best = -1;
+  else best = event.higherIsBetter ? highest : lowest;
 
   if (hasInvalidOrEmptyResult || expectedAttempts < 3 || attempts.length < expectedAttempts) {
     average = 0;
   } else if (dnfDnsCount > bestAndWorstAttemptsToExclude) {
     average = -1;
   } else {
-    // Subtract best and worst results, if it's an Ao5 round
+    // Subtract the best and worst results, if it's an averaging round (e.g. Ao5)
     if (bestAndWorstAttemptsToExclude && bestAndWorstAttemptsToExclude > 0) {
       if (bestAndWorstAttemptsToExclude > 1)
         throw new Error(`bestAndWorstAttemptsToExclude higher than 1 is not yet supported`);
-      sum -= best;
-      if (dnfDnsCount === 0) sum -= Math.max(...convertedAttempts);
+      sum -= best; // subtract best
+      if (dnfDnsCount === 0) sum -= event.higherIsBetter ? lowest : highest; // subtract worst
     }
 
     const countingAttempts = expectedAttempts - bestAndWorstAttemptsToExclude * 2;
-    average = Math.round((sum / countingAttempts) * (eventFormat === "number" ? 100 : 1));
+    average = Math.round((sum / countingAttempts) * (event.format === "number" ? 100 : 1));
   }
 
   return { best, average };
@@ -606,6 +627,6 @@ export function arrayElementsSame(array1: number[] | string[], array2: number[] 
 
 export function getFormattedTimeLimit({ round, eventFormat }: { round: RoundResponse; eventFormat: EventFormat }) {
   return round.timeLimitCentiseconds
-    ? `${getFormattedTime(round.timeLimitCentiseconds, { eventFormat, showDecimals: "never" })}${round.timeLimitCumulativeRoundIds ? " cumulative" : ""}`
+    ? `${getFormattedResult(round.timeLimitCentiseconds, { eventFormat, showDecimals: "never" })}${round.timeLimitCumulativeRoundIds ? " cumulative" : ""}`
     : "";
 }

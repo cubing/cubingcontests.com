@@ -10,7 +10,7 @@ import {
   getAlwaysShowDecimals,
   getAttempt,
   getBestAndAverage,
-  getFormattedTime,
+  getFormattedResult,
   getMakesCutoff,
   getResultProceeds,
   getRoundDate,
@@ -54,7 +54,7 @@ export async function createContestResult({
   isAdmin?: boolean;
 }) {
   const roundFormat = roundFormats.find((rf) => rf.value === round.format)!;
-  const { best, average } = getBestAndAverage(attempts, event.format, roundFormat.value);
+  const { best, average } = getBestAndAverage(attempts, event, roundFormat.value);
   const newResult: InsertResult = {
     organizationId: event.organizationId,
     eventId: event.eventId,
@@ -85,11 +85,27 @@ export async function createContestResult({
   await db.transaction(async (tx) => {
     const [createdResult] = await tx.insert(table).values(newResult).returning();
 
-    await setRankingAndProceedsValues(tx, [...roundResults, createdResult], round);
-    if (createdResult.regionalSingleRecord)
-      await cancelFutureRecords(tx, newResult.organizationId, createdResult, "best", recordConfigs);
-    if (createdResult.regionalAverageRecord)
-      await cancelFutureRecords(tx, newResult.organizationId, createdResult, "average", recordConfigs);
+    await setRankingAndProceedsValues(tx, [...roundResults, createdResult], round, event.higherIsBetter);
+    if (createdResult.regionalSingleRecord) {
+      await cancelFutureRecords(
+        tx,
+        newResult.organizationId,
+        createdResult,
+        "best",
+        recordConfigs,
+        event.higherIsBetter,
+      );
+    }
+    if (createdResult.regionalAverageRecord) {
+      await cancelFutureRecords(
+        tx,
+        newResult.organizationId,
+        createdResult,
+        "average",
+        recordConfigs,
+        event.higherIsBetter,
+      );
+    }
 
     // Update contest state and participants
     const updateContestObject: Partial<SelectContest> = {};
@@ -124,7 +140,7 @@ export async function updateContestResult({
   isAdmin?: boolean;
 }) {
   const roundFormat = roundFormats.find((rf) => rf.value === round.format)!;
-  const { best, average } = getBestAndAverage(newAttempts, event.format, roundFormat.value);
+  const { best, average } = getBestAndAverage(newAttempts, event, roundFormat.value);
   const newResult: SelectResult = {
     ...prevResult,
     attempts: newAttempts,
@@ -165,19 +181,50 @@ export async function updateContestResult({
       tx,
       roundResults.map((r) => (r.id === prevResult.id ? updatedResult : r)),
       round,
+      event.higherIsBetter,
     );
 
-    // Cancel future records, if the result got better
-    if (updatedResult.regionalSingleRecord && updatedResult.best < prevResult.best)
-      await cancelFutureRecords(tx, newResult.organizationId, updatedResult, "best", recordConfigs);
-    if (updatedResult.regionalAverageRecord && updatedResult.average < prevResult.average)
-      await cancelFutureRecords(tx, newResult.organizationId, updatedResult, "average", recordConfigs);
+    // Cancel future records, if the result got BETTER
+    if (
+      updatedResult.regionalSingleRecord &&
+      (event.higherIsBetter ? updatedResult.best > prevResult.best : updatedResult.best < prevResult.best)
+    ) {
+      await cancelFutureRecords(
+        tx,
+        newResult.organizationId,
+        updatedResult,
+        "best",
+        recordConfigs,
+        event.higherIsBetter,
+      );
+    }
+    if (
+      updatedResult.regionalAverageRecord &&
+      (event.higherIsBetter ? updatedResult.average > prevResult.average : updatedResult.average < prevResult.average)
+    ) {
+      await cancelFutureRecords(
+        tx,
+        newResult.organizationId,
+        updatedResult,
+        "average",
+        recordConfigs,
+        event.higherIsBetter,
+      );
+    }
 
-    // Set records that may have been prevented before, if the result got worse
-    if (prevResult.regionalSingleRecord && updatedResult.best > prevResult.best)
+    // Set records that may have been prevented before, if the result got WORSE
+    if (
+      prevResult.regionalSingleRecord &&
+      (event.higherIsBetter ? updatedResult.best < prevResult.best : updatedResult.best > prevResult.best)
+    ) {
       await setFutureRecords(tx, prevResult, event, "best", recordConfigs);
-    if (prevResult.regionalAverageRecord && updatedResult.average > prevResult.average)
+    }
+    if (
+      prevResult.regionalAverageRecord &&
+      (event.higherIsBetter ? updatedResult.average < prevResult.average : updatedResult.average > prevResult.average)
+    ) {
       await setFutureRecords(tx, prevResult, event, "average", recordConfigs);
+    }
   });
 }
 
@@ -266,7 +313,7 @@ export async function getRecordResult(
 
 export async function setResultRecordsAndRegions(
   result: InsertResult,
-  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat">,
+  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat" | "higherIsBetter">,
   recordConfigs: RecordConfigResponse[], // must be of the same category
   participants: Pick<SelectPerson, "regionCode">[],
 ) {
@@ -287,7 +334,7 @@ export async function setResultRecordsAndRegions(
 
 export async function setResultRecords(
   result: InsertResult,
-  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat">,
+  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat" | "higherIsBetter">,
   recordConfigs: RecordConfigResponse[], // must be of the same category
   { excludeResultId }: { excludeResultId?: number } = {},
 ) {
@@ -299,7 +346,7 @@ export async function setResultRecords(
 // Updates the specified record field directly in the result object
 export async function setResultRecord(
   result: InsertResult,
-  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat">,
+  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat" | "higherIsBetter">,
   bestOrAverage: "best" | "average",
   recordConfigs: RecordConfigResponse[], // must be of the same category
   { excludeResultId }: { excludeResultId?: number } = {},
@@ -307,7 +354,10 @@ export async function setResultRecord(
   const recordField = bestOrAverage === "best" ? "regionalSingleRecord" : "regionalAverageRecord";
   const type = bestOrAverage === "best" ? "single" : "average";
   const { category } = recordConfigs[0];
-  const compareFunc = (a: any, b: any) => (bestOrAverage === "best" ? compareSingles(a, b) : compareAvgs(a, b));
+  const compareFunc = (a: any, b: any) =>
+    bestOrAverage === "best"
+      ? compareSingles(a, b, { higherIsBetter: event.higherIsBetter })
+      : compareAvgs(a, b, { higherIsBetter: event.higherIsBetter });
 
   // Set WR
   const wrResult = await getRecordResult(event, bestOrAverage, "WR", category, {
@@ -370,7 +420,7 @@ export async function setFutureRecords(
     | "regionalSingleRecord"
     | "regionalAverageRecord"
   >,
-  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat">,
+  event: Pick<SelectEvent, "organizationId" | "eventId" | "defaultRoundFormat" | "higherIsBetter">,
   bestOrAverage: "best" | "average",
   recordConfigs: RecordConfigResponse[],
 ) {
@@ -381,6 +431,9 @@ export async function setFutureRecords(
   const rankedAverageFormat = getRankedAverageFormat(event.defaultRoundFormat);
   const numberOfAttemptsCondition =
     bestOrAverage === "best" ? sql`` : sql`AND CARDINALITY(${table.attempts}) = ${rankedAverageFormat.attempts}`;
+  const bestAggregate = event.higherIsBetter ? sql`MAX` : sql`MIN`;
+  const recordBoundComparator = event.higherIsBetter ? sql`>=` : sql`<=`;
+  const noPrevRecordBound = event.higherIsBetter ? 1 : C.maxResult;
 
   // Set WRs
   if (deletedResult[recordField] === "WR") {
@@ -390,19 +443,19 @@ export async function setFutureRecords(
       .execute(sql`
         WITH day_min_times AS (
           SELECT ${table.id}, ${table.date}, ${table[bestOrAverage]},
-            MIN(${table[bestOrAverage]}) OVER(PARTITION BY ${table.date}
+            ${bestAggregate}(${table[bestOrAverage]}) OVER(PARTITION BY ${table.date}
               ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS day_min_time
           FROM ${table}
           WHERE ${table.organizationId} = ${event.organizationId}
             AND ${table[bestOrAverage]} > 0
-            AND ${table[bestOrAverage]} <= ${prevWrResult ? prevWrResult[bestOrAverage] : C.maxResult}
+            AND ${table[bestOrAverage]} ${recordBoundComparator} ${prevWrResult ? prevWrResult[bestOrAverage] : noPrevRecordBound}
             AND ${table.eventId} = ${deletedResult.eventId}
             AND ${table.date} >= ${deletedResult.date.toISOString()}
             AND ${table.recordCategory} = ${category}
             ${numberOfAttemptsCondition}
           ORDER BY ${table.date}
         ), results_with_record_times AS (
-          SELECT id, MIN(day_min_time) OVER(ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS curr_record
+          SELECT id, ${bestAggregate}(day_min_time) OVER(ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS curr_record
           FROM day_min_times
           ORDER BY date
         )
@@ -437,12 +490,12 @@ export async function setFutureRecords(
       .execute(sql`
         WITH day_min_times AS (
           SELECT ${table.id}, ${table.date}, ${table[bestOrAverage]},
-            MIN(${table[bestOrAverage]}) OVER(PARTITION BY ${table.date}
+            ${bestAggregate}(${table[bestOrAverage]}) OVER(PARTITION BY ${table.date}
               ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS day_min_time
           FROM ${table}
           WHERE ${table.organizationId} = ${event.organizationId}
             AND ${table[bestOrAverage]} > 0
-            AND ${table[bestOrAverage]} <= ${prevCrResult ? prevCrResult[bestOrAverage] : C.maxResult}
+            AND ${table[bestOrAverage]} ${recordBoundComparator} ${prevCrResult ? prevCrResult[bestOrAverage] : noPrevRecordBound}
             AND ${table.eventId} = ${deletedResult.eventId}
             AND ${table.date} >= ${deletedResult.date.toISOString()}
             AND ${table.superRegionCode} = ${deletedResult.superRegionCode}
@@ -450,7 +503,7 @@ export async function setFutureRecords(
             ${numberOfAttemptsCondition}
           ORDER BY ${table.date}
         ), results_with_record_times AS (
-          SELECT id, MIN(day_min_time) OVER(ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS curr_record
+          SELECT id, ${bestAggregate}(day_min_time) OVER(ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS curr_record
           FROM day_min_times
           ORDER BY date
         )
@@ -486,12 +539,12 @@ export async function setFutureRecords(
       .execute(sql`
         WITH day_min_times AS (
           SELECT ${table.id}, ${table.date}, ${table[bestOrAverage]},
-            MIN(${table[bestOrAverage]}) OVER(PARTITION BY ${table.date}
+            ${bestAggregate}(${table[bestOrAverage]}) OVER(PARTITION BY ${table.date}
               ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS day_min_time
           FROM ${table}
           WHERE ${table.organizationId} = ${event.organizationId}
             AND ${table[bestOrAverage]} > 0
-            AND ${table[bestOrAverage]} <= ${prevNrResult ? prevNrResult[bestOrAverage] : C.maxResult}
+            AND ${table[bestOrAverage]} ${recordBoundComparator} ${prevNrResult ? prevNrResult[bestOrAverage] : noPrevRecordBound}
             AND ${table.eventId} = ${deletedResult.eventId}
             AND ${table.date} >= ${deletedResult.date.toISOString()}
             AND ${table.regionCode} = ${deletedResult.regionCode}
@@ -499,7 +552,7 @@ export async function setFutureRecords(
             ${numberOfAttemptsCondition}
           ORDER BY ${table.date}
         ), results_with_record_times AS (
-          SELECT id, MIN(day_min_time) OVER(ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS curr_record
+          SELECT id, ${bestAggregate}(day_min_time) OVER(ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS curr_record
           FROM day_min_times
           ORDER BY date
         )
@@ -535,6 +588,7 @@ export async function cancelFutureRecords(
   result: ResultResponse,
   bestOrAverage: "best" | "average",
   recordConfigs: RecordConfigResponse[],
+  higherIsBetter: boolean,
 ) {
   const recordField = bestOrAverage === "best" ? "regionalSingleRecord" : "regionalAverageRecord";
   const type = bestOrAverage === "best" ? "single" : "average";
@@ -546,11 +600,14 @@ export async function cancelFutureRecords(
     : undefined;
   const crLabel = recordConfigs.find((rc) => rc.recordTypeId === crType)?.label;
   const nrLabel = recordConfigs.find((rc) => rc.recordTypeId === "NR")!.label;
+  const resultComparisonCondition = higherIsBetter
+    ? lt(table[bestOrAverage], result[bestOrAverage])
+    : gt(table[bestOrAverage], result[bestOrAverage]);
   const baseConditions = [
     eq(table.organizationId, organizationId),
     eq(table.eventId, result.eventId),
     gte(table.date, result.date),
-    gt(table[bestOrAverage], result[bestOrAverage]),
+    resultComparisonCondition,
     eq(table.recordCategory, category),
   ];
 
@@ -693,7 +750,7 @@ export async function validateContestResult({
   if (round.timeLimitCentiseconds) {
     if (attempts.some((a) => a.result >= round.timeLimitCentiseconds!)) {
       throw new RrActionError(
-        `This round has a time limit of ${getFormattedTime(round.timeLimitCentiseconds, { showDecimals: "never" })}`,
+        `This round has a time limit of ${getFormattedResult(round.timeLimitCentiseconds, { showDecimals: "never" })}`,
       );
     }
 
@@ -713,7 +770,7 @@ export async function validateContestResult({
 
       if (total >= round.timeLimitCentiseconds) {
         throw new RrActionError(
-          `This round has a cumulative time limit of ${getFormattedTime(round.timeLimitCentiseconds, { showDecimals: "never" })}${
+          `This round has a cumulative time limit of ${getFormattedResult(round.timeLimitCentiseconds, { showDecimals: "never" })}${
             round.timeLimitCumulativeRoundIds.length > 0
               ? ` for these rounds: ${round.id}, ${round.timeLimitCumulativeRoundIds.join(", ")}`
               : ""
@@ -731,7 +788,7 @@ export async function validateContestResult({
       if (attempts.length > round.cutoffNumberOfAttempts!) {
         const attemptsPastCutoffNumberOfAttempts = attempts.slice(round.cutoffNumberOfAttempts);
         if (attemptsPastCutoffNumberOfAttempts.some((a) => a.result !== 0)) {
-          const formattedCutoff = getFormattedTime(round.cutoffAttemptResult, { showDecimals: "never" });
+          const formattedCutoff = getFormattedResult(round.cutoffAttemptResult, { showDecimals: "never" });
           throw new RrActionError(`This round has a cutoff of ${formattedCutoff}`);
         } else {
           outputAttempts = attempts.slice(0, round.cutoffNumberOfAttempts);
@@ -758,11 +815,11 @@ export function getTruncatedAttempts({ attempts, event }: { attempts: Attempt[];
     if ([0, -1, -2, C.maxTime].includes(attempt.result)) {
       newAttempts.push(attempt);
     } else {
-      const [timeStr, solved, attempted] = getFormattedTime(attempt.result, {
+      const [timeStr, solved, attempted] = getFormattedResult(attempt.result, {
         eventFormat: event.format,
         noDelimiterChars: true,
       }).split(";") as [timeStr: string, solved?: string, attempted?: string];
-      const memoStr = attempt.memo ? getFormattedTime(attempt.memo, { noDelimiterChars: true }) : undefined;
+      const memoStr = attempt.memo ? getFormattedResult(attempt.memo, { noDelimiterChars: true }) : undefined;
 
       const newAttempt = getAttempt(attempt, event, timeStr, {
         truncateTime: !getAlwaysShowDecimals(event),
@@ -781,9 +838,14 @@ export async function setRankingAndProceedsValues(
   db: DbTransactionType, // the tx object from a Drizzle transaction
   results: ResultResponse[],
   round: RoundResponse,
+  higherIsBetter: boolean,
 ) {
   const roundFormat = roundFormats.find((rf) => rf.value === round.format)!;
-  const sortedResults = results.sort(roundFormat.isAverage ? (a, b) => compareAvgs(a, b, true) : compareSingles);
+  const sortedResults = results.sort(
+    roundFormat.isAverage
+      ? (a, b) => compareAvgs(a, b, { higherIsBetter, useTieBreaker: true })
+      : (a, b) => compareSingles(a, b, { higherIsBetter }),
+  );
   let prevResult = sortedResults[0];
   let ranking = 1;
 
@@ -791,8 +853,9 @@ export async function setRankingAndProceedsValues(
     if (i > 0) {
       // If the previous result was not tied with this one, increase ranking
       if (
-        (roundFormat.isAverage && compareAvgs(prevResult, sortedResults[i], true) < 0) ||
-        (!roundFormat.isAverage && compareSingles(prevResult, sortedResults[i]) < 0)
+        (roundFormat.isAverage &&
+          compareAvgs(prevResult, sortedResults[i], { higherIsBetter, useTieBreaker: true }) < 0) ||
+        (!roundFormat.isAverage && compareSingles(prevResult, sortedResults[i], { higherIsBetter }) < 0)
       ) {
         ranking = i + 1;
       }

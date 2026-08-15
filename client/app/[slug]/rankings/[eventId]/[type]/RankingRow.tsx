@@ -11,7 +11,7 @@ import Competitors from "~/app/components/Competitors.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Region from "~/app/components/Region.tsx";
 import type { Ranking } from "~/helpers/types/Rankings.ts";
-import { getAlwaysShowDecimals, getFormattedDate, getFormattedTime, slugPath } from "~/helpers/utility-functions.ts";
+import { getAlwaysShowDecimals, getFormattedDate, getFormattedResult, slugPath } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
@@ -43,7 +43,7 @@ function RankingRow({
   const personsToDisplay = showAllTeammates
     ? ranking.persons
     : [ranking.personId ? ranking.persons.find((p) => p.id === ranking.personId)! : ranking.persons[0]];
-  const result = getFormattedTime(ranking.result, {
+  const result = getFormattedResult(ranking.result, {
     eventFormat: event.format,
     showDecimals: getAlwaysShowDecimals(event) ? "up-to-1h" : "default",
     showMultiPoints: true,
@@ -102,7 +102,7 @@ function RankingRow({
           {type === "average" ? (
             <Attempts event={event} attempts={ranking.attempts} showMultiPoints />
           ) : (
-            ranking.memo && `${getFormattedTime(ranking.memo, { showDecimals: "never" })} memo`
+            ranking.memo && `${getFormattedResult(ranking.memo, { showDecimals: "never" })} memo`
           )}
         </td>
       )}

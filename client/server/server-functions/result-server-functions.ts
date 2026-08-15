@@ -263,6 +263,7 @@ export const deleteContestResultSF = actionClient
         tx,
         roundResults.filter((r) => r.id !== id),
         round,
+        event.higherIsBetter,
       );
 
       // Set records that may have been prevented by the deleted result
@@ -339,7 +340,7 @@ export const createVideoBasedResultSF = actionClient
 
     const roundFormat = videoBasedFormats.find((rf) => rf.attempts === newResultDto.attempts.length)!;
     const attempts = getTruncatedAttempts({ attempts: newResultDto.attempts, event });
-    const { best, average } = getBestAndAverage(attempts, event.format, roundFormat.value);
+    const { best, average } = getBestAndAverage(attempts, event, roundFormat.value);
     const newResult: InsertResult = {
       ...newResultDto,
       organizationId,
@@ -405,7 +406,7 @@ export const updateVideoBasedResultSF = actionClient
 
     const roundFormat = videoBasedFormats.find((rf) => rf.attempts === newResultDto.attempts.length)!;
     const attempts = getTruncatedAttempts({ attempts: newResultDto.attempts, event });
-    const { best, average } = getBestAndAverage(attempts, event.format, roundFormat.value);
+    const { best, average } = getBestAndAverage(attempts, event, roundFormat.value);
     const newResult: SelectResult = {
       ...result,
       date: newResultDto.date,
@@ -440,9 +441,9 @@ export const updateVideoBasedResultSF = actionClient
 
       if (approve) {
         if (updatedResult.regionalSingleRecord)
-          await cancelFutureRecords(tx, organizationId, updatedResult, "best", recordConfigs);
+          await cancelFutureRecords(tx, organizationId, updatedResult, "best", recordConfigs, event.higherIsBetter);
         if (updatedResult.regionalAverageRecord)
-          await cancelFutureRecords(tx, organizationId, updatedResult, "average", recordConfigs);
+          await cancelFutureRecords(tx, organizationId, updatedResult, "average", recordConfigs, event.higherIsBetter);
 
         const personsToBeApproved = await tx.query.persons.findMany({
           where: { organizationId, id: { in: result.personIds }, approved: false },
