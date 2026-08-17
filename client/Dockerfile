@@ -8,7 +8,7 @@
 
 # IMPORTANT: Node.js Version Maintenance
 # To ensure security and compatibility, regularly update the NODE_VERSION ARG to the latest LTS version.
-FROM node:24.13.0-slim AS base
+FROM node:24.19.0-slim AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
