@@ -21,7 +21,7 @@
     "paths": {
       "~/*": ["./*"]
     },
-    "target": "ES2017"
+    "target": "ES2025"
   },
   "include": [
     "next-env.d.ts",
@@ -29,7 +29,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
   ],
   "exclude": ["node_modules", "server/logger-utils.js"]
 }

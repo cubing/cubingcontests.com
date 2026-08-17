@@ -62,7 +62,7 @@ if (process.env.NEXT_PHASE !== "phase-production-build") {
 export const stripeClient =
   IS_RR_INSTANCE && process.env.NEXT_PHASE !== "phase-production-build"
     ? new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2026-06-24.dahlia",
+        apiVersion: "2026-07-29.dahlia",
       })
     : undefined;
 
