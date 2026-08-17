@@ -1,5 +1,6 @@
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { and, eq, inArray } from "drizzle-orm";
+import type { Metadata } from "next";
 import Markdown from "react-markdown";
 import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
 import ContestControls from "~/app/[slug]/mod/ContestControls.tsx";
@@ -21,6 +22,22 @@ type Props = {
     id: string;
   }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, id } = await params;
+
+  const contest = await db.query.contests.findFirst({
+    columns: { shortName: true },
+    where: { organization: { slug }, competitionId: id },
+  });
+
+  return {
+    title: contest?.shortName,
+    openGraph: process.env.OG_IMAGES_URL
+      ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/competitions/${id}`] }
+      : undefined,
+  };
+}
 
 async function ContestDetailsPage({ params }: Props) {
   const { slug, id } = await params;

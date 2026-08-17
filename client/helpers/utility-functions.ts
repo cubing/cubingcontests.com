@@ -160,8 +160,8 @@ export function getContestIdFromName(name: string): string {
   return output;
 }
 
-export function shortenEventName(name: string): string {
-  return IS_CUBING_CONTESTS_INSTANCE
+export function shortenEventName(name: string | undefined): string {
+  return name && IS_CUBING_CONTESTS_INSTANCE
     ? name
         .replaceAll("2x2x2", "2x2")
         .replaceAll("3x3x3", "3x3")
@@ -181,7 +181,7 @@ export function shortenEventName(name: string): string {
         .replace(" Cuboid", "")
         .replace(" Challenge", "")
         .replace("Three 3x3 Cubes", "3x 3x3")
-    : name;
+    : (name ?? "");
 }
 
 export const getRoundFormatOptions = (roundFormats: RoundFormatObject[]): MultiChoiceOption[] =>

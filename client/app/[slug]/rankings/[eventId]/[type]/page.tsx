@@ -16,7 +16,6 @@ import { roundFormats } from "~/helpers/roundFormats.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { shortenEventName, slugPath } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
-import { eventsPublicCols, eventsTable as table } from "~/server/db/schema/events.ts";
 import {
   getEnabledRecordCategories,
   getEventCategories,
@@ -48,16 +47,19 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { eventId } = await params;
+  const { slug, eventId, type } = await params;
 
-  const [event] = await db.select(eventsPublicCols).from(table).where(eq(table.eventId, eventId!));
+  const event = await db.query.events.findFirst({
+    columns: { name: true },
+    where: { organization: { slug }, eventId },
+  });
 
   return {
-    title: `${shortenEventName(event.name)} Rankings`,
+    title: `${shortenEventName(event?.name)} Rankings`,
     description: process.env.METADATA_RANKINGS_DESCRIPTION,
-    openGraph: {
-      images: [`${process.env.NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL}/assets/screenshots/rankings.jpg`],
-    },
+    openGraph: process.env.OG_IMAGES_URL
+      ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/rankings/${eventId}/${type}`] }
+      : undefined,
   };
 }
 

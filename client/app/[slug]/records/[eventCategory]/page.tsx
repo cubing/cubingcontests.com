@@ -1,4 +1,5 @@
 import omitBy from "lodash/omitBy";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import z from "zod";
@@ -8,7 +9,6 @@ import RecordCategoriesButtonGroup from "~/app/components/RecordCategoriesButton
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
-import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
@@ -20,14 +20,6 @@ import {
   getRecords,
   getRegions,
 } from "~/server/server-only-functions/server-only-functions.ts";
-
-export const metadata = {
-  title: "Records",
-  description: process.env.METADATA_RECORDS_DESCRIPTION,
-  openGraph: {
-    images: [`${process.env.NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL}/assets/screenshots/records.jpg`],
-  },
-};
 
 const ParamsValidator = z.strictObject({
   slug: z.string().nonempty(),
@@ -43,6 +35,18 @@ type Props = {
   params: Promise<z.infer<typeof ParamsValidator>>;
   searchParams: Promise<z.infer<typeof SearchParamsValidator>>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, eventCategory } = await params;
+
+  return {
+    title: "Records",
+    description: process.env.METADATA_RECORDS_DESCRIPTION,
+    openGraph: process.env.OG_IMAGES_URL
+      ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/records/${eventCategory}`] }
+      : undefined,
+  };
+}
 
 async function RecordsPage({ params, searchParams }: Props) {
   const { slug, eventCategory } = ParamsValidator.parse(await params);

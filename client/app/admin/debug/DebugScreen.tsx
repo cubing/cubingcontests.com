@@ -66,8 +66,6 @@ function DebugScreen() {
         <br />
         NEXT_PUBLIC_AUTH_PROVIDERS={process.env.NEXT_PUBLIC_PROJECT_NAME}
         <br />
-        NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL={process.env.NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL}
-        <br />
         NEXT_PUBLIC_MULTITENANCY_ENABLED={process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED}
       </code>
     </>

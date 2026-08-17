@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
 import DonateButton from "~/app/components/content/DonateButton.tsx";
@@ -15,14 +16,6 @@ import {
   getSettingFromDb,
 } from "~/server/server-only-functions/server-only-functions.ts";
 
-export const metadata = {
-  title: "Contests",
-  description: process.env.METADATA_CONTESTS_DESCRIPTION,
-  openGraph: {
-    images: [`${process.env.NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL}/assets/screenshots/contests.jpg`],
-  },
-};
-
 type Props = {
   params: Promise<{
     slug: string;
@@ -32,6 +25,18 @@ type Props = {
     region?: string;
   }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+
+  return {
+    title: "Competitions",
+    description: process.env.METADATA_CONTESTS_DESCRIPTION,
+    openGraph: process.env.OG_IMAGES_URL
+      ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/competitions`] }
+      : undefined,
+  };
+}
 
 async function ContestsPage({ params, searchParams }: Props) {
   const { slug } = await params;

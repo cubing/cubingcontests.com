@@ -129,6 +129,11 @@ export const relations = defineRelations(
       }),
     },
     contests: {
+      organization: r.one.organizations({
+        from: r.contests.organizationId,
+        to: r.organizations.id,
+        optional: false,
+      }),
       // Relevant issue: https://github.com/drizzle-team/drizzle-orm/issues/4988
       // organizers: r.many.persons({
       //   from: r.contests.organizerIds,
@@ -140,6 +145,11 @@ export const relations = defineRelations(
       }),
     },
     events: {
+      organization: r.one.organizations({
+        from: r.events.organizationId,
+        to: r.organizations.id,
+        optional: false,
+      }),
       category: r.one.eventCategories({
         from: r.events.categoryId,
         to: r.eventCategories.id,
@@ -147,12 +157,27 @@ export const relations = defineRelations(
       }),
     },
     eventCategories: {
+      organization: r.one.organizations({
+        from: r.eventCategories.organizationId,
+        to: r.organizations.id,
+        optional: false,
+      }),
       events: r.many.events(),
     },
     rounds: {
+      organization: r.one.organizations({
+        from: r.rounds.organizationId,
+        to: r.organizations.id,
+        optional: false,
+      }),
       results: r.many.results(),
     },
     results: {
+      organization: r.one.organizations({
+        from: r.results.organizationId,
+        to: r.organizations.id,
+        optional: false,
+      }),
       // persons: r.many.persons({
       //   from: r.results.personIds,
       //   to: r.persons.id,
@@ -168,21 +193,31 @@ export const relations = defineRelations(
       }),
     },
     persons: {
+      organization: r.one.organizations({
+        from: r.persons.organizationId,
+        to: r.organizations.id,
+        optional: false,
+      }),
       member: r.one.members(),
       creator: r.one.users({
         from: r.persons.createdBy,
         to: r.users.id,
       }),
     },
-    collectiveSolutions: {
-      lastUserWhoInteracted: r.one.users({
-        from: r.collectiveSolutions.lastUserWhoInteractedId,
+    posts: {
+      organization: r.one.organizations({
+        from: r.posts.organizationId,
+        to: r.organizations.id,
+        optional: false,
+      }),
+      author: r.one.users({
+        from: r.posts.createdBy,
         to: r.users.id,
       }),
     },
-    posts: {
-      author: r.one.users({
-        from: r.posts.createdBy,
+    collectiveSolutions: {
+      lastUserWhoInteracted: r.one.users({
+        from: r.collectiveSolutions.lastUserWhoInteractedId,
         to: r.users.id,
       }),
     },

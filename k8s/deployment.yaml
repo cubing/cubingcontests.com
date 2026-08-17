@@ -1,5 +1,3 @@
-# Variables with the format __VAR__ in this file are substituted in start-prod.sh
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nextjs
-          image: __DOCKER_IMAGE_NAME__
+          image: __DOCKER_IMAGE_NAME__ # substituted in start-prod.sh
           imagePullPolicy: Always
           ports:
             - name: nextjs-port

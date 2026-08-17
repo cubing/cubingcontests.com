@@ -1,4 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
+import type { Metadata } from "next";
 import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
 import Schedule from "~/app/components/Schedule.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
@@ -12,6 +13,22 @@ type Props = {
     id: string;
   }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, id } = await params;
+
+  const contest = await db.query.contests.findFirst({
+    columns: { shortName: true },
+    where: { organization: { slug }, competitionId: id },
+  });
+
+  return {
+    title: `${contest?.shortName} Schedule`,
+    openGraph: process.env.OG_IMAGES_URL
+      ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/competitions/${id}/schedule`] }
+      : undefined,
+  };
+}
 
 async function CompetitionSchedulePage({ params }: Props) {
   const { slug, id } = await params;

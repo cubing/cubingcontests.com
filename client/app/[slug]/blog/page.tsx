@@ -1,19 +1,22 @@
+import type { Metadata } from "next";
 import BlogPostCard from "~/app/[slug]/blog/BlogPostCard";
 import { getBlogPosts, getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
-
-export const metadata = {
-  title: "Blog",
-  description: process.env.METADATA_POSTS_DESCRIPTION,
-  openGraph: {
-    images: [`${process.env.NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL}/assets/screenshots/blog.jpg`],
-  },
-};
 
 type Props = {
   params: Promise<{
     slug: string;
   }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+
+  return {
+    title: "Blog",
+    description: process.env.METADATA_POSTS_DESCRIPTION,
+    openGraph: process.env.OG_IMAGES_URL ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/blog`] } : undefined,
+  };
+}
 
 async function PostsPage({ params }: Props) {
   const { slug } = await params;

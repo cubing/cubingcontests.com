@@ -20,9 +20,6 @@ export const metadata = {
   },
   description: process.env.METADATA_DESCRIPTION,
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL!),
-  openGraph: {
-    images: [`${process.env.NEXT_PUBLIC_STORAGE_PUBLIC_BUCKET_BASE_URL}/assets/screenshots/contest_results.jpg`],
-  },
 };
 
 type Props = {

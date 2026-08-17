@@ -15,6 +15,7 @@ function Loading({ small, dontCenter }: Props) {
 
   return (
     <div
+      id="loading_spinner"
       className={dontCenter ? "d-inline ms-2" : "d-flex justify-content-center"}
       style={{ height, marginBlock: small ? "0" : "5rem" }}
     >
