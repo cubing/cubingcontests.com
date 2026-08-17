@@ -8,9 +8,10 @@ import { MainContext } from "~/helpers/contexts.ts";
 
 type Props = {
   organizations: (typeof authClient.$Infer.Organization)[];
+  isAdmin: boolean;
 };
 
-function OrganizationSelect({ organizations }: Props) {
+function OrganizationSelect({ organizations, isAdmin }: Props) {
   const router = useRouter();
   const { changeErrorMessages } = useContext(MainContext);
   const { mutate } = useSWRConfig();
@@ -18,7 +19,8 @@ function OrganizationSelect({ organizations }: Props) {
   const selectOrganization = async (organization: typeof authClient.$Infer.Organization) => {
     const { error } = await authClient.organization.setActive({ organizationId: organization.id });
 
-    if (error) {
+    // For instance admins we always want to redirect to the space
+    if (error && !isAdmin) {
       changeErrorMessages([error.message ?? error.statusText]);
     } else {
       // Clear the SWR cache

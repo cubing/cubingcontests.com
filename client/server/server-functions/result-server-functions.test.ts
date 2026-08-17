@@ -173,7 +173,7 @@ describe("createContestResultSF", () => {
       });
 
       expect(res.serverError).toBeUndefined();
-      expect((res.validationErrors?.newResultDto?.personIds as any)._errors?.[0]).toBe(
+      expect((res.validationErrors!.newResultDto!.personIds as any)._errors?.[0]).toBe(
         "You cannot select the same competitor twice in the same result",
       );
       expect(res.data).toBeUndefined();
@@ -191,7 +191,7 @@ describe("createContestResultSF", () => {
       });
 
       expect(res.serverError).toBeUndefined();
-      expect((res.validationErrors?.newResultDto?.attempts as any)._errors?.[0]).toBe(
+      expect((res.validationErrors!.newResultDto!.attempts as any)._errors?.[0]).toBe(
         "You cannot submit only DNS attempts or only empty attempts",
       );
       expect(res.data).toBeUndefined();
@@ -209,7 +209,7 @@ describe("createContestResultSF", () => {
       });
 
       expect(res.serverError).toBeUndefined();
-      expect((res.validationErrors?.newResultDto?.attempts as any)._errors?.[0]).toBe(
+      expect((res.validationErrors!.newResultDto!.attempts as any)._errors?.[0]).toBe(
         "You cannot submit only DNS attempts or only empty attempts",
       );
       expect(res.data).toBeUndefined();
@@ -1003,7 +1003,7 @@ describe("createVideoBasedResultSF", () => {
       });
 
       expect(res.serverError).toBeUndefined();
-      expect((res.validationErrors?.newResultDto?.attempts as any[])[0].result?._errors?.[0]).toBe(
+      expect((res.validationErrors!.newResultDto!.attempts as any[])[0].result?._errors?.[0]).toBe(
         "You cannot submit an empty attempt",
       );
       expect(res.data).toBeUndefined();

@@ -10,7 +10,7 @@ import { db } from "~/server/db/provider.ts";
 async function HomePage() {
   const hdrs = await headers();
   const session = await auth.api.getSession({ headers: hdrs });
-  const isAdmin = session && getHasRole("admin", session.user.role);
+  const isAdmin = Boolean(session && getHasRole("admin", session.user.role));
   const organizations = isAdmin
     ? await db.query.organizations.findMany({
         columns: { id: true, name: true, slug: true, createdAt: true, logo: true, metadata: true },
@@ -48,7 +48,7 @@ async function HomePage() {
             You are not part of any spaces on {process.env.NEXT_PUBLIC_PROJECT_NAME}.
           </p>
         ) : (
-          <OrganizationSelect organizations={organizations} />
+          <OrganizationSelect organizations={organizations} isAdmin={isAdmin} />
         )}
       </div>
 

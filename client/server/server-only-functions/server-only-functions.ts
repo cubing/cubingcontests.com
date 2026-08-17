@@ -155,7 +155,7 @@ export async function authorizeUser(
       }
     }
 
-    if (orgRole && !getHasRole("owner", member.role)) {
+    if (orgRole && !getHasRole("owner", member.role) && !getHasRole("admin", session.user.role)) {
       const hasRole = getHasRole(orgRole, member.role);
       if (!hasRole) throw new RrActionError("You are unauthorized to perform this action");
     }
@@ -194,9 +194,15 @@ export async function getOrgDetails({
     });
 
   const session = s ?? (await auth.api.getSession({ headers: await headers() })) ?? undefined;
+  const isSiteAdmin = session && getHasRole("admin", session.user.role);
 
-  if (organization.metadata.private && (!session || session.session.activeOrganizationId !== organization.id))
+  if (
+    organization.metadata.private &&
+    (!session || session.session.activeOrganizationId !== organization.id) &&
+    !isSiteAdmin
+  ) {
     redirect("/login");
+  }
 
   if (IS_RR_INSTANCE) {
     const subscription = await db.query.subscriptions.findFirst({
@@ -212,7 +218,7 @@ export async function getOrgDetails({
         columns: { role: true },
         where: { organizationId: organization.id, userId: session.user.id },
       });
-      if (!member || !getHasRole("owner", member.role))
+      if ((!member || !getHasRole("owner", member.role)) && !isSiteAdmin)
         throw new RrActionError("There is no active subscription for this space");
     }
   }
