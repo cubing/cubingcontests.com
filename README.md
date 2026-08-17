@@ -14,17 +14,17 @@ Deni Mintsaev is the main developer of RecordRanks, and all contributions go dir
 
 Below are some screenshots from one of the RecordRanks instances: [Cubing Contests](https://cubingcontests.com/) (a lot of this is mock data). This was the first instance of RecordRanks.
 
-<img src="https://codeberg.org/mintydev/RecordRanks/raw/branch/main/client/public/screenshots/contest_results.jpg" width="500"/>
+<img src="https://raw.githubusercontent.com/mintydev-ltd/RecordRanks/refs/heads/main/client/public/screenshots/contest_results.jpg" width="500"/>
 
-<img src="https://codeberg.org/mintydev/RecordRanks/raw/branch/main/client/public/screenshots/records.jpg" width="500"/>
+<img src="https://raw.githubusercontent.com/mintydev-ltd/RecordRanks/refs/heads/main/client/public/screenshots/records.jpg" width="500"/>
 
-<img src="https://codeberg.org/mintydev/RecordRanks/raw/branch/main/client/public/screenshots/rankings.jpg" width="500"/>
+<img src="https://raw.githubusercontent.com/mintydev-ltd/RecordRanks/refs/heads/main/client/public/screenshots/rankings.jpg" width="500"/>
 
-<img src="https://codeberg.org/mintydev/RecordRanks/raw/branch/main/client/public/screenshots/mod_dashboard.jpg" width="500"/>
+<img src="https://raw.githubusercontent.com/mintydev-ltd/RecordRanks/refs/heads/main/client/public/screenshots/mod_dashboard.jpg" width="500"/>
 
-<img src="https://codeberg.org/mintydev/RecordRanks/raw/branch/main/client/public/screenshots/data_entry.jpg" width="500"/>
+<img src="https://raw.githubusercontent.com/mintydev-ltd/RecordRanks/refs/heads/main/client/public/screenshots/data_entry.jpg" width="500"/>
 
-<img src="https://codeberg.org/mintydev/RecordRanks/raw/branch/main/client/public/screenshots/competitors.jpg" width="500"/>
+<img src="https://raw.githubusercontent.com/mintydev-ltd/RecordRanks/refs/heads/main/client/public/screenshots/competitors.jpg" width="500"/>
 
 ## Deployment
 
