@@ -196,6 +196,10 @@ The export files can be imported with Supabase, but keep in mind that they don't
 
 Note: due to limitations with the CSV format, empty string values are represented as `__EMPTY_STRING__`. You can (and should) safely change those values to `""` (empty string), if you find any.
 
+### OG image generation
+
+RecordRanks has a dedicated microservice for automated generation of OG images (for image previews when sharing links on social media). See the [RecordRanks OG images repo](https://github.com/mintydev-ltd/recordranks-og-images) for information about how to use it.
+
 ### Scorecards service
 
 A `docker-compose.scorecards.yml` file is available for optionally running a scorecard generation service, using [zbaruch20/scorecard-generator](https://github.com/zbaruch20/scorecard-generator). This container provides a web interface for generating scorecards for recording attempts at competitions (this is only used for free-for-all formats, not tournaments). Each scorecard includes fields for the competition name, competitor's name, event, round, and the result for each attempt. To start this service, run:
