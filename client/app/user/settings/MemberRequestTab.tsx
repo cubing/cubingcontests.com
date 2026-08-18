@@ -15,7 +15,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
-import type { InputPerson, MemberRequestDetails } from "~/helpers/types.ts";
+import type { InputPerson, MemberRequestDetails, SpaceType } from "~/helpers/types.ts";
 import { getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -27,9 +27,10 @@ import {
 
 type Props = {
   regions: RegionResponse[];
+  spaceType: SpaceType | undefined;
 };
 
-function MemberRequestTab({ regions }: Props) {
+function MemberRequestTab({ regions, spaceType }: Props) {
   const { member } = useSession();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
@@ -178,10 +179,14 @@ function MemberRequestTab({ regions }: Props) {
       )}
 
       <Modal ref={dialogRef} title={persons[0] ? "Edit Person" : "Create New Person"}>
-        <p className="fw-bold mb-1 text-danger">
-          If you have a WCA ID, please close this window and simply enter it into the main input.
-        </p>
-        <p>Only use this for submitting a new competitor profile without a WCA ID.</p>
+        {spaceType === "speedcubing" && (
+          <div className="tw:px-4">
+            <p className="fw-bold mb-1 text-danger">
+              If you have a WCA ID, please close this window and simply enter it into the main input.
+            </p>
+            <p>Only use this for submitting a new competitor profile without a WCA ID.</p>
+          </div>
+        )}
         <PersonForm
           key={persons[0]?.id}
           personUnderEdit={persons[0] ?? undefined}

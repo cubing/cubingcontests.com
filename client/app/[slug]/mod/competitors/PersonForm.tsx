@@ -14,7 +14,7 @@ import { MainContext } from "~/helpers/contexts.ts";
 import type { Creator } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 import type { PersonDto } from "~/helpers/validators/Person.ts";
-import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import {
   createPersonSF,
@@ -26,7 +26,7 @@ type Props = {
   personUnderEdit: PersonResponse | undefined; // undefined means we're creating a new person
   creator?: Creator | null; // null means the user has been deleted
   regions: RegionResponse[];
-  onSubmit: (person: PersonResponse, { isNew }: { isNew: boolean }) => void;
+  onSubmit: (person: SelectPerson, { isNew }: { isNew: boolean }) => void;
   onSubmitError?: () => void;
   onCancel?: () => void;
   wcaIdInputHidden?: boolean;
@@ -80,7 +80,7 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
     }
   };
 
-  const afterSubmit = (newPerson: PersonResponse) => {
+  const afterSubmit = (newPerson: SelectPerson) => {
     const redirect = searchParams.get("redirect");
 
     reset();
@@ -88,11 +88,10 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
       `${newPerson.name} successfully ${personUnderEdit ? "updated" : "added"}${redirect ? ". Going back..." : ""}`,
     );
 
-    // Redirect if there is a redirect parameter in the URL, otherwise focus the first input
-    if (!redirect) {
-      onSubmit(newPerson, { isNew: !personUnderEdit });
-    } else {
+    if (redirect) {
       setTimeout(() => router.push(redirect), 2000);
+    } else {
+      onSubmit(newPerson, { isNew: !personUnderEdit });
     }
   };
 

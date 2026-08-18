@@ -42,7 +42,7 @@ function Form({
   return (
     <form
       onSubmit={(e) => e.preventDefault()}
-      className={`container mx-auto my-4 px-3 ${className}`}
+      className={`container mx-auto my-4 tw:px-4 ${className}`}
       style={{ maxWidth: "var(--rr-md-width)" }}
     >
       {!hideToasts && <ToastMessages />}

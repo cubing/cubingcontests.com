@@ -31,26 +31,24 @@ function CreatorDetails({
   if (creator === null) specialCase = <span className="text-danger">Deleted user</span>;
   else if (isCurrentUser) specialCase = <span>Me</span>;
 
-  if (specialCase)
+  if (specialCase) {
     return (
       <div className={`d-flex column-gap-2 align-items-center ${className}`}>
-        {small ? "" : "Created by:"}
+        {!small && "Created by:"}
         {specialCase}
         {createdExternally && ApiIcon}
       </div>
     );
+  }
 
-  const creatorName = <a href={`mailto:${creator!.email}`}>{creator!.name}</a>;
+  const creatorName = creator?.email ? <a href={`mailto:${creator.email}`}>{creator!.name}</a> : creator!.name;
   const competitor = creator?.person ? <Competitor person={creator.person} regions={regions} noFlag /> : undefined;
 
   return (
     <div className={`d-flex column-gap-2 flex-wrap align-items-center ${className}`}>
       {!small && <span>Created by:</span>}
       {competitor}
-      <span>
-        ({small ? "" : "user: "}
-        {creatorName})
-      </span>
+      <span>(user: {creatorName})</span>
       {createdExternally && ApiIcon}
     </div>
   );

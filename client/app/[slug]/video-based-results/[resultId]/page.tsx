@@ -37,7 +37,9 @@ async function UpdateVideoBasedResultPage({ params }: Props) {
 
   const participants = await db.query.persons.findMany({ where: { id: { in: result.personIds } } });
   const creator = result.createdBy
-    ? ((await getCreators({ organizationId: organization!.id, userIds: [result.createdBy] })).at(0) ?? null)
+    ? ((await getCreators({ organizationId: organization!.id, userIds: [result.createdBy], includeEmails: true })).at(
+        0,
+      ) ?? null)
     : null;
 
   return (

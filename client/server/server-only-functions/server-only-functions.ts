@@ -685,7 +685,7 @@ export async function getOrCreatePersonByWcaId(
       createdBy: creatorUserId,
       createdExternally,
     })
-    .returning(personsPublicCols);
+    .returning();
 
   return { person: createdPerson, isNew: true };
 }
@@ -792,9 +792,11 @@ export async function getMemberRequestDetails({
 export async function getCreators({
   organizationId,
   userIds,
+  includeEmails,
 }: {
   organizationId: string;
   userIds: string[];
+  includeEmails: boolean;
 }): Promise<Creator[]> {
   if (userIds.length === 0) return [];
 
@@ -802,7 +804,7 @@ export async function getCreators({
     .select({
       userId: membersTable.userId,
       name: usersTable.name,
-      email: usersTable.email,
+      ...(includeEmails ? { email: usersTable.email } : undefined),
       person: {
         id: personsTable.id,
         name: personsTable.name,

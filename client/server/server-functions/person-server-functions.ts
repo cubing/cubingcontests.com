@@ -120,46 +120,44 @@ export const createPersonSF = actionClient
       ignoreDuplicate: z.boolean().default(false),
     }),
   )
-  .action<PersonResponse | SelectPerson>(
-    async ({ parsedInput: { newPersonDto, ignoreDuplicate }, ctx: { session, httpHeaders } }) => {
-      newPersonDto.name = newPersonDto.name.trim();
-      if (newPersonDto.localizedName) newPersonDto.localizedName = newPersonDto.localizedName.trim();
-      const { name, wcaId } = newPersonDto;
-      logMessage("RR0019", `Creating person with name ${name} and ${wcaId ? `WCA ID ${wcaId}` : "no WCA ID"}`);
+  .action<SelectPerson>(async ({ parsedInput: { newPersonDto, ignoreDuplicate }, ctx: { session, httpHeaders } }) => {
+    newPersonDto.name = newPersonDto.name.trim();
+    if (newPersonDto.localizedName) newPersonDto.localizedName = newPersonDto.localizedName.trim();
+    const { name, wcaId } = newPersonDto;
+    logMessage("RR0019", `Creating person with name ${name} and ${wcaId ? `WCA ID ${wcaId}` : "no WCA ID"}`);
 
-      await validateMaxTotalCompetitors(session.organization!);
+    await validateMaxTotalCompetitors(session.organization!);
 
-      const [{ success: canCreate }, { success: canApprove }] = await Promise.all([
-        auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { persons: ["create"] } } }),
-        auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { persons: ["approve"] } } }),
-      ]);
+    const [{ success: canCreate }, { success: canApprove }] = await Promise.all([
+      auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { persons: ["create"] } } }),
+      auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { persons: ["approve"] } } }),
+    ]);
 
-      // Regular users are only allowed to create one person without a WCA ID (when requesting a competitor profile)
-      if (!canCreate) {
-        if (session.member!.personId) {
-          throw new RrActionError("You already have a competitor profile tied to your account");
-        } else {
-          const existingProfile = await db.query.persons.findFirst({
-            columns: { id: true },
-            where: { organizationId: session.organization!.id, createdBy: session.user.id, wcaId: { isNull: true } },
-          });
-          if (existingProfile) {
-            throw new RrActionError(
-              `You have already created a competitor profile (ID ${existingProfile.id}). Edit that profile instead of creating a new one.`,
-            );
-          }
+    // Regular users are only allowed to create one person without a WCA ID (when requesting a competitor profile)
+    if (!canCreate) {
+      if (session.member!.personId) {
+        throw new RrActionError("You already have a competitor profile tied to your account");
+      } else {
+        const existingProfile = await db.query.persons.findFirst({
+          columns: { id: true },
+          where: { organizationId: session.organization!.id, createdBy: session.user.id, wcaId: { isNull: true } },
+        });
+        if (existingProfile) {
+          throw new RrActionError(
+            `You have already created a competitor profile (ID ${existingProfile.id}). Edit that profile instead of creating a new one.`,
+          );
         }
       }
+    }
 
-      await validatePerson(session.organization!.id, newPersonDto, { ignoreDuplicate, canApprove });
+    await validatePerson(session.organization!.id, newPersonDto, { ignoreDuplicate, canApprove });
 
-      const query = db
-        .insert(table)
-        .values({ ...newPersonDto, organizationId: session.organization!.id, createdBy: session.user.id });
-      const [createdPerson] = await (canApprove ? query.returning() : query.returning(personsPublicCols));
-      return createdPerson;
-    },
-  );
+    const [createdPerson] = await db
+      .insert(table)
+      .values({ ...newPersonDto, organizationId: session.organization!.id, createdBy: session.user.id })
+      .returning();
+    return createdPerson;
+  });
 
 export const updatePersonSF = actionClient
   // Permissions checked below
@@ -171,7 +169,7 @@ export const updatePersonSF = actionClient
       ignoreDuplicate: z.boolean().default(false), // this is only relevant when the user has the approve permission (see validatePerson())
     }),
   )
-  .action<PersonResponse | SelectPerson>(
+  .action<SelectPerson>(
     async ({ parsedInput: { id, newPersonDto, ignoreDuplicate }, ctx: { session, httpHeaders } }) => {
       const { name, wcaId } = newPersonDto;
       logMessage("RR0020", `Updating person with name ${name} and ${wcaId ? `WCA ID ${wcaId}` : "no WCA ID"}`);
@@ -210,8 +208,7 @@ export const updatePersonSF = actionClient
 
       await validatePerson(session.organization!.id, personDto, { excludeId: id, ignoreDuplicate, canApprove });
 
-      const query = db.update(table).set(personDto).where(eq(table.id, id));
-      const [updatedPerson] = await (canApprove ? query.returning() : query.returning(personsPublicCols));
+      const [updatedPerson] = await db.update(table).set(personDto).where(eq(table.id, id)).returning();
       return updatedPerson;
     },
   );

@@ -1,7 +1,7 @@
 import type { ApiKey } from "@better-auth/api-key";
 import type { authClient } from "~/helpers/auth-client.ts";
 import type { FullMemberRequest } from "~/server/db/schema/member-requests.ts";
-import type { PersonResponse } from "~/server/db/schema/persons.ts";
+import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 
 // Other types
 
@@ -44,7 +44,7 @@ export type FullSession = typeof authClient.$Infer.Session & {
 export type Creator = {
   userId: string;
   name: string;
-  email: string;
+  email?: string;
   person: {
     id: number;
     name: string;
@@ -94,10 +94,15 @@ export type EventWrPair = {
   average?: number;
 };
 
-export type GetOrCreatePersonObject = {
-  person: PersonResponse;
-  isNew: boolean;
-};
+export type GetOrCreatePersonObject =
+  | {
+      person: PersonResponse;
+      isNew: false;
+    }
+  | {
+      person: SelectPerson;
+      isNew: true;
+    };
 
 export type MemberRequestDetails = {
   memberRequest: FullMemberRequest | null;

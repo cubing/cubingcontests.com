@@ -10,5 +10,6 @@ export const SwrKey = {
   CanPublishContests: "can-publish-contests",
   CanSubmitOwnOnlineCompResult: "can-submit-own-online-comp-result",
   CanAccessModDashboard: "can-access-mod-dashboard",
+  CanApprovePersons: "can-approve-persons",
   CanApproveVideoBasedResults: "can-approve-video-based-results",
 } as const;

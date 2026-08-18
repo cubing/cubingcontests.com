@@ -114,7 +114,7 @@ async function CreateEditContestPage({ searchParams }: Props) {
           : undefined,
         db.select(personsPublicCols).from(personsTable).where(inArray(personsTable.id, contest.organizerIds)),
         canApprove && contest.createdBy
-          ? getCreators({ organizationId: organization!.id, userIds: [contest.createdBy] })
+          ? getCreators({ organizationId: organization!.id, userIds: [contest.createdBy], includeEmails: true })
           : [],
       ]);
       totalResultsByRound = totalResultsByRoundRes;

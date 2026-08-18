@@ -6,6 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useMemo, useRef, useState } from "react";
+import useSWR from "swr";
 import Competitor from "~/app/components/Competitor.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
@@ -17,9 +18,10 @@ import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import type { Creator, ListPageMode, SpaceType } from "~/helpers/types.ts";
-import { getActionError, getSimplifiedString } from "~/helpers/utility-functions.ts";
+import { clientGetHasPermission, getActionError, getSimplifiedString } from "~/helpers/utility-functions.ts";
 import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { approvePersonSF, deletePersonSF } from "~/server/server-functions/person-server-functions.ts";
@@ -34,28 +36,25 @@ const approvedFilterOptions: MultiChoiceOption[] = [
 type Props = {
   regions: RegionResponse[];
   spaceType: SpaceType;
-} & (
-  | {
-      // When requested by an admin
-      persons: SelectPerson[];
-      creators: Creator[];
-    }
-  | {
-      persons: PersonResponse[];
-      creators?: never;
-    }
-);
+  // When requested by an admin, this is type SelectPerson[]
+  persons: SelectPerson[] | (PersonResponse & Pick<SelectPerson, "createdBy">)[];
+  creators: Creator[];
+};
 
 function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, creators }: Props) {
   const searchParams = useSearchParams();
-  const { user } = useSession();
+  const { user, session } = useSession();
   const { changeSuccessMessage, changeErrorMessages, resetMessages } = useContext(MainContext);
 
   const { executeAsync: deletePerson, isPending: isDeleting } = useAction(deletePersonSF);
   const { executeAsync: approvePerson, isPending: isApproving } = useAction(approvePersonSF);
+  const { data: canApprovePersons } = useSWR(
+    session?.activeOrganizationId ? [SwrKey.CanApprovePersons, session] : null,
+    () => clientGetHasPermission({ persons: ["approve"] }),
+  );
   const [mode, setMode] = useState<ListPageMode | "add-once">(searchParams.get("redirect") ? "add-once" : "view");
-  const [persons, setPersons] = useState<PersonResponse[] | SelectPerson[]>(initPersons);
-  const [personUnderEdit, setPersonUnderEdit] = useState<PersonResponse | SelectPerson>();
+  const [persons, setPersons] = useState(initPersons);
+  const [personUnderEdit, setPersonUnderEdit] = useState<(typeof persons)[number]>();
   const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState("");
@@ -63,10 +62,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
   // Only used for admins. Is used to confirm approval of person with exact name and country match with a WCA person.
   const ignoredWcaMatches = useRef<{ personId: number; wcaMatches: string[] }>(undefined);
   const creator = useMemo(
-    () =>
-      personUnderEdit
-        ? (creators?.find((c) => c.userId === (personUnderEdit as SelectPerson).createdBy) ?? null)
-        : undefined,
+    () => (personUnderEdit ? (creators.find((c) => c.userId === personUnderEdit.createdBy) ?? null) : undefined),
     [personUnderEdit, creators],
   );
   const filteredPersons = useMemo(() => {
@@ -78,7 +74,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
         (p.wcaId && p.wcaId.toLowerCase() === simplifiedSearch) || // search by WCA ID
         getSimplifiedString(p.name).includes(simplifiedSearch) || // search by name
         (p.localizedName && getSimplifiedString(p.localizedName).includes(simplifiedSearch)) || // search by localized name
-        (creators && creators.find((c) => c.userId === (p as SelectPerson).createdBy)?.name === simplifiedSearch); // search by creator name
+        creators.find((c) => c.userId === p.createdBy)?.name === simplifiedSearch; // search by creator name
 
       const passesApprovedFilter =
         approvedFilter === "" ||
@@ -89,7 +85,6 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     });
   }, [persons, approvedFilter, search]);
 
-  const isAdmin = creators !== undefined;
   const buttonsDisabled = mode !== "view" || isDeleting || isApproving;
 
   const rowVirtualizer = useVirtualizer({
@@ -111,7 +106,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     resetMessages();
   };
 
-  const onEditCompetitor = (person: PersonResponse) => {
+  const onEditCompetitor = (person: (typeof persons)[number]) => {
     ignoredWcaMatches.current = undefined;
     resetMessages();
     setMode("edit");
@@ -119,7 +114,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     window.scrollTo(0, 0);
   };
 
-  const deleteCompetitor = async (person: PersonResponse) => {
+  const deleteCompetitor = async (person: (typeof persons)[number]) => {
     ignoredWcaMatches.current = undefined;
     setLoadingId(`delete_person_${person.id}_button`);
     const res = await deletePerson({ id: person.id });
@@ -133,7 +128,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     }
   };
 
-  const approveCompetitor = async (person: PersonResponse) => {
+  const approveCompetitor = async (person: (typeof persons)[number]) => {
     if (ignoredWcaMatches.current && person.id !== ignoredWcaMatches.current.personId) {
       ignoredWcaMatches.current = undefined;
     }
@@ -154,7 +149,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     }
   };
 
-  const updateCompetitors = (person: PersonResponse | SelectPerson, { isNew }: { isNew: boolean }) => {
+  const updateCompetitors = (person: (typeof persons)[number], { isNew }: { isNew: boolean }) => {
     if (isNew) {
       setPersons([person, ...persons]);
     } else {
@@ -195,10 +190,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                 title="Search"
                 value={search}
                 setValue={setSearch}
-                tooltip={
-                  "Search by name, localized name, or ID" +
-                  (isAdmin ? ". Admins can also search by the name or username of the creator." : "")
-                }
+                tooltip="Search by name, localized name, ID, or by the name or username of the creator."
                 oneLine
               />
               <FormSelect
@@ -226,7 +218,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                     <th scope="col">Localized Name</th>
                     {spaceType === "speedcubing" && <th scope="col">WCA ID</th>}
                     <th scope="col">Country</th>
-                    {creators && <th scope="col">Created by</th>}
+                    <th scope="col">Created by</th>
                     <th scope="col">Approved</th>
                     <th scope="col">Actions</th>
                   </tr>
@@ -235,10 +227,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                   {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
                     if (filteredPersons.length === 0) return undefined;
                     const person = filteredPersons[virtualItem.index];
-                    const personCreator = creators
-                      ? // null means the user has been deleted
-                        (creators.find((c) => c.userId === (person as SelectPerson).createdBy) ?? null)
-                      : undefined;
+                    const personCreator = creators.find((c) => c.userId === person.createdBy) ?? null;
 
                     return (
                       <tr
@@ -257,23 +246,21 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                         <td>
                           <Region regionCode={person.regionCode} regions={regions} shorten />
                         </td>
-                        {personCreator !== undefined && (
-                          <td>
-                            <CreatorDetails
-                              creator={personCreator}
-                              regions={regions}
-                              createdExternally={!!(person as SelectPerson).createdExternally}
-                              isCurrentUser={(person as SelectPerson).createdBy === user?.id}
-                              small
-                            />
-                          </td>
-                        )}
+                        <td>
+                          <CreatorDetails
+                            creator={personCreator}
+                            regions={regions}
+                            createdExternally={!!(person as SelectPerson).createdExternally}
+                            isCurrentUser={(person as SelectPerson).createdBy === user?.id}
+                            small
+                          />
+                        </td>
                         <td>
                           <ActiveInactiveIcon isActive={person.approved} />
                         </td>
                         <td>
                           <div className="d-flex gap-2">
-                            {isAdmin && !person.approved && (
+                            {canApprovePersons && !person.approved && (
                               <Button
                                 id={`approve_person_${person.id}_button`}
                                 onClick={() => approveCompetitor(person)}
@@ -286,7 +273,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                                 <FontAwesomeIcon icon={faCheck} />
                               </Button>
                             )}
-                            {(isAdmin || !person.approved) && (
+                            {(canApprovePersons || (person.createdBy === user?.id && !person.approved)) && (
                               <Button
                                 onClick={() => onEditCompetitor(person)}
                                 disabled={buttonsDisabled}
@@ -297,7 +284,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                                 <FontAwesomeIcon icon={faPencil} />
                               </Button>
                             )}
-                            {(isAdmin || !person.approved) && (
+                            {(canApprovePersons || (person.createdBy === user?.id && !person.approved)) && (
                               <Button
                                 id={`delete_person_${person.id}_button`}
                                 onClick={() => deleteCompetitor(person)}

@@ -16,6 +16,7 @@ import { HAS_WCA_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
+import type { SpaceType } from "~/helpers/types.ts";
 import { getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
@@ -36,9 +37,10 @@ type Account = {
 type Props = {
   initPerson: PersonResponse | undefined;
   regions: RegionResponse[] | undefined;
+  spaceType: SpaceType | undefined;
 };
 
-function UserSettingsScreen({ initPerson, regions }: Props) {
+function UserSettingsScreen({ initPerson, regions, spaceType }: Props) {
   const router = useRouter();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
   const { session, user, member } = useSession();
@@ -243,7 +245,7 @@ function UserSettingsScreen({ initPerson, regions }: Props) {
       )}
 
       {/* If this tab is active, that means the user has an active org and regions are defined */}
-      {activeTab === "member-request" && <MemberRequestTab regions={regions!} />}
+      {activeTab === "member-request" && <MemberRequestTab regions={regions!} spaceType={spaceType} />}
     </>
   );
 }

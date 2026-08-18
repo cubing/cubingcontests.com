@@ -4,6 +4,7 @@ import { SWRConfig } from "swr";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
+import type { SpaceType } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
 import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import {
@@ -15,13 +16,14 @@ import {
 import UserSettingsScreen from "./UserSettingsScreen.tsx";
 
 async function UserSettingsPage() {
-  const { member } = await authorizeUser({ useOrganization: false });
+  const { member, organization } = await authorizeUser({ useOrganization: false });
 
-  const [[person], regions] = await Promise.all([
+  const [[person], regions, spaceType] = await Promise.all([
     member?.personId
       ? db.select(personsPublicCols).from(personsTable).where(eq(personsTable.id, member.personId)).limit(1)
       : [],
     member ? getRegions(member.organizationId) : undefined,
+    organization ? getSettingFromDb({ key: "space-type", organizationId: organization.id }) : undefined,
   ]);
 
   return (
@@ -41,7 +43,7 @@ async function UserSettingsPage() {
         }}
       >
         <Suspense fallback={<Loading />}>
-          <UserSettingsScreen initPerson={person} regions={regions} />
+          <UserSettingsScreen initPerson={person} regions={regions} spaceType={spaceType as SpaceType | undefined} />
         </Suspense>
       </SWRConfig>
     </section>
