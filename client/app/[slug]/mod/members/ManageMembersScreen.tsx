@@ -112,7 +112,8 @@ function ManageMembersScreen({
 
     const person = member.personId ? memberPersons.find((p) => p.id === member.personId) : undefined;
 
-    setIsMember(person !== undefined); // we always want to set the member role when the person profile is linked
+    // We always want to set the member role when the person profile is linked
+    setIsMember(getHasRole("member", member.role) || person !== undefined);
     setIsMod(getHasRole("mod", member.role));
     setIsVideoBasedResultReviewer(getHasRole("videoBasedResultReviewer", member.role));
     setIsAdmin(getHasRole("admin", member.role));
