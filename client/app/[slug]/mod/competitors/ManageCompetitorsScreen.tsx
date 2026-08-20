@@ -11,6 +11,7 @@ import useSWR from "swr";
 import Competitor from "~/app/components/Competitor.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
+import FormRegionSelect from "~/app/components/form/FormRegionSelect.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Region from "~/app/components/Region.tsx";
@@ -61,6 +62,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
   const [mode, setMode] = useState<ListPageMode | "add-once">(searchParams.get("redirect") ? "add-once" : "view");
   const [personUnderEdit, setPersonUnderEdit] = useState<SelectPerson>();
   const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
+  const [region, setRegion] = useState<string>(C.notSelectedOption);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState("");
@@ -73,9 +75,13 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     mutate,
     isValidating,
   } = useSWR(
-    ["person-profiles", search, approvedFilter],
+    ["person-profiles", search, approvedFilter, region],
     async () => {
-      const res = await getPersonProfilesSF({ search, approved: approvedFilter || undefined });
+      const res = await getPersonProfilesSF({
+        search,
+        approved: approvedFilter || undefined,
+        regionCode: region === C.notSelectedOption ? undefined : region,
+      });
 
       if (res.serverError || res.validationErrors) {
         changeErrorMessages([getActionError(res)]);
@@ -104,6 +110,8 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     setSearchInput("");
     setSearch("");
     setApprovedFilter("");
+    setRegion(C.notSelectedOption);
+    resetMessages();
   };
 
   const buttonsDisabled = mode !== "view" || isDeleting || isApproving || isValidating;
@@ -223,6 +231,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                 tooltip="Search by name, localized name, ID, or by the name or username of the creator."
                 oneLine
               />
+              <FormRegionSelect regionCode={region} setRegionCode={setRegion} regions={regions} noTitle />
               <FormSelect
                 title="Status"
                 options={approvedFilterOptions}
@@ -231,7 +240,7 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                 oneLine
                 style={{ maxWidth: "15rem" }}
               />
-              {(searchInput || approvedFilter) && (
+              {(searchInput || approvedFilter || region !== C.notSelectedOption) && (
                 <Button onClick={resetFilters} className="btn-secondary btn-sm">
                   Reset
                 </Button>

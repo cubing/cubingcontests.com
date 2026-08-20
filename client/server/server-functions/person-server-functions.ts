@@ -6,7 +6,7 @@ import { C } from "~/helpers/constants.ts";
 import type { GetOrCreatePersonObject } from "~/helpers/types.ts";
 import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "~/helpers/utility-functions.ts";
 import { type PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";
-import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
+import { RegionCodeValidator, WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
@@ -69,13 +69,16 @@ export const getPersonProfilesSF = actionClient
     z.strictObject({
       search: z.string().max(100).default(""),
       approved: z.enum(["approved", "unapproved"]).optional(),
+      regionCode: RegionCodeValidator.optional(),
     }),
   )
-  .action<SelectPerson[]>(async ({ parsedInput: { search, approved }, ctx: { session } }) => {
+  .action<SelectPerson[]>(async ({ parsedInput: { search, approved, regionCode }, ctx: { session } }) => {
     const queryFilters: any[] = [eq(table.organizationId, session.organization!.id)];
 
     if (approved === "approved") queryFilters.push(eq(table.approved, true));
     else if (approved === "unapproved") queryFilters.push(eq(table.approved, false));
+
+    if (regionCode) queryFilters.push(eq(table.regionCode, regionCode));
 
     const simplifiedSearch = getSimplifiedString(search);
     if (simplifiedSearch) {

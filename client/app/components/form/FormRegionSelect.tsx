@@ -9,6 +9,7 @@ type Props = {
   setRegionCode: (value: string | typeof C.notSelectedOption) => void;
   regions: Pick<SelectRegion, "code" | "name" | "shortName" | "type">[];
   nextFocusTargetId?: string;
+  noTitle?: boolean;
   continentOptions?: boolean;
   disabled?: boolean;
 };
@@ -18,6 +19,7 @@ function FormRegionSelect({
   setRegionCode,
   regions,
   nextFocusTargetId,
+  noTitle = false,
   continentOptions = false,
   disabled = false,
 }: Props) {
@@ -30,7 +32,7 @@ function FormRegionSelect({
 
   return (
     <div>
-      <FormInputLabel text="Region" inputId="region_code" />
+      {!noTitle && <FormInputLabel text="Region" inputId="region_code" />} 
 
       <select
         id="region_code"
