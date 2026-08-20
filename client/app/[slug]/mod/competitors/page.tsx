@@ -1,9 +1,9 @@
-import { desc, eq } from "drizzle-orm";
 import ManageCompetitorsScreen from "~/app/[slug]/mod/competitors/ManageCompetitorsScreen.tsx";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import type { SpaceType } from "~/helpers/types.ts";
 import { auth } from "~/server/auth.ts";
-import { db } from "~/server/db/provider.ts";
-import { personsPublicCols, type SelectPerson, personsTable as table } from "~/server/db/schema/persons.ts";
+import type { SelectPerson } from "~/server/db/schema/persons.ts";
+import { getPersonProfilesSF } from "~/server/server-functions/person-server-functions.ts";
 import {
   authorizeUser,
   getCreators,
@@ -17,19 +17,16 @@ async function CompetitorsPage() {
     orgPermissions: { persons: ["create", "update", "delete"] },
   });
 
-  const [{ success: canApprovePersons }, regions, spaceType] = await Promise.all([
+  const [{ success: canApprovePersons }, personsRes, regions, spaceType] = await Promise.all([
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { persons: ["approve"] } } }),
+    getPersonProfilesSF({}),
     getRegions(organization!.id),
     getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
   ]);
 
-  const persons = await (canApprovePersons
-    ? db.select()
-    : db.select({ ...personsPublicCols, createdBy: table.createdBy })
-  )
-    .from(table)
-    .where(eq(table.organizationId, organization!.id))
-    .orderBy(desc(table.id));
+  if (!personsRes.data) return <LoadingError loadingEntity="persons" />;
+
+  const persons = personsRes.data;
   const userIds = Array.from(
     new Set((persons as SelectPerson[]).filter((p) => p.createdBy !== null).map((p) => p.createdBy!)),
   );
@@ -43,7 +40,7 @@ async function CompetitorsPage() {
 
   return (
     <section>
-      <h2 className="mb-4 text-center">Manage Competitors</h2>
+      <h2 className="mb-4 text-center">Manage Persons</h2>
 
       <ManageCompetitorsScreen
         persons={persons}

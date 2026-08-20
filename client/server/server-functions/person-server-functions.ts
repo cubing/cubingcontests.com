@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ilike, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { C } from "~/helpers/constants.ts";
 import type { GetOrCreatePersonObject } from "~/helpers/types.ts";
@@ -9,6 +9,7 @@ import { type PersonDto, PersonValidator } from "~/helpers/validators/Person.ts"
 import { WcaIdValidator } from "~/helpers/validators/Validators.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
+import { usersTable } from "~/server/db/schema/auth-schema.ts";
 import {
   type PersonResponse,
   personsPublicCols,
@@ -52,7 +53,7 @@ export const getPersonsByNameSF = actionClient
     const simplifiedParts = getSimplifiedString(name)
       .split(" ")
       .map((part) => `%${part}%`);
-    const nameQuery = and(...simplifiedParts.map((part) => sql`UNACCENT(${table.name}) ILIKE ${part}`));
+    const nameQuery = and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${table.name})`, part)));
     const locNameQuery = and(...simplifiedParts.map((part) => ilike(table.localizedName, part)));
 
     return await db
@@ -60,6 +61,62 @@ export const getPersonsByNameSF = actionClient
       .from(table)
       .where(and(eq(table.organizationId, session.organization!.id), or(nameQuery, locNameQuery)))
       .limit(C.maxPersonMatches);
+  });
+
+export const getPersonProfilesSF = actionClient
+  .metadata({ auth: { useOrganization: true, orgPermissions: { persons: ["create", "update"] } } })
+  .inputSchema(
+    z.strictObject({
+      search: z.string().max(100).default(""),
+      approved: z.enum(["approved", "unapproved"]).optional(),
+    }),
+  )
+  .action<SelectPerson[]>(async ({ parsedInput: { search, approved }, ctx: { session } }) => {
+    const queryFilters: any[] = [eq(table.organizationId, session.organization!.id)];
+
+    if (approved === "approved") queryFilters.push(eq(table.approved, true));
+    else if (approved === "unapproved") queryFilters.push(eq(table.approved, false));
+
+    const simplifiedSearch = getSimplifiedString(search);
+    if (simplifiedSearch) {
+      const searchId = Number(simplifiedSearch);
+
+      if (Number.isNaN(searchId)) {
+        const searchConditions: any[] = [];
+
+        searchConditions.push(ilike(sql`UNACCENT(${table.name})`, `%${simplifiedSearch}%`));
+        searchConditions.push(ilike(table.localizedName, `%${simplifiedSearch}%`));
+        searchConditions.push(eq(sql`LOWER(${table.wcaId})`, simplifiedSearch));
+
+        // Search by the name of the creator of the person
+        searchConditions.push(
+          inArray(
+            table.createdBy,
+            db
+              .select({ id: usersTable.id })
+              .from(usersTable)
+              .where(
+                or(
+                  ilike(sql`UNACCENT(${usersTable.name})`, `%${simplifiedSearch}%`),
+                  ilike(sql`UNACCENT(${usersTable.username})`, `%${simplifiedSearch}%`),
+                ),
+              ),
+          ),
+        );
+
+        queryFilters.push(or(...searchConditions));
+      } else {
+        queryFilters.push(eq(table.id, searchId));
+      }
+    }
+
+    const persons = await db
+      .select()
+      .from(table)
+      .where(and(...queryFilters))
+      .orderBy(desc(table.id));
+
+    return persons;
   });
 
 export const getOrCreatePersonSF = actionClient

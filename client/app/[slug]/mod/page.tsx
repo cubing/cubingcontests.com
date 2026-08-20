@@ -4,7 +4,7 @@ import DocsButton from "~/app/components/content/DocsButton.tsx";
 import DonateButton from "~/app/components/content/DonateButton.tsx";
 import SocialLinkButton from "~/app/components/content/SocialLinkButton.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { C, IS_CUBING_CONTESTS_INSTANCE, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
 import { getHasRole, slugPath } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
